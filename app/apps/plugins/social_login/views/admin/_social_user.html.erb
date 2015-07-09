@@ -1,0 +1,70 @@
+<div class="panel panel-default">
+    <div class="panel-body">
+        <h3><span class="fa fa-cog"></span> <%= t('plugin.social_login.social_login') %></h3>
+    </div>
+    <div class="panel-body form-horizontal form-group-separated">
+        <% if site.get_option('twitter_public_key').present? && site.get_option('twitter_secret_key').present? %>
+            <div class="form-group">
+                <label class="col-md-4 col-xs-4 control-label"><%= t('admin.settings.login_twitter') %></label>
+                <div class="col-md-5 col-xs-5">
+                    <a class="btn btn-info btn-block btn-twitter" href="<%= auth_twitter_path %>" >
+                        <span class="fa fa-twitter"></span> <%= t('admin.settings.login_twitter') %>
+                    </a>
+                </div>
+                <div class="col-md-3 col-xs-3">
+                    <button title="Unlink Social Network" onclick="do_social_logout(this, 'twitter', '<%= current_user.id %>', 'approved', '<%= (social_present('twitter', current_user.id))? 'success' : 'danger'  %>'); return false;" class="btn btn-default <%= 'btn-primary' if social_present('twitter', current_user.id) %>"><span class="fa <%= (social_present('twitter', current_user.id))? 'fa-link' : 'fa-unlink' %>"></span></button>
+                </div>
+            </div>
+        <% end %>
+        <% if site.get_option('facebook_public_key').present? && site.get_option('facebook_secret_key').present? %>
+            <div class="form-group">
+                <label class="col-md-4 col-xs-4 control-label"><%= t('admin.settings.login_facebook') %></label>
+
+                <div class="col-md-5 col-xs-5">
+                    <a class="btn btn-info btn-block btn-facebook" href="<%= auth_facebook_path %>" >
+                        <span class="fa fa-facebook"></span>  <%= t('admin.settings.login_facebook') %>
+                    </a>
+                </div>
+                <div class="col-md-3 col-xs-3">
+                    <button title="Unlink Social Network" onclick="do_social_logout(this, 'facebook', '<%= current_user.id %>', 'approved', '<%= (social_present('facebook', current_user.id))? 'success' : 'danger'  %>'); return false;" class="btn btn-default <%= 'btn-primary' if social_present('facebook', current_user.id) %>"><span class="fa <%= (social_present('facebook', current_user.id))? 'fa-link' : 'fa-unlink' %>"></span></button>
+                </div>
+            </div>
+        <% end %>
+        <% if site.get_option('google_public_key').present? && site.get_option('google_secret_key').present? %>
+            <div class="form-group">
+                <label class="col-md-4 col-xs-4 control-label"><%= t('admin.settings.login_google') %> </label>
+                <div class="col-md-5 col-xs-5">
+                    <a class="btn btn-info btn-block btn-google" href="<%= auth_google_path %>" target="_blank">
+                        <span class="fa fa-google-plus"></span>  <%= t('admin.settings.login_google') %>
+                    </a>
+                </div>
+                <div class="col-md-3 col-xs-3">
+                    <button title="Unlink Social Network" onclick="do_social_logout(this, 'google_oauth2', '<%= current_user.id %>', 'approved', '<%= (social_present('google_oauth2', current_user.id))? 'success' : 'danger'  %>'); return false;" class="btn btn-default <%= 'btn-primary' if social_present('google_oauth2', current_user.id) %>"><span class="fa <%= (social_present('google_oauth2', current_user.id))? 'fa-link' : 'fa-unlink' %>"></span></button>
+                </div>
+
+            </div>
+        <% end %>
+    </div>
+
+</div>
+<script>
+    run.push(function()
+    {
+
+    });
+    function do_social_logout(dom, social, userid, value, color){
+
+        var path = '<%= admin_plugins_social_login_social_logout_path() %>';
+        var data = {social: social, userid: userid};
+        var class_color = "label-"+color;
+        var msn = "";
+        $.post( path, data, function(res){
+            if(res.notice){
+                msn =  res.notice;
+                $(dom).parent().find('.btn-primary').removeClass('btn-primary')
+                $.fn.alert({title: msn, type: color});
+            }
+        });
+
+    }
+</script>

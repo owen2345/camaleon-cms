@@ -1,0 +1,2 @@
+get 'index' => "admin#index"
+post 'index' => "admin#index"

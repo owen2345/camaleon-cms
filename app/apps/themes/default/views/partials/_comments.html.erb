@@ -1,0 +1,25 @@
+<section id="comments" class="comments-area">
+    <% if post.the_comments.count > 0 %>
+        <h2 class="comments-title"><%= post.the_comments.count %> <%= ct('comments')%> "<span><%= post.the_title %></span>"</h2>
+        <section class="comment-list">
+            <%= render partial: "partials/comments_list", locals: { comments: post.the_comments, children: "" } %>
+        </section>
+    <% end %>
+    <div id="respond" class="comment-respond">
+        <% if signin? %>
+            <h3 id="reply-title" class="comment-reply-title"><%= ct('comment_new')%></h3>
+            <%= form_for post, url:{action: :save_comment, post_id: post.id}, html: {method: "post", class: "comment-form"} do |f|%>
+                <input type="hidden" name="post_comment[post_id]" value="<%= post.id %>">
+                <input type="hidden" name="slug" value="<%= post.slug %>">
+                <div class="mb-20">
+                    <textarea id="textarea_comments" name="post_comment[content]" class="form-control counted" placeholder="<%= ct('comment')%>"></textarea>
+                </div>
+                <div class="mb-20">
+                    <button type="submit" class="btn btn-info pull-right"><%= ct('comment')%></button>
+                </div>
+            <% end %>
+        <% else %>
+            <div class="panel-login-comment"><%= ct('comment_msg')%>  <a class="link-login-comment" href="<%= admin_path %>"><%= ct('login')%></a></div>
+        <% end %>
+    </div>
+</section>

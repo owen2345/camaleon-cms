@@ -1,0 +1,199 @@
+<%
+   @item_value = @item_value || {}
+   @item_options_value = @item_options_value || {}
+   @item_id = @item_value[:id] || ''
+   @index = "#{@item_id}_#{Time.now.to_i}"
+   @field_config = cf_get_items[@key.to_sym]
+   colors = ['primary','success','warning','colorful','info','danger']
+%>
+
+<div id="panel-field<%= @index %>" class="panel panel-default panel-<%= colors.sample %> panel-item <%= 'panel-toggled' if @item_options_value[:panel_hidden].to_s.to_bool  %>">
+  <div class="panel-heading">
+    <h3 class="panel-title"><span class="span-title"><%= @item_value[:name]? @item_value[:name] : "#{t('admin.settings.untitled')}
+    #{@field_config[:label]}" %>
+    </span> - <%= @field_config[:label] %>
+        <%= t('admin.settings.field') %></h3>
+    <ul class="panel-controls">
+      <li><a class="panel-sortable" href="#" title="<%= t('admin.button.sortable')%>" data-toggle="tooltip" data-placement="left"><span class="fa fa-arrows"></span></a></li>
+      <li><a class="panel-delete" href="#" title="<%= t('admin.button.delete')%>" data-toggle="tooltip" data-placement="left"><span class="fa fa-times text-danger"></span></a></li>
+      <li><a class="panel-collapse" href="#"><span class="fa fa-angle-down"></span></a></li>
+    </ul>
+  </div>
+  <div class="panel-body">
+    <%= hidden_field(:fields, :id, index: @index, value: @item_id) %>
+    <div class="form-group input-group-sm">
+      <label for=""><%= t('admin.table.name') %></label><br>
+      <%= text_field(:fields, :name, class: "form-control text-title", index: @index, value: @item_value[:name]? @item_value[:name] : "#{t('admin.settings.untitled')} #{@field_config[:label]}") %>
+    </div>
+    <div class="form-group input-group-sm">
+      <label for=""><%= t('admin.table.slug') %></label><br>
+      <%= text_field(:fields, :slug, class: "form-control text-slug", index: @index, value: @item_value[:slug]) %>
+    </div>
+    <div class="form-group">
+      <label for=""><%= t('admin.table.description') %></label><br>
+      <%= text_area(:fields, :description, class: "form-control", index: @index, value: @item_value[:description]) %>
+    </div>
+
+    <%= hidden_field(:field_options, :field_key, index: @index, value: @key) %>
+    <%= hidden_field(:field_options, :panel_hidden, index: @index, value: @item_options_value[:panel_hidden], class: 'input-panel-hidden') %>
+
+    <%
+       html = ''
+       if @field_config[:extra_fields].present?
+
+           @field_config[:extra_fields].each do |input|
+                type = input[:type]
+                html += "<label>#{input[:label]}</label>" if input[:label].present?
+                case type
+                  when 'select'
+                    html += "<div class='form-group'> <select id=\"field_options_#{@index}_#{input[:key]}\" name=\"field_options[#{@index}][#{input[:key]}]\" class='form-control'>"
+                    input[:values].each do |val|
+                      html += "<option value='#{val[:value]}' #{"selected" if @item_options_value.present? ? (val[:value] == @item_options_value[input[:key].to_sym]) : false}>#{val[:label]}</option>"
+                    end
+                    html += "</select> </div>"
+                  when 'radio'
+                    input[:values].each do |val|
+                      html += "<div class='radio'><label>#{radio_button(:field_options, input[:key],val[:value], index: @index, checked: @item_options_value.present? ? (val[:value] == @item_options_value[input[:key].to_sym]) : (val[:value] == '0')) } #{val[:label]}</label></div>"
+                    end
+                  when 'checkbox'
+                    input[:values].each do |val|
+                      html += "<div class='checkbox'><label><input type=\"checkbox\" id=\"field_options_#{@index}_#{input[:key]}\" name=\"field_options[#{@index}][#{input[:key]}][]\" #{"checked" if @item_options_value[input[:key].to_sym].to_s.include?(val[:value].to_s) rescue false} value=\"#{val[:value]}\"> #{val[:label]} </label></div>"
+                    end
+                  when 'text_area'
+                    html += "#{text_area(:field_options, input[:key], index: @index , value: @item_options_value[input[:key].to_sym] || '', class: 'form-control') }"
+                  else
+                    html += "#{text_field(:field_options, input[:key], index: @index , value: @item_options_value[input[:key].to_sym] || '', class: 'form-control') }"
+                end
+            end
+        end
+    %>
+    <div class="form-group">
+      <%= raw html %>
+    </div>
+    <% if @field_config[:options][:multiple_options].present? %>
+        <div class="form-group">
+          <strong><%= @field_config[:options][:multiple_options][:label] %></strong>
+            <div class="sortable-fields-options">
+              <div id="clone<%= @index %>" class="hidden">
+                    <div class="actions">
+                      <i class="fa fa-arrows"></i> <i class="fa fa-times text-danger"></i>
+                    </div>
+                    <div class="inputs input-group input-group-sm">
+                      <input type="text" name="field_options[<%= @index %>][multiple_options][][title]" placeholder="Option title" class="form-control option-name" style="width: 160px;">
+                      <input type="text" name="field_options[<%= @index %>][multiple_options][][value]" placeholder="Value" class="form-control option-value" style="width: 120px;">
+                      <% if @field_config[:options][:multiple_options][:default].present? %>
+                          <div class="<%= @field_config[:options][:multiple_options][:default] %>" style="float: right; width: auto;">
+                            <label><input type="<%= @field_config[:options][:multiple_options][:default] %>" class="option-default" value="1" name="field_options[<%= @index %>][multiple_options][][default]"> <%= t('admin.table.default') %> </label>
+                          </div>
+                      <% end %>
+                    </div>
+              </div>
+
+
+              <ul id="sortable<%= @index %>" >
+
+              </ul>
+              <% if @field_config[:options][:multiple_options][:use_not_default].present?  %>
+                  <div class="radio_none_option">
+                    <label><input type="radio" class="option-default" value="none" name="field_options[<%= @index %>][multiple_options][][default]"> <%= t('admin.table.no_default') %> </label>
+                  </div>
+              <% end %>
+
+              <div style="margin-top: 4px">
+                <a id="add_btn<%= @index %>" href="#" class="btn btn-default btn-sm"> <i class="fa fa-plus"></i> <%= t('admin.button.add_option')%></a>
+              </div>
+              <script>
+
+                var function_init_options<%= @index %> = function(){
+                    var that = this;
+                    var $panel = $( "#panel-field<%= @index %>" );
+                    var $sortable = $( "#sortable<%= @index %>" );
+                    var option_default_html = $('#clone<%= @index %>').html();
+                    var option_default_values = <%= raw(@item_options_value[:multiple_options].present? ? @item_options_value[:multiple_options].to_json : '[]') %>
+                    function add_option_default(values){
+                        if(!values) values = {}
+                        values = $.extend({title: lang.option_title, value: '1',default: false},values)
+                        var $option = $('<li>'+option_default_html+'</li>');
+                        $option.find('.option-name').val(values.title);
+                        $option.find('.option-value').val(values.value);
+                        if(values.default && values.default != 'none') $option.find('.option-default').attr('checked','checked').prop('checked',true)
+                        if(values.default && values.default == 'none') $panel.find('.radio_none_option input').attr('checked','checked').prop('checked',true)
+
+                        $sortable.append($option)
+                    };
+
+                    if(option_default_values.length > 0){
+                        $.each(option_default_values, function(i, value){
+                            add_option_default(value);
+                        })
+                    }else{
+                        add_option_default({default: true});
+                    }
+
+                    $('#add_btn<%= @index %>').click(function(){
+                        add_option_default({
+                            value: $sortable.children('li').size() + 1
+                        });
+                        return false;
+                    });
+                    $sortable.sortable({
+                        handle: ".fa-arrows"
+                    });
+                    $sortable.on('click','.fa-times', function(){
+                        $(this).closest('li').remove()
+                        return false;
+                    })
+                    $('#clone<%= @index %>').remove();
+                }
+                if(typeof jQuery == 'function') jQuery(function_init_options<%= @index %>);
+                else run.push(function_init_options<%= @index %>);
+              </script>
+            </div>
+        </div>
+    <% end %>
+
+    <% if @field_config[:options][:default_value] %>
+
+        <div class="form-group input-group-sm">
+          <label><%= t('admin.table.default_value')%></label>
+        <%= text_field(:field_options, 'default_value', index: @index, value: @item_options_value[:default_value], class: 'form-control') %>
+        </div>
+    <% end %>
+
+    <% if @field_config[:options][:multiple] || @field_config[:options][:required] || @field_config[:options][:translate] %>
+        <strong><%= t('admin.table.options_field')%></strong>
+    <% end %>
+    <% if @field_config[:options][:multiple] %>
+        <div class="checkbox"><label><%= check_box(:field_options, 'multiple', index: @index, checked: @item_options_value[:multiple].to_s.to_bool) %> <%= t('admin.table.multiple_field_int') %> </label> <%= raw html_tooltip(t('admin.table.multiple_field_int'),'right')%></div>
+    <% end %>
+    <% if @field_config[:options][:required] %>
+        <div class="checkbox"><label><%= check_box(:field_options, 'required', index: @index, checked: @item_options_value[:required].to_s.to_bool) %> <%= t('admin.table.required_field_int') %> </label> <%= raw html_tooltip(t('admin.table.required_field_int'),'right')%></div>
+    <% end %>
+    <% if @field_config[:options][:translate] %>
+        <div class="checkbox"><label><%= check_box(:field_options, 'translate', index: @index, checked: @item_options_value[:translate].to_s.to_bool) %> <%= t('admin.table.translate_field_int') %> </label> <%= raw html_tooltip(t('admin.table.translate_field_int'),'right')%></div>
+    <% end %>
+    <% if @field_config[:options][:show_frontend] %>
+        <div class="checkbox"><label><%= check_box(:field_options, 'show_frontend', index: @index, checked: @item_options_value[:show_frontend].to_s.to_bool) %> <%= t('admin.table.show_in_frontend') %> </label> <%= raw html_tooltip( t('admin.table.show_in_frontend'),'right')%></div>
+    <% end %>
+
+
+  </div>
+</div>
+
+
+<script>
+
+    var function_init<%= @index %> = function(){
+        var that = this;
+        var $panel = $( "#panel-field<%= @index %>" );
+
+
+        $panel.find('.panel-collapse').click(function(){
+            setTimeout(function(){
+                $panel.find('.input-panel-hidden').val($panel.hasClass('panel-toggled'))
+            },500)
+        });
+    }
+    if(typeof jQuery == 'function') jQuery(function_init<%= @index %>);
+    else run.push(function_init<%= @index %>);
+</script>

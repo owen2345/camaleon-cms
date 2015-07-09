@@ -1,0 +1,16 @@
+<%= raw (submit)? '<form class="modal-body overflow-visible form-horizontal">' : '' %>
+<div class="panel-body" id="menu_external_link">
+    <div class="alert alert-info">You can use root_url as main url.</div>
+    <div class="form-group">
+        <label><%= t('admin.menus.link_url')%></label>
+        <input id="external_url" class="form-control" name="external_url" />
+    </div>
+    <div class="form-group">
+        <label><%= t('admin.menus.name_link')%></label>
+        <input id="external_label" class="form-control translatable" name="external_label" />
+    </div>
+    <div class="panel-footer">
+        <a href="#" id="add_external_link" class="btn btn-default pull-right"><%= t('admin.button.add_menu')%> <i class="fa fa-arrow-right"></i></a>
+    </div>
+</div>
+<%= raw (submit)? '</form">' : '' %>

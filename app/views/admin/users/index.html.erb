@@ -1,0 +1,58 @@
+<div class="page-title">
+  <h2><span class="fa fa-file-o"></span> <%= t('admin.users.list_users') %></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-12">
+
+      <!-- START BASIC TABLE SAMPLE -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"><%= t('admin.page_title.list')%></h3>
+          <%= link_to raw("<i class='fa fa-plus'></i> #{t('admin.users.add_user')}"), {action: :new}, class: "btn btn-primary pull-right" %>
+        </div>
+        <div class="panel-body">
+
+          <table class="table">
+            <thead>
+            <tr>
+              <th><%= t('admin.table.id') %></th>
+              <th><%= t('admin.table.username') %></th>
+              <th><%= t('admin.table.email') %></th>
+              <th><%= t('admin.table.role') %></th>
+              <th><%= t('admin.table.last_login') %></th>
+              <th><%= t('admin.table.actions') %></th>
+            </tr>
+            </thead>
+            <tbody>
+            <% @users.each do |f| %>
+                <tr>
+                  <td><%= f.id %></td>
+                  <td><%= f.username %></td>
+                  <td><%= f.email %></td>
+                  <td><%= f.role %></td>
+                  <td><%= f.last_login_at.strftime("%Y-%m-%d %H:%M:%S") if f.last_login_at.present? %></td>
+                  <td>
+                    <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs", title: "#{t('admin.button.edit')}" %>
+                    <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
+                                method: :delete, data: { confirm: t('admin.message.delete_item') }, class: "btn btn-danger btn-xs", title: "#{t('admin.button.delete')}" %>
+                  </td>
+                </tr>
+            <% end %>
+
+            </tbody>
+          </table>
+          <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if @users.empty? %>
+          <%= will_paginate @users, renderer: BootstrapPagination::Rails  if @users.present? %>
+
+        </div>
+
+      </div>
+      <!-- END BASIC TABLE SAMPLE -->
+    </div>
+  </div>
+
+</div>

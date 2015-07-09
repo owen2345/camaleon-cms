@@ -1,0 +1,118 @@
+<!-- PAGE TITLE -->
+<div class="page-title">
+    <h2><span class="fa fa-cogs"></span> <%= t('admin.users.profile')%></h2>
+</div>
+<!-- END PAGE TITLE -->
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+    <div class="row">
+        <div class="col-md-3 col-sm-4 ">
+            <div class="panel panel-default form-horizontal">
+                <div class="panel-body">
+                    <h3><span class="fa fa-user"></span> <%= @user.the_name %></h3>
+                    <p><%= @user.the_slogan %></p>
+                    <div class="text-center" id="user_image">
+                        <img src="<%= @user.the_avatar %>" class="img-thumbnail"/>
+                    </div>
+                </div>
+                <div class="panel-body form-group-separated">
+
+                    <div class="form-group">
+                        <label class="col-md-3 col-xs-5 control-label">#<%= t('admin.table.id')%></label>
+                        <div class="col-md-9 col-xs-7">
+                            <label class="control-label"><%= @user.the_id %></label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-3 col-xs-5 control-label"><%= t('admin.table.login')%></label>
+                        <div class="col-md-9 col-xs-7">
+                            <label class="control-label"><%= @user.username %></label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-md-3 col-xs-5 control-label"><%= t('admin.table.e_mail')%></label>
+                        <div class="col-md-9 col-xs-7">
+                            <label class="control-label"><%= @user.email %></label>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        <div class="col-md-6 col-sm-8">
+            <div class="panel panel-default form-horizontal">
+                <div class="panel-body">
+                    <h3><span class="fa fa-pencil"></span> <%= t('admin.users.profile') %></h3>
+                </div>
+                <div class="panel-body form-group-separated">
+
+
+                    <%
+                       data_meta = @user.meta
+                       User::meta_default[:fields].each do |field, values| %>
+
+                        <div class="form-group">
+                            <label class="col-md-3 col-xs-5 control-label">
+                                <%= t("admin.table.#{values[:label].gsub(' ','').tableize}")%>
+                            </label>
+                            <div class="col-md-9 col-xs-7">
+                                <label class="control-label"><%= data_meta[field] %></label>
+                            </div>
+                        </div>
+                    <% end %>
+
+                    <div class="form-group">
+                        <label class="col-md-3 col-xs-5 control-label"><%= t('admin.table.slogan') %></label>
+                        <div class="col-md-9 col-xs-7">
+                            <%= @user.meta[:slogan] %>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+            <div class="panel panel-default form-horizontal">
+                <div class="panel-body">
+                    <h3><span class="fa fa-info-circle"></span> <%= t('admin.table.quick_info')%></h3>
+                    <p><%= t('admin.message.quick_info')%></p>
+                </div>
+                <div class="panel-body form-group-separated">
+                    <div class="form-group">
+                        <label class="col-md-4 col-xs-5 control-label"><%= t('admin.table.last_visit')%></label>
+                        <div class="col-md-8 col-xs-7 line-height-30"><%= @user.last_login_at %></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-4 col-xs-5 control-label"><%= t('admin.table.registration')%></label>
+                        <div class="col-md-8 col-xs-7 line-height-30"><%= @user.created_at %></div>
+                    </div>
+                    <!--div class="form-group">
+                      <label class="col-md-4 col-xs-5 control-label">Groups</label>
+                      <div class="col-md-8 col-xs-7">administrators, managers, team-leaders, developers</div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-4 col-xs-5 control-label">Birthday</label>
+                      <div class="col-md-8 col-xs-7 line-height-30">14.02.1989</div>
+                    </div-->
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+<!-- END PAGE CONTENT WRAPPER -->
+
+
+<% add_asset_library('form_ajax', 'cropper') %>

@@ -1,0 +1,34 @@
+<%
+   if @post_tag.nil?
+     @post_tag = PostTag.new
+   end
+%>
+<%= form_for @post_tag, url:{action: @post_tag.new_record? ? :create : :update} , html:{class: 'validate-post-tag'} do |f| %>
+    <%= f.hidden_field :parent_id  %>
+    <%= f.hidden_field :taxonomy %>
+    <div class="panel-body">
+      <%= render partial: 'layouts/admin/form_error', locals: {data: @post_tag} %>
+        <div class="form-group">
+          <%= f.label t('admin.table.name') %><br>
+          <%= f.text_field :name, :class => "form-control required" %>
+        </div>
+        <div class="form-group">
+            <%= f.label t('admin.table.slug') %><br>
+            <%= f.text_field :slug, :class => "form-control slug", "data-parent" => "post_tag_name" %>
+        </div>
+
+        <div class="form-group">
+          <%= f.label t('admin.table.description') %><br>
+          <%= f.text_area :description, :class => "form-control", :rows => 4 %>
+        </div>
+
+    </div>
+
+
+
+    <div class="panel-footer">
+      <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('admin.button.back') %></a>
+      <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+    </div>
+<% end %>
+

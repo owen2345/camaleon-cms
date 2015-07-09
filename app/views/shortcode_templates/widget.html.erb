@@ -1,0 +1,11 @@
+<%
+   key = attributes.keys.first.to_s
+   widget = @current_site.widgets.where("id = ? OR slug = ?", key, key).first
+%>
+<% if widget.present? %>
+    <% if key == 'visits-counter' %>
+        <%=  render partial: plugin_view("visits_counter", "admin/partials/table") %>
+    <% else %>
+        <%= raw widget[:description] %>
+    <% end %>
+<% end  %>

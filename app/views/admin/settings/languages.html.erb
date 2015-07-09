@@ -1,0 +1,68 @@
+<% current_langs = current_site.get_languages  %>
+<script>
+    run.push(function(){
+        $("#languages_form").sortable({items: ".checkbox", axis: "y"})
+        $("#languages_form .checkbox").disableSelection();
+    });
+</script>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+    <div class="row">
+        <%= form_tag(admin_settings_languages_path, type: "post", id: "languages_form") do %>
+            <div class="col-md-8 col-md-offset-2">
+                <div class="panel panel-default">
+
+
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><%= t('admin.settings.languages_configuration')%></h3>
+                        <ul class="panel-controls">
+                            <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                        </ul>
+                    </div>
+
+
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label><%= t('admin.settings.current_languages') %></label><br>
+                            <% current_langs.each_with_index do |lang, index| %>
+                                <div class="">
+                                    <span> <%= t("languages.#{lang}") %> <%= "(#{t('admin.table.default')})" if index == 0 %> </span>
+                                </div>
+                            <% end %>
+                        </div>
+                        <div class="form-group">
+                            <label><%= t('admin.settings.available_languages') %></label><br>
+                            <% current_langs.each do |lang| %>
+                                <div class="checkbox">
+                                    <i class="fa fa-arrows-v" style="cursor: move;"> &nbsp;</i><label><input type="checkbox" value="<%= lang %>" checked name="lang[]"> <%= t("languages.#{lang}") %> </label>
+                                </div>
+                            <% end %>
+                            <% PluginRoutes.system_info["available_languages"].each do |lang| next if current_langs.include?(lang.to_sym) %>
+                                <div class="checkbox">
+                                    <i class="fa fa-arrows-v" style="cursor: move;"> &nbsp;</i><label><input type="checkbox" value="<%= lang %>" name="lang[]"> <%= t("languages.#{lang}") %> </label>
+                                </div>
+                            <% end %>
+                        </div>
+                        <div class="form-group">
+                            <label><%= t('admin.settings.admin_language') %></label><br>
+                            <% clang = current_site.get_admin_language %>
+                            <% PluginRoutes.system_info["admin_available_languages"].each do |lang| %>
+                                <div class="radio">
+                                    <label><input type="radio" <%= "checked=''" if lang.to_s == clang.to_s %> value="<%= lang %>" name="admin_language"> <%= t("languages.#{lang}") %> </label>
+                                </div>
+                            <% end %>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+                    </div>
+                </div>
+            </div>
+
+        <% end %>
+
+    </div>
+
+</div>

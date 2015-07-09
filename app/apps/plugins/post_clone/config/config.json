@@ -1,0 +1,32 @@
+{
+  "title": "Post Clone",
+  "descr": "",
+  "version": "0.1",
+  "key": "post_clone",
+  "helpers": [
+    "Plugins::PostClone::PostCloneHelper"
+  ],
+  "options": [
+    {"label": "Settings", "url": "admin_plugins_post_clone_settings_path", "eval_url": true}
+  ],
+  "hooks": {
+    "on_destroy": [
+      "post_clone_on_destroy"
+    ],
+    "on_active": [
+      "post_clone_on_active"
+    ],
+    "on_inactive": [
+      "post_clone_on_inactive"
+    ],
+    "new_post": [
+      "post_clone_new_post"
+    ],
+    "edit_post": [
+      "post_clone_edit_post"
+    ],
+    "plugin_options":[
+      "post_clone_plugin_options"
+    ]
+  }
+}

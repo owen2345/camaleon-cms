@@ -1,0 +1,51 @@
+
+
+<div class="login-body">
+
+
+  <%= render "layouts/admin/flash_messages" %>
+
+
+  <% if @form_reset.present? %>
+
+      <div class="login-title"><%= t('admin.login.reset_password') %></div>
+      <%= form_for(@user, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => admin_forgot_path({h: params[:h]}) ) do |f| %>
+          <div class="form-group">
+            <div class="col-md-12">
+              <%= f.password_field :password, :class => "form-control", :placeholder => t('admin.table.password') %>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-md-12">
+              <%= f.password_field :password_confirmation, :class => "form-control", :placeholder => t('admin.table.password_confirmation') %>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-md-12">
+              <button class="btn btn-info btn-block"><%= t('admin.button.enter') %></button>
+            </div>
+          </div>
+      <% end %>
+
+  <% else  %>
+      <div class="login-title"><%= raw t('admin.login.reset_password_html')%> </div>
+      <%= form_for(@user, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => admin_forgot_path ) do |f| %>
+          <div class="form-group">
+            <div class="col-md-12">
+              <%= f.email_field :email, :class => "form-control", :placeholder => t("admin.login.email") %>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-md-12">
+              <button class="btn btn-info btn-block"><%= t('admin.button.submit') %></button>
+            </div>
+          </div>
+      <% end %>
+
+  <% end %>
+
+
+</div>
+
+
+

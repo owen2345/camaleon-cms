@@ -1,0 +1,294 @@
+<div class="content-frame">
+
+  <!-- START CONTENT FRAME TOP -->
+  <div class="content-frame-top">
+    <div class="page-title">
+      <h2>
+        <span class="fa fa-file-o"></span>
+          <%= raw(t('admin.page_title.edit') + " " + @post_type.the_title.to_s + ": " + @post_decorate.the_title + " #{@post_decorate.the_status}") if !@post.new_record? %>
+          <%= link_to raw("#{t('admin.button.view_draft')}"), {action: :edit, id: @post.drafts.pluck('id') }, id: "view_draft", class: "label label-warning label-form", title: "#{t('admin.button.view_draft')}", target: '_blank' if @post.drafts.present? %>
+          <%= t('admin.page_title.create') + " " + @post_type.the_title.to_s if  @post.new_record? %>
+      </h2>
+
+    </div>
+    <div class="pull-right">
+      <button class="btn btn-default content-frame-right-toggle"><span class="fa fa-bars"></span></button>
+    </div>
+  </div>
+
+  <!-- END CONTENT FRAME TOP -->
+  <%= form_for @post, url:{action: @post.new_record? ? :create : :update}, html: {class: 'form-post', id: 'form-post'} do |f| %>
+      <%= f.hidden_field :draft_id, value: @post.draft? ? @post.id : ''  %>
+      <!-- START CONTENT FRAME LEFT -->
+      <div class="content-frame-right" style="min-height: 535px;">
+
+        <div id="post-actions" class="panel panel-default panel-lite">
+          <div class="panel-body ">
+            <div class="row">
+              <% if @post.draft? && !@post.parent.present?  %>
+                  <div class="col-md-12 input-submit"><%= f.submit "#{ (@post.new_record?) ? t('admin.page_title.create') : t('admin.button.publish')}", class: "btn btn-success btn-lg btn-block", onclick: "$('#post_status').val('published')" %></div>
+              <% elsif @post.draft? && @post.parent.present? %>
+                  <div class="col-md-12 input-submit"><%= f.submit "#{ t('admin.button.recover') }", class: "btn btn-success btn-lg btn-block", onclick: "$('#post_status').val('published')" %></div>
+              <% else  %>
+                  <div class="col-md-12 input-submit"><%= f.submit "#{ (@post.new_record?) ? t('admin.page_title.create') : t('admin.page_title.update')}", class: "btn btn-success btn-lg btn-block" %></div>
+              <% end  %>
+
+
+            </div>
+          </div>
+          <div class="panel-footer">
+            <div class="row">
+              <!--div class="col-md-4"><%= link_to 'Back', {action: :index}, class: "btn btn-default btn-block" %></div-->
+
+              <div class="col-md-6 "><%= link_to t('admin.button.move_trash'), {action: :trash, post_id: @post.id}, class: "text-center text-danger btn-block" unless @post.new_record? %></div>
+
+              <div class="col-md-6  pull-right">
+                <% if @post.draft?  %>
+                    <a class="btn btn-default " href="#" data-type="pending" onclick="$('#form-post').submit(); return false;" style="<%= 'display: none' unless @post.pending? %>" ><%= t('admin.post_type.save_pending')%> </a>
+                    <a class="btn btn-default " href="#" data-type="draft" onclick="App_post.save_draft(); return false;" style="<%= 'display: none' unless @post.draft? %>" ><%= t('admin.post_type.save_draft')%></a>
+                <% else  %>
+                    <a class="btn btn-default " href="#" onclick="App_post.save_draft(); return false;" ><%= t('admin.post_type.save_draft')%></a>
+                <% end  %>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+
+        <div class="panel panel-default panel-lite">
+          <div class="panel-heading">
+            <h3 class="panel-title"><%= t('admin.post_type.configuration')%></h3>
+            <ul class="panel-controls">
+              <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+            </ul>
+          </div>
+          <div class="panel-body ">
+            <div class="form-group">
+              <label class=" control-label"><%= t('admin.post_type.published')%></label>
+              <select id="post_status" name="post[status]" class="form-control select">
+                <% if can? :publish_post, @post_type %>
+                <option class="<%= 'hidden' if @post.draft? %>" value="published" <%= (@post[:status] == "published") ? "selected": "" %> ><%= t('admin.post_type.published')%></option>
+                <% end  %>
+                <option value="pending" <%= (@post[:status] == "pending") ? "selected": "" %>><%= t('admin.table.pending')%></option>
+                <option value="draft" <%= (@post[:status] == "draft") ? "selected": "" %>><%= t('admin.table.draft')%></option>
+              </select>
+            </div>
+              <!-- templates -->
+              <% if @post_type.get_option('has_template', true)
+                   _get_list_template_files = get_list_template_files
+                   if _get_list_template_files.size > 0
+              %>
+                      <div class="form-group">
+                          <label class="control-label"><%= t('admin.post_type.template')%></label>
+                          <%= select("meta", "template", _get_list_template_files.collect {|p| [ p.gsub('.html.erb',''), p ] }, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.meta[:template] ) },{class: 'form-control'}) %>
+                      </div>
+              <%    end
+                 end
+              %>
+
+              <!-- has comments? -->
+              <% if @post_type.get_option('has_comments', false) %>
+                  <div class="form-group">
+                      <label class="control-label"><%= check_box("meta", "has_comments", {checked: ( params[:meta][:has_comments] == '1' rescue false || @post.meta[:has_comments].to_s.to_bool)  }) %> &nbsp; <%= t('admin.post_type.permit_comments')%></label>
+                  </div>
+              <% end %>
+
+
+              <%= raw @post_form_extra_settings.join("") if @post_form_extra_settings.present? %>
+
+          </div>
+        </div>
+
+        <% if @post_type.manage_categories? %>
+            <div class="panel panel-default panel-lite">
+              <div class="panel-heading">
+                <h3 class="panel-title"><%= t('admin.post_type.categories')%> <em class="text-danger">*</em></h3>
+                <ul class="panel-controls">
+                  <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                </ul>
+              </div>
+              <div class="panel-body ">
+                  <div class="form-group list-categories">
+                    <%= raw post_type_html_inputs(@post_type, "categories", "categories" , "checkbox" ,params[:categories] || (@post.new_record? ? [] : @post.categories.pluck("term_taxonomy.id")), "categorychecklist", true )%>
+                  </div>
+              </div>
+            </div>
+        <% end %>
+        <% if @post_type.manage_tags?%>
+            <div class="panel panel-default panel-lite">
+              <div class="panel-heading">
+                <h3 class="panel-title"><%= t('admin.post_type.tags')%></h3>
+                <ul class="panel-controls">
+                  <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                </ul>
+              </div>
+              <div class="panel-body ">
+                  <div class="form-group">
+                    <input type="text" name="tags" class="tagsinput" value="<%= params[:tags] || (@post.post_tags.pluck("name").join(",") unless @post.new_record?) %>"/>
+                  </div>
+              </div>
+            </div>
+        <% end %>
+
+        <% if @post_type.get_option('has_picture', true) %>
+            <div class="panel panel-default panel-lite">
+              <div class="panel-heading">
+                <h3 class="panel-title"><%= t('admin.post_type.featured_image')%> </h3>
+                <ul class="panel-controls">
+                  <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                </ul>
+              </div>
+              <div class="panel-body ">
+                <div class="form-group">
+                    <div id="feature-image" class="gallery" style="display: <%= 'none' unless (params[:meta][:thumb] rescue false || @post.meta[:thumb] ).present? %>">
+                      <a class="gallery-item" style="width: 100%; padding: 0" href="#" title="Nature Image 1" data-gallery="">
+                        <div class="image">
+                          <img src="<%= params[:meta][:thumb] rescue false || @post.meta[:thumb] rescue "" %>" alt="Nature Image 1">
+                          <ul class="gallery-item-controls">
+                            <li><span class="gallery-item-remove"><i class="fa fa-times"></i></span></li>
+                          </ul>
+                        </div>
+                        <div class="meta text-center" style="margin-bottom: 16px">
+                          <strong><%= (params[:meta][:thumb] || @post.meta[:thumb]).split("/").last rescue "" %></strong>
+                        </div>
+                      </a>
+                      <input name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.meta[:thumb] rescue "" %>"/>
+                    </div>
+                    <a href="#" class="btn btn-default" onclick="upload_feature_image(); return false;"><i class="fa fa-upload"></i> <%= t('admin.post_type.upload_image')%></a>
+                  <script>
+                      function upload_feature_image(){
+                          var lang = {
+                              details: '<%= t('admin.page_title.details') %>',
+                              size: '<%= t('admin.table.size') %>',
+                              link: '<%= t('admin.table.link') %>' ,
+                              dimensions: '<%= t('admin.table.dimensions') %>' ,
+                              modified: '<%= t('admin.table.modified') %>',
+                              upload_file: '<%= t('admin.button.upload_file') %>',
+                              "import": '<%= t('admin.table.import') %>',
+                              close: '<%= t('admin.button.close') %>'
+                          };
+
+                          $.fn.upload_elfinder({
+                              selected: function(res){
+                                  var image = _.first(res)
+                                  if(image.mime && image.mime.indexOf("image") > -1){
+                                      $('#feature-image img').attr('src', image.url.to_url());
+                                      $('#feature-image input').val(image.url.to_url());
+                                      $('#feature-image .meta strong').html(image.name);
+                                      $('#feature-image').show();
+                                  }else{
+                                      alert("You must upload an image")
+                                  }
+                              },
+                              locale: CURRENT_LOCALE,
+                              lang: lang
+
+
+                          });
+
+                      }
+                  </script>
+
+                </div>
+              </div>
+            </div>
+        <% end %>
+        <!--div class="panel panel-default panel-lite">
+          <div class="panel-heading">
+            <h3 class="panel-title">group</h3>
+            <ul class="panel-controls">
+              <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+            </ul>
+          </div>
+          <div class="panel-body ">
+
+          </div>
+        </div-->
+      </div>
+      <!-- END CONTENT FRAME LEFT -->
+
+      <!-- START CONTENT FRAME BODY -->
+      <div class="content-frame-body content-frame-body-left" style="height: 595px;">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><%= t('admin.sidebar.content') %></h3>
+            <ul class="panel-controls">
+              <li><a class="panel-collapse" href="#"><span class="fa fa-angle-down"></span></a></li>
+            </ul>
+          </div>
+          <div class="panel-body">
+            <%= render partial: 'layouts/admin/form_error', locals: {data: @post} %>
+            <div class="hidden">
+              <%= f.hidden_field :slug, class: 'translatable slug-post' %>
+            </div>
+
+            <%= hidden_field :meta, :slug %>
+            <div class="form-group">
+              <%= f.label t('admin.table.title') %> <em class="text-danger">*</em><br>
+              <%= f.text_field :title, :class => "form-control required translatable title-post" %>
+            </div>
+            <% if @post_type.get_option('has_content', true) %>
+            <div class="form-group">
+              <%= f.label t('admin.sidebar.content') %> <em class="text-danger">*</em><br>
+              <%= f.text_area :content, :class => "form-control tinymce_textarea required translatable", :height => '520px', :style => "width: 100%" %>
+            </div>
+            <% end  %>
+            <% if @post_type.get_option('has_summary', true) %>
+            <div class="form-group">
+              <label for="post_summary"><%= t('admin.post_type.summary')%></label><br>
+              <textarea name="meta[summary]" id="post_summary" class="form-control translatable" cols="30" rows="5"><%= @post.meta[:summary] if @post.meta.present? &&  @post.meta[:summary].present? %></textarea>
+            </div>
+            <% end  %>
+            <% if @post_type.get_option('has_keywords', true) %>
+              <div class="form-group">
+                  <label for="post_keywords"><%= t('admin.table.keywords')%></label><br>
+                  <input name="post[keywords]" id="post_keywords" class="form-control translatable" value="<%= @post.get_option("keywords") %>" />
+              </div>
+            <% end  %>
+          </div>
+        </div>
+        <% unless @post.draft? || @post.new_record? %>
+            <% if @post_type.get_option('has_comments', false) %>
+                <div class="panel panel-default panel-lite">
+                  <div class="panel-heading">
+                    <h3 class="panel-title"><%= t('admin.post_type.comments') %></h3>
+                    <ul class="panel-controls">
+                      <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                    </ul>
+                  </div>
+                  <div class="panel-body ">
+                    <div class="form-group">
+                      <a href="<%= responses_admin_comments_path({post_id: @post.id}) %>" class="btn btn-default" target="_blank"> <i class="fa fa-comments"></i> <%= t('admin.post_type.view_comments') %> (<%= @post.comments.size %>)</a>
+                    </div>
+                  </div>
+                </div>
+            <% end %>
+        <% end %>
+        <%= render partial: "admin/settings/custom_fields/render", locals: {record: @post, field_groups: @post.get_field_groups({kind: "Post", include_parent: true}) } %>
+
+      </div>
+      <!-- END CONTENT FRAME BODY -->
+  <% end %>
+
+  <% add_asset_library('tinymce','post') %>
+
+  <script type="text/javascript">
+      run.push(function(){
+          init_post({
+                  post_id: '<%= @post.draft? ? (@post.parent.present? ? @post.parent.id : nil) : @post.id %>',
+                  post_draft_id: '<%= @post.id if @post.draft? %>',
+                  post_status: '<%= @post.status %>',
+                  _post_path: '<%= post_url({slug: '__-__', locale: '____'}) %>',
+                  _drafts_path: '<%= (@post.draft? && !@post.new_record?) ? admin_post_type_draft_path(@post_type.id, @post) : admin_post_type_drafts_path(@post_type.id)  %>',
+                  _posts_path: '<%= admin_post_type_posts_path(@post_type.id) %>',
+                  _ajax_path: '<%= ajax_admin_post_type_posts_path(@post_type.id) %>',
+                  _post_tags_path: '<%= list_admin_post_type_post_tags_path(@post_type.id) %>',
+                  recover_draft: "<%= params['recover_draft'].present? && @post.draft? %>",
+                  _edit_post_path: '<%= edit_admin_post_type_post_path(@post_type.id, '____')%>'
+
+          });
+      });
+  </script>
+
+</div>

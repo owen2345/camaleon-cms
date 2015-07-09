@@ -1,0 +1,23 @@
+<div class="blog">
+    <div class="container">
+        <%= render partial: 'partials/breadcrumb', locals: {breadcrumb: @post.the_breadcrumb } %>
+        <!-- Left Section Start -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="left-sec">
+                    <h3><%= @post.the_title %></h3>
+                    <span class="date"><i class="fa fa-calendar"></i> <%= @post.the_created_at %></span>
+                    <a  class="comment" href="#comments"><i class="fa fa-comment-o"></i> <%= @post.the_comments.size %> <%= ct("comments") %></a>
+
+                    <div class="post-detail"><%= raw @post.the_content %></div>
+
+                    <%= render partial: 'partials/comments', locals: {post: @post} %>
+                </div>
+            </div>
+            <!-- Left Section End -->
+
+            <%= render partial: 'partials/sidebar', locals: {post: @post} %>
+
+        </div>
+    </div>
+</div>

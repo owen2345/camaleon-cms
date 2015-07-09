@@ -1,0 +1,16 @@
+en:
+  plugin:
+    post_reorder:
+      title: 'Post Reorder: Settings'
+      post_types: 'Post Types'
+      settings: 'Settings'
+      updated_changes: 'Updated Changes.'
+
+
+es:
+  plugin:
+    post_reorder:
+      title: 'Reordenar Artículos: Ajustes'
+      post_types: 'Tipos de Artículos'
+      settings: 'Ajustes'
+      updated_changes: 'Cambios Actualizados.'

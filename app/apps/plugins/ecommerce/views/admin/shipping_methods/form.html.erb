@@ -1,0 +1,54 @@
+<div class="page-title">
+  <h2><span class="fa fa-credit-card"></span> <%= @shipping_method.new_record? ? t('plugin.ecommerce.new_shipping_methods') : "#{t('plugin.ecommerce.edit_shipping_methods')}: #{@shipping_method.name}" %></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= t('plugin.ecommerce.form_shipping_methods') %></h3>
+        </div>
+        <%= form_for @shipping_method, url:{action: @shipping_method.new_record? ? :create : :update},  html: {class: 'validate-shipping_method', id: 'form-shipping_method'}  do |f| %>
+            <div class="panel-body">
+              <%= render partial: 'layouts/admin/form_error', locals: {data: @shipping_method} %>
+              <div class="form-group">
+                <%= f.label t('plugin.ecommerce.table.name') %><br>
+                <%= f.text_field :name, :class => "form-control required" %>
+              </div>
+              <div class="form-group">
+                <%= f.label t('admin.table.slug') %><br>
+                <%= f.text_field :slug, :class => "form-control slug", "data-parent" => "plugins_ecommerce_models_shipping_method_name" %>
+              </div>
+              <div class="form-group">
+                <%= f.label t('admin.table.description') %><br>
+                <%= f.text_area :description, :class => "form-control", :rows => 4 %>
+              </div>
+
+              <% options = @shipping_method.options rescue {url_tracking: 'http://trackingurl.com/track/{{consignment_number}}'}
+                 options = params[:options] if params[:options].present?
+              %>
+              <div class="form-group">
+                <label><%= t('plugin.ecommerce.table.url_tracking') %></label><br>
+                <%= text_field_tag( "options[url_tracking]", options[:url_tracking], class: "form-control required") %>
+                <small><%= t('plugin.ecommerce.message.consignment_number') %></small>
+              </div>
+
+              <div class="form-group">
+                <label><%= f.check_box :status %> &nbsp; <%= t('plugin.ecommerce.active') %></label>
+              </div>
+            </div>
+            <div class="panel-footer">
+              <a class="btn btn-default" href="<%= url_for action: :index %>" role="back"><%= t('admin.button.back')%></a>
+              <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+            </div>
+        <% end %>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+

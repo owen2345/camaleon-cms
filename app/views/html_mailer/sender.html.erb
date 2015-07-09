@@ -1,0 +1,25 @@
+<table style="width: 100%; border: 1px solid #0088cc">
+    <thead style="background: #0088cc">
+        <tr>
+            <th style="text-align: center;" >
+                <label style="color: #ffffff"><%= raw @subject  %></label>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="text-align: left">
+                <%= raw @subject  %>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: left">
+                <%= raw @html  %>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center; background: #0088cc"><a href="<%= @url_base %>" target="_blank" style="color: #ffffff;"><%= @current_site.name %></a></td>
+        </tr>
+    </tbody>
+
+</table>

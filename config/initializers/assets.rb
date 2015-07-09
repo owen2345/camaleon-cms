@@ -1,0 +1,2 @@
+Rails.application.config.assets.precompile += Dir[Rails.root.join("app", "apps", "themes", "*", "assets", "**", "*.{js,css,png,jpg,gif}")]
+Rails.application.config.assets.precompile += Dir[Rails.root.join("app", "apps", "plugins", "*", "assets", "**", "*.{js,css,png,jpg,gif}")]

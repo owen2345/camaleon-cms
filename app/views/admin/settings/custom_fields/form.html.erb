@@ -1,0 +1,249 @@
+<div class="page-title">
+  <h2><span class="fa fa-cog"></span> <%= @field_group.new_record? ? t('admin.settings.new_custom_field_group') : "#{t('admin.settings.new_custom_field_group')}: #{@field_group.name} "%> </h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <%= form_for @field_group, url:{action: @field_group.new_record? ? :create : :update}, html: {class: 'validate-custom-field'} do |f| %>
+        <div class="col-md-4">
+          <div class="panel panel-default">
+
+
+            <div class="panel-heading">
+              <h3 class="panel-title"><%= t('admin.settings.details_custom_field_group') %></h3>
+              <ul class="panel-controls">
+                <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+              </ul>
+            </div>
+
+
+            <div class="panel-body">
+              <%= render partial: 'layouts/admin/form_error', locals: {data: @field_group} %>
+              <div class="form-group">
+                <%= f.label t('admin.table.name') %><br>
+                <%= f.text_field :name, :class => "form-control required" %>
+              </div>
+              <div class="form-group">
+                <%= f.label t('admin.table.description') %><br>
+                <%= f.text_area :description, :class => "form-control" %>
+              </div>
+              <div class="form-group">
+                <%= f.label t('admin.settings.where_display_group') %><br>
+                <select id="select_assign_group" name="custom_field_group[assign_group]" class="form-control required">
+                  <option value="">&nbsp;</option>
+                  <optgroup label="<%= t('admin.settings.posts_in') %>">
+                    <% current_site.post_types.each do |pt|
+                      pt = pt.decorate
+                      value = "PostType_Post,#{pt.id}"
+                    %>
+                        <option value="<%= value %>" data-help="<%= "#{t('admin.settings.tooltip.add_custom_field_posts')}"+ pt.the_title %>"><%= pt.the_title %></option>
+                    <% end  %>
+                  </optgroup>
+
+                  <optgroup label="<%= t('admin.settings.categories_in') %>">
+                    <% current_site.post_types.each do |pt|
+                      pt = pt.decorate
+                      value = "PostType_Category,#{pt.id}"
+                    %>
+                        <% if pt.manage_categories? %>
+                            <option value="<%= value %>" data-help="<%= "#{t('admin.settings.tooltip.add_custom_field_categories')}"+ pt.the_title %>"><%= pt.the_title %></option>
+                        <% end %>
+                    <% end  %>
+                  </optgroup>
+
+                  <optgroup label="<%= t('admin.settings.others') %>">
+                    <% value = "User,#{current_site.id}" %>
+                    <option value="<%= value %>" data-help="<%= t('admin.settings.tooltip.add_custom_field_users') %>"><%= t('admin.sidebar.users') %></option>
+                    <% value = "Site,#{current_site.id}" %>
+                    <option value="<%= value %>" data-help="<%= t('admin.settings.tooltip.add_custom_field_sites') %>"><%= t('admin.sidebar.site_settings') %></option>
+                    <% @_extra_models_for_fields.each do |model| %>
+                        <% value = "#{model.name},#{current_site.id}" %>
+                        <option value="<%= value %>" data-help=""><%= model.name %></option><%= model.name %>
+                    <% end %>
+                  </optgroup>
+
+                  <optgroup label="<%= t('admin.sidebar.themes') %>">
+                    <% PluginRoutes.all_themes.each do |theme| %>
+                        <% value = "Theme,#{theme[:key]}"  %>
+                        <option value="<%= value %>" data-help="<%= "#{t('admin.settings.tooltip.add_custom_field_themes')}"+ theme[:name] %>"><%= theme[:name] %></option>
+                    <% end  %>
+                  </optgroup>
+
+                  <optgroup label="<%= t('admin.sidebar.widgets') %>">
+                    <% current_site.widgets.each do |widget| %>
+                        <% value = "#{widget.class.name},#{widget.id}" %>
+                        <option value="<%= value %>" data-help="<%= "#{t('admin.settings.tooltip.add_custom_field_widget')}"+ widget.name %>"><%= widget.name %></option>
+                    <% end %>
+                  </optgroup>
+
+                  <option value="_post_simple" >Select Post Simple</option>
+                </select>
+                <select id="select_post_simple" name="custom_field_group[assign_group]" class="form-control required" style="display: none" disabled>
+                    <% current_site.post_types.each do |pt|
+                      pt = pt.decorate
+                    %>
+                      <optgroup label="<%= pt.the_title %>">
+                        <% pt.posts.visible_frontend.each do |post| %>
+                            <%
+                               value = "#{post.class.name},#{post.id}"
+                               post = post.decorate
+                            %>
+                            <option value="<%= value %>" data-help="<%= "#{t('admin.settings.tooltip.add_custom_field_posts')}"+ post.the_title %>"><%= post.the_title %></option>
+                        <% end %>
+                      </optgroup>
+                    <% end %>
+                 </select>
+
+
+                <input id="select_assign_group_caption" type="hidden" name="custom_field_group[caption]"/>
+                <div id="select_assign_group_help"></div>
+              </div>
+            </div>
+
+
+            <div class="panel-footer">
+              <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('admin.button.back') %></a>
+              <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit') %></button>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="col-md-5">
+          <div class="panel panel-default">
+
+            <div class="panel-heading">
+              <h3 class="panel-title"><%= t('admin.settings.fields') %></h3>
+              <ul class="panel-controls">
+                <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+              </ul>
+            </div>
+            <div class="panel-body padding-0">
+
+              <%
+                 fields =  @field_group.new_record? ? [] : @field_group.fields
+              %>
+
+              <ul id="sortable-fields">
+                <% fields.each do |field|
+                    @item_value = field
+                    @item_options_value = field.options
+                    @key = field.options[:field_key]
+                %>
+                    <li class="item">
+                    <%= render file: "admin/settings/custom_fields/get_items" %>
+                    </li>
+                <% end  %>
+              </ul>
+            </div>
+            <div class="panel-footer hidden">
+              <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('admin.button.back') %></a>
+              <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit') %></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="panel panel-default">
+
+
+            <div class="panel-heading">
+              <h3 class="panel-title"><%= t('admin.settings.available_fields')%></h3>
+              <ul class="panel-controls">
+                <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+              </ul>
+            </div>
+
+
+            <div class="panel-body">
+              <div id="content-items-default" class="form-group input-group-sm">
+                <% cf_get_items.each do |i,item| %>
+                      <% next if item[:key] == "select_eval" %>
+                    <a id="item-<%= item[:key] %>" class="btn btn-default" href="<%= get_items_admin_settings_custom_fields_path(item[:key]) %>" style="margin-bottom: 4px"><%= item[:label] %></a>
+                <% end %>
+              </div>
+            </div>
+            <div class="panel-footer hidden">
+              <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('admin.button.back') %></a>
+              <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit') %></button>
+            </div>
+          </div>
+        </div>
+
+
+      <% end %>
+
+  </div>
+
+</div>
+
+<script>
+  run.push(function(){
+      var group_class_name = '<%= @field_group.object_class %>,<%= @field_group.objectId %>';
+      var $content_fields = $( "#sortable-fields" );
+      $content_fields.sortable({
+          handle: ".panel-sortable"
+      });
+      //$content_fields.disableSelection();
+
+      $("#content-items-default > a").click(function(){
+          var href = $(this).attr('href');
+          $.post(href, function(html){
+              var li = '<li class="item">' + html + '</li>';
+              $content_fields.append(li)
+              set_slug()
+          });
+          return false;
+      });
+
+      $("body").on("click", ".panel-delete", function(){
+          var parent = $(this).parents(".item:first");
+          if(confirm(lang.message_delete_item)){
+              parent.remove()
+          }
+          return false;
+      });
+
+      $('#select_assign_group').change(function(){
+          var option = $(this).find('option:checked');
+          if(option.attr('value') == '_post_simple'){
+              $('#select_post_simple').show().removeAttr('disabled');
+          }else{
+              $('#select_post_simple').hide().attr('disabled','disabled');
+          }
+          var txt_help = option.data('help');
+          if(txt_help) txt_help = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txt_help + ' </div>';
+          $('#select_assign_group_help').html(txt_help);
+          $('#select_assign_group_caption').val(option.parent('optgroup').attr("label") + ' ' + option.text());
+      }).val((group_class_name.search("Post,") == 0) ? '_post_simple':  group_class_name).trigger('change');
+
+      $('#select_post_simple').change(function(){
+          var option = $(this).find('option:checked');
+          var txt_help = option.data('help');
+          if(txt_help) txt_help = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txt_help + ' </div>';
+          $('#select_assign_group_help').html(txt_help);
+          $('#select_assign_group_caption').val(option.parent('optgroup').attr("label") + ': ' + option.text());
+      }).val(group_class_name).trigger('change');
+
+  });
+
+    function set_slug(){
+      $('.text-slug:not(.runned)').each(function(){
+          var $parent = $(this).parents('.panel-item');
+          var $label = $parent.find('.span-title');
+          $(this).slugify($parent.find('.text-title'), {
+                      slugFunc: function(str, originalFunc) {
+                          $label.html(str);
+                          return originalFunc(str);
+                      }
+                  }
+          );
+          $(this).addClass('runned')
+      })
+  }
+</script>
+
+
+

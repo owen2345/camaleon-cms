@@ -1,0 +1,20 @@
+<% if current_site.get_option('has_twitter', false) || current_site.get_option('has_facebook', false) || current_site.get_option('has_google', false)%>
+    <div class="login-or"><%= t('plugin.social_login.or') %></div>
+    <div class="form-group">
+        <% if current_site.get_option('has_twitter', false) %>
+            <div class="col-md-4">
+                <a class="btn btn-info btn-block btn-twitter" href="<%=  auth_twitter_path  %>"><span class="fa fa-twitter"></span> <%= t('admin.settings.login_twitter') %></a>
+            </div>
+        <% end %>
+        <% if current_site.get_option('has_facebook', false) %>
+            <div class="col-md-4">
+                <a class="btn btn-info btn-block btn-facebook" href="<%= auth_facebook_path %>"><span class="fa fa-facebook"></span> <%= t('admin.settings.login_facebook') %></a>
+            </div>
+        <% end %>
+        <% if current_site.get_option('has_google', false) %>
+            <div class="col-md-4">
+                <a class="btn btn-info btn-block btn-google" href="<%= auth_google_path %>"><span class="fa fa-google-plus"></span> <%= t('admin.settings.login_google') %></a>
+            </div>
+        <% end %>
+    </div>
+<% end %>

@@ -1,0 +1,154 @@
+{
+  "USD": {
+    "symbol": "$",
+    "name": "Dólar Americano",
+    "symbol_native": "$",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "USD",
+    "name_plural": "Dólares estadounidenses"
+  },
+  "CAD": {
+    "symbol": "CA$",
+    "name": "Dólar Canadiense",
+    "symbol_native": "$",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "CAD",
+    "name_plural": "Dólares canadienses"
+  },
+  "EUR": {
+    "symbol": "€",
+    "name": "Euro",
+    "symbol_native": "€",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "EUR",
+    "name_plural": "euros"
+  },
+    "AUD": {
+    "symbol": "AU$",
+    "name": "Dólar Australiano",
+    "symbol_native": "$",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "AUD",
+    "name_plural": "Dólares australianos"
+  },
+  "GBP": {
+    "symbol": "£",
+    "name": "Libra Esterlina Británica",
+    "symbol_native": "£",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "GBP",
+    "name_plural": "Libras esterlinas"
+  },
+  "CZK": {
+    "symbol": "Kč",
+    "name": "Corona Checa",
+    "symbol_native": "Kč",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "CZK",
+    "name_plural": "Coronas República Checa"
+  },
+  "DKK": {
+    "symbol": "Dkr",
+    "name": "Corona Danesa",
+    "symbol_native": "kr",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "DKK",
+    "name_plural": "Coronas danesas"
+  },
+
+  "HKD": {
+    "symbol": "HK$",
+    "name": "Dólar de Hong Kong",
+    "symbol_native": "$",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "HKD",
+    "name_plural": "Dólares de Hong Kong"
+  },
+
+  "HUF": {
+    "symbol": "Ft",
+    "name": "Florín Húngaro",
+    "symbol_native": "Ft",
+    "decimal_digits": 0,
+    "rounding": 0,
+    "code": "HUF",
+    "name_plural": "Florín húngaro"
+  },
+
+  "JPY": {
+    "symbol": "¥",
+    "name": "Yen Japonés",
+    "symbol_native": "￥",
+    "decimal_digits": 0,
+    "rounding": 0,
+    "code": "JPY",
+    "name_plural": "Yen Japonés"
+  },
+
+  "NOK": {
+    "symbol": "Nkr",
+    "name": "Corona Noruega",
+    "symbol_native": "kr",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "NOK",
+    "name_plural": "Coronas noruegas"
+  },
+
+  "NZD": {
+    "symbol": "NZ$",
+    "name": "Dólar de Nueva Zelanda",
+    "symbol_native": "$",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "NZD",
+    "name_plural": "Dólares de Nueva Zelanda"
+  },
+
+  "PLN": {
+    "symbol": "zł",
+    "name": "Zloty Polaco",
+    "symbol_native": "zł",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "PLN",
+    "name_plural": "Zlotys Polacos"
+  },
+
+  "SEK": {
+    "symbol": "Skr",
+    "name": "Corona Sueca",
+    "symbol_native": "kr",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "SEK",
+    "name_plural": "Coronas Suecas"
+  },
+  "SGD": {
+    "symbol": "S$",
+    "name": "Dólar de Singapur",
+    "symbol_native": "$",
+    "decimal_digits": 2,
+    "rounding": 0,
+    "code": "SGD",
+    "name_plural": "Dólares de Singapur"
+  },
+  "CHF": {
+    "symbol": "CHF",
+    "name": "Franco Suizo",
+    "symbol_native": "CHF",
+    "decimal_digits": 2,
+    "rounding": 0.05,
+    "code": "CHF",
+    "name_plural": "Francos Suizos"
+  }
+
+}

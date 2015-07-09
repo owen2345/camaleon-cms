@@ -1,0 +1,31 @@
+{
+  "title": "Attack",
+  "descr": "",
+  "version": "0.1",
+  "key": "attack",
+  "position": 1,
+  "helpers": [
+    "Plugins::Attack::AttackHelper"
+  ],
+  "options": [
+    {"label": "Settings", "url": "admin_plugins_attack_settings_path", "eval_url": true}
+  ],
+  "hooks": {
+    "on_destroy": [
+      "attack_on_destroy"
+    ],
+    "on_active": [
+      "attack_on_active"
+    ],
+    "on_inactive": [
+      "attack_on_inactive"
+    ],
+    "app_before_load": [
+      "attack_app_before_load"
+    ],
+    "plugin_options":[
+      "attack_plugin_options"
+    ]
+    //here you can add all your hooks (read documentation)
+  }
+}

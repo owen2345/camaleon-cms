@@ -1,0 +1,79 @@
+<div class="page-title">
+  <h2><span class="fa fa-folder"></span> <%= "#{@post_type.decorate.the_title.pluralize} / " if @post_type.present? %> <%= t('admin.post_type.tags').to_s.titleize.pluralize %>
+  </h2>
+</div>
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= t('admin.post_type.add_post_tag')%>   </h3>
+        </div>
+
+        <%= render partial: 'admin/post_tags/form' %>
+
+      </div>
+
+    </div>
+    <div class="col-md-8">
+
+      <!-- START BASIC TABLE SAMPLE -->
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= t('admin.page_title.list')%></h3>
+        </div>
+        <div class="panel-body">
+
+          <table class="table">
+            <thead>
+            <tr>
+              <th><%= t('admin.table.name')%></th>
+              <th><%= t('admin.table.description')%></th>
+              <th><%= t('admin.table.slug')%></th>
+              <th><%= t('admin.table.qty')%></th>
+              <th><%= t('admin.table.actions')%></th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <%
+               def _item_html(item, pos = 0)
+                    %>
+                    <tr>
+                      <td><%= raw('—' * pos) %> <%= item.name %></td>
+                      <td><%= item.description %></td>
+                      <td><%= item.slug %></td>
+                      <td><%= item.count %></td>
+                      <td>
+                        <%= link_to raw('<i class="fa fa-list"></i>'), admin_post_type_taxonomy_posts_path(@post_type.id, "post_tag", item.id), class: "btn btn-default btn-xs", title: "#{@post_type.decorate.the_title.pluralize}-#{item.slug.to_s.titleize}" if @post_type.present? %>
+                        <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs", title: "#{t('admin.button.edit')}" %>
+                        <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id }, method: :delete, data: { confirm: t('admin.message.delete') }, class: "btn btn-danger btn-xs", title: "#{t('admin.button.delete')}" unless item.get_option('not_deleted', false) %>
+
+                      </td>
+                    </tr>
+                    <%
+               end
+               def _render_items(items, _level = 0)
+                 items.each do |term|
+                   _item_html(term, _level)
+                    children = term.term_children("post_tag")
+                   _render_items(children, _level + 1) if children.size > 0
+                 end
+               end
+               _render_items(@post_tags)
+                %>
+            </tbody>
+          </table>
+          <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if @post_tags.empty? %>
+          <%= will_paginate @post_tags, renderer: BootstrapPagination::Rails %>
+        </div>
+      </div>
+      <!-- END BASIC TABLE SAMPLE -->
+    </div>
+
+
+  </div>
+
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>

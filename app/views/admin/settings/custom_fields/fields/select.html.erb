@@ -1,0 +1,7 @@
+<div class="group-input-fields-content">
+  <select name="<%= @field_name %>[<%= @field.slug %>][values][]" style="width: auto" class="form-control input-value <%= "required" if @field.options[:required].to_s.to_bool %>">
+    <% @field.options[:multiple_options].each do |option|  %>
+        <option value="<%= option[:value] %>" <%= 'selected' if @default_use && option[:default].present? %>><%= option[:title] %></option>
+    <% end %>
+  </select>
+</div>

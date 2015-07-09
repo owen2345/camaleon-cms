@@ -1,0 +1,23 @@
+<div class="page-content-wrap">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><%= t('plugin.visits_counter.title') %></h3>
+                <ul class="panel-controls">
+                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                </ul>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <%= render partial: plugin_view("visits_counter", "admin/partials/table") %>
+                    </div>
+
+                </div>
+            </div>
+            <div class="panel-footer">
+                <a class="btn btn-default" href="<%= url_for admin_plugins_path %>"><%= t('admin.button.back') %></a>
+            </div>
+        </div>
+    </div>
+</div>

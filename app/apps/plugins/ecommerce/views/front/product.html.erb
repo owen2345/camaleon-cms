@@ -1,0 +1,106 @@
+<%
+  @field_values = @post.get_field_values_hash
+%>
+<div class="container-fluid">
+  <%= render partial: 'partials/breadcrumb', locals: {breadcrumb: @post.the_breadcrumb} %>
+  <div class="row">
+    <div class="col-md-9 post-view">
+      <article class="post-content">
+        <div class="row">
+          <div class="col-md-6">
+
+            <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+              <!-- Indicators -->
+              <ol class="carousel-indicators">
+                <% @post.the_photos.each_with_index do |pthoto, index| %>
+                    <li data-target="#carousel-example-generic" data-slide-to="<%= index %>" class="<%= 'active' if index == 0 %>"></li>
+                <% end  %>
+              </ol>
+
+              <!-- Wrapper for slides -->
+              <div class="carousel-inner" role="listbox">
+
+                <% @post.the_photos.each_with_index do |pthoto, index| %>
+                    <div class="item <%= 'active' if index == 0 %>">
+                      <img src="<%= pthoto %>" class="center-block" >
+                    </div>
+                <% end  %>
+
+              </div>
+
+              <!-- Controls -->
+              <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+                <span class="glyphicon glyphicon-chevron-left fa fa-chevron-left" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+                <span class="glyphicon glyphicon-chevron-right fa fa-chevron-right " aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
+
+
+
+          </div>
+          <div class="col-md-6">
+            <h1><%= @post.the_title %></h1>
+            <h3>SKU: <%= @post.the_sku %>  <span class="pull-right"><%= raw @post.the_featured_status %></span></h3>
+            <h4><%= @post.the_price %> <span class="pull-right"><%= raw @post.the_stock_status %></span></h4>
+            <hr/>
+            <p><%= @post.the_excerpt  %></p>
+            <hr/>
+            <p>Items available: <%= @post.the_qty_real %></p>
+            <% if @post.the_qty_real.to_i > 0 %>
+              <%= form_tag(plugins_ecommerce_checkout_cart_add_path, :method => "post", :class => "form") do %>
+                  <div class="">
+                    <label class="">Qty: </label>
+                    <%= number_field :cart, :qty, value: 1 %>
+                    <%= hidden_field :cart, :product_id, value: @post.id %>
+
+                    <button type="submit" class="btn"><i class="fa fa-shopping-cart"></i> Add to Cart</button>
+
+                  </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+
+
+        <div class="row">
+
+          <div class="col-md-6">
+            <h3>Description</h3>
+            <div class="item-content">
+              <%= raw @post.the_content %>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h3>Attributes</h3>
+            <table class="table table-bordered">
+            <% @field_values[:ecommerce_attrs].to_a.each do |attr|
+              data = JSON.parse(attr)
+            %>
+              <tr><td><strong><%= data['attr'] %></strong></td><td><%= data['value'] %></td></tr>
+            <% end  %>
+            </table>
+          </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+      </article>
+    </div>
+    <div class="col-md-3">
+      <%= render partial: 'partials/sidebar', locals: {post: @post} %>
+    </div>
+  </div>
+</div>
+<%#= debug @field_values %>
+

@@ -1,0 +1,19 @@
+en:
+  languages:
+    es: "Spanish"
+    en: "English"
+    fr: "French"
+    zh: "Chinese"
+    de: "Deutsch"
+    pt: "Português"
+    it: "Italian"
+
+es:
+  languages:
+    es: "Español"
+    en: "Inglés"
+    fr: "Francés"
+    zh: "Chino"
+    de: "Alemán"
+    pt: "Portugues"
+    it: "Italiano"

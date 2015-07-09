@@ -1,0 +1,72 @@
+<div class="page-title">
+  <h2><span class="fa fa-cog"></span> <%= t('plugin.ecommerce.edit_order') %>: <%= @order.slug %></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
+      <%= form_for @order, url:{action: @order.new_record? ? :create : :update}, html: {class: 'form-order', id: 'form-order'} do |f| %>
+        <!-- START BASIC TABLE SAMPLE -->
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"> <%= t('plugin.ecommerce.details_order') %></h3>
+          </div>
+          <div class="panel-body">
+
+            <div class="row">
+              <div class="col-md-12">
+                <div id="user_details" class="row">
+                  <h3 class="col-md-12"><%= t('plugin.ecommerce.details_user') %></h3>
+                  <div class="form-group col-md-4">
+                    <label for=""><%= t('plugin.ecommerce.table.customer') %></label>
+                    <input class="form-control" type="text" name="order[details][customer]" value="<%= @order.details.customer rescue '' %>">
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for=""><%= t('plugin.ecommerce.table.email') %></label>
+                    <input class="form-control" type="text" name="order[details][email]" value="<%= @order.details.email rescue '' %>">
+                  </div>
+                  <div class="form-group col-md-4">
+                    <label for=""><%= t('plugin.ecommerce.table.phone') %></label>
+                    <input class="form-control" type="text" name="order[details][phone]" value="<%= @order.details.phone rescue '' %>">
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <%= render partial: "ecommerce/views/partials/form_address", locals: {billing_address: @order.meta[:billing_address], shipping_address: @order.meta[:shipping_address]} %>
+              </div>
+            </div>
+            <hr/>
+            <div class="row">
+              <div class="col-md-12">
+                <h3 class=""> <%= t('plugin.ecommerce.products') %></h3>
+                <table class="table">
+                  <thead>
+                  <tr><td><%= t('plugin.ecommerce.products').singularize %></td><td><%= t('plugin.ecommerce.product.qty') %></td><td><%= t('plugin.ecommerce.product.price') %></td><td><%= t('plugin.ecommerce.product.tax') %></td></tr>
+                  </thead>
+                  <tbody>
+                  <% @order.meta[:products].each do |key, product| %>
+                      <tr><td><%= product[:product_title] %></td><td><%= product[:qty] %></td><td><%= e_symbol_by_code(product[:currency_code]) %> <%= product[:price] %></td><td><%= e_symbol_by_code(product[:currency_code]) %> <%= product[:tax] %></td></tr>
+                  <% end %>
+                  </tbody>
+                </table>
+              <%#= debug @order.meta[:products] %>
+                </div>
+            </div>
+
+
+
+          </div>
+
+          <div class="panel-footer">
+            <button class="btn btn-default" onclick="history.back()"><%= t('admin.button.back') %></button>
+            <button class="btn btn-primary pull-right"><%= t('admin.button.update') %></button>
+          </div>
+
+        </div>
+        <!-- END BASIC TABLE SAMPLE -->
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="page-title">
+  <h2><span class="fa fa-taxi"></span> <%= @shipping_method.name %></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
+
+      <!-- START BASIC TABLE SAMPLE -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"> Shipping details</h3>
+          <%= link_to raw("<i class='fa fa-edit'></i> Edit Shipping Method"), {action: :edit, id: @shipping_method.id}, class: "btn btn-primary pull-right" %>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h3>Info</h3>
+              <ul class="ec-list-orders-address">
+                <li><strong>Name:</strong> <span> <%= @shipping_method.name %></span></li>
+                <li><strong>Description:</strong> <span> <%= @shipping_method.description %></span></li>
+              </ul>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+      <!-- END BASIC TABLE SAMPLE -->
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,61 @@
+<div class="login-body">
+    <%= render "layouts/admin/flash_messages" %>
+
+    <div class="login-title"><%= raw t('admin.login.msg_registration_html') %></div>
+
+    <%= form_for(@user, :url => admin_register_path, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  } ) do |f| %>
+
+        <%= render partial: 'layouts/admin/form_error', locals: {data: @user} %>
+
+        <h4><%= t('admin.login.personal_info') %></h4>
+        <div class="form-group">
+            <div class="col-md-12">
+                <input type="text" class="form-control" placeholder="<%= t("admin.login.first_name") %>" name="meta[first_name]" value="<%= @first_name if @first_name.present? %>"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <input type="text" class="form-control" placeholder="<%= t("admin.login.last_name") %>" name="meta[last_name]" value="<%= @last_name if @last_name.present? %>"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <%= f.email_field :email, :class => "form-control required email", placeholder: t("admin.login.email") %>
+            </div>
+        </div>
+
+
+        <h4><%= t('admin.login.authentication') %></h4>
+        <div class="form-group">
+            <div class="col-md-12">
+                <%= f.text_field :username, :class => "form-control required", placeholder: t("admin.login.username") %>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <%= f.password_field :password, :class => "form-control #{"required" if @user.new_record?}", placeholder: t("admin.login.password") %>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <%= f.password_field :password_confirmation, :class => "form-control #{"required" if @user.new_record?}", "equalTo" => "#user_password", placeholder: t("admin.login.password_confirm") %>
+            </div>
+        </div>
+
+        <h4><%= t('admin.login.captcha') %></h4>
+        <div class="form-group">
+            <div class="col-md-12">
+                <%= raw captcha_tag(5, {}, {class: "form-control required", placeholder: t("admin.login.captcha")}) %>
+            </div>
+        </div>
+
+        <div class="form-group push-up-30">
+            <div class="col-md-6">
+                <a href="<%= admin_login_path %>" class="btn btn-link btn-block"><%= t('admin.login.already_have_account') %></a>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-danger btn-block"><%= t('admin.button.sign_up') %></button>
+            </div>
+        </div>
+    <% end %>
+</div>

@@ -1,0 +1,33 @@
+<div id="modal_elfinder" style="font-size: 14px">
+  <div id='content_elfinder'></div>
+</div>
+<%= stylesheet_link_tag "admin/elfinder-manifest"   , media: "all" %>
+<%= javascript_include_tag "admin/elfinder-manifest" %>
+<%= javascript_include_tag "admin/elfinder/i18n/elfinder.#{current_locale}.js" if current_locale != "en" %>
+<style>
+  #content_elfinder .elfinder-cwd *{
+      font-size: 11px;
+  }
+  #content_elfinder .row{
+      margin: 0;
+  }
+</style>
+<script>
+    var options = <%= raw params.except(:controller, :action).to_json %>;
+    var root_url = '<%= root_url %>';
+    String.prototype.to_url = function () { return root_url.slice(0, root_url.length - 1) + this; };
+    jQuery(function(){
+        if(window.parent.onload_modal_elfinder) window.parent.onload_modal_elfinder();
+        var default_options = {type:"all", multiple: 'false', mode: 'basic'};
+        options = $.extend(default_options, options);
+        options.multiple = options.multiple == 'true';
+        options.selected = function(s){
+            if(window.parent.callback_modal_elfinder){
+                window.parent.callback_modal_elfinder(s);
+            }
+        }
+        $('#content_elfinder').upload_elfinder(options)
+
+
+    })
+</script>

@@ -1,0 +1,39 @@
+<div class="page-title">
+  <h2><span class="fa fa-cogs"></span> <%= t('plugin.ecommerce.e_commerce_settings') %></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= t('plugin.ecommerce.form_settings') %></h3>
+        </div>
+        <%#= form_tag ({url:{action: @price.blank? ? :create : :update}}, :method => "post", :class => "form" ) do %>
+            <%= form_tag(action: :saved, :method => "post", :class => "validate-settings") do %>
+            <div class="panel-body">
+
+                <div class="form-group col-md-6">
+                  <label><%= t('plugin.ecommerce.table.currency_unit') %></label><br>
+                  <%= select_tag( "setting[current_unit]", options_for_select(e_get_currency_units.collect{|k, x| ["#{x['name']} (#{x['symbol']})", x['code']]}, @setting[:current_unit] || 'USD'), class: "form-control required") %>
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label><%= t('plugin.ecommerce.table.currency_weight') %></label><br>
+                  <%= select_tag( "setting[current_weight]",  options_for_select(e_get_currency_weight.collect{|k,x| ["#{x['name']} (#{x['code']})", x['code']]}, @setting[:current_weight] || 'kg'), class: "form-control required") %>
+                </div>
+
+            </div>
+            <div class="panel-footer">
+              <a class="btn btn-default" href="<%= url_for action: :index %>" role="back"><%= t('admin.button.back')%></a>
+              <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+            </div>
+        <% end %>
+      </div>
+
+
+    </div>
+  </div>
+</div>

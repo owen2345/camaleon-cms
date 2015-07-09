@@ -1,0 +1,21 @@
+{
+  "title": "Front Cache",
+  "descr": "",
+  "version": "0.1",
+  "key": "front_cache",
+  "position": 1,
+  "helpers": [
+    "Plugins::FrontCache::FrontCacheHelper"
+  ],
+  "hooks": {
+    "admin_before_load": ["front_cache_post_requests"],
+    "front_before_load": ["front_cache_front_before_load", "front_cache_post_requests"],
+    "on_active": ["front_cache_on_active"],
+    "on_inactive": ["front_cache_on_inactive"],
+    "on_render": ["front_cache_on_render"],
+    "app_before_load": ["front_cache_before_load"],
+    "plugin_options":["front_cache_plugin_options"],
+    "front_after_load": ["front_cache_front_after_load"]
+    //here you can add all your hooks (read documentation)
+  }
+}

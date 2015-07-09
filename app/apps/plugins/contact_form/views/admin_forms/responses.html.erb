@@ -1,0 +1,67 @@
+<div class="page-title">
+  <h2><span class="fa fa-archive"></span> <%= "#{t('plugin.contact_form.title_plugin')} / #{@form.name.capitalize}" %>
+  </h2>
+</div>
+<div class="page-content-wrap">
+
+  <div class="row">
+
+    <div class="col-md-12">
+
+      <!-- START BASIC TABLE SAMPLE -->
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= t('plugin.contact_form.list_responses') %></h3>
+        </div>
+        <div class="panel-body">
+
+          <table class="table">
+            <thead>
+            <tr>
+              <% @op_fields.each do |f| %>
+                <th><%= f[:label] %></th>
+              <% end %>
+              <th><%= t('plugin.contact_form.created_at') %></th>
+            </tr>
+            </thead>
+            <tbody>
+            <% @forms.each do |form| %>
+                <% value = form_value_rescue(form) %>
+                <tr>
+                <% @op_fields.each do |default| %>
+                    <% cid = default[:cid].to_sym %>
+                    <% if default[:field_type] == "file" %>
+                        <td>
+                            <% file_data = value[:fields][cid] %>
+                            <% file_data.to_a.each do |ind, file| %>
+                                <%= file if ind.to_s == "original_filename" %>
+                            <% end %>
+                        </td>
+                    <% elsif default[:field_type] == "radio" || default[:field_type] == "checkboxes" %>
+                        <td><%= value[:fields][cid].map(&:inspect).join(', ') if value[:fields][cid].present? %></td>
+                    <% else %>
+                        <td><%= value[:fields][cid] %></td>
+                    <% end %>
+                <% end %>
+                    <td><%= value[:created_at] %></td>
+                </tr>
+            <% end %>
+
+            </tbody>
+          </table>
+          <%= content_tag("div", raw("#{t('admin.message.data_found_list')}"), class: "alert alert-warning") if @forms.empty? %>
+          <%= will_paginate @forms, renderer: BootstrapPagination::Rails %>
+        </div>
+      </div>
+
+      <div class="panel-footer">
+        <a class="btn btn-default" href="<%= url_for action: :index %>"><%= t('admin.button.back') %></a>
+      </div>
+      <!-- END BASIC TABLE SAMPLE -->
+    </div>
+
+
+  </div>
+
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>

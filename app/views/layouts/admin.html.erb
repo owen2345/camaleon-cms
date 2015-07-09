@@ -1,0 +1,165 @@
+<% _admin_menu_draw = admin_menu_draw %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title><%= raw admin_title_draw %></title>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <%= stylesheet_link_tag "admin/admin-manifest", media: "all" %>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <%= javascript_include_tag "admin/admin-manifest" %>
+    <%= javascript_include_tag "admin/#{current_locale}.js" if current_locale != "en" %>
+    <%= javascript_include_tag "admin/elfinder/i18n/elfinder.#{current_locale}.js" if current_locale != "en" %>
+    <%= raw the_head(false) %>
+
+
+    <script>
+        var root_url = '<%= root_url %>';
+        var CURRENT_LOCALE = '<%= current_locale %>';
+        var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
+        String.prototype.to_url = function () { return root_url.slice(0, root_url.length - 1) + this; };
+        window.run = [];
+        var lang = {
+            accept: '<%= t('admin.button.accept') %>',
+            cancel: '<%= t('admin.button.cancel') %>',
+            add_tag: '<%= t('admin.post.add_tag') %>',
+            approved: '<%= t('admin.comments.message.approved') %>',
+            close: '<%= t('admin.button.close') %>',
+            edit: '<%= t('admin.button.edit') %>',
+            "delete": '<%= t('admin.button.delete') %>',
+            post_draft: '<%= t('admin.post.message.draft') %>',
+            label_required: '<%= t('plugin.contact_form.label_required') %>',
+            placeholder_required: '<%= t('plugin.contact_form.placeholder_required') %>',
+            message_updated_success: '<%= t('admin.message.updated_success') %>',
+            message_edit_menu:  '<%= t('admin.message.edit_menu') %>',
+            message_delete_item:  '<%= t('admin.message.delete_item') %>',
+            message_remove_items_submenu:  '<%= t('admin.message.remove_items_submenu') %>',
+            message_you_must_upload_image: '<%= t('admin.message.you_must_upload_image') %>',
+            message_you_must_upload_video: '<%= t('admin.message.you_must_upload_video') %>',
+            message_no_response_fields: '<%= t('admin.message.no_response_fields') %>',
+            message_you_must_upload_json_file: '<%= t('admin.message.you_must_upload_json_file')%>',
+            msg_no_templates_defined: '<%= t('admin.message.no_templates_defined') %>',
+            msg_avatar_updated: '<%= t('admin.message.avatar_updated')%>',
+            msg_form_error: '<%= t('admin.message.form_error')%>',
+            option_title:  '<%= t('admin.settings.option_title') %>',
+            permalink: '<%= t('admin.post.permalink')%>',
+            pending: '<%= t('admin.comments.message.pending') %>',
+            preview: '<%= t('admin.button.preview')%>',
+            spam: '<%= t('admin.comments.message.spam') %>',
+            view_page: '<%= t('admin.button.view_page')%>',
+            view_draft: '<%= t('admin.button.view_draft') %>',
+            mgs_save_draft: '<%= t('admin.post.message.draft') %>',
+            mgs_recover: '<%= t('admin.post.message.recover') %>',
+            close: '<%= t('admin.button.close')%>',
+            processing: '<%= t('admin.message.processing')%>',
+            type_contents: '<%= t('admin.plugins.type_contents')%>',
+            upload_image: '<%= t('admin.button.upload_image')%>'
+        };
+    </script>
+
+</head>
+<body class="template-admin">
+<%= raw content_before_draw %>
+<!-- START PAGE CONTAINER -->
+<div class="page-container" id="page-container">
+
+    <!-- START PAGE SIDEBAR -->
+    <div class="page-sidebar page-sidebar-fixed0 scroll0" id="admin_sidebar">
+        <!-- START X-NAVIGATION -->
+        <%= render partial: "layouts/admin/sidebar", locals: {_admin_menu_draw: _admin_menu_draw} %>
+
+        <!-- END X-NAVIGATION -->
+    </div>
+    <!-- END PAGE SIDEBAR -->
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+
+        <!-- START X-NAVIGATION VERTICAL -->
+        <ul class="x-navigation x-navigation-horizontal x-navigation-panel hidden" id="admin_header">
+            <!-- TOGGLE NAVIGATION -->
+            <li class="xn-icon-button">
+                <a href="#" class="x-navigation-minimize"><span class="fa fa-dedent"></span></a>
+            </li>
+            <li class="xn-icon-button pull-right">
+                <a href="#" class="mb-control" data-box="#mb-signout"><span class="fa fa-power-off"></span></a>
+            </li>
+            <!-- END TOGGLE NAVIGATION -->
+        </ul>
+        <!-- END X-NAVIGATION VERTICAL -->
+
+        <!-- Multisite menus -->
+        <div id="admin_header_menu">
+            <div class="btn-group" role="group">
+                <button id="toogle_sidebar" class="btn btn-lg btn-primary"><i class="fa fa-dedent"></i></button>
+
+              <% if current_site.manage_sites? %>
+                <% Site.order(term_group: :desc).eager_load(:metas).decorate.each do |site| %>
+                    <div class="btn-group" role="group">
+                        <a class="btn dropdown-toggle btn-lg <%= site == current_site ? "btn-success" : "btn-primary" %>" data-toggle="dropdown" href="#" role="button" aria-expanded="false"> <%= site.the_title %> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="<%= site.the_admin_url %>" class=""><i class="fa fa-dashboard"></i> <%= t('admin.sidebar_top.admin_panel') %></a></li>
+                            <li><a href="<%= site.the_url(locale: false) %>" class="" target="_blank"><i class="fa fa-globe"></i> <%= t('admin.sidebar_top.visit') %></a></li>
+                        </ul>
+                    </div>
+                <% end %>
+              <% else %>
+                    <div class="btn-group" role="group">
+                        <a class="btn dropdown-toggle btn-lg btn-success" data-toggle="dropdown" href="#" role="button" aria-expanded="false"> <%= current_site.the_title %> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="<%= current_site.the_admin_url %>" class=""><i class="fa fa-dashboard"></i> <%= t('admin.sidebar_top.admin_panel') %></a></li>
+                            <li><a href="<%= current_site.the_url %>" class="" target="_blank"><i class="fa fa-globe"></i> <%= t('admin.sidebar_top.visit') %></a></li>
+                        </ul>
+                    </div>
+              <% end %>
+            </div>
+
+            <a id="admin_logout" data-box="#mb-signout" class="pull-right btn btn-primary btn-lg" href="#"><span class="fa fa-power-off"></span></a>
+        </div>
+
+        <!-- START BREADCRUMB -->
+        <ul class="breadcrumb push-down-0" id="admin_breadcrumb">
+            <%= raw admin_breadcrumb_draw() %>
+        </ul>
+        <!-- END BREADCRUMB -->
+
+        <div id="admin_content">
+            <%= render partial: "layouts/admin/flash_messages" %>
+            <%= yield %>
+        </div>
+        <!-- END PAGE CONTENT -->
+    </div>
+    <!-- END PAGE CONTAINER -->
+
+    <div class="message-box animated fadeIn" data-sound="alert" id="mb-signout">
+        <div class="mb-container">
+            <div class="mb-middle">
+                <div class="mb-title"><span class="fa fa-sign-out"></span> <%= raw t('admin.logout.logout_html') %> </div>
+                <div class="mb-content">
+                    <p><%= t('admin.message.are_you_sure_you_want_log_out_int') %></p>
+
+                    <p><%= t('admin.message.press_no_continue_work_press_yes_logout') %></p>
+                </div>
+                <div class="mb-footer">
+                    <div class="pull-right">
+                        <a href="<%= admin_logout_path %>" class="btn btn-success btn-lg"><%= t('admin.button.out_yes') %></a>
+                        <button class="btn btn-default btn-lg mb-control-close"><%= t('admin.button.out_not') %></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- START PRELOADS -->
+    <audio id="audio-alert" src="/audio/alert.mp3" preload="auto"></audio>
+    <audio id="audio-fail" src="/audio/fail.mp3" preload="auto"></audio>
+    <!-- END PRELOADS -->
+
+</div>
+<script> jQuery(function () { while (run.length > 0) { (run.shift())(); } }); </script>
+<%= raw content_after_draw %>
+</body>
+</html>

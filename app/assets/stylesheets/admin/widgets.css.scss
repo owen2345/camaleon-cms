@@ -1,0 +1,26 @@
+#content-widget{
+  .panel-widget{
+    cursor: move;
+    &, *{ color: #fff; }
+
+    .shortcode{
+      cursor: default;
+      width: 100%;
+    }
+  }
+}
+#content-sidebar{
+  .sidebar-body{
+    min-height:150px;
+    .panel-default:hover{
+      cursor: move;
+    }
+  }
+  form{
+    overflow: hidden;
+  }
+}
+
+.ui-draggable-dragging{
+  z-index: 999999999;
+}

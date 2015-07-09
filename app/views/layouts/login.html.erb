@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" class="body-full-height">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+  <title><%= t('admin.login.login') %></title>
+  <link type="image/vnd.microsoft.icon" rel="shortcut icon" href="<%= current_site.the_icon %>">
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!--link rel="icon" href="favicon.ico" type="image/x-icon" /-->
+
+  <%#= stylesheet_link_tag    "admin", media: "all" %>
+  <%= stylesheet_link_tag    "admin/theme-default", "admin/bootstrap/bootstrap.min.css", media: "all" %>
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+</head>
+<body>
+    <div class="login-container">
+
+      <div class="login-box animated fadeInDown">
+        <div class="login-logo"><%= image_tag(current_site.the_logo) %></div>
+
+        <%= yield %>
+
+        <div class="login-footer">
+          <div class="pull-left">
+
+          </div>
+          <div class="pull-right">
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <%= javascript_include_tag "admin/login_manifest" %>
+</body>
+</html>

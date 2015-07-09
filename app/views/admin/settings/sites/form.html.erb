@@ -1,0 +1,50 @@
+<div class="page-title">
+  <h2><span class="fa fa-cog"></span> <%= @site.new_record? ? t('admin.page_title.new_site') : "#{t('admin.page_title.edit_site')}: #{@site.the_title} "%> </h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <%= form_for @site, url:{action: @site.new_record? ? :create : :update}, html: {class: ''} do |f| %>
+        <div class="col-md-6 col-md-offset-3">
+          <div class="panel panel-default">
+
+
+            <div class="panel-heading">
+              <h3 class="panel-title"><%= t('admin.settings.details_site') %></h3>
+              <ul class="panel-controls">
+                <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+              </ul>
+            </div>
+
+
+            <div class="panel-body">
+              <%= render partial: 'layouts/admin/form_error', locals: {data: @site} %>
+            <div class="form-group">
+                <%= f.label t('admin.table.slug') %><br>
+                <small><%= t('admin.sites.message.enter_key_domain_empty') %></small><br>
+                <%= f.text_field :slug, :class => "form-control", "data-parent" => "site_name"  %>
+            </div>
+              <div class="form-group">
+                <%= f.label t('admin.table.name') %><br>
+                <%= f.text_field :name, :class => "form-control required" %>
+              </div>
+              <div class="form-group">
+                <%= f.label t('admin.table.description') %><br>
+                <%= f.text_area :description, :class => "form-control" %>
+              </div>
+            </div>
+
+            <div class="panel-footer">
+              <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('admin.button.back') %></a>
+              <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit') %></button>
+            </div>
+          </div>
+        </div>
+
+      <% end %>
+
+  </div>
+
+</div>

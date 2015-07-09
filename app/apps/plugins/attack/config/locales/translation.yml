@@ -1,0 +1,36 @@
+﻿en:
+  plugin:
+    attack:
+      title: 'Attack'
+      attack_security: 'Attack security'
+      form:
+        in: 'in'
+        seconds: 'Seconds'
+        minutes: 'Minutes'
+        type_max_requests_time: 'Max. %{type} Requests'
+        type_time_requests_seconds: '%{type} time request [seconds]'
+        ban_time_minutes: 'Ban time'
+        ban_messages: 'Ban message'
+        request_limit_exceeded: 'Requests Limit exceeded!'
+      messages:
+        settings_saved: 'Settings saved!'
+      settings: 'Settings'
+
+
+es:
+  plugin:
+    attack:
+      title: 'Ataque'
+      attack_security: 'Seguridad de Ataques'
+      form:
+        in: 'en'
+        seconds: 'Segundos'
+        minutes: 'Minutos'
+        type_max_requests_time: 'Peticiones %{type} máximo '
+        type_time_requests_seconds: 'Peticiones %{type} por tiempo [segundo]'
+        ban_time_minutes: 'Tiempo de expulsión'
+        ban_messages: 'Mensaje de Prohibición'
+        request_limit_exceeded: 'Solicitud Límite excedido!'
+      messages:
+        settings_saved: 'Ajustes guardados!'
+      settings: 'Ajustes'

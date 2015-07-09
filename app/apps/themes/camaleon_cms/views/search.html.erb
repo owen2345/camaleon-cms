@@ -1,0 +1,7 @@
+<div class="pressroom">
+    <div class="container">
+        <h3><%= @posts.total_entries %> <%= ct('search_msg') %> <%= params[:q] %></h3>
+        <%= render partial: 'partials/breadcrumb', locals: {breadcrumb: breadcrumb_draw } %>
+        <%= render partial: "partials/list_items", locals:{posts: @posts} %>
+    </div>
+</div>

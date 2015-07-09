@@ -1,0 +1,20 @@
+es:
+  routes:
+    group: grupo
+    category: categoria
+    tag: etiqueta
+    search: buscar
+
+pt:
+  routes:
+    group: grupo
+    category: categoria
+    tag: etiqueta
+    search: buscar
+
+fr:
+  routes:
+    group: groupe
+    category: categorie
+    tag: balise
+    search: recherche

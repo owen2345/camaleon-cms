@@ -1,0 +1,66 @@
+<div class="page-title">
+  <h2><span class="fa fa-tag"></span> <%= @slider_basic.new_record? ? "#{t('plugin.slider_basic.new_slider')}" : "#{t('plugin.slider_basic.edit_slider')}: #{@slider_basic.name}" %></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= t('plugin.slider_basic.form_slider') %></h3>
+        </div>
+        <%= form_for @slider_basic, url:{action: @slider_basic.new_record? ? :create : :update},  html: {class: 'validate-slider_basic', id: 'form-slider_basic'}  do |f| %>
+            <div class="panel-body">
+              <%= render partial: 'layouts/admin/form_error', locals: {data: @slider_basic} %>
+              <div class="form-group">
+                <%= f.label "#{t('admin.table.name')}" %><br>
+                <%= f.text_field :name, :class => "form-control required" %>
+              </div>
+              <div class="form-group">
+                <%= f.label "#{t('admin.table.slug')}" %><br>
+                <%= f.text_field :slug, :class => "form-control slug", 'data-parent' => 'plugins_slider_basic_models_slider_basic_name' %>
+              </div>
+
+              <div class="form-group">
+                  <%= f.label "#{t('admin.table.status')}" %><br>
+                  <label><%= f.check_box :active %> &nbsp; <%= t('plugin.slider_basic.active') %></label>
+              </div>
+              <div class="form-group" id="slider_mode">
+                <%= f.label "#{t('admin.table.kind')}" %><br>
+                <label><%= f.radio_button :kind, "image" %> &nbsp; <%= t('admin.table.images') %></label><br>
+                <label><%= f.radio_button :kind, "text" %> &nbsp; <%= t('admin.table.text') %></label>
+              </div>
+                <%= render partial: "admin/settings/custom_fields/render", locals: {record: @slider_basic, field_groups: @slider_basic._get_field_groups} %>
+            </div>
+
+            <div class="panel-footer">
+              <a class="btn btn-default" href="<%= url_for action: :index %>"><%= t('admin.button.back')%></a>
+              <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+            </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+    run.push(function(){
+        var form = $("#form-slider_basic");
+        form.find("#slider_mode input:radio:first").click(function(){
+            form.find(".c-field-group[data-slug='plugin_slider_basic_slider_texts']").hide();
+            form.find(".c-field-group[data-slug='plugin_slider_basic_slider_images']").show();
+        });
+        form.find("#slider_mode input:radio:last").click(function(){
+            form.find(".c-field-group[data-slug='plugin_slider_basic_slider_images']").hide();
+            form.find(".c-field-group[data-slug='plugin_slider_basic_slider_texts']").show();
+        });
+        if(form.find("#slider_mode input:radio").filter(":checked").length)
+            form.find("#slider_mode input:radio").filter(":checked").click();
+        else
+            form.find("#slider_mode input:radio:first").click();
+        form.submit(function(){
+            form.find(".c-field-group:hidden").remove();
+        });
+    });
+</script>

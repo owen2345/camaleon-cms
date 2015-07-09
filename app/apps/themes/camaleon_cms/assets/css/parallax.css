@@ -1,0 +1,117 @@
+
+@charset "utf-8";
+/* CSS Document */
+
+p{
+	margin: 0 0 20px 0;	
+}
+
+
+#header h1, #pixels{
+	color: #48941A;
+}
+
+.float-left{
+	float: left;	
+	margin: 0 0 0 20px;
+}
+
+.float-right{
+	float: right;
+	margin: 0 20px 0 0;
+}
+
+.center{
+	font-size: 2.5em;
+	padding: 80px 0 0 0;
+	text-align: center;
+	width:100%;
+}
+
+#nav{
+	list-style: none;
+	position: fixed;
+	right: 20px;
+}
+
+#nav li{
+	margin: 0 0 15px 0;	
+}
+
+#header, #intro, #second{
+	width: 100%;
+}
+.img-effect{
+	width:100%;
+	height:50%;
+	position: absolute;
+
+}
+#banner{
+	background: 50% 0 no-repeat fixed;
+	color: white;
+	height: 720px;
+	margin: 0 auto;
+	padding: 0;
+}
+.parallax_panel{
+    position: relative;
+    color: #fff;
+}
+.parallax_panel h1, .parallax_panel h2, .parallax_panel .title-detail{ color: #fff; }
+
+#banner2{
+	background:url("../images/banner2.jpg") 50% 0 no-repeat fixed;
+	color: white;
+	height: 720px;
+	margin: 0 auto;
+	padding: 0;
+}
+#intro{
+	background:url("../images/countdown.jpg") no-repeat fixed ;
+	background-position:50% 0 !important;
+	color: white;
+	height: 528px;
+	margin: 0 auto;
+	padding: 0;
+}
+#second {
+	background:url("../images/secondbg.jpg") no-repeat fixed;
+	background-position:50% 70% !important;
+	color: white;
+	height: 528px;
+	margin: 0 auto;
+	padding: 0;
+}
+
+#third{
+ 	background:url("../images/third.jpg") no-repeat fixed ;
+	color: white;
+	height: 630px;
+	margin: 0 auto;
+	padding: 0;
+}
+
+#fifth{
+	background:url("../images/contact.jpg") 50% 0 no-repeat fixed;
+	margin: 0 auto;
+	padding: 0;
+}
+
+.story{
+	margin: 0 auto;
+	min-width: 980px;
+	overflow: auto;
+	width: 980px;
+}
+
+.story .float-left, .story .float-right{
+	padding: 100px 0 0 0;
+	position: relative;
+	width: 350px;	
+}
+
+
+#intro.fixed-bg{ background-attachment:scroll !important;}
+#banner { overflow: hidden; }
+#banner img{ min-width: 100%; }

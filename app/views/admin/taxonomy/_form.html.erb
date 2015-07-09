@@ -1,0 +1,62 @@
+<%
+   if @term.nil?
+     @term = TermTaxonomy.new
+     @term.parent_id = @parent.present? ? @parent.id : nil
+     @term.taxonomy = params[:taxonomy]
+   end
+
+
+%>
+<%= form_for @term, url:{action: @term.new_record? ? :create : :update} , html:{class: 'validate-taxonomy'} do |f| %>
+    <%= f.hidden_field :parent_id  %>
+    <%= f.hidden_field :taxonomy %>
+    <div class="panel-body">
+      <%= render partial: 'layouts/admin/form_error', locals: {data: @term} %>
+        <div class="form-group">
+          <%= f.label t('admin.table.name') %><br>
+          <%= f.text_field :name, :class => "form-control required" %>
+        </div>
+        <div class="form-group">
+            <%= f.label t('admin.table.slug') %><br>
+            <%= f.text_field :slug, :class => "form-control" %>
+        </div>
+        <% if @term.get_option('has_parent', false)  %>
+            <div class="form-group">
+                <%= f.label :parent_id %><br>
+                <%= f.select :parent_id, [["None",@parent.id]] + _get_options_html_from_items(@parent.categories),{}, {:class => "form-control"} %>
+            </div>
+        <% end  %>
+        <div class="form-group">
+          <%= f.label t('admin.table.description') %><br>
+          <%= f.text_area :description, :class => "form-control", :rows => 4 %>
+        </div>
+
+      <h4 style="margin-bottom: 12px">Options</h4>
+        <%
+           empty_options = true
+           editable = TermTaxonomy::wp_taxonomies[@term.taxonomy.to_sym][:options_editable]
+           TermTaxonomy::wp_taxonomies[@term.taxonomy.to_sym][:options].each do |key, value_default|
+            if editable.present? && editable[key].present?
+                option = editable[key]
+                value = @term.get_option(key, value_default)
+                empty_options = false
+        %>
+            <div class="form-group">
+              <input name="meta[<%= key  %>]" type="hidden" value="false"/>
+              <label class="check0"><input name="meta[<%= key  %>]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if value %>/>&nbsp; <%= option[:label] %></label>
+            </div>
+        <%
+            end
+           end
+        %>
+    <%= content_tag("div","No options", class: 'alert alert-warning') if empty_options %>
+    </div>
+
+
+
+    <div class="panel-footer">
+      <a class="btn btn-default" href="<%= url_for action: :index %>">Back</a>
+      <button class="btn btn-primary pull-right" type="submit">Submit</button>
+    </div>
+<% end %>
+

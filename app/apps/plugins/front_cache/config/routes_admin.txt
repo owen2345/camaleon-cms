@@ -1,0 +1,3 @@
+get 'settings' => "admin#settings"
+get 'clean' => "admin#clean_cache"
+post 'settings' => "admin#save_settings"

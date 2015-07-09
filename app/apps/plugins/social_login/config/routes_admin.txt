@@ -1,0 +1,12 @@
+get 'settings' => "admin#settings"
+post 'settings' => "admin#save_settings"
+post 'social_logout' => "admin#social_logout"
+
+get 'start_facebook'    => "admin#start_facebook"
+get 'callback_facebook' => "admin#callback_facebook"
+
+get 'start_twitter'    => "admin#start_twitter"
+get 'callback_twitter' => "admin#callback_twitter"
+
+get 'start_google'    => "admin#start_google"
+get 'callback_google' => "admin#callback_google"

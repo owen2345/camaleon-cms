@@ -1,0 +1,49 @@
+<div class="page-title">
+  <h2><span class="fa fa-usd"></span> <%= !@price[:id].present? ? t('plugin.ecommerce.add_price') : "#{t('plugin.ecommerce.edit_price')}: #{@price[:code]}" %></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= t('plugin.ecommerce.form_price') %></h3>
+        </div>
+        <%#= form_tag ({url:{action: @price.blank? ? :create : :update}}, :method => "post", :class => "form" ) do %>
+            <%= form_tag(@price[:id].present? ? {action: :update, id: @price[:id]} : {action: :create}, :method => @price[:id].present? ? "patch" :"post", :class => "validate-price") do %>
+            <div class="panel-body">
+              <div class="row">
+
+                <div class="form-group col-md-6">
+                  <label><%= t('plugin.ecommerce.table.code') %></label><br>
+                  <%= text_field_tag( "price[code]", @price[:code], class: "form-control required") %>
+                </div>
+                <div class="form-group col-md-6">
+                  <label><%= t('plugin.ecommerce.product.price') %> </label> (<%= current_site.current_unit %>)<br>
+                  <%= number_field_tag( "price[price]", @price[:price], class: "form-control required") %>
+                </div>
+                <div class="form-group col-md-6">
+                  <label><%= t('plugin.ecommerce.table.min_weight') %> </label> (<%= current_site.current_weight %>)<br>
+                  <%= number_field_tag( "price[min_weight]", @price[:min_weight], class: "form-control required") %>
+                </div>
+                <div class="form-group col-md-6">
+                  <label><%= t('plugin.ecommerce.table.max_weight') %> </label> (<%= current_site.current_weight %>)<br>
+                  <%= number_field_tag( "price[max_weight]", @price[:max_weight], class: "form-control required") %>
+                </div>
+              </div>
+
+            </div>
+            <div class="panel-footer">
+              <a class="btn btn-default" href="<%= url_for action: :index %>" role="back"><%= t('admin.button.back')%></a>
+              <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+            </div>
+        <% end %>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,55 @@
+<div class="page-title">
+  <h2>
+    <span class="fa fa-users"></span>
+    <%= "Edit "%>
+  </h2>
+</div>
+<div class="page-content-wrap">
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= @comment.id.present? ? "Edit" : "Add" %> </h3>
+        </div>
+        <%= form_for @comment, url:{action: @comment.new_record? ? :create : :update} do |f| %>
+
+            <div class="panel-body">
+
+              <%= render partial: 'layouts/admin/form_error', locals: {data: @comment} %>
+              <div class="form-group">
+                <%= f.label :author %>
+                <%= f.text_field :author, :class => "form-control" %>
+              </div>
+
+              <div class="form-group">
+                <%= f.label :author_email %>
+                <%= f.email_field :author_email, :class => "form-control"%>
+              </div>
+
+              <div class="form-group">
+                <label class=" control-label">Status</label>
+                <select name="post_comment[approved]" class="form-control select">
+                  <option value="approved" <%= (@comment[:approved] == "approved") ? "selected": "" %> >Approved</option>
+                  <option value="pending" <%= (@comment[:approved] == "pending") ? "selected": "" %>>Pending</option>
+                  <option value="spam" <%= (@comment[:approved] == "spam") ? "selected": "" %>>Spam</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <%= f.label :content %><br>
+                <%= f.text_area :content, :class => "form-control", :rows => 4 %>
+              </div>
+
+            </div>
+
+            <div class="panel-footer">
+              <a class="btn btn-default" href="<%= url_for action: :index %>">Back</a>
+              <button class="btn btn-primary pull-right" type="submit">Submit</button>
+            </div>
+        <% end %>
+      </div>
+
+    </div>
+  </div>
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>

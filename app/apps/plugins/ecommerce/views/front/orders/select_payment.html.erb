@@ -1,0 +1,61 @@
+<%= form_tag(plugins_ecommerce_order_set_select_payment_path(order: @order.slug), :method => "post", :class => "form") do %>
+
+<div id="payment" class="col-md-8 col-md-offset-2">
+  <h3>Payment</h3>
+  <% @payment_methods = current_site.payment_methods.actives.all %>
+
+  <div id="e-payments-types" role="tabpanel">
+
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+      <% @payment_methods.each_with_index do |payment, index|
+        bool_active = @order.meta[:payment][:type].present? ? @order.meta[:payment][:type] == payment.options[:type] : index == 0
+      %>
+          <li role="presentation" class="<%= "active" if bool_active %>"><a href="#<%= payment.slug %>" aria-controls="<%= payment.slug %>" role="tab" data-toggle="tab"><%= payment.name %></a></li>
+      <% end %>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+      <% @payment_methods.each_with_index do |payment, index|
+      bool_active = @order.meta[:payment][:type].present? ? @order.meta[:payment][:type] == payment.options[:type] : index == 0
+      %>
+          <div role="tabpanel" class="tab-pane <%= "active" if bool_active %>" id="<%= payment.slug %>">
+
+            <input type="hidden" name="payment[payment_id]" value="<%= payment.id  %>">
+            <% if payment.options[:type] == 'paypal' %>
+                <h3>Method by Paypal</h3>
+                <p><%= payment.description %></p>
+                <input type="hidden" name="payment[type]" value="paypal">
+                <div class="type-paypal">
+                  <img src="https://www.paypalobjects.com/webstatic/mktg/logo/bdg_payments_by_pp_2line.png" alt="Buy now with PayPal" />
+                </div>
+            <% end  %>
+            <% if payment.options[:type] == 'bank_transfer' %>
+                <h3>Method Bank Transfer</h3>
+                <p><%= payment.description %></p>
+                <input type="hidden" name="payment[type]" value="bank_transfer">
+                <ul class="ec-list-orders-address">
+                  <li><strong>Number Account:</strong> <span> <%= payment.options[:bank_transfer_number_account] %></span></li>
+                  <li><strong>Details:</strong> <span> <%= payment.options[:bank_transfer_detail] %></span></li>
+                </ul>
+            <% end  %>
+            <% if payment.options[:type] == 'credit_card' %>
+                <h3>Method Credit Card</h3>
+                <p><%= payment.description %></p>
+                <input type="hidden" name="payment[type]" value="credit_card">
+                <img src="http://i76.imgup.net/accepted_c22e0.png" alt="Buy now with Credit Card" />
+            <% end  %>
+          </div>
+      <% end %>
+    </div>
+  </div>
+  <hr/>
+  <div class="text-center">
+    <button class="btn btn-warning btn-lg btn-block">Pay</button>
+  </div>
+
+
+</div>
+
+<% end %>

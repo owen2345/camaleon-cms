@@ -1,0 +1,22 @@
+{
+  "title": "Front Editor",
+  "descr": "",
+  "version": "0.1",
+  "key": "front_editor",
+  "helpers": [
+    "Plugins::FrontEditor::FrontEditorHelper"
+  ],
+  "options": [
+  ],
+  "hooks": {
+    "post_the_thumb": [ "front_editor_post_the_thumb" ],
+    "post_the_content": [ "front_editor_post_the_content" ],
+    "post_the_title": [ "front_editor_post_the_title" ],
+    "post_the_excerpt": [ "front_editor_post_the_excerpt" ],
+    "sidebar_render": [ "front_editor_sidebar_render" ],
+    "taxonomy_the_content": [ "front_editor_taxonomy_the_content" ],
+    "taxonomy_the_title": [ "front_editor_taxonomy_the_title" ],
+    "taxonomy_the_excerpt": [ "front_editor_taxonomy_the_excerpt" ],
+    "front_before_load": ["front_editor_front_before"]
+  }
+}

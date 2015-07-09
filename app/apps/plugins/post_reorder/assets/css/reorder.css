@@ -1,0 +1,6 @@
+.ui-state-highlight { height: 1.5em; line-height: 1.2em; }
+
+.ui-sortable-helper{
+    width: 100%;
+    background: #e5e5e5;
+}

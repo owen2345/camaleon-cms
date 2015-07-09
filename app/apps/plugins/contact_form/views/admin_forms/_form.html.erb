@@ -1,0 +1,33 @@
+<%
+   if @form.nil?
+     @form = current_site.contact_forms.new
+   end
+%>
+<%= form_for @form, url:{action: @form.new_record? ? :create : :update}, html:{class: 'validate-forms'} do |f| %>
+    <input id="plugins_contact_form_models_contact_form_site_id" type="hidden" name="plugins_contact_form_models_contact_form[site_id]" value="<%= current_site.id %>" />
+
+    <%= f.hidden_field :id  %>
+    <div class="panel-body">
+      <%#= render partial: 'layouts/admin/form_error', locals: {data: @form} %>
+        <div class="form-group">
+          <%= f.label t('admin.table.name') %><br>
+          <%= f.text_field :name, :class => "form-control required" %>
+        </div>
+        <div class="form-group">
+            <%= f.label t('admin.table.slug') %><br>
+            <%= f.text_field :slug, :class => "form-control slug", "data-parent" => "plugins_contact_form_models_contact_form_name" %>
+        </div>
+
+        <div class="form-group">
+          <%= f.label t('admin.table.description') %><br>
+          <%= f.text_area :description, :class => "form-control", :rows => 4 %>
+        </div>
+
+    </div>
+
+    <div class="panel-footer">
+      <a class="btn btn-default" href="<%= url_for action: :index %>" role="back" ><%= t('plugin.contact_form.button.back') %></a>
+      <button class="btn btn-primary pull-right" type="submit"><%= t('plugin.contact_form.button.submit') %></button>
+    </div>
+<% end %>
+

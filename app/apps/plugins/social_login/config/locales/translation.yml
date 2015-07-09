@@ -1,0 +1,43 @@
+en:
+  plugin:
+    social_login:
+      settings: 'Settings'
+      title: 'Social Login: Settings'
+      activate_login_social_networks: 'Activate Login Social Networks'
+      info_plugin: 'Plugin Info'
+      public_key: 'Public Key'
+      private_key: 'Private Key'
+      action: 'Actions Success'
+      social_login: 'Social Login'
+      or: 'OR'
+      message:
+        unlink_social_network: 'Unlink Social Network'
+        social_network_no_available: 'Social Network not available'
+        social_network_use: 'Social Network in Use'
+        social_network_unrelated: 'Social Network unrelated'
+        connected_social_network: 'Social Network Online'
+        user_not_created: 'The user can not create. Try again later'
+        connect_social_network: 'Connect Social Network'
+
+
+
+es:
+  plugin:
+    social_login:
+      settings: 'Ajustes'
+      title: 'Inicio Sesión Red Social: Ajustes'
+      activate_login_social_networks: 'Activar Iniciar Sesión con Redes Sociales'
+      info_plugin: 'Información'
+      public_key: 'Clave Pública'
+      private_key: 'Clave Privada'
+      action: 'éxito acciones'
+      social_login: 'Inicio Sesión Red Social'
+      or: 'O'
+      message:
+        unlink_social_network: 'Desvincular Red Social'
+        social_network_no_available: 'Red Social no está disponible'
+        social_network_use: 'Red Social en uso'
+        social_network_unrelated: 'Red Social no  vinculado'
+        connected_social_network: 'Red Social Conectado'
+        user_not_created: 'El usuario no se puede crear. Intentelo mas tarde'
+        connect_social_network: 'Conectar Red Social'

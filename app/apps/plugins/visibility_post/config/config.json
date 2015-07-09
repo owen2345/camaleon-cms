@@ -1,0 +1,24 @@
+{
+  "title": "Visibility Posts",
+  "descr": "",
+  "version": "0.1",
+  "key": "visibility_post",
+  "helpers": [
+    "Plugins::VisibilityPost::VisibilityPostHelper"
+  ],
+  "options": [
+  ],
+  "hooks": {
+    "on_active": ["plugin_visibility_on_active"],
+    "on_inactive": ["plugin_visibility_on_inactive"],
+    "list_post": ["plugin_visibility_post_list"],
+    "new_post":["plugin_visibility_new_post"],
+    "edit_post":["plugin_visibility_new_post"],
+    "created_post":["plugin_visibility_create_post"],
+    "updated_post":["plugin_visibility_create_post"],
+    "post_the_content": ["plugin_visibility_post_the_content"],
+    "filter_post": ["plugin_visibility_filter_post"],
+    "post_can_visit": ["plugin_visibility_can_visit"],
+    "list_post_extra_columns": ["plugin_visibility_extra_columns"]
+  }
+}

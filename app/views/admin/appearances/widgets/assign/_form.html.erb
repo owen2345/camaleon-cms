@@ -1,0 +1,35 @@
+<% widget = assigned.widget %>
+<%= form_for assigned, url: { action: (assigned.new_record? ? "create" : "update"), controller: "admin/appearances/widgets/assign", id: assigned, sidebar_id: assigned.sidebar.id }, html: { role: 'form', class: "validate assign_form", "data-id" => assigned.id, id: "form-assigned-#{assigned.id}" } do |f| %>
+
+    <input type="hidden" name="assign[widget_id]" value="<%= assigned.widget.id %>" />
+    <div class="panel panel-default panel-lite panel-toggled">
+        <div class="panel-heading">
+            <h3 class="panel-title"><%= widget.name %></h3>
+            <ul class="panel-controls">
+                <li><a class="panel-collapse" href="#"><span class="fa fa-angle-down"></span></a></li>
+            </ul>
+        </div>
+
+        <% unless widget.is_simple?  %>
+            <div class="panel-body ">
+                <div class="form-group">
+                    <label for=""><%= t('admin.table.title') %></label>
+                    <input type="text" name="assign[title]" class="form-control translatable" value="<%= assigned.title %>" />
+                </div>
+                <div class="form-group">
+                    <label for="">Content</label>
+                    <textarea name="assign[content]" class="form-control assigned_content input-value" rows="6"><%= assigned.content %></textarea>
+                </div>
+                <%= render partial: "admin/settings/custom_fields/render", locals: {record: assigned, field_groups: widget.get_field_groups, skip_panel: true} %>
+            </div>
+        <% end %>
+
+
+        <div class="panel-footer">
+            <button data-confirm="Are you sure?" data-href="<%= admin_appearances_widgets_sidebar_assign_path(sidebar_id: sidebar.id, id: assigned.new_record? ? -1 : assigned.id) %>" class="btn btn-default btn-delete-widget"><%= t('admin.button.delete') %></button>
+            <% unless widget.is_simple?  %>
+                <button class="btn btn-primary pull-right"><%= t('admin.button.submit') %></button>
+            <% end %>
+        </div>
+    </div>
+<% end %>

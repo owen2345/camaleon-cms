@@ -1,0 +1,154 @@
+::-moz-selection {
+	background:#fe5e00;
+}
+::selection{
+	background:#fe5e00;
+}
+.navbar-default .navbar-nav  .active > a,
+.navbar-default .navbar-nav  a:hover,
+.navbar-default .navbar-nav  .current-menu-ancestor > a,
+.navbar-default .navbar-nav  .active > a:hover,
+.navbar-default .navbar-nav  .active > a:focus {
+  color: #fe5e00 !important;
+
+}
+h1.light{
+  color: #fe5e00 !important;
+}
+.about i{
+	background:#fe5e00;
+}
+.hovicon.effect-1.sub-a:hover {
+	background: #fe5e00;
+}
+.hovicon.effect-1 {
+	background: #fe5e00;
+}
+.hovicon.effect-1:after {
+	box-shadow: 0 0 0 4px #fe5e00;
+}
+.team .col-md-4 .team-image-sec .img-overlay, .entry .overlay{ background:rgba(254, 94, 0, 0.84);}
+.team .col-md-4 .team-image-sec li a{ color:#fe5e00;}
+.team-detail-sec h3{ color:#fe5e00}
+#filters ul li a:hover h3, #filters ul li a.active h3 {
+	background-color:#fe5e00;
+	border: 1px solid #e55501;
+}
+.da-thumbs li  article {
+	background:rgba(254, 94, 0, 0.84);
+}
+.testimonials .fa-twitter{
+	color: #fe5e00;
+}
+.testimonials span{
+	color:#fe5e00 ;
+}
+.pricing .price span{
+	color:#fe5e00;
+}
+.pricing .table.blue-table{
+	background:#fe5e00;
+}
+.pricing .table a:hover{
+	background:#fe5e00;
+	color:#fff !important;
+}
+.sponsors h1.sponsor{
+	color:#fe5e00 !important;
+}
+.pressroom .left-text span.title{
+	color:#fe5e00;
+}
+.pressroom .left-text a{
+	color:#fe5e00;
+}
+.pressroom .right-text span.title{
+	color:#fe5e00;
+}
+.pressroom .right-text a{
+	color:#fe5e00;
+}
+.contact .form{
+	background: bottom no-repeat #ffffff;
+	border-top:solid 2px #fe5e00;
+}
+.submit_btn {
+	background:#fe5e00;
+}
+footer{
+	border-top:solid 10px #fe5e00;
+}
+.navbar-default .navbar-nav > li > a:hover{
+  color: #fe5e00;
+}
+.skill-bar-percent {
+	background:#fe5e00;
+}
+.QLoader {
+	background-color: #fe5e00;
+}
+.skillbar-bar{ background:#fe5e00;}
+.picker-off i { color:#fe5e00;}
+.caption.big_blue{color: #fe5e00;}
+.button:hover{ border-color:#fe5e00 !important;}
+.fancybox-overlay {
+	background: rgba(254, 94, 0, 0.84) !important;
+}
+.team-sec h4 {
+color: #fe5e00 !important;
+}
+.social-icons a:hover{
+	background:#fe5e00;
+}
+.team-sec.dark-bg{
+	background:#fe5e00;
+}
+.team-sec.dark-bg h4 {
+color: #fff !important;
+}
+.team-sec.dark-bg a{
+	background:#fff !important;
+}
+.team-sec.dark-bg i{
+	color:#333;
+}
+.team-sec.dark-bg a:hover i{
+	color:#fe5e00 !important;
+}
+@media (max-width: 767px) {
+	.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+  color: #fe5e00 !important;
+  border-bottom: solid 3px #fe5e00 !important;
+}
+.navbar-default .navbar-nav > li > a:hover{
+color: #fe5e00 !important;
+border-bottom: solid 3px #fe5e00 !important;
+}
+}
+
+
+
+.blog .tags a:hover{
+	border:solid 1px #fe5e00;
+	color:#fe5e00;
+}
+.blog a.comment{
+	color:#fe5e00;
+}
+.blog .comments a.date{
+	color:#fe5e00;
+}
+.blog .comments a{
+	color:#fe5e00;
+}
+.blog .comment-form input[type=submit]{
+	background: #fe5e00;
+}
+.blog .recent-post .post a{
+	color:#fe5e00;
+}
+.blog .archive a{
+	color: #fe5e00;
+}

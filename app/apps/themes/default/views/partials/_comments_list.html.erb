@@ -1,0 +1,20 @@
+<% comments.each do |comment| user = comment.comment_user.decorate %>
+    <div class="comment-body <%= "answer" if children.present? %>">
+        <div class="image <%= "image_children" if children.present? %>">
+            <div class="thumbnail">
+                <%= image_tag user.the_avatar, class: "img-responsive avatar"%>
+            </div><!-- /thumbnail -->
+        </div><!-- /col-sm-1 -->
+        <div class="comment-content text <%= "text_children" if children.present? %>">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong class="<%= (children.present?)? "pull-right" : "" %>"><%= user.the_name %></strong> <small class="text-muted <%= (children.present?)? "" : "pull-right" %>"><%= comment.decorate.the_created_at %></small>
+                </div>
+                <div class="panel-body">
+                    <%= raw comment.content %>
+                </div><!-- /panel-body -->
+            </div><!-- /panel panel-default -->
+        </div><!-- /col-sm-5 -->
+    </div>
+    <%= render partial: "partials/comments_list", locals: { comments: comment.children.approveds, children: "present" }  if comment.children.present? %>
+<% end %>

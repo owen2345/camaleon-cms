@@ -1,0 +1,27 @@
+<%
+   @form =  current_site.contact_forms.where({slug: attributes['slug']}).first
+   if @form.present?
+
+   values = JSON.parse(@form.value).to_sym
+   settings = JSON.parse(@form.settings).to_sym
+   r = {form: @form, form_class: "railscf-form railscf-form-group", before_form: "", after_form: "", submit: "<div class='form-group'>
+                    <button class='submit_btn btn btn-default pull-right' type='submit'>[submit_label]</button>
+    </div>"}
+   hooks_run("contact_form_render", r)
+%>
+    <section>
+        <%= raw r[:before_form] %>
+        <%= form_for @form, url: plugins_contact_form_save_form_path, html: {method: "post", class: r[:form_class], multipart: true} do |f| %>
+
+            <%= hidden_field_tag "id", @form.id %>
+
+            <%= render :partial => "flash_messages" %>
+            <%= raw form_element_bootstrap_object(r[:form], values[:fields]) %>
+            <% if values[:fields].present? %>
+                <%= raw  r[:submit].sub('[submit_label]', settings[:railscf_form_button][:name_button])%>
+            <% end %>
+            <%= raw front_editor_link(edit_admin_plugins_contact_form_admin_form_url(@form.id)) rescue "" %>
+        <% end %>
+        <%= raw r[:after_form] %>
+    </section>
+<% end %>

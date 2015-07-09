@@ -1,0 +1,30 @@
+{
+  "title": "Post Reorder",
+  "descr": "",
+  "version": "0.1",
+  "key": "post_reorder",
+  "helpers": [
+    "Plugins::PostReorder::PostReorderHelper"
+  ],
+  "options": [
+      {"label": "Settings", "url": "admin_plugins_post_reorder_settings_path", "eval_url": true}
+  ],
+  "hooks": {
+    "on_destroy": [
+      "post_reorder_on_destroy"
+    ],
+    "on_active": [
+      "post_reorder_on_active"
+    ],
+    "on_inactive": [
+      "post_reorder_on_inactive"
+    ],
+    "list_post": [
+      "post_reorder_on_list_post"
+    ],
+    "plugin_options":[
+      "post_reorder_plugin_options"
+    ]
+    //here you can add all your hooks (read documentation)
+  }
+}

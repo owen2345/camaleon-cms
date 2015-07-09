@@ -1,0 +1,74 @@
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th id="quantity_col"><%= t('plugin.ecommerce.product.qty') %></th>
+    <th id="item_col"><%= t('plugin.ecommerce.product.item') %></th>
+    <th id="price_col"><%= t('plugin.ecommerce.product.price') %></th>
+
+    <th id="tax_col"><%= t('plugin.ecommerce.product.tax') %></th>
+    <th id="subtotal_col"><%= t('plugin.ecommerce.table.sub_total') %></th>
+  </tr>
+
+  <%
+     current_unit = '$'
+     order.meta[:products].each do |key, product|
+
+       current_unit = e_get_currency_units[product[:currency_code]]['symbol'] rescue '$'
+       qty = product[:qty].to_f
+       price = product[:price].to_f
+       tax_product = product[:tax].to_f
+
+       tax_total_product = tax_product * qty
+       sub_total = price * qty
+  %>
+      <tr>
+        <td><%= qty.to_i %></td>
+        <td><%= product[:product_title] %></td>
+        <td><%= current_unit %> <%= price %></td>
+
+        <td><%= current_unit %> <%= tax_product %></td>
+        <td><%= current_unit %> <%= sub_total + tax_total_product %></td>
+      </tr>
+  <% end
+
+  %>
+
+
+
+  <tr>
+    <td colspan="2"></td>
+    <td colspan="2" class="text-right"><%= t('plugin.ecommerce.product.total_excluding_tax') %></td>
+    <td id="subtotal_total">
+      <%= current_unit %> <%= order.meta[:payment][:sub_total] %>
+    </td>
+  </tr>
+  <tr >
+    <td colspan="2"></td>
+    <td colspan="2" class="text-right"><%= t('plugin.ecommerce.product.tax') %></td>
+    <td id="tax_total">
+      <%= current_unit %> <%= order.meta[:payment][:tax_total] %>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2"></td>
+    <td colspan="2" class="text-right"><%= t('plugin.ecommerce.table.shipping') %></td>
+    <td id="shipping_total"><%= current_unit %> <span><%= order.meta[:payment][:weight_price] %></span></td>
+  </tr>
+  <% if order.meta[:payment][:coupon_amount].to_i > 0 %>
+      <tr id="coupon_application_row" >
+        <td colspan="2"></td>
+        <td colspan="2" class="text-right"><%= t('plugin.ecommerce.table.discount') %></td>
+        <td class="extra_totals reduce_tax_subtotal" id="coupon_application_total">
+          <%= current_unit %> <span><%= order.meta[:payment][:coupon_amount] %></span>
+        </td>
+      </tr>
+  <% end  %>
+  <tr>
+    <td colspan="2"></td>
+    <td colspan="2" class="text-right"><%= t('plugin.ecommerce.table.total') %></td>
+    <td id="order_total">
+
+      <%= current_unit %> <span><%= order.meta[:payment][:total] %></span></td>
+  </tr>
+  </tbody>
+</table>

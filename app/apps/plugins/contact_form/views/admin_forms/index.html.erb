@@ -1,0 +1,65 @@
+<div class="page-title">
+    <h2><span class="fa fa-archive"></span> <%= t('plugin.contact_form.contact_form') %>
+    </h2>
+</div>
+<div class="page-content-wrap">
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading ui-draggable-handle">
+                    <h3 class="panel-title"><%= t('plugin.contact_form.add_form') %></h3>
+                </div>
+                <%= render partial: 'plugins/contact_form/views/admin_forms/form' %>
+            </div>
+        </div>
+        <div class="col-md-8">
+
+            <!-- START BASIC TABLE SAMPLE -->
+            <div class="panel panel-default">
+                <div class="panel-heading ui-draggable-handle">
+                    <h3 class="panel-title"><%= t('plugin.contact_form.list') %></h3>
+                </div>
+                <div class="panel-body">
+
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th><%= t('plugin.contact_form.name') %></th>
+                            <th><%= t('plugin.contact_form.description') %></th>
+                            <th><%= t('plugin.contact_form.slug') %></th>
+                            <th><%= t('plugin.contact_form.shortcode') %></th>
+                            <th><%= t('plugin.contact_form.count') %></th>
+                            <th><%= t('plugin.contact_form.actions') %></th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <% @forms.each do |item| %>
+                            <tr>
+                                <td> <%= item.name %> </td>
+                                <td><%= item.description %></td>
+                                <td><%= item.slug %></td>
+                                <td><%= form_shortcode(item.slug)%></td>
+                                <td><%= get_forms(item.id).to_a.count %></td>
+                                <td>
+                                    <%= link_to raw("<i class='fa fa-list-alt'></i> "), admin_plugins_contact_form_admin_form_responses_path(item.id), class: "btn btn-default btn-xs", title: "#{t('plugin.contact_form.list_responses')}" %>
+                                    <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs", title: "#{t('plugin.contact_form.edit')}" %>
+                                    <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: "#{t('plugin.contact_form.msg_delete')}" }, class: "btn btn-danger btn-xs", title: "#{ t('plugin.contact_form.delete')}"  %>
+
+                                </td>
+                            </tr>
+                        <% end %>
+
+                        </tbody>
+                    </table>
+                    <%= content_tag("div", raw(t('plugin.contact_form.msg_data_found_list')), class: "alert alert-warning") if @forms.empty? %>
+                    <%= will_paginate @forms, renderer: BootstrapPagination::Rails %>
+                </div>
+            </div>
+            <!-- END BASIC TABLE SAMPLE -->
+        </div>
+    </div>
+
+    <!-- END PAGE CONTENT WRAPPER -->
+</div>

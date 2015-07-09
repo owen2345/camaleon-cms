@@ -1,0 +1,21 @@
+{
+  "title": "{plugin_title}",
+  "descr": "",
+  "version": "0.1",
+  "key": "{plugin_key}",
+  "helpers": [
+    "Plugins::{plugin_class}::MainHelper"
+  ],
+  "hooks": {
+    "on_destroy": [
+      "{plugin_key}_on_destroy"
+    ],
+    "on_active": [
+      "{plugin_key}_on_active"
+    ],
+    "on_inactive": [
+      "{plugin_key}_on_inactive"
+    ]
+    //here you can add all your hooks (read documentation)
+  }
+}

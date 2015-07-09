@@ -1,0 +1,35 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title"><%= @plugin.name.titleize %></h3>
+    </div>
+    <div class="panel-body">
+        <table  border="1" class="table"><caption>&nbsp;</caption>
+            <thead>
+                <tr>
+                    <th><h3>Screenshot</h3></th>
+                    <th><h3>Detail</h3></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><img src="<%= plugin_asset_path("post_reorder", "images/screenshot_1.jpg") %>" class="img-responsive" ></td>
+                    <td>Luego de Activar el plugin, seleccione el link "Settings para poder editar las caracteristicas del plugin"</td>
+                </tr>
+                <tr>
+                    <td><img src="<%= plugin_asset_path("post_reorder", "images/screenshot_2.jpg") %>" class="img-responsive" ></td>
+                    <td>
+                        Seleccione cualquiera de los post_types, para reordenar los elementos del post_type los
+                        cuales se encuentran en <strong><%= t('admin.sidebar.content')%></strong>, luego
+                        proceda a hacer click sobre el boton <strong>"<%= t('admin.button.submit')%>"</strong>,
+                        para guardar los cambios. Si no desea realizar ningun cambio presione sobre el boton
+                        <strong>"<%= t('admin.button.back')%>"</strong>, para volver a la lista de plugins.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel-footer">
+        <a class="btn btn-default" href="<%= url_for admin_plugins_path %>"><%= t('admin.button.back') %></a>
+    </div>
+</div>

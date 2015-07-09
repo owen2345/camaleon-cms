@@ -1,0 +1,91 @@
+<script>
+    var url_assign_widget_sidebar = '<%= new_admin_appearances_widgets_sidebar_assign_path(sidebar_id: -1) %>';
+    var sidebar_reorder_url = '<%= admin_appearances_widgets_sidebar_reorder_path(sidebar_id: -1) %>';
+</script>
+<%= javascript_include_tag "admin/widgets" %>
+<%= stylesheet_link_tag "admin/widgets" %>
+<% add_asset_library('tinymce') %>
+<div class="page-title">
+    <h2><span class="fa fa-archive"></span>  <%= t('admin.sidebar.widgets') %>
+    </h2>
+</div>
+<div class="page-content-wrap">
+
+    <div class="row">
+        <div id="content-widget" class="col-md-8">
+            <a href="<%= new_admin_appearances_widgets_main_path %>" title="<%= t('admin.widgets.create_widget') %>" class="ajax_link btn btn-default"><%= t('admin.widgets.create_widget') %></a>
+            <div class="panel panel-colorful">
+                <div class="panel-body">
+                    <h2 class="panel-title"><%= t('admin.widgets.simple_widgets')%> </h2><br><br>
+                    <div class="widgets-available row">
+                        <% if @widgets.size > 0 %>
+                            <% @widgets.each do |item| %>
+                                <% if item.is_simple? %>
+                                    <div class="panel-widget col-md-3" data-id=<%= item.id %> >
+                                        <div class="tile tile-info" data-id="<%= item.id %>">
+                                            <h4><%= item.name %></h4>
+                                            <p><%= item.excerpt %></p>
+                                            <%= link_to raw('<span class="fa fa-edit"></span>'), { action: :edit, id: item.id }, class: "ajax_link informer informer-default", title: "#{t('admin.button.edit')}" %>
+                                            <%= link_to raw('<span class="fa fa-times"></span>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('admin.message.delete_item') }, class: "informer informer-default dir-tr", title: "#{t('admin.button.delete')}" %>
+                                            <div class="informer informer-default dir-bl shortcode" style="font-size:11px;"><%= item.short_code %></div>
+                                        </div>
+                                    </div>
+                                <% end %>
+                            <% end %>
+                        <% else %>
+                            <h6><%= t('admin.widgets.message.not_registered_widgets')%></h6>
+                        <% end %>
+                    </div>
+                    <hr>
+                    <h2 class="panel-title"><%= t('admin.widgets.complex_widgets')%></h2><br><br>
+                    <div class="widgets-available row">
+                        <% if @widgets.size > 0 %>
+                            <% @widgets.each do |item| %>
+                                <% unless item.is_simple? %>
+                                    <div class="panel-widget col-md-3" data-id=<%= item.id %> >
+                                        <div class="tile tile-primary" data-id="<%= item.id %>">
+                                            <h4><%= item.name %></h4>
+                                            <p><%= item.excerpt %></p>
+                                            <div class="informer informer-default dir-bl shortcode" style="font-size:11px;"><%= item.short_code %></div>
+                                        </div>
+                                    </div>
+                                <% end %>
+                            <% end %>
+                        <% else %>
+                            <h6><%= t('admin.widgets.message.not_registered_widgets')%></h6>
+                        <% end %>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="content-sidebar" class="col-md-4">
+            <a href="<%= new_admin_appearances_widgets_sidebar_path %>" title="<%= t('admin.widgets.create_sidebar') %>" class="ajax_link btn btn-default" ><%= t('admin.widgets.create_sidebar') %></a>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row">
+                        <% current_site.sidebars.each do |sidebar| %>
+                            <div class="item-sidebar panel panel-default panel-toggled" data-id="<%= sidebar.id %>">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">
+                                        <%= sidebar.name %><br>
+                                        <small class="text-muted"><%= sidebar.description %></small>
+                                    </h3>
+                                    <ul class="panel-controls">
+                                        <li><a href="<%= edit_admin_appearances_widgets_sidebar_path(sidebar) %>" class="panel-edit ajax_link" title="<%= t('admin.button.edit')%>"><span class="fa fa fa-edit"></span></a></li>
+                                        <li><%= link_to raw('<span class="fa fa-times text-danger"></span>'), admin_appearances_widgets_sidebar_path(sidebar), method: :delete, data: { confirm: t('admin.message.delete_item') }, class: "panel-delete", title: "#{t('admin.button.delete')}" %></li>
+                                        <li><a class="panel-collapse" href="#"><span class="fa fa-angle-down"></span></a></li>
+                                    </ul>
+                                </div>
+                                <div class="sidebar-body panel-body" data-id="<%= sidebar.id %>">
+                                    <% sidebar.assigned.each do |assign| %>
+                                        <%= render partial: "admin/appearances/widgets/assign/form", locals: {sidebar: sidebar, assigned: assign, widget: assign.widget} %>
+                                    <% end %>
+                                </div>
+                            </div>
+                        <% end %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

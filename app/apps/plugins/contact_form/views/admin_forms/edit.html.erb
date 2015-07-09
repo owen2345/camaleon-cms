@@ -1,0 +1,375 @@
+<%
+   if @form.nil?
+     @form = current_site.contact_forms.new
+   end
+%>
+
+<div class="page-title">
+  <h2><span class="fa fa-folder"></span>  <%= t('plugin.contact_form.contact_form') %></h2>
+</div>
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="panel panel-default">
+
+        <%= form_for @form, url:{action: @form.new_record? ? :create : :update} , role: 'form' do |f| %>
+            <%= f.hidden_field :site_id  %>
+            <%= f.hidden_field :id  %>
+            <input id="meta_forms" type="hidden" name="meta" />
+
+            <div class="panel-heading">
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="form-group">
+                    <label><%= t('plugin.contact_form.edit') %> <%= @form.name %></label>
+                  </div>
+                  <div class="form-group">
+                    <label><%= t('plugin.contact_form.copy_shortcode_post')%> </label>
+                    <span><%= form_shortcode(@form.slug) %></span>
+                  </div>
+                </div>
+                <div class="col-md-8">
+
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-body">
+                <%= render partial: 'layouts/admin/form_error', locals: {data: @form} %>
+                <div class="row">
+                    <div class="code hidden"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-offset-10 col-md-2">
+                        <div class="form-group">
+                            <a class="btn btn-default" href="<%= url_for action: :index %>"><%= t('plugin.contact_form.button.back') %></a>
+                            <button class="btn btn-primary" type="submit"><%= t('plugin.contact_form.button.submit') %></button>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-4" style="overflow: hidden">
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><%= t('plugin.contact_form.title_panel.form_details') %></h3>
+                                <ul class="panel-controls">
+                                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                                </ul>
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <%= f.label t('admin.table.name'), :class => ""  %><br>
+                                        <%= f.text_field :name, :class => "form-control", style: "" %>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <%= f.label "#{t('admin.table.slug')}", :class => ""  %>
+                                        <%= f.text_field :slug, :class => "form-control slug", "data-parent" => "plugins_contact_form_models_contact_form_name", style: "" %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><%= t('plugin.contact_form.form_settings_email') %></h3>
+                                <ul class="panel-controls">
+                                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                                </ul>
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label for="railscf_mail_to"><%= t('plugin.contact_form.to') %>:</label><br>
+                                        <input id="railscf_mail_to" class="form-control" type="text" value="info@skylogix.net" name="railscf_mail[to]" />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="railscf_mail_subject"><%= t('plugin.contact_form.subject') %>:</label><br>
+                                        <input id="railscf_mail_subject" class="form-control" type="text" name="railscf_mail[subject]" />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="railscf_mail_body"><%= t('plugin.contact_form.body') %>:</label><br>
+                                        <textarea rows="4" cols="5" id="railscf_mail_body" class="form-control" name="railscf_mail[body]"><%= t('plugin.contact_form.body_value') %></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="railscf_mail_body"><%= t('admin.sidebar.themes') %>:</label><br>
+                                        <% dir = Dir.glob("app/apps/themes/#{current_theme.the_slug.to_s}/views/html_mailer/*") %>
+                                        <select id="railscf_mail_theme" name="railscf_mail[theme]">
+                                            <% if dir.size > 0 %>
+                                                <% dir.each do |archivo| file=File.basename(archivo) %>
+                                                    <% f=file.split('.') %>
+                                                    <option value="<%= f[0].to_s %>"><%= f[0].to_s.titleize %></option>
+                                                <% end %>
+                                            <% else %>
+                                                <% dir = Dir.glob("app/views/html_mailer/*") %>
+                                                <% dir.each do |archivo| file=File.basename(archivo) %>
+                                                    <% f=file.split('.') %>
+                                                    <option value="<%= f[0].to_s %>"><%= f[0].to_s.titleize %></option>
+                                                <% end %>
+
+                                            <% end %>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default panel-toggled">
+                            <div class="panel-heading">
+                                <h3 class="panel-title"><%= t('plugin.contact_form.form_settings_messages') %></h3>
+                                <ul class="panel-controls">
+                                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-up"></span></a></li>
+                                </ul>
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_mail-sent-ok"><%= t('plugin.contact_form.lbl_message_has_been_success') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[mail_sent_ok]" id="railscf_message_mail_sent_ok" value="<%= t('plugin.contact_form.msg_message_has_been_sent_success_tank_you') %>" />
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_mail-sent-ng"><%= t('plugin.contact_form.lbl_failed_sending_message') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[mail_sent_ng]" id="railscf_message_mail_sent_ng" value="<%= t('plugin.contact_form.msg_failed_sending_message_please_contact_admin') %>" />
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_validation-error"><%= t('plugin.contact_form.lbl_there_was_validation_error') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[validation_error]" id="railscf_message_validation_error" value="<%= t('plugin.contact_form.msg_there_was_validation_error_please_confirm_submit_form') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_spam"><%= t('plugin.contact_form.lbl_shipment_considered_spam') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[spam]" id="railscf_message_spam" value="<%= t('plugin.contact_form.msg_falied_sending_message_please_contact_admin') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_accept-terms"><%= t('plugin.contact_form.lbl_you_must_accept_all_terms') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[accept_terms]" id="railscf_message_accept_terms" value="<%= t('plugin.contact_form.msg_please_accept_terms_conditions_contiue')%>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_invalid-required"><%= t('plugin.contact_form.lbl_you_must_complete_all_fields') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[invalid_required]" id="railscf_message_invalid_required" value="<%= t('plugin.contact_form.msg_please_fill_the_required_field')%>" />
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_invalid-too-long"><%= t('plugin.contact_form.lbl_there_field_user_input_longer_maximum_allowed_length')%></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[invalid_too_long]" id="railscf_message_invalid_too_long" value="<%= t('plugin.contact_form.mgs_this_input_too_long') %>" />
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_invalid-too-short"><%= t('plugin.contact_form.lbl_there_field_user_input_shorter_minimum_allowed_length')%></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[invalid_too_short]" id="railscf_message_invalid_too_short" value="<%= t('plugin.contact_form.mgs_this_input_too_short') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_captcha-not-match"><%= t('plugin.contact_form.lbl_the_code_entered_did_not_match_the_captcha') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[captcha_not_match]" id="railscf_message_captcha_not_match" value="<%= t('plugin.contact_form.msg_the_entered_code_incorrect') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_invalid-number"><%= t('plugin.contact_form.lbl_the_entered_number_format_invalid') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[invalid_number]" id="railscf_message_invalid_number" value="<%= t('plugin.contact_form.msg_the_numeric_format_seems_invalid') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_number-too-small"><%= t('plugin.contact_form.lbl_the_number_entered_less_allowable_limit') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[number_too_small]" id="railscf_message_number_too_small" value="<%= t('plugin.contact_form.msg_number_too_samll') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_number-too-large"><%= t('plugin.contact_form.lbl_the_number_entered_greater_than_allowable_limit') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[number_too_large]" id="railscf_message_number_too_large" value="<%= t('plugin.contact_form.msg_number_too_large') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_invalid-email"><%= t('plugin.contact_form.lbl_the_email_is_invalid') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[invalid_email]" id="railscf_message_invalid_email" value="<%= t('plugin.contact_form.msg_the_email_address_appears_invalid') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_invalid-url"><%= t('plugin.contact_form.lbl_url_invalid') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[invalid_url]" id="railscf_message_invalid_url" value="<%= t('plugin.contact_form.msg_url_appearse_invalid') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_invalid-tel"><%= t('plugin.contact_form.lbl_phone_invalid') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[invalid_tel]" id="railscf_message_invalid_tel" value="<%= t('plugin.contact_form.msg_phone_appearse_invalid') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_quiz-answer-not-correct"><%= t('plugin.contact_form.lbl_have_not_correct_answer') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[quiz_answer_not_correct]" id="railscf_message_quiz_answer_not_correct" value="<%= t('plugin.contact_form.msg_answer_not_correct') %>" />
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_invalid-date"><%= t('plugin.contact_form.lbl_date_format_invalid') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[invalid_date]" id="railscf_message_invalid_date" value="<%= t('plugin.contact_form.msg_date_appears_invalid') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_date-too-early"><%= t('plugin.contact_form.lbl_date_is_earlier_allowable_limit') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[date_too_early]" id="railscf_message_date_too_early" value="<%= t('plugin.contact_form.msg_date_early') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_date-too-late"><%= t('plugin.contact_form.lbl_date_later_than_allowable_limit') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[date_too_late]" id="railscf_message_date_too_late" value="<%= t('plugin.contact_form.msg_date_too_late') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_upload-failed"><%= t('plugin.contact_form.lbl_file_upload_failed_some_reason') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[upload_failed]" id="railscf_message_upload_failed" value="<%= t('plugin.contact_form.msg_failed_upload_file') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_upload-file-type-invalid"><%= t('plugin.contact_form.lbl_upload_file_not_valid_format') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[upload_file_type_invalid]" id="railscf_message_upload_file_type_invalid" value="<%= t('plugin.contact_form.msg_invalid_file_format') %>"/>
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_upload-file-too-large"><%= t('plugin.contact_form.lbl_uploaded_file_too_large') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[upload_file_too_large]" id="railscf_message_upload_file_too_large" value="<%= t('plugin.contact_form.msg_file_too_large') %>" />
+
+                                    </div>
+                                    <div class="form-group">
+                                        <p class="description"><label for="railscf_message_upload-failed-rails-error"><%= t('plugin.contact_form.lbl_file_upload_failed_rails_error') %></label></p>
+                                        <input type="text" class="form-control" name="railscf_message[upload_failed]" id="railscf_message_upload_failed" value="<%= t('plugin.contact_form.msg_failed_upload_file_was_error') %>" />
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="fb-main"></div>
+
+                        <div class="row">
+                            <div class="col-md-7">
+                                <label><%= t('plugin.contact_form.name_button') %>:</label>
+                                <input id="name_button" class="form-control" type="text" name="railscf_form_button[name_button]" value="Send">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% end %>
+      </div>
+    </div>
+
+  </div>
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>
+
+<script>
+    run.push(function(){
+        var options  = <%= raw (@form.value ).to_sym %>;
+        var settings = <%= raw (@form.settings ).to_sym %>;
+
+        //set values fields
+        $("#meta_forms").val(JSON.stringify(options));
+
+        if($.isEmptyObject(settings)){
+
+        }else{
+            //set values mail
+            $.each(settings.railscf_mail, function(i, value){
+                if(i=="theme"){
+                    //set select theme
+                    $("#railscf_mail_theme").find('option').each(function(i,e){
+                        if($(e).val() == value){
+                            $('#railscf_mail_theme').prop('selectedIndex',i);
+                        }
+                    });
+                }else{
+                    $("#railscf_mail_"+i).val(value);
+                }
+            });
+
+            //set values messages
+            $.each(settings.railscf_message, function(i, value){
+                $("#railscf_message_"+i).val(value);
+            });
+
+            //set name button
+            $("#name_button").val(settings.railscf_form_button.name_button);
+        }
+
+        var lang = {
+            add_field: '<%= t('plugin.contact_form.add_field') %>',
+            add_new_field: '<%= t('plugin.contact_form.add_new_field') %>',
+            add_option: '<%= t('plugin.contact_form.add_option') %>',
+            edit_field: '<%= t('plugin.contact_form.edit_field') %>',
+            custom_class: '<%= t('plugin.contact_form.custom_class') %>',
+            default: '<%= t('plugin.contact_form.default') %>',
+            duplicate_field: '<%= t('plugin.contact_form.duplicate_field') %>',
+            include_lank: '<%= t('plugin.contact_form.include_lank') %>',
+            include_other: '<%= t('plugin.contact_form.include_other') %>',
+            label: '<%= t('plugin.contact_form.label') %>',
+            options: '<%= t('plugin.contact_form.options') %>',
+            msg_add_longer_description_field: '<%= t('plugin.contact_form.msg_add_longer_description_field') %>',
+            remove_field: '<%= t('plugin.contact_form.remove_field') %>',
+            remove_option: '<%= t('plugin.contact_form.remove_option') %>',
+            required: '<%= t('plugin.contact_form.required') %>',
+            untitled: '<%= t('plugin.contact_form.untitled') %>',
+            text_box: '<%= t('admin.custom_field.fields.text_box') %>',
+            text_area: '<%= t('admin.custom_field.fields.text_area') %>',
+            select: '<%= t('admin.custom_field.fields.select') %>',
+            website: '<%= t('admin.custom_field.fields.website') %>',
+            email: '<%= t('admin.custom_field.fields.email') %>',
+            upload_file: '<%= t('admin.button.upload_file') %>',
+            multiple_choice: '<%= t('admin.custom_field.fields.multiple_choice') %>'
+
+        };
+
+        fb = new Formbuilder({
+            selector: '.fb-main',
+            bootstrapData: options.fields,
+            lang: lang
+        });
+
+        fb.on('save', function (payload) {
+            $(".code").html(payload);
+            $("#meta_forms").val(payload);
+
+        });
+
+        $('#addField a').each(function(){
+
+            var txt = $.trim($(this).text());
+            var span = $(this).find('span').html();
+            switch ( txt ){
+                case 'Text':
+                    $(this).html(span).append(' ').append(lang.text_box);
+                    break;
+                case 'Dropdown':
+                    $(this).html(span).append(' ').append(lang.select);
+                    break;
+                case 'Website':
+                    $(this).html(span).append(' ').append(lang.website);
+                    break;
+                case 'Email':
+                    $(this).html(span).append(' ').append(lang.email);
+                    break;
+                case 'Upload File':
+                    $(this).html(span).append(' ').append(lang.upload_file);
+                    break;
+                case 'Multiple Choice':
+                    $(this).html(span).append(' ').append(lang.multiple_choice);
+                    break;
+                default:
+                    //$(this).text();
+            }
+
+        });
+
+    });
+
+</script>

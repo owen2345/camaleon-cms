@@ -1,0 +1,4 @@
+get 'handbook' => "admin_forms#manual"
+resources :admin_forms  do
+ get 'responses'
+end

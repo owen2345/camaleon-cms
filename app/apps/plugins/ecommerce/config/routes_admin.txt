@@ -1,0 +1,14 @@
+get 'index' => "admin#index"
+resources :orders, controller: 'admin/orders' do
+  post 'accepted'
+  post 'shipped'
+  get 'canceled'
+end
+resources :payment_methods, controller: 'admin/payment_methods'
+resources :shipping_methods, controller: 'admin/shipping_methods' do
+    resources :prices, controller: 'admin/prices'
+end
+resources :coupons, controller: 'admin/coupons'
+resources :tax_rates, controller: 'admin/tax_rates'
+get 'settings' => "admin/settings#index"
+post 'settings/saved' => "admin/settings#saved"

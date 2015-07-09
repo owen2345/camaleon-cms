@@ -1,0 +1,6 @@
+<div class="btn-group">
+  <% @btns.each do |status, value| %>
+        <%# (status.to_s == "private")? value = "#{t('admin.table.private')}" : value=value %>
+        <%= link_to "#{value}", {action: :index, s: status, q: params[:q] }, class: "btn btn-default #{ "btn-info" if status.to_s == params[:s] }" %>
+  <% end  %>
+</div>

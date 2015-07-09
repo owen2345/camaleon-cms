@@ -1,0 +1,14 @@
+<% @visit_counter = current_site.visits_counter.where("site_id = ?", current_site.id).pluck %>
+<div id="visits_counter" class="row">
+    <table class="col-md-12 table table-bordered table-striped">
+        <thead>
+            <tr><td colspan="2" align="center"><h4><%= t('plugin.visits_counter.visits_counter') %></h4></td></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><h5><%= t('plugin.visits_counter.total_visits') %></h5></td>
+                <td><h3><%= @visit_counter.count %></h3></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

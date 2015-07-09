@@ -1,0 +1,32 @@
+<section class="comment-list">
+    <% if post.the_comments.count > 0 %>
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="page-header"><%= ct('comments')%></h2>
+                <section class="comment-list">
+                    <%= render partial: "partials/comments_list", locals: { comments: post.the_comments, children: "" } %>
+                </section>
+            </div>
+        </div>
+    <% end %>
+
+    <div class="row">
+        <div class="col-md-12 col-sm-12">
+            <h3><%= ct('comment_new')%></h3>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <% if signin? %>
+                        <%= form_for post, url:{action: :save_comment, post_id: post.id}, html: {method: "post", class: "form-comment"} do |f|%>
+                            <input type="hidden" name="post_comment[post_id]" value="<%= post.id %>">
+                            <input type="hidden" name="slug" value="<%= post.slug %>">
+                            <textarea id="textarea_comments" name="post_comment[content]" class="form-control counted" placeholder="<%= ct('comment')%>"></textarea>
+                            <button type="submit" class="btn btn-info pull-right"><%= ct('comment')%></button>
+                        <% end %>
+                    <% else %>
+                        <div class="panel-login-comment"><%= ct('comment_msg')%>  <a class="link-login-comment" href="<%= admin_path %>"><%= ct('login')%></a></div>
+                    <% end %>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

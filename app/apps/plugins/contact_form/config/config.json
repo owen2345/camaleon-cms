@@ -1,0 +1,35 @@
+{
+  "title": "Contact Form",
+  "descr": "",
+  "version": "0.1",
+  "key": "contact_form",
+  "helpers": [
+    "Plugins::ContactForm::ContactFormHelper",
+    "Plugins::ContactForm::ContactFormHtmlHelper"
+  ],
+  "options": [
+
+  ],
+  "hooks": {
+    "admin_before_load": [
+      "contact_form_admin_before_load"
+    ],
+    "on_destroy": [
+      "contact_form_on_destroy"
+    ],
+    "on_active": [
+      "contact_form_on_active"
+    ],
+    "on_inactive": [
+      "contact_form_on_inactive"
+    ],
+    "app_before_load":
+        ["contact_form_app_before_load"],
+    "front_before_load":
+        ["contact_form_front_before_load"],
+    "on_export": ["contact_form_on_export"],
+    "on_import": ["contact_form_on_import"]
+    //here you can add all your hooks (read documentation)
+  },
+  "enabled": true
+}

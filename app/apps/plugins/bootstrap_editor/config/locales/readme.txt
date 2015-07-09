@@ -1,0 +1,1 @@
+Here all your plugin locales

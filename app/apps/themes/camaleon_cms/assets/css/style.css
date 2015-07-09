@@ -1,0 +1,171 @@
+/* Portolio Hover */
+.da-thumbs li ,
+.da-thumbs li  img {
+	display: block;
+	position: relative;
+	width: 100%;
+}
+.da-thumbs li  img{ height: 250px; border: 1px solid #eee; }
+.da-thumbs li  {
+	overflow: hidden;
+    margin: 2px;
+}
+.da-thumbs li  article {
+	position: absolute;
+	background-repeat:repeat;
+	width: 100%;
+	height: 100%;
+}
+.da-thumbs li  article.da-animate {
+	-webkit-transition: all 0.2s ease;
+	-moz-transition: all 0.2s ease-in-out;
+	-o-transition: all 0.2s ease-in-out;
+	-ms-transition: all 0.2s ease-in-out;
+	transition: all 0.2s ease-in-out;
+}
+/* Initial state classes: */
+.da-slideFromTop {
+	left: 0px;
+	top: -100%;
+}
+.da-slideFromBottom {
+	left: 0px;
+	top: 100%;
+}
+.da-slideFromLeft {
+	top: 0px; 
+	left: -100%;
+}
+.da-slideFromRight {
+	top: 0px;
+	left: 100%;
+}
+/* Final state classes: */
+.da-slideTop {
+	top: 0px;
+}
+.da-slideLeft {
+	left: 0px;
+}
+.da-thumbs li  article a {
+	color:#fff;
+	padding:20px;
+	display:block;
+	height:100%;
+}
+
+.da-thumbs {
+text-align:center;
+}
+
+.da-thumbs li  article h3{
+color:#fff;
+
+}
+
+.da-thumbs li  article span{
+
+color:#fff;
+display:block;
+}
+
+
+.photo-icon i{
+	font-size:36px;
+	margin: 25% 0 0 0;
+	display:block;
+}
+.video-icon i{
+	font-size:36px;
+	margin: 20% 0 0 0;
+	display:block;
+}
+a.i{
+	text-decoration:none;
+}
+span.zoom{
+overflow:hidden;
+display:block;
+width:35px;
+height:35px;
+background-color:#DF6232;
+border-radius:50px;
+cursor:pointer;
+background-repeat:no-repeat;
+background-position:center;
+margin-left:10px;
+}
+
+.portfolio_2col article h3{
+padding-top:70px !important;
+}
+
+/* Image Grid */
+.image_grid {
+	float:left;
+	overflow:hidden;
+	width: 100%;
+	position:relative;
+
+}
+
+.image_grid li{
+	float: left;
+	line-height: 17px;
+	color: #686f74;
+	list-style:none;
+	overflow:hidden;
+
+	text-align:center;
+}
+
+
+/* Responsive image grid*/
+/* Mobile landscape width 320 */
+@media only screen and (max-width: 480px) {
+	.image_grid{
+width:100%;
+}
+
+.image_grid li img{
+width:100%;
+}
+#portfolio-items-wrap .portfolio-item {
+width: 100% !important;
+}
+}
+@media only screen and (max-width: 767px) {
+
+.image_grid{
+width:100%;
+}
+
+.image_grid li img{
+width:100%;
+}
+
+}
+
+@media only screen and (min-width: 480px) and (max-width: 767px) {
+.image_grid li{
+width:100% !important;
+}
+
+.portfolio_4col .da-thumbs li article h3{
+padding-top:58px;
+}
+
+.portfolio_3col .da-thumbs li article h3{
+padding-top:34px;
+}
+
+.portfolio_2col .da-thumbs li article h3{
+padding-top:23px !important;
+}
+
+}
+
+
+
+
+

@@ -1,0 +1,84 @@
+<%
+   billing_address ||= {}
+   shipping_address ||= {}
+%>
+<div id="billing_address" class="col-md-6">
+    <h3><%= t('plugin.ecommerce.billing_address') %></h3>
+
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.firstname') %></label>
+        <%= text_field_tag 'order[billing_address][first_name]', billing_address[:first_name], class: 'form-control' %>
+
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.lastname') %></label>
+        <%= text_field_tag 'order[billing_address][last_name]',billing_address[:last_name], class: 'form-control' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.address') %></label>
+        <%= text_field_tag 'order[billing_address][address1]',billing_address[:address1], class: 'form-control' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.address') %> 2</label>
+        <%= text_field_tag 'order[billing_address][address2]',billing_address[:address2], class: 'form-control' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.city') %></label>
+        <%= text_field_tag 'order[billing_address][city]',billing_address[:city], class: 'form-control' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.country') %></label>
+      <%= country_select :billing_address, :country, {locale: I18n.locale.to_s, iso_codes: true, selected:  billing_address[:country]}, { :name => 'order[billing_address][country]',  class: 'form-control' } %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.state') %></label>
+        <%= text_field_tag 'order[billing_address][state]',billing_address[:state], class: 'form-control' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.code_zip') %></label>
+        <%= text_field_tag 'order[billing_address][zip]',billing_address[:zip], class: 'form-control' %>
+    </div>
+
+</div>
+
+<div id="shipping_address" class="col-md-6">
+    <h3>
+        <%= t('plugin.ecommerce.shipping_address') %>
+        <a href="#" id="copy">copy from billing</a>
+    </h3>
+
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.firstname') %></label>
+        <%= text_field_tag 'order[shipping_address][first_name]', shipping_address[:first_name], class: 'form-control' %>
+
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.lastname') %></label>
+        <%= text_field_tag 'order[shipping_address][last_name]', shipping_address[:last_name], class: 'form-control' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.address') %></label>
+        <%= text_field_tag 'order[shipping_address][address1]', shipping_address[:address1], class: 'form-control' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.address') %> 2</label>
+        <%= text_field_tag 'order[shipping_address][address2]', shipping_address[:address2], class: 'form-control' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.city') %></label>
+        <%= text_field_tag 'order[shipping_address][city]', shipping_address[:city], class: 'form-control' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.country') %></label>
+      <%= country_select :shipping_address, :country, {locale: I18n.locale.to_s, iso_codes: true, selected:  billing_address[:country]}, { :name => 'order[shipping_address][country]',  class: 'form-control' } %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.state') %></label>
+        <%= text_field_tag 'order[shipping_address][state]', shipping_address[:state], class: 'form-control' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('plugin.ecommerce.table.code_zip') %></label>
+        <%= text_field_tag 'order[shipping_address][zip]', shipping_address[:zip], class: 'form-control' %>
+    </div>
+
+</div>

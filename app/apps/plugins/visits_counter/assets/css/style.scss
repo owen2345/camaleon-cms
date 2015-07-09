@@ -1,0 +1,18 @@
+#visits_counter{
+  table{
+    border: 1px solid #dddddd;
+    > thead > tr > th,
+    > tbody > tr > th
+    > tfoot > tr > th,
+    > thead > tr > td,
+    > tbody > tr > td,
+    > tfoot > tr > td{
+      border: 1px solid #dddddd;
+    }
+    > thead > tr:first-child > td,
+    > tbody > tr:last-child > td{
+      text-align: center;
+    }
+
+  }
+}

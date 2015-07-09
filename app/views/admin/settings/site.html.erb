@@ -1,0 +1,124 @@
+<%
+   theme_settings_file = Rails.root.join("app", "apps", 'themes', current_site.get_theme_slug, 'views/admin/settings.html.erb').to_s
+   @site.slug = PluginRoutes.system_info["base_domain"] if current_site.main_site?
+   groups = @site.get_field_groups()
+%>
+<div class="page-title">
+  <h2><span class="fa fa-cog"></span> <%= "#{t('admin.settings.configuration_site')}: #{@site.the_title} "%> </h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <%= form_for @site, url:{action: :site_saved} do |f| %>
+        <% posts = current_site.posts.public_posts.all %>
+
+        <div class="col-md-12">
+            <div class="panel panel-default tabs">
+                <ul role="tablist" class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" role="tab" href="#tab-information" aria-expanded="false"><%= t('admin.settings.information_basic') %></a></li>
+                    <li class=""><a data-toggle="tab" role="tab" href="#tab-configuration" aria-expanded="false"><%= t('admin.post_type.configuration') %></a></li>
+                    <% if groups.present? %>
+                        <li class=""><a data-toggle="tab" role="tab" href="#tab-other-configuration" aria-expanded="false"><%= t('admin.post_type.other_configuration') %></a></li>
+                    <% end %>
+                    <% if File.exist?(theme_settings_file) %>
+                        <li class=""><a data-toggle="tab" role="tab" href="#tab-theme-configuration" aria-expanded="false"><%= t('admin.settings.theme_setting') %></a></li>
+                    <% end %>
+                </ul>
+                <div class="panel-body tab-content row">
+
+                    <%= render partial: 'layouts/admin/form_error', locals: {data: @site} %>
+
+                    <div id="tab-information" class="tab-pane active col-md-10 col-md-offset-1">
+
+                        <div class="form-group">
+                            <%= f.label t('admin.table.slug') %><br>
+                            <small><%= t('admin.sites.message.enter_key_domain') %></small><br>
+                            <%= f.text_field :slug, :class => "form-control required" %>
+                        </div>
+
+                        <div class="form-group">
+                            <%= f.label t('admin.table.name') %><br>
+                            <%= f.text_field :name, :class => "form-control translatable" %>
+                        </div>
+
+                        <div class="form-group">
+                            <%= f.label t('admin.table.description') %><br>
+                            <%= f.text_area :description, :class => "form-control translatable" %>
+                        </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.table.keywords') %></label><br>
+                            <%= text_field :options, :keywords, :class => "form-control translatable", :value => @site.the_keywords %>
+                            <small><%= t('admin.settings.please_separated_commas') %></small>
+                        </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.table.logo') %></label><br>
+                            <%= hidden_field :options, :logo, :class => "form-control unput_upload", :value => @site.the_logo %>
+                        </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.table.favicon') %></label><br>
+                            <%= hidden_field :options, :icon, :class => "form-control unput_upload", :value => @site.the_icon, "data-label" => "#{t('admin.button.upload_icon')}", "data-ext" => "ico" %>
+                        </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.table.screenshot') %></label><br>
+                            <%= hidden_field :options, :screenshot, :class => "form-control unput_upload", :value => @site.get_option("screenshot") %>
+                        </div>
+                    </div>
+                    <div id="tab-configuration" class="tab-pane col-md-10 col-md-offset-1">
+                        <div class="form-group">
+                            <label for=""><%= t('admin.table.home_page') %></label><br>
+                            <%= select_tag "options[home_page]", options_for_select([[t('admin.table.default'), ""]]+(posts.collect{|x| x = x.decorate; [x.the_title, x.id]}), @site.options[:home_page]), class: "form-control select" %>
+                        </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.table.page_404') %></label><br>
+                            <%= select_tag "options[error_404]", options_for_select([[t('admin.table.default'), ""]]+(posts.collect{|x| x = x.decorate; [x.the_title, x.id]}), @site.options[:error_404]), class: "form-control select" %>
+                        </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.table.email_address') %></label><br>
+                            <%= email_field :options, :email, :class => "form-control", :value => @site.options[:email] %>
+                        </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.settings.list_per_page_front') %></label><br>
+                            <%= text_field :options, :front_per_page, :class => "form-control number", :value => @site.front_per_page %>
+                        </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.settings.list_per_page_admin') %></label><br>
+                            <%= text_field :options, :admin_per_page, :class => "form-control number", :value => @site.admin_per_page %>
+                        </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.settings.comment_status') %></label><br>
+                            <%= check_box :options, :comment_status, {checked: @site.front_comment_status == "approved"}, "approved", "pending" %>
+                        </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.settings.allow_user_registration') %></label><br>
+                            <%= check_box :meta, :has_create_account, {checked: @site.get_option('has_create_account', false), class: "icheckbox0"}, "true", "" %>
+                        </div>
+                    </div>
+                    <% if groups.present? %>
+                        <div id="tab-other-configuration" class="tab-pane col-md-10 col-md-offset-1">
+                            <%= render partial: "admin/settings/custom_fields/render", locals: {record: @site, field_groups: groups} %>
+                        </div>
+                    <% end %>
+                    <% if File.exist?(theme_settings_file) %>
+                        <div id="tab-theme-configuration" class="tab-pane col-md-10 col-md-offset-1">
+                            <%= render file: theme_settings_file %>
+                        </div>
+                    <% end %>
+
+                </div>
+                <div class="panel-footer">
+                    <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+                </div>
+            </div>
+        </div>
+      <% end %>
+
+  </div>
+
+</div>
+<script>
+  run.push(function(){
+      $('.unput_upload').input_upload();
+  });
+</script>

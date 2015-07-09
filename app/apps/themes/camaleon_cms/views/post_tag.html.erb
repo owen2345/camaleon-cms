@@ -1,0 +1,6 @@
+<div class="pressroom">
+    <div class="container">
+        <%= render partial: 'partials/breadcrumb', locals: {breadcrumb: @post_tag.the_breadcrumb } %>
+        <%= render partial: "partials/list_items", locals:{posts: @posts} %>
+    </div>
+</div>

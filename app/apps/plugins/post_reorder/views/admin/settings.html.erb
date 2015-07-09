@@ -1,0 +1,37 @@
+<div class="page-content-wrap">
+    <%= form_tag admin_plugins_post_reorder_settings_path do %>
+        <div class="col-md-8 col-md-offset-2">
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><%= t('plugin.post_reorder.title') %></h3>
+                    <ul class="panel-controls">
+                        <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                    </ul>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label><%= t('plugin.post_reorder.post_types') %></label>
+
+                            <% plugin_meta = @plugin.get_meta('_reorder_objects') %>
+                            <% current_site.the_post_types.decorate.each do |post_type| %>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="object[post_type][]" value="<%= post_type.id %>" <%= "checked" if plugin_meta[:post_type].to_i.include?(post_type.id) rescue false %> />
+                                        <%= post_type.the_title %>
+                                    </label>
+                                </div>
+                            <% end %>
+                        </div>
+                        <div class="col-md-6"></div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <a class="btn btn-default" href="<%= url_for admin_plugins_path %>"><%= t('admin.button.back') %></a>
+                    <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit') %></button>
+                </div>
+            </div>
+        </div>
+    <% end %>
+</div>

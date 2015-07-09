@@ -1,0 +1,57 @@
+html {
+    font-size: 14px;
+}
+
+body {
+	font-family: 'Open Sans', sans-serif;
+}
+
+/*Typography*/
+h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6 {
+    line-height: .8;
+	color:#393939;
+	font-weight:300
+}
+
+h1 small,h2 small,h3 small,h4 small,h5 small,h6 small,.h1 small,.h2 small,.h3 small,.h4 small,.h5 small,.h6 small {
+    font-weight: normal;
+}
+h1,.h1 {
+    font-size: 42px;
+}
+h2,.h2 {
+    font-size: 32px;
+}
+h3,.h3 {
+    font-size: 26px;
+}
+h4,.h4 {
+    font-size: 18px;
+}
+h5,.h5 {
+    font-size: 14px;
+}
+h6,.h6 {
+    font-size: 12px;
+}
+h1 small,.h1 small {
+    font-size: 24px;
+}
+h2 small,.h2 small {
+    font-size: 18px;
+}
+h3 small,.h3 small,h4 small,.h4 small {
+    font-size: 14px;
+}
+
+.block-text-left, .block-text-right, .block-text-center { font-family: Georgia,"Times New Roman",Times,serif;}
+
+/*sub-menu start here*/
+.sub-page-banner h2 span{font-family: 'Open Sans', sans-serif; font-weight:600;}
+
+
+/*blog date*/
+.blog .date p{ font-size:50px;font-weight:700;}
+
+/*contact social buttons*/
+.social li a{ font-family:Arial, Helvetica, sans-serif; font-size:11px;}

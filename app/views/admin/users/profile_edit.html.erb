@@ -1,0 +1,305 @@
+<%
+   @plugin = current_site.plugins.where(slug: "social_login").first
+%>
+<!-- PAGE TITLE -->
+<div class="page-title">
+  <h2><span class="fa fa-cogs"></span> <%= t('admin.users.edit_profile')%></h2>
+</div>
+<!-- END PAGE TITLE -->
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-3 col-sm-4">
+
+      <%= form_for @user, url: admin_profile_edit_path, html:{class: 'validate-profile form-horizontal form-ajax-profile'} do |f| %>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <h3><span class="fa fa-user"></span> <%= @user.the_name %></h3>
+            <p><%= @user.the_slogan %></p>
+            <div class="text-center" id="user_image">
+              <img src="<%= @user.the_avatar %>" class="img-thumbnail"/>
+            </div>
+          </div>
+          <div class="panel-body form-group-separated">
+
+            <div class="form-group">
+              <div class="col-md-12 col-xs-12">
+                <a href="#" class="btn btn-primary btn-block btn-rounded" data-toggle="modal" data-target="#modal_change_photo"><%= t('admin.button.change_photo')%></a>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-md-4 col-xs-6 control-label">#<%= t('admin.table.id')%></label>
+              <div class="col-md-8 col-xs-6">
+                <input type="text" value="<%= @user.the_id %>" class="form-control" disabled/>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-md-4 col-xs-6 control-label"><%= t('admin.table.login')%></label>
+              <div class="col-md-8 col-xs-6">
+                <input type="text" name="user[username]" value="<%= @user.username %>" class="form-control"/>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-md-4 col-xs-6 control-label"><%= t('admin.table.e_mail')%></label>
+              <div class="col-md-8 col-xs-6">
+                <input type="text" name="user[email]"  value="<%= @user.email %>" class="form-control"/>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-md-12 col-xs-12">
+                <button type="submit" class="btn btn-success btn-block" ><%= t('admin.button.update') %></button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-md-12 col-xs-12">
+                <a href="#" class="btn btn-danger btn-block btn-rounded" data-toggle="modal" data-target="#modal_change_password"><%= t('admin.button.change_password') %></a>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+     <% end %>
+
+    </div>
+    <div class="col-md-6 col-sm-8">
+
+      <%= form_for @user, url: admin_profile_edit_path, html:{class: 'validate-profile form-horizontal form-ajax-profile'} do |f| %>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <h3><span class="fa fa-pencil"></span> <%= t('admin.users.profile') %></h3>
+
+          </div>
+          <div class="panel-body form-group-separated">
+
+
+            <%
+               data_meta = @user.meta
+               User::meta_default[:fields].each do |field, values| %>
+
+                <div class="form-group">
+                  <label class="col-md-3 col-xs-5 control-label">
+                      <%= t("admin.table.#{values[:label].gsub(' ','').tableize}")%>
+                  </label>
+                  <div class="col-md-9 col-xs-7">
+                    <input type="text" name="<%=  "meta[#{field}]" %>" value="<%= data_meta[field] %>" class="form-control"/>
+                  </div>
+                </div>
+            <% end %>
+
+            <div class="form-group">
+              <label class="col-md-3 col-xs-5 control-label"><%= t('admin.table.slogan') %></label>
+              <div class="col-md-9 col-xs-7">
+                <textarea name="meta[slogan]" class="form-control"><%= @user.meta[:slogan] %></textarea>
+
+              </div>
+            </div>
+          </div>
+          <div class="panel-footer text-right">
+            <button class="btn btn-success"><%= t('admin.button.update') %></button>
+          </div>
+        </div>
+      <% end  %>
+
+
+    </div>
+
+    <div class="col-md-3">
+      <div class="panel panel-default form-horizontal">
+        <div class="panel-body">
+          <h3><span class="fa fa-info-circle"></span> <%= t('admin.table.quick_info')%></h3>
+          <p><%= t('admin.message.quick_info')%></p>
+        </div>
+        <div class="panel-body form-group-separated">
+          <div class="form-group">
+            <label class="col-md-4 col-xs-5 control-label"><%= t('admin.table.last_visit')%></label>
+            <div class="col-md-8 col-xs-7 line-height-30"><%= @user.last_login_at %></div>
+          </div>
+          <div class="form-group">
+            <label class="col-md-4 col-xs-5 control-label"><%= t('admin.table.registration')%></label>
+            <div class="col-md-8 col-xs-7 line-height-30"><%= @user.created_at %></div>
+          </div>
+
+        </div>
+
+      </div>
+        <% if @plugin.present? && @plugin.active? %>
+            <% if current_site.get_option('has_twitter', true) || current_site.get_option('has_facebook', true) || current_site.get_option('has_google', true) %>
+            <!-- start social login -->
+                <% r = {html: ""}; hooks_run("user_form_social", r) %>
+                <%= raw r[:html] %>
+            <!-- end social login-->
+            <% end %>
+        <% end %>
+
+
+
+    </div>
+
+  </div>
+
+
+</div>
+<!-- END PAGE CONTENT WRAPPER -->
+
+
+<!-- MODALS -->
+<div class="modal animated fadeIn" id="modal_change_photo" tabindex="-1" role="dialog" aria-labelledby="smallModalHead" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><%= t('admin.button.close') %></span></button>
+        <h4 class="modal-title" id="smallModalHead"><%= t('admin.button.change_photo') %></h4>
+      </div>
+      <form id="cp_crop" method="post" action="<%= admin_crop_path({saved_avatar: @user.id}) %>">
+        <div class="modal-body">
+          <div class="text-center" id="cp_target"><%= t('admin.message.change_photo') %></div>
+          <input type="hidden" name="cp_img_path" id="cp_img_path"/>
+          <input type="hidden" name="ic_x" id="ic_x"/>
+          <input type="hidden" name="ic_y" id="ic_y"/>
+          <input type="hidden" name="ic_w" id="ic_w"/>
+          <input type="hidden" name="ic_h" id="ic_h"/>
+          <input type="hidden" name="ic_resize" id="ic_resize"/>
+        </div>
+      </form>
+        <div class="modal-body form-horizontal form-group-separated">
+          <div class="form-group">
+            <label class="col-md-4 control-label"><%= t('admin.users.new_photo') %></label>
+            <div class="col-md-4">
+              <a id="cp_photo" class="btn btn-info" href="#"><%= t('admin.button.select_file') %></a>
+            </div>
+          </div>
+        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success disabled" id="cp_accept"><%= t('admin.button.accept') %></button>
+        <button type="button" class="btn btn-default" data-dismiss="modal"><%= t('admin.button.close') %></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="modal_change_password" tabindex="-1" role="dialog" aria-labelledby="smallModalHead" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><%= t('admin.button.close') %></span></button>
+        <h4 class="modal-title" id="smallModalHead"><%= t('admin.button.change_password') %></h4>
+      </div>
+      <div class="modal-body">
+        <p><%= t('admin.message.change_password') %></p>
+      </div>
+      <%= form_for @user, url: admin_profile_edit_path, html:{class: 'validate-password form-ajax-password'} do |f| %>
+          <div class="modal-body form-horizontal form-group-separated">
+            <div class="form-group">
+              <label class="col-md-3 control-label"><%= t('admin.table.old_password') %></label>
+              <div class="col-md-9">
+                <input type="password" class="form-control required" name="password[password_old]"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-md-3 control-label"><%= t('admin.table.new_password') %></label>
+              <div class="col-md-9">
+                <input id="pass_new" type="password" class="form-control required" name="password[password]"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-md-3 control-label"><%= t('admin.table.repeat_new') %></label>
+              <div class="col-md-9">
+                <input type="password" class="form-control required" name="password[password_confirmation]" equalTo="#pass_new"/>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-danger"><%= t('admin.button.proccess') %></button>
+            <button type="button" class="btn btn-default" data-dismiss="modal"><%= t('admin.button.close') %></button>
+          </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+<!-- EOF MODALS -->
+
+
+<% add_asset_library('form_ajax', 'cropper') %>
+
+<script>
+    run.push(function(){
+
+        $('.form-ajax-profile').ajaxForm({success: function(res){
+            if(res.errors){
+                $.fn.alert({type: 'error', title: lang.msg_form_error, content: res.errors, icon: 'times', close: lang.close});
+            }else{
+                $.fn.alert({ title: lang.message_updated_success, close: lang.close});
+            }
+        }})
+        $('.form-ajax-password').ajaxForm({success: function(res){
+            if(res.errors){
+                $.fn.alert({type: 'error', title: lang.msg_form_error, content: res.errors, icon: 'times', close: lang.close});
+            }else{
+                $.fn.alert({ title: lang.message_updated_success, close: lang.close});
+                $("#modal_change_password").modal('hide')
+            }
+        }})
+
+
+        function onSuccess(){
+            $("#cp_photo").parent("a").find("span").html("Choose another photo");
+
+            var img = $("#cp_target").find("#crop_image")
+
+            if(img.length === 1){
+                $("#cp_img_path").val(img.attr("src"));
+
+                img.cropper({aspectRatio: 1,
+                    done: function(data) {
+                        $("#ic_x").val(data.x);
+                        $("#ic_y").val(data.y);
+                        $("#ic_h").val(data.height);
+                        $("#ic_w").val(data.width);
+                    }
+                });
+
+                $("#cp_accept").prop("disabled",false).removeClass("disabled");
+                $("#cp_crop").css({"width":"400px","margin":"0px auto"});
+                $("#cp_crop").find('.modal-body').css({"max-height":"400px","overflow":"auto"});
+                $("#cp_accept").on("click",function(){
+                    $("#user_image").html('<img src="/assets/loader.gif"/>');
+                    $("#modal_change_photo").modal("hide");
+
+                    $("#cp_crop").ajaxForm({success: function(res){
+                        $("#user_image").html('<img class="img-thumbnail" src="'+res+'?r='+Math.random()+'"/>');
+                        $.fn.alert({ title: lang.msg_avatar_updated, close: lang.close});
+                    }}).submit();
+                    $("#cp_target").html("Use form below to upload file. Only image files.");
+                    $("#cp_photo").val("").parent("a").find("span").html("Select file");
+                    $("#cp_accept").prop("disabled",true).addClass("disabled");
+                    $("#cp_img_path").val("");
+                });
+            }
+        }
+
+        $("#cp_photo").on("click",function(){
+            $.fn.upload_elfinder({
+                selected: function(res){
+                    var image = _.first(res);
+                    if(image.mime && image.mime.indexOf('image') > -1){
+                        $("#cp_target").html("<img id='crop_image' src='"+image.url+"' >");
+                        onSuccess()
+                    }else{
+                        alert("File extension not allowed")
+                    }
+                }
+            });
+        });
+
+    });
+</script>

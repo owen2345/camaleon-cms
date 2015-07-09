@@ -1,0 +1,31 @@
+<div class="page-title">
+  <h2><span class="fa fa-picture-o"></span> <%= t('admin.sidebar.media')%></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-12">
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"><%= t('admin.media.media_manager')%></h3>
+        </div>
+        <div class="panel-body">
+          <div id='elfinder'></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+    jQuery(function(){
+        $('#elfinder').upload_elfinder({mode: 'full'});
+        $('.elfinder-button').tooltip();
+    })
+
+</script>

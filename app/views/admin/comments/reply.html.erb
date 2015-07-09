@@ -1,0 +1,197 @@
+<div class="page-title">
+  <h2>
+    <span class="fa fa-comments"></span> <%= t('admin.post_type.comments')%>
+
+  </h2>
+</div>
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="row col-md-12">
+      <div class="messages messages-img">
+        <%= raw "<div class='alert alert-warning'>#{t('admin.comments.message.there_no_comments')}</div>" if @comments.size == 0 %>
+        <% @comments.each do |comment|
+          author = comment.user.decorate
+        %>
+            <div class="item-comment">
+            <div class="item out" style="opacity: 1">
+              <div class="image">
+                <%= image_tag author.the_avatar %>
+              </div>
+              <div class="text">
+                <div class="heading">
+                    <a href="#"><%= author.the_name %></a>
+                    <span class="date">
+                      <%= comment.decorate.the_created_at %>
+                    </span>
+                </div>
+                <div style="bottom: 6px; position: absolute; right: 6px;">
+                  <div class="btn-group btn-group-sm">
+                    <button title="<%= t('admin.comments.tooltip.approved_comment') %>" onclick="do_change_status(this, '<%= comment.id%>', 'approved', 'success'); return false;" class="btn btn-default <%= 'btn-primary' if comment[:approved] == "approved" %>"><span class="fa fa-thumbs-o-up"></span></button>
+                    <button title="<%= t('admin.comments.tooltip.comment_pending') %>" onclick="do_change_status(this, '<%= comment.id%>', 'pending', 'warning'); return false;" class="btn btn-default <%= 'btn-primary' if comment[:approved] == "pending" %>"><span class="fa fa-warning"></span></button>
+                    <button title="<%= t('admin.comments.tooltip.comment_spam') %>" onclick="do_change_status(this, '<%= comment.id%>', 'spam', 'danger'); return false;" class="btn btn-default <%= 'btn-primary' if comment[:approved] == "danger" %>"><span class="fa fa-bug"></span></button>
+                  </div>
+                  <div class="btn-group btn-group-sm">
+                    <button title="<%= t('admin.comments.tooltip.reply_comment') %>" onclick="do_responses_comment(this, <%= comment.id %>, true); return false;" class="btn btn-default"><span class="fa fa-mail-reply"></span></button>
+                    <button title="<%= t('admin.comments.tooltip.delete_comment') %>" onclick="do_delete_comment(this, <%= comment.id %>, 'parent'); return false;"  class="btn btn-default"><span class="fa fa-trash-o"></span></button>
+                  </div>
+                </div>
+
+                <%= simple_format comment.content %>
+              </div>
+
+            <div class="form-reply">
+              <div id="form_<%= comment.id%>" class="panel panel-default panel-lite hidden" style="margin-top: 10px;">
+                <div class="panel-heading ui-draggable-handle">
+                  <h3 class="panel-title"><%= t('admin.comments.responses')%></h3>
+                </div>
+                <% @comment =  comment.children.new  %>
+                <%= form_for @comment, url:{action: :responses, post_id: comment.post_id}, html: {id: "menu_form"}  do |f| %>
+
+                    <div class="panel-body">
+
+                      <%= render partial: 'layouts/admin/form_error', locals: {data: @comment} %>
+
+                      <%= f.hidden_field :comment_parent %>
+
+                      <div class="form-group">
+                        <%= f.label "#{t('admin.sidebar.content')}" %><br>
+                        <textarea class="form-control" rows="4" name="post_comment[content]"></textarea>
+                      </div>
+
+                    </div>
+
+                    <div class="panel-footer">
+                      <a onclick="do_responses_comment(this, <%= comment.id %>, false); return false;" class="btn btn-default" href="#"><%= t('admin.button.cancel')%></a>
+                      <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+                    </div>
+                <% end %>
+              </div>
+            </div>
+            </div>
+            <% comment.children.all.each do |children|
+                author = children.user.decorate
+            %>
+                <div class="item in" style="opacity: 1">
+                  <div class="image">
+                    <%= image_tag author.the_avatar %>
+                  </div>
+                  <div class="text">
+                    <div class="heading">
+                        <a href="#"><%= author.the_name %></a>
+                        <span class="date">
+                          <%= children.decorate.the_created_at%>
+                        </span>
+                    </div>
+                    <div style="bottom: 6px; position: absolute; right: 6px;">
+                      <div class="btn-group btn-group-sm">
+                        <button title="<%= t('admin.comments.tooltip.approved_comment') %>" onclick="do_change_status(this, '<%= children.id%>', 'approved', 'success'); return false;" class="btn btn-default <%= 'btn-primary' if children[:approved] == "approved" %>"><span class="fa fa-thumbs-o-up"></span></button>
+                        <button title="<%= t('admin.comments.tooltip.comment_pending') %>"  onclick="do_change_status(this, '<%= children.id%>', 'pending', 'warning'); return false;" class="btn btn-default <%= 'btn-primary' if children[:approved] == "pending" %>"><span class="fa fa-warning"></span></button>
+                        <button title="<%= t('admin.comments.tooltip.comment_spam') %>" onclick="do_change_status(this, '<%= children.id%>', 'spam', 'danger'); return false;" class="btn btn-default <%= 'btn-primary' if children[:approved] == "danger" %>"><span class="fa fa-bug"></span></button>
+                      </div>
+                      <div class="btn-group btn-group-sm">
+                        <button title="<%= t('admin.comments.tooltip.delete_comment') %>" onclick="do_delete_comment(this, <%= children.id %>, 'children'); return false;"  class="btn btn-default"><span class="fa fa-trash-o"></span></button>
+                      </div>
+                    </div>
+                    <%= simple_format children.content %>
+                  </div>
+                </div>
+
+
+            <% end %>
+            </div>
+        <% end %>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>
+<script>
+    var form;
+    run.push(function()
+    {
+        form = $("#menu_form");
+
+        $('.select').change(function(){
+            var id = $(this).attr('data-id');
+            var value = $(this).val();
+
+            if(value=="approved") color="success";
+            if(value=="pending") color="warning";
+            if(value=="spam") color="danger";
+
+            do_change_status(id, value, color);
+        });
+
+        $('.messages button[title]').tooltip();
+
+
+    });
+
+    function do_responses_comment(thiss, id, action){
+        if(action){
+            $('.messages').find('#form_'+id).removeClass('hidden');
+        }else{
+            $('.messages').find('#form_'+id).addClass('hidden');
+        }
+
+
+    }
+
+    function do_change_status(dom, id, value, color){
+
+        var path = '<%= admin_comment_change_status_path({comment_id: '___'})%>';
+        var data = {answers_id: id, approved: value};
+        var class_color = "label-"+color;
+        var msn = "";
+        var type = "";
+
+        switch (value){
+            case "approved":
+                type = lang.approved;
+                break;
+            case "pending":
+                type = lang.pending;
+                break;
+            case "spam":
+                type = lang.spam;
+                break;
+            default:
+                type = ""
+        }
+
+        $.post( path.replace('___', id), data, function(res){
+            if(res.notice){
+                msn =  res.notice+type+".";
+                $(dom).parent().find('.btn-primary').removeClass('btn-primary')
+                $(dom).addClass('btn-primary')
+                $.fn.alert({title: msn, type: color, close: lang.close});
+            }
+        });
+
+    }
+
+    function do_delete_comment(comment, id, type_comment){
+
+        var msg = lang.message_delete_item;
+
+        if (confirm(msg)) {
+            var path = '<%= delete_admin_comments_path()%>';
+            var data = {answers_id: id};
+
+            $.post( path, data, function(res){
+                $.fn.alert({title: res.notice, close: lang.close});
+            });
+
+            if (type_comment == "parent"){
+                $(comment).closest("div.item-comment").remove();
+            }else{
+                $(comment).closest("div.item.in").remove();
+            }
+        }
+
+    }
+</script>

@@ -1,0 +1,93 @@
+<%
+   if @post_type.nil?
+     @post_type = current_site.post_types.new
+   end
+%>
+<%= form_for @post_type, url:{action: @post_type.new_record? ? :create : :update} , html:{class: 'validate-post-type', id: "post_type_form"} do |f| %>
+    <%= f.hidden_field :parent_id  %>
+    <%= f.hidden_field :taxonomy %>
+    <div class="panel-body">
+      <%= render partial: 'layouts/admin/form_error', locals: {data: @post_type} %>
+        <div class="form-group">
+          <%= f.label t('admin.table.name') %><br>
+          <%= f.text_field :name, :class => "form-control required translatable" %>
+        </div>
+        <div class="form-group">
+            <%= f.label t('admin.table.slug') %><br>
+            <%= f.text_field :slug, :class => "form-control slug no_translate required", "data-parent" => "post_type_name" %>
+        </div>
+
+        <div class="form-group">
+          <%= f.label t('admin.table.description') %><br>
+          <%= f.text_area :description, :class => "form-control translatable", :rows => 4 %>
+        </div>
+        <div class="form-group">
+            <label><%= t('admin.table.default_thumbnail') %></label><br>
+            <%= hidden_field :meta, :default_thumb, :class => "form-control unput_upload", :value => @post_type.get_option('default_thumb') %>
+        </div>
+
+        <h4 style="margin-bottom: 12px"><%= t('admin.table.options') %></h4>
+
+        <div class="form-group">
+            <input name="meta[has_category]" type="hidden" value="false"/>
+            <label class="check0"><input name="meta[has_category]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_category', false) %>/>&nbsp;   <%= t('admin.table.manage_category') %>
+            </label>
+            <%= raw html_tooltip("#{t('admin.post_type.tooltip.permission_asing_categories')}", 'right') %>
+        </div>
+        <div class="form-group">
+            <input name="meta[has_tags]" type="hidden" value="false"/>
+            <label class="check0"><input name="meta[has_tags]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_tags', false) %>/>&nbsp;   <%= t('admin.table.manage_tags') %>
+            </label>
+            <%= raw html_tooltip("#{t('admin.post_type.tooltip.permission_add_tags')}", 'right') %>
+        </div>
+
+        <div class="form-group">
+            <input name="meta[has_content]" type="hidden" value="false"/>
+            <label class="check0"><input name="meta[has_content]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_content', true) %>/>&nbsp;   <%= t('admin.table.manage_content') %>
+            </label>
+            <%= raw html_tooltip("#{t('admin.post_type.tooltip.permission_add_content')}", 'right') %>
+        </div>
+        <div class="form-group">
+            <input name="meta[has_summary]" type="hidden" value="false"/>
+            <label class="check0"><input name="meta[has_summary]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_summary', true) %>/>&nbsp;   <%= t('admin.table.manage_summary') %>
+            </label>
+            <%= raw html_tooltip("#{t('admin.post_type.tooltip.permission_add_content_summary')}", 'right') %>
+        </div>
+        <div class="form-group">
+            <input name="meta[has_comments]" type="hidden" value="false"/>
+            <label class="check0"><input name="meta[has_comments]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_comments', true) %>/>&nbsp;   <%= t('admin.table.permit_comments_default') %>
+            </label>
+            <%= raw html_tooltip("#{t('admin.post_type.tooltip.permission_reviews')}", 'right') %>
+        </div>
+        <div class="form-group">
+            <input name="meta[has_picture]" type="hidden" value="false"/>
+            <label class="check0"><input name="meta[has_picture]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_picture', true) %>/>&nbsp;   <%= t('admin.table.manage_picture') %>
+            </label>
+            <%= raw html_tooltip("#{t('admin.post_type.tooltip.permission_add_image_presentation')}", 'right') %>
+        </div>
+        <div class="form-group">
+            <input name="meta[has_template]" type="hidden" value="false"/>
+            <label class="check0"><input name="meta[has_template]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_template', true) %>/>&nbsp;   <%= t('admin.table.manage_template') %>
+            </label>
+            <%= raw html_tooltip("#{t('admin.post_type.tooltip.permission_manage_template')}", 'right') %>
+        </div>
+        <div class="form-group">
+            <input name="meta[has_keywords]" type="hidden" value="false"/>
+            <label class="check0"><input name="meta[has_keywords]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_keywords', true) %>/>&nbsp;   <%= t('admin.table.has_keywords') %>
+            </label>
+            <%= raw html_tooltip("#{t('admin.post_type.tooltip.permission_add_keywords')}", 'right') %>
+        </div>
+        <%= render partial: "admin/settings/custom_fields/render", locals: {record: @post_type, field_groups: @post_type.get_field_groups({kind: "post_type"}) } %>
+    </div>
+
+    <div class="panel-footer">
+      <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('admin.button.back') %></a>
+      <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit') %></button>
+    </div>
+<% end %>
+<script>
+    run.push(function(){
+        $('#post_type_form .unput_upload').input_upload();
+    });
+</script>
+

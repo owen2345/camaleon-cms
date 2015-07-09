@@ -1,0 +1,59 @@
+<% enabled_plugins = PluginRoutes.enabled_plugins(current_site) %>
+<div class="panel panel-default">
+    <div class="panel-body">
+
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th><%= t('admin.table.title') %></th>
+                <th><%= t('admin.table.description') %></th>
+                <th><%= t('admin.table.version') %></th>
+                <th><%= t('admin.table.status') %></th>
+                <th><%= t('admin.table.actions') %></th>
+            </tr>
+            </thead>
+            <tbody>
+            <% plugins.each do |plugin| status = enabled_plugins.include?(plugin); r = {links: []}; %>
+                <tr>
+                    <td>
+                        <%= plugin["title"] %>
+                        <br>
+                        <% r[:links] << (link_to("#{t('admin.sidebar.information')}", plugin_asset_path(plugin["key"], "docs/index.html"),  onclick: "do_modal_plugin2(this, '#{plugin["title"]}'); return false;", title: "#{plugin["title"]}")) if File.exist?(File.join(plugin["path"], "assets", "docs/index.html")) %>
+                        <% hook_run(plugin, "plugin_options", r) if status %>
+                        <%= raw r[:links].join(" | ") %>
+                    </td>
+                    <td><%= plugin["descr"] %></td>
+                    <td><%= plugin["version"] %></td>
+                    <td><%= t("admin.plugins.status_#{status}") %></td>
+                    <td>
+                        <%= link_to raw("<i class='fa fa-#{status ? "check-square" : "square"}'></i>"), {action: :toggle, id: plugin["key"], status: status }, class: "btn btn-default btn-xs", title: "#{status ? t('admin.button.disable_plugin') : t('admin.button.activate_plugin') }" %>
+                        <%#= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: plugin["key"] },
+                                    method: :delete, data: { confirm: t('admin.message.delete_item') }, class: "btn btn-danger btn-xs", title: "#{t('admin.button.delete')}" if plugin_can_be_deleted?(plugin["key"]) %>
+                    </td>
+                </tr>
+            <% end %>
+
+            </tbody>
+        </table>
+        <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if plugins.empty? %>
+    </div>
+
+</div>
+
+<script type="text/javascript" charset="utf-8">
+    function do_modal_plugin(ele, url_asset){
+        $.get($(ele).attr("href"), function(res){
+            var template = $('<div class="modal" id="modal_large" tabindex="-1" role="dialog" aria-labelledby="largeModalHead" aria-hidden="true"> <div class="modal-dialog modal-lg"> <div class="modal-content"> <div class="modal-header"> <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> <h4 class="modal-title" id="largeModalHead">Large Modal</h4> </div> <div class="modal-body"></div> <div class="modal-footer"> <button type="button" class="btn btn-default" data-dismiss="modal">'+lang.close+'</button> </div> </div> </div> </div>');
+            template.find(".modal-body").html(res.replace(/src=\"/g, 'src="'+url_asset));
+            template.find("#largeModalHead").html($(ele).attr("title"));
+            template.modal();
+        });
+    }
+
+    function do_modal_plugin2(item, title){
+        var title = 'Plugin '+ title;
+        var template = $('<div class="modal" id="modal_large" tabindex="-1" role="dialog" aria-labelledby="largeModalHead" aria-hidden="true"> <div class="modal-dialog modal-lg"> <div class="modal-content"> <div class="modal-header"> <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> <h4 class="modal-title" id="largeModalHead">'+title+'</h4> </div> <div class="modal-body"></div> <div class="modal-footer"> <button type="button" class="btn btn-default" data-dismiss="modal">'+lang.close+'</button> </div> </div> </div> </div>');
+        template.find(".modal-body").html('<iframe src="'+$(item).attr("href")+'" width="100%" height="500px" frameborder=0></iframe>');
+        template.modal();
+    }
+</script>

@@ -1,0 +1,11 @@
+es:
+  plugins:
+    front_editor:
+      edit: "Editar"
+      contents: "Contenidos"
+
+en:
+  plugins:
+    front_editor:
+      edit: "Edit"
+      contents: "Contents"

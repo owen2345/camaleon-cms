@@ -1,0 +1,109 @@
+<div class="page-title">
+  <h2><span class="fa fa-cog"></span> <%= t('plugin.ecommerce.orders')%></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-12">
+
+      <!-- START BASIC TABLE SAMPLE -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"> <%= t('plugin.ecommerce.list_orders')%></h3>
+
+            <div class="box-adv-search pull-right" >
+
+              <div class="input-group" id="adv-search">
+                <input type="text" class="form-control" placeholder="<%= t('plugin.ecommerce.search_order_number')%>" name="q" value="<%= params[:q] %>" />
+                <div class="input-group-btn">
+                  <div class="btn-group" role="group">
+                    <div class="dropdown dropdown-lg">
+                      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+                      <div class="dropdown-menu dropdown-menu-right" role="menu">
+                        <form action="<%= url_for(action: :index) %>"  method="get" class="form-horizontal" role="form">
+                          <div class="form-group">
+                            <label for="contain"><%= t('plugin.ecommerce.table.customer') %> </label>
+                            <input class="form-control" type="text" name="c" value="<%= params[:c] %>"/>
+                          </div>
+                          <div class="form-group">
+                            <label for="contain"><%= t('plugin.ecommerce.e_mail_address') %></label>
+                            <input class="form-control" type="email" name="e" value="<%= params[:e] %>"/>
+                          </div>
+                          <div class="form-group">
+                            <label for="contain"><%= t('plugin.ecommerce.phone_number') %></label>
+                            <input class="form-control" type="text" name="p" value="<%= params[:p] %>"/>
+                          </div>
+                          <div class="form-group">
+                            <label for="contain"><%= t('plugin.ecommerce.table.status') %></label>
+                            <%= select_tag "s", options_for_select([ [""], [t('plugin.ecommerce.select.received'),"received"], [t('plugin.ecommerce.select.unpaid'),"unpaid"], [t('plugin.ecommerce.select.accepted'),"accepted"], [t('plugin.ecommerce.select.shipped'),"shipped"], [t('plugin.ecommerce.select.closed'),"closed"], [t('plugin.ecommerce.select.canceled'),"canceled"] ],params[:s]), class: 'form-control' %>
+                          </div>
+
+                          <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                        </form>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+        </div>
+        <div class="panel-body">
+
+
+
+          <table class="table">
+            <thead>
+            <tr>
+              <th id=""><%= t('plugin.ecommerce.table.id') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.customer') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.status') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.paid') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.products') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.amount') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.received_time') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.payment_method') %></th>
+              <th><%= t('admin.table.actions')%></th>
+            </tr>
+            </thead>
+            <tbody>
+            <%
+               @orders.each do |order|
+               order = order.decorate
+            %>
+                <tr>
+                  <td><%= order.slug %></td>
+                  <td><%= order.details.customer %></td>
+                  <td><%= raw order.the_status  %></td>
+                  <td><%= order.paid? ? 'Yes' : 'No'  %></td>
+                  <td>
+                    <% order.meta[:products].each do |key, product| %>
+                        <%= product[:qty] %> x <%= product[:product_title] %> (<%= "#{current_site.current_unit} #{product[:price]}" %>) <br>
+                    <% end %>
+                  </td>
+                  <td><%= current_site.current_unit %> <%= order.meta[:payment][:amount]  %></td>
+                  <td><%= order.details.received_at %></td>
+                  <td><%= order.payment_method.name rescue "" %></td>
+                  <td>
+                    <%= link_to raw('<i class="fa fa-eye"></i>'), {action: :show, id: order.slug }, class: "btn btn-info btn-xs", title: "#{t('admin.button.preview')}" %>
+                    <%= link_to raw('<i class="fa fa-edit"></i>'), {action: :edit, id: order.slug }, class: "btn btn-default btn-xs", title: "#{t('admin.button.edit')}" %>
+                  </td>
+                </tr>
+            <% end  %>
+
+
+            </tbody>
+          </table>
+          <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if @orders.empty? %>
+          <%= will_paginate @orders, renderer: BootstrapPagination::Rails  %>
+        </div>
+      </div>
+      <!-- END BASIC TABLE SAMPLE -->
+    </div>
+  </div>
+</div>
+

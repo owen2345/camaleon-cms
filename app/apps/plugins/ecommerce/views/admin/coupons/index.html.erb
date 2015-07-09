@@ -1,0 +1,66 @@
+<div class="page-title">
+  <h2><span class="fa fa-tag"></span> <%= t('plugin.ecommerce.coupons') %></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-12">
+
+      <!-- START BASIC TABLE SAMPLE -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"> <%= t('plugin.ecommerce.list_coupons') %></h3>
+          <%= link_to raw("<i class='fa fa-plus'></i> #{t('plugin.ecommerce.add_coupons')}"), {action: :new}, class: "btn btn-primary pull-right" %>
+        </div>
+        <div class="panel-body">
+
+          <table class="table">
+            <thead>
+            <tr>
+              <th id=""><%= t('plugin.ecommerce.table.code') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.name') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.status') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.amount') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.min_cart_total') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.expiration_date') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.allowed_applications') %></th>
+              <th id=""><%= t('plugin.ecommerce.table.used_applications') %></th>
+              <th><%= t('plugin.ecommerce.table.actions') %></th>
+            </tr>
+            </thead>
+            <tbody>
+            <%
+               @coupons.each do |row|
+                 options = row.options
+                 row = row.decorate
+
+            %>
+                <tr>
+                  <td><%= row.the_code %></td>
+                  <td><%= row.name %></td>
+                  <td><%= raw row.the_status %></td>
+                  <td><%= row.the_amount  %></td>
+                  <td><%= options[:min_cart_total] %></td>
+                  <td><%= options[:expirate_date]  %></td>
+                  <td><%= options[:allowed_applications] %></td>
+                  <td><%= options[:used_applications] || 0 %></td>
+                  <td>
+                    <%= link_to raw('<i class="fa fa-edit"></i>'), {action: :edit, id: row.id }, class: "btn btn-default btn-xs", title: "#{t('admin.button.edit')}" %>
+                  </td>
+                </tr>
+            <% end  %>
+
+
+            </tbody>
+          </table>
+          <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if @coupons.empty? %>
+          <%= will_paginate @coupons, renderer: BootstrapPagination::Rails  %>
+        </div>
+      </div>
+      <!-- END BASIC TABLE SAMPLE -->
+    </div>
+  </div>
+</div>
+

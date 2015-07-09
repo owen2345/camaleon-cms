@@ -1,0 +1,79 @@
+<div class="page-title">
+  <h2><span class="fa fa-folder"></span> <%= "#{@parent.name.pluralize} / " if @parent.present? %> <%= params[:taxonomy].to_s.titleize.pluralize %></h2>
+</div>
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title">Add <%= params[:taxonomy].to_s.titleize %></h3>
+        </div>
+
+          <%= render partial: 'admin/taxonomy/form' %>
+
+      </div>
+
+    </div>
+
+    <div class="col-md-8">
+
+      <!-- START BASIC TABLE SAMPLE -->
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title">Listing</h3>
+        </div>
+        <div class="panel-body">
+
+          <table class="table">
+            <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Slug</th>
+              <th>Count</th>
+              <th>Actions</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <%
+               def _item_html(item, pos = 0)
+                    %>
+                    <tr>
+                      <td><%= raw('—' * pos) %> <%= item.name %></td>
+                      <td><%= item.description %></td>
+                      <td><%= item.slug %></td>
+                      <td><%= item.count %></td>
+                      <td>
+                        <%= link_to raw('<i class="fa fa-list"></i>'), admin_post_type_taxonomy_posts_path(@parent.id, params[:taxonomy], item.id), class: "btn btn-default btn-xs", title: "#{params[:taxonomy].to_s.titleize.pluralize}-#{item.slug.to_s.titleize}" if @parent.present? %>
+                        <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs", title: "Edit" %>
+                        <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: 'Are you sure?' }, class: "btn btn-danger btn-xs", title: "Delete" unless item.get_option('not_deleted', false) %>
+
+                      </td>
+                    </tr>
+                    <%
+               end
+               def _render_items(items, _level = 0)
+                 items.each do |term|
+                   _item_html(term, _level)
+                    children = term.term_children(params[:taxonomy])
+                   _render_items(children, _level + 1) if children.size > 0
+                 end
+               end
+               _render_items(@terms)
+                %>
+            </tbody>
+          </table>
+          <%= content_tag("div", raw("Not data"), class: "alert alert-warning") if @terms.empty? %>
+          <%= will_paginate @terms, renderer: BootstrapPagination::Rails %>
+        </div>
+      </div>
+      <!-- END BASIC TABLE SAMPLE -->
+    </div>
+
+
+  </div>
+
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>

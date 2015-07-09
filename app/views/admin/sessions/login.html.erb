@@ -1,0 +1,38 @@
+<script>var kk = "<%= get_session_id %>";</script>
+<div class="login-body">
+    <div class="login-title"><%= raw t('admin.login.welcome_login_html') %>  </div>
+    <%= render "layouts/admin/flash_messages" %>
+    <%= form_for(@user, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => admin_login_path ) do |f| %>
+        <div class="form-group">
+            <div class="col-md-12">
+                <%= f.text_field :username, :class => "form-control", :placeholder => t("admin.login.username") %>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <%= f.password_field :password, :class => "form-control", :placeholder => t("admin.login.password") %>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <%= raw captcha_tags_if_under_attack("login") %>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <a href="<%= admin_forgot_path %>" class="btn btn-link btn-block"><%= t('admin.login.forgot_your_password_int') %></a>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-info btn-block"><%= t('admin.button.log_in') %></button>
+            </div>
+        </div>
+        <%= raw content_before_draw %>
+
+    <% end %>
+    <% if current_site.get_option('has_create_account', false) %>
+        <div class="login-subtitle">
+            <%= t('admin.login.do_not_have_account_yet') %> <a href="<%= admin_register_path %>"><%= t('admin.login.create_account') %></a>
+        </div>
+    <% end %>
+</div>

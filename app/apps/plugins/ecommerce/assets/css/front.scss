@@ -1,0 +1,27 @@
+.ec-list-orders-address{
+  padding: 0;
+  list-style: none;
+  li{
+    overflow: hidden;
+    margin-bottom: 2px;
+    strong{
+      width: 80px;
+      float: left;
+    }
+    span{
+      display: block;
+      float: left;
+    }
+  }
+}
+
+.shopping_cart_box{
+  position: absolute; top: 54px; right: 0; padding: 12px;
+  h5{
+    margin-top: 0;
+    margin-bottom: 4px;
+  }
+  p{
+    margin-bottom: 4px;
+  }
+}

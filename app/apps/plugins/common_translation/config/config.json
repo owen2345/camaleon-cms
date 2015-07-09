@@ -1,0 +1,29 @@
+{
+  "title": "Common Translations",
+  "descr": "",
+  "version": "0.1",
+  "key": "common_translation",
+  "helpers": [
+    "Plugins::CommonTranslation::CommonTranslationHelper"
+  ],
+  "options": [{"label": "Settings", "url": "admin_plugins_common_translation_index_path", "eval_url": true}
+  ],
+  "hooks": {
+    "on_destroy": [
+      "common_translation_on_destroy"
+    ],
+    "on_active": [
+      "common_translation_on_active"
+    ],
+    "on_inactive": [
+      "common_translation_on_inactive"
+    ],
+    "on_translation": [
+      "common_translation_on_translation"
+    ],
+    "plugin_options":[
+      "common_translation_plugin_options"
+    ]
+    //here you can add all your hooks (read documentation)
+  }
+}

@@ -1,0 +1,155 @@
+::-moz-selection {
+	background:#F6C815;
+}
+::selection{
+	background:#F6C815;
+}
+.navbar-default .navbar-nav  .active > a,
+.navbar-default .navbar-nav  a:hover,
+.navbar-default .navbar-nav  .current-menu-ancestor > a,
+.navbar-default .navbar-nav  .active > a:hover,
+.navbar-default .navbar-nav  .active > a:focus {
+  color: #F6C815 !important;
+
+}
+h1.light{
+  color: #F6C815 !important;
+}
+.about i{
+	background:#F6C815;
+}
+.hovicon.effect-1.sub-a:hover {
+	background: #F6C815;
+}
+.hovicon.effect-1 {
+	background: #F6C815;
+}
+.hovicon.effect-1:after {
+	box-shadow: 0 0 0 4px #F6C815;
+}
+.team .col-md-4 .team-image-sec .img-overlay, .entry .overlay{ background:rgba(246, 200, 21, 0.79);}
+.team .col-md-4 .team-image-sec li a{ color:#F6C815;}
+.team-detail-sec h3{ color:#F6C815}
+#filters ul li a:hover h3, #filters ul li a.active h3 {
+	background-color:#F6C815;
+	border: 1px solid #ddb20d;
+}
+.da-thumbs li  article {
+	background:rgba(246, 200, 21, 0.79);
+}
+.testimonials .fa-twitter{
+	color: #F6C815;
+}
+.testimonials span{
+	color:#F6C815 ;
+}
+.pricing .price span{
+	color:#F6C815;
+}
+.pricing .table.blue-table{
+	background:#F6C815;
+}
+.pricing .table a:hover{
+	background:#F6C815;
+	color:#fff !important;
+}
+.sponsors h1.sponsor{
+	color:#F6C815 !important;
+}
+.pressroom .left-text span.title{
+	color:#F6C815;
+}
+.pressroom .left-text a{
+	color:#F6C815;
+}
+.pressroom .right-text span.title{
+	color:#F6C815;
+}
+.pressroom .right-text a{
+	color:#F6C815;
+}
+.contact .form{
+	background: bottom no-repeat #ffffff;
+	border-top:solid 2px #F6C815;
+}
+.submit_btn {
+	background:#F6C815;
+}
+footer{
+	border-top:solid 10px #F6C815;
+}
+.navbar-default .navbar-nav > li > a:hover{
+  color: #F6C815;
+}
+.skill-bar-percent {
+	background:#F6C815;
+}
+.QLoader {
+	background-color: #F6C815;
+}
+.skillbar-bar{ background:#e3b70c;}
+.picker-off i { color:#e3b70c;}
+.caption.big_blue{color: #e3b70c;}
+.button:hover{ border-color:#e3b70c !important;}
+.fancybox-overlay {
+	background: rgba(246, 200, 21, 0.79) !important;
+}
+.team-sec h4 {
+color: #e3b70c !important;
+}
+.social-icons a:hover{
+	background:#e3b70c;
+}
+.team-sec.dark-bg{
+	background:#e3b70c;
+}
+.team-sec.dark-bg h4 {
+color: #fff !important;
+}
+.team-sec.dark-bg a{
+	background:#fff !important;
+}
+.team-sec.dark-bg i{
+	color:#333;
+}
+.team-sec.dark-bg a:hover i{
+	color:#e3b70c !important;
+}
+
+@media (max-width: 767px) {
+	.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+   border-bottom: solid 3px #F6C815 !important;    
+}
+.navbar-default .navbar-nav > li > a:hover{
+color: #F6C815 !important;
+border-bottom: solid 3px #F6C815 !important;
+}
+
+}
+
+
+
+.blog .tags a:hover{
+	border:solid 1px #F6C815;
+	color:#F6C815;
+}
+.blog a.comment{
+	color:#F6C815;
+}
+.blog .comments a.date{
+	color:#F6C815;
+}
+.blog .comments a{
+	color:#F6C815;
+}
+.blog .comment-form input[type=submit]{
+	background: #F6C815;
+}
+.blog .recent-post .post a{
+	color:#F6C815;
+}
+.blog .archive a{
+	color: #F6C815;
+}

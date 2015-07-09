@@ -1,0 +1,25 @@
+en:
+  plugin:
+    common_translation:
+      title: 'Custom translations'
+      message:
+        note_html: 'Note: You can add more translations on config/locales/common.yml'
+        changes_saved: 'Changes saved!'
+      settings: 'Settings'
+      table:
+        key: 'key'
+        default_text: 'Default text'
+        custom_text: 'Custom text'
+
+es:
+  plugin:
+    common_translation:
+      title: 'Traducciones Personalizadas'
+      message:
+        note_html: 'Nota: Puede agregar mas traducciones en config/locales/common.yml'
+        changes_saved: 'Cambios guardados!'
+      settings: 'Ajustes'
+      table:
+        key: 'Clave'
+        default_text: 'Texto por Defecto'
+        custom_text: 'Texto Personalizado'

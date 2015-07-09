@@ -1,0 +1,11 @@
+<%= form_tag admin_plugins_post_clone_settings_path do %>
+    <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-default">
+            <%= render partial: "admin/settings/custom_fields/render", locals: {record: @plugin, field_groups: @plugin.get_field_groups} %>
+            <div class="panel-footer">
+                <a class="btn btn-default" href="<%= url_for admin_plugins_path %>"><%= t('admin.button.back') %></a>
+                <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit') %></button>
+            </div>
+        </div>
+    </div>
+<% end %>

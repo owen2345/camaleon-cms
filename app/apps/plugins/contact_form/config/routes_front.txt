@@ -1,0 +1,2 @@
+get 'index' => "front#index"
+post 'save_form' => "front#save_form"

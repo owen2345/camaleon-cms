@@ -1,0 +1,37 @@
+en:
+  plugin:
+    front_cache:
+      button:
+        add_new_path: 'Add new path'
+      custom_url_paths: 'Custom url paths'
+      clean_cache: 'Clean cache'
+      title: 'Frontend cache pages'
+      home_page: 'Home Page'
+      pages: 'Pages'
+      pages_of: 'Pages of'
+      skip_cache_pages: 'Skip Cache Pages'
+      message:
+        please_checkpost_need_cache: 'Please check all posts or post types you need to cache.'
+        enabled_cache_inner_content_logged_users: 'Enable cache for inner content for logged users'
+        settings_saved: 'Settings saved!'
+        cache_destroyed: 'Cache destroyed!'
+      settings: 'Settings'
+
+es:
+  plugin:
+    front_cache:
+      button:
+        add_new_path: 'Agregar nueva ruta'
+      custom_url_paths: 'Rutas url personalizadas'
+      clean_cache: 'Limpiar caché'
+      title: 'Páginas Frontend Caché'
+      home_page: 'Página de Inicio'
+      pages: 'Página'
+      pages_of: 'Página de'
+      skip_cache_pages: 'Saltar página del Caché'
+      message:
+        please_checkpost_need_cache: 'Por favor, compruebe todos los mensajes o los tipos de correos que necesita para almacenar en caché.'
+        enabled_cache_inner_content_logged_users: 'Habilitar caché de contenido interno para usuarios registrados'
+        settings_saved: 'Ajustes guardados!'
+        cache_destroyed: 'Caché destruida!'
+      settings: 'Ajustes'

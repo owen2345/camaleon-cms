@@ -1,0 +1,27 @@
+<%= form_for @widget, url: { action: (@widget.new_record? ? "create" : "update"), controller: "admin/appearances/widgets/main", id: @widget }, html: { role: 'form', class: "validate", id: "widget_form" } do |f| %>
+    <%= render partial: 'layouts/admin/form_error', locals: {data: @widget} %>
+    <div class="form-group">
+        <%= f.label t('admin.table.name') %><br>
+        <%= f.text_field :name, :class => "form-control required" %>
+    </div>
+    <div class="form-group">
+        <%= f.label t('admin.table.slug') %><br>
+        <%= f.text_field :slug, :class => "form-control slug required", "data-parent" => "widget_main_name" %>
+    </div>
+
+    <div class="form-group">
+        <%= f.label t('admin.sidebar.content') %><br>
+        <%= f.text_area :description, :class => "form-control translatable", :rows => 2 %>
+    </div>
+    <!--<div class="form-group">
+        <%#= f.label t('admin.table.excerpt') %><br>
+        <%#= f.text_area :excerpt, :class => "form-control", :rows => 2 %>
+    </div>-->
+    <div class="form-group text-right">
+        <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+    </div>
+    <script>
+        jQuery(function(){ init_form_validations($("#widget_form")); });
+    </script>
+<% end %>
+

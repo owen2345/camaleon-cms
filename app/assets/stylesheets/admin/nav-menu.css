@@ -1,0 +1,54 @@
+.disabled{
+    opacity: 0.5;
+}
+#menu_form input{
+    color: initial;
+}
+
+#menu_content .tab-content{
+    padding: 10px;
+    /*max-height: 200px;
+    overflow-y: auto;*/
+}
+
+#menu_form .panel-heading label{
+    width: auto; float:left;
+    margin: 7px 2px 0 0;
+}
+
+#menu_form input.menu-input-title{
+    width: 32%; float:left; margin-left: 8px;
+    margin-right: 8px;
+}
+
+#menu_form input.menu-input-slug{
+    width: 26%; float:left; margin-left: 8px;
+}
+
+.tab-pane ul{
+    list-style: none;
+    padding: 0;
+
+}
+
+.tab-pane ul > li{
+    padding: 0px 10px;
+}
+
+.tab-pane ul > li > label > input{
+    margin: -4px 4px 0 0;
+}
+
+.alert.alert-info{
+    float: none !important;
+}
+
+.label {
+    background-color: #abbac3 !important;
+    border-radius: 0;
+    font-size: 11px;
+    font-weight: normal;
+    padding: 1px 5px 3px;
+    text-shadow: none;
+}
+#menu_external_link .trans_panel .tab-content{ padding: 0; }

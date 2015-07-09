@@ -1,0 +1,60 @@
+<script>
+    run.push(function(){
+        $("#custom_translations_form").submit(function(){
+            $('input:text').filter(function() { return $(this).val() == ""; }).remove();
+        });
+    });
+</script>
+<%= form_for(admin_plugins_common_translation_index_path, html:{ id: "custom_translations_form" }) do %>
+    <div class="panel panel-default">
+
+        <div class="panel-heading">
+            <h3 class="panel-title"><%= t('plugin.common_translation.title') %></h3>
+            <div class="clearfix"></div>
+            <div class="alert alert-info" role="alert"><%= t('plugin.common_translation.message.note_html') %></div>
+        </div>
+
+        <div class="panel-body">
+            <div role="tabpanel">
+
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" style="margin: 0" role="tablist">
+                    <% @site_languages.each_with_index do |lang, index| %>
+                        <li role="presentation" class="<%= "active" if index==0 %>"><a href="#langagues_<%= lang %>" role="tab" data-toggle="tab"><%= t("languages.#{lang}") %></a></li>
+                    <% end %>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <% @site_languages.each_with_index do |lang, index| %>
+                        <div role="tabpanel" class="tab-pane <%= "active" if index==0 %>" id="langagues_<%= lang %>">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th><%= t('plugin.common_translation.table.key') %></th>
+                                        <th><%= t('plugin.common_translation.table.default_text') %></th>
+                                        <th><%= t('plugin.common_translation.table.custom_text') %></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% @common_translations[:en][:common].each do |k, v| %>
+                                        <tr>
+                                            <td><%= k %></td>
+                                            <td><%= @common_translations[lang][:common][k] rescue @common_translations[:en][:common][k] %></td>
+                                            <td><input class="form-control" type="text" name="custom[<%= lang %>][<%= k %>]" value="<%= @custom_translations[lang.to_sym][k.to_sym] rescue "" %>"></td>
+                                        </tr>
+                                    <% end %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <a class="btn btn-default" href="<%= url_for admin_plugins_path %>"><%= t('admin.button.back')%></a>
+            <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+        </div>
+    </div>
+
+<% end %>

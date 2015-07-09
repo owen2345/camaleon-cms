@@ -1,0 +1,25 @@
+<section class="section-white" id="home-view">
+    <div class="panel panel-primary no-line contents">
+        <div class="panel-heading"> Content </div>
+        <div class="panel-body">
+
+            <div class="row">
+                <% current_site.the_post_types.decorate.each_with_index do |ptype, index| %>
+                    <%= raw "<div class='clearfix'></div>" if index%3 == 0 && index > 0 %>
+                    <div class="col-sm-6 col-md-4">
+                        <div class="thumbnail">
+                            <a href="<%= ptype.the_url %>">
+                                <img src="<%= ptype.the_thumb_url %>" alt="" style="height: 200px; width: 100%; display: block;">
+                            </a>
+                            <div class="caption">
+                                <h4 id="thumbnail-label"><a href="<%= ptype.the_url %>"><%= ptype.the_title %></a></h4><hr>
+                                <p><%= raw ptype.the_excerpt %></p>
+                            </div>
+                        </div>
+                    </div>
+                <% end %>
+            </div>
+
+        </div>
+    </div>
+</section>

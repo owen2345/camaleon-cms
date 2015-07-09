@@ -1,0 +1,18 @@
+<div class="page-title">
+  <h2><span class="fa fa-folder"></span> <%= "#{@post_type.decorate.the_title.pluralize} / " if @post_type.present? %> <%= t('admin.post_type.tags').to_s.titleize.pluralize %></h2>
+</div>
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= @post_tag.id.present? ? t('admin.page_title.edit') : t('admin.page_title.add') %> <%= "post_tag".to_s.titleize %></h3>
+        </div>
+          <%= render partial: 'admin/post_tags/form' %>
+      </div>
+
+    </div>
+  </div>
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>

@@ -1,0 +1,35 @@
+body { background-color: #111; color:#fff}
+.subMenu {background:#000;box-shadow: 0 0px 5px #333;}
+.navbar-default .navbar-nav > li > a{ color:#ccc;}
+h1 {color: #FFFFFF !important;}
+h2 {color: #FFFFFF !important;}
+.title-detail {color: #FFFFFF;}
+.contact .social h5 {color: #fff;}
+.contact .social a {background: #272727;}
+.pricing .table h2{ color:#fff !important}
+.pricing .table li{ color:#fff}
+.experties{ background:#444;}
+.team-detail-sec h3 span{ color:#fff;}
+.teansparent {background: rgba(0, 0, 0, 0.9) !important;}
+.QOverlay {
+	background-color: #000;
+}
+.team-sec{
+	background:#535353;
+}
+.team-sec .member {
+background: #fff;
+}
+.blog .tags a{
+	color:#B3B3B3;
+}
+.blog .search input {
+border: solid 1px #666262;
+background: #444444;
+}
+.blog .comments .author {
+border: solid 3px #555;
+}
+.blog .comments .comment-sec {
+background: #444444;
+}

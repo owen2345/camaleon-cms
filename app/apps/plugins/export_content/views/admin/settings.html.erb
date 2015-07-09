@@ -1,0 +1,218 @@
+<div class="page-title">
+  <h2>
+    <span class="fa fa-cloud-download"></span> <%= t('plugin.export_content.title') %>
+  </h2>
+</div>
+<div class="page-content-wrap">
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= t('plugin.export_content.export_content') %></h3>
+        </div>
+        <%= form_tag(admin_plugins_export_content_export_path, type: "post", id: "export_content_form", target: '_blank') do  %>
+            <div class="panel-body">
+
+                  <div class="form-group">
+                    <h5><%= t('plugin.export_content.post_categories_tags') %>:</h5>
+                    <% current_site.post_types.each do |pt|
+                       pt = pt.decorate
+                    %>
+                        <div class="checkbox"><label><input type="checkbox" name="data[pt][]" value="<%= pt.id %>" checked > <%= pt.the_title %> </label></div>
+                    <% end  %>
+                    <div class="clearfix"></div>
+                    <h5><%= t('plugin.export_content.nav_menus') %>: </h5>
+                    <div class="checkbox"><label><input type="checkbox" name="data[nav_menus]" value="1" checked > <%= raw t('plugin.export_content.nav_menus_html') %> </label></div>
+                    <div class="clearfix"></div>
+                    <h5>Themes: </h5>
+                    <div class="checkbox"><label><input type="checkbox" name="data[themes]" value="1" checked > Current Theme </label></div>
+                    <div class="clearfix"></div>
+                    <h5><%= t('plugin.export_content.plugins') %>: </h5>
+                    <% if current_site.plugin_installed?('slider_basic') %>
+                        <div class="checkbox"><label><input type="checkbox" name="data[slider_basic]" value="1" checked > <%= t('plugin.export_content.slider_basic') %> </label></div>
+                    <% end %>
+                      <% PluginRoutes.enabled_apps(current_site).each do |app| %>
+                          <% if app[:hooks].present? && app[:hooks][:on_export].present? %>
+                            <div class="checkbox"><label><input type="checkbox" disabled name="data[<%= app[:key] %>]" value="1" checked > <%= app[:title] %> (<%= app[:kind] %>) </label></div>
+                          <% end %>
+                      <% end %>
+                  </div>
+
+            </div>
+            <div class="panel-footer text-right">
+              <div class="checkbox hidden" style="width: auto"><label><input type="checkbox" name="data[show_json]" value="1" > <%= t('plugin.export_content.show_json') %> </label></div>
+              <button type="submit" class="btn btn-default"><%= t('plugin.export_content.button.export_data') %></button>
+            </div>
+        <% end %>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h3 class="panel-title"><%= t('plugin.export_content.import_content') %></h3>
+        </div>
+        <div class="panel-body">
+          <div id="log_import" style="padding-top: 16px">
+
+          </div>
+          <form id="filter-import">
+            <div class="filter-content">
+
+            </div>
+            <div class="clear-content" style="display: none">
+              <h5><%= t('plugin.export_content.clear_data') %>:</h5>
+              <div class="checkbox clear_content" style="display: none"><label><input type="checkbox" name="clear_post_type" value="1"  > <%= t('plugin.export_content.message.clear_content_posts') %></label></div>
+              <div class="checkbox clear_nav_menu" style="display: none"><label><input type="checkbox" name="clear_nav_menus" value="1"  > <%= t('plugin.export_content.message.clear_nav_menus') %> </label></div>
+            </div>
+            <div id="init_export" style="padding: 16px 0 0; clear: both; display: none">
+              <a href="#" class="btn btn-primary btn-lg btn-block" onclick="init_load_json_file(); return false;"><i class="fa fa-send"></i> <%= t('plugin.export_content.button.init_export') %></a>
+            </div>
+          </form>
+
+          <div style="padding: 16px 0 0; clear: both">
+            <a href="#" class="btn btn-default btn-lg btn-block" onclick="upload_json_file(); return false;"><i class="fa fa-upload"></i> <%= t('plugin.export_content.button.upload_file') %></a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>
+<script>
+  var import_path = '<%= admin_plugins_export_content_import_path %>';
+  var nav_menus = '<%= t('plugin.export_content.nav_menus') %>';
+  var slider_basic = '<%= t('plugin.export_content.slider_basic') %>';
+
+  var import_process = '<%= t('plugin.export_content.message.import_process')%>';
+  var not_found_navmenu_data = '<%= t('plugin.export_content.message.not_found_navmenu_data') %>';
+  var not_found_slider_basic_data = '<%= t('plugin.export_content.message.not_found_slider_basic_data') %>';
+  var not_found_content_data= '<%= t('plugin.export_content.message.not_found_content_data')%>';
+  var upload_success_selected_items= '<%= t('plugin.export_content.message.upload_success_selected_items')%>';
+  var error_server_importing = '<%= t('plugin.export_content.message.error_server_importing')%>';
+  var completed = '<%= t('plugin.export_content.button.completed')%>';
+  var plugins_installed = <%= raw Hash[*PluginRoutes.enabled_plugins(current_site).map{|item| [item[:key], item[:title]] }.flatten].to_json %>;
+
+  var param_file = "<%= params[:file] %>";
+  var url_file = null;
+  var import_param_name = "url";
+    function upload_json_file(){
+        $.fn.upload_elfinder({
+            selected: function(res){
+                var file = _.first(res);
+                if(file.name.indexOf(".json") > -1){
+                    url_file = file.url;
+                    import_param_name = "url";
+                    preview_load_json_file();
+                    //init_load_json_file(file.url)
+                }else{
+                    alert(lang.message_you_must_upload_json_file);
+                }
+            }
+        });
+
+
+    }
+
+    function preview_load_json_file(){
+        init_state_divs();
+        var url = url_file;
+        var $log_import = $('#log_import');
+        $log_import.html('<div class="alert alert-warning"> '+import_process+' </div> ');
+        showLoading()
+        var d = {method: 'preview'};
+        d[import_param_name] = url;
+        jQuery.post(import_path, d,function(res){
+            var content = $('#filter-import .filter-content').show();
+
+            content.html('<h5>'+lang.type_contents+':</h5>');
+            if(Object.keys(res.post_type).length == 0) content.append('<div class="alert alert-warning"> '+not_found_content_data+'</div>');
+            else{
+                $.each(res.post_type, function(pt_id, name){
+                    content.append('<div class="checkbox"><label><input type="checkbox" checked name="post_type_ids[]" value="'+pt_id+'"  > '+ name +'</label></div>');
+                });
+                $('#filter-import .clear_content').show();
+            }
+
+
+            content.append('<h5>'+nav_menus+':</h5>');
+            if(Object.keys(res.nav_menu).length == 0) content.append('<div class="alert alert-warning"> '+not_found_navmenu_data+'</div>');
+            else{
+                $.each(res.nav_menu, function(nv_id, name){
+                    content.append('<div class="checkbox"><label><input type="checkbox" checked name="nav_menu_ids[]" value="'+nv_id+'"  > '+ name +'</label></div>');
+                });
+                $('#filter-import .clear_nav_menu').show();
+            }
+
+            content.append('<br><h5>Theme:</h5>');
+            if(!res.themes) content.append('<div class="alert alert-warning"> Not Found Theme </div>');
+            else{
+                content.append('<div class="checkbox"><label><input type="checkbox" checked name="theme_import" value="1"  > Theme Settings</label></div>');
+            }
+
+            // plugins to be installed
+            var plugins_h = [];
+            for(var p_slug in res.plugins){
+                if(plugins_installed[p_slug]) plugins_h.push('<div class="checkbox"><label><input type="checkbox" checked disabled> '+ plugins_installed[p_slug] +'</label></div>');
+                else plugins_h.push('<div class="checkbox"><label><input type="checkbox" disabled>'+p_slug+' <a target="_blank" title="" href="'+root_url+'admin/plugins"><span class="label label-danger">not installed</span><a></label></div>');
+            }
+            if(plugins_h.length > 0) content.append("<h5><%= t('plugin.export_content.plugins') %></h5>"+plugins_h.join("")+"<br><br>")
+            // end plugins
+
+            $('#filter-import #init_export').show()
+            $('#filter-import .clear-content').show();
+
+            $log_import.html('<div class="alert alert-success"> '+upload_success_selected_items+' </div> ');
+            hideLoading()
+        }).fail(function() {
+            hideLoading();
+            $log_import.html('<div class="alert alert-danger"> '+error_server_importing+' </div> ')
+        })
+    }
+
+    function init_load_json_file(){
+        var url = url_file;
+        var $log_import = $('#log_import');
+        $log_import.html('<div class="alert alert-warning">  </div> ');
+        var data_post = {filter: $('#filter-import').serializeObject(), method: 'load_json'};
+        data_post[import_param_name] = url;
+        init_state_divs();
+        showLoading();
+        jQuery.post(import_path, data_post,function(res){
+            $log_import.html('<div class="alert alert-success"> '+completed+' <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div> ');
+            if(res.errors){
+                $.each(res.errors, function(i, error){
+                    $log_import.append('<div class="alert alert-danger"> '+ error +' <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+                })
+                $.each(res.warnings, function(i, warn){
+                    $log_import.append('<div class="alert alert-warning"> '+ warn +' <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+                })
+                $.each(res.messages, function(i, message){
+                    $log_import.append('<div class="alert alert-info"> '+ message +' <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+                })
+            }
+            hideLoading()
+        }).fail(function() {
+            hideLoading()
+            $log_import.html('<div class="alert alert-danger"> '+error_server_importing+' </div> ')
+        })
+    }
+
+    function init_state_divs(){
+        $('#filter-import').find('#init_export, .filter-content, .clear-content, .clear_content, .clear_slider_basic').hide()
+    }
+
+    if(param_file){
+        url_file = param_file;
+        import_param_name = "file";
+        preview_load_json_file();
+    }
+</script>
+
+

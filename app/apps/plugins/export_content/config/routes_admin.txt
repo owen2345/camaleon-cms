@@ -1,0 +1,3 @@
+get 'settings' => "admin#settings"
+post 'export' => "admin#export"
+post 'import' => "admin#import"

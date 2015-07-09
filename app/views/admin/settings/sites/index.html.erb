@@ -1,0 +1,56 @@
+<div class="page-title">
+  <h2><span class="fa fa-cog"></span> <%= t('admin.settings.list_sites') %></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-12">
+
+      <!-- START BASIC TABLE SAMPLE -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"> <%= t('admin.page_title.list')%> </h3>
+          <%= link_to raw("<i class='fa fa-plus'></i> #{t('admin.sites.add_site')}"), {action: :new}, class: "btn btn-primary pull-right" %>
+        </div>
+        <div class="panel-body">
+
+          <table class="table">
+            <thead>
+            <tr>
+                <th><%= t('admin.table.id') %></th>
+                <th><%= t('admin.table.site_name') %></th>
+                <th><%= t('admin.table.slug') %></th>
+                <th><%= t('admin.table.description') %></th>
+                <th><%= t('admin.table.default') %></th>
+                <th><%= t('admin.table.actions') %></th>
+            </tr>
+            </thead>
+            <tbody>
+            <% @sites.decorate.each do |f| %>
+                <tr data-id=<%= f.id %>>
+                    <td><%= f.id %></td>
+                    <td><%= f.the_title %></td>
+                    <td><%= f.slug %></td>
+                    <td><%= f.the_description %></td>
+                    <td><%= (f.main_site?)? true : false %></td>
+                    <td>
+                    <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs", title: "#{t('admin.button.edit')}" %>
+                    <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
+                                method: :delete, data: { confirm: t('admin.message.delete_item') }, class: "btn btn-danger btn-xs", title: "#{t('admin.button.delete')}" unless current_site.id == f.id %>
+                    </td>
+                </tr>
+            <% end %>
+
+            </tbody>
+          </table>
+          <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if @sites.empty? %>
+          <%= will_paginate @sites, renderer: BootstrapPagination::Rails  %>
+        </div>
+      </div>
+      <!-- END BASIC TABLE SAMPLE -->
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,26 @@
+<% if flash[:notice] %>
+    <div class="flash_messages">
+      <div class="alert alert-success">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <%= raw(flash[:notice]) %>
+      </div>
+    </div>
+<% end %>
+
+<% if flash[:error] %>
+    <div class="flash_messages">
+      <div class="alert alert-danger">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <%= raw(flash[:error]) %>
+      </div>
+    </div>
+<% end %>
+
+<% if flash[:alert] %>
+    <div class="flash_messages">
+      <div class="alert alert-warning">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <%= raw(flash[:alert]) %>
+      </div>
+    </div>
+<% end %>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" class="body-full-height">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>Camaleon CMS Installation</title>
+    <link type="image/vnd.microsoft.icon" rel="shortcut icon" href="<%= asset_path("camaleon.png") %>">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <%= stylesheet_link_tag    "admin/theme-default", "admin/bootstrap/bootstrap.min.css", media: "all" %>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <%= javascript_include_tag "admin/login_manifest" %>
+    <script>
+        jQuery(function(){
+            $("#new_site").validate();
+        })
+    </script>
+</head>
+<body>
+<div class="login-container">
+
+    <div class="login-box animated fadeInDown">
+        <div class="login-logo text-center"><%= image_tag("camaleon.png") %></div>
+        <div class="login-body">
+            <div class="login-title"><%= raw t('admin.installer.Welcome to Camaleon CMS') %>  </div>
+            <div class="">
+                <%= yield %>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

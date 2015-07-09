@@ -1,0 +1,199 @@
+<div class="page-title">
+  <h2><%= t('admin.menus.menus')%></h2>
+</div>
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-12">
+      <!-- START PANEL WITH REFRESH CALLBACKS -->
+      <div class="manage-menus panel panel-primary">
+
+        <div class="panel-body">
+          <form action="<%=  admin_appearances_nav_menus_menu_path %>" method="get">
+            <label class="selected-menu" for="menu"><%= t('admin.menus.select_edit')%></label>.
+            <select id="menu" class="select" name="id">
+                <option value=""><%= t('admin.menus.select')%></option>
+                <% @nav_menus.each do |menu| %>
+                <option value="<%= menu.id %>" <%= 'selected' if !@nav_menu.new_record? && @nav_menu.id == menu.id %> ><%= menu.name %></option>
+                <% end %>
+            </select>
+            <span class="submit-btn">
+              <button class="btn btn-default btn-sm" type="submit"><%= t('admin.menus.select')%></button> <%= t('admin.menus.or') %>
+              <a class="" href="<%=  admin_appearances_nav_menus_menu_path({new: 1}) %>"> <%= t('admin.menus.create_new') %></a>
+            </span>
+          </form>
+        </div>
+
+      </div>
+      <!-- END PANEL WITH REFRESH CALLBACKS -->
+    </div>
+  </div>
+
+  <div class="row">
+
+    <!--form id="menu_form" action="post"-->
+    <div id="menu_content">
+
+      <div id="menu_items" class="col-md-5">
+        <!-- START ACCORDION -->
+        <div class="panel-group <%= "disabled" if @nav_menu.new_record?%>">
+          <% @post_types.each do |pt| pt = pt.decorate %>
+              <div class="panel panel-default <%= 'panel-toggled' if pt.slug != 'post' %>">
+                <div class="panel-heading">
+                  <h4 class="panel-title class_type" data-type="post_type">
+                    <label class=" nowrap class_slug" data-post_link_edit="">
+                        <input type="checkbox" name="pt[]" value="<%= pt.id %>">
+                        <span class="lbl hidden"><%= pt.the_title %></span>
+                    </label>
+                    <%= pt.the_title %>
+                  </h4>
+                  <ul class="panel-controls">
+                    <!--<li><a href="#" class="panel-fullscreen"><span class="fa fa-expand"></span></a></li>-->
+                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                  </ul>
+                </div>
+                <div class="panel-body nav-tabs-vertical0" id="acc-<%= pt.slug%>" style="padding: 0">
+                  <div class="tabs">
+                    <ul class="nav nav-tabs nav-justified">
+                      <li class="active"><a href="#tab-<%= pt.slug %>-posts" role="tab" data-toggle="tab"><%= t('admin.post_type.posts')%></a></li>
+                      <% if pt.manage_categories? %>
+                         <li><a href="#tab-<%= pt.slug %>-categories" role="tab" data-toggle="tab"><%= t('admin.post_type.categories')%></a></li>
+                      <% end %>
+                      <% if pt.manage_tags? %>
+                         <li><a href="#tab-<%= pt.slug %>-tags" role="tab" data-toggle="tab"><%= t('admin.post_type.tags')%></a></li>
+                      <% end %>
+                    </ul>
+                    <div class=" tab-content">
+                      <div class="tab-pane active class_type" id="tab-<%= pt.slug %>-posts" data-type="post" data-post_type="<%= pt.slug %>" >
+                        <ul class="categorychecklist">
+                        <% pt.posts.published.each do |p|
+                        p = p.decorate
+                        %>
+                          <li>
+                            <label class="class_slug" data-post_link_edit="<%= p.the_edit_url  %>">
+                              <input type="checkbox" value="<%= p.id %>">
+                              <%= p.the_title %>
+                            </label>
+                          </li>
+                        <% end %>
+                        </ul>
+                      </div>
+                      <% if pt.manage_categories? %>
+                          <div class="tab-pane class_type" id="tab-<%= pt.slug %>-categories" data-type="category" data-post_type="<%= pt.slug %>" >
+                            <%= raw post_type_html_inputs(pt, "categories", "categories", "checkbox", [], "categorychecklist") %>
+                          </div>
+                      <% end %>
+                      <% if pt.manage_tags? %>
+                          <div class="tab-pane class_type" id="tab-<%= pt.slug %>-tags" data-type="post_tag" data-post_type="<%= pt.slug %>">
+                            <%= raw post_type_html_inputs(pt, "post_tags", "post_tags", "checkbox", [], "categorychecklist") %>
+                          </div>
+                      <% end %>
+                    </div>
+                  </div>
+                  <div class="panel-footer">
+                    <button class="add_links_to_menu btn btn-default pull-right" type=""><%= t('admin.button.add_menu')%> <i class="fa fa-arrow-right"></i></button>
+                  </div>
+                </div>
+              </div>
+          <% end %>
+          <div class="panel panel-default panel-toggled">
+            <div class="panel-heading">
+              <h4 class="panel-title"><%= t('admin.menus.external_link')%></h4>
+              <ul class="panel-controls">
+                <!--<li><a href="#" class="panel-fullscreen"><span class="fa fa-expand"></span></a></li>-->
+                <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+              </ul>
+            </div>
+            <%= render partial: "external_menu", locals: {submit: false} %>
+          </div>
+        </div>
+        <!-- END ACCORDION -->
+
+      </div>
+
+
+      <div class="col-md-7">
+        <%= form_for @nav_menu, url:{action: :save }, html: {method: "post", id: "menu_form"} do |f| %>
+            <%= f.hidden_field :id %>
+        <!-- START PANEL WITH CONTROL CLASSES -->
+        <div class="panel panel-danger">
+          <div class="panel-heading">
+               <label><%= t('admin.menus.name_menu')%>:</label>
+              <%= f.text_field :name, class: 'form-control menu-input-title' %>
+              <label>Slug:</label>
+              <%= f.text_field :slug, class: 'form-control menu-input-slug slug', 'data-parent' => 'nav_menu_name' %>
+              <% if @nav_menu.new_record? %>
+                <button class="btn btn-primary pull-right" type=""><%= @nav_menu.new_record? ? t('admin.button.create_menu') : t('admin.button.update_menu') %></button>
+              <% end %>
+          </div>
+          <% unless @nav_menu.new_record? %>
+          <div class="panel-body">
+            <div class="alert alert-info"><%= t('admin.message.add_menus')%></div>
+            <div class="dd" id="nestable">
+              <ol class="dd-list"></ol>
+            </div>
+          </div>
+          <div class="panel-body">
+
+          </div>
+          <div class="panel-footer">
+            <div><%= raw @nav_menu.description %></div>
+            <%= link_to raw("<i class='fa fa-times'></i> #{t('admin.button.delete')}"), { action: :menu, id: @nav_menu.id },method: :delete, data: { confirm: t('admin.message.delete') }, class: "btn btn-danger btn-sm pull-left", title: "Delete" unless @nav_menu.new_record? %>
+            <button class="btn btn-primary btn-sm pull-right" type=""><%= @nav_menu.new_record? ? t('admin.button.create_menu') : t('admin.button.update_menu') %></button>
+          </div>
+          <% end %>
+
+        </div>
+        <!-- END PANEL WITH CONTROL CLASSES -->
+        <% end %>
+      </div>
+
+    <!--/form-->
+    </div>
+  </div>
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>
+
+<script>
+    var form;
+    var RENDER_FORM = '<%=  admin_appearances_nav_menus_form_path %>';
+
+    run.push(function()
+    {
+        form = $("#menu_content");
+        var items = <%= raw (@items.to_json)%> ;
+
+        $.each(items, function(i, item){
+            var r_id = do_add_item_menu({id: item.id, type: item.type, link: item.link, url_edit: item.url_edit, text: item.label, parent_id: item.parent, url_content: RENDER_FORM})    ;
+        }) ;
+        $('#nestable').nestable({maxDepth: 20}).on('change', function(a){null});
+
+        manage_external_links();
+        manage_add_links_to_menu();
+
+        form.find(".disabled *").unbind().click(function(event){
+            return false;
+        });
+
+        $("#menu_items .tabs .nav").each(function(){
+            if($(this).children("li").size() == 1){
+                $(this).children("li").remove();
+            }
+        })
+
+        $("#menu_form").submit(function(){
+            var menu_data = $('#nestable').nestable("serialize").length == 0 ? [] : $('#nestable').nestable("serialize");
+            $.post( $(this).attr("action"), $.extend( {menu_data: menu_data },  $(this).serializeObject() ), function(res){
+                if(res.new){
+                    location.href = res.redirect;
+                } else {
+                    $.fn.alert({title: lang.message_updated_success});
+                }
+            });
+            return false;
+        });
+
+        form.find('.translatable').Translatable(<%= raw current_site.get_languages.to_json %>);
+    });
+
+</script>

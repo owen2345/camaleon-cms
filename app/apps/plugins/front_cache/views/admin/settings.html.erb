@@ -1,0 +1,71 @@
+<script>
+    run.push(function(){
+        var form = $("#cache_front_form");
+        form.find(".select").selectpicker();
+        form.find("#btn-add-path").click(function(){
+            var a = '<div class="input-group"> <input name="cache[paths][]" type="text" class="form-control" value=""> <span class="input-group-addon border_trans"><i class="round_icon fa fa-times text-danger del_path "></i></span> </div>';
+            form.find("#paths").append(a);
+            return false;
+        });
+        form.on("click", ".del_path", function(){
+            $(this).closest(".input-group").remove();
+        });
+    });
+</script>
+<%= form_for(admin_plugins_front_cache_settings_path, html:{ id: "cache_front_form" }) do %>
+<div class="panel panel-default">
+
+    <div class="panel-heading">
+        <h3 class="panel-title"><%= t('plugin.front_cache.title') %></h3>
+    </div>
+    <div class="panel-body">
+        <div class="alert alert-info"><%= t('plugin.front_cache.message.please_checkpost_need_cache') %></div>
+        <div class="form-group">
+            <label><%= t('plugin.front_cache.home_page') %></label><br>
+            <%= check_box_tag("cache[home]", 1, @caches[:home]) %>
+        </div>
+
+        <div class="form-group">
+            <label><%= t('plugin.front_cache.pages_of') %></label>
+            <%= select_tag("cache[post_type]", options_from_collection_for_select(current_site.post_types.decorate, "id", "the_title", @caches[:post_types]), "class"=> "form-control select", multiple: true, "data-live-search"=>"true") %>
+        </div>
+
+        <div class="form-group">
+            <label><%= t('plugin.front_cache.pages') %></label>
+            <%= select_tag("cache[posts]", options_from_collection_for_select(current_site.posts.public_posts.decorate, "id", "the_title", @caches[:posts]), "class"=> "form-control select", multiple: true, "data-live-search" => "true") %>
+        </div>
+
+        <div class="form-group">
+            <label><%= t('plugin.front_cache.skip_cache_pages') %></label>
+            <%= select_tag("cache[skip_posts]", options_from_collection_for_select(current_site.posts.public_posts.decorate, "id", "the_title", @caches[:skip_posts]), "class"=> "form-control select", multiple: true, "data-live-search" => "true") %>
+        </div>
+
+        <div class="form-group" id="custom_paths">
+            <label><%= t('plugin.front_cache.custom_url_paths') %>: <span title="Enter paths like /contact <br>  or /my_section?p=a&...">[?]</span></label>
+            <div id="paths">
+                <% @caches[:paths].each do |c| %>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="cache[paths][]" value="<%= c %>">
+                        <span class="input-group-addon border_trans"><i class="round_icon fa fa-times text-danger del_path "></i></span>
+                    </div>
+                <% end %>
+            </div>
+
+            <div style="padding: 10px 0 0">
+                <a id="btn-add-path" href="#" class="btn btn-warning btn-sm"> <i class="fa fa-plus"></i> <%= t('plugin.front_cache.button.add_new_path') %></a>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label><%= t('plugin.front_cache.message.enabled_cache_inner_content_logged_users') %></label><br>
+            <%= check_box_tag("cache[cache_login]", 1, @caches[:cache_login]) %>
+        </div>
+
+    </div>
+    <div class="panel-footer">
+        <a class="btn btn-default" href="<%= url_for admin_plugins_path %>"><%= t('admin.button.back') %></a>
+        <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit') %></button>
+    </div>
+</div>
+
+<% end %>

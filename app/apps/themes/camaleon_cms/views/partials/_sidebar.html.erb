@@ -1,0 +1,30 @@
+<div class="col-md-4">
+    <div class="right-sec">
+        <div class="recent-post">
+            <h3><%= ct("recent_posts") %></h3>
+            <% current_site.the_contents.order(created_at: :desc).limit(4).decorate.each do |p| %>
+                <div class="post">
+                    <a href="<%= p.the_url %>"><i class="fa fa-angle-right"></i> <%= p.the_title %></a>
+                    <span><%= p.the_created_at %></span>
+                </div>
+                <div class="clear"></div>
+            <% end %>
+        </div>
+        <div class="clear"></div>
+
+        <% if defined?(post) %>
+            <% tags = post.the_tags.decorate %>
+            <% if tags.present? %>
+                <div class="tags-cloud">
+                    <h3><%= ct("post_tag_list") %></h3>
+                    <div class="tags"><br>
+                        <% tags.each do |post_tag| %>
+                            <a href="<%= post_tag.the_url %>"><%= post_tag.the_title %></a>
+                        <% end %>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            <% end %>
+        <% end %>
+    </div>
+</div>
