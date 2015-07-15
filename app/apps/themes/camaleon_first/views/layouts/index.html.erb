@@ -19,12 +19,12 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body class="">
+<body class="<%= is_home? ? "home-page" : "inner-page" %>">
     <header>
         <nav role="navigation">
             <div class="navbar navbar-inverse navbar-static-top">
                 <div class="container">
-                    <div style="position: absolute; top: 0;"><%= raw current_site.draw_languages("language list-inline", true) %></div>
+                    <div style="position: absolute; top: 0;"><%= raw current_site.draw_languages("language-list list-inline", true) %></div>
                     <!-- .navbar-toggle is used as the toggle for collapsed navbar content -->
                     <div class="navbar-header">
                         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">

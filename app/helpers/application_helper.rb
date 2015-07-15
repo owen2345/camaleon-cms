@@ -76,5 +76,10 @@ module ApplicationHelper
     translate("common.#{key}", locale: language)
   end
 
+  # check if current request was for admin panel
+  def is_admin_request?
+    !(@_admin_menus.nil?)
+  end
+
 end
 

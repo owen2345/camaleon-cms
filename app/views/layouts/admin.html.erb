@@ -111,7 +111,7 @@
                         <a class="btn dropdown-toggle btn-lg btn-success" data-toggle="dropdown" href="#" role="button" aria-expanded="false"> <%= current_site.the_title %> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="<%= current_site.the_admin_url %>" class=""><i class="fa fa-dashboard"></i> <%= t('admin.sidebar_top.admin_panel') %></a></li>
-                            <li><a href="<%= current_site.the_url %>" class="" target="_blank"><i class="fa fa-globe"></i> <%= t('admin.sidebar_top.visit') %></a></li>
+                            <li><a href="<%= current_site.the_url(locale: false) %>" class="" target="_blank"><i class="fa fa-globe"></i> <%= t('admin.sidebar_top.visit') %></a></li>
                         </ul>
                     </div>
               <% end %>

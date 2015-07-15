@@ -4,20 +4,20 @@ class TermTaxonomyDecorator < ApplicationDecorator
 
   # return the title for current locale
   def the_title
-    r = {title: object.name.translate(@_deco_locale), object: object}
+    r = {title: object.name.translate(get_locale), object: object}
     h.hooks_run("taxonomy_the_title", r) rescue nil # avoid error for command the_url for categories
     r[:title]
   end
 
   # return the slug for current locale
   def the_slug
-    object.slug.translate(@_deco_locale)
+    object.slug.translate(get_locale)
   end
 
 
   # return the content for current locale + shortcodes executed
   def the_content
-    r = {content: object.description.to_s.translate(@_deco_locale), object: object}
+    r = {content: object.description.to_s.translate(get_locale), object: object}
     h.hooks_run("taxonomy_the_content", r)
     h.do_shortcode(r[:content], self)
   end
@@ -33,7 +33,7 @@ class TermTaxonomyDecorator < ApplicationDecorator
   # return excerpt for this post type
   # qty_chars: total or characters maximum
   def the_excerpt(qty_chars = 200)
-    r = {content: object.description.to_s.translate(@_deco_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars), object: object}
+    r = {content: object.description.to_s.translate(get_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars), object: object}
     h.hooks_run("taxonomy_the_excerpt", r)
     r[:content]
   end

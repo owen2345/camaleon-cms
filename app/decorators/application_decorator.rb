@@ -7,11 +7,11 @@ class ApplicationDecorator < Draper::Decorator
   def the_keywords
     k = object.get_option("keywords", "")
     k = h.current_site.the_keywords if object.class.name != "Site" && !k.present?
-    k.translate(@_deco_locale)
+    k.translate(get_locale)
   end
 
   def the_slug
-    object.slug.translate(@_deco_locale)
+    object.slug.translate(get_locale)
   end
 
   # return the identifier
@@ -44,6 +44,13 @@ class ApplicationDecorator < Draper::Decorator
   # ---------------------
   def set_decoration_locale(locale)
     @_deco_locale = locale.to_sym
+  end
+
+  # verify admin request to show the first language as the locale
+  # if the request is not for frontend, then this will show current locale visited
+  def get_locale(locale = nil)
+    l = locale || @_deco_locale
+    (h.is_admin_request? rescue false) ? h.current_site.get_languages.first : l
   end
 
   # internal helper

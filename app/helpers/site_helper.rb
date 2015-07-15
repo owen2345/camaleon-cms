@@ -3,6 +3,7 @@ module SiteHelper
   # return current site or assign a site as a current site
   def current_site(site = nil)
     @current_site = site.decorate if site.present?
+    return $current_site if defined?($current_site)
     return @current_site if defined?(@current_site)
     host = request.original_url.to_s.parse_domain
     if host == PluginRoutes.system_info["base_domain"]
@@ -12,6 +13,7 @@ module SiteHelper
       s << request.subdomain if request.subdomain.present?
       site = Site.where(slug: s).first.decorate rescue nil
     end
+    puts "============================ Please define the $current_site = Site.first.decorate " unless @current_site.present?
     @current_site = site
   end
 

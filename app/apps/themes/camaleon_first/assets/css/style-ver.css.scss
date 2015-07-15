@@ -215,3 +215,10 @@ bt { font-size: 12px; }
     margin-left:1.5em;
   }
 }
+body.home-page{
+  .latest_articles img{ max-height: 250px; }
+}
+.language-list li{
+  opacity: 0.5;
+  &.current_l, &:hover{ opacity: 1; }
+}

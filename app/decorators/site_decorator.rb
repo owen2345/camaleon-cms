@@ -80,7 +80,7 @@ class SiteDecorator < TermTaxonomyDecorator
     res.join("")
   end
 
-  # return Array of languages configured for this site
+  # return Array of frontend languages configured for this site
   def the_languages
     object.get_languages
   end

@@ -6,7 +6,7 @@ class PostTagDecorator < TermTaxonomyDecorator
     args = args.extract_options!
     args[:post_tag_id] = the_id
     args[:title] = the_title
-    args[:locale] = @_deco_locale unless args.include?(:locale)
+    args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
     h.url_to_fixed("post_tag#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)

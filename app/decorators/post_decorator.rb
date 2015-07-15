@@ -4,22 +4,22 @@ class PostDecorator < ApplicationDecorator
 
 
   def the_title
-    r = {title: object.title.to_s.translate(@_deco_locale), post: object}
+    r = {title: object.title.to_s.translate(get_locale), post: object}
     h.hooks_run("post_the_title", r)
     r[:title]
   end
 
   # return the excerpt of this post
   def the_excerpt(qty_chars = 200)
-    excerpt = object.meta[:summary].to_s.translate(@_deco_locale)
-    r = {content: (excerpt.present? ? excerpt : object.content.to_s.translate(@_deco_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars)), post: object}
+    excerpt = object.meta[:summary].to_s.translate(get_locale)
+    r = {content: (excerpt.present? ? excerpt : object.content.to_s.translate(get_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars)), post: object}
     h.hooks_run("post_the_excerpt", r)
     r[:content]
   end
 
   # return the content of this post
   def the_content
-    r = {content: object.content.to_s.translate(@_deco_locale), post: object}
+    r = {content: object.content.to_s.translate(get_locale), post: object}
     h.hooks_run("post_the_content", r)
     h.do_shortcode(r[:content], self)
   end
@@ -41,10 +41,22 @@ class PostDecorator < ApplicationDecorator
   def the_url(*args)
     args = args.extract_options!
     args[:slug] = the_slug
-    args[:locale] = @_deco_locale unless args.include?(:locale)
+    args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
     h.url_to_fixed("post_#{as_path.present? ? "path" : "url"}", args)
+  end
+
+  # return a hash of frontend urls for this post
+  # sample: {es: 'http://mydomain.com/es/articulo-3.html', en: 'http://mydomain.com/en/post-3.html'}
+  def the_urls(*args)
+    args = args.extract_options!
+    res = {}
+    h.current_site.the_languages.each do |l|
+      args[:locale] = l
+      res[l] = the_url(args.clone)
+    end
+    res
   end
 
   # return edit url for this post
