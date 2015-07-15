@@ -56,6 +56,7 @@ en:
     home_galleries: "Go to the home of galleries"
     addition: "Addition"
     view_all_news: "View all news"
+    extra_attributes: "Extra Attributes"
 
   will_paginate:
     previous_label: 'Previous'
@@ -116,6 +117,7 @@ es:
     home_galleries: "Ir a la portada de galerias"
     addition: "Ademas"
     view_all_news: "Ver todas las noticias"
+    extra_attributes: "Otros Atributos"
 
   will_paginate:
     previous_label: 'Anterior'

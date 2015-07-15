@@ -8,7 +8,8 @@
   "admin_available_languages": ["en", "es"], //Available languages for the admin panel
   "base_domain": "localhost:3001", // primary domain
   "default_user_role": "client", // default user role for all new users
-  "users_share_sites": true //(boolean) true: permit to share users between sites, false: All users are assigned for a unique site.
+  "users_share_sites": true, //(boolean) true: permit to share users between sites, false: All users are assigned for a unique site.
+  "version": "1.0"
 }
 
 // Note: after any change in this file, you need to restart your server to apply changes.

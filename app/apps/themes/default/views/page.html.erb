@@ -11,7 +11,12 @@
         <%= raw @post.the_content %>
     </div><!-- .entry-content -->
     <footer class="entry-meta">
+        <!-- custom fields -->
+        <% if @post.render_fields.present? %>
+            <hr>
+            <h4><%= ct("extra_attributes") %></h4>
+            <%= raw @post.render_fields %>
+        <% end %>
     </footer><!-- .entry-meta -->
 </article><!-- #post -->
-<%= @post.render_fields %>
 <%= render partial: 'partials/comments', locals: {post: @post} if @post.can_commented? %>

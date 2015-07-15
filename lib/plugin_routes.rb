@@ -94,6 +94,8 @@ class PluginRoutes
     res["key"] = "system"
     res["path"] = ''
     res["kind"] = "system"
+    res[:hooks] = {} unless res[:hooks].present?
+    res[:hooks][:on_notification] = (res[:hooks][:on_notification] || []) + ["admin_system_notifications"]
     cache_variable("system_info", res)
   end
 

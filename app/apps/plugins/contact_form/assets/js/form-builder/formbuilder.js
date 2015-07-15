@@ -753,8 +753,9 @@
 
 }).call(this);*/
 
+
 (function() {
-  Formbuilder.registerField('textarea', {
+  Formbuilder.registerField('paragraph', {
     cid: '',
     order: 5,
     view: "<textarea class='form-control rf-clase-<%= rf.get(Formbuilder.options.mappings.FIELD_CLASS) %> '></textarea>",

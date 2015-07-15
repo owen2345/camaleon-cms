@@ -10,6 +10,13 @@
                 <div class="item-content">
                     <%= raw @post.the_content %>
                 </div>
+
+                <!-- custom fields -->
+                <% if @post.render_fields.present? %>
+                    <hr>
+                    <h4><%= ct("extra_attributes") %></h4>
+                    <%= raw @post.render_fields %>
+                <% end %>
             </article>
         </div>
     </div>

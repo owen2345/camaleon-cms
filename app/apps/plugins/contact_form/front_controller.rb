@@ -28,10 +28,11 @@ class Plugins::ContactForm::FrontController < Apps::PluginsFrontController
             errors << "#{label}: #{settings[:railscf_message][:invalid_required]}"
             validate = false
           end
-        when 'email'
-          if !fields[cid].match(/\b[A-Z0-9._%a-z\-]+@(?:[A-Z0-9a-z\-]+\.)+[A-Za-z]{2,4}\z/)
-            errors << "#{label}: #{settings[:railscf_message][:invalid_email]}"
-            validate = false
+          if f[:field_type].to_s == "email"
+            if !fields[cid].match(/\b[A-Z0-9._%a-z\-]+@(?:[A-Z0-9a-z\-]+\.)+[A-Za-z]{2,4}\z/)
+              errors << "#{label}: #{settings[:railscf_message][:invalid_email]}"
+              validate = false
+            end
           end
         when 'radio'
 

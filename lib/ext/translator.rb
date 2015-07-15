@@ -22,6 +22,7 @@ class String
 
   def translate(locale = nil)
     locale ||= I18n.locale
+    locale = locale.to_sym
     return self if !self.squish.starts_with?("<!--") or self.blank?
     return translations[locale] if translations.has_key?(locale)
     return translations[I18n.default_locale] if translations.has_key?(I18n.default_locale)

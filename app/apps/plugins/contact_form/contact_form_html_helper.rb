@@ -53,7 +53,7 @@ module Plugins::ContactForm::ContactFormHtmlHelper
           class_type = "railscf-field-#{ob[:field_type]}" if ob[:field_type]=="website"
           class_type = "railscf-field-#{ob[:field_type]}" if ob[:field_type]=="email"
 
-          temp2=  "<input #{ob[:custom_attrs].to_attr_format} type=\"text\" value=\"#{}\" name=\"#{f_name}\"  class=\"#{ob[:custom_class]} #{class_type}\">"
+          temp2=  "<input #{ob[:custom_attrs].to_attr_format} type=\"#{ob[:field_type]}\" value=\"#{}\" name=\"#{f_name}\"  class=\"#{ob[:custom_class]} #{class_type}\">"
         when 'captcha'
           temp2= captcha_tag(5, {}, {class: "#{ob[:custom_class]} field-captcha required"}.merge(ob[:custom_attrs]))
         when 'file'

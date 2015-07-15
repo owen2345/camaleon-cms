@@ -17,7 +17,7 @@
                         <% index=0;
                            dom = current_site.the_url.sub(/https?:\/\//, "").split("/").first
                            PluginRoutes.all_themes.each do |theme| %>
-                            <% next if theme[:domain].present? && !(theme[:domain] == current_site.the_slug || theme[:domain] == dom) %>
+                            <% next if theme[:domain].present? && !(theme[:domain].split(",").include?(current_site.the_slug) || theme[:domain].split(",").include?(dom)) %>
                             <%= raw "<div class='clearfix'></div>" if index%3==0 && index > 1 %>
                             <div class="col-md-4">
                                 <div class="panel panel-default">

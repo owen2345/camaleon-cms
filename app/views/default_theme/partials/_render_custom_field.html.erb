@@ -20,7 +20,7 @@
                     <div><%= raw value %></div>
                 <% when 'image' %>
                     <p>
-                      <img src="<%= value %>" />
+                        <%= link_to(image_tag(value, style: "max-height: 100px;"), value) %>
                     </p>
                 <% when 'audio' %>
                     <p>

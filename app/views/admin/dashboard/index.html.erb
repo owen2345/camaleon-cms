@@ -8,6 +8,16 @@
         </div>
         <div class="panel-body" style="min-height: 350px">
             <h1><%= t('admin.message.welcome') %></h1>
+
+            <% r = {content: ""}; hooks_run("on_notification", r); %>
+            <div id="dashboard_notifications">
+                <%= raw r[:content] %>
+            </div>
+
+            <% r = {content: ""}; hooks_run("on_dashboard", r); %>
+            <div id="dashboard_items">
+                <%= raw r[:content] %>
+            </div>
         </div>
       </div>
     </div>

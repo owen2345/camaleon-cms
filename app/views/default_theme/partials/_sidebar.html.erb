@@ -44,3 +44,13 @@
         </div>
     </div>
 <% end %>
+
+<!-- custom fields -->
+<% if post.render_fields.present? %>
+    <div class="panel panel-default">
+        <div class="panel-heading"><%= ct("extra_attributes") %></div>
+        <div class="panel-body">
+            <%= raw @post.render_fields %>
+        </div>
+    </div>
+<% end %>
