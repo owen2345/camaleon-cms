@@ -47,7 +47,7 @@ module Plugins::Attack::AttackHelper
     end
 
     # save cache requests
-    attack_check_request
+    attack_check_request unless signin?
   end
 
   private

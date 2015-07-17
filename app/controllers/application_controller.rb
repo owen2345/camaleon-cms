@@ -22,19 +22,13 @@ class ApplicationController < ActionController::Base
 
   layout Proc.new { |controller| controller.request.xhr? ? false : 'default' }
 
-  # unless Rails.application.config.consider_all_requests_local
-  #   rescue_from Exception, with: lambda { |exception| render_error 500, exception }
-  #   rescue_from ActionController::RoutingError, ActionController::UnknownController, ::AbstractController::ActionNotFound, ActiveRecord::RecordNotFound, with: lambda { |exception| render_error 404, exception }
-  # end
-
-
+  # show page error
   def render_error(status = 404, exception = nil)
-    #Rails.logger.error status.to_s + " " + exception.message.to_s
-    #Rails.logger.error exception.backtrace.join("\n")
     Rails.logger.info "====================#{caller.inspect}"
     render :file => "public/#{status}.html", :status => status, :layout => false
   end
 
+  # generate captcha image
   def captcha
     image = captcha_build(params[:len])
     send_data image.to_blob, :type => image.mime_type, :disposition => 'inline'
@@ -70,6 +64,7 @@ class ApplicationController < ActionController::Base
   end
 
   def after_actions
+    # trigger all actions app after load
     hooks_run("app_after_load")
   end
 

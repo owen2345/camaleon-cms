@@ -7,15 +7,10 @@
     "Plugins::{plugin_class}::MainHelper"
   ],
   "hooks": {
-    "on_destroy": [
-      "{plugin_key}_on_destroy"
-    ],
-    "on_active": [
-      "{plugin_key}_on_active"
-    ],
-    "on_inactive": [
-      "{plugin_key}_on_inactive"
-    ]
+    "on_destroy": ["{plugin_key}_on_destroy"],
+    "on_active": ["{plugin_key}_on_active"],
+    "on_inactive": ["{plugin_key}_on_inactive"],
+    "plugin_options": ["{plugin_key}_options"]
     //here you can add all your hooks (read documentation)
   }
 }

@@ -107,7 +107,9 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.string  "object_class", index: true
     end
 
-    ActiveRecord::Base.connection.execute "ALTER TABLE posts CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;" rescue nil
-    ActiveRecord::Base.connection.execute "ALTER TABLE custom_fields_relationships CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;" rescue nil
+    if ActiveRecord::Base.connection.adapter_name.downcase.include?("mysql")
+      ActiveRecord::Base.connection.execute "ALTER TABLE posts CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;" rescue nil
+      ActiveRecord::Base.connection.execute "ALTER TABLE custom_fields_relationships CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;" rescue ni
+    end
   end
 end

@@ -13,7 +13,7 @@ module SiteHelper
       s << request.subdomain if request.subdomain.present?
       site = Site.where(slug: s).first.decorate rescue nil
     end
-    puts "============================ Please define the $current_site = Site.first.decorate " unless @current_site.present?
+    puts "============================ Please define the $current_site = Site.first.decorate " unless site.present?
     @current_site = site
   end
 
@@ -34,7 +34,12 @@ module SiteHelper
     @_current_theme ||= current_site.get_theme.decorate
   end
 
-  # get list templates files
+  # load permissions for current visitor in current site
+  def current_ability
+    @current_ability ||= Ability.new(current_user, current_site)
+  end
+
+  # get list templates files for post form
   def get_list_template_files
     base_path = Rails.root.join("app", "apps", 'themes', current_theme.slug, 'views')
     base_path = Pathname.new(base_path)

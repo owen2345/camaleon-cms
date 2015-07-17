@@ -36,6 +36,7 @@ module PluginsHelper
     PluginRoutes.reload
     # plugins_initialize(self)
     hook_run(plugin_model.settings, "on_inactive", plugin_model)
+    plugin_model.destroy
     plugin_model
   end
 

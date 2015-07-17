@@ -1,42 +1,14 @@
 module ApplicationHelper
-  def my_logger
-    @@my_logger ||= Logger.new("#{Rails.root}/log/my.log")
-  end
 
-  def log(data=nil)
-    my_logger.debug data
-  end
-
-  def _log(data = nil)
-    Rails.logger.debug data
-  end
-
-  def _env
-    (Rails.env.production?)? 'production' : 'development'
-  end
-
-  def _dev
-    !Rails.env.production?
-  end
-
-  # cross domain cookie
-  def _cookie(key, value=nil, perm = false)
-    if value.present?
-      if perm
-        cookies.permanent[key.to_sym] = {:value => value, :domain => :all}
-      else
-        cookies[key.to_sym] = {:value => value, :domain => :all}
-      end
-    elsif value == false
-      cookies.delete(key.to_sym, :domain => :all)
-    else
-      cookies[key.to_sym]
-    end
-  end
-
-
+  # send and email
+  # email: email to
+  # subject: Subject of the email
+  # content: content of the email
+  # from: email figured as from
+  # attachs: array of files to be attached to the email
+  # template_path: path of the template to render
+  # template_name: template name to render in template_path
   def sendmail(email,subject='Tiene una notificacion',content='',from=nil,attachs=[],current_site=@current_site, template_path='html_mailer',template_name='sender')
-    #email = 'cesarion23@gmail.com' if _dev
     from = current_site.get_option('email') if from.nil?
     from = current_site.users.admin_scope.first.email if from.nil?
     HtmlMailer.sender(email, "#{subject} - #{@current_site.the_title}", content, "#{@current_site.the_title}"+"<#{from}>" , attachs, root_url, current_site, template_path,template_name).deliver_now
@@ -56,6 +28,7 @@ module ApplicationHelper
     c.response.body
   end
 
+  # deprecated helper
   def array_change_key_case(hash)
     result = hash.inject({}) do |hash, keys|
       hash[raw(keys[1])] = keys[0]
