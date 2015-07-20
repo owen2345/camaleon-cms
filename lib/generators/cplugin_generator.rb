@@ -49,9 +49,6 @@ class CpluginGenerator < Rails::Generators::Base
 
         #views
         views_folder = File.join(plugin_folder, "views")
-        settings_file = File.join(views_folder, "admin", "settings.html.erb")
-        t = fix_text(File.read(settings_file))
-        File.open(settings_file, "w"){|f| f << t }
 
         directory("app_#{get_plugin_name}", Rails.root.join("app"))
         FileUtils.rm_r(plugin_app)

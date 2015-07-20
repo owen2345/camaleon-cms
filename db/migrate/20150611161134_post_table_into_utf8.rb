@@ -19,7 +19,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
 
     create_table "term_taxonomy" do |t|
       t.string   "taxonomy", index: true
-      t.text     "description", limit: 4294967295
+      t.text     "description", limit: 1073741823
       t.integer  "parent_id", index: true
       t.integer  "count"
       t.string   "name"
@@ -35,8 +35,8 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
     create_table "posts" do |t|
       t.string   "title"
       t.string   "slug", index: true
-      t.text     "content",          limit: 4294967295
-      t.text     "content_filtered", limit: 4294967295
+      t.text     "content",          limit: 1073741823
+      t.text     "content_filtered", limit: 1073741823
       t.string   "status", default: "published", index: true
       t.integer  "comment_count", default: 0
       t.datetime "published_at"
@@ -96,20 +96,20 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.integer "custom_field_id", index: true
       t.integer "term_order"
       t.string  "object_class", index: true
-      t.text    "value", limit: 4294967295
+      t.text    "value", limit: 1073741823
       t.string  "custom_field_slug", index: true
     end
 
     create_table "metas" do |t|
       t.string  "key", index: true
-      t.text    "value", limit: 4294967295
+      t.text    "value", limit: 1073741823
       t.integer "objectId", index: true
       t.string  "object_class", index: true
     end
 
     if ActiveRecord::Base.connection.adapter_name.downcase.include?("mysql")
       ActiveRecord::Base.connection.execute "ALTER TABLE posts CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;" rescue nil
-      ActiveRecord::Base.connection.execute "ALTER TABLE custom_fields_relationships CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;" rescue ni
+      ActiveRecord::Base.connection.execute "ALTER TABLE custom_fields_relationships CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;" rescue nil
     end
   end
 end
