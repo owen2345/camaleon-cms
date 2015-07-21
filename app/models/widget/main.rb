@@ -8,7 +8,7 @@ class Widget::Main < TermTaxonomy
   # excerpt: string for message
   # renderer: string (path to the template for render this widget)
 
-  has_many :metas, ->{ where(object_class: 'Widget::Main')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'Widget::Main')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   belongs_to :owner, class_name: "User", foreign_key: :user_id
   belongs_to :site, :class_name => "Site", foreign_key: :parent_id
 

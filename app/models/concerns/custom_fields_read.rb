@@ -1,7 +1,7 @@
 module CustomFieldsRead extend ActiveSupport::Concern
   included do
-    has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator",""))} , :class_name => "CustomField" ,foreign_key: :objectId
-    has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator",""))}, :class_name => "CustomFieldsRelationship", foreign_key: :objectId, dependent: :destroy
+    has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator",""))} , :class_name => "CustomField" ,foreign_key: :objectid
+    has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator",""))}, :class_name => "CustomFieldsRelationship", foreign_key: :objectid, dependent: :destroy
     before_destroy :_destroy_custom_field_groups
   end
 
@@ -20,26 +20,32 @@ module CustomFieldsRead extend ActiveSupport::Concern
     case class_name
       when 'Category','Post','PostTag'
         if args[:include_parent]
-          self.post_type.site.custom_field_groups.where("(objectId = ? AND object_class = ?) OR (objectId = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
+
+           self.post_type.site.custom_field_groups.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)",
+                                                              self.id.to_s || '-1',
+                                                              class_name,
+                                                              self.post_type.id.to_s,
+                                                              "PostType_#{class_name}")
+
         else
-          self.post_type.site.custom_field_groups.where(objectId: self.id || -1, object_class: class_name)
+          self.post_type.site.custom_field_groups.where(objectid: self.id || -1, object_class: class_name)
         end
       when 'Widget::Main'
-        self.site.custom_field_groups.where(object_class: class_name, objectId:  self.id)
+        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id)
       when 'Theme'
-        self.site.custom_field_groups.where(object_class: class_name, objectId:  self.slug)
+        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.slug)
       when 'Site'
         self.custom_field_groups.where(object_class: class_name)
       when 'PostType'
         if args[:kind] == "all"
-          self.site.custom_field_groups.where(object_class: ["PostType_Post", "PostType_Post", "PostType_PostTag", "PostType"], objectId:  self.id )
+          self.site.custom_field_groups.where(object_class: ["PostType_Post", "PostType_Post", "PostType_PostTag", "PostType"], objectid:  self.id )
         elsif args[:kind] == "post_type"
           self.site.custom_field_groups.where(object_class: class_name)
         else
-          self.site.custom_field_groups.where(object_class: "PostType_#{args[:kind]}", objectId:  self.id )
+          self.site.custom_field_groups.where(object_class: "PostType_#{args[:kind]}", objectid:  self.id )
         end
       else # 'Plugin' or other class
-        self.site.custom_field_groups.where(object_class: class_name, objectId:  self.id) if defined?(self.site)
+        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id) if defined?(self.site)
     end
   end
 
@@ -79,9 +85,9 @@ module CustomFieldsRead extend ActiveSupport::Concern
   # {key1: value3, key2: [value1, value2], key3: value4}
   def get_field_values_hash
     fields = {}
-    self.field_values.group(:custom_field_slug).each do |field_value|
+    self.field_values.to_a.uniq.each do |field_value|
       custom_field = field_value.custom_fields
-      values = custom_field.values.where(objectId: self.id).pluck(:value)
+      values = custom_field.values.where(objectid: self.id).pluck(:value)
       fields[field_value.custom_field_slug] = custom_field.options[:multiple].to_s.to_bool ? values : values.first
     end
     fields.to_sym
@@ -90,10 +96,10 @@ module CustomFieldsRead extend ActiveSupport::Concern
   # return all custom fields
   def get_fields_object(only_frontend = false)
     fields = {}
-    self.field_values.group(:custom_field_slug).each do |field_value|
+    self.field_values.to_a.uniq.each do |field_value|
       custom_field = field_value.custom_fields
       if !only_frontend || custom_field.options[:show_frontend].to_s.to_bool
-        values = custom_field.values.where(objectId: self.id).pluck(:value)
+        values = custom_field.values.where(objectid: self.id).pluck(:value)
         fields[field_value.custom_field_slug] = custom_field.attributes.merge(options: custom_field.options, values: custom_field.options[:multiple].to_s.to_bool ? values : values.first)
       end
     end
@@ -199,7 +205,7 @@ module CustomFieldsRead extend ActiveSupport::Concern
     class_name = self.class.to_s.gsub("Decorator","")
     if ['Category','Post','PostTag'].include?(class_name)
       # get_field_groups("Post").destroy_all
-      CustomFieldGroup.where(objectId: self.id, object_class: class_name).destroy_all
+      CustomFieldGroup.where(objectid: self.id, object_class: class_name).destroy_all
     elsif ['PostType'].include?(class_name)
       get_field_groups("Post").destroy_all
       get_field_groups("Category").destroy_all

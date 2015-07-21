@@ -4,7 +4,7 @@ class Plugin < TermTaxonomy
   #   slug => plugin key
   #   name => plugin name
   default_scope { where(taxonomy: :plugin) }
-  has_many :metas, ->{ where(object_class: 'Plugin')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'Plugin')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   belongs_to :site, :class_name => "Site", foreign_key: :parent_id
   scope :active, ->{ where(term_group: 1) }
   before_validation :set_default

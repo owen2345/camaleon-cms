@@ -1,4 +1,4 @@
-class Widget::Assigned < Post
+class Widget::Assigned < PostDefault
   default_scope ->{ where(post_class: self.name).order(:comment_count) }
   # post_parent: sidebar_id
   # visibility: widget_id
@@ -9,7 +9,7 @@ class Widget::Assigned < Post
 
   attr_accessible :widget_id, :sidebar_id, :item_order
 
-  has_many :metas, ->{ where(object_class: 'Widget::Assigned')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'Widget::Assigned')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   belongs_to :sidebar, class_name: "Widget::Sidebar", foreign_key: :post_parent
   belongs_to :widget, class_name: "Widget::Main", foreign_key: :visibility
   after_initialize :fix_slug2

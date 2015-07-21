@@ -2,7 +2,7 @@ class Theme < TermTaxonomy
   # attrs:
   #   slug => plugin key
   default_scope { where(taxonomy: :theme) }
-  has_many :metas, ->{ where(object_class: 'Theme')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'Theme')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   belongs_to :site, :class_name => "Site", foreign_key: :parent_id
 
   before_validation :fix_name

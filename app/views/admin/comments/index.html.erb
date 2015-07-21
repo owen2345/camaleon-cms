@@ -26,7 +26,7 @@
             </tr>
             </thead>
             <tbody>
-            <% @posts.each do |f| %>
+            <% @posts.to_a.uniq.each do |f| %>
                 <%
                    post = f.decorate
                    post_type = f.post_type.decorate

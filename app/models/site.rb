@@ -2,7 +2,7 @@ class Site < TermTaxonomy
   include SitePublic
   # attrs: [name, description, slug]
   default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
-  has_many :metas, ->{ where(object_class: 'Site')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'Site')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   has_many :post_types, :class_name => "PostType", foreign_key: :parent_id, dependent: :destroy
   has_many :nav_menus, :class_name => "NavMenu", foreign_key: :parent_id, dependent: :destroy
   has_many :widgets, :class_name => "Widget::Main", foreign_key: :parent_id, dependent: :destroy

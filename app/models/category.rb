@@ -3,8 +3,8 @@ class Category < TermTaxonomy
   # status = post_type_id
 
   default_scope { where(taxonomy: :category) }
-  has_many :metas, ->{ where(object_class: 'Category')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
-  has_many :posts, foreign_key: :objectId, through: :term_relationships, :source => :objects
+  has_many :metas, ->{ where(object_class: 'Category')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
+  has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
   has_many :children, class_name: "Category", foreign_key: :parent_id
   belongs_to :parent, class_name: "Category", foreign_key: :parent_id
   belongs_to :post_type_parent, class_name: "PostType", foreign_key: :parent_id

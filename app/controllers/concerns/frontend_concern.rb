@@ -13,7 +13,7 @@ module FrontendConcern extend ActiveSupport::Concern
 
   # save comment from a post
   def save_comment
-    @post = current_site.posts.find_by(params[:post_id]).decorate
+    @post = current_site.posts.find_by_id(params[:post_id]).decorate
     if @post.can_commented?
       comment_data = {}
       comment_data[:user_id] = current_user.id

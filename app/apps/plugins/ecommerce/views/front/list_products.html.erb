@@ -2,16 +2,18 @@
     <%= render partial: 'partials/breadcrumb', locals: {breadcrumb: @post_type.the_breadcrumb } %>
     <h1><%= @post_type.the_title %></h1>
 
-    <div class="well shopping_cart_box">
-      <% @cart = current_site.carts.set_user(current_user).first_or_create(name: "Cart by #{current_user.id}")  %>
-      <h5>Shopping Cart</h5>
-      <p>(<%= @cart.the_items_count %>) Items</p>
-      <p>Total: <%= current_site.current_unit %> <%= @cart.the_amount_total %></p>
-      <span>
-        <a href="<%= plugins_ecommerce_checkout_cart_path %>" class="btn btn-warning btn-xs">Purchase</a>
-        <a href="<%= plugins_ecommerce_orders_path %>" class="btn btn-success btn-xs">My Orders</a>
-      </span>
-    </div>
+    <% if signin? %>
+        <div class="well shopping_cart_box">
+            <% @cart = current_site.carts.set_user(current_user).first_or_create(name: "Cart by #{current_user.id}")  %>
+            <h5>Shopping Cart</h5>
+            <p>(<%= @cart.the_items_count %>) Items</p>
+            <p>Total: <%= current_site.current_unit %> <%= @cart.the_amount_total %></p>
+          <span>
+            <a href="<%= plugins_ecommerce_checkout_cart_path %>" class="btn btn-warning btn-xs">Purchase</a>
+            <a href="<%= plugins_ecommerce_orders_path %>" class="btn btn-success btn-xs">My Orders</a>
+          </span>
+        </div>
+    <% end %>
 
     <div class="content">
         <%= raw @post_type.the_content %>

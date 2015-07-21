@@ -9,7 +9,7 @@ class PostDefault < ActiveRecord::Base
   attr_accessor :draft_id
 
 
-  has_many :term_relationships, class_name: "TermRelationship", foreign_key: :objectId, dependent: :destroy, primary_key: :id  #, :autosave => true
+  has_many :term_relationships, class_name: "TermRelationship", foreign_key: :objectid, dependent: :destroy, primary_key: :id  #, :autosave => true
   has_many :parent_taxonomy, foreign_key: :term_taxonomy_id, class_name: "TermTaxonomy", through: :term_relationships, :source => :term_taxonomies
   has_many :children, class_name: "PostDefault", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
 

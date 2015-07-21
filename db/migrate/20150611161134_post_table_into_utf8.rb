@@ -50,7 +50,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
     end
 
     create_table "term_relationships" do |t|
-      t.integer "objectId", index: true
+      t.integer "objectid", index: true
       t.integer "term_order", index: true
       t.belongs_to :term_taxonomy, index: true, foreign_key: true
     end
@@ -82,7 +82,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.string  "object_class", index: true
       t.string  "name"
       t.string  "slug", index: true
-      t.string  "objectId", index: true
+      t.string  "objectid", index: true
       t.integer "parent_id", index: true
       t.integer "field_order"
       t.integer "count", default: 0
@@ -92,7 +92,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
     end
 
     create_table "custom_fields_relationships" do |t|
-      t.integer "objectId", index: true
+      t.integer "objectid", index: true
       t.integer "custom_field_id", index: true
       t.integer "term_order"
       t.string  "object_class", index: true
@@ -103,7 +103,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
     create_table "metas" do |t|
       t.string  "key", index: true
       t.text    "value", limit: 1073741823
-      t.integer "objectId", index: true
+      t.integer "objectid", index: true
       t.string  "object_class", index: true
     end
 

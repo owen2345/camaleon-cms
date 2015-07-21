@@ -31,9 +31,9 @@ module Frontend::NavMenuHelper
                 item_container:   'li', #type of container for the items
                 item_current:     'current-menu-item', #class for current menu item
                 item_class:       'menu-item', # class for all menu items
-                item_class_parent:"", # class for all menu items that contain sub items
+                item_class_parent:"dropdown", # class for all menu items that contain sub items
                 sub_container:    'ul', #type of container for sub items
-                sub_class:        '', # class for sub container
+                sub_class:        'dropdown-menu', # class for sub container
                 callback_item:    lambda{|args| },
                     # callback executed for each item (args = { menu_item, link, level, settings, has_children, link_attrs = "", index}).
                     #     menu_item: (Object) Menu object
@@ -52,7 +52,7 @@ module Frontend::NavMenuHelper
                 link_before:      '', # content before link
                 link_after:       '', # content after link
                 link_class:       'menu_link', # class for all menu links
-                link_class_parent:"", # class for all menu links that contain sub items
+                link_class_parent:"dropdown-toggle", # class for all menu links that contain sub items
                 levels:            -1, # max of levels to recover, -1 => return all levels
                 container_prepend:      '', # content prepend for menu container
                 container_append:       ''  # content append for menu container

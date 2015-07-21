@@ -1,16 +1,16 @@
 class Plugins::Ecommerce::Models::Order < TermTaxonomy
   default_scope { where(taxonomy: :ecommerce_order) }
   has_one :details, class_name: "Plugins::Ecommerce::Models::OrderDetail", foreign_key: :order_id, dependent: :destroy
-  has_many :products, foreign_key: :objectId, through: :term_relationships, :source => :objects
+  has_many :products, foreign_key: :objectid, through: :term_relationships, :source => :objects
   belongs_to :customer, class_name: "User", foreign_key: :user_id
 
   def add_product(object)
     post_id = defined?(object.id) ? object.id : object.to_i
-    term_relationships.where(objectId: post_id).first_or_create if post_id > 0
+    term_relationships.where(objectid: post_id).first_or_create if post_id > 0
   end
   def remove_product(object)
     post_id = defined?(object.id) ? object.id : object.to_i
-    term_relationships.where(objectId: post_id).destroy_all if post_id > 0
+    term_relationships.where(objectid: post_id).destroy_all if post_id > 0
   end
 
   def payment_method

@@ -33,10 +33,10 @@ module Plugins::ExportContent::ExportContentHelper
 
     CustomFieldGroup.class_eval do
       def post_type
-        self.site.post_types.where(id:  self.objectId).first if self.object_class.include?('PostType_')
+        self.site.post_types.where(id:  self.objectid).first if self.object_class.include?('PostType_')
       end
       def post
-        self.site.posts.where(id:  self.objectId).first if self.object_class == 'Post'
+        self.site.posts.where(id:  self.objectid).first if self.object_class == 'Post'
       end
     end
 
@@ -50,7 +50,7 @@ module Plugins::ExportContent::ExportContentHelper
     Post.class_eval do
       # group fields in content posts
       def custom_field_groups
-        # self.post_type.site.custom_field_groups.where(object_class: 'Post', objectId:  self.id)
+        # self.post_type.site.custom_field_groups.where(object_class: 'Post', objectid:  self.id)
         self.get_field_groups({include_parent: false})
       end
     end
@@ -82,7 +82,7 @@ module Plugins::ExportContent::ExportContentHelper
       def post_type
         case object_class
           when "PostType_Post","PostType_Category","PostType_PostTag"
-            PostType.find(objectId)
+            PostType.find(objectid)
         end
       end
     end
@@ -371,7 +371,7 @@ module Plugins::ExportContent::ExportContentHelper
   def save_field_group(parent, groups, post_type = nil)
     groups.each do |fgroup|
       fg = ActionController::Parameters.new(fgroup)
-      #field_group = current_site.custom_field_groups.where(slug: fgroup[:slug]).first_or_create(fg.permit(:object_class, :name, :slug, :description, :is_repeat, :objectId, :field_order))
+      #field_group = current_site.custom_field_groups.where(slug: fgroup[:slug]).first_or_create(fg.permit(:object_class, :name, :slug, :description, :is_repeat, :objectid, :field_order))
       field_group = (fg[:object_class].include?('PostType_') ? post_type : parent).add_custom_field_group(fg.permit(:object_class, :name, :slug, :description, :is_repeat, :field_order),  fg[:object_class].gsub('PostType_',''))
 
       if field_group.valid?

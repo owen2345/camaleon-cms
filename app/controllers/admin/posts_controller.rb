@@ -23,6 +23,7 @@ class Admin::PostsController < AdminController
     case params[:s]
       when "published", "pending", "draft", "trash"
         @posts = @posts.where(status:  params[:s])
+
       when "all"
         @posts = @posts.no_trash
     end

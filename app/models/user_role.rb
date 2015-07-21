@@ -1,6 +1,6 @@
 class UserRole < TermTaxonomy
   default_scope { where(taxonomy: :user_roles) }
-  has_many :metas, ->{ where(object_class: 'UserRole')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'UserRole')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   has_many :users, through: :user_relationships, :source => :user
   belongs_to :site, :class_name => "Site", foreign_key: :parent_id
 

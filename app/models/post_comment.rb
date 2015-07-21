@@ -7,7 +7,7 @@ class PostComment < ActiveRecord::Base
   #default_scope order('comments.created_at ASC')
   #approved: approved | pending | spam
 
-  has_many :metas, ->{ where(object_class: 'PostComment')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'PostComment')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   has_many :children, class_name: "PostComment", foreign_key: :comment_parent, dependent: :destroy
   belongs_to :post, class_name: "Post", foreign_key: :post_id
   belongs_to :parent, class_name: "PostComment", foreign_key: :comment_parent

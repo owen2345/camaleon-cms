@@ -22,10 +22,10 @@ end
 class Post < PostDefault
   include CategoriesTagsForPosts
   default_scope ->{ where(post_class: self.name) }
-  has_many :metas, ->{ where(object_class: 'Post')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
-  has_many :post_relationships, class_name: "PostRelationship", foreign_key: :objectId, dependent: :destroy,  inverse_of: :posts
+  has_many :metas, ->{ where(object_class: 'Post')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
+  has_many :post_relationships, class_name: "PostRelationship", foreign_key: :objectid, dependent: :destroy,  inverse_of: :posts
   has_many :post_types, class_name: "PostType", through: :post_relationships, :source => :post_type
-  has_many :term_relationships, class_name: "TermRelationship", foreign_key: :objectId, dependent: :destroy,  inverse_of: :objects
+  has_many :term_relationships, class_name: "TermRelationship", foreign_key: :objectid, dependent: :destroy,  inverse_of: :objects
   has_many :categories, class_name: "Category", through: :term_relationships, :source => :term_taxonomies
   has_many :post_tags, class_name: "PostTag", through: :term_relationships, :source => :term_taxonomies
   has_many :comments, class_name: "PostComment", foreign_key: :post_id, dependent: :destroy

@@ -1,6 +1,6 @@
 class NavMenuItem < TermTaxonomy
   default_scope { where(taxonomy: :nav_menu_item) }
-  has_many :metas, ->{ where(object_class: 'NavMenuItem')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'NavMenuItem')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   belongs_to :parent, class_name: "NavMenu"
   belongs_to :parent_item, class_name: "NavMenuItem", foreign_key: :parent_id
   has_many :children, class_name: "NavMenuItem", foreign_key: :parent_id, dependent: :destroy

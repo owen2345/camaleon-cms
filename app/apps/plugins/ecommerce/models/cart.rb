@@ -1,15 +1,15 @@
 class Plugins::Ecommerce::Models::Cart < TermTaxonomy
   default_scope { where(taxonomy: :ecommerce_cart) }
-  has_many :products, foreign_key: :objectId, through: :term_relationships, :source => :objects
+  has_many :products, foreign_key: :objectid, through: :term_relationships, :source => :objects
   belongs_to :site, :class_name => "Site", foreign_key: :parent_id
 
   def add_product(object)
     post_id = defined?(object.id) ? object.id : object.to_i
-    term_relationships.where(objectId: post_id).first_or_create if post_id > 0
+    term_relationships.where(objectid: post_id).first_or_create if post_id > 0
   end
   def remove_product(object)
     post_id = defined?(object.id) ? object.id : object.to_i
-    term_relationships.where(objectId: post_id).destroy_all if post_id > 0
+    term_relationships.where(objectid: post_id).destroy_all if post_id > 0
   end
 
   def the_items_count

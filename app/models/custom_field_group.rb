@@ -2,7 +2,7 @@ class CustomFieldGroup < CustomField
   # attrs required: name, slug, description
   default_scope { where.not(object_class: '_fields').reorder('custom_fields.field_order ASC') }
 
-  has_many :metas, ->{ where(object_class: 'CustomFieldGroup')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'CustomFieldGroup')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   has_many :fields, -> {where(object_class: '_fields')}, :class_name => "CustomField", foreign_key: :parent_id, dependent: :destroy
   belongs_to :site, :class_name => "Site", foreign_key: :parent_id
   before_validation :before_validating
@@ -68,21 +68,21 @@ class CustomFieldGroup < CustomField
     begin
       case self.object_class
         when "PostType_Post"
-          caption = "Fields for Contents in <b>#{self.site.post_types.find(self.objectId).decorate.the_title}</b>"
+          caption = "Fields for Contents in <b>#{self.site.post_types.find(self.objectid).decorate.the_title}</b>"
         when 'PostType_Category'
-          caption = "Fields for Categories in <b>#{self.site.post_types.find(self.objectId).decorate.the_title}</b>"
+          caption = "Fields for Categories in <b>#{self.site.post_types.find(self.objectid).decorate.the_title}</b>"
         when 'PostType_PostTag'
-          caption = "Fields for Post tags in <b>#{self.site.post_types.find(self.objectId).decorate.the_title}</b>"
+          caption = "Fields for Post tags in <b>#{self.site.post_types.find(self.objectid).decorate.the_title}</b>"
         when 'Widget::Main'
-          caption = "Fields for Widget <b>(#{Widget::Main.find(self.objectId).name.translate})</b>"
+          caption = "Fields for Widget <b>(#{Widget::Main.find(self.objectid).name.translate})</b>"
         when 'Theme'
-          caption = "Field settings for Theme <b>(#{self.objectId})</b>"
+          caption = "Field settings for Theme <b>(#{self.objectid})</b>"
         when 'Site'
           caption = "Field settings the site"
         when 'PostType'
           caption = "Fields for all <b>Post_Types</b>"
         when 'Post'
-          p = Post.find(self.objectId).decorate
+          p = Post.find(self.objectid).decorate
           caption = "Fields for content <b>(#{p.the_title})</b>"
         else # 'Plugin' or other class
           caption = "Fields for <b>#{self.object_class}</b>"
@@ -101,11 +101,11 @@ class CustomFieldGroup < CustomField
   # auto save the default field values
   def auto_save_default_values(field, options)
     class_name = self.object_class.split("_").first
-    if ["Post", "Category", "Plugin", "Theme"].include?(class_name) && self.objectId.present? && options[:default_value].present?
+    if ["Post", "Category", "Plugin", "Theme"].include?(class_name) && self.objectid.present? && options[:default_value].present?
       if class_name == "Theme"
-        owner = class_name.constantize.where(slug: self.objectId, parent_id: self.parent_id).first # owner model
+        owner = class_name.constantize.where(slug: self.objectid, parent_id: self.parent_id).first # owner model
       else
-        owner = class_name.constantize.find(self.objectId) rescue class_name.constantize.where(slug: self.objectId).first # owner model
+        owner = class_name.constantize.find(self.objectid) rescue class_name.constantize.where(slug: self.objectid).first # owner model
       end
       owner.field_values.create!({custom_field_id: field.id, custom_field_slug: field.slug, value: fix_meta_value(options["default_value"]||options[:default_value])}) if owner.present?
     end

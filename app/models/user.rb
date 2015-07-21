@@ -32,7 +32,7 @@ class User < ActiveRecord::Base
   before_destroy :reassign_posts
   # relations
 
-  has_many :metas, ->{ where(object_class: 'User')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'User')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   has_many :user_relationships, class_name: "UserRelationship", foreign_key: :user_id, dependent: :destroy#,  inverse_of: :user
   has_many :term_taxonomies, foreign_key: :term_taxonomy_id, class_name: "TermTaxonomy", through: :user_relationships, :source => :term_taxonomies
   has_many :sites, foreign_key: :term_taxonomy_id, class_name: "Site", through: :user_relationships, :source => :term_taxonomies

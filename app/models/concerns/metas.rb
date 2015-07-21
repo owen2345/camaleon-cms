@@ -1,6 +1,6 @@
 module Metas extend ActiveSupport::Concern
   included do
-    has_many :metas, ->(object){where(object_class: object.class.to_s.gsub("Decorator",""))}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+    has_many :metas, ->(object){where(object_class: object.class.to_s.gsub("Decorator",""))}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   end
   @meta_data = nil
 

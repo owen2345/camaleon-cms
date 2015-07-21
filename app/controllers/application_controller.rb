@@ -38,7 +38,7 @@ class ApplicationController < ActionController::Base
   def before_actions
     # including all helpers (system, themes, plugins) for this site
     PluginRoutes.enabled_apps(current_site).each{|plugin| plugin_load_helpers(plugin) }
-    
+
     # set default cache directory for current site
     cache_store.cache_path = File.join(cache_store.cache_path.split("site-#{current_site.id}").first, "site-#{current_site.id}")
     # Rails.cache.write("#{current_site.id}-#{Time.now}", 1)

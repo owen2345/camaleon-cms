@@ -1,12 +1,12 @@
 class PostType < TermTaxonomy
   default_scope { where(taxonomy: :post_type) }
 
-  has_many :metas, ->{ where(object_class: 'PostType')}, :class_name => "Meta", foreign_key: :objectId, dependent: :destroy
+  has_many :metas, ->{ where(object_class: 'PostType')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   has_many :categories, :class_name => "Category", foreign_key: :parent_id, dependent: :destroy
   has_many :post_tags, :class_name => "PostTag", foreign_key: :parent_id, dependent: :destroy
   has_many :post_relationships, :class_name => "PostRelationship", dependent: :destroy, :foreign_key => :term_taxonomy_id, inverse_of: :post_type
-  has_many :posts, foreign_key: :objectId, through: :post_relationships, :source => :posts, dependent: :destroy
-  has_many :field_group_taxonomy, -> {where("object_class LIKE ?","PostType_%")}, :class_name => "CustomField", foreign_key: :objectId, dependent: :destroy
+  has_many :posts, foreign_key: :objectid, through: :post_relationships, :source => :posts, dependent: :destroy
+  has_many :field_group_taxonomy, -> {where("object_class LIKE ?","PostType_%")}, :class_name => "CustomField", foreign_key: :objectid, dependent: :destroy
 
   belongs_to :owner, class_name: "User", foreign_key: :user_id
   belongs_to :site, :class_name => "Site", foreign_key: :parent_id
@@ -52,7 +52,7 @@ class PostType < TermTaxonomy
   # object: [category, post, post_tags]
   def field_object_values(key, object)
     field = fields.where(slug: key).first
-    field.present? ? field.values.where(objectId: object.id, object_class: object.class.to_s.gsub("Decorator","")).pluck(:value) : []
+    field.present? ? field.values.where(objectid: object.id, object_class: object.class.to_s.gsub("Decorator","")).pluck(:value) : []
   end
   def field_object_value(key, object)
     field_object_values(key, object).first
@@ -65,7 +65,7 @@ class PostType < TermTaxonomy
   # select full_categories for the post type, include all children categories
   def full_categories
     s = self.site
-    Category.where("term_group = ? or status in (?)", s.id, s.post_types.pluck(:id))
+    Category.where("term_group = ? or status in (?)", s.id, s.post_types.pluck(:id).to_s)
   end
 
   # return default category for this post type

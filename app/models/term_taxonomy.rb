@@ -22,7 +22,7 @@ class TermTaxonomy < ActiveRecord::Base
   #default_scope order('users.role ASC')
   # relations
   has_many :term_relationships, :class_name => "TermRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
-  has_many :posts, foreign_key: :objectId, through: :term_relationships, :source => :objects
+  has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
   belongs_to :parent, class_name: "TermTaxonomy", foreign_key: :parent_id
   has_many :user_relationships, :class_name => "UserRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
   has_many :users, through: :user_relationships, :source => :user
@@ -104,7 +104,7 @@ class TermTaxonomy < ActiveRecord::Base
 
   def add_post(object)
     post_id = defined?(object.id) ? object.id : object.to_i
-    term_relationships.create({objectId: post_id}) if post_id > 0
+    term_relationships.create({objectid: post_id}) if post_id > 0
   end
   def add_user(user)
     user_id = defined?(user.id) ? user.id : user.to_i

@@ -26,7 +26,7 @@ class Admin::Settings::CustomFieldsController < Admin::SettingsController
 
   def update
     post_data = params[:custom_field_group]
-    post_data[:object_class], post_data[:objectId] = post_data[:assign_group].split(',')
+    post_data[:object_class], post_data[:objectid] = post_data[:assign_group].split(',')
     if @field_group.update(post_data)
       @field_group.add_fields(params[:fields], params[:field_options])
       @field_group.set_option('caption', post_data[:caption])
@@ -44,7 +44,7 @@ class Admin::Settings::CustomFieldsController < Admin::SettingsController
 
   def create
     post_data = params[:custom_field_group]
-    post_data[:object_class], post_data[:objectId] = post_data[:assign_group].split(',')
+    post_data[:object_class], post_data[:objectid] = post_data[:assign_group].split(',')
     @field_group = current_site.custom_field_groups.new(post_data)
     if @field_group.save
       @field_group.add_fields(params[:fields], params[:field_options])
