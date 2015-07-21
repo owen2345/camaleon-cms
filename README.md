@@ -8,7 +8,8 @@ Camaleon CMS is an alternative to wordpress for Ruby on Rails developers.
 
 Camaleon CMS is a flexible manager where you can build your content structure without coding anything by custom fields and custom contents type.
 
-## Camaleon CMS is FREE and open source released on July, 2015 and tested previously with more than 20 projects by 6 months.
+## Camaleon CMS is FREE and Open source
+released on July, 2015 and tested previously with more than 20 projects by 6 months.
 
 ![](http://camaleon.tuzitio.com/media/132/multi-language.png)
 
