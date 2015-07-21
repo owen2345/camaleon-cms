@@ -39,26 +39,26 @@ gem 'bcrypt-ruby' # rails password security
 gem 'mini_magick' # image library (resize, crop, captcha, ..)
 gem 'will_paginate' # list pagination
 gem 'will_paginate-bootstrap' # list pagination for bootstrap
-gem 'nokogiri'
+gem 'nokogiri' # used for html managing (short codes)
 
 # others
 gem 'el_finder' # media manager
 gem 'cancancan', '~> 1.10' # user permissions
 gem 'meta-tags' # seo meta tags generatos
 gem 'draper', '~> 1.3' # decorators
-# gem "gibberish" # encryption
 
 gem 'rufus-scheduler', '~> 3.1.1' # crontab
 gem "dynamic_sitemaps" # sitemaps
 gem 'actionpack-page_caching' # page caching
 gem 'mobu' # mobile detect
 
+# include all gems for plugins and themes
+require './lib/plugin_routes'
+instance_eval(PluginRoutes.draw_gems)
+
+# fix for windows users
 group :development do
   gem 'thin', platforms: [:mingw, :mswin]
   gem 'tzinfo-data', platforms: [:mingw, :mswin]
 end
-
-# include all gems for plugins and themes
-require './lib/plugin_routes'
-instance_eval(PluginRoutes.draw_gems)
 ##################### END CUSTOM GEMS ######################

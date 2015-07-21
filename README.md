@@ -1,7 +1,7 @@
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
 
 
-# Camaleon CMS (It adapt to your needs)
+# Camaleon CMS (It adapts to your needs)
 Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 and Ruby 1.9.3+. 
 
 Camaleon CMS is an alternative to wordpress for Ruby on Rails developers.
@@ -58,8 +58,10 @@ Frontend:
 * Rails 4
 * Mysql 5+ or Sqlite
 * Ruby 1.9.3+
-* Postgress partial tested
+* Postgress
+
 If you have problems, please enter an issue.
+
 If you need support, please contact us on http://camaleon.tuzitio.com/
 
 ## Author
