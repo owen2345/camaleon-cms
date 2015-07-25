@@ -21,5 +21,11 @@ test:
   database: db/test.sqlite3
 
 production:
-  <<: *default
-  database: db/production.sqlite3
+  adapter: mysql2
+  encoding: utf8
+  database: camaleon
+  pool: 5
+  #username: root
+  #password: root
+  host: localhost
+  timeout: 5000
