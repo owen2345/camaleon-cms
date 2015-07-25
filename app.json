@@ -12,8 +12,5 @@
         "blog",
         "content management system"
     ],
-    "env": {
-        "BUILDPACK_URL": "https://github.com/owen2345/camaleon-cms"
-    },
     "generator": "https://www.expeditedssl.com/heroku-button-maker"
 }
