@@ -111,6 +111,7 @@ GEM
       rack (~> 1.4)
     multi_json (1.11.2)
     multipart-post (2.0.0)
+    mysql2 (0.3.18)
     nokogiri (1.6.6.2)
       mini_portile (~> 0.6.0)
     oauth (0.4.7)
@@ -223,6 +224,7 @@ DEPENDENCIES
   meta-tags
   mini_magick
   mobu
+  mysql2
   nokogiri
   omniauth
   omniauth-facebook (= 1.4.0)
