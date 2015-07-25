@@ -1,3 +1,5 @@
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/owen2345/camaleon-cms)
+
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
 
 
