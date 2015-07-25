@@ -21,7 +21,7 @@ test:
   database: db/test.sqlite3
 
 production:
-  adapter: mysql2
+  adapter: postgresql
   encoding: utf8
   database: camaleon
   pool: 5

@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gem 'rails', '4.2.0'
 
 group :production do
-   gem 'mysql2' # Use mysql as the database for Active Record
+   gem 'pg' # Use postgress for database
 end
 group :development, :test do
   gem 'sqlite3' # for sqlite uncomment this and comment mysql2
