@@ -1,0 +1,19 @@
+{
+    "name": "Camalon CMS",
+    "description": "Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 as an alternative to worpress.",
+    "website": "http://camaleon.tuzitio.com/",
+    "repository": "https://github.com/owen2345/camaleon-cms",
+    "logo": "http://camaleon.tuzitio.com/media/132/logo2.png",
+    "success_url": "/",
+    "keywords": [
+        "ruby on rails",
+        "wordpress",
+        "cm",
+        "blog",
+        "content management system"
+    ],
+    "env": {
+        "BUILDPACK_URL": "https://github.com/owen2345/camaleon-cms"
+    },
+    "generator": "https://www.expeditedssl.com/heroku-button-maker"
+}
