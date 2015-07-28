@@ -4,25 +4,30 @@ module SessionHelper
   # user: User model
   # remember_me: true/false (remember session permanently)
   def login_user(user, remember_me = false, redirect_url = nil)
-    if remember_me
-      cookies[:auth_token] = {value: [user.auth_token, request.user_agent, request.ip], expires: 1.month.from_now, domain: (PluginRoutes.system_info["users_share_sites"] ? :all : nil)}
-    else
-      cookies[:auth_token] = {value: [user.auth_token, request.user_agent, request.ip], expires: 24.hours.from_now, domain: (PluginRoutes.system_info["users_share_sites"] ? :all : nil)}
-    end
+    c = {value: [user.auth_token, request.user_agent, request.ip], expires: 24.hours.from_now }
+    c[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && PluginRoutes.system_info["share_sessions"].present? && !cookies[:login].present?
+    c[:expires] = 1.month.from_now if remember_me
 
+    PluginRoutes.system_info_set("share_sessions", false) if cookies.delete(:login).present?
     user.update({last_login_at: Time.zone.now})
-    return_to = cookies[:return_to]
-    cookies.delete :return_to
+
+    cookies[:auth_token] = c
+    cookies[:login] = true
 
     # user redirection
     flash[:notice] = t('admin.login.message.success', locale: current_site.get_admin_language)
     if redirect_url.present?
       redirect_to redirect_url
-    elsif return_to.present?
+    elsif (return_to = cookies.delete(:return_to)).present?
       redirect_to return_to
     else
       redirect_to admin_dashboard_path
     end
+  end
+
+  # check if current host is heroku
+  def on_heroku?
+    ENV.keys.any? {|var_name| var_name.match(/(heroku|dyno)/i) }
   end
 
   # switch current session user into other (user)
@@ -48,6 +53,7 @@ module SessionHelper
     cookies.delete(:auth_token, domain: :all)
     cookies.delete(:auth_token, domain: nil)
     cookies[:auth_token] = {value: nil, expires: 24.hours.ago, domain: (PluginRoutes.system_info["users_share_sites"] ? :all : nil)}
+    cookies.delete :login
     redirect_to params[:return_to].present? ? params[:return_to] : admin_login_path, :notice => t('admin.logout.message.closed')
   end
 

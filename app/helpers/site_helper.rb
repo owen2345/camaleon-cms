@@ -13,7 +13,7 @@ module SiteHelper
       s << request.subdomain if request.subdomain.present?
       site = Site.where(slug: s).first.decorate rescue nil
     end
-    puts "============================ Please define the $current_site = Site.first.decorate " unless @current_site.present?
+    puts "============================ Please define the $current_site = Site.first.decorate " unless site.present?
     @current_site = site
   end
 

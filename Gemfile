@@ -39,7 +39,7 @@ end
 
 ##################### CUSTOM GEMS ######################
 gem 'protected_attributes' # used for dynamic attributes (newer versions will be deprecated)
-gem 'bcrypt-ruby' # rails password security
+gem 'bcrypt' # rails password security
 gem 'mini_magick' # image library (resize, crop, captcha, ..)
 gem 'will_paginate' # list pagination
 gem 'will_paginate-bootstrap' # list pagination for bootstrap
