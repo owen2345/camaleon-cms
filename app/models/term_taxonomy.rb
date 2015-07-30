@@ -96,22 +96,6 @@ class TermTaxonomy < ActiveRecord::Base
     self.where("term_taxonomy.slug = ? OR term_taxonomy.slug LIKE ? ", slug, "%-->#{slug}<!--%").reorder("").first
   end
 
-  def short_code
-    # "[#{taxonomy} id=#{id}]"
-    "[#{taxonomy} \"#{slug}\"]"
-  end
-
-
-  def add_post(object)
-    post_id = defined?(object.id) ? object.id : object.to_i
-    term_relationships.create({objectid: post_id}) if post_id > 0
-  end
-  def add_user(user)
-    user_id = defined?(user.id) ? user.id : user.to_i
-    user_relationships.create({user_id: user_id}) if user_id > 0
-  end
-
-
   def term_children(taxy='')
     TermTaxonomy.where(taxonomy: taxy).where("term_taxonomy.parent_id = ?", self.id)
   end
