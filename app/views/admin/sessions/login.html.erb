@@ -28,6 +28,7 @@
             </div>
         </div>
         <%= raw content_before_draw %>
+        <%= r = {html: ""}; hooks_run("user_login_form", r); raw(r[:html]); %>
 
     <% end %>
     <% if current_site.get_option('has_create_account', false) %>

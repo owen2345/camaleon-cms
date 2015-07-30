@@ -49,6 +49,8 @@
             </div>
         </div>
 
+        <%= r = {html: ""}; hooks_run("user_register_form", r); raw(r[:html]); %>
+
         <div class="form-group push-up-30">
             <div class="col-md-6">
                 <a href="<%= admin_login_path %>" class="btn btn-link btn-block"><%= t('admin.login.already_have_account') %></a>

@@ -25,7 +25,7 @@ module CaptchaHelper
 
   # verify captcha value
   def captcha_verified?
-    params[:captcha].upcase == session[:captcha]
+    params[:captcha].present? && params[:captcha].upcase == session[:captcha]
   end
 
   #************************* captcha in attack helpers ***************************#

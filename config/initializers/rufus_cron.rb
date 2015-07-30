@@ -1,9 +1,20 @@
 require 'rufus-scheduler'
-$scheduler = Rufus::Scheduler.new
+$scheduler = Rufus::Scheduler.singleton
 
 $scheduler.cron '00 05 * * *' do
   system("rake sitemap:generate")
 end
+
+# only for camaleon site
+# $scheduler.cron '00 04 * * *' do
+#   include SiteHelper
+#   include PluginsHelper
+#   include HooksHelper
+#   Site.where(slug: "demo").destroy_all
+#   site = Site.create(name: "Demo", slug: "demo")
+#   @current_site = site
+#   site_after_install(site)
+# end
 
 #cronjob for hook by site
 begin
@@ -14,17 +25,14 @@ begin
       @current_site = site
       @_hooks_skip = []
     end
-    r = {site: site, eval: ""}; c.hooks_run("cron", r)
-    instance_eval(r[:eval]) if r[:eval].present?
+    r = {site: site, eval: nil}; c.hooks_run("cron", r)
+    r[:eval].call(r) if r[:eval].present?
   end
 rescue => e # skipping sites not found
 
 end
 
-
-
 ####### DELAYED JOBS
-
 # auto delete file after a time
 class TemporalFileJob < ActiveJob::Base
   queue_as "destroy_temporal_file"

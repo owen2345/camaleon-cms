@@ -19,9 +19,10 @@ class Admin::SessionsController < ApplicationController
     data_user[:password] = cipher.decrypt(data_user[:password]) rescue nil
     @user = current_site.users.find_by_username(data_user[:username])
     captcha_validate = captcha_verify_if_under_attack("login")
+    r = {user: @user, params: params, password: data_user[:password], captcha_validate: captcha_validate}; hooks_run("user_before_login", r)
     if captcha_validate && @user &&  @user.authenticate(data_user[:password])
-      login_user(@user)
       captcha_reset_attack("login")
+      login_user(@user)
     else
       captcha_increment_attack("login")
       if captcha_validate
@@ -103,10 +104,12 @@ class Admin::SessionsController < ApplicationController
       user_data = params[:user]
 
       @user = current_site.users.new(user_data)
+      r = {user: @user, params: params}; hooks_run("user_before_register", r)
       if captcha_verified? && @user.save
         @user.set_meta_from_form(params[:meta])
-        flash[:notice] = t('admin.users.message.created')
-        redirect_to admin_login_path
+        r = {user: @user, message: t('admin.users.message.created'), redirect_url: admin_login_path}; hooks_run("user_after_register", r)
+        flash[:notice] = r[:message]
+        redirect_to r[:redirect_url]
       else
         @first_name = params[:meta][:first_name]
         @last_name = params[:meta][:last_name]
