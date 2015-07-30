@@ -17,6 +17,7 @@ class PostType < TermTaxonomy
   after_create :set_default_site_user_roles
 
 
+  # check if current post type manage categories
   def manage_categories?
     options[:has_category]
   end
@@ -78,6 +79,28 @@ class PostType < TermTaxonomy
         cat.set_option("not_deleted", true)
       end
       cat
+    end
+  end
+
+  # add a post for current model
+  #   tilte: title for post,    => required
+  #   content: html text content, => required
+  #   thumb: image url, => default (empty). check http://camaleon.tuzitio.com/api-methods.html#section_fileuploads
+  #   has_comments: 0|1,        => default (0)
+  #   categories: [1,3,4,5],    => default (empty)
+  #   tags: String comma separated, => default (empty)
+  #   slug: string key for post,    => default (empty)
+  #   summary: String resume (optional)}  => default (empty)
+  # return created post if it was created, else return errors
+  def add_post(args)
+    p = self.posts.new({has_comments: 0}.merge(args))
+    p.slug = self.site.get_valid_post_slug(p.title.parameterize) unless p.slug.present?
+    if p.save
+      p.assign_category(args[:categories]) if args[:categories].present? && self.manage_categories?
+      p.assign_tags(args[:tags]) if args[:tags].present? && self.manage_tags?
+      return p
+    else
+      p.errors
     end
   end
 

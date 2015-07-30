@@ -1,6 +1,7 @@
 module Frontend::SeoHelper
   def init_seo(model)
     @_seo_info = model.the_seo
+
   end
 
   # add seo attributes to your page
@@ -33,8 +34,8 @@ module Frontend::SeoHelper
            :description    => options[:description],
            :url      => request.original_url,
            :image    => options[:image],
-           :site => "@wprails",
-           :creator => "@wprails",
+           :site => "@camaleon_cms",
+           :creator => "@camaleon_cms",
            :domain => request.host
        }
       }
@@ -44,6 +45,8 @@ module Frontend::SeoHelper
       s[:alternate] = {}
       l.each{|_l| s[:alternate][_l] = current_site.the_url(locale: _l) }
     end
-    s
+    # call all hooks for seo
+    r = {seo_data: s, object: options[:object]}; hooks_run("seo", r)
+    r[:seo_data]
   end
 end

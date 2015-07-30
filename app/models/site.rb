@@ -221,10 +221,12 @@ class Site < TermTaxonomy
   end
 
   private
+  # destroy all things before site destroy
   def destroy_site
     unless PluginRoutes.system_info["users_share_sites"]
       User.where(site_id: self.id).destroy_all
     end
+    FileUtils.rm_rf(upload_directory) # destroy current media directory
   end
 
   def default_settings

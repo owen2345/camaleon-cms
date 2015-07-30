@@ -38,7 +38,7 @@ class ApplicationDecorator < Draper::Decorator
 
   # build the attributes for this model
   def the_seo
-    h.build_seo({ image: (the_thumb_url() rescue nil), title: the_title, description: the_excerpt, keywords: the_keywords })
+    h.build_seo({ image: (the_thumb_url() rescue nil), title: the_title, description: the_excerpt, keywords: the_keywords, object: self })
   end
 
   # ---------------------
