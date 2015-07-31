@@ -20,20 +20,14 @@ module CustomFieldsRead extend ActiveSupport::Concern
     case class_name
       when 'Category','Post','PostTag'
         if args[:include_parent]
-
-           self.post_type.site.custom_field_groups.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)",
-                                                              self.id.to_s || '-1',
-                                                              class_name,
-                                                              self.post_type.id.to_s,
-                                                              "PostType_#{class_name}")
-
+           self.post_type.site.custom_field_groups.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
         else
           self.post_type.site.custom_field_groups.where(objectid: self.id || -1, object_class: class_name)
         end
       when 'Widget::Main'
         self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id)
       when 'Theme'
-        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.slug)
+        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id)
       when 'Site'
         self.custom_field_groups.where(object_class: class_name)
       when 'PostType'

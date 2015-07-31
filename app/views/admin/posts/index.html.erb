@@ -79,9 +79,9 @@
                             <div class="btn-group">
                               <button class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="<%= t('admin.button.preview') %>"><i class="fa fa-eye"></i> </button>
                               <ul class="dropdown-menu" style="min-width: 50px;">
-                                <% f.slug.to_s.translations.each do |locale, slug| %>
-                                    <li><a href="<%= url_to_fixed("post_path", slug: slug, locale: locale) %>" target="_blank"><%= locale.to_s.upcase %></a></li>
-                                <% end %>
+                                  <% f.the_urls.each do |k,url| %>
+                                      <li><a href="<%= url %>" target="_blank"><%= k.to_s.upcase %></a></li>
+                                  <% end %>
                               </ul>
                             </div>
                         <% else %>

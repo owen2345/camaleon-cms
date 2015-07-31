@@ -170,6 +170,11 @@ class Site < TermTaxonomy
 
   end
 
+  # return main site
+  def self.main_site
+    Site.first
+  end
+
   # check if this site is the main site
   # main site is a site that doesn't have slug
   def main_site?

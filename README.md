@@ -50,14 +50,7 @@ released on July, 2015 and tested previously with more than 20 projects by 6 mon
 * many others
 
 ## Demonstration
-Backend:
-  * User: admin
-  * Password: admin
-  * http://demo.tuzitio.com/admin
-
-Frontend:
-  * [Visit Demo!](http://demo.tuzitio.com)
-  * http://demo.tuzitio.com
+http://camaleon.tuzitio.com/plugins/demo_manage/
 
 ## Requeriments
 * Rails 4

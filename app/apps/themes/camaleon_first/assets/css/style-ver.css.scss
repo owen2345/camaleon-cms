@@ -90,11 +90,9 @@ hr {
 
 .navbar-inverse { background-color: #1abc9c; border-color: #16a085; }
 
-.navbar-inverse .navbar-nav > li > a, .navbar-inverse .navbar-nav a { color: white; }
+.navbar-inverse .navbar-nav > li > a { color: white; }
 
-.navbar-inverse .navbar-nav > li > a:hover,
-.navbar-inverse a.current-link,
-.navbar-inverse .current-menu-ancestor > a{ color: #222222 !important; }
+.navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse a.current-link { color: #222222 !important; }
 
 .navbar-brand { font-size: 20px; font-weight: 700; letter-spacing: 2px; }
 
@@ -223,25 +221,4 @@ body.home-page{
 .language-list li{
   opacity: 0.5;
   &.current_l, &:hover{ opacity: 1; }
-}
-#menu-menu-1 {
-  li:hover > ul{
-    display: block;
-  }
-  ul{
-    display: none;
-    position: absolute;
-    list-style: none;
-  }
-}
-@media only screen and (max-width: 992px) {
-  .navbar-inverse .navbar-nav li ul{
-    display: block !important; position: static !important; margin-left: 35px;
-    a{
-      line-height: 20px;
-      padding-bottom: 10px;
-      padding-top: 10px;
-//      margin-left: 20px;
-    }
-  }
 }

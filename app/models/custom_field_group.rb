@@ -103,7 +103,7 @@ class CustomFieldGroup < CustomField
     class_name = self.object_class.split("_").first
     if ["Post", "Category", "Plugin", "Theme"].include?(class_name) && self.objectid.present? && options[:default_value].present?
       if class_name == "Theme"
-        owner = class_name.constantize.where(slug: self.objectid, parent_id: self.parent_id).first # owner model
+        owner = class_name.constantize.where(id: self.objectid).first # owner model
       else
         owner = class_name.constantize.find(self.objectid) rescue class_name.constantize.where(slug: self.objectid).first # owner model
       end
