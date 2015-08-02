@@ -66,9 +66,9 @@ http://camaleon.tuzitio.com/plugins/demo_manage/
 
 ## Requeriments
 * Rails 4
-* Mysql 5+ or Sqlite
+* Mysql 5+ or Sqlite or postgress
 * Ruby 1.9.3+
-* Postgress
+* Imagemagick
 
 If you have problems, please enter an issue here.
 https://github.com/owen2345/camaleon-cms/issues
@@ -84,7 +84,7 @@ If you need support, need some extra functionality or need plugins, please conta
 Owen Peredo Diaz
 
 ## Copyright
-Copyright © 2015 Camaleon. All rights reserved.
+Copyright © 2015 Camaleon cms.
 
 ## Licence
 http://camaleon.tuzitio.com/license.html/
