@@ -45,7 +45,7 @@ released on July, 2015 and tested previously with more than 20 projects by 6 mon
     - Manifests (compress and join asset files)
   Customize your content for Desktop, Mobile and Tablet
 * SEO & HTML5
-  -Automatic Sitemap generations
+  - Automatic Sitemap generations
   - Seo Configuration
   - Seo for social media
   - Customize your content for Desktop, Mobile and Tablet
@@ -85,6 +85,9 @@ Owen Peredo Diaz
 
 ## Copyright
 Copyright © 2015 Camaleon. All rights reserved.
+
+## Licence
+http://camaleon.tuzitio.com/license.html/
 
 ## Coming soon
 * Plugins Store (anybody can upload plugins to this store)
