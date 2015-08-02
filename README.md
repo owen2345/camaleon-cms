@@ -21,6 +21,12 @@ released on July, 2015 and tested previously with more than 20 projects by 6 mon
 * Extend or customize the functionalities by plugins
 * Manage your content visualization by themes
 * Advanced User roles
+* Other features:
+  - Shortcodes
+  - Widgets
+  - Drag and Drop / Sortable / Multi level menus
+  - Templates for pages
+  - Easy migration from wordpress
 
 ## Some features are:
 * Easy administration
@@ -37,8 +43,14 @@ released on July, 2015 and tested previously with more than 20 projects by 6 mon
     - Cache contents
     - Cache queries
     - Manifests (compress and join asset files)
-* HTML5  
-  Designed for HTML5
+  Customize your content for Desktop, Mobile and Tablet
+* SEO & HTML5
+  -Automatic Sitemap generations
+  - Seo Configuration
+  - Seo for social media
+  - Customize your content for Desktop, Mobile and Tablet
+  - All generated content is compatible with HTML5
+
 
 ## Camaleon CMS come with basic and important plugins like:
 * Ecommerce

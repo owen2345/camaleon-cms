@@ -82,7 +82,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.string  "object_class", index: true
       t.string  "name"
       t.string  "slug", index: true
-      t.string  "objectid", index: true
+      t.integer  "objectid", index: true
       t.integer "parent_id", index: true
       t.integer "field_order"
       t.integer "count", default: 0
