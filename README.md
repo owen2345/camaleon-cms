@@ -54,9 +54,9 @@ http://camaleon.tuzitio.com/plugins/demo_manage/
 
 ## Requeriments
 * Rails 4
-* Mysql 5+ or Sqlite
+* MySQL 5+ or Sqlite
 * Ruby 1.9.3+
-* Postgress
+* PostgreSQL
 
 If you have problems, please enter an issue here.
 https://github.com/owen2345/camaleon-cms/issues
