@@ -93,6 +93,13 @@ http://camaleon.tuzitio.com/license.html/
 * Plugins Store (anybody can upload plugins to this store)
 * Themes Store (anybody can upload themes to this store)
 
+## Contributing
+* Fork it.
+* Create a branch (git checkout -b my_feature_branch)
+* Commit your changes (git commit -am "Added a sweet feature")
+* Push to the branch (git push origin my_feature_branch)
+* Create a pull request from your branch into master (Please be sure to provide enough detail for us to cipher what this change is doing)
+
 Register your issues here: https://github.com/owen2345/Camaleon-CMS/issues
 
 Visit web site: http://camaleon.tuzitio.com/

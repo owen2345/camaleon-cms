@@ -27,6 +27,7 @@
           <%= f.label t('admin.table.description') %><br>
           <%= f.text_area :description, :class => "form-control translatable", :rows => 4 %>
         </div>
+        <%= r = {html: "", category: @category}; hooks_run("category_form", r); raw(r[:html]); %>
     </div>
 
     <%= render partial: "admin/settings/custom_fields/render", locals: {record: @category, field_groups: @post_type.get_field_groups({kind: "Category"})} %>

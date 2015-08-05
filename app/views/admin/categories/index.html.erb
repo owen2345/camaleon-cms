@@ -33,6 +33,7 @@
               <th><%= t('admin.table.description')%></th>
               <th><%= t('admin.table.slug')%></th>
               <th><%= t('admin.table.qty')%></th>
+              <%= r = {html: "", post_type: @post_type}; hooks_run("category_list_header", r); raw(r[:html]); %>
               <th><%= t('admin.table.actions')%></th>
             </tr>
             </thead>
@@ -46,11 +47,11 @@
                       <td><%= item.the_content %></td>
                       <td><%= item.the_slug %></td>
                       <td><%= item.count %></td>
+                      <%= r = {html: "", post_type: @post_type, category: item}; hooks_run("category_list_body", r); raw(r[:html]); %>
                       <td>
                         <%= link_to raw('<i class="fa fa-list"></i>'), admin_post_type_taxonomy_posts_path(@post_type.id, "category", item.id), class: "btn btn-default btn-xs", title: "#{@post_type.decorate.the_title.pluralize} - #{item.the_title.to_s.titleize}" if @post_type.present? && (can? :posts, @post_type) %>
                         <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs", title: "#{t('admin.button.edit')}" %>
                         <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('admin.message.delete') }, class: "btn btn-danger btn-xs", title: "#{t('admin.button.delete')}" unless item.get_option('not_deleted', false) %>
-
                       </td>
                     </tr>
                     <%
