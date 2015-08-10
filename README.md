@@ -2,6 +2,12 @@
 
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
 
+## Requeriments
+* Rails 4+
+* Mysql 5+ or Sqlite or Postgress
+* Ruby 1.9.3+
+* Imagemagick
+
 
 # Camaleon CMS (It adapts to your needs)
 Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 and Ruby 1.9.3+. 
@@ -63,12 +69,6 @@ released on July, 2015 and tested previously with more than 20 projects by 6 mon
 
 ## Demonstration
 http://camaleon.tuzitio.com/plugins/demo_manage/
-
-## Requeriments
-* Rails 4
-* Mysql 5+ or Sqlite or postgress
-* Ruby 1.9.3+
-* Imagemagick
 
 If you have problems, please enter an issue here.
 https://github.com/owen2345/camaleon-cms/issues
