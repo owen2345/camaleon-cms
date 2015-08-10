@@ -1,10 +1,14 @@
+![](https://img.shields.io/badge/Version-1.0-green.svg)
+![](https://img.shields.io/badge/Rails-4%2B-green.svg)
+![](https://img.shields.io/badge/Ruby-1.9.3%2B-green.svg)
+
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/owen2345/camaleon-cms)
 
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
 
-## Requeriments
+# Requirements
 * Rails 4+
-* Mysql 5+ or Sqlite or Postgress
+* Mysql 5+ or Sqlite or Postgres
 * Ruby 1.9.3+
 * Imagemagick
 
@@ -83,15 +87,13 @@ If you need support, need some extra functionality or need plugins, please conta
 ## Author
 Owen Peredo Diaz
 
-## Copyright
-Copyright © 2015 Camaleon cms.
-
-## Licence
+## License
 http://camaleon.tuzitio.com/license.html/
 
 ## Coming soon
 * Plugins Store (anybody can upload plugins to this store)
 * Themes Store (anybody can upload themes to this store)
+* Moving files into engine
 
 ## Contributing
 * Fork it.
