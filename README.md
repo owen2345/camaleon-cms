@@ -64,7 +64,7 @@ released on July, 2015 and tested previously with more than 20 projects by 6 mon
 ## Demonstration
 http://camaleon.tuzitio.com/plugins/demo_manage/
 
-## Requeriments
+## Requirements
 * Rails 4
 * Mysql 5+ or Sqlite or postgress
 * Ruby 1.9.3+
@@ -86,7 +86,7 @@ Owen Peredo Diaz
 ## Copyright
 Copyright © 2015 Camaleon cms.
 
-## Licence
+## License
 http://camaleon.tuzitio.com/license.html/
 
 ## Coming soon
