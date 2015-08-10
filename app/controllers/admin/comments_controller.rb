@@ -10,7 +10,7 @@ class Admin::CommentsController < AdminController
   before_action :validate_role
   before_action :set_comment, only: ['show','edit','update','destroy']
   def index
-    @posts = current_site.posts.no_trash.joins(:comments).group(:post_id).paginate(:page => params[:page], :per_page => current_site.admin_per_page)
+    @posts = current_site.posts.no_trash.joins(:comments).paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
 
 
