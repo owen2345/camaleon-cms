@@ -10,9 +10,8 @@ class Admin::CommentsController < AdminController
   before_action :validate_role
   before_action :set_comment, only: ['show','edit','update','destroy']
   def index
-    @posts = current_site.posts.no_trash.joins(:comments).group(:post_id).paginate(:page => params[:page], :per_page => current_site.admin_per_page)
+    @posts = current_site.posts.no_trash.joins(:comments).select("posts.*, comments.post_id").order("comments.post_id").paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
-
 
   def edit
     render 'form'
@@ -45,7 +44,6 @@ class Admin::CommentsController < AdminController
   end
 
   def update
-
     if @comment.update(params[:post_comment])
       #@comment.set_meta_from_form(params[:meta])
       flash[:notice] = t('admin.comments.message.updated')
