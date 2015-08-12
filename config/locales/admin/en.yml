@@ -173,7 +173,7 @@ en:
       so_their_data_has_not_been_saved: 'so their data has not been saved'
       no_response_fields: 'No response fields '
       quick_info: 'Some quick info about this user'
-      was_inactivated: 'was inactivated.'
+      was_inactivated: 'was deactivated.'
       was_activated: 'was activated.'
       can_not_be_removed: 'can not be removed.'
       was_removed: 'was removed.'
