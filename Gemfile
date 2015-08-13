@@ -10,7 +10,6 @@ group :development, :test do
   gem 'sqlite3' # for sqlite uncomment this and comment mysql2
 end
 
-
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 4.0.0'
 
@@ -64,5 +63,6 @@ instance_eval(PluginRoutes.draw_gems)
 group :development do
   gem 'thin', platforms: [:mingw, :mswin]
   gem 'tzinfo-data', platforms: [:mingw, :mswin]
+  gem 'rubocop'
 end
 ##################### END CUSTOM GEMS ######################
