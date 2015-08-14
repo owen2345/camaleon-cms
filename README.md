@@ -12,6 +12,7 @@
 * Ruby 1.9.3+
 * Imagemagick
 
+You can also check the gem version [here (in testing)](https://github.com/owen2345/camaleon-cms-gem)
 
 # Camaleon CMS (It adapts to your needs)
 Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 and Ruby 1.9.3+. 
@@ -93,7 +94,7 @@ http://camaleon.tuzitio.com/license.html/
 ## Coming soon
 * Plugins Store (anybody can upload plugins to this store)
 * Themes Store (anybody can upload themes to this store)
-* Moving files into engine
+* Moving files into engine (https://github.com/owen2345/camaleon-cms-gem, In Testing)
 
 ## Contributing
 * Fork it.
