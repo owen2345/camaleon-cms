@@ -53,7 +53,7 @@ module Plugins::FrontEditor::FrontEditorHelper
   def front_editor_link(url, title = nil)
     @_front_editor_counter ||= 0
     @_front_editor_counter += 1
-    return "<span style='font-size:11px !important;cursor:pointer;' data-url='#{url}' data-id='#{}' onclick='return front_editor_do(this, #{@_front_editor_counter})'> &rarr; #{title || t("plugins.front_editor.edit")}</span>" if front_editor_can_edit?
+    return "<span style='font-size:11px !important;cursor:pointer;' data-url='#{url}' data-id='' onclick='return front_editor_do(this, #{@_front_editor_counter})'> &rarr; #{title || t("plugins.front_editor.edit")}</span>" if front_editor_can_edit?
     ""
   end
 
