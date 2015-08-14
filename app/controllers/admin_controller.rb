@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class AdminController < ApplicationController
+class AdminController < CamaleonController
   rescue_from CanCan::AccessDenied do |exception|
     flash[:error] = "Error: #{exception.message}"
     redirect_to admin_dashboard_path
