@@ -93,7 +93,7 @@ class PluginRoutes
     res = {}
     res = JSON.parse(File.read(File.join($camaleon_engine_dir, "config", "system.json"))).with_indifferent_access if $camaleon_engine_dir.present?
     return cache_variable("system_info", res) unless File.exist?(system_file = File.join(apps_dir, "..", '..', "config", "system.json"))
-    res = res.merge(JSON.parse(File.read(system_file)).with_indifferent_access)
+    res = res.merge(JSON.parse(File.read(system_file)).with_indifferent_access).with_indifferent_access
     res["key"] = "system"
     res["path"] = ''
     res["kind"] = "system"
