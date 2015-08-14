@@ -16,13 +16,13 @@ class PluginRoutes
 
     elsif env == "admin" # admin
       res << "scope 'admin', as: 'admin' do \n"
-        res << "namespace :plugins do \n"
-        plugins.each do |plugin|
-          res << "namespace '#{plugin["key"]}' do \n"
-          res << "#{File.open(File.join(plugin["path"], "config", "routes_#{env}.txt")).read}\n" rescue ""
-          res << "end\n"
-        end
+      res << "namespace :plugins do \n"
+      plugins.each do |plugin|
+        res << "namespace '#{plugin["key"]}' do \n"
+        res << "#{File.open(File.join(plugin["path"], "config", "routes_#{env}.txt")).read}\n" rescue ""
         res << "end\n"
+      end
+      res << "end\n"
       res << "end\n"
     else # main
       plugins.each do |plugin|
@@ -46,13 +46,13 @@ class PluginRoutes
 
     elsif env == "admin" # admin
       res << "scope 'admin', as: 'admin' do \n"
-        res << "namespace :themes do \n"
-        plugins.each do |plugin|
-          res << "namespace '#{plugin["key"]}' do \n"
-          res << "#{File.open(File.join(plugin["path"], "config", "routes_#{env}.txt")).read}\n" rescue ""
-          res << "end\n"
-        end
+      res << "namespace :themes do \n"
+      plugins.each do |plugin|
+        res << "namespace '#{plugin["key"]}' do \n"
+        res << "#{File.open(File.join(plugin["path"], "config", "routes_#{env}.txt")).read}\n" rescue ""
         res << "end\n"
+      end
+      res << "end\n"
       res << "end\n"
     else # main
       plugins.each do |plugin|
@@ -90,7 +90,10 @@ class PluginRoutes
   # return system information
   def self.system_info
     r = cache_variable("system_info");  return r unless r.nil?
-    res = JSON.parse(File.read(File.join(apps_dir, "..", '..', "config", "system.json"))).with_indifferent_access
+    res = {}
+    res = JSON.parse(File.read(File.join($camaleon_engine_dir, "config", "system.json"))).with_indifferent_access if $camaleon_engine_dir.present?
+    return cache_variable("system_info", res) unless File.exist?(system_file = File.join(apps_dir, "..", '..', "config", "system.json"))
+    res = res.merge(JSON.parse(File.read(system_file)).with_indifferent_access)
     res["key"] = "system"
     res["path"] = ''
     res["kind"] = "system"
@@ -228,17 +231,31 @@ class PluginRoutes
     cache_variable("site_all_locales", res.uniq.join("|"))
   end
 
-  # draw "all" gems registered for the plugins or themes
+  # draw "all" gems registered for the plugins or themes and camaleon gems
   def self.draw_gems
     res = []
-    Dir.entries(File.join(apps_dir, "plugins")).select do |entry|
-      f = File.join(apps_dir, "plugins", entry, "config", "Gemfile")
-      res << File.read(f) if File.exist?(f)
+    # recovering gem dependencies
+    if camaleon_gem = get_gem('camaleon')
+      res << File.read(File.join(camaleon_gem.gem_dir, "Gemfile")).gsub("source 'https://rubygems.org'", "")
+    else
+      gem_file = File.join(apps_dir, "..", "..", "lib", "Gemfile_camaleon")
+      res << File.read(gem_file).gsub("source 'https://rubygems.org'", "") if File.exist?(gem_file)
     end
 
-    Dir.entries(File.join(apps_dir, "themes")).select do |entry|
-      f = File.join(apps_dir, "themes", entry, "config", "Gemfile")
-      res << File.read(f) if File.exist?(f)
+    p_dir = File.join(apps_dir, "plugins")
+    if Dir.exist?(p_dir)
+      Dir.entries(p_dir).select do |entry|
+        f = File.join(apps_dir, "plugins", entry, "config", "Gemfile")
+        res << File.read(f) if File.exist?(f)
+      end
+    end
+
+    t_dir = File.join(apps_dir, "themes")
+    if Dir.exist?(t_dir)
+      Dir.entries(t_dir).select do |entry|
+        f = File.join(apps_dir, "themes", entry, "config", "Gemfile")
+        res << File.read(f) if File.exist?(f)
+      end
     end
     res.join("\n")
   end
@@ -253,9 +270,12 @@ class PluginRoutes
   def self.all_plugins
     r = cache_variable("all_plugins"); return r unless r.nil?
     res = []
-    Dir.entries(File.join(apps_dir, "plugins")).select do |entry|
-      i = plugin_info(entry)
-      res << i unless i.nil?
+    p_dir = File.join(apps_dir, "plugins")
+    if Dir.exist?(p_dir)
+      Dir.entries(p_dir).select do |entry|
+        i = plugin_info(entry)
+        res << i unless i.nil?
+      end
     end
     cache_variable("all_plugins", res)
   end
@@ -263,9 +283,12 @@ class PluginRoutes
   def self.all_themes
     r = cache_variable("all_themes"); return r unless r.nil?
     res = []
-    Dir.entries(File.join(apps_dir, "themes")).select do |entry|
-      i = theme_info(entry)
-      res << i unless i.nil?
+    t_dir = File.join(apps_dir, "themes")
+    if Dir.exist?(t_dir)
+      Dir.entries(t_dir).select do |entry|
+        i = theme_info(entry)
+        res << i unless i.nil?
+      end
     end
     cache_variable("all_themes", res)
   end
@@ -274,4 +297,15 @@ class PluginRoutes
     all_plugins+all_themes
   end
 
+  # check if a gem is available or not
+  # Arguemnts:
+  # name: name of the gem
+  # return (Boolean) true/false
+  def self.get_gem(name)
+    Gem::Specification.find_by_name(name)
+  rescue Gem::LoadError
+    false
+  rescue
+    Gem.available?(name)
+  end
 end
