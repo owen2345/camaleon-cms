@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class FrontendController < ApplicationController
+class FrontendController < CamaleonController
   include FrontendConcern
   prepend_before_action :init_frontent
   prepend_before_action :site_check_existence

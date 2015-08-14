@@ -8,7 +8,7 @@
 
 # Requirements
 * Rails 4+
-* Mysql 5+ or Sqlite or Postgres
+* MySQL 5+ or Sqlite or PostgreSQL
 * Ruby 1.9.3+
 * Imagemagick
 
