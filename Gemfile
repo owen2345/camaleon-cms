@@ -1,10 +1,10 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.2.0'
+gem 'rails', '~> 4.2'
 
 group :production do
-   gem 'pg' # Use mysql as the database for Active Record
+  gem 'pg' # Use mysql as the database for Active Record
 end
 group :development, :test do
   gem 'sqlite3' # for sqlite uncomment this and comment mysql2
@@ -26,7 +26,8 @@ gem 'coffee-rails', '~> 4.0.0'
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
 
-# Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
+# Turbolinks makes following links in your web application faster.
+# Read more: https://github.com/rails/turbolinks
 # gem 'turbolinks'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
@@ -38,7 +39,7 @@ group :doc do
 end
 
 ##################### CUSTOM GEMS ######################
-gem 'protected_attributes' # used for dynamic attributes (newer versions will be deprecated)
+gem 'protected_attributes' # adds mass assignment protection for Rails 4
 gem 'bcrypt' # rails password security
 gem 'mini_magick' # image library (resize, crop, captcha, ..)
 gem 'will_paginate' # list pagination
@@ -52,7 +53,7 @@ gem 'meta-tags' # seo meta tags generatos
 gem 'draper', '~> 1.3' # decorators
 
 gem 'rufus-scheduler', '~> 3.1.1' # crontab
-gem "dynamic_sitemaps" # sitemaps
+gem 'dynamic_sitemaps' # sitemaps
 gem 'actionpack-page_caching' # page caching
 gem 'mobu' # mobile detect
 
