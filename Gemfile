@@ -8,8 +8,8 @@ group :production do
 end
 group :development, :test do
   gem 'sqlite3' # for sqlite uncomment this and comment mysql2
+  gem 'rubocop'
 end
-
 
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 4.0.0'

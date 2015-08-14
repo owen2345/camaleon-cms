@@ -1,0 +1,23 @@
+# This is the configuration used to check the rubocop source code.
+
+inherit_from: .rubocop_todo.yml
+
+AllCops:
+  Include:
+    - '**/Rakefile'
+    - '**/config.ru'
+  Exclude:
+    - 'Guardfile'
+    - 'vendor/**/*'
+
+Style/FileName:
+  Enabled: false
+
+Style/MultilineBlockChain:
+  Enabled: false
+
+Style/RedundantReturn:
+  Enabled: false
+
+Style/SingleLineBlockParams:
+  Enabled: false
