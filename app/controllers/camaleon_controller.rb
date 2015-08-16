@@ -21,9 +21,9 @@ class CamaleonController < ApplicationController
   include UploaderHelper
   include Mobu::DetectMobile
 
-  before_action :site_check_existence
-  before_action :before_actions
-  after_action :after_actions
+  before_action :site_check_existence, except: [:render_error, :captcha]
+  before_action :before_actions, except: [:render_error, :captcha]
+  after_action :after_actions, except: [:render_error, :captcha]
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
@@ -46,6 +46,9 @@ class CamaleonController < ApplicationController
   def before_actions
     # including all helpers (system, themes, plugins) for this site
     PluginRoutes.enabled_apps(current_site).each{|plugin| plugin_load_helpers(plugin) }
+
+    # include all custom models created by installed plugins or themes for current site
+    site_load_custom_models(current_site)
 
     # set default cache directory for current site
     cache_store.cache_path = File.join(cache_store.cache_path.split("site-#{current_site.id}").first, "site-#{current_site.id}")
