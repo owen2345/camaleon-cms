@@ -52,7 +52,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
     create_table "term_relationships" do |t|
       t.integer "objectid", index: true
       t.integer "term_order", index: true
-      t.belongs_to :term_taxonomy, index: true, foreign_key: true
+      t.belongs_to :term_taxonomy, index: true
     end
 
     create_table "user_relationships" do |t|
