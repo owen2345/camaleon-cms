@@ -12,9 +12,9 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.datetime "password_reset_sent_at"
       t.datetime "last_login_at"
 
-      # t.integer  "site_id",   default: -1
+      t.integer  "site_id", index: true,  default: -1
       t.timestamps
-      t.belongs_to :site, index: true, default: -1, foreign_key: true
+      # t.belongs_to :site, index: true, default: -1, foreign_key: true
     end
 
     create_table "term_taxonomy" do |t|
