@@ -12,9 +12,9 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.datetime "password_reset_sent_at"
       t.datetime "last_login_at"
 
-      t.integer  "site_id", index: true,  default: -1
+      # t.integer  "site_id",   default: -1, index: true
       t.timestamps
-      # t.belongs_to :site, index: true, default: -1, foreign_key: true
+      t.belongs_to :site, index: true, default: -1#, foreign_key: true
     end
 
     create_table "term_taxonomy" do |t|
@@ -29,7 +29,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.string   "status"
 
       t.timestamps
-      t.belongs_to :user, index: true, foreign_key: true
+      t.belongs_to :user, index: true#, foreign_key: true
     end
 
     create_table "posts" do |t|
@@ -46,7 +46,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.string   "post_class", default: "Post", index: true
 
       t.timestamps
-      t.belongs_to :user, index: true, foreign_key: true
+      t.belongs_to :user, index: true#, foreign_key: true
     end
 
     create_table "term_relationships" do |t|
@@ -59,8 +59,8 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.integer "term_order"
       t.integer "active", default: 1
 
-      t.belongs_to :term_taxonomy, index: true, foreign_key: true
-      t.belongs_to :user, index: true, foreign_key: true
+      t.belongs_to :term_taxonomy, index: true
+      t.belongs_to :user, index: true
     end
 
     create_table "comments" do |t|
@@ -73,8 +73,8 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.string   "agent"
       t.string   "typee"
       t.integer  "comment_parent", index: true
-      t.belongs_to :post, index: true, foreign_key: true
-      t.belongs_to :user, index: true, foreign_key: true
+      t.belongs_to :post, index: true#, foreign_key: true
+      t.belongs_to :user, index: true#, foreign_key: true
       t.timestamps
     end
 
