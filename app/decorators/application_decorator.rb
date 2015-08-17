@@ -15,7 +15,7 @@ class ApplicationDecorator < Draper::Decorator
   def the_keywords
     k = object.get_option("keywords", "")
     k = h.current_site.the_keywords if object.class.name != "Site" && !k.present?
-    k.translate(get_locale)
+    k.to_s.translate(get_locale)
   end
 
   def the_slug
