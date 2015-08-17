@@ -25,7 +25,8 @@ default: &default
 
 development:
   <<: *default
-  database: camaleon_development
+  adapter: sqlite3
+  database: db/development.sqlite3
 
   # The specified database role being used to connect to postgres.
   # To create additional roles in postgres see `$ createuser --help`.
