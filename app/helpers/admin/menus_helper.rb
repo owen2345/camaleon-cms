@@ -187,7 +187,7 @@ module Admin::MenusHelper
   def _admin_menu_draw_active
     bread = []
     @_tmp_menu_parents.each do |item|
-      bread << [item[:title], item[:url]] if item.present?
+      bread << [ActionView::Base.full_sanitizer.sanitize(item[:title]), item[:url]] if item.present?
     end
     @_admin_breadcrumb = [[t('admin.sidebar.dashboard'), admin_dashboard_path]] + bread + @_admin_breadcrumb
   end
