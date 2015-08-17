@@ -22,7 +22,7 @@ class UserDecorator < Draper::Decorator
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
   def the_avatar
-     object.meta[:avatar].present? ? object.meta[:avatar] : "#{h.root_url(locale: nil)}/assets/admin/img/no_image.jpg"
+     object.meta[:avatar].present? ? object.meta[:avatar] : h.asset_path("admin/img/no_image.jpg")
   end
 
   # return the slogan for this user, default: Hello World

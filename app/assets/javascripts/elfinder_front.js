@@ -62,7 +62,7 @@ function open_elfinder(options, callback){
 
 jQuery(function($){
     $.fn.inline_uploader = function(options){
-        var def = {no_image: ROOT_URL+"assets/image-not-found.png", title: "File upload"};
+        var def = {no_image: NO_IMAGE_URL, title: "File upload"};
         var settings = $.extend({}, def, options);
         $(this).each(function(){
             var input = $(this);
