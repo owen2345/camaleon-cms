@@ -26,7 +26,8 @@ module ThemeHelper
   # asset: asset file name, if asset is present return full path to this asset
   # sample: <script src="<%= theme_asset_path("js/admin.js") %>"></script>
   def theme_asset_path(asset = nil, theme_name = nil)
-    "#{root_url(locale: nil)}assets/themes/#{theme_name || current_theme.slug }/assets/#{asset}"
+    # "#{root_url(locale: nil)}assets/themes/#{theme_name || current_theme.slug }/assets/#{asset}"
+    "themes/#{theme_name || current_theme.slug }/assets/#{asset}"
   end
 
   # return theme full view path

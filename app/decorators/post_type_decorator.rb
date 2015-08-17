@@ -50,7 +50,7 @@ class PostTypeDecorator < TermTaxonomyDecorator
   # default: if thumbnail is not present, will render default
   def the_thumb_url(default = nil)
     th = object.get_option("thumb")
-    th.present? ? th : (default || "#{h.root_url(locale: nil)}/assets/image-not-found.png")
+    th.present? ? th : (default || h.asset_url("image-not-found.png"))
   end
 
 end

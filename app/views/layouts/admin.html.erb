@@ -16,7 +16,7 @@
     <%= raw the_head(false) %>
     <script>
         var root_url = '<%= root_url %>';
-        var NO_IMAGE_URL = '<%= asset_url("admin/img/no_image.jpg") %>';
+        var NO_IMAGE_URL = '<%= asset_url("image-not-found.png") %>';
         var CURRENT_LOCALE = '<%= current_locale %>';
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
         String.prototype.to_url = function () { return root_url.slice(0, root_url.length - 1) + this; };
