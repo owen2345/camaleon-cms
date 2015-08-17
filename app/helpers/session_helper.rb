@@ -13,7 +13,8 @@ module SessionHelper
   # remember_me: true/false (remember session permanently)
   def login_user(user, remember_me = false, redirect_url = nil)
     c = {value: [user.auth_token, request.user_agent, request.ip], expires: 24.hours.from_now }
-    c[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && Site.main_site.get_meta("share_sessions", true) && !cookies[:login].present?
+    # c[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && Site.main_site.get_meta("share_sessions", true) && !cookies[:login].present?
+    c[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && Site.count > 1
     c[:expires] = 1.month.from_now if remember_me
 
     Site.main_site.set_meta("share_sessions", false) if cookies.delete(:login).present?
