@@ -61,7 +61,7 @@ module SessionHelper
   def logout_user
     cookies.delete(:auth_token, domain: :all)
     cookies.delete(:auth_token, domain: nil)
-    cookies[:auth_token] = {value: nil, expires: 24.hours.ago, domain: (PluginRoutes.system_info["users_share_sites"] ? :all : nil)}
+    cookies[:auth_token] = {value: nil, expires: 24.hours.ago, domain: (PluginRoutes.system_info["users_share_sites"] && Site.count > 1 ? :all : nil)}
     cookies.delete :login
     redirect_to params[:return_to].present? ? params[:return_to] : admin_login_path, :notice => t('admin.logout.message.closed')
   end
