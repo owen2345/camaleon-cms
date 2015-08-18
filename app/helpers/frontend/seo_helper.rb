@@ -22,10 +22,11 @@ module Frontend::SeoHelper
   def build_seo(options)
     options[:image] = options[:image] || current_site.get_option("screenshot", current_site.the_logo)
     options[:title] = I18n.transliterate(is_home? ? current_site.the_title : "#{current_site.the_title} | #{options[:title]}")
-    options[:description] = I18n.transliterate(is_home? ? current_site.the_excerpt : options[:description])
-    options[:keywords] = I18n.transliterate(is_home? ? current_site.get_option("keywords", "") : options[:keywords])
+    options[:description] = I18n.transliterate(is_home? ? current_site.the_excerpt : options[:description].to_s)
+    options[:keywords] = I18n.transliterate(is_home? ? current_site.get_option("keywords", "") : options[:keywords].to_s)
     options[:url] = request.original_url
-    s = {:title => options[:title],
+    s = {
+       :title => options[:title],
        :description => options[:description],
        :keywords => options[:keywords],
        :image => options[:image],
@@ -45,14 +46,13 @@ module Frontend::SeoHelper
            :site => "@camaleon_cms",
            :creator => "@camaleon_cms",
            :domain => request.host
-       }
+       },
+       alternate: { "application/rss+xml"=> rss_url }
       }
 
     l = current_site.get_languages
-    if l.size > 1
-      s[:alternate] = {}
-      l.each{|_l| s[:alternate][_l] = current_site.the_url(locale: _l) }
-    end
+    l.each{|_l| s[:alternate][_l] = current_site.the_url(locale: _l) } if l.size > 1
+
     # call all hooks for seo
     r = {seo_data: s, object: options[:object]}; hooks_run("seo", r)
     r[:seo_data]

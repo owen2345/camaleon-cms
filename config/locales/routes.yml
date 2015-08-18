@@ -4,6 +4,7 @@ es:
     category: categoria
     tag: etiqueta
     search: buscar
+    profile: perfil
 
 pt:
   routes:
@@ -11,6 +12,7 @@ pt:
     category: categoria
     tag: etiqueta
     search: buscar
+    profile: perfil
 
 fr:
   routes:
@@ -18,3 +20,4 @@ fr:
     category: categorie
     tag: balise
     search: recherche
+    profile: profil

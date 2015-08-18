@@ -44,7 +44,6 @@ gem 'bcrypt' # rails password security
 gem 'mini_magick' # image library (resize, crop, captcha, ..)
 gem 'will_paginate' # list pagination
 gem 'will_paginate-bootstrap' # list pagination for bootstrap
-gem 'nokogiri' # used for html managing (short codes)
 
 # others
 gem 'el_finder' # media manager

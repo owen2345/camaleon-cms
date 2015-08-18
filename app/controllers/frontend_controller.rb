@@ -17,7 +17,6 @@ class FrontendController < CamaleonController
   # rescue_from ActiveRecord::RecordNotFound, with: :page_not_found
 
   def index
-    return page_not_found if params[:format].present? && params[:format] != "html"
     init_seo(current_site)
     r = {layout: (self.send :_layout), render: "nil", custom: false}; hooks_run("on_render_index", r)
     if r[:custom]
@@ -104,6 +103,18 @@ class FrontendController < CamaleonController
     else
       render_post(@post || params[:slug].to_s, true)
     end
+  end
+
+  # render user profile
+  def profile
+    begin
+      @user = current_site.users.find(params[:user_id]).decorate
+    rescue
+      return page_not_found
+    end
+    init_seo(@user)
+    r = {user: @user, layout: (self.send :_layout), render: "profile"};  hooks_run("on_render_profile", r)
+    render r[:render], layout: r[:layout]
   end
 
   private

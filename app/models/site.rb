@@ -190,7 +190,7 @@ class Site < TermTaxonomy
   end
   alias_method :is_default?, :main_site?
 
-  #shares users in site
+  # list all users of current site
   def users
     if PluginRoutes.system_info["users_share_sites"]
       User.where(site_id: -1)

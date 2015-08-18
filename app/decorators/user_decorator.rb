@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class UserDecorator < Draper::Decorator
+class UserDecorator < ApplicationDecorator
   include CustomFieldsConcern
   delegate_all
 
@@ -20,14 +20,23 @@ class UserDecorator < Draper::Decorator
     object.fullname
   end
 
+  # return the role title of this user for current site
+  def the_role
+    object.get_role(h.current_site).name.titleize
+  end
+
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
   def the_avatar
-     object.meta[:avatar].present? ? object.meta[:avatar] : h.asset_path("admin/img/no_image.jpg")
+     object.meta[:avatar].present? ? object.meta[:avatar] : h.asset_url("admin/img/no_image.jpg")
   end
 
   # return the slogan for this user, default: Hello World
   def the_slogan
     object.meta[:slogan] || "Hello World"
+  end
+
+  def the_seo
+    h.build_seo({ image: (the_avatar rescue nil), title: the_name, object: self })
   end
 
   # return all contents created by this user in current site

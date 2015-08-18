@@ -236,7 +236,6 @@ DEPENDENCIES
   meta-tags
   mini_magick
   mobu
-  nokogiri
   omniauth
   omniauth-facebook (= 1.4.0)
   omniauth-google-oauth2
