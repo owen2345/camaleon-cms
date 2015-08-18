@@ -19,8 +19,6 @@
 .rspec
 .redcar/
 .sass-cache
-/config/database.yml
-/config/system.json
 /db/*.javadb
 /db/*.sqlite3
 /public/assets/*

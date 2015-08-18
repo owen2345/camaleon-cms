@@ -13,13 +13,18 @@ module SiteHelper
     @current_site = site.decorate if site.present?
     return $current_site if defined?($current_site)
     return @current_site if defined?(@current_site)
-    host = request.original_url.to_s.parse_domain
-    if host == PluginRoutes.system_info["base_domain"]
-      site = Site.first.decorate rescue nil
+    all_sites = Site.all
+    if all_sites.size == 1
+      site = all_sites.first.decorate
     else
-      s = [host]
-      s << request.subdomain if request.subdomain.present?
-      site = Site.where(slug: s).first.decorate rescue nil
+      host = request.original_url.to_s.parse_domain
+      if host == PluginRoutes.system_info["base_domain"]
+        site = Site.first.decorate rescue nil
+      else
+        s = [host]
+        s << request.subdomain if request.subdomain.present?
+        site = Site.where(slug: s).first.decorate rescue nil
+      end
     end
     puts "============================ Please define the $current_site = Site.first.decorate " unless site.present?
     @current_site = site
@@ -96,6 +101,24 @@ module SiteHelper
     theme_model = current_site.get_theme(key)
     hook_run(theme, "on_inactive", theme_model) if theme_model.present?
     theme_model.destroy
+  end
+
+
+  # load all custom models customized by plugins or templates in custom_models.rb
+  def site_load_custom_models(site)
+    PluginRoutes.enabled_apps(site).each{ |app|
+      s = File.join(app["path"], "config", "custom_models.rb")
+      require_relative s if File.exist?(s)
+    }
+  end
+
+  #################### ONLY FOR CONSOLE ####################
+  # switch console sessions and redefine current for the console session
+  # site: Site model used as current site
+  # return nil
+  def site_console_switch(site = nil)
+    $current_site = site
+    site_load_custom_models($current_site)
   end
 
 end

@@ -86,6 +86,6 @@ module Plugins::ContactForm::ContactFormHelper
 
   def contact_form_front_before_load
     shortcode_add('forms',  plugin_view("contact_form", "forms_shorcode"))
-    append_asset_libraries({"plugin_contact_form"=> { css: [plugin_asset_path("contact_form", "css/front/railsform.scss")] }})
+    append_asset_libraries({"plugin_contact_form"=> { css: [plugin_asset_path("contact_form", "css/front/railsform")] }})
   end
 end
