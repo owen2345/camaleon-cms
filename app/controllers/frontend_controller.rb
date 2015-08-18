@@ -193,7 +193,12 @@ class FrontendController < CamaleonController
       lookup_context.prefixes.delete(params[:controller])
       lookup_context.prefixes.prepend(params[:controller].sub("themes/#{current_theme.slug}/", ""))
     end
-    self.prepend_view_path(Rails.root.join("app", "views", 'default_theme'))
+    if $camaleon_engine_dir.present?
+      self.prepend_view_path(File.join($camaleon_engine_dir.present? ? $camaleon_engine_dir : Rails.root.to_s, "app", "views", 'default_theme'))
+    else
+      self.prepend_view_path(Rails.root.join("app", "views", 'default_theme'))
+    end
+
     self.prepend_view_path(Rails.root.join("app", "apps", 'themes', current_theme.slug, 'views'))
     self.prepend_view_path(Rails.root.join("app", "apps", 'sites', "#{current_site.id}", 'views'))
     theme_init()

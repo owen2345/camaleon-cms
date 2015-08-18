@@ -154,23 +154,23 @@ bt { font-size: 12px; }
 /* ================== PORTFOLIO IMAGES HOVER EFFECT ================== */
 /* Effects also are controled by hover.zoom.js */
 .zoom {
-	background: transparent url("../images/loader.gif") no-repeat center;
+	background: transparent image-url("themes/camaleon_first/assets/images/loader.gif") no-repeat center;
 	display: block;
 	overflow: hidden;
 	position: relative;
 }
 
-		.zoomOverlay {
-			background-image: url("../images/zoom.png");
-			background-position: center;
-			background-repeat: no-repeat;
-			bottom: 0;
-			display: none;
-			left: 0;
-			position: absolute;
-			right: 0;
-			top: 0;
-		}
+.zoomOverlay {
+	background-image: image-url("themes/camaleon_first/assets/images/zoom.png");
+	background-position: center;
+	background-repeat: no-repeat;
+	bottom: 0;
+	display: none;
+	left: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
 
 .zoom2 { opacity: 1; }
 

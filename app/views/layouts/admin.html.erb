@@ -14,10 +14,9 @@
     <%= javascript_include_tag "admin/#{current_locale}.js" if current_locale != "en" %>
     <%= javascript_include_tag "admin/elfinder/i18n/elfinder.#{current_locale}.js" if current_locale != "en" %>
     <%= raw the_head(false) %>
-
-
     <script>
         var root_url = '<%= root_url %>';
+        var NO_IMAGE_URL = '<%= asset_url("image-not-found.png") %>';
         var CURRENT_LOCALE = '<%= current_locale %>';
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
         String.prototype.to_url = function () { return root_url.slice(0, root_url.length - 1) + this; };
@@ -154,8 +153,8 @@
     </div>
 
     <!-- START PRELOADS -->
-    <audio id="audio-alert" src="/audio/alert.mp3" preload="auto"></audio>
-    <audio id="audio-fail" src="/audio/fail.mp3" preload="auto"></audio>
+    <audio id="audio-alert" src="<%= asset_path("audio/alert.mp3") %>" preload="auto"></audio>
+    <audio id="audio-fail" src="<%= asset_path("audio/fail.mp3") %>" preload="auto"></audio>
     <!-- END PRELOADS -->
 
 </div>

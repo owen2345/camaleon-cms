@@ -81,7 +81,8 @@ module PluginsHelper
   # if asset is present return full path to this asset
   # sample: <script src="<%= plugin_asset_path("my_plugin", "js/admin.js") %>"></script>
   def plugin_asset_path(plugin_key, asset = nil)
-    "#{root_url(locale: nil)}assets/plugins/#{plugin_key}/assets/#{asset}"
+    # "#{root_url(locale: nil)}assets/plugins/#{plugin_key}/assets/#{asset}"
+    "plugins/#{plugin_key}/assets/#{asset}"
   end
 
   # auto load all helpers of this plugin

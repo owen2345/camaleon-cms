@@ -25,7 +25,7 @@
                         <p><%= @user.new_record? ? "" : @user.meta[:slogan] %></p>
                         <div class="text-center" id="user_image">
 
-                            <img src="<%= @user.new_record? || !@user.meta[:avatar] ? "#{root_url}assets/admin/img/no_image.jpg" : @user.meta[:avatar] %>" class="img-thumbnail input_upload"/>
+                            <img src="<%= @user.new_record? || !@user.meta[:avatar] ? asset_path("admin/img/no_image.jpg") : @user.meta[:avatar] %>" class="img-thumbnail input_upload"/>
                         </div>
                     </div>
                     <div class="panel-body form-group-separated">
