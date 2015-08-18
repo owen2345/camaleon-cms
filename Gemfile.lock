@@ -96,7 +96,7 @@ GEM
     json (1.8.3)
     jwt (0.1.13)
       multi_json (>= 1.5)
-    loofah (2.0.2)
+    loofah (2.0.3)
       nokogiri (>= 1.5.9)
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
