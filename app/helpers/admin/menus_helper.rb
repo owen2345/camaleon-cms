@@ -132,11 +132,9 @@ module Admin::MenusHelper
 
   def _get_url_current
     menus = @_admin_menus.map{|key, menu|  menu[:key] = key; menu}
-    c_site = site_current_url.sub("https://", "http://")
-    current_path = "/#{c_site.split(root_url).last}"
+    current_path = URI(site_current_url).path
     current_path_array = current_path.split('/')
     a_size = current_path_array.size
-
     (0..a_size).each do |i|
       resp = _search_in_menus(menus, current_path_array[0..a_size-i].join('/'))
       bool = resp[:bool]
@@ -151,17 +149,17 @@ module Admin::MenusHelper
   end
 
   def _search_in_menus(menus, _url, parent_index = 0)
-    _url_a = _url.split('?')
     bool = false
     menus.each_with_index do |menu, index_menu|
       menu[:key] = "#{parent_index}__#{rand(999...99999)}" if menu[:key].nil?
-      url = menu[:url].to_s.sub("https://", "http://")
-      url_path = url
-      url_path = "/#{url.split(root_url).last}" if url.start_with?("http://")
+      uri = URI(menu[:url])
+      url_path = uri.path
+      url_query = uri.query
+      bool = url_path.to_s == _url.to_s && url_path.present?
       # params compare
-      url_path_a = url_path.split('?')
-      bool = url_path_a[0].to_s == _url_a[0].to_s
-      bool &&= Rack::Utils.parse_nested_query(url_path_a[1].to_s) == Rack::Utils.parse_nested_query(_url_a[1].to_s) if url_path.include?('?')
+      if url_query.present?
+        bool &&= Rack::Utils.parse_nested_query(url_query.to_s) == Rack::Utils.parse_nested_query(URI(site_current_url).query.to_s)
+      end
       if menu.has_key?(:items)
         resp = _search_in_menus(menu[:items], _url, parent_index + 1)
         bool = bool || resp[:bool]
@@ -191,7 +189,7 @@ module Admin::MenusHelper
   def _admin_menu_draw_active
     bread = []
     @_tmp_menu_parents.uniq.each do |item|
-      bread << [ActionView::Base.full_sanitizer.sanitize(item[:title]), item[:url]] if item.present? && item[:key] != "dashabord"
+      bread << [item[:title].to_s.strip_tags, item[:url]] if item.present? && item[:key] != "dashabord"
     end
     @_admin_breadcrumb = [[t('admin.sidebar.dashboard'), admin_dashboard_path]] + bread + @_admin_breadcrumb
   end
