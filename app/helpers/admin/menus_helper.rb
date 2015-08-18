@@ -151,13 +151,17 @@ module Admin::MenusHelper
   end
 
   def _search_in_menus(menus, _url, parent_index = 0)
+    _url_a = _url.split('?')
     bool = false
     menus.each_with_index do |menu, index_menu|
       menu[:key] = "#{parent_index}__#{rand(999...99999)}" if menu[:key].nil?
       url = menu[:url].to_s.sub("https://", "http://")
       url_path = url
       url_path = "/#{url.split(root_url).last}" if url.start_with?("http://")
-      bool = url_path == _url
+      # params compare
+      url_path_a = url_path.split('?')
+      bool = url_path_a[0].to_s == _url_a[0].to_s
+      bool &&= Rack::Utils.parse_nested_query(url_path_a[1].to_s) == Rack::Utils.parse_nested_query(_url_a[1].to_s) if url_path.include?('?')
       if menu.has_key?(:items)
         resp = _search_in_menus(menu[:items], _url, parent_index + 1)
         bool = bool || resp[:bool]
@@ -186,8 +190,8 @@ module Admin::MenusHelper
 
   def _admin_menu_draw_active
     bread = []
-    @_tmp_menu_parents.each do |item|
-      bread << [ActionView::Base.full_sanitizer.sanitize(item[:title]), item[:url]] if item.present?
+    @_tmp_menu_parents.uniq.each do |item|
+      bread << [ActionView::Base.full_sanitizer.sanitize(item[:title]), item[:url]] if item.present? && item[:key] != "dashabord"
     end
     @_admin_breadcrumb = [[t('admin.sidebar.dashboard'), admin_dashboard_path]] + bread + @_admin_breadcrumb
   end
