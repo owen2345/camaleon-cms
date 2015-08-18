@@ -7,7 +7,7 @@ en:
      add_menu: 'Add to Menu'
      add_widget: 'Add Widget'
      accept: 'Accept'
-     actived: 'Activated'
+     actived: 'Actived'
      activate_plugin: 'Activate Plugin'
      back: 'Back'
      change_photo: 'Change Photo'
@@ -71,7 +71,7 @@ en:
         updated: 'The comment has been updated.'
 
       tooltip:
-        approved_comment: 'Approved Comment'
+        approved_comment: 'Approve Comment'
         comment_pending: 'Comment To Pending'
         comment_spam: 'Comment To Spam'
         reply_comment: 'Reply Comment'
@@ -173,7 +173,7 @@ en:
       so_their_data_has_not_been_saved: 'so their data has not been saved'
       no_response_fields: 'No response fields '
       quick_info: 'Some quick info about this user'
-      was_inactivated: 'was deactivated.'
+      was_inactivated: 'was inactivated.'
       was_activated: 'was activated.'
       can_not_be_removed: 'can not be removed.'
       was_removed: 'was removed.'

@@ -2,14 +2,14 @@
     <div class="row <%= "answer" if children.present? %>">
         <div class="col-sm-1 <%= "col-md-offset-1" if children.present? %>">
             <div class="thumbnail">
-                <%= image_tag user.the_avatar, class: "img-responsive"%>
+                <%= link_to(image_tag(user.the_avatar, class: "img-responsive"), user.the_url) %>
             </div><!-- /thumbnail -->
         </div><!-- /col-sm-1 -->
 
         <div class="col-sm-<%= children.present? ? "8" : "9" %>">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <strong class=""><%= user.the_name %></strong> <small class="text-muted pull-right"><%= comment.decorate.the_created_at %></small>
+                    <strong class=""><%= link_to(user.the_name, user.the_url) %></strong> <small class="text-muted pull-right"><%= comment.decorate.the_created_at %></small>
                 </div>
                 <div class="panel-body">
                     <%= raw comment.content %>

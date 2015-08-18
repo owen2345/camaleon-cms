@@ -11,9 +11,10 @@ class UserDecorator < ApplicationDecorator
   delegate_all
 
   # return the identifier
-  def the_id
-    "#{object.slug}"
+  def the_username
+    "#{object.username}"
   end
+
 
   # return the fullname
   def the_name
@@ -35,8 +36,20 @@ class UserDecorator < ApplicationDecorator
     object.meta[:slogan] || "Hello World"
   end
 
+  # generate all seo attributes for profile page
   def the_seo
     h.build_seo({ image: (the_avatar rescue nil), title: the_name, object: self })
+  end
+
+  # return front url for this user
+  def the_url(*args)
+    args = args.extract_options!
+    args[:user_id] = the_id
+    args[:user_name] = the_name.parameterize
+    args[:locale] = get_locale unless args.include?(:locale)
+    args[:format] = "html"
+    as_path = args.delete(:as_path)
+    h.url_to_fixed("profile_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return all contents created by this user in current site
