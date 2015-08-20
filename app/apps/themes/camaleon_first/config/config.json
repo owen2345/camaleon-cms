@@ -1,7 +1,7 @@
 {
   "name" : "Default Theme",
   "description" : "This is the default theme of Camaleon CMS (folder = camaleon_first)",
-  "thumb" : "assets/images/image.png",
+  "thumb" : "images/image.png",
   "helpers": [
     "Themes::CamaleonFirst::MainHelper"
   ],

@@ -40,6 +40,10 @@ class Widget::Main < TermTaxonomy
     self.get_option("renderer")
   end
 
+  def short_code
+    "[widget #{self.slug}]"
+  end
+
   private
   def check_excerpt
     self.set_option("excerpt", @excerpt)

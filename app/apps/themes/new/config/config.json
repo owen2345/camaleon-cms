@@ -1,7 +1,7 @@
 {
   "name" : "Clean Theme",
   "description" : "Clean and basic theme (folder = new)",
-  "thumb" : "assets/images/image.png",
+  "thumb" : "images/image.png",
   "settings":[
     {"label": "Settings", "action_name": "settings"}
   ],

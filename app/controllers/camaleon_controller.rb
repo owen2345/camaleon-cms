@@ -45,7 +45,7 @@ class CamaleonController < ApplicationController
   private
   def before_actions
     # including all helpers (system, themes, plugins) for this site
-    PluginRoutes.enabled_apps(current_site).each{|plugin| plugin_load_helpers(plugin) }
+    PluginRoutes.enabled_apps(current_site, current_theme.slug).each{|plugin| plugin_load_helpers(plugin) }
 
     # include all custom models created by installed plugins or themes for current site
     site_load_custom_models(current_site)

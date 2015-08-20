@@ -23,7 +23,7 @@
                                 <div class="panel panel-default">
                                     <div class="panel-body panel-body-image">
                                         <div class="theme-image text-center">
-                                            <img class="img-responsive" src="<%= theme_asset_path("../#{theme[:thumb]}", theme[:key]) %>" alt="<%= theme[:name] %>">
+                                            <img class="img-responsive" src="<%= asset_path(theme_asset_path(theme[:thumb].to_s, theme[:key])) %>" alt="<%= theme[:name] %>">
                                         </div>
                                         <a href="#" class="panel-body-inform">
                                             <span class="fa fa-desktop"></span>

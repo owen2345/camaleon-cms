@@ -7,15 +7,23 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module FrontendConcern extend ActiveSupport::Concern
+  # visiting sitemap.xml
   def sitemap
     path = Rails.root.join("public", "sitemaps", current_site.slug, "sitemap.xml")
-    respond_to do |format|
-      format.html { render "sitemap" }
-      format.xml { (File.exists?(path) ? render(xml: open(path).read) : render(text: "Sitemap not found.", status: :not_found)) }
+    if File.exists?(path)
+      respond_to do |format|
+        format.html do
+          @xml = File.read(path)
+          render "sitemap"
+        end
+        format.xml { render(xml: open(path).read) }
+      end
+    else
+      render text: "Sitemap not found.", status: :not_found
     end
   end
 
-
+  # accessing for robots.txt
   def robots
   end
 

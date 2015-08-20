@@ -91,7 +91,7 @@ class PostType < TermTaxonomy
   end
 
   # add a post for current model
-  #   tilte: title for post,    => required
+  #   title: title for post,    => required
   #   content: html text content, => required
   #   thumb: image url, => default (empty). check http://camaleon.tuzitio.com/api-methods.html#section_fileuploads
   #   has_comments: 0|1,        => default (0)
