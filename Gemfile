@@ -47,6 +47,7 @@ gem 'will_paginate-bootstrap' # list pagination for bootstrap
 
 # others
 gem 'el_finder' # media manager
+gem 'el_finder_s3' #s3
 gem 'cancancan', '~> 1.10' # user permissions
 gem 'meta-tags' # seo meta tags generatos
 gem 'draper', '~> 1.3' # decorators
@@ -66,3 +67,4 @@ group :development do
   gem 'tzinfo-data', platforms: [:mingw, :mswin]
 end
 ##################### END CUSTOM GEMS ######################
+

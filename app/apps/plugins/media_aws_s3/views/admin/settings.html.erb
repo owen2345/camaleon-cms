@@ -1,0 +1,25 @@
+<div class="page-content-wrap" id="plugin-settings">
+    <%= form_tag admin_plugins_{plugin_key}_settings_path do %>
+        <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-default">
+
+                <div class="panel-heading">{plugin_title} settings</div>
+
+                <div class="panel-body">
+
+                    <!--This will show all custom fields assigned to this plugin-->
+                    <%= render partial: "admin/settings/custom_fields/render", locals: {record: @plugin, field_groups: @plugin.get_field_groups, fields_name: "plugin_fields"} %>
+
+                    <!--Here all your settings -->
+
+                </div>
+
+                <div class="panel-footer">
+                    <a class="btn btn-default" href="<%= url_for admin_plugins_path %>"><%= t('admin.button.back') %></a>
+                    <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit') %></button>
+                </div>
+
+            </div>
+        </div>
+    <% end %>
+</div>
