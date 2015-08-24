@@ -28,7 +28,6 @@
 * Add the gem in your Gemfile
 
   ```
-  # to use stable version
   gem 'camaleon_cms', '~> 0.1.3'
   ```
 * Install the gem
