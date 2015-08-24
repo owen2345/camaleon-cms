@@ -19,8 +19,12 @@ module FrontendConcern extend ActiveSupport::Concern
         format.xml { render(xml: open(path).read) }
       end
     else
-      %x(rake camaleon_cms:sitemap)
-      render text: "Sitemap not found. Generating...", status: :not_found
+      Thread.abort_on_exception=true
+      Thread.new do
+        %x(rake camaleon_cms:sitemap)
+        ActiveRecord::Base.connection.close
+      end
+      render text: "Sitemap not found. Generating... Please wait and refresh later.", status: :not_found
     end
   end
 
