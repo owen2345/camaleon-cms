@@ -1,0 +1,11 @@
+{
+  "default_template": "default", // default template name for new sites
+  "locale": "en", // Default locale, here all locales: https://github.com/svenfuchs/rails-i18n
+  "time_zone": "La Paz", // Default Time zone, here all timezones: http://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html
+  "base_domain": "localhost:3001", // primary domain
+  "share_sessions": true, // (boolean) share user sessions between subdomains of base_domain (only for users_share_sites = true)
+  "default_user_role": "client", // default user role for all new users
+  "users_share_sites": true //(boolean) true: permit to share users between sites, false: All users are assigned for a unique site.
+}
+
+// Note: after any change in this file, you need to restart your server to apply changes.
