@@ -50,6 +50,7 @@ class Admin::Settings::CustomFieldsController < Admin::SettingsController
     render 'form'
   end
 
+  # create a new custom field group
   def create
     post_data = params[:custom_field_group]
     post_data[:object_class], post_data[:objectid] = post_data[:assign_group].split(',')
@@ -64,10 +65,20 @@ class Admin::Settings::CustomFieldsController < Admin::SettingsController
     end
   end
 
+  # destroy a custom field group
   def destroy
     @field_group.destroy
 
     redirect_to action: :index
+  end
+
+  # reorder custom fields group
+  def reorder
+    params[:values].to_a.each_with_index do |value, index|
+      current_site.custom_field_groups.find(value).update_column('field_order', index)
+    end
+    json = {size: params[:values].size}
+    render json: json
   end
 
   private

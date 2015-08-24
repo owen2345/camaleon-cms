@@ -7,13 +7,13 @@
 ![](https://img.shields.io/badge/Docs-90%-orange.svg)
 ![](https://img.shields.io/badge/Support-Inmediate-green.svg)
 
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/owen2345/Camaleon-CMS-Sample)
-
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/owen2345/Camaleon-CMS-Sample)   
+# CAMALEON CMS
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
 
 # Requirements
 * Rails 4+
-* MySQL 5+ or Sqlite or PostgreSQL
+* MySQL 5+ or SQlite or PostgreSQL
 * Ruby 1.9.3+
 * Imagemagick
 
@@ -29,7 +29,7 @@
 
   ```
   # to use stable version
-  gem 'camaleon_cms', '~> 0.1.2'
+  gem 'camaleon_cms', '~> 0.1.3'
   ```
 * Install the gem
 
@@ -110,12 +110,13 @@ It was released on July, 2015 and tested previously with more than 20 projects b
 * Contact forms
 * Cache content
 * Content reorder
-* many others
+* many others [here.](https://github.com/owen2345/Camaleon-CMS-Sample)
 
 ## Demonstration
-http://camaleon.tuzitio.com/plugins/demo_manage/  
-If you have problems, please enter an issue here.
-https://github.com/owen2345/camaleon-cms/issues    
+* [Camaleon Server](http://camaleon.tuzitio.com/plugins/demo_manage/)
+* [Deploy in Heroku](https://heroku.com/deploy?template=https://github.com/owen2345/Camaleon-CMS-Sample)
+## Support
+If you have problems, please enter an issue [here.](https://github.com/owen2345/camaleon-cms/issues)  
 If you need support, need some extra functionality or need plugins, please contact us on:
 * Site: http://camaleon.tuzitio.com/
 * Email: owenperedo@gmail.com
@@ -140,6 +141,4 @@ http://camaleon.tuzitio.com/license.html/
 * Push to the branch (git push origin my_feature_branch)
 * Create a pull request from your branch into master (Please be sure to provide enough detail for us to cipher what this change is doing)
 
-Register your issues here: https://github.com/owen2345/Camaleon-CMS/issues
-
-Visit web site: http://camaleon.tuzitio.com/
+Visit the web site for more information: http://camaleon.tuzitio.com/

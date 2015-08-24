@@ -11,6 +11,10 @@ namespace :camaleon_cms do
     include PluginsHelper
     include HooksHelper
 
+    DynamicSitemaps.configure do |config|
+      config.config_path = File.join($camaleon_engine_dir, "config", "sitemap.rb")
+    end
+
     start_time = Time.now
     DynamicSitemaps::Logger.info "Generating sitemap..."
     DynamicSitemaps.generate_sitemap
