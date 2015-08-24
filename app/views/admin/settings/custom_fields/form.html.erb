@@ -65,10 +65,7 @@
                   </optgroup>
 
                   <optgroup label="<%= t('admin.sidebar.themes') %>">
-                    <% PluginRoutes.all_themes.each do |theme| %>
-                        <% value = "Theme,#{theme[:key]}"  %>
-                        <option value="<%= value %>" data-help="<%= "#{t('admin.settings.tooltip.add_custom_field_themes')}"+ theme[:name] %>"><%= theme[:name] %></option>
-                    <% end  %>
+                      <option value="<%= current_theme.id %>" data-help=""><%= current_theme.name %></option>
                   </optgroup>
 
                   <optgroup label="<%= t('admin.sidebar.widgets') %>">
