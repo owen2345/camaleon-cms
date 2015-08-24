@@ -1,4 +1,0 @@
-#payments
-gem 'activemerchant'
-# select countries
-gem 'country_select'

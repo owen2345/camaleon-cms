@@ -57,7 +57,11 @@ module Plugins::VisibilityPost::VisibilityPostHelper
   def plugin_visibility_filter_post(args)
     args[:active_record] = args[:active_record].where("(posts.published_at is null or posts.published_at <= ?)", Time.now)
     if signin?
-      args[:active_record] = args[:active_record].where("visibility != 'private' or (visibility = 'private' and FIND_IN_SET(?, posts.visibility_value))", current_site.visitor_role)
+      if ActiveRecord::Base.connection.adapter_name.downcase.include?("sqlite")
+        args[:active_record] = args[:active_record].where("visibility != 'private' or (visibility = 'private' and (',' || posts.visibility_value || ',') LIKE '%,#{current_site.visitor_role},%')")
+      else
+        args[:active_record] = args[:active_record].where("visibility != 'private' or (visibility = 'private' and FIND_IN_SET(?, posts.visibility_value))", current_site.visitor_role)
+      end
     else
       args[:active_record] = args[:active_record].where("visibility != 'private'")
     end

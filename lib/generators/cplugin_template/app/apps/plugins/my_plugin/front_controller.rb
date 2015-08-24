@@ -1,5 +1,5 @@
-class Plugins::{plugin_class}::FrontController < Apps::PluginsFrontController
-  include Plugins::{plugin_class}::MainHelper
+class Plugins::PluginClass::FrontController < Apps::PluginsFrontController
+  include Plugins::PluginClass::MainHelper
   def index
     # here your actions for frontend module
   end

@@ -81,7 +81,7 @@ class SiteDecorator < TermTaxonomyDecorator
     res = ["<ul class='#{list_class}'>"]
     lan.each do |lang|
       path = lang.to_s+'.png'
-      img = "<img src='#{h.root_url(locale: nil)}assets/language/#{path}'/>"
+      img = "<img src='#{h.asset_path("language/#{path}")}'/>"
       res << "<li class='#{ current_class if I18n.locale.to_s == lang.to_s}'> <a href='#{h.url_to_fixed(current_page ? "url_for" : "root_url", {locale: lang})}'>#{img}</a> </li>"
     end
     res << "</ul>"

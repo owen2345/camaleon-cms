@@ -297,6 +297,19 @@ en:
       login_twitter: 'Twitter'
       login_facebook: 'Facebook'
       login_google: 'Google+'
+      email_enabled: "Use this settings to send emails"
+      email_server: "Email Server"
+      email_port: "Email Port"
+      email_domain: "Email Domain"
+      email_username: "User Name"
+      email_pass: "User Password"
+      email_from: "Email From"
+      email_cc: "Email CC"
+      twitter_card: "Twitter Card"
+      author: "Author Name"
+      seo_setting: "Seo Settings"
+      email_settings: "Email Settings (SMTP)"
+
       message:
         language_updated: 'Your languages was configured.'
         site_updated: 'The site has been updated.'
@@ -305,13 +318,13 @@ en:
       option_title: 'Option Title'
       others: 'Others'
       please_separated_commas: 'Please separated by commas'
-      comment_status: 'Register as approved the comments?'
+      comment_status: 'Register comments as approved?'
       list_per_page_front: 'Quantity of items to be listed on frontend'
       list_per_page_admin: 'Quantity of items to be listed on backend'
       permission_register_users: 'Permission to Register Users'
-      permission_login_twitter: 'Permission Login with Twitter'
+      permission_login_twitter: 'Permission to Login with Twitter'
       permission_login_facebook: 'Permission to Login with Facebook'
-      permission_login_google: 'Permission Login with Google+'
+      permission_login_google: 'Permission to Login with Google+'
       posts_in: 'Posts in'
       settings: 'Settings'
       tooltip:

@@ -1,8 +1,26 @@
-require 'rufus-scheduler'
-$scheduler = Rufus::Scheduler.singleton
+begin
+  require 'rufus-scheduler'
+  $scheduler = Rufus::Scheduler.singleton
+  $scheduler.cron '00 05 * * *' do
+    system("rake camaleon_cms:sitemap")
+  end
+  #cronjob for hook by site
+  begin
+    Site.all.each do |site|
+      # hooks
+      c = CamaleonController.new
+      c.instance_eval do
+        @current_site = site
+        @_hooks_skip = []
+      end
+      r = {site: site, eval: nil}; c.hooks_run("cron", r)
+      r[:eval].call(r) if r[:eval].present?
+    end
+  rescue => e # skipping sites not found
 
-$scheduler.cron '00 05 * * *' do
-  system("rake sitemap:generate")
+  end
+rescue LoadError
+  
 end
 
 # only for camaleon site
@@ -15,22 +33,6 @@ end
 #   @current_site = site
 #   site_after_install(site)
 # end
-
-#cronjob for hook by site
-begin
-  Site.all.each do |site|
-    # hooks
-    c = ApplicationController.new
-    c.instance_eval do
-      @current_site = site
-      @_hooks_skip = []
-    end
-    r = {site: site, eval: nil}; c.hooks_run("cron", r)
-    r[:eval].call(r) if r[:eval].present?
-  end
-rescue => e # skipping sites not found
-
-end
 
 ####### DELAYED JOBS
 # auto delete file after a time

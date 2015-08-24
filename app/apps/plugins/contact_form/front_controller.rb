@@ -76,10 +76,8 @@ class Plugins::ContactForm::FrontController < Apps::PluginsFrontController
         template_path = "html_mailer"
 
         dir = Dir.glob("app/apps/themes/#{current_theme.the_slug.to_s}/views/html_mailer/*")
-        #template_path = "app/apps/themes/#{current_theme.the_slug.to_s}/views/html_mailer" if dir.size > 0
-
         content = form_post_email_content(settings[:railscf_mail][:body], values[:fields], fields, attachments)
-        sendmail(settings[:railscf_mail][:to], settings[:railscf_mail][:subject], content, settings[:railscf_mail][:to], attachments, current_site, template_path, settings[:railscf_mail][:theme].to_s) # send mail
+        sendmail(settings[:railscf_mail][:to], settings[:railscf_mail][:subject], content, settings[:railscf_mail][:to], attachments) # send mail
         succes << settings[:railscf_message][:mail_sent_ok]
       else
         errors << settings[:railscf_message][:mail_sent_ng]

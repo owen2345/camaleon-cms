@@ -1,4 +1,4 @@
-WPRails::Application.routes.draw do
+Rails.application.routes.draw do
   namespace :admin do
     get '/' => :dashboard
     get 'dashboard'

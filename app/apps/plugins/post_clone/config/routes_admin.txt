@@ -1,3 +1,0 @@
-get 'settings' => "admin#settings"
-post 'settings' => "admin#settings_save"
-get 'clone/:id' => "admin#clone", as: "clone"

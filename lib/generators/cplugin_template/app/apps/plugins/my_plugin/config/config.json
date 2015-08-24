@@ -1,17 +1,17 @@
 {
-  "title": "{plugin_title}",
+  "title": "pluginTitle",
   "descr": "",
   "version": "0.1",
-  "key": "{plugin_key}",
+  "key": "pluginKey",
   "helpers": [
-    "Plugins::{plugin_class}::MainHelper"
+    "Plugins::PluginClass::MainHelper"
   ],
   "hooks": {
     "on_active": [
-      "{plugin_key}_on_active"
+      "pluginKey_on_active"
     ],
     "on_inactive": [
-      "{plugin_key}_on_inactive"
+      "pluginKey_on_inactive"
     ]
     //here you can add all your hooks (read documentation)
   }
