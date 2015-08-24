@@ -80,7 +80,6 @@ class PluginRoutes
     camaleon_gem = get_gem('camaleon_cms')
     return {} if !camaleon_gem
     r = cache_variable("system_info");  return r unless r.nil?
-    res = {}
     res = JSON.parse(File.read(File.join(camaleon_gem.gem_dir, "config", "system.json")))
     res = res.with_indifferent_access rescue res
     return cache_variable("system_info", res) unless File.exist?(system_file = File.join(apps_dir, "..", '..', "config", "system.json"))

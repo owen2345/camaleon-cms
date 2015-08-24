@@ -37,8 +37,8 @@
                                     <div class="panel-footer text-muted text-right">
                                         <% if current_theme.slug == theme[:key] && params[:set].nil? %>
                                             <% r = {links: []}; hook_run(theme, "theme_options", r) %>
-                                            <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), admin_plugins_export_content_settings_path(file: ["app", "apps", 'themes', theme[:key], 'data.json'].join("/"))) if current_site.plugin_installed?('export_content') && File.exist?(Rails.root.join("app", "apps", 'themes', theme[:key], 'data.json')) %>
-                                            <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), "#", {'onclick' => "alert('You need to install import/export plugin to import sample data.'); return false;"}) if !current_site.plugin_installed?('export_content') && File.exist?(Rails.root.join("app", "apps", 'themes', theme[:key], 'data.json')) %>
+                                            <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), admin_plugins_export_content_settings_path(file: ["app", "apps", 'themes', theme[:key], 'data.json'].join("/"))) if current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
+                                            <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), "#", {'onclick' => "alert('You need to install import/export plugin to import sample data.'); return false;"}) if !current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
                                             <%= raw r[:links].join(" | ") %>
                                             <span class="btn btn-success"><%= t('admin.button.actived').upcase %></span>
                                         <% else %>

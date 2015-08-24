@@ -1,5 +1,5 @@
 <%
-   theme_settings_file = Rails.root.join("app", "apps", 'themes', current_site.get_theme_slug, 'views/admin/settings.html.erb').to_s
+   theme_settings_file = File.join(current_site.settings["path"], "views/admin/settings.html.erb").to_s
    @site.slug = PluginRoutes.system_info["base_domain"] if current_site.main_site?
    groups = @site.get_field_groups()
 %>
