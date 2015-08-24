@@ -89,7 +89,9 @@ module SiteHelper
     # new theme
     current_site.set_option('_theme', key)
     theme = PluginRoutes.theme_info(key)
+    current_site.themes.update_all(status: "inactive")
     theme_model = current_site.themes.where(slug: key).first_or_create!{|t| t.name = theme[:name]; }
+    theme_model.update(status: nil)
     hook_run(theme, "on_active", theme_model)
     PluginRoutes.reload
   end
@@ -100,7 +102,7 @@ module SiteHelper
     theme = PluginRoutes.theme_info(key)
     theme_model = current_site.get_theme(key)
     hook_run(theme, "on_inactive", theme_model) if theme_model.present?
-    theme_model.destroy
+    # theme_model.destroy
   end
 
 
