@@ -152,7 +152,7 @@ module Admin::MenusHelper
     bool = false
     menus.each_with_index do |menu, index_menu|
       menu[:key] = "#{parent_index}__#{rand(999...99999)}" if menu[:key].nil?
-      uri = URI(menu[:url])
+      uri = URI(menu[:url].to_s)
       url_path = uri.path
       url_query = uri.query
       bool = url_path.to_s == _url.to_s && url_path.present?
