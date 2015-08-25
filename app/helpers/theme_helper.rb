@@ -30,6 +30,15 @@ module ThemeHelper
     "themes/#{theme_name || current_theme.slug }/assets/#{asset}"
   end
 
+  # return the full url for asset of current theme:
+  # asset: (String) asset name
+  # theme_name: (optional) theme name, default (current theme caller to this function)
+  # sample:
+  #   theme_asset_url("css/main.css") => return: http://myhost.com/assets/themes/my_theme/assets/css/main-54505620f.css
+  def theme_asset_url(asset, theme_name = nil)
+    asset_url("themes/#{theme_name || current_theme.slug }/assets/#{asset}")
+  end
+
   # return theme full view path
   # theme_key: theme folder name
   # view_name: name of the view or template

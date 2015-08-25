@@ -85,6 +85,16 @@ module PluginsHelper
     "plugins/#{plugin_key}/assets/#{asset}"
   end
 
+  # return the full url for asset of current plugin:
+  # asset: (String) asset name
+  # plugin_key: (optional) plugin name, default (current plugin caller to this function)
+  # sample:
+  #   plugin_asset_url("css/main.css") => return: http://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
+  def plugin_asset_url(asset, plugin_key = nil)
+    asset_url("plugins/#{plugin_key || self_plugin_key}/assets/#{asset}")
+  end
+
+
   # auto load all helpers of this plugin
   def plugin_load_helpers(plugin)
     return if !plugin.present? || !plugin["helpers"].present?
