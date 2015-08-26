@@ -1,6 +1,10 @@
 require 'uri'
 h = PluginRoutes.system_info["base_domain"]
 
+# create sitemap directory
+sitemaps_dir = Rails.root.join("public", "sitemaps").to_s
+FileUtils.mkdir(sitemaps_dir) unless Dir.exist?(sitemaps_dir)
+
 Site.all.each do |site|
   site = site.decorate
   folder "sitemaps/#{site.slug}"
@@ -38,7 +42,7 @@ Site.all.each do |site|
   end
 
   # hooks
-  c = ApplicationController.new
+  c = CamaleonController.new
   c.instance_eval do
     @current_site = site
     @_hooks_skip = []

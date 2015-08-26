@@ -14,5 +14,5 @@
 //= require ./jquery.validate
 //= require ../gibberish-aes.js
 //= require ./login
-//= require ./bootstrap.min
+//= require bootstrap.min
 

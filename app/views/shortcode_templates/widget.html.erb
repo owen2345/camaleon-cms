@@ -1,6 +1,6 @@
 <%
    key = attributes.keys.first.to_s
-   widget = @current_site.widgets.where("id = ? OR slug = ?", key, key).first
+   widget = @current_site.widgets.where("slug = ?", key).first
 %>
 <% if widget.present? %>
     <% if key == 'visits-counter' %>

@@ -48,7 +48,7 @@
                         <% end %>
 
                         <div class="group-input-fields">
-                            <%= render file: "admin/settings/custom_fields/fields/#{@field.options[:field_key]}" if File.exist?(File.join('app','views', "admin/settings/custom_fields/fields/#{@field.options[:field_key]}.html.erb")) %>
+                            <%= render file: "admin/settings/custom_fields/fields/#{@field.options[:field_key]}" %>
                         </div>
 
                     </div>

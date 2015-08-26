@@ -113,9 +113,9 @@
                             <label class="col-md-3 col-xs-5 control-label"><%= t('admin.table.slogan') %></label>
                             <div class="col-md-9 col-xs-7">
                                 <textarea name="meta[slogan]" class="form-control"><%= @user.meta[:slogan] %></textarea>
-
                             </div>
                         </div>
+                        <%= render partial: "admin/settings/custom_fields/render", locals: {record: @user, field_groups: @user.get_user_field_groups(current_site) } %>
                     </div>
                     <div class="panel-footer">
                         <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('admin.button.back')%></a>

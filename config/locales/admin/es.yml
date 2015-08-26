@@ -297,6 +297,18 @@ es:
       login_twitter: 'Twitter'
       login_facebook: 'Facebook'
       login_google: 'Google+'
+      email_enabled: "Usar esta configuración para envio de correos"
+      email_server: "Servidor de Correo"
+      email_port: "Puerto"
+      email_domain: "Dominio"
+      email_username: "Nombre de usuario"
+      email_pass: "Contraseña"
+      email_from: "Correo de salida"
+      email_cc: "Correo copia"
+      twitter_card: "Etiqueta Twitter"
+      author: "Nombre de Autor"
+      seo_setting: "Posicionamiento Web."
+      email_settings: "Configuración de Correo (SMTP)"
       message:
         language_updated: 'Tus idiomas se han configurado.'
         site_updated: 'El sitio ha sido actualizado.'

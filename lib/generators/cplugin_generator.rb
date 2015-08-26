@@ -59,7 +59,7 @@ class CpluginGenerator < Rails::Generators::Base
   end
 
   def fix_text(text = "")
-    text.gsub("{plugin_title}", get_plugin_title).gsub("{plugin_class}", get_plugin_class).gsub("{plugin_key}", get_plugin_name)
+    text.gsub("pluginTitle", get_plugin_title).gsub("PluginClass", get_plugin_class).gsub("pluginKey", get_plugin_name)
   end
 
   def self.next_migration_number(dir)

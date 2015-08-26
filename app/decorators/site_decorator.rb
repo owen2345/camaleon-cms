@@ -24,10 +24,11 @@ class SiteDecorator < TermTaxonomyDecorator
   end
 
   # return all contents from this site registered for post_type = slug (filter visibility, hidden, expired, ...)
-  # slug_or_id: slug or id of the post_type, default 'post'
+  # slug_or_id: slug or id of the post_type or array of slugs, default 'post'
   def the_contents(slug_or_id = "post")
     return h.verify_front_visibility(object.posts.where("term_taxonomy.id = ?", slug_or_id)) if slug_or_id.is_a?(Integer)
     return h.verify_front_visibility(object.posts.where("term_taxonomy.slug = ?", slug_or_id)) if slug_or_id.is_a?(String)
+    return h.verify_front_visibility(object.posts.where("term_taxonomy.slug in (?)", slug_or_id)) if slug_or_id.is_a?(Array)
   end
 
   # return all contents for this site registered for post_type = slug (filter visibility, hidden, expired, ...)
@@ -81,7 +82,7 @@ class SiteDecorator < TermTaxonomyDecorator
     res = ["<ul class='#{list_class}'>"]
     lan.each do |lang|
       path = lang.to_s+'.png'
-      img = "<img src='#{h.root_url(locale: nil)}assets/language/#{path}'/>"
+      img = "<img src='#{h.asset_path("language/#{path}")}'/>"
       res << "<li class='#{ current_class if I18n.locale.to_s == lang.to_s}'> <a href='#{h.url_to_fixed(current_page ? "url_for" : "root_url", {locale: lang})}'>#{img}</a> </li>"
     end
     res << "</ul>"

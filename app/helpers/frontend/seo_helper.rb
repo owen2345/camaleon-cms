@@ -22,14 +22,15 @@ module Frontend::SeoHelper
   def build_seo(options)
     options[:image] = options[:image] || current_site.get_option("screenshot", current_site.the_logo)
     options[:title] = I18n.transliterate(is_home? ? current_site.the_title : "#{current_site.the_title} | #{options[:title]}")
-    options[:description] = I18n.transliterate(is_home? ? current_site.the_excerpt : options[:description].to_s)
-    options[:keywords] = I18n.transliterate(is_home? ? current_site.get_option("keywords", "") : options[:keywords].to_s)
+    options[:description] = I18n.transliterate(is_home? ? current_site.the_option("seo_description") : options[:description].to_s)
+    options[:keywords] = I18n.transliterate(is_home? ? current_site.the_option("keywords") : options[:keywords].to_s)
     options[:url] = request.original_url
     s = {
        :title => options[:title],
        :description => options[:description],
        :keywords => options[:keywords],
        :image => options[:image],
+       :author => current_site.get_option("seo_author"),
        :og => {
            :title    => options[:title],
            :description    => options[:description],
@@ -43,8 +44,8 @@ module Frontend::SeoHelper
            :description    => options[:description],
            :url      => request.original_url,
            :image    => options[:image],
-           :site => "@camaleon_cms",
-           :creator => "@camaleon_cms",
+           :site => current_site.get_option("twitter_card"),
+           :creator => current_site.get_option("twitter_card"),
            :domain => request.host
        },
        alternate: { "application/rss+xml"=> rss_url }

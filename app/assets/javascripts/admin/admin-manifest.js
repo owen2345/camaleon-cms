@@ -12,20 +12,15 @@
 //
 //= require jquery
 //= require ./data
-//= require ./bootstrap.min
+//= require bootstrap.min
 //= require ./jquery-ui.min
 //= require ./underscore
 //= require ./jquery.validate
-// require ./jquery.mCustomScrollbar.min
-// require ./plugins
 //= require ./actions
 //= require ./elfinder/elfinder.full
 //= require ./elfinder/proxy/elFinderSupportVer1
 //= require ./elfinder/upload_elfinder
 
-// require ./jquery.tagsinput.min
-
-// require ./jquery.nestable
 //= require ./jquery.slugify
 //= require ./translator
 //= require ./core

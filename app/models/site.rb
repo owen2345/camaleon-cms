@@ -94,7 +94,7 @@ class Site < TermTaxonomy
   # return theme model with slug theme_slug for this site
   # theme_slug: (optional) if it is null, this will return current theme for this site
   def get_theme(theme_slug = nil)
-    self.themes.where(slug: (theme_slug || get_theme_slug)).first_or_create!
+    self.themes.where(slug: (theme_slug || get_theme_slug), status: nil).first_or_create!
   end
 
   # return plugin model with slug plugin_slug

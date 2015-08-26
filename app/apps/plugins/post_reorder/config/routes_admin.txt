@@ -1,3 +1,0 @@
-post 'reorder_posts' => "admin#reorder_posts"
-get 'settings' => "admin#settings"
-post 'settings' => "admin#save_settings"

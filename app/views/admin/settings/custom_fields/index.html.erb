@@ -52,12 +52,11 @@
       <!-- END BASIC TABLE SAMPLE -->
     </div>
   </div>
-
 </div>
 
 <script>
   run.push(function(){
-      $('#table_custom_groups').table_order({url: '<%= admin_api_path('reorder', {model: 'field_groups'}) %>', on_success: function(obj){
+      $('#table_custom_groups').table_order({url: '<%= reorder_admin_settings_custom_fields_path %>', on_success: function(obj){
           if(obj.res.error){
               $.fn.alert({title: obj.res.error, type: 'error'})
           }else{

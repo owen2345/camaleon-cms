@@ -99,7 +99,7 @@ module HtmlHelper
     libs[:colorpicker] = {js: ['admin/bootstrap-colorpicker']}
     libs[:datepicker] = {js: ['admin/bootstrap-datepicker']}
     libs[:datetimepicker] = {js: ['admin/bootstrap-datetimepicker.min']}
-    libs[:tinymce] = {js: ['admin/tinymce/tinymce.min']}
+    libs[:tinymce] = {js: ['admin/tinymce/tinymce.min', "admin/tinymce/plugins/filemanager/plugin.min"], css: ["admin/tinymce/skins/lightgray/content.min"]}
     libs[:form_builder] = {css:['admin/form-builder/formbuilder'],js: ['admin/form-builder/vendor', 'admin/form-builder/formbuilder' ]}
     libs[:form_ajax] = {js: ['admin/form/jquery.form']}
     libs[:cropper] = {js: ['admin/form/cropper.min'], css: ['admin/cropper/cropper.min']}

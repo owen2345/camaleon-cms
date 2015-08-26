@@ -10,7 +10,7 @@ en:
       add_new_field: 'Add New Field'
       add_option: 'Add Option'
       body: 'Body'
-      body_value: 'This e-mail sent via contact form from Site.'
+      body_value: 'This e-mail was send from contact form.'
       button:
         back: 'Back'
         submit: 'Submit'

@@ -13,7 +13,7 @@
     <div class="col-md-12">
       <div class="panel panel-default">
 
-        <%= form_for @form, url:{action: @form.new_record? ? :create : :update} , role: 'form' do |f| %>
+        <%= form_for @form, url:{action: @form.new_record? ? :create : :update} , role: 'form', html: { id: "contact_form_editor", class: "validate" } do |f| %>
             <%= f.hidden_field :site_id  %>
             <%= f.hidden_field :id  %>
             <input id="meta_forms" type="hidden" name="meta" />
@@ -62,13 +62,13 @@
                             <div class="panel-body">
                                 <div class="row">
                                     <div class="form-group">
-                                        <%= f.label t('admin.table.name'), :class => ""  %><br>
-                                        <%= f.text_field :name, :class => "form-control", style: "" %>
+                                        <%= f.label nil, "#{t('admin.table.name')} <abbr title='required'>*</abbr>".html_safe, :class => ""  %><br>
+                                        <%= f.text_field :name, :class => "form-control required", style: "" %>
                                     </div>
 
                                     <div class="form-group">
-                                        <%= f.label "#{t('admin.table.slug')}", :class => ""  %>
-                                        <%= f.text_field :slug, :class => "form-control slug", "data-parent" => "plugins_contact_form_models_contact_form_name", style: "" %>
+                                        <%= f.label nil, "#{t('admin.table.slug')} <abbr title=\"required\">*</abbr>".html_safe, :class => ""  %>
+                                        <%= f.text_field :slug, :class => "form-control slug required", "data-parent" => "plugins_contact_form_models_contact_form_name", style: "" %>
                                     </div>
                                 </div>
                             </div>
@@ -84,13 +84,13 @@
                             <div class="panel-body">
                                 <div class="row">
                                     <div class="form-group">
-                                        <label for="railscf_mail_to"><%= t('plugin.contact_form.to') %>:</label><br>
-                                        <input id="railscf_mail_to" class="form-control" type="text" value="info@skylogix.net" name="railscf_mail[to]" />
+                                        <label for="railscf_mail_to"><%= t('plugin.contact_form.to') %> <abbr title="required">*</abbr>:</label><br>
+                                        <input id="railscf_mail_to" class="form-control required" type="text" value="" name="railscf_mail[to]" />
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="railscf_mail_subject"><%= t('plugin.contact_form.subject') %>:</label><br>
-                                        <input id="railscf_mail_subject" class="form-control" type="text" name="railscf_mail[subject]" />
+                                        <label for="railscf_mail_subject"><%= t('plugin.contact_form.subject') %> <abbr title="required">*</abbr>:</label><br>
+                                        <input id="railscf_mail_subject" class="form-control required" type="text" name="railscf_mail[subject]" />
                                     </div>
 
                                     <div class="form-group">

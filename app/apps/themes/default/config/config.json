@@ -1,7 +1,7 @@
 {
   "name" : "Wordpress theme",
   "description" : "This is a wordpress theme rebuilt with Camaleon cms (folder = default)",
-  "thumb" : "assets/images/image.png",
+  "thumb" : "images/image.png",
   "settings":[
     {"label": "Settings", "action_name": "settings"}
   ],

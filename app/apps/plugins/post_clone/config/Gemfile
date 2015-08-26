@@ -1,1 +1,0 @@
-gem 'deep_cloneable', '~> 2.0.0' # clone models

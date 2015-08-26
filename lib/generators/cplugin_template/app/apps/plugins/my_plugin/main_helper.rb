@@ -1,4 +1,4 @@
-module Plugins::{plugin_class}::MainHelper
+module Plugins::PluginClass::MainHelper
 
   def self.included(klass)
     #klass.helper_method [:my_helper_method] rescue "" # here your methods accessible from views
@@ -8,13 +8,13 @@ module Plugins::{plugin_class}::MainHelper
   # you can run sql commands like this:
   # results = ActiveRecord::Base.connection.execute(query);
   # plugin: plugin model
-  def {plugin_key}_on_active(plugin)
+  def pluginKey_on_active(plugin)
 
   end
 
   # here all actions on going to inactive
   # plugin: plugin model
-  def {plugin_key}_on_inactive(plugin)
+  def pluginKey_on_inactive(plugin)
 
   end
 

@@ -10,7 +10,7 @@
   "share_sessions": true, // (boolean) share user sessions between subdomains of base_domain (only for users_share_sites = true)
   "default_user_role": "client", // default user role for all new users
   "users_share_sites": true, //(boolean) true: permit to share users between sites, false: All users are assigned for a unique site.
-  "version": "1.0"
+  "version": "0.0.1"
 }
 
 // Note: after any change in this file, you need to restart your server to apply changes.

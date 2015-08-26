@@ -21,6 +21,7 @@ class CamaleonController < ApplicationController
   include UploaderHelper
   include Mobu::DetectMobile
 
+  prepend_before_action :load_custom_models
   before_action :site_check_existence, except: [:render_error, :captcha]
   before_action :before_actions, except: [:render_error, :captcha]
   after_action :after_actions, except: [:render_error, :captcha]
@@ -51,15 +52,11 @@ class CamaleonController < ApplicationController
   private
   def before_actions
     # including all helpers (system, themes, plugins) for this site
-    PluginRoutes.enabled_apps(current_site).each{|plugin| plugin_load_helpers(plugin) }
-
-    # include all custom models created by installed plugins or themes for current site
-    site_load_custom_models(current_site)
+    PluginRoutes.enabled_apps(current_site, current_theme.slug).each{|plugin| plugin_load_helpers(plugin) }
 
     # set default cache directory for current site
     cache_store.cache_path = File.join(cache_store.cache_path.split("site-#{current_site.id}").first, "site-#{current_site.id}")
     # Rails.cache.write("#{current_site.id}-#{Time.now}", 1)
-
 
     # initializing short codes
     shortcodes_init()
@@ -75,9 +72,6 @@ class CamaleonController < ApplicationController
     hooks_run("app_before_load")
 
     request.env.except!('HTTP_X_FORWARDED_HOST') if request.env['HTTP_X_FORWARDED_HOST'] # just drop the variable
-
-    # views path for plugins
-    self.append_view_path(Rails.root.join("app", "apps", 'plugins'))
   end
 
   def after_actions
@@ -88,6 +82,14 @@ class CamaleonController < ApplicationController
   # redirect to sessions login form when the session was expired.
   def auth_session_error
     redirect_to root_path
+  end
+
+  # include all custom models created by installed plugins or themes for current site
+  def load_custom_models
+    if current_site.present?
+      site_load_custom_models(current_site)
+      # Site.first.attack
+    end
   end
 
 end

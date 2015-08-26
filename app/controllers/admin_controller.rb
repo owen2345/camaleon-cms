@@ -20,11 +20,12 @@ class AdminController < CamaleonController
   before_action :admin_before_hooks
   after_action :admin_after_hooks
 
+  # render admin dashabord
   def index
 
   end
 
-
+  # render admin dashboard
   def dashboard
      render "admin/dashboard/index"
   end
@@ -36,7 +37,7 @@ class AdminController < CamaleonController
     @_admin_menus = {}
     @_admin_breadcrumb = []
     @_extra_models_for_fields = []
-    self.append_view_path(Rails.root.join("app", "apps"))
+    # self.append_view_path(Rails.root.join("app", "apps"))
   end
 
   # trigger hooks for admin panel before admin load

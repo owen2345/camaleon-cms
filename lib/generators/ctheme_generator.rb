@@ -42,7 +42,7 @@ class CthemeGenerator < Rails::Generators::Base
   end
 
   def fix_text(text = "")
-    text.gsub("{theme_title}", get_theme_title).gsub("{theme_class}", get_theme_class).gsub("{theme_key}", get_theme_name)
+    text.gsub("themeTitle", get_theme_title).gsub("ThemeClass", get_theme_class).gsub("themeKey", get_theme_name)
   end
 
   def self.next_migration_number(dir)
