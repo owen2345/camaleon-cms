@@ -81,7 +81,8 @@ module PluginsHelper
   # asset: (String) asset name
   # sample: <script src="<%= plugin_asset_path("my_plugin", "js/admin.js") %>"></script> => /assets/plugins/my_plugin/assets/css/main-54505620f.css
   def plugin_asset_path(plugin_key, asset)
-    asset_url("plugins/#{plugin_key}/assets/#{asset}")
+    p = "plugins/#{plugin_key}/assets/#{asset}"
+    asset_url(p) rescue p
   end
 
   # return the full url for asset of current plugin:
@@ -90,7 +91,8 @@ module PluginsHelper
   # sample:
   #   plugin_asset_url("css/main.css") => return: http://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
   def plugin_asset_url(asset, plugin_key = nil)
-    asset_url("plugins/#{plugin_key || self_plugin_key}/assets/#{asset}")
+    p = "plugins/#{plugin_key || self_plugin_key}/assets/#{asset}"
+    asset_url(p) rescue p
   end
 
 
