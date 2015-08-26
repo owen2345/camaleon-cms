@@ -25,7 +25,8 @@ WPRails::Application.configure do
   # Debug mode disables concatenation and preprocessing of assets.
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
-  config.assets.debug = true
+  config.assets.debug = false
+
   #config.action_mailer.delivery_method = :sendmail
   #config.action_mailer.sendmail_settings = {
   #    :location       => (File.exist?('H:\xampp1.8\sendmail\sendmail.exe')) ? 'H:\xampp1.8\sendmail\sendmail.exe' : '/usr/lib/sendmail',

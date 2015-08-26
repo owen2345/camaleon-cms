@@ -77,6 +77,30 @@ ActiveRecord::Schema.define(version: 20150611161134) do
   add_index "metas", ["object_class"], name: "index_metas_on_object_class"
   add_index "metas", ["objectid"], name: "index_metas_on_objectid"
 
+  create_table "plugins_attacks", force: :cascade do |t|
+    t.string   "path"
+    t.string   "browser_key"
+    t.integer  "site_id"
+    t.datetime "created_at"
+  end
+
+  add_index "plugins_attacks", ["browser_key"], name: "index_plugins_attacks_on_browser_key"
+  add_index "plugins_attacks", ["path"], name: "index_plugins_attacks_on_path"
+  add_index "plugins_attacks", ["site_id"], name: "index_plugins_attacks_on_site_id"
+
+  create_table "plugins_contact_forms", force: :cascade do |t|
+    t.integer  "site_id"
+    t.integer  "count"
+    t.integer  "parent_id"
+    t.string   "name"
+    t.string   "slug"
+    t.text     "description"
+    t.text     "value"
+    t.text     "settings"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "posts", force: :cascade do |t|
     t.string   "title"
     t.string   "slug"
