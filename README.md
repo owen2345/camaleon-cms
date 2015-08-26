@@ -28,7 +28,7 @@
 * Add the gem in your Gemfile
 
   ```
-  gem 'camaleon_cms', '~> 0.1.3'
+  gem 'camaleon_cms', '~> 0.1.4'
   ```
 * Install the gem
 
