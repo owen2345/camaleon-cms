@@ -78,11 +78,10 @@ module PluginsHelper
 
   # return plugin full asset path
   # plugin_key: plugin name
-  # if asset is present return full path to this asset
-  # sample: <script src="<%= plugin_asset_path("my_plugin", "js/admin.js") %>"></script>
-  def plugin_asset_path(plugin_key, asset = nil)
-    # "#{root_url(locale: nil)}assets/plugins/#{plugin_key}/assets/#{asset}"
-    "plugins/#{plugin_key}/assets/#{asset}"
+  # asset: (String) asset name
+  # sample: <script src="<%= plugin_asset_path("my_plugin", "js/admin.js") %>"></script> => /assets/plugins/my_plugin/assets/css/main-54505620f.css
+  def plugin_asset_path(plugin_key, asset)
+    asset_url("plugins/#{plugin_key}/assets/#{asset}")
   end
 
   # return the full url for asset of current plugin:
