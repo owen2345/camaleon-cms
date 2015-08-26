@@ -45,7 +45,6 @@ module CamaleonCms
 
         # cache control
         app.config.cache_store = :file_store, Rails.root.join("tmp","cache","vars")
-        app.config.action_controller.page_cache_directory = Rails.root.join("tmp","cache","pages")
 
         # extra configuration for plugins
         app.config.autoload_paths += %W{#{app.config.root}/app/apps/**/}
