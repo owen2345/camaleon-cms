@@ -12,6 +12,7 @@ module Plugins::FrontCache::FrontCacheHelper
   def front_cache_front_before_load
     return if signin?
     cache_key = front_cache_get_key
+    ActionController::Base.page_cache_directory = Rails.root.join("tmp", "cache", "pages")
     if page_cache_exist?(cache_key) # recover cache file
       Rails.logger.info "============================================== readed cache: #{cache_key}"
       render text: File.read(page_cache_get(cache_key)).gsub("{{form_authenticity_token}}", form_authenticity_token)
@@ -133,7 +134,7 @@ module Plugins::FrontCache::FrontCacheHelper
   # clear all frontend cache files
   def front_cache_clean
     FileUtils.rm_f(cache_store.cache_path) # clear fragment caches
-    FileUtils.rm_rf(File.join(Rails.application.config.action_controller.page_cache_directory, current_site.id.to_s)) # clear site pages cache
+    FileUtils.rm_rf(File.join(ActionController::Base.page_cache_directory, current_site.id.to_s)) # clear site pages cache
   end
 
   private
