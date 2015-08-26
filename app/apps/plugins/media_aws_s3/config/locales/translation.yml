@@ -1,0 +1,8 @@
+en:
+  plugin:
+    media_aws_s3:
+      settings:
+        title: 'S3 Settings'
+        bucket: 'Bucket name'
+      messages:
+        settings_saved: 'Settings saved!'

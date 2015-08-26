@@ -47,7 +47,7 @@ gem 'will_paginate-bootstrap' # list pagination for bootstrap
 
 # others
 gem 'el_finder' # media manager
-gem 'el_finder_aws_s3' #s3
+gem 'el_finder_s3', '~> 0.1.0' #s3
 #FIXME remove after
 gem 'net-ftp-list'
 

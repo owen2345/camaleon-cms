@@ -11,7 +11,7 @@
 #   has_many :media_aws_s3, class_name: "Plugins::MediaAwsS3::Models::MediaAwsS3"
 # end
 
-class MediaAwsS3 < ElFinderAwsS3::CacheConnector
+class MediaAwsS3 < ElFinderS3::CacheConnector
   #FIXME set cache methods to persist in database
 
   def list_objects search_parameters

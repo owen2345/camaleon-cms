@@ -47,12 +47,12 @@ GEM
     ast (2.1.0)
     astrolabe (1.3.1)
       parser (~> 2.2)
-    aws-sdk (2.1.15)
-      aws-sdk-resources (= 2.1.15)
-    aws-sdk-core (2.1.15)
+    aws-sdk (2.1.16)
+      aws-sdk-resources (= 2.1.16)
+    aws-sdk-core (2.1.16)
       jmespath (~> 1.0)
-    aws-sdk-resources (2.1.15)
-      aws-sdk-core (= 2.1.15)
+    aws-sdk-resources (2.1.16)
+      aws-sdk-core (= 2.1.16)
     bcrypt (3.1.10)
     builder (3.2.2)
     cancancan (1.12.0)
@@ -63,11 +63,11 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.9.1.1)
-    countries (0.11.5)
+    countries (1.0.0)
       currencies (~> 0.4.2)
       i18n_data (~> 0.7.0)
-    country_select (2.2.0)
-      countries (~> 0.11.0)
+    country_select (2.3.0)
+      countries (~> 1.0.0)
       sort_alphabetical (~> 1.0)
     currencies (0.4.2)
     deep_cloneable (2.0.2)
@@ -80,7 +80,7 @@ GEM
     dynamic_sitemaps (2.0.0)
     el_finder (1.1.12)
       image_size (>= 1.0.0)
-    el_finder_aws_s3 (0.1.0)
+    el_finder_s3 (0.1.0)
       aws-sdk (~> 2)
       net-ftp-list (~> 3.2)
     erubis (2.7.0)
@@ -243,7 +243,7 @@ DEPENDENCIES
   draper (~> 1.3)
   dynamic_sitemaps
   el_finder
-  el_finder_aws_s3
+  el_finder_s3 (~> 0.1.0)
   jbuilder (~> 1.2)
   jquery-rails
   meta-tags

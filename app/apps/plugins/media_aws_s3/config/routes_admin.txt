@@ -1,1 +1,2 @@
-get 'index' => "admin#index"
+get 'settings' => "admin#settings"
+post 'settings' => 'admin#save_settings'
