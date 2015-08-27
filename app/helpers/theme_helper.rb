@@ -26,7 +26,8 @@ module ThemeHelper
   # asset: asset file name, if asset is present return full path to this asset
   # sample: <script src="<%= theme_asset_path("js/admin.js") %>"></script> => return: /assets/themes/my_theme/assets/css/main-54505620f.css
   def theme_asset_path(asset = nil, theme_name = nil)
-    asset_url("themes/#{theme_name || current_theme.slug }/assets/#{asset}")
+    p = "themes/#{theme_name || current_theme.slug }/assets/#{asset}"
+    asset_url(p) rescue p
   end
 
   # return the full url for asset of current theme:
@@ -35,7 +36,8 @@ module ThemeHelper
   # sample:
   #   theme_asset_url("css/main.css") => return: http://myhost.com/assets/themes/my_theme/assets/css/main-54505620f.css
   def theme_asset_url(asset, theme_name = nil)
-    asset_url("themes/#{theme_name || current_theme.slug }/assets/#{asset}")
+    p = "themes/#{theme_name || current_theme.slug }/assets/#{asset}"
+    asset_url(p) rescue p
   end
 
   # return theme full view path
