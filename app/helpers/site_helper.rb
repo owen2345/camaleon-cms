@@ -110,7 +110,8 @@ module SiteHelper
   def site_load_custom_models(site)
     PluginRoutes.enabled_apps(site).each{ |app|
       s = File.join(app["path"], "config", "custom_models.rb")
-      require_relative s if File.exist?(s)
+      # require_relative s if File.exist?(s)
+      eval(File.read(s)) if File.exist?(s)
     }
   end
 

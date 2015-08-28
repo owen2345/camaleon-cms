@@ -3,18 +3,11 @@ Dir[File.join($camaleon_engine_dir, "lib", "ext", "**", "*.rb")].each{ |f| requi
 module CamaleonCms
   class Engine < ::Rails::Engine
     config.before_initialize do |app|
-      app.console do
-        begin
-          include SiteHelper
-          # include PluginsHelper
-          # include HooksHelper
-          site = Site.first.decorate
-          site_console_switch(site)
-          puts "*************** Camaleon CMS Console Added for \"#{site.the_title}\", change this by: ***************"
-          puts "- include SiteHelper "
-          puts "- site_console_switch(site = nil)"
-        rescue => e
-          puts "**************** Errors starting camaleon cms in console: #{e.message}"
+      if app.respond_to?(:console)
+        app.console do
+          puts "******** Camaleon CMS: To use custom models and helpers of installed plugins, write this: ********"
+          puts "include SiteHelper; site_console_switch(Site.first.decorate);"
+          puts "*********** To change current site, use: site_console_switch(site) *************"
         end
       end
     end
@@ -45,6 +38,7 @@ module CamaleonCms
 
         # cache control
         app.config.cache_store = :file_store, Rails.root.join("tmp","cache","vars")
+        app.config.action_controller.page_cache_directory = Rails.root.join("tmp","cache","pages")# (pending for error)
 
         # extra configuration for plugins
         app.config.autoload_paths += %W{#{app.config.root}/app/apps/**/}
