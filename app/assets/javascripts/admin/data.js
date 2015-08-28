@@ -23,6 +23,7 @@ var DATA = {
                 $.fn.upload_elfinder({
                     selected: function(res){
                         var file = _.first(res)
+                        if(type == 'media') type = 'video';
                         if(file.mime && (file.mime.indexOf(type) > -1 || type == "file")){
                             $('#'+field_name).val(file.url.to_url());
                         }else{
