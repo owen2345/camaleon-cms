@@ -16,8 +16,9 @@ module ShortCodeHelper
   end
 
   # add shortcode
-  # key: chortcode key
+  # key: shortcode key
   # template: template to render, if nil will render "shortcode_templates/<key>"
+    # Also can be a function to execute that instead a render, sample: lambda{|attrs, args| return "my custom content"; }
   # descr: description for shortcode
   def shortcode_add(key, template = nil, descr = '')
     @_shortcodes << key
@@ -46,23 +47,39 @@ module ShortCodeHelper
     args = {owner: args} unless args.is_a?(Hash)
     content.scan(/(\[(#{@_shortcodes.join("|")})\s?(.*?)\])/) do |item|
       shortcode, code, attrs = item
-      res = render :file => (@_shortcodes_template[code].present? ? @_shortcodes_template[code] : "shortcode_templates/#{code}"), :locals => {attributes: _shortcode_parse_attr(attrs), args: args}
-      content = content.sub(shortcode, res)
+      content = content.sub(shortcode, _eval_shortcode(code, attrs, args))
     end
     content
   end
 
   # render direct a shortcode
-  # template: custom template to be rendered for this short code
-  # sample: render_shortcode("[slider_basic as]")
-  # sample2: render_shortcode("[slider_basic as]", theme_view("custom_slider"))
-  def render_shortcode(shortcode, template = nil)
-    shortcode, code, attrs = shortcode.scan(/(\[(#{@_shortcodes.join("|")})\s?(.*?)\])/).first
-    template ||= (@_shortcodes_template[code].present? ? @_shortcodes_template[code] : "shortcode_templates/#{code}")
-    render :file => template, :locals => {attributes: _shortcode_parse_attr(attrs)}
+  # text: text that contain the shortcode
+  # key: shortcode key
+  # template: template to render, if nil this will render default render file
+    # Also can be a function to execute that instead a render, sample: lambda{|attrs, args| return "my custom content"; }
+  # render_shortcode("asda dasdasdas[owen a='1'] [bbb] sdasdas dasd as das[owen a=213]", "owen", lambda{|attrs, args| puts attrs; return "my test"; })
+  def render_shortcode(text, key, template = nil)
+    text.scan(/(\[(#{key})\s?(.*?)\])/).each do |item|
+      shortcode, code, attrs = item
+      text = text.sub(shortcode, _eval_shortcode(code, attrs, {}, template))
+    end
+    text
   end
 
   private
+  # determine the content to replace instead the shortcode
+  # return string
+  def _eval_shortcode(code, attrs, args={}, template = nil)
+    template ||= (@_shortcodes_template[code].present? ? @_shortcodes_template[code] : "shortcode_templates/#{code}")
+    if @_shortcodes_template[code].class.name == "Proc"
+      res = @_shortcodes_template[code].call(attributes: _shortcode_parse_attr(attrs), args: args)
+    else
+      res = render :file => template, :locals => {attributes: _shortcode_parse_attr(attrs), args: args}
+    end
+    res
+  end
+
+  # parse the attributes of a shortcode
   def _shortcode_parse_attr(text)
     res = {}
     return res unless text.present?
@@ -76,7 +93,4 @@ module ShortCodeHelper
     end
     res
   end
-
-
-
 end

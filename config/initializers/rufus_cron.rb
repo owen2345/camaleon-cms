@@ -36,9 +36,11 @@ end
 
 ####### DELAYED JOBS
 # auto delete file after a time
-class TemporalFileJob < ActiveJob::Base
-  queue_as "destroy_temporal_file"
-  def perform(file_path)
-    FileUtils.rm_rf(file_path) if File.exist?(file_path) && !File.directory?(file_path)
+if defined?(ActiveJob::Base)
+  class TemporalFileJob < ActiveJob::Base
+    queue_as "destroy_temporal_file"
+    def perform(file_path)
+      FileUtils.rm_rf(file_path) if File.exist?(file_path) && !File.directory?(file_path)
+    end
   end
 end

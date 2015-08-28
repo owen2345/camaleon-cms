@@ -20,8 +20,6 @@ module CamaleonCms
         engine_dir = File.expand_path("../../../", __FILE__)
         app.config.i18n.load_path += Dir[File.join($camaleon_engine_dir, 'config', 'locales', '**', '*.{rb,yml}')]
         app.config.i18n.enforce_available_locales = false
-        app.config.i18n.default_locale = PluginRoutes.system_info[:locale]
-        app.config.time_zone = PluginRoutes.system_info[:time_zone]
         PluginRoutes.all_apps.each{ |info| app.config.i18n.load_path += Dir[File.join(info["path"], "config", "locales", '*.{rb,yml}')] }
 
         # assets
@@ -35,10 +33,6 @@ module CamaleonCms
         app.routes_reloader.paths.push(File.join(engine_dir, "config", "routes", "admin.rb"))
         app.routes_reloader.paths.push(File.join(engine_dir, "config", "routes", "frontend.rb"))
         # Dir[File.join(engine_dir, "config", "routes", "*.rb")].each{|r| app.routes_reloader.paths.unshift(r) }
-
-        # cache control
-        app.config.cache_store = :file_store, Rails.root.join("tmp","cache","vars")
-        app.config.action_controller.page_cache_directory = Rails.root.join("tmp","cache","pages")# (pending for error)
 
         # extra configuration for plugins
         app.config.autoload_paths += %W{#{app.config.root}/app/apps/**/}

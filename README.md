@@ -18,7 +18,7 @@
 * Imagemagick
 
 # Installation
-* Install Ruby on Rails 4
+* Install Ruby on Rails 4.1+
   [Visit here.](http://railsapps.github.io/installing-rails.html)
 * Create your rails project
 
@@ -28,7 +28,7 @@
 * Add the gem in your Gemfile
 
   ```
-  gem 'camaleon_cms', '~> 0.1.4'
+  gem 'camaleon_cms'
   ```
 * Install the gem
 

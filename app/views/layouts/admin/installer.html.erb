@@ -24,7 +24,7 @@
     <div class="login-box animated fadeInDown">
         <div class="login-logo text-center"><%= image_tag("camaleon.png") %></div>
         <div class="login-body">
-            <div class="login-title"><%= raw t('admin.installer.Welcome to Camaleon CMS') %>  </div>
+            <div class="login-title"><%= raw t('camaleon_message', default: "Welcome to Camaleon CMS") %>  </div>
             <div class="">
                 <%= yield %>
             </div>

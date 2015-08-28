@@ -1,4 +1,5 @@
 en:
+  camaleon_message: "Welcome to Camaleon CMS"
   admin:
     button:
      activity: 'Activity'
@@ -53,6 +54,7 @@ en:
      yes: 'Yes'
      out_yes: 'Yes'
      out_not: 'No'
+     domain: "Domain"
     comments:
       comments_list_post: 'List Comments Post'
       responses: 'Responses'
