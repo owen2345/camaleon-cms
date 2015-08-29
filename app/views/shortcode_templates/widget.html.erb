@@ -6,6 +6,6 @@
     <% if key == 'visits-counter' %>
         <%=  render partial: plugin_view("visits_counter", "admin/partials/table") %>
     <% else %>
-        <%= raw widget[:description] %>
+        <%= raw widget[:description].translate %>
     <% end %>
 <% end  %>
