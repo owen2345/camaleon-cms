@@ -119,6 +119,7 @@
                     </div>
 
                     <div id="tab-email_settings" class="tab-pane col-md-10 col-md-offset-1">
+                        <div class="alert alert-info">Gmail Need Permissions: <a href="http://know.mailsbestfriend.com/smtp_error_password_command_failed_5345714-1194946499.shtml" target="_blank">Check here.</a> </div>
                         <div class="form-group">
                             <%= label_tag t('admin.settings.email_enabled') %><br>
                             <%= check_box :options, :mailer_enabled, {checked: @site.get_option("mailer_enabled") == 1}, 1, 0 %>
