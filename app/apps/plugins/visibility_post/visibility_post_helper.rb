@@ -88,12 +88,12 @@ module Plugins::VisibilityPost::VisibilityPostHelper
 
   def form_html(post)
     append_asset_libraries({"plugin_visibility"=> { js: [plugin_asset_path("visibility_post", "js/form.js")] }})
-    add_asset_library('datepicker')
+    add_asset_library('datetimepicker')
 
     "
     <div class='form-group'>
                   <label class='control-label'>#{t('admin.post_type.published_date')}</label>
-                  <div id='datetimepicker' data-locale='#{current_locale}' class='input-append date'>
+                  <div id='published_from' data-locale='#{current_locale}' class='input-append date'>
                       <input type='text' name='post[published_at]' data-format='yyyy-MM-dd hh:mm:ss'  value='#{@post[:published_at]}' />
                       <span class='add-on input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span>
                   </div>
