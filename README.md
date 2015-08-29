@@ -114,7 +114,7 @@ It was released on July, 2015 and tested previously with more than 20 projects b
 * many others [here.](https://github.com/owen2345/Camaleon-CMS-Sample)
 
 ## Demonstration
-* [Camaleon Server](http://camaleon.tuzitio.com/plugins/demo_manage/)
+* [Camaleon Server (current version)](http://camaleon.tuzitio.com/plugins/demo_manage/)
 * [Deploy in Heroku](https://heroku.com/deploy?template=https://github.com/owen2345/Camaleon-CMS-Sample)
 
 ## Support
