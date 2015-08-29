@@ -25,7 +25,7 @@ module Plugins::ContactForm::ContactFormHelper
       plugins[self_plugin_key.to_sym].each do |contact|
         unless current_site.contact_forms.where(slug: contact[:slug]).first.present?
           sba_data = ActionController::Parameters.new(contact)
-          contact_new = current_site.slider_basics.new(sba_data.permit(:name, :slug, :count, :description, :value, :settings))
+          contact_new = current_site.contact_forms.new(sba_data.permit(:name, :slug, :count, :description, :value, :settings))
           if contact_new.save!
             if contact[:get_field_groups] # save group fields
               save_field_group(contact_new, contact[:get_field_groups])
@@ -78,9 +78,6 @@ module Plugins::ContactForm::ContactFormHelper
   end
 
   def contact_form_app_before_load
-    Site.class_eval do
-      has_many :contact_forms, :class_name => "Plugins::ContactForm::Models::ContactForm", foreign_key: :site_id, dependent: :destroy
-    end
 
   end
 
