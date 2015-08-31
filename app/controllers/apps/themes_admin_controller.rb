@@ -15,8 +15,6 @@ class Apps::ThemesAdminController < AdminController
     @theme = current_theme
     return render_error(404) unless current_theme.slug == theme_name
     lookup_context.prefixes.prepend(params[:controller].sub("themes/#{theme_name}", "#{theme_name}/views"))
-    self.append_view_path(Rails.root.join("app", 'apps', "themes"))
-    self.append_view_path(File.join($camaleon_engine_dir, "app", 'apps', "themes"))
   end
 
 end

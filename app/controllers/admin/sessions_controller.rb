@@ -134,8 +134,6 @@ class Admin::SessionsController < CamaleonController
 
   private
   def before_hook_session
-    self.prepend_view_path(File.join($camaleon_engine_dir, "app","apps"))
-    self.prepend_view_path(Rails.root.join("app","apps"))
     I18n.locale = params[:locale] || current_site.get_languages.first
     hooks_run("session_before_load")
     end

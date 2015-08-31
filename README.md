@@ -12,13 +12,13 @@
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
 
 # Requirements
-* Rails 4+
+* Rails 4.1+
 * MySQL 5+ or SQlite or PostgreSQL
 * Ruby 1.9.3+
 * Imagemagick
 
 # Installation
-* Install Ruby on Rails 4
+* Install Ruby on Rails 4.1+
   [Visit here.](http://railsapps.github.io/installing-rails.html)
 * Create your rails project
 
@@ -28,7 +28,7 @@
 * Add the gem in your Gemfile
 
   ```
-  gem 'camaleon_cms', '~> 0.1.4'
+  gem 'camaleon_cms'
   ```
 * Install the gem
 
@@ -55,6 +55,8 @@
   ```
   rails server # and then go to your browser http://localhost:3000/
   ```
+
+  Temporarily download additional plugins (Plugin/Theme store in testing...) from:  [Here.](https://github.com/owen2345/Camaleon-CMS-Sample/tree/master/app/apps/plugins)
 
 # Camaleon CMS (It adapts to your needs)
 Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 and Ruby 1.9.3+. This CMS is an alternative to wordpress for Ruby on Rails developers to manage advanced contents easily.  
@@ -112,7 +114,7 @@ It was released on July, 2015 and tested previously with more than 20 projects b
 * many others [here.](https://github.com/owen2345/Camaleon-CMS-Sample)
 
 ## Demonstration
-* [Camaleon Server](http://camaleon.tuzitio.com/plugins/demo_manage/)
+* [Camaleon Server (current version)](http://camaleon.tuzitio.com/plugins/demo_manage/)
 * [Deploy in Heroku](https://heroku.com/deploy?template=https://github.com/owen2345/Camaleon-CMS-Sample)
 
 ## Support

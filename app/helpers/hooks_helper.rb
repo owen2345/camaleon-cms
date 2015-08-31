@@ -42,12 +42,12 @@ module HooksHelper
         send(hook) if params.nil?
       rescue
         plugin_load_helpers(plugin)
-        begin
-          send(hook, params) unless params.nil?
-          send(hook) if params.nil?
-        rescue => e
-          Rails.logger.info "--------------------------------------- error executing hook '#{hook_key}' for plugin '#{plugin["title"]}': #{e.message} --- #{e.backtrace.join("\n")}"
-        end
+        # begin
+        send(hook, params) unless params.nil?
+        send(hook) if params.nil?
+        # rescue => e
+        #   Rails.logger.info "--------------------------------------- error executing hook '#{hook_key}' for plugin '#{plugin["title"]}': #{e.message} --- #{e.backtrace.join("\n")}"
+        # end
       end
     end
   end

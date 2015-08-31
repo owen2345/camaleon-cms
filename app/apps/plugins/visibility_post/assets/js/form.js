@@ -22,8 +22,8 @@ jQuery(function($){
         //label.next().show();
     }).filter(":checked").trigger("change");
 
-    var cal_input = $('#datetimepicker');
-    cal_input.datepicker({
+    var cal_input = $("#form-post").find('#published_from');
+    cal_input.datetimepicker({
         language: CURRENT_LOCALE
     });
 });
