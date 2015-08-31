@@ -37,7 +37,7 @@ module UploaderHelper
     settings[:folder] = settings[:folder].to_s
     if settings[:create_folder] && !File.directory?(settings[:folder])
       FileUtils.mkdir_p(settings[:folder])
-      FileUtils.chmod(0655, folder)
+      FileUtils.chmod(0655, settings[:folder])
     end
 
     # folder validation
