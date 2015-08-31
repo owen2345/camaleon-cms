@@ -20,11 +20,13 @@ class CpluginGenerator < Rails::Generators::Base
       else
 
         # helpers + controllers
-        plugin_app = Rails.root.join("lib", "generators", "cplugin_template", "app_#{get_plugin_name}")
+        plugin_app = File.join($camaleon_engine_dir, "lib", "generators", "cplugin_template", "app_#{get_plugin_name}")
         plugin_folder = File.join(plugin_app, "apps", "plugins", get_plugin_name)
 
+        FileUtils.rm_r(plugin_app) if Dir.exist?(plugin_app)
+
         # tmp copy
-        FileUtils.cp_r(Rails.root.join("lib", "generators", "cplugin_template", "app"), plugin_app)
+        FileUtils.cp_r(File.join($camaleon_engine_dir, "lib", "generators", "cplugin_template", "app"), plugin_app)
         FileUtils.mv(File.join(plugin_app, "apps", "plugins", "my_plugin"), plugin_folder) rescue nil
 
         # configuration

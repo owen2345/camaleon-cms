@@ -19,11 +19,13 @@ class CthemeGenerator < Rails::Generators::Base
       else
 
         # helpers + controllers
-        plugin_app = Rails.root.join("lib", "generators", "ctheme_template", "app_#{get_theme_name}")
+        plugin_app = File.join($camaleon_engine_dir, "lib", "generators", "ctheme_template", "app_#{get_theme_name}")
         plugin_folder = File.join(plugin_app, "apps", "themes", get_theme_name)
 
+        FileUtils.rm_r(plugin_app) if Dir.exist?(plugin_app)
+
         # tmp copy
-        FileUtils.cp_r(Rails.root.join("lib", "generators", "ctheme_template", "app"), plugin_app)
+        FileUtils.cp_r(File.join($camaleon_engine_dir, "lib", "generators", "ctheme_template", "app"), plugin_app)
         FileUtils.mv(File.join(plugin_app, "apps", "themes", "my_theme"), plugin_folder) rescue nil
 
         # configuration
