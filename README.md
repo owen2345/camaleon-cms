@@ -33,7 +33,7 @@
 * Install the gem
 
   ```
-  bundle install
+  bundle install # bundle update if you have previous version installed
   ```
 * Install the CMS (This will copy some basic templates and plugins in your project)
 
