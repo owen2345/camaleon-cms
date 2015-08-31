@@ -7,9 +7,11 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 # load all custom initializers of plugins or themes
-PluginRoutes.all_enabled_apps.each do |ap|
-  if ap["path"].present?
-    f = File.join(ap["path"], "config", "initializer.rb")
-    eval(File.read(f)) if File.exist?(f)
+if defined?(PluginRoutes)
+  PluginRoutes.all_enabled_apps.each do |ap|
+    if ap["path"].present?
+      f = File.join(ap["path"], "config", "initializer.rb")
+      eval(File.read(f)) if File.exist?(f)
+    end
   end
 end

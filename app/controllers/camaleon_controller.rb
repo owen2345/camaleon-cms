@@ -94,16 +94,16 @@ class CamaleonController < ApplicationController
     self.prepend_view_path(File.join($camaleon_engine_dir, "app", "views", 'default_theme'))
     self.prepend_view_path(Rails.root.join("app", "views", 'default_theme'))
 
-    if current_theme.present?
-      views_dir = "app/apps/themes/#{current_theme.slug}/views"
-      self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
-      self.prepend_view_path(Rails.root.join(views_dir).to_s)
-    end
-
     if current_site.present?
       views_site_dir = "app/apps/themes/#{current_site.id}/views"
       self.prepend_view_path(File.join($camaleon_engine_dir, views_site_dir).to_s)
       self.prepend_view_path(Rails.root.join(views_site_dir).to_s)
+
+      if current_theme.present?
+        views_dir = "app/apps/themes/#{current_theme.slug}/views"
+        self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
+        self.prepend_view_path(Rails.root.join(views_dir).to_s)
+      end
     end
   end
 
