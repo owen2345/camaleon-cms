@@ -4,5 +4,6 @@ en:
       settings:
         title: 'S3 Settings'
         bucket: 'Bucket name'
+        cdn_base_path: 'CDN Base path URL'
       messages:
         settings_saved: 'Settings saved!'
