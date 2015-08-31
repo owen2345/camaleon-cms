@@ -87,20 +87,22 @@ module UploaderHelper
 
     # check for destroy the file in the future
     if settings[:temporal_time] > 0
-      if defined?(ActiveJob::Base)
-        TemporalFileJob.set(wait: settings[:is_temporal]).perform_later(file_path)
-        {
-            "file" => file_path,
-            "name"=> File.basename(file_path),
-            "size"=> File.size(file_path),
-            "url"=> file_path_to_url(file_path),
-            "type"=> uploaded_io.content_type,
-            "deleteUrl"=> ""
-        }
-      else
-        Rails.logger.error " ******************** Camaleon: This version of rails doesn't support active job, please install a gem or manage your file destroy manually."
+      Thread.new do
+        sleep(settings[:temporal_time])
+        FileUtils.rm_rf(file_path) if File.exist?(file_path) && !File.directory?(file_path)
+        ActiveRecord::Base.connection.close
       end
     end
+
+    # returning data
+    {
+        "file" => file_path,
+        "name"=> File.basename(file_path),
+        "size"=> File.size(file_path),
+        "url"=> file_path_to_url(file_path),
+        "type"=> uploaded_io.content_type,
+        "deleteUrl"=> ""
+    }
   end
 
   # helper to find an available filename for file_path in that directory
