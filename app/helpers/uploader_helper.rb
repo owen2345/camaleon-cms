@@ -37,7 +37,7 @@ module UploaderHelper
     settings[:folder] = settings[:folder].to_s
     if settings[:create_folder] && !File.directory?(settings[:folder])
       FileUtils.mkdir_p(settings[:folder])
-      FileUtils.chmod(0655, folder)
+      FileUtils.chmod(0655, settings[:folder])
     end
 
     # folder validation
@@ -87,20 +87,22 @@ module UploaderHelper
 
     # check for destroy the file in the future
     if settings[:temporal_time] > 0
-      if defined?(ActiveJob::Base)
-        TemporalFileJob.set(wait: settings[:is_temporal]).perform_later(file_path)
-        {
-            "file" => file_path,
-            "name"=> File.basename(file_path),
-            "size"=> File.size(file_path),
-            "url"=> file_path_to_url(file_path),
-            "type"=> uploaded_io.content_type,
-            "deleteUrl"=> ""
-        }
-      else
-        Rails.logger.error " ******************** Camaleon: This version of rails doesn't support active job, please install a gem or manage your file destroy manually."
+      Thread.new do
+        sleep(settings[:temporal_time])
+        FileUtils.rm_rf(file_path) if File.exist?(file_path) && !File.directory?(file_path)
+        ActiveRecord::Base.connection.close
       end
     end
+
+    # returning data
+    {
+        "file" => file_path,
+        "name"=> File.basename(file_path),
+        "size"=> File.size(file_path),
+        "url"=> file_path_to_url(file_path),
+        "type"=> uploaded_io.content_type,
+        "deleteUrl"=> ""
+    }
   end
 
   # helper to find an available filename for file_path in that directory
@@ -146,6 +148,63 @@ module UploaderHelper
     ext = File.extname(file_dir)
     image.write file_dir.gsub(ext, "_crop#{ext}")
     file.gsub(ext, "_crop#{ext}")
+  end
+
+  # resize and crop a file
+  # Params:
+  #   file: (String) File path
+  #   w: (Integer) width
+  #   h: (Integer) height
+  #   gravity: (Sym, default :north_east) Crop position: :north_west, :north, :north_east, :east, :south_east, :south, :south_west, :west, :center
+  #   overwrite: (Boolean, default true) true for overwrite current image with resized resolutions, false: create other file called with prefix "crop_"
+  # Return: Image object
+  def cama_resize_and_crop(file, w, h, settings = {})
+    settings = {gravity: :north_east, overwrite: true}.merge(settings)
+    img = MiniMagick::Image.open(file)
+    w_original, h_original = [img[:width].to_f, img[:height].to_f]
+
+    # check proportions
+    if w_original * h < h_original * w
+      op_resize = "#{w.to_i}x"
+      w_result = w
+      h_result = (h_original * w / w_original)
+    else
+      op_resize = "x#{h.to_i}"
+      w_result = (w_original * h / h_original)
+      h_result = h
+    end
+
+    w_offset, h_offset = cama_crop_offsets_by_gravity(settings[:gravity], [w_result, h_result], [ w, h])
+    img.combine_options do |i|
+      i.resize(op_resize)
+      i.gravity(settings[:gravity])
+      i.crop "#{w.to_i}x#{h.to_i}+#{w_offset}+#{h_offset}!"
+    end
+
+    img.write(file) if settings[:overwrite]
+    img.write(uploader_verify_name(File.join(File.dirname(file), "crop_#{File.basename(file)}"))) unless settings[:overwrite]
+    img
+  end
+
+  private
+  # helper for resize and crop method
+  def cama_crop_offsets_by_gravity(gravity, original_dimensions, cropped_dimensions)
+    original_width, original_height = original_dimensions
+    cropped_width, cropped_height = cropped_dimensions
+
+    vertical_offset = case gravity
+                        when :north_west, :north, :north_east then 0
+                        when :center, :east, :west then [ ((original_height - cropped_height) / 2.0).to_i, 0 ].max
+                        when :south_west, :south, :south_east then (original_height - cropped_height).to_i
+                      end
+
+    horizontal_offset = case gravity
+                          when :north_west, :west, :south_west then 0
+                          when :center, :north, :south then [ ((original_width - cropped_width) / 2.0).to_i, 0 ].max
+                          when :north_east, :east, :south_east then (original_width - cropped_width).to_i
+                        end
+
+    return [ horizontal_offset, vertical_offset ]
   end
 
 end
