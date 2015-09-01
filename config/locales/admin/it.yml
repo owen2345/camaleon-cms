@@ -153,6 +153,7 @@ it:
       media_manager: 'Media Manager'
       home: "Home"
     menus:
+      menus: 'Menù'
       link_url: 'Link URL'
       message:
         created: 'Menù creato.'
