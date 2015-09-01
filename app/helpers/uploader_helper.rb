@@ -37,7 +37,7 @@ module UploaderHelper
     settings[:folder] = settings[:folder].to_s
     if settings[:create_folder] && !File.directory?(settings[:folder])
       FileUtils.mkdir_p(settings[:folder])
-      FileUtils.chmod(0655, settings[:folder])
+      FileUtils.chmod(0777, settings[:folder])
     end
 
     # folder validation
@@ -157,7 +157,7 @@ module UploaderHelper
   #   h: (Integer) height
   #   gravity: (Sym, default :north_east) Crop position: :north_west, :north, :north_east, :east, :south_east, :south, :south_west, :west, :center
   #   overwrite: (Boolean, default true) true for overwrite current image with resized resolutions, false: create other file called with prefix "crop_"
-  # Return: Image object
+  # Return: (String) file path where saved this cropped
   def cama_resize_and_crop(file, w, h, settings = {})
     settings = {gravity: :north_east, overwrite: true}.merge(settings)
     img = MiniMagick::Image.open(file)
@@ -182,8 +182,8 @@ module UploaderHelper
     end
 
     img.write(file) if settings[:overwrite]
-    img.write(uploader_verify_name(File.join(File.dirname(file), "crop_#{File.basename(file)}"))) unless settings[:overwrite]
-    img
+    img.write(file = uploader_verify_name(File.join(File.dirname(file), "crop_#{File.basename(file)}"))) unless settings[:overwrite]
+    file
   end
 
   private
