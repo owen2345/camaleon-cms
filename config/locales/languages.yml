@@ -17,3 +17,13 @@ es:
     de: "Alemán"
     pt: "Portugues"
     it: "Italiano"
+
+it:
+  languages:
+    es: "Spagnolo"
+    en: "Inglese"
+    fr: "Francese"
+    zh: "Cinese"
+    de: "Tedesco"
+    pt: "Portoghese"
+    it: "Italiano"
