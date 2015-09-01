@@ -1,4 +1,5 @@
 it:
+  updated_at: 'Aggiornato il'
   camaleon_message: "Benvenuto su Camaleon CMS"
   plugin:
     contact_form:
