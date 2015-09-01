@@ -42,7 +42,8 @@ class Plugins::MediaAwsS3::AdminController < Apps::PluginsAdminController
       :home => t('admin.media.home'),
       :original_filename_method => lambda { |file| "#{File.basename(file.original_filename, File.extname(file.original_filename)).parameterize}#{File.extname(file.original_filename)}" },
       :default_perms => {:read => true, :write => true, :rm => true, :hidden => false},
-      :server => plugin_config
+      :server => plugin_config,
+      :cache_connector => Plugins::MediaAwsS3::Models::CacheConnector.new
     ).run(params)
 
     headers.merge!(h)
