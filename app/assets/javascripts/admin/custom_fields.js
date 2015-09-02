@@ -87,7 +87,7 @@ function custom_field_editor($field){
             var inputs = textarea.data("translation_inputs");
             if(inputs){ // multiples languages
                 for(var lang in inputs){
-                    tinymce.init($.extend({} ,DATA.tiny_mce.advanced, {selector: '#' + inputs[lang].attr("id"), height: 120}));
+                    tinymce.init($.extend({} ,DATA.tiny_mce.advanced, {selector: '#' + inputs[lang].attr("id"), language: CURRENT_LOCALE, height: 120}));
                 }
                 return;
             }
