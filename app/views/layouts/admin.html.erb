@@ -21,7 +21,7 @@
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
         String.prototype.to_url = function () { return root_url.slice(0, root_url.length - 1) + this; };
         window.run = [];
-        var tinymce_langs = {"es": "<%= asset_path("admin/tinymce/langs/es.js") %>"};
+        var tinymce_langs = {"en": "<%= asset_path("admin/tinymce/langs/en.js") %>"};
         var lang = {
             accept: '<%= t('admin.button.accept') %>',
             cancel: '<%= t('admin.button.cancel') %>',

@@ -15,7 +15,7 @@ var DATA = {
             toolbar_items_size: 'small',
             //forced_root_block: '',
             toolbar: "bold italic | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect | bullist numlist | outdent indent | undo redo | link unlink image media | forecolor backcolor | styleselect template",
-            language: "es",
+            language: "en",
             relative_urls: false,
             remove_script_host: false,
             browser_spellcheck : true,

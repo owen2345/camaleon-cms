@@ -3,7 +3,7 @@
   "hooks": { }, // system hooks
   "default_plugins": ["front_cache", "contact_form", "attack"], // Default plugins installed for each new site
   "available_languages": ["es", "en", "fr", "zh", "de", "it", "pt"], // Available languages for frontend panel, here all locales: https://github.com/svenfuchs/rails-i18n
-  "admin_available_languages": ["en", "es"], //Available languages for the admin panel
+  "admin_available_languages": ["en", "es", "it"], //Available languages for the admin panel
   "base_domain": "localhost:3000", // primary domain
   "share_sessions": true, // (boolean) share user sessions between subdomains of base_domain (only for users_share_sites = true)
   "default_user_role": "client", // default user role for all new users
