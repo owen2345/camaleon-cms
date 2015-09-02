@@ -15,7 +15,7 @@ var DATA = {
             toolbar_items_size: 'small',
             //forced_root_block: '',
             toolbar: "bold italic | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect | bullist numlist | outdent indent | undo redo | link unlink image media | forecolor backcolor | styleselect template",
-            language: "en",
+            language: CURRENT_LOCALE,
             relative_urls: false,
             remove_script_host: false,
             browser_spellcheck : true,
@@ -73,7 +73,7 @@ var DATA = {
 
                 // Skin options
                 skin : "bootstrap",
-                language: "en"
+                language: CURRENT_LOCALE
             }
         }
 }

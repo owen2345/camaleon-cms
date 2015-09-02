@@ -10,10 +10,6 @@
 
     <%= stylesheet_link_tag "admin/admin-manifest", media: "all" %>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-    <%= javascript_include_tag "admin/admin-manifest" %>
-    <%= javascript_include_tag "admin/#{current_locale}.js" if current_locale != "en" %>
-    <%= javascript_include_tag "admin/elfinder/i18n/elfinder.#{current_locale}.js" if current_locale != "en" %>
-    <%= raw the_head(false) %>
     <script>
         var root_url = '<%= root_url %>';
         var NO_IMAGE_URL = '<%= asset_url("image-not-found.png") %>';
@@ -21,7 +17,7 @@
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
         String.prototype.to_url = function () { return root_url.slice(0, root_url.length - 1) + this; };
         window.run = [];
-        var tinymce_langs = {"en": "<%= asset_path("admin/tinymce/langs/en.js") %>"};
+        var tinymce_langs = {"<%= current_locale %>": "<%= asset_path("admin/tinymce/langs/#{current_locale}.js") %>"};
         var lang = {
             accept: '<%= t('admin.button.accept') %>',
             cancel: '<%= t('admin.button.cancel') %>',
@@ -59,7 +55,10 @@
             upload_image: '<%= t('admin.button.upload_image')%>'
         };
     </script>
-
+    <%= javascript_include_tag "admin/admin-manifest" %>
+    <%= javascript_include_tag "admin/#{current_locale}.js" if current_locale != "en" %>
+    <%= javascript_include_tag "admin/elfinder/i18n/elfinder.#{current_locale}.js" if current_locale != "en" %>
+    <%= raw the_head(false) %>
 </head>
 <body class="template-admin">
 <%= raw content_before_draw %>
