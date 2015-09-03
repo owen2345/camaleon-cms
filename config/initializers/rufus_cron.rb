@@ -21,29 +21,7 @@ begin
       @_hooks_skip = []
     end
     r = {site: site, eval: nil}; c.hooks_run("cron", r)
-    r[:eval].call(r) if r[:eval].present?
+    r[:eval].call(r) if r[:eval].present? # evaluate the cron job created by plugin or theme
   end
 rescue ActiveRecord::RecordNotFound # skipping sites not found
-end
-
-# only for camaleon site
-# $scheduler.cron '00 04 * * *' do
-#   include SiteHelper
-#   include PluginsHelper
-#   include HooksHelper
-#   Site.where(slug: "demo").destroy_all
-#   site = Site.create(name: "Demo", slug: "demo")
-#   @current_site = site
-#   site_after_install(site)
-# end
-
-####### DELAYED JOBS
-# auto delete file after a time
-if defined?(ActiveJob::Base)
-  class TemporalFileJob < ActiveJob::Base
-    queue_as "destroy_temporal_file"
-    def perform(file_path)
-      FileUtils.rm_rf(file_path) if File.exist?(file_path) && !File.directory?(file_path)
-    end
-  end
 end
