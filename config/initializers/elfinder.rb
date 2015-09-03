@@ -41,7 +41,6 @@ module ElFinder
     end
 
     private
-
     def thumbnail_for(pathname)
       @thumb_directory + "#{pathname.path.to_s.parameterize}.png"
     end
@@ -50,21 +49,15 @@ module ElFinder
   class Image
     def self.resize(pathname, options = {})
       return nil unless File.exist?(pathname)
-      # file = "#{File.dirname(pathname.to_s)}/resize_#{File.basename(pathname.to_s)}"
       system( ::Shellwords.join(['convert', '-resize', "#{options[:width]}x#{options[:height]}", pathname.to_s, pathname.to_s]) )
-      # file
     end
     def self.crop(pathname, options = {})
       return nil unless File.exist?(pathname)
-      # file = "#{File.dirname(pathname.to_s)}/crop_#{File.basename(pathname.to_s)}"
       system( ['convert', '-crop', "#{options[:width]}x#{options[:height]}+#{options[:x]}+#{options[:y]}", pathname.to_s, pathname.to_s].join(' ') )
-      # file
     end
     def self.rotate(pathname, options = {})
       return nil unless File.exist?(pathname)
-      # file = "#{File.dirname(pathname.to_s)}/rotate_#{File.basename(pathname.to_s)}"
       system( ['convert', '-rotate', "#{options[:degree]}", pathname.to_s, pathname.to_s].join(' ') )
-      # file
     end
   end
 end
