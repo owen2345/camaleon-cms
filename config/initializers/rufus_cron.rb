@@ -31,6 +31,7 @@ if loaded_rufus
       r = {site: site, eval: nil}; c.hooks_run("cron", r)
       r[:eval].call(r) if r[:eval].present? # evaluate the cron job created by plugin or theme
     end
-  rescue  #ActiveRecord::RecordNotFound # skipping pending migrations
+  rescue ActiveRecord::PendingMigrationError, ActiveRecord::RecordNotFound  #ActiveRecord::RecordNotFound # skipping pending migrations
+    # TODO VERIFY ERROR MIGRATION
   end
 end
