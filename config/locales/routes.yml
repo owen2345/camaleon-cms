@@ -21,3 +21,11 @@ fr:
     tag: balise
     search: recherche
     profile: profil
+
+it:
+  routes:
+    group: gruppo
+    category: categoria
+    tag: etichetta
+    search: ricerca
+    profile: profilo
