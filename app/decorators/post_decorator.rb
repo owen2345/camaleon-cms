@@ -72,6 +72,14 @@ class PostDecorator < ApplicationDecorator
     h.edit_admin_post_type_post_url(object.post_type.id, object)
   end
 
+  # create the html link with edit link
+  # return html link
+  # attrs: Hash of link tag attributes, sample: {id: "myid", class: "sss" }
+  def the_edit_link(title = nil, attrs = { })
+    attrs = {target: "_blank", style: "font-size:11px !important;cursor:pointer;"}.merge(attrs)
+    h.link_to("&rarr; #{title || h.ct("edit")}", the_edit_url, *attrs)
+  end
+
   # show thumbnail image as html
   def the_thumb(img_args = {})
     r = {image: h.image_tag(the_thumb_url, img_args), post: object}
