@@ -135,10 +135,8 @@ Owen Peredo Diaz
 http://camaleon.tuzitio.com/license.html/
 
 ## Coming soon
-* Plugins Store (anybody can upload plugins to this store)
-* Themes Store (anybody can upload themes to this store)
-* Create more basic plugins
 * Documentation and Videos
+* Create more basic plugins
 
 ## Contributing
 * Fork it.

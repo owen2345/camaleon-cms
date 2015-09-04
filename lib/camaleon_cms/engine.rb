@@ -6,8 +6,8 @@ module CamaleonCms
       if app.respond_to?(:console)
         app.console do
           puts "******** Camaleon CMS: To use custom models and helpers of installed plugins, write this: ********"
-          puts "include SiteHelper; site_console_switch(Site.first.decorate);"
-          puts "*********** To change current site, use: site_console_switch(site) *************"
+          puts "- include SiteHelper"
+          puts "- site_console_switch(Site.first.decorate)"
         end
       end
     end

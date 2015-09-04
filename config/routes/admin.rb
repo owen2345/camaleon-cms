@@ -102,6 +102,7 @@ Rails.application.routes.draw do
 
     resources :plugins, only: [:index, :destroy] do
       get "toggle", on: :collection
+      get "upgrade"
     end
 
     # installer

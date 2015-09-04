@@ -109,8 +109,8 @@ module SiteHelper
   # load all custom models customized by plugins or templates in custom_models.rb
   def site_load_custom_models(site)
     PluginRoutes.enabled_apps(site).each{ |app|
+      next unless app["path"].present?
       s = File.join(app["path"], "config", "custom_models.rb")
-      # require_relative s if File.exist?(s)
       eval(File.read(s)) if File.exist?(s)
     }
   end

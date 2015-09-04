@@ -178,6 +178,7 @@ it:
       quick_info: "Informazioni veloci sull'utente"
       was_inactivated: 'è stato disattivato.'
       was_activated: 'è stato attivato.'
+      was_upgraded: "E 'stato aggiornato."
       can_not_be_removed: 'Non può essere rimosso.'
       was_removed: 'è stato rimosso.'
       processing: 'Caricamento...'
@@ -274,6 +275,7 @@ it:
       status_false: 'Inattivo'
       status_true: 'Attivo'
       type_contents: 'Type Contents'
+      upgrade_to: "Aggiornamento a"
     settings:
       activate_create_account: 'Attiva account creato'
       activate_login_social_networks: 'Attiva i Login con i Social Network'
