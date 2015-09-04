@@ -64,21 +64,4 @@ module CamaleonHelper
     !(@_admin_menus.nil?)
   end
 
-
-  ###### simple obfuscation methods ####
-  # generate obfuscated code
-  # return String
-  def cama_obfuscate(text_code)
-    res = ""
-    [0..5].each{|i|  }
-  end
-
-  # generate obfuscated code
-  # rebuilt obfuscated code
-  # return String
-  def cama_reverse_obfuscate(text_obfuscated)
-
-  end
-
-
 end
