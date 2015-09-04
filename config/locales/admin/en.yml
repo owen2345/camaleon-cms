@@ -177,6 +177,7 @@ en:
       quick_info: 'Some quick info about this user'
       was_inactivated: 'was inactivated.'
       was_activated: 'was activated.'
+      was_upgraded: 'was updated.'
       can_not_be_removed: 'can not be removed.'
       was_removed: 'was removed.'
       processing: 'Procesando...'
@@ -273,6 +274,7 @@ en:
       status_false: 'Inactive'
       status_true: 'Active'
       type_contents: 'Type Contents'
+      upgrade_to: "Upgrade to"
     settings:
       activate_create_account: 'Activate Create Account'
       activate_login_social_networks: 'Activate Login Social Networks'

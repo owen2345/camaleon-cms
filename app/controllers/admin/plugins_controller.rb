@@ -27,6 +27,14 @@ class Admin::PluginsController < AdminController
     redirect_to action: :index
   end
 
+  # permit to upgrade a plugin for a new version
+  def upgrade
+    plugin = plugin_upgrade(params[:plugin_id])
+    flash[:notice] = "Plugin \"#{plugin.title}\" #{t('admin.message.was_upgraded')}"
+    PluginRoutes.reload
+    redirect_to action: :index
+  end
+
   def destroy
     plugin = plugin_destroy(params[:id])
     if plugin.error

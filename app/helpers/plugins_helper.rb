@@ -21,11 +21,23 @@ module PluginsHelper
     (klass || self).send :extend, mod
   end
 
+  # upgrade installed plugin in current site for a new version
+  # plugin_key: key of the plugin
+  # trigger hook "on_upgrade"
+  # return model of the plugin
+  def plugin_upgrade(plugin_key)
+    plugin_model = current_site.plugins.where(slug: plugin_key).first!
+    hook_run(plugin_model.settings, "on_upgrade", plugin_model)
+    plugin_model.installed_version= plugin_model.settings["version"]
+    plugin_model
+  end
+
   # install a plugin for current site
   # plugin_key: key of the plugin
   # return model of the plugin
   def plugin_install(plugin_key)
     plugin_model = current_site.plugins.where(slug: plugin_key).first_or_create!
+    plugin_model.installed_version= plugin_model.settings["version"]
     return plugin_model if plugin_model.active?
     plugin_model.active
     PluginRoutes.reload
@@ -51,6 +63,7 @@ module PluginsHelper
   # plugin_key: key of the plugin
   # return model of the plugin removed
   def plugin_destroy(plugin_key)
+    # return
     plugin_model = current_site.plugins.where(slug: plugin_key).first_or_create
     if !plugin_can_be_deleted?(params[:id]) || true
       plugin_model.error = false

@@ -13,12 +13,12 @@
             </tr>
             </thead>
             <tbody>
-            <% plugins.each do |plugin| status = enabled_plugins.include?(plugin); r = {links: []}; %>
+            <% plugins.each do |plugin| status = enabled_plugins.include?(plugin); r = {links: ["Version: #{plugin["version"]}"]}; %>
                 <tr>
                     <td>
-                        <%= plugin["title"] %>
+                        <b><%= plugin["title"] %></b>
                         <br>
-                        <% r[:links] << (link_to("#{t('admin.sidebar.information')}", "http://camaleon.tuzitio.com/store/plugins/info/#{plugin["key"]}", target: "_blank",  title: "#{plugin["title"]}")) %>
+                        <% r[:links] << (link_to("#{t('admin.sidebar.information')}", "http://camaleon.tuzitio.com/store/plugins/info/#{plugin["key"]}", target: "_blank",  title: "Plugin #{t('admin.sidebar.information')}")) %>
                         <% hook_run(plugin, "plugin_options", r) if status %>
                         <%= raw r[:links].join(" | ") %>
                     </td>
@@ -27,6 +27,7 @@
                     <td><%= t("admin.plugins.status_#{status}") %></td>
                     <td>
                         <%= link_to raw("<i class='fa fa-#{status ? "check-square" : "square"}'></i>"), {action: :toggle, id: plugin["key"], status: status }, class: "btn btn-default btn-xs", title: "#{status ? t('admin.button.disable_plugin') : t('admin.button.activate_plugin') }" %>
+                        <%= link_to("<i class='fa fa-arrow-circle-o-up'></i>".html_safe, admin_plugin_upgrade_path(plugin["key"]), class: "btn btn-info btn-xs", title: "#{t("admin.plugins.upgrade_to")} #{plugin["version"]}") if status && current_site.get_plugin(plugin["key"]).old_version? %>
                     </td>
                 </tr>
             <% end %>
