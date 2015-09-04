@@ -195,6 +195,26 @@ var init_form_validations = function(form){
     };
 })(jQuery);
 
+// helper validate only letters latin
+(function($){
+    $.fn.input_only_letters = function () {
+        $(this).each(function(){
+            $(this).keypress(function(evt){
+                var theEvent = evt || window.event;
+                var key = theEvent.keyCode || theEvent.which;
+                if(key != 8){
+                    key = String.fromCharCode( key );
+                    var regex = /[a-zA-Z\'\ ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏàáâãäåæçèéêëìíîïÐÑÒÓÔÕÖØÙÚÛÜÝÞßðñòóôõöøùúûüýþÿ]/i;
+                    if( !regex.test(key) ) {
+                        theEvent.returnValue = false;
+                        if(theEvent.preventDefault) theEvent.preventDefault();
+                    }
+                }
+            })
+        });
+    };
+})(jQuery);
+
 (function($){
     $.fn.table_order = function (options){
         var default_options = {url: "", table: ".table", on_success: false, on_change: false};
