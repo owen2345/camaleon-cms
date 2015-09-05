@@ -19,19 +19,15 @@ if loaded_rufus
     system("rake camaleon_cms:sitemap")
   end
 
-  # run all custom cron jobs
-  begin
-    Site.all.each do |site|
-      # hooks
-      c = CamaleonController.new
-      c.instance_eval do
-        @current_site = site
-        @_hooks_skip = []
-      end
-      r = {site: site, eval: nil}; c.hooks_run("cron", r)
-      r[:eval].call(r) if r[:eval].present? # evaluate the cron job created by plugin or theme
+  sites = Site.all rescue []
+  sites.each do |site|
+    # triggering cron hooks
+    c = CamaleonController.new
+    c.instance_eval do
+      @current_site = site
+      @_hooks_skip = []
     end
-  rescue ActiveRecord::PendingMigrationError, ActiveRecord::RecordNotFound  #ActiveRecord::RecordNotFound # skipping pending migrations
-    # TODO VERIFY ERROR MIGRATION
+    r = {site: site, eval: nil}; c.hooks_run("cron", r)
+    r[:eval].call(r) if r[:eval].present? # evaluate the cron job created by plugin or theme
   end
 end
