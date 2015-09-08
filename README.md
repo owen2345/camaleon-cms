@@ -146,3 +146,23 @@ http://camaleon.tuzitio.com/license.html/
 * Create a pull request from your branch into master (Please be sure to provide enough detail for us to cipher what this change is doing)
 
 Visit the web site for more information: http://camaleon.tuzitio.com/
+
+## Version History
+### 0.2.1
+* fixed sprockets problem: https://github.com/owen2345/camaleon-cms/issues/53
+
+### 0.2.0
+* datetimepicker
+* Plugin files separated in two files, please update with: rails g camaleon_cms:install //and replace plugin_routes.rb
+* Added the edit url for post/posttypes/categories
+* Added plugin upgrade support
+* Added confirm for disable/enable a plugin
+
+### 0.1.10
+* Fix rufus initializer
+* Changed plugins documentation link
+* Fixed current locale for editors
+* Rails 4.1 support added
+
+### 0.1.6
+* Added Italian language support
