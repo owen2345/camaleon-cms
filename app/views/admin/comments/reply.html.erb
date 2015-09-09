@@ -29,7 +29,7 @@
                   <div class="btn-group btn-group-sm">
                     <button title="<%= t('admin.comments.tooltip.approved_comment') %>" onclick="do_change_status(this, '<%= comment.id%>', 'approved', 'success'); return false;" class="btn btn-default <%= 'btn-primary' if comment[:approved] == "approved" %>"><span class="fa fa-thumbs-o-up"></span></button>
                     <button title="<%= t('admin.comments.tooltip.comment_pending') %>" onclick="do_change_status(this, '<%= comment.id%>', 'pending', 'warning'); return false;" class="btn btn-default <%= 'btn-primary' if comment[:approved] == "pending" %>"><span class="fa fa-warning"></span></button>
-                    <button title="<%= t('admin.comments.tooltip.comment_spam') %>" onclick="do_change_status(this, '<%= comment.id%>', 'spam', 'danger'); return false;" class="btn btn-default <%= 'btn-primary' if comment[:approved] == "danger" %>"><span class="fa fa-bug"></span></button>
+                    <button title="<%= t('admin.comments.tooltip.comment_spam') %>" onclick="do_change_status(this, '<%= comment.id%>', 'spam', 'danger'); return false;" class="btn btn-default <%= 'btn-primary' if comment[:approved] == "spam" %>"><span class="fa fa-bug"></span></button>
                   </div>
                   <div class="btn-group btn-group-sm">
                     <button title="<%= t('admin.comments.tooltip.reply_comment') %>" onclick="do_responses_comment(this, <%= comment.id %>, true); return false;" class="btn btn-default"><span class="fa fa-mail-reply"></span></button>
@@ -87,7 +87,7 @@
                       <div class="btn-group btn-group-sm">
                         <button title="<%= t('admin.comments.tooltip.approved_comment') %>" onclick="do_change_status(this, '<%= children.id%>', 'approved', 'success'); return false;" class="btn btn-default <%= 'btn-primary' if children[:approved] == "approved" %>"><span class="fa fa-thumbs-o-up"></span></button>
                         <button title="<%= t('admin.comments.tooltip.comment_pending') %>"  onclick="do_change_status(this, '<%= children.id%>', 'pending', 'warning'); return false;" class="btn btn-default <%= 'btn-primary' if children[:approved] == "pending" %>"><span class="fa fa-warning"></span></button>
-                        <button title="<%= t('admin.comments.tooltip.comment_spam') %>" onclick="do_change_status(this, '<%= children.id%>', 'spam', 'danger'); return false;" class="btn btn-default <%= 'btn-primary' if children[:approved] == "danger" %>"><span class="fa fa-bug"></span></button>
+                        <button title="<%= t('admin.comments.tooltip.comment_spam') %>" onclick="do_change_status(this, '<%= children.id%>', 'spam', 'danger'); return false;" class="btn btn-default <%= 'btn-primary' if children[:approved] == "spam" %>"><span class="fa fa-bug"></span></button>
                       </div>
                       <div class="btn-group btn-group-sm">
                         <button title="<%= t('admin.comments.tooltip.delete_comment') %>" onclick="do_delete_comment(this, <%= children.id %>, 'children'); return false;"  class="btn btn-default"><span class="fa fa-trash-o"></span></button>
