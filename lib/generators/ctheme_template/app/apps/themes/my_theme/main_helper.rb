@@ -16,7 +16,7 @@ module Themes::ThemeClass::MainHelper
       group.add_field({"name"=>"Links color", "slug"=>"links_color"},{field_key: "colorpicker"})
       group.add_field({"name"=>"Backgroun image", "slug"=>"bg"},{field_key: "image"})
     end
-    theme.set_meta("installed_at", Time.now.to_s) # save a custom value
+    theme.set_meta("installed_at", Time.current.to_s) # save a custom value
   end
 
   def themeKey_on_uninstall_theme(theme)
