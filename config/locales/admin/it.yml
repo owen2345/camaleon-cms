@@ -163,9 +163,10 @@ it:
       select_edit: 'Seleziona il menù da modificare:'
     message:
       are_you_sure_you_want_log_out_int: 'Vuoi fare il logout?'
+      are_you_sure_to_import: "Sei sicuro che si desidera importare?"
       data_found_list: 'Nessun risultato nella lista'
       delete: 'Sicuro?'
-      delete_item: 'Vuoi davvero eliminare questo oggetto'
+      delete_item: 'Vuoi davvero eliminare questo oggetto?'
       edit_menu: "Posiziona ogni elemento nell'ordine preferito. Clicca sull'icona della matita per modificarlo e sulla x per cancellarlo"
       add_menus: 'Aggiungi al menù dalla colonna a sinistra.'
       press_no_continue_work_press_yes_logout: 'Premi No se vuoi continuare a lavorare. Premi Si per fare il logout.'
