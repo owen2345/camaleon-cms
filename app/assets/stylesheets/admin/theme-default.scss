@@ -2937,13 +2937,13 @@ blockquote.pull-right {
   float: left;
   width: 100%;
   position: relative;
-  margin-top: 40px;
+  //margin-top: 40px;
 }
 .nav-tabs,
 .nav-tabs.nav-justified {
   border-bottom: 0px;
   margin-bottom: 0px;
-  margin-top: -40px;
+  //margin-top: -40px;
   padding: 0px 5px;
 }
 .block-head .nav-tabs {
@@ -8234,6 +8234,9 @@ li.ext_zip {
   [class^='col-md-'],
   [class^='col-lg-'] {
     margin-bottom: 10px;
+  }
+  #toogle_sidebar{
+    display: none;
   }
   /* LOGIN */
   .login-container {

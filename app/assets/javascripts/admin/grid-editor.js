@@ -7,7 +7,7 @@ jQuery(function(){
     //********************** editor content options **********************//
     $.fn.gridEditor_options = {
         text: {title: "Text", libraries: [], callback: function(panel, editor){
-            open_modal({title: "Entere Your Text", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: "<textarea rows='10' class='form-control'></textarea>", callback: function(modal){
+            open_modal({title: "Enter Your Text", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: "<textarea rows='10' class='form-control'></textarea>", callback: function(modal){
                 var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
                     panel.html(modal.find("textarea").val());
                     modal.modal("hide");
@@ -18,7 +18,7 @@ jQuery(function(){
             }});
         }},
         editor: {title: "Editor", libraries: [], callback: function(panel, editor){
-            open_modal({title: "Entere Your Text", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: "<textarea rows='10' class='form-control'></textarea>", callback: function(modal){
+            open_modal({title: "Enter Your Content", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: "<textarea rows='10' class='form-control'></textarea>", callback: function(modal){
                 var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
                     var area = modal.find("textarea");
                     panel.html(area.tinymce().getContent());
@@ -30,17 +30,7 @@ jQuery(function(){
                 modal.find(".modal-footer").prepend(submit);
             }});
         }},
-        slider: {title: "Slider", callback: function(panel, editor){
-            open_modal({title: "Entere Slider Items", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: "<textarea rows='10' class='form-control'></textarea>", callback: function(modal){
-                var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
-                    panel.html(modal.find("textarea").val());
-                    modal.modal("hide");
-                    editor.trigger("auto_save");
-                });
-                modal.find("textarea").val(panel.html());
-                modal.find(".modal-footer").prepend(submit);
-            }});
-        }},
+        slider: {title: "Slider", callback: grid_tab_editor},
     };
     //********************** end editor content options **********************//
 
@@ -341,5 +331,83 @@ jQuery(function(){
             });
         }
         return textarea;
+    }
+
+    function grid_tab_editor(panel, editor){
+        var id_tab = "tabs_" + gridEditor_id + Math.floor((Math.random() * 100000) + 1);
+        var tpl_tabs = '<ul class="nav nav-tabs" role="tablist">'+
+            '<li role="presentation" class="active"><a href="" role="tab" data-toggle="tab">Sample1</a></li>'+
+            '</ul>'+
+            '<div class="tab-content">'+
+            '<div role="tabpanel" class="tab-pane active" id="">Lorem Ipsum</div>'+
+            '</div>';
+        if(panel.html()) tpl_tabs = panel.html();
+        function tab_builder(modal){
+            modal.find(".nav-tabs li").not(".tb_built").addClass("tb_built").find("a").each(function(){
+                var settings = "<i class='fa fa-trash-o grid_tab_del'></i>"+
+                    "<i class='fa fa-pencil grid_tab_edit'></i>";
+                $(this).append(settings);
+            });
+            var k = id_tab+'_item';
+            modal.find(".nav-tabs li").each(function(index, item){
+                var k_i = k+"-"+index;
+                $(this).children("a").attr("href", "#"+k_i);
+                modal.find(".tab-pane").eq(index).attr("id", k_i);
+            });
+        }
+        open_modal({title: "Enter Slider Items", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: tpl_tabs, callback: function(modal){
+            var p_title = modal.find(".nav-tabs");
+            var p_content = modal.find(".tab-content");
+            p_title.append("<a href='#' class='grid_tab_add pull-right' title='Add Tabs'><i class='fa fa-plus-circle'></i> "+I18n("button.add")+"</a>")
+                .on("click", ".grid_tab_add", function(e){
+                    p_title.append('<li role="presentation"><a href="" role="tab" data-toggle="tab">Sample</a></li>');
+                    p_content.append('<div role="tabpanel" class="tab-pane" id="">Lorem Ipsum</div>');
+                    tab_builder(modal);
+                    e.preventDefault();
+                }).on("click", ".grid_tab_edit", function(e){
+                    var title = $(this).closest("a");
+                    var content = $($(this).closest("a").attr("href"));
+                    var tpl = '<div class="form-group">'+
+                        '<label>Title</label><br>'+
+                        "<input type='text' class='form-control required'/>"+
+                        "</div>"+
+                        '<div class="form-group">'+
+                        '<label>Content</label><br>'+
+                        "<textarea rows='10' class='form-control'></textarea>"+
+                        "</div>"
+                    open_modal({title: "Enter Your Tab Content", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: tpl, callback: function(modal){
+                        var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
+                            title.html(title.find("i")).prepend(modal.find("input").val());
+                            modal.find("input").val();
+                            var area = modal.find("textarea");
+                            content.html(area.tinymce().getContent());
+                            modal.modal("hide");
+                        });
+                        modal.find("input").val(title.text());
+                        modal.find("textarea").val(content.html());
+                        setTimeout(function(){ modal.find("textarea").tinymce($.extend({} ,DATA.tiny_mce.advanced, {height: 120})); }, 500);
+                        modal.find(".modal-footer").prepend(submit);
+                    }});
+
+                    e.preventDefault();
+                }).on("click", ".grid_tab_del", function(e){
+                    if(confirm("are you sure?")){
+                        $($(this).closest("a").attr("href")).remove();
+                        $(this).closest("li").fadeDestroy();
+                    }
+                    e.preventDefault();
+                }).sortable({items: "> li"});
+            tab_builder(modal);
+
+            // save contents of tab
+            var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
+                modal.find(".modal-body").find(".tb_built").removeClass("tb_built ui-sortable-handle").end().find(".nav-tabs").find(".fa, .grid_tab_add").remove();
+                panel.html(modal.find(".modal-body").html());
+                modal.modal("hide");
+                editor.trigger("auto_save");
+            });
+            modal.find("textarea").val(panel.html());
+            modal.find(".modal-footer").prepend(submit);
+        }});
     }
 });
