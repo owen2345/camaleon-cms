@@ -28,7 +28,7 @@ class UserDecorator < ApplicationDecorator
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
   def the_avatar
-     object.meta[:avatar].present? ? object.meta[:avatar] : h.asset_url("admin/img/no_image.jpg")
+     object.meta[:avatar].present? && File.exist?(h.url_to_file_path(object.meta[:avatar])) ? object.meta[:avatar] : h.asset_url("admin/img/no_image.jpg")
   end
 
   # return the slogan for this user, default: Hello World
