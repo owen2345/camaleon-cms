@@ -22,12 +22,11 @@ class AdminController < CamaleonController
 
   # render admin dashabord
   def index
-
   end
 
   # render admin dashboard
   def dashboard
-     render "admin/dashboard/index"
+    render "admin/dashboard/index"
   end
 
   private
@@ -53,5 +52,4 @@ class AdminController < CamaleonController
   def admin_logged_actions
     admin_menus_add_commons unless request.xhr?
   end
-
 end

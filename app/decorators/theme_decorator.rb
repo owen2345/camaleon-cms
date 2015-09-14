@@ -12,5 +12,4 @@ class ThemeDecorator < TermTaxonomyDecorator
   def the_id
     object.id
   end
-
 end

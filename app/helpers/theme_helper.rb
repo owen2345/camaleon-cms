@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module ThemeHelper
-
   def theme_init()
     @_front_breadcrumb = []
   end

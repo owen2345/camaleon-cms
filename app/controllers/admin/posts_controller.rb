@@ -7,12 +7,10 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class Admin::PostsController < AdminController
-
   before_action :set_post_type, :except => [:ajax]
   before_action :set_post, only: ['show','edit','update','destroy']
   skip_before_filter :admin_logged_actions, only: [:trash, :restore, :destroy, :ajax]
   skip_before_filter :verify_authenticity_token, only: [:ajax]
-  #http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
 
   def index
     authorize! :posts, @post_type
@@ -44,7 +42,6 @@ class Admin::PostsController < AdminController
   end
 
   def show
-
   end
 
   def new
@@ -131,13 +128,14 @@ class Admin::PostsController < AdminController
     authorize! :update, @post
     @post.update_column('status', @post.options[:status_default] || 'pending')
     @post.update_extra_data
-    flash[:notice] =  t('admin.post.message.restore', post_type: @post_type.decorate.the_title)
+    flash[:notice] = t('admin.post.message.restore', post_type: @post_type.decorate.the_title)
     redirect_to action: :index, s: params[:s]
   end
 
   def destroy
     authorize! :destroy, @post
-    r={post: @post, post_type: @post_type, flag: true}; hooks_run("destroy_post", r)
+    r = {post: @post, post_type: @post_type, flag: true}
+    hooks_run("destroy_post", r)
     if r[:flag]
       @post.destroy
       hooks_run("destroy_post", {post: @post, post_type: @post_type})
@@ -163,12 +161,11 @@ class Admin::PostsController < AdminController
         end
         json = {slug: slug, index: i}
     end
-
-
     render json: json
   end
 
   private
+
   def set_post_type
       @post_type = current_site.post_types.find_by_id(params[:post_type_id] )
       unless @post_type.present?
@@ -177,19 +174,19 @@ class Admin::PostsController < AdminController
       end
     @post_type = @post_type.decorate
   end
+
   def set_post
-      begin
-        @post = @post_type.posts.find(params[:id])
-        @post_decorate = @post.decorate
-      rescue
-        flash[:error] =  t('admin.post.message.error', post_type: @post_type.decorate.the_title)
-        redirect_to admin_path
-      end
+    begin
+      @post = @post_type.posts.find(params[:id])
+      @post_decorate = @post.decorate
+    rescue
+      flash[:error] =  t('admin.post.message.error', post_type: @post_type.decorate.the_title)
+      redirect_to admin_path
+    end
   end
 
   # valid slug post
   def _exist_slug?(slug, post_id)
     current_site.posts.where("posts.slug LIKE ? OR posts.slug = ?",  "%-->#{slug}<!--%", slug).where("posts.status != 'draft'").where(post_parent: nil).where.not(id: post_id).present?
   end
-
 end

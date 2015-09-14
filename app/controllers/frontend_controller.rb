@@ -228,5 +228,4 @@ class FrontendController < CamaleonController
       options
     end
   end
-
 end
