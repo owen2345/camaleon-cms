@@ -46,8 +46,8 @@ class Admin::PluginsController < AdminController
   end
 
   private
+
   def validate_role
     authorize! :manager, :plugins
   end
-
 end

@@ -108,7 +108,6 @@ module PluginsHelper
     asset_url(p) rescue p
   end
 
-
   # auto load all helpers of this plugin
   def plugin_load_helpers(plugin)
     return if !plugin.present? || !plugin["helpers"].present?
@@ -123,7 +122,7 @@ module PluginsHelper
         # flash.now[:error] = "app loading error for #{h}: #{e.message}. Please check the plugins and themes presence"
       end
 
-      #self.class.helper h.constantize rescue ActionController::Base.helper(h.constantize)
+      # self.class.helper h.constantize rescue ActionController::Base.helper(h.constantize)
     end
   end
 
@@ -149,5 +148,4 @@ module PluginsHelper
   def current_plugin
     current_site.get_plugin(self_plugin_key)
   end
-
 end

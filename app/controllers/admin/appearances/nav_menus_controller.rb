@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class Admin::Appearances::NavMenusController < Admin::AppearancesController
-
   def menu
     authorize! :manager, :menu
     unless params[:new].present?
@@ -63,7 +62,6 @@ class Admin::Appearances::NavMenusController < Admin::AppearancesController
             current_site.set_option("_nav_menu_#{location}", @nav_menu.id)
           end
         end
-
         render json: {update: 1, nav_menu: @nav_menu}
       else
         render json: {error: t('admin.menus.message.error_menu')}
@@ -115,6 +113,4 @@ class Admin::Appearances::NavMenusController < Admin::AppearancesController
       false
     end
   end
-
-
 end

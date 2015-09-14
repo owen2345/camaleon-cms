@@ -9,7 +9,6 @@
 module Frontend::SeoHelper
   def init_seo(model)
     @_seo_info = model.the_seo
-
   end
 
   # add seo attributes to your page

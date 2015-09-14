@@ -27,5 +27,4 @@ class CustomFieldDecorator < Draper::Decorator
   def cache_prefix(key = "")
     "#{h.current_site.cache_prefix}/cfield#{object.id}#{"/#{key}" if key.present?}"
   end
-
 end

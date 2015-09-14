@@ -60,17 +60,17 @@ class Admin::UserRolesController < AdminController
   end
 
   private
+
   def validate_role
     authorize! :manager, :users
   end
+
   def set_user_roles
-      begin
-        @user_role = current_site.user_roles.find(params[:id])
-      rescue
-        flash[:error] = t('admin.users.message.rol_error')
-        redirect_to action: :index
-      end
-
+    begin
+      @user_role = current_site.user_roles.find(params[:id])
+    rescue
+      flash[:error] = t('admin.users.message.rol_error')
+      redirect_to action: :index
+    end
   end
-
 end

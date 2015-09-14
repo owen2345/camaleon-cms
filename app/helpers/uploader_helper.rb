@@ -211,5 +211,4 @@ module UploaderHelper
 
     return [ horizontal_offset, vertical_offset ]
   end
-
 end

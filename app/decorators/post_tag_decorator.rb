@@ -32,5 +32,4 @@ class PostTagDecorator < TermTaxonomyDecorator
     object.post_type.decorate.generate_breadcrumb(add_post_type, true)
     h.breadcrumb_add(self.the_title)
   end
-
 end

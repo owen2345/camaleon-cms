@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-
   scope "(:locale)", locale: /#{PluginRoutes.all_locales}/, :defaults => {  } do
     root 'frontend#index'
 

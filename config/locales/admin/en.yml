@@ -404,7 +404,7 @@ en:
       facebook: 'Facebook'
       favicon: 'Favicon'
       screenshot: "Screenshot"
-      first_names: 'First Names'
+      first_names: 'First Name'
       group_name: 'Group Name'
       google_plus: 'Google plus'
       hide: 'Hide'
@@ -417,7 +417,7 @@ en:
       keywords: 'Keywords (enter separated by commas)'
       kind: 'Kind'
       last_login: 'Last login'
-      last_names: 'Last Names'
+      last_names: 'Last Name'
       last_visit: 'Last visit'
       link: 'Link'
       linkedin: 'Linkedin'
