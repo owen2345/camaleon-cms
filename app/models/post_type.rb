@@ -73,6 +73,7 @@ class PostType < TermTaxonomy
     field = fields.where(slug: key).first
     field.present? ? field.values.where(objectid: object.id, object_class: object.class.to_s.gsub("Decorator","")).pluck(:value) : []
   end
+
   def field_object_value(key, object)
     field_object_values(key, object).first
   end
