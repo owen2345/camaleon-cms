@@ -28,7 +28,7 @@ module Plugins::ContactForm::ContactFormHtmlHelper
   end
 
   # form contact with css bootstrap
-  def form_element_bootstrap_object(form, object)
+  def form_element_bootstrap_object(form, object, values)
     html = ""
 
     object.each do |ob|
@@ -46,29 +46,31 @@ module Plugins::ContactForm::ContactFormHtmlHelper
       field_options = ob[:field_options]
       for_name = ob[:label].to_s
       f_name = "fields[#{ob[:cid]}]"
+      cid = ob[:cid].to_sym
+
       temp2 = ""
 
       case ob[:field_type].to_s
         when 'paragraph','textarea'
-          temp2 = "<textarea #{ob[:custom_attrs].to_attr_format} name=\"#{f_name}\" maxlength=\"#{field_options[:maxlength]}\"  class=\"#{ob[:custom_class]}  \"></textarea>"
+          temp2 = "<textarea #{ob[:custom_attrs].to_attr_format} name=\"#{f_name}\" maxlength=\"#{field_options[:maxlength]}\"  class=\"#{ob[:custom_class]}  \">#{values[cid]}</textarea>"
         when 'radio'
-          temp2=  form_select_multiple_bootstrap(ob, ob[:label], ob[:field_type])
+          temp2=  form_select_multiple_bootstrap(ob, ob[:label], ob[:field_type],values)
         when 'checkboxes'
-          temp2=  form_select_multiple_bootstrap(ob, ob[:label], "checkbox")
+          temp2=  form_select_multiple_bootstrap(ob, ob[:label], "checkbox",values)
         when 'text', 'website', 'email'
           class_type = ""
 
           class_type = "railscf-field-#{ob[:field_type]}" if ob[:field_type]=="website"
           class_type = "railscf-field-#{ob[:field_type]}" if ob[:field_type]=="email"
 
-          temp2=  "<input #{ob[:custom_attrs].to_attr_format} type=\"#{ob[:field_type]}\" value=\"#{}\" name=\"#{f_name}\"  class=\"#{ob[:custom_class]} #{class_type}\">"
+          temp2=  "<input #{ob[:custom_attrs].to_attr_format} type=\"#{ob[:field_type]}\" value=\"#{values[cid]}\" name=\"#{f_name}\"  class=\"#{ob[:custom_class]} #{class_type}\">"
         when 'captcha'
           temp2= captcha_tag(5, {}, {class: "#{ob[:custom_class]} field-captcha required"}.merge(ob[:custom_attrs]))
         when 'file'
           class_type = "railscf-field-#{ob[:field_type]}" if ob[:field_type]=="website"
           temp2=  "<input multiple=\"multiple\" type=\"file\" value=\"#{}\" name=\"#{f_name}\" #{ob[:custom_attrs].to_attr_format} class=\"#{class_type} #{ob[:custom_class]}\">"
         when 'dropdown'
-          temp2=  form_select_multiple_bootstrap(ob, ob[:label], "select")
+          temp2=  form_select_multiple_bootstrap(ob, ob[:label], "select",values)
         else
       end
       r[:template] = r[:template].sub('[label ci]', for_name).sub('[ci]', temp2)
@@ -78,7 +80,7 @@ module Plugins::ContactForm::ContactFormHtmlHelper
     html
   end
 
-  def form_select_multiple_bootstrap(ob, title, type)
+  def form_select_multiple_bootstrap(ob, title, type, values)
 
     options = ob[:field_options][:options]
     include_other_option = ob[:field_options][:include_other_option]
@@ -86,8 +88,11 @@ module Plugins::ContactForm::ContactFormHtmlHelper
 
     f_name = "fields[#{ob[:cid]}]"
     f_label = ""
+    cid = ob[:cid].to_sym
     html = ""
+
     if type=="radio" || type=="checkbox"
+
       other_input = (include_other_option)? "<div class=\"#{type} #{ob[:custom_class]}\"> <label for=\"#{ob[:cid]}\"><input id=\"#{ob[:cid]}-other\" type=\"#{type}\" name=\"#{title.downcase}[]\" class=\"\">Other <input type=\"text\" /></label></div>" : " "
 
     else
@@ -103,7 +108,7 @@ module Plugins::ContactForm::ContactFormHtmlHelper
                     </label>
                   </div>"
       else
-        html +=  "<option value=\"#{op[:label].downcase.gsub(" ", "_")}\">#{op[:label]}</option>"
+        html +=  "<option  value=\"#{op[:label].downcase.gsub(" ", "_")}\" #{"selected" if "#{op[:label].downcase.gsub(" ", "_")}" == values[cid]} >#{op[:label]}</option>"
       end
     end
 
