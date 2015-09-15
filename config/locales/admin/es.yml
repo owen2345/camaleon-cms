@@ -162,9 +162,10 @@ es:
       select_edit: 'Seleccione el menú que desea editar:'
     message:
       are_you_sure_you_want_log_out_int: '¿Seguro que quieres salir?'
+      are_you_sure_to_import: "Esta seguro que desea importar?"
       data_found_list: 'No se encontraron datos en la lista'
       delete: 'Esta seguro?'
-      delete_item: 'Realmente quiere eliminar este elemento'
+      delete_item: 'Realmente quiere eliminar este elemento?'
       edit_menu: 'Coloque cada elemento en el orden que prefiera. Haga clic en el icono de un lápiz para editar el elemento y haga clic en el icono en forma de x para eliminar el elemento.'
       add_menus: 'Añadir elementos de menú de la columna de la izquierda.'
       press_no_continue_work_press_yes_logout: 'Pulse No si desea continuar con el trabajo. Pulse Sí para cerrar la sesión de usuario actual.'
@@ -177,6 +178,7 @@ es:
       quick_info: 'Algo de información rápida acerca de este usuario'
       was_inactivated: 'fue desactivado.'
       was_activated: 'fue activado.'
+      was_upgraded: 'fue actualizado.'
       can_not_be_removed: 'no puede ser eliminado.'
       was_removed.: 'fue eliminado.'
       processing: 'Processing...'
@@ -273,6 +275,7 @@ es:
       status_false: 'Inactivo'
       status_true: 'Activo'
       type_contents: 'Tipo de Contenidos'
+      upgrade_to: "Actualizar a"
     settings:
       activate_create_account: 'Activar Crear Cuenta'
       activate_login_social_networks: 'Activar Iniciar sesión con Redes Sociales'

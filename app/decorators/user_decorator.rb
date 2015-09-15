@@ -12,9 +12,8 @@ class UserDecorator < ApplicationDecorator
 
   # return the identifier
   def the_username
-    "#{object.username}"
+    object.username
   end
-
 
   # return the fullname
   def the_name
@@ -28,7 +27,12 @@ class UserDecorator < ApplicationDecorator
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
   def the_avatar
-     object.meta[:avatar].present? ? object.meta[:avatar] : h.asset_url("admin/img/no_image.jpg")
+    avatar_exists = File.exist? h.url_to_file_path(object.meta[:avatar])
+    if object.meta[:avatar].present? && avatar_exists
+      object.meta[:avatar]
+    else
+      h.asset_url("admin/img/no_image.jpg")
+    end
   end
 
   # return the slogan for this user, default: Hello World
@@ -62,6 +66,4 @@ class UserDecorator < ApplicationDecorator
   def cache_prefix(key = "")
     "#{h.current_site.cache_prefix}/user#{object.id}#{"/#{key}" if key.present?}"
   end
-
-
 end

@@ -1,0 +1,29 @@
+<table class="table table-striped" id="grid_table_list">
+    <% @grid_templates.each do |item| %>
+        <tr>
+            <td><%= item.name %></td>
+            <td class="text-right">
+                <%= link_to("<i class='fa fa-trash'></i>".html_safe, admin_grid_editor_path(item), class: "destroy_item", "data-message" => t("admin.message.delete_item")) %>
+                <%= link_to("<i class='fa fa-pencil'></i>".html_safe, edit_admin_grid_editor_path(item), class: "edit_item") %>
+                <%= link_to("<i class='fa fa-exchange'></i>".html_safe, admin_grid_editor_path(item), class: "import_item", title: t("admin.table.import"), "data-message" => t("admin.message.are_you_sure_to_import")) %>
+            </td>
+        </tr>
+    <% end %>
+    <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if @grid_templates.empty? %>
+</table>
+<script>
+    jQuery(function(){
+        var table = $("#grid_table_list");
+        table.on("click", ".destroy_item", function(){
+            if(!confirm($(this).attr("data-message"))) return false;
+            showLoading();
+            $.ajax({type: "delete", url: $(this).attr("href"), success: function(res){ table.parent().html(res); hideLoading(); }});
+            return false;
+        });
+        table.on("click", ".edit_item", function(){
+            showLoading();
+            $.get($(this).attr("href"), function(res){ table.parent().html(res); hideLoading(); });
+            return false;
+        });
+    })
+</script>

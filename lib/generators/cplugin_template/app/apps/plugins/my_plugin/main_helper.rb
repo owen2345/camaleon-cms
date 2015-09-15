@@ -14,4 +14,9 @@ module Plugins::PluginClass::MainHelper
   # plugin: plugin model
   def pluginKey_on_inactive(plugin)
   end
+
+  # here all actions to upgrade for a new version
+  # plugin: plugin model
+  def pluginKey_on_upgrade(plugin)
+  end
 end

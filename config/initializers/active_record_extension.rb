@@ -11,7 +11,6 @@ module ActiveRecordExtras
     extend ActiveSupport::Concern
 
     module ClassMethods
-
       def update_or_create(attributes = {})
         assign_or_new(attributes).save
       end

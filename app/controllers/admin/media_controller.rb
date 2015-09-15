@@ -37,7 +37,6 @@ class Admin::MediaController < AdminController
     headers.merge!(h)
 
     render (r.empty? ? {:nothing => true} : {:text => r.to_json}), :layout => false
-
   end
 
   def iframe
@@ -51,5 +50,4 @@ class Admin::MediaController < AdminController
     end
     render text: url_image
   end
-
 end

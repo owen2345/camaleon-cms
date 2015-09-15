@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module CamaleonHelper
-
   # send and email
   # email: email to
   # subject: Subject of the email
@@ -63,5 +62,4 @@ module CamaleonHelper
   def is_admin_request?
     !(@_admin_menus.nil?)
   end
-
 end

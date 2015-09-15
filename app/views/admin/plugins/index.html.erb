@@ -32,6 +32,8 @@
 </div>
 <script>
     jQuery(function(){
-        $("#table-plugins-list table").sieve();
+        var table = $("#table-plugins-list table")
+        table.sieve();
+        table.find("a[title!='']").tooltip();
     })
 </script>

@@ -78,6 +78,7 @@ class Admin::SessionsController < CamaleonController
       end
     end
 
+    # TODO: Move this out of the controller
     # send email reset password
     if params[:user].present?
       data_user = params[:user]
@@ -90,7 +91,7 @@ class Admin::SessionsController < CamaleonController
         html = "<p>#{t('admin.login.message.hello')}, <b>#{@user.fullname}</b></p>
             <p>#{t('admin.login.message.reset_url')}:</p>
             <p><a href='#{reset_url}'><b>#{reset_url}</b></a></p> "
-        sendmail(@user.email,t('admin.login.message.subject_email'),html)
+        sendmail(@user.email,t('admin.login.message.subject_email'), html)
 
         flash[:notice] = t('admin.login.message.send_mail_succes')
         redirect_to admin_login_path
@@ -100,7 +101,6 @@ class Admin::SessionsController < CamaleonController
         @user = current_site.users.new(data_user)
       end
     end
-
   end
 
   def register
@@ -128,17 +128,16 @@ class Admin::SessionsController < CamaleonController
     else
       render "register"
     end
-
-    return
   end
 
   private
+
   def before_hook_session
     I18n.locale = params[:locale] || current_site.get_languages.first
     hooks_run("session_before_load")
-    end
+  end
+
   def after_hook_session
     hooks_run("session_after_load")
   end
-
 end

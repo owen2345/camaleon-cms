@@ -968,6 +968,9 @@ ul.nav-menu .focus > ul,
 	position: absolute;
 	width: 1px;
 	z-index: 99999;
+  &.auto_with{
+	min-width: auto;
+  }
 }
 
 

@@ -52,5 +52,4 @@ class PostTypeDecorator < TermTaxonomyDecorator
     th = object.get_option("thumb")
     th.present? ? th : (default || h.asset_url("image-not-found.png"))
   end
-
 end

@@ -20,6 +20,7 @@ en:
     comment_saved: "Your comment was saved"
     comment_error: "An error was occurred on save comment"
     comment_reply: "Reply"
+    edit: "Edit"
 
     recent_posts: "Recent Posts"
 
@@ -81,6 +82,7 @@ es:
     comment_saved: "Su comentario se a guardado"
     comment_error: "Ocurrió un error al enviar su comentario"
     comment_reply: "Respuesta"
+    edit: "Editar"
 
     recent_posts: "Artículos Recientes"
 
@@ -142,6 +144,7 @@ it:
     comment_saved: "Il tuo commento è stato salvato"
     comment_error: "C'è stato un errore durante il salvataggio del commento"
     comment_reply: "Rispondi"
+    edit: "Modifica"
 
     recent_posts: "Articoli recenti"
 

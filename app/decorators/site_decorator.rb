@@ -16,7 +16,7 @@ class SiteDecorator < TermTaxonomyDecorator
   # return logo url for this site
   # default: this url will be returned if logo is not present.
   def the_logo(default = nil)
-    object.options[:logo] || (default || "#{h.asset_path("camaleon.png")}")
+    object.options[:logo] || (default || "#{h.asset_url("camaleon.png")}")
   end
 
   def the_icon
@@ -132,6 +132,4 @@ class SiteDecorator < TermTaxonomyDecorator
   def manage_sites?
     self.main_site? && h.current_user.admin?
   end
-
-
 end

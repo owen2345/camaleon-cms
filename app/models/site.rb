@@ -24,6 +24,7 @@ class Site < TermTaxonomy
   #has_many :posts, through: :post_types, :source => :posts
   has_many :plugins, :class_name => "Plugin", foreign_key: :parent_id, dependent: :destroy
   has_many :themes, :class_name => "Theme", foreign_key: :parent_id, dependent: :destroy
+  has_many :grid_templates, foreign_key: :parent_id, dependent: :destroy
 
   after_create :default_settings
   after_create :set_all_users

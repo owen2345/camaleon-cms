@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module Frontend::SiteHelper
-
   # return full current visited url
   def site_current_url
     request.original_url
@@ -56,5 +55,4 @@ module Frontend::SiteHelper
     js = "<script>var ROOT_URL = '#{root_url}'; var LANGUAGE = '#{I18n.locale}'; </script>"
     icon + "\n" + csrf_meta_tag + "\n" + (seo ? display_meta_tags(the_seo) : "") + "\n" + js + "\n" + draw_custom_assets
   end
-
 end

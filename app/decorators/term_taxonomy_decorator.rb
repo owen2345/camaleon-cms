@@ -22,7 +22,6 @@ class TermTaxonomyDecorator < ApplicationDecorator
     object.slug.translate(get_locale)
   end
 
-
   # return the content for current locale + shortcodes executed
   def the_content
     r = {content: object.description.to_s.translate(get_locale), object: object}
@@ -77,6 +76,14 @@ class TermTaxonomyDecorator < ApplicationDecorator
     link
   end
 
+  # create the html link with edit link
+  # return html link
+  # attrs: Hash of link tag attributes, sample: {id: "myid", class: "sss" }
+  def the_edit_link(title = nil, attrs = { })
+    attrs = {target: "_blank", style: "font-size:11px !important;cursor:pointer;"}.merge(attrs)
+    h.link_to("&rarr; #{title || h.ct("edit")}", the_edit_url, *attrs)
+  end
+
   # cache identifier, the format is: [current-site-prefix]/[object-id]-[object-last_updated]/[current locale]
   # key: additional key for the model
   def cache_prefix(key = "")
@@ -93,5 +100,4 @@ class TermTaxonomyDecorator < ApplicationDecorator
     end
     res
   end
-
 end

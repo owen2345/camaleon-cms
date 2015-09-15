@@ -16,6 +16,10 @@ class String
     return /^[a-zA-Z][\w\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]$/.match(self).present?
   end
 
+  def is_float?
+    self.to_f.to_s == self.to_s
+  end
+
   def is_number?
     self.to_f.to_s == self.to_s || self.to_i.to_s == self.to_s
   end
@@ -25,7 +29,9 @@ class String
   end
 
   def to_var
-    if is_number?
+    if is_float?
+      self.to_f
+    elsif is_number?
       self.to_i
     elsif is_bool?
       self.to_bool

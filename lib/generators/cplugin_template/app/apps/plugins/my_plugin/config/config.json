@@ -12,6 +12,9 @@
     ],
     "on_inactive": [
       "pluginKey_on_inactive"
+    ],
+    "on_upgrade": [
+      "pluginKey_on_upgrade"
     ]
     //here you can add all your hooks (read documentation)
   }

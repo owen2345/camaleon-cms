@@ -37,5 +37,4 @@ module Frontend::ApplicationHelper
     options.delete(:format) if PluginRoutes.system_info[:skip_format_url].present?
     send(url_to, *(args << options))
   end
-
 end

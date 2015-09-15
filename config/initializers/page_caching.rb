@@ -37,7 +37,6 @@ module ActionController
         # request.accept_encoding.include?("gzip")?".html.gz":""
         nil
       end
-
     end
   end
 end

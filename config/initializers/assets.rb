@@ -17,13 +17,19 @@ Rails.application.config.assets.version = '1.0'
 # Precompile additional assets.
 # application.js, application.css, and all non-JS/CSS in app/assets folder are already added.
 # Rails.application.config.assets.precompile += %w( search.js )
-Rails.application.config.assets.precompile += [/.*\.js/,/.*\.css/]
+# Rails.application.config.assets.precompile += [/.*\.js/,/.*\.css/]
 
-Rails.application.config.assets.precompile += Dir[Rails.root.join("app", "apps", "themes", "*", "assets", "**", "*.{js,css,png,jpg,gif}")]
-Rails.application.config.assets.precompile += Dir[Rails.root.join("app", "apps", "plugins", "*", "assets", "**", "*.{js,css,png,jpg,gif}")]
+# Rails.application.config.assets.precompile += Dir[Rails.root.join("app", "apps", "themes", "*", "assets", "**", "^(?!_)*.{js,css,png,jpg,gif}")]
+# Rails.application.config.assets.precompile += Dir[Rails.root.join("app", "apps", "plugins", "*", "assets", "**", "^(?!_)*.{js,css,png,jpg,gif}")]
+#
+# Rails.application.config.assets.precompile += Dir[File.join($camaleon_engine_dir, "app", "apps", "themes", "*", "assets", "**", "^(?!_)*.{js,css,png,jpg,gif}")]
+# Rails.application.config.assets.precompile += Dir[File.join($camaleon_engine_dir, "app", "apps", "plugins", "*", "assets", "**", "^(?!_)*.{js,css,png,jpg,gif}")]
 
-Rails.application.config.assets.precompile += Dir[File.join($camaleon_engine_dir, "app", "apps", "themes", "*", "assets", "**", "*.{js,css,png,jpg,gif}")]
-Rails.application.config.assets.precompile += Dir[File.join($camaleon_engine_dir, "app", "apps", "plugins", "*", "assets", "**", "*.{js,css,png,jpg,gif}")]
+# Rails.application.config.assets.precompile += %w( themes/*/assets/css/^(?!_)* )
+# Rails.application.config.assets.precompile += %w( plugins/*/assets/js/^(?!_)* )
+# Rails.application.config.assets.precompile += %w( themes/*/assets/[images|img]/* )
+# Rails.application.config.assets.precompile += %w( plugins/*/assets/[images|img]/* )
+# Rails.application.config.assets.precompile += %w( plugins/*/assets/* )
 
-Rails.application.config.assets.precompile += %w( themes/*/assets/images/* )
-Rails.application.config.assets.precompile += %w( plugins/*/assets/images/* )
+# This will precompile any assets, not just JavaScript (.js, .coffee, .swf, .css, .scss)
+Rails.application.config.assets.precompile << /(^[^_\/]|\/[^_])[^\/]*$/
