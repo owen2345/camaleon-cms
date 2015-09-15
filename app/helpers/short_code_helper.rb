@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module ShortCodeHelper
-
   # Internal method
   def shortcodes_init
     @_shortcodes = ["widget"]
@@ -67,6 +66,7 @@ module ShortCodeHelper
   end
 
   private
+
   # determine the content to replace instead the shortcode
   # return string
   def _eval_shortcode(code, attrs, args={}, template = nil)

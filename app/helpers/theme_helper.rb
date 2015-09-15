@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module ThemeHelper
-
   def theme_init()
     @_front_breadcrumb = []
   end
@@ -27,7 +26,11 @@ module ThemeHelper
   # sample: <script src="<%= theme_asset_path("js/admin.js") %>"></script> => return: /assets/themes/my_theme/assets/css/main-54505620f.css
   def theme_asset_path(asset = nil, theme_name = nil)
     p = "themes/#{theme_name || current_theme.slug }/assets/#{asset}"
-    asset_url(p) rescue p
+    begin
+      asset_url(p)
+    rescue NoMethodError => e
+      p
+    end
   end
 
   # return the full url for asset of current theme:
@@ -37,7 +40,18 @@ module ThemeHelper
   #   theme_asset_url("css/main.css") => return: http://myhost.com/assets/themes/my_theme/assets/css/main-54505620f.css
   def theme_asset_url(asset, theme_name = nil)
     p = "themes/#{theme_name || current_theme.slug }/assets/#{asset}"
-    asset_url(p) rescue p
+    begin
+      asset_url(p)
+    rescue NoMethodError => e
+      p
+    end
+  end
+
+  # built asset file for current theme
+  # theme_name: theme key, if nill will be used current_theme.slug
+  # return (String), sample: theme_asset("css/mains.css") => themes/my_theme/assets/css/main.css
+  def theme_asset(asset, theme_name = nil)
+    "themes/#{theme_name || self_theme_key || current_theme.slug }/assets/#{asset}"
   end
 
   # return theme full view path

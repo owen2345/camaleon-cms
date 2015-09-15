@@ -67,6 +67,11 @@ class Post < PostDefault
     get_meta("template", "")
   end
 
+  # return default template assigned to this post
+  def default_template
+    get_option("default_template")
+  end
+
   # check if this post was published
   def published?
     status == 'published'
@@ -85,5 +90,62 @@ class Post < PostDefault
   # check if this is in trash status
   def trash?
     status == 'trash'
+  end
+
+  # check if current post can manage content
+  # return boolean
+  def manage_content?(posttype = nil)
+    get_option('has_content', false) || (posttype || self.post_type).get_option('has_content', true)
+  end
+
+  # check if current post can manage summary
+  # return boolean
+  def manage_summary?(posttype = nil)
+    get_option('has_summary', false) || (posttype || self.post_type).get_option('has_summary', true)
+  end
+
+  # check if current post can manage keywords
+  # return boolean
+  def manage_keywords?(posttype = nil)
+    get_option('has_keywords', false) || (posttype || self.post_type).get_option('has_keywords', true)
+  end
+
+  # check if current post can manage picture
+  # return boolean
+  def manage_picture?(posttype = nil)
+    get_option('has_picture', false) || (posttype || self.post_type).get_option('has_picture', true)
+  end
+
+  # check if current post can manage template
+  # return boolean
+  def manage_template?(posttype = nil)
+    get_option('has_template', false) || (posttype || self.post_type).get_option('has_template', true)
+  end
+
+  # check if current post can manage comments
+  # return boolean
+  def manage_comments?(posttype = nil)
+    get_option('has_comments', false) || (posttype || self.post_type).get_option('has_comments', false)
+  end
+
+  # define post configuration for current post
+  # possible key values (String):
+  #   has_content, boolean
+  #   has_summary, boolean
+  #   has_keywords, boolean
+  #   has_picture, boolean
+  #   has_template, boolean
+  #   has_comments, boolean
+  #   default_template: template name rendered by default, the value accept a String
+  # val: value for the setting
+  def set_setting(key, val)
+    set_option(key, val)
+  end
+
+  # assign multiple settings
+  def set_settings(settings = {})
+    settings.each do |key, val|
+      set_option(key, val)
+    end
   end
 end

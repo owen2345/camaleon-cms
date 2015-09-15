@@ -58,5 +58,4 @@ module FrontendConcern extend ActiveSupport::Concern
       redirect_to :back
     end
   end
-
 end

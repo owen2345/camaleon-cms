@@ -25,4 +25,5 @@
  *= require ./bootstrap/bootstrap-datetimepicker
  * require ./nestable/jquery.nestable
  *= require ./tageditor/jquery.tag-editor
+ *= require ./grid-editor
  */

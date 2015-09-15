@@ -22,5 +22,4 @@ class PostCommentDecorator < Draper::Decorator
   def the_content
     object.content
   end
-
 end

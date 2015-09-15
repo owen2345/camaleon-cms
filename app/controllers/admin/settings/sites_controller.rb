@@ -10,15 +10,14 @@ class Admin::Settings::SitesController < Admin::SettingsController
   before_action :set_site, only: ['show','edit','update','destroy']
   before_action :check_shared_status
   def index
-     @sites = Site.all.order(:term_group)
-     @sites = @sites.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
-     r={sites: @sites, render: "index"}; hooks_run("list_site", r)
+    @sites = Site.all.order(:term_group)
+    @sites = @sites.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
+    r = { sites: @sites, render: "index" }
+    hooks_run("list_site", r)
     render r[:render]
   end
 
-
   def show
-
   end
 
   def edit
@@ -60,6 +59,7 @@ class Admin::Settings::SitesController < Admin::SettingsController
   end
 
   private
+
   def save_metas(site)
     if params[:metas].present?
       params[:metas].each do |meta, val|
@@ -84,6 +84,4 @@ class Admin::Settings::SitesController < Admin::SettingsController
       redirect_to admin_path
     end
   end
-
-
 end

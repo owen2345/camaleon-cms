@@ -51,5 +51,4 @@ class Admin::MediaController < AdminController
     end
     render text: url_image
   end
-
 end

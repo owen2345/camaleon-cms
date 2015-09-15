@@ -95,7 +95,11 @@ module PluginsHelper
   # sample: <script src="<%= plugin_asset_path("my_plugin", "js/admin.js") %>"></script> => /assets/plugins/my_plugin/assets/css/main-54505620f.css
   def plugin_asset_path(plugin_key, asset)
     p = "plugins/#{plugin_key}/assets/#{asset}"
-    asset_url(p) rescue p
+    begin
+      asset_url(p)
+    rescue NoMethodError => e
+      p
+    end
   end
 
   # return the full url for asset of current plugin:
@@ -105,9 +109,19 @@ module PluginsHelper
   #   plugin_asset_url("css/main.css") => return: http://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
   def plugin_asset_url(asset, plugin_key = nil)
     p = "plugins/#{plugin_key || self_plugin_key}/assets/#{asset}"
-    asset_url(p) rescue p
+    begin
+      asset_url(p)
+    rescue NoMethodError => e
+      p
+    end
   end
 
+  # built asset file for current theme
+  # plugin_name: (String) if nil, will be used self_plugin_key method
+  # return (String), sample: plugin_asset("css/mains.css") => plugins/my_plugin/assets/css/main.css
+  def plugin_asset(asset, plugin_name = nil)
+    "themes/#{plugin_name || self_plugin_key }/assets/#{asset}"
+  end
 
   # auto load all helpers of this plugin
   def plugin_load_helpers(plugin)
@@ -123,7 +137,7 @@ module PluginsHelper
         # flash.now[:error] = "app loading error for #{h}: #{e.message}. Please check the plugins and themes presence"
       end
 
-      #self.class.helper h.constantize rescue ActionController::Base.helper(h.constantize)
+      # self.class.helper h.constantize rescue ActionController::Base.helper(h.constantize)
     end
   end
 
@@ -149,5 +163,4 @@ module PluginsHelper
   def current_plugin
     current_site.get_plugin(self_plugin_key)
   end
-
 end

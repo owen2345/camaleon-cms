@@ -47,10 +47,20 @@ class PostType < TermTaxonomy
   end
 
   # assign settings for this post type
-  # default: {has_category: false, has_tags: false, has_summary: false, has_content: true, has_comments: false, has_picture: true, has_template: false, has_keywords: false}.merge(settings)
+  # default values: {
+  #   has_category: false,
+  #   has_tags: false,
+  #   has_summary: true,
+  #   has_content: true,
+  #   has_comments: false,
+  #   has_picture: true,
+  #   has_template: true,
+  #   has_keywords: true
+  # }
   def set_settings(settings = {})
-    settings = {has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: false, has_keywords: true}.merge(settings)
-    self.set_meta("_default", settings)
+    settings.each do |key, val|
+      self.set_setting(key, val)
+    end
   end
 
   # set or update a setting for this post type
@@ -63,6 +73,7 @@ class PostType < TermTaxonomy
     field = fields.where(slug: key).first
     field.present? ? field.values.where(objectid: object.id, object_class: object.class.to_s.gsub("Decorator","")).pluck(:value) : []
   end
+
   def field_object_value(key, object)
     field_object_values(key, object).first
   end

@@ -22,7 +22,6 @@ class TermTaxonomyDecorator < ApplicationDecorator
     object.slug.translate(get_locale)
   end
 
-
   # return the content for current locale + shortcodes executed
   def the_content
     r = {content: object.description.to_s.translate(get_locale), object: object}
@@ -101,5 +100,4 @@ class TermTaxonomyDecorator < ApplicationDecorator
     end
     res
   end
-
 end

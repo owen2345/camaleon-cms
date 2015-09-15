@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class Admin::CategoriesController < AdminController
-
   before_action :set_post_type
   before_action :set_category, only: ['show','edit','update','destroy']
 
@@ -18,7 +17,6 @@ class Admin::CategoriesController < AdminController
   end
 
   def show
-
   end
 
   def edit
@@ -35,7 +33,6 @@ class Admin::CategoriesController < AdminController
       render 'edit'
     end
   end
-
 
   def create
     data_term = params[:category]
@@ -58,20 +55,17 @@ class Admin::CategoriesController < AdminController
 
   private
 
-
   def set_post_type
-      @post_type = current_site.post_types.find_by_id(params[:post_type_id])
-      authorize! :categories, @post_type
+    @post_type = current_site.post_types.find_by_id(params[:post_type_id])
+    authorize! :categories, @post_type
   end
-  
+
   def set_category
-      begin
-        @category = Category.find_by_id(params[:id])
-      rescue
-        flash[:error] = t('admin.post_type.message.error')
-        redirect_to admin_path
-      end
-
+    begin
+      @category = Category.find_by_id(params[:id])
+    rescue
+      flash[:error] = t('admin.post_type.message.error')
+      redirect_to admin_path
+    end
   end
-
 end

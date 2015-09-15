@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module SiteHelper
-
   # return current site or assign a site as a current site
   def current_site(site = nil)
     @current_site = site.decorate if site.present?
@@ -123,5 +122,4 @@ module SiteHelper
     $current_site = site
     site_load_custom_models($current_site)
   end
-
 end

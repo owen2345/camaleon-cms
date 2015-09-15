@@ -8,7 +8,7 @@ en:
      add_menu: 'Add to Menu'
      add_widget: 'Add Widget'
      accept: 'Accept'
-     actived: 'Actived'
+     actived: 'Activated'
      activate_plugin: 'Activate Plugin'
      back: 'Back'
      change_photo: 'Change Photo'
@@ -162,9 +162,10 @@ en:
       select_edit: 'Select the menu you want to edit:'
     message:
       are_you_sure_you_want_log_out_int: 'Are you sure you want to log out?'
+      are_you_sure_to_import: "Are you sure you want to import?"
       data_found_list: 'No data found in the list'
       delete: 'Are you sure?'
-      delete_item: 'Really want to delete this item'
+      delete_item: 'Really want to delete this item?'
       edit_menu: 'Place each item in the order you prefer. Click on the icon of a pencil to edit the item and click the icon in the form of x to delete the item.'
       add_menus: 'Add menu items from the left column.'
       press_no_continue_work_press_yes_logout: 'Press No if you want to continue work. Press Yes to logout current user.'
@@ -404,7 +405,7 @@ en:
       facebook: 'Facebook'
       favicon: 'Favicon'
       screenshot: "Screenshot"
-      first_names: 'First Names'
+      first_names: 'First Name'
       group_name: 'Group Name'
       google_plus: 'Google plus'
       hide: 'Hide'
@@ -417,7 +418,7 @@ en:
       keywords: 'Keywords (enter separated by commas)'
       kind: 'Kind'
       last_login: 'Last login'
-      last_names: 'Last Names'
+      last_names: 'Last Name'
       last_visit: 'Last visit'
       link: 'Link'
       linkedin: 'Linkedin'

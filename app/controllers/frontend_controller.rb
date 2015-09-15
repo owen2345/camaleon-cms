@@ -20,9 +20,6 @@ class FrontendController < CamaleonController
     init_seo(current_site)
     r = {layout: (self.send :_layout), render: "nil", custom: false}; hooks_run("on_render_index", r)
     if r[:custom]
-      a = r[:render]
-      b = r[:layout]
-      a1 = 0
       render r[:render], layout: r[:layout]
     else
       if @_site_options[:home_page].present?
@@ -59,7 +56,7 @@ class FrontendController < CamaleonController
     @posts = @post_type.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
     @post_tags = @post_type.post_tags.eager_load(:metas)
-    r = {post_type: @post_type, layout: (self.send :_layout), render: "post_type"}; hooks_run("on_render_post_type", r)
+    r = {post_type: @post_type, layout: (self.send :_layout), render: "post_type"};  hooks_run("on_render_post_type", r)
     render r[:render], layout: r[:layout]
   end
 
@@ -90,7 +87,7 @@ class FrontendController < CamaleonController
 
   # ajax requests
   def ajax
-    r = {render_file: nil, render_text: "", layout: (self.send :_layout)}
+    r = {render_file: nil, render_text: "", layout: (self.send :_layout) }
     hooks_run("on_ajax", r)
     if r[:render_file]
       render r[:render_file], layout: r[:layout]
@@ -116,7 +113,7 @@ class FrontendController < CamaleonController
       return page_not_found
     end
     init_seo(@user)
-    r = {user: @user, layout: (self.send :_layout), render: "profile"}; hooks_run("on_render_profile", r)
+    r = {user: @user, layout: (self.send :_layout), render: "profile"};  hooks_run("on_render_profile", r)
     render r[:render], layout: r[:layout]
   end
 
@@ -157,6 +154,8 @@ class FrontendController < CamaleonController
         r_file = "page_#{@post.id}"
       elsif @post.template.present? && lookup_context.template_exists?(@post.template)
         r_file = @post.template
+      elsif @post.default_template.present? && lookup_context.template_exists?(@post.default_template)
+        r_file = @post.default_template
       elsif home_page.present? && @post.id.to_s == home_page
         r_file = "index"
       elsif lookup_context.template_exists?("#{@post_type.slug}")
@@ -225,11 +224,10 @@ class FrontendController < CamaleonController
       if current_site.get_languages.first.to_s == I18n.locale.to_s
         options
       else
-        {locale: I18n.locale}.merge options
+        { locale: I18n.locale }.merge options
       end
     rescue
       options
     end
   end
-
 end
