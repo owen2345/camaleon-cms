@@ -13,7 +13,6 @@
 
  *= require ./jquery/jquery-ui
  *= require bootstrap.min
- * require ./fontawesome/font-awesome
  * require ./mcustomscrollbar/jquery.mCustomScrollbar
  *= require ./animate/animate.min
 
