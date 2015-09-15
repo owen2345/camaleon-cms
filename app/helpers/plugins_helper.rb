@@ -21,11 +21,23 @@ module PluginsHelper
     (klass || self).send :extend, mod
   end
 
+  # upgrade installed plugin in current site for a new version
+  # plugin_key: key of the plugin
+  # trigger hook "on_upgrade"
+  # return model of the plugin
+  def plugin_upgrade(plugin_key)
+    plugin_model = current_site.plugins.where(slug: plugin_key).first!
+    hook_run(plugin_model.settings, "on_upgrade", plugin_model)
+    plugin_model.installed_version= plugin_model.settings["version"]
+    plugin_model
+  end
+
   # install a plugin for current site
   # plugin_key: key of the plugin
   # return model of the plugin
   def plugin_install(plugin_key)
     plugin_model = current_site.plugins.where(slug: plugin_key).first_or_create!
+    plugin_model.installed_version= plugin_model.settings["version"]
     return plugin_model if plugin_model.active?
     plugin_model.active
     PluginRoutes.reload
@@ -51,6 +63,7 @@ module PluginsHelper
   # plugin_key: key of the plugin
   # return model of the plugin removed
   def plugin_destroy(plugin_key)
+    # return
     plugin_model = current_site.plugins.where(slug: plugin_key).first_or_create
     if !plugin_can_be_deleted?(params[:id]) || true
       plugin_model.error = false
@@ -82,7 +95,11 @@ module PluginsHelper
   # sample: <script src="<%= plugin_asset_path("my_plugin", "js/admin.js") %>"></script> => /assets/plugins/my_plugin/assets/css/main-54505620f.css
   def plugin_asset_path(plugin_key, asset)
     p = "plugins/#{plugin_key}/assets/#{asset}"
-    asset_url(p) rescue p
+    begin
+      asset_url(p)
+    rescue NoMethodError => e
+      p
+    end
   end
 
   # return the full url for asset of current plugin:
@@ -92,9 +109,19 @@ module PluginsHelper
   #   plugin_asset_url("css/main.css") => return: http://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
   def plugin_asset_url(asset, plugin_key = nil)
     p = "plugins/#{plugin_key || self_plugin_key}/assets/#{asset}"
-    asset_url(p) rescue p
+    begin
+      asset_url(p)
+    rescue NoMethodError => e
+      p
+    end
   end
 
+  # built asset file for current theme
+  # plugin_name: (String) if nil, will be used self_plugin_key method
+  # return (String), sample: plugin_asset("css/mains.css") => plugins/my_plugin/assets/css/main.css
+  def plugin_asset(asset, plugin_name = nil)
+    "themes/#{plugin_name || self_plugin_key }/assets/#{asset}"
+  end
 
   # auto load all helpers of this plugin
   def plugin_load_helpers(plugin)
@@ -110,7 +137,7 @@ module PluginsHelper
         # flash.now[:error] = "app loading error for #{h}: #{e.message}. Please check the plugins and themes presence"
       end
 
-      #self.class.helper h.constantize rescue ActionController::Base.helper(h.constantize)
+      # self.class.helper h.constantize rescue ActionController::Base.helper(h.constantize)
     end
   end
 
@@ -136,5 +163,4 @@ module PluginsHelper
   def current_plugin
     current_site.get_plugin(self_plugin_key)
   end
-
 end

@@ -1,0 +1,31 @@
+<%= form_for @grid_template, url:{action: @grid_template.new_record? ? :create : :update}, html: { id: "grid_template_form" } do |f| %>
+    <div class="panel-body">
+        <%= render partial: 'layouts/admin/form_error', locals: {data: @grid_template} %>
+        <div class="form-group">
+            <%= f.label t('admin.table.name') %><br>
+            <%= f.text_field :name, :class => "form-control required" %>
+        </div>
+        <div class="form-group hidden">
+            <%= f.text_area :description, :class => "form-control", :rows => 4 %>
+        </div>
+    </div>
+    <div class="text-right">
+        <button class="btn btn-primary" type="submit"><%= t('admin.button.submit') %></button>
+    </div>
+    <script>
+        jQuery(function(){
+            var form = $("#grid_template_form");
+            form.validate({
+                submitHandler: function(form){
+                    form = $(form);
+                    showLoading();
+                    $.post(form.attr("action"), form.serialize(), function(res){
+                        form.replaceWith(res);
+                        hideLoading();
+                    });
+                    return false;
+                }
+            });
+        });
+    </script>
+<% end %>

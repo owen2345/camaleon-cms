@@ -61,12 +61,12 @@ module Plugins::ContactForm::ContactFormHtmlHelper
           class_type = "railscf-field-#{ob[:field_type]}" if ob[:field_type]=="website"
           class_type = "railscf-field-#{ob[:field_type]}" if ob[:field_type]=="email"
 
-          temp2=  "<input #{ob[:custom_attrs].to_attr_format} type=\"#{ob[:field_type]}\" value=\"#{}\" name=\"#{f_name}\"  class=\"#{ob[:custom_class]} #{class_type}\">"
+          temp2=  "<input #{ob[:custom_attrs].to_attr_format} type=\"#{ob[:field_type]}\" value=\"\" name=\"#{f_name}\"  class=\"#{ob[:custom_class]} #{class_type}\">"
         when 'captcha'
           temp2= captcha_tag(5, {}, {class: "#{ob[:custom_class]} field-captcha required"}.merge(ob[:custom_attrs]))
         when 'file'
           class_type = "railscf-field-#{ob[:field_type]}" if ob[:field_type]=="website"
-          temp2=  "<input multiple=\"multiple\" type=\"file\" value=\"#{}\" name=\"#{f_name}\" #{ob[:custom_attrs].to_attr_format} class=\"#{class_type} #{ob[:custom_class]}\">"
+          temp2=  "<input multiple=\"multiple\" type=\"file\" value=\"\" name=\"#{f_name}\" #{ob[:custom_attrs].to_attr_format} class=\"#{class_type} #{ob[:custom_class]}\">"
         when 'dropdown'
           temp2=  form_select_multiple_bootstrap(ob, ob[:label], "select")
         else

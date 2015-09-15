@@ -1,0 +1,15 @@
+.panel_grid_editor{
+  margin-top: 40px;
+  .panel_grid_body {
+    min-height: 300px;
+    background: #eee;
+    border: 1px solid #ccc;
+    /*.hover-grid{ background: red !important; }*/
+    .drg_column .header_box .dropdown{ position: absolute; right: 8px; top: 0px; }
+    .grid_sortable_items{ min-height: 100px; margin-top: -23px; padding-top: 23px; }
+    .drg_item > *{ display: none; }
+    .drg_item > :first-child{ display: block }
+    & > p { display: none; }
+    /*.grid_sortable_items.hover-grid{ background: blue; }*/
+  }
+}

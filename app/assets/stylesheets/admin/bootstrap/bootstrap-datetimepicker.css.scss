@@ -327,7 +327,7 @@
 }
 
 [class^="icon-"], [class*=" icon-"] {
-    background-image: url("images/glyphicons-halflings.png");
+    background-image: asset-url("admin/bootstrap/images/glyphicons-halflings.png");
     background-position: 14px 14px;
     background-repeat: no-repeat;
     display: inline-block;

@@ -12,13 +12,13 @@
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
 
 # Requirements
-* Rails 4+
+* Rails 4.1+
 * MySQL 5+ or SQlite or PostgreSQL
 * Ruby 1.9.3+
 * Imagemagick
 
 # Installation
-* Install Ruby on Rails 4
+* Install Ruby on Rails 4.1+
   [Visit here.](http://railsapps.github.io/installing-rails.html)
 * Create your rails project
 
@@ -28,12 +28,12 @@
 * Add the gem in your Gemfile
 
   ```
-  gem 'camaleon_cms', '~> 0.1.4'
+  gem 'camaleon_cms'
   ```
 * Install the gem
 
   ```
-  bundle install
+  bundle install # bundle update if you have previous version installed
   ```
 * Install the CMS (This will copy some basic templates and plugins in your project)
 
@@ -55,6 +55,12 @@
   ```
   rails server # and then go to your browser http://localhost:3000/
   ```
+
+To download or publish themes go to themes store:
+http://camaleon.tuzitio.com/store/themes
+
+To download or publish plugins go to plugins store:
+http://camaleon.tuzitio.com/store/plugins
 
 # Camaleon CMS (It adapts to your needs)
 Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 and Ruby 1.9.3+. This CMS is an alternative to wordpress for Ruby on Rails developers to manage advanced contents easily.  
@@ -112,7 +118,7 @@ It was released on July, 2015 and tested previously with more than 20 projects b
 * many others [here.](https://github.com/owen2345/Camaleon-CMS-Sample)
 
 ## Demonstration
-* [Camaleon Server](http://camaleon.tuzitio.com/plugins/demo_manage/)
+* [Camaleon Server (current version)](http://camaleon.tuzitio.com/plugins/demo_manage/)
 * [Deploy in Heroku](https://heroku.com/deploy?template=https://github.com/owen2345/Camaleon-CMS-Sample)
 
 ## Support
@@ -129,10 +135,8 @@ Owen Peredo Diaz
 http://camaleon.tuzitio.com/license.html/
 
 ## Coming soon
-* Plugins Store (anybody can upload plugins to this store)
-* Themes Store (anybody can upload themes to this store)
-* Create more basic plugins
 * Documentation and Videos
+* Create more basic plugins
 
 ## Contributing
 * Fork it.
@@ -142,3 +146,23 @@ http://camaleon.tuzitio.com/license.html/
 * Create a pull request from your branch into master (Please be sure to provide enough detail for us to cipher what this change is doing)
 
 Visit the web site for more information: http://camaleon.tuzitio.com/
+
+## Version History
+### 0.2.1
+* fixed sprockets problem: https://github.com/owen2345/camaleon-cms/issues/53
+
+### 0.2.0
+* datetimepicker
+* Plugin files separated in two files, please update with: rails g camaleon_cms:install //and replace plugin_routes.rb
+* Added the edit url for post/posttypes/categories
+* Added plugin upgrade support
+* Added confirm for disable/enable a plugin
+
+### 0.1.10
+* Fix rufus initializer
+* Changed plugins documentation link
+* Fixed current locale for editors
+* Rails 4.1 support added
+
+### 0.1.6
+* Added Italian language support

@@ -21,6 +21,7 @@ class CamaleonController < ApplicationController
   include UploaderHelper
   include Mobu::DetectMobile
 
+  prepend_before_action :camaleon_add_view_paths
   prepend_before_action :load_custom_models
   before_action :site_check_existence, except: [:render_error, :captcha]
   before_action :before_actions, except: [:render_error, :captcha]
@@ -82,8 +83,27 @@ class CamaleonController < ApplicationController
   def load_custom_models
     if current_site.present?
       site_load_custom_models(current_site)
-      # Site.first.attack
     end
   end
 
+  # add custom views of camaleon
+  def camaleon_add_view_paths
+    self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
+    self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
+
+    self.prepend_view_path(File.join($camaleon_engine_dir, "app", "views", 'default_theme'))
+    self.prepend_view_path(Rails.root.join("app", "views", 'default_theme'))
+
+    if current_site.present?
+      views_site_dir = "app/apps/themes/#{current_site.id}/views"
+      self.prepend_view_path(File.join($camaleon_engine_dir, views_site_dir).to_s)
+      self.prepend_view_path(Rails.root.join(views_site_dir).to_s)
+
+      if current_theme.present?
+        views_dir = "app/apps/themes/#{current_theme.slug}/views"
+        self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
+        self.prepend_view_path(Rails.root.join(views_dir).to_s)
+      end
+    end
+  end
 end

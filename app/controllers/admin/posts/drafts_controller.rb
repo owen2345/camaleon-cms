@@ -7,9 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class Admin::Posts::DraftsController < Admin::PostsController
-
-  #skip_before_filter :admin_init_settings
-
   def index
     render json: @post_type
   end
@@ -37,7 +34,6 @@ class Admin::Posts::DraftsController < Admin::PostsController
     render json: msg
   end
 
-
   def update
     post_data = get_params_data
     post_data[:data_tags] = params[:tags].to_s
@@ -57,12 +53,11 @@ class Admin::Posts::DraftsController < Admin::PostsController
     render json: msg
   end
 
-
   def destroy
-
   end
 
   private
+
   def get_params_data
     post_data = params[:post]
     post_data[:status] = 'draft'
@@ -71,6 +66,4 @@ class Admin::Posts::DraftsController < Admin::PostsController
     post_data[:user_id] = current_user.id unless post_data[:user_id].present?
     post_data
   end
-
-
 end

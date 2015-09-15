@@ -1,0 +1,65 @@
+en:
+  admin:
+    js:
+      button:
+        edit: "Edit"
+        accept: "Accept"
+        cancel: "Cancel"
+        delete: "Delete"
+        clone: "Clone"
+      grid_editor:
+        templates: "Templates"
+        use_tpl: "Use Template"
+        save_tpl: "Save as template"
+        list: "List of templates"
+        text_editor: "Text Editor"
+        blocks: "Blocks"
+        contents: "Content Elements"
+        toggle_editor: "Are you sure to leave this editor?"
+        del_block: "Are you sure to delete this block?"
+        del_content: "Are you sure to delete this content?"
+        clear_editor: "Are you sure to clear the editor?"
+
+es:
+  admin:
+    js:
+      button:
+        edit: "Edit"
+        accept: "Accept"
+        cancel: "Cancel"
+        delete: "Delete"
+        clone: "Duplicar"
+      grid_editor:
+        templates: "Plantillas"
+        use_tpl: "Use Template"
+        save_tpl: "Guardar como plnatilla"
+        list: "Lista de plantillas"
+        text_editor: "Editor de Texto"
+        blocks: "Bloques"
+        contents: "Contenidos"
+        toggle_editor: "Esta seguro de abandonar este editor?"
+        del_block: "Esta seguro de eliminar este bloque?"
+        del_content: "Esta seguro de eliminar este contenido?"
+        clear_editor: "Esta seguro de limpiar el editor?"
+
+it:
+  admin:
+    js:
+      button:
+        edit: "Edit"
+        accept: "Accept"
+        cancel: "Cancel"
+        delete: "Delete"
+        clone: "Duplicare"
+      grid_editor:
+        templates: "Modelli"
+        use_tpl: "Use Template"
+        save_tpl: "Salva come modello"
+        list: "Elenco dei modelli"
+        text_editor: "Editor di testo"
+        blocks: "Blocchi"
+        contents: "Contenuto"
+        toggle_editor: "Sei sicuro di voler lasciare questo editor?"
+        del_block: "Sei sicuro di voler eliminare questo blocco?"
+        del_content: "Sei sicuro di voler cancellare questo contenuto?"
+        clear_editor: "Sei sicuro di voler cancellare l'editor?"

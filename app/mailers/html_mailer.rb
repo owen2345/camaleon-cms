@@ -32,7 +32,7 @@ class HtmlMailer < ActionMailer::Base
                                               password: current_site.get_option("email_pass"),
                                               address: current_site.get_option("email_server"),
                                               port: current_site.get_option("email_port"),
-                                              domain: "localhost",
+                                              domain: (current_site.the_url.to_s.parse_domain rescue "localhost"),
                                               authentication: "plain",
                                               enable_starttls_auto: true
                                             }

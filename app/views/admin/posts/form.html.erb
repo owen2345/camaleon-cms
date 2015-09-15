@@ -75,7 +75,7 @@
               </select>
             </div>
               <!-- templates -->
-              <% if @post_type.get_option('has_template', true)
+              <% if @post.manage_template?(@post_type)
                    _get_list_template_files = get_list_template_files
                    if _get_list_template_files.size > 0
               %>
@@ -88,7 +88,7 @@
               %>
 
               <!-- has comments? -->
-              <% if @post_type.get_option('has_comments', false) %>
+              <% if @post.manage_comments?(@post_type) %>
                   <div class="form-group">
                       <label class="control-label"><%= check_box("meta", "has_comments", {checked: ( params[:meta][:has_comments] == '1' rescue false || @post.meta[:has_comments].to_s.to_bool)  }) %> &nbsp; <%= t('admin.post_type.permit_comments')%></label>
                   </div>
@@ -131,7 +131,7 @@
             </div>
         <% end %>
 
-        <% if @post_type.get_option('has_picture', true) %>
+        <% if @post.manage_picture?(@post_type) %>
             <div class="panel panel-default panel-lite">
               <div class="panel-heading">
                 <h3 class="panel-title"><%= t('admin.post_type.featured_image')%> </h3>
@@ -183,10 +183,7 @@
                               },
                               locale: CURRENT_LOCALE,
                               lang: lang
-
-
                           });
-
                       }
                   </script>
 
@@ -194,17 +191,6 @@
               </div>
             </div>
         <% end %>
-        <!--div class="panel panel-default panel-lite">
-          <div class="panel-heading">
-            <h3 class="panel-title">group</h3>
-            <ul class="panel-controls">
-              <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
-            </ul>
-          </div>
-          <div class="panel-body ">
-
-          </div>
-        </div-->
       </div>
       <!-- END CONTENT FRAME LEFT -->
 
@@ -228,19 +214,19 @@
               <%= f.label t('admin.table.title') %> <em class="text-danger">*</em><br>
               <%= f.text_field :title, :class => "form-control required translatable title-post" %>
             </div>
-            <% if @post_type.get_option('has_content', true) %>
+            <% if @post.manage_content?(@post_type) %>
             <div class="form-group">
               <%= f.label t('admin.sidebar.content') %> <em class="text-danger">*</em><br>
               <%= f.text_area :content, :class => "form-control tinymce_textarea required translatable", :height => '520px', :style => "width: 100%" %>
             </div>
             <% end  %>
-            <% if @post_type.get_option('has_summary', true) %>
+            <% if @post.manage_summary?(@post_type) %>
             <div class="form-group">
               <label for="post_summary"><%= t('admin.post_type.summary')%></label><br>
               <textarea name="meta[summary]" id="post_summary" class="form-control translatable" cols="30" rows="5"><%= @post.meta[:summary] if @post.meta.present? &&  @post.meta[:summary].present? %></textarea>
             </div>
             <% end  %>
-            <% if @post_type.get_option('has_keywords', true) %>
+            <% if @post.manage_keywords?(@post_type) %>
               <div class="form-group">
                   <label for="post_keywords"><%= t('admin.table.keywords')%></label><br>
                   <input name="post[keywords]" id="post_keywords" class="form-control translatable" value="<%= @post.get_option("keywords") %>" />
@@ -249,7 +235,7 @@
           </div>
         </div>
         <% unless @post.draft? || @post.new_record? %>
-            <% if @post_type.get_option('has_comments', false) %>
+            <% if @post.manage_comments?(@post_type) %>
                 <div class="panel panel-default panel-lite">
                   <div class="panel-heading">
                     <h3 class="panel-title"><%= t('admin.post_type.comments') %></h3>

@@ -8,7 +8,6 @@
 =end
 class Admin::SettingsController < AdminController
   before_action :validate_role
-  #http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
 
   def index
     redirect_to admin_dashboard_path
@@ -16,7 +15,6 @@ class Admin::SettingsController < AdminController
 
   def site
     @site = current_site
-
   end
 
   def site_saved
@@ -37,7 +35,6 @@ class Admin::SettingsController < AdminController
 
   # list available languages
   def languages
-
   end
 
   # save language customizations
@@ -56,5 +53,4 @@ class Admin::SettingsController < AdminController
   def validate_role
     authorize! :manager, :settings
   end
-
 end

@@ -24,9 +24,11 @@
 //= require ./jquery.slugify
 //= require ./translator
 //= require ./core
+//= require ./i18n
 
 //= require jquery_ujs
 //= require ./modal
+//= require ./grid-editor
 
 //= require ./tageditor/jquery.caret.min
 //= require ./tageditor/jquery.tag-editor

@@ -154,6 +154,8 @@ class FrontendController < CamaleonController
         r_file = "page_#{@post.id}"
       elsif @post.template.present? && lookup_context.template_exists?(@post.template)
         r_file = @post.template
+      elsif @post.default_template.present? && lookup_context.template_exists?(@post.default_template)
+        r_file = @post.default_template
       elsif home_page.present? && @post.id.to_s == home_page
         r_file = "index"
       elsif lookup_context.template_exists?("#{@post_type.slug}")
@@ -204,20 +206,6 @@ class FrontendController < CamaleonController
       lookup_context.prefixes.delete(params[:controller])
       lookup_context.prefixes.prepend(params[:controller].sub("themes/#{current_theme.slug}/", ""))
     end
-
-    self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
-    self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
-
-    self.prepend_view_path(File.join($camaleon_engine_dir, "app", "views", 'default_theme'))
-    self.prepend_view_path(Rails.root.join("app", "views", 'default_theme'))
-
-    views_dir = "app/apps/themes/#{current_theme.slug}/views"
-    self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
-    self.prepend_view_path(Rails.root.join(views_dir).to_s)
-
-    views_site_dir = "app/apps/themes/#{current_site.id}/views"
-    self.prepend_view_path(File.join($camaleon_engine_dir, views_site_dir).to_s)
-    self.prepend_view_path(Rails.root.join(views_site_dir).to_s)
     theme_init()
   end
 
@@ -242,5 +230,4 @@ class FrontendController < CamaleonController
       options
     end
   end
-
 end

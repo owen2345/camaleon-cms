@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module SiteHelper
-
   # return current site or assign a site as a current site
   def current_site(site = nil)
     @current_site = site.decorate if site.present?
@@ -109,8 +108,8 @@ module SiteHelper
   # load all custom models customized by plugins or templates in custom_models.rb
   def site_load_custom_models(site)
     PluginRoutes.enabled_apps(site).each{ |app|
+      next unless app["path"].present?
       s = File.join(app["path"], "config", "custom_models.rb")
-      # require_relative s if File.exist?(s)
       eval(File.read(s)) if File.exist?(s)
     }
   end
@@ -123,5 +122,4 @@ module SiteHelper
     $current_site = site
     site_load_custom_models($current_site)
   end
-
 end
