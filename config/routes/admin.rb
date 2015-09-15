@@ -12,17 +12,16 @@ Rails.application.routes.draw do
 
     # grid editor administration
     resources :grid_editor
-
+    
     resources :post_type , as: :post_type do
-      resources :posts, controller: 'posts'  do
-        #resources :comments
+      resources :posts, controller: 'posts' do
+        # resources :comments
         get :trash
         get :restore
         collection do
           match 'ajax', via: [:get, :post, :patch]
         end
       end
-
 
       resources :categories, controller: 'categories'
       resources :post_tags, controller: 'post_tags' do
@@ -116,7 +115,6 @@ Rails.application.routes.draw do
     match 'elfinder' => 'media#elfinder', via: :all
     match 'elfinder/iframe' => 'media#iframe', via: :all
     match 'crop' => 'media#crop', via: :all
-
   end
 
   eval(PluginRoutes.load("admin"))

@@ -76,8 +76,8 @@ module CaptchaHelper
     captcha_tag(*captcha_parmas) if captcha_under_attack?(key)
   end
 
-
   private
+
   def rand_str(len=6)
     alphabets = [('A'..'Z').to_a].flatten!
     alphanumerics = [('A'..'Z').to_a,('0'..'9').to_a].flatten!

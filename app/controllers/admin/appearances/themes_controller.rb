@@ -26,5 +26,4 @@ class Admin::Appearances::ThemesController < Admin::AppearancesController
   def preview
     render layout: false
   end
-
 end

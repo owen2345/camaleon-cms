@@ -4,26 +4,6 @@
     <a href="#" class="x-navigation-control"></a>
   </li>
 
-  <li class="xn-profile">
-    <a href="<%= admin_profile_path %>" class="profile-mini">
-      <img src="<%= current_user.the_avatar %>" alt="<%= current_user.the_name %>"/>
-    </a>
-    <div class="profile">
-      <div class="profile-image">
-        <img src="<%= current_user.the_avatar %>" alt="<%= current_user.the_name %>"/>
-      </div>
-      <div class="profile-data">
-        <div class="profile-data-name"><%= current_user.the_name %></div>
-        <div class="profile-data-title"><%= current_user.the_slogan %></div>
-        <div class="profile-data-title"><small><%= current_user.role %></small></div>
-      </div>
-      <div class="profile-controls">
-        <a href="<%= admin_profile_path %>" class="profile-control-left"><span class="fa fa-info"></span></a>
-        <a href="<%= admin_profile_edit_path %>" class="profile-control-right"><span class="fa fa-edit"></span></a>
-      </div>
-    </div>
-  </li>
-
   <li class="xn-title"><%= t('admin.sidebar.navigation')%></li>
 
   <%= raw _admin_menu_draw %>

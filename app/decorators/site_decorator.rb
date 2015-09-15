@@ -132,6 +132,4 @@ class SiteDecorator < TermTaxonomyDecorator
   def manage_sites?
     self.main_site? && h.current_user.admin?
   end
-
-
 end

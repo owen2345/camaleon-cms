@@ -106,5 +106,4 @@ class CamaleonController < ApplicationController
       end
     end
   end
-
 end

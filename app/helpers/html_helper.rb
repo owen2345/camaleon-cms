@@ -88,10 +88,8 @@ module HtmlHelper
   end
 
   def html_tooltip(text='Tooltip', location='left')
-    html = "<a href='javascript:;' title='#{text}' data-toggle='tooltip' data-placement='#{location}'><i class='fa fa-info-circle'></i></a>"
+    "<a href='javascript:;' title='#{text}' data-toggle='tooltip' data-placement='#{location}'><i class='fa fa-info-circle'></i></a>"
   end
-
-
 
   private
   def assets_libraries

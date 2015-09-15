@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module SessionHelper
-
   # log in the user in to system
   # user: User model
   # remember_me: true/false (remember session permanently)

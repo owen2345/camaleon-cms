@@ -128,6 +128,11 @@ module UploaderHelper
     file_path.sub(Rails.public_path.to_s, root_url)
   end
 
+  # convert public url to file path
+  def url_to_file_path(url)
+    File.join(Rails.public_path, URI(url.to_s).path)
+  end
+
   # crop and image and saved as imagename_crop.ext
   # file: file path
   # w:  new width
@@ -206,5 +211,4 @@ module UploaderHelper
 
     return [ horizontal_offset, vertical_offset ]
   end
-
 end

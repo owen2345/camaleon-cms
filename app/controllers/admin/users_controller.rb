@@ -9,7 +9,6 @@
 class Admin::UsersController < AdminController
   before_action :validate_role, except: [:profile, :profile_edit]
   before_action :set_user, only: ['show','edit','update','destroy']
-  #http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
 
   def index
     @users = current_site.users.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
@@ -104,17 +103,17 @@ class Admin::UsersController < AdminController
   end
 
   private
+
   def validate_role
     authorize! :manager, :users
   end
+
   def set_user
-      begin
-        @user = current_site.users.find(params[:id])
-      rescue
-        flash[:error] = t('admin.users.message.error')
-        redirect_to admin_path
-      end
-
+    begin
+      @user = current_site.users.find(params[:id])
+    rescue
+      flash[:error] = t('admin.users.message.error')
+      redirect_to admin_path
+    end
   end
-
 end

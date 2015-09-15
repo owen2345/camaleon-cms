@@ -8,23 +8,20 @@
 =end
 class Admin::Settings::CustomFieldsController < Admin::SettingsController
   include Admin::CustomFieldsHelper
-  #before_action :set_post_type
   before_action :set_custom_field_group, only: ['show','edit','update','destroy']
 
   def index
     @field_groups = current_site.custom_field_groups.visible_group
-    @field_groups = @field_groups.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
+    @field_groups = @field_groups.paginate(page: params[:page], per_page: current_site.admin_per_page)
   end
 
   def get_items
-
     @key = params[:key]
 
     render layout: false
   end
 
   def show
-
   end
 
   def edit
@@ -58,7 +55,7 @@ class Admin::Settings::CustomFieldsController < Admin::SettingsController
     if @field_group.save
       @field_group.add_fields(params[:fields], params[:field_options])
       @field_group.set_option('caption', post_data[:caption])
-      flash[:notice] =  t('admin.custom_field.message.custom_created')
+      flash[:notice] = t('admin.custom_field.message.custom_created')
       redirect_to action: :edit, id: @field_group.id
     else
       render 'form'
@@ -77,7 +74,7 @@ class Admin::Settings::CustomFieldsController < Admin::SettingsController
     params[:values].to_a.each_with_index do |value, index|
       current_site.custom_field_groups.find(value).update_column('field_order', index)
     end
-    json = {size: params[:values].size}
+    json = { size: params[:values].size }
     render json: json
   end
 
@@ -87,10 +84,8 @@ class Admin::Settings::CustomFieldsController < Admin::SettingsController
     begin
       @field_group = current_site.custom_field_groups.find(params[:id])
     rescue
-      flash[:error] =  t('admin.custom_field.message.custom_group_error')
+      flash[:error] = t('admin.custom_field.message.custom_group_error')
       redirect_to admin_path
     end
-
   end
-
 end

@@ -110,14 +110,33 @@
                     <div class="btn-group" role="group">
                         <a class="btn dropdown-toggle btn-lg btn-success" data-toggle="dropdown" href="#" role="button" aria-expanded="false"> <%= current_site.the_title %> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="<%= current_site.the_admin_url %>" class=""><i class="fa fa-dashboard"></i> <%= t('admin.sidebar_top.admin_panel') %></a></li>
-                            <li><a href="<%= current_site.the_url(locale: false) %>" class="" target="_blank"><i class="fa fa-globe"></i> <%= t('admin.sidebar_top.visit') %></a></li>
+                            <li><a href="<%= current_site.the_admin_url %>"><i class="fa fa-dashboard"></i> <%= t('admin.sidebar_top.admin_panel') %></a></li>
+                            <li><a href="<%= current_site.the_url(locale: false) %>" target="_blank"><i class="fa fa-globe"></i> <%= t('admin.sidebar_top.visit') %></a></li>
                         </ul>
                     </div>
               <% end %>
             </div>
 
-            <a id="admin_logout" data-box="#mb-signout" class="pull-right btn btn-primary btn-lg" href="#"><span class="fa fa-power-off"></span></a>
+            <div class="btn-group pull-right" role="group">
+              <div class="dropdown profile-dropdown">
+                <button type="button" class="btn btn-lg dropdown-toggle" data-toggle="dropdown">
+                  <!-- <img src="<%= current_user.the_avatar %>" alt="<%= current_user.the_name %>" /> -->
+                  <span><%= current_user.the_name %> (<%= current_user.role %>)</span>
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                  <li>
+                    <a href="<%= admin_profile_edit_path %>">
+                      <span class="fa fa-edit"></span>
+                      <%= t('admin.users.edit_profile') %>
+                    </a>
+                  </li>
+                  <li>
+                    <a id="admin_logout" data-box="#mb-signout" href="#"><%= t('admin.logout.logout') %></a>
+                  </li>
+                </ul>
+              </div>
+            </div>
         </div>
 
         <!-- START BREADCRUMB -->

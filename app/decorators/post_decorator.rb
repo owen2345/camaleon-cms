@@ -166,5 +166,4 @@ class PostDecorator < ApplicationDecorator
   def cache_prefix(key = "")
     "#{h.current_site.cache_prefix}/post#{object.id}#{"/#{key}" if key.present?}"
   end
-
 end

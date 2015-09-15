@@ -17,7 +17,6 @@ class Admin::CommentsController < AdminController
     render 'form'
   end
 
-
   def responses
     @comments = current_site.posts.find(params[:post_id]).comments.main
     if params[:post_comment].present?
@@ -40,12 +39,11 @@ class Admin::CommentsController < AdminController
     else
       render 'reply'
     end
-
   end
 
   def update
     if @comment.update(params[:post_comment])
-      #@comment.set_meta_from_form(params[:meta])
+      # @comment.set_meta_from_form(params[:meta])
       flash[:notice] = t('admin.comments.message.updated')
       redirect_to action: :index
     else
@@ -89,31 +87,27 @@ class Admin::CommentsController < AdminController
     redirect_to action: :index
   end
 
-  #change status comments param =  params[:answers_id]
+  # change status comments param =  params[:answers_id]
   def change_status
     @comment_update = PostComment.find(params[:answers_id])
     @comment_update.update_column('approved', params[:approved])
 
     params[:notice] = t('admin.comments.message.change_status')
     render json: params
-
-
   end
 
   private
 
   def set_comment
-      begin
-        @comment = PostComment.find(params[:id])
-      rescue
-        flash[:error] = t('admin.comments.message.error')
-        redirect_to admin_path
-      end
-
+    begin
+      @comment = PostComment.find(params[:id])
+    rescue
+      flash[:error] = t('admin.comments.message.error')
+      redirect_to admin_path
+    end
   end
 
   def validate_role
     authorize! :manager, :comments
   end
-
 end

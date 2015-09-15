@@ -233,6 +233,8 @@
 
 <script>
     run.push(function(){
+        // validate online letter in first name and last name
+        $('.form-ajax-profile input[name="meta[first_name]"], .form-ajax-profile input[name="meta[last_name]"]').input_only_letters();
 
         $('.form-ajax-profile').ajaxForm({success: function(res){
             if(res.errors){
@@ -241,6 +243,7 @@
                 $.fn.alert({ title: lang.message_updated_success, close: lang.close});
             }
         }})
+
         $('.form-ajax-password').ajaxForm({success: function(res){
             if(res.errors){
                 $.fn.alert({type: 'error', title: lang.msg_form_error, content: res.errors, icon: 'times', close: lang.close});

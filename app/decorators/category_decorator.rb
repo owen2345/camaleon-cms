@@ -57,5 +57,4 @@ class CategoryDecorator < TermTaxonomyDecorator
   def the_post_type
     object.post_type.decorate
   end
-
 end
