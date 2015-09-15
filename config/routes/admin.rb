@@ -12,7 +12,7 @@ Rails.application.routes.draw do
 
     # grid editor administration
     resources :grid_editor
-    
+
     resources :post_type , as: :post_type do
       resources :posts, controller: 'posts' do
         # resources :comments
