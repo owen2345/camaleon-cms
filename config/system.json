@@ -1,6 +1,7 @@
 {
   "default_template": "default", // default template name for new sites
   "hooks": { }, // system hooks
+  //"skip_format_url": true, // enable or disable .html extension in the urls.
   "default_plugins": ["front_cache", "contact_form", "attack"], // Default plugins installed for each new site
   "available_languages": ["es", "en", "fr", "zh", "de", "it", "pt"], // Available languages for frontend panel, here all locales: https://github.com/svenfuchs/rails-i18n
   "admin_available_languages": ["en", "es", "it"], //Available languages for the admin panel

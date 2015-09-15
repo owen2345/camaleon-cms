@@ -9,6 +9,7 @@ module Themes::ThemeClass::MainHelper
     # sample: theme.set_meta("my_key", params[:my_value])
   end
 
+  # callback called after theme installed
   def themeKey_on_install_theme(theme)
     unless theme.get_field_groups.where(slug: "fields").any?
       group = theme.add_field_group({name: "Main Settings", slug: "fields", description: ""})
@@ -19,7 +20,7 @@ module Themes::ThemeClass::MainHelper
     theme.set_meta("installed_at", Time.now.to_s) # save a custom value
   end
 
+  # callback executed after theme uninstalled
   def themeKey_on_uninstall_theme(theme)
-    theme.destroy
   end
 end

@@ -6,31 +6,10 @@ jQuery(function(){
     $.fn.gridEditor_libraries = [];
     //********************** editor content options **********************//
     $.fn.gridEditor_options = {
-        text: {title: "Text", libraries: [], callback: function(panel, editor){
-            open_modal({title: "Enter Your Text", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: "<textarea rows='10' class='form-control'></textarea>", callback: function(modal){
-                var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
-                    panel.html(modal.find("textarea").val());
-                    modal.modal("hide");
-                    editor.trigger("auto_save");
-                });
-                modal.find("textarea").val(panel.html());
-                modal.find(".modal-footer").prepend(submit);
-            }});
-        }},
-        editor: {title: "Editor", libraries: [], callback: function(panel, editor){
-            open_modal({title: "Enter Your Content", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: "<textarea rows='10' class='form-control'></textarea>", callback: function(modal){
-                var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
-                    var area = modal.find("textarea");
-                    panel.html(area.tinymce().getContent());
-                    modal.modal("hide");
-                    editor.trigger("auto_save");
-                });
-                modal.find("textarea").val(panel.html());
-                setTimeout(function(){ modal.find("textarea").tinymce($.extend({} ,DATA.tiny_mce.advanced, {height: 120})); }, 500);
-                modal.find(".modal-footer").prepend(submit);
-            }});
-        }},
-        slider: {title: "Slider", callback: grid_tab_editor},
+        text: {title: "Text", libraries: [], callback: grid_text_builder},
+        editor: {title: "Editor", libraries: [], callback: grid_editor_builder},
+        tab: {title: "Tabs", callback: grid_tab_builder},
+        slider: {title: "Slider", callback: grid_slider_builder},
     };
     //********************** end editor content options **********************//
 
@@ -80,10 +59,10 @@ jQuery(function(){
         function export_content(editor){
             var container = $('.panel_grid_body', editor).clone();
             container.children().each(function(){
-                var col = $(this).removeClass("drg_column btn btn-default ui-draggable ui-draggable-handle ui-draggable-dragging ui-sortable-handle").removeAttr("style");
+                var col = $(this).removeClass("drg_column btn btn-default ui-draggable ui-draggable-handle ui-draggable-dragging ui-sortable-handle");
                 col.children(".header_box").remove();
                 col.find(".grid_sortable_items").children().each(function(){ //contents
-                    $(this).removeClass("drg_item btn btn-default ui-draggable ui-draggable-dragging ui-sortable-handle ui-draggable-handle").removeAttr("style").children(".header_box").remove();
+                    $(this).removeClass("drg_item btn btn-default ui-draggable ui-draggable-dragging ui-sortable-handle ui-draggable-handle").children(".header_box").remove();
                 });
             });
             var res = container.html();
@@ -202,6 +181,42 @@ jQuery(function(){
                 textarea.val(txt).trigger("change_in");
             });
 
+            // content dropdown options
+            jQuery('.panel_grid_body ', editor).on("click", '.drg_item .grid_content_remove', function (e) {
+                    if(confirm(I18n("grid_editor.del_block"))) {
+                        jQuery(this).closest(".drg_item").fadeDestroy();
+                        editor.trigger("auto_save");
+                    }
+                    e.preventDefault();
+                }).on("click", '.drg_item .grid_content_clone', function (e) {
+                    var widget = jQuery(this).closest(".drg_item");
+                    var widget_clone = widget.clone();
+                    widget.after(widget_clone);
+                    editor.trigger("auto_save");
+                    e.preventDefault();
+                }).on("click", '.drg_item .grid_content_edit', function (e) {
+                    var panel_content = $(this).closest(".drg_item");
+                    var key = panel_content.attr("data-kind");
+                    $.fn.gridEditor_options[key]["callback"](panel_content.children(".grid_item_content"), editor);
+                    e.preventDefault();
+                });
+
+            // column dropdown options
+            jQuery('.panel_grid_body ', editor).on("click", '.grid_col_remove', function (e) {
+                    if(confirm(I18n("grid_editor.del_block"))){
+                        jQuery(this).closest(".drg_column").fadeDestroy();
+                        editor.trigger("auto_save");
+                    }
+                    e.preventDefault();
+                }).on("click", '.grid_col_clone', function (e) {
+                    var widget = jQuery(this).closest(".drg_column");
+                    var widget_clone = widget.clone();
+                    widget.after(widget_clone);
+                    grid_content_manager(widget_clone.find(".grid_sortable_items"));
+                    editor.trigger("auto_save");
+                    e.preventDefault();
+                });
+
             //// autosave changes
             //var time_control;
             //$('.panel_grid_body', editor).bind("DOMSubtreeModified",function(){
@@ -256,50 +271,12 @@ jQuery(function(){
                 $(this).removeClass("hover-grid");
             },
             stop: function (e, ui) {
-                ui.item.removeAttr('style');
+                ui.item.css({left: "", top: "", position: ""});
                 if(!jQuery(ui.item).hasClass('grid-col-built')) parse_content_column(ui.item)
                 ui.item.addClass('grid-col-built');
                 editor.trigger("auto_save");
             }
         });
-
-        // column dropdown options
-        jQuery('.panel_grid_body ', editor).on({
-            click: function (e) {
-                if(confirm(I18n("grid_editor.del_block"))) jQuery(this).closest(".drg_column").fadeDestroy();
-                e.preventDefault();
-            }
-        }, '.grid_col_remove').on({
-            click: function (e) {
-                var widget = jQuery(this).closest(".drg_column");
-                var widget_clone = widget.clone();
-                widget.after(widget_clone);
-                grid_content_manager(widget_clone.find(".grid_sortable_items"));
-                e.preventDefault();
-            }
-        }, '.grid_col_clone');
-
-        // content dropdown options
-        jQuery('.panel_grid_body ', editor).on({
-            click: function (e) {
-                if(confirm(I18n("grid_editor.del_block"))) jQuery(this).closest(".drg_item").fadeDestroy();
-                e.preventDefault();
-            }
-        }, '.drg_item .grid_content_remove').on({
-            click: function (e) {
-                var widget = jQuery(this).closest(".drg_item");
-                var widget_clone = widget.clone();
-                widget.after(widget_clone);
-                e.preventDefault();
-            }
-        }, '.drg_item .grid_content_clone').on({
-            click: function (e) {
-                var panel_content = $(this).closest(".drg_item");
-                var key = panel_content.attr("data-kind");
-                $.fn.gridEditor_options[key]["callback"](panel_content.children(".grid_item_content"), editor);
-                e.preventDefault();
-            }
-        }, '.drg_item .grid_content_edit');
 
         function grid_content_manager(item) {
             // Sort the children (content elements)
@@ -323,7 +300,7 @@ jQuery(function(){
                     $(this).removeClass("hover-grid");
                 },
                 stop: function (e, ui) {
-                    ui.item.addClass('col-md-12').removeAttr('style');
+                    ui.item.addClass('col-md-12').css({left: "", top: "", position: ""});
                     if(!jQuery(ui.item).hasClass('grid-item-built')) parse_content_content(ui.item)
                     ui.item.addClass('grid-item-built');
                     editor.trigger("auto_save");
@@ -333,7 +310,8 @@ jQuery(function(){
         return textarea;
     }
 
-    function grid_tab_editor(panel, editor){
+    // grid content tab builder
+    function grid_tab_builder(panel, editor){
         var id_tab = "tabs_" + gridEditor_id + Math.floor((Math.random() * 100000) + 1);
         var tpl_tabs = '<ul class="nav nav-tabs" role="tablist">'+
             '<li role="presentation" class="active"><a href="" role="tab" data-toggle="tab">Sample1</a></li>'+
@@ -410,4 +388,145 @@ jQuery(function(){
             modal.find(".modal-footer").prepend(submit);
         }});
     }
+
+    // grid content tab builder
+    function grid_slider_builder1(panel, editor){
+        var tpl_slider = '<div class="carousel slide" data-ride="carousel"> ' +
+            '<ol class="carousel-indicators"></ol>' +
+            '<div class="carousel-inner"></div>'+
+            '<a class="left carousel-control" href="#'+id_slider+'" role="button" data-slide="prev"><span class="glyphicon glyphicon-chevron-left"></span></a>'+
+            '<a class="right carousel-control" href="#'+id_slider+'" role="button" data-slide="next"><span class="glyphicon glyphicon-chevron-right"></span></a>'+
+            '</div>';
+        if(panel.html()) tpl_slider = panel.html();
+        tpl_slider = $(tpl_slider);
+        var form_slider = $('<form></form>').on("click", ".add_item", function(e){
+            add_item();
+            e.preventDefault();
+        }).on("click", ".item_del", function(){
+            if(confirm("are you sure?")) $(this).closest(".well").fadeDestroy();
+            e.preventDefault();
+        });
+
+        function add_item(descr, url){
+            var settings = "<div class='slider_actions text-center'><a href='#' class='item_del'><i class='fa fa-trash-o'></i></a></div>";
+            var tpl = $('<div class="well">'+settings+'<div class="form-group"><label>Background: </label><br><input name="url_file"></div></div> <div class="form-group"><label>Description: </label><br><textarea class="descr"></textarea></div>');
+            tpl.find("input").val(url);
+            tpl.find("textarea").val(descr);
+            form_slider.append(tpl);
+        }
+        tpl_slider.find(".carousel-inner").children().each(function(){ add_item($(this)); })
+        if(form_slider.children("well").length == 0) form_slider.find(".add_item").click();
+        open_modal({title: "Enter Slider Items", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: form_slider, callback: function(modal){
+
+            var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
+                modal.find(".grid_slider_settings, .slider_actions").remove();
+                panel.html(modal.find(".modal-body").html());
+                modal.modal("hide");
+                editor.trigger("auto_save");
+            });
+            modal.find(".modal-footer").prepend(submit);
+        }});
+    }
+
+    // manage sliders of the grid editor
+    // permit to add, edit
+    function grid_slider_builder(panel, editor){
+        var id_slider = "slider_" + gridEditor_id + Math.floor((Math.random() * 100000) + 1);
+        var tpl_slider = '<div class="carousel slide" data-ride="carousel"> ' +
+                '<ol class="carousel-indicators"></ol>' +
+                '<div class="carousel-inner"></div>'+
+                '<a class="left carousel-control" href="#'+id_slider+'" role="button" data-slide="prev"><span class="glyphicon glyphicon-chevron-left"></span></a>'+
+                '<a class="right carousel-control" href="#'+id_slider+'" role="button" data-slide="next"><span class="glyphicon glyphicon-chevron-right"></span></a>'+
+            '</div>';
+        if(panel.html()) tpl_slider = panel.html();
+        open_modal({title: "Enter Slider Items", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: tpl_slider, callback: function(modal){
+            var slide = modal.find(".carousel").attr("id", id_slider);
+            slide.find(".carousel-control").attr("href", "#"+id_slider).end().find(".carousel-indicators li").attr("data-target", "#"+id_slider);
+            slide.before("<div class='grid_slider_settings'><a href='#' class='grid_slider_add' title='Add Slider'><i class='fa fa-plus-circle'></i> "+I18n("button.add")+"</a></div>");
+            modal.on("click", ".grid_slider_add", function(e){
+                    modal.find(".carousel-inner").append('<div class="item active" style="max-width: 100%;"><img src="http://www.diario-de-un-escalador.com/wp-content/uploads/Escalada20.jpg"><div class="carousel-caption">Caption here</div></div>');
+                    slider_builder(modal);
+                    e.preventDefault();
+                }).on("click", ".grid_slide_edit", edit_slide).on("click", ".grid_slide_del", function(e){
+                    if(confirm("are you sure?")){
+                        $(this).closest(".item").remove();
+                        slider_builder(modal);
+                    }
+                    e.preventDefault();
+                });
+            slider_builder(modal);
+            if(modal.find(".carousel-inner .item").length == 0) modal.find(".grid_slider_add").click();
+            // save contents of tab
+            var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
+                modal.find(".grid_slider_settings, .slider_actions").remove();
+                panel.html(modal.find(".modal-body").html());
+                modal.modal("hide");
+                editor.trigger("auto_save");
+            });
+            modal.find(".modal-footer").prepend(submit);
+        }});
+
+        // manage slide editor form
+        function edit_slide(e){
+            var content = $(this).closest(".item").find(".carousel-caption");
+            var image = $(this).closest(".item").children("img");
+            var tpl = '<div class="form-group"><label>Background: </label><br><input type="hidden" class="form-control" name="url_file"></div><div class="form-group"><label>Description: </label><br><textarea class="descr"></textarea></div>';
+            open_modal({title: "Enter Your Slider Content", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: tpl, callback: function(modal){
+                var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
+                    content.html(modal.find("textarea").tinymce().getContent());
+                    image.attr("src", modal.find("input").val());
+                    modal.modal("hide");
+                });
+                modal.find("textarea").val(content.html());
+                modal.find("input").val(image.attr("src")).input_upload();
+                setTimeout(function(){ modal.find("textarea").tinymce($.extend({} ,DATA.tiny_mce.advanced, {height: 120})); }, 500);
+                modal.find(".modal-footer").prepend(submit);
+            }});
+
+            e.preventDefault();
+        }
+
+        // slider options and update indicators
+        function slider_builder(modal){
+            var slide = modal.find(".carousel");
+            var indi = modal.find(".carousel-indicators").html("");
+            var settings = "<div class='slider_actions text-center'><a href='#' class='grid_slide_del'><i class='fa fa-trash-o'></i></a> <a href='#' class='grid_slide_edit'><i class='fa fa-pencil'></i></a></div>";
+            modal.find(".carousel-inner").children().each(function(index, item){
+                indi.append('<li data-target="#'+id_slider+'" data-slide-to="'+index+'"></li>');
+                if($(this).find(".slider_actions").length == 0) $(this).append(settings);
+            });
+            var act = modal.find(".carousel-inner .item.active:last").index();
+            modal.find(".carousel-indicators li").removeClass("active").eq(act).addClass("active");
+            modal.find(".carousel-inner .item").removeClass("active").eq(act).addClass("active");
+        }
+    }
+
+    // grid content editor builder
+    function grid_editor_builder(panel, editor){
+        open_modal({title: "Enter Your Content", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: "<textarea rows='10' class='form-control'></textarea>", callback: function(modal){
+            var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
+                var area = modal.find("textarea");
+                panel.html(area.tinymce().getContent());
+                modal.modal("hide");
+                editor.trigger("auto_save");
+            });
+            modal.find("textarea").val(panel.html());
+            setTimeout(function(){ modal.find("textarea").tinymce($.extend({} ,DATA.tiny_mce.advanced, {height: 120})); }, 500);
+            modal.find(".modal-footer").prepend(submit);
+        }});
+    }
+
+    // grid content text builder
+    function grid_text_builder(panel, editor){
+        open_modal({title: "Enter Your Text", modal_settings: { keyboard: false, backdrop: "static" }, show_footer: true, content: "<textarea rows='10' class='form-control'></textarea>", callback: function(modal){
+            var submit = $('<button type="button" class="btn btn-primary">Save</button>').click(function(){
+                panel.html(modal.find("textarea").val());
+                modal.modal("hide");
+                editor.trigger("auto_save");
+            });
+            modal.find("textarea").val(panel.html());
+            modal.find(".modal-footer").prepend(submit);
+        }});
+    }
+
 });

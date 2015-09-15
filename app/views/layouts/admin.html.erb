@@ -17,7 +17,7 @@
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
         String.prototype.to_url = function () { return root_url.slice(0, root_url.length - 1) + this; };
         window.run = [];
-        var tinymce_assets = {language_url: "<%= asset_path("admin/tinymce/langs/#{current_locale}.js") %>"};
+        var tinymce_assets = {language_url: "<%= asset_path("admin/tinymce/langs/#{current_locale}.js") %>", custom_css: <%= r = {css_assets: []}; hooks_run("tinymce_custom_css", r); raw(r[:css_assets].to_json); %>};
         var I18n_data = <%= I18n.backend.send(:translations)[current_locale.to_sym][:admin][:js].to_json.html_safe %>
         var lang = {
             accept: '<%= t('admin.button.accept') %>',
