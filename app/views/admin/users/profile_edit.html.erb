@@ -13,7 +13,7 @@
   <div class="row">
     <div class="col-md-3 col-sm-4">
 
-      <%= form_for @user, url: admin_profile_edit_path, html:{class: 'validate-profile form-horizontal form-ajax-profile'} do |f| %>
+      <%= form_for @user, url: admin_profile_edit_path, html:{class: 'form-horizontal form-ajax-profile'} do |f| %>
 
         <div class="panel panel-default">
           <div class="panel-body">
@@ -73,7 +73,7 @@
     </div>
     <div class="col-md-6 col-sm-8">
 
-      <%= form_for @user, url: admin_profile_edit_path, html:{class: 'validate-profile form-horizontal form-ajax-profile'} do |f| %>
+      <%= form_for @user, url: admin_profile_edit_path, html:{class: 'form-horizontal form-ajax-profile'} do |f| %>
         <div class="panel panel-default">
           <div class="panel-body">
             <h3><span class="fa fa-pencil"></span> <%= t('admin.users.profile') %></h3>
@@ -91,7 +91,7 @@
                       <%= t("admin.table.#{values[:label].gsub(' ','').tableize}")%>
                   </label>
                   <div class="col-md-9 col-xs-7">
-                    <input type="text" name="<%=  "meta[#{field}]" %>" value="<%= data_meta[field] %>" class="form-control"/>
+                    <input type="text" name="<%=  "meta[#{field}]" %>" value="<%= data_meta[field] %>" class="form-control <%= 'required lettersonly' if field.to_s == 'first_name' || field.to_s == 'last_name' %>"/>
                   </div>
                 </div>
             <% end %>
@@ -233,16 +233,19 @@
 
 <script>
     run.push(function(){
-        // validate online letter in first name and last name
-        $('.form-ajax-profile input[name="meta[first_name]"], .form-ajax-profile input[name="meta[last_name]"]').input_only_letters();
-
-        $('.form-ajax-profile').ajaxForm({success: function(res){
-            if(res.errors){
-                $.fn.alert({type: 'error', title: lang.msg_form_error, content: res.errors, icon: 'times', close: lang.close});
-            }else{
-                $.fn.alert({ title: lang.message_updated_success, close: lang.close});
+        $('.form-ajax-profile').bind('submit', function(e) {
+            e.preventDefault();
+            if($(this).valid()){
+                $(this).ajaxSubmit({success: function(res){
+                    if(res.errors){
+                        $.fn.alert({type: 'error', title: lang.msg_form_error, content: res.errors, icon: 'times', close: lang.close});
+                    }else{
+                        $.fn.alert({ title: lang.message_updated_success, close: lang.close});
+                    }
+                }})
             }
-        }})
+        }).validate();
+
 
         $('.form-ajax-password').ajaxForm({success: function(res){
             if(res.errors){
