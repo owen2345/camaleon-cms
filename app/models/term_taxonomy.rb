@@ -69,7 +69,7 @@ class TermTaxonomy < ActiveRecord::Base
             has_tags: false,
             has_summary: true,
             has_content: true,
-            has_comments: true,
+            has_comments: false,
             has_picture: true,
             has_template: true,
             not_deleted: false

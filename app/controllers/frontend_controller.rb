@@ -154,8 +154,6 @@ class FrontendController < CamaleonController
         r_file = "page_#{@post.id}"
       elsif @post.template.present? && lookup_context.template_exists?(@post.template)
         r_file = @post.template
-      elsif @post.default_template.present? && lookup_context.template_exists?(@post.default_template)
-        r_file = @post.default_template
       elsif home_page.present? && @post.id.to_s == home_page
         r_file = "index"
       elsif lookup_context.template_exists?("#{@post_type.slug}")

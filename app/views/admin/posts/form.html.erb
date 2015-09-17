@@ -88,15 +88,12 @@
               %>
 
               <!-- has comments? -->
-              <% if @post.manage_comments?(@post_type) %>
+              <% if @post_type.get_option('has_comments', false) || @post.manage_comments?(@post_type) %>
                   <div class="form-group">
-                      <label class="control-label"><%= check_box("meta", "has_comments", {checked: ( params[:meta][:has_comments] == '1' rescue false || @post.meta[:has_comments].to_s.to_bool)  }) %> &nbsp; <%= t('admin.post_type.permit_comments')%></label>
+                      <label class="control-label"><%= check_box("meta", "has_comments", {checked: ( params[:meta][:has_comments] == '1' rescue false || @post.manage_comments?(@post_type))  }) %> &nbsp; <%= t('admin.post_type.permit_comments')%></label>
                   </div>
               <% end %>
-
-
               <%= raw @post_form_extra_settings.join("") if @post_form_extra_settings.present? %>
-
           </div>
         </div>
 
@@ -234,6 +231,10 @@
             <% end  %>
           </div>
         </div>
+
+        <!-- render all custom fields assigned to this post -->
+        <%= render partial: "admin/settings/custom_fields/render", locals: {record: @post, field_groups: @post.get_field_groups({kind: "Post", include_parent: true}) } %>
+
         <% unless @post.draft? || @post.new_record? %>
             <% if @post.manage_comments?(@post_type) %>
                 <div class="panel panel-default panel-lite">
@@ -251,7 +252,6 @@
                 </div>
             <% end %>
         <% end %>
-        <%= render partial: "admin/settings/custom_fields/render", locals: {record: @post, field_groups: @post.get_field_groups({kind: "Post", include_parent: true}) } %>
 
       </div>
       <!-- END CONTENT FRAME BODY -->
