@@ -24,18 +24,18 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "protected_attributes"
-  s.add_dependency "bcrypt"
-  s.add_dependency "mini_magick"
-  s.add_dependency "will_paginate"
-  s.add_dependency "will_paginate-bootstrap"
-  s.add_dependency "nokogiri"
-  s.add_dependency "el_finder"
-  s.add_dependency "cancancan", '~> 1.10'
-  s.add_dependency "meta-tags"
-  s.add_dependency "draper", '~> 1.3'
-  s.add_dependency "rufus-scheduler"
-  s.add_dependency "dynamic_sitemaps"
-  s.add_dependency "actionpack-page_caching"
-  s.add_dependency "mobu"
+  s.add_dependency 'protected_attributes'
+  s.add_dependency 'bcrypt'
+  s.add_dependency 'mini_magick'
+  s.add_dependency 'will_paginate'
+  s.add_dependency 'will_paginate-bootstrap'
+  s.add_dependency 'nokogiri'
+  s.add_dependency 'el_finder'
+  s.add_dependency 'cancancan', '~> 1.10'
+  s.add_dependency 'meta-tags'
+  s.add_dependency 'draper', '~> 1.3'
+  s.add_dependency 'rufus-scheduler'
+  s.add_dependency 'dynamic_sitemaps'
+  s.add_dependency 'actionpack-page_caching'
+  s.add_dependency 'mobu'
 end
