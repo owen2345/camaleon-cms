@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
 
-  s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
+  s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
   # deprecated in Rails 4
