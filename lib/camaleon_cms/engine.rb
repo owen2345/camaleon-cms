@@ -1,3 +1,18 @@
+require 'rubygems'
+require 'actionpack/page_caching'
+require 'bcrypt'
+require 'cancancan'
+require 'draper'
+require 'dynamic_sitemaps'
+require 'el_finder'
+require 'meta-tags'
+require 'mini_magick'
+require 'mobu'
+require 'protected_attributes'
+require 'rufus-scheduler'
+require 'will_paginate'
+require 'will_paginate-bootstrap'
+
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s
 Dir[File.join($camaleon_engine_dir, "lib", "ext", "**", "*.rb")].each{ |f| require f }
