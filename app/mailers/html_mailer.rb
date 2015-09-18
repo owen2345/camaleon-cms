@@ -17,10 +17,6 @@ class HtmlMailer < ActionMailer::Base
     @url_base = url_base
     @current_site = current_site
 
-    if attachs.present?
-      attachs.each{|attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb'){|f| f.read} }
-    end
-
     mail_data = {to: email, subject: subject}
     mail_data[:from] = from if from.present?
 
@@ -42,8 +38,18 @@ class HtmlMailer < ActionMailer::Base
     self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
     self.prepend_view_path(Rails.root.join(views_dir).to_s)
 
-    # puts "&&&&&&&&&&&&&&&#{lookup_context.inspect}-----#{template_name}==#{layout_name}"
-    mail(mail_data){|format| format.html { render template_name, layout: layout_name } }
+    # run hook "email" to customize values
+    r = {template_name: template_name, layout_name: layout_name, mail_data: mail_data, files: attachs, format: "html" }
+    hooks_run("email", r)
+
+    if r[:files].present?
+      r[:files].each{|attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb'){|f| f.read} }
+    end
+
+    mail(r[:mail_data]){|format| format.html { render r[:template_name], layout: r[:layout_name] } } if r[:format] == "html"
+    mail(r[:mail_data]){|format| format.text { render r[:template_name], layout: r[:layout_name] } } if r[:format] == "txt"
+    mail(r[:mail_data]) unless r[:format].present?
+
   end
 
   private
