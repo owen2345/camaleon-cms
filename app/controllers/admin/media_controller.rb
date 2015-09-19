@@ -17,26 +17,27 @@ class Admin::MediaController < AdminController
   end
 
   def elfinder
-    dirname =  "/media/#{current_site.id}"
+    dirname = "/media/#{current_site.id}"
     r = {dirname: dirname}; hooks_run("elfinder", r)
     dirname = r[:dirname]
     dir = File.join(Rails.public_path, dirname)
     FileUtils.mkdir_p(dir) unless File.directory?(dir)
     h, r = ElFinder::Connector.new(
-        :mime_handler => ElFinder::MimeType,
-        :root => dir,
-        :url => dirname,
-        :thumbs => true,
-        :thumbs_size => 100,
-        :thumbs_directory => 'thumbs',
-        :home => t("admin.media.home"),
-        :original_filename_method => lambda { |file| "#{File.basename(file.original_filename,File.extname(file.original_filename)).parameterize}#{File.extname(file.original_filename)}" },
-        :default_perms => { :read => true, :write => true, :rm => true, :hidden => false },
+      :mime_handler => ElFinder::MimeType,
+      :root => dir,
+      :url => dirname,
+      :thumbs => true,
+      :thumbs_size => 100,
+      :thumbs_directory => 'thumbs',
+      :home => t("admin.media.home"),
+      :original_filename_method => lambda { |file| "#{File.basename(file.original_filename, File.extname(file.original_filename)).parameterize}#{File.extname(file.original_filename)}" },
+      :default_perms => {:read => true, :write => true, :rm => true, :hidden => false},
     ).run(params)
 
     headers.merge!(h)
 
     render (r.empty? ? {:nothing => true} : {:text => r.to_json}), :layout => false
+
   end
 
   def iframe

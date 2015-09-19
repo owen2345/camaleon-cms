@@ -40,8 +40,14 @@ class CamaleonController < ApplicationController
 
   # generate captcha image
   def captcha
-    image = captcha_build(params[:len])
-    send_data image.to_blob, :type => image.mime_type, :disposition => 'inline'
+    #FIXME test only
+    element = {}
+    element['uno'] = 'uno'
+    element['dos'] = 'dos'
+    send_data element
+
+    # image = captcha_build(params[:len])
+    # send_data image.to_blob, :type => image.mime_type, :disposition => 'inline'
   end
 
   private

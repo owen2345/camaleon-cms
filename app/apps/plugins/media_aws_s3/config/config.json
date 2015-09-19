@@ -1,0 +1,28 @@
+{
+  "title": "Media Aws S3",
+  "descr": "",
+  "version": "0.1",
+  "key": "media_aws_s3",
+  "helpers": [
+    "Plugins::MediaAwsS3::MainHelper"
+  ],
+  "options": [
+    {
+      "label": "Settings",
+      "url": "admin_plugins_media_aws_s3_settings_path",
+      "eval_url": true
+    }
+  ],
+  "hooks": {
+    "on_active": [
+      "media_aws_s3_on_active"
+    ],
+    "on_inactive": [
+      "media_aws_s3_on_inactive"
+    ],
+    "plugin_options":[
+      "media_aws_s3_plugin_options"
+    ]
+    //here you can add all your hooks (read documentation)
+  }
+}

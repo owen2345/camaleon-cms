@@ -1,0 +1,3 @@
+
+get '/admin/elfinder' => "plugins/media_aws_s3/admin#elfinder"
+post '/admin/elfinder' => "plugins/media_aws_s3/admin#elfinder"
