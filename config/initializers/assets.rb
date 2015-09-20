@@ -32,4 +32,12 @@ Rails.application.config.assets.version = '1.0'
 # Rails.application.config.assets.precompile += %w( plugins/*/assets/* )
 
 # This will precompile any assets, not just JavaScript (.js, .coffee, .swf, .css, .scss)
-Rails.application.config.assets.precompile << /(^[^_\/]|\/[^_])[^\/]*$/
+# Rails.application.config.assets.precompile << /(^[^_\/]|\/[^_])[^\/]*$/
+Rails.application.config.assets.precompile << Proc.new { |path|
+  content_type = MIME::Types.type_for(File.basename(path)).first.content_type rescue ""
+  res = false
+  if (path =~ /\.(css|js|svg|ttf|woff|eot|swf|pdf)\z/ || content_type.scan(/(javascript|image\/|audio|video|font)/).any?) && !path.start_with?("_")
+    res = true
+  end
+  res
+}
