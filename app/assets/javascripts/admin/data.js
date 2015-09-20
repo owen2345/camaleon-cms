@@ -14,6 +14,7 @@ var DATA = {
             paste: true,
             toolbar_items_size: 'small',
             content_css: tinymce_assets["custom_css"],
+            convert_urls: false,
             //forced_root_block: '',
             extended_valid_elements: 'i[*],div[*],p[*],li[*],a[*],ol[*],ul[*],span[*]',
             toolbar: "bold italic | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect | bullist numlist | outdent indent | undo redo | link unlink image media | forecolor backcolor | styleselect template | grid_editor",

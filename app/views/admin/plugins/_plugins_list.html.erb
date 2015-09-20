@@ -18,11 +18,10 @@
                     <td>
                         <b><%= plugin["title"] %></b>
                         <br>
-                        <% r[:links] << (link_to("#{t('admin.sidebar.information')}", "http://camaleon.tuzitio.com/store/plugins/info/#{plugin["key"]}", target: "_blank",  title: "Plugin #{t('admin.sidebar.information')}")) %>
                         <% hook_run(plugin, "plugin_options", r) if status %>
                         <%= raw r[:links].join(" | ") %>
                     </td>
-                    <td><%= plugin["descr"] %></td>
+                    <td><%= raw plugin["descr"] %></td>
                     <td><%= plugin["version"] %></td>
                     <td><%= t("admin.plugins.status_#{status}") %></td>
                     <td>

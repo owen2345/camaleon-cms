@@ -63,6 +63,7 @@ module CustomFieldsRead extend ActiveSupport::Concern
   # get custom field value
   # _key: custom field key
   # if value is not present, then return default
+  # return default only if the field was not registered
   def get_field_value(_key, _default = nil)
     v = _default
     v = get_field_values(_key).first rescue _default
@@ -71,11 +72,19 @@ module CustomFieldsRead extend ActiveSupport::Concern
   end
   alias_method :get_field, :get_field_value
 
+  # the same as the_field() but if the value is not present, this will return default value
+  def get_field!(_key, _default = nil)
+    v = _default
+    v = get_field_values(_key).first rescue _default
+    v.present? ? v : _default
+  end
+
   # get custom field values
   # _key: custom field key
   def get_field_values(_key)
     self.field_values.where(custom_field_slug: _key).pluck(:value)
   end
+  alias_method :get_fields, :get_field_values
 
   # ------------- new function update field value -------------
   def update_field_value(_key, value = nil)

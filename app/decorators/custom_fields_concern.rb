@@ -16,8 +16,14 @@ module CustomFieldsConcern
 
   # return custom field content with key field_key
   # translated and short codes evaluated like the content
-  def the_field(field_key)
-    h.do_shortcode(object.get_field_value(field_key).to_s.translate(@_deco_locale), object)
+  # default_val: default value returned when this field was not registered
+  def the_field(field_key, default_val = '')
+    h.do_shortcode(object.get_field(field_key, default_val).to_s.translate(@_deco_locale), object)
+  end
+
+  # the same as the_field(..), but this return default value if there is not present
+  def the_field!(field_key, default_val = '')
+    h.do_shortcode(object.get_field!(field_key, default_val).to_s.translate(@_deco_locale), object)
   end
 
   # return custom field contents with key field_key
@@ -25,7 +31,7 @@ module CustomFieldsConcern
   # this is for multiple values
   def the_fields(field_key)
     r = []
-    object.get_field_values(field_key).each do |text|
+    object.get_fields(field_key).each do |text|
       r << h.do_shortcode(text.to_s.translate(@_deco_locale), object)
     end
     r

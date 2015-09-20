@@ -68,7 +68,8 @@ module Frontend::NavMenuHelper
 
     args = args_def.merge(args)
     nav_menu = current_site.nav_menus.find_by_slug(args[:menu_slug])
-    html = "<#{args[:container]} class='#{args[:container_class]}' id='#{args[:container_id]}'>#{args[:container_prepend]}{__}#{front_editor_link(admin_appearances_nav_menus_menu_url(slug: nav_menu.slug)) rescue ""}#{args[:container_append]}</#{args[:container]}>"
+    nav_menu = current_site.nav_menus.first unless nav_menu.present?
+    html = "<#{args[:container]} class='#{args[:container_class]}' id='#{args[:container_id]}'>#{args[:container_prepend]}{__}#{cama_edit_link(admin_appearances_nav_menus_menu_url(slug: nav_menu.slug)) rescue ""}#{args[:container_append]}</#{args[:container]}>"
     if nav_menu.present?
       html = html.sub("{__}", _menu_draw_items(args, nav_menu.children))
     else

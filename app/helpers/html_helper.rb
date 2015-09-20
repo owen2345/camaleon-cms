@@ -14,6 +14,7 @@ module HtmlHelper
   end
 
   # enable to load admin libraries (colorpicker, datepicker, form_builder, tinymce, form_ajax, cropper)
+  # sample: add_asset_library("datepicker", "colorpicker")
   def add_asset_library(*keys)
     keys.each do |key|
       library = assets_libraries[key.to_sym]
@@ -21,8 +22,12 @@ module HtmlHelper
     end
   end
 
-  # add asset libraries (js, css)
-  # { library_key2:{ js: [], css: [] }, library_key1:{ js: [], css: [] }, ...}
+  # add custom asset libraries (js, css or both), also you can add extra css or js files for existent libraries
+  # sample: (add new library)
+  #   append_asset_libraries({"my_library_key"=> { js: [plugin_asset("js/my_js"), "plugins/myplugin/assets/js/my_js2"], css: [plugin_asset("css/my_css"), "plugins/myplugin/assets/css/my_css2"] }})
+  # sample: (update existent library)
+  #   append_asset_libraries({"colorpicker"=>{js: [[plugin_asset("js/my_custom_js")] } })
+  # return nil
   def append_asset_libraries(libraries)
     libraries.each do |key, library|
       if @_assets_libraries.include?(key)

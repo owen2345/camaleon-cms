@@ -91,59 +91,7 @@
         </ul>
         <!-- END X-NAVIGATION VERTICAL -->
 
-        <!-- Multisite menus -->
-        <div id="admin_header_menu">
-            <div class="btn-group" role="group">
-                <button id="toogle_sidebar" class="btn btn-lg btn-primary"><i class="fa fa-dedent"></i></button>
-
-              <% if current_site.manage_sites? %>
-                <% Site.order(term_group: :desc).eager_load(:metas).decorate.each do |site| %>
-                    <div class="btn-group" role="group">
-                        <a class="btn dropdown-toggle btn-lg <%= site == current_site ? "btn-success" : "btn-primary" %>" data-toggle="dropdown" href="#" role="button" aria-expanded="false"> <%= site.the_title %> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a href="<%= site.the_admin_url %>" class=""><i class="fa fa-dashboard"></i> <%= t('admin.sidebar_top.admin_panel') %></a></li>
-                            <li><a href="<%= site.the_url(locale: false) %>" class="" target="_blank"><i class="fa fa-globe"></i> <%= t('admin.sidebar_top.visit') %></a></li>
-                        </ul>
-                    </div>
-                <% end %>
-              <% else %>
-                    <div class="btn-group" role="group">
-                        <a class="btn dropdown-toggle btn-lg btn-success" data-toggle="dropdown" href="#" role="button" aria-expanded="false"> <%= current_site.the_title %> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a href="<%= current_site.the_admin_url %>"><i class="fa fa-dashboard"></i> <%= t('admin.sidebar_top.admin_panel') %></a></li>
-                            <li><a href="<%= current_site.the_url(locale: false) %>" target="_blank"><i class="fa fa-globe"></i> <%= t('admin.sidebar_top.visit') %></a></li>
-                        </ul>
-                    </div>
-              <% end %>
-            </div>
-
-            <div class="btn-group pull-right" role="group">
-              <div class="dropdown profile-dropdown">
-                <button type="button" class="btn btn-lg dropdown-toggle" data-toggle="dropdown">
-                  <!-- <img src="<%= current_user.the_avatar %>" alt="<%= current_user.the_name %>" /> -->
-                  <span><%= current_user.the_name %> (<%= current_user.role %>)</span>
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" role="menu">
-                  <li>
-                    <a href="<%= admin_profile_edit_path %>">
-                      <span class="fa fa-edit"></span>
-                      <%= t('admin.users.edit_profile') %>
-                    </a>
-                  </li>
-                  <li>
-                    <a id="admin_logout" data-box="#mb-signout" href="#"><%= t('admin.logout.logout') %></a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-        </div>
-
-        <!-- START BREADCRUMB -->
-        <ul class="breadcrumb push-down-0" id="admin_breadcrumb">
-            <%= raw admin_breadcrumb_draw() %>
-        </ul>
-        <!-- END BREADCRUMB -->
+        <%= render partial: "layouts/admin/header" %>
 
         <div id="admin_content">
             <%= render partial: "layouts/admin/flash_messages" %>
@@ -159,7 +107,6 @@
                 <div class="mb-title"><span class="fa fa-sign-out"></span> <%= raw t('admin.logout.logout_html') %> </div>
                 <div class="mb-content">
                     <p><%= t('admin.message.are_you_sure_you_want_log_out_int') %></p>
-
                     <p><%= t('admin.message.press_no_continue_work_press_yes_logout') %></p>
                 </div>
                 <div class="mb-footer">

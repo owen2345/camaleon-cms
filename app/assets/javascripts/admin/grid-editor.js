@@ -176,7 +176,7 @@ jQuery(function(){
 
             // trigger auto save changes
             editor.bind("auto_save", function(){
-                var txt = "<p>[load_libraries '"+$.fn.gridEditor_libraries.join(",")+"']</p>"+export_content($(this));
+                var txt = "<p>[load_libraries data='"+$.fn.gridEditor_libraries.join(",")+"']</p>"+export_content($(this));
                 tinyEditor.setContent(txt);
                 textarea.val(txt).trigger("change_in");
             });

@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class Site < TermTaxonomy
-  include SitePublic
   # attrs: [name, description, slug]
   default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
   has_many :metas, ->{ where(object_class: 'Site')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy

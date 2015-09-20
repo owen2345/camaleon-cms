@@ -8235,9 +8235,6 @@ li.ext_zip {
   [class^='col-lg-'] {
     margin-bottom: 10px;
   }
-  #toogle_sidebar{
-    display: none;
-  }
   /* LOGIN */
   .login-container {
     padding: 0px 10px;
@@ -8319,6 +8316,9 @@ li.ext_zip {
   }
 }
 @media only screen and (max-width: 1024px) {
+  #toogle_sidebar{
+    display: none;
+  }
   .page-container .page-sidebar {
     position: relative;
     float: left;

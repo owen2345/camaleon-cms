@@ -21,6 +21,11 @@ class Theme < TermTaxonomy
     PluginRoutes.theme_info(self.slug)
   end
 
+  # return the path to the settings file for current theme
+  def settings_file
+    File.join(self.settings["path"], "views/admin/settings.html.erb").to_s
+  end
+
   private
   def fix_name
     self.name = self.slug unless self.name.present?

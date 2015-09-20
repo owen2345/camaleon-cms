@@ -20,7 +20,8 @@ class PostDecorator < ApplicationDecorator
   # return the excerpt of this post
   def the_excerpt(qty_chars = 200)
     excerpt = object.meta[:summary].to_s.translate(get_locale)
-    r = {content: (excerpt.present? ? excerpt : object.content.to_s.translate(get_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars)), post: object}
+    # r = {content: (excerpt.present? ? excerpt : object.content_filtered.to_s.translate(get_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars)), post: object}
+    r = {content: (excerpt.present? ? excerpt : h.cama_strip_shortcodes(object.content_filtered.to_s.translate(get_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars))), post: object}
     h.hooks_run("post_the_excerpt", r)
     r[:content]
   end
@@ -76,8 +77,9 @@ class PostDecorator < ApplicationDecorator
   # return html link
   # attrs: Hash of link tag attributes, sample: {id: "myid", class: "sss" }
   def the_edit_link(title = nil, attrs = { })
+    return '' unless h.current_user.present?
     attrs = {target: "_blank", style: "font-size:11px !important;cursor:pointer;"}.merge(attrs)
-    h.link_to("&rarr; #{title || h.ct("edit")}", the_edit_url, *attrs)
+    h.link_to("&rarr; #{title || h.ct("edit")}".html_safe, the_edit_url, attrs)
   end
 
   # show thumbnail image as html
@@ -115,6 +117,11 @@ class PostDecorator < ApplicationDecorator
     "<span class='label label-#{color} label-form'>#{status.titleize}</span>"
   end
 
+  # return the user object who created this post
+  def the_author
+    object.author.decorate
+  end
+
   # return all categories assigned for this post filtered by permissions + hidden posts + roles + etc...
   def the_categories
     object.categories
@@ -139,7 +146,7 @@ class PostDecorator < ApplicationDecorator
 
   # check if the post can be commented
   def can_commented?
-    object.meta[:has_comments].to_s.to_bool rescue false
+    object.manage_comments?
   end
 
 

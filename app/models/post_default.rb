@@ -62,11 +62,12 @@ class PostDefault < ActiveRecord::Base
   end
 
   private
-
   def before_validating
     #self.slug = self.title if self.slug.blank?
     #self.slug = self.slug.to_s.parameterize
   end
+
+  # do all before actions to save the post
   def before_saved
     self.content_filtered = content.to_s.include?('<!--:-->') ? content.translations.inject({}) { |h, (key, value)| h[key] = value.squish.strip_tags; h }.to_translate : content.to_s.squish.strip_tags
   end

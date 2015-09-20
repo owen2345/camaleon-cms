@@ -41,7 +41,12 @@ class FrontendController < CamaleonController
     init_seo(@category)
     @children = @category.children.no_empty.decorate
     @posts = @category.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
-    r = {category: @category, layout: (self.send :_layout), render: "category"}; hooks_run("on_render_category", r)
+    if lookup_context.template_exists?(@category.the_slug, "categories")
+      r_file = "categories/#{@category.the_slug}"
+    else
+      r_file = "category"
+    end
+    r = {category: @category, layout: (self.send :_layout), render: r_file}; hooks_run("on_render_category", r)
     render r[:render], layout: r[:layout]
   end
 
@@ -56,7 +61,12 @@ class FrontendController < CamaleonController
     @posts = @post_type.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
     @post_tags = @post_type.post_tags.eager_load(:metas)
-    r = {post_type: @post_type, layout: (self.send :_layout), render: "post_type"};  hooks_run("on_render_post_type", r)
+    if lookup_context.template_exists?(@post_type.the_slug, "post_types")
+      r_file = "post_types/#{@post_type.the_slug}"
+    else
+      r_file = "post_type"
+    end
+    r = {post_type: @post_type, layout: (self.send :_layout), render: r_file};  hooks_run("on_render_post_type", r)
     render r[:render], layout: r[:layout]
   end
 
@@ -70,7 +80,12 @@ class FrontendController < CamaleonController
     end
     init_seo(@post_tag)
     @posts = @post_tag.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
-    r = {post_tag: @post_tag, layout: (self.send :_layout), render: "post_tag"}; hooks_run("on_render_post_tag", r)
+    if lookup_context.template_exists?(@post_tag.the_slug, "post_tags")
+      r_file = "post_tags/#{@post_tag.the_slug}"
+    else
+      r_file = "post_tag"
+    end
+    r = {post_tag: @post_tag, layout: (self.send :_layout), render: r_file}; hooks_run("on_render_post_tag", r)
     render r[:render], layout: r[:layout]
   end
 
@@ -148,6 +163,7 @@ class FrontendController < CamaleonController
       @post_type = @post.the_post_type
       @comments = @post.the_comments
       @categories = @post.the_categories
+      @post.increment_visits!
       home_page = @_site_options[:home_page] rescue nil
       r_file = ""
       if lookup_context.template_exists?("page_#{@post.id}")
@@ -158,10 +174,8 @@ class FrontendController < CamaleonController
         r_file = "index"
       elsif lookup_context.template_exists?("#{@post_type.slug}")
         r_file = "#{@post_type.slug}"
-      elsif lookup_context.template_exists?("single")
-        r_file = "single"
       else
-        r_file = "post"
+        r_file = "single"
       end
 
       r = {post: @post, post_type: @post_type, layout: (self.send :_layout), render: r_file}

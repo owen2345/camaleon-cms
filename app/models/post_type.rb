@@ -110,14 +110,27 @@ class PostType < TermTaxonomy
   #   slug: string key for post,    => default (empty)
   #   summary: String resume (optional)  => default (empty)
   #   order_position: Integer to define the order position in the list (optional)
+  #   fields: Hash of values for custom fields, sample => fields: {subtitle: 'abc', icon: 'test' } (optional)
+  #   settings: Hash of post settings, sample => settings: {has_content: false, has_summary: true } (optional, see more in post.set_setting(...))
   # return created post if it was created, else return errors
   def add_post(args)
+    _fields = args.delete(:fields)
+    _settings = args.delete(:settings)
+    _summary = args.delete(:summary)
+    _order_position = args.delete(:order_position)
+    _categories = args.delete(:categories)
+    _tags = args.delete(:tags)
+    _thumb = args.delete(:thumb)
     p = self.posts.new(args)
     p.slug = self.site.get_valid_post_slug(p.title.parameterize) unless p.slug.present?
-    if p.save
-      p.assign_category(args[:categories]) if args[:categories].present? && self.manage_categories?
-      p.assign_tags(args[:tags]) if args[:tags].present? && self.manage_tags?
-      p.set_position(args[:order_position]) if args[:order_position].present?
+    if p.save!
+      _settings.each{ |k, v| p.set_setting(k, v) } if _settings.present?
+      p.assign_category(_categories) if _categories.present? && self.manage_categories?
+      p.assign_tags(_tags) if _tags.present? && self.manage_tags?
+      p.set_position(_order_position) if _order_position.present?
+      p.set_summary(_summary) if _summary.present?
+      p.set_thumb(_thumb) if _thumb.present?
+      _fields.each{ |k, v| p.save_field_value(k, v) } if _fields.present?
       return p
     else
       p.errors

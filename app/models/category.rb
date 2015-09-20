@@ -18,7 +18,8 @@ class Category < TermTaxonomy
   belongs_to :post_type_parent, class_name: "PostType", foreign_key: :parent_id
   belongs_to :owner, class_name: "User", foreign_key: :user_id
 
-  scope :no_empty, ->{ where("count > 0") }
+  scope :no_empty, ->{ where("count > 0") } # return all categories that contains at least one post
+  scope :empty, ->{ where(count: [0,nil]) } # return all categories that does not contain any post
 
   #scope :parents, -> { where("term_taxonomy.parent_id IS NULL") }
 

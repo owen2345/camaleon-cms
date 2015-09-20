@@ -22,7 +22,7 @@
       @field = field.decorate
       @field = @field || {options:{}}
       @rand = "r#{Time.now.to_i}#{rand(99 ... 99999)}d"
-      values = record.get_field_values(@field.slug)
+      values = record.get_fields(@field.slug)
       values = params[@field_name][@field.slug.to_sym][:values] if values.blank? && params[@field_name].present?
     %>
         <div class="item-custom-field c-field-<%= @field.options[:field_key] %>">

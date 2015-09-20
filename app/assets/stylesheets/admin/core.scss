@@ -310,7 +310,15 @@ margin-right: 0;
 // admin main menus
 #admin_header_menu{
   background: #33414E;
-  .dropdown-menu{ min-width: 100px; }
+  .btn-link{ color: #fff; }
+  .site_button{
+    .dropdown-menu{ min-width: 100px; }
+  }
+  .profile_panel{
+    img{ max-height: 40px; float: left; }
+    .dropdown{ float: right; }
+    .dropdown-menu{ right: 0; left: auto; }
+  }
 }
 
 .item-comment{

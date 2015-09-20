@@ -58,6 +58,8 @@ class Post < PostDefault
   def post_type=(pt)
     @_cache_post_type = pt
   end
+
+  # return the post type of this post
   def post_type
     @_cache_post_type ||= (post_types.reorder(nil).first || post_relationships.first.post_type)
   end
@@ -90,7 +92,7 @@ class Post < PostDefault
   # check if current post can manage content
   # return boolean
   def manage_content?(posttype = nil)
-    get_option('has_content', false) || (posttype || self.post_type).get_option('has_content', true)
+    get_option('has_content', (posttype || self.post_type).get_option('has_content', true))
   end
 
   # check if current post can manage summary
@@ -149,5 +151,32 @@ class Post < PostDefault
   def set_position(new_order_position)
     taxonomy_id = self.post_type.id
     self.term_relationships.where("term_taxonomy_id = ?", taxonomy_id).first.update_column("term_order", new_order_position)
+  end
+
+  # save the summary for current post
+  # summary: Text String without html
+  def set_summary(summary)
+    set_meta("summary", summary)
+  end
+
+  # save the thumbnail url for current post
+  # thumb_url: String url
+  def set_thumb(thumb_url)
+    set_meta("thumb", thumb_url)
+  end
+
+  # increment the counter of visitors
+  def increment_visits!
+    set_option("visits", total_visits+1)
+  end
+
+  # return the quantity of visits for this post
+  def total_visits
+    get_option("visits", 0)
+  end
+
+  # return the quantity of comments for this post
+  def total_comments
+    self.comment_count
   end
 end

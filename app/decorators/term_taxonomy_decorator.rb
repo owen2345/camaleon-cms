@@ -81,7 +81,7 @@ class TermTaxonomyDecorator < ApplicationDecorator
   # attrs: Hash of link tag attributes, sample: {id: "myid", class: "sss" }
   def the_edit_link(title = nil, attrs = { })
     attrs = {target: "_blank", style: "font-size:11px !important;cursor:pointer;"}.merge(attrs)
-    h.link_to("&rarr; #{title || h.ct("edit")}", the_edit_url, *attrs)
+    h.link_to("&rarr; #{title || h.ct("edit")}".html_safe, the_edit_url, attrs)
   end
 
   # cache identifier, the format is: [current-site-prefix]/[object-id]-[object-last_updated]/[current locale]

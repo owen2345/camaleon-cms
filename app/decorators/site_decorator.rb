@@ -24,7 +24,7 @@ class SiteDecorator < TermTaxonomyDecorator
   end
 
   # return all contents from this site registered for post_type = slug (filter visibility, hidden, expired, ...)
-  # slug_or_id: slug or id of the post_type or array of slugs, default 'post'
+  # slug_or_id: slug or id of the post_type or array of slugs of post_types, default 'post'
   def the_contents(slug_or_id = "post")
     return h.verify_front_visibility(object.posts.where("term_taxonomy.id = ?", slug_or_id)) if slug_or_id.is_a?(Integer)
     return h.verify_front_visibility(object.posts.where("term_taxonomy.slug = ?", slug_or_id)) if slug_or_id.is_a?(String)
@@ -42,12 +42,31 @@ class SiteDecorator < TermTaxonomyDecorator
     end
   end
 
-  # return all main_categories for ths site
-  def the_categories
-    object.categories
+  # return the post with id or slug equal to slug_or_id
+  # slug_or_id: (String) for post slug
+  # slug_or_id: (Integer) for post id
+  # slug_or_id: (Array) array of post ids, return multiple posts
+  # return post model or nil
+  def the_post(slug_or_id)
+    post = self.the_posts.find(slug_or_id) rescue nil if slug_or_id.is_a?(Integer) # id
+    post = self.the_posts.find(slug_or_id) rescue nil if slug_or_id.is_a?(Array) # id
+    post = self.the_posts.find_by_slug(slug_or_id) if slug_or_id.is_a?(String) # id
+    post.present? ? post.decorate : nil
   end
 
-  # return the category with id or slug from this site
+  # return a collection of categories
+  # Arguments:
+  #   slug_or_id: string or integer
+  # return:
+    # slug_or_id: nil => return all main_categories for this site
+    # slug_or_id: integer => return all main categories of the post_type with id = slug_or_id
+    # slug_or_id: string => return all main categories of the post_type with slug = slug_or_id
+  def the_categories(slug_or_id = nil)
+    return the_post_type(slug_or_id).the_categories if slug_or_id.present?
+    return object.categories unless slug_or_id.present?
+  end
+
+  # return the category object with id or slug = slug_or_id from this site
   def the_category(slug_or_id)
     return the_full_categories.where(id: slug_or_id).first if slug_or_id.is_a?(Integer)
     return the_full_categories.find_by_slug(slug_or_id) if slug_or_id.is_a?(String)
@@ -63,14 +82,21 @@ class SiteDecorator < TermTaxonomyDecorator
     object.post_tags
   end
 
-  # return all post types for ths site
+  # return all post types for this site
   def the_post_types
     object.post_types.eager_load(:metas)
   end
 
-  # return the post type with slug = slug
-  def the_post_type(slug)
-    object.post_types.find_by_slug(slug).decorate rescue nil
+  # return a post_type object with id or slug = slug_or_id
+  # Arguments:
+  #   slug_or_id: string or integer
+  # return:
+  # slug_or_id: nil => return all main_categories for this site
+  # slug_or_id: integer => return all main categories of the post_type with id = slug_or_id
+  # slug_or_id: string => return all main categories of the post_type with slug = slug_or_id
+  def the_post_type(slug_or_id)
+    return object.post_types.find_by_slug(slug_or_id).decorate rescue nil if slug_or_id.is_a?(String)
+    return object.post_types.find(slug_or_id).decorate rescue nil if slug_or_id.is_a?(Integer)
   end
 
   # draw languages configured for this site

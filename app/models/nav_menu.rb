@@ -12,16 +12,23 @@ class NavMenu < TermTaxonomy
   has_many :children, class_name: "NavMenuItem", foreign_key: :parent_id, dependent: :destroy
   belongs_to :site, :class_name => "Site", foreign_key: :parent_id
 
+  # add multiple menu items for current menu
   def add_menu_items(menu_data=[])
     children.destroy_all
     saved_nav_items(self, menu_data) if menu_data.present?
   end
 
+  # add menu item for current menu
+  # value: (Hash) is a hash object that contains label, type, link
+  #   options for type: post | category | post_type | post_tag | external
+  # sample: {label: "my label", type: "external", link: "http://camaleon.tuzitio.com"}
+  # return item created
   def append_menu_item (value)
     item = children.new({name: value[:label]})
     if item.save
       item.set_meta('_default',{type: value[:type], object_id: value[:link]})
     end
+    item
   end
 
   private
