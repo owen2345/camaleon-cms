@@ -241,9 +241,9 @@ en:
       message:
         error: 'Error class'
         error_term: 'Error term class'
-        created: 'Saved Correct'
-        updated: 'Update Correct'
-        deleted: 'Correct Deleted'
+        created: 'Saved'
+        updated: 'Updated'
+        deleted: 'Deleted'
         no_created_html: '<br> No %{taxonomy} found'
       pending: 'Pending'
       permit_comments: 'Allow Comments?'
@@ -484,7 +484,7 @@ en:
       social_share: 'Social share'
 
       message:
-        updated: 'Updated Theme.'
+        updated: 'Theme updated'
     users:
       all_users: 'All Users'
       add_user: 'Add User'
