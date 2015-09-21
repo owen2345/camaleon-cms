@@ -75,17 +75,12 @@
               </select>
             </div>
               <!-- templates -->
-              <% if @post.manage_template?(@post_type)
-                   _get_list_template_files = get_list_template_files
-                   if _get_list_template_files.size > 0
-              %>
+              <% if @post.manage_template?(@post_type) && (template_files = get_list_template_files).present? %>
                       <div class="form-group">
                           <label class="control-label"><%= t('admin.post_type.template')%></label>
-                          <%= select("meta", "template", _get_list_template_files.collect {|p| [ p.gsub('.html.erb',''), p ] }, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.meta[:template] ) },{class: 'form-control'}) %>
+                          <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.meta[:template] ) }, {class: 'form-control'}) %>
                       </div>
-              <%    end
-                 end
-              %>
+              <% end %>
 
               <!-- has comments? -->
               <% if @post_type.get_option('has_comments', false) || @post.manage_comments?(@post_type) %>

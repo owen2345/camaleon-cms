@@ -42,11 +42,12 @@ module ShortCodeHelper
                     post = current_site.the_post(attrs["key"].to_s) if attrs["key"].present?
                     if post.present?
                       if attrs["link"].present?
-                        ActionController::Base.helpers.link_to(attrs["title"].present? ? attrs["title"] : post.the_title, post.the_url, target: attrs["target"])
+                        return ActionController::Base.helpers.link_to(attrs["title"].present? ? attrs["title"].html_safe : post.the_title, post.the_url, target: attrs["target"])
                       else
                         return post.the_url
                       end
                     end
+                    return ""
                   },
                   "Permit to generate the url of a post (add path='' to generate the path and not the full url,
                     add id='123' to use the POST ID,

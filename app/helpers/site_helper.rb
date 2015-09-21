@@ -53,12 +53,10 @@ module SiteHelper
 
   # get list templates files
   def get_list_template_files
-    base_path = Rails.root.join("app", "apps", 'themes', current_theme.slug, 'views')
-    base_path = Pathname.new(base_path)
     contained_files = []
-    Dir[File.join(base_path, '*.html.erb')].each do |full_path|
-      path = Pathname.new(full_path).relative_path_from(base_path).to_s
-      contained_files << path if path.include?('template_')
+    Dir[File.join(current_theme.settings["path"], "views", '*.html.erb')].each do |path|
+      f_name = File.basename(path)
+      contained_files << f_name.gsub('.html.erb','') if f_name.include?('template_')
     end
     contained_files
   end

@@ -1,6 +1,6 @@
 // options:
 // - title: Title Modal, default: Upload File
-// - type: image, video, audio, application/pdf,... default: 'all'
+// - type: image, video, audio, application/pdf or file extensions (jpg, png, ..),... default: 'all'
 // - multiple: return array files or uniq file, default: true
 //  - mode, menubar icons visibility, default: basic,  values: full, basic
 // - params: in mode basic use options toolbar: default: [], example: ['resize','mkdir']
@@ -92,7 +92,7 @@
                             var datas = [];
                             for(var i=0; i<selected.length;i++){
                                 var file = elfinderInstance.file(selected[i]);
-                                if(file.mime && (mime_type == "all" || $.inArray(true, mime_type.split(",").map(function(format){ return file.mime.indexOf(format) > -1 })) >= 0)){
+                                if(file.mime && (mime_type == "all" || $.inArray(true, mime_type.split(",").map(function(format){ return file.mime.indexOf(format) > -1 })) >= 0 || $.inArray(file.name.split(".").pop().toLowerCase(), mime_type.split(",")) > -1 )){
                                     if(file.size > 0) datas.push(file);
                                 }
                             }

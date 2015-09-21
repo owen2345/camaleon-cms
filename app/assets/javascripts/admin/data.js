@@ -17,7 +17,7 @@ var DATA = {
             convert_urls: false,
             //forced_root_block: '',
             extended_valid_elements: 'i[*],div[*],p[*],li[*],a[*],ol[*],ul[*],span[*]',
-            toolbar: "bold italic | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect | bullist numlist | outdent indent | undo redo | link unlink image media | forecolor backcolor | styleselect template | grid_editor",
+            toolbar: "bold italic | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect | bullist numlist | outdent indent | undo redo | link unlink image media | forecolor backcolor | styleselect template",
             language: CURRENT_LOCALE,
             relative_urls: false,
             remove_script_host: false,

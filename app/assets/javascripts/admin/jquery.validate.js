@@ -1361,6 +1361,8 @@ $.extend($.fn, {
 	}
 });
 
+// validate file extension defined in data-formats
+// data-formats: (default '') image | audio | video (support also external youtube metacafe, dailymotion, vimeo) | or file extension like: jpg|png
 $.validator.addMethod("file_format", function(value, element) {
     function check_url(url) {
         var regYoutube = new RegExp(/^.*((youtu.be\/)|(v\/)|(\/u\/w\/)|(embed\/)|(watch?))??v?=?([^#&?]*).*/);
@@ -1403,8 +1405,7 @@ $.validator.addMethod("file_format", function(value, element) {
     var formats = $(element).attr("data-formats");
     var ext = value.split(".").pop().toLowerCase();
     if(formats)
-        return ($.inArray("video", formats.split(",")) >= 0 && check_url(value)) ||
-            ($.inArray(_formats[ext], formats.split(",")) >= 0)
+        return ($.inArray("video", formats.split(",")) >= 0 && check_url(value)) || $.inArray(_formats[ext], formats.split(",")) >= 0 || $.inArray(ext, formats.split(",")) >= 0
 
     return true;
 }, "File format not accepted.");
