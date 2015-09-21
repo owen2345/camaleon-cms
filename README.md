@@ -56,15 +56,40 @@
   rails server # and then go to your browser http://localhost:3000/
   ```
 
+# Migrating from 0.2.x or earlier?
+
+1. Install camaleon as a gem as stated above or run `bundle update 'camaleon_cms'`
+1. Remove `lib/Gemfile_camaleon`
+
+  ```bash
+  rm lib/Gemfile_camaleon
+  ```
+1. Install gems
+
+  ```bash
+  bundle install
+  ```
+1. Update `lib/plugin_routes.rb`
+
+  ```bash
+  rails generate camaleon_cms:install
+  ```
+1. Start/restart Rails
+
+  ```bash
+  rails server
+  ```
+
+# Camaleon CMS (It adapts to your needs)
+
+Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 and Ruby 1.9.3+. This CMS is an alternative to wordpress for Ruby on Rails developers to manage advanced contents easily.  
+Camaleon CMS is a flexible manager where you can build your custom content structure without coding anything by custom fields and custom contents type.
+
 To download or publish themes go to themes store:
 http://camaleon.tuzitio.com/store/themes
 
 To download or publish plugins go to plugins store:
 http://camaleon.tuzitio.com/store/plugins
-
-# Camaleon CMS (It adapts to your needs)
-Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 and Ruby 1.9.3+. This CMS is an alternative to wordpress for Ruby on Rails developers to manage advanced contents easily.  
-Camaleon CMS is a flexible manager where you can build your custom content structure without coding anything by custom fields and custom contents type.
 
 ## Camaleon CMS is FREE and Open source
 It was released on July, 2015 and tested previously with more than 20 projects by 6 months and on august 22, 2015 was published as a gem.
@@ -106,7 +131,6 @@ It was released on July, 2015 and tested previously with more than 20 projects b
   - Seo for social media
   - Customize your content for Desktop, Mobile and Tablet
   - All generated content is compatible with HTML5
-
 
 ## Camaleon CMS come with basic and important plugins like:
 * Ecommerce
