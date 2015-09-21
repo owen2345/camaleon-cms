@@ -1,4 +1,4 @@
-require "camaleon_cms/engine"
+require 'camaleon_cms/engine'
 
 module CamaleonCms
 end

@@ -88,6 +88,7 @@ class Plugins::ContactForm::FrontController < Apps::PluginsFrontController
       flash[:notice] = succes.join("<br>")
     else
       flash[:error] = errors.join("<br>")
+      flash[:values] = fields
     end
 
     redirect_to :back
