@@ -7,6 +7,9 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class HtmlMailer < ActionMailer::Base
+  include SiteHelper
+  include HooksHelper
+  include PluginsHelper
   #include ApplicationHelper
   default from: "Camaleon CMS <owenperedo@gmail.com>"
   after_action :set_delivery_options
