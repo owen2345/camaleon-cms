@@ -241,7 +241,7 @@ en:
       message:
         error: 'Error class'
         error_term: 'Error term class'
-        created: 'Savedt'
+        created: 'Saved'
         updated: 'Updated'
         deleted: 'Deleted'
         no_created_html: '<br> No %{taxonomy} found'
