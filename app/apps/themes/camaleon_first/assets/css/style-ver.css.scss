@@ -11,10 +11,10 @@ Tags: white, black, gray, light, custom-menu, custom-header, custom-background, 
 Copyright (C) 2011-2014 Gents Themes
 License: GNU General Public License, version 3 (GPLv3)
 License URI: license.txt
-	
+
 CREATE CHILD THEME.
 See: http://codex.wordpress.org/Child_Themes
-	
+
 CSS Rules: Sorted alphabetically for better organization.
 */
 
@@ -85,7 +85,34 @@ hr {
 
 
 .navbar { margin-bottom: 0px; text-transform: uppercase; }
+/************ nav-var multi level *************/
+.navbar-nav,
+.navbar-right{
+  .dropdown:hover > ul{
+	display: block;
+  }
+  .dropdown-menu{
+	width: 100%;
+	background: #1ABC9C;
+  }
+  li li, li li a{
+	background: #1ABC9C !important;
+	color: #fff !important;
+  }
+  ul ul {
+	left: 100% !important;
+	top: -8px;
+  }
 
+  ul{
+	border-radius: 0;
+	.caret{
+	  border-bottom: 4px solid transparent;
+	  border-top: 4px solid transparent;
+	  border-left: 4px solid;
+	}
+  }
+}
 .navbar-inverse { padding-bottom: 70px; padding-top: 70px; }
 
 .navbar-inverse { background-color: #1abc9c; border-color: #16a085; }
