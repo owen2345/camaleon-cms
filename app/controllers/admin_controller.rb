@@ -20,7 +20,7 @@ class AdminController < CamaleonController
   before_action :admin_before_hooks
   after_action :admin_after_hooks
 
-  # render admin dashabord
+  # render admin dashboard
   def index
   end
 

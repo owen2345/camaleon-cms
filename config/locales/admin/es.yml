@@ -344,7 +344,6 @@ es:
       appearance: 'Apariencia'
       comments: 'Comentarios'
       content: 'Contenido'
-      contents_type: 'Tipo de Contenidos'
       custom_fields: 'Campos Personalizados'
       dashboard: 'Escritorio'
       general_site: 'Sitio General'

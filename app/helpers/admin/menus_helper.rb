@@ -10,7 +10,7 @@ module Admin::MenusHelper
   include Admin::BreadcrumbHelper
 
   def admin_menus_add_commons
-    admin_menu_add_menu("dashabord", {icon: "dashboard", title: t('admin.sidebar.dashboard'), url: admin_dashboard_path})
+    admin_menu_add_menu("dashboard", {icon: "dashboard", title: t('admin.sidebar.dashboard'), url: admin_dashboard_path})
     #if can? :manager, :content
     items = []
 
@@ -54,7 +54,7 @@ module Admin::MenusHelper
       items = []
       items << {icon: "desktop", title: t('admin.sidebar.general_site'), url: admin_settings_site_path}
       items << {icon: "cog", title: t('admin.sidebar.sites'), url: admin_settings_sites_path} if current_site.manage_sites?
-      items << {icon: "files-o", title: t('admin.sidebar.contents_type'), url: admin_settings_post_types_path}
+      items << {icon: "files-o", title: t('admin.sidebar.post_type'), url: admin_settings_post_types_path}
       items << {icon: "cog", title: t('admin.sidebar.custom_fields'), url: admin_settings_custom_fields_path}
       items << {icon: "language", title: t('admin.sidebar.languages'), url: admin_settings_languages_path}
       admin_menu_add_menu("settings", {icon: "cogs", title: t('admin.sidebar.settings'), url: "", items: items})
@@ -189,7 +189,7 @@ module Admin::MenusHelper
   def _admin_menu_draw_active
     bread = []
     @_tmp_menu_parents.uniq.each do |item|
-      bread << [item[:title].to_s.strip_tags, item[:url]] if item.present? && item[:key] != "dashabord"
+      bread << [item[:title].to_s.strip_tags, item[:url]] if item.present? && item[:key] != "dashboard"
     end
     @_admin_breadcrumb = [[t('admin.sidebar.dashboard'), admin_dashboard_path]] + bread + @_admin_breadcrumb
   end
