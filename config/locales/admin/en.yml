@@ -345,7 +345,6 @@ en:
       appearance: 'Appearance'
       comments: 'Comments'
       content: 'Content'
-      contents_type: 'Contents Type'
       custom_fields: 'Custom Fields'
       dashboard: 'Dashboard'
       general_site: 'General Site'
