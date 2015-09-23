@@ -354,6 +354,7 @@ en:
       menus: 'Menus'
       navigation: 'Navigation'
       plugins: 'Plugins'
+      post_type: 'Post Type'
       settings: 'Settings'
       site_settings: 'Site settings'
       sites: 'Sites'
