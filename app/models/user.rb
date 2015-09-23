@@ -69,9 +69,8 @@ class User < ActiveRecord::Base
     }.to_sym
   end
 
-
   def _id
-    "#{self.role.upcase}-#{self.id}"
+    "#{role.upcase}-#{id}"
   end
 
   def fullname
@@ -83,7 +82,7 @@ class User < ActiveRecord::Base
   end
 
   def client?
-    self.role == 'client'
+    role == 'client'
   end
 
   def get_role(site)
@@ -92,12 +91,12 @@ class User < ActiveRecord::Base
 
   def set_meta_from_form(metas)
     metas.each do |key, value|
-      self.metas.where({key: key}).update_or_create({value: value})
+      metas.where({key: key}).update_or_create({value: value})
     end
   end
 
   def assign_site(site)
-    self.user_relationships.where(term_taxonomy_id: site.id).first_or_create
+    user_relationships.where(term_taxonomy_id: site.id).first_or_create
   end
 
   def roleText
@@ -126,9 +125,8 @@ class User < ActiveRecord::Base
     save!
   end
 
-
-
   private
+
   def create_profile
     self.build_profile if self.profile.nil?
   end
@@ -168,5 +166,4 @@ class User < ActiveRecord::Base
       end
     end
   end
-
 end

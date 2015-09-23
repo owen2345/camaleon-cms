@@ -27,8 +27,14 @@ class Admin::SessionsController < CamaleonController
     data_user[:password] = cipher.decrypt(data_user[:password]) rescue nil
     @user = current_site.users.find_by_username(data_user[:username])
     captcha_validate = captcha_verify_if_under_attack("login")
-    r = {user: @user, params: params, password: data_user[:password], captcha_validate: captcha_validate}; hooks_run("user_before_login", r)
-    if captcha_validate && @user &&  @user.authenticate(data_user[:password])
+    r = {
+      user: @user,
+      params: params,
+      password: data_user[:password],
+      captcha_validate: captcha_validate
+    }
+    hooks_run("user_before_login", r)
+    if captcha_validate && @user && @user.authenticate(data_user[:password])
       captcha_reset_attack("login")
       login_user(@user)
     else
@@ -46,7 +52,6 @@ class Admin::SessionsController < CamaleonController
   def logout
     logout_user
   end
-
 
   def forgot
     @user = current_site.users.new
@@ -91,7 +96,7 @@ class Admin::SessionsController < CamaleonController
         html = "<p>#{t('admin.login.message.hello')}, <b>#{@user.fullname}</b></p>
             <p>#{t('admin.login.message.reset_url')}:</p>
             <p><a href='#{reset_url}'><b>#{reset_url}</b></a></p> "
-        sendmail(@user.email,t('admin.login.message.subject_email'), html)
+        sendmail(@user.email, t('admin.login.message.subject_email'), html)
 
         flash[:notice] = t('admin.login.message.send_mail_succes')
         redirect_to admin_login_path
@@ -112,17 +117,19 @@ class Admin::SessionsController < CamaleonController
       user_data = params[:user]
 
       @user = current_site.users.new(user_data)
-      r = {user: @user, params: params}; hooks_run("user_before_register", r)
+      r = {user: @user, params: params}
+      hooks_run("user_before_register", r)
       if captcha_verified? && @user.save
         @user.set_meta_from_form(params[:meta])
-        r = {user: @user, message: t('admin.users.message.created'), redirect_url: admin_login_path}; hooks_run("user_after_register", r)
+        r = {user: @user, message: t('admin.users.message.created'), redirect_url: admin_login_path}
+        hooks_run("user_after_register", r)
         flash[:notice] = r[:message]
         redirect_to r[:redirect_url]
       else
         @first_name = params[:meta][:first_name]
         @last_name = params[:meta][:last_name]
 
-        @user.errors[:captcha]  = t('admin.users.message.error_captcha')
+        @user.errors[:captcha] = t('admin.users.message.error_captcha')
         render "register"
       end
     else
