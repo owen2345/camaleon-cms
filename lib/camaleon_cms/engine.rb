@@ -47,7 +47,6 @@ module CamaleonCms
       # Dir[File.join(engine_dir, "config", "routes", "*.rb")].each{|r| app.routes_reloader.paths.unshift(r) }
 
       # extra configuration for plugins
-      app.config.autoload_paths += %W(#{app.config.root}/app/apps/**/)
       app.config.eager_load_paths += %W(#{app.config.root}/app/apps/**/)
       PluginRoutes.all_plugins.each{ |plugin| app.config.paths["db/migrate"] << File.join(plugin["path"], "migrate") if Dir.exist?(File.join(plugin["path"], "migrate")) }
 
