@@ -49,7 +49,7 @@
             </div>
         </div>
 
-        <%= r = {html: ""}; hooks_run("user_register_form", r); raw(r[:html]); %>
+        <%= r = {html: "", f: f}; hooks_run("user_register_form", r); raw(r[:html]); %>
 
         <div class="form-group push-up-30">
             <div class="col-md-6">
