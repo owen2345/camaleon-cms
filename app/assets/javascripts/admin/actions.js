@@ -1,4 +1,6 @@
-$(document).on("ready page:load", function(){
+jQuery(function($){
+    // initialize all validations for forms
+    init_form_validations();
     setTimeout(page_actions, 1000);
 });
 
@@ -15,9 +17,6 @@ var page_actions = function(){
         $(this).parents(".dropdown").removeClass("open");
         return false;
     });
-
-    // initialize all validations for forms
-    init_form_validations();
 }
 
 function panel_collapse(panel,action,callback){

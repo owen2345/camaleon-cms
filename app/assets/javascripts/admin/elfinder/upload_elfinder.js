@@ -202,8 +202,8 @@
                 "</div>"+
                 "<div id='panel-info-content' class='row'>"+
                 "<p class='col-md-12'>"+content_elfinder.messages.size+" : <span>"+content_elfinder.formatSize(elemFirst.size)+"</span></p>"+
-                "<p class='col-md-12'>URL : <span><input type='text' onClick='this.select();' value='"+elemFirst.url.to_url()+"' /></span></p>"+
-                (is_image_data(elemFirst) ? "<p class='col-md-12'>"+content_elfinder.messages.thumb+" : <span><input type='text' onClick='this.select();' value='"+ (elemFirst.tmb != "1" ? elemFirst.tmb.toString().to_url() : elemFirst.url.to_url()) +"' /></span></p>" : "")+
+                "<p class='col-md-12'>URL : <span><input type='text' value='"+elemFirst.url.to_url()+"' /></span></p>"+
+                (is_image_data(elemFirst) ? "<p class='col-md-12'>"+content_elfinder.messages.thumb+" : <span><input type='text' value='"+ (elemFirst.tmb != "1" ? elemFirst.tmb.toString().to_url() : elemFirst.url.to_url()) +"' /></span></p>" : "")+
                 "<p class='col-md-12'>"+content_elfinder.messages.dim+" :  <span>"+elemFirst.dim+"</span></p>"+
                 "<p class='col-md-12'>"+content_elfinder.messages.modify+"  :  <span>"+elemFirst.date.replace('-0400','')+"</span></p>"+
                 "</div>";

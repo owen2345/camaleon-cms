@@ -19,6 +19,7 @@ class AdminController < CamaleonController
   before_action :admin_logged_actions
   before_action :admin_before_hooks
   after_action :admin_after_hooks
+  # layout Proc.new { |controller| request.headers["X-XHR-Referer"] ? "admin/_ajax" : 'admin' }
 
   # render admin dashabord
   def index

@@ -38,9 +38,9 @@ var init_form_validations = function(form){
     (form ? form : $('#admin_content form')).each(function () {
         var $form = $(this)
         if ($form.find('.translatable').size() > 0) {
-            $form.find('.translatable').Translatable(ADMIN_TRANSLATIONS);
+            $form.find('.translatable').Translatable();
         }
-    }).filter("[class^='validate']").each(function(){
+    }).filter(".validate").each(function(){
         $(this).validate()
     });
 };

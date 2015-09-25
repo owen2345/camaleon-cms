@@ -1,4 +1,4 @@
-<div class="page-content-wrap">
+<div class="page-content-wrap row">
   <div class="col-md-4">
     <div class="panel panel-default">
       <div class="panel-heading ui-draggable-handle">
@@ -64,7 +64,7 @@
             </tbody>
           </table>
           <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if @categories.empty? %>
-          <%= will_paginate @categories, renderer: BootstrapPagination::Rails %>
+            <%= raw do_pagination(@categories) %>
         </div>
       </div>
       <!-- END BASIC TABLE SAMPLE -->

@@ -59,7 +59,7 @@
             </tbody>
           </table>
           <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if @post_types.empty? %>
-          <%= will_paginate @post_types, renderer: BootstrapPagination::Rails %>
+            <%= raw do_pagination(@post_types) %>
         </div>
       </div>
       <!-- END BASIC TABLE SAMPLE -->

@@ -61,7 +61,7 @@
             </tbody>
           </table>
           <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if @post_tags.empty? %>
-          <%= will_paginate @post_tags, renderer: BootstrapPagination::Rails %>
+            <%= raw do_pagination(@post_tags) %>
         </div>
       </div>
       <!-- END BASIC TABLE SAMPLE -->

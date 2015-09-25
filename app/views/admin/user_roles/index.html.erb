@@ -36,7 +36,7 @@
             </tbody>
           </table>
           <%= content_tag("div", raw(t('admin.message.data_found_list')), class: "alert alert-warning") if @user_roles.empty? %>
-          <%= will_paginate @user_roles, renderer: BootstrapPagination::Rails  if @user_roles.present? %>
+            <%= raw do_pagination(@user_roles) %>
 
         </div>
 

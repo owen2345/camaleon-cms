@@ -24,4 +24,18 @@ module Admin::ApplicationHelper
     end
     args[:content] << current_site.get_meta("date_notified_message", "")
   end
+
+  # render pagination for current items
+  # items is a will pagination object
+  # sample: <%= raw do_pagination(@posts) %>
+  def do_pagination(items)
+    "<div class='row' class='pagination_panel'>
+        <div class='col-md-6'>
+          #{will_paginate items }
+        </div>
+        <div class='col-md-6 text-right total-items'>
+          <strong>Total: #{items.total_entries} </strong>
+        </div>
+    </div>"
+  end
 end
