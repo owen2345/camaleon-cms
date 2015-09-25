@@ -476,6 +476,8 @@ en:
       visibility: 'Visibility'
       page_404: '404 Page'
       youtube: 'Youtube'
+      more_actions: 'More actions'
+      more_actions_info: 'More actions...'
     themes:
       footer_copyright: 'Footer Copyright'
       theme_select: 'Select Theme'

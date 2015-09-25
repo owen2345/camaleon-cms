@@ -474,6 +474,8 @@ es:
       visibility: 'Visibilidad'
       page_404: 'Página 404'
       youtube: 'Youtube'
+      more_actions: 'Más acciones'
+      more_actions_info: 'Más acciones...'
     themes:
       footer_copyright: 'Derechos de Autor'
       theme_select: 'Seleccionar Plantilla'
