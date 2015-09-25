@@ -236,11 +236,12 @@
         $('.form-ajax-profile').bind('submit', function(e) {
             e.preventDefault();
             if($(this).valid()){
+                showLoading();
                 $(this).ajaxSubmit({success: function(res){
                     if(res.errors){
-                        $.fn.alert({type: 'error', title: lang.msg_form_error, content: res.errors, icon: 'times', close: lang.close});
+                        $.fn.alert({type: 'error', title: I18n("msg.form_error"), content: res.errors, icon: 'times', close: I18n("button.close")});
                     }else{
-                        $.fn.alert({ title: lang.message_updated_success, close: lang.close});
+                        $.fn.alert({ title: I18n("msg.updated_success"), close: I18n("button.close")});
                     }
                 }})
             }
@@ -249,9 +250,9 @@
 
         $('.form-ajax-password').ajaxForm({success: function(res){
             if(res.errors){
-                $.fn.alert({type: 'error', title: lang.msg_form_error, content: res.errors, icon: 'times', close: lang.close});
+                $.fn.alert({type: 'error', title: I18n("msg.form_error"), content: res.errors, icon: 'times', close: I18n("button.close")});
             }else{
-                $.fn.alert({ title: lang.message_updated_success, close: lang.close});
+                $.fn.alert({ title: I18n("msg.updated_success"), close: I18n("button.close")});
                 $("#modal_change_password").modal('hide')
             }
         }})
@@ -283,7 +284,7 @@
 
                     $("#cp_crop").ajaxForm({success: function(res){
                         $("#user_image").html('<img class="img-thumbnail" src="'+res+'?r='+Math.random()+'"/>');
-                        $.fn.alert({ title: lang.msg_avatar_updated, close: lang.close});
+                        $.fn.alert({ title: I18n("msg.avatar_updated"), close: I18n("button.close")});
                     }}).submit();
                     $("#cp_target").html("Use form below to upload file. Only image files.");
                     $("#cp_photo").val("").parent("a").find("span").html("Select file");

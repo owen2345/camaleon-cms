@@ -17,6 +17,54 @@ jQuery(function(){
             e.preventDefault();
         });
     }
+
+    // custom alert dialog
+    $.fn.alert = function (options) {
+        hideLoading();
+        var default_options = {title: I18n("msg.updated_success"), content: "", type: "success" };
+        options = $.extend(default_options, options || {});
+        if(options.type == "error") options.type = "danger";
+        if(options.type == "alert") options.type = "warning";
+        if(!options.content){
+            options.content = options.title
+            options.title = "";
+        }
+        open_modal(options);
+        return;
+
+
+
+        if (options.type == "error") options.type = "danger";
+        if (options.type == "alert") options.type = "warning";
+
+        var html = '<div class="message-box message-box-'+options.type+' animated fadeIn open" >'+
+            '<div class="mb-container">'+
+            '<div class="mb-middle">'+
+            '<div class="mb-title"><span class="fa fa-'+options.icon+'"></span> '+options.title+'</div>'  +
+            '<div class="mb-content">'+
+            options.content+
+            '</div>'+
+            '<div class="mb-footer">'+
+            '<button class="btn btn-default btn-lg pull-right mb-control-close">'+options.close+'</button>'+
+            '</div>'+
+            '</div>' +
+            '</div>' +
+            '</div>' ;
+
+        if(options.type === 'warning')
+            playAudio('alert');
+
+        if(options.type === 'danger')
+            playAudio('fail');
+
+        var $html = $(html);
+        $html.find('.mb-control-close').click(function(){
+            $html.remove();
+            return false;
+        })
+        $('body').append($html);
+
+    };
 });
 
 
@@ -31,12 +79,13 @@ jQuery(function(){
  * ajax_params: json with ajax params
  * modal_size: "modal-lg", "modal-sm", ""(default as normal "")
  * callback: function evaluated after modal shown
+ * type: modal color (primary|default|success)
  * return modal object
  */
 function open_modal(settings){
-    var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, modal_size: "", modal_settings:{}, callback: function(){}}
+    var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, modal_size: "", type: '', modal_settings:{}, callback: function(){}}
     settings = $.extend({}, def, settings);
-    var modal = $('<div id="ow_inline_modal" class="modal fade">'+
+    var modal = $('<div id="ow_inline_modal" class="modal fade modal-'+settings.type+'">'+
         '<div class="modal-dialog '+settings.modal_size+'">'+
         '<div class="modal-content">'+
         '<div class="modal-header">'+
@@ -44,13 +93,16 @@ function open_modal(settings){
         '<h4 class="modal-title">'+settings.title+'</h4>'+
         '</div>'+
         '<div class="modal-body"></div>'+
-        (settings.show_footer?'<div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>':'')+
+        (settings.show_footer?'<div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">'+I18n("button.close")+'</button></div>':'')+
         '</div>'+
         '</div>'+
         '</div>');
 
     modal.on("hidden.bs.modal", function(e){ if(!$(e["currentTarget"]).attr("data-skip_destroy")) $(e["currentTarget"]).remove(); });
-    modal.on("show.bs.modal", function(e){ settings.callback(modal); });
+    modal.on("show.bs.modal", function(e){
+        if(!modal.find(".modal-title").text()) modal.find(".modal-header .close").css("margin-top", "-9px");
+        settings.callback(modal);
+    });
     if(settings.mode == "inline"){
         modal.find(".modal-body").html(settings.content);
         modal.modal(settings.modal_settings);

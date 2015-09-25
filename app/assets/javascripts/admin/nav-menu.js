@@ -12,15 +12,15 @@ function do_add_item_menu(data)
 
     var link_data = '';
 
-    $("#menu_form .alert.alert-info").html(lang.message_edit_menu);
+    $("#menu_form .alert.alert-info").html(I18n("msg.edit_menu"));
     if (type == "post" || type == "category"){
-        link_data = '<a class="text-edit" title="'+lang.edit+'" target="_blank" href="'+data.url_edit+'" rel="1"><i class="fa fa-edit"></i></a>'
+        link_data = '<a class="text-edit" title="'+I18n("button.edit")+'" target="_blank" href="'+data.url_edit+'" rel="1"><i class="fa fa-edit"></i></a>'
     }else if(type == "external"){
-        link_data = '<a class="text-edit" title="'+lang.edit+'" href="'+data.url_content+'" onclick="do_edit_menu(this); return false;" rel="1"><i class="fa fa-edit"></i></a>'
+        link_data = '<a class="text-edit" title="'+I18n("button.edit")+'" href="'+data.url_content+'" onclick="do_edit_menu(this); return false;" rel="1"><i class="fa fa-edit"></i></a>'
     }else{
 
     }
-    var item = '<li class="dd-item dd3-item" data-label="'+text.replace(/"/g, '\"')+'" data-type="'+type+'" data-link="'+link.replace('"', '\"')+'" data-id="'+id+'" data-parent="'+(parent_id ? parent_id : "")+'"><div class="dd-handle dd3-handle"></div> <div class="dd3-content"><span>'+text + "</span> " + extra_html +' <span class="label">'+type+'</span> '+ link_data +' <a href="#" onclick="do_delete_menu(this); return false;" class="text-danger" title="'+lang.delete+'"><i class="fa fa-times-circle"></i></a> </div></li>';
+    var item = '<li class="dd-item dd3-item" data-label="'+text.replace(/"/g, '\"')+'" data-type="'+type+'" data-link="'+link.replace('"', '\"')+'" data-id="'+id+'" data-parent="'+(parent_id ? parent_id : "")+'"><div class="dd-handle dd3-handle"></div> <div class="dd3-content"><span>'+text + "</span> " + extra_html +' <span class="label">'+type+'</span> '+ link_data +' <a href="#" onclick="do_delete_menu(this); return false;" class="text-danger" title="'+I18n("button.delete")+'"><i class="fa fa-times-circle"></i></a> </div></li>';
     if(parent_id > 0)
     {
         var parent = $("#nestable").find("*[data-id='"+parent_id+"']");
@@ -75,16 +75,13 @@ function manage_external_links()
     })
 }
 
-function do_delete_menu(link)
-{
-    var msg = $(link).closest("li.dd-item").children("ol").size()? lang.message_remove_items_submenu : lang.message_delete_item;
-
+function do_delete_menu(link){
+    var msg = $(link).closest("li.dd-item").children("ol").size()? I18n("msg.remove_items_submenu") : I18n("msg.delete_item");
     if (confirm(msg)) {
         $(link).closest("li.dd-item").remove();
     } else {
         false;
     }
-
 }
 
 function do_edit_menu(link)

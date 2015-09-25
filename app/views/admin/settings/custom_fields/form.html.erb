@@ -192,7 +192,7 @@
 
       $("body").on("click", ".panel-delete", function(){
           var parent = $(this).parents(".item:first");
-          if(confirm(lang.message_delete_item)){
+          if(confirm(I18n("msg.delete_item"))){
               parent.remove()
           }
           return false;

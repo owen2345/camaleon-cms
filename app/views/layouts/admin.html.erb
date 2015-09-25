@@ -19,42 +19,6 @@
         window.run = [];
         var tinymce_assets = {language_url: "<%= asset_path("admin/tinymce/langs/#{current_locale}.js") %>", custom_css: <%= r = {css_assets: []}; hooks_run("tinymce_custom_css", r); raw(r[:css_assets].to_json); %>};
         var I18n_data = <%= I18n.backend.send(:translations)[current_locale.to_sym][:admin][:js].to_json.html_safe %>
-        var lang = {
-            accept: '<%= t('admin.button.accept') %>',
-            cancel: '<%= t('admin.button.cancel') %>',
-            add_tag: '<%= t('admin.post.add_tag') %>',
-            approved: '<%= t('admin.comments.message.approved') %>',
-            close: '<%= t('admin.button.close') %>',
-            edit: '<%= t('admin.button.edit') %>',
-            "delete": '<%= t('admin.button.delete') %>',
-            post_draft: '<%= t('admin.post.message.draft') %>',
-            label_required: '<%= t('plugin.contact_form.label_required') %>',
-            placeholder_required: '<%= t('plugin.contact_form.placeholder_required') %>',
-            message_updated_success: '<%= t('admin.message.updated_success') %>',
-            message_edit_menu:  '<%= t('admin.message.edit_menu') %>',
-            message_delete_item:  '<%= t('admin.message.delete_item') %>',
-            message_remove_items_submenu:  '<%= t('admin.message.remove_items_submenu') %>',
-            message_you_must_upload_image: '<%= t('admin.message.you_must_upload_image') %>',
-            message_you_must_upload_video: '<%= t('admin.message.you_must_upload_video') %>',
-            message_no_response_fields: '<%= t('admin.message.no_response_fields') %>',
-            message_you_must_upload_json_file: '<%= t('admin.message.you_must_upload_json_file')%>',
-            msg_no_templates_defined: '<%= t('admin.message.no_templates_defined') %>',
-            msg_avatar_updated: '<%= t('admin.message.avatar_updated')%>',
-            msg_form_error: '<%= t('admin.message.form_error')%>',
-            option_title:  '<%= t('admin.settings.option_title') %>',
-            permalink: '<%= t('admin.post.permalink')%>',
-            pending: '<%= t('admin.comments.message.pending') %>',
-            preview: '<%= t('admin.button.preview')%>',
-            spam: '<%= t('admin.comments.message.spam') %>',
-            view_page: '<%= t('admin.button.view_page')%>',
-            view_draft: '<%= t('admin.button.view_draft') %>',
-            mgs_save_draft: '<%= t('admin.post.message.draft') %>',
-            mgs_recover: '<%= t('admin.post.message.recover') %>',
-            close: '<%= t('admin.button.close')%>',
-            processing: '<%= t('admin.message.processing')%>',
-            type_contents: '<%= t('admin.plugins.type_contents')%>',
-            upload_image: '<%= t('admin.button.upload_image')%>'
-        };
     </script>
     <%= javascript_include_tag "admin/admin-manifest" %>
     <%= javascript_include_tag "admin/#{current_locale}.js" if current_locale != "en" %> <!-- validator translations -->

@@ -112,7 +112,7 @@
                     var option_default_values = <%= raw(@item_options_value[:multiple_options].present? ? @item_options_value[:multiple_options].to_json : '[]') %>
                     function add_option_default(values){
                         if(!values) values = {}
-                        values = $.extend({title: lang.option_title, value: '1',default: false},values)
+                        values = $.extend({title: I18n("msg.option_title"), value: '1',default: false},values)
                         var $option = $('<li>'+option_default_html+'</li>');
                         $option.find('.option-name').val(values.title);
                         $option.find('.option-value').val(values.value);

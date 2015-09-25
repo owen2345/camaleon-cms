@@ -47,6 +47,7 @@ var init_form_validations = function(form){
 
 
 !(function($){
+    // serialize form into json
     jQuery.fn.serializeObject=function() {
         var json = {};
         jQuery.map(jQuery(this).serializeArray(), function(n, i) {
@@ -85,7 +86,7 @@ var init_form_validations = function(form){
 // file uploader
 (function($){
     $.fn.input_upload = function (options_init) {
-        var default_options = {label: lang.upload_image, type: "image", ext: "none", icon: "upload", full_url: true, height: '100px'};
+        var default_options = {label: I18n("msg.upload_image"), type: "image", ext: "none", icon: "upload", full_url: true, height: '100px'};
         default_options = $.extend({}, default_options, options_init || {});
         $(this).each(function(){
             var $that = $(this);

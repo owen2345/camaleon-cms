@@ -150,13 +150,13 @@
 
         switch (value){
             case "approved":
-                type = lang.approved;
+                type = I18n("msg.approved");
                 break;
             case "pending":
-                type = lang.pending;
+                type = I18n("msg.pending");
                 break;
             case "spam":
-                type = lang.spam;
+                type = I18n("msg.spam");
                 break;
             default:
                 type = ""
@@ -167,7 +167,7 @@
                 msn =  res.notice+type+".";
                 $(dom).parent().find('.btn-primary').removeClass('btn-primary')
                 $(dom).addClass('btn-primary')
-                $.fn.alert({title: msn, type: color, close: lang.close});
+                $.fn.alert({title: msn, type: color, close: I18n("button.close")});
             }
         });
 
@@ -175,14 +175,14 @@
 
     function do_delete_comment(comment, id, type_comment){
 
-        var msg = lang.message_delete_item;
+        var msg = I18n("msg.delete_item");
 
         if (confirm(msg)) {
             var path = '<%= delete_admin_comments_path()%>';
             var data = {answers_id: id};
 
             $.post( path, data, function(res){
-                $.fn.alert({title: res.notice, close: lang.close});
+                $.fn.alert({title: res.notice, close: I18n("button.close")});
             });
 
             if (type_comment == "parent"){

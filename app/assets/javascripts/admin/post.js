@@ -4,7 +4,7 @@ function init_post(obj){
     $form = $('#form-post');
 
     if(obj.recover_draft == "true"){
-        $form.css('opacity',0).before('<h2 style="text-align: center">'+lang.mgs_recover+'</h2>');
+        $form.css('opacity',0).before('<h2 style="text-align: center">'+I18n("msg.recover")+'</h2>');
     }
 
     var _draft_inited = false;
@@ -49,7 +49,7 @@ function init_post(obj){
     App_post.save_draft = function(){
         App_post.save_draft_ajax(function(){
             $form.data("submitted", 1);
-            location.href = _posts_path+'?notice='+lang.post_draft
+            location.href = _posts_path+'?notice='+I18n("msg.draft")
         });
 
     }
@@ -74,10 +74,10 @@ function init_post(obj){
             }
 
             var $link = $('<div class="sl-slug-edit">' +
-            '<strong>'+lang.permalink+':&nbsp;</strong><span class="sl-link"></span> <span>/ &nbsp;&nbsp;</span>' +
-            '<a href="#" class="btn btn-default btn-xs btn-edit">'+lang.edit+'</a> &nbsp;&nbsp; ' +
-            '<a href="#" class="btn btn-info btn-xs btn-preview" target="_blank">'+lang.preview+'</a> &nbsp;&nbsp; ' +
-            '<a href="#" class="btn btn-success btn-xs btn-view" style="display: none" target="_blank">'+lang.view_page+'</a>' +
+            '<strong>'+I18n("msg.permalink")+':&nbsp;</strong><span class="sl-link"></span> <span>/ &nbsp;&nbsp;</span>' +
+            '<a href="#" class="btn btn-default btn-xs btn-edit">'+I18n("button.edit")+'</a> &nbsp;&nbsp; ' +
+            '<a href="#" class="btn btn-info btn-xs btn-preview" target="_blank">'+I18n("msg.preview")+'</a> &nbsp;&nbsp; ' +
+            '<a href="#" class="btn btn-success btn-xs btn-view" style="display: none" target="_blank">'+I18n("msg.view_page")+'</a>' +
             '</div>').hide();
             $this.addClass('sluged');
             $this.after($link)
@@ -134,7 +134,7 @@ function init_post(obj){
             });
             $link.find('.btn-edit').click(function(){      log(lang);
                 var $btn = $(this);
-                var $btn_edit = $('<a href="#" class="btn btn-default btn-xs btn-edit">'+lang.accept+'</a> &nbsp; <a href="#"  class="btn-cancel">'+lang.cancel+'</a>');
+                var $btn_edit = $('<a href="#" class="btn btn-default btn-xs btn-edit">'+I18n("button.accept")+'</a> &nbsp; <a href="#"  class="btn-cancel">'+I18n("button.cancel")+'</a>');
                 var $label = $link.find('.sl-url');
                 var $input = $("<input type='text' />");
                 $label.hide().after($input);
@@ -204,7 +204,7 @@ function init_post(obj){
         $form.find(".tagsinput").tagEditor({
             autocomplete: { delay: 0, position: { collision: 'flip' }, source: $.parseJSON(post_tags) },
             forceLowercase: false,
-            placeholder: lang.add_tag + '...'
+            placeholder: I18n("button.add_tag") + '...'
         });
         /********** end post tagEditor **************/
         ////// thumbnail
