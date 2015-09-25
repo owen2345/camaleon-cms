@@ -170,23 +170,7 @@ function init_post(obj){
 
     tinymce.init($.extend({}, DATA.tiny_mce.advanced, {selector: '.tinymce_textarea:not(.translated-item)', language: CURRENT_LOCALE, height: '480px', onPostRender: onEditorPostRender}));
 
-    $form.validate({ focusInvalid: true, ignore: ".translated-item", errorPlacement: function (a,b) {
-        if(b.parent().hasClass('form-group')){
-            b.parent().addClass('has-error').append(a.addClass('help-block'));
-        }else if(b.parent().hasClass('tab-pane')){ // tabs
-            var parent = b.parent();
-            $("a[href='#"+ parent.attr('id') +"']").addClass('has-error').trigger('click');
-            parent.addClass('has-error').append(a.addClass('help-block'));
-        }else{
-            if(b.attr('name') == 'categories[]')
-                b.parent().before(a.addClass('help-block')).parent().addClass('has-error');
-            else
-                b.parent().after(a.addClass('help-block')).parent().addClass('has-error');
-        }
-    }, success: function(error, element){
-        $(element).parent().removeClass('has-error').parent().removeClass('has-error')
-        if($(element).parent().hasClass('tab-pane')) $("a[href='#"+ $(element).parent().attr('id') +"']").removeClass('has-error');
-    } });
+    $form.validate();
     /*
     * skip translation inputs
     submitHandler: function(form){
@@ -206,9 +190,7 @@ function init_post(obj){
         var panel_scroll = $("#form-post > .content-frame-right");
         var fixed_position = panel_scroll.children(":first");
         var fixed_offset_top = panel_scroll.offset().top;
-        $(window).scroll(function(){ if($(window).width() < 1024){ fixed_position.css({position: "", width: ""}); panel_scroll.css("padding-top", ""); return; } if ($(window).scrollTop() >= fixed_offset_top+10){ fixed_position.css({position: "fixed", width: "279px", top: 0, "z-index": 4}); panel_scroll.css("padding-top", fixed_position.height()+20) } else { fixed_position.css({position: "", width: "auto"}); panel_scroll.css("padding-top", "") }}).resize(function(){
-            if($(window).width() >= 1024){ panel_scroll.show(); }
-        });
+        $(window).scroll(function(){ if($(window).width() < 1024){ fixed_position.css({position: "", width: ""}); panel_scroll.css("padding-top", ""); return; } if ($(window).scrollTop() >= fixed_offset_top+10){ fixed_position.css({position: "fixed", width: "279px", top: 0, "z-index": 4}); panel_scroll.css("padding-top", fixed_position.height()+20) } else { fixed_position.css({position: "", width: "auto"}); panel_scroll.css("padding-top", "") }}).resize(function(){ if($(window).width() >= 1024){ panel_scroll.show(); } }).scroll();
         /*********** end scroller buttons ***************/
 
         /********** post tagEditor ******************/
@@ -271,4 +253,21 @@ function init_post(obj){
         $('#post_status').val('published');
         $form.submit();
     }
+}
+
+// thumbnail updloader
+function upload_feature_image(){
+    $.fn.upload_elfinder({
+        selected: function(res){
+            var image = _.first(res)
+            if(image.mime && image.mime.indexOf("image") > -1){
+                $('#feature-image img').attr('src', image.url.to_url());
+                $('#feature-image input').val(image.url.to_url());
+                $('#feature-image .meta strong').html(image.name);
+                $('#feature-image').show();
+            }else{
+                alert("You must upload an image")
+            }
+        }
+    });
 }

@@ -1,18 +1,12 @@
-<div class="page-title">
-  <h2><span class="fa fa-cog"></span> <%= t('admin.settings.list_sites') %></h2>
-</div>
-
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap">
-
   <div class="row">
     <div class="col-md-12">
-
       <!-- START BASIC TABLE SAMPLE -->
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title"> <%= t('admin.page_title.list')%> </h3>
-          <%= link_to raw("<i class='fa fa-plus'></i> #{t('admin.sites.add_site')}"), {action: :new}, class: "btn btn-primary pull-right" %>
+            <h4 class="pull-left"><span class="fa fa-cog"></span> <%= t('admin.settings.list_sites') %></h4>
+            <%= link_to raw("<i class='fa fa-plus'></i> #{t('admin.sites.add_site')}"), {action: :new}, class: "btn btn-primary pull-right" %>
         </div>
         <div class="panel-body">
 
@@ -25,6 +19,7 @@
                 <th><%= t('admin.table.description') %></th>
                 <th><%= t('admin.table.default') %></th>
                 <th><%= t('admin.table.actions') %></th>
+                <th></th>
             </tr>
             </thead>
             <tbody>
@@ -39,6 +34,10 @@
                     <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs", title: "#{t('admin.button.edit')}" %>
                     <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
                                 method: :delete, data: { confirm: t('admin.message.delete_item') }, class: "btn btn-danger btn-xs", title: "#{t('admin.button.delete')}" unless current_site.id == f.id %>
+                    </td>
+                    <td>
+                        <a target="_blank" class="btn btn-info btn-xs" href="<%= f.the_url %>" target="_blank" title="<%= t("common.visit") %>"><i class="fa fa-eye"></i></a>
+                        <a target="_blank" class="btn btn-primary btn-xs" href="<%= f.the_admin_url %>" target="_blank" title="<%= t("admin.sidebar.dashboard") %>"><i class="fa fa-dashboard"></i></a>
                     </td>
                 </tr>
             <% end %>

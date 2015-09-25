@@ -1,0 +1,103 @@
+// mixins
+@mixin link_round($radio: 30){
+  border: 1px solid #bbb;
+  border-radius: 50%;
+  color: #656d78;
+  display: block;
+  float: left;
+  height: #{$radio}px;
+  line-height: #{$radio - 3}px;
+  margin-left: 3px;
+  text-align: center;
+  transition: all 200ms ease 0s;
+  width: #{$radio}px;
+}
+
+#admin_content{
+  min-height: 400px;
+  .panel{
+    &.panel-toggled > .panel-body {
+      display: none;
+    }
+    .panel-heading{
+      overflow: hidden;
+      position: relative;
+      .panel-controls{
+        float: right;
+        list-style: outside none none;
+        position: absolute;
+        right: 26px;
+        top: 5px;
+        li{
+          float: left;
+          a{
+            @include link_round();
+          }
+        }
+      }
+    }
+    .panel-footer{
+      overflow: hidden;
+    }
+
+  }
+
+  // translations
+  .trans_panel{
+    .nav-tabs .has-error { color: #a94442; }
+    .tab-pane .has-error { border: 1px solid #a94442; }
+  }
+
+  // label size
+  .label.label-form{
+    font-size: 12px;
+    vertical-align: middle;
+  }
+  // reset label inputs
+  label{
+    input[type="radio"], input[type="checkbox"]{
+      margin-right: 4px;
+    }
+  }
+  // category lists
+  .categorychecklist{
+    padding-left: 10px;
+    list-style: none;
+    ul{
+      padding-left: 25px;
+      list-style: none;
+    }
+  }
+
+  #form-post{
+    .sl-slug-edit{
+      margin-top: 4px;
+    }
+    .gallery-item-remove{
+      position: absolute;
+      margin-top: -22px;
+    }
+  }
+
+  // widgets
+  #content-widget .widgets-available .small-box {
+    .inner{
+      padding-top: 30px;
+    }
+    a{
+      position: absolute;
+      top: 4px;
+      right: 5px;
+      @include link_round(25);
+      background: rgba(250, 250, 250, 0.4);
+      &.edit_link{
+        left: 5px;
+        right: auto;
+      }
+    }
+  }
+  ul.clear{
+    padding: 0;
+    list-style: none;
+  }
+}

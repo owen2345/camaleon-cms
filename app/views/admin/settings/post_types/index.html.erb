@@ -1,18 +1,10 @@
-<div class="page-title">
-  <h2>
-    <span class="fa fa-folder"></span> <%= t('admin.post_type.post_types') %>
-  </h2>
-</div>
-<div class="page-content-wrap">
-
+<div class="page-content-wrap row">
   <div class="col-md-4">
     <div class="panel panel-default">
       <div class="panel-heading ui-draggable-handle">
-        <h3 class="panel-title"><%= t('admin.post_type.add_post_type') %> </h3>
+        <h4><%= t('admin.post_type.add_post_type') %> </h4>
       </div>
-
       <%= render partial: 'form' %>
-
     </div>
 
   </div>
@@ -22,7 +14,7 @@
       <!-- START BASIC TABLE SAMPLE -->
       <div class="panel panel-default">
         <div class="panel-heading ui-draggable-handle">
-          <h3 class="panel-title"><%= t('admin.page_title.list')%></h3>
+            <h4><span class="fa fa-folder"></span> <%= t('admin.post_type.post_types') %></h4>
         </div>
         <div class="panel-body">
 

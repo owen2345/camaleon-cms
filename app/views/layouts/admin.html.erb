@@ -57,75 +57,45 @@
         };
     </script>
     <%= javascript_include_tag "admin/admin-manifest" %>
-    <%= javascript_include_tag "admin/#{current_locale}.js" if current_locale != "en" %>
-    <%= javascript_include_tag "admin/elfinder/i18n/elfinder.#{current_locale}.js" if current_locale != "en" %>
+    <%= javascript_include_tag "admin/#{current_locale}.js" if current_locale != "en" %> <!-- validator translations -->
+    <%= javascript_include_tag "admin/elfinder/i18n/elfinder.#{current_locale}.js" if current_locale != "en" %> <!-- elfinder translations -->
     <%= raw the_head(false) %>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
 </head>
-<body class="template-admin">
-<%= raw content_before_draw %>
-<!-- START PAGE CONTAINER -->
-<div class="page-container" id="page-container">
-
-    <!-- START PAGE SIDEBAR -->
-    <div class="page-sidebar page-sidebar-fixed0 scroll0" id="admin_sidebar">
-        <!-- START X-NAVIGATION -->
-        <%= render partial: "layouts/admin/sidebar", locals: {_admin_menu_draw: _admin_menu_draw} %>
-
-        <!-- END X-NAVIGATION -->
-    </div>
-    <!-- END PAGE SIDEBAR -->
-
-    <!-- PAGE CONTENT -->
-    <div class="page-content">
-
-        <!-- START X-NAVIGATION VERTICAL -->
-        <ul class="x-navigation x-navigation-horizontal x-navigation-panel hidden" id="admin_header">
-            <!-- TOGGLE NAVIGATION -->
-            <li class="xn-icon-button">
-                <a href="#" class="x-navigation-minimize"><span class="fa fa-dedent"></span></a>
-            </li>
-            <li class="xn-icon-button pull-right">
-                <a href="#" class="mb-control" data-box="#mb-signout"><span class="fa fa-power-off"></span></a>
-            </li>
-            <!-- END TOGGLE NAVIGATION -->
-        </ul>
-        <!-- END X-NAVIGATION VERTICAL -->
+<body class="hold-transition skin-blue sidebar-mini">
+    <%= raw content_before_draw %>
+    <div class="wrapper">
 
         <%= render partial: "layouts/admin/header" %>
+        <%= render partial: "layouts/admin/sidebar", locals: {_admin_menu_draw: _admin_menu_draw} %>
 
-        <div id="admin_content">
-            <%= render partial: "layouts/admin/flash_messages" %>
-            <%= yield %>
-        </div>
-        <!-- END PAGE CONTENT -->
-    </div>
-    <!-- END PAGE CONTAINER -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <ol class="breadcrumb">
+                    <%= raw admin_breadcrumb_draw() %>
+                </ol>
+            </section>
 
-    <div class="message-box animated fadeIn" data-sound="alert" id="mb-signout">
-        <div class="mb-container">
-            <div class="mb-middle">
-                <div class="mb-title"><span class="fa fa-sign-out"></span> <%= raw t('admin.logout.logout_html') %> </div>
-                <div class="mb-content">
-                    <p><%= t('admin.message.are_you_sure_you_want_log_out_int') %></p>
-                    <p><%= t('admin.message.press_no_continue_work_press_yes_logout') %></p>
-                </div>
-                <div class="mb-footer">
-                    <div class="pull-right">
-                        <a href="<%= admin_logout_path %>" class="btn btn-success btn-lg"><%= t('admin.button.out_yes') %></a>
-                        <button class="btn btn-default btn-lg mb-control-close"><%= t('admin.button.out_not') %></button>
-                    </div>
-                </div>
-            </div>
+            <!-- Main content -->
+            <!-- box box-info -->
+            <section class="content" id="admin_content">
+                <%= yield %>
+            </section>
+            <!-- /.content -->
         </div>
+
+        <%= render partial: "layouts/admin/footer" %>
+        <%= raw content_after_draw %>
     </div>
 
-    <!-- START PRELOADS -->
-    <audio id="audio-alert" src="<%= asset_path("audio/alert.mp3") %>" preload="auto"></audio>
-    <audio id="audio-fail" src="<%= asset_path("audio/fail.mp3") %>" preload="auto"></audio>
-    <!-- END PRELOADS -->
-
-</div>
-<script> jQuery(function () { while (run.length > 0) { (run.shift())(); } }); </script>
-<%= raw content_after_draw %>
+    <script> jQuery(function () { while (run.length > 0) { (run.shift())(); } }); </script>
+    <%= raw content_after_draw %>
 </body>
 </html>

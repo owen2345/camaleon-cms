@@ -1,15 +1,12 @@
-<div class="page-title">
-  <h2>
-    <span class="fa fa-users"></span>
-    <%= "Edit "%>
-  </h2>
-</div>
 <div class="page-content-wrap">
   <div class="row">
     <div class="col-md-6 col-md-offset-3">
       <div class="panel panel-default">
         <div class="panel-heading ui-draggable-handle">
-          <h3 class="panel-title"><%= @comment.id.present? ? "Edit" : "Add" %> </h3>
+            <h4>
+                <span class="fa fa-users"></span>
+                Comment <%= @comment.id.present? ? "Edit" : "Add" %>
+            </h4>
         </div>
         <%= form_for @comment, url:{action: @comment.new_record? ? :create : :update} do |f| %>
 

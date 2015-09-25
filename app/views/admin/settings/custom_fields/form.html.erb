@@ -4,21 +4,16 @@
 
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap">
-
   <div class="row">
     <%= form_for @field_group, url:{action: @field_group.new_record? ? :create : :update}, html: {class: 'validate-custom-field'} do |f| %>
         <div class="col-md-4">
           <div class="panel panel-default">
-
-
             <div class="panel-heading">
               <h3 class="panel-title"><%= t('admin.settings.details_custom_field_group') %></h3>
               <ul class="panel-controls">
                 <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
               </ul>
             </div>
-
-
             <div class="panel-body">
               <%= render partial: 'layouts/admin/form_error', locals: {data: @field_group} %>
               <div class="form-group">
@@ -123,7 +118,7 @@
                  fields =  @field_group.new_record? ? [] : @field_group.fields
               %>
 
-              <ul id="sortable-fields">
+              <ul id="sortable-fields" class="clear">
                 <% fields.each do |field|
                     @item_value = field
                     @item_options_value = field.options

@@ -93,7 +93,6 @@ function do_edit_menu(link)
     open_modal({title: "Edit Menu", url: $(link).attr("href"), mode: "ajax", callback: function(modal){
         modal.find(".panel-footer").html("<button type='submit' class='btn btn-primary'>Update</button>");
         var form = modal.find("form");
-        console.log(form, li);
         form.find("#external_label").val(li.attr("data-label"));
         form.find("#external_url").val(li.attr("data-link"));
         init_form_validations(form);
@@ -107,4 +106,51 @@ function do_edit_menu(link)
         });
     }});
     return;
+}
+
+// render the menu with saved items
+function render_menu(items){
+    form = $("#menu_content");
+    $.each(items, function (i, item) {
+        var r_id = do_add_item_menu({
+            id: item.id,
+            type: item.type,
+            link: item.link,
+            url_edit: item.url_edit,
+            text: item.label,
+            parent_id: item.parent,
+            url_content: RENDER_FORM
+        });
+    });
+    $('#nestable').nestable({maxDepth: 20}).on('change', function (a) {
+        null
+    });
+
+    manage_external_links();
+    manage_add_links_to_menu();
+
+    form.find(".disabled *").unbind().click(function (event) {
+        return false;
+    });
+
+    $("#menu_items .tabs .nav").each(function () {
+        if ($(this).children("li").size() == 1) {
+            $(this).children("li").remove();
+        }
+    })
+
+    $("#menu_form").submit(function () {
+        var menu_data = $('#nestable').nestable("serialize").length == 0 ? [] : $('#nestable').nestable("serialize");
+        showLoading();
+        $.post($(this).attr("action"), $.extend({menu_data: menu_data}, $(this).serializeObject()), function (res) {
+            if (res.new) {
+                location.href = res.redirect;
+            } else {
+                hideLoading();
+            }
+        });
+        return false;
+    });
+
+    form.find('.translatable').Translatable();
 }

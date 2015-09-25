@@ -40,7 +40,7 @@ module Admin::MenusHelper
     admin_menu_add_menu("appearance", {icon: "paint-brush", title: t('admin.sidebar.appearance'), url: "", items: items}) if items.present?
 
 
-    admin_menu_add_menu("plugins", {icon: "plug", title: "#{t('admin.sidebar.plugins')} <div class='informer informer-info'>#{PluginRoutes.all_plugins.size}</div>", url: admin_plugins_path}) if can? :manager, :plugins
+    admin_menu_add_menu("plugins", {icon: "plug", title: "#{t('admin.sidebar.plugins')} <small class='label label-primary'>#{PluginRoutes.all_plugins.size}</small>", url: admin_plugins_path}) if can? :manager, :plugins
 
     if can? :manager, :users
       items = []
@@ -119,8 +119,8 @@ module Admin::MenusHelper
     @_tmp_menu_parents = []
     menus = _get_url_current
     menus.each do |menu|
-      res << "<li data-key='#{menu[:key]}' class='#{"xn-openable" if menu.has_key?(:items)} #{'active' if is_active_menu(menu[:key])}'>
-        <a href='#{menu[:url]}'><span class='fa fa-#{menu[:icon]}'></span> <span class='xn-text'>#{menu[:title]}</span></a>
+      res << "<li data-key='#{menu[:key]}' class='#{"treeview" if menu.has_key?(:items)} #{'active' if is_active_menu(menu[:key])}'>
+        <a href='#{menu[:url]}'><i class='fa fa-#{menu[:icon]}'></i> <span class=''>#{menu[:title]}</span> #{'<i class="fa fa-angle-left pull-right"></i>' if menu.has_key?(:items) }</a>
         #{_admin_menu_draw(menu[:items]) if menu.has_key?(:items)}
       </li>"
     end
@@ -175,10 +175,10 @@ module Admin::MenusHelper
 
   def _admin_menu_draw(items)
     res = []
-    res  << "<ul>"
+    res  << "<ul class='treeview-menu'>"
     items.each do |item|
       res  << "<li class='#{"xn-openable" if item.has_key?(:items)} #{'active' if is_active_menu(item[:key])}'>
-                <a href='#{item[:url]}'><span class='fa fa-#{item[:icon]}'></span> #{item[:title]}</a>
+                <a href='#{item[:url]}'><i class='fa fa-#{item[:icon]}'></i> #{item[:title]} #{'<i class="fa fa-angle-left pull-right"></i>' if item.has_key?(:items) }</a>
                 #{_admin_menu_draw(item[:items]) if item.has_key?(:items)}
               </li>"
     end

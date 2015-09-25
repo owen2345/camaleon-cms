@@ -361,6 +361,7 @@ es:
       users: 'Usuarios'
       widget: 'Widget'
       widgets: 'Widgets'
+      main_navigation: "NAVEGACIÓN PRINCIPAL"
     sidebar_top:
       admin_panel: 'Admin. Panel'
       visit: 'Visita'

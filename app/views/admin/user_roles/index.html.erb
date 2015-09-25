@@ -1,17 +1,11 @@
-<div class="page-title">
-  <h2><span class="fa fa-file-o"></span> <%= t('admin.users.user_roles')%></h2>
-</div>
-
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap">
-
   <div class="row">
     <div class="col-md-12">
-
       <!-- START BASIC TABLE SAMPLE -->
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title"><%= t('admin.page_title.list')%></h3>
+            <h2 class="pull-left"><span class="fa fa-file-o"></span> <%= t('admin.users.user_roles')%></h2>
           <%= link_to raw("<i class='fa fa-plus'></i> #{t('admin.users.add_user_role')}"), {action: :new}, class: "btn btn-primary pull-right" %>
         </div>
         <div class="panel-body">

@@ -39,6 +39,7 @@ class Admin::Appearances::NavMenusController < Admin::AppearancesController
     @nav_menus = current_site.nav_menus.all
     @post_types = current_site.post_types
     add_asset_library("nav_menu")
+    render "index"
   end
 
   def save

@@ -17,6 +17,7 @@ jQuery(function($){
      */
     var TRANSLATOR_counter = 1;
     $.fn.Translatable = function(languages, default_language){
+        languages = languages || ADMIN_TRANSLATIONS; // rescue from admin variable
         default_language = default_language?default_language:languages[0];
         var self = this;
 
@@ -70,7 +71,7 @@ jQuery(function($){
                 tabs_title.push('<li role="presentation" class="pull-right '+(ii==0?"active":"")+'"><a href="#pane-'+key+'" role="tab" data-toggle="tab">'+l+'</a></li>');
                 var clone = ele.clone(true).attr({id: key, name: key}).addClass("translate-item").val(get_translation(translations, l));
                 inputs[l] = clone;
-                clone.wrap("<div class='tab-pane "+(ii==0?"active":"")+"' id='pane-"+key+"'/>");
+                clone.wrap("<div class='tab-pane form-group trans_tab_item "+(ii==0?"active":"")+"' id='pane-"+key+"'/>");
                 tabs_content.push(clone.parent());
                 TRANSLATOR_counter++;
                 // Auto Update Translates

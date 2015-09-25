@@ -1,6 +1,8 @@
 en:
   camaleon_message: "Welcome to Camaleon CMS"
   admin:
+    header:
+      member_since: "Member since %{time}"
     button:
      activity: 'Activity'
      add_new_field: 'Add new field'
@@ -362,6 +364,7 @@ en:
       users: 'Users'
       widget: 'Widget'
       widgets: 'Widgets'
+      main_navigation: "MAIN NAVIGATION"
     sidebar_top:
       admin_panel: 'Admin. Panel'
       visit: 'Visit'

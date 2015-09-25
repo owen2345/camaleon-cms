@@ -1,5 +1,6 @@
 jQuery(function(){
     $("#content-widget .ajax_link, #content-sidebar .ajax_link").ajax_modal();
+    return;
     $( "#content-widget .widgets-available" ).find(".panel-widget").draggable({
         helper: "clone",
         cancel: ".informer"

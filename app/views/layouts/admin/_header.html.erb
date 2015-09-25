@@ -1,47 +1,51 @@
-<!-- Multisite menus -->
-<div id="admin_header_menu">
-    <div class="btn-group" role="group">
-        <button id="toogle_sidebar" class="btn btn-lg btn-primary"><i class="fa fa-dedent"></i></button>
+<header class="main-header">
+    <!-- Logo -->
+    <a href="<%= current_site.the_url%>" class="logo" target="_blank">
+        <img src="<%= current_site.the_logo %>" alt="<%= current_site.the_title %>">
+    </a>
+    <!-- Header Navbar: style can be found in header.less -->
+    <nav class="navbar navbar-static-top" role="navigation">
+        <!-- Sidebar toggle button-->
+        <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </a>
 
-        <% if current_site.manage_sites? %>
-            <% Site.order(term_group: :desc).eager_load(:metas).decorate.each do |site| %>
-                <div class="btn-group site_button" role="group">
-                    <a class="btn dropdown-toggle btn-lg <%= site == current_site ? "btn-success" : "btn-primary" %>" data-toggle="dropdown" href="#" role="button" aria-expanded="false"> <%= site.the_title %> <span class="caret"></span></a>
-                    <ul class="dropdown-menu" role="menu">
-                        <li><a href="<%= site.the_admin_url %>" class=""><i class="fa fa-dashboard"></i> <%= t('admin.sidebar_top.admin_panel') %></a></li>
-                        <li><a href="<%= site.the_url(locale: false) %>" class="" target="_blank"><i class="fa fa-globe"></i> <%= t('admin.sidebar_top.visit') %></a></li>
+        <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">
+                <%= r = {html: ""}; hooks_run("admin_notifications", r); raw(r[:html]); %>
+                <li class="dropdown user user-menu">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <img src="<%= current_user.the_avatar %>" class="user-image" alt="User Image">
+                        <span class="hidden-xs"><%= current_user.fullname %></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <!-- User image -->
+                        <li class="user-header">
+                            <img src="<%= current_user.the_avatar %>" class="img-circle" alt="User Image">
+                            <p>
+                                <%= current_user.fullname %> - <%= current_user.the_role %>
+                                <small><%= t("admin.header.member_since", time: l(current_user.created_at.to_date, format: :long) ) %></small>
+                            </p>
+                        </li>
+                        <!-- Menu Footer-->
+                        <li class="user-footer">
+                            <div class="pull-left">
+                                <a href="<%= admin_profile_path %>" class="btn btn-primary"><%= t("admin.users.profile") %></a>
+                            </div>
+                            <div class="pull-right">
+                                <a href="<%= admin_logout_path %>" class="btn btn-danger"><%= t("admin.logout.logout") %></a>
+                            </div>
+                        </li>
                     </ul>
-                </div>
-            <% end %>
-        <% else %>
-            <div class="btn-group site_button" role="group">
-                <a class="btn dropdown-toggle btn-lg btn-success" data-toggle="dropdown" href="#" role="button" aria-expanded="false"> <%= current_site.the_title %> <span class="caret"></span></a>
-                <ul class="dropdown-menu" role="menu">
-                    <li><a href="<%= current_site.the_admin_url %>"><i class="fa fa-dashboard"></i> <%= t('admin.sidebar_top.admin_panel') %></a></li>
-                    <li><a href="<%= current_site.the_url(locale: false) %>" target="_blank"><i class="fa fa-globe"></i> <%= t('admin.sidebar_top.visit') %></a></li>
-                </ul>
-            </div>
-        <% end %>
-    </div>
-
-    <div class="btn-group pull-right profile_panel" role="group">
-        <img src="<%= current_user.the_avatar %>" alt="<%= current_user.the_name %>" />
-        <div class="dropdown profile-dropdown">
-            <button type="button" class="btn btn-lg dropdown-toggle btn-link" data-toggle="dropdown">
-                <span><%= current_user.the_name %> (<%= current_user.role %>)</span>
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-                <li><a href="<%= admin_profile_path %>"><span class="fa fa-user"></span> <%= t('admin.users.profile') %></a></li>
-                <li><a href="<%= admin_profile_edit_path %>"> <span class="fa fa-edit"></span> <%= t('admin.users.edit_profile') %> </a></li>
-                <li><a id="admin_logout" data-box="#mb-signout" href="#"><i class="fa fa-sign-out"></i> <%= t('admin.logout.logout') %></a></li>
+                </li>
+                <!-- Control Sidebar Toggle Button -->
+                <li class="hidden">
+                    <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+                </li>
             </ul>
         </div>
-    </div>
-</div>
-
-<!-- START BREADCRUMB -->
-<ul class="breadcrumb push-down-0" id="admin_breadcrumb">
-    <%= raw admin_breadcrumb_draw() %>
-</ul>
-<!-- END BREADCRUMB -->
+    </nav>
+</header>
