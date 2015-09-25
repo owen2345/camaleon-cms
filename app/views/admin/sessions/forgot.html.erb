@@ -1,14 +1,9 @@
 
 
 <div class="login-body">
-
-
   <%= render "layouts/admin/flash_messages" %>
-
-
   <% if @form_reset.present? %>
-
-      <div class="login-title"><%= t('admin.login.reset_password') %></div>
+      <h3 class="login-title"><%= t('admin.login.reset_password') %></h3>
       <%= form_for(@user, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => admin_forgot_path({h: params[:h]}) ) do |f| %>
           <div class="form-group">
             <div class="col-md-12">
@@ -22,13 +17,12 @@
           </div>
           <div class="form-group">
             <div class="col-md-12">
-              <button class="btn btn-info btn-block"><%= t('admin.button.enter') %></button>
+              <button class="btn btn-primary btn-block"><%= t('admin.button.enter') %></button>
             </div>
           </div>
       <% end %>
-
   <% else  %>
-      <div class="login-title"><%= raw t('admin.login.reset_password_html')%> </div>
+      <h3 class="login-title"><%= raw t('admin.login.reset_password_html')%> </h3>
       <%= form_for(@user, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => admin_forgot_path ) do |f| %>
           <div class="form-group">
             <div class="col-md-12">
@@ -37,14 +31,14 @@
           </div>
           <div class="form-group">
             <div class="col-md-12">
-              <button class="btn btn-info btn-block"><%= t('admin.button.submit') %></button>
+              <button class="btn btn-primary btn-block"><%= t('admin.button.submit') %></button>
             </div>
           </div>
       <% end %>
-
   <% end %>
-
-
+    <div class="text-right">
+        <%= link_to("#{t("common.login")}&raquo;".html_safe, admin_login_path, class: "btn btn-default") %>
+    </div>
 </div>
 
 

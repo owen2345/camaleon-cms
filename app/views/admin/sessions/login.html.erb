@@ -1,6 +1,7 @@
+<%= javascript_include_tag "admin/login_manifest" %>
 <script>var kk = "<%= get_session_id %>";</script>
 <div class="login-body">
-    <div class="login-title"><%= raw t('admin.login.welcome_login_html') %>  </div>
+    <h3 class="login-box-msg"><%= raw t('admin.login.welcome_login_html') %>  </h3>
     <%= render "layouts/admin/flash_messages" %>
     <%= form_for(@user, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => admin_login_path ) do |f| %>
         <div class="form-group">
@@ -19,21 +20,30 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <div class="col-md-6">
-                <a href="<%= admin_forgot_path %>" class="btn btn-link btn-block"><%= t('admin.login.forgot_your_password_int') %></a>
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="checkbox">
+                    <label><input name="remember_me" type="checkbox"> <%= t("admin.login.remember_me") %> </label>
+                </div>
             </div>
-            <div class="col-md-6">
-                <button class="btn btn-info btn-block"><%= t('admin.button.log_in') %></button>
+            <!-- /.col -->
+            <div class="col-xs-6">
+                <button type="submit" class="btn btn-primary btn-block btn-flat"><%= t('admin.button.log_in') %></button>
             </div>
+            <!-- /.col -->
         </div>
+        <hr>
+
         <%= raw content_before_draw %>
         <%= r = {html: ""}; hooks_run("user_login_form", r); raw(r[:html]); %>
 
-    <% end %>
-    <% if current_site.get_option('has_create_account', false) %>
-        <div class="login-subtitle">
-            <%= t('admin.login.do_not_have_account_yet') %> <a href="<%= admin_register_path %>"><%= t('admin.login.create_account') %></a>
+        <div class="row">
+            <% if current_site.get_option('has_create_account', false) %>
+                <div class="col-xs-6"><%= t('admin.login.do_not_have_account_yet') %><br> <a href="<%= admin_register_path %>"><%= t('admin.login.create_account') %></a></div>
+            <% end %>
+            <div class="col-xs-6">
+                <a href="<%= admin_forgot_path %>" class=""><%= t('admin.login.forgot_your_password_int') %></a>
+            </div>
         </div>
     <% end %>
 </div>

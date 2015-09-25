@@ -100,4 +100,27 @@
     padding: 0;
     list-style: none;
   }
+
+  // pagination
+  div.pagination {
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+    & > * {
+      background-color: #fafafa;
+      border: 1px solid #ddd;
+      color: #777;
+      padding: 6px 12px;
+      margin: 0 -2px;
+    }
+    em {
+      background-color: #337ab7;
+      border-color: #337ab7;
+      color: #fff;
+      cursor: default;
+    }
+    span {
+      cursor: not-allowed;
+    }
+  }
 }

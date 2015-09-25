@@ -137,6 +137,7 @@ es:
       first_name: "Nombre"
       last_name: "Apellidos"
       email: "Correo"
+      remember_me: "Recordar"
     logout:
       log: 'Log'
       out: 'Out'

@@ -11,7 +11,7 @@ class Admin::InstallersController < CamaleonController
   skip_before_action :before_actions
   skip_after_action :after_actions
   before_action :installer_verification, except: :welcome
-  layout "admin/installer"
+  layout "login"
 
   def index
     @site ||= Site.new

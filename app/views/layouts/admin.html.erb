@@ -23,7 +23,7 @@
     <%= javascript_include_tag "admin/admin-manifest" %>
     <%= javascript_include_tag "admin/#{current_locale}.js" if current_locale != "en" %> <!-- validator translations -->
     <%= javascript_include_tag "admin/elfinder/i18n/elfinder.#{current_locale}.js" if current_locale != "en" %> <!-- elfinder translations -->
-    <%= raw the_head(false) %>
+    <%= raw the_head({}, false) %>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->

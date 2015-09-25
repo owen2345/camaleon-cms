@@ -1,40 +1,22 @@
 <!DOCTYPE html>
 <html lang="en" class="body-full-height">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-  <title><%= t('admin.login.login') %></title>
-  <link type="image/vnd.microsoft.icon" rel="shortcut icon" href="<%= current_site.the_icon %>">
-
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!--link rel="icon" href="favicon.ico" type="image/x-icon" /-->
-
-  <%#= stylesheet_link_tag    "admin", media: "all" %>
-  <%= stylesheet_link_tag    "admin/theme-default", "admin/bootstrap/bootstrap.min.css", media: "all" %>
-  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <%= raw the_head({title: (content_for?(:content) ? yield(:content) : t('admin.login.login'))}, false) if current_site.present? %>
+    <%= stylesheet_link_tag "admin/admin-basic-manifest", media: "all" %>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <%= javascript_include_tag "admin/admin-basic-manifest" %>
 </head>
-<body>
-    <div class="login-container">
-
-      <div class="login-box animated fadeInDown">
-        <div class="login-logo"><%= image_tag(current_site.the_logo) %></div>
-
-        <%= yield %>
-
-        <div class="login-footer">
-          <div class="pull-left">
-
-          </div>
-          <div class="pull-right">
-
-          </div>
+<body class="hold-transition login-page">
+    <div class="col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3 login-box">
+        <div class="login-logo">
+            <%= link_to(image_tag(current_site.the_logo), admin_login_path) rescue "Camaleon CMS" %>
         </div>
-      </div>
-
+        <div class="login-box-body">
+            <%= yield %>
+        </div>
     </div>
-    <%= javascript_include_tag "admin/login_manifest" %>
 </body>
 </html>

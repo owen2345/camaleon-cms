@@ -1,12 +1,9 @@
 <div class="login-body">
     <%= render "layouts/admin/flash_messages" %>
 
-    <div class="login-title"><%= raw t('admin.login.msg_registration_html') %></div>
-
+    <h3 class="login-title"><%= raw t('admin.login.msg_registration_html') %></h3>
     <%= form_for(@user, :url => admin_register_path, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  } ) do |f| %>
-
         <%= render partial: 'layouts/admin/form_error', locals: {data: @user} %>
-
         <h4><%= t('admin.login.personal_info') %></h4>
         <div class="form-group">
             <div class="col-md-12">

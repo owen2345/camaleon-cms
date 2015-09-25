@@ -137,6 +137,7 @@ it:
       first_name: "Nome"
       last_name: "Cognome"
       email: "Email"
+      remember_me: "Ricordami"
     logout:
       log: 'Log'
       out: 'Out'

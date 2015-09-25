@@ -10,9 +10,6 @@
 // Read Sprockets README (https://github.com/sstephenson/sprockets#sprockets-directives) for details
 // about supported directives.
 //
-//= require jquery.js
-//= require ./jquery.validate
 //= require ../gibberish-aes.js
 //= require ./login
-//= require bootstrap.min
 

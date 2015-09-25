@@ -30,7 +30,7 @@ class Admin::SessionsController < CamaleonController
     r = {user: @user, params: params, password: data_user[:password], captcha_validate: captcha_validate}; hooks_run("user_before_login", r)
     if captcha_validate && @user &&  @user.authenticate(data_user[:password])
       captcha_reset_attack("login")
-      login_user(@user)
+      login_user(@user, params[:remember_me].present?)
     else
       captcha_increment_attack("login")
       if captcha_validate
