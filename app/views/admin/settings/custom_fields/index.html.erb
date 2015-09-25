@@ -49,14 +49,13 @@
 </div>
 
 <script>
-  run.push(function(){
+jQuery(function($){
       $('#table_custom_groups').table_order({url: '<%= reorder_admin_settings_custom_fields_path %>', on_success: function(obj){
           if(obj.res.error){
               $.fn.alert({title: obj.res.error, type: 'error'})
           }else{
               $.fn.alert({title: 'Order Successfully'})
           }
-
       }})
   })
 </script>

@@ -127,7 +127,7 @@
 </div>
 
 <script>
-  run.push(function(){
+    jQuery(function($){
       $('[data-toggle="tooltip"]').tooltip()
       $("#contents-checkbox input:checked").each(function(){$(this).attr("data-checked", 1)})
       $("#checked-actions a[data-type]").click(function(){

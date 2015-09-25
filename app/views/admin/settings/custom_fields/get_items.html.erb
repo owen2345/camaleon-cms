@@ -145,8 +145,7 @@
                     })
                     $('#clone<%= @index %>').remove();
                 }
-                if(typeof jQuery == 'function') jQuery(function_init_options<%= @index %>);
-                else run.push(function_init_options<%= @index %>);
+                jQuery(function_init_options<%= @index %>);
               </script>
             </div>
         </div>

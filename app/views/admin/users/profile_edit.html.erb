@@ -232,7 +232,7 @@
 <% add_asset_library('form_ajax', 'cropper') %>
 
 <script>
-    run.push(function(){
+    jQuery(function($){
         $('.form-ajax-profile').bind('submit', function(e) {
             e.preventDefault();
             if($(this).valid()){

@@ -269,7 +269,7 @@
 </div>
 
 <script>
-    run.push(function(){
+    jQuery(function($){
         var options  = <%= raw (@form.value ).to_sym %>;
         var settings = <%= raw (@form.settings ).to_sym %>;
 
@@ -371,5 +371,4 @@
         });
 
     });
-
 </script>

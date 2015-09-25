@@ -172,7 +172,7 @@
 </div>
 
 <script>
-  run.push(function(){
+    jQuery(function($){
       var group_class_name = '<%= @field_group.object_class %>,<%= @field_group.objectid %>';
       var $content_fields = $( "#sortable-fields" );
       $content_fields.sortable({

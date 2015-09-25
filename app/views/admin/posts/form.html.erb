@@ -80,7 +80,7 @@
     <% add_asset_library('tinymce', 'post') %>
 
     <script type="text/javascript">
-        run.push(function () {
+        jQuery(function($){
             init_post({
                 post_id: '<%= @post.draft? ? (@post.parent.present? ? @post.parent.id : nil) : @post.id %>',
                 post_draft_id: '<%= @post.id if @post.draft? %>',

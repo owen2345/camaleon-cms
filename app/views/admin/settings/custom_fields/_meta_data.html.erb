@@ -50,7 +50,7 @@
 
 
         <script>
-            run.push(function(){
+            jQuery(function($){
                 var values = <%= raw(values.to_json) %>;
                 var multiple = true;
                 var $content = $("#content-field-<%= @rand %>");
