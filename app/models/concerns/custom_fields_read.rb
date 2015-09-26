@@ -10,6 +10,7 @@ module CustomFieldsRead extend ActiveSupport::Concern
   included do
     has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator",""))} , :class_name => "CustomField" ,foreign_key: :objectid
     has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator",""))}, :class_name => "CustomFieldsRelationship", foreign_key: :objectid, dependent: :destroy
+    has_many :custom_field_values, :class_name => "CustomFieldsRelationship", foreign_key: :objectid, dependent: :destroy
     before_destroy :_destroy_custom_field_groups
   end
 

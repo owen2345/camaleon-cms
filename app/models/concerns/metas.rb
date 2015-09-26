@@ -108,10 +108,13 @@ module Metas extend ActiveSupport::Concern
   def after_finding_meta(reset = false)
     if @meta_data.nil? || reset
       options = {}
-      if metas.count > 0
-        metas.all.each do |item|
-          options[item.key] = JSON.parse(item.value) rescue item.value
-        end
+      # if metas.count > 0
+      #   metas.all.each do |item|
+      #     options[item.key] = JSON.parse(item.value) rescue item.value
+      #   end
+      # end
+      metas.all.each do |item|
+        options[item.key] = JSON.parse(item.value) rescue item.value
       end
       @meta_data = options.to_sym
     end

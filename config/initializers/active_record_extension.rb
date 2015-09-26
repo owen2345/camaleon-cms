@@ -29,3 +29,16 @@ module ActiveRecordExtras
 end
 
 ActiveRecord::Base.send :include, ActiveRecordExtras::Relation
+
+ActiveRecord::Associations::CollectionProxy.class_eval do
+  # order a collection by custom fields
+  # Arguments:
+  # key: (String) Custom field key
+  # order: (String) order direction (ASC | DESC)
+  # sample: Site.first.posts.sort_by_field("untitled-field-attributes", "desc")
+  def sort_by_field(key, order = "ASC")
+    # class_name = self.build.class.name
+    # table_name = class_name.classify.table_name
+    self.includes(:custom_field_values).where("#{CustomFieldsRelationship.table_name}.custom_field_slug = ? and #{CustomFieldsRelationship.table_name}.object_class = ?", key, self.build.class.name).reorder("#{CustomFieldsRelationship.table_name}.value #{order}")
+  end
+end
