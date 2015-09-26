@@ -141,7 +141,14 @@
                     </div>
 
                 </div>
+                <div class="panel panel-default form-horizontal">
+                  <div class="panel-body">
+                    <h3><span class="fa fa-cube"></span> <%= t('admin.table.more_actions') %></h3>
+                    <p><%= t('admin.message.more_actions_info') %></p>
+                  </div>
 
+                  <%= r = { html: ""}; hooks_run('user_update_more_actions', r); raw(r[:html]); %>
+                </div>
             </div>
         </div>
 

@@ -25,7 +25,7 @@
                        <table class="table table-bordered table-hover">
                         <thead>
                         <tr>
-                          <th style="width: 160px"><h5 ><%= t('admin.users.type_contents')%></h5></th>
+                          <th style="width: 160px"><h5 ><%= t('admin.users.post_types')%></h5></th>
                           <% _get_roles_values[:post_type].each do |value| %>
                               <th class="
                                 <%= value[:color] %> text-center" style="vertical-align: middle"><%= raw value[:label] %>
@@ -165,4 +165,3 @@
       }
   }
 </script>
-

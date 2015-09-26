@@ -244,9 +244,9 @@ en:
       message:
         error: 'Error class'
         error_term: 'Error term class'
-        created: 'Saved Correct'
-        updated: 'Update Correct'
-        deleted: 'Correct Deleted'
+        created: 'Saved'
+        updated: 'Updated'
+        deleted: 'Deleted'
         no_created_html: '<br> No %{taxonomy} found'
       pending: 'Pending'
       permit_comments: 'Allow Comments?'
@@ -349,7 +349,6 @@ en:
       appearance: 'Appearance'
       comments: 'Comments'
       content: 'Content'
-      contents_type: 'Contents Type'
       custom_fields: 'Custom Fields'
       dashboard: 'Dashboard'
       general_site: 'General Site'
@@ -359,6 +358,7 @@ en:
       menus: 'Menus'
       navigation: 'Navigation'
       plugins: 'Plugins'
+      post_type: 'Post Type'
       settings: 'Settings'
       site_settings: 'Site settings'
       sites: 'Sites'
@@ -481,6 +481,8 @@ en:
       visibility: 'Visibility'
       page_404: '404 Page'
       youtube: 'Youtube'
+      more_actions: 'More actions'
+      more_actions_info: 'More actions...'
     themes:
       footer_copyright: 'Footer Copyright'
       theme_select: 'Select Theme'
@@ -489,7 +491,7 @@ en:
       social_share: 'Social share'
 
       message:
-        updated: 'Updated Theme.'
+        updated: 'Theme updated'
     users:
       all_users: 'All Users'
       add_user: 'Add User'

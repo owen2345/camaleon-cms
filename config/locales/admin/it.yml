@@ -348,7 +348,6 @@ it:
       appearance: 'Aspetto'
       comments: 'Commenti'
       content: 'Contenuto'
-      contents_type: 'Content Type'
       custom_fields: 'Custom Field'
       dashboard: 'Dashboard'
       general_site: 'Generale'
