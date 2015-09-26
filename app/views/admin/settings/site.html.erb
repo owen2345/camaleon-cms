@@ -83,6 +83,10 @@
                             <label for=""><%= t('admin.settings.allow_user_registration') %></label><br>
                             <%= check_box :meta, :has_create_account, {checked: @site.get_option('has_create_account', false), class: "icheckbox0"}, "true", "" %>
                         </div>
+                        <div class="form-group">
+                            <label for=""><%= t('admin.settings.security.captcha_user_register') %></label><br>
+                            <%= check_box :options, :security_captcha_user_register, {checked: @site.security_user_register_captcha_enabled?, class: "icheckbox0"}, "true", "" %>
+                        </div>
                     </div>
                     <% if groups.present? %>
                         <div id="tab-other-configuration" class="<%= "active" if "other_config" == params[:tab] %> tab-pane col-md-10 col-md-offset-1">

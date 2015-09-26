@@ -314,6 +314,8 @@ en:
       author: "Author Name"
       seo_setting: "Seo Settings"
       email_settings: "Email Settings (SMTP)"
+      security:
+        captcha_user_register: "Enable captcha on user registration?"
 
       message:
         language_updated: 'Your languages was configured.'

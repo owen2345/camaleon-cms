@@ -122,6 +122,11 @@ class Site < TermTaxonomy
     get_option("comment_status", "pending")
   end
 
+  # security: user register form show captcha?
+  def security_user_register_captcha_enabled?
+    get_option('security_captcha_user_register', true) == true
+  end
+
   # auto create default user roles
   def set_default_user_roles(post_type = nil)
     user_role = self.user_roles.where({slug: 'admin', term_group: -1}).first_or_create({name: 'Administrator', description: 'Default roles admin'})
