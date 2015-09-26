@@ -55,6 +55,14 @@
                     <label class="control-label"><%= t('admin.post_type.template')%></label>
                     <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.meta[:template] ) }, {class: 'form-control'}) %>
                 </div>
+
+                <!-- layouts -->
+                <% if (layout_files = get_list_layouts_files).present? %>
+                    <div class="form-group">
+                        <label class="control-label"><%= t('admin.post_type.layout')%></label>
+                        <%= select("meta", "layout", layout_files, { include_blank: true, selected: (params[:meta][:layout] rescue false || @post.meta[:layout] ) }, {class: 'form-control'}) %>
+                    </div>
+                <% end %>
             <% end %>
 
             <!-- has comments? -->

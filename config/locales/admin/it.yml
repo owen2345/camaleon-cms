@@ -259,6 +259,7 @@ it:
       summary: 'Sommario'
       tags: 'Tag'
       template: 'Template'
+      layout: 'Impaginazione'
       trash: 'Cestino'
       tooltip:
         permission_asing_categories: 'Assegnare categorie'

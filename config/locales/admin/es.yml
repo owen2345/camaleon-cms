@@ -258,6 +258,7 @@ es:
       summary: 'Resumen'
       tags: 'Etiquetas'
       template: 'Plantilla'
+      layout: 'Diseño'
       trash: 'Papelera'
       tooltip:
         permission_asing_categories: 'El permiso para asignar categorías'

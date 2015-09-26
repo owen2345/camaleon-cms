@@ -178,7 +178,10 @@ class FrontendController < CamaleonController
         r_file = "single"
       end
 
-      r = {post: @post, post_type: @post_type, layout: (self.send :_layout), render: r_file}
+      layout_ = self.send :_layout
+      meta_layout = @post.get_meta("layout")
+      layout_ = meta_layout if meta_layout.present? && lookup_context.template_exists?("layouts/#{meta_layout}")
+      r = {post: @post, post_type: @post_type, layout: layout_, render: r_file}
       hooks_run("on_render_post", r) if from_url
       render r[:render], layout: r[:layout]
     end

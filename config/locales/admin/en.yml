@@ -260,6 +260,7 @@ en:
       summary: 'Summary'
       tags: 'Tags'
       template: 'Template'
+      layout: 'Layout'
       trash: 'Trash'
       tooltip:
         permission_asing_categories: 'Permission to assign categories'
