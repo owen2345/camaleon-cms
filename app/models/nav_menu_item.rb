@@ -16,6 +16,16 @@ class NavMenuItem < TermTaxonomy
   after_create :update_count
   #before_destroy :update_count
 
+  # return the main menu
+  def main_menu
+    ctg = self
+    begin
+      main_menu = ctg.parent
+      ctg = ctg.parent_item
+    end while ctg.present?
+    main_menu
+  end
+
   # return the type of this menu (post|category|post_tag|post_type|external)
   def get_type
     self.get_option('type')

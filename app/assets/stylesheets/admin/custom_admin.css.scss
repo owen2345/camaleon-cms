@@ -42,12 +42,6 @@
 
   }
 
-  // translations
-  .trans_panel{
-    .nav-tabs .has-error { color: #a94442; }
-    .tab-pane .has-error { border: 1px solid #a94442; }
-  }
-
   // label size
   .label.label-form{
     font-size: 12px;
@@ -96,10 +90,6 @@
       }
     }
   }
-  ul{
-    padding: 0;
-    list-style: none;
-  }
 
   // pagination
   div.pagination {
@@ -122,5 +112,22 @@
     span {
       cursor: not-allowed;
     }
+  }
+
+}
+
+// reset modals
+.modal, #admin_content{
+  ul{
+    padding: 0;
+    list-style: none;
+  }
+  // translations
+  .trans_panel{
+    .nav-tabs .has-error { color: #a94442; }
+    .tab-pane .has-error { border: 1px solid #a94442; }
+  }
+  .trans_panel{ //fix for multilanguage tabs
+    margin-top: -25px;
   }
 }

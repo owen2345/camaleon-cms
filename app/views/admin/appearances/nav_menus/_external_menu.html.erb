@@ -1,16 +1,14 @@
-<%= raw (submit)? '<form class="modal-body overflow-visible form-horizontal">' : '' %>
-<div class="panel-body" id="menu_external_link">
+<form class="form-custom-link validate <%= submit ? "" : "panel-body" %>">
     <div class="alert alert-info">You can use root_url as main url.</div>
     <div class="form-group">
         <label><%= t('admin.menus.name_link')%></label>
-        <input id="external_label" class="form-control translatable" name="external_label" />
+        <input id="external_label" class="form-control translatable required" name="external_label" />
     </div>
     <div class="form-group">
         <label><%= t('admin.menus.link_url')%></label>
         <input id="external_url" class="form-control" name="external_url" />
     </div>
     <div class="text-right">
-        <a href="#" id="add_external_link" class="btn btn-primary"><%= t('admin.button.add_menu')%> <i class="fa fa-arrow-right"></i></a>
+        <button type="submit" id="add_external_link" class="btn btn-primary"><%= t('admin.button.add_menu')%> <i class="fa fa-arrow-right"></i></button>
     </div>
-</div>
-<%= raw (submit)? '</form">' : '' %>
+</form>

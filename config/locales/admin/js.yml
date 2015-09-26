@@ -28,6 +28,7 @@ en:
         clone: "Clone"
         add_tag: 'Add Tag'
         close: 'Close'
+        settings: 'Settings'
       grid_editor:
         templates: "Templates"
         use_tpl: "Use Template"
@@ -77,6 +78,7 @@ es:
         clone: "Duplicar"
         close: 'Cerrar'
         add_tag: 'Agregar Etiqueta'
+        settings: 'Configuración'
 
       grid_editor:
         templates: "Plantillas"
@@ -129,6 +131,8 @@ it:
         clone: "Duplicare"
         add_tag: 'Aggiungi Tag'
         close: 'Chiudi'
+        settings: 'Impostazioni'
+
       grid_editor:
         templates: "Modelli"
         use_tpl: "Use Template"

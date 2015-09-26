@@ -38,6 +38,9 @@ module CustomFieldsRead extend ActiveSupport::Concern
         self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id)
       when 'Site'
         self.custom_field_groups.where(object_class: class_name)
+      when 'NavMenuItem'
+        # self.main_menu.custom_field_groups //verify this problem
+        NavMenu.find(self.main_menu.id).get_field_groups
       when 'PostType'
         if args[:kind] == "all"
           self.site.custom_field_groups.where(object_class: ["PostType_Post", "PostType_Post", "PostType_PostTag", "PostType"], objectid:  self.id )
@@ -215,14 +218,12 @@ module CustomFieldsRead extend ActiveSupport::Concern
   def _destroy_custom_field_groups
     class_name = self.class.to_s.gsub("Decorator","")
     if ['Category','Post','PostTag'].include?(class_name)
-      # get_field_groups("Post").destroy_all
       CustomFieldGroup.where(objectid: self.id, object_class: class_name).destroy_all
     elsif ['PostType'].include?(class_name)
       get_field_groups("Post").destroy_all
       get_field_groups("Category").destroy_all
       get_field_groups("PostTag").destroy_all
-    elsif ["NavMenuItem"].include?(class_name)
-
+    elsif ["NavMenuItem"].include?(class_name) # menu items doesn't include field groups
     else
       get_field_groups().destroy_all if get_field_groups.present?
     end

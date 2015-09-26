@@ -26,6 +26,7 @@
 //= require ./jquery.slugify
 //= require ./translator
 //= require ./i18n
+//= require ./custom_fields
 
 //= require ./libraries
 //= require ./actions

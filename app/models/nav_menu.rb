@@ -32,13 +32,20 @@ class NavMenu < TermTaxonomy
   end
 
   private
-
   def saved_nav_items (nav_menu_item, items)
     items.each do |key, value|
       item = nav_menu_item.children.new({name: value[:label]})
       if item.save
         item.set_meta('_default',{type: value[:type], object_id: value[:link]})
         saved_nav_items(item, value[:children]) if value[:children].present?
+
+        # save custom fields for this menu item
+        if value[:fields].present?
+          value[:fields].each do |k, v|
+            item.save_field_value(k, v)
+          end
+        end
+
       end
     end
   end

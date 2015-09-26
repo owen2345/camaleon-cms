@@ -3,7 +3,7 @@
 </div>
 <div class="page-content-wrap">
     <div class="row">
-        <div id="menu_content">
+        <div id="menu_content" data-fields_support="<%= @nav_menu.get_field_groups.any? %>">
             <div id="menu_items" class="col-md-5">
                 <%= render "menu_list" %>
                 <!-- START ACCORDION -->
@@ -101,7 +101,10 @@
 </div>
 
 <script>
-    var form;
-    var RENDER_FORM = '<%=  admin_appearances_nav_menus_form_path %>';
-    jQuery(function(){ render_menu(<%= raw (@items.to_json)%>); });
+    var RENDER_FORM = '<%=  admin_appearances_nav_menus_form_path(menu_id: @nav_menu.id) %>';
+    var main_menus_panel;
+    jQuery(function(){
+        main_menus_panel = $("#menu_content");
+        render_menu(<%= raw (@items.to_json)%>);
+    });
 </script>

@@ -1,7 +1,6 @@
 <% @default_use = record.new_record?
    @field_name = (defined?(fields_name) ? fields_name : "field_options").to_sym
 %>
-<% add_asset_library("custom_field") %>
 <% field_groups.each do |group|  %>
     <% if defined?(skip_panel) || group.slug == "_default" %>
         <div class="panel panel-default panel-lite c-field-group" data-slug="<%= group.slug %>">

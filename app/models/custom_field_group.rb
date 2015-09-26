@@ -25,6 +25,7 @@ class CustomFieldGroup < CustomField
   # for select, radio and checkboxes add:
   # -- multiple_options: [{"title"=>"Option Title", "value"=>"2", "default"=>"1"}, {"title"=>"abcde", "value"=>"3"}]
   # -- add default for default value
+  # SAMPLE: my_model.add_field({"name"=>"Sub Title", "slug"=>"subtitle"}, {"field_key"=>"text_box", "translate"=>true, default_value: "Get in Touch"})
 
   def add_manual_field(item, options)
     c = get_field(item[:slug] || item["slug"])
@@ -85,6 +86,8 @@ class CustomFieldGroup < CustomField
           caption = "Fields for Widget <b>(#{Widget::Main.find(self.objectid).name.translate})</b>"
         when 'Theme'
           caption = "Field settings for Theme <b>(#{self.objectid})</b>"
+        when 'NavMenu'
+          caption = "Field settings for Menus <b>(#{NavMenu.find(self.objectid).name})</b>"
         when 'Site'
           caption = "Field settings the site"
         when 'PostType'

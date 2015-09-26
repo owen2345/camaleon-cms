@@ -5,13 +5,13 @@ jQuery(function($){
      * Example:
      * var trans = jQuery("input[type='text'], textarea").not(":hidden").Translatable(["es", "en"])  ===> convert input/textarea into translatable panel
      *
-     * trans.trigger("trans_integrate") ==> encode translations into owner element
+     * trans.trigger("trans_integrate") ==> encode translations into owner element (destroy translation elements)
      */
 
     /**
      *
      * @param languages => ["es", "en", 'fr']
-     * @param default_language => not important
+     * @param default_language => not important (deprecated)
      * @returns {$.fn.Translatable}
      * @constructor
      */
@@ -19,7 +19,7 @@ jQuery(function($){
     $.fn.Translatable = function(languages, default_language){
         languages = languages || ADMIN_TRANSLATIONS; // rescue from admin variable
         default_language = default_language?default_language:languages[0];
-        var self = this;
+        var self = $(this).not(".translated-item");
 
         // decode translations
         // text: string containing translations
@@ -56,14 +56,14 @@ jQuery(function($){
 
         //if translations is a uniq language
         if(languages.length < 2){
-            $(self).each(function(){ $(this).val(get_translations($(this).val(), languages[0])); });
+            self.each(function(){ $(this).val(get_translations($(this).val(), languages[0])); });
             return this;
         }
 
-        $(self).each(function(){
+        self.each(function(){
             var ele = $(this);
             var tabs_title = [], tabs_content = [], translations = get_translations(ele.val()), inputs = {};
-
+            var class_group = ele.parent().hasClass("form-group") ? "" : "form-group";
             // decoding languages
             for(var ii in languages){
                 var l = languages[ii];
@@ -71,7 +71,7 @@ jQuery(function($){
                 tabs_title.push('<li role="presentation" class="pull-right '+(ii==0?"active":"")+'"><a href="#pane-'+key+'" role="tab" data-toggle="tab">'+l+'</a></li>');
                 var clone = ele.clone(true).attr({id: key, name: key}).addClass("translate-item").val(get_translation(translations, l));
                 inputs[l] = clone;
-                clone.wrap("<div class='tab-pane form-group trans_tab_item "+(ii==0?"active":"")+"' id='pane-"+key+"'/>");
+                clone.wrap("<div class='tab-pane "+class_group+" trans_tab_item "+(ii==0?"active":"")+"' id='pane-"+key+"'/>");
                 tabs_content.push(clone.parent());
                 TRANSLATOR_counter++;
                 // Auto Update Translates
@@ -103,6 +103,7 @@ jQuery(function($){
                 ele.show().val(r.join(""));
                 if((typeof tinymce == "object") && ele.is('textarea') && ele.attr('id') &&  tinymce.get(ele.attr('id'))) tinymce.get(ele.attr('id')).setContent(r.join(""));
                 tabs.remove();
+                $(this).removeClass("translated-item");
             });
         });
         return this;

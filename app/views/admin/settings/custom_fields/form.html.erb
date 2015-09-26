@@ -63,6 +63,12 @@
                       <option value="Theme,<%= current_theme.id %>" data-help=""><%= current_theme.name %></option>
                   </optgroup>
 
+                    <optgroup label="<%= t('admin.sidebar.menus') %>">
+                        <% current_site.nav_menus.each do |menu| %>
+                            <option value="NavMenu,<%= menu.id %>" data-help=""><%= menu.name %></option>
+                        <% end %>
+                    </optgroup>
+
                   <optgroup label="<%= t('admin.sidebar.widgets') %>">
                     <% current_site.widgets.each do |widget| %>
                         <% value = "#{widget.class.name},#{widget.id}" %>
@@ -185,7 +191,8 @@
           $.post(href, function(html){
               var li = '<li class="item">' + html + '</li>';
               $content_fields.append(li)
-              set_slug()
+              set_slug();
+              $('[data-toggle="tooltip"], a[title!=""]', $content_fields).tooltip();
           });
           return false;
       });

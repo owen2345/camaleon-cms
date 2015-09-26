@@ -109,7 +109,6 @@ module HtmlHelper
     libs[:post] = {js: ["admin/jquery.tagsinput.min", 'admin/post'], css: ["admin/jquery.tagsinput"]}
     libs[:multiselect] = {js: ['admin/bootstrap-select.js']}
     libs[:validate] = {js: ['admin/jquery.validate']}
-    libs[:custom_field] = {js: ['admin/custom_fields']}
     libs[:nav_menu] = {css: ['admin/nestable/jquery.nestable', "admin/nav-menu"], js: ["admin/jquery.nestable", 'admin/nav-menu']}
     libs[:elfinder_front] = {js: ['elfinder_front.js']}
     libs

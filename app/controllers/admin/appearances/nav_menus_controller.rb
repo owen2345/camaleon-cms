@@ -32,7 +32,7 @@ class Admin::Appearances::NavMenusController < Admin::AppearancesController
     @nav_menu = current_site.nav_menus.new unless @nav_menu.present?
     items = []
     unless @nav_menu.new_record?
-      items = get_nav_items( @nav_menu.children)
+      items = get_nav_items(@nav_menu.children)
     end
     @items = items
 
@@ -42,6 +42,7 @@ class Admin::Appearances::NavMenusController < Admin::AppearancesController
     render "index"
   end
 
+  # save changes of the menu
   def save
     authorize! :manager, :menu
     unless params[:nav_menu][:id].present?   # new
@@ -54,7 +55,7 @@ class Admin::Appearances::NavMenusController < Admin::AppearancesController
         render json: {error: t('admin.menus.message.error_menu')}
       end
     else
-      @nav_menu = NavMenu.find(params[:nav_menu][:id])
+      @nav_menu = current_site.nav_menus.find(params[:nav_menu][:id])
       if @nav_menu.update(params[:nav_menu])
         @nav_menu.add_menu_items(params[:menu_data])
 
@@ -70,8 +71,14 @@ class Admin::Appearances::NavMenusController < Admin::AppearancesController
     end
   end
 
+  # show external menu form
   def form
-    render "_external_menu", layout: false, locals: {submit: true}
+    if params[:custom_fields].present?
+      @nav_menu = current_site.nav_menus.find_by_id(params[:menu_id])
+      render "_custom_fields", layout: "admin/_ajax"
+    else
+      render "_external_menu", layout: false, locals: {submit: true}
+    end
   end
 
   private
@@ -80,9 +87,8 @@ class Admin::Appearances::NavMenusController < Admin::AppearancesController
     items = []
     menu_items.eager_load(:metas).each do |nav_item|
       object = _get_object_nav_menu(nav_item)
-
       if object.present?
-        items << {id: nav_item.id, label: object[:name], link: nav_item.options[:object_id], url_edit: object[:url_edit], type: nav_item.options[:type], parent: parent_id.to_i}
+        items << {id: nav_item.id, label: object[:name], link: nav_item.options[:object_id], url_edit: object[:url_edit], type: nav_item.options[:type], parent: parent_id.to_i, fields: "#{nav_item.get_field_values_hash.to_json}"}
         items += get_nav_items(nav_item.children, nav_item.id)
       end
     end
