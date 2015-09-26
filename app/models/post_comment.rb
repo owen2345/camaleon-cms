@@ -28,6 +28,8 @@ class PostComment < ActiveRecord::Base
   scope :approveds, -> { where(:approved => 'approved') }
 
   validates :content, :presence => true
+  after_create :update_counter
+  after_destroy :update_counter
 
   # return the owner of this comment
   def comment_user
@@ -40,5 +42,9 @@ class PostComment < ActiveRecord::Base
   end
 
   private
+  def update_counter
+    p = self.post
+    p.set_meta("comments_count", p.comments.count) if p.present?
+  end
 
 end

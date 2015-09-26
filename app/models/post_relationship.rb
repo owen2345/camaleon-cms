@@ -6,6 +6,8 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
+
+# DEPRECATED, NOT USED ANY MORE
 class PostRelationship < ActiveRecord::Base
   self.table_name = "term_relationships"
   attr_accessible :objectid, :term_taxonomy_id, :term_order

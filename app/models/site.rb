@@ -20,7 +20,7 @@ class Site < TermTaxonomy
   # has_many :post_tags, :class_name => "PostTag", through: :post_types, :source => :post_tags , dependent: :destroy, as: "posttag"
   has_many :term_taxonomies, :class_name => "TermTaxonomy", foreign_key: :parent_id
 
-  #has_many :posts, through: :post_types, :source => :posts
+  has_many :posts, through: :post_types, :source => :posts
   has_many :plugins, :class_name => "Plugin", foreign_key: :parent_id, dependent: :destroy
   has_many :themes, :class_name => "Theme", foreign_key: :parent_id, dependent: :destroy
   has_many :grid_templates, foreign_key: :parent_id, dependent: :destroy
@@ -32,17 +32,13 @@ class Site < TermTaxonomy
   before_destroy :destroy_site
   validates_uniqueness_of :slug, scope: :taxonomy
 
+  # all user roles for this site
   def user_roles
     if PluginRoutes.system_info["users_share_sites"]
       Site.first.user_roles_rel
     else
       user_roles_rel
     end
-  end
-
-  # all post fix
-  def posts
-    Post.joins(:post_types).where("term_taxonomy.id" => self.post_types.pluck(:id)).order("term_relationships.term_order asc, posts.id DESC")
   end
 
   #select full_categories for the site, include all children categories
@@ -58,13 +54,6 @@ class Site < TermTaxonomy
   # all main categories for this site
   def categories
     Category.includes(:post_type_parent).where(post_type_parent: self.post_types.pluck(:id))
-  end
-
-  # all posts for this site (faster mode)
-  # alternative for Site.posts (no manage default order)
-  # deprecated for select posts from scratch
-  def posts2
-    Post.joins(:post_types).where("term_taxonomy.id" => self.post_types.pluck(:id)).where("term_taxonomy.slug = ?", "post")
   end
 
   # return all languages configured by the admin
@@ -242,6 +231,7 @@ class Site < TermTaxonomy
     FileUtils.rm_rf(upload_directory) # destroy current media directory
   end
 
+  # default structure for each new site
   def default_settings
     default_post_type =     [
         {
@@ -289,9 +279,8 @@ class Site < TermTaxonomy
     end
 
     # nav menus
-    @sidebar  = self.sidebars.new({name: 'default sidebar', slug: 'default-sidebar'})
+    # @sidebar  = self.sidebars.new({name: 'default sidebar', slug: 'default-sidebar'})
     @nav_menu = self.nav_menus.new({name: "Main Menu", slug: "main_menu"})
-    @sidebar.save
 
     if @nav_menu.save
       self.post_types.all.each do |pt|
@@ -316,6 +305,7 @@ class Site < TermTaxonomy
     # self.set_option('_theme', PluginRoutes.system_info["default_template"])
   end
 
+  # assign all users to this new site
   def set_all_users
     User.all.each do |user|
       self.assign_user(user)
@@ -323,6 +313,7 @@ class Site < TermTaxonomy
   end
 
   # update all routes of the system
+  # reload system routes for this site
   def update_routes
     if self.id == Site.first.id
       PluginRoutes.system_info_set("base_domain", self.slug) if self.slug.present?

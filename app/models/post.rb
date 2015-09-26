@@ -29,10 +29,14 @@ end
 
 class Post < PostDefault
   include CategoriesTagsForPosts
-  default_scope ->{ where(post_class: self.name) }
+  default_scope ->{ where(post_class: self.name).order(post_order: :asc) }
   has_many :metas, ->{ where(object_class: 'Post')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
+
+  # DEPRECATED
   has_many :post_relationships, class_name: "PostRelationship", foreign_key: :objectid, dependent: :destroy,  inverse_of: :posts
   has_many :post_types, class_name: "PostType", through: :post_relationships, :source => :post_type
+  # END DEPRECATED
+
   has_many :term_relationships, class_name: "TermRelationship", foreign_key: :objectid, dependent: :destroy,  inverse_of: :objects
   has_many :categories, class_name: "Category", through: :term_relationships, :source => :term_taxonomies
   has_many :post_tags, class_name: "PostTag", through: :term_relationships, :source => :term_taxonomies
@@ -42,6 +46,7 @@ class Post < PostDefault
 
   belongs_to :owner, class_name: "User", foreign_key: :user_id
   belongs_to :parent, class_name: "Post", foreign_key: :post_parent
+  belongs_to :post_type, class_name: "PostType", foreign_key: :taxonomy_id
 
   scope :visible_frontend, -> {where(status: 'published')}
   scope :public_posts, -> {visible_frontend.where(visibility: ['public', ""]) } #public posts (not passwords, not privates)
@@ -55,13 +60,9 @@ class Post < PostDefault
 
   validates_with PostUniqValidator
 
-  def post_type=(pt)
-    @_cache_post_type = pt
-  end
-
-  # return the post type of this post
-  def post_type
-    @_cache_post_type ||= (post_types.reorder(nil).first || post_relationships.first.post_type)
+  # return the post type of this post (DEPRECATED)
+  def get_post_type_depre
+    post_types.reorder(nil).first
   end
 
   # return template assigned to this post
@@ -149,8 +150,7 @@ class Post < PostDefault
   # new_order_position: (Integer) position number
   # return nil
   def set_position(new_order_position)
-    taxonomy_id = self.post_type.id
-    self.term_relationships.where("term_taxonomy_id = ?", taxonomy_id).first.update_column("term_order", new_order_position)
+    self.update_column("post_order", new_order_position)
   end
 
   # save the summary for current post
@@ -167,16 +167,17 @@ class Post < PostDefault
 
   # increment the counter of visitors
   def increment_visits!
-    set_option("visits", total_visits+1)
+    set_meta("visits", total_visits+1)
   end
 
   # return the quantity of visits for this post
   def total_visits
-    get_option("visits", 0)
+    get_meta("visits", 0)
   end
 
   # return the quantity of comments for this post
+  # TODO comments count
   def total_comments
-    self.comment_count
+    self.get_meta("comments_count", 0)
   end
 end

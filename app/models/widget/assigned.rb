@@ -7,13 +7,14 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class Widget::Assigned < PostDefault
-  default_scope ->{ where(post_class: self.name).order(:comment_count) }
+  default_scope ->{ where(post_class: self.name).order(:taxonomy_id) }
   # post_parent: sidebar_id
   # visibility: widget_id
   # comment_count: item_order
+  # TODO rename all attribute names (changed comment_count into taxonomy_id)
   alias_attribute :widget_id, :visibility
   alias_attribute :sidebar_id, :post_parent
-  alias_attribute :item_order, :comment_count
+  alias_attribute :item_order, :taxonomy_id
 
   attr_accessible :widget_id, :sidebar_id, :item_order
 

@@ -61,7 +61,6 @@ class Admin::Posts::DraftsController < Admin::PostsController
   def get_params_data
     post_data = params[:post]
     post_data[:status] = 'draft'
-    post_data[:comment_count] = 0
     post_data[:post_parent] = params[:post_id]
     post_data[:user_id] = current_user.id unless post_data[:user_id].present?
     post_data

@@ -121,6 +121,7 @@ class TermTaxonomy < ActiveRecord::Base
     end
   end
 
+  # return all menu items in which this taxonomy was assigned
   def in_nav_menu_items
     NavMenuItem.joins(:metas).where("value LIKE ?","%\"object_id\":\"#{self.id}\"%").where("value LIKE ?","%\"type\":\"#{self.taxonomy}\"%").readonly(false)
   end
