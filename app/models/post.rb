@@ -172,12 +172,12 @@ class Post < PostDefault
 
   # return the quantity of visits for this post
   def total_visits
-    get_meta("visits", 0)
+    get_meta("visits", 0).to_i
   end
 
   # return the quantity of comments for this post
   # TODO comments count
   def total_comments
-    self.get_meta("comments_count", 0)
+    self.get_meta("comments_count", 0).to_i
   end
 end
