@@ -56,7 +56,7 @@ function init_post(obj){
 
     var t = setInterval(function(){
         App_post.save_draft_ajax();
-    }, 1*60*1000);
+    }, 3*60*1000);
 
     window.save_draft = App_post.save_draft_ajax;
 

@@ -118,6 +118,16 @@
 
 // reset modals
 .modal, #admin_content{
+  .btn_upload{
+    cursor: pointer;
+  }
+  .input-append.date .input-group-addon{
+    padding: 7px 0;
+    width: 30px;
+  }
+  .input-group.color .input-group-addon{
+    background-color: #ccc;
+  }
   ul{
     padding: 0;
     list-style: none;
@@ -128,6 +138,23 @@
     .tab-pane .has-error { border: 1px solid #a94442; }
   }
   .trans_panel{ //fix for multilanguage tabs
-    margin-top: -25px;
+    //margin-top: -25px;
   }
+
+  .item-custom-field{
+    margin-bottom: 15px;
+    .actions{
+      overflow: hidden;
+      width: 67px;
+      float: left;
+      .fa{
+        @include link_round;
+      }
+      &+.group-input-fields-content{
+        margin-left: 75px;
+      }
+    }
+
+  }
+
 }

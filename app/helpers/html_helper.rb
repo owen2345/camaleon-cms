@@ -99,7 +99,7 @@ module HtmlHelper
   private
   def assets_libraries
     libs = {}
-    libs[:colorpicker] = {js: ['admin/bootstrap-colorpicker']}
+    libs[:colorpicker] = {js: ['admin/bootstrap-colorpicker'], css: ["admin/colorpicker.css"]}
     libs[:datepicker] = {js: ['admin/bootstrap-datepicker']}
     libs[:datetimepicker] = {js: ['admin/bootstrap-datetimepicker.min']}
     libs[:tinymce] = {js: ['admin/tinymce/tinymce.min', "admin/tinymce/plugins/filemanager/plugin.min"], css: ["admin/tinymce/skins/lightgray/content.min"]}

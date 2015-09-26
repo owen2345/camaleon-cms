@@ -73,7 +73,9 @@ function custom_field_date($field){
         }else{
             box.datepicker({
                 language: 'es',
-                format: 'yyyy-mm-dd'
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                todayBtn: "linked"
             });
         }
     }
