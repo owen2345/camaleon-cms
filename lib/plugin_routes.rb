@@ -231,7 +231,7 @@ class PluginRoutes
     camaleon_gem = get_gem('camaleon_cms')
     return [] if !camaleon_gem
     r = cache_variable("all_plugins"); return r unless (r.nil? || r == [])
-    res = []
+    res = get_gem_plugins
     entries = [".", ".."]
     (Dir["#{apps_dir}/plugins/*"] + Dir["#{camaleon_gem.gem_dir}/app/apps/plugins/*"]).each do |path|
       entry = path.split("/").last
@@ -253,7 +253,7 @@ class PluginRoutes
     camaleon_gem = get_gem('camaleon_cms')
     return [] if !camaleon_gem
     r = cache_variable("all_themes"); return r unless (r.nil? || r == [])
-    res = []
+    res = get_gem_themes
     entries = [".", ".."]
     (Dir["#{apps_dir}/themes/*"] + Dir["#{camaleon_gem.gem_dir}/app/apps/themes/*"]).each do |path|
       entry = path.split("/").last
@@ -274,6 +274,44 @@ class PluginRoutes
   # return all apps loaded
   def self.all_apps
     all_plugins+all_themes
+  end
+
+  # return all plugins registered as gems
+  def self.get_gem_plugins
+    entries = []
+    Gem::Specification.each do |gem|
+      path = gem.gem_dir
+      config = File.join(path, "config", "camaleon_plugin.json")
+      if File.exist?(config)
+        p = JSON.parse(File.read(config))
+        p = p.with_indifferent_access rescue p
+        p["key"] = gem.name
+        p["path"] = path
+        p["kind"] = "plugin"
+        p["gem_mode"] = true
+        entries << p
+      end
+    end
+    entries
+  end
+
+  # return all themes registered as gems
+  def self.get_gem_themes
+    entries = []
+    Gem::Specification.each do |gem|
+      path = gem.gem_dir
+      config = File.join(path, "config", "camaleon_theme.json")
+      if File.exist?(config)
+        p = JSON.parse(File.read(config))
+        p = p.with_indifferent_access rescue p
+        p["key"] = gem.name
+        p["path"] = path
+        p["kind"] = "theme"
+        p["gem_mode"] = true
+        entries << p
+      end
+    end
+    entries
   end
 
   # check if a gem is available or not

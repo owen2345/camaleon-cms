@@ -120,7 +120,14 @@ module PluginsHelper
   # plugin_name: (String) if nil, will be used self_plugin_key method
   # return (String), sample: plugin_asset("css/mains.css") => plugins/my_plugin/assets/css/main.css
   def plugin_asset(asset, plugin_name = nil)
-    "themes/#{plugin_name || self_plugin_key }/assets/#{asset}"
+    "plugins/#{plugin_name || self_plugin_key }/assets/#{asset}"
+  end
+
+  # built asset file for current theme
+  # plugin_name: (String) if nil, will be used self_plugin_key method
+  # return (String), sample: plugin_asset("mains.css") => plugins/my_plugin/main.css
+  def plugin_gem_asset(asset, plugin_name = nil)
+    "plugins/#{plugin_name || self_plugin_key }/#{asset}"
   end
 
   # auto load all helpers of this plugin
@@ -153,9 +160,15 @@ module PluginsHelper
 
   # return plugin key for current plugin file (helper|controller|view)
   def self_plugin_key
-    k = "app/apps/plugins/"
-    f = caller.first
-    f.split(k).last.split("/").first if f.include?(k)
+    # k = "app/apps/plugins/"
+    k = "/plugins/"
+    f = caller[0]
+    f2 = caller[1]
+    if f.include?(k)
+      f.split(k).last.split("/").first
+    elsif f2.include?(k)
+      f2.split(k).last.split("/").first
+    end
   end
 
   # method called only from files within plugins directory

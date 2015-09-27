@@ -15,6 +15,6 @@ class Apps::PluginsAdminController < AdminController
     plugin_name = params[:controller].split("/")[1]
     @plugin = current_site.plugins.where(slug: plugin_name).first
     return render_error(404) unless @plugin.active?
-    lookup_context.prefixes.prepend(params[:controller].sub("plugins/#{plugin_name}", "#{plugin_name}/views"))
+    lookup_context.prefixes.prepend(params[:controller].sub("plugins/#{plugin_name}", "#{plugin_name}/views")) if !@plugin.settings["gem_mode"].present?
   end
 end

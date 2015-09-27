@@ -54,6 +54,13 @@ module ThemeHelper
     "themes/#{theme_name || self_theme_key || current_theme.slug }/assets/#{asset}"
   end
 
+  # built asset file for current theme
+  # theme_name: theme key, if nill will be used current_theme.slug
+  # return (String), sample: theme_asset("mains.css") => themes/my_theme/main.css
+  def theme_gem_asset(asset, theme_name = nil)
+    "themes/#{theme_name || self_theme_key || current_theme.slug }/#{asset}"
+  end
+
   # return theme full view path
   # theme_key: theme folder name
   # view_name: name of the view or template
@@ -68,8 +75,14 @@ module ThemeHelper
 
   # return theme key for current theme file (helper|controller|view)
   def self_theme_key
-    k = "app/apps/themes/"
-    f = caller.first
-    f.split(k).last.split("/").first if f.include?(k)
+    # k = "app/apps/themes/"
+    k = "/themes/"
+    f = caller[0]
+    f2 = caller[1]
+    if f.include?(k)
+      f.split(k).last.split("/").first
+    elsif f2.include?(k)
+      f2.split(k).last.split("/").first
+    end
   end
 end
