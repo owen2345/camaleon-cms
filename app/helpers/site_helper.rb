@@ -54,7 +54,7 @@ module SiteHelper
   # get list templates files of current theme
   def get_list_template_files
     contained_files = []
-    Dir[File.join(current_theme.settings["path"], "views", '*.html.erb')].each do |path|
+    Dir[File.join(current_theme.settings["path"], "views", '*')].each do |path|
       f_name = File.basename(path)
       contained_files << f_name.split(".").first if f_name.include?('template_')
     end
