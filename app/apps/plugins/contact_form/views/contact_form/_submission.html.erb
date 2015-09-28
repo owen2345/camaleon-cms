@@ -1,0 +1,26 @@
+<div class="data_body">
+  <table style="width: 100%; float: left;">
+    <tbody>
+      <tr>
+        <td style="width: 50%; float: left">
+          <% fields.each do |key, value| %>
+            <div class="data_field">
+              <strong><%= key %>:</strong>
+              <%= value[0] %>
+            </div>
+          <% end %>
+        </td>
+        <td style="width: 48%; float: left; vertical-align: top">
+          <% file_attachments.each do |attachment| %>
+            <div class="data_link">
+              <strong>Attachment: </strong>
+              <a href="<%= attachment %>">
+                <%= File.basename(attachment) %>
+              </a>
+            </div>
+          <% end %>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
