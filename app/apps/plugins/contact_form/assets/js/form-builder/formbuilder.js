@@ -1163,7 +1163,7 @@ with (obj) {
                   '</ul>' +
                 '</div>\n' +
                 '<div class=\'panel-body\'>\n' +
-                  '<div class=\'fb-no-response-fields\'>'+lang.message_no_response_fields+'</div>\n  ' +
+                  '<div class=\'fb-no-response-fields\'>'+I18n("msg.no_response_fields")+'</div>\n  ' +
                   '<div class=\'fb-response-fields\'></div>\n' +
               '</div>\n' +
             '</div>\n' +
