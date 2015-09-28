@@ -1,0 +1,3 @@
+<% object.the_fields(field_key).each do |value| %>
+    <input type="checkbox" value="<%= field.options[:default_value] || 1 %>" name="<%= field_key %>" <%= 'checked' if value.to_s == "1" %> <%= attibutes["attrs"] || "controls" %> />
+<% end %>

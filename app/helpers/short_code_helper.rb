@@ -19,6 +19,26 @@ module ShortCodeHelper
                   lambda{|attrs, args| add_asset_library(*attrs["data"].to_s.split(",")); return ""; },
                   "Permit to load libraries on demand, sample: [load_libraries data='datepicker,tinymce']")
 
+    shortcode_add("custom_field",
+                  lambda{|attrs, args|
+                    post = args[:owner]
+                    post = current_site.the_posts.find_by_slug(attrs["post_slug"]).decorate rescue nil if attrs["post_slug"].present?
+                    return "" unless post.present?
+                    field = post.get_field_object(attrs["key"])
+                    if attrs["render"].present?
+                      return render :file => "custom_fields/#{field.options["field_key"]}", :locals => {object: post, field: field, field_key: attrs["key"], attibutes: attrs}
+                    else
+                      return post.the_field(attrs["key"])
+                    end
+                  },
+                  "Permit you to include your custom fields in anywhere.
+                  key: slug or key of the custom_field
+                  attrs: custom html attributes
+                  render: (true) enable to render the custom field as html. (Sample text_field: <span>my_field_value</span>)
+                  post_slug: (Optional, default current post) slug or key of a Post.
+                  Sample1: [custom_field key='subtitle']
+                  Sample2: [custom_field key='subtitle' post_slug='contact' render=true attrs='style=\"width: 50px;\"'] // return the custom field of page with slug = contact")
+
     shortcode_add("asset",
                   lambda{|attrs, args|
                     url = attrs["as_path"].present? ? ActionController::Base.helpers.asset_url(attrs["file"]) : ActionController::Base.helpers.asset_url(attrs["file"])

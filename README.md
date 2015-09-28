@@ -28,7 +28,8 @@
 * Add the gem in your Gemfile
 
   ```
-  gem 'camaleon_cms'
+  gem 'camaleon_cms', '0.2.1' # if you want the previous stable version
+  gem 'camaleon_cms' # if you want the latest version (1.0)
   ```
 * Install the gem
 
@@ -172,6 +173,79 @@ http://camaleon.tuzitio.com/license.html/
 Visit the web site for more information: http://camaleon.tuzitio.com/
 
 ## Version History
+### 1.0
+* new template for admin panel
+* gem plugin generator
+  console:
+  rails g camaleon_cms:gem_plugin post_reorder
+  bundle install
+  visit frontend: http://localhost:3000/plugins/post_reorder/index
+  visit backend: http://localhost:3000/admin/plugins/post_reorder/index
+  Check here to publish your gem http://guides.rubygems.org/publishing/
+* gem plugin support added
+* changed post structure to improve sql query
+* added custom field orderer
+  sort_by_field(...)
+  sample: Site.first.posts.sort_by_field("untitled-field-attributes", "desc")
+* Added layouts selector like template selector
+* Added support custom fields for menu items
+  Add any custom fields into menus and it will appear for each menu item (ideal to add icons or custom text for each menu)
+* I18n(..) for javascript
+  You don't need to print your translations in html, put your translations in:
+  Sample:
+  ``en:
+    admin:
+      js:
+        button
+          my_text: "asasa"
+
+  I18n("button.my_text")``
+* hooks for email
+* shortcodes support for content editor
+* hook "user_update_more_actions" to add more action in user profile
+* added slug render support for categories, post_types, post_tags. Check doc.
+* fixed the default view "post.html.erb" into "single.html.erb". Check doc.
+* added the_field!(..) and get_field!(..) method in custom fields to manage empty values. Check doc.
+* added a control for logged users the_edit_link
+* added the_author method for posts
+* added the_categories method for sites
+* added cama_edit_link(...) to create common edit links anywhere, this verify if current visitor was logged in
+* added default shortcodes: load_libreries (load custom libraries), asset (render an url or image tag with the url), post_url (render an url for a post by id or slug)
+* fixed shortcode to support shortcodes with almost the same name. sample: [asset] [asset_path]
+* added method cama_strip_shortcodes(..) to strip all shortcodes
+* added get_fields(..) to get multiple values of a custom field
+* added filters for categories (.no_empty, .empty)
+* Added method for post: set_summary(..)
+* Added method for post: set_thumb(..)
+* Added method for post: increment_visits!
+* Added method for post: total_visits
+* Added method for post: total_comments
+* Added extra support values for method add_post(..) in post_type object
+* Added shortcode "post_url"
+  Permit to generate the url of a post (add path='' to generate the path and not the full url,
+    add id='123' to use the POST ID,
+    add key='my_slug' to use the POST SLUG,
+    add link='true' to generate the full link,
+    add title='my title' text of the link (default post title),
+    add target='_blank' to open the link in a new window this is valid only if link is present),
+  sample: [post_url id='122' link=true target='_blank']
+* Added shortcode "asset"
+  Permit to generate an asset url (
+    add file='' asset file path,
+    add as_path='true' to generate only the path and not the full url,
+    add class='my_class' to setup image class,
+    add style='height: 100px; width: 200px;...' to setup image style,
+    add image='true' to generate the image tag with this url),
+  sample: <img src=\"[asset as_path='true' file='themes/my_theme/assets/img/signature.png']\" /> or [asset image='true' file='themes/my_theme/assets/img/signature.png' style='height: 50px;']
+* Added shortcode "custom_field"
+  Permit you to include your custom fields in anywhere.
+  key: slug or key of the custom_field
+  attrs: custom html attributes
+  render: (true) enable to render the custom field as html. (Sample text_field: <span>my_field_value</span>)
+  post_slug: (Optional, default current post) slug or key of a Post.
+  Sample1: [custom_field key='subtitle']
+  Sample2: [custom_field key='subtitle' post_slug='contact' render=true attrs='style=\"width: 50px;\"'] // return the custom field of page with slug = contact
+
 ### 0.2.1
 * fixed sprockets problem: https://github.com/owen2345/camaleon-cms/issues/53
 
