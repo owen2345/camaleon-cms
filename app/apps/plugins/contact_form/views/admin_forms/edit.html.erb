@@ -97,26 +97,6 @@
                                         <label for="railscf_mail_body"><%= t('plugin.contact_form.body') %>:</label><br>
                                         <textarea rows="4" cols="5" id="railscf_mail_body" class="form-control" name="railscf_mail[body]"><%= t('plugin.contact_form.body_value') %></textarea>
                                     </div>
-
-                                    <div class="form-group">
-                                        <label for="railscf_mail_body"><%= t('admin.sidebar.themes') %>:</label><br>
-                                        <% dir = Dir.glob("app/apps/themes/#{current_theme.the_slug.to_s}/views/html_mailer/*") %>
-                                        <select id="railscf_mail_theme" name="railscf_mail[theme]">
-                                            <% if dir.size > 0 %>
-                                                <% dir.each do |archivo| file=File.basename(archivo) %>
-                                                    <% f=file.split('.') %>
-                                                    <option value="<%= f[0].to_s %>"><%= f[0].to_s.titleize %></option>
-                                                <% end %>
-                                            <% else %>
-                                                <% dir = Dir.glob("app/views/html_mailer/*") %>
-                                                <% dir.each do |archivo| file=File.basename(archivo) %>
-                                                    <% f=file.split('.') %>
-                                                    <option value="<%= f[0].to_s %>"><%= f[0].to_s.titleize %></option>
-                                                <% end %>
-
-                                            <% end %>
-                                        </select>
-                                    </div>
                                 </div>
                             </div>
                         </div>
