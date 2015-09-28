@@ -65,6 +65,12 @@
   ```bash
   rm lib/Gemfile_camaleon
   ```
+1. Remove code from `Gemfile`
+
+  ```bash
+  require './lib/plugin_routes'
+  instance_eval(PluginRoutes.draw_gems)
+  ```
 1. Install gems
 
   ```bash
