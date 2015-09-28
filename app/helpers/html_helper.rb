@@ -49,6 +49,7 @@ module HtmlHelper
   # return all js libraries added [aa.js, bb,js, ..]
   # def get_assets_js
   def draw_custom_assets
+    html_helpers_init unless @_assets_libraries.present?
     libs = []
     @_assets_libraries.each do |key, assets|
       libs += assets[:css] if assets[:css].present?
