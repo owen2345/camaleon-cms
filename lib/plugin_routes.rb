@@ -233,6 +233,7 @@ class PluginRoutes
     r = cache_variable("all_plugins"); return r unless (r.nil? || r == [])
     res = get_gem_plugins
     entries = [".", ".."]
+    res.each{|plugin| entries << plugin["key"] }
     (Dir["#{apps_dir}/plugins/*"] + Dir["#{camaleon_gem.gem_dir}/app/apps/plugins/*"]).each do |path|
       entry = path.split("/").last
       config = File.join(path, "config", "config.json")
@@ -255,6 +256,7 @@ class PluginRoutes
     r = cache_variable("all_themes"); return r unless (r.nil? || r == [])
     res = get_gem_themes
     entries = [".", ".."]
+    res.each{|theme| entries << theme["key"] }
     (Dir["#{apps_dir}/themes/*"] + Dir["#{camaleon_gem.gem_dir}/app/apps/themes/*"]).each do |path|
       entry = path.split("/").last
       config = File.join(path, "config", "config.json")
