@@ -16,10 +16,12 @@
         <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">
                 <%= r = {html: ""}; hooks_run("admin_notifications", r); raw(r[:html]); %>
+                <li><a target="_blank" href="<%= current_site.the_url %>"><i class="fa fa-eye"></i> <%= t("common.visit") %></a></li>
                 <li class="dropdown user user-menu">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                         <img src="<%= current_user.the_avatar %>" class="user-image" alt="User Image">
                         <span class="hidden-xs"><%= current_user.fullname %></span>
+                        <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
                         <!-- User image -->
@@ -42,9 +44,7 @@
                     </ul>
                 </li>
                 <!-- Control Sidebar Toggle Button -->
-                <li class="hidden">
-                    <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
-                </li>
+                <li class="hidden"><a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a></li>
             </ul>
         </div>
     </nav>
