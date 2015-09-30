@@ -25,39 +25,39 @@ module Admin::MenusHelper
       if pt.manage_tags?
         items_i << {icon: "tags", title: t('admin.post_type.tags'), url: admin_post_type_post_tags_path(pt.id)} if can? :post_tags, pt
       end
-      items << {icon: "file-o", title: pt.the_title, url: "", items: items_i} if items_i.present? #if can? :posts, pt
+      items << {icon: "copy", title: pt.the_title, url: "", items: items_i } if items_i.present? #if can? :posts, pt
     end
-    admin_menu_add_menu("content", {icon: "copy", title: t('admin.sidebar.content'), url: "", items: items}) if items.present?
+    admin_menu_add_menu("content", {icon: "database", title: t('admin.sidebar.content'), url: "", items: items, datas: "data-intro='#{t("admin.intro.content")}' data-position='right' data-wait='600'"}) if items.present?
     #end
 
-    admin_menu_add_menu("media", {icon: "picture-o", title: t('admin.sidebar.media'), url: admin_media_path}) if can? :manager, :media
-    admin_menu_add_menu("comments", {icon: "comments", title: t('admin.sidebar.comments'), url: admin_comments_path}) if can? :manager, :comments
+    admin_menu_add_menu("media", {icon: "picture-o", title: t('admin.sidebar.media'), url: admin_media_path, datas: "data-intro='#{t("admin.intro.media")}' data-position='right'"}) if can? :manager, :media
+    admin_menu_add_menu("comments", {icon: "comments", title: t('admin.sidebar.comments'), url: admin_comments_path, datas: "data-intro='#{t("admin.intro.comments")}' data-position='right'"}) if can? :manager, :comments
 
     items = []
-    items << {icon: "desktop", title: t('admin.sidebar.themes'), url: admin_appearances_themes_path} if can? :manager, :themes
-    items << {icon: "archive", title: t('admin.sidebar.widgets'), url: admin_appearances_widgets_main_index_path} if can? :manager, :widgets
-    items << {icon: "list", title: t('admin.sidebar.menus'), url: admin_appearances_nav_menus_menu_path} if can? :manager, :nav_menu
-    admin_menu_add_menu("appearance", {icon: "paint-brush", title: t('admin.sidebar.appearance'), url: "", items: items}) if items.present?
+    items << {icon: "desktop", title: t('admin.sidebar.themes'), url: admin_appearances_themes_path, datas: "data-intro='#{t("admin.intro.themes")}' data-position='right'"} if can? :manager, :themes
+    items << {icon: "archive", title: t('admin.sidebar.widgets'), url: admin_appearances_widgets_main_index_path, datas: "data-intro='#{t("admin.intro.widgets")}' data-position='right'"} if can? :manager, :widgets
+    items << {icon: "list", title: t('admin.sidebar.menus'), url: admin_appearances_nav_menus_menu_path, datas: "data-intro='#{t("admin.intro.menus", image: view_context.asset_path("admin/intro/menus.png"))}' data-position='right'"} if can? :manager, :nav_menu
+    admin_menu_add_menu("appearance", {icon: "paint-brush", title: t('admin.sidebar.appearance'), url: "", items: items, datas: "data-intro='#{t("admin.intro.appearance")}' data-position='right' data-wait='500'"}) if items.present?
 
 
-    admin_menu_add_menu("plugins", {icon: "plug", title: "#{t('admin.sidebar.plugins')} <small class='label label-primary'>#{PluginRoutes.all_plugins.size}</small>", url: admin_plugins_path}) if can? :manager, :plugins
+    admin_menu_add_menu("plugins", {icon: "plug", title: "#{t('admin.sidebar.plugins')} <small class='label label-primary'>#{PluginRoutes.all_plugins.size}</small>", url: admin_plugins_path, datas: "data-intro='#{t("admin.intro.plugins")}' data-position='right'"}) if can? :manager, :plugins
 
     if can? :manager, :users
       items = []
       items << {icon: "list", title: t('admin.users.all_users'), url: admin_users_path}
       items << {icon: "plus", title: t('admin.users.add_user'), url: new_admin_user_path}
       items << {icon: "group", title: t('admin.users.user_roles'), url: admin_user_roles_path}
-      admin_menu_add_menu("users", {icon: "users", title: t('admin.sidebar.users'), url: "", items: items})
+      admin_menu_add_menu("users", {icon: "users", title: t('admin.sidebar.users'), url: "", items: items, datas: "data-intro='#{t("admin.intro.users")}' data-position='right' data-wait='500'"})
     end
 
     if can? :manager, :settings
       items = []
-      items << {icon: "desktop", title: t('admin.sidebar.general_site'), url: admin_settings_site_path}
-      items << {icon: "cog", title: t('admin.sidebar.sites'), url: admin_settings_sites_path} if current_site.manage_sites?
-      items << {icon: "files-o", title: t('admin.sidebar.post_type'), url: admin_settings_post_types_path}
-      items << {icon: "cog", title: t('admin.sidebar.custom_fields'), url: admin_settings_custom_fields_path}
-      items << {icon: "language", title: t('admin.sidebar.languages'), url: admin_settings_languages_path}
-      admin_menu_add_menu("settings", {icon: "cogs", title: t('admin.sidebar.settings'), url: "", items: items})
+      items << {icon: "desktop", title: t('admin.sidebar.general_site'), url: admin_settings_site_path, datas: "data-intro='#{t("admin.intro.gral_site")}' data-position='right'"}
+      items << {icon: "cog", title: t('admin.sidebar.sites'), url: admin_settings_sites_path, datas: "data-intro='#{t("admin.intro.sites")}' data-position='right'"} if current_site.manage_sites?
+      items << {icon: "files-o", title: t('admin.sidebar.content_groups'), url: admin_settings_post_types_path, datas: "data-intro='#{t("admin.intro.post_type")}' data-position='right'"}
+      items << {icon: "cog", title: t('admin.sidebar.custom_fields'), url: admin_settings_custom_fields_path, datas: "data-intro='#{t("admin.intro.custom_fields")}' data-position='right'"}
+      items << {icon: "language", title: t('admin.sidebar.languages'), url: admin_settings_languages_path, datas: "data-intro='#{t("admin.intro.languages")}' data-position='right'"}
+      admin_menu_add_menu("settings", {icon: "cogs", title: t('admin.sidebar.settings'), url: "", items: items, datas: "data-intro='#{t("admin.intro.settings")}' data-position='right' data-wait='500'"})
     end
 
   end
@@ -69,6 +69,7 @@ module Admin::MenusHelper
   # - title: title for the menu
   # - url: url for the menu
   # - items: is an recursive array of the menus without a key
+  # - datas: html data text for this menu item
   def admin_menu_add_menu(key, menu)
     @_admin_menus[key] = menu
   end
@@ -119,7 +120,7 @@ module Admin::MenusHelper
     @_tmp_menu_parents = []
     menus = _get_url_current
     menus.each do |menu|
-      res << "<li data-key='#{menu[:key]}' class='#{"treeview" if menu.has_key?(:items)} #{'active' if is_active_menu(menu[:key])}'>
+      res << "<li data-key='#{menu[:key]}' class='#{"treeview" if menu.has_key?(:items)} #{'active' if is_active_menu(menu[:key])}' #{menu[:datas]}>
         <a href='#{menu[:url]}'><i class='fa fa-#{menu[:icon]}'></i> <span class=''>#{menu[:title]}</span> #{'<i class="fa fa-angle-left pull-right"></i>' if menu.has_key?(:items) }</a>
         #{_admin_menu_draw(menu[:items]) if menu.has_key?(:items)}
       </li>"
@@ -177,7 +178,7 @@ module Admin::MenusHelper
     res = []
     res  << "<ul class='treeview-menu'>"
     items.each do |item|
-      res  << "<li class='#{"xn-openable" if item.has_key?(:items)} #{'active' if is_active_menu(item[:key])}'>
+      res  << "<li class='#{"xn-openable" if item.has_key?(:items)} #{'active' if is_active_menu(item[:key])}' #{item[:datas]}>
                 <a href='#{item[:url]}'><i class='fa fa-#{item[:icon]}'></i> #{item[:title]} #{'<i class="fa fa-angle-left pull-right"></i>' if item.has_key?(:items) }</a>
                 #{_admin_menu_draw(item[:items]) if item.has_key?(:items)}
               </li>"

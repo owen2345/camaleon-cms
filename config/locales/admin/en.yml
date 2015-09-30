@@ -349,6 +349,7 @@ en:
       appearance: 'Appearance'
       comments: 'Comments'
       content: 'Content'
+      content_groups: 'Content Groups'
       custom_fields: 'Custom Fields'
       dashboard: 'Dashboard'
       general_site: 'General Site'
@@ -584,3 +585,21 @@ en:
         error_created: 'Not Created Widget.'
         error_updated: 'Not Updated Widget.'
         not_registered_widgets: 'There are no registered widgets'
+    intro:
+      profile: "In this place you can see your profile options."
+      content: "This block contains all content groups of your site. Each content can have different structure configured in settings => Post Type"
+      #dashboard: "In this section you can see "
+      media: "This section manage your all your public media files"
+      comments: "This section manage all the comments of your contents"
+      appearance: "Manage all the information related to Public Interface"
+      themes: "In this section you can choose your preferred theme (Public Interface)"
+      widgets: "This module permit you to manage your widgets and paste the code in any content."
+      menus: "<img style=\"max-width: 100%;\" src=\"%{image}\" /> This module permit you to control your menus for Public Interface in multiple levels."
+      plugins: "In this section you can see all plugins (custom applications to extend your site functionality)."
+      users: "Permit you to manage all users of the site. Also you can manage the roles for the users."
+      settings: "In this section you can find all site configurations"
+      gral_site: "This is a section where you can configure all settings of the site and current theme"
+      sites: "This module permit you to manage your sub sites, i.e. you can create unlimited sites like this (This is visible only for main site). Check /config/system.json to customize settings."
+      custom_fields: "This section permit you to extend easily your contents, themes,... by custom fields."
+      post_type: "In this module you can manage your content groups without programing anything."
+      languages: "This module permit you to manage all languages for your site. Also you can configure the language for your admin panel."

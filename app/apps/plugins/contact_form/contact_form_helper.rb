@@ -74,7 +74,7 @@ module Plugins::ContactForm::ContactFormHelper
   end
 
   def contact_form_admin_before_load
-    admin_menu_append_menu_item("settings", {icon: "envelope-o", title: t('plugin.contact_form.contact_form'), url:  admin_plugins_contact_form_admin_forms_path})
+    admin_menu_append_menu_item("settings", {icon: "envelope-o", title: t('plugin.contact_form.contact_form'), url:  admin_plugins_contact_form_admin_forms_path, datas: "data-intro='This plugin permit you to create you contact forms with desired fields and paste your short_code in any content.' data-position='right'"})
   end
 
   def contact_form_app_before_load

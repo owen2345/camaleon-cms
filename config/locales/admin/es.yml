@@ -363,6 +363,7 @@ es:
       widget: 'Widget'
       widgets: 'Widgets'
       main_navigation: "NAVEGACIÓN PRINCIPAL"
+      content_groups: 'Grupos de Contenidos'
     sidebar_top:
       admin_panel: 'Admin. Panel'
       visit: 'Visita'

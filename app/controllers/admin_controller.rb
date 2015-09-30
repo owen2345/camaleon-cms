@@ -25,6 +25,18 @@ class AdminController < CamaleonController
   def index
   end
 
+  # ajax requests for admin panel
+  # you need to send a param mode to control the action to to do
+  def ajax
+    case params[:mode]
+      when "save_intro"
+        current_site.set_option("save_intro", true);
+      when "save_intro_post"
+        current_site.set_option("save_intro_post", true);
+    end
+    render inline: ""
+  end
+
   # render admin dashboard
   def dashboard
     render "admin/dashboard/index"

@@ -2,7 +2,24 @@ jQuery(function($){
     // initialize all validations for forms
     init_form_validations();
     setTimeout(page_actions, 1000);
+    setTimeout(init_intro, 500);
 });
+
+// show admin intro presentation
+function init_intro(){
+    if($("body").attr("data-intro")) return;
+    var finish = function(){
+        $.get(root_url+"/admin/ajax", {mode: "save_intro"});
+    }
+    introJs().setOptions({exitOnEsc: false,
+        exitOnOverlayClick: false,
+        showStepNumbers: false,
+        showBullets: false,
+        disableInteraction: true
+    }).oncomplete(finish).onexit(finish).onbeforechange(function(ele) {
+        if($(ele).hasClass("treeview") && !$(ele).hasClass("active")) $(ele).children("a").click();
+    }).start();
+}
 
 // basic and common actions
 var page_actions = function(){

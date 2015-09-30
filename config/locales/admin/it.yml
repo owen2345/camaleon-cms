@@ -364,6 +364,7 @@ it:
       users: 'Utenti'
       widget: 'Widget'
       widgets: 'Widget'
+      content_groups: 'Gruppi di Contenuto'
     sidebar_top:
       admin_panel: 'Pannello amministrazione'
       visit: 'Visita'

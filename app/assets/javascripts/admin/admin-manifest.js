@@ -40,3 +40,5 @@
 
 //= require ./lte/app
 
+//= require ./introjs/intro.min
+

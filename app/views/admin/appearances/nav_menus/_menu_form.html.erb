@@ -19,9 +19,6 @@
                         <ol class="dd-list"></ol>
                     </div>
                 </div>
-                <div class="panel-body">
-
-                </div>
                 <div class="panel-footer">
                     <%= content_tag(:div, (raw @nav_menu.description), class: "callout callout-info") if @nav_menu.description.present? %>
                     <%= link_to raw("<i class='fa fa-times'></i> #{t('admin.button.delete')}"), {action: :menu, id: @nav_menu.id}, method: :delete, data: {confirm: t('admin.message.delete')}, class: "btn btn-danger btn-sm pull-left", title: "Delete" unless @nav_menu.new_record? %>

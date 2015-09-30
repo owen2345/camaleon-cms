@@ -20,5 +20,6 @@
  *= require ./bootstrap-datepicker
  *= require ./tageditor/jquery.tag-editor
  *= require ./grid-editor
+ *= require ./introjs/introjs.min
  */
 
