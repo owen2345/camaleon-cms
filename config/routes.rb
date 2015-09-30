@@ -1,4 +1,14 @@
 Rails.application.routes.draw do
+  use_doorkeeper
+
+  namespace :api do
+    get 'account' => 'api#account'
+
+    namespace :v1 do
+      get 'categories' => 'category#categories'
+    end
+  end
+
   # root "application#index"
   default_url_options :host => PluginRoutes.system_info["base_domain"]
 
