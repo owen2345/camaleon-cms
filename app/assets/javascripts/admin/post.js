@@ -132,7 +132,7 @@ function init_post(obj){
                 ar[1] = post_draft_id;
                 $(this).attr('href', ar.join("draft_id="))
             });
-            $link.find('.btn-edit').click(function(){      log(lang);
+            $link.find('.btn-edit').click(function(){
                 var $btn = $(this);
                 var $btn_edit = $('<a href="#" class="btn btn-default btn-xs btn-edit">'+I18n("button.accept")+'</a> &nbsp; <a href="#"  class="btn-cancel">'+I18n("button.cancel")+'</a>');
                 var $label = $link.find('.sl-url');
