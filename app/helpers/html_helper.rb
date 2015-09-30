@@ -112,6 +112,7 @@ module HtmlHelper
     libs[:validate] = {js: ['admin/jquery.validate']}
     libs[:nav_menu] = {css: ['admin/nestable/jquery.nestable', "admin/nav-menu"], js: ["admin/jquery.nestable", 'admin/nav-menu']}
     libs[:elfinder_front] = {js: ['elfinder_front.js']}
+    libs[:admin_intro] = {js: ['admin/introjs/intro.min'], css: ["admin/introjs/introjs.min"]}
     libs
   end
 end

@@ -39,6 +39,3 @@
 //= require ./tageditor/jquery.tag-editor
 
 //= require ./lte/app
-
-//= require ./introjs/intro.min
-
