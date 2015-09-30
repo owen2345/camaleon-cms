@@ -11,7 +11,7 @@ module SessionHelper
   # user: User model
   # remember_me: true/false (remember session permanently)
   def login_user(user, remember_me = false, redirect_url = nil)
-    c = {value: [user.auth_token, request.user_agent, request.ip], expires: 24.hours.from_now }
+    c = {value: [user.auth_token, request.user_agent, request.ip], expires: 24.hours.from_now}
     # c[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && Site.main_site.get_meta("share_sessions", true) && !cookies[:login].present?
     c[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && Site.count > 1
     c[:expires] = 1.month.from_now if remember_me
@@ -33,9 +33,24 @@ module SessionHelper
     end
   end
 
+  def login_user_with_password(username, password, remember_me=false, redirect_url = nil)
+    data_user = {}
+    cipher = Gibberish::AES::CBC.new(get_session_id)
+    data_user[:password] = cipher.decrypt(password) rescue nil
+    @user = current_site.users.find_by_username(username)
+    r = {user: @user, params: params, password: data_user[:password], captcha_validate: true}; hooks_run('user_before_login', r)
+    if @user && @user.authenticate(data_user[:password])
+      login_user(@user, remember_me, redirect_url)
+    else
+      #TODO change flash error
+      #flash[:error] =  t('admin.login.message.fail')
+    end
+    @user if @user
+  end
+
   # check if current host is heroku
   def on_heroku?
-    ENV.keys.any? {|var_name| var_name.match(/(heroku|dyno)/i) }
+    ENV.keys.any? { |var_name| var_name.match(/(heroku|dyno)/i) }
   end
 
   # switch current session user into other (user)
@@ -73,7 +88,7 @@ module SessionHelper
   # return the role for current user
   # if not logged in, then return 'public'
   def current_role
-    (signin?)? current_user.role : 'public'
+    (signin?) ? current_user.role : 'public'
   end
 
   # return current user logged in

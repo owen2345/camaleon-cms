@@ -38,4 +38,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'rufus-scheduler'
   s.add_dependency 'will_paginate'
   s.add_dependency 'will_paginate-bootstrap'
+  s.add_dependency 'doorkeeper', '~> 3.0'
+  s.add_dependency 'responders', '~> 2.0'
+
 end
