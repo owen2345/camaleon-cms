@@ -8,7 +8,10 @@
                 <div class="panel-heading">
                     <h4 class="pull-left">
                         <span class="fa fa-file-o"></span>
-                        <%= raw(t('admin.page_title.edit') + " " + @post_type.the_title.to_s + ": " + @post_decorate.the_title + " #{@post_decorate.the_status}") if !@post.new_record? %>
+                        <% if !@post.new_record? %>
+                            <%= "#{t('admin.page_title.edit')} #{@post_type.the_title}: #{@post_decorate.the_title}" %> <%= raw @post_decorate.the_status.html_safe %>
+                        <% end %>
+                        <%#= raw(t('admin.page_title.edit') + " " + @post_type.the_title.to_s + ": " + @post_decorate.the_title + " #{@post_decorate.the_status}") if !@post.new_record? %>
                         <%= link_to raw("#{t('admin.button.view_draft')}"), {action: :edit, id: @post.drafts.pluck('id')}, id: "view_draft", class: "label label-warning label-form", title: "#{t('admin.button.view_draft')}", target: '_blank' if @post.drafts.present? %>
                         <%= t('admin.page_title.create') + " " + @post_type.the_title.to_s if @post.new_record? %>
                     </h4>
