@@ -26,7 +26,7 @@ var page_actions = function(){
     // button actions
     $('#admin_content table').addClass('table').wrap('<div class="table-responsive"></div>');
     $('#admin_content a[role="back"]').on('click',function(){ window.history.back(); return false; });
-    $('[data-toggle="tooltip"], a[title!=""]', "#admin_content").not(".skip_tooltip").tooltip();
+    $('a[data-toggle="tooltip"], button[data-toggle="tooltip"], a[title!=""]', "#admin_content").not(".skip_tooltip").tooltip();
 
     /* PANELS */
     $("#admin_content").on("click", ".panel .panel-collapse", function(){
