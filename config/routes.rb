@@ -6,6 +6,8 @@ Rails.application.routes.draw do
 
     namespace :v1 do
       get 'categories' => 'category#categories'
+      get 'posts' => 'post#index'
+      get 'pages' => 'page#index'
     end
   end
 
