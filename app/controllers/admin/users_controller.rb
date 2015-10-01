@@ -8,7 +8,7 @@
 =end
 class Admin::UsersController < AdminController
   before_action :validate_role, except: [:profile, :profile_edit]
-  before_action :set_user, only: ['show','edit','update','destroy']
+  before_action :set_user, only: ['show', 'edit', 'update', 'destroy']
 
   def index
     @users = current_site.users.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
@@ -31,7 +31,7 @@ class Admin::UsersController < AdminController
 
     if params[:password]
       if @user.authenticate(params[:password][:password_old])
-         render json: @user.update(params[:password]) ? {message: 'update'} : {errors: @user.errors.full_messages.join(', ')}
+        render json: @user.update(params[:password]) ? {message: 'update'} : {errors: @user.errors.full_messages.join(', ')}
       else
         render json: {errors: t('admin.users.message.incorrect_old_password')}
       end
@@ -44,14 +44,17 @@ class Admin::UsersController < AdminController
 
   def edit
     admin_breadcrumb_add("#{t('admin.button.edit')}")
-    render 'form'
+    r = {user: @user, render: 'form' }
+    hooks_run('user_edit', r)
+    render r[:render]
   end
 
   def update
     if @user.update(params[:user])
       @user.set_meta_from_form(params[:meta]) if params[:meta].present?
       @user.set_field_values(params[:field_options])
-      flash[:notice] = t('admin.users.message.updated')
+      r = {user: @user, message: t('admin.users.message.updated'), params: params}; hooks_run('user_after_edited', r)
+      flash[:notice] = r[:message]
       redirect_to action: :index
     else
       render 'form'
