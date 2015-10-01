@@ -13,16 +13,16 @@ var DATA = {
             statusbar: true,
             paste: true,
             toolbar_items_size: 'small',
-            content_css: tinymce_assets["custom_css"],
+            content_css: tinymce_global_settings["custom_css"].join(","),
             convert_urls: false,
             //forced_root_block: '',
             extended_valid_elements: 'i[*],div[*],p[*],li[*],a[*],ol[*],ul[*],span[*]',
-            toolbar: "bold italic | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect | bullist numlist | outdent indent | undo redo | link unlink image media | forecolor backcolor | styleselect template",
+            toolbar: "bold italic | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect | bullist numlist | outdent indent | undo redo | link unlink image media | forecolor backcolor | styleselect template"+tinymce_global_settings["custom_toolbar"].join(","),
             language: CURRENT_LOCALE,
             relative_urls: false,
             remove_script_host: false,
             browser_spellcheck : true,
-            language_url: tinymce_assets["language_url"],
+            language_url: tinymce_global_settings["language_url"],
             file_browser_callback: function(field_name, url, type, win) {
                 $.fn.upload_elfinder({
                     selected: function(res){
@@ -54,55 +54,21 @@ var DATA = {
                 });
 
                 // eval all extra setups
-                for(var ff in editor.settings.extra_setups) editor.settings.extra_setups[ff](editor);
+                for(var ff in tinymce_global_settings["setups"]) tinymce_global_settings["setups"][ff](editor);
+
                 editor.on('postRender', function(e) {
                     editor.settings.onPostRender(editor);
+                    // eval all extra setups
+                    for(var ff in tinymce_global_settings["post_render"]) tinymce_global_settings["post_render"][ff](editor);
                 });
 
                 editor.on('init', function(e) {
-                    // auto switch on grid editor detected
-                    if($.fn.isGridEditorContent($(editor.targetElm).val()))
-                        $(editor.targetElm).gridEditor(editor);
+                    for(var ff in tinymce_global_settings["init"]) tinymce_global_settings["init"][ff](editor);
                 });
-
-                // grid editor button
-                editor.addButton('grid_editor', {
-                    text: 'Grid Editor',
-                    icon: false,
-                    onclick: function(){
-                        if(!confirm("Are you sure to change the editor?")) return false;
-                        var area = $(editor.targetElm).gridEditor(editor);
-                    }
-                });
-
             },
-            onPostRender: function(editor){}, //custom callback for post render
-            extra_toolbar: [], //custom callback for
-            extra_setups: [] //custom callback for
+            onPostRender: function(editor){}
 
-        }
-    },
-    tiny_mce3: {
-        advanced:{
-            // General options
-            mode : "textareas",
-            editor_selector : "tinymce_advanced",
-            theme : "advanced",
-            plugins : "autolink,lists,spellchecker,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template",
-
-            // Theme options
-            theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,styleselect,formatselect,fontselect,fontsizeselect",
-            theme_advanced_buttons2 : "cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,|,insertdate,inserttime,preview,|,forecolor,backcolor",
-            theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,charmap,emotions,iespell,media,advhr,|,print,|,ltr,rtl,|,fullscreen",
-            theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,styleprops,spellchecker,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,template,blockquote,pagebreak,|,insertfile,insertimage",
-            theme_advanced_toolbar_location : "top",
-            theme_advanced_toolbar_align : "left",
-            theme_advanced_statusbar_location : "bottom",
-            theme_advanced_resizing : true,
-
-            // Skin options
-            skin : "bootstrap",
-            language: CURRENT_LOCALE
         }
     }
+
 }

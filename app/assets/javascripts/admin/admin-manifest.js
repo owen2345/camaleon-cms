@@ -33,7 +33,6 @@
 
 
 //= require ./modal
-//= require ./grid-editor
 
 //= require ./tageditor/jquery.caret.min
 //= require ./tageditor/jquery.tag-editor
