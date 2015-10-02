@@ -1,4 +1,4 @@
-# class Plugins::PluginClass::Models::PluginClass < ActiveRecord::Base
+# class Plugins::PluginClass::PluginClass < ActiveRecord::Base
   # attr_accessible :path, :browser_key
   # belongs_to :site
 

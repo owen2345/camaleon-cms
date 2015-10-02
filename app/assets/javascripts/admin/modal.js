@@ -83,7 +83,7 @@ jQuery(function(){
  * return modal object
  */
 function open_modal(settings){
-    var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, modal_size: "", type: '', modal_settings:{}, callback: function(){}}
+    var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, modal_size: "", type: '', modal_settings:{}, on_submit: null, callback: function(){}}
     settings = $.extend({}, def, settings);
     var modal = $('<div id="ow_inline_modal" class="modal fade modal-'+settings.type+'">'+
         '<div class="modal-dialog '+settings.modal_size+'">'+
@@ -93,16 +93,28 @@ function open_modal(settings){
         '<h4 class="modal-title">'+settings.title+'</h4>'+
         '</div>'+
         '<div class="modal-body"></div>'+
-        (settings.show_footer?'<div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">'+I18n("button.close")+'</button></div>':'')+
+        ((settings.show_footer || settings.on_submit)?'<div class="modal-footer"> '+(settings.on_submit ? '<button type="button" class="btn btn-primary modal_submit" ><i class="fa fa-save"></i> '+I18n("button.save")+'</button>' : '')+' <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-arrow-circle-down"></i> '+I18n("button.close")+'</button></div>':'')+
         '</div>'+
         '</div>'+
         '</div>');
 
-    modal.on("hidden.bs.modal", function(e){ if(!$(e["currentTarget"]).attr("data-skip_destroy")) $(e["currentTarget"]).remove(); });
+    // on modal hide
+    modal.on("hidden.bs.modal", function(e){
+        if(!$(e["currentTarget"]).attr("data-skip_destroy")) $(e["currentTarget"]).remove();
+    });
+
+    // submit button
+    if(settings.on_submit) modal.find(".modal-footer .modal_submit").click(function(){
+        settings.on_submit(modal);
+    });
+
+    // on modal show
     modal.on("show.bs.modal", function(e){
         if(!modal.find(".modal-title").text()) modal.find(".modal-header .close").css("margin-top", "-9px");
         settings.callback(modal);
     });
+
+    // show modal
     if(settings.mode == "inline"){
         modal.find(".modal-body").html(settings.content);
         modal.modal(settings.modal_settings);

@@ -127,6 +127,49 @@ var init_form_validations = function(form){
 // jquery custom validations and default values
 (function($){
 
+    // file formats
+    $.file_formats = {
+        jpg: "image",
+        gif: "image",
+        png: "image",
+        bmp: "image",
+        jpeg: "image",
+
+        mp3: "audio",
+        ogg: "audio",
+        mid: "audio",
+        mod: "audio",
+        wav: "audio",
+
+        mp4: "video",
+        wmv: "video",
+        avi: "video",
+        swf: "video",
+        mov: "video",
+        mpeg: "video",
+        mjpg: "video"
+    }
+
+    // verify the url for youtube, vimeo...
+    // return youtube | metcafe|dailymotion|vimeo
+    $.cama_check_video_url = function(url){
+        var regYoutube = new RegExp(/^.*((youtu.be\/)|(v\/)|(\/u\/w\/)|(embed\/)|(watch?))??v?=?([^#&?]*).*/);
+        var regVimeo = new RegExp(/^.*(vimeo.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/);
+        var regDailymotion = new RegExp(/^.+dailymotion.com\/(video|hub)\/([^_]+)[^#]*(#video=([^_&]+))?/);
+        var regMetacafe = new RegExp(/^.*(metacafe.com)(\/watch\/)(d+)(.*)/i);
+        if(regYoutube.test(url)) {
+            return 'youtube';
+        }else if (regMetacafe.test(url)) {
+            return 'metacafe';
+        }else if(regDailymotion.test(url)){
+            return 'dailymotion';
+        }else if(regVimeo.test(url)) {
+            return 'vimeo';
+        }else{
+            return false;
+        }
+    }
+
     // helper validate only letters latin
     var regex = /^[a-z\sÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏàáâãäåæçèéêëìíîïÐÑÒÓÔÕÖØÙÚÛÜÝÞßðñòóôõöøùúûüýþÿ]+$/i;
     jQuery.validator.addMethod("lettersonly", function(value, element) {
@@ -158,102 +201,16 @@ var init_form_validations = function(form){
     // validate file extension defined in data-formats
     // data-formats: (default '') image | audio | video (support also external youtube metacafe, dailymotion, vimeo) | or file extension like: jpg|png
     $.validator.addMethod("file_format", function(value, element) {
-        function check_url(url) {
-            var regYoutube = new RegExp(/^.*((youtu.be\/)|(v\/)|(\/u\/w\/)|(embed\/)|(watch?))??v?=?([^#&?]*).*/);
-            var regVimeo = new RegExp(/^.*(vimeo.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/);
-            var regDailymotion = new RegExp(/^.+dailymotion.com\/(video|hub)\/([^_]+)[^#]*(#video=([^_&]+))?/);
-            var regMetacafe = new RegExp(/^.*(metacafe.com)(\/watch\/)(d+)(.*)/i);
-            if(regYoutube.test(url)) {
-                return 'youtube';
-            }else if (regMetacafe.test(url)) {
-                return 'metacafe';
-            }else if(regDailymotion.test(url)){
-                return 'dailymotion';
-            }else if(regVimeo.test(url)) {
-                return 'vimeo';
-            }else{
-                return false;
-            }
-        }
-        var _formats = {
-            jpg: "image",
-            gif: "image",
-            png: "image",
-            bmp: "image",
-            jpeg: "image",
-
-            mp3: "audio",
-            ogg: "audio",
-            mid: "audio",
-            mod: "audio",
-            wav: "audio",
-
-            mp4: "video",
-            wmv: "video",
-            avi: "video",
-            swf: "video",
-            mov: "video",
-            mpeg: "video",
-            mjpg: "video"
-        }
         var formats = $(element).attr("data-formats");
         var ext = value.split(".").pop().toLowerCase();
         if(formats)
-            return ($.inArray("video", formats.split(",")) >= 0 && check_url(value)) || $.inArray(_formats[ext], formats.split(",")) >= 0 || $.inArray(ext, formats.split(",")) >= 0
+            return ($.inArray("video", formats.split(",")) >= 0 && $.cama_check_video_url(value)) || $.inArray($.file_formats[ext], formats.split(",")) >= 0 || $.inArray(ext, formats.split(",")) >= 0
 
         return true;
     }, "File format not accepted.");
     jQuery.validator.addClassRules({
         file_format : { file_format : true }
     });
-})(jQuery);
-
-// Sortable
-(function($){
-    $.fn.table_order = function (options){
-        var default_options = {url: "", table: ".table", on_success: false, on_change: false};
-        options = $.extend(default_options, options || {});
-        var th_data = false;
-        var $table = this ? $(this) : $(options.table);
-        $table.addClass('table_order')
-        var th_new = '<th class="center" data-sortable="0"></th>';
-        $table.find('thead tr').prepend(th_new);
-        $table.find('tbody tr').each(function(i, el) {
-            var id = $(this).attr('data-id');
-            var td_new = '<td>'
-                +'<div class="moved" style="cursor: all-scroll">'
-                +'<i class="fa fa-arrows"></i>'
-                +'<input type="hidden" name="values[]" value="'+id+'" />'
-                +'</div>'
-            '</td>';
-            $(this).prepend(td_new);
-        });
-
-        $table.find('tbody').sortable({
-            axis: "y",
-            placeholder: "ui-state-highlight",
-            handle: ".moved",
-            //items: "tr:not(.sortable)",
-            items: "tr",
-            start: function(event, ui) {
-                ui.item.startPos = ui.item.index();
-            },
-            stop: function( event, ui ) {
-                $.post(options.url, $table.find("input" ).serialize(), function(res){
-                    if(ui.item.startPos != ui.item.index()){
-                        if(options.on_success) options.on_success({res: res, item: ui.item})
-                    }
-                }).fail(function() {
-                    if(options.on_success) options.on_success({res: {error: 'Error Server'}, item: ui.item})
-                });
-            },
-            change: function(event, ui) {
-                if(options.on_change) options.on_change()
-            }
-        });
-        $table.find('tbody').disableSelection();
-    };
-
 })(jQuery);
 
 // convert string into hashcode

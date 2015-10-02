@@ -30,6 +30,7 @@
 
 //= require ./libraries
 //= require ./actions
+//= require ./introjs/intro.min
 
 
 //= require ./modal

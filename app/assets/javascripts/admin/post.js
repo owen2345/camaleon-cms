@@ -168,7 +168,7 @@ function init_post(obj){
         }
     });
 
-    tinymce.init($.extend({}, DATA.tiny_mce.advanced, {selector: '.tinymce_textarea:not(.translated-item)', language: CURRENT_LOCALE, height: '480px', onPostRender: onEditorPostRender}));
+    tinymce.init(cama_get_tinymce_settings({selector: '.tinymce_textarea:not(.translated-item)', height: '480px', onPostRender: onEditorPostRender}));
 
     $form.validate();
     /*
@@ -182,7 +182,7 @@ function init_post(obj){
     $("#post_status").change(function(){
         $('#post-actions .btn[data-type]').hide();
         $('#post-actions .btn[data-type="'+ $(this).val() +'"]').show();
-    })
+    });
 
     // here all later actions
     var form_later_actions = function(){
