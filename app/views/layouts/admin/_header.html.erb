@@ -18,7 +18,7 @@
                 <%= r = {html: ""}; hooks_run("admin_notifications", r); raw(r[:html]); %>
                 <li><a target="_blank" href="<%= current_site.the_url %>"><i class="fa fa-eye"></i> <%= t("common.visit") %></a></li>
                 <li class="dropdown user user-menu">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-intro='<%= t("admin.intro.profile") %>' data-position='left'>
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-intro2='<%= t("admin.intro.profile") %>' data-position='left'>
                         <img src="<%= current_user.the_avatar %>" class="user-image" alt="User Image">
                         <span class="hidden-xs"><%= current_user.fullname %></span>
                         <span class="caret"></span>
