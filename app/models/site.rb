@@ -9,7 +9,7 @@
 class Site < TermTaxonomy
   # attrs: [name, description, slug]
   default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
-  has_many :metas, ->{ where(object_class: 'Site')}, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
+  has_many :metas, -> { where(object_class: 'Site') }, :class_name => "Meta", foreign_key: :objectid, dependent: :destroy
   has_many :post_types, :class_name => "PostType", foreign_key: :parent_id, dependent: :destroy
   has_many :nav_menus, :class_name => "NavMenu", foreign_key: :parent_id, dependent: :destroy
   has_many :widgets, :class_name => "Widget::Main", foreign_key: :parent_id, dependent: :destroy
@@ -43,7 +43,7 @@ class Site < TermTaxonomy
 
   #select full_categories for the site, include all children categories
   def full_categories
-   Category.where({term_group: self.id})
+    Category.where({term_group: self.id})
   end
 
   # all post_tags for this site
@@ -111,6 +111,11 @@ class Site < TermTaxonomy
     get_option("comment_status", "pending")
   end
 
+  # security: user register form show captcha?
+  def security_user_register_captcha_enabled?
+    get_option('security_captcha_user_register', true) == true
+  end
+
   # auto create default user roles
   def set_default_user_roles(post_type = nil)
     user_role = self.user_roles.where({slug: 'admin', term_group: -1}).first_or_create({name: 'Administrator', description: 'Default roles admin'})
@@ -134,7 +139,7 @@ class Site < TermTaxonomy
         }
       else
         pts = self.post_types.all.pluck(:id)
-        UserRole::ROLES[:post_type].each { |value| d[value[:key]] = pts}
+        UserRole::ROLES[:post_type].each { |value| d[value[:key]] = pts }
       end
 
       user_role.set_meta("_post_type_#{self.id}", d || {})
@@ -151,7 +156,7 @@ class Site < TermTaxonomy
         }
       else
         pts = self.post_types.all.pluck(:id)
-        UserRole::ROLES[:post_type].each { |value| d[value[:key]] = pts  if value[:key].to_s == 'edit'}
+        UserRole::ROLES[:post_type].each { |value| d[value[:key]] = pts if value[:key].to_s == 'edit' }
       end
 
       user_role.set_meta("_post_type_#{self.id}", d || {})
@@ -177,6 +182,7 @@ class Site < TermTaxonomy
   def main_site?
     @_is_default_site ||= (Site.first.id == self.id)
   end
+
   alias_method :is_default?, :main_site?
 
   # list all users of current site
@@ -184,7 +190,7 @@ class Site < TermTaxonomy
     if PluginRoutes.system_info["users_share_sites"]
       User.where(site_id: -1)
     else
-      User.where(site_id: self.id)#.where("site_id = ? or role = ?", self.id, 'admin')
+      User.where(site_id: self.id) #.where("site_id = ? or role = ?", self.id, 'admin')
     end
   end
 
@@ -233,7 +239,7 @@ class Site < TermTaxonomy
 
   # default structure for each new site
   def default_settings
-    default_post_type =     [
+    default_post_type = [
         {
             name: 'Post',
             description: 'Posts',
@@ -266,10 +272,10 @@ class Site < TermTaxonomy
 
     default_post_type.each do |pt|
       model_pt = self.post_types.create({
-                                     name: pt[:name],
-                                     slug: pt[:name].to_s.parameterize,
-                                     description: pt[:description]
-                                 })
+                                            name: pt[:name],
+                                            slug: pt[:name].to_s.parameterize,
+                                            description: pt[:description]
+                                        })
       if model_pt.valid?
         model_pt.set_meta('_default', pt[:options])
         if pt[:options][:has_category]
@@ -294,7 +300,7 @@ class Site < TermTaxonomy
           content = "<p style='text-align: center;'><img width='155' height='155' src='http://camaleon.tuzitio.com/media/132/logo2.png' alt='logo' /></p><p><strong>Camaleon CMS</strong>&nbsp;is a free and open-source tool and a fexible content management system (CMS) based on <a href='rubyonrails.org'>Ruby on Rails 4</a>&nbsp;and MySQL.&nbsp;</p> <p>With Camaleon you can do the following:</p> <ul> <li>Create instantly a lot of sites&nbsp;in the same installation</li> <li>Manage your content information in several languages</li> <li>Extend current functionality by&nbsp;plugins (MVC structure and no more echo or prints anywhere)</li> <li>Create or install different themes for each site</li> <li>Create your own structure without coding anything (adapt Camaleon as you want&nbsp;and not you for Camaleon)</li> <li>Create your store and start to sell your products using our plugins</li> <li>Avoid web attacks</li> <li>Compare the speed and enjoy the speed of your new Camaleon site</li> <li>Customize or create your themes for mobile support</li> <li>Support&nbsp;more visitors at the same time</li> <li>Manage your information with a panel like wordpress&nbsp;</li> <li>All urls are oriented for SEO</li> <li>Multiples roles of users</li> </ul>"
         end
         user = self.users.admin_scope.first
-        user = self.users.admin_scope.create({email: 'admin@local.com', username: 'admin', password: 'admin', password_confirmation: 'admin' }) unless user.present?
+        user = self.users.admin_scope.create({email: 'admin@local.com', username: 'admin', password: 'admin', password_confirmation: 'admin'}) unless user.present?
         post = pt.posts.create({title: title, slug: slug, content: content, user_id: user.id, status: 'published'})
         @nav_menu.append_menu_item({label: title, type: 'post', link: post.id})
       end
