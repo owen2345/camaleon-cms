@@ -129,13 +129,13 @@ class PluginRoutes
     theme_slug = theme_slug || site.get_theme_slug
     r = cache_variable("enabled_apps_#{site.id}_#{theme_slug}")
     return r unless r.nil?
-    res = [system_info()] + enabled_plugins(site) + [theme_info(theme_slug)]
+    res = [system_info] + enabled_plugins(site) + [theme_info(theme_slug)]
     cache_variable("enabled_apps_#{site.id}_#{theme_slug}", res)
   end
 
   # return all enabled apps as []: system, themes, plugins
   def self.all_enabled_apps
-    [system_info()] + all_enabled_themes + all_enabled_plugins
+    [system_info] + all_enabled_themes + all_enabled_plugins
   end
 
   # return all enabled themes (a theme is enabled if at least one site is assigned)
