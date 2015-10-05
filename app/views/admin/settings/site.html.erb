@@ -5,165 +5,184 @@
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap">
   <div class="panel panel-default">
-      <div class="panel-heading">
-          <h4><span class="fa fa-cog"></span> <%= "#{t('admin.settings.configuration_site')}: #{@site.the_title} "%> </h4>
-      </div>
-        <%= form_for @site, url:{action: :site_saved}, html: { id: "site_settings_form", class: "panel-body" } do |f| %>
-            <% posts = current_site.posts.public_posts.all %>
-          <div class="tabs">
-              <ul role="tablist" class="nav nav-tabs">
-                  <li class="<%= "active" if ["", nil].include?(params[:tab]) %>"><a data-toggle="tab" role="tab" href="#tab-information" aria-expanded="false"><%= t('admin.settings.information_basic') %></a></li>
-                  <li class="<%= "active" if "config" == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-configuration" aria-expanded="false"><%= t('admin.post_type.configuration') %></a></li>
-                  <% if groups.present? %>
-                      <li class="<%= "active" if "other_config" == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-other-configuration" aria-expanded="false"><%= t('admin.post_type.other_configuration') %></a></li>
-                  <% end %>
-                  <% if File.exist?(current_theme.settings_file) %>
-                      <li class="<%= "active" if "theme" == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-theme-configuration" aria-expanded="false"><%= t('admin.settings.theme_setting') %></a></li>
-                  <% end %>
-                  <li class="<%= "active" if "seo" == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-seo_settings" aria-expanded="false"><%= t('admin.settings.seo_setting') %></a></li>
-                  <li class="<%= "active" if "email" == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-email_settings" aria-expanded="false"><%= t('admin.settings.email_settings') %></a></li>
-              </ul>
-              <div class="panel-body tab-content row">
+    <div class="panel-heading">
+      <h4><span class="fa fa-cog"></span> <%= "#{t('admin.settings.configuration_site')}: #{@site.the_title} " %> </h4>
+    </div>
+    <%= form_for @site, url: {action: :site_saved}, html: {id: "site_settings_form", class: "panel-body"} do |f| %>
+        <% posts = current_site.posts.public_posts.all %>
+        <div class="tabs">
+          <ul role="tablist" class="nav nav-tabs">
+            <li class="<%= "active" if ["", nil].include?(params[:tab]) %>">
+              <a data-toggle="tab" role="tab" href="#tab-information" aria-expanded="false"><%= t('admin.settings.information_basic') %></a>
+            </li>
+            <li class="<%= "active" if "config" == params[:tab] %>">
+              <a data-toggle="tab" role="tab" href="#tab-configuration" aria-expanded="false"><%= t('admin.post_type.configuration') %></a>
+            </li>
+            <% if groups.present? %>
+                <li class="<%= "active" if "other_config" == params[:tab] %>">
+                  <a data-toggle="tab" role="tab" href="#tab-other-configuration" aria-expanded="false"><%= t('admin.post_type.other_configuration') %></a>
+                </li>
+            <% end %>
+            <% if File.exist?(current_theme.settings_file) %>
+                <li class="<%= "active" if "theme" == params[:tab] %>">
+                  <a data-toggle="tab" role="tab" href="#tab-theme-configuration" aria-expanded="false"><%= t('admin.settings.theme_setting') %></a>
+                </li>
+            <% end %>
+            <li class="<%= "active" if "seo" == params[:tab] %>">
+              <a data-toggle="tab" role="tab" href="#tab-seo_settings" aria-expanded="false"><%= t('admin.settings.seo_setting') %></a>
+            </li>
+            <li class="<%= "active" if "email" == params[:tab] %>">
+              <a data-toggle="tab" role="tab" href="#tab-email_settings" aria-expanded="false"><%= t('admin.settings.email_settings') %></a>
+            </li>
+          </ul>
+          <div class="panel-body tab-content row">
 
-                  <%= render partial: 'layouts/admin/form_error', locals: {data: @site} %>
+            <%= render partial: 'layouts/admin/form_error', locals: {data: @site} %>
 
-                  <div id="tab-information" class="tab-pane <%= "active" if ["", nil].include?(params[:tab]) %> ">
-                      <div class="form-group">
-                          <%= f.label t('admin.table.slug') %><br>
-                          <small><%= t('admin.sites.message.enter_key_domain') %></small><br>
-                          <%= f.text_field :slug, :class => "form-control required" %>
-                      </div>
-                      <div class="form-group">
-                          <%= f.label t('admin.table.name') %><br>
-                          <%= f.text_field :name, :class => "form-control translatable" %>
-                      </div>
-                      <div class="form-group">
-                          <%= f.label t('admin.table.description') %><br>
-                          <%= f.text_area :description, :class => "form-control translatable" %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.table.logo') %></label><br>
-                          <%= hidden_field :options, :logo, :class => "form-control unput_upload", :value => @site.the_logo %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.table.favicon') %></label><br>
-                          <%= hidden_field :options, :icon, :class => "form-control unput_upload", :value => @site.the_icon, "data-label" => "#{t('admin.button.upload_icon')}", "data-ext" => "ico" %>
-                      </div>
-                  </div>
-                  <div id="tab-configuration" class="<%= "active" if "config" == params[:tab] %> tab-pane ">
-                      <div class="form-group">
-                          <label for=""><%= t('admin.table.home_page') %></label><br>
-                          <%= select_tag "options[home_page]", options_for_select([[t('admin.table.default'), ""]]+(posts.collect{|x| x = x.decorate; [x.the_title, x.id]}), @site.options[:home_page]), class: "form-control select" %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.table.page_404') %></label><br>
-                          <%= select_tag "options[error_404]", options_for_select([[t('admin.table.default'), ""]]+(posts.collect{|x| x = x.decorate; [x.the_title, x.id]}), @site.options[:error_404]), class: "form-control select" %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.table.email_address') %></label><br>
-                          <%= email_field :options, :email, :class => "form-control", :value => @site.options[:email] %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.settings.list_per_page_front') %></label><br>
-                          <%= text_field :options, :front_per_page, :class => "form-control number", :value => @site.front_per_page %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.settings.list_per_page_admin') %></label><br>
-                          <%= text_field :options, :admin_per_page, :class => "form-control number", :value => @site.admin_per_page %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.settings.comment_status') %></label><br>
-                          <%= check_box :options, :comment_status, {checked: @site.front_comment_status == "approved"}, "approved", "pending" %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.settings.allow_user_registration') %></label><br>
-                          <%= check_box :meta, :has_create_account, {checked: @site.get_option('has_create_account', false), class: "icheckbox0"}, "true", "" %>
-                      </div>
-                  </div>
-                  <% if groups.present? %>
-                      <div id="tab-other-configuration" class="<%= "active" if "other_config" == params[:tab] %> tab-pane ">
-                          <%= render partial: "admin/settings/custom_fields/render", locals: {record: @site, field_groups: groups} %>
-                      </div>
-                  <% end %>
-                  <% if File.exist?(current_theme.settings_file) %>
-                      <div id="tab-theme-configuration" class="<%= "active" if "theme" == params[:tab] %> tab-pane">
-                          <%= render file: current_theme.settings_file %>
-                      </div>
-                  <% end %>
-                  <div id="tab-seo_settings" class="<%= "active" if "seo" == params[:tab] %> tab-pane ">
-                      <div class="form-group">
-                          <%= f.label t('admin.table.description') %><br>
-                          <%= text_area :options, :seo_description, :class => "form-control translatable", :value => @site.get_option("seo_description") %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.table.keywords') %></label><br>
-                          <%= text_area :options, :keywords, :class => "form-control translatable", :value => @site.get_option("keywords") %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.settings.author') %></label><br>
-                          <%= text_field :options, :seo_author, :class => "form-control", :value => @site.get_option("seo_author") %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.settings.twitter_card') %></label><br>
-                          <%= text_field :options, :twitter_card, :class => "form-control", :value => @site.get_option("twitter_card") %>
-                      </div>
-                      <div class="form-group">
-                          <label for=""><%= t('admin.table.screenshot') %></label><br>
-                          <%= hidden_field :options, :screenshot, :class => "form-control unput_upload", :value => @site.get_option("screenshot") %>
-                      </div>
-                  </div>
-
-                  <div id="tab-email_settings" class="<%= "active" if "email" == params[:tab] %> tab-pane ">
-                      <div class="alert alert-info">Gmail Need Permissions: <a href="http://know.mailsbestfriend.com/smtp_error_password_command_failed_5345714-1194946499.shtml" target="_blank">Check here.</a> </div>
-                      <div class="form-group">
-                          <%= label_tag t('admin.settings.email_enabled') %><br>
-                          <%= check_box :options, :mailer_enabled, {checked: @site.get_option("mailer_enabled") == 1}, 1, 0 %>
-                      </div>
-                      <div class="form-group">
-                          <%= label_tag t('admin.settings.email_server') %> (*)<br>
-                          <%= text_field :options, :email_server, :class => "form-control required", value: @site.get_option("email_server") %>
-                      </div>
-                      <div class="form-group">
-                          <%= label_tag t('admin.settings.email_port') %> (*)<br>
-                          <%= text_field :options, :email_port, :class => "form-control required", value: @site.get_option("email_port") %>
-                      </div>
-                      <div class="form-group">
-                          <%= label_tag t('admin.settings.email_username') %> (*)<br>
-                          <%= text_field :options, :email_username, :class => "form-control required", value: @site.get_option("email_username") %>
-                      </div>
-                      <div class="form-group">
-                          <%= label_tag t('admin.settings.email_pass') %> (*)<br>
-                          <%= text_field :options, :email_pass, :class => "form-control required", value: @site.get_option("email_pass") %>
-                      </div>
-                      <div class="form-group">
-                          <%= label_tag t('admin.settings.email_from') %> (*)<br>
-                          <%= text_field :options, :email_from, :class => "form-control required", value: @site.get_option("email_from") %>
-                      </div>
-                      <div class="form-group">
-                          <%= label_tag t('admin.settings.email_cc') %><br>
-                          <%= text_field :options, :email_cc, :class => "form-control", value: @site.get_option("email_cc") %>
-                      </div>
-                  </div>
+            <div id="tab-information" class="tab-pane <%= "active" if ["", nil].include?(params[:tab]) %> ">
+              <div class="form-group">
+                <%= f.label t('admin.table.slug') %><br>
+                <small><%= t('admin.sites.message.enter_key_domain') %></small>
+                <br>
+                <%= f.text_field :slug, :class => "form-control required" %>
               </div>
-              <div class="panel-footer">
-                  <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit')%></button>
+              <div class="form-group">
+                <%= f.label t('admin.table.name') %><br>
+                <%= f.text_field :name, :class => "form-control translatable" %>
               </div>
+              <div class="form-group">
+                <%= f.label t('admin.table.description') %><br>
+                <%= f.text_area :description, :class => "form-control translatable" %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.table.logo') %></label><br>
+                <%= hidden_field :options, :logo, :class => "form-control unput_upload", :value => @site.the_logo %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.table.favicon') %></label><br>
+                <%= hidden_field :options, :icon, :class => "form-control unput_upload", :value => @site.the_icon, "data-label" => "#{t('admin.button.upload_icon')}", "data-ext" => "ico" %>
+              </div>
+            </div>
+            <div id="tab-configuration" class="<%= "active" if "config" == params[:tab] %> tab-pane ">
+              <div class="form-group">
+                <label for=""><%= t('admin.table.home_page') %></label><br>
+                <%= select_tag "options[home_page]", options_for_select([[t('admin.table.default'), ""]]+(posts.collect { |x| x = x.decorate; [x.the_title, x.id] }), @site.options[:home_page]), class: "form-control select" %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.table.page_404') %></label><br>
+                <%= select_tag "options[error_404]", options_for_select([[t('admin.table.default'), ""]]+(posts.collect { |x| x = x.decorate; [x.the_title, x.id] }), @site.options[:error_404]), class: "form-control select" %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.table.email_address') %></label><br>
+                <%= email_field :options, :email, :class => "form-control", :value => @site.options[:email] %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.settings.list_per_page_front') %></label><br>
+                <%= text_field :options, :front_per_page, :class => "form-control number", :value => @site.front_per_page %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.settings.list_per_page_admin') %></label><br>
+                <%= text_field :options, :admin_per_page, :class => "form-control number", :value => @site.admin_per_page %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.settings.comment_status') %></label><br>
+                <%= check_box :options, :comment_status, {checked: @site.front_comment_status == "approved"}, "approved", "pending" %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.settings.allow_user_registration') %></label><br>
+                <%= check_box :meta, :has_create_account, {checked: @site.get_option('has_create_account', false), class: "icheckbox0"}, "true", "" %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.settings.security.captcha_user_register') %></label><br>
+                <%= check_box :options, :security_captcha_user_register, {checked: @site.security_user_register_captcha_enabled?, class: "icheckbox0"}, "true", "" %>
+              </div>
+            </div>
+            <% if groups.present? %>
+                <div id="tab-other-configuration" class="<%= "active" if "other_config" == params[:tab] %> tab-pane ">
+                  <%= render partial: "admin/settings/custom_fields/render", locals: {record: @site, field_groups: groups} %>
+                </div>
+            <% end %>
+            <% if File.exist?(current_theme.settings_file) %>
+                <div id="tab-theme-configuration" class="<%= "active" if "theme" == params[:tab] %> tab-pane">
+                  <%= render file: current_theme.settings_file %>
+                </div>
+            <% end %>
+            <div id="tab-seo_settings" class="<%= "active" if "seo" == params[:tab] %> tab-pane ">
+              <div class="form-group">
+                <%= f.label t('admin.table.description') %><br>
+                <%= text_area :options, :seo_description, :class => "form-control translatable", :value => @site.get_option("seo_description") %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.table.keywords') %></label><br>
+                <%= text_area :options, :keywords, :class => "form-control translatable", :value => @site.get_option("keywords") %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.settings.author') %></label><br>
+                <%= text_field :options, :seo_author, :class => "form-control", :value => @site.get_option("seo_author") %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.settings.twitter_card') %></label><br>
+                <%= text_field :options, :twitter_card, :class => "form-control", :value => @site.get_option("twitter_card") %>
+              </div>
+              <div class="form-group">
+                <label for=""><%= t('admin.table.screenshot') %></label><br>
+                <%= hidden_field :options, :screenshot, :class => "form-control unput_upload", :value => @site.get_option("screenshot") %>
+              </div>
+            </div>
+
+            <div id="tab-email_settings" class="<%= "active" if "email" == params[:tab] %> tab-pane ">
+              <div class="alert alert-info">Gmail Need Permissions:
+                <a href="http://know.mailsbestfriend.com/smtp_error_password_command_failed_5345714-1194946499.shtml" target="_blank">Check
+                  here.</a></div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.email_enabled') %><br>
+                <%= check_box :options, :mailer_enabled, {checked: @site.get_option("mailer_enabled") == 1}, 1, 0 %>
+              </div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.email_server') %> (*)<br>
+                <%= text_field :options, :email_server, :class => "form-control required", value: @site.get_option("email_server") %>
+              </div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.email_port') %> (*)<br>
+                <%= text_field :options, :email_port, :class => "form-control required", value: @site.get_option("email_port") %>
+              </div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.email_username') %> (*)<br>
+                <%= text_field :options, :email_username, :class => "form-control required", value: @site.get_option("email_username") %>
+              </div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.email_pass') %> (*)<br>
+                <%= text_field :options, :email_pass, :class => "form-control required", value: @site.get_option("email_pass") %>
+              </div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.email_from') %> (*)<br>
+                <%= text_field :options, :email_from, :class => "form-control required", value: @site.get_option("email_from") %>
+              </div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.email_cc') %><br>
+                <%= text_field :options, :email_cc, :class => "form-control", value: @site.get_option("email_cc") %>
+              </div>
+            </div>
           </div>
-          <% end %>
+          <div class="panel-footer">
+            <button class="btn btn-primary pull-right" type="submit"><%= t('admin.button.submit') %></button>
+          </div>
+        </div>
+    <% end %>
 
   </div>
 
 </div>
 <script>
-  jQuery(function(){
-      var panel = $("#site_settings_form");
-      panel.validate();
-      panel.find('.unput_upload').input_upload();
-      panel.find("#options_mailer_enabled").change(function(){
-          if(!$(this).is(":checked"))
-            panel.find("#tab-email_settings").find("input, select, textarea").not(this).not("input[type='hidden']").attr("disabled", true)
-          else
-              panel.find("#tab-email_settings").find("input, select, textarea").not(this).removeAttr("disabled")
-      }).trigger("change");
-  });
+    jQuery(function () {
+        var panel = $("#site_settings_form");
+        panel.validate();
+        panel.find('.unput_upload').input_upload();
+        panel.find("#options_mailer_enabled").change(function () {
+            if (!$(this).is(":checked"))
+                panel.find("#tab-email_settings").find("input, select, textarea").not(this).not("input[type='hidden']").attr("disabled", true)
+            else
+                panel.find("#tab-email_settings").find("input, select, textarea").not(this).removeAttr("disabled")
+        }).trigger("change");
+    });
 </script>

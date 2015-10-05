@@ -39,12 +39,14 @@
             </div>
         </div>
 
-        <h4><%= t('admin.login.captcha') %></h4>
-        <div class="form-group">
-            <div class="col-md-12">
-                <%= raw captcha_tag(5, {}, {class: "form-control required", placeholder: t("admin.login.captcha")}) %>
+        <% if current_site.security_user_register_captcha_enabled? %>
+            <h4><%= t('admin.login.captcha') %></h4>
+            <div class="form-group">
+                <div class="col-md-12">
+                    <%= raw captcha_tag(5, {}, {class: 'form-control required', placeholder: t('admin.login.captcha')}) %>
+                </div>
             </div>
-        </div>
+        <% end %>
 
         <%= r = {html: "", f: f}; hooks_run("user_register_form", r); raw(r[:html]); %>
 
