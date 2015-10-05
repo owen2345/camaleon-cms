@@ -143,10 +143,11 @@
                     </div>
                 </div>
 
-                <%= r = { html: ""}; hooks_run('user_update_more_actions', r); raw(r[:html]); %>
+                <%= r = { html: ''}; hooks_run('user_update_more_actions_form', r); raw(r[:html]); %>
             </div>
         <% end %>
 
+        <%= r = { html: ''}; hooks_run('user_update_more_actions', r); raw(r[:html]); %>
     </div>
 
 
