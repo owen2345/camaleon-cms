@@ -50,11 +50,13 @@
                 </select>
             </div>
             <!-- templates -->
-            <% if @post.manage_template?(@post_type) && (template_files = get_list_template_files).present? %>
-                <div class="form-group">
-                    <label class="control-label"><%= t('admin.post_type.template')%></label>
-                    <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.meta[:template] ) }, {class: 'form-control'}) %>
-                </div>
+            <% if @post.manage_template?(@post_type) %>
+                <% if (template_files = get_list_template_files).present? %>
+                  <div class="form-group">
+                      <label class="control-label"><%= t('admin.post_type.template')%></label>
+                      <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.meta[:template] ) }, {class: 'form-control'}) %>
+                  </div>
+                <% end %>
 
                 <!-- layouts -->
                 <% if (layout_files = get_list_layouts_files).present? %>
@@ -90,7 +92,7 @@
             </div>
         </div>
     <% end %>
-    <% if @post_type.manage_tags?%>
+    <% if @post_type.manage_tags? %>
         <div class="panel panel-default panel-lite">
             <div class="panel-heading">
                 <h3 class="panel-title"><%= t('admin.post_type.tags')%></h3>
