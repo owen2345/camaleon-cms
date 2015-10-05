@@ -1,0 +1,19 @@
+<ul>
+    <li>
+        <h2><a href="<%= current_site.the_url %>"><%= current_site.the_title %></a></h2>
+    </li>
+    <% current_site.post_types.decorate.each do |ptype| %>
+        <li>
+            <h3><a href="<%= ptype.the_title %>"><%= ptype.the_title %></a></h3>
+            <% if ptype.manage_categories? %>
+                <%= raw(cama_sitemap_cats_generator(ptype.the_categories)) %>
+            <% else %>
+                <ul>
+                    <% ptype.the_posts.decorate.each do |post| %>
+                        <li><a href='<%= post.the_url %>'><%= post.the_title %></a></li>
+                    <% end %>
+                </ul>
+            <% end %>
+        </li>
+    <% end %>
+</ul>

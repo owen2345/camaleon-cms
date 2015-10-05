@@ -11,9 +11,6 @@ Rails.application.routes.draw do
     match 'register' => 'sessions#register', via: [:get, :post, :patch]
     match 'api/:method', action: :api, via: [:get, :post], as: :api
 
-    # grid editor administration
-    resources :grid_editor
-
     resources :post_type , as: :post_type do
       resources :posts, controller: 'posts' do
         # resources :comments

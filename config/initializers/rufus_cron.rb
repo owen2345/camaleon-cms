@@ -16,7 +16,7 @@ end
 if loaded_rufus
   $scheduler = Rufus::Scheduler.singleton
   $scheduler.cron '00 05 * * *' do
-    system("rake camaleon_cms:sitemap")
+
   end
 
   sites = Site.all rescue []
