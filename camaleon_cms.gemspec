@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'draper', '~> 1.3'
   s.add_dependency 'dynamic_sitemaps'
   s.add_dependency 'el_finder'
-  s.add_dependency 'meta-tags'
+  s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
   s.add_dependency 'mobu'
   s.add_dependency 'protected_attributes'

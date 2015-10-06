@@ -9,7 +9,6 @@
 module FrontendConcern extend ActiveSupport::Concern
   # visiting sitemap.xml
   def sitemap
-
   end
 
   # accessing for robots.txt
