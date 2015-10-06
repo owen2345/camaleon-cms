@@ -4,7 +4,7 @@
     </li>
     <% current_site.post_types.decorate.each do |ptype| %>
         <li>
-            <h3><a href="<%= ptype.the_title %>"><%= ptype.the_title %></a></h3>
+            <h3><a href="<%= ptype.the_url %>"><%= ptype.the_title %></a></h3>
             <% if ptype.manage_categories? %>
                 <%= raw(cama_sitemap_cats_generator(ptype.the_categories)) %>
             <% else %>
