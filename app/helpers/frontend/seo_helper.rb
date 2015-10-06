@@ -25,36 +25,46 @@ module Frontend::SeoHelper
     options[:keywords] = I18n.transliterate(is_home? ? current_site.the_option("keywords") : options[:keywords].to_s)
     options[:url] = request.original_url
     s = {
-       :title => options[:title],
-       :description => options[:description],
-       :keywords => options[:keywords],
-       :image => options[:image],
-       :author => current_site.get_option("seo_author"),
-       :og => {
-           :title    => options[:title],
-           :description    => options[:description],
-           :type     => 'website',
-           :url      => request.original_url,
-           :image    => options[:image]
-       },
-       :twitter => {
-           :card => 'summary',
-           :title    => options[:title],
-           :description    => options[:description],
-           :url      => request.original_url,
-           :image    => options[:image],
-           :site => current_site.get_option("twitter_card"),
-           :creator => current_site.get_option("twitter_card"),
-           :domain => request.host
-       },
-       alternate: { "application/rss+xml"=> rss_url }
-      }
+      title: options[:title],
+      description: options[:description],
+      keywords: options[:keywords],
+      image: options[:image],
+      author: current_site.get_option('seo_author'),
+      og: {
+        title: options[:title],
+        description: options[:description],
+        type: 'website',
+        url: request.original_url,
+        image: options[:image]
+      },
+      twitter: {
+        card: 'summary',
+        title: options[:title],
+        description: options[:description],
+        url:   request.original_url,
+        image: options[:image],
+        site: current_site.get_option('twitter_card'),
+        creator: current_site.get_option('twitter_card'),
+        domain: request.host
+      },
+      alternate: [
+        { type: 'application/rss+xml', href: rss_url }
+      ]
+    }
 
     l = current_site.get_languages
-    l.each{|_l| s[:alternate][_l] = current_site.the_url(locale: _l) } if l.size > 1
+    if l.size > 1
+      l.each do |lang|
+        s[:alternate] << {
+          href: current_site.the_url(locale: lang),
+          hreflang: lang
+        }
+      end
+    end
 
     # call all hooks for seo
-    r = {seo_data: s, object: options[:object]}; hooks_run("seo", r)
+    r = { seo_data: s, object: options[:object] }
+    hooks_run('seo', r)
     r[:seo_data]
   end
 end
