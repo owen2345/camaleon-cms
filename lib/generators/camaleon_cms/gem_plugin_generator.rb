@@ -9,7 +9,7 @@ module CamaleonCms
 
       def create_initializer_file
 
-        plugin_dir = Rails.root.join("plugins", get_plugin_name).to_s
+        plugin_dir = Rails.root.join("apps", get_plugin_name).to_s
         plugin_app = File.join($camaleon_engine_dir, "lib", "generators", "camaleon_cms", "gem_plugin_#{get_plugin_name}")
         FileUtils.rm_r(plugin_app) if Dir.exist?(plugin_app)
 
