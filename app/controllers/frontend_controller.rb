@@ -16,17 +16,15 @@ class FrontendController < CamaleonController
   after_action :after_hooks
   # rescue_from ActiveRecord::RecordNotFound, with: :page_not_found
 
+  # home page for frontend
   def index
     init_seo(current_site)
-    r = {layout: (self.send :_layout), render: "nil", custom: false}; hooks_run("on_render_index", r)
-    if r[:custom]
-      render r[:render], layout: r[:layout]
+    if @_site_options[:home_page].present?
+      render_post(@_site_options[:home_page].to_i)
     else
-      if @_site_options[:home_page].present?
-        render_post(@_site_options[:home_page].to_i)
-      else
-        render "index"
-      end
+      r = {layout: (self.send :_layout), render: "index"}
+      hooks_run("on_render_index", r)
+      render r[:render], layout: r[:layout]
     end
   end
 
@@ -194,7 +192,7 @@ class FrontendController < CamaleonController
       page_404 = current_site.posts.find(@_site_options[:error_404]) rescue ""
       if page_404.present?
         page_404 = page_404.decorate
-        redirect_to page_404.the_link
+        redirect_to page_404.the_url
         return
       end
     end

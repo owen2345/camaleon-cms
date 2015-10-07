@@ -9,10 +9,23 @@
 module FrontendConcern extend ActiveSupport::Concern
   # visiting sitemap.xml
   def sitemap
+    r = {layout: (params[:format] == "html" ? (self.send :_layout) : false), render: "sitemap"}
+    hooks_run("on_render_sitemap", r)
+    render r[:render], layout: r[:layout]
   end
 
   # accessing for robots.txt
   def robots
+    r = {layout: false, render: "robots"}
+    hooks_run("on_render_robots", r)
+    render r[:render], layout: r[:layout]
+  end
+
+  # rss for current site
+  def rss
+    r = {layout: false, render: "rss"}
+    hooks_run("on_render_rss", r)
+    render r[:render], layout: r[:layout]
   end
 
   # save comment from a post

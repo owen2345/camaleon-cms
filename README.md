@@ -167,7 +167,8 @@ http://camaleon.tuzitio.com/license.html/
 
 ## Coming soon
 * Documentation and Videos
-* Create more basic plugins
+* Create more basic plugins and themes
+
 
 ## Contributing
 * Fork it.

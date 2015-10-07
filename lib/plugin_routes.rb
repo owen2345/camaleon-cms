@@ -291,7 +291,7 @@ class PluginRoutes
       if File.exist?(config)
         p = JSON.parse(File.read(config))
         p = p.with_indifferent_access rescue p
-        p["key"] = gem.name
+        p["key"] = gem.name if p["key"].nil?
         p["path"] = path
         p["kind"] = "plugin"
         p["gem_mode"] = true
