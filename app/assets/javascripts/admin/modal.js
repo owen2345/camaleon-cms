@@ -80,12 +80,12 @@ jQuery(function(){
  * modal_size: "modal-lg", "modal-sm", ""(default as normal "")
  * callback: function evaluated after modal shown
  * type: modal color (primary|default|success)
- * zindex: Integer zindex position (default nil)
+ * zindex: Integer zindex position (default null)
  * on_submit: Function executed after submit button click (if this is present, enable the submit button beside cancel button)
  * return modal object
  */
 function open_modal(settings){
-    var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, zindex: nil, modal_size: "", type: '', modal_settings:{}, on_submit: null, callback: function(){}}
+    var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, zindex: null, modal_size: "", type: '', modal_settings:{}, on_submit: null, callback: function(){}}
     settings = $.extend({}, def, settings);
     var modal = $('<div id="ow_inline_modal" class="modal fade modal-'+settings.type+'">'+
         '<div class="modal-dialog '+settings.modal_size+'">'+
