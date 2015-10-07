@@ -9,8 +9,9 @@
 module FrontendConcern extend ActiveSupport::Concern
   # visiting sitemap.xml
   def sitemap
-    r = {layout: (params[:format] == "html" ? (self.send :_layout) : false), render: "sitemap"}
+    r = {layout: (params[:format] == "html" ? (self.send :_layout) : false), render: "sitemap", custom: "", format: params[:format]}
     hooks_run("on_render_sitemap", r)
+    @custom_sitemap = r[:custom]
     render r[:render], layout: r[:layout]
   end
 
