@@ -145,6 +145,11 @@ class SiteDecorator < TermTaxonomyDecorator
     h.url_to_fixed("root_url", args)
   end
 
+  # draw bread crumb for current site
+  def generate_breadcrumb(add_post_type = true)
+    h.breadcrumb_add(self.the_title)
+  end
+
   # =============================== ADMIN =======================
   # admin root url for this site
   def the_admin_url
