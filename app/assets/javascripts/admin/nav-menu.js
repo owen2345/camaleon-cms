@@ -18,7 +18,7 @@ function do_add_item_menu(data){
 
     }
     // custom fields icon
-    if(main_menus_panel.attr("data-fields_support")) link_data += '<a class="text-edit" title="'+I18n("button.settings")+'" href="'+data.url_content+'" onclick="do_settings_menu(this); return false;" rel="1"><i class="fa fa-cog"></i></a>';
+    if(main_menus_panel.attr("data-fields_support") == "true") link_data += '<a class="text-edit" title="'+I18n("button.settings")+'" href="'+data.url_content+'" onclick="do_settings_menu(this); return false;" rel="1"><i class="fa fa-cog"></i></a>';
 
     var item = $('<li class="dd-item dd3-item" data-type="'+type+'" data-id="'+id+'" data-parent="'+(parent_id ? parent_id : "")+'"><div class="dd-handle dd3-handle"></div> <div class="dd3-content"><span>'+text + "</span> " + extra_html +' <span class="label">'+type+'</span> '+ link_data +' <a href="#" onclick="do_delete_menu(this); return false;" class="text-danger" title="'+I18n("button.delete")+'"><i class="fa fa-times-circle"></i></a> </div></li>');
     item.attr("data-fields", data.fields).attr("data-label", text).attr("data-link", link);
@@ -58,6 +58,19 @@ function manage_external_links(){
         if(!f.valid()) return false;
         do_add_item_menu({type: 'external', link: f.find("#external_url").val(), text: f.find("#external_label").val(), url_content: RENDER_FORM});
         f[0].reset();
+        return false;
+    });
+
+    // custom menus
+    main_menus_panel.find(".add_links_custom_to_menu").click(function(){
+        var $parent = $(this).parents(".panel");
+        $parent.find(":checkbox").filter(":checked").each(function()
+        {
+            var data = $(this).parents(".class_type").data();
+            var data_l = $(this).parents(".class_slug").data();
+            do_add_item_menu({type: 'external', link: $(this).val(), text: $(this).parent().text(), url_content: RENDER_FORM});
+            $(this).removeAttr("checked");
+        });
         return false;
     });
 }
