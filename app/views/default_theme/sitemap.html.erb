@@ -16,5 +16,8 @@
             <% end %>
         </li>
     <% end %>
-    <%= raw @custom_sitemap %>
+
+    <% @r[:custom].each do |key, item| %>
+        <li><a href='<%= item[:url] %>'><%= item[:title] %></a></li>
+    <% end %>
 </ul>

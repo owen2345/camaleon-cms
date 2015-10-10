@@ -48,5 +48,13 @@ xml.urlset "xmlns" => "http://www.sitemaps.org/schemas/sitemap/0.9" do
       end
     end
   end
-  instance_eval(@custom_sitemap)
+
+  @r[:custom].each do |key, item|
+    xml.url do
+      xml.loc item[:url]
+      xml.lastmod item[:lastmod]
+      xml.changefreq item[:changefreq]
+      xml.priority item[:priority]
+    end
+  end
 end
