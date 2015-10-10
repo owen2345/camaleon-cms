@@ -9,6 +9,7 @@ xml.urlset "xmlns" => "http://www.sitemaps.org/schemas/sitemap/0.9" do
     end
 
     for post in current_site.the_posts.decorate do
+      next if @r[:skip_post_ids].include?(post.id)
       xml.url do
         xml.loc post.the_url(locale: lang)
         xml.lastmod post.updated_at
@@ -18,6 +19,7 @@ xml.urlset "xmlns" => "http://www.sitemaps.org/schemas/sitemap/0.9" do
     end
 
     for cat in current_site.full_categories.no_empty.decorate do
+      next if @r[:skip_cat_ids].include?(cat.id)
       xml.url do
         xml.loc cat.the_url(locale: lang)
         xml.lastmod cat.updated_at
@@ -27,6 +29,7 @@ xml.urlset "xmlns" => "http://www.sitemaps.org/schemas/sitemap/0.9" do
     end
 
     for ptype in current_site.post_types.decorate do
+      next if @r[:skip_posttype_ids].include?(ptype.id)
       xml.url do
         xml.loc ptype.the_url(locale: lang)
         xml.lastmod ptype.updated_at
@@ -36,6 +39,7 @@ xml.urlset "xmlns" => "http://www.sitemaps.org/schemas/sitemap/0.9" do
     end
 
     for tag in current_site.post_tags.decorate do
+      next if @r[:skip_tag_ids].include?(tag.id)
       xml.url do
         xml.loc tag.the_url(locale: lang)
         xml.lastmod tag.updated_at

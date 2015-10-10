@@ -8,9 +8,14 @@
 =end
 module FrontendConcern extend ActiveSupport::Concern
   # visiting sitemap.xml
+  # With hook "on_render_sitemap" you can skip post_types, categories, tags or posts
+  #   you can change render file and layout
+  #   you can add custom sitemap elements in the attr "custom", like: https://github.com/owen2345/camaleon-cms/issues/106#issuecomment-146232211
+  #   you can customize your content for html or xml format
   def sitemap
-    r = {layout: (params[:format] == "html" ? (self.send :_layout) : false), render: "sitemap", custom: "", format: params[:format]}
+    r = {layout: (params[:format] == "html" ? (self.send :_layout) : false), render: "sitemap", custom: "", format: params[:format], skip_post_ids: [], skip_posttype_ids: [], skip_cat_ids: [], skip_tag_ids: []}
     hooks_run("on_render_sitemap", r)
+    @r = r
     @custom_sitemap = r[:custom]
     render r[:render], layout: r[:layout]
   end
