@@ -10,7 +10,13 @@ module Plugins::FrontCache::FrontCacheHelper
 
   # save as cache all pages configured on settings of this plugin for public users
   def front_cache_front_before_load
-    return if signin?
+    if current_site.get_option("refresh_cache") # clear cache every restart server
+      front_cache_clean
+      current_site.set_option("refresh_cache", false)
+    end
+
+    return if signin? # avoid cache if current visitor is logged in
+
     cache_key = front_cache_get_key
     ActionController::Base.page_cache_directory = Rails.root.join("tmp", "cache", "pages")
     if page_cache_exist?(cache_key) # recover cache file
