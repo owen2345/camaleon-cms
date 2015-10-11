@@ -103,6 +103,7 @@ function open_modal(settings){
     // on modal hide
     modal.on("hidden.bs.modal", function(e){
         if(!$(e["currentTarget"]).attr("data-skip_destroy")) $(e["currentTarget"]).remove();
+        modal_fix_multiple();
     });
 
     if(settings.zindex) modal.css("z-index", settings.zindex);

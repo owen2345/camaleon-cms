@@ -122,6 +122,30 @@ var init_form_validations = function(form){
             if($that.val()) set_texts($that.val())
         });
     };
+
+    // create inline input file uploader with an icon to upload file
+    // options: all options needed for uploader
+    // you can add an attribute "data-format" in the input to define the file formats required
+    $.fn.input_upload_field = function(options){
+        this.each(function(){
+            var input = $(this);
+            var def = {
+                type: (input.attr("data-format") || "image"),
+                selected: function(res){
+                    var file = _.first(res);
+                    input.val(file.url.to_url());
+                }
+            };
+            if(!input.parent().hasClass("input-group")){
+                input.wrap('<div class="group-input-fields-content input-group"></div>');
+                input.after('<span class="input-group-addon btn_upload"><i class="fa fa-upload"></i> </span>');
+                input.addClass("form-control");
+            }
+            input.next("span").click(function(){
+                $.fn.upload_elfinder($.extend({}, def, (options || {})));
+            });
+        });
+    }
 })(jQuery);
 
 // jquery custom validations and default values

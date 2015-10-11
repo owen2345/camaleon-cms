@@ -81,3 +81,13 @@ Object.size = function(obj) {
     return size;
 };
 /* EOF NEW OBJECT(GET SIZE OF ARRAY) */
+
+// this is a fix for multiples modals when a modal was closed (reactivate scroll for next modal)
+function modal_fix_multiple(){
+    var activeModal = $('.modal.in:last', 'body').data('bs.modal');
+    if (activeModal) {
+        activeModal.$body.addClass('modal-open');
+        activeModal.enforceFocus();
+        activeModal.handleUpdate();
+    }
+}

@@ -186,6 +186,7 @@
             });
             modal_elfinder.on('hidden.bs.modal', function (e){
                 $("#modal_elfinder").remove();
+                try{ modal_fix_multiple(); }catch(e){}
             });
         }
 

@@ -52,9 +52,9 @@ xml.urlset "xmlns" => "http://www.sitemaps.org/schemas/sitemap/0.9" do
   @r[:custom].each do |key, item|
     xml.url do
       xml.loc item[:url]
-      xml.lastmod item[:lastmod]
-      xml.changefreq item[:changefreq]
-      xml.priority item[:priority]
+      xml.lastmod item[:lastmod] || Date.today.to_s
+      xml.changefreq item[:changefreq] || "monthly"
+      xml.priority item[:priority] || "0.5"
     end
   end
 end
