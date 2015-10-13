@@ -13,31 +13,13 @@ module ShortCodeHelper
     @_shortcodes_template = {}
     @_shortcodes_descr = {}
 
-    # shortcode_add("load_libraries", nil, "Renderize the widget content in this place. Sample: [widget widget_key]")
+    shortcode_add("widget", nil, "Renderize the widget content in this place.
+                Don't forget to create and copy the shortcode of your widgets in appearance -> widgets
+                Sample: [widget widget_key]")
 
     shortcode_add("load_libraries",
                   lambda{|attrs, args| add_asset_library(*attrs["data"].to_s.split(",")); return ""; },
                   "Permit to load libraries on demand, sample: [load_libraries data='datepicker,tinymce']")
-
-    shortcode_add("custom_field",
-                  lambda{|attrs, args|
-                    post = args[:owner]
-                    post = current_site.the_posts.find_by_slug(attrs["post_slug"]).decorate rescue nil if attrs["post_slug"].present?
-                    return "" unless post.present?
-                    field = post.get_field_object(attrs["key"])
-                    if attrs["render"].present?
-                      return render :file => "custom_fields/#{field.options["field_key"]}", :locals => {object: post, field: field, field_key: attrs["key"], attibutes: attrs}
-                    else
-                      return post.the_field(attrs["key"])
-                    end
-                  },
-                  "Permit you to include your custom fields in anywhere.
-                  key: slug or key of the custom_field
-                  attrs: custom html attributes
-                  render: (true) enable to render the custom field as html. (Sample text_field: <span>my_field_value</span>)
-                  post_slug: (Optional, default current post) slug or key of a Post.
-                  Sample1: [custom_field key='subtitle']
-                  Sample2: [custom_field key='subtitle' post_slug='contact' render=true attrs='style=\"width: 50px;\"'] // return the custom field of page with slug = contact")
 
     shortcode_add("asset",
                   lambda{|attrs, args|
@@ -56,26 +38,27 @@ module ShortCodeHelper
                     add image='true' to generate the image tag with this url),
                   sample: <img src=\"[asset as_path='true' file='themes/my_theme/assets/img/signature.png']\" /> or [asset image='true' file='themes/my_theme/assets/img/signature.png' style='height: 50px;']")
 
-    shortcode_add("post_url",
+    shortcode_add("data",
                   lambda{|attrs, args|
-                    post = current_site.the_post(attrs["id"].to_i) if attrs["id"].present?
-                    post = current_site.the_post(attrs["key"].to_s) if attrs["key"].present?
-                    if post.present?
-                      if attrs["link"].present?
-                        return ActionController::Base.helpers.link_to(attrs["title"].present? ? attrs["title"].html_safe : post.the_title, post.the_url, target: attrs["target"])
-                      else
-                        return post.the_url
-                      end
-                    end
-                    return ""
+                    cama_shortcode_data(attrs, args) rescue ""
                   },
-                  "Permit to generate the url of a post (add path='' to generate the path and not the full url,
-                    add id='123' to use the POST ID,
-                    add key='my_slug' to use the POST SLUG,
-                    add link='true' to generate the full link,
-                    add title='my title' text of the link (default post title),
-                    add target='_blank' to open the link in a new window this is valid only if link is present),
-                  sample: [post_url id='122' link=true target='_blank']")
+                  "Permit to generate specific data of a post.
+                  Attributes:
+                    object: (String, defaut post) Model name: post | post_type | category | post_tag | site | user
+                    id: (Integer) Post id
+                    key: (String) Post slug
+                    field: (String) Custom field key, you can add render_field='true' to render field as html element, also you can add index=2 to indicate the value in position 2 for multitple values
+                    attr: (String) attribute name: title | created_at | excerpt | url | link | thumb | updated_at | author_name | author_url
+                    Note: If id and key is not present, then will be rendered of current model
+                  Sample:
+                    [data id='122' attr='title'] ==> return the title of post with id = 122
+                    [data key='contact' attr='url'] ==> return the url of post with slug = contact
+                    [data key='contact' attr='link'] ==> return the link with title as text of the link of post with slug = contact
+                    [data object='site' attr='url'] ==> return the url of currrent site
+                    [data key='page' object='post_type' attr='url'] ==> return the url of post_type with slug = page
+                    [data field=icon index=2] ==> return the second value (multiple values) for this custom field with key=icon of current object
+                    [data key='contact' field='sub_title'] ==> return the value of the custom_field with key=sub_title registered for post.slug = contact
+                    [data object='site' field='sub_title'] ==> return the value of the custom_field with key=sub_title registered for current_site")
   end
 
   # add shortcode
@@ -173,5 +156,87 @@ module ShortCodeHelper
       end
     end
     res
+  end
+
+  # execute shortcode data
+  def cama_shortcode_data(attrs, args)
+    res = ""
+    object = attrs["object"] || "post"
+    attr = attrs["attr"] || "title"
+    model = cama_shortcode_model_parser(object, attrs) || args[:owner]
+    return res unless model.present?
+    
+    if attrs["field"].present? # model custom fields
+      field = model.get_field_object(attrs["field"])
+      if attrs["render_field"].present?
+        return render :file => "custom_fields/#{field.options["field_key"]}", :locals => {object: model, field: field, field_key: attrs["field"], attibutes: attrs}
+      else
+        if attrs["index"]
+          res = model.the_fields(attrs["field"])[attrs["index"].to_i-1] rescue ""
+        else
+          res = model.the_field(attrs["field"])
+        end
+        return res
+      end
+
+    else # model attributes
+      case attr
+        when "title"
+          res = model.the_title
+        when "created_at"
+          res = model.the_created_at
+        when "updated_at"
+          res = model.the_updated_at
+        when "excerpt"
+          res = model.the_excerpt rescue ""
+        when "url"
+          res = model.the_url rescue ""
+        when "link"
+          res = model.the_link rescue ""
+        when "thumb"
+          case object
+            when "site"
+              res =  model.the_logo
+            when "user"
+              res =  model.the_avatar
+            else
+              res =  model.the_thumb_url
+          end
+        when "author_name"
+          res = object=="post" ? model.the_author.the_name : ""
+        when "author_url"
+          res = object=="post" ? model.the_author.the_url : ""
+      end
+    end
+    res
+  end
+
+  # return the model object according to the type
+  def cama_shortcode_model_parser(object, attrs)
+    model = nil
+    case object
+      when "post"
+        model = current_site.the_post(attrs["id"].to_i) if attrs["id"].present?
+        model = current_site.the_post(attrs["key"].to_s) if attrs["key"].present?
+
+      when "post_type"
+        model = current_site.the_post_type(attrs["id"].to_i) if attrs["id"].present?
+        model = current_site.the_post_type(attrs["key"].to_s) if attrs["key"].present?
+
+      when "category"
+        model = current_site.the_category(attrs["id"].to_i) if attrs["id"].present?
+        model = current_site.the_category(attrs["key"].to_s) if attrs["key"].present?
+
+      when "post_tag"
+        model = current_site.the_tag(attrs["id"].to_i) if attrs["id"].present?
+        model = current_site.the_tag(attrs["key"].to_s) if attrs["key"].present?
+
+      when "site"
+        model = current_site
+      when "user"
+        model = current_site.the_user(attrs["id"].to_i) if attrs["id"].present?
+        model = current_site.the_user(attrs["key"].to_s) if attrs["key"].present?
+    end
+    model
   end
 end

@@ -485,6 +485,7 @@ en:
       youtube: 'Youtube'
       more_actions: 'More actions'
       more_actions_info: 'More actions...'
+      shorcodes: "Shortcodes"
     themes:
       footer_copyright: 'Footer Copyright'
       theme_select: 'Select Theme'
@@ -604,3 +605,4 @@ en:
       custom_fields: "This section permit you to extend easily your contents, themes,... by custom fields."
       post_type: "In this module you can manage your content groups without programing anything."
       languages: "This module permit you to manage all languages for your site. Also you can configure the language for your admin panel."
+      shortcodes: "In this section you can see all available shortcodes to use in your contents."

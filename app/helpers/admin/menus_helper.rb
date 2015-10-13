@@ -57,6 +57,7 @@ module Admin::MenusHelper
       items << {icon: "files-o", title: t('admin.sidebar.content_groups'), url: admin_settings_post_types_path, datas: "data-intro='#{t("admin.intro.post_type")}' data-position='right'"}
       items << {icon: "cog", title: t('admin.sidebar.custom_fields'), url: admin_settings_custom_fields_path, datas: "data-intro='#{t("admin.intro.custom_fields")}' data-position='right'"}
       items << {icon: "language", title: t('admin.sidebar.languages'), url: admin_settings_languages_path, datas: "data-intro='#{t("admin.intro.languages")}' data-position='right'"}
+      items << {icon: "code", title: t('admin.table.shorcodes', default: "Shortcodes"), url: admin_settings_shortcodes_path, datas: "data-intro='#{t("admin.intro.shortcodes")}' data-position='right'"}
       admin_menu_add_menu("settings", {icon: "cogs", title: t('admin.sidebar.settings'), url: "", items: items, datas: "data-intro='#{t("admin.intro.settings")}' data-position='right' data-wait='500'"})
     end
 
