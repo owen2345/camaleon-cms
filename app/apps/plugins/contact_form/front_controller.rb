@@ -37,7 +37,7 @@ class Plugins::ContactForm::FrontController < Apps::PluginsFrontController
           validate = false
         end
         if f[:field_type].to_s == "email"
-          if !fields[cid].match(/\b[A-Z0-9._%a-z\-]+@(?:[A-Z0-9a-z\-]+\.)+[A-Za-z]{2,10}\z/)
+          if !fields[cid].match(/@/)
             errors << "#{label}: #{settings[:railscf_message][:invalid_email]}"
             validate = false
           end
