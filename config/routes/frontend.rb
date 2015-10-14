@@ -29,7 +29,7 @@ Rails.application.routes.draw do
 
     instance_eval(PluginRoutes.load("front"))
 
-    get "*slug" => 'frontend#post', format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-]+/}
-    get "*slug" => 'frontend#post', :as => :post, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-]+/}
+    get "*slug" => 'frontend#post', format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-\/]+/}
+    get "*slug" => 'frontend#post', :as => :post, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-\/]+/}
   end
 end
