@@ -18,7 +18,11 @@
 //= require ./jquery.validate
 
 //= require jquery_ujs
+//= require ./angular/angular
+//= require ./angular/angular-translate.min
+//= require ./angular/angular-cookies.min
 
+//= require ./angular-filemanager/angular-filemanager.min
 //= require ./elfinder/elfinder.full
 //= require ./elfinder/proxy/elFinderSupportVer1
 //= require ./elfinder/upload_elfinder

@@ -14,6 +14,9 @@
  *= require ./lte/skins/skin-blue
  *= require ./custom_admin
 
+ *= require ./angular-filemanager/animations
+ *= require ./angular-filemanager/dialogs
+ *= require ./angular-filemanager/main
  *= require ./elfinder/elfinder
  *= require ./elfinder/elfinder-theme
  *= require ./bootstrap-datetimepicker

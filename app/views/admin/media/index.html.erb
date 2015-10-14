@@ -1,19 +1,30 @@
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h4><span class="fa fa-picture-o"></span> <%= t('admin.sidebar.media')%></h4>
-        </div>
-        <div class="panel-body">
-            <div id='elfinder'></div>
-        </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4><span class="fa fa-picture-o"></span> <%= t('admin.sidebar.media') %></h4>
     </div>
+    <div class="panel-body">
+      <div id='elfinder'></div>
+    </div>
+
+    <div data-ng-app="FileManagerApp">
+      <angular-filemanager></angular-filemanager>
+    </div>
+  </div>
 </div>
 
 <script>
-    jQuery(function(){
+    angular.module('FileManagerApp').config(['fileManagerConfigProvider', function (config) {
+        var defaults = config.$get();
+        config.set({
+            appName: 'camaleon-cms',
+            listUrl: 'filemanager/handler'
+        });
+    }]);
+
+    jQuery(function () {
         $('#elfinder').upload_elfinder({mode: 'full'});
         $('.elfinder-button').tooltip();
     })
-
 </script>
