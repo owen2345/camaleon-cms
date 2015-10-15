@@ -5,11 +5,9 @@
       <h4><span class="fa fa-picture-o"></span> <%= t('admin.sidebar.media') %></h4>
     </div>
     <div class="panel-body">
-      <div id='elfinder'></div>
-    </div>
-
-    <div data-ng-app="FileManagerApp">
-      <angular-filemanager></angular-filemanager>
+      <div data-ng-app="FileManagerApp">
+        <angular-filemanager></angular-filemanager>
+      </div>
     </div>
   </div>
 </div>
@@ -19,12 +17,18 @@
         var defaults = config.$get();
         config.set({
             appName: 'camaleon-cms',
-            listUrl: 'filemanager/handler'
+            listUrl: 'filemanager/handler',
+            uploadUrl: 'filemanager/upload',
+            renameUrl: 'filemanager/handler',
+            copyUrl: 'filemanager/handler',
+            removeUrl: 'filemanager/handler',
+            editUrl: 'filemanager/handler',
+            getContentUrl: 'filemanager/handler',
+            createFolderUrl: 'filemanager/handler',
+            downloadFileUrl: 'filemanager/download',
+            compressUrl: 'filemanager/handler',
+            extractUrl: 'filemanager/handler',
+            permissionsUrl: 'filemanager/handler'
         });
     }]);
-
-    jQuery(function () {
-        $('#elfinder').upload_elfinder({mode: 'full'});
-        $('.elfinder-button').tooltip();
-    })
 </script>

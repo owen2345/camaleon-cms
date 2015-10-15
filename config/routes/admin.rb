@@ -114,7 +114,8 @@ Rails.application.routes.draw do
     match 'crop' => 'media#crop', via: :all
 
     match 'filemanager/handler' => 'file_manager#handler', via: :all
-
+    match 'filemanager/upload' => 'file_manager#upload', via: :all
+    match 'filemanager/download' => 'file_manager#download', via: :all
   end
 
   eval(PluginRoutes.load("admin"))
