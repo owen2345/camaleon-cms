@@ -1,0 +1,3 @@
+<div class="group-input-fields-content" data-callback-function="custom_field_text_box">
+    <input type="text" name="<%= @field_name %>[<%= @field.slug %>][values][]" class="form-control input-value <%= 'is_translate' if @field.options[:translate].to_s.to_bool %> <%= "required" if @field.options[:required].to_s.to_bool %>" <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %> />
+</div>

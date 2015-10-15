@@ -1,0 +1,3 @@
+<div class="group-input-fields-content">
+  <input type="email" name="<%= @field_name %>[<%= @field.slug %>][values][]" class="form-control email input-value <%= "required" if @field.options[:required].to_s.to_bool %>" <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %>/>
+</div>

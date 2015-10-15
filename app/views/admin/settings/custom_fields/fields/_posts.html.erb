@@ -1,0 +1,17 @@
+<div class="group-input-fields-content">
+  <select name="<%= @field_name %>[<%= @field.slug %>][values][]" class="form-control input-value <%= "required" if @field.options[:required].to_s.to_bool %>" <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %>>
+    <option value=""></option>
+    <% if @field.options[:post_types].present? %>
+    <% (@field.options[:post_types].include?("all") ? current_site.post_types : current_site.post_types.where(id: @field.options[:post_types])).each do |pt| %>
+        <optgroup label="<%= pt.name %>">
+        <%
+        pt.posts.public_posts.each do |post|
+            post = post.decorate
+        %>
+            <option value="<%= post.id %>"><%= post.the_title %></option>
+        <%  end %>
+        </optgroup>
+    <%  end %>
+    <% end %>
+  </select>
+</div>

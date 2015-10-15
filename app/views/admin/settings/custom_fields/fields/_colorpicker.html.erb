@@ -1,0 +1,7 @@
+<% add_asset_library('colorpicker') %>
+<div class="group-input-fields-content" data-callback-function="custom_field_colorpicker"  data-callback-set-value="custom_field_colorpicker_val">
+  <div data-color-format="<%= @field.options[:color_format].present? ? @field.options[:color_format] : 'hex' %>" data-color="#fff" class="input-group color my-colorpicker">
+    <input  type="text" name="<%= @field_name %>[<%= @field.slug %>][values][]" class="form-control input-value <%= "required" if @field.options[:required].to_s.to_bool %>" <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %> />
+    <span class="input-group-addon"><i></i></span>
+  </div>
+</div>

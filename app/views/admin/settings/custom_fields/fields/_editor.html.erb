@@ -1,0 +1,4 @@
+<% add_asset_library('tinymce') %>
+<div class="group-input-fields-content" data-callback-function="custom_field_editor">
+  <textarea id="" name="<%= @field_name %>[<%= @field.slug %>][values][]"  rows="8" class="form-control <%= 'is_translate' if @field.options[:translate].to_s.to_bool %> input-value <%= "required" if @field.options[:required].to_s.to_bool %>" <%= "readonly" if true %> <%= "disabled" if @field.options[:disabled].present? %>></textarea>
+</div>

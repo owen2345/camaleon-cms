@@ -1,0 +1,7 @@
+<% @field.options[:type_date].to_s.to_bool ? add_asset_library('datetimepicker') : add_asset_library('datepicker') %>
+<div class="group-input-fields-content" data-callback-function="custom_field_date">
+  <div class="input-append date date-input-box <%= "is_datetimepicker" if @field.options[:type_date].to_s.to_bool %>">
+    <input type="text" name="<%= @field_name %>[<%= @field.slug %>][values][]" class="input-value   <%= "required" if @field.options[:required].to_s.to_bool %>" <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %>/>
+    <span class="add-on input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+  </div>
+</div>

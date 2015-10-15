@@ -1,0 +1,5 @@
+<div class="group-input-fields-content" data-callback-set-value="custom_field_checkboxs_val">
+    <% @field.options[:multiple_options].each do |option|  %>
+        <div class="checkbox"><label><input type="checkbox" value="<%= option[:value] %>" name="<%= @field_name %>[<%= @field.slug %>][values][]" <%= 'checked' if @default_use && option[:default].present? %> <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %>> <%= option[:title] %></label></div>
+    <% end %>
+</div>

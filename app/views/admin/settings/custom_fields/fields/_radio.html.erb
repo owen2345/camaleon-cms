@@ -1,0 +1,5 @@
+<div class="group-input-fields-content" data-callback-set-value="custom_field_radio_val">
+    <% @field.options[:multiple_options].each do |option|  %>
+        <div class="radio"><label><input type="radio" value="<%= option[:value] %>" name="<%= @field_name %>[<%= @field.slug %>][values][]" <%= 'checked' if @default_use &&  option[:default].present? && option[:default] != 'none' %> <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %>> <%= option[:title] %></label></div>
+    <% end %>
+</div>

@@ -1,0 +1,3 @@
+<div class="group-input-fields-content">
+  <%= select_tag "#{@field_name}[#{@field.slug}][values][]", instance_eval(@field.options[:command].to_s.strip), class: "form-control input-value #{'required' if @field.options[:required].to_s.to_bool}"  %>
+</div>

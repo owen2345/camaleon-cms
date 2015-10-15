@@ -1,0 +1,8 @@
+<div class="group-input-fields-content row" data-callback-set-value="custom_field_field_attrs_val">
+    <div class="col-md-4">
+        <input type="text" name="<%= @field_name %>[<%= @field.slug %>][values][][attr]" placeholder="<%= t('admin.table.attribute') %>" class="form-control input-attr <%= "required" if @field.options[:required].to_s.to_bool %>" <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %>/>
+    </div>
+    <div class="col-md-8">
+        <input type="text" name="<%= @field_name %>[<%= @field.slug %>][values][][value]"  placeholder="<%= t('admin.table.value') %>" class="form-control input-value" <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %>/>
+    </div>
+</div>

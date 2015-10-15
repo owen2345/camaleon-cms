@@ -1,0 +1,4 @@
+<div class="group-input-fields-content input-group">
+  <input type="url" name="<%= @field_name %>[<%= @field.slug %>][values][]" class="form-control input-value <%= "required" if @field.options[:required].to_s.to_bool %>" <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %>/>
+  <span class="input-group-addon btn_upload" onclick="load_upload_image_field(this);return false;"><i class="fa fa-upload"></i> <%= t('admin.button.upload_image')%></span>
+</div>
