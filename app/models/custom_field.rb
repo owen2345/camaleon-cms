@@ -24,11 +24,9 @@ class CustomField < ActiveRecord::Base
   before_validation :before_validating
 
   private
-
   def before_validating
     self.slug = self.name if self.slug.blank?
     self.slug = self.slug.to_s.parameterize
   end
-
 
 end

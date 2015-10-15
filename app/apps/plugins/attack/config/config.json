@@ -20,7 +20,7 @@
     "on_inactive": [
       "attack_on_inactive"
     ],
-    "app_before_load": [
+    "front_before_load": [
       "attack_app_before_load"
     ],
     "plugin_options":[
