@@ -19,7 +19,7 @@ class PostDecorator < ApplicationDecorator
 
   # return the excerpt of this post
   def the_excerpt(qty_chars = 200)
-    excerpt = object.meta[:summary].to_s.translate(get_locale)
+    excerpt = object.get_meta("summary").to_s.translate(get_locale)
     # r = {content: (excerpt.present? ? excerpt : object.content_filtered.to_s.translate(get_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars)), post: object}
     r = {content: (excerpt.present? ? excerpt : h.cama_strip_shortcodes(object.content_filtered.to_s.translate(get_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars))), post: object}
     h.hooks_run("post_the_excerpt", r)
@@ -37,13 +37,13 @@ class PostDecorator < ApplicationDecorator
   # default: default image if thumbails not exist
   # if default is empty, post_type default thumb will be returned
   def the_thumb_url(default = nil)
-    th = object.meta[:thumb]
+    th = object.get_meta("thumb")
     th.present? ? th : (default || object.post_type.get_option('default_thumb', nil) || h.asset_url("image-not-found.png"))
   end
 
   # check if this page has registered the thumbnail
   def has_thumb?
-    object.meta[:thumb].present?
+    object.get_meta("thumb").present?
   end
 
   # return front url for this post

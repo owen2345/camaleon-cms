@@ -59,23 +59,12 @@ class User < ActiveRecord::Base
     site.posts.where(user_id: self.id)
   end
 
-  def self.meta_default
-    {
-        fields: {
-            first_name: {type: 'text', label: 'First Name'},
-            last_name: {type: 'text', label: 'Last Name'}
-        }
-
-    }.to_sym
-  end
-
-
   def _id
     "#{self.role.upcase}-#{self.id}"
   end
 
   def fullname
-    meta[:first_name].blank? ? self.username.titleize : "#{meta[:first_name]} #{meta[:last_name]}".titleize
+    get_meta("first_name").blank? ? self.username.titleize : "#{get_meta("first_name")} #{get_meta("last_name")}".titleize
   end
 
   def admin?
@@ -110,8 +99,6 @@ class User < ActiveRecord::Base
   def updated
     self.updated_at.strftime('%d/%m/%Y %H:%M')
   end
-
-
 
   # auth
   def generate_token(column)

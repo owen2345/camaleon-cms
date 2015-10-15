@@ -2,6 +2,17 @@ function log(d){
     if(console.log)console.log(d);
 }
 
+// prepend flash message into current element
+// message: text message
+// kind: string kind of message, default danger (success, danger, info, warning)
+jQuery(function(){
+    $.fn.flash_message = function(message, kind){
+        if(!kind) kind = "danger";
+        var msg = '<div class="alert alert-'+kind+'"> <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button> '+message+' </div>';
+        $(this).prepend(msg);
+        return this;
+    }
+});
 
 /****************** form validations ************/
 // panel can be a object: $("#my_form")

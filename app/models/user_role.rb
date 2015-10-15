@@ -13,10 +13,11 @@ class UserRole < TermTaxonomy
   belongs_to :site, :class_name => "Site", foreign_key: :parent_id
 
   def roles_post_type
-    self.meta[:_post_type]
+    self.get_meta("_post_type")
   end
+
   def roles_manager
-    self.meta[:_manager]
+    self.get_meta("_manager")
   end
 
   def editable?

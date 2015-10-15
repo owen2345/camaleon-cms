@@ -40,7 +40,7 @@
                     <% if @post.manage_summary?(@post_type) %>
                         <div class="form-group">
                             <label for="post_summary"><%= t('admin.post_type.summary') %></label><br>
-                            <textarea name="meta[summary]" id="post_summary" class="form-control translatable" cols="30" rows="5"><%= @post.meta[:summary] if @post.meta.present? && @post.meta[:summary].present? %></textarea>
+                            <textarea name="meta[summary]" id="post_summary" class="form-control translatable" cols="30" rows="5"><%= @post.get_meta("summary", "") %></textarea>
                         </div>
                     <% end %>
                     <% if @post.manage_keywords?(@post_type) %>

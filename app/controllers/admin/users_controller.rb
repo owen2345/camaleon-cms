@@ -15,27 +15,13 @@ class Admin::UsersController < AdminController
   end
 
   def profile
-    @user = current_user
+    @user = current_user.object
+    return edit
   end
 
   def profile_edit
-    @user = current_user
-    if params[:meta]
-      @user.set_meta_from_form(params[:meta])
-      render json: {message: 'update'}
-    end
-
-    if params[:user]
-      render json: @user.update(params[:user].permit(:username, :email)) ? {message: 'update'} : {errors: @user.errors.full_messages.join(', ')}
-    end
-
-    if params[:password]
-      if @user.authenticate(params[:password][:password_old])
-        render json: @user.update(params[:password]) ? {message: 'update'} : {errors: @user.errors.full_messages.join(', ')}
-      else
-        render json: {errors: t('admin.users.message.incorrect_old_password')}
-      end
-    end
+    @user = current_user.object
+    return edit
   end
 
   def show
@@ -55,40 +41,36 @@ class Admin::UsersController < AdminController
       @user.set_field_values(params[:field_options])
       r = {user: @user, message: t('admin.users.message.updated'), params: params}; hooks_run('user_after_edited', r)
       flash[:notice] = r[:message]
-      redirect_to action: :index
+      if current_user.id == @user.id
+        redirect_to action: :profile_edit
+      else
+        redirect_to action: :index
+      end
     else
       render 'form'
     end
   end
 
+  # update som ajax requests from profile or user form
   def updated_ajax
     @user = current_site.users.find(params[:user_id])
-    if params[:meta]
-      @user.set_meta_from_form(params[:meta])
-      render json: {message: 'update'}
-    end
-
-    if params[:user]
-      render json: @user.update(params[:user].permit(:username, :email)) ? {message: 'update'} : {errors: @user.errors.full_messages.join(', ')}
-    end
-
+    # update password
     if params[:password]
       if @user.authenticate(params[:password][:password_old])
-        render json: @user.update(params[:password]) ? {message: 'update'} : {errors: @user.errors.full_messages.join(', ')}
+        render inline: @user.update(params[:password]) ? nil : @user.errors.full_messages.join(', ')
       else
-        render json: {errors: t('admin.users.message.incorrect_old_password')}
+        render inline: t('admin.users.message.incorrect_old_password')
       end
     end
   end
 
   def new
     @user = current_site.users.new
-    render 'form'
+    edit
   end
 
   def create
     user_data = params[:user]
-
     @user = current_site.users.new(user_data)
     if @user.save
       @user.set_meta_from_form(params[:meta]) if params[:meta].present?
@@ -108,7 +90,7 @@ class Admin::UsersController < AdminController
   private
 
   def validate_role
-    authorize! :manager, :users
+    (params[:id].present? && current_user.id == params[:id]) || authorize!(:manager, :users)
   end
 
   def set_user

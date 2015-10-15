@@ -54,7 +54,7 @@
                 <% if (template_files = get_list_template_files).present? %>
                   <div class="form-group">
                       <label class="control-label"><%= t('admin.post_type.template')%></label>
-                      <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.meta[:template] ) }, {class: 'form-control'}) %>
+                      <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.get_meta("template") ) }, {class: 'form-control'}) %>
                   </div>
                 <% end %>
 
@@ -62,7 +62,7 @@
                 <% if (layout_files = get_list_layouts_files).present? %>
                     <div class="form-group">
                         <label class="control-label"><%= t('admin.post_type.layout')%></label>
-                        <%= select("meta", "layout", layout_files, { include_blank: true, selected: (params[:meta][:layout] rescue false || @post.meta[:layout] ) }, {class: 'form-control'}) %>
+                        <%= select("meta", "layout", layout_files, { include_blank: true, selected: (params[:meta][:layout] rescue false || @post.get_meta("layout") ) }, {class: 'form-control'}) %>
                     </div>
                 <% end %>
             <% end %>
@@ -118,17 +118,17 @@
             </div>
             <div class="panel-body ">
                 <div class="form-group">
-                    <div id="feature-image" class="gallery" style="display: <%= 'none' unless (params[:meta][:thumb] rescue false || @post.meta[:thumb] ).present? %>">
+                    <div id="feature-image" class="gallery" style="display: <%= 'none' unless (params[:meta][:thumb] rescue false || @post.get_meta("thumb") ).present? %>">
                         <a class="gallery-item" style="width: 100%; padding: 0" href="#" title="Thumbnail" data-gallery="">
                             <div class="image">
-                                <img src="<%= params[:meta][:thumb] rescue false || @post.meta[:thumb] rescue "" %>" class="img-rounded img-responsive" alt="Thumbnail">
+                                <img src="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>" class="img-rounded img-responsive" alt="Thumbnail">
                                 <span class="gallery-item-remove btn btn-primary btn-xs"><i class="fa fa-times"></i></span>
                             </div>
                             <div class="meta text-center" style="margin-bottom: 16px">
-                                <strong><%= (params[:meta][:thumb] || @post.meta[:thumb]).split("/").last rescue "" %></strong>
+                                <strong><%= (params[:meta][:thumb] || @post.get_meta("thumb")).split("/").last rescue "" %></strong>
                             </div>
                         </a>
-                        <input name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.meta[:thumb] rescue "" %>"/>
+                        <input name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>"/>
                     </div>
                     <a href="#" class="btn btn-default" onclick="upload_feature_image(); return false;"><i class="fa fa-upload"></i> <%= t('admin.post_type.upload_image')%></a>
                 </div>

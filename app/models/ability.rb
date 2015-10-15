@@ -19,8 +19,8 @@ class Ability
       can :read, :all
     else
       #conditions:
-      @roles_manager = user.get_role(current_site).meta["_manager_#{current_site.id.to_s}".to_sym] || {} rescue {}
-      @roles_post_type ||= user.get_role(current_site).meta["_post_type_#{current_site.id.to_s}".to_sym] || {} rescue {}
+      @roles_manager = user.get_role(current_site).get_meta("_manager_#{current_site.id.to_s}", {})
+      @roles_post_type ||= user.get_role(current_site).get_meta("_post_type_#{current_site.id.to_s}", {})
 
       ids_publish = @roles_post_type[:publish] || []
       ids_edit = @roles_post_type[:edit] || []

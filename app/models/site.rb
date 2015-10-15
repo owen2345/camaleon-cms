@@ -132,7 +132,7 @@ class Site < TermTaxonomy
     if user_role.valid?
       d = {}
       if post_type.present?
-        d = user_role.meta[:_post_type] || {}
+        d = user_role.get_meta("_post_type", {})
         UserRole::ROLES[:post_type].each { |value|
           value_old = d[value[:key]] || []
           d[value[:key]] = value_old + [post_type.id]
@@ -149,7 +149,7 @@ class Site < TermTaxonomy
     if user_role.valid?
       d = {}
       if post_type.present?
-        d = user_role.meta[:_post_type] || {}
+        d = user_role.get_meta("_post_type", {})
         UserRole::ROLES[:post_type].each { |value|
           value_old = d[value[:key]] || []
           d[value[:key]] = value_old + [post_type.id] if value[:key].to_s == 'edit'

@@ -42,3 +42,41 @@ ActiveRecord::Associations::CollectionProxy.class_eval do
     self.includes(:custom_field_values).where("#{CustomFieldsRelationship.table_name}.custom_field_slug = ? and #{CustomFieldsRelationship.table_name}.object_class = ?", key, self.build.class.name).reorder("#{CustomFieldsRelationship.table_name}.value #{order}")
   end
 end
+
+
+# add cache_var for models
+ActiveRecord::Base.class_eval do
+  # save cache value for this key
+  def cama_set_cache(key, val)
+    @cama_cache_vars ||= {}
+    @cama_cache_vars[cama_build_cache_key(key)] = val
+  end
+
+  # remove cache value for this key
+  def cama_remove_cache(key)
+    @cama_cache_vars.delete(cama_build_cache_key(key))
+  end
+
+  # fetch the cache value for this key
+  def cama_fetch_cache(key)
+    @cama_cache_vars ||= {}
+    _key = cama_build_cache_key(key)
+    if @cama_cache_vars.has_key?(_key)
+      @cama_cache_vars[_key]
+    else
+      @cama_cache_vars[_key] = yield
+      @cama_cache_vars[_key]
+    end
+  end
+
+  # return the cache value for this key
+  def cama_get_cache(key)
+    @cama_cache_vars ||= {}
+    @cama_cache_vars[cama_build_cache_key(key)] rescue nil
+  end
+
+  # internal helper to generate cache key
+  def cama_build_cache_key(key)
+    _key = "cama_cache_#{self.class.name}_#{self.id}_#{key}"
+  end
+end

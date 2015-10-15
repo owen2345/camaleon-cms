@@ -10,7 +10,7 @@
   <div class="panel-body ">
     <%
             @rand = "r#{Time.now.to_i}#{rand(99 ... 99999)}d"
-            values = record.new_record? ? [] : record.meta_data.map{|k,v| {key: k, value: v}}
+            values = record.new_record? ? [] : record.get_meta("_set_meta_data", {}).map{|k,v| {key: k, value: v}}
             values = params[:meta_data] if params[:meta_data].present?
         %>
         <div class="item-custom-field" style="padding: 0; border: none">

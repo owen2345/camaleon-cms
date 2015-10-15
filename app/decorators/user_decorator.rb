@@ -27,9 +27,9 @@ class UserDecorator < ApplicationDecorator
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
   def the_avatar
-    avatar_exists = File.exist? h.url_to_file_path(object.meta[:avatar])
-    if object.meta[:avatar].present? && avatar_exists
-      object.meta[:avatar]
+    avatar_exists = File.exist? h.url_to_file_path(object.get_meta("avatar"))
+    if object.get_meta("avatar").present? && avatar_exists
+      object.get_meta("avatar")
     else
       h.asset_url("admin/img/no_image.jpg")
     end
@@ -37,7 +37,7 @@ class UserDecorator < ApplicationDecorator
 
   # return the slogan for this user, default: Hello World
   def the_slogan
-    object.meta[:slogan] || "Hello World"
+    object.get_meta("slogan", "Hello World")
   end
 
   # generate all seo attributes for profile page

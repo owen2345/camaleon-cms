@@ -28,12 +28,14 @@ class Category < TermTaxonomy
 
   # return the post type of this category
   def post_type
-    ctg = self
-    begin
-      pt = ctg.post_type_parent
-      ctg = ctg.parent
-    end while ctg.present?
-    pt
+    cama_fetch_cache("post_type") do
+      ctg = self
+      begin
+        pt = ctg.post_type_parent
+        ctg = ctg.parent
+      end while ctg.present?
+      pt
+    end
   end
 
   private

@@ -138,28 +138,29 @@ function open_modal(settings){
 }
 
 /**************LOADING SPINNER************/
-/*
- * use:
- *      showLoading() for show the loading spinner
- *      hideLoading() for hide the loading spinner
- */
-function wait_modal(){
-    var modal;
-    var html = '<div class="modal" id="pleaseWaitDialog" data-backdrop="static" data-keyboard="false"><div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header"><h4 class="modal-title">Processing...</h4></div>'+
-        '<div class="modal-body"><div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div></div>'+
-        '</div>'+
-        '</div>'+
-        '</div>'+
-        '</div>';
-    this.show = function(){
-        if(!modal) modal = $(html);
-        modal.modal("show");
+function showLoading(){ $.fn.customLoading("show"); }
+function hideLoading(){ $.fn.customLoading("hide"); }
+jQuery(function(){
+    /**
+     * params:
+     *  percentage: integer (percentage of the progress)
+     *  state: String (show | hide)
+     * Sample:
+     *  $.fn.customLoading("show"); // show loading with 100% progress
+     *  $.fn.customLoading({percentage: 50 }); // show loading with 50% progress
+     *  $.fn.customLoading("hide"); // hide de loading
+     */
+    $.fn.customLoading = function(params){
+        if(!params) params = "show";
+        if(typeof params == "string") params = {state: params};
+        var settings = $.extend({}, {percentage: 100, state: "show"}, params);
+        if(settings.state == "show"){
+            if($("body > #custom_loading").length == 0)
+                $("body").append('<div id="custom_loading" style="position: fixed; z-index: 99999; width: 100%; top: 0px; height: 15px;" class="progress"><div class="progress-bar progress-bar-striped active progress-bar-success" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: '+settings.percentage+'%;"><span class="sr-only">45% Complete</span></div></div>');
+            else
+                $("body > #custom_loading").width(settings.percentage);
+        }else{
+            $("body > #custom_loading").remove();
+        }
     }
-    this.hide = function(){
-        if(!modal) modal = $(html);
-        modal.modal("hide");
-    }
-}
-var loading_modal = new wait_modal();
-function showLoading(){ $("body > .modal").not("#pleaseWaitDialog").hide(); loading_modal.show(); }
-function hideLoading(){ loading_modal.hide(); $("body > .modal").not("#pleaseWaitDialog").show(); }
+});
