@@ -185,6 +185,18 @@ var init_form_validations = function(form){
         mjpg: "video"
     }
 
+    // return the video id of a video url
+    // http://lasnv.net/foro/839/Javascript_parsear_URL_de_YouTube
+    $.cama_youtube_key = function(url){
+        var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+        var match = url.match(regExp);
+        var b = false;
+        if (match&&match[7].length==11){
+            b=match[7];
+        }
+        return b;
+    }
+
     // verify the url for youtube, vimeo...
     // return youtube | metcafe|dailymotion|vimeo
     $.cama_check_video_url = function(url){
