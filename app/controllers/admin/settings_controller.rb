@@ -37,6 +37,11 @@ class Admin::SettingsController < AdminController
   def languages
   end
 
+  # render the list of shortcodes
+  def shortcodes
+
+  end
+
   # save language customizations
   def save_languages
     current_site.set_meta("languages_site", params[:lang])

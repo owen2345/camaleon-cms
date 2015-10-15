@@ -30,11 +30,12 @@
                 <%= @field.the_name %>
                 <small class="hidden">(<%= @field.options[:field_key] %>)</small>
                 <%= raw "<em class='text-danger'>*</em>" if @field.options[:required].to_s.to_bool %>
+                <% if defined? show_shortcode %>
+                    <small class="pull-right shortcode_field"><code>[data field='<%= @field.slug %>']</code></small>
+                <% end %>
             </label><br>
             <% if @field.description.present? %>
-                <p>
-                    <small><%= @field.the_description %></small>
-                </p>
+                <p><small><%= @field.the_description %></small></p>
             <% end  %>
             <input name="<%= @field_name %>[<%= @field.slug %>][id]" type="hidden" value="<%= @field.id %>"/>
             <div id="content-field-<%= @rand %>" class="editor-custom-fields">

@@ -191,6 +191,8 @@
             },500)
         });
     }
-    if(typeof jQuery == 'function') jQuery(function_init<%= @index %>);
-    else run.push(function_init<%= @index %>);
+    jQuery(function(){
+        function_init<%= @index %>();
+    });
+
 </script>

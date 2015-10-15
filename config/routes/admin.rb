@@ -44,16 +44,15 @@ Rails.application.routes.draw do
 
     namespace :settings do
       resources :post_types
-
       resources :custom_fields do
         collection do
           post 'get_items/:key', action: :get_items, as: :get_items
           post "reorder"
         end
       end
-
       get 'site'
       get "languages"
+      get "shortcodes"
       post "languages" => :save_languages
       patch 'site_saved'
 
