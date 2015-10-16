@@ -21,10 +21,10 @@ module CamaleonCms::Frontend::ApplicationHelper
   end
 
   # fix for url_to or url_path or any other who need add automatically current locale in the url
-  # sample: url_to_fixed("root_url", data: "asdasd", y: 12)
+  # sample: cama_url_to_fixed("root_url", data: "asdasd", y: 12)
   # => http://localhost/fr?data=asdasd&y=12
   # note: if current locale is the default language, then locale is not added in the url
-  def url_to_fixed(url_to, *args)
+  def cama_url_to_fixed(url_to, *args)
     options = args.extract_options!
     if request.present?
       if options.include?(:locale) && options[:locale] == false

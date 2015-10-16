@@ -1,4 +1,4 @@
-<script>var kk = "<%= get_session_id %>";</script>
+<script>var kk = "<%= cama_get_session_id %>";</script>
 <%= javascript_include_tag "camaleon_cms/admin/login_manifest" %>
 <div class="login-body">
     <h3 class="login-box-msg"><%= raw t('camaleon_cms.admin.login.welcome_login_html') %>  </h3>
@@ -16,7 +16,7 @@
         </div>
         <div class="form-group">
             <div class="col-md-12">
-                <%= raw captcha_tags_if_under_attack("login") %>
+                <%= raw cama_captcha_tags_if_under_attack("login") %>
             </div>
         </div>
 
@@ -34,7 +34,7 @@
         </div>
         <hr>
 
-        <%= raw content_before_draw %>
+        <%= raw cama_content_before_draw %>
         <%= r = {html: ""}; hooks_run("user_login_form", r); raw(r[:html]); %>
 
         <div class="row">

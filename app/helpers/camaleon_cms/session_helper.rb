@@ -32,6 +32,8 @@ module CamaleonCms::SessionHelper
     end
   end
 
+  # login a user using username and password
+  # return boolean: true => authenticated, false => authentication failed
   def login_user_with_password(username, password)
     @user = current_site.users.find_by_username(username)
     r = {user: @user, params: params, password: password, captcha_validate: true}; hooks_run('user_before_login', r)
@@ -39,14 +41,14 @@ module CamaleonCms::SessionHelper
   end
 
   # check if current host is heroku
-  def on_heroku?
+  def cama_on_heroku?
     ENV.keys.any? { |var_name| var_name.match(/(heroku|dyno)/i) }
   end
 
   # switch current session user into other (user)
   # after switched, this will be redirected to redirect_url or admin dashboard
   def session_switch_user(user, redirect_url = nil)
-    if signin?
+    if cama_sign_in?
       cookies[:parent_auth_token] = cookies[:auth_token]
       login_user(user, false, redirect_url)
     end
@@ -55,14 +57,14 @@ module CamaleonCms::SessionHelper
   # switch current session into parent session called by session_switch_user
   # after returned into parent session, this will be redirected to redirect_url or admin dashboard
   def session_back_to_parent(redirect_url = nil)
-    if signin? && cookies[:parent_auth_token].present?
+    if cama_sign_in? && cookies[:parent_auth_token].present?
       cookies[:auth_token] = cookies[:parent_auth_token]
       redirect_to (redirect_url||admin_dashboard_path), notice: "Welcome back!"
     end
   end
 
   # logout current user
-  def logout_user
+  def cama_logout_user
     cookies.delete(:auth_token, domain: :all)
     cookies.delete(:auth_token, domain: nil)
     cookies[:auth_token] = {value: nil, expires: 24.hours.ago, domain: (PluginRoutes.system_info["users_share_sites"] && CamaleonCms::Site.count > 1 ? :all : nil)}
@@ -71,21 +73,22 @@ module CamaleonCms::SessionHelper
   end
 
   # check if current user is already signed
-  def signin?
+  def cama_sign_in?
     !current_user.nil?
   end
+  alias_method :signin?, :cama_sign_in?
 
   # return the role for current user
   # if not logged in, then return 'public'
-  def current_role
-    (signin?) ? current_user.role : 'public'
+  def cama_current_role
+    (cama_sign_in?) ? current_user.role : 'public'
   end
 
   # return current user logged in
   def current_user
     return @current_user if defined?(@current_user)
     # api current user...
-    @current_user = calc_api_current_user
+    @current_user = cama_calc_api_current_user
     return @current_user unless @current_user.nil?
 
     return nil unless cookies[:auth_token].present?
@@ -99,9 +102,9 @@ module CamaleonCms::SessionHelper
 
   # check if a visitor was logged in
   # if the user was not logged in, then redirect to login url
-  def authenticate(redirect_uri = nil)
+  def cama_authenticate(redirect_uri = nil)
     params[:return_to] = redirect_uri
-    unless signin?
+    unless cama_sign_in?
       flash[:error] = "Required Login"
       cookies[:return_to] = params[:return_to].present? ? params[:return_to] : ((request.get? && params[:controller] != "admin/sessions") ? request.original_url : nil)
       redirect_to admin_login_path
@@ -109,14 +112,14 @@ module CamaleonCms::SessionHelper
   end
 
   # return the session id
-  def get_session_id
+  def cama_get_session_id
     session[:autor] = "Owen Peredo Diaz" unless request.session_options[:id].present?
     request.session_options[:id]
   end
 
   private
-
-  def calc_api_current_user
+  # calculate the current user for API
+  def cama_calc_api_current_user
     current_site.users_include_admins.find(doorkeeper_token.resource_owner_id).decorate if doorkeeper_token rescue nil
   end
 end

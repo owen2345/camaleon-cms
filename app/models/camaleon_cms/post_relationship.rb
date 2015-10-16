@@ -7,7 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 
-# DEPRECATED, NOT USED ANY MORE
+# DEPRECATED MODEL, NOT USED ANY MORE
 class CamaleonCms::PostRelationship < ActiveRecord::Base
   self.table_name = "#{PluginRoutes.system_info["db_prefix"]}term_relationships"
   attr_accessible :objectid, :term_taxonomy_id, :term_order

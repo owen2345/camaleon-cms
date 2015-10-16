@@ -27,7 +27,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
   def the_avatar
-    avatar_exists = File.exist? h.url_to_file_path(object.get_meta("avatar"))
+    avatar_exists = File.exist? h.cama_url_to_file_path(object.get_meta("avatar"))
     if object.get_meta("avatar").present? && avatar_exists
       object.get_meta("avatar")
     else
@@ -42,7 +42,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
 
   # generate all seo attributes for profile page
   def the_seo
-    h.build_seo({ image: (the_avatar rescue nil), title: the_name, object: self })
+    h.cama_build_seo({ image: (the_avatar rescue nil), title: the_name, object: self })
   end
 
   # return front url for this user
@@ -53,7 +53,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
-    h.url_to_fixed("profile_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("profile_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return all contents created by this user in current site

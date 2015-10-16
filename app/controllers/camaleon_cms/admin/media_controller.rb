@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   include ElFinder::Action
-  skip_before_filter :authenticate, only: :img
+  skip_before_filter :cama_authenticate, only: :img
   skip_before_filter :admin_logged_actions, except: :index
   skip_before_filter :verify_authenticity_token
 
@@ -44,7 +44,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   end
 
   def crop
-    url_image = crop_image(params[:cp_img_path], params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
+    url_image = cama_crop_image(params[:cp_img_path], params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
     if params[:saved_avatar].present?
       User.find(params[:saved_avatar]).set_meta('avatar', url_image)
     end

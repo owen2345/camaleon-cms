@@ -37,9 +37,9 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
                                             }
     end
 
-    views_dir = "app/apps/themes/#{current_site.get_theme.slug}/views"
-    self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
-    self.prepend_view_path(Rails.root.join(views_dir).to_s)
+    theme = current_site.get_theme
+    lookup_context.prefixes.prepend("themes/#{theme.slug}") if theme.settings["gem_mode"]
+    lookup_context.prefixes.prepend("themes/#{theme.slug}/views") unless theme.settings["gem_mode"]
 
     # run hook "email" to customize values
     r = {template_name: template_name, layout_name: layout_name, mail_data: mail_data, files: attachs, format: "html" }

@@ -18,11 +18,9 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
 
 
   has_many :term_relationships, class_name: "CamaleonCms::TermRelationship", foreign_key: :objectid, dependent: :destroy, primary_key: :id
-  has_many :children, class_name: "CamaleonCms::PostDefault", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
+  has_many :children, ->{ where(post_class: "PostDefault") }, class_name: "CamaleonCms::PostDefault", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
 
   validates :title, :slug, presence: true
-
-  # relations
 
   # callbacks
   before_validation :before_validating
@@ -34,8 +32,9 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
     self.where("#{CamaleonCms::Post.table_name}.slug = ? OR #{CamaleonCms::Post.table_name}.slug LIKE ? ", slug, "%-->#{slug}<!--%").reorder("").first
   end
 
+  # return the parent of a post (support for sub contents or tree of posts)
   def parent
-    CamaleonCms::Post.where(id: self.post_parent).first()
+    CamaleonCms::Post.where(id: self.post_parent).first
   end
 
   # return the author of this Content
@@ -71,8 +70,8 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
   end
 
   # destroy all dependencies of this content
+  # unassign this items from menus
   def destroy_dependencies
     in_nav_menu_items.destroy_all
   end
-
 end

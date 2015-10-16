@@ -19,17 +19,17 @@
                     <% rol_values_post_type = @user_role.new_record? ? {} : @user_role.get_meta("_post_type_#{current_site.id.to_s}") %>
                     <% rol_values_manager = @user_role.new_record? ? {} : @user_role.get_meta("_manager_#{current_site.id.to_s}") %>
                   <div id="contents-checkbox" class="form-horizontal">
-                    <%#= debug _get_roles_values %>
+                    <%#= debug cama_get_roles_values %>
                     <%#= debug rol_values %>
                     <div class="form-group">
                        <table class="table table-bordered table-hover">
                         <thead>
                         <tr>
                           <th style="width: 160px"><h5 ><%= t('camaleon_cms.admin.users.post_types')%></h5></th>
-                          <% _get_roles_values[:post_type].each do |value| %>
+                          <% cama_get_roles_values[:post_type].each do |value| %>
                               <th class="
                                 <%= value[:color] %> text-center" style="vertical-align: middle"><%= raw value[:label] %>
-                                <%= raw html_tooltip(value[:description], 'right') if value[:description].present? %>
+                                <%= raw cama_html_tooltip(value[:description], 'right') if value[:description].present? %>
                               </th>
                           <% end %>
                         </tr>
@@ -42,7 +42,7 @@
                                 <%= pt.the_title %>
                               </td>
 
-                              <% _get_roles_values[:post_type].each do |value| %>
+                              <% cama_get_roles_values[:post_type].each do |value| %>
                                   <td class="<%= value[:color] %> text-center">
                                     <%
                                     visible = true
@@ -67,10 +67,10 @@
                       <h5><%= t('camaleon_cms.admin.users.others_permissions')%></h5>
                       <div class="row">
                         <% values = rol_values_manager || {}  %>
-                        <% _get_roles_values[:manager].each do |value|  %>
+                        <% cama_get_roles_values[:manager].each do |value|  %>
                             <div class="col-md-4">
                               <label><input type="checkbox" name="rol_values[manager][<%= value[:key] %>]" value="1" <%= "checked" if values[value[:key].to_sym].present?  %> <%= "disabled" unless @user_role.editable?  %> >&nbsp; <%= raw value[:label] %></label>
-                              &nbsp;<%= raw html_tooltip(value[:description], 'right') if value[:description].present? %>
+                              &nbsp;<%= raw cama_html_tooltip(value[:description], 'right') if value[:description].present? %>
                             </div>
                         <% end %>
                       </div>

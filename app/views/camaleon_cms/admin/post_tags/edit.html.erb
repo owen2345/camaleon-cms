@@ -5,7 +5,7 @@
         <div class="panel-heading ui-draggable-handle">
           <h4 ><%= @post_tag.id.present? ? t('camaleon_cms.admin.page_title.edit') : t('camaleon_cms.admin.page_title.add') %> <%= "post_tag".to_s.titleize %></h4>
         </div>
-          <%= render partial: 'admin/post_tags/form' %>
+          <%= render partial: 'form' %>
       </div>
 
     </div>

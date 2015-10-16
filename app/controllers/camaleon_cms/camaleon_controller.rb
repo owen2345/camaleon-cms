@@ -21,10 +21,10 @@ class CamaleonCms::CamaleonController < ApplicationController
   include CamaleonCms::UploaderHelper
   include Mobu::DetectMobile
 
-  prepend_before_action :load_custom_models
-  before_action :site_check_existence, except: [:render_error, :captcha]
-  before_action :before_actions, except: [:render_error, :captcha]
-  after_action :after_actions, except: [:render_error, :captcha]
+  prepend_before_action :cama_load_custom_models
+  before_action :cama_site_check_existence, except: [:render_error, :captcha]
+  before_action :cama_before_actions, except: [:render_error, :captcha]
+  after_action :cama_after_actions, except: [:render_error, :captcha]
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
@@ -39,12 +39,12 @@ class CamaleonCms::CamaleonController < ApplicationController
 
   # generate captcha image
   def captcha
-    image = captcha_build(params[:len])
+    image = cama_captcha_build(params[:len])
     send_data image.to_blob, :type => image.mime_type, :disposition => 'inline'
   end
 
   private
-  def before_actions
+  def cama_before_actions
     # including all helpers (system, themes, plugins) for this site
     PluginRoutes.enabled_apps(current_site, current_theme.slug).each{|plugin| plugin_load_helpers(plugin) }
 
@@ -56,10 +56,10 @@ class CamaleonCms::CamaleonController < ApplicationController
     shortcodes_init()
 
     # initializing before and after contents
-    html_helpers_init
+    cama_html_helpers_init
 
     # initializing before and after contents
-    content_init
+    cama_content_init
 
     @_hooks_skip = []
     # trigger all hooks before_load_app
@@ -73,7 +73,7 @@ class CamaleonCms::CamaleonController < ApplicationController
     @current_ability ||= CamaleonCms::Ability.new(current_user, current_site)
   end
 
-  def after_actions
+  def cama_after_actions
     # trigger all actions app after load
     hooks_run("app_after_load")
   end
@@ -84,7 +84,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   end
 
   # include CamaleonCms::all custom models created by installed plugins or themes for current site
-  def load_custom_models
+  def cama_load_custom_models
     if current_site.present?
       site_load_custom_models(current_site)
     end
@@ -92,12 +92,13 @@ class CamaleonCms::CamaleonController < ApplicationController
 
   # add custom views of camaleon
   def camaleon_add_front_view_paths
-    self.prepend_view_path(File.join($camaleon_engine_dir, "app", "views", "camaleon_cms", 'default_theme'))
+    # self.prepend_view_path(File.join($camaleon_engine_dir, "app", "views", "camaleon_cms", 'default_theme'))
     # self.prepend_view_path(Rails.root.join("app", "views", "camaleon_cms", 'default_theme'))
     if current_site.present?
       if current_theme.present?
-        lookup_context.prefixes.prepend("themes/#{current_theme.folder_name}") if current_theme.settings["gem_mode"]
-        lookup_context.prefixes.prepend("themes/#{current_theme.folder_name}/views") unless current_theme.settings["gem_mode"]
+        # lookup_context.prefixes.prepend("camaleon_cms/default_theme")
+        lookup_context.prefixes.prepend("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
+        lookup_context.prefixes.prepend("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
         lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
         views_dir = "app/apps/"
         self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)

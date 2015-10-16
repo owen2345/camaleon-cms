@@ -1,7 +1,7 @@
 {
   "name" : "themeTitle",
   "description" : "",
-  "thumb" : "images/image.png",
+  "thumb" : "image.png",
   "helpers": [
     "Themes::ThemeClass::MainHelper"
   ],

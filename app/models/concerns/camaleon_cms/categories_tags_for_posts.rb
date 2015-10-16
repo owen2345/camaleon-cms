@@ -34,7 +34,7 @@ module CamaleonCms::CategoriesTagsForPosts extend ActiveSupport::Concern
   def update_categories(cats=[])
     rescue_extra_data
     cats = cats.to_i
-    old_categories = categories.pluck("term_taxonomy.id")
+    old_categories = categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")
     delete_categories = old_categories - cats
     news_categories =  cats - old_categories
     term_relationships.where("term_taxonomy_id in (?)", delete_categories ).destroy_all   if  delete_categories.present?
@@ -53,7 +53,7 @@ module CamaleonCms::CategoriesTagsForPosts extend ActiveSupport::Concern
     tags = tags.split(",").strip
     post_tags = self.post_type.post_tags
     post_tags = post_tags.where("name not in (?)", tags) if tags.present?
-    self.term_relationships.where("term_taxonomy_id in (?)", post_tags.pluck("term_taxonomy.id")).destroy_all
+    self.term_relationships.where("term_taxonomy_id in (?)", post_tags.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")).destroy_all
     tags.each do |f|
       post_tag = self.post_type.post_tags.where({name: f}).first_or_create(slug: f.parameterize)
       self.term_relationships.where({term_taxonomy_id: post_tag.id}).first_or_create

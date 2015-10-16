@@ -41,10 +41,8 @@
             </tbody>
           </table>
           <%= content_tag("div", raw(t('camaleon_cms.admin.message.data_found_list')), class: "alert alert-warning") if @users.empty? %>
-            <%= raw do_pagination(@users) %>
-
+            <%= raw cama_do_pagination(@users) %>
         </div>
-
       </div>
       <!-- END BASIC TABLE SAMPLE -->
     </div>

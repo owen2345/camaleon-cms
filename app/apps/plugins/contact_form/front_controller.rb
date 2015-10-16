@@ -43,7 +43,7 @@ class Plugins::ContactForm::FrontController < Apps::PluginsFrontController
           end
         end
       when 'captcha'
-        unless captcha_verified?
+        unless cama_captcha_verified?
           errors << "#{label}: #{settings[:railscf_message][:captcha_not_match]}"
           validate = false
         end

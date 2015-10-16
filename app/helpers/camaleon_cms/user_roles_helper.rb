@@ -8,7 +8,7 @@
 =end
 #encoding: utf-8
 module CamaleonCms::UserRolesHelper
-  def _get_roles_values
-    UserRole::ROLES
+  def cama_get_roles_values
+    CamaleonCms::UserRole::ROLES
   end
 end

@@ -55,7 +55,8 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   #   has_comments: false,
   #   has_picture: true,
   #   has_template: true,
-  #   has_keywords: true
+  #   has_keywords: true,
+  #   not_deleted: false
   # }
   def set_settings(settings = {})
     settings.each do |key, val|
@@ -125,7 +126,9 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
 
   private
   # assign default roles for this post type
+  # define default settings for this post type
   def set_default_site_user_roles
+    self.set_meta('_default', {has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_keywords: true, not_deleted: false})
     self.site.set_default_user_roles(self)
   end
 

@@ -30,7 +30,7 @@ module CamaleonCms::SiteHelper
   end
 
   # check if current site exist, if not, this will be redirected to main domain
-  def site_check_existence()
+  def cama_site_check_existence()
     if !current_site.present?
       if (site = CamaleonCms::Site.first).present?
         base_domain = PluginRoutes.system_info["base_domain"]
@@ -47,7 +47,7 @@ module CamaleonCms::SiteHelper
   end
 
   # get list templates files of current theme
-  def get_list_template_files
+  def cama_get_list_template_files
     contained_files = []
     Dir[File.join(current_theme.settings["path"], "views", '*')].each do |path|
       f_name = File.basename(path)
@@ -58,7 +58,7 @@ module CamaleonCms::SiteHelper
 
   # get list layouts files of current theme
   # return an array of layouts for current theme
-  def get_list_layouts_files
+  def cama_get_list_layouts_files
     contained_files = []
     Dir[File.join(current_theme.settings["path"], "views", "layouts", '*')].each do |path|
       f_name = File.basename(path)

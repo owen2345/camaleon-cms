@@ -51,7 +51,7 @@
             </div>
             <!-- templates -->
             <% if @post.manage_template?(@post_type) %>
-                <% if (template_files = get_list_template_files).present? %>
+                <% if (template_files = cama_get_list_template_files).present? %>
                   <div class="form-group">
                       <label class="control-label"><%= t('camaleon_cms.admin.post_type.template')%></label>
                       <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.get_meta("template") ) }, {class: 'form-control'}) %>
@@ -59,7 +59,7 @@
                 <% end %>
 
                 <!-- layouts -->
-                <% if (layout_files = get_list_layouts_files).present? %>
+                <% if (layout_files = cama_get_list_layouts_files).present? %>
                     <div class="form-group">
                         <label class="control-label"><%= t('camaleon_cms.admin.post_type.layout')%></label>
                         <%= select("meta", "layout", layout_files, { include_blank: true, selected: (params[:meta][:layout] rescue false || @post.get_meta("layout") ) }, {class: 'form-control'}) %>
@@ -87,7 +87,7 @@
             </div>
             <div class="panel-body ">
                 <div class="form-group list-categories">
-                    <%= raw post_type_html_inputs(@post_type, "categories", "categories" , "checkbox" ,params[:categories] || (@post.new_record? ? [] : @post.categories.pluck("term_taxonomy.id")), "categorychecklist", true )%>
+                    <%= raw post_type_html_inputs(@post_type, "categories", "categories" , "checkbox" ,params[:categories] || (@post.new_record? ? [] : @post.categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")), "categorychecklist", true )%>
                 </div>
             </div>
         </div>

@@ -87,7 +87,7 @@ module Plugins::VisibilityPost::VisibilityPostHelper
   end
 
   def form_html(post)
-    append_asset_libraries({"plugin_visibility"=> { js: [plugin_asset_path("visibility_post", "js/form.js")] }})
+    append_asset_libraries({"plugin_visibility"=> { js: [plugin_asset_path("js/form.js")] }})
     add_asset_library('datetimepicker')
 
     "

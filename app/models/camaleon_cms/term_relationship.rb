@@ -19,6 +19,8 @@ class CamaleonCms::TermRelationship < ActiveRecord::Base
   before_destroy :update_count
 
   private
+  # update counter of post published items
+  # TODO verify counter
   def update_count
     self.term_taxonomies.update_column('count', self.term_taxonomies.posts.published.size) if self.term_taxonomies.present?
   end

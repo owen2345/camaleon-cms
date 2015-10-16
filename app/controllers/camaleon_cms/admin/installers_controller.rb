@@ -7,9 +7,9 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::InstallersController < CamaleonCms::CamaleonController
-  skip_before_action :site_check_existence
-  skip_before_action :before_actions
-  skip_after_action :after_actions
+  skip_before_action :cama_site_check_existence
+  skip_before_action :cama_before_actions
+  skip_after_action :cama_after_actions
   before_action :installer_verification, except: :welcome
   layout "camaleon_cms/login"
 

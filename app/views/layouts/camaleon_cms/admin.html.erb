@@ -26,7 +26,7 @@
     <![endif]-->
 </head>
 <body class="hold-transition skin-blue sidebar-mini" data-intro="<%= current_site.get_option("save_intro") %>">
-    <%= raw content_before_draw %>
+    <%= raw cama_content_before_draw %>
     <div class="wrapper">
 
         <%= render partial: "layouts/camaleon_cms//admin/header" %>
@@ -51,6 +51,6 @@
 
         <%= render partial: "layouts/camaleon_cms//admin/footer" %>
     </div>
-    <%= raw content_after_draw %>
+    <%= raw cama_content_after_draw %>
 </body>
 </html>

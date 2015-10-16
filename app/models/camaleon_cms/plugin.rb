@@ -41,11 +41,6 @@ class CamaleonCms::Plugin < CamaleonCms::TermTaxonomy
     PluginRoutes.plugin_info(self.slug)
   end
 
-  # return folder name of this theme
-  def folder_name
-    File.basename(settings["path"])
-  end
-
   # check if current installation version is older
   # return boolean
   def old_version?

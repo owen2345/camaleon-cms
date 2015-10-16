@@ -9,14 +9,14 @@
 class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   include CamaleonCms::FrontendConcern
   prepend_before_action :init_frontent
-  prepend_before_action :site_check_existence
+  prepend_before_action :cama_site_check_existence
   include CamaleonCms::Frontend::ApplicationHelper
 
   layout Proc.new { |controller|
     if current_theme.settings["gem_mode"]
-      "themes/#{current_theme.folder_name}/layouts/index"
+      "themes/#{current_theme.slug}/layouts/index"
     else
-      "themes/#{current_theme.folder_name}/views/layouts/index"
+      "themes/#{current_theme.slug}/views/layouts/index"
     end
   }
 
@@ -26,7 +26,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
 
   # home page for frontend
   def index
-    init_seo(current_site)
+    cama_init_seo(current_site)
     if @_site_options[:home_page].present?
       render_post(@_site_options[:home_page].to_i)
     else
@@ -44,7 +44,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
-    init_seo(@category)
+    cama_init_seo(@category)
     @children = @category.children.no_empty.decorate
     @posts = @category.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     if lookup_context.template_exists?(@category.the_slug, "categories")
@@ -63,7 +63,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
-    init_seo(@post_type)
+    cama_init_seo(@post_type)
     @posts = @post_type.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
     @post_tags = @post_type.post_tags.eager_load(:metas)
@@ -84,7 +84,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
-    init_seo(@post_tag)
+    cama_init_seo(@post_tag)
     @posts = @post_tag.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     if lookup_context.template_exists?(@post_tag.the_slug, "post_tags")
       r_file = "post_tags/#{@post_tag.the_slug}"
@@ -133,7 +133,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
-    init_seo(@user)
+    cama_init_seo(@user)
     r = {user: @user, layout: (self.send :_layout), render: "profile"};  hooks_run("on_render_profile", r)
     render r[:render], layout: r[:layout]
   end
@@ -165,7 +165,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       page_not_found()
     else
       @post = @post.decorate
-      init_seo(@post)
+      cama_init_seo(@post)
       @post_type = @post.the_post_type
       @comments = @post.the_comments
       @categories = @post.the_categories

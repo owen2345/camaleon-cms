@@ -7,7 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
-  skip_before_filter :authenticate
+  skip_before_filter :cama_authenticate
   before_action :before_hook_session
   after_action :after_hook_session
   layout 'camaleon_cms/login'
@@ -23,16 +23,16 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
 
   def login_post
     data_user = params[:user]
-    cipher = Gibberish::AES::CBC.new(get_session_id)
+    cipher = Gibberish::AES::CBC.new(cama_get_session_id)
     data_user[:password] = cipher.decrypt(data_user[:password]) rescue nil
     @user = current_site.users.find_by_username(data_user[:username])
     captcha_validate = captcha_verify_if_under_attack("login")
     r = {user: @user, params: params, password: data_user[:password], captcha_validate: captcha_validate}; hooks_run("user_before_login", r)
     if captcha_validate && @user && @user.authenticate(data_user[:password])
-      captcha_reset_attack("login")
+      cama_captcha_reset_attack("login")
       login_user(@user, params[:remember_me].present?)
     else
-      captcha_increment_attack("login")
+      cama_captcha_increment_attack("login")
       if captcha_validate
         flash[:error] = t('camaleon_cms.admin.login.message.fail')
       else
@@ -44,7 +44,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
   end
 
   def logout
-    logout_user
+    cama_logout_user
   end
 
 
@@ -114,7 +114,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       @user = current_site.users.new(user_data)
       r = {user: @user, params: params}; hooks_run('user_before_register', r)
 
-      if current_site.security_user_register_captcha_enabled? && !captcha_verified?
+      if current_site.security_user_register_captcha_enabled? && !cama_captcha_verified?
         @first_name = params[:meta][:first_name]
         @last_name = params[:meta][:last_name]
 

@@ -17,7 +17,7 @@ class Plugins::ContactForm::AdminFormsController < Apps::PluginsAdminController
 
   def edit
     admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
-    append_asset_libraries({"plugin_contact_form"=> { js: [plugin_asset_path("contact_form", "js/contact_form.js")], css: [plugin_asset_path("contact_form", "css/contact-form.css")] }})
+    append_asset_libraries({"plugin_contact_form"=> { js: [plugin_asset_path("js/contact_form.js")], css: [plugin_asset_path("css/contact-form.css")] }})
   end
 
   def update
@@ -30,7 +30,7 @@ class Plugins::ContactForm::AdminFormsController < Apps::PluginsAdminController
       flash[:notice] = t('camaleon_cms.admin.message.updated_success')
       redirect_to action: :edit, id: @form.id
     else
-      append_asset_libraries({"plugin_contact_form"=> { js: [plugin_asset_path("contact_form", "js/contact_form.js")], css: [plugin_asset_path("contact_form", "css/contact-form.css")] }})
+      append_asset_libraries({"plugin_contact_form"=> { js: [plugin_asset_path("js/contact_form.js")], css: [plugin_asset_path("css/contact-form.css")] }})
       render 'edit'
     end
   end

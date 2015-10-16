@@ -17,7 +17,7 @@ class CamaleonCms::PostTagDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
-    h.url_to_fixed("post_tag#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("post_tag#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return the post type of this post tag

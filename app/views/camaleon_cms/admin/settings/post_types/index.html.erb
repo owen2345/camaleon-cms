@@ -30,36 +30,22 @@
             </thead>
 
             <tbody>
-            <%
-               def _item_html(item, pos = 0)
-                    %>
+                <% @post_types.decorate.each do |item| %>
                     <tr>
-                      <td><%= raw('—' * pos) %> <%= item.the_title %></td>
-                      <td><%= item.the_content %></td>
-                      <td><%= item.the_slug %></td>
-                      <td><%= item.count %></td>
-                      <td>
-                        <%#= link_to raw('<i class="fa fa-list"></i>'), admin_post_type_taxonomy_posts_path(@post_type.id, "category", item.slug), class: "btn btn-default btn-xs", title: "#{params[:post_type].to_s.titleize.pluralize}-#{item.slug.to_s.titleize}" if @post_type.present? %>
-                        <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs", title: "#{t('camaleon_cms.admin.button.edit')}" %>
-                        <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs", title: "#{t('camaleon_cms.admin.button.delete')}" unless item.get_option('not_deleted', false) %>
-
-                      </td>
+                        <td><%= item.the_title %></td>
+                        <td><%= item.the_content %></td>
+                        <td><%= item.the_slug %></td>
+                        <td><%= item.count %></td>
+                        <td>
+                            <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                            <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs", title: "#{t('camaleon_cms.admin.button.delete')}" unless item.get_option('not_deleted', false) %>
+                        </td>
                     </tr>
-                    <%
-               end
-               def _render_items(categories, _level = 0)
-                 categories.each do |term|
-                   _item_html(term.decorate, _level)
-                    children = term.term_children("post_type")
-                   _render_items(children, _level + 1) if children.size > 0
-                 end
-               end
-               _render_items(@post_types)
-                %>
+                <% end %>
             </tbody>
           </table>
           <%= content_tag("div", raw(t('camaleon_cms.admin.message.data_found_list')), class: "alert alert-warning") if @post_types.empty? %>
-            <%= raw do_pagination(@post_types) %>
+            <%= raw cama_do_pagination(@post_types) %>
         </div>
       </div>
       <!-- END BASIC TABLE SAMPLE -->

@@ -46,7 +46,7 @@ class CamaleonCms::ApplicationDecorator < Draper::Decorator
 
   # build the attributes for this model
   def the_seo
-    h.build_seo({ image: (the_thumb_url() rescue nil), title: the_title, description: the_excerpt, keywords: the_keywords, object: self })
+    h.cama_build_seo({ image: (the_thumb_url() rescue nil), title: the_title, description: the_excerpt, keywords: the_keywords, object: self })
   end
 
   # ---------------------
@@ -58,7 +58,7 @@ class CamaleonCms::ApplicationDecorator < Draper::Decorator
   # if the request is not for frontend, then this will show current locale visited
   def get_locale(locale = nil)
     l = locale || @_deco_locale
-    (h.is_admin_request? rescue false) ? h.current_site.get_languages.first : l
+    (h.cama_is_admin_request? rescue false) ? h.current_site.get_languages.first : l
   end
 
   # internal helper

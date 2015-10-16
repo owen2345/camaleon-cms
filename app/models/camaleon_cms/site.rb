@@ -285,7 +285,6 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     # nav menus
     # @sidebar  = self.sidebars.new({name: 'default sidebar', slug: 'default-sidebar'})
     @nav_menu = self.nav_menus.new({name: "Main Menu", slug: "main_menu"})
-
     if @nav_menu.save
       self.post_types.all.each do |pt|
         if pt.slug == "post"
@@ -299,7 +298,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
         end
         user = self.users.admin_scope.first
         user = self.users.admin_scope.create({email: 'admin@local.com', username: 'admin', password: 'admin', password_confirmation: 'admin'}) unless user.present?
-        post = pt.posts.create({title: title, slug: slug, content: content, user_id: user.id, status: 'published'})
+        post = pt.add_post({title: title, slug: slug, content: content, user_id: user.id, status: 'published'})
         @nav_menu.append_menu_item({label: title, type: 'post', link: post.id})
       end
     end

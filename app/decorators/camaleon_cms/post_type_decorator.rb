@@ -17,7 +17,7 @@ class CamaleonCms::PostTypeDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
-    h.url_to_fixed("post_type#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("post_type#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # add_post_type: true/false to include post type link

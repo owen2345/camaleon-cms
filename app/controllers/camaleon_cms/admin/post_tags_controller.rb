@@ -16,13 +16,16 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
     @post_tags = @post_tags.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
 
+  # render post tag view
   def show
   end
 
+  # render post tag edit form
   def edit
     admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
   end
 
+  # save changes of a post tag
   def update
     if @post_tag.update(params[:post_tag])
       @post_tag.set_options_from_form(params[:meta]) if params[:meta].present?
@@ -33,6 +36,7 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
     end
   end
 
+  # render post tag create form
   def create
     data_term = params[:post_tag]
     @post_tag = @post_type.post_tags.new(data_term)
@@ -45,12 +49,13 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
     end
   end
 
+  # destroy a post tag
   def destroy
     flash[:notice] = t('camaleon_cms.admin.post_type.message.deleted') if @post_tag.destroy
-
     redirect_to action: :index
   end
 
+  # render a json of post tags of a post type
   def list
     @post_tags = @post_type.post_tags.pluck("name")
     render json: @post_tags

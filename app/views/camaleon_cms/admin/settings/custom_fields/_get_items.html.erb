@@ -163,16 +163,16 @@
         <strong><%= t('camaleon_cms.admin.table.options_field')%></strong>
     <% end %>
     <% if @field_config[:options][:multiple] %>
-        <div class="checkbox"><label><%= check_box(:field_options, 'multiple', index: @index, checked: @item_options_value[:multiple].to_s.to_bool) %> <%= t('camaleon_cms.admin.table.multiple_field_int') %> </label> <%= raw html_tooltip(t('camaleon_cms.admin.table.multiple_field_int'),'right')%></div>
+        <div class="checkbox"><label><%= check_box(:field_options, 'multiple', index: @index, checked: @item_options_value[:multiple].to_s.to_bool) %> <%= t('camaleon_cms.admin.table.multiple_field_int') %> </label> <%= raw cama_html_tooltip(t('camaleon_cms.admin.table.multiple_field_int'),'right')%></div>
     <% end %>
     <% if @field_config[:options][:required] %>
-        <div class="checkbox"><label><%= check_box(:field_options, 'required', index: @index, checked: @item_options_value[:required].to_s.to_bool) %> <%= t('camaleon_cms.admin.table.required_field_int') %> </label> <%= raw html_tooltip(t('camaleon_cms.admin.table.required_field_int'),'right')%></div>
+        <div class="checkbox"><label><%= check_box(:field_options, 'required', index: @index, checked: @item_options_value[:required].to_s.to_bool) %> <%= t('camaleon_cms.admin.table.required_field_int') %> </label> <%= raw cama_html_tooltip(t('camaleon_cms.admin.table.required_field_int'),'right')%></div>
     <% end %>
     <% if @field_config[:options][:translate] %>
-        <div class="checkbox"><label><%= check_box(:field_options, 'translate', index: @index, checked: @item_options_value[:translate].to_s.to_bool) %> <%= t('camaleon_cms.admin.table.translate_field_int') %> </label> <%= raw html_tooltip(t('camaleon_cms.admin.table.translate_field_int'),'right')%></div>
+        <div class="checkbox"><label><%= check_box(:field_options, 'translate', index: @index, checked: @item_options_value[:translate].to_s.to_bool) %> <%= t('camaleon_cms.admin.table.translate_field_int') %> </label> <%= raw cama_html_tooltip(t('camaleon_cms.admin.table.translate_field_int'),'right')%></div>
     <% end %>
     <% if false && @field_config[:options][:show_frontend] %>
-        <div class="checkbox"><label><%= check_box(:field_options, 'show_frontend', index: @index, checked: @item_options_value[:show_frontend].to_s.to_bool) %> <%= t('camaleon_cms.admin.table.show_in_frontend') %> </label> <%= raw html_tooltip( t('camaleon_cms.admin.table.show_in_frontend'),'right')%></div>
+        <div class="checkbox"><label><%= check_box(:field_options, 'show_frontend', index: @index, checked: @item_options_value[:show_frontend].to_s.to_bool) %> <%= t('camaleon_cms.admin.table.show_in_frontend') %> </label> <%= raw cama_html_tooltip( t('camaleon_cms.admin.table.show_in_frontend'),'right')%></div>
     <% end %>
   </div>
 </div>

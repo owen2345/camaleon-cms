@@ -14,7 +14,7 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
   include CamaleonCms::Admin::ApplicationHelper
 
   layout "camaleon_cms/admin"
-  before_action :authenticate
+  before_action :cama_authenticate
   before_action :admin_init_actions
   before_action :admin_logged_actions
   before_action :admin_before_hooks

@@ -17,7 +17,7 @@ class CamaleonCms::CategoryDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:locale] = @_deco_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
-    h.url_to_fixed("category#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("category#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return all children categories for the current category (active_record) filtered by permissions + hidden posts + roles + etc...

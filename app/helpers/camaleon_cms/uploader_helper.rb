@@ -99,7 +99,7 @@ module CamaleonCms::UploaderHelper
         "file" => file_path,
         "name"=> File.basename(file_path),
         "size"=> File.size(file_path),
-        "url"=> file_path_to_url(file_path),
+        "url"=> cama_file_path_to_url(file_path),
         "type"=> uploaded_io.content_type,
         "deleteUrl"=> ""
     }
@@ -124,12 +124,12 @@ module CamaleonCms::UploaderHelper
   end
 
   # convert downloaded file path into public url
-  def file_path_to_url(file_path)
+  def cama_file_path_to_url(file_path)
     file_path.sub(Rails.public_path.to_s, root_url)
   end
 
   # convert public url to file path
-  def url_to_file_path(url)
+  def cama_url_to_file_path(url)
     File.join(Rails.public_path, URI(url.to_s).path)
   end
 
@@ -142,7 +142,7 @@ module CamaleonCms::UploaderHelper
   # resize: true/false
   #   (true => resize the image to this dimension)
   #   (false => crop the image with this dimension)
-  def crop_image(file, w, h, w_offset, h_offset, resize = nil )
+  def cama_crop_image(file, w, h, w_offset, h_offset, resize = nil )
     file_dir = File.join(Rails.public_path, file)
     puts "-------file_dir--------#{file_dir}----------"
     image = MiniMagick::Image.open(file_dir)

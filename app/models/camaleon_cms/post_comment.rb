@@ -42,6 +42,7 @@ class CamaleonCms::PostComment < ActiveRecord::Base
   end
 
   private
+  # update comment counter
   def update_counter
     p = self.post
     p.set_meta("comments_count", p.comments.count) if p.present?

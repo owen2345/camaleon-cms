@@ -62,73 +62,48 @@ module CamaleonCms::PluginsHelper
   # remove a plugin from current site
   # plugin_key: key of the plugin
   # return model of the plugin removed
+  # DEPRECATED: PLUGINS AND THEMES CANNOT BE DESTROYED
   def plugin_destroy(plugin_key)
-    # return
-    plugin_model = current_site.plugins.where(slug: plugin_key).first_or_create
-    if !plugin_can_be_deleted?(params[:id]) || true
-      plugin_model.error = false
-      plugin_model
-    else
-      hook_run(plugin_model.settings, "on_destroy", plugin_model)
-      plugin_model.destroy
-      PluginRoutes.destroy_plugin(params[:id])
-      plugin_model.error = true
-    end
-    plugin_model
   end
 
   # return plugin full layout path
   # plugin_key: plugin name
-  def plugin_layout(plugin_key, layout_name)
-    "#{plugin_key}/views/layouts/#{layout_name}"
+  def plugin_layout(layout_name, plugin_key = nil)
+    plugin = current_plugin(plugin_key || self_plugin_key(1))
+    if plugin.settings["gem_mode"]
+      "themes/#{plugin.slug}/layouts/#{layout_name}"
+    else
+      "themes/#{plugin.slug}/views/layouts/#{layout_name}"
+    end
   end
 
   # return plugin full view path
   # plugin_key: plugin name
-  def plugin_view(plugin_key, view_name)
-    "#{plugin_key}/views/#{view_name}"
+  def plugin_view(view_name, plugin_key = nil)
+    plugin = current_plugin(plugin_key || self_plugin_key(1))
+    if plugin.settings["gem_mode"]
+      "themes/#{plugin.slug}/#{view_name}"
+    else
+      "themes/#{plugin.slug}/views/#{view_name}"
+    end
   end
 
   # return plugin full asset path
   # plugin_key: plugin name
   # asset: (String) asset name
-  # sample: <script src="<%= plugin_asset_path("my_plugin", "js/admin.js") %>"></script> => /assets/plugins/my_plugin/assets/css/main-54505620f.css
-  def plugin_asset_path(plugin_key, asset)
-    p = "plugins/#{plugin_key}/assets/#{asset}"
-    begin
-      asset_url(p)
-    rescue NoMethodError => e
-      p
+  # sample: <script src="<%= plugin_asset_path("js/admin.js") %>"></script> => /assets/plugins/my_plugin/assets/css/main-54505620f.css
+  def plugin_asset_path(asset, plugin_key = nil)
+    settings = current_plugin(plugin_key || self_plugin_key(1)).settings
+    folder_name = settings["key"]
+    if settings["gem_mode"]
+      "plugins/#{folder_name}/#{asset}"
+    else
+      "plugins/#{folder_name}/assets/#{asset}"
     end
   end
-
-  # return the full url for asset of current plugin:
-  # asset: (String) asset name
-  # plugin_key: (optional) plugin name, default (current plugin caller to this function)
-  # sample:
-  #   plugin_asset_url("css/main.css") => return: http://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
-  def plugin_asset_url(asset, plugin_key = nil)
-    p = "plugins/#{plugin_key || self_plugin_key}/assets/#{asset}"
-    begin
-      asset_url(p)
-    rescue NoMethodError => e
-      p
-    end
-  end
-
-  # built asset file for current theme
-  # plugin_name: (String) if nil, will be used self_plugin_key method
-  # return (String), sample: plugin_asset("css/mains.css") => plugins/my_plugin/assets/css/main.css
-  def plugin_asset(asset, plugin_name = nil)
-    "plugins/#{plugin_name || self_plugin_key }/assets/#{asset}"
-  end
-
-  # built asset file for current theme
-  # plugin_name: (String) if nil, will be used self_plugin_key method
-  # return (String), sample: plugin_asset("mains.css") => plugins/my_plugin/main.css
-  def plugin_gem_asset(asset, plugin_name = nil)
-    "plugins/#{plugin_name || self_plugin_key }/#{asset}"
-  end
+  alias_method :plugin_asset_url, :plugin_asset_path
+  alias_method :plugin_asset, :plugin_asset_path
+  alias_method :plugin_gem_asset, :plugin_asset_path
 
   # auto load all helpers of this plugin
   def plugin_load_helpers(plugin)
@@ -141,29 +116,25 @@ module CamaleonCms::PluginsHelper
         end
       rescue => e
         Rails.logger.info "---------------------------app loading error for #{h}: #{e.message}. Please check the plugins and themes presence"
-        # flash.now[:error] = "app loading error for #{h}: #{e.message}. Please check the plugins and themes presence"
       end
-
-      # self.class.helper h.constantize rescue ActionController::Base.helper(h.constantize)
     end
   end
 
   # return plugin key for current plugin file (helper|controller|view)
-  def self_plugin_key
-    # k = "app/apps/plugins/"
+  # index: internal control (ignored)
+  def self_plugin_key(index = 0)
     k = "/plugins/"
-    f = caller[0]
-    f2 = caller[1]
-    if f.include?(k)
-      f.split(k).last.split("/").first
-    elsif f2.include?(k)
-      f2.split(k).last.split("/").first
-    end
+    f = caller[index]
+    f.split(k).last.split("/").first if f.include?(k)
   end
 
   # method called only from files within plugins directory
-  # return the plugin model for current site
-  def current_plugin
-    current_site.get_plugin(self_plugin_key)
+  # return the plugin model for current site calculated according to the file caller location
+  def current_plugin(plugin_key = nil)
+    _key = plugin_key || self_plugin_key(1)
+    cama_cache_fetch("current_plugin_#{_key}") do
+      current_site.get_plugin(_key)
+    end
   end
+
 end

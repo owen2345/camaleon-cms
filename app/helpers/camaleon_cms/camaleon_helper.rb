@@ -33,7 +33,8 @@ module CamaleonCms::CamaleonHelper
   end
 
   # execute controller action and return response
-  def requestAction(controller,action,params={})
+  # NON USED
+  def cama_requestAction(controller,action,params={})
     controller.class_eval{
       def params=(params); @params = params end
       def params; @params end
@@ -44,14 +45,6 @@ module CamaleonCms::CamaleonHelper
     c.params = params
     c.send(action)
     c.response.body
-  end
-
-  # deprecated helper
-  def array_change_key_case(hash)
-    result = hash.inject({}) do |hash, keys|
-      hash[raw(keys[1])] = keys[0]
-      hash
-    end
   end
 
   # theme common translation text
@@ -68,7 +61,7 @@ module CamaleonCms::CamaleonHelper
   end
 
   # check if current request was for admin panel
-  def is_admin_request?
+  def cama_is_admin_request?
     !(@_admin_menus.nil?)
   end
 
@@ -127,6 +120,16 @@ module CamaleonCms::CamaleonHelper
     rescue
       ''
     end
+  end
+
+  # save value as cache instance and return value
+  # sample: cama_cache_fetch("my_key"){ 10+20*12 }
+  def cama_cache_fetch(var_name)
+    var_name = "@cama_cache_#{var_name}"
+    return instance_variable_get(var_name) if instance_variable_defined?(var_name)
+    cache = yield
+    instance_variable_set(var_name, cache)
+    cache
   end
 
 end

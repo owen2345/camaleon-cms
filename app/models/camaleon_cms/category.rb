@@ -45,6 +45,7 @@ class CamaleonCms::Category < CamaleonCms::TermTaxonomy
     self.status = pt.id unless self.status.present?
   end
 
+  # rescue all posts to assign into default category if they don't have any category assigned
   def set_posts_in_default_category
     category_default = self.post_type.default_category
     return if category_default == self

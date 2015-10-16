@@ -34,85 +34,19 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   has_many :user_relationships, :class_name => "CamaleonCms::UserRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
   has_many :users, through: :user_relationships, :source => :user
 
-  # default taxonomies
-  def self.wp_taxonomies
-    data = {}
-    data[:category] = {
-        options: {
-        },
-        options_editable:{
-
-        }
-    }
-    data[:post_tag] = {
-        options: {
-        },
-        options_editable:{
-
-        }
-    }
-    data[:nav_menu] = {
-        options: {
-        },
-        options_editable:{
-        }
-    }
-    data[:nav_menu_item] = {
-        options: {
-        },
-        options_editable:{
-        }
-    }
-    data[:post_type] = {
-        options: {
-            has_category: false,
-            has_tags: false,
-            has_summary: true,
-            has_content: true,
-            has_comments: false,
-            has_picture: true,
-            has_template: true,
-            not_deleted: false
-        },
-        options_editable:{
-            has_category:{type: 'checkbox', label: 'Has Category'},
-            has_tags:{type: 'checkbox', label: 'Has Tags'}
-        }
-    }
-    data[:site] = {
-        options: {
-        },
-        options_editable:{
-        }
-    }
-    data[:widget] = {
-        options: {
-        },
-        options_editable:{
-        }
-    }
-    data[:form] = {
-        options: {
-        },
-        options_editable:{
-        }
-    }
-    data.to_sym
-  end
-
+  # find by slug of this collection
   def self.find_by_slug(slug)
     self.where("#{CamaleonCms::TermTaxonomy.table_name}.slug = ? OR #{CamaleonCms::TermTaxonomy.table_name}.slug LIKE ? ", slug, "%-->#{slug}<!--%").reorder("").first
   end
 
-  def term_children(taxy='')
-    CamaleonCms::TermTaxonomy.where(taxonomy: taxy).where("#{CamaleonCms::TermTaxonomy.table_name}.parent_id = ?", self.id)
-  end
-
+  # return all children taxonomy
+  # sample: sub categories of a category
   def children
     CamaleonCms::TermTaxonomy.where("#{CamaleonCms::TermTaxonomy.table_name}.parent_id = ?", self.id)
   end
 
-
+  # save multiple option at once
+  # sample: set_options_from_form({option1: 1, option2: 'b', ..})
   def set_options_from_form(metas = [])
     if metas.present?
       metas.each do |key, value|
@@ -127,17 +61,7 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   end
 
   private
-
-  def set_default_options
-    begin
-      values = CamaleonCms::TermTaxonomy::wp_taxonomies[taxonomy.to_sym][:options]
-      self.set_meta('_default', values) if self.id.present? && values.present?
-      values
-    rescue
-      # TODO what happend here (values = TermTaxonomy::wp_taxonomies[taxonomy.to_sym][:options]) undefined method `[]' for nil:NilClass
-    end
-  end
-
+  # callback before validating
   def before_validating
     slug = self.slug
     slug = self.name if slug.blank?
@@ -149,6 +73,8 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
     end
   end
 
+  # destroy all dependencies
+  # unassign all items from menus
   def destroy_dependencies
     in_nav_menu_items.destroy_all
   end

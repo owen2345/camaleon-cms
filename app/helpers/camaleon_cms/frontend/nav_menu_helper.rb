@@ -12,20 +12,7 @@ module CamaleonCms::Frontend::NavMenuHelper
   # to register this, go to admin -> appearance -> menus
   # (DEPRECATED)
   def get_nav_menu(key = 'main_menu', class_name = "navigation")
-    return draw_menu({menu_slug: key, container_class: class_name})
-
-    html = "<ul class='#{class_name}'>#{_get_nav_menu(key, class_name)} #{front_editor_link(admin_appearances_nav_menus_menu_url(slug: key)) rescue ""}</ul>"
-    doc = Nokogiri::HTML.fragment(html)
-    link_active = doc.css("a[href='#{site_current_path}']").first
-    if link_active.present?
-      link_active_parent = link_active.parent
-      link_active_parent['class'] += ' active'
-      link_active_parent.ancestors('li').each do |parent|
-        parent['class'] += ' parent-active'
-      end
-      html = doc.to_html
-    end
-    html
+    draw_menu({menu_slug: key, container_class: class_name})
   end
 
   # draw menu as an html
@@ -71,7 +58,7 @@ module CamaleonCms::Frontend::NavMenuHelper
     nav_menu = current_site.nav_menus.first unless nav_menu.present?
     html = "<#{args[:container]} class='#{args[:container_class]}' id='#{args[:container_id]}'>#{args[:container_prepend]}{__}#{cama_edit_link(admin_appearances_nav_menus_menu_url(slug: nav_menu.slug)) rescue ""}#{args[:container_append]}</#{args[:container]}>"
     if nav_menu.present?
-      html = html.sub("{__}", _menu_draw_items(args, nav_menu.children))
+      html = html.sub("{__}", cama_menu_draw_items(args, nav_menu.children))
     else
       html = html.sub("{__}", "")
     end
@@ -79,7 +66,7 @@ module CamaleonCms::Frontend::NavMenuHelper
   end
 
   # draw menu items
-  def _menu_draw_items(args, nav_menu, level = 0)
+  def cama_menu_draw_items(args, nav_menu, level = 0)
     html = ""
     _args = args.dup
     parent_current = false
@@ -102,7 +89,7 @@ module CamaleonCms::Frontend::NavMenuHelper
       _args = r[:settings]
 
       if has_children
-        html_children, current_children = _menu_draw_items(args, nav_menu_item.children, level + 1)
+        html_children, current_children = cama_menu_draw_items(args, nav_menu_item.children, level + 1)
       else
         html_children, current_children = "", false
       end
@@ -124,7 +111,7 @@ module CamaleonCms::Frontend::NavMenuHelper
   end
 
   # check if menu is the current menu
-  def is_current_menu?(menu_item)
+  def cama_is_current_menu?(menu_item)
     r = _get_link_nav_menu(menu_item)
     site_current_path == r[:link] || site_current_path.sub(".html", "") == r[:link].sub(".html", "") if r.present?
   end
@@ -175,7 +162,7 @@ module CamaleonCms::Frontend::NavMenuHelper
           {link: post_type.the_url(as_path: true), name: post_type.the_title, type_menu: type_menu}
         when 'external'
           r = {link: nav_menu_item.get_option('object_id'), name: nav_menu_item.name.to_s.translate, type_menu: type_menu}
-          r[:link] = url_to_fixed("root_url") if r[:link] == "root_url"
+          r[:link] = cama_url_to_fixed("root_url") if r[:link] == "root_url"
           r
         else
           false

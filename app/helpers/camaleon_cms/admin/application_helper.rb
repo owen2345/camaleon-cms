@@ -27,8 +27,8 @@ module CamaleonCms::Admin::ApplicationHelper
 
   # render pagination for current items
   # items is a will pagination object
-  # sample: <%= raw do_pagination(@posts) %>
-  def do_pagination(items)
+  # sample: <%= raw cama_do_pagination(@posts) %>
+  def cama_do_pagination(items)
     "<div class='row' class='pagination_panel'>
         <div class='col-md-6'>
           #{will_paginate items }
