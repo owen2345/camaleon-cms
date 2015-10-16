@@ -1,0 +1,69 @@
+<div class="page-title">
+    <h2><span class="fa fa-arrow-circle-o-left"></span> <%= t('camaleon_cms.admin.sidebar.themes')%></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap" id="themes_page">
+
+    <div class="row">
+        <div class="col-md-12">
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><%= t('camaleon_cms.admin.themes.theme_select')%></h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <% index=0;
+                           dom = current_site.the_url.sub(/https?:\/\//, "").split("/").first
+                           PluginRoutes.all_themes.each do |theme| %>
+                            <% next if theme[:domain].present? && !(theme[:domain].split(",").include?(current_site.the_slug) || theme[:domain].split(",").include?(dom)) %>
+                            <%= raw "<div class='clearfix'></div>" if index%3==0 && index > 1 %>
+                            <div class="col-md-4">
+                                <div class="panel panel-default">
+                                    <div class="panel-body panel-body-image">
+                                        <div class="theme-image text-center">
+                                            <img class="img-responsive" style="width: 100%; height: 180px;" src="<%= asset_path(theme_asset_path(theme[:thumb].to_s, theme[:key])) %>" alt="<%= theme[:name] %>">
+                                        </div>
+                                        <a href="#" class="panel-body-inform">
+                                            <span class="fa fa-desktop"></span>
+                                        </a>
+                                    </div>
+                                    <div class="panel-body" style="min-height: 120px;">
+                                        <h3><%= theme[:name] %></h3>
+                                        <p><%= theme[:description] %></p>
+                                    </div>
+                                    <div class="panel-footer text-muted text-right">
+                                        <% if current_theme.slug == theme[:key] && params[:set].nil? %>
+                                            <% r = {links: []}; hook_run(theme, "theme_options", r) %>
+                                            <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), admin_plugins_export_content_settings_path(file: ["app", "apps", 'themes', theme[:key], 'data.json'].join("/"))) if current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
+                                            <% r[:links] << link_to('Settings', admin_settings_site_path(tab: "theme"), class: "btn btn-primary") if File.exist?(current_theme.settings_file) %>
+
+                                            <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), "#", {'onclick' => "alert('You need to install import/export plugin to import sample data.'); return false;"}) if !current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
+                                            <%= raw r[:links].join(" | ") %>
+                                            <span class="btn btn-success"><%= t('camaleon_cms.admin.button.actived').upcase %></span>
+                                        <% else %>
+                                            <a href="<%= "#{preview_admin_appearances_themes_path(ccc_theme_preview: theme[:key])}" %>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-primary preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>
+                                            <a href="<%= admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary"><%= t('camaleon_cms.admin.button.select')%></a>
+                                        <% end %>
+                                    </div>
+                                </div>
+                            </div>
+                        <% index+=1;
+                           end  %>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+    jQuery(function($){
+        var page = $("#themes_page");
+        page.find(".preview_link").ajax_modal({mode: "iframe", modal_size: "modal-lg", callback: function(modal){
+            modal.children(".modal-dialog").css("width", "98%").find("iframe").css("min-height", $(window).height()-150);
+        }});
+
+    });
+</script>

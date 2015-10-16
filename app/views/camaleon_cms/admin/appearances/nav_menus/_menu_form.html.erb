@@ -1,0 +1,32 @@
+<div class="col-md-7">
+    <%= form_for @nav_menu, url: {action: :save}, html: {method: "post", id: "menu_form"} do |f| %>
+        <%= f.hidden_field :id %>
+        <!-- START PANEL WITH CONTROL CLASSES -->
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <label><%= t('camaleon_cms.admin.menus.name_menu') %>:</label>
+                <%= f.text_field :name, class: 'form-control menu-input-title' %>
+                <label>Slug:</label>
+                <%= f.text_field :slug, class: 'form-control menu-input-slug slug', 'data-parent' => 'nav_menu_name' %>
+                <% if @nav_menu.new_record? %>
+                    <button class="btn btn-primary pull-right" type=""><%= @nav_menu.new_record? ? t('camaleon_cms.admin.button.create_menu') : t('camaleon_cms.admin.button.update_menu') %></button>
+                <% end %>
+            </div>
+            <% unless @nav_menu.new_record? %>
+                <div class="panel-body">
+                    <div class="callout callout-info"><%= t('camaleon_cms.admin.message.add_menus') %></div>
+                    <div class="dd" id="nestable">
+                        <ol class="dd-list"></ol>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <%= content_tag(:div, (raw @nav_menu.description), class: "callout callout-info") if @nav_menu.description.present? %>
+                    <%= link_to raw("<i class='fa fa-times'></i> #{t('camaleon_cms.admin.button.delete')}"), {action: :menu, id: @nav_menu.id}, method: :delete, data: {confirm: t('camaleon_cms.admin.message.delete')}, class: "btn btn-danger btn-sm pull-left", title: "Delete" unless @nav_menu.new_record? %>
+                    <button class="btn btn-primary btn-sm pull-right" type=""><%= @nav_menu.new_record? ? t('camaleon_cms.admin.button.create_menu') : t('camaleon_cms.admin.button.update_menu') %></button>
+                </div>
+            <% end %>
+
+        </div>
+        <!-- END PANEL WITH CONTROL CLASSES -->
+    <% end %>
+</div>

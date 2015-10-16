@@ -9,12 +9,12 @@ module CamaleonCms
 
       def create_initializer_file
 
-        plugin_dir = Rails.root.join("apps", get_plugin_name).to_s
+        plugin_dir = Rails.root.join("apps", "plugins", get_plugin_name).to_s
         plugin_app = File.join($camaleon_engine_dir, "lib", "generators", "camaleon_cms", "gem_plugin_#{get_plugin_name}")
         FileUtils.rm_r(plugin_app) if Dir.exist?(plugin_app)
 
         FileUtils.mkdir_p(plugin_dir)
-        system("cd #{Rails.root}; rails plugin new plugins/#{get_plugin_name} --full")
+        system("cd #{Rails.root}; rails plugin new apps/plugins/#{get_plugin_name} --full")
 
         FileUtils.cp_r(File.join($camaleon_engine_dir, "lib", "generators", "camaleon_cms", "gem_plugin_template"), plugin_app)
 

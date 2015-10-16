@@ -209,7 +209,7 @@ class PluginRoutes
     r = cache_variable("site_get_sites"); return r unless r.nil?
     res = {}
     begin
-      res = Site.eager_load(:metas).order(term_group: :desc).all
+      res = CamaleonCms::Site.eager_load(:metas).order(term_group: :desc).all
     rescue
     end
     cache_variable("site_get_sites", res)

@@ -1,0 +1,25 @@
+<div class="page-content-wrap">
+  <div class="row">
+    <div class="col-md-12">
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title"><%= t('camaleon_cms.admin.sidebar.dashboard') %></h3>
+        </div>
+        <div class="panel-body" style="min-height: 350px">
+            <h1><%= t('camaleon_cms.admin.message.welcome') %></h1>
+
+            <% r = {content: ""}; hooks_run("on_notification", r); %>
+            <div id="dashboard_notifications">
+                <%= raw r[:content] %>
+            </div>
+
+            <% r = {content: ""}; hooks_run("on_dashboard", r); %>
+            <div id="dashboard_items">
+                <%= raw r[:content] %>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

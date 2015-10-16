@@ -8,18 +8,18 @@
 
     <%= f.hidden_field :id  %>
     <div class="panel-body">
-      <%#= render partial: 'layouts/admin/form_error', locals: {data: @form} %>
+      <%#= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @form} %>
         <div class="form-group">
-          <%= f.label t('admin.table.name') %><br>
+          <%= f.label t('camaleon_cms.admin.table.name') %><br>
           <%= f.text_field :name, :class => "form-control required" %>
         </div>
         <div class="form-group">
-            <%= f.label t('admin.table.slug') %><br>
+            <%= f.label t('camaleon_cms.admin.table.slug') %><br>
             <%= f.text_field :slug, :class => "form-control slug", "data-parent" => "plugins_contact_form_models_contact_form_name" %>
         </div>
 
         <div class="form-group">
-          <%= f.label t('admin.table.description') %><br>
+          <%= f.label t('camaleon_cms.admin.table.description') %><br>
           <%= f.text_area :description, :class => "form-control", :rows => 4 %>
         </div>
 

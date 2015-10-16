@@ -49,13 +49,13 @@
 
             </tbody>
           </table>
-          <%= content_tag("div", raw("#{t('admin.message.data_found_list')}"), class: "alert alert-warning") if @forms.empty? %>
+          <%= content_tag("div", raw("#{t('camaleon_cms.admin.message.data_found_list')}"), class: "alert alert-warning") if @forms.empty? %>
             <%= raw do_pagination(@forms) %>
         </div>
       </div>
 
       <div class="panel-footer">
-        <a class="btn btn-default" href="<%= url_for action: :index %>"><%= t('admin.button.back') %></a>
+        <a class="btn btn-default" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
       </div>
       <!-- END BASIC TABLE SAMPLE -->
     </div>

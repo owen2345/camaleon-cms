@@ -1,8 +1,8 @@
 Rails.application.routes.draw do
   scope "(:locale)", locale: /#{PluginRoutes.all_locales}/, :defaults => {  } do
-    root 'frontend#index'
+    root 'camaleon_cms/frontend#index'
 
-    controller :frontend do
+    controller "camaleon_cms/frontend" do
       PluginRoutes.all_locales.split("|").each do |_l|
         get "#{I18n.t("routes.group", default: "group", locale: _l)}/:post_type_id-:title" => :post_type, as: "post_type_#{_l}", constraints: {post_type_id: /[0-9]+/}
         get "#{I18n.t("routes.category", default: "category", locale: _l)}/:category_id-:title" => :category, as: "category_#{_l}", constraints: {category_id: /[0-9]+/}
@@ -29,7 +29,7 @@ Rails.application.routes.draw do
 
     instance_eval(PluginRoutes.load("front"))
 
-    get "*slug" => 'frontend#post', format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-\/]+/}
-    get "*slug" => 'frontend#post', :as => :post, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-\/]+/}
+    get "*slug" => 'camaleon_cms/frontend#post', format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-\/]+/}
+    get "*slug" => 'camaleon_cms/frontend#post', :as => :post, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-\/]+/}
   end
 end
