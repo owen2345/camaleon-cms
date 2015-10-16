@@ -1,5 +1,6 @@
 class Admin::FileManagerController < AdminController
   include FileSystemHelper
+  layout false
   skip_before_action :verify_authenticity_token
 
   def handler
@@ -55,6 +56,10 @@ class Admin::FileManagerController < AdminController
         send_data file.read, :type => content_type, :filename => filename
       end
     end
+  end
+
+  def templates
+    render "admin/file_manager/#{params[:view]}"
   end
 
   private

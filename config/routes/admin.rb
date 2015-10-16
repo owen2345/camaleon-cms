@@ -116,6 +116,7 @@ Rails.application.routes.draw do
     match 'filemanager/handler' => 'file_manager#handler', via: :all
     match 'filemanager/upload' => 'file_manager#upload', via: :all
     match 'filemanager/download' => 'file_manager#download', via: :all
+    get 'filemanager/templates/:view' => 'file_manager#templates'
   end
 
   eval(PluginRoutes.load("admin"))
