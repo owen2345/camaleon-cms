@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Widget::Sidebar < TermTaxonomy
+class CamaleonCms::Widget::Sidebar < CamaleonCms::TermTaxonomy
   default_scope { where(taxonomy: :sidebar) }
   has_many :metas, ->{ where(object_class: 'Widget::Sidebar')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   has_many :assigned, foreign_key: :post_parent, dependent: :destroy

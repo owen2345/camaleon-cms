@@ -18,7 +18,7 @@
                         </div>
                         <div class="sidebar-body panel-body" data-id="<%= sidebar.id %>">
                             <% sidebar.assigned.each do |assign| %>
-                                <%= render partial: "admin/appearances/widgets/assign/form", locals: {sidebar: sidebar, assigned: assign, widget: assign.widget} %>
+                                <%= render partial: "camaleon_cms/admin/appearances/widgets/assign/form", locals: {sidebar: sidebar, assigned: assign, widget: assign.widget} %>
                             <% end %>
                         </div>
                     </div>

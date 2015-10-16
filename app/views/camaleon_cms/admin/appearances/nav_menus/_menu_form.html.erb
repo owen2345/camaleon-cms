@@ -1,5 +1,5 @@
 <div class="col-md-7">
-    <%= form_for @nav_menu, url: {action: :save}, html: {method: "post", id: "menu_form"} do |f| %>
+    <%= form_for @nav_menu, as: "nav_menu", url: {action: :save}, html: {method: "post", id: "menu_form"} do |f| %>
         <%= f.hidden_field :id %>
         <!-- START PANEL WITH CONTROL CLASSES -->
         <div class="panel panel-info">

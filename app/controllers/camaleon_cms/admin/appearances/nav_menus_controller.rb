@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Admin::Appearances::NavMenusController < Admin::AppearancesController
+class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::Admin::AppearancesController
   def menu
     authorize! :manager, :menu
     unless params[:new].present?
@@ -75,7 +75,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < Admin::AppearancesCo
   def form
     if params[:custom_fields].present?
       @nav_menu = current_site.nav_menus.find_by_id(params[:menu_id])
-      render "_custom_fields", layout: "admin/_ajax"
+      render "_custom_fields", layout: "camaleon_cms/admin/_ajax"
     else
       render "_external_menu", layout: false, locals: {submit: true}
     end

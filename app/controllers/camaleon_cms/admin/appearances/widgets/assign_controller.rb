@@ -6,13 +6,13 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Admin::Appearances::Widgets::AssignController < Admin::AppearancesController
+class CamaleonCms::Admin::Appearances::Widgets::AssignController < CamaleonCms::Admin::AppearancesController
   before_action :check_permission_role
   def new
     @sidebar = current_site.sidebars.find(params[:sidebar_id])
     @widget = current_site.widgets.find(params[:widget_id])
     @assigned = @sidebar.assigned.create!({title: "Default", widget_id: @widget.id})
-    render partial: "form", locals: {assigned: @assigned, widget: @widget, sidebar: @sidebar}, layout: "admin/ajax"
+    render partial: "form", locals: {assigned: @assigned, widget: @widget, sidebar: @sidebar}, layout: "camaleon_cms/admin/ajax"
   end
 
   def update

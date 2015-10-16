@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Admin::Settings::SitesController < Admin::SettingsController
+class CamaleonCms::Admin::Settings::SitesController < CamaleonCms::Admin::SettingsController
   before_action :set_site, only: ['show','edit','update','destroy']
   before_action :check_shared_status
   def index

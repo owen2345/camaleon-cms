@@ -11,7 +11,15 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   prepend_before_action :init_frontent
   prepend_before_action :site_check_existence
   include CamaleonCms::Frontend::ApplicationHelper
-  layout "layouts/index"
+
+  layout Proc.new { |controller|
+    if current_theme.settings["gem_mode"]
+      "themes/#{current_theme.folder_name}/layouts/index"
+    else
+      "themes/#{current_theme.folder_name}/views/layouts/index"
+    end
+  }
+
   before_action :before_hooks
   after_action :after_hooks
   # rescue_from ActiveRecord::RecordNotFound, with: :page_not_found
@@ -212,15 +220,11 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     return page_not_found unless current_site.get_languages.include?(I18n.locale.to_sym) # verify if this locale is available for this site
     lookup_context.prefixes.delete("frontend")
     lookup_context.prefixes.delete("application")
+    lookup_context.prefixes.delete("camaleon_cms/frontend")
+    lookup_context.prefixes.delete("camaleon_cms/camaleon")
 
-    lookup_context.prefixes.prepend("themes/#{current_theme.slug}/")
-
-    if params[:controller] == "frontend"
-      lookup_context.prefixes.prepend("") unless lookup_context.prefixes.include?("")
-    elsif params[:controller].start_with?("themes/")
-      lookup_context.prefixes.delete(params[:controller])
-    end
     theme_init()
+    camaleon_add_front_view_paths()
   end
 
   def before_hooks

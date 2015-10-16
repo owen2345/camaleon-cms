@@ -3,7 +3,7 @@
      @post_type = current_site.post_types.new
    end
 %>
-<%= form_for @post_type, url:{action: @post_type.new_record? ? :create : :update} , html:{class: 'validate-post-type', id: "post_type_form"} do |f| %>
+<%= form_for @post_type, as: "post_type", url:{action: @post_type.new_record? ? :create : :update} , html:{class: 'validate-post-type', id: "post_type_form"} do |f| %>
     <%= f.hidden_field :parent_id  %>
     <%= f.hidden_field :taxonomy %>
     <div class="panel-body">

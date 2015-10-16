@@ -21,7 +21,6 @@ class CamaleonCms::CamaleonController < ApplicationController
   include CamaleonCms::UploaderHelper
   include Mobu::DetectMobile
 
-  prepend_before_action :camaleon_add_view_paths
   prepend_before_action :load_custom_models
   before_action :site_check_existence, except: [:render_error, :captcha]
   before_action :before_actions, except: [:render_error, :captcha]
@@ -92,20 +91,15 @@ class CamaleonCms::CamaleonController < ApplicationController
   end
 
   # add custom views of camaleon
-  def camaleon_add_view_paths
-    self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
-    self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
-
+  def camaleon_add_front_view_paths
     self.prepend_view_path(File.join($camaleon_engine_dir, "app", "views", "camaleon_cms", 'default_theme'))
-    self.prepend_view_path(Rails.root.join("app", "views", "camaleon_cms", 'default_theme'))
-
+    # self.prepend_view_path(Rails.root.join("app", "views", "camaleon_cms", 'default_theme'))
     if current_site.present?
-      views_site_dir = "app/apps/themes/#{current_site.id}/views"
-      self.prepend_view_path(File.join($camaleon_engine_dir, views_site_dir).to_s)
-      self.prepend_view_path(Rails.root.join(views_site_dir).to_s)
-
       if current_theme.present?
-        views_dir = "app/apps/themes/"
+        lookup_context.prefixes.prepend("themes/#{current_theme.folder_name}") if current_theme.settings["gem_mode"]
+        lookup_context.prefixes.prepend("themes/#{current_theme.folder_name}/views") unless current_theme.settings["gem_mode"]
+        lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
+        views_dir = "app/apps/"
         self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
         self.prepend_view_path(Rails.root.join(views_dir).to_s)
       end

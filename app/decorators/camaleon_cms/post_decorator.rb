@@ -38,7 +38,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   # if default is empty, post_type default thumb will be returned
   def the_thumb_url(default = nil)
     th = object.get_meta("thumb")
-    th.present? ? th : (default || object.post_type.get_option('default_thumb', nil) || h.asset_url("image-not-found.png"))
+    th.present? ? th : (default || object.post_type.get_option('default_thumb', nil) || h.asset_url("camaleon_cms/image-not-found.png"))
   end
 
   # check if this page has registered the thumbnail

@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Widget::Assigned < PostDefault
+class CamaleonCms::Widget::Assigned < CamaleonCms::PostDefault
   default_scope ->{ where(post_class: self.name).order(:taxonomy_id) }
   # post_parent: sidebar_id
   # visibility: widget_id

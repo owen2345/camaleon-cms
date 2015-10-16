@@ -1,5 +1,5 @@
 <% widget = assigned.widget %>
-<%= form_for assigned, url: { action: (assigned.new_record? ? "create" : "update"), controller: "admin/appearances/widgets/assign", id: assigned, sidebar_id: assigned.sidebar.id }, html: { role: 'form', class: "validate assign_form", "data-id" => assigned.id, id: "form-assigned-#{assigned.id}" } do |f| %>
+<%= form_for assigned, url: { action: (assigned.new_record? ? "create" : "update"), controller: "camaleon_cms/admin/appearances/widgets/assign", id: assigned, sidebar_id: assigned.sidebar.id }, html: { role: 'form', class: "validate assign_form", "data-id" => assigned.id, id: "form-assigned-#{assigned.id}" } do |f| %>
 
     <input type="hidden" name="assign[widget_id]" value="<%= assigned.widget.id %>" />
     <div class="panel panel-default panel-lite panel-toggled">

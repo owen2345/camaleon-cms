@@ -45,7 +45,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
 
   # only used by form on admin panel (protected)
   def add_fields(items, item_options)
-    ids_old = self.fields.pluck('custom_fields.id')
+    ids_old = self.fields.pluck("#{CamaleonCms::CustomField.table_name}.id")
     ids_saved = []
     order_index = 0
     if items.present?

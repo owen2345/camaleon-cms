@@ -26,6 +26,11 @@ class CamaleonCms::Theme < CamaleonCms::TermTaxonomy
     File.join(self.settings["path"], "views/admin/settings.html.erb").to_s
   end
 
+  # return folder name of this theme
+  def folder_name
+    File.basename(settings["path"])
+  end
+
   private
   def fix_name
     self.name = self.slug unless self.name.present?

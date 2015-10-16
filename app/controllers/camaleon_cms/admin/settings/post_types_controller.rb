@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Admin::Settings::PostTypesController < Admin::SettingsController
+class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::SettingsController
   before_action :set_post_type, only: ['show','edit','update','destroy']
 
   def index

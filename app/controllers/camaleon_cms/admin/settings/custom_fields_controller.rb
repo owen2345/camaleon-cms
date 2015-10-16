@@ -6,8 +6,8 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Admin::Settings::CustomFieldsController < Admin::SettingsController
-  include Admin::CustomFieldsHelper
+class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin::SettingsController
+  include CamaleonCms::Admin::CustomFieldsHelper
   before_action :set_custom_field_group, only: ['show','edit','update','destroy']
 
   def index
@@ -17,8 +17,7 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < Admin::SettingsCont
 
   def get_items
     @key = params[:key]
-
-    render layout: false
+    render partial: "get_items", layout: false
   end
 
   def show
@@ -65,7 +64,6 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < Admin::SettingsCont
   # destroy a custom field group
   def destroy
     @field_group.destroy
-
     redirect_to action: :index
   end
 

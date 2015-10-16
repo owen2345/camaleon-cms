@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Widget::Main < TermTaxonomy
+class CamaleonCms::Widget::Main < CamaleonCms::TermTaxonomy
   default_scope { where(taxonomy: :widget) }
   attr_accessible :excerpt, :renderer
   # name: "title"
