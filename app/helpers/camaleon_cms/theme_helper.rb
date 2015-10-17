@@ -27,7 +27,20 @@ module CamaleonCms::ThemeHelper
   end
   alias_method :theme_asset, :theme_asset_path
   alias_method :theme_gem_asset, :theme_asset_path
-  alias_method :theme_asset_url, :theme_asset_path
+
+  # return the full url for asset of current theme:
+  # asset: (String) asset name
+  # theme_name: (optional) theme name, default (current theme caller to this function)
+  # sample:
+  #   theme_asset_url("css/main.css") => return: http://myhost.com/assets/themes/my_theme/assets/css/main-54505620f.css
+  def theme_asset_url(asset, theme_name = nil)
+    p = theme_asset_path(asset, theme_name)
+    begin
+      asset_url(p)
+    rescue NoMethodError => e
+      p
+    end
+  end
 
   # return theme view path including the path of current theme
   # view_name: name of the view or template

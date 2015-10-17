@@ -6,11 +6,11 @@
       <div class="panel panel-default">
         <div class="panel-heading">
             <h4 class="pull-left"><span class="fa fa-cog"></span> <%= t('camaleon_cms.admin.settings.list_custom_fields_group') %></h4>
-          <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.settings.add_field_group')}"), {action: :new}, class: "btn btn-primary pull-right" %>
+            <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.settings.add_field_group')}"), {action: :new}, class: "btn btn-primary pull-right" %>
         </div>
         <div class="panel-body">
 
-          <table id="table_custom_groups" class="table">
+          <table id="table_custom_groups" class="table table-responsive table-hover table-striped">
             <thead>
             <tr>
               <th><%= t('camaleon_cms.admin.table.id') %></th>

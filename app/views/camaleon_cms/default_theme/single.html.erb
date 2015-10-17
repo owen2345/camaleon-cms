@@ -1,0 +1,40 @@
+<div class="container-fluid">
+    <%= render partial: 'partials/breadcrumb', locals: {breadcrumb: @post.the_breadcrumb} %>
+    <div class="row">
+        <% if @post_type.the_slug == "page" %>
+            <div class="col-md-12 page-view">
+                <article class="post-content">
+                    <h1><%= @post.the_title %></h1>
+                    <div class="item-content">
+                        <%= raw @post.the_content %>
+                    </div>
+
+                    <!-- custom fields -->
+                    <% if @post.render_fields.present? %>
+                        <hr>
+                        <h4><%= ct("extra_attributes") %></h4>
+                        <%= raw @post.render_fields %>
+                    <% end %>
+
+                </article>
+            </div>
+        <% else %>
+            <div class="col-md-9 post-view">
+                <article class="post-content">
+                    <h1><%= raw @post.the_title %></h1>
+                    <div class="author">
+                        <time datetime=""><%= @post.the_created_at %></time>
+                    </div>
+                    <div class="item-content">
+                        <%= raw @post.the_content %>
+                    </div>
+                </article>
+                <%= render partial: 'partials/comments', locals: {post: @post} if @post.can_commented? %>
+            </div>
+            <div class="col-md-3 single-sidebar">
+                <%= render partial: 'partials/sidebar', locals: {post: @post} %>
+            </div>
+        <% end %>
+
+    </div>
+</div>

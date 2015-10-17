@@ -1,7 +1,7 @@
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap">
   <div class="row">
-    <%= form_for @site, url:{action: @site.new_record? ? :create : :update}, html: {class: 'validate'} do |f| %>
+    <%= form_for @site, as: "site", url:{action: @site.new_record? ? :create : :update}, html: {class: 'validate'} do |f| %>
         <div class="col-md-8 col-md-offset-2">
           <div class="panel panel-default">
             <div class="panel-heading">
@@ -10,7 +10,7 @@
             <div class="panel-body">
               <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @site} %>
             <div class="form-group">
-                <%= f.label t('camaleon_cms.admin.table.slug') %><br>
+                <%= f.label t('camaleon_cms.admin.button.domain') %><br>
                 <small><%= t('camaleon_cms.admin.sites.message.enter_key_domain_empty') %></small><br>
                 <%= f.text_field :slug, :class => "form-control required", "data-parent" => "site_name"  %>
             </div>

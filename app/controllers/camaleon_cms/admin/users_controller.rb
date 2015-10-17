@@ -57,7 +57,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
     # update password
     if params[:password]
       if @user.authenticate(params[:password][:password_old])
-        render inline: @user.update(params[:password]) ? nil : @user.errors.full_messages.join(', ')
+        render inline: @user.update(params[:password]) ? "" : @user.errors.full_messages.join(', ')
       else
         render inline: t('camaleon_cms.admin.users.message.incorrect_old_password')
       end

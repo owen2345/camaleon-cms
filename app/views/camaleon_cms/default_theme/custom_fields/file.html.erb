@@ -1,0 +1,3 @@
+<% object.get_fields(field_key).each do |value| %>
+    <a href="<%= value %>" target="_blank" <%= {"target" => "_blank"}.merge(attibutes["attrs"]) %>><%= value.split('/').last %></a>
+<% end %>

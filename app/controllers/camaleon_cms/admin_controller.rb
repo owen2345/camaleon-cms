@@ -13,13 +13,12 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
   end
   include CamaleonCms::Admin::ApplicationHelper
 
-  layout "camaleon_cms/admin"
   before_action :cama_authenticate
   before_action :admin_init_actions
   before_action :admin_logged_actions
   before_action :admin_before_hooks
   after_action :admin_after_hooks
-  # layout Proc.new { |controller| request.headers["X-XHR-Referer"] ? "admin/_ajax" : 'admin' }
+  layout Proc.new { |controller| params[:cama_ajax_request].present? ? "camaleon_cms/admin/_ajax" : 'camaleon_cms/admin' }
 
   # render admin dashboard
   def index
@@ -40,6 +39,24 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
   # render admin dashboard
   def dashboard
     render "index"
+  end
+
+  # render search results
+  # receive params[:q]
+  # receive params[:kind]: define de type of the results type (content|category|tag) => default content
+  # if this is receive a param[:ajax], then will render only results view
+  def search
+    admin_breadcrumb_add(t("camaleon_cms.admin.button.search"))
+    params[:kind] = "content" unless params[:kind].present?
+    case params[:kind]
+      when "category"
+        @items = current_site.full_categories.where("#{CamaleonCms::Category.table_name}.name LIKE ?", "%#{params[:q]}%")
+      when "tag"
+        @items = current_site.post_tags.where("#{CamaleonCms::PostTag.table_name}.name LIKE ?", "%#{params[:q]}%")
+      else
+        @items = current_site.posts.where("#{CamaleonCms::Post.table_name}.title LIKE ?", "%#{params[:q]}%")
+    end
+    @items = @items.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
 
   private

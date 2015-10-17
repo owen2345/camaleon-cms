@@ -10,8 +10,9 @@ module CamaleonCms::CustomFieldsConcern
   # ======================CUSTOM FIELDS=====================================
   # render as html the custom fields marked for frontend
   def render_fields
-    r = cache_var("render_fields") || h.controller.render_to_string(partial: "partials/render_custom_field", :locals => {fields: object.get_fields_object(true)})
-    cache_var("render_fields", r)
+    object.cama_fetch_cache("render_fields") do
+      h.controller.render_to_string(partial: "partials/render_custom_field", :locals => {fields: object.get_fields_object(true)})
+    end
   end
 
   # return custom field content with key field_key

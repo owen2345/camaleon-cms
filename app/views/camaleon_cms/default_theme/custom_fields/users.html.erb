@@ -1,0 +1,3 @@
+<% object.the_fields(field_key).each do |value| p = current_site.users.find(value).decorate rescue nil; next unless p.present? %>
+    <a <%= attibutes["attrs"] %> href="<%= p.the_url %>"><%= p.the_name %></a>
+<% end %>

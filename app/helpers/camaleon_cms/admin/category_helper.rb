@@ -17,7 +17,7 @@ module CamaleonCms::Admin::CategoryHelper
     categories.all.decorate.each do |category|
       options << [("—"*level) + category.the_title, category.id] unless @category.id == category.id
       children = category.children
-      options += category_get_options_html(children, level + 1) if children.size > 0
+      options += cama_category_get_options_html(children, level + 1) if children.size > 0
     end
     options
   end

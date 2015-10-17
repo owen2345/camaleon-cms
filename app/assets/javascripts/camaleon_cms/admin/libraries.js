@@ -7,7 +7,8 @@ function log(d){
 // kind: string kind of message, default danger (success, danger, info, warning)
 jQuery(function(){
     $.fn.flash_message = function(message, kind){
-        if(!kind) kind = "danger";
+        if(!kind) kind = !message ? "success" : "danger";
+        if(!message) message = I18n("msg.success_action", "Action completed successfully.");
         var msg = '<div class="alert alert-'+kind+'"> <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button> '+message+' </div>';
         $(this).prepend(msg);
         return this;

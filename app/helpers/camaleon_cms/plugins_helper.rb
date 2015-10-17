@@ -101,9 +101,24 @@ module CamaleonCms::PluginsHelper
       "plugins/#{folder_name}/assets/#{asset}"
     end
   end
-  alias_method :plugin_asset_url, :plugin_asset_path
   alias_method :plugin_asset, :plugin_asset_path
   alias_method :plugin_gem_asset, :plugin_asset_path
+
+  # return the full url for asset of current plugin:
+  # asset: (String) asset name
+  # plugin_key: (optional) plugin name, default (current plugin caller to this function)
+  # sample:
+  #   plugin_asset_url("css/main.css") => return: http://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
+  def plugin_asset_url(asset, plugin_key = nil)
+    settings = current_plugin(plugin_key || self_plugin_key(1)).settings
+    folder_name = settings["key"]
+    p = settings["gem_mode"] ? "plugins/#{folder_name}/#{asset}" : "plugins/#{folder_name}/assets/#{asset}"
+    begin
+      asset_url(p)
+    rescue NoMethodError => e
+      p
+    end
+  end
 
   # auto load all helpers of this plugin
   def plugin_load_helpers(plugin)

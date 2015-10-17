@@ -5,12 +5,11 @@
       <!-- START BASIC TABLE SAMPLE -->
       <div class="panel panel-default">
         <div class="panel-heading">
-            <h2 class="pull-left"><span class="fa fa-file-o"></span> <%= t('camaleon_cms.admin.users.user_roles')%></h2>
-          <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.users.add_user_role')}"), {action: :new}, class: "btn btn-primary pull-right" %>
+            <h4 class="pull-left"><span class="fa fa-file-o"></span> <%= t('camaleon_cms.admin.users.user_roles')%></h4>
+            <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.users.add_user_role')}"), {action: :new}, class: "btn btn-primary pull-right" %>
         </div>
         <div class="panel-body">
-
-          <table class="table">
+          <table class="table table-responsive table-hover table-striped">
             <thead>
             <tr>
               <th><%= t('camaleon_cms.admin.table.id') %></th>

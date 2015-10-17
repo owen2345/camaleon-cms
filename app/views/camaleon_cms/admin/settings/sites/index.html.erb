@@ -9,8 +9,7 @@
             <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.sites.add_site')}"), {action: :new}, class: "btn btn-primary pull-right" %>
         </div>
         <div class="panel-body">
-
-          <table class="table">
+          <table class="table table-responsive table-hover table-striped">
             <thead>
             <tr>
                 <th><%= t('camaleon_cms.admin.table.id') %></th>
@@ -36,7 +35,7 @@
                                 method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs", title: "#{t('camaleon_cms.admin.button.delete')}" unless current_site.id == f.id %>
                     </td>
                     <td>
-                        <a target="_blank" class="btn btn-info btn-xs" href="<%= f.the_url %>" target="_blank" title="<%= t("common.visit") %>"><i class="fa fa-eye"></i></a>
+                        <a target="_blank" class="btn btn-info btn-xs" href="<%= f.the_url %>" target="_blank" title="<%= t("camaleon_cms.common.visit") %>"><i class="fa fa-eye"></i></a>
                         <a target="_blank" class="btn btn-primary btn-xs" href="<%= f.the_admin_url %>" target="_blank" title="<%= t("camaleon_cms.admin.sidebar.dashboard") %>"><i class="fa fa-dashboard"></i></a>
                     </td>
                 </tr>

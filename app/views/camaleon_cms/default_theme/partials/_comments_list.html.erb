@@ -1,0 +1,21 @@
+<% comments.each do |comment| user = comment.comment_user.decorate %>
+    <div class="row <%= "answer" if children.present? %>">
+        <div class="col-sm-1 <%= "col-md-offset-1" if children.present? %>">
+            <div class="thumbnail">
+                <%= link_to(image_tag(user.the_avatar, class: "img-responsive"), user.the_url) %>
+            </div><!-- /thumbnail -->
+        </div><!-- /col-sm-1 -->
+
+        <div class="col-sm-<%= children.present? ? "8" : "9" %>">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <strong class=""><%= link_to(user.the_name, user.the_url) %></strong> <small class="text-muted pull-right"><%= comment.decorate.the_created_at %></small>
+                </div>
+                <div class="panel-body">
+                    <%= raw comment.content %>
+                </div><!-- /panel-body -->
+            </div><!-- /panel panel-default -->
+        </div><!-- /col-sm-5 -->
+    </div>
+    <%= render partial: "partials/comments_list", locals: { comments: comment.children.approveds, children: "present" }  if comment.children.present? %>
+<% end %>

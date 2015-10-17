@@ -19,7 +19,6 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
 
   # callbacks
 
-  after_create :set_default_options
   before_validation :before_validating
   before_destroy :destroy_dependencies
   # validates

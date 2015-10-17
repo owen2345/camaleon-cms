@@ -19,9 +19,12 @@ jQuery(function(){
     }
 
     // custom alert dialog
+    // show a custom modal box with messages
+    // sample: $.fn.alert({type: 'error', content: 'My error'})
+    // type: error | warning | success
     $.fn.alert = function (options) {
         hideLoading();
-        var default_options = {title: I18n("msg.updated_success"), content: "", type: "success" };
+        var default_options = {title: I18n("msg.updated_success"), type: "success" };
         options = $.extend(default_options, options || {});
         if(options.type == "error") options.type = "danger";
         if(options.type == "alert") options.type = "warning";

@@ -66,16 +66,4 @@ class CamaleonCms::ApplicationDecorator < Draper::Decorator
     _l = (_l || @_deco_locale || I18n.locale).to_s
     "_#{_l}" if _l != "en"
   end
-
-  # save a cache value
-  # var_name: (string) cache var name
-  # value: optional (nil => value getter if not value will be saved)
-  # return value saved or recovered if value argument is nil
-  def cache_var(var_name, value = nil)
-    cache_key = "@cache_#{object.id}_#{object.class.name}_#{var_name}"
-    cache = instance_variable_get(cache_key) rescue nil
-    return cache if value.nil?
-    instance_variable_set(cache_key, value)
-    value
-  end
 end

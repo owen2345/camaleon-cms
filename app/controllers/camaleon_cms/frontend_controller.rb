@@ -211,17 +211,24 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   # if url hasn't a locale, then it will use default locale set on application.rb
   def init_frontent
     # preview theme initializing
-    if signin? && params[:ccc_theme_preview].present? && request.referrer.include?("preview?ccc_theme_preview=") && can?(:manager, :themes)
+    if cama_sign_in? && params[:ccc_theme_preview].present? && request.referrer.include?("preview?ccc_theme_preview=") && can?(:manager, :themes)
       @_current_theme = (current_site.themes.where(slug: params[:ccc_theme_preview]).first_or_create!.decorate)
     end
 
     @_site_options = current_site.options
     I18n.locale = params[:locale] || current_site.get_languages.first
     return page_not_found unless current_site.get_languages.include?(I18n.locale.to_sym) # verify if this locale is available for this site
+
+    # define render paths
     lookup_context.prefixes.delete("frontend")
     lookup_context.prefixes.delete("application")
     lookup_context.prefixes.delete("camaleon_cms/frontend")
     lookup_context.prefixes.delete("camaleon_cms/camaleon")
+
+    lookup_context.prefixes.prepend("camaleon_cms/default_theme")
+    lookup_context.prefixes.prepend("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
+    lookup_context.prefixes.prepend("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
+    lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
 
     theme_init()
     camaleon_add_front_view_paths()

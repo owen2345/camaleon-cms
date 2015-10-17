@@ -1,0 +1,18 @@
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        <div class="card hovercard">
+            <div class="cardheader" style="background: url(<%= asset_path("bg-tree.jpeg") %>) no-repeat center top; height: 200px; margin-bottom: -50px;">
+            </div>
+            <div class="text-center">
+                <div class="avatar text-center">
+                    <img alt="" src="<%= @user.the_avatar %>" class="img-circle" style="max-width: 150px">
+                </div>
+                <h3><%= link_to(@user.username, "#") %></h3>
+                <div class="desc"><%= @user.the_name %></div>
+                <div class="desc"><%= @user.the_role %></div>
+                <div class="desc"><i><%= @user.the_slogan %></i></div>
+                <div class="desc"><i><%= @user.created_at %></i></div>
+            </div>
+        </div>
+    </div>
+</div>

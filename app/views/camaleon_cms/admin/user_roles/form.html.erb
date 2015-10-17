@@ -1,7 +1,7 @@
 <div class="page-title">
   <h2>
     <span class="fa fa-users"></span>
-    <%= t('camaleon_cms.admin.page_title.edit') +  @user_role.name if !@user_role.new_record? %>
+    <%= t('camaleon_cms.admin.page_title.edit') + " " + @user_role.name if !@user_role.new_record? %>
     <%= t('camaleon_cms.admin.users.create_user') if  @user_role.new_record? %>
   </h2>
 </div>
@@ -13,73 +13,70 @@
             <div class="panel-heading ui-draggable-handle">
               <h3 class="panel-title"><%= @user_role.new_record? ? t('camaleon_cms.admin.page_title.add') : t('camaleon_cms.admin.page_title.edit') %> </h3>
             </div>
+            <div class="panel-body">
+              <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @user_role} %>
+                <% rol_values_post_type = @user_role.new_record? ? {} : @user_role.get_meta("_post_type_#{current_site.id.to_s}") %>
+                <% rol_values_manager = @user_role.new_record? ? {} : @user_role.get_meta("_manager_#{current_site.id.to_s}") %>
+              <div id="contents-checkbox" class="form-horizontal">
+                <div class="form-group">
+                   <table class="table table-responsive table-hover table-striped">
+                    <thead>
+                    <tr>
+                      <th style="width: 160px"><h5 ><%= t('camaleon_cms.admin.users.post_types')%></h5></th>
+                      <% cama_get_roles_values[:post_type].each do |value| %>
+                          <th class="
+                            <%= value[:color] %> text-center" style="vertical-align: middle"><%= raw value[:label] %>
+                            <%= raw cama_html_tooltip(value[:description], 'right') if value[:description].present? %>
+                          </th>
+                      <% end %>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      <% current_site.post_types.decorate.each do |pt|
+                      %>
+                        <tr data-id="<%= pt.id %>">
+                          <td>
+                            <%= pt.the_title %>
+                          </td>
 
-                <div class="panel-body">
-                  <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @user_role} %>
-                    <% rol_values_post_type = @user_role.new_record? ? {} : @user_role.get_meta("_post_type_#{current_site.id.to_s}") %>
-                    <% rol_values_manager = @user_role.new_record? ? {} : @user_role.get_meta("_manager_#{current_site.id.to_s}") %>
-                  <div id="contents-checkbox" class="form-horizontal">
-                    <%#= debug cama_get_roles_values %>
-                    <%#= debug rol_values %>
-                    <div class="form-group">
-                       <table class="table table-bordered table-hover">
-                        <thead>
-                        <tr>
-                          <th style="width: 160px"><h5 ><%= t('camaleon_cms.admin.users.post_types')%></h5></th>
                           <% cama_get_roles_values[:post_type].each do |value| %>
-                              <th class="
-                                <%= value[:color] %> text-center" style="vertical-align: middle"><%= raw value[:label] %>
-                                <%= raw cama_html_tooltip(value[:description], 'right') if value[:description].present? %>
-                              </th>
+                              <td class="<%= value[:color] %> text-center">
+                                <%
+                                visible = true
+                                visible = pt.manage_categories? if value[:key] == 'manage_categories'
+                                visible = pt.manage_tags? if value[:key] == 'manage_tags'
+                                values = rol_values_post_type[value[:key].to_sym].to_i rescue 0
+                                values = [] if values == 0
+                                %>
+                                <% if visible %>
+                                    <input type="checkbox" name="rol_values[post_type][<%= value[:key] %>][]" value="<%= pt.id %>" <%= "checked" if values.include?(pt.id)  %> <%= "disabled" unless @user_role.editable?  %> onclick="<%= "do_all_publish(this, '#{value[:color]}', '#{value[:key]}')" %>" >
+                                <% end %>
+                              </td>
                           <% end %>
                         </tr>
-                        </thead>
-                        <tbody>
-                          <% current_site.post_types.decorate.each do |pt|
-                          %>
-                            <tr data-id="<%= pt.id %>">
-                              <td>
-                                <%= pt.the_title %>
-                              </td>
 
-                              <% cama_get_roles_values[:post_type].each do |value| %>
-                                  <td class="<%= value[:color] %> text-center">
-                                    <%
-                                    visible = true
-                                    visible = pt.manage_categories? if value[:key] == 'manage_categories'
-                                    visible = pt.manage_tags? if value[:key] == 'manage_tags'
-                                    values = rol_values_post_type[value[:key].to_sym].to_i rescue 0
-                                    values = [] if values == 0
-                                    %>
-                                    <% if visible %>
-                                        <input type="checkbox" name="rol_values[post_type][<%= value[:key] %>][]" value="<%= pt.id %>" <%= "checked" if values.include?(pt.id)  %> <%= "disabled" unless @user_role.editable?  %> onclick="<%= "do_all_publish(this, '#{value[:color]}', '#{value[:key]}')" %>" >
-                                    <% end %>
-                                  </td>
-                              <% end %>
-                            </tr>
-
-                         <% end  %>
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <div class="form-group">
-                      <h5><%= t('camaleon_cms.admin.users.others_permissions')%></h5>
-                      <div class="row">
-                        <% values = rol_values_manager || {}  %>
-                        <% cama_get_roles_values[:manager].each do |value|  %>
-                            <div class="col-md-4">
-                              <label><input type="checkbox" name="rol_values[manager][<%= value[:key] %>]" value="1" <%= "checked" if values[value[:key].to_sym].present?  %> <%= "disabled" unless @user_role.editable?  %> >&nbsp; <%= raw value[:label] %></label>
-                              &nbsp;<%= raw cama_html_tooltip(value[:description], 'right') if value[:description].present? %>
-                            </div>
-                        <% end %>
-                      </div>
-                    </div>
-                  </div>
-
-
-
+                     <% end  %>
+                    </tbody>
+                  </table>
                 </div>
+
+                <div class="form-group">
+                  <h5><%= t('camaleon_cms.admin.users.others_permissions')%></h5>
+                  <div class="row">
+                    <% values = rol_values_manager || {}  %>
+                    <% cama_get_roles_values[:manager].each do |value|  %>
+                        <div class="col-md-4">
+                          <label><input type="checkbox" name="rol_values[manager][<%= value[:key] %>]" value="1" <%= "checked" if values[value[:key].to_sym].present?  %> <%= "disabled" unless @user_role.editable?  %> >&nbsp; <%= raw value[:label] %></label>
+                          &nbsp;<%= raw cama_html_tooltip(value[:description], 'right') if value[:description].present? %>
+                        </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+
+
+
+            </div>
             <% if @user_role.editable? %>
                 <div id="checked-actions" class="panel-footer text-right">
                   <a class="btn btn-default btn-sm" data-type="all" href="#"><%= t('camaleon_cms.admin.button.select_all') %></a>

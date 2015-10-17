@@ -1,0 +1,57 @@
+
+
+<% fields.each do |slug, field|
+  field_key = field[:options][:field_key]
+%>
+    <div class="field-box field-<%= slug %> field-type-<%= field_key %>">
+      <strong><%= field[:name] %></strong><br/>
+      <%
+         values = field[:values].is_a?(Array) ? field[:values] : [field[:values]]
+      %>
+      <div class="field-box-item">
+        <% values.each do |value|
+          value = value.to_s.translate if field[:options][:translate].to_s.to_bool
+        %>
+
+            <% case field[:options][:field_key] %>
+                <% when 'text_box','text_area', 'select','radio','checkbox','colorpicker','date','email','numeric', 'phone' %>
+                    <p><%= value %></p>
+                <% when 'editor' %>
+                    <div><%= raw value %></div>
+                <% when 'image' %>
+                    <p>
+                        <%= link_to(image_tag(value, style: "max-height: 100px;"), value) %>
+                    </p>
+                <% when 'audio' %>
+                    <p>
+                      <audio src="<%= value %>" controls ></audio>
+                    </p>
+                <% when 'video' %>
+                    <p>
+                      <video src="<%= value %>" controls ></video>
+                    </p>
+                <% when 'file' %>
+                    <p><a href="<%= value %>" target="_blank"><%= value.split('/').last %></a></p>
+                <% when 'url' %>
+                    <p><a href="<%= value %>" target="_blank"><%= value %></a></p>
+                <% when 'users'
+                    user = current_site.users.find(value) rescue {}
+                %>
+                    <p><%= user.fullname if user.present? %></p>
+                <% when 'posts'
+                    post = current_site.posts.find(value) rescue {}
+                %>
+                    <p><%= post.decorate.the_title if post.present? %></p>
+                <% when 'field_attrs'
+                    post = JSON.parse(value) rescue {}
+                %>
+                    <p><%= raw("<strong>#{post['attr']}: </strong>#{post['attr']}") if post.present? %></p>
+                <% else %>
+                    <p><%= value %></p>
+            <% end %>
+        <% end %>
+      </div>
+
+    </div>
+<% end %>
+<%#= debug fields %>

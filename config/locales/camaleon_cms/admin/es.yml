@@ -57,6 +57,7 @@ es:
        out_yes: 'Si'
        out_not: 'No'
        domain: "Dominio"
+       search: "Buscar"
       comments:
         comments_list_post: 'Lista Comentarios de Articulos'
         responses: 'Respuestas'

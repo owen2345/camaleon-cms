@@ -92,18 +92,13 @@ class CamaleonCms::CamaleonController < ApplicationController
 
   # add custom views of camaleon
   def camaleon_add_front_view_paths
-    # self.prepend_view_path(File.join($camaleon_engine_dir, "app", "views", "camaleon_cms", 'default_theme'))
-    # self.prepend_view_path(Rails.root.join("app", "views", "camaleon_cms", 'default_theme'))
     if current_site.present?
       if current_theme.present?
-        # lookup_context.prefixes.prepend("camaleon_cms/default_theme")
-        lookup_context.prefixes.prepend("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
-        lookup_context.prefixes.prepend("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
-        lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
         views_dir = "app/apps/"
         self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
         self.prepend_view_path(Rails.root.join(views_dir).to_s)
       end
     end
+    ActionView::PartialRenderer
   end
 end

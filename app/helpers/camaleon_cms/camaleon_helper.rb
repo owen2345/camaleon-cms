@@ -57,7 +57,7 @@ module CamaleonCms::CamaleonHelper
     r = {flag: false, key: key, translation: "", locale: language.to_sym}
     hooks_run("on_translation", r)
     return r[:translation] if r[:flag]
-    translate("common.#{key}", locale: language)
+    translate("camaleon_cms.common.#{key}", locale: language)
   end
 
   # check if current request was for admin panel

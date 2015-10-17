@@ -28,10 +28,13 @@ module CamaleonCms::Admin::ApplicationHelper
   # render pagination for current items
   # items is a will pagination object
   # sample: <%= raw cama_do_pagination(@posts) %>
-  def cama_do_pagination(items)
-    "<div class='row' class='pagination_panel'>
+  def cama_do_pagination(items, *will_paginate_options)
+    will_paginate_options = will_paginate_options.extract_options!
+    custom_class = will_paginate_options[:panel_class]
+    will_paginate_options.delete(:panel_class)
+    "<div class='row #{custom_class} pagination_panel'>
         <div class='col-md-6'>
-          #{will_paginate items }
+          #{will_paginate items, will_paginate_options }
         </div>
         <div class='col-md-6 text-right total-items'>
           <strong>Total: #{items.total_entries} </strong>

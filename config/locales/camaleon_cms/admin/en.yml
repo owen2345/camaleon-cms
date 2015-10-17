@@ -58,6 +58,7 @@ en:
        out_yes: 'Yes'
        out_not: 'No'
        domain: "Domain"
+       search: "Search"
       comments:
         comments_list_post: 'List Comments Post'
         responses: 'Responses'
@@ -381,7 +382,7 @@ en:
           updated: 'The site has been updated.'
           deleted: 'Correct Deleted'
           enter_key_domain: 'Enter a key or a domain'
-          enter_key_domain_empty: 'Enter a key or a domain'
+          enter_key_domain_empty: 'Enter a key (site2) or a domain (my_domain.com). Key will be the name of your subdomain.'
       signin:
         message:
           enter_username_password: 'You must enter a username and/or password'
