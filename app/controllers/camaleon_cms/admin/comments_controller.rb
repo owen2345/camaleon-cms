@@ -7,43 +7,47 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
+  include CamaleonCms::CommentHelper
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.comments"), :admin_comments_url
   before_action :validate_role
-  before_action :set_comment, only: ['show','edit','update','destroy']
-  def index
+  before_action :set_post, except: :list
+  before_action :set_comment, except: [:list, :index, :new, :create]
+  def list
     @posts = current_site.posts.no_trash.joins(:comments).select("#{CamaleonCms::Post.table_name}.*, #{CamaleonCms::PostComment.table_name}.post_id").order("#{CamaleonCms::PostComment.table_name}.post_id").paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
 
-  def edit
-    render 'form'
+  # list of post comments for current post
+  def index
+    @comments = @post.comments.main.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
 
-  def responses
-    @comments = current_site.posts.find(params[:post_id]).comments.main
-    if params[:post_comment].present?
-      comment_data = params[:post_comment]
-      comment_data[:post_id] = params[:post_id]
-      comment_data[:user_id] = current_user.id
-      comment_data[:author] = current_user.the_name
-      comment_data[:author_email] = current_user.email
-      comment_data[:author_url] = ""
-      comment_data[:author_IP] = request.remote_ip.to_s
-      comment_data[:approved] = "approved"
-      comment_data[:agent] = request.user_agent.force_encoding("ISO-8859-1").encode("UTF-8")
-      @comment = @comments.new(comment_data)
-      if @comment.save
-        flash[:notice] = t('camaleon_cms.admin.comments.message.responses')
-        redirect_to action: :responses, post_id: params[:post_id]
-      else
-        render 'reply'
-      end
-    else
-      render 'reply'
-    end
+  def edit
+    render 'form', layout: false
+  end
+
+  # render a form to register a new comment
+  def answer
+    @answer = @comment.children.new
+    render 'form_answer', layout: false
+  end
+
+  # save a new anwer for this comment
+  def save_answer
+    answer = @comment.children.create(cama_comments_get_common_data.merge({post_id: @post.id, content: params[:comment][:content]}))
+    flash[:notice] = t('camaleon_cms.admin.comments.message.responses')
+    redirect_to action: :index
+  end
+
+  # toggle status of a comment
+  def toggle_status
+    _s = {a: "approved", s: "spam", p: "pending"}
+    @comment.update(approved: _s[params[:s].to_sym])
+    params[:notice] = t('camaleon_cms.admin.comments.message.change_status')
+    redirect_to action: :index
   end
 
   def update
-    if @comment.update(params[:post_comment])
-      # @comment.set_meta_from_form(params[:meta])
+    if @comment.update(content: params[:comment][:content])
       flash[:notice] = t('camaleon_cms.admin.comments.message.updated')
       redirect_to action: :index
     else
@@ -52,55 +56,34 @@ class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
   end
 
   def new
-    @comment = PostComment.new
-    render 'form'
+    @comment = @post.comments.new
+    render 'form', layout: false
   end
 
   def create
-    comment_data = params[:post_comment]
-
-    @comment = PostComment.new(comment_data)
-    if @comment.save
-      flash[:notice] = t('camaleon_cms.admin.comments.message.created')
-      redirect_to action: :index
-    else
-      render 'form'
-    end
+    comment = @post.comments.create(cama_comments_get_common_data.merge({post_id: @post.id, content: params[:comment][:content]}))
+    flash[:notice] = t('camaleon_cms.admin.comments.message.responses')
+    redirect_to action: :index
   end
 
   def destroy
     flash[:notice] = t('camaleon_cms.admin.comments.message.destroy') if @comment.destroy
-
     redirect_to action: :index
   end
 
-  def delete
-    @comment_delete = PostComment.find(params[:answers_id])
-    @comment_delete.destroy
-    params[:notice] = t('camaleon_cms.admin.comments.message.deleted')
-    render json: params
-  end
-
-  def destroy_comments
-    CamaleonCms::Post.find(params[:post_id]).comments.destroy_all
-    params[:notice] = t('camaleon_cms.admin.comments.message.destroy_comments')
-    redirect_to action: :index
-  end
-
-  # change status comments param =  params[:answers_id]
-  def change_status
-    @comment_update = PostComment.find(params[:answers_id])
-    @comment_update.update_column('approved', params[:approved])
-
-    params[:notice] = t('camaleon_cms.admin.comments.message.change_status')
-    render json: params
-  end
 
   private
+  # define the parent post
+  def set_post
+    @post = current_site.posts.find(params[:post_id]).decorate
+    add_breadcrumb I18n.t("camaleon_cms.admin.table.post")
+    add_breadcrumb @post.the_title, @post.the_edit_url
+  end
 
+  # define the parent or current comment
   def set_comment
     begin
-      @comment = PostComment.find(params[:id])
+      @comment = @post.comments.find(params[:id] || params[:comment_id])
     rescue
       flash[:error] = t('camaleon_cms.admin.comments.message.error')
       redirect_to admin_path

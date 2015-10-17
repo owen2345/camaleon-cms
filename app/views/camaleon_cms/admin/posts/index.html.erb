@@ -1,7 +1,7 @@
 <div class="panel panel-default">
     <div class="panel-heading">
         <h4 class="pull-left"><%= t('camaleon_cms.admin.page_title.list_of') %> <%= @post_type.the_title.pluralize %>
-            <b>(slug = <%= @post_type.the_slug %>)</b></h4>
+        <b>(slug = <%= @post_type.the_slug %>)</b></h4>
         <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.post_type.add')} #{@post_type.the_title}"), {action: :new}, class: "btn btn-primary pull-right" if can? :create_post, @post_type %>
     </div>
     <div class="panel-body">
@@ -13,8 +13,7 @@
                 <form action="<%= url_for(action: :index) %>" method="get">
                     <div class="input-group">
                         <input type="text" class="form-control" name="q" value="<%= params[:q] %>">
-                                    <span class="input-group-btn"><button class="btn btn-default" type="submit">
-                                        <i class="fa fa-search"></i></button></span>
+                        <span class="input-group-btn"><button class="btn btn-default" type="submit"><i class="fa fa-search"></i></button></span>
                     </div>
                 </form>
             </div>

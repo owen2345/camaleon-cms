@@ -61,13 +61,13 @@ Rails.application.routes.draw do
         resources :sites
       end
 
-      resources :comments, controller: 'comments' do
-        collection do
-          match 'responses', via: [:get, :post, :patch]
-          delete 'destroy_comments' => 'comments#destroy_comments'
-          post 'delete' => 'comments#delete'
+      get "comments" => "comments#list"
+      resources :posts, only: [] do
+        resources :comments, controller: 'comments' do
+          get "answer"
+          post "save_answer"
+          get "toggle_status"
         end
-        post 'change_status' => 'comments#change_status'
       end
 
       namespace :appearances do

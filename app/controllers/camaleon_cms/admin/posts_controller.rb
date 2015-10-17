@@ -7,6 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.contents")
   before_action :set_post_type, :except => [:ajax]
   before_action :set_post, only: ['show','edit','update','destroy']
   skip_before_filter :admin_logged_actions, only: [:trash, :restore, :destroy, :ajax]
@@ -16,8 +17,19 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     authorize! :posts, @post_type
     posts_all = @post_type.posts
     if params[:taxonomy].present? && params[:taxonomy_id].present?
-      posts_all = current_site.full_categories.find(params[:taxonomy_id]).posts if params[:taxonomy] == "category"
-      posts_all = current_site.post_tags.find(params[:taxonomy_id]).posts if params[:taxonomy] == "post_tag"
+      if params[:taxonomy] == "category"
+        cat_owner = current_site.full_categories.find(params[:taxonomy_id]).decorate
+        posts_all = cat_owner.posts
+        add_breadcrumb t("camaleon_cms.admin.post_type.category"), @post_type.the_admin_url("category")
+        add_breadcrumb cat_owner.the_title, cat_owner.the_edit_url
+      end
+
+      if params[:taxonomy] == "post_tag"
+        tag_owner = current_site.post_tags.find(params[:taxonomy_id]).decorate
+        posts_all = tag_owner.posts
+        add_breadcrumb t("camaleon_cms.admin.post_type.tags"), @post_type.the_admin_url("tag")
+        add_breadcrumb tag_owner.the_title, tag_owner.the_edit_url
+      end
     end
 
     if params[:q].present?
@@ -26,6 +38,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
 
     @posts = posts_all
     params[:s] = 'published' unless params[:s].present?
+    add_breadcrumb I18n.t("camaleon_cms.admin.post_type.#{params[:s]}") if params[:s].present?
     case params[:s]
       when "published", "pending", "draft", "trash"
         @posts = @posts.where(status:  params[:s])
@@ -45,6 +58,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   end
 
   def new
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.new")
     authorize! :create_post, @post_type
     @post_form_extra_settings = []
     @post ||= @post_type.posts.new
@@ -79,6 +93,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   end
 
   def edit
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.edit")
     authorize! :update, @post
     @post_form_extra_settings = []
     r = {post: @post, post_type: @post_type, extra_settings: @post_form_extra_settings, render: "form"}; hooks_run("edit_post", r)
@@ -165,14 +180,15 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   end
 
   private
-
+  # define post type parent
   def set_post_type
-      @post_type = current_site.post_types.find_by_id(params[:post_type_id] )
-      unless @post_type.present?
-        flash[:error] =  t('camaleon_cms.admin.post.message.error_post_type', post_type: @post_type.decorate.the_title)
-        redirect_to admin_path, {error: 'Error Post Type'}
-      end
+    @post_type = current_site.post_types.find_by_id(params[:post_type_id] )
+    unless @post_type.present?
+      flash[:error] =  t('camaleon_cms.admin.request_error_message')
+      redirect_to admin_path
+    end
     @post_type = @post_type.decorate
+    add_breadcrumb @post_type.the_title, @post_type.the_admin_url
   end
 
   def set_post

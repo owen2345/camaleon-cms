@@ -6,7 +6,9 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::Admin::AppearancesController
+class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminController
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.appearance")
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.menus")
   def menu
     authorize! :manager, :menu
     unless params[:new].present?

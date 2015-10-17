@@ -15,7 +15,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   end
 
   def profile
-    @user = current_user.object
+    @user = params[:user_id].present? ? current_site.the_user(params[:user_id].to_i).object : current_user.object
     return edit
   end
 

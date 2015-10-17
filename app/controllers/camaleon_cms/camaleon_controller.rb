@@ -66,6 +66,11 @@ class CamaleonCms::CamaleonController < ApplicationController
     hooks_run("app_before_load")
 
     request.env.except!('HTTP_X_FORWARDED_HOST') if request.env['HTTP_X_FORWARDED_HOST'] # just drop the variable
+
+    # past plugins versio support
+    self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
+    self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
+
   end
 
   # initialize ability for current user
@@ -99,6 +104,5 @@ class CamaleonCms::CamaleonController < ApplicationController
         self.prepend_view_path(Rails.root.join(views_dir).to_s)
       end
     end
-    ActionView::PartialRenderer
   end
 end

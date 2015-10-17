@@ -3,6 +3,7 @@ es:
   camaleon_cms:
     welcome_message: "Bienvenido a Camaleon CMS"
     admin:
+      request_error_message: "Un error a ocurrido, por favor contacte con el administrador."
       button:
        activity: 'Actividad'
        add_new_field: 'Añadir nuevo campo'
@@ -24,6 +25,7 @@ es:
        disable_plugin: 'Desactivar Plugin'
        enter: 'Entrar'
        edit: 'Editar'
+       new: 'Nuevo'
        following: 'Following'
        log_in: 'Ingresar'
        move_trash: 'Mover a papelera'
@@ -61,6 +63,7 @@ es:
       comments:
         comments_list_post: 'Lista Comentarios de Articulos'
         responses: 'Respuestas'
+        new_msg: "Nuevo Comentario para este Contenido"
         message:
           approved: 'Aprobado'
           change_status: 'El estado de respuesta se ha cambiado a '
@@ -350,6 +353,7 @@ es:
         appearance: 'Apariencia'
         comments: 'Comentarios'
         content: 'Contenido'
+        contents: 'Contenidos'
         custom_fields: 'Campos Personalizados'
         dashboard: 'Escritorio'
         general_site: 'Sitio General'

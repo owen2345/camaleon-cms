@@ -2,7 +2,7 @@ jQuery(function($){
     // initialize all validations for forms
     init_form_validations();
     setTimeout(page_actions, 1000);
-    setTimeout(start_cama_ajax_requestor, 500);
+    //setTimeout(start_cama_ajax_requestor, 500);
     if(!$("body").attr("data-intro")) setTimeout(init_intro, 500);
 });
 

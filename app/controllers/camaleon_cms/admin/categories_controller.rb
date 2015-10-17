@@ -7,6 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.contents")
   before_action :set_post_type
   before_action :set_category, only: ['show','edit','update','destroy']
 
@@ -21,6 +22,7 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
 
   def edit
     admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
+    add_breadcrumb t("camaleon_cms.admin.button.edit")
   end
 
   def update
@@ -54,9 +56,16 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
   end
 
   private
-
+  # define parent post type
   def set_post_type
-    @post_type = current_site.post_types.find_by_id(params[:post_type_id])
+    begin
+      @post_type = current_site.post_types.find_by_id(params[:post_type_id]).decorate
+    rescue
+      flash[:error] =  t('camaleon_cms.admin.request_error_message')
+      redirect_to admin_path, {error: 'Error Post Type'}
+    end
+    add_breadcrumb @post_type.the_title, @post_type.the_admin_url
+    add_breadcrumb t("camaleon_cms.admin.table.categories"), url_for({action: :index})
     authorize! :categories, @post_type
   end
 

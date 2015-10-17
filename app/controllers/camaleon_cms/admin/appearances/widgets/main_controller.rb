@@ -6,8 +6,10 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Admin::Appearances::Widgets::MainController < CamaleonCms::Admin::AppearancesController
+class CamaleonCms::Admin::Appearances::Widgets::MainController < CamaleonCms::AdminController
   before_action :check_permission_role
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.appearance")
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.widgets")
 
   def index
     @widgets = current_site.widgets

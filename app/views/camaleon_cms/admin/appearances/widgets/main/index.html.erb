@@ -1,21 +1,12 @@
-<script>
-    var url_assign_widget_sidebar = '<%= new_admin_appearances_widgets_sidebar_assign_path(sidebar_id: -1) %>';
-    var sidebar_reorder_url = '<%= admin_appearances_widgets_sidebar_reorder_path(sidebar_id: -1) %>';
-</script>
-<%= javascript_include_tag "camaleon_cms/admin/widgets" %>
-<%#= stylesheet_link_tag "admin/widgets" %>
 <% add_asset_library('tinymce') %>
-<div class="page-title">
-    <h2><span class="fa fa-archive"></span>  <%= t('camaleon_cms.admin.sidebar.widgets') %>
-    </h2>
-</div>
-<div class="page-content-wrap">
-
-    <div class="row">
+<script> jQuery(function(){ $("#content-widget .ajax_link, #content-sidebar .ajax_link, #new_widget_link", "#view_widget_list").ajax_modal(); }); </script>
+<div class="panel panel-default" id="view_widget_list">
+    <div class="panel-heading">
+        <h4 class="pull-left"><span class="fa fa-archive"></span>  <%= t('camaleon_cms.admin.sidebar.widgets') %></h4>
+        <a id="new_widget_link" href="<%= new_admin_appearances_widgets_main_path %>" class="ajax_link btn btn-primary pull-right"><%= t('camaleon_cms.admin.widgets.create_widget') %></a>
+    </div>
+    <div class="panel-body">
         <div id="content-widget" class="col-md-12">
-            <div class="text-right">
-                <a href="<%= new_admin_appearances_widgets_main_path %>" title="<%= t('camaleon_cms.admin.widgets.create_widget') %>" class="ajax_link btn btn-primary"><%= t('camaleon_cms.admin.widgets.create_widget') %></a>
-            </div>
             <div class="panel panel-colorful">
                 <div class="panel-body">
                     <h2 class="panel-title"><%= t('camaleon_cms.admin.widgets.simple_widgets')%> </h2><br><br>
@@ -31,28 +22,7 @@
                                             </div>
                                             <%= link_to raw('<span class="fa fa-edit"></span>'), { action: :edit, id: item.id }, class: "ajax_link edit_link", title: "#{t('camaleon_cms.admin.button.edit')}" %>
                                             <%= link_to raw('<span class="fa fa-times"></span>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "del_link", title: "#{t('camaleon_cms.admin.button.delete')}" %>
-                                            <div class="small-box-footer" style="font-size:11px;"><%= item.short_code %></div>
-                                        </div>
-                                    </div>
-                                <% end %>
-                            <% end %>
-                        <% else %>
-                            <h6><%= t('camaleon_cms.admin.widgets.message.not_registered_widgets')%></h6>
-                        <% end %>
-                    </div>
-                    <hr>
-                    <h2 class="panel-title"><%= t('camaleon_cms.admin.widgets.complex_widgets')%></h2><br><br>
-                    <div class="widgets-available row">
-                        <% if @widgets.size > 0 %>
-                            <% @widgets.each do |item| %>
-                                <% unless item.is_simple? %>
-                                    <div class="panel-widget col-md-3" data-id=<%= item.id %> >
-                                        <div class="small-box <%= ["bg-green", "bg-aqua", "bg-yellow", "bg-red"].sample %>" data-id="<%= item.id %>">
-                                            <div class="inner">
-                                                <h4><%= item.name %></h4>
-                                                <p><%= item.excerpt %></p>
-                                            </div>
-                                            <div class="informer informer-default dir-bl shortcode" style="font-size:11px;"><%= item.short_code %></div>
+                                            <div class="small-box-footer" style="font-size:11px;"><code><%= item.short_code %></code></div>
                                         </div>
                                     </div>
                                 <% end %>
@@ -64,6 +34,5 @@
                 </div>
             </div>
         </div>
-        <%#= render "sidebar" %>
     </div>
 </div>

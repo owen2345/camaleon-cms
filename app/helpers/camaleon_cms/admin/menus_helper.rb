@@ -27,7 +27,7 @@ module CamaleonCms::Admin::MenusHelper
       end
       items << {icon: "copy", title: pt.the_title, url: "", items: items_i } if items_i.present? #if can? :posts, pt
     end
-    admin_menu_add_menu("content", {icon: "database", title: t('camaleon_cms.admin.sidebar.content'), url: "", items: items, datas: "data-intro='#{t("admin.intro.content")}' data-position='right' data-wait='600'"}) if items.present?
+    admin_menu_add_menu("content", {icon: "database", title: t('camaleon_cms.admin.sidebar.contents'), url: "", items: items, datas: "data-intro='#{t("admin.intro.content")}' data-position='right' data-wait='600'"}) if items.present?
     #end
 
     admin_menu_add_menu("media", {icon: "picture-o", title: t('camaleon_cms.admin.sidebar.media'), url: admin_media_path, datas: "data-intro='#{t("admin.intro.media")}' data-position='right'"}) if can? :manager, :media

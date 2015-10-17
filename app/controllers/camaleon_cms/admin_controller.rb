@@ -19,9 +19,11 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
   before_action :admin_before_hooks
   after_action :admin_after_hooks
   layout Proc.new { |controller| params[:cama_ajax_request].present? ? "camaleon_cms/admin/_ajax" : 'camaleon_cms/admin' }
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.dashboard"), :admin_path
 
   # render admin dashboard
   def index
+    render "dashboard"
   end
 
   # ajax requests for admin panel
@@ -38,7 +40,7 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
 
   # render admin dashboard
   def dashboard
-    render "index"
+    index
   end
 
   # render search results
@@ -46,7 +48,7 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
   # receive params[:kind]: define de type of the results type (content|category|tag) => default content
   # if this is receive a param[:ajax], then will render only results view
   def search
-    admin_breadcrumb_add(t("camaleon_cms.admin.button.search"))
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.search")
     params[:kind] = "content" unless params[:kind].present?
     case params[:kind]
       when "category"

@@ -14,6 +14,7 @@ require 'will_paginate'
 require 'will_paginate-bootstrap'
 require 'doorkeeper'
 require 'responders'
+require 'breadcrumbs_on_rails'
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s

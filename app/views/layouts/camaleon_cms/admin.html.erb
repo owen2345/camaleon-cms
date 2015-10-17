@@ -29,8 +29,8 @@
     <%= raw cama_content_before_draw %>
     <div class="wrapper">
 
-        <%= render partial: "layouts/camaleon_cms//admin/header" %>
-        <%= render partial: "layouts/camaleon_cms//admin/sidebar", locals: {_admin_menu_draw: _admin_menu_draw} %>
+        <%= render partial: "layouts/camaleon_cms/admin/header" %>
+        <%= render partial: "layouts/camaleon_cms/admin/sidebar", locals: {_admin_menu_draw: _admin_menu_draw} %>
 
         <div class="content-wrapper">
             <!-- Content Header (Page header) -->
@@ -43,6 +43,7 @@
             <!-- Main content -->
             <!-- box box-info -->
             <section class="content" id="admin_content">
+                <ol class="breadcrumb"><%= render_breadcrumbs :tag => :li, :separator => "" %></ol>
                 <%= render "/layouts/camaleon_cms/admin/flash_messages" %>
                 <%= yield %>
             </section>

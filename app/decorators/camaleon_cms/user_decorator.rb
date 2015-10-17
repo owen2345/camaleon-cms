@@ -56,6 +56,11 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
     h.cama_url_to_fixed("profile_#{as_path.present? ? "path" : "url"}", args)
   end
 
+  # return the url for the profile in the admin module
+  def the_admin_profile_url
+    h.admin_profile_url(object.id)
+  end
+
   # return all contents created by this user in current site
   def the_contents
     h.current_site.posts.where(user_id: object.id)

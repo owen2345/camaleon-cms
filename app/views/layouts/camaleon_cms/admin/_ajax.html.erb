@@ -1,9 +1,4 @@
-<% admin_menu_draw %>
-<!-- Content Header (Page header) -->
-<section class="content-header">
-    <ol class="breadcrumb">
-        <%= raw admin_breadcrumb_draw() %>
-    </ol>
-</section>
+<ol class="breadcrumb"><%= render_breadcrumbs :tag => :li, :separator => "" %></ol>
+<%= render "/layouts/camaleon_cms/admin/flash_messages" %>
 <%= cama_draw_custom_assets %>
 <%= yield %>

@@ -6,9 +6,11 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class CamaleonCms::Admin::Appearances::ThemesController < CamaleonCms::Admin::AppearancesController
+class CamaleonCms::Admin::Appearances::ThemesController < CamaleonCms::AdminController
   # list themes or update a theme status
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.appearance")
   def index
+    add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.themes")
     PluginRoutes.reload
     authorize! :manager, :themes
     if params[:set].present?

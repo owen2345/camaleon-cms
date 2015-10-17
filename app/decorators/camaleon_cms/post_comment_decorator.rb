@@ -16,8 +16,9 @@ class CamaleonCms::PostCommentDecorator < Draper::Decorator
 
   # return owner of this comment
   def the_user
-    object.user
+    object.user.decorate
   end
+  alias_method :the_author, :the_user
 
   def the_content
     object.content
