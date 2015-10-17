@@ -5,8 +5,10 @@
       <!-- START BASIC TABLE SAMPLE -->
       <div class="panel panel-default">
         <div class="panel-heading">
-            <h4 class="pull-left"><span class="fa fa-cog"></span> <%= t('camaleon_cms.admin.settings.list_custom_fields_group') %></h4>
-            <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.settings.add_field_group')}"), {action: :new}, class: "btn btn-primary pull-right" %>
+            <div class="col-md-12">
+                <h4 class="pull-left"><span class="fa fa-cog"></span> <%= t('camaleon_cms.admin.settings.list_custom_fields_group') %></h4>
+                <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.settings.add_field_group')}"), {action: :new}, class: "btn btn-primary pull-right" %>
+            </div>
         </div>
         <div class="panel-body">
 

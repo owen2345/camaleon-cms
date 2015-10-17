@@ -6,7 +6,7 @@
         <div class="content-frame-body col-md-9">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h4 class="pull-left">
+                    <h4>
                         <span class="fa fa-file-o"></span>
                         <% if !@post.new_record? %>
                             <%= "#{t('camaleon_cms.admin.page_title.edit')} #{@post_type.the_title}: #{@post_decorate.the_title}" %> <%= raw @post_decorate.the_status.html_safe %>
