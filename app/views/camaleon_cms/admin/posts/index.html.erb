@@ -1,9 +1,11 @@
 <div class="panel panel-default">
     <div class="panel-heading">
-        <div class="col-md-12">
-            <h4 class="pull-left"><%= t('camaleon_cms.admin.page_title.list_of') %> <%= @post_type.the_title.pluralize %>
-            <b>(slug = <%= @post_type.the_slug %>)</b></h4>
-            <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.post_type.add')} #{@post_type.the_title}"), {action: :new}, class: "btn btn-primary pull-right" if can? :create_post, @post_type %>
+        <div class="row">
+            <div class="col-md-12">
+                <h4 class="pull-left"><%= t('camaleon_cms.admin.page_title.list_of') %> <%= @post_type.the_title.pluralize %>
+                <b>(slug = <%= @post_type.the_slug %>)</b></h4>
+                <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.post_type.add')} #{@post_type.the_title}"), {action: :new}, class: "btn btn-primary pull-right" if can? :create_post, @post_type %>
+            </div>
         </div>
     </div>
     <div class="panel-body">

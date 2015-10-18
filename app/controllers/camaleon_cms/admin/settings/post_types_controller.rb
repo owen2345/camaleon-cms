@@ -8,17 +8,19 @@
 =end
 class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::SettingsController
   before_action :set_post_type, only: ['show','edit','update','destroy']
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.content_groups"), :admin_settings_post_types_path
 
   def index
     @post_types = current_site.post_types
-
     @post_types = @post_types.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
+    render "index"
   end
 
   def show
   end
 
   def edit
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.edit")
     admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
   end
 
@@ -28,7 +30,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
       redirect_to action: :index
     else
-      render 'edit'
+      edit
     end
   end
 
@@ -40,7 +42,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
       flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
       redirect_to action: :index
     else
-      render 'edit'
+      index
     end
   end
 

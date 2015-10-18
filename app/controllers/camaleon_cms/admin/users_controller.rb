@@ -8,31 +8,29 @@
 =end
 class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   before_action :validate_role, except: [:profile, :profile_edit]
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.users"), :admin_users_url
   before_action :set_user, only: ['show', 'edit', 'update', 'destroy']
 
   def index
+    add_breadcrumb I18n.t("camaleon_cms.admin.users.list_users")
     @users = current_site.users.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
 
   def profile
+    add_breadcrumb I18n.t("camaleon_cms.admin.users.profile")
     @user = params[:user_id].present? ? current_site.the_user(params[:user_id].to_i).object : current_user.object
     return edit
   end
 
   def profile_edit
+    add_breadcrumb I18n.t("camaleon_cms.admin.users.profile")
     @user = current_user.object
     return edit
   end
 
   def show
+    add_breadcrumb I18n.t("camaleon_cms.admin.users.profile")
     render 'profile'
-  end
-
-  def edit
-    admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
-    r = {user: @user, render: 'form' }
-    hooks_run('user_edit', r)
-    render r[:render]
   end
 
   def update
@@ -64,9 +62,20 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
     end
   end
 
+  def edit
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.edit")
+    admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
+    r = {user: @user, render: 'form' }
+    hooks_run('user_edit', r)
+    render r[:render]
+  end
+
   def new
-    @user = current_site.users.new
-    edit
+    @user ||= current_site.users.new
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.new")
+    r = {user: @user, render: 'form' }
+    hooks_run('user_new', r)
+    render r[:render]
   end
 
   def create
@@ -78,7 +87,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
       flash[:notice] = t('camaleon_cms.admin.users.message.created')
       redirect_to action: :index
     else
-      render 'form'
+      new
     end
   end
 

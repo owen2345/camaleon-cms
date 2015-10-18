@@ -9,6 +9,7 @@
 class CamaleonCms::Admin::Settings::SitesController < CamaleonCms::Admin::SettingsController
   before_action :set_site, only: ['show','edit','update','destroy']
   before_action :check_shared_status
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.sites"), :admin_settings_sites_path
   def index
     @sites = CamaleonCms::Site.all.order(:term_group)
     @sites = @sites.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
@@ -21,6 +22,7 @@ class CamaleonCms::Admin::Settings::SitesController < CamaleonCms::Admin::Settin
   end
 
   def edit
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.edit")
     admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
     render 'form'
   end
@@ -31,12 +33,13 @@ class CamaleonCms::Admin::Settings::SitesController < CamaleonCms::Admin::Settin
       flash[:notice] = t('camaleon_cms.admin.sites.message.updated')
       redirect_to action: :index
     else
-      render 'form'
+      edit
     end
   end
 
   def new
-    @site = CamaleonCms::Site.new.decorate
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.new")
+    @site ||= CamaleonCms::Site.new.decorate
     render 'form'
   end
 
@@ -49,7 +52,7 @@ class CamaleonCms::Admin::Settings::SitesController < CamaleonCms::Admin::Settin
       flash[:notice] = t('camaleon_cms.admin.sites.message.created')
       redirect_to action: :index
     else
-      render 'form'
+      new
     end
   end
 

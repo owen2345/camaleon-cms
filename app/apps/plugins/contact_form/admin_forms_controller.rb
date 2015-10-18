@@ -8,6 +8,7 @@
 =end
 class Plugins::ContactForm::AdminFormsController < CamaleonCms::Apps::PluginsAdminController
   before_action :set_form, only: ['show','edit','update','destroy']
+  add_breadcrumb I18n.t("plugin.contact_form.contact_form"), :admin_plugins_contact_form_admin_forms_path
 
   def index
     # here your actions for admin panel
@@ -16,8 +17,10 @@ class Plugins::ContactForm::AdminFormsController < CamaleonCms::Apps::PluginsAdm
   end
 
   def edit
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.edit")
     admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
     append_asset_libraries({"plugin_contact_form"=> { js: [plugin_asset_path("js/contact_form.js")], css: [plugin_asset_path("css/contact-form.css")] }})
+    render "edit"
   end
 
   def update
@@ -30,8 +33,7 @@ class Plugins::ContactForm::AdminFormsController < CamaleonCms::Apps::PluginsAdm
       flash[:notice] = t('camaleon_cms.admin.message.updated_success')
       redirect_to action: :edit, id: @form.id
     else
-      append_asset_libraries({"plugin_contact_form"=> { js: [plugin_asset_path("js/contact_form.js")], css: [plugin_asset_path("css/contact-form.css")] }})
-      render 'edit'
+      edit
     end
   end
 

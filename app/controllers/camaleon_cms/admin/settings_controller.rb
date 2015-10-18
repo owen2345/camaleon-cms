@@ -8,12 +8,14 @@
 =end
 class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
   before_action :validate_role
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.settings")
 
   def index
     redirect_to admin_dashboard_path
   end
 
   def site
+    add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.general_site")
     @site = current_site
   end
 
@@ -35,11 +37,12 @@ class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
 
   # list available languages
   def languages
+    add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.languages")
   end
 
   # render the list of shortcodes
   def shortcodes
-
+    add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.shortcodes")
   end
 
   # save language customizations

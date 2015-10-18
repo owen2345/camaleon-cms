@@ -2,9 +2,11 @@
 <script> jQuery(function(){ $("#content-widget .ajax_link, #content-sidebar .ajax_link, #new_widget_link", "#view_widget_list").ajax_modal(); }); </script>
 <div class="panel panel-default" id="view_widget_list">
     <div class="panel-heading">
-        <div class="col-md-12">
-            <h4 class="pull-left"><span class="fa fa-archive"></span>  <%= t('camaleon_cms.admin.sidebar.widgets') %></h4>
-            <a id="new_widget_link" href="<%= new_admin_appearances_widgets_main_path %>" class="ajax_link btn btn-primary pull-right"><%= t('camaleon_cms.admin.widgets.create_widget') %></a>
+        <div class="row">
+            <div class="col-md-12">
+                <h4 class="pull-left"><span class="fa fa-archive"></span>  <%= t('camaleon_cms.admin.sidebar.widgets') %></h4>
+                <a id="new_widget_link" href="<%= new_admin_appearances_widgets_main_path %>" class="ajax_link btn btn-primary pull-right"><%= t('camaleon_cms.admin.widgets.create_widget') %></a>
+            </div>
         </div>
     </div>
     <div class="panel-body">

@@ -8,6 +8,7 @@
 =end
 class CamaleonCms::Admin::PluginsController < CamaleonCms::AdminController
   before_action :validate_role
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.plugins")
   def index
     PluginRoutes.reload
   end

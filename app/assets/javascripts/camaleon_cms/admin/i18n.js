@@ -15,7 +15,7 @@ var I18n = function(key, default_val){
 
 // helper to convert not found translations key into titleized string
 String.prototype.titleize = function() {
-    var words = this.split(' ')
+    var words = this.replace(/_/g, " ").split(' ')
     var array = []
     for (var i=0; i<words.length; ++i) {
         array.push(words[i].charAt(0).toUpperCase() + words[i].toLowerCase().slice(1))

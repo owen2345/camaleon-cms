@@ -8,6 +8,7 @@
 =end
 class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin::SettingsController
   include CamaleonCms::Admin::CustomFieldsHelper
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.custom_fields"), :admin_settings_post_types_path
   before_action :set_custom_field_group, only: ['show','edit','update','destroy']
 
   def index
@@ -24,6 +25,7 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   end
 
   def edit
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.edit")
     admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
     render 'form'
   end
@@ -42,7 +44,8 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   end
 
   def new
-    @field_group = current_site.custom_field_groups.new
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.new")
+    @field_group ||= current_site.custom_field_groups.new
     render 'form'
   end
 
@@ -57,7 +60,7 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
       flash[:notice] = t('camaleon_cms.admin.custom_field.message.custom_created')
       redirect_to action: :edit, id: @field_group.id
     else
-      render 'form'
+      new
     end
   end
 

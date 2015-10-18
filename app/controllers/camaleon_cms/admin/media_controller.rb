@@ -46,7 +46,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   def crop
     url_image = cama_crop_image(params[:cp_img_path], params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
     if params[:saved_avatar].present?
-      User.find(params[:saved_avatar]).set_meta('avatar', url_image)
+      CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', url_image)
     end
     render text: url_image
   end

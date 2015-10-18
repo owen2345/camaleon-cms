@@ -57,7 +57,7 @@ module CamaleonCms::Admin::MenusHelper
       items << {icon: "files-o", title: t('camaleon_cms.admin.sidebar.content_groups'), url: admin_settings_post_types_path, datas: "data-intro='#{t("admin.intro.post_type")}' data-position='right'"}
       items << {icon: "cog", title: t('camaleon_cms.admin.sidebar.custom_fields'), url: admin_settings_custom_fields_path, datas: "data-intro='#{t("admin.intro.custom_fields")}' data-position='right'"}
       items << {icon: "language", title: t('camaleon_cms.admin.sidebar.languages'), url: admin_settings_languages_path, datas: "data-intro='#{t("admin.intro.languages")}' data-position='right'"}
-      items << {icon: "code", title: t('camaleon_cms.admin.table.shorcodes', default: "Shortcodes"), url: admin_settings_shortcodes_path, datas: "data-intro='#{t("admin.intro.shortcodes")}' data-position='right'"}
+      items << {icon: "code", title: t('camaleon_cms.admin.sidebar.shortcodes', default: "Shortcodes"), url: admin_settings_shortcodes_path, datas: "data-intro='#{t("admin.intro.shortcodes")}' data-position='right'"}
       admin_menu_add_menu("settings", {icon: "cogs", title: t('camaleon_cms.admin.sidebar.settings'), url: "", items: items, datas: "data-intro='#{t("admin.intro.settings")}' data-position='right' data-wait='500'"})
     end
 

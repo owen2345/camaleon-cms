@@ -4,9 +4,11 @@
 })</script>
 <div class="panel panel-default" id="comments_answer_list">
     <div class="panel-heading">
-        <div class="col-md-12">
-            <h4 class="pull-left"><span class="fa fa-comments"></span> <%= t('camaleon_cms.admin.post_type.comments') %></h4>
-            <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.button.new')}"), {action: :new}, class: "btn btn-primary pull-right ajax_modal", title: t("camaleon_cms.admin.comments.new_msg") %>
+        <div class="row">
+            <div class="col-md-12">
+                <h4 class="pull-left"><span class="fa fa-comments"></span> <%= t('camaleon_cms.admin.post_type.comments') %></h4>
+                <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.button.new')}"), {action: :new}, class: "btn btn-primary pull-right ajax_modal", title: t("camaleon_cms.admin.comments.new_msg") %>
+            </div>
         </div>
     </div>
     <div class="panel-body">

@@ -359,6 +359,7 @@ es:
         general_site: 'Sitio General'
         information: 'Información'
         languages: 'Idiomas'
+        shortcodes: "Código Corto"
         media: 'Media'
         menus: 'Menús'
         navigation: 'Navegación'

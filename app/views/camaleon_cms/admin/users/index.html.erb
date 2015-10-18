@@ -6,9 +6,11 @@
       <!-- START BASIC TABLE SAMPLE -->
       <div class="panel panel-default">
         <div class="panel-heading">
-            <div class="col-md-12">
-                <h4 class="pull-left"><span class="fa fa-file-o"></span> <%= t('camaleon_cms.admin.users.list_users') %></h4>
-                <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.users.add_user')}"), {action: :new}, class: "btn btn-primary pull-right" %>
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="pull-left"><span class="fa fa-file-o"></span> <%= t('camaleon_cms.admin.users.list_users') %></h4>
+                    <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.users.add_user')}"), {action: :new}, class: "btn btn-primary pull-right" %>
+                </div>
             </div>
         </div>
         <div class="panel-body">
