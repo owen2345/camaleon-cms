@@ -52,7 +52,7 @@ module Plugins::ContactForm::ContactFormHtmlHelper
 
       case ob[:field_type].to_s
         when 'paragraph','textarea'
-          temp2 = "<textarea #{ob[:custom_attrs].to_attr_format} name=\"#{f_name}\" maxlength=\"#{field_options[:maxlength]}\"  class=\"#{ob[:custom_class]}  \">#{values[cid]}</textarea>"
+          temp2 = "<textarea #{ob[:custom_attrs].to_attr_format} name=\"#{f_name}\" maxlength=\"#{field_options[:maxlength] || 500 }\"  class=\"#{ob[:custom_class]}  \">#{values[cid]}</textarea>"
         when 'radio'
           temp2=  form_select_multiple_bootstrap(ob, ob[:label], ob[:field_type],values)
         when 'checkboxes'

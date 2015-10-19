@@ -3194,6 +3194,10 @@ table.text-center th {
   text-align: center;
   margin-bottom: 25px;
   font-weight: 300;
+  img{
+    max-width: 100%;
+    max-height: 200px;
+  }
 }
 .login-logo a,
 .register-logo a {

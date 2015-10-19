@@ -78,7 +78,7 @@ module Plugins::ContactForm::ContactFormHelper
   end
 
   def contact_form_app_before_load
-    shortcode_add('forms',  plugin_view("forms_shorcode"), "This is a shortocode for contact form to permit you to put your contact form in any content.
+    shortcode_add('forms', plugin_view("forms_shorcode"), "This is a shortocode for contact form to permit you to put your contact form in any content.
     Sample: [forms slug='key-for-my-form']")
   end
 

@@ -15,7 +15,7 @@
         <%= form_for @form, url: plugins_contact_form_save_form_path, html: {method: "post", class: r[:form_class], multipart: true} do |f| %>
 
             <%= hidden_field_tag "id", @form.id %>
-            <%= render :partial => "flash_messages" %>
+            <%= render :partial => "camaleon_cms/flash_messages" %>
             <%= raw form_element_bootstrap_object(r[:form], values[:fields], values_fields) %>
             <% if values[:fields].present? %>
                 <%= raw  r[:submit].sub('[submit_label]', settings[:railscf_form_button][:name_button])%>

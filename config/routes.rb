@@ -15,8 +15,8 @@ Rails.application.routes.draw do
   default_url_options :host => PluginRoutes.system_info["base_domain"]
 
   # public
-  get '/error.html', to: 'camaleon#render_error'
-  get 'captcha', to: 'camaleon#captcha'
+  get '/error.html', to: 'camaleon_cms/camaleon#render_error'
+  get 'captcha', to: 'camaleon_cms/camaleon#captcha'
 
   eval(PluginRoutes.load("main"))
 end

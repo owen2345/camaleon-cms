@@ -23,7 +23,7 @@
                 <div class="col-md-6">
                     <br>
                     <label><%= t('plugin.contact_form.copy_shortcode_post')%> </label>
-                    <span><code><%= form_shortcode(@form.slug) %></code></span>
+                    <span><%= form_shortcode(@form.slug) %></span>
                 </div>
                 <div class="col-md-6 text-right">
                     <a class="btn btn-default" href="<%= url_for action: :index %>"><%= t('plugin.contact_form.button.back') %></a>

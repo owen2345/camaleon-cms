@@ -71,9 +71,9 @@ module CamaleonCms::PluginsHelper
   def plugin_layout(layout_name, plugin_key = nil)
     plugin = current_plugin(plugin_key || self_plugin_key(1))
     if plugin.settings["gem_mode"]
-      "themes/#{plugin.slug}/layouts/#{layout_name}"
+      "plugins/#{plugin.slug}/layouts/#{layout_name}"
     else
-      "themes/#{plugin.slug}/views/layouts/#{layout_name}"
+      "plugins/#{plugin.slug}/views/layouts/#{layout_name}"
     end
   end
 
@@ -82,9 +82,9 @@ module CamaleonCms::PluginsHelper
   def plugin_view(view_name, plugin_key = nil)
     plugin = current_plugin(plugin_key || self_plugin_key(1))
     if plugin.settings["gem_mode"]
-      "themes/#{plugin.slug}/#{view_name}"
+      "plugins/#{plugin.slug}/#{view_name}"
     else
-      "themes/#{plugin.slug}/views/#{view_name}"
+      "plugins/#{plugin.slug}/views/#{view_name}"
     end
   end
 
