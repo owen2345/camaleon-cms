@@ -190,3 +190,27 @@
 div.mce-fullscreen{
   z-index: 9999;
 }
+
+#cama_custom_loading{
+  .back_spinner{
+    position: fixed;
+    z-index: 99998;
+    width: 100%;
+    top: 0px;
+    height: 100%;
+    background-color: #2D95BF;
+    background-color: rgba(60, 141, 188, 0.4);
+  }
+  .loader_spinner{
+    z-index: 99999;
+    position: fixed;
+    left: 50%;
+    margin-left: -35px;
+    margin-top: -35px;
+    top: 50%;
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    background: image_url("camaleon_cms/admin/admin_spinner.gif") no-repeat center center #2D95BF;
+  }
+}

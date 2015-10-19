@@ -1,6 +1,6 @@
 <div class="content-frame">
     <!-- END CONTENT FRAME TOP -->
-    <%= form_for @post, as: "post", url: {action: @post.new_record? ? :create : :update}, html: {class: 'form-post row', id: 'form-post'} do |f| %>
+    <%= form_for @post, as: "post", url: {action: @post.new_record? ? :create : :update}, html: {class: 'form-post row cama_ajax_request', id: 'form-post'} do |f| %>
         <%= f.hidden_field :draft_id, value: @post.draft? ? @post.id : '' %>
         <!-- START CONTENT FRAME BODY -->
         <div class="content-frame-body col-md-9">

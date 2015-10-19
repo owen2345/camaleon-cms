@@ -1,4 +1,6 @@
-<ol class="breadcrumb"><%= render_breadcrumbs :tag => :li, :separator => "" %></ol>
-<%= render "/layouts/camaleon_cms/admin/flash_messages" %>
-<%= cama_draw_custom_assets %>
-<%= yield %>
+<section class="content" id="admin_content" data-title="<%= raw cama_admin_title_draw %>" data-url="<%= request.original_url if params[:cama_ajax_request] == "redirect" %>">
+    <ol class="breadcrumb"><%= render_breadcrumbs :tag => :li, :separator => "" %></ol>
+    <%= render "/layouts/camaleon_cms/admin/flash_messages" %>
+    <%= cama_draw_custom_assets %>
+    <%= yield %>
+</section>

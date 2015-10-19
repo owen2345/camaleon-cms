@@ -1,8 +1,7 @@
-jQuery(function($){
+jQuery(document).on("ready page:changed", function(){
     // initialize all validations for forms
     init_form_validations();
     setTimeout(page_actions, 1000);
-    //setTimeout(start_cama_ajax_requestor, 500);
     if(!$("body").attr("data-intro")) setTimeout(init_intro, 500);
 });
 
@@ -45,40 +44,6 @@ var page_actions = function(){
         $(this).parents(".dropdown").removeClass("open");
         return false;
     });
-}
-
-/**
- * small camaleon ajax requester (alternative to turbolinks)
- * support for links and forms by adding the class: cama_ajax_request. Also you can add the class in a div to apply this for all inner links
- * data-before-callback: is an attribute where you can put the function name called before start request.
- *  Also this can return false to stop continuing
- * data-after-callback: is an attribute where you can put the function name called after request was completed
- * data-error-callback: is an attribute where you can put the function name called when a error occurred in the request
- */
-function start_cama_ajax_requestor(){
-    var do_ajax_request = function(){
-        var link = $(this);
-        var url = link.attr("href") || link.attr("action");
-        if(!url || url == "#") return true;
-
-        var before = link.attr("data-before-callback");
-        var after = link.attr("data-after-callback");
-        var error = link.attr("data-error-callback");
-        var flag = true;
-        if(before) flag = window[before](link);
-        showLoading();
-        $.get(url, {cama_ajax_request: true}, function(res){
-            $("#admin_content").fadeTo(0, 0).html(res).fadeTo("normal", 1);
-            if(after) window[after](link, res);
-            hideLoading();
-        }).error(function(e, status, msg){
-            $.fn.alert({type: "error", content: msg});
-            if(error) window[error](link, arguments);
-        });
-        return false;
-    }
-    $("body").on("submit", "form.cama_ajax_request", do_ajax_request);
-    $("body").on("click", "a.cama_ajax_request, .cama_ajax_request:not(form) a", do_ajax_request);
 }
 
 // add action to toggle the collapse for panels

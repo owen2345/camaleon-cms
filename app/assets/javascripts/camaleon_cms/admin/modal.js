@@ -149,11 +149,10 @@ jQuery(function(){
      *  percentage: integer (percentage of the progress)
      *  state: String (show | hide)
      * Sample:
-     *  $.fn.customLoading("show"); // show loading with 100% progress
-     *  $.fn.customLoading({percentage: 50 }); // show loading with 50% progress
+     *  $.fn.customLoading("show"); // show loading
      *  $.fn.customLoading("hide"); // hide de loading
      */
-    $.fn.customLoading = function(params){
+    $.fn.customLoading2 = function(params){
         if(!params) params = "show";
         if(typeof params == "string") params = {state: params};
         var settings = $.extend({}, {percentage: 100, state: "show"}, params);
@@ -164,6 +163,20 @@ jQuery(function(){
                 $("body > #custom_loading").width(settings.percentage);
         }else{
             $("body > #custom_loading").remove();
+        }
+    }
+
+    $.fn.customLoading = function(params){
+        if(!params) params = "show";
+        if(typeof params == "string") params = {state: params};
+        var settings = $.extend({}, {percentage: 100, state: "show"}, params);
+        if(settings.state == "show"){
+            if($("body > #cama_custom_loading").length == 0)
+                $("body").append('<div id="cama_custom_loading"><div class="back_spinner"></div><div class="loader_spinner"></div></div>');
+            else
+                $("body > #cama_custom_loading").width(settings.percentage);
+        }else{
+            $("body > #cama_custom_loading").remove();
         }
     }
 });

@@ -54,10 +54,8 @@ function init_post(obj){
 
     }
 
-    var t = setInterval(function(){
-        App_post.save_draft_ajax();
-    }, 3*60*1000);
-
+    if(window["post_draft_interval"]) clearInterval(window["post_draft_interval"]);
+    window["post_draft_interval"] = setInterval(function(){ App_post.save_draft_ajax(); }, 1*60*1000);
     window.save_draft = App_post.save_draft_ajax;
 
     if($(".title-post"+class_translate).size() == 0) class_translate = '';
@@ -119,7 +117,7 @@ function init_post(obj){
 
             $this.change(function(){
                 if(slug_tmp) ajax_set_slug(slug_tmp);
-                if(!_draft_inited) App_post.save_draft_ajax();
+                //if(!_draft_inited) App_post.save_draft_ajax();
             });
             if($input_slug.val()){
                 set_slug($input_slug.val());
@@ -220,14 +218,15 @@ function init_post(obj){
         /*********** control save changes before unload form. ***************/
         $form.submit(function(){ if($(this).valid()) $form.data("submitted", 1); });
         window.onbeforeunload = function (){
+            var msg = "Are you sure to leave the page without saving changes?";
+            if($("#form-post").length == 0) return;
             if($form.data("submitted"))
                 return;
-            if($form.data("hash") != get_hash_form()){
-                return "You sure to leave the page without saving changes?";
-            }
+            if($form.data("hash") != get_hash_form())
+                return msg;
             if(!$form.data("submitted"))
                 return;
-            return "You sure to leave the page without saving changes?";
+            return msg;
         };
     }
     setTimeout(form_later_actions, 1000);

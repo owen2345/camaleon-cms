@@ -12,7 +12,7 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
     redirect_to admin_dashboard_path
   end
   include CamaleonCms::Admin::ApplicationHelper
-
+  # layout 'camaleon_cms/admin'
   before_action :cama_authenticate
   before_action :admin_init_actions
   before_action :admin_logged_actions

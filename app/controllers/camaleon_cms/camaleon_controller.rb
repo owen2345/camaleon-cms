@@ -7,6 +7,10 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::CamaleonController < ApplicationController
+  add_flash_types :warning
+  add_flash_types :error
+  add_flash_types :notice
+
   include CamaleonCms::CamaleonHelper
   include CamaleonCms::SessionHelper
   include CamaleonCms::SiteHelper
