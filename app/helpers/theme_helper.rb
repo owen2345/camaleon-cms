@@ -85,4 +85,16 @@ module ThemeHelper
       f2.split(k).last.split("/").first
     end
   end
+  
+  # returns file system path to theme asset
+  # theme_name: theme name, if nil, then will use current theme
+  # asset: asset file name, if asset is present return full path to this asset
+  # sample: theme_asset_file_path('images/foo.jpg') => return: /home/camaleon/my-site/app/apps/themes/default/assets/images/foo.jpg
+  def theme_asset_file_path(asset = nil, theme_name = nil)
+    theme_path = current_theme.settings['path']
+    if theme_name && theme = Theme.where(name: theme_name).first
+      theme_path = theme.settings['path']
+    end
+    "#{theme_path}/assets/#{asset}"
+  end
 end
