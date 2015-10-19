@@ -21,7 +21,6 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
   end
 
   def edit
-    admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
     add_breadcrumb t("camaleon_cms.admin.button.edit")
   end
 

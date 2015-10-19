@@ -97,7 +97,6 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     authorize! :update, @post
     @post_form_extra_settings = []
     r = {post: @post, post_type: @post_type, extra_settings: @post_form_extra_settings, render: "form"}; hooks_run("edit_post", r)
-    admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
     render r[:render]
   end
 

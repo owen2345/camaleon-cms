@@ -3,7 +3,7 @@
     <div class="col-md-4">
       <div class="panel panel-default">
         <div class="panel-heading ui-draggable-handle">
-            <h4 class="pull-left"><span class="fa fa-folder"></span> <%= "#{@post_type.decorate.the_title.pluralize} / " if @post_type.present? %> <%= t('camaleon_cms.admin.post_type.tags').to_s.titleize.pluralize %></h4>
+            <h4><span class="fa fa-folder"></span> <%= "#{@post_type.decorate.the_title.pluralize} / " if @post_type.present? %> <%= t('camaleon_cms.admin.post_type.tags').to_s.titleize.pluralize %></h4>
         </div>
         <%= render partial: 'form' %>
       </div>

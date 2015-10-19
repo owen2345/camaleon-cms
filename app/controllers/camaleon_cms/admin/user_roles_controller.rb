@@ -40,7 +40,6 @@ class CamaleonCms::Admin::UserRolesController < CamaleonCms::AdminController
   end
 
   def edit
-    admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
     add_breadcrumb I18n.t("camaleon_cms.admin.button.edit")
     render 'form'
   end

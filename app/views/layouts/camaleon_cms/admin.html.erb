@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title><%= raw admin_title_draw %></title>
+    <title><%= raw cama_admin_title_draw %></title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <%= stylesheet_link_tag "camaleon_cms/admin/admin-manifest", media: "all" %>
@@ -33,15 +33,7 @@
         <%= render partial: "layouts/camaleon_cms/admin/sidebar", locals: {_admin_menu_draw: _admin_menu_draw} %>
 
         <div class="content-wrapper">
-            <!-- Content Header (Page header) -->
-            <section class="content-header">
-                <ol class="breadcrumb">
-                    <%= raw admin_breadcrumb_draw() %>
-                </ol>
-            </section>
-
             <!-- Main content -->
-            <!-- box box-info -->
             <section class="content" id="admin_content">
                 <ol class="breadcrumb"><%= render_breadcrumbs :tag => :li, :separator => "" %></ol>
                 <%= render "/layouts/camaleon_cms/admin/flash_messages" %>

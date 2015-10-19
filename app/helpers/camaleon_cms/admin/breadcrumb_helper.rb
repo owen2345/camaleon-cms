@@ -7,31 +7,17 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module CamaleonCms::Admin::BreadcrumbHelper
-# draw html admin breadcrumb
-  def admin_breadcrumb_draw
-    res = []
-    @_admin_breadcrumb.each_with_index do |item, index|
-      if @_admin_breadcrumb.size == (index+1) #last menu
-        res << "<li class='active'>#{item[0]}</li>"
-      else
-        res << "<li><a href='#{item[1]}'>#{item[0]}</a></li>"
-      end
-    end
-    res.join("")
-  end
-
-  def admin_title_draw
-    res = []
-    @_admin_breadcrumb.each_with_index do |item, index|
-      res << item[0]
-    end
+  # draw the title for the admin admin panel according the breadcrumb
+  def cama_admin_title_draw
+    res = [t("camaleon_cms.admin.sidebar_top.admin_panel")]
+    @breadcrumbs.reverse.slice(0, 2).reverse.each{|b| res << b.name }
     res.join(" &raquo; ")
   end
 
   # add breadcrumb item at the end
   # label => label of the link
   # url: url for the link
+  # DEPRECATED
   def admin_breadcrumb_add(label, url = "")
-    @_admin_breadcrumb << [label, url]
   end
 end

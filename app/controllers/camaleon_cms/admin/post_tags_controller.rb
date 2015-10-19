@@ -7,6 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.contents")
   before_action :set_post_type
   before_action :set_post_tag, only: ['show','edit','update','destroy']
 
@@ -22,7 +23,7 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
 
   # render post tag edit form
   def edit
-    admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
+    add_breadcrumb t("camaleon_cms.admin.button.edit")
   end
 
   # save changes of a post tag
@@ -32,7 +33,7 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
       redirect_to action: :index
     else
-      render 'edit'
+      render edit
     end
   end
 
@@ -64,8 +65,10 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
   private
 
   def set_post_type
-    @post_type = current_site.post_types.find_by_id(params[:post_type_id])
+    @post_type = current_site.post_types.find_by_id(params[:post_type_id]).decorate
     authorize! :post_tags, @post_type
+    add_breadcrumb @post_type.the_title, @post_type.the_admin_url
+    add_breadcrumb t("camaleon_cms.admin.post_type.post_tags"), url_for({action: :index})
   end
 
   def set_post_tag

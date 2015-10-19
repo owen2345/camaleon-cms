@@ -18,7 +18,6 @@ class Plugins::ContactForm::AdminFormsController < CamaleonCms::Apps::PluginsAdm
 
   def edit
     add_breadcrumb I18n.t("camaleon_cms.admin.button.edit")
-    admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
     append_asset_libraries({"plugin_contact_form"=> { js: [plugin_asset_path("js/contact_form.js")], css: [plugin_asset_path("css/contact-form.css")] }})
     render "edit"
   end

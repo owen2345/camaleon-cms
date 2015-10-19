@@ -82,6 +82,6 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
   end
 
   def admin_logged_actions
-    admin_menus_add_commons unless request.xhr?
+    admin_menus_add_commons if !request.xhr? || !params[:cama_ajax_request].present? # initialize admin sidebar menus
   end
 end

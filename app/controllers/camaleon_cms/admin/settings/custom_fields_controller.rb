@@ -26,7 +26,6 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
 
   def edit
     add_breadcrumb I18n.t("camaleon_cms.admin.button.edit")
-    admin_breadcrumb_add("#{t('camaleon_cms.admin.button.edit')}")
     render 'form'
   end
 

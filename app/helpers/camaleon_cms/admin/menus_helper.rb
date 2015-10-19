@@ -126,12 +126,10 @@ module CamaleonCms::Admin::MenusHelper
         #{_admin_menu_draw(menu[:items]) if menu.has_key?(:items)}
       </li>"
     end
-    _admin_menu_draw_active
     res.join
   end
 
   private
-
   def _get_url_current
     menus = @_admin_menus.map{|key, menu|  menu[:key] = key; menu}
     current_path = URI(site_current_url).path
@@ -186,14 +184,6 @@ module CamaleonCms::Admin::MenusHelper
     end
     res  << "</ul>"
     res.join
-  end
-
-  def _admin_menu_draw_active
-    bread = []
-    @_tmp_menu_parents.uniq.each do |item|
-      bread << [item[:title].to_s.strip_tags, item[:url]] if item.present? && item[:key] != "dashboard"
-    end
-    @_admin_breadcrumb = [[t('camaleon_cms.admin.sidebar.dashboard'), admin_dashboard_path]] + bread + @_admin_breadcrumb
   end
 
 end
