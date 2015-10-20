@@ -36,7 +36,7 @@ class Admin::SessionsController < CamaleonController
       if captcha_validate
         flash[:error] = t('admin.login.message.fail')
       else
-        flash[:error] = "Invalid captcha"
+        flash[:error] = t('admin.login.message.invalid_caption')
       end
       @user = current_site.users.new(data_user)
       render 'admin/sessions/login'
