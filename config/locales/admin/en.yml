@@ -123,6 +123,7 @@ en:
         subject_email: 'Reset your access'
         send_mail_succes: 'Send email reset success.'
         send_mail_error: 'Not found email address.'
+        invalid_caption: 'Invalid captcha'
       personal_info: 'Personal info'
       please_login: 'Please login'
       reset_password: 'reset password'
