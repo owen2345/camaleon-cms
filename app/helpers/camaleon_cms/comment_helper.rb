@@ -29,14 +29,15 @@ module CamaleonCms::CommentHelper
                     <div class='comment_actions'>
                         <div class='pull-left'>
                             <a href='#{admin_post_comment_answer_path(@post.id, comment.id)}' data-comment-id='#{comment.id}' title='#{t('camaleon_cms.admin.comments.tooltip.reply_comment')}' class='btn btn-info reply btn-xs ajax_modal'><span class='fa fa-mail-reply'></span></a>
-                            #{link_to raw('<i class="fa fa-trash-o"></i>'), { action: :destroy, id: comment.id }, method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete') }, class: "btn btn-danger btn-xs", title: "#{t('camaleon_cms.admin.comments.tooltip.delete_comment')}" }
+                            #{link_to raw('<i class="fa fa-trash-o"></i>'), { action: :destroy, id: comment.id }, method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.comments.tooltip.delete_comment')}" }
                         </div>
                         <div class='pull-right'>
-                            <a href='#{url_for({ action: :toggle_status, comment_id: comment.id, s: "a" })}' title='#{t('camaleon_cms.admin.comments.tooltip.approved_comment')}' class='#{"hidden" if comment.approved == "approved"} btn btn-success approve btn-xs'><span class='fa fa-thumbs-o-up'></span></a>
-                            <a href='#{url_for({ action: :toggle_status, comment_id: comment.id, s: "p" })}' title='#{t('camaleon_cms.admin.comments.tooltip.comment_pending')}' class='#{"hidden" if comment.approved == "pending"} btn btn-primary pending btn-xs'><span class='fa fa-warning'></span></a>
-                            <a href='#{url_for({ action: :toggle_status, comment_id: comment.id, s: "s" })}' title='#{t('camaleon_cms.admin.comments.tooltip.comment_spam')}' class='#{"hidden" if comment.approved == "spam"} btn btn-danger spam btn-xs'><span class='fa fa-bug'></span></a>
+                            <a href='#{url_for({ action: :toggle_status, comment_id: comment.id, s: "a" })}' title='#{t('camaleon_cms.admin.comments.tooltip.approved_comment')}' class='#{"hidden" if comment.approved == "approved"} btn btn-success approve btn-xs cama_ajax_request'><span class='fa fa-thumbs-o-up'></span></a>
+                            <a href='#{url_for({ action: :toggle_status, comment_id: comment.id, s: "p" })}' title='#{t('camaleon_cms.admin.comments.tooltip.comment_pending')}' class='#{"hidden" if comment.approved == "pending"} btn btn-primary pending btn-xs cama_ajax_request'><span class='fa fa-warning'></span></a>
+                            <a href='#{url_for({ action: :toggle_status, comment_id: comment.id, s: "s" })}' title='#{t('camaleon_cms.admin.comments.tooltip.comment_spam')}' class='#{"hidden" if comment.approved == "spam"} btn btn-danger spam btn-xs cama_ajax_request'><span class='fa fa-bug'></span></a>
                         </div>
                     </div>
+                    <hr>
                     <div class='clearfix'></div>
                     #{ cama_comments_render_html comment.children }
                  </div>

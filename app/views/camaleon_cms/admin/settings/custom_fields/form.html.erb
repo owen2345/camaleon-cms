@@ -6,7 +6,7 @@
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap" id="cama_custom_field_form" data-group_class_name="<%= @field_group.object_class %>,<%= @field_group.objectid %>">
   <div class="row">
-    <%= form_for @field_group, as: "custom_field_group", url:{action: @field_group.new_record? ? :create : :update}, html: {class: 'validate-custom-field'} do |f| %>
+    <%= form_for @field_group, as: "custom_field_group", url:{action: @field_group.new_record? ? :create : :update}, html: {class: 'validate-custom-field cama_ajax_request'} do |f| %>
         <div class="col-md-4">
           <div class="panel panel-default">
             <div class="panel-heading">

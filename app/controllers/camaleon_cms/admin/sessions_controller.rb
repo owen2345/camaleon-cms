@@ -50,7 +50,6 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
 
   def forgot
     @user = current_site.users.new
-
     # get form reset password
     if params[:h]
       @user = current_site.users.where(password_reset_token: params[:h]).first

@@ -6,7 +6,7 @@
   </h2>
 </div>
 <div class="page-content-wrap">
-  <%= form_for @user_role, as: "user_role", url:{action: @user_role.new_record? ? :create : :update}, html:{class: 'validate-user-roles'} do |f| %>
+  <%= form_for @user_role, as: "user_role", url:{action: @user_role.new_record? ? :create : :update}, html:{class: 'validate-user-roles cama_ajax_request'} do |f| %>
       <div class="row">
         <div class="col-md-9">
           <div class="panel panel-default">

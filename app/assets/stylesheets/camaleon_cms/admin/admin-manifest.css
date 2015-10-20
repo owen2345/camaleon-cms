@@ -20,5 +20,11 @@
  *= require ./bootstrap-datepicker
  *= require ./introjs/introjs.min
  *= require ./tageditor/jquery.tag-editor
+
+ // tinymce
+ *= require camaleon_cms/admin/tinymce/skins/lightgray/content.min
+
+ // post
+ *= require ./jquery.tagsinput
  */
 

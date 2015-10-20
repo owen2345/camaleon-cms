@@ -11,7 +11,6 @@
                         <% if !@post.new_record? %>
                             <%= "#{t('camaleon_cms.admin.page_title.edit')} #{@post_type.the_title}: #{@post_decorate.the_title}" %> <%= raw @post_decorate.the_status.html_safe %>
                         <% end %>
-                        <%#= raw(t('camaleon_cms.admin.page_title.edit') + " " + @post_type.the_title.to_s + ": " + @post_decorate.the_title + " #{@post_decorate.the_status}") if !@post.new_record? %>
                         <%= link_to raw("#{t('camaleon_cms.admin.button.view_draft')}"), {action: :edit, id: @post.drafts.pluck('id')}, id: "view_draft", class: "label label-warning label-form", title: "#{t('camaleon_cms.admin.button.view_draft')}", target: '_blank' if @post.drafts.present? %>
                         <%= t('camaleon_cms.admin.page_title.create') + " " + @post_type.the_title.to_s if @post.new_record? %>
                     </h4>
@@ -25,7 +24,6 @@
                     <div class="hidden">
                         <%= f.hidden_field :slug, class: 'translatable slug-post' %>
                     </div>
-
                     <%= hidden_field :meta, :slug %>
                     <div class="form-group">
                         <%= f.label t('camaleon_cms.admin.table.title') %> <em class="text-danger">*</em><br>
@@ -66,38 +64,34 @@
                         </div>
                         <div class="panel-body ">
                             <div class="form-group">
-                                <a href="<%= admin_post_comments_path(post_id: @post.id) %>" class="btn btn-default" target="_blank">
-                                    <i class="fa fa-comments"></i> <%= t('camaleon_cms.admin.post_type.view_comments') %>
-                                    (<%= @post.total_comments %>)</a>
+                                <a href="<%= admin_post_comments_path(post_id: @post.id) %>" class="btn btn-default" target="_blank"><i class="fa fa-comments"></i> <%= t('camaleon_cms.admin.post_type.view_comments') %>(<%= @post.total_comments %>)</a>
                             </div>
                         </div>
                     </div>
                 <% end %>
             <% end %>
-
         </div>
         <!-- END CONTENT FRAME BODY -->
         <%= render "sidebar", f: f %>
     <% end %>
 
-    <% add_asset_library('tinymce', 'post') %>
-
     <script type="text/javascript">
         jQuery(function($){
-            init_post({
-                post_id: '<%= @post.draft? ? (@post.parent.present? ? @post.parent.id : nil) : @post.id %>',
-                post_draft_id: '<%= @post.id if @post.draft? %>',
-                post_status: '<%= @post.status %>',
-                _post_path: '<%= post_url({slug: '__-__', locale: '____'}) %>',
-                _drafts_path: '<%= (@post.draft? && !@post.new_record?) ? admin_post_type_draft_path(@post_type.id, @post) : admin_post_type_drafts_path(@post_type.id)  %>',
-                _posts_path: '<%= admin_post_type_posts_path(@post_type.id) %>',
-                _ajax_path: '<%= ajax_admin_post_type_posts_path(@post_type.id) %>',
-                _post_tags_path: '<%= list_admin_post_type_post_tags_path(@post_type.id) %>',
-                recover_draft: "<%= params['recover_draft'].present? && @post.draft? %>",
-                _edit_post_path: '<%= edit_admin_post_type_post_path(@post_type.id, '____')%>'
+            setTimeout(function(){
+                init_post({
+                    post_id: '<%= @post.draft? ? (@post.parent.present? ? @post.parent.id : nil) : @post.id %>',
+                    post_draft_id: '<%= @post.id if @post.draft? %>',
+                    post_status: '<%= @post.status %>',
+                    _post_path: '<%= post_url({slug: '__-__', locale: '____'}) %>',
+                    _drafts_path: '<%= (@post.draft? && !@post.new_record?) ? admin_post_type_draft_path(@post_type.id, @post) : admin_post_type_drafts_path(@post_type.id)  %>',
+                    _posts_path: '<%= admin_post_type_posts_path(@post_type.id) %>',
+                    _ajax_path: '<%= ajax_admin_post_type_posts_path(@post_type.id) %>',
+                    _post_tags_path: '<%= list_admin_post_type_post_tags_path(@post_type.id) %>',
+                    recover_draft: "<%= params['recover_draft'].present? && @post.draft? %>",
+                    _edit_post_path: '<%= edit_admin_post_type_post_path(@post_type.id, '____')%>'
 
-            });
+                });
+            }, 100);
         });
     </script>
-
 </div>

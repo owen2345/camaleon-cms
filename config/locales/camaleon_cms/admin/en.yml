@@ -39,6 +39,7 @@ en:
         recover: 'Recover'
         restore: 'Restore'
         restore_selections: 'Restore Selections'
+        delete_complete: "Delete completely"
         select: 'Select'
         select_all: 'Select All'
         select_file: 'Select File'
@@ -173,7 +174,7 @@ en:
         are_you_sure_you_want_log_out_int: 'Are you sure you want to log out?'
         are_you_sure_to_import: "Are you sure you want to import?"
         data_found_list: 'No data found in the list'
-        delete: 'Are you sure?'
+        delete: 'Are you sure to delete this item?'
         delete_item: 'Really want to delete this item?'
         edit_menu: 'Place each item in the order you prefer. Click on the icon of a pencil to edit the item and click the icon in the form of x to delete the item.'
         add_menus: 'Add menu items from the left column.'

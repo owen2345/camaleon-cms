@@ -7,6 +7,7 @@ jQuery(function($){
         handle: ".panel-sortable"
     });
     //$content_fields.disableSelection();
+    cama_custom_field_set_slug();
 
     $("#content-items-default > a", panel).click(function(){
         var href = $(this).attr('href');

@@ -41,6 +41,16 @@ ActiveRecord::Associations::CollectionProxy.class_eval do
     # table_name = class_name.classify.table_name
     self.includes(:custom_field_values).where("#{CamaleonCms::CustomFieldsRelationship.table_name}.custom_field_slug = ? and #{CamaleonCms::CustomFieldsRelationship.table_name}.object_class = ?", key, self.build.class.name).reorder("#{CamaleonCms::CustomFieldsRelationship.table_name}.value #{order}")
   end
+
+  # Filter by custom field values
+  # Arguments:
+  # key: (String) Custom field key
+  # sample: my_posts_that_include_my_field = CamaleonCms::Site.first.posts.filter_by_field("untitled-field-attributes")
+  #   this will return all posts of the first site that include custom field "untitled-field-attributes"
+  #   additionally, you can add extra filter: my_posts_that_include_my_field.where("#{CamaleonCms::CustomFieldsRelationship.table_name}.value=?", "my_value_for_field")
+  def filter_by_field(key)
+    self.includes(:custom_field_values).where("#{CamaleonCms::CustomFieldsRelationship.table_name}.custom_field_slug = ? and #{CamaleonCms::CustomFieldsRelationship.table_name}.object_class = ?", key, self.build.class.name)
+  end
 end
 
 

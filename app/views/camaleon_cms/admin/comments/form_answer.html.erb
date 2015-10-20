@@ -1,4 +1,4 @@
-<%= form_for @answer, as: "comment", url:admin_post_comment_save_answer_path(@post.id, @comment.id), html: { class: "validate" } do |f| %>
+<%= form_for @answer, as: "comment", url:admin_post_comment_save_answer_path(@post.id, @comment.id), html: { class: "validate cama_ajax_request" } do |f| %>
     <div class="panel-body">
         <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @comment} %>
         <div class="form-group">

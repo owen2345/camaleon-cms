@@ -5,7 +5,7 @@
 
 
 %>
-<%= form_for @category, url:{action: @category.new_record? ? :create : :update},  html: {class: 'validate', id: 'form-category'}  do |f| %>
+<%= form_for @category, as: "category", url:{action: @category.new_record? ? :create : :update},  html: {class: 'validate cama_ajax_request', id: 'form-category'}  do |f| %>
     <%= f.hidden_field :parent_id  %>
     <%= f.hidden_field :taxonomy %>
     <div class="panel-body">

@@ -4,7 +4,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <%= raw the_head({title: (content_for?(:content) ? yield(:content) : t('camaleon_cms.admin.login.login'))}, false) if current_site.present? %>
+    <%= raw the_head({}) if current_site.present? %>
+    <title><%= (content_for?(:title) ? yield(:title) : t('camaleon_cms.admin.login.login')) %></title>
     <%= stylesheet_link_tag "camaleon_cms/admin/admin-basic-manifest", media: "all" %>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <%= javascript_include_tag "camaleon_cms/admin/admin-basic-manifest" %>

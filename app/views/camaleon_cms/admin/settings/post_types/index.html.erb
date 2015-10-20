@@ -33,8 +33,8 @@
                         <td><%= item.the_slug %></td>
                         <td><%= item.count %></td>
                         <td>
-                            <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs", title: "#{t('camaleon_cms.admin.button.edit')}" %>
-                            <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs", title: "#{t('camaleon_cms.admin.button.delete')}" unless item.get_option('not_deleted', false) %>
+                            <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                            <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" unless item.get_option('not_deleted', false) %>
                         </td>
                     </tr>
                 <% end %>

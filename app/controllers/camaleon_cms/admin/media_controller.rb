@@ -14,6 +14,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   def index
     authorize! :manager, :media
+    add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
   end
 
   def elfinder

@@ -38,6 +38,7 @@ es:
        recover: 'Recuperar'
        restore: 'Restaurar'
        restore_selections: 'Restaurar selecciones'
+       delete_complete: 'Eliminar completamente'
        select: 'Seleccionar'
        select_all: 'Seleccionar Todo'
        select_file: 'Seleccionar Archivo'

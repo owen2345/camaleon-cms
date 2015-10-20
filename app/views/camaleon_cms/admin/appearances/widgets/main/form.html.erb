@@ -1,4 +1,4 @@
-<%= form_for @widget, as: "widget_main", url: { action: (@widget.new_record? ? "create" : "update"), controller: "camaleon_cms/admin/appearances/widgets/main", id: @widget }, html: { role: 'form', class: "validate", id: "widget_form" } do |f| %>
+<%= form_for @widget, as: "widget_main", url: { action: (@widget.new_record? ? "create" : "update"), controller: "camaleon_cms/admin/appearances/widgets/main", id: @widget }, html: { role: 'form', class: "validate cama_ajax_request", id: "widget_form" } do |f| %>
     <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @widget} %>
     <div class="form-group">
         <%= f.label t('camaleon_cms.admin.table.name') %><br>

@@ -176,23 +176,3 @@
     <% end %>
   </div>
 </div>
-
-
-<script>
-
-    var function_init<%= @index %> = function(){
-        var that = this;
-        var $panel = $( "#panel-field<%= @index %>" );
-
-
-        $panel.find('.panel-collapse').click(function(){
-            setTimeout(function(){
-                $panel.find('.input-panel-hidden').val($panel.hasClass('panel-toggled'))
-            },500)
-        });
-    }
-    jQuery(function(){
-        function_init<%= @index %>();
-    });
-
-</script>

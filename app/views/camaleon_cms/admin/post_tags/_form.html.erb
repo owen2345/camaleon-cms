@@ -1,5 +1,5 @@
 <% @post_tag = CamaleonCms::PostTag.new if @post_tag.nil? %>
-<%= form_for @post_tag, as: "post_tag", url:{action: @post_tag.new_record? ? :create : :update} , html:{class: 'validate-post-tag'} do |f| %>
+<%= form_for @post_tag, as: "post_tag", url:{action: @post_tag.new_record? ? :create : :update} , html:{class: 'validate-post-tag cama_ajax_request'} do |f| %>
     <%= f.hidden_field :parent_id  %>
     <%= f.hidden_field :taxonomy %>
     <div class="panel-body">

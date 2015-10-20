@@ -1,9 +1,4 @@
-<%
-   if @form.nil?
-     @form = current_site.contact_forms.new
-   end
-%>
-
+<% @form = current_site.contact_forms.new if @form.nil? %>
 <div class="page-title">
   <h2><span class="fa fa-folder"></span>  <%= t('plugin.contact_form.contact_form') %> - <%= @form.name %></h2>
 </div>

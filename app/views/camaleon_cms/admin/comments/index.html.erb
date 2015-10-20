@@ -1,6 +1,7 @@
 <script>jQuery(function(){
     var panel = $("#comments_answer_list");
     panel.find(".ajax_modal").ajax_modal({ callback: function(modal){ modal.find("form").validate();  } });
+    $("#sidebar-menu li[data-key='comments']").addClass("active"); //fix menu
 })</script>
 <div class="panel panel-default" id="comments_answer_list">
     <div class="panel-heading">

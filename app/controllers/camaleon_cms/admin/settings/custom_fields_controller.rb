@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin::SettingsController
   include CamaleonCms::Admin::CustomFieldsHelper
-  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.custom_fields"), :admin_settings_post_types_path
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.custom_fields"), :admin_settings_custom_fields_path
   before_action :set_custom_field_group, only: ['show','edit','update','destroy']
 
   def index

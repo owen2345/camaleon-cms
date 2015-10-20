@@ -3,7 +3,7 @@
      @form = current_site.contact_forms.new
    end
 %>
-<%= form_for @form, url:{action: @form.new_record? ? :create : :update}, html:{class: 'validate-forms'} do |f| %>
+<%= form_for @form, url:{action: @form.new_record? ? :create : :update}, html:{class: 'validate-forms cama_ajax_request'} do |f| %>
     <input id="plugins_contact_form_models_contact_form_site_id" type="hidden" name="plugins_contact_form_models_contact_form[site_id]" value="<%= current_site.id %>" />
 
     <%= f.hidden_field :id  %>

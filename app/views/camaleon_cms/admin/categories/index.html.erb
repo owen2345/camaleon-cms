@@ -38,9 +38,9 @@
                       <td><%= item.count %></td>
                       <%= r = {html: "", post_type: @post_type, category: item}; hooks_run("category_list_body", r); raw(r[:html]); %>
                       <td>
-                        <%= link_to raw('<i class="fa fa-list"></i>'), admin_post_type_taxonomy_posts_path(@post_type.id, "category", item.id), class: "btn btn-default btn-xs", title: "#{@post_type.decorate.the_title.pluralize} - #{item.the_title.to_s.titleize}" if @post_type.present? && (can? :posts, @post_type) %>
-                        <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs", title: "#{t('camaleon_cms.admin.button.edit')}" %>
-                        <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete') }, class: "btn btn-danger btn-xs", title: "#{t('camaleon_cms.admin.button.delete')}" unless item.get_option('not_deleted', false) %>
+                        <%= link_to raw('<i class="fa fa-list"></i>'), admin_post_type_taxonomy_posts_path(@post_type.id, "category", item.id), class: "btn btn-default btn-xs cama_ajax_request", title: "#{@post_type.decorate.the_title.pluralize} - #{item.the_title.to_s.titleize}" if @post_type.present? && (can? :posts, @post_type) %>
+                        <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                        <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" unless item.get_option('not_deleted', false) %>
                       </td>
                     </tr>
                     <%

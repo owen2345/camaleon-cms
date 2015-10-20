@@ -13,7 +13,7 @@ class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
   before_action :set_post, except: :list
   before_action :set_comment, except: [:list, :index, :new, :create]
   def list
-    @posts = current_site.posts.no_trash.joins(:comments).select("#{CamaleonCms::Post.table_name}.*, #{CamaleonCms::PostComment.table_name}.post_id").order("#{CamaleonCms::PostComment.table_name}.post_id").paginate(:page => params[:page], :per_page => current_site.admin_per_page)
+    @posts = current_site.posts.no_trash.joins(:comments).select("#{CamaleonCms::Post.table_name}.*, #{CamaleonCms::PostComment.table_name}.post_id").uniq.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
 
   # list of post comments for current post

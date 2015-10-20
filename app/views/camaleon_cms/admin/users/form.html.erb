@@ -1,6 +1,3 @@
-<%
-   @plugin = current_site.plugins.where(slug: "social_login").first
-%>
 <!-- PAGE TITLE -->
 <div class="page-title">
     <h2>
@@ -15,7 +12,7 @@
 <div class="page-content-wrap">
 
     <div class="row">
-        <%= form_for @user, as: "user", url:{action: @user.new_record? ? :create : :update, id: @user.id}, html:{class: 'validate-user  form-horizontal', id: "user_form"} do |f| %>
+        <%= form_for @user, as: "user", url:{action: @user.new_record? ? :create : :update, id: @user.id}, html:{class: 'validate-user  form-horizontal cama_ajax_request', id: "user_form"} do |f| %>
             <div class="col-md-3 col-sm-4">
                 <div class="panel panel-default">
                     <div class="panel-body">
@@ -201,7 +198,7 @@
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><%= t('camaleon_cms.admin.button.close') %></span></button>
                 <h4 class="modal-title" id="smallModalHead"><%= t('camaleon_cms.admin.button.change_password') %></h4>
             </div>
-            <%= form_for @user, as: "user", url: @user.new_record? ? admin_users_path : admin_user_updated_ajax_path(@user), html:{class: 'validate-password form-ajax-password modal-body'} do |f| %>
+            <%= form_for @user, as: "user", url: @user.new_record? ? admin_users_path : admin_user_updated_ajax_path(@user), html:{id: "profie-form-ajax-password", class: 'validate-password form-ajax-password modal-body'} do |f| %>
                 <p><%= t('camaleon_cms.admin.message.change_password') %></p>
                 <div class="form-group">
                     <label class="col-md-3 control-label"><%= t('camaleon_cms.admin.table.old_password') %></label>

@@ -20,7 +20,7 @@ jQuery(function(){
 
     // custom alert dialog
     // show a custom modal box with messages
-    // sample: $.fn.alert({type: 'error', content: 'My error'})
+    // sample: $.fn.alert({type: 'error', content: 'My error', title: "My Title"})
     // type: error | warning | success
     $.fn.alert = function (options) {
         hideLoading();

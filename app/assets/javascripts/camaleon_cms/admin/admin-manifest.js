@@ -39,3 +39,11 @@
 //= require ./tageditor/jquery.tag-editor
 
 //= require ./lte/app
+
+// tinymce
+//= require ./tinymce/tinymce.min
+//= require ./tinymce/plugins/filemanager/plugin.min
+
+// post
+//= require ./jquery.tagsinput.min
+//= require ./post

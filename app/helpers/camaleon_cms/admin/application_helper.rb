@@ -32,7 +32,7 @@ module CamaleonCms::Admin::ApplicationHelper
     will_paginate_options = will_paginate_options.extract_options!
     custom_class = will_paginate_options[:panel_class]
     will_paginate_options.delete(:panel_class)
-    "<div class='row #{custom_class} pagination_panel'>
+    "<div class='row #{custom_class} pagination_panel cama_ajax_request'>
         <div class='col-md-6'>
           #{will_paginate items, will_paginate_options }
         </div>
