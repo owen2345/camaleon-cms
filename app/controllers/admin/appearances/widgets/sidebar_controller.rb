@@ -17,9 +17,9 @@ class Admin::Appearances::Widgets::SidebarController < Admin::AppearancesControl
   def create
     @sidebar = current_site.sidebars.new(params[:widget_sidebar])
     if @sidebar.save
-      flash[:notice] = "Sidebar Create"
+      flash[:notice] = t('admin.widgets.sidebar.created')
     else
-      flash[:error] = "No created sidebar"
+      flash[:error] = t('admin.widgets.sidebar.error_created')
     end
     redirect_to admin_appearances_widgets_main_index_path
   end
@@ -31,9 +31,9 @@ class Admin::Appearances::Widgets::SidebarController < Admin::AppearancesControl
 
   def update
     if current_site.sidebars.find(params[:id]).update(params[:widget_sidebar])
-      flash[:notice] = "Sidebar Update"
+      flash[:notice] = t('admin.widgets.sidebar.updated')
     else
-      flash[:error] = "No  Update sidebar"
+      flash[:error] = t('admin.widgets.sidebar.error_updated')
     end
     redirect_to admin_appearances_widgets_main_index_path
   end
@@ -47,7 +47,7 @@ class Admin::Appearances::Widgets::SidebarController < Admin::AppearancesControl
 
   def destroy
     @sidebar = current_site.sidebars.find(params[:id]).destroy
-    flash[:notice] = "Sidebar deleted."
+    flash[:notice] = t('admin.widgets.sidebar.error_deleted')
     redirect_to admin_appearances_widgets_main_index_path
   end
 
