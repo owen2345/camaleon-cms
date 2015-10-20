@@ -20,9 +20,9 @@ class Admin::Appearances::Widgets::AssignController < Admin::AppearancesControll
     @assigned = @sidebar.assigned.find(params[:id])
     if @assigned.update(params[:assign])
       @assigned.set_field_values(params[:field_options])
-      flash[:notice] = "Widget assign updated"
+      flash[:notice] = t('admin.widgets.assign.updated')
     else
-      flash[:error] = "Widget assign not updated"
+      flash[:error] = t('admin.widgets.assign.error_updated')
     end
     redirect_to admin_appearances_widgets_main_index_path
   end

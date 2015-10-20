@@ -587,7 +587,16 @@ en:
         error_created: 'Not Created Widget.'
         error_updated: 'Not Updated Widget.'
         not_registered_widgets: 'There are no registered widgets'
-    intro:
+      assign:
+        updated: "Widget assign updated"
+        error_updated: "Widget assign not updated"
+      sidebar:
+        created: "Sidebar Create."
+        updated: "Sidebar Update."
+        error_created: "No created sidebar."
+        error_updated: "No Update sidebar."
+        error_deleted: "Sidebar deleted."
+      intro:
       profile: "In this place you can see your profile options."
       content: "This block contains all content groups of your site. Each content can have different structure configured in settings => Content Groups"
       #dashboard: "In this section you can see "
