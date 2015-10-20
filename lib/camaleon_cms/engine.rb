@@ -15,6 +15,7 @@ require 'will_paginate-bootstrap'
 require 'doorkeeper'
 require 'responders'
 require 'breadcrumbs_on_rails'
+require 'swagger/docs'
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s
@@ -52,6 +53,9 @@ module CamaleonCms
       # extra configuration for plugins
       app.config.eager_load_paths += %W(#{app.config.root}/app/apps/**/)
       PluginRoutes.all_plugins.each{ |plugin| app.config.paths["db/migrate"] << File.join(plugin["path"], "migrate") if Dir.exist?(File.join(plugin["path"], "migrate")) }
+
+      # Static files
+      app.middleware.use ::ActionDispatch::Static, "#{root}/public"
 
       # migrations checking
       unless app.root.to_s.match root.to_s
