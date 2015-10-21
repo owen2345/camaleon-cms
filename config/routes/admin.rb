@@ -11,9 +11,6 @@ Rails.application.routes.draw do
     match 'register' => 'sessions#register', via: [:get, :post, :patch]
     match 'api/:method', action: :api, via: [:get, :post], as: :api
 
-    # grid editor administration
-    resources :grid_editor
-
     resources :post_type , as: :post_type do
       resources :posts, controller: 'posts' do
         # resources :comments
@@ -47,16 +44,15 @@ Rails.application.routes.draw do
 
     namespace :settings do
       resources :post_types
-
       resources :custom_fields do
         collection do
           post 'get_items/:key', action: :get_items, as: :get_items
           post "reorder"
         end
       end
-
       get 'site'
       get "languages"
+      get "shortcodes"
       post "languages" => :save_languages
       patch 'site_saved'
 
@@ -116,6 +112,8 @@ Rails.application.routes.draw do
     match 'elfinder' => 'media#elfinder', via: :all
     match 'elfinder/iframe' => 'media#iframe', via: :all
     match 'crop' => 'media#crop', via: :all
+
+    get 'doc' => redirect('/docs/index.html?url=/api-docs.json')
   end
 
   eval(PluginRoutes.load("admin"))

@@ -23,13 +23,13 @@ Rails.application.routes.draw do
       # sitemap
       get "sitemap" => :sitemap, as: :sitemap, defaults: { format: :xml }
       get "robots" => :robots, as: :robots, defaults: { format: :txt }
-      get "rss" =>:index, defaults: { format: "rss" }
+      get "rss", defaults: { format: "rss" }
       get "ajax"
     end
 
     instance_eval(PluginRoutes.load("front"))
 
-    get "*slug" => 'frontend#post', format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-]+/}
-    get "*slug" => 'frontend#post', :as => :post, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-]+/}
+    get "*slug" => 'frontend#post', format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-\/]+/}
+    get "*slug" => 'frontend#post', :as => :post, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-\/]+/}
   end
 end

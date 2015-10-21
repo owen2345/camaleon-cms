@@ -33,19 +33,10 @@ module SessionHelper
     end
   end
 
-  def login_user_with_password(username, password, remember_me=false, redirect_url = nil)
-    data_user = {}
-    cipher = Gibberish::AES::CBC.new(get_session_id)
-    data_user[:password] = cipher.decrypt(password) rescue nil
+  def login_user_with_password(username, password)
     @user = current_site.users.find_by_username(username)
-    r = {user: @user, params: params, password: data_user[:password], captcha_validate: true}; hooks_run('user_before_login', r)
-    if @user && @user.authenticate(data_user[:password])
-      login_user(@user, remember_me, redirect_url)
-    else
-      #TODO change flash error
-      #flash[:error] =  t('admin.login.message.fail')
-    end
-    @user if @user
+    r = {user: @user, params: params, password: password, captcha_validate: true}; hooks_run('user_before_login', r)
+    @user && @user.authenticate(password)
   end
 
   # check if current host is heroku
@@ -94,6 +85,10 @@ module SessionHelper
   # return current user logged in
   def current_user
     return @current_user if defined?(@current_user)
+    # api current user...
+    @current_user = calc_api_current_user
+    return @current_user unless @current_user.nil?
+
     return nil unless cookies[:auth_token].present?
     c = cookies[:auth_token].split("&")
     return nil unless c.size == 3
@@ -108,7 +103,7 @@ module SessionHelper
   def authenticate(redirect_uri = nil)
     params[:return_to] = redirect_uri
     unless signin?
-      flash[:error] = "Required Login"
+      flash[:error] = t('admin.login.please_login')
       cookies[:return_to] = params[:return_to].present? ? params[:return_to] : ((request.get? && params[:controller] != "admin/sessions") ? request.original_url : nil)
       redirect_to admin_login_path
     end
@@ -118,5 +113,11 @@ module SessionHelper
   def get_session_id
     session[:autor] = "Owen Peredo Diaz" unless request.session_options[:id].present?
     request.session_options[:id]
+  end
+
+  private
+
+  def calc_api_current_user
+    current_site.users_include_admins.find(doorkeeper_token.resource_owner_id).decorate if doorkeeper_token rescue nil
   end
 end

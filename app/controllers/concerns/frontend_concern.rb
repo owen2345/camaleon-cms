@@ -8,28 +8,29 @@
 =end
 module FrontendConcern extend ActiveSupport::Concern
   # visiting sitemap.xml
+  # With hook "on_render_sitemap" you can skip post_types, categories, tags or posts
+  #   you can change render file and layout
+  #   you can add custom sitemap elements in the attr "custom", like: https://github.com/owen2345/camaleon-cms/issues/106#issuecomment-146232211
+  #   you can customize your content for html or xml format
   def sitemap
-    path = Rails.root.join("public", "sitemaps", current_site.slug, "sitemap.xml")
-    if File.exists?(path)
-      respond_to do |format|
-        format.html do
-          @xml = File.read(path)
-          render "sitemap"
-        end
-        format.xml { render(xml: open(path).read) }
-      end
-    else
-      Thread.abort_on_exception=true
-      Thread.new do
-        %x(rake camaleon_cms:sitemap)
-        ActiveRecord::Base.connection.close
-      end
-      render text: "Sitemap not found. Generating... Please wait and refresh later.", status: :not_found
-    end
+    r = {layout: (params[:format] == "html" ? (self.send :_layout) : false), render: "sitemap", custom: {a: a}, format: params[:format], skip_post_ids: [], skip_posttype_ids: [], skip_cat_ids: [], skip_tag_ids: []}
+    hooks_run("on_render_sitemap", r)
+    @r = r
+    render r[:render], layout: r[:layout]
   end
 
   # accessing for robots.txt
   def robots
+    r = {layout: false, render: "robots"}
+    hooks_run("on_render_robots", r)
+    render r[:render], layout: r[:layout]
+  end
+
+  # rss for current site
+  def rss
+    r = {layout: false, render: "rss"}
+    hooks_run("on_render_rss", r)
+    render r[:render], layout: r[:layout]
   end
 
   # save comment from a post

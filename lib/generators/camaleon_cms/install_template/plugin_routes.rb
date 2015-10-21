@@ -19,16 +19,4 @@ class PluginRoutes
     dir.pop
     dir.join("/")+ '/app/apps'
   end
-
-  # check if a gem is available or not
-  # Arguemnts:
-  # name: name of the gem
-  # return (Boolean) true/false
-  def self.get_gem(name)
-    Gem::Specification.find_by_name(name)
-  rescue Gem::LoadError
-    false
-  rescue
-    Gem.available?(name)
-  end
 end

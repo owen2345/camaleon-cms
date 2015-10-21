@@ -1,0 +1,29 @@
+<% r = {custom_menus: {}, menu: @nav_menu}; hooks_run("nav_menu_custom", r) %>
+<% if r[:custom_menus].present? %>
+    <div class="panel panel-default panel-toggled custom_menus">
+        <div class="panel-heading">
+            <h4 data-type="post_type" class="panel-title class_type">
+                <%= t("admin.menus.custom_menus", default: "Custom Menus") %>
+            </h4>
+            <ul class="panel-controls">
+                <li><a class="panel-collapse" href="#" title=""><span class="fa fa-angle-down"></span></a></li>
+            </ul>
+        </div>
+        <div class="panel-body">
+            <div class="tab-pane active class_type">
+                <ul class="">
+                    <% r[:custom_menus].each do |k, item| %>
+                        <li>
+                            <label class="class_slug">
+                                <input type="checkbox" value="<%= item[:url] %>"> <%= item[:title] %>
+                            </label>
+                        </li>
+                    <% end %>
+                </ul>
+            </div>
+            <div class="panel-footer">
+                <button type="" class="add_links_custom_to_menu btn btn-primary pull-right"><%= t('admin.button.add_menu') %> <i class="fa fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+<% end %>

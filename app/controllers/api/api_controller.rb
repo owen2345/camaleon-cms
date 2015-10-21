@@ -1,28 +1,31 @@
-class Api::ApiController < ActionController::Base
-  include CamaleonHelper
-  include SessionHelper
-  include SiteHelper
-  include HtmlHelper
-  include UserRolesHelper
-  include ShortCodeHelper
-  include PluginsHelper
-  include ThemeHelper
-  include HooksHelper
-  include ContentHelper
-  include CaptchaHelper
-  include UploaderHelper
-
-  before_action -> { doorkeeper_authorize! :client }
-  respond_to :json
-
+class Api::ApiController < CamaleonController
+  #before_action -> { doorkeeper_authorize! :client }
   def account
-    render json: current_resource_owner
+    render json: current_user
   end
 
-  private
-
-  def current_resource_owner
-    User.find(doorkeeper_token.resource_owner_id) if doorkeeper_token
+  def render_json_error(error, status = 404)
+    render json: error, status: status
   end
 
+  def render_json_error_message(internal_message = 'Unexpected error', code = 100, status = 404, user_message = 'Unexpected error')
+    error = {
+        userMessage: user_message,
+        internalMessage: internal_message,
+        code: code
+    }
+    render_json_error(error, status)
+  end
+
+  def render_json_ok(message = 'Success', status = 200, more_info = {})
+    msg = {
+        message: message,
+        more_info: more_info
+    }
+    render json: msg, status: status
+  end
+
+  def render_json_not_found
+    render nothing: true, status: 404
+  end
 end

@@ -123,6 +123,7 @@ en:
         subject_email: 'Reset your access'
         send_mail_succes: 'Send email reset success.'
         send_mail_error: 'Not found email address.'
+        invalid_caption: 'Invalid captcha'
       personal_info: 'Personal info'
       please_login: 'Please login'
       reset_password: 'reset password'
@@ -318,7 +319,8 @@ en:
       author: "Author Name"
       seo_setting: "Seo Settings"
       email_settings: "Email Settings (SMTP)"
-
+      security:
+        captcha_user_register: "Enable captcha on user registration?"
       message:
         language_updated: 'Your languages was configured.'
         site_updated: 'The site has been updated.'
@@ -484,6 +486,7 @@ en:
       youtube: 'Youtube'
       more_actions: 'More actions'
       more_actions_info: 'More actions...'
+      shorcodes: "Shortcodes"
     themes:
       footer_copyright: 'Footer Copyright'
       theme_select: 'Select Theme'
@@ -585,9 +588,18 @@ en:
         error_created: 'Not Created Widget.'
         error_updated: 'Not Updated Widget.'
         not_registered_widgets: 'There are no registered widgets'
-    intro:
+      assign:
+        updated: "Widget assign updated"
+        error_updated: "Widget assign not updated"
+      sidebar:
+        created: "Sidebar Create."
+        updated: "Sidebar Update."
+        error_created: "No created sidebar."
+        error_updated: "No Update sidebar."
+        error_deleted: "Sidebar deleted."
+      intro:
       profile: "In this place you can see your profile options."
-      content: "This block contains all content groups of your site. Each content can have different structure configured in settings => Post Type"
+      content: "This block contains all content groups of your site. Each content can have different structure configured in settings => Content Groups"
       #dashboard: "In this section you can see "
       media: "This section manage your all your public media files"
       comments: "This section manage all the comments of your contents"
@@ -603,3 +615,4 @@ en:
       custom_fields: "This section permit you to extend easily your contents, themes,... by custom fields."
       post_type: "In this module you can manage your content groups without programing anything."
       languages: "This module permit you to manage all languages for your site. Also you can configure the language for your admin panel."
+      shortcodes: "In this section you can see all available shortcodes to use in your contents."

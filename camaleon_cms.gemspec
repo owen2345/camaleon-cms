@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
 
-  s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
+  s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", "public/**/*"]
   s.test_files = Dir["test/**/*"]
 
   # deprecated in Rails 4
@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'draper', '~> 1.3'
   s.add_dependency 'dynamic_sitemaps'
   s.add_dependency 'el_finder'
-  s.add_dependency 'meta-tags'
+  s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
   s.add_dependency 'mobu'
   s.add_dependency 'protected_attributes'
@@ -40,5 +40,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'will_paginate-bootstrap'
   s.add_dependency 'doorkeeper', '~> 3.0'
   s.add_dependency 'responders', '~> 2.0'
-
+  s.add_dependency 'swagger-docs', '~> 0.1'
 end

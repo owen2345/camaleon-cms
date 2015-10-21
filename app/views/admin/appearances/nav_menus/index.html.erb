@@ -20,9 +20,7 @@
                                     <%= pt.the_title %>
                                 </h4>
                                 <ul class="panel-controls">
-                                    <!--<li><a href="#" class="panel-fullscreen"><span class="fa fa-expand"></span></a></li>-->
-                                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a>
-                                    </li>
+                                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a> </li>
                                 </ul>
                             </div>
                             <div class="panel-body nav-tabs-vertical0" id="acc-<%= pt.slug %>" style="padding: 0">
@@ -70,12 +68,14 @@
                                     </div>
                                 </div>
                                 <div class="panel-footer">
-                                    <button class="add_links_to_menu btn btn-primary pull-right" type=""><%= t('admin.button.add_menu') %>
-                                        <i class="fa fa-arrow-right"></i></button>
+                                    <button class="add_links_to_menu btn btn-primary pull-right" type=""><%= t('admin.button.add_menu') %><i class="fa fa-arrow-right"></i></button>
                                 </div>
                             </div>
                         </div>
                     <% end %>
+
+                    <%= render "custom_menus" %>
+
                     <div class="panel panel-default panel-toggled">
                         <div class="panel-heading">
                             <h4 class="panel-title"><%= t('admin.menus.external_link') %></h4>

@@ -141,8 +141,19 @@
     //margin-top: -25px;
   }
 
+  // custom fields render in forms
   .item-custom-field{
     margin-bottom: 15px;
+    > label{
+      display: block;
+      .shortcode_field{
+        display: none;
+        font-weight: normal;
+      }
+    }
+    &:hover > label .shortcode_field{
+      display: block;
+    }
     .actions{
       overflow: hidden;
       width: 67px;
@@ -158,9 +169,25 @@
   }
 }
 
-.main-header.introjs-fixParent{
-  width: 100%;
-  .navbar{
+// intro js custom
+.main-header{
+  &.introjs-fixParent{
     width: 100%;
+    .navbar{
+      width: 100%;
+    }
   }
+  .logo img{
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+//.introjs-skipbutton{ display: none; }
+#modal_elfinder{
+  z-index: 99999;
+}
+
+// fix tinymce fullscreen
+div.mce-fullscreen{
+  z-index: 9999;
 }

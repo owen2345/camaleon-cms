@@ -2,14 +2,21 @@ jQuery(function($){
     // initialize all validations for forms
     init_form_validations();
     setTimeout(page_actions, 1000);
-    setTimeout(init_intro, 500);
+    if(!$("body").attr("data-intro")) setTimeout(init_intro, 500);
 });
 
 // show admin intro presentation
 function init_intro(){
-    if($("body").attr("data-intro")) return;
     var finish = function(){
         $.get(root_url+"/admin/ajax", {mode: "save_intro"});
+        var layer = $(".introjs-overlay").clone();
+        var of = $(".introjs-tooltip").offset();
+        var c = $(".introjs-tooltip").clone().css($.extend({}, {"min-width": "0", position: "absolute", overflow: "hidden", "zIndex": 9999999}, of));
+        $("html, body").animate({scrollTop: $("body").height()}, 0);
+        setTimeout(function(){
+            $("body").append(layer, c);
+            c.animate($.extend({}, {width: 75, height: 20}, $("#link_see_intro").offset()), "slow", function(){ setTimeout(function(){ c.remove(); layer.remove(); }, 500); });
+        }, 5)
     }
     introJs().setOptions({exitOnEsc: false,
         exitOnOverlayClick: false,
@@ -18,6 +25,10 @@ function init_intro(){
         disableInteraction: true
     }).oncomplete(finish).onexit(finish).onbeforechange(function(ele) {
         if($(ele).hasClass("treeview") && !$(ele).hasClass("active")) $(ele).children("a").click();
+        if($(ele).is("li")){
+            var tree = $(ele).closest("ul");
+            if(!tree.hasClass("menu-open")) tree.prev("a").click();
+        }
     }).start();
 }
 
@@ -70,3 +81,13 @@ Object.size = function(obj) {
     return size;
 };
 /* EOF NEW OBJECT(GET SIZE OF ARRAY) */
+
+// this is a fix for multiples modals when a modal was closed (reactivate scroll for next modal)
+function modal_fix_multiple(){
+    var activeModal = $('.modal.in:last', 'body').data('bs.modal');
+    if (activeModal) {
+        activeModal.$body.addClass('modal-open');
+        activeModal.enforceFocus();
+        activeModal.handleUpdate();
+    }
+}

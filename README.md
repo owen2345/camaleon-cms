@@ -167,7 +167,8 @@ http://camaleon.tuzitio.com/license.html/
 
 ## Coming soon
 * Documentation and Videos
-* Create more basic plugins
+* Create more basic plugins and themes
+
 
 ## Contributing
 * Fork it.
@@ -179,4 +180,18 @@ http://camaleon.tuzitio.com/license.html/
 Visit the web site for more information: http://camaleon.tuzitio.com/
 
 ## Version History
-http://camaleon.tuzitio.com/version-history.html
+* Version 1.0.8
+  - Fix logo size on admin panel
+  - Fixed: Raise error when visiting unexisting urls. Example: Random troll writes domain.com/asdasdasd/adfasdasd.
+  - Allow email domains up to 10 characters in the contact form plugin
+  - Added advanced shortcodes to print data in any content:Permit to generate specific data of a post. (see more details in link below)
+  - fixed vertical scroll for multiple modals- added a library to create inline field to upload fields.
+  - Added control to clean cache after restart server.
+  - Added hook to include custom links from plugins or themes.
+  - changed custom sitemap into hash.
+  - added sitemap skippers to filter private elements.
+  - fixed the_breadcrumb for current_site.
+  - Unify current_user removing current_resource_owner. Solved bug with login_user_with_password.
+  - Added generic API response methods, render_json_error & render_json_ok.
+
+See more here: http://camaleon.tuzitio.com/version-history.html

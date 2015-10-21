@@ -68,8 +68,8 @@ class SiteDecorator < TermTaxonomyDecorator
 
   # return the category object with id or slug = slug_or_id from this site
   def the_category(slug_or_id)
-    return the_full_categories.where(id: slug_or_id).first if slug_or_id.is_a?(Integer)
-    return the_full_categories.find_by_slug(slug_or_id) if slug_or_id.is_a?(String)
+    return the_full_categories.where(id: slug_or_id).first.decorate rescue nil if slug_or_id.is_a?(Integer)
+    return the_full_categories.find_by_slug(slug_or_id).decorate rescue nil if slug_or_id.is_a?(String)
   end
 
   # return all categories for ths site (include all children categories)
@@ -80,6 +80,18 @@ class SiteDecorator < TermTaxonomyDecorator
   # return all post tags for ths site
   def the_tags
     object.post_tags
+  end
+
+  # return the post_tag object with id or slug = slug_or_id from this site
+  def the_tag(slug_or_id)
+    return object.post_tags.where(id: slug_or_id).first.decorate rescue nil if slug_or_id.is_a?(Integer)
+    return object.post_tags.find_by_slug(slug_or_id).decorate rescue nil if slug_or_id.is_a?(String)
+  end
+
+  # return the user object with id or username = id_or_username from this site
+  def the_user(id_or_username)
+    return object.users.where(id: id_or_username).first.decorate rescue nil if id_or_username.is_a?(Integer)
+    return object.users.find_by_username(id_or_username).decorate rescue nil if id_or_username.is_a?(String)
   end
 
   # return all post types for this site
@@ -143,6 +155,11 @@ class SiteDecorator < TermTaxonomyDecorator
     args[:host] = args[:host].split(":").first
     args.delete(:as_path)
     h.url_to_fixed("root_url", args)
+  end
+
+  # draw bread crumb for current site
+  def generate_breadcrumb(add_post_type = true)
+    h.breadcrumb_add(self.the_title)
   end
 
   # =============================== ADMIN =======================

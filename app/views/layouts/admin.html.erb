@@ -1,14 +1,11 @@
-<% add_asset_library("admin_intro") unless current_site.get_option("save_intro").present? %>
 <% _admin_menu_draw = admin_menu_draw %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title><%= raw admin_title_draw %></title>
-
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-
     <%= stylesheet_link_tag "admin/admin-manifest", media: "all" %>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <script>
@@ -16,21 +13,16 @@
         var NO_IMAGE_URL = '<%= asset_url("image-not-found.png") %>';
         var CURRENT_LOCALE = '<%= current_locale %>';
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
-        String.prototype.to_url = function () { return root_url.slice(0, root_url.length - 1) + this; };
-        window.run = [];
-        var tinymce_assets = {language_url: "<%= asset_path("admin/tinymce/langs/#{current_locale}.js") %>", custom_css: <%= r = {css_assets: []}; hooks_run("tinymce_custom_css", r); raw(r[:css_assets].to_json); %>};
+        var tinymce_global_settings = {language_url: "<%= asset_path("admin/tinymce/langs/#{current_locale}.js") %>", custom_css: [], custom_toolbar: [], post_render: [], init: [], setups: []};
         var I18n_data = <%= I18n.backend.send(:translations)[current_locale.to_sym][:admin][:js].to_json.html_safe %>
     </script>
     <%= javascript_include_tag "admin/admin-manifest" %>
     <%= javascript_include_tag "admin/#{current_locale}.js" if current_locale != "en" %> <!-- validator translations -->
     <%= javascript_include_tag "admin/elfinder/i18n/elfinder.#{current_locale}.js" if current_locale != "en" %> <!-- elfinder translations -->
     <%= raw the_head({}, false) %>
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
 <body class="hold-transition skin-blue sidebar-mini" data-intro="<%= current_site.get_option("save_intro") %>">
@@ -58,10 +50,7 @@
         </div>
 
         <%= render partial: "layouts/admin/footer" %>
-        <%= raw content_after_draw %>
     </div>
-
-    <script> jQuery(function () { while (run.length > 0) { (run.shift())(); } }); </script>
     <%= raw content_after_draw %>
 </body>
 </html>

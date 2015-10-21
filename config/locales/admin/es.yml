@@ -316,6 +316,8 @@ es:
       author: "Nombre de Autor"
       seo_setting: "Posicionamiento Web."
       email_settings: "Configuración de Correo (SMTP)"
+      security:
+        captcha_user_register: "¿Activar captcha en el registro de usuarios?"
       message:
         language_updated: 'Tus idiomas se han configurado.'
         site_updated: 'El sitio ha sido actualizado.'

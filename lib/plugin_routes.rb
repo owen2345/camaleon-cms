@@ -105,14 +105,15 @@ class PluginRoutes
 
   # reload routes
   def self.reload
-    @@_vars.each {|v| class_variable_set("@@cache_#{v}", nil) }
+    @@_vars.each { |v| class_variable_set("@@cache_#{v}", nil) }
     # WPRails::Application.routes_reloader.reload!
     Rails.application.reload_routes!
   end
 
   # return all enabled plugins []
   def self.enabled_plugins(site)
-    r = cache_variable("enable_plugins_site_#{site.id}"); return r unless r.nil?
+    r = cache_variable("enable_plugins_site_#{site.id}")
+    return r unless r.nil?
     res = []
     enabled_ps = site.plugins.active.pluck(:slug)
     all_plugins.each do |plugin|
@@ -126,14 +127,15 @@ class PluginRoutes
   # theme_slug: current theme slug
   def self.enabled_apps(site, theme_slug = nil)
     theme_slug = theme_slug || site.get_theme_slug
-    r = cache_variable("enabled_apps_#{site.id}_#{theme_slug}"); return r unless r.nil?
-    res = [system_info()] + enabled_plugins(site) + [theme_info(theme_slug)]
+    r = cache_variable("enabled_apps_#{site.id}_#{theme_slug}")
+    return r unless r.nil?
+    res = [system_info] + enabled_plugins(site) + [theme_info(theme_slug)]
     cache_variable("enabled_apps_#{site.id}_#{theme_slug}", res)
   end
 
   # return all enabled apps as []: system, themes, plugins
   def self.all_enabled_apps
-    [system_info()] + all_enabled_themes + all_enabled_plugins
+    [system_info] + all_enabled_themes + all_enabled_plugins
   end
 
   # return all enabled themes (a theme is enabled if at least one site is assigned)
@@ -149,7 +151,8 @@ class PluginRoutes
 
   # return all enabled plugins (a theme is enabled if at least one site has installed)
   def self.all_enabled_plugins
-    r = cache_variable("all_enabled_plugins"); return r unless r.nil?
+    r = cache_variable("all_enabled_plugins")
+    return r unless r.nil?
     res, enabled_ps = [], []
     get_sites.each { |site|  enabled_ps += site.plugins.active.pluck(:slug) }
     all_plugins.each do |plugin|
@@ -172,7 +175,8 @@ class PluginRoutes
 
   # all helpers of enabled plugins
   def self.plugin_helpers
-    r = cache_variable("plugins_helper"); return r unless r.nil?
+    r = cache_variable("plugins_helper")
+    return r unless r.nil?
     res = []
     all_enabled_apps.each do |settings|
       res += settings["helpers"] if settings["helpers"].present?
@@ -287,7 +291,7 @@ class PluginRoutes
       if File.exist?(config)
         p = JSON.parse(File.read(config))
         p = p.with_indifferent_access rescue p
-        p["key"] = gem.name
+        p["key"] = gem.name if p["key"].nil?
         p["path"] = path
         p["kind"] = "plugin"
         p["gem_mode"] = true

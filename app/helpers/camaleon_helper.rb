@@ -71,4 +71,21 @@ module CamaleonHelper
   def is_admin_request?
     !(@_admin_menus.nil?)
   end
+
+  # generate loop categories html sitemap links
+  # this is a helper for sitemap generator to print categories, sub categories and post contents in html list format
+  def cama_sitemap_cats_generator(cats)
+    res = []
+    cats.decorate.each do |cat|
+      next if @r[:skip_cat_ids].include?(cat.id)
+      res_posts = []
+      cat.the_posts.decorate.each do |post|
+        next if @r[:skip_post_ids].include?(post.id)
+        res_posts << "<li><a href='#{post.the_url}'>#{post.the_title}</a></li>"
+      end
+      res << "<li><h4><a href='#{cat.the_url}'>#{cat.the_title}</a></h4><ul>#{res_posts.join("")}</ul></li>"
+      res << cama_sitemap_cats_generator(cat.the_categories)
+    end
+    res.join("")
+  end
 end

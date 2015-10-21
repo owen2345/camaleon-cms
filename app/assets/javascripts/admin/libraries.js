@@ -122,10 +122,77 @@ var init_form_validations = function(form){
             if($that.val()) set_texts($that.val())
         });
     };
+
+    // create inline input file uploader with an icon to upload file
+    // options: all options needed for uploader
+    // you can add an attribute "data-format" in the input to define the file formats required
+    $.fn.input_upload_field = function(options){
+        this.each(function(){
+            var input = $(this);
+            var def = {
+                type: (input.attr("data-format") || "image"),
+                selected: function(res){
+                    var file = _.first(res);
+                    input.val(file.url.to_url());
+                }
+            };
+            if(!input.parent().hasClass("input-group")){
+                input.wrap('<div class="group-input-fields-content input-group"></div>');
+                input.after('<span class="input-group-addon btn_upload"><i class="fa fa-upload"></i> </span>');
+                input.addClass("form-control");
+            }
+            input.next("span").click(function(){
+                $.fn.upload_elfinder($.extend({}, def, (options || {})));
+            });
+        });
+    }
 })(jQuery);
 
 // jquery custom validations and default values
 (function($){
+
+    // file formats
+    $.file_formats = {
+        jpg: "image",
+        gif: "image",
+        png: "image",
+        bmp: "image",
+        jpeg: "image",
+
+        mp3: "audio",
+        ogg: "audio",
+        mid: "audio",
+        mod: "audio",
+        wav: "audio",
+
+        mp4: "video",
+        wmv: "video",
+        avi: "video",
+        swf: "video",
+        mov: "video",
+        mpeg: "video",
+        mjpg: "video"
+    }
+
+    // verify the url for youtube, vimeo...
+    // return youtube | metcafe|dailymotion|vimeo
+    $.cama_check_video_url = function(url){
+        var regYoutube = new RegExp(/^.*((youtu.be\/)|(v\/)|(\/u\/w\/)|(embed\/)|(watch?))??v?=?([^#&?]*).*/);
+        var regVimeo = new RegExp(/^.*(vimeo.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/);
+        var regDailymotion = new RegExp(/^.+dailymotion.com\/(video|hub)\/([^_]+)[^#]*(#video=([^_&]+))?/);
+        var regMetacafe = new RegExp(/^.*(metacafe.com)(\/watch\/)(d+)(.*)/i);
+        if(regYoutube.test(url)) {
+            return 'youtube';
+        }else if (regMetacafe.test(url)) {
+            return 'metacafe';
+        }else if(regDailymotion.test(url)){
+            return 'dailymotion';
+        }else if(regVimeo.test(url)) {
+            return 'vimeo';
+        }else{
+            return false;
+        }
+    }
 
     // helper validate only letters latin
     var regex = /^[a-z\sÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏàáâãäåæçèéêëìíîïÐÑÒÓÔÕÖØÙÚÛÜÝÞßðñòóôõöøùúûüýþÿ]+$/i;
@@ -158,102 +225,16 @@ var init_form_validations = function(form){
     // validate file extension defined in data-formats
     // data-formats: (default '') image | audio | video (support also external youtube metacafe, dailymotion, vimeo) | or file extension like: jpg|png
     $.validator.addMethod("file_format", function(value, element) {
-        function check_url(url) {
-            var regYoutube = new RegExp(/^.*((youtu.be\/)|(v\/)|(\/u\/w\/)|(embed\/)|(watch?))??v?=?([^#&?]*).*/);
-            var regVimeo = new RegExp(/^.*(vimeo.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/);
-            var regDailymotion = new RegExp(/^.+dailymotion.com\/(video|hub)\/([^_]+)[^#]*(#video=([^_&]+))?/);
-            var regMetacafe = new RegExp(/^.*(metacafe.com)(\/watch\/)(d+)(.*)/i);
-            if(regYoutube.test(url)) {
-                return 'youtube';
-            }else if (regMetacafe.test(url)) {
-                return 'metacafe';
-            }else if(regDailymotion.test(url)){
-                return 'dailymotion';
-            }else if(regVimeo.test(url)) {
-                return 'vimeo';
-            }else{
-                return false;
-            }
-        }
-        var _formats = {
-            jpg: "image",
-            gif: "image",
-            png: "image",
-            bmp: "image",
-            jpeg: "image",
-
-            mp3: "audio",
-            ogg: "audio",
-            mid: "audio",
-            mod: "audio",
-            wav: "audio",
-
-            mp4: "video",
-            wmv: "video",
-            avi: "video",
-            swf: "video",
-            mov: "video",
-            mpeg: "video",
-            mjpg: "video"
-        }
         var formats = $(element).attr("data-formats");
         var ext = value.split(".").pop().toLowerCase();
         if(formats)
-            return ($.inArray("video", formats.split(",")) >= 0 && check_url(value)) || $.inArray(_formats[ext], formats.split(",")) >= 0 || $.inArray(ext, formats.split(",")) >= 0
+            return ($.inArray("video", formats.split(",")) >= 0 && $.cama_check_video_url(value)) || $.inArray($.file_formats[ext], formats.split(",")) >= 0 || $.inArray(ext, formats.split(",")) >= 0
 
         return true;
     }, "File format not accepted.");
     jQuery.validator.addClassRules({
         file_format : { file_format : true }
     });
-})(jQuery);
-
-// Sortable
-(function($){
-    $.fn.table_order = function (options){
-        var default_options = {url: "", table: ".table", on_success: false, on_change: false};
-        options = $.extend(default_options, options || {});
-        var th_data = false;
-        var $table = this ? $(this) : $(options.table);
-        $table.addClass('table_order')
-        var th_new = '<th class="center" data-sortable="0"></th>';
-        $table.find('thead tr').prepend(th_new);
-        $table.find('tbody tr').each(function(i, el) {
-            var id = $(this).attr('data-id');
-            var td_new = '<td>'
-                +'<div class="moved" style="cursor: all-scroll">'
-                +'<i class="fa fa-arrows"></i>'
-                +'<input type="hidden" name="values[]" value="'+id+'" />'
-                +'</div>'
-            '</td>';
-            $(this).prepend(td_new);
-        });
-
-        $table.find('tbody').sortable({
-            axis: "y",
-            placeholder: "ui-state-highlight",
-            handle: ".moved",
-            //items: "tr:not(.sortable)",
-            items: "tr",
-            start: function(event, ui) {
-                ui.item.startPos = ui.item.index();
-            },
-            stop: function( event, ui ) {
-                $.post(options.url, $table.find("input" ).serialize(), function(res){
-                    if(ui.item.startPos != ui.item.index()){
-                        if(options.on_success) options.on_success({res: res, item: ui.item})
-                    }
-                }).fail(function() {
-                    if(options.on_success) options.on_success({res: {error: 'Error Server'}, item: ui.item})
-                });
-            },
-            change: function(event, ui) {
-                if(options.on_change) options.on_change()
-            }
-        });
-        $table.find('tbody').disableSelection();
-    };
-
 })(jQuery);
 
 // convert string into hashcode
@@ -279,5 +260,7 @@ String.prototype.hashCode = function() {
     return ret;
 };
 
+// convert string path into full url
+String.prototype.to_url = function () { return root_url.slice(0, root_url.length - 1) + this; };
 // jquery browser supoer
 !function(a){"function"==typeof define&&define.amd?define(["jquery"],function(b){a(b)}):"object"==typeof module&&"object"==typeof module.exports?module.exports=a(require("jquery")):a(window.jQuery)}(function(a){"use strict";function b(a){void 0===a&&(a=window.navigator.userAgent),a=a.toLowerCase();var b=/(edge)\/([\w.]+)/.exec(a)||/(opr)[\/]([\w.]+)/.exec(a)||/(chrome)[ \/]([\w.]+)/.exec(a)||/(version)(applewebkit)[ \/]([\w.]+).*(safari)[ \/]([\w.]+)/.exec(a)||/(webkit)[ \/]([\w.]+).*(version)[ \/]([\w.]+).*(safari)[ \/]([\w.]+)/.exec(a)||/(webkit)[ \/]([\w.]+)/.exec(a)||/(opera)(?:.*version|)[ \/]([\w.]+)/.exec(a)||/(msie) ([\w.]+)/.exec(a)||a.indexOf("trident")>=0&&/(rv)(?::| )([\w.]+)/.exec(a)||a.indexOf("compatible")<0&&/(mozilla)(?:.*? rv:([\w.]+)|)/.exec(a)||[],c=/(ipad)/.exec(a)||/(ipod)/.exec(a)||/(iphone)/.exec(a)||/(kindle)/.exec(a)||/(silk)/.exec(a)||/(android)/.exec(a)||/(windows phone)/.exec(a)||/(win)/.exec(a)||/(mac)/.exec(a)||/(linux)/.exec(a)||/(cros)/.exec(a)||/(playbook)/.exec(a)||/(bb)/.exec(a)||/(blackberry)/.exec(a)||[],d={},e={browser:b[5]||b[3]||b[1]||"",version:b[2]||b[4]||"0",versionNumber:b[4]||b[2]||"0",platform:c[0]||""};if(e.browser&&(d[e.browser]=!0,d.version=e.version,d.versionNumber=parseInt(e.versionNumber,10)),e.platform&&(d[e.platform]=!0),(d.android||d.bb||d.blackberry||d.ipad||d.iphone||d.ipod||d.kindle||d.playbook||d.silk||d["windows phone"])&&(d.mobile=!0),(d.cros||d.mac||d.linux||d.win)&&(d.desktop=!0),(d.chrome||d.opr||d.safari)&&(d.webkit=!0),d.rv||d.edge){var f="msie";e.browser=f,d[f]=!0}if(d.safari&&d.blackberry){var g="blackberry";e.browser=g,d[g]=!0}if(d.safari&&d.playbook){var h="playbook";e.browser=h,d[h]=!0}if(d.bb){var i="blackberry";e.browser=i,d[i]=!0}if(d.opr){var j="opera";e.browser=j,d[j]=!0}if(d.safari&&d.android){var k="android";e.browser=k,d[k]=!0}if(d.safari&&d.kindle){var l="kindle";e.browser=l,d[l]=!0}if(d.safari&&d.silk){var m="silk";e.browser=m,d[m]=!0}return d.name=e.browser,d.platform=e.platform,d}return window.jQBrowser=b(window.navigator.userAgent),window.jQBrowser.uaMatch=b,a&&(a.browser=window.jQBrowser),window.jQBrowser});

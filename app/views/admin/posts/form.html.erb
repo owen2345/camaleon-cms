@@ -53,7 +53,7 @@
             </div>
 
             <!-- render all custom fields assigned to this post -->
-            <%= render partial: "admin/settings/custom_fields/render", locals: {record: @post, field_groups: @post.get_field_groups({kind: "Post", include_parent: true})} %>
+            <%= render partial: "admin/settings/custom_fields/render", locals: {record: @post, field_groups: @post.get_field_groups({kind: "Post", include_parent: true}), show_shortcode: true} %>
 
             <% unless @post.draft? || @post.new_record? %>
                 <% if @post.manage_comments?(@post_type) %>

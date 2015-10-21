@@ -18,7 +18,7 @@
  *= require ./elfinder/elfinder-theme
  *= require ./bootstrap-datetimepicker
  *= require ./bootstrap-datepicker
+ *= require ./introjs/introjs.min
  *= require ./tageditor/jquery.tag-editor
- *= require ./grid-editor
  */
 
