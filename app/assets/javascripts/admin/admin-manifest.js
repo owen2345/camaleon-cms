@@ -23,6 +23,7 @@
 //= require ./angular/angular-cookies.min
 
 //= require ./angular-filemanager/angular-filemanager.min
+//= require ./angular-filemanager/upload_filemanager
 //= require ./elfinder/elfinder.full
 //= require ./elfinder/proxy/elFinderSupportVer1
 //= require ./elfinder/upload_elfinder

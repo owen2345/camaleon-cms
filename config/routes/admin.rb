@@ -114,12 +114,16 @@ Rails.application.routes.draw do
     match 'crop' => 'media#crop', via: :all
 
     get 'doc' => redirect('/docs/index.html?url=/api-docs.json')
-    
+
     #FIXME show scope
     match 'filemanager/handler' => 'file_manager#handler', via: :all
     match 'filemanager/upload' => 'file_manager#upload', via: :all
     match 'filemanager/download' => 'file_manager#download', via: :all
     get 'filemanager/templates/:view' => 'file_manager#templates'
+
+    scope :filemanager do
+      match 'main' => 'file_manager#main', via: :all
+    end
   end
 
   eval(PluginRoutes.load("admin"))

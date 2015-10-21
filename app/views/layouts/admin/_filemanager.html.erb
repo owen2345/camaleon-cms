@@ -1,0 +1,36 @@
+<div data-ng-app="FileManagerApp">
+  <div id="filemanager-container" ng-controller="FileManagerController">
+    <div ng-include="filemanager_container_url"></div>
+  </div>
+</div>
+
+<script>
+    angular.module('FileManagerApp').controller('FileManagerController', function ($scope) {
+        console.log('init');
+        $scope.filemanager_container_url = '';
+        $scope.include = function (new_url) {
+            console.log('include: ' + new_url);
+            $scope.filemanager_container_url = new_url;
+            $scope.$apply();
+        };
+    });
+
+    angular.module('FileManagerApp').config(['fileManagerConfigProvider', function (config) {
+        config.set({
+            appName: 'camaleon-cms',
+            listUrl: '/admin/filemanager/handler',
+            uploadUrl: '/admin/filemanager/upload',
+            renameUrl: '/admin/filemanager/handler',
+            copyUrl: '/admin/filemanager/handler',
+            removeUrl: '/admin/filemanager/handler',
+            editUrl: '/admin/filemanager/handler',
+            getContentUrl: '/admin/filemanager/handler',
+            createFolderUrl: '/admin/filemanager/handler',
+            downloadFileUrl: '/admin/filemanager/download',
+            compressUrl: '/admin/filemanager/handler',
+            extractUrl: '/admin/filemanager/handler',
+            permissionsUrl: '/admin/filemanager/handler',
+            tplPath: '/admin/filemanager/templates'
+        });
+    }]);
+</script>

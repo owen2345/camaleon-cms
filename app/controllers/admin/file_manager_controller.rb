@@ -62,6 +62,10 @@ class Admin::FileManagerController < AdminController
     render "admin/file_manager/#{params[:view]}"
   end
 
+  def main
+    render :modal_main, :layout => false
+  end
+
   private
 
   def list_action(params)
@@ -97,5 +101,4 @@ class Admin::FileManagerController < AdminController
   def file_permissions(file)
     "drwxr-xr-x"
   end
-
 end
