@@ -113,6 +113,9 @@ Rails.application.routes.draw do
     match 'elfinder/iframe' => 'media#iframe', via: :all
     match 'crop' => 'media#crop', via: :all
 
+    get 'doc' => redirect('/docs/index.html?url=/api-docs.json')
+    
+    #FIXME show scope
     match 'filemanager/handler' => 'file_manager#handler', via: :all
     match 'filemanager/upload' => 'file_manager#upload', via: :all
     match 'filemanager/download' => 'file_manager#download', via: :all

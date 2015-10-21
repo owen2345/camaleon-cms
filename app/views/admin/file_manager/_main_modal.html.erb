@@ -1,0 +1,36 @@
+<div id="modal_filemanager" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="modal_filemanager_label" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><%= t('admin.button.close') %></span></button>
+        <h4 class="modal-title" id="modal_filemanager_label">Media</h4>
+      </div>
+      <div class="modal-body">
+        <div data-ng-app="FileManagerApp">
+          <angular-filemanager></angular-filemanager>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    angular.module('FileManagerApp').config(['fileManagerConfigProvider', function (config) {
+        var defaults = config.$get();
+        config.set({
+            appName: 'camaleon-cms',
+            listUrl: '/admin/filemanager/handler',
+            uploadUrl: 'filemanager/upload',
+            renameUrl: 'filemanager/handler',
+            copyUrl: 'filemanager/handler',
+            removeUrl: 'filemanager/handler',
+            editUrl: 'filemanager/handler',
+            getContentUrl: 'filemanager/handler',
+            createFolderUrl: 'filemanager/handler',
+            downloadFileUrl: 'filemanager/download',
+            compressUrl: 'filemanager/handler',
+            extractUrl: 'filemanager/handler',
+            permissionsUrl: 'filemanager/handler'
+        });
+    }]);
+</script>
