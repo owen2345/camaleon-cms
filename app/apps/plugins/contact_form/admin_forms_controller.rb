@@ -71,15 +71,6 @@ class Plugins::ContactForm::AdminFormsController < Apps::PluginsAdminController
 
   end
 
-  def fix_meta_value(value)
-    if (value.is_a?(Array) || value.is_a?(Hash))
-      value = value.to_json
-    elsif value.is_a?(String)
-      value = value.to_var
-    end
-    value
-  end
-
   # here add your custom functions
   private
   def set_form
