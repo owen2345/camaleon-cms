@@ -69,7 +69,7 @@ class Admin::FileManagerController < AdminController
   private
 
   def list_action(params)
-    @result_message = {result: list_files(params[:path], params[:onlyFolders])}
+    @result_message = {result: list_files(params[:path], params[:onlyFolders], params[:mimeFilter])}
     @result_status = 200
   end
 

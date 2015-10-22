@@ -1,5 +1,6 @@
 module FileSystemHelper
   require 'fog'
+  require 'aws-sdk'
 
   #file systems...  :s3, :local = default
   def is_local_filesystem
@@ -7,16 +8,17 @@ module FileSystemHelper
     @file_system_type == :local
   end
 
-  def list_files(path, only_folders=false)
+  def list_files(path, only_folders=false, mimeFilter=nil)
     init
     format_media_path(path)
     init_storage(@media_path)
     if @file_system_type == :s3
-      result = generate_tree_meta(only_folders)
+      result = generate_tree_meta(only_folders, mimeFilter)
     else
       result = generate_directories_meta
-      result + generate_files_meta unless only_folders
+      result = result + generate_files_meta(mimeFilter) unless only_folders
     end
+    result
   end
 
   def add_folder(path, name)
@@ -144,28 +146,34 @@ module FileSystemHelper
     end
   end
 
-  def generate_tree_meta(only_folders=false)
+  def generate_tree_meta(only_folders=false, mimeFilter = nil)
     tree_metas = []
     if @file_system_type == :s3
       media_path_size = @media_path.length
-      files = @connection.directories.get(@bucket, {:prefix => @media_path, :delimiter => '/'}).files
-      files.each do |file|
-        tree_metas << {
-            name: file.key[media_path_size..-1],
-            rights: "drwxr-xr-x",
-            size: "4096",
-            date: "2015-04-29 09:04:24",
-            type: "file"
-        } unless file.key.length == media_path_size || file.key[-1] == '/' || only_folders
+      query = {:bucket => @bucket, :delimiter => '/', :encoding_type => 'url', :max_keys => 100, :prefix => @media_path}
+      response = @s3_client.list_objects(query)
+      unless only_folders
+        response.contents.each do |file|
+          filename = file.key.gsub(@media_path, '')
+          unless filename.length == media_path_size || filename[-1] == '/' || filename.length == 0
+            tree_metas << {
+                name: filename,
+                rights: "drwxr-xr-x",
+                size: "4096",
+                date: "2015-04-29 09:04:24",
+                type: "file"
+            } if valid_mime_type?(mimeFilter, filename)
+          end
+        end
       end
-      files.common_prefixes.each do |folder|
+      response.common_prefixes.each do |folder|
         tree_metas << {
-            name: folder[media_path_size..-2],
-            rights: "drwxr-xr-x",
-            size: "4096",
-            date: "2015-04-29 09:04:24",
-            type: "dir"
-        } unless folder.length == media_path_size
+            :name => folder.prefix.split('/').last,
+            :ights => 'drwxr-xr-x',
+            :size => '4096',
+            :date => '2015-04-29 09:04:24',
+            :type => 'dir'
+        } unless folder.prefix == '' || folder.prefix == @media_path || folder.prefix == '/'
       end
     end
     tree_metas
@@ -176,30 +184,30 @@ module FileSystemHelper
     if @file_system_type == :local
       @connection.directories.each do |directory|
         directory_metas << {
-            name: directory.key,
-            "rights": "drwxr-xr-x",
-            "size": "4096",
-            "date": "2015-04-29 09:04:24",
-            type: "dir"
+            :name => directory.key,
+            :rights => 'drwxr-xr-x',
+            :size => '4096',
+            :date => '2015-04-29 09:04:24',
+            :type => 'dir'
         }
       end
     end
     directory_metas
   end
 
-  def generate_files_meta
+  def generate_files_meta(mimeFilter = nil)
     files_metas = []
     if @file_system_type == :local
       directory = @connection.directories.get('.')
       directory.files.each do |file|
         unless file.key.include? '/'
           files_metas << {
-              name: file.key,
-              "rights": "-rw-r--r--",
-              "size": "549923",
-              "date": "2013-11-01 11:44:13",
-              type: "file"
-          }
+              :name => file.key,
+              :rights => '-rw-r--r--',
+              :size => '549923',
+              :date => '2013-11-01 11:44:13',
+              :type => 'file'
+          } if valid_mime_type?(mimeFilter, file.key)
         end
       end
     end
@@ -228,9 +236,25 @@ module FileSystemHelper
   def init_storage(local_root)
     if @file_system_type == :s3
       @connection = Fog::Storage.new({:provider => 'AWS', :aws_access_key_id => @aws_access_key_id, :aws_secret_access_key => @aws_secret_key})
+      Aws.config.update({:region => 'us-east-1', :credentials => Aws::Credentials.new(@aws_access_key_id, @aws_secret_key)})
+      @s3_client = Aws::S3::Client.new
     else
       endpoint = 'http://camaleon-site:3000'
       @connection = Fog::Storage.new({:provider => 'Local', :local_root => local_root, :endpoint => endpoint})
     end
   end
+
+  def valid_mime_type?(mimetype, filename)
+    unless mimetype.nil?
+      case mimetype.to_s.to_sym
+        when :none
+          true
+        when :images
+          (filename =~ /\.(jpe?g|gif|bmp|png|svg|tiff?)$/i) != nil
+        else
+          false
+      end
+    end
+  end
+
 end
