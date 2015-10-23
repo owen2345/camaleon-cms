@@ -49,9 +49,16 @@ class CamaleonController < ApplicationController
     # including all helpers (system, themes, plugins) for this site
     PluginRoutes.enabled_apps(current_site, current_theme.slug).each{|plugin| plugin_load_helpers(plugin) }
 
-    # set default cache directory for current site
-    cache_store.cache_path = File.join(cache_store.cache_path.split("site-#{current_site.id}").first, "site-#{current_site.id}")
-    # Rails.cache.write("#{current_site.id}-#{Time.now}", 1)
+    # Set default cache file store directory for current site
+    # Sample: Rails.cache.write("#{current_site.id}-#{Time.now}", 1)
+    begin
+      cache_store.cache_path = File.join(cache_store.cache_path.split("site-#{current_site.id}").first, "site-#{current_site.id}")
+    rescue
+      # skip error for non cache file, sample: dalli
+      # you need to define your cache store settings by config file or using the hook "app_before_load"
+      # for multi site support you can use namespace: "site-#{current_site.id}"
+    end
+
 
     # initializing short codes
     shortcodes_init()
