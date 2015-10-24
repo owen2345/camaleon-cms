@@ -17,9 +17,9 @@ class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms:
   def create
     @sidebar = current_site.sidebars.new(params[:widget_sidebar])
     if @sidebar.save
-      flash[:notice] = t('admin.widgets.sidebar.created')
+      flash[:notice] = t('camaleon_cms.admin.widgets.sidebar.created')
     else
-      flash[:error] = t('admin.widgets.sidebar.error_created')
+      flash[:error] = t('camaleon_cms.admin.widgets.sidebar.error_created')
     end
     redirect_to admin_appearances_widgets_main_index_path
   end
@@ -31,9 +31,9 @@ class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms:
 
   def update
     if current_site.sidebars.find(params[:id]).update(params[:widget_sidebar])
-      flash[:notice] = t('admin.widgets.sidebar.updated')
+      flash[:notice] = t('camaleon_cms.admin.widgets.sidebar.updated')
     else
-      flash[:error] = t('admin.widgets.sidebar.error_updated')
+      flash[:error] = t('camaleon_cms.admin.widgets.sidebar.error_updated')
     end
     redirect_to admin_appearances_widgets_main_index_path
   end
@@ -47,7 +47,7 @@ class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms:
 
   def destroy
     @sidebar = current_site.sidebars.find(params[:id]).destroy
-    flash[:notice] = t('admin.widgets.sidebar.error_deleted')
+    flash[:notice] = t('camaleon_cms.admin.widgets.sidebar.error_deleted')
     redirect_to admin_appearances_widgets_main_index_path
   end
 

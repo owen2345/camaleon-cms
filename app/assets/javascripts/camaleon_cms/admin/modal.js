@@ -127,7 +127,7 @@ function open_modal(settings){
         modal.find(".modal-body").html(settings.content);
         modal.modal(settings.modal_settings);
     }else if(settings.mode == "iframe"){
-        modal.find(".modal-body").html('<iframe style="min-height: 500px;" src="'+settings.url+'" width="100%" frameborder=0></iframe>');
+        modal.find(".modal-body").html('<iframe id="ow_inline_modal_iframe" style="min-height: 500px;" src="'+settings.url+'" width="100%" frameborder=0></iframe>');
         modal.modal(settings.modal_settings);
     }else{ //ajax mode
         showLoading();

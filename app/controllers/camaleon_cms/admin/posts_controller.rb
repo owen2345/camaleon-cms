@@ -38,6 +38,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
 
     @posts = posts_all
     params[:s] = 'published' unless params[:s].present?
+    @lists_tab = params[:s]
     add_breadcrumb I18n.t("camaleon_cms.admin.post_type.#{params[:s]}") if params[:s].present?
     case params[:s]
       when "published", "pending", "draft", "trash"

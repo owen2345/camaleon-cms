@@ -105,7 +105,7 @@ module CamaleonCms::SessionHelper
   def cama_authenticate(redirect_uri = nil)
     params[:return_to] = redirect_uri
     unless cama_sign_in?
-      flash[:error] = t('admin.login.please_login')
+      flash[:error] = t('camaleon_cms.admin.login.please_login')
       cookies[:return_to] = params[:return_to].present? ? params[:return_to] : ((request.get? && params[:controller] != "admin/sessions") ? request.original_url : nil)
       redirect_to admin_login_path
     end

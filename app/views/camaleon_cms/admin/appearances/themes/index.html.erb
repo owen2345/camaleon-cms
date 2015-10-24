@@ -43,7 +43,8 @@
                                             <%= raw r[:links].join(" | ") %>
                                             <span class="btn btn-success"><%= t('camaleon_cms.admin.button.actived').upcase %></span>
                                         <% else %>
-                                            <a href="<%= "#{preview_admin_appearances_themes_path(ccc_theme_preview: theme[:key])}" %>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>
+                                            <!--<a href="<%= "#{preview_admin_appearances_themes_path(ccc_theme_preview: theme[:key])}" %>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>-->
+                                            <a href="<%= current_site.the_url(ccc_theme_preview: theme[:key])%>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>
                                             <a href="<%= admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary cama_ajax_request"><%= t('camaleon_cms.admin.button.select')%></a>
                                         <% end %>
                                     </div>

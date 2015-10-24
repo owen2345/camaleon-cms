@@ -62,7 +62,7 @@ module Plugins::ContactForm::ContactFormHelper
         t.integer :site_id, :count, :parent_id
         t.string :name, :slug
         t.text :description, :value, :settings
-        t.timestamps
+        t.timestamps null: false
       end
     end
   end

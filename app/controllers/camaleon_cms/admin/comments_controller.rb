@@ -41,8 +41,9 @@ class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
   # toggle status of a comment
   def toggle_status
     _s = {a: "approved", s: "spam", p: "pending"}
-    @comment.update(approved: _s[params[:s].to_sym])
-    params[:notice] = t('camaleon_cms.admin.comments.message.change_status')
+    k = _s[params[:s].to_sym]
+    @comment.update(approved: k)
+    flash[:notice] = "#{t('camaleon_cms.admin.comments.message.change_status')} #{t("camaleon_cms.admin.comments.message.#{k}")}"
     redirect_to action: :index
   end
 

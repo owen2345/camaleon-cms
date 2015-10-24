@@ -55,6 +55,6 @@ module CamaleonCms::Frontend::SiteHelper
   def the_head(seo_attrs = {}, show_seo = true)
     icon = "<link rel='shortcut icon' href='#{current_site.the_icon}'>"
     js = "<script>var ROOT_URL = '#{root_url}'; var LANGUAGE = '#{I18n.locale}'; </script>"
-    icon + "\n" + csrf_meta_tag + "\n" + (show_seo ? display_meta_tags(cama_the_seo.merge(seo_attrs)) : "") + "\n" + js + "\n" + cama_draw_custom_assets
+    icon + "\n" + (csrf_meta_tag || "") + "\n" + (show_seo ? display_meta_tags(cama_the_seo.merge(seo_attrs)) : "") + "\n" + js + "\n" + cama_draw_custom_assets
   end
 end

@@ -17,8 +17,9 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
     if signin?
       redirect_to (params[:return_to].present? ? params[:return_to] : admin_dashboard_path)
     else
-      @user = current_site.users.new
+      @user ||= current_site.users.new
     end
+    render "login"
   end
 
   def login_post
@@ -36,10 +37,10 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       if captcha_validate
         flash[:error] = t('camaleon_cms.admin.login.message.fail')
       else
-        flash[:error] = t('admin.login.message.invalid_caption')
+        flash[:error] = t('camaleon_cms.admin.login.message.invalid_caption')
       end
       @user = current_site.users.new(data_user)
-      render 'admin/sessions/login'
+      login
     end
   end
 
