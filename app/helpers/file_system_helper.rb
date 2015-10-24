@@ -254,6 +254,8 @@ module FileSystemHelper
         else
           false
       end
+    else
+      true
     end
   end
 

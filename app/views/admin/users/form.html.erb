@@ -289,7 +289,7 @@
         }
 
         $("#cp_photo").on("click",function(){
-            $.fn.upload_elfinder({
+            $.fn.upload_filemanager({
                 selected: function(res){
                     var image = _.first(res);
                     if(image.mime && image.mime.indexOf('image') > -1){

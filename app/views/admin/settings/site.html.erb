@@ -170,7 +170,7 @@
             <div id="tab-filesystem_settings" class="<%= 'active' if 'filesystem' == params[:tab] %> tab-pane ">
               <div class="form-group">
                 <%= label_tag t('admin.settings.filesystem_type') %><br>
-                <%= select_tag('options[filesystem_type', options_for_select([['Local', :local], ['S3', :s3]]), :class => 'form-control required', :selected => @site.get_option("filesystem_type")) %>
+                <%= select_tag('options[filesystem_type]', options_for_select([['Local', :local], ['S3', :s3]], @site.get_option("filesystem_type")), :class => 'form-control required') %>
               </div>
               <div class="form-group">
                 <%= label_tag t('admin.settings.filesystem_s3_access_key') %><br>

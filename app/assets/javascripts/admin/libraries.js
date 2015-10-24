@@ -97,7 +97,7 @@ var init_form_validations = function(form){
             $content_image.find('img').css('max-height', options.height);
 
             $btn_upload.click(function(){
-                $.fn.upload_elfinder({
+                $.fn.upload_filemanager({
                     selected: function(res){
                         var image = _.first(res);
                         if(options.type == 'all' || (image.mime && image.mime.indexOf(options.type) > -1) || _.last(image.name.split(".")) == options.ext){
@@ -142,7 +142,7 @@ var init_form_validations = function(form){
                 input.addClass("form-control");
             }
             input.next("span").click(function(){
-                $.fn.upload_elfinder($.extend({}, def, (options || {})));
+                $.fn.upload_filemanager($.extend({}, def, (options || {})));
             });
         });
     }

@@ -127,7 +127,7 @@ function custom_field_text_box($field){
 
 function load_upload_audio_field(dom){
     var $input = $(dom).parents('li:first').find('input');
-    $.fn.upload_elfinder({
+    $.fn.upload_filemanager({
         type: "audio",
         selected: function(res){
             var file = _.first(res);
@@ -137,7 +137,7 @@ function load_upload_audio_field(dom){
 }
 function load_upload_file_field(dom){
     var $input = $(dom).parents('li:first').find('input');
-    $.fn.upload_elfinder({
+    $.fn.upload_filemanager({
         type: $input.data("formats") ? $input.data("formats") : "all",
         selected: function(res){
             var file = _.first(res);
@@ -147,7 +147,7 @@ function load_upload_file_field(dom){
 }
 function load_upload_image_field(dom){
     var $input = $(dom).parents('li:first').find('input');
-    $.fn.upload_elfinder({
+    $.fn.upload_filemanager({
         type: "image",
         selected: function(res){
             var file = _.first(res);
@@ -157,7 +157,7 @@ function load_upload_image_field(dom){
 }
 function load_upload_video_field(dom){
     var $input = $(dom).parents('li:first').find('input');
-    $.fn.upload_elfinder({
+    $.fn.upload_filemanager({
         type: "video",
         selected: function(res){
             var file = _.first(res);

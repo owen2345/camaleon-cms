@@ -122,7 +122,8 @@ Rails.application.routes.draw do
     get 'filemanager/templates/:view' => 'file_manager#templates'
 
     scope :filemanager do
-      match 'main' => 'file_manager#main', via: :all
+      # match 'main' => 'file_manager#main', via: :all
+      match 'view/:config' => 'file_manager#view', via: :all
     end
   end
 

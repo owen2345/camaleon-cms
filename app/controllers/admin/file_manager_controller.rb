@@ -62,8 +62,12 @@ class Admin::FileManagerController < AdminController
     render "admin/file_manager/#{params[:view]}"
   end
 
-  def main
-    render :modal_main, :layout => false
+  def view
+    if params[:config].nil?
+      render :config_default, :layout => false
+    else
+      render "config_#{params[:config]}", :layout => false
+    end
   end
 
   private

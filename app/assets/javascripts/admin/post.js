@@ -257,7 +257,7 @@ function init_post(obj){
 
 // thumbnail updloader
 function upload_feature_image(){
-    $.fn.upload_elfinder({
+    $.fn.upload_filemanager({
         selected: function(res){
             var image = _.first(res)
             if(image.mime && image.mime.indexOf("image") > -1){

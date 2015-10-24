@@ -25,7 +25,7 @@ function cama_get_tinymce_settings(settings){
         browser_spellcheck : true,
         language_url: tinymce_global_settings["language_url"],
         file_browser_callback: function(field_name, url, type, win) {
-            $.fn.upload_elfinder({
+            $.fn.upload_filemanager({
                 selected: function(res){
                     var file = _.first(res)
                     if(type == 'media') type = 'video';
