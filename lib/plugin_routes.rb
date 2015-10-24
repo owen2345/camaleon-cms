@@ -75,8 +75,47 @@ class PluginRoutes
     nil
   end
 
+  # return system settings defined in:
+  #   + gem/config/system.json
+  #   + app/config/system.json
+  #   + main_site.get_meta("main_settings")
+  # skip_site_settings_db: is a fix to avoid infite cicle
+  def self.system_info(skip_site_settings_db = false)
+    r = cache_variable("system_info");  return r unless r.nil?
+    settings = {}
+
+    gem_settings = File.join($camaleon_engine_dir, "config", "system.json")
+    app_settings = Rails.root.join("config", "system.json")
+
+    settings = settings.merge(JSON.parse(File.read(gem_settings))) if File.exist?(gem_settings)
+    settings = settings.merge(JSON.parse(File.read(app_settings))) if File.exist?(app_settings)
+
+    # custom settings
+    settings["key"] = "system"
+    settings["path"] = ''
+    settings["kind"] = "system"
+    settings["hooks"]["on_notification"] = (settings["hooks"]["on_notification"] || []) + ["admin_system_notifications"]
+
+    unless skip_site_settings_db
+      main_site = self.main_site
+      begin
+        settings = settings.merge(main_site.get_meta("main_settings", {}))
+        settings["base_domain"] = main_site.slug
+        cache_variable("system_info", settings)
+      rescue
+      end
+    end
+    settings
+  end
+
+  # return the main site
+  def self.main_site
+    r = cache_variable("main_site");  return r unless r.nil?
+    cache_variable("main_site", CamaleonCms::Site.first)
+  end
+
   # return system information
-  def self.system_info
+  def self.system_info2
     camaleon_gem = get_gem('camaleon_cms')
     return {} if !camaleon_gem
     r = cache_variable("system_info");  return r unless r.nil?
@@ -96,10 +135,10 @@ class PluginRoutes
   # key: attribute name
   # value: new value for attribute
   def self.system_info_set(key, val)
-    ff = File.read(File.join(apps_dir, "..", '..', "config", "system.json"))
-    File.open(File.join(apps_dir, "..", '..', "config", "system.json"), "w") do |f|
-      f.write(ff.sub(/"#{key}": ?\"(.*)\"/, "\"#{key}\": \"#{val}\""))
-    end
+    s = self.main_site
+    settings = s.get_meta("main_settings", {})
+    settings[key] = val
+    s.set_meta("main_settings", settings)
     self.reload
   end
 

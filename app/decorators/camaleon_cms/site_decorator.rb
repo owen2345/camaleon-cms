@@ -148,8 +148,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   # return root url for this site
   def the_url(*args)
     args = args.extract_options!
-    base_domain = PluginRoutes.system_info["base_domain"]
-    args[:host] = object.main_site? ? base_domain : (object.slug.include?(".") ? object.slug : "#{object.slug}.#{base_domain}" )
+    args[:host] = object.main_site? ? object.slug : (object.slug.include?(".") ? object.slug : "#{object.slug}.#{PluginRoutes.system_info["base_domain"]}" )
     args[:port] = (args[:host].split(":")[1] rescue nil)
     args[:locale] = @_deco_locale unless args.include?(:locale)
     args[:host] = args[:host].split(":").first
@@ -165,8 +164,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   # =============================== ADMIN =======================
   # admin root url for this site
   def the_admin_url
-    base_domain = PluginRoutes.system_info["base_domain"]
-    host = object.main_site? ? base_domain : (object.slug.include?(".") ? object.slug : "#{object.slug}.#{base_domain}" )
+    host = object.main_site? ? object.slug : (object.slug.include?(".") ? object.slug : "#{object.slug}.#{PluginRoutes.system_info["base_domain"]}" )
     port = (host.split(":")[1] rescue nil)
     h.cama_url_to_fixed("admin_dashboard_url", host: host, port: port, locale: false)
   end

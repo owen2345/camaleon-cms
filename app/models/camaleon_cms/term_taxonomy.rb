@@ -14,7 +14,7 @@ end
 class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
-  self.table_name = "#{PluginRoutes.system_info["db_prefix"]}term_taxonomy"
+  self.table_name = "#{PluginRoutes.system_info(true)["db_prefix"]}term_taxonomy"
   attr_accessible :taxonomy, :description, :parent_id, :count, :name, :slug, :term_group, :status, :term_order, :user_id
 
   # callbacks

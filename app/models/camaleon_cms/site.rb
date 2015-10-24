@@ -320,7 +320,6 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   def update_routes
     if self.id == CamaleonCms::Site.first.id
       PluginRoutes.system_info_set("base_domain", self.slug) if self.slug.present?
-      # self.update_column("slug", "")
     end
     PluginRoutes.reload
   end

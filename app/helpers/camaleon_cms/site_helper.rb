@@ -32,8 +32,8 @@ module CamaleonCms::SiteHelper
   # check if current site exist, if not, this will be redirected to main domain
   def cama_site_check_existence()
     if !current_site.present?
-      if (site = CamaleonCms::Site.first).present?
-        base_domain = PluginRoutes.system_info["base_domain"]
+      if (PluginRoutes.main_site).present?
+        base_domain = PluginRoutes.main_site.slug
         redirect_to root_url(host: base_domain.split(":").first, port: (base_domain.split(":")[1] rescue nil))
       else
         redirect_to admin_installers_path
