@@ -6,6 +6,8 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
+
+# This is a customization to manage custom cache page
 module ActionController
   module Caching
     module Pages extend ActiveSupport::Concern
@@ -37,6 +39,19 @@ module ActionController
         # request.accept_encoding.include?("gzip")?".html.gz":""
         nil
       end
+    end
+  end
+end
+
+# this is a customization to support multiple prefix to render partials
+module ActionView
+  class LookupContext #:nodoc:
+    module ViewPaths
+      def find(name, prefixes = [], partial = false, keys = [], options = {})
+        prefixes += self.prefixes + [""] if prefixes.is_a?(Array) && partial
+        @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
+      end
+      alias :find_template :find
     end
   end
 end

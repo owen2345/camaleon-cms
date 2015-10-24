@@ -78,11 +78,11 @@ module Plugins::ContactForm::ContactFormHelper
   end
 
   def contact_form_app_before_load
-    shortcode_add('forms',  plugin_view("contact_form", "forms_shorcode"), "This is a shortocode for contact form to permit you to put your contact form in any content.
+    shortcode_add('forms', plugin_view("forms_shorcode"), "This is a shortocode for contact form to permit you to put your contact form in any content.
     Sample: [forms slug='key-for-my-form']")
   end
 
   def contact_form_front_before_load
-    append_asset_libraries({"plugin_contact_form"=> { css: [plugin_asset_path("contact_form", "css/front/railsform")] }})
+    append_asset_libraries({"plugin_contact_form"=> { css: [plugin_asset_path("css/front/railsform")] }})
   end
 end

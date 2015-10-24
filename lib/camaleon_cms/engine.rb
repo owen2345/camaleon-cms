@@ -14,6 +14,7 @@ require 'will_paginate'
 require 'will_paginate-bootstrap'
 require 'doorkeeper'
 require 'responders'
+require 'breadcrumbs_on_rails'
 require 'swagger/docs'
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
@@ -26,7 +27,7 @@ module CamaleonCms
         app.console do
           puts "******** Camaleon CMS: To use custom models and helpers of installed plugins, write this: ********"
           puts "- include SiteHelper"
-          puts "- site_console_switch(Site.first.decorate)"
+          puts "- site_console_switch(CamaleonCms::Site.first.decorate)"
         end
       end
     end

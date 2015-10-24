@@ -1,0 +1,41 @@
+<script> jQuery(function(){ $("#content-widget .ajax_link, #content-sidebar .ajax_link, #new_widget_link", "#view_widget_list").ajax_modal(); }); </script>
+<div class="panel panel-default" id="view_widget_list">
+    <div class="panel-heading">
+        <div class="row">
+            <div class="col-md-12">
+                <h4 class="pull-left"><span class="fa fa-archive"></span>  <%= t('camaleon_cms.admin.sidebar.widgets') %></h4>
+                <a id="new_widget_link" href="<%= new_admin_appearances_widgets_main_path %>" class="ajax_link btn btn-primary pull-right "><%= t('camaleon_cms.admin.widgets.create_widget') %></a>
+            </div>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div id="content-widget" class="col-md-12">
+            <div class="panel panel-colorful">
+                <div class="panel-body">
+                    <h2 class="panel-title"><%= t('camaleon_cms.admin.widgets.simple_widgets')%> </h2><br><br>
+                    <div class="widgets-available row">
+                        <% if @widgets.size > 0 %>
+                            <% @widgets.each do |item| %>
+                                <% if item.is_simple? %>
+                                    <div class="panel-widget col-md-3" data-id=<%= item.id %> >
+                                        <div class="small-box <%= ["bg-green", "bg-aqua", "bg-yellow", "bg-red"].sample %>" data-id="<%= item.id %>">
+                                            <div class="inner">
+                                                <h4><%= item.name %></h4>
+                                                <p><%= item.excerpt %></p>
+                                            </div>
+                                            <%= link_to raw('<span class="fa fa-edit"></span>'), { action: :edit, id: item.id }, class: "ajax_link edit_link", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                                            <%= link_to raw('<span class="fa fa-times"></span>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "del_link", title: "#{t('camaleon_cms.admin.button.delete')}" %>
+                                            <div class="small-box-footer" style="font-size:11px;"><code><%= item.short_code %></code></div>
+                                        </div>
+                                    </div>
+                                <% end %>
+                            <% end %>
+                        <% else %>
+                            <h6><%= t('camaleon_cms.admin.widgets.message.not_registered_widgets')%></h6>
+                        <% end %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

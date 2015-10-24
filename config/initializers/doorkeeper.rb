@@ -1,6 +1,6 @@
-include SessionHelper
-include SiteHelper
-include HooksHelper
+include CamaleonCms::SessionHelper
+include CamaleonCms::SiteHelper
+include CamaleonCms::HooksHelper
 
 Doorkeeper.configure do
   # Change the ORM that doorkeeper will use (needs plugins)

@@ -1,0 +1,23 @@
+<%= form_for @sidebar, url: { action: (@sidebar.new_record? ? "create" : "update"), id: @sidebar }, html: {id: "sidebar-widget", class: "validate"} do |f| %>
+    <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @sidebar} %>
+
+    <div class="form-group">
+        <%= f.label t('camaleon_cms.admin.table.name') %><br>
+        <%= f.text_field :name, :class => "form-control required", id: "widget_sidebar_name" %>
+    </div>
+    <div class="form-group">
+        <%= f.label t('camaleon_cms.admin.table.slug') %><br>
+        <%= f.text_field :slug, :class => "form-control slug required", "data-parent" => "widget_sidebar_name" %>
+    </div>
+
+    <div class="form-group">
+        <%= f.label t('camaleon_cms.admin.table.description') %><br>
+        <%= f.text_area :description, :class => "form-control", :rows => 2 %>
+    </div>
+    <div class="form-group">
+        <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit')%></button>
+    </div>
+    <script>
+        jQuery(function(){ init_form_validations($("#sidebar-widget")); });
+    </script>
+<% end %>

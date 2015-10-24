@@ -1,0 +1,36 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4><span class="fa fa-comments"></span> <%= t('camaleon_cms.admin.comments.comments_list_post')%></h4>
+    </div>
+    <div class="panel-body">
+
+        <table class="table table-responsive table-hover table-striped">
+            <thead>
+            <tr>
+                <th><%= t('camaleon_cms.admin.table.id')%></th>
+                <th><%= t('camaleon_cms.admin.table.post')%></th>
+                <th><%= t('camaleon_cms.admin.table.post_type')%></th>
+                <th><%= t('camaleon_cms.admin.table.comments')%></th>
+                <th><%= t('camaleon_cms.admin.table.actions')%></th>
+            </tr>
+            </thead>
+            <tbody>
+            <% @posts.to_a.uniq.each do |f| post = f.decorate; post_type = f.post_type.decorate %>
+                <tr>
+                    <td><%= f.id %></td>
+                    <td><a href="<%= post.the_url %>" target="_blank"><%= post.the_title %></a></td>
+                    <td><a href="<%= post_type.the_url %>" target="_blank"><%= post_type.the_title %></a></td>
+                    <td><%= f.comments.main.size %></td>
+                    <td>
+                        <%= link_to raw('<i class="fa fa-comments"></i>'), {action: :index, post_id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.table.comments')}" %>
+                        <%#= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy_comments, post_id: f.id }, method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete') }, class: "btn btn-danger btn-xs", title: "Delete" %>
+                    </td>
+                </tr>
+            <% end %>
+
+            </tbody>
+        </table>
+        <%= content_tag("div", raw(t('camaleon_cms.admin.message.data_found_list')), class: "alert alert-warning") if @posts.empty? %>
+        <%= raw cama_do_pagination(@posts) %>
+    </div>
+</div>

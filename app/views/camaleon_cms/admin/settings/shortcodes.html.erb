@@ -1,0 +1,37 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title"><%= t("camaleon_cms.admin.table.short_code") %></h4>
+            </div>
+            <div class="panel-body">
+                <table class="table table-responsive table-hover table-striped" id="shortcodes_list">
+                    <thead>
+                    <tr>
+                        <th><%= t("camaleon_cms.admin.shortcodes.key", default: "Key") %></th>
+                        <th><%= t("camaleon_cms.admin.table.description") %></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% @_shortcodes.each do |code| %>
+                        <tr>
+                            <td>
+                                <code>[<%= code %>]</code>
+                            </td>
+                            <td class="col_descr"><%= @_shortcodes_descr[code] %></td>
+                        </tr>
+                    <% end %>
+                    </tbody>
+                </table>
+                <%= content_tag("div", t('camaleon_cms.admin.message.data_found_list'), class: "alert alert-warning") if @_shortcodes.empty? %>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    jQuery(function(){
+        $("#shortcodes_list .col_descr").each(function(){
+            $(this).html($(this).html().replace(/\n/g, "<br>"));
+        });
+    })
+</script>

@@ -1,0 +1,160 @@
+<div class="page-title">
+  <h2>
+    <span class="fa fa-users"></span>
+    <%= t('camaleon_cms.admin.page_title.edit') + " " + @user_role.name if !@user_role.new_record? %>
+    <%= t('camaleon_cms.admin.users.create_user') if  @user_role.new_record? %>
+  </h2>
+</div>
+<div class="page-content-wrap">
+  <%= form_for @user_role, as: "user_role", url:{action: @user_role.new_record? ? :create : :update}, html:{class: 'validate-user-roles cama_ajax_request'} do |f| %>
+      <div class="row">
+        <div class="col-md-9">
+          <div class="panel panel-default">
+            <div class="panel-heading ui-draggable-handle">
+              <h3 class="panel-title"><%= @user_role.new_record? ? t('camaleon_cms.admin.page_title.add') : t('camaleon_cms.admin.page_title.edit') %> </h3>
+            </div>
+            <div class="panel-body">
+              <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @user_role} %>
+                <% rol_values_post_type = @user_role.new_record? ? {} : @user_role.get_meta("_post_type_#{current_site.id.to_s}") %>
+                <% rol_values_manager = @user_role.new_record? ? {} : @user_role.get_meta("_manager_#{current_site.id.to_s}") %>
+              <div id="contents-checkbox" class="form-horizontal">
+                <div class="form-group">
+                   <table class="table table-responsive table-hover table-striped">
+                    <thead>
+                    <tr>
+                      <th style="width: 160px"><h5 ><%= t('camaleon_cms.admin.users.post_types')%></h5></th>
+                      <% cama_get_roles_values[:post_type].each do |value| %>
+                          <th class="
+                            <%= value[:color] %> text-center" style="vertical-align: middle"><%= raw value[:label] %>
+                            <%= raw cama_html_tooltip(value[:description], 'right') if value[:description].present? %>
+                          </th>
+                      <% end %>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      <% current_site.post_types.decorate.each do |pt|
+                      %>
+                        <tr data-id="<%= pt.id %>">
+                          <td>
+                            <%= pt.the_title %>
+                          </td>
+
+                          <% cama_get_roles_values[:post_type].each do |value| %>
+                              <td class="<%= value[:color] %> text-center">
+                                <%
+                                visible = true
+                                visible = pt.manage_categories? if value[:key] == 'manage_categories'
+                                visible = pt.manage_tags? if value[:key] == 'manage_tags'
+                                values = rol_values_post_type[value[:key].to_sym].to_i rescue 0
+                                values = [] if values == 0
+                                %>
+                                <% if visible %>
+                                    <input type="checkbox" name="rol_values[post_type][<%= value[:key] %>][]" value="<%= pt.id %>" <%= "checked" if values.include?(pt.id)  %> <%= "disabled" unless @user_role.editable?  %> onclick="<%= "cama_user_roles_do_all_publish(this, '#{value[:color]}', '#{value[:key]}')" %>" >
+                                <% end %>
+                              </td>
+                          <% end %>
+                        </tr>
+
+                     <% end  %>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="form-group">
+                  <h5><%= t('camaleon_cms.admin.users.others_permissions')%></h5>
+                  <div class="row">
+                    <% values = rol_values_manager || {}  %>
+                    <% cama_get_roles_values[:manager].each do |value|  %>
+                        <div class="col-md-4">
+                          <label><input type="checkbox" name="rol_values[manager][<%= value[:key] %>]" value="1" <%= "checked" if values[value[:key].to_sym].present?  %> <%= "disabled" unless @user_role.editable?  %> >&nbsp; <%= raw value[:label] %></label>
+                          &nbsp;<%= raw cama_html_tooltip(value[:description], 'right') if value[:description].present? %>
+                        </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+
+
+
+            </div>
+            <% if @user_role.editable? %>
+                <div id="checked-actions" class="panel-footer text-right">
+                  <a class="btn btn-default btn-sm" data-type="all" href="#"><%= t('camaleon_cms.admin.button.select_all') %></a>
+                  <a class="btn btn-default btn-sm" data-type="none" href="#"><%= t('camaleon_cms.admin.button.select_none') %></a>
+                  <a class="btn btn-default btn-sm" data-type="restore" href="#"><%= t('camaleon_cms.admin.button.restore_selections') %></a>
+                </div>
+            <% end %>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="panel panel-default">
+            <div class="panel-heading ui-draggable-handle">
+              <h3 class="panel-title"><%= t('camaleon_cms.admin.page_title.details')%> </h3>
+            </div>
+
+                <div class="panel-body">
+                  <div class="form-group">
+                    <%= f.label t('camaleon_cms.admin.table.name') %>
+                    <%= f.text_field :name, :class => "form-control required", disabled: @user_role.editable? ? false : 'disabled'  %>
+                  </div>
+                  <div class="form-group">
+                    <%= f.label t('camaleon_cms.admin.table.slug') %>
+                    <%= f.text_field :slug, :class => "form-control slug" , "data-parent" => "user_role_name" , disabled: @user_role.editable? ? false : 'disabled' %>
+                  </div>
+                  <div class="form-group">
+                    <%= f.label t('camaleon_cms.admin.table.description') %>
+                    <%= f.text_area :description, :class => "form-control " , disabled: @user_role.editable? ? false : 'disabled' %>
+                  </div>
+
+                </div>
+
+                <div class="panel-footer">
+                  <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
+                  <% if @user_role.editable? %>
+                  <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+                  <% end %>
+                </div>
+
+          </div>
+
+        </div>
+      </div>
+  <% end %>
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>
+
+<script>
+    jQuery(function($){
+      $("#contents-checkbox input:checked").each(function(){$(this).attr("data-checked", 1)})
+      $("#checked-actions a[data-type]").click(function(){
+          switch ($(this).attr("data-type")){
+              case 'all':
+                  $("#contents-checkbox input[type='checkbox']").prop('checked', true);
+              break;
+              case 'none':
+                  $("#contents-checkbox input[type='checkbox']").prop('checked', false);
+              break;
+              case 'restore':
+                  $("#contents-checkbox input[type='checkbox']").prop('checked', false);
+                  $("#contents-checkbox input[data-checked]").prop('checked', true);
+              break;
+          }
+          return false;
+      });
+  })
+  function cama_user_roles_do_all_publish(dom, color, value){
+      if(value=="publish"){
+          if(dom.checked){
+              $(dom).parent().parent().find('td.'+color).find('input').prop('checked', true)
+          }else{
+              $(dom).parent().parent().find('td.'+color).find('input').prop('checked', false)
+          }
+      }else if(value=="delete_publish"){
+          if(dom.checked){
+              $(dom).parent().parent().find('td.'+color).find('input').prop('checked', true)
+          }else{
+              $(dom).parent().parent().find('td.'+color).find('input').prop('checked', false)
+          }
+      }
+  }
+</script>

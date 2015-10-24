@@ -11,7 +11,7 @@
 // about supported directives.
 //
 //= require jquery
-//= require bootstrap.min.js
+//= require camaleon_cms/bootstrap.min.js
 //= require ./modernizr.custom
 //= require ./magnific.min
 //= require ./hover.zoom

@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class Plugins::ContactForm::FrontController < Apps::PluginsFrontController
+class Plugins::ContactForm::FrontController < CamaleonCms::Apps::PluginsFrontController
   before_filter :append_view_paths
 
   def index
@@ -37,13 +37,13 @@ class Plugins::ContactForm::FrontController < Apps::PluginsFrontController
           validate = false
         end
         if f[:field_type].to_s == "email"
-          if !fields[cid].match(/\b[A-Z0-9._%a-z\-]+@(?:[A-Z0-9a-z\-]+\.)+[A-Za-z]{2,10}\z/)
+          if !fields[cid].match(/@/)
             errors << "#{label}: #{settings[:railscf_message][:invalid_email]}"
             validate = false
           end
         end
       when 'captcha'
-        unless captcha_verified?
+        unless cama_captcha_verified?
           errors << "#{label}: #{settings[:railscf_message][:captcha_not_match]}"
           validate = false
         end

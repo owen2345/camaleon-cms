@@ -1,0 +1,109 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="row">
+            <div class="col-md-12">
+                <h4 class="pull-left"><%= t('camaleon_cms.admin.page_title.list_of') %> <%= @post_type.the_title.pluralize %>
+                <b>(slug = <%= @post_type.the_slug %>)</b></h4>
+                <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.post_type.add')} #{@post_type.the_title}"), {action: :new}, class: "btn btn-primary pull-right cama_ajax_request" if can? :create_post, @post_type %>
+            </div>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="row" style="margin-bottom: 16px">
+            <div class="col-md-9">
+                <%= render partial: "camaleon_cms/admin/posts/filter_posts" %>
+            </div>
+            <div class="col-md-3">
+                <form action="<%= url_for(action: :index) %>" method="get" class="cama_ajax_request">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="q" value="<%= params[:q] %>">
+                        <span class="input-group-btn"><button class="btn btn-default" type="submit"><i class="fa fa-search"></i></button></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <table class="table table-responsive table-hover table-striped" id="posts-table-list">
+            <thead>
+            <tr>
+                <th><%= t('camaleon_cms.admin.table.id') %></th>
+                <th><%= t('camaleon_cms.admin.table.title') %></th>
+                <th><%= t('camaleon_cms.admin.table.status') %></th>
+                <th><%= t('camaleon_cms.admin.table.author') %></th>
+                <% if @post_type.manage_categories? %>
+                    <th><%= t('camaleon_cms.admin.table.categories') %></th>
+                <% end %>
+                <% if @post_type.manage_tags? %>
+                    <th><%= t('camaleon_cms.admin.table.tags') %></th>
+                <% end %>
+                <% extra_column = {post_type: @post_type, content: "", from_body: false};  hooks_run("list_post_extra_columns", extra_column) %>
+                <%= raw extra_column[:content] %>
+                <th><%= t("updated_at") %></th>
+                <th style="width: 98px; text-align: right"><%= t('camaleon_cms.admin.table.actions') %></th>
+            </tr>
+            </thead>
+            <tbody>
+            <% @posts.eager_load(:categories, :post_tags).each do |f|
+              f = f.decorate %>
+                <tr data-id="<%= f.id %>" class="<%= "sortable" if can? :update, f %>">
+                    <td><%= f.id %></td>
+                    <td>
+                        <% if !f.trash? && (can? :update, f) %>
+                            <%= link_to f.the_title, {action: :edit, id: f.id}, class: "cama_ajax_request" %>
+                        <% else %>
+                            <%= f.the_title %>
+                        <% end %>
+                        <%= "*" + " (#{f.parent.decorate.the_title.titleize})" if f.draft? && f.parent.present? %>
+                    </td>
+                    <td><%= link_to raw(f.the_status), {action: :index, s: f.status}, class: "cama_ajax_request" %>  </td>
+                    <td><%= f.author.fullname %></td>
+                    <% if @post_type.manage_categories? %>
+                        <td><%= raw post_type_list_taxonomy(f.categories, "success") %></td>
+                    <% end %>
+                    <% if @post_type.manage_tags? %>
+                        <td><%= raw post_type_list_taxonomy(f.post_tags, "default") %></td>
+                    <% end %>
+                    <% extra_column = {post: f, post_type: @post_type, content: "", from_body: true};  hooks_run("list_post_extra_columns", extra_column) %>
+                    <%= raw extra_column[:content] %>
+                    <td><%= f.the_updated_at %></td>
+                    <td style="text-align: right">
+                        <% if f.published? %>
+                            <% if f.slug.to_s.translations.present? %>
+                                <div class="btn-group">
+                                    <button class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="<%= t('camaleon_cms.admin.button.preview') %>">
+                                        <i class="fa fa-eye"></i></button>
+                                    <ul class="dropdown-menu" style="min-width: 50px;">
+                                        <% f.the_urls.each do |k, url| %>
+                                            <li>
+                                                <a href="<%= url %>" target="_blank"><%= k.to_s.upcase %></a>
+                                            </li>
+                                        <% end %>
+                                    </ul>
+                                </div>
+                            <% else %>
+                                <a href="<%= f.the_url %>" class="btn btn-info btn-xs" target="_blank" title="<%= t('camaleon_cms.admin.button.preview') %>"><i class="fa fa-eye"></i></a>
+                            <% end %>
+                        <% end %>
+
+                        <% if f.trash? %>
+                            <%= link_to raw('<i class="fa fa-check"></i>'), {action: :restore, post_id: f.id, s: params[:s]}, class: "btn btn-success btn-xs", title: "#{t('camaleon_cms.admin.button.restore')}" if can? :update, f %>
+                            <%= link_to raw('<i class="fa fa-times"></i>'), {action: :destroy, id: f.id, s: params[:s]},
+                                        method: :delete, data: {confirm: t('camaleon_cms.admin.message.delete_item')}, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete_complete', default: 'Delete completely')}" if can? :destroy, f %>
+                        <% elsif f.draft? %>
+                            <%#= link_to raw('<i class="fa fa-check"></i>'), {action: :edit, id: f.id, recover_draft: 'true' }, class: "btn btn-success btn-xs", title: "#{t('camaleon_cms.admin.button.recover')}" if can? :update, f %>
+                            <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id}, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" if can? :update, f %>
+                            <%= link_to raw('<i class="fa fa-trash"></i>'), {action: :trash, post_id: f.id, s: params[:s]},
+                                        data: {confirm: t('camaleon_cms.admin.message.delete')}, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.move_trash')}" if can? :destroy, f %>
+                        <% else %>
+                            <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id}, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" if can? :update, f %>
+                            <%= link_to raw('<i class="fa fa-trash"></i>'), {action: :trash, post_id: f.id, s: params[:s]},
+                                        data: {confirm: t('camaleon_cms.admin.message.delete')}, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.move_trash')}" if can? :destroy, f %>
+                        <% end %>
+                    </td>
+                </tr>
+            <% end %>
+            </tbody>
+        </table>
+        <%= content_tag("div", raw(t('camaleon_cms.admin.message.data_found_list')), class: "alert alert-warning") if @posts.empty? %>
+        <%= raw cama_do_pagination(@posts) %>
+    </div>
+</div>

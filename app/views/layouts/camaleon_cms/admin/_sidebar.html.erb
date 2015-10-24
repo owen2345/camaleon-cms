@@ -1,0 +1,19 @@
+<aside class="main-sidebar" id="sidebar-menu">
+    <!-- sidebar: style can be found in sidebar.less -->
+    <section class="sidebar">
+        <!-- search form -->
+        <form action="<%= admin_search_path %>" method="get" class="sidebar-form cama_ajax_request">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="<%= t("camaleon_cms.admin.button.search") %>...">
+                <span class="input-group-btn"><button type="submit" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i></button></span>
+            </div>
+        </form>
+        <!-- /.search form -->
+
+        <ul class="sidebar-menu cama_ajax_request">
+            <li class="header"><%= t("camaleon_cms.admin.sidebar.main_navigation") %></li>
+            <%= raw _admin_menu_draw %>
+        </ul>
+    </section>
+    <!-- /.sidebar -->
+</aside>

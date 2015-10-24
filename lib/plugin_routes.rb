@@ -209,7 +209,7 @@ class PluginRoutes
     r = cache_variable("site_get_sites"); return r unless r.nil?
     res = {}
     begin
-      res = Site.eager_load(:metas).order(term_group: :desc).all
+      res = CamaleonCms::Site.eager_load(:metas).order(term_group: :desc).all
     rescue
     end
     cache_variable("site_get_sites", res)
@@ -291,7 +291,8 @@ class PluginRoutes
       if File.exist?(config)
         p = JSON.parse(File.read(config))
         p = p.with_indifferent_access rescue p
-        p["key"] = gem.name if p["key"].nil?
+        # p["key"] = gem.name if p["key"].nil? # changed for conflict plugin keys
+        p["key"] = File.basename(path)
         p["path"] = path
         p["kind"] = "plugin"
         p["gem_mode"] = true
@@ -310,7 +311,7 @@ class PluginRoutes
       if File.exist?(config)
         p = JSON.parse(File.read(config))
         p = p.with_indifferent_access rescue p
-        p["key"] = gem.name
+        p["key"] = File.basename(path)
         p["path"] = path
         p["kind"] = "theme"
         p["gem_mode"] = true

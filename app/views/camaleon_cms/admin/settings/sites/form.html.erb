@@ -1,0 +1,35 @@
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+  <div class="row">
+    <%= form_for @site, as: "site", url:{action: @site.new_record? ? :create : :update}, html: {class: 'validate cama_ajax_request'} do |f| %>
+        <div class="col-md-8 col-md-offset-2">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4><span class="fa fa-cog"></span> <%= @site.new_record? ? t('camaleon_cms.admin.page_title.new_site') : "#{t('camaleon_cms.admin.page_title.edit_site')}: #{@site.the_title} "%> </h4>
+            </div>
+            <div class="panel-body">
+              <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @site} %>
+            <div class="form-group">
+                <%= f.label t('camaleon_cms.admin.button.domain') %><br>
+                <small><%= t('camaleon_cms.admin.sites.message.enter_key_domain_empty') %></small><br>
+                <%= f.text_field :slug, :class => "form-control required", "data-parent" => "site_name"  %>
+            </div>
+              <div class="form-group">
+                <%= f.label t('camaleon_cms.admin.table.name') %><br>
+                <%= f.text_field :name, :class => "form-control required" %>
+              </div>
+              <div class="form-group">
+                <%= f.label t('camaleon_cms.admin.table.description') %><br>
+                <%= f.text_area :description, :class => "form-control" %>
+              </div>
+            </div>
+
+            <div class="panel-footer">
+              <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
+              <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+  </div>
+</div>

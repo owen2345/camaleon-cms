@@ -1,0 +1,14 @@
+{
+  "name" : "pluginTitle",
+  "description" : "",
+  "thumb" : "image.png",
+  "helpers": [
+    "Themes::PluginClass::MainHelper"
+  ],
+  "hooks": {
+    "on_active": ["pluginKey_on_install_theme"],
+    "on_inactive": ["pluginKey_on_uninstall_theme"],
+    "on_theme_settings": ["pluginKey_settings"]
+    //here all your hooks
+  }
+}

@@ -1,6 +1,6 @@
 <% @form =  current_site.forms.find_by_id(id) %>
 <% options = @form.options[:fields]
-   settings = @form.meta[:_settings]
+   settings = @form.get_meta("_settings")
 %>
 
 <div class="text-column">

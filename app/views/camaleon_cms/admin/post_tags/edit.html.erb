@@ -1,0 +1,14 @@
+<div class="page-content-wrap">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h4 ><%= @post_tag.id.present? ? t('camaleon_cms.admin.page_title.edit') : t('camaleon_cms.admin.page_title.add') %> <%= "post_tag".to_s.titleize %></h4>
+        </div>
+          <%= render partial: 'form' %>
+      </div>
+
+    </div>
+  </div>
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>

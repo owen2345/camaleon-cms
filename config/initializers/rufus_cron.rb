@@ -19,10 +19,10 @@ if loaded_rufus
   #
   # end
 
-  sites = Site.all rescue []
+  sites = CamaleonCms::Site.all rescue []
   sites.each do |site|
     # triggering cron hooks
-    c = CamaleonController.new
+    c = CamaleonCms::CamaleonController.new
     c.instance_eval do
       @current_site = site
       @_hooks_skip = []

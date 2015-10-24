@@ -1,0 +1,33 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
+ * or vendor/assets/stylesheets of plugins, if any, can be referenced here using a relative path.
+ *
+ * You're free to add application-wide styles to this file and they'll appear at the top of the
+ * compiled file, but it's generally better to create a new file per style scope.
+ *
+ *= require ./jquery/jquery-ui
+ *= require camaleon_cms/bootstrap.min
+ *= require ./lte/admin
+ *= require ./lte/skins/skin-blue
+ *= require ./custom_admin
+
+ *= require ./angular-filemanager/animations
+ *= require ./angular-filemanager/dialogs
+ *= require ./angular-filemanager/main
+ *= require ./elfinder/elfinder
+ *= require ./elfinder/elfinder-theme
+ *= require ./bootstrap-datetimepicker
+ *= require ./bootstrap-datepicker
+ *= require ./introjs/introjs.min
+ *= require ./tageditor/jquery.tag-editor
+
+ // tinymce
+ *= require camaleon_cms/admin/tinymce/skins/lightgray/content.min
+
+ // post
+ *= require ./jquery.tagsinput
+ */
+

@@ -1,4 +1,4 @@
-class Plugins::PluginClass::AdminController < Apps::PluginsAdminController
+class Plugins::PluginClass::AdminController < CamaleonCms::Apps::PluginsAdminController
   include Plugins::PluginClass::MainHelper
   def index
     # actions for admin panel

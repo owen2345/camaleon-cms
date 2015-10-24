@@ -1,0 +1,40 @@
+<div class="page-title">
+  <h2><span class="fa fa-arrow-circle-o-left"></span> <%= t('camaleon_cms.admin.sidebar.themes')%></h2>
+</div>
+
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+
+  <div class="row">
+    <div class="col-md-12">
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Load Data</h3>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+              <% if @messages[:messages].present? %>
+                  <% @messages[:messages].each do |txt| %>
+                    <div class="alert alert-success"><%= txt %></div>
+                  <% end %>
+              <% end %>
+              <% if @messages[:wars].present? %>
+                  <% @messages[:wars].each do |txt| %>
+                    <div class="alert alert-warning"><%= txt %></div>
+                  <% end %>
+              <% end %>
+              <% if @messages[:errors].present? %>
+                  <% @messages[:errors].each do |txt| %>
+                    <div class="alert alert-danger"><%= txt %></div>
+                  <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
