@@ -139,8 +139,12 @@ module Plugins::FrontCache::FrontCacheHelper
 
   # clear all frontend cache files
   def front_cache_clean
-    FileUtils.rm_f(cache_store.cache_path) # clear fragment caches
-    FileUtils.rm_rf(File.join(ActionController::Base.page_cache_directory, current_site.id.to_s)) # clear site pages cache
+    # TODO replace with custom cache page
+    begin
+      FileUtils.rm_f(cache_store.cache_path) # clear fragment caches
+      FileUtils.rm_rf(File.join(ActionController::Base.page_cache_directory, current_site.id.to_s)) # clear site pages cache
+    rescue
+    end
   end
 
   private
