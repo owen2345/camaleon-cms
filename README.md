@@ -194,4 +194,8 @@ Visit the web site for more information: http://camaleon.tuzitio.com/
   - Unify current_user removing current_resource_owner. Solved bug with login_user_with_password.
   - Added generic API response methods, render_json_error & render_json_ok.
 
+migration 1.x to 2.0
+- require bootstrap.min.css ==> require camaleon_cms/bootstrap.min.css
+- require bootstrap.min.js ==> require camaleon_cms/bootstrap.min.js
+
 See more here: http://camaleon.tuzitio.com/version-history.html
