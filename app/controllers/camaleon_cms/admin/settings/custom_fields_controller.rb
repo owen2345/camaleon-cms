@@ -66,6 +66,7 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   # destroy a custom field group
   def destroy
     @field_group.destroy
+    flash[:notice] = t('camaleon_cms.admin.custom_field.message.deleted', default: "Custom Field Group Deleted.")
     redirect_to action: :index
   end
 

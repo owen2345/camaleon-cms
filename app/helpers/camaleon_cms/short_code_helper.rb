@@ -214,7 +214,7 @@ module CamaleonCms::ShortCodeHelper
   # return the model object according to the type
   def cama_shortcode_model_parser(object, attrs)
     model = nil
-    case object
+    case object.downcase
       when "post"
         model = current_site.the_post(attrs["id"].to_i) if attrs["id"].present?
         model = current_site.the_post(attrs["key"].to_s) if attrs["key"].present?

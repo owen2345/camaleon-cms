@@ -211,7 +211,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   # if url hasn't a locale, then it will use default locale set on application.rb
   def init_frontent
     # preview theme initializing
-    if cama_sign_in? && params[:ccc_theme_preview].present? && request.referrer.include?("preview?ccc_theme_preview=") && can?(:manager, :themes)
+    if cama_sign_in? && params[:ccc_theme_preview].present? && can?(:manager, :themes)
       @_current_theme = (current_site.themes.where(slug: params[:ccc_theme_preview]).first_or_create!.decorate)
     end
 

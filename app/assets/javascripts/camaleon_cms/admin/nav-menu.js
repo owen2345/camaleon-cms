@@ -58,6 +58,10 @@ function manage_external_links(){
         if(!f.valid()) return false;
         do_add_item_menu({type: 'external', link: f.find("#external_url").val(), text: f.find("#external_label").val(), url_content: RENDER_FORM});
         f[0].reset();
+        setTimeout(function(){
+            f.find("input:last").focus();
+            f.find(".has-error").removeClass("has-error").end().find("label.error").remove();
+        }, 100);
         return false;
     });
 
@@ -175,6 +179,7 @@ function render_menu(items){
                 location.href = res.redirect;
             } else {
                 hideLoading();
+                main_menus_panel.flash_message(I18n("msg.updated_success"), "success");
             }
         });
         return false;
