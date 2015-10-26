@@ -143,6 +143,7 @@ module UploaderHelper
   #   (true => resize the image to this dimension)
   #   (false => crop the image with this dimension)
   def crop_image(file, w, h, w_offset, h_offset, resize = nil )
+    #FIXME must be work with file = 'http://localhost:3000/media/1/default_layout.png'
     file_dir = File.join(Rails.public_path, file)
     puts "-------file_dir--------#{file_dir}----------"
     image = MiniMagick::Image.open(file_dir)

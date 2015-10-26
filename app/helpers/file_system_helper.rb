@@ -137,6 +137,10 @@ module FileSystemHelper
     end
   end
 
+  def current_user_pwd
+    "users/#{current_user.id}"
+  end
+
   private
 
   def init

@@ -241,8 +241,6 @@
 </div>
 <!-- EOF MODALS -->
 
-<%= render partial: "admin/file_manager/main_modal" %>
-
 <% add_asset_library('form_ajax', 'cropper') %>
 
 <script>
@@ -317,15 +315,20 @@
 
         $("#cp_photo").on("click", function () {
             $.fn.upload_filemanager({
-                selected: function (res) {
-                    var image = _.first(res);
-                    if (image.mime && image.mime.indexOf('image') > -1) {
-                        $("#cp_target").html("<img id='crop_image' src='" + image.url.to_filesystem_public_url() + "' >");
-                        onSuccess()
-                    } else {
-                        alert("File extension not allowed")
+                //FIXME options.user_pwd
+                //FIXME only upload??
+                layout: 'user_images_or_upload',
+                selected: function (file) {
+                    if (file.type != 'dir') {
+                        if (file.mime && file.mime.indexOf('image') > -1) {
+                            $("#cp_target").html("<img id='crop_image' src='" + file.url.to_filesystem_public_url() + "' >");
+                            onSuccess()
+                        } else {
+                            alert("File extension not allowed")
+                        }
                     }
-                }
+                },
+                user_pwd: '<%= current_user_pwd %>'
             });
         });
 

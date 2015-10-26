@@ -144,7 +144,7 @@ function custom_field_text_box($field) {
 function load_upload_audio_field(dom, base_path) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
-        type: "audio",
+        layout: "audios",
         selected: function (res) {
             var file = _.first(res);
             $input.val(file.url.to_filesystem_public_url());
@@ -154,7 +154,7 @@ function load_upload_audio_field(dom, base_path) {
 function load_upload_file_field(dom, base_path) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
-        type: $input.data("formats") ? $input.data("formats") : "all",
+        layout: $input.data("formats") ? $input.data("formats") : "all",
         selected: function (res) {
             var file = _.first(res);
             $input.val(base_path + file.url.to_filesystem_public_url());
@@ -164,7 +164,7 @@ function load_upload_file_field(dom, base_path) {
 function load_upload_image_field(dom, base_path) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
-        type: "image",
+        layout: "images",
         selected: function (res) {
             var file = _.first(res);
             $input.val(base_path + file.url.to_filesystem_public_url());
@@ -174,7 +174,7 @@ function load_upload_image_field(dom, base_path) {
 function load_upload_video_field(dom, base_path) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
-        type: "video",
+        layout: "videos",
         selected: function (res) {
             var file = _.first(res);
             $input.val(base_path + file.url.to_filesystem_public_url());
