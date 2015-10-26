@@ -32,11 +32,13 @@ function cama_get_tinymce_settings(settings){
                     else return 'default';
                 },
                 selected: function(file){
-                    if (type == 'media') type = 'video';
-                    if (file.mime && (file.mime.indexOf(type) > -1 || type == "file")){
-                        $('#' + field_name).val(file.url.to_filesystem_public_url());
-                    }else{
-                        alert("You must upload a valid format: "+type)
+                    if (file.type != 'dir') {
+                        if (type == 'media') type = 'video';
+                        if (file.mime && (file.mime.indexOf(type) > -1 || type == "file")) {
+                            $('#' + field_name).val(file.url.to_filesystem_public_url());
+                        } else {
+                            alert("You must upload a valid format: " + type)
+                        }
                     }
                 }
             });

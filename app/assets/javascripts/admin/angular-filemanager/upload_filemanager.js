@@ -7,7 +7,8 @@
                     if ($.fn.upload_filemanager_dispatcher.onSelectedCallback != null) {
                         var item = {
                             mime: 'image/png',
-                            url: element.model.fullPath()
+                            url: element.model.fullPath(),
+                            type: element.model.type
                         };
                         $.fn.upload_filemanager_dispatcher.onSelectedCallback(item);
                     }
@@ -42,6 +43,9 @@
         var layout = (typeof options.layout === 'function') ? options.layout() : options.layout;
         if (layout == 'images') {
             filemanager_loader_scope.config.mimeFilter = 'images';
+            filemanager_loader_scope.include('/admin/filemanager/view/modal_images');
+        } else if (layout == 'media') {
+            filemanager_loader_scope.config.mimeFilter = 'videos';
             filemanager_loader_scope.include('/admin/filemanager/view/modal_images');
         } else {
             filemanager_loader_scope.config.mimeFilter = 'none';
