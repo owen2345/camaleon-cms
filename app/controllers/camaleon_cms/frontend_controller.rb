@@ -225,11 +225,12 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     lookup_context.prefixes.delete("camaleon_cms/frontend")
     lookup_context.prefixes.delete("camaleon_cms/camaleon")
 
-    lookup_context.prefixes.prepend("camaleon_cms/default_theme")
-    lookup_context.prefixes.prepend("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
-    lookup_context.prefixes.prepend("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
-    lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
-
+    if ['camaleon_cms/frontend', 'frontend'].include?(params[:controller]) # 'frontend' will be removed in new versions (move into camaleon_cms/frontend)
+      lookup_context.prefixes.prepend("camaleon_cms/default_theme")
+      lookup_context.prefixes.prepend("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
+      lookup_context.prefixes.prepend("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
+      lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
+    end
     theme_init()
     camaleon_add_front_view_paths()
   end

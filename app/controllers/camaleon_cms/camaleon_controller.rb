@@ -78,7 +78,7 @@ class CamaleonCms::CamaleonController < ApplicationController
 
     request.env.except!('HTTP_X_FORWARDED_HOST') if request.env['HTTP_X_FORWARDED_HOST'] # just drop the variable
 
-    # past plugins versio support
+    # past plugins version support
     self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
     self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
 

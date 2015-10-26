@@ -13,8 +13,12 @@ class CamaleonCms::Apps::PluginsFrontController < CamaleonCms::FrontendControlle
 
   def init_plugin
     plugin_name = params[:controller].split("/")[1]
-    @plugin = current_site.plugins.where(slug: plugin_name).first
-    return render_error(404) unless @plugin.active?
-    lookup_context.prefixes.prepend(params[:controller].sub("plugins/#{plugin_name}", "#{plugin_name}/views"))
+    @plugin = current_site.plugins.where(slug: plugin_name).first_or_create
+    unless @plugin.active?
+      flash[:error] = t("camaleon_cms.plugin_not_installed", default: "This plugin is not installed, please contact to the administrator.")
+      redirect_to root_url
+      return
+    end
+    lookup_context.prefixes.prepend(params[:controller].sub("plugins/#{plugin_name}", "#{plugin_name}/views")) if !@plugin.settings["gem_mode"].present?
   end
 end
