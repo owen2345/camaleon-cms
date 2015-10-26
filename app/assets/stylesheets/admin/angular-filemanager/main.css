@@ -320,3 +320,7 @@ table th > a:focus {
         display: none;
     }
 }
+
+#modal_filemanager {
+    z-index: 9999999;
+}

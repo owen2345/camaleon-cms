@@ -5,7 +5,11 @@
             switch (eventName) {
                 case 'smartClick':
                     if ($.fn.upload_filemanager_dispatcher.onSelectedCallback != null) {
-                        $.fn.upload_filemanager_dispatcher.onSelectedCallback(element);
+                        var item = {
+                            mime: 'image/png',
+                            url: element.model.fullPath()
+                        };
+                        $.fn.upload_filemanager_dispatcher.onSelectedCallback(item);
                     }
                     break;
                 default:
@@ -35,7 +39,8 @@
             $.fn.upload_filemanager_dispatcher.onSelectedCallback = options.selected;
         }
 
-        if (options.layout == 'images') {
+        var layout = (typeof options.layout === 'function') ? options.layout() : options.layout;
+        if (layout == 'images') {
             filemanager_loader_scope.config.mimeFilter = 'images';
             filemanager_loader_scope.include('/admin/filemanager/view/modal_images');
         } else {

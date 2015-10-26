@@ -42,19 +42,19 @@ class Admin::FileManagerController < AdminController
   end
 
   def download
-    preview = (params[:preview] == true)
+    preview = (params[:preview] == 'true')
     external_url = obtain_external_url(params[:path], preview)
     if preview
       redirect_to external_url
     else
-      if is_local_filesystem
-        send_file external_url
-      else
-        filename = File.basename(params[:path])
-        file = open(external_url)
-        content_type = file.content_type
-        send_data file.read, :type => content_type, :filename => filename
-      end
+      # if is_local_filesystem
+      #   send_file external_url
+      # else
+      filename = File.basename(params[:path])
+      file = open(external_url)
+      content_type = file.content_type
+      send_data file.read, :type => content_type, :filename => filename
+      # end
     end
   end
 

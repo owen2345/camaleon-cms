@@ -26,11 +26,15 @@ function cama_get_tinymce_settings(settings){
         language_url: tinymce_global_settings["language_url"],
         file_browser_callback: function(field_name, url, type, win) {
             $.fn.upload_filemanager({
-                selected: function(res){
-                    var file = _.first(res)
-                    if(type == 'media') type = 'video';
-                    if(file.mime && (file.mime.indexOf(type) > -1 || type == "file")){
-                        $('#'+field_name).val(file.url.to_url());
+                layout: function() {
+                    if (type == 'image') return 'images';
+                    else if (type == 'media') return 'media';
+                    else return 'default';
+                },
+                selected: function(file){
+                    if (type == 'media') type = 'video';
+                    if (file.mime && (file.mime.indexOf(type) > -1 || type == "file")){
+                        $('#' + field_name).val(file.url.to_filesystem_public_url());
                     }else{
                         alert("You must upload a valid format: "+type)
                     }

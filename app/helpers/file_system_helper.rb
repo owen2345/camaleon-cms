@@ -125,10 +125,15 @@ module FileSystemHelper
   def obtain_external_url(path, preview = false)
     init
     format_media_path(path)
+    root_filesystem_public_url + path
+  end
+
+  def root_filesystem_public_url
+    init
     if @file_system_type == :s3
-      @cdn_url.nil? ? "https://s3.amazonaws.com/#{@bucket}/#{base_path}#{path}" : "#{@cdn_url}#{base_path}#{path}"
+      @cdn_url.nil? ? "https://s3.amazonaws.com/#{@bucket}" : @cdn_url
     else
-      preview ? "/media/#{current_site.id}#{path}" : @media_path
+      root_url + "media/#{current_site.id}"
     end
   end
 

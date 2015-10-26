@@ -31,7 +31,7 @@
                     /*'download',*/ 'rm', 'duplicate', 'rename', 'mkdir', 'mkfile', 'upload', 'copy',
                     'cut', 'paste'/*, 'edit', 'extract', 'archive', 'search'*/, 'info', 'view'/*, 'help'*/,
                     'resize', 'sort'
-                ]
+                ];
                 break;
             default:
                 var cmds = [ 'rm',  'info', 'sort', 'view','upload', "resize"];
