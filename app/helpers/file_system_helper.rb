@@ -115,6 +115,7 @@ module FileSystemHelper
       end
     else
       folder = @connection.directories.get(destination)
+      folder = @connection.directories.create(:key => destination) if folder.nil?
       files.each do |file|
         folder.files.new({:key => file.original_filename, :body => file.tempfile.open(), :public => true}).save
       end
@@ -122,14 +123,42 @@ module FileSystemHelper
     {succes: true, error: nil}
   end
 
+  def upload_image_file(image, destination)
+    path = destination.gsub(root_filesystem_public_url, '')
+    filename = path.split('/')[-1]
+    directory = path.gsub(filename, '')
+    init
+    format_media_path(directory)
+    init_storage(@local_root)
+    if @file_system_type == :s3
+      #TODO test!
+      folder = @connection.directories.get(@bucket)
+      folder.files.new({:key => "#{@media_path}#{destination_filename}", :body => image.to_blob, :public => true}).save
+    else
+      folder = @connection.directories.get(directory)
+      folder = @connection.directories.create(:key => directory) if folder.nil?
+      folder.files.new({:key => filename, :body => image.to_blob, :public => true}).save
+    end
+    {succes: true, error: nil}
+  end
+
   def obtain_external_url(path, preview = false)
     init
     format_media_path(path)
+    root_filesystem_public_url + path
+  end
+
+  def root_filesystem_public_url
+    init
     if @file_system_type == :s3
-      @cdn_url.nil? ? "https://s3.amazonaws.com/#{@bucket}/#{base_path}#{path}" : "#{@cdn_url}#{base_path}#{path}"
+      @cdn_url.nil? ? "https://s3.amazonaws.com/#{@bucket}" : @cdn_url
     else
-      preview ? "/media/#{current_site.id}#{path}" : @media_path
+      root_url + "media/#{current_site.id}"
     end
+  end
+
+  def current_user_pwd
+    "users/#{current_user.id}"
   end
 
   private
@@ -199,15 +228,17 @@ module FileSystemHelper
     files_metas = []
     if @file_system_type == :local
       directory = @connection.directories.get('.')
-      directory.files.each do |file|
-        unless file.key.include? '/'
-          files_metas << {
-              :name => file.key,
-              :rights => '-rw-r--r--',
-              :size => '549923',
-              :date => '2013-11-01 11:44:13',
-              :type => 'file'
-          } if valid_mime_type?(mimeFilter, file.key)
+      unless (directory.nil?)
+        directory.files.each do |file|
+          unless file.key.include? '/'
+            files_metas << {
+                :name => file.key,
+                :rights => '-rw-r--r--',
+                :size => '549923',
+                :date => '2013-11-01 11:44:13',
+                :type => 'file'
+            } if valid_mime_type?(mimeFilter, file.key)
+          end
         end
       end
     end

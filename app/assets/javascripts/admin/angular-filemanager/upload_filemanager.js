@@ -5,7 +5,12 @@
             switch (eventName) {
                 case 'smartClick':
                     if ($.fn.upload_filemanager_dispatcher.onSelectedCallback != null) {
-                        $.fn.upload_filemanager_dispatcher.onSelectedCallback(element);
+                        var item = {
+                            mime: 'image/png', //FIXME calculate mimetype
+                            url: element.model.fullPath(),
+                            type: element.model.type
+                        };
+                        $.fn.upload_filemanager_dispatcher.onSelectedCallback(item);
                     }
                     break;
                 default:
@@ -20,25 +25,32 @@
         filemanager_loader_scope.include('');
         filemanager_loader_scope.config = {};
 
-        if (typeof options.type != 'undefined') {
-            switch (options.type) {
-                case "audio":
-                    break;
-                default:
-                    console.error('Unexpected type of files: ' + options.type);
-            }
-        } else {
-            filemanager_loader_scope.config.mimeFilter = 'none';
-        }
-
         if (options.selected) {
             $.fn.upload_filemanager_dispatcher.onSelectedCallback = options.selected;
         }
 
-        if (options.layout == 'images') {
+        var layout = (typeof options.layout === 'function') ? options.layout() : options.layout;
+        if (layout == 'images') {
             filemanager_loader_scope.config.mimeFilter = 'images';
             filemanager_loader_scope.include('/admin/filemanager/view/modal_images');
+        } else if (layout == 'media' || layout == 'videos') {
+            filemanager_loader_scope.config.mimeFilter = 'videos';
+            filemanager_loader_scope.include('/admin/filemanager/view/modal_images');
+        } else if (layout == 'images_or_upload') {
+            filemanager_loader_scope.config.mimeFilter = 'images';
+            filemanager_loader_scope.config.allowedActions = {navbar: {newFolder: false, uploadFile: true}};
+            filemanager_loader_scope.include('/admin/filemanager/view/modal_images');
+        } else if (layout == 'user_images_or_upload') {
+            if (options.user_pwd != null) {
+                filemanager_loader_scope.config.pwd = options.user_pwd;
+                filemanager_loader_scope.config.mimeFilter = 'images';
+                filemanager_loader_scope.config.allowedActions = {navbar: {newFolder: false, uploadFile: true}};
+                filemanager_loader_scope.include('/admin/filemanager/view/modal_images');
+            } else {
+                console.error('Trying to show user_images_or_upload layout without valid user_pwd');
+            }
         } else {
+            console.log('Unexpected layout: ' + layout);
             filemanager_loader_scope.config.mimeFilter = 'none';
             filemanager_loader_scope.include('/admin/filemanager/view/default');
         }

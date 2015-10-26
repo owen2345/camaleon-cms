@@ -7,6 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module CamaleonCms::UploaderHelper
+  include FileSystemHelper
   # upload a file into server
   # settings:
   #   folder: Directory where the file will be saved (default: current_site.upload_directory)
@@ -151,8 +152,10 @@ module CamaleonCms::UploaderHelper
       i.crop "#{w.to_i}x#{h.to_i}+#{w_offset}+#{h_offset}!"
     end
     ext = File.extname(file_dir)
-    image.write file_dir.gsub(ext, "_crop#{ext}")
-    file.gsub(ext, "_crop#{ext}")
+    # image.write file_dir.gsub(ext, "_crop#{ext}")
+    destination = file_dir.gsub(ext, "_crop#{ext}")
+    upload_image_file(image, destination)
+    destination
   end
 
   # resize and crop a file
