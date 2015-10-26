@@ -24,6 +24,7 @@ class Admin::FileManagerController < AdminController
 
   def upload
     if params[:action] == 'upload'
+      final_destination = params[:pwd].nil? ? params[:destination] : params[:pwd] + params[:destination]
       files = []
       file_counter = 0
       loop do
@@ -32,7 +33,7 @@ class Admin::FileManagerController < AdminController
         files << file_param
         file_counter += 1
       end
-      @result_message = {result: upload_files(params[:destination], files)}
+      @result_message = {result: upload_files(final_destination, files)}
       @result_status = 200
     else
       unknown_action(params[:action])
@@ -72,8 +73,16 @@ class Admin::FileManagerController < AdminController
 
   private
 
+  def calc_pwd(params)
+    unless params[:pwd].nil?
+      url_path = params[:pwd] + params[:path]
+    else
+      url_path = params[:path]
+    end
+  end
+
   def list_action(params)
-    @result_message = {result: list_files(params[:path], params[:onlyFolders], params[:mimeFilter])}
+    @result_message = {result: list_files(calc_pwd(params), params[:onlyFolders], params[:mimeFilter])}
     @result_status = 200
   end
 

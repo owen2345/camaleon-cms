@@ -115,6 +115,7 @@ module FileSystemHelper
       end
     else
       folder = @connection.directories.get(destination)
+      folder = @connection.directories.create(:key => destination) if folder.nil?
       files.each do |file|
         folder.files.new({:key => file.original_filename, :body => file.tempfile.open(), :public => true}).save
       end
@@ -208,15 +209,17 @@ module FileSystemHelper
     files_metas = []
     if @file_system_type == :local
       directory = @connection.directories.get('.')
-      directory.files.each do |file|
-        unless file.key.include? '/'
-          files_metas << {
-              :name => file.key,
-              :rights => '-rw-r--r--',
-              :size => '549923',
-              :date => '2013-11-01 11:44:13',
-              :type => 'file'
-          } if valid_mime_type?(mimeFilter, file.key)
+      unless (directory.nil?)
+        directory.files.each do |file|
+          unless file.key.include? '/'
+            files_metas << {
+                :name => file.key,
+                :rights => '-rw-r--r--',
+                :size => '549923',
+                :date => '2013-11-01 11:44:13',
+                :type => 'file'
+            } if valid_mime_type?(mimeFilter, file.key)
+          end
         end
       end
     end
