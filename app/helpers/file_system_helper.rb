@@ -123,6 +123,25 @@ module FileSystemHelper
     {succes: true, error: nil}
   end
 
+  def upload_image_file(image, destination)
+    path = destination.gsub(root_filesystem_public_url, '')
+    filename = path.split('/')[-1]
+    directory = path.gsub(filename, '')
+    init
+    format_media_path(directory)
+    init_storage(@local_root)
+    if @file_system_type == :s3
+      #TODO test!
+      folder = @connection.directories.get(@bucket)
+      folder.files.new({:key => "#{@media_path}#{destination_filename}", :body => image.to_blob, :public => true}).save
+    else
+      folder = @connection.directories.get(directory)
+      folder = @connection.directories.create(:key => directory) if folder.nil?
+      folder.files.new({:key => filename, :body => image.to_blob, :public => true}).save
+    end
+    {succes: true, error: nil}
+  end
+
   def obtain_external_url(path, preview = false)
     init
     format_media_path(path)

@@ -7,6 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module UploaderHelper
+  include FileSystemHelper
   # upload a file into server
   # settings:
   #   folder: Directory where the file will be saved (default: current_site.upload_directory)
@@ -142,18 +143,20 @@ module UploaderHelper
   # resize: true/false
   #   (true => resize the image to this dimension)
   #   (false => crop the image with this dimension)
-  def crop_image(file, w, h, w_offset, h_offset, resize = nil )
-    #FIXME must be work with file = 'http://localhost:3000/media/1/default_layout.png'
-    file_dir = File.join(Rails.public_path, file)
-    puts "-------file_dir--------#{file_dir}----------"
+  def crop_image(file, w, h, w_offset, h_offset, resize = nil)
+    # file_dir = File.join(Rails.public_path, file)
+    file_dir = file
+    puts "-------file_dir--------#{file}----------"
     image = MiniMagick::Image.open(file_dir)
     image.combine_options do |i|
       i.resize(resize) if resize.present?
       i.crop "#{w.to_i}x#{h.to_i}+#{w_offset}+#{h_offset}!"
     end
     ext = File.extname(file_dir)
-    image.write file_dir.gsub(ext, "_crop#{ext}")
-    file.gsub(ext, "_crop#{ext}")
+    # image.write file_dir.gsub(ext, "_crop#{ext}")
+    destination = file_dir.gsub(ext, "_crop#{ext}")
+    upload_image_file(image, destination)
+    destination
   end
 
   # resize and crop a file
