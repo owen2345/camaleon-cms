@@ -1,6 +1,6 @@
 <div data-ng-app="FileManagerApp">
   <div id="filemanager-container" ng-controller="FileManagerController">
-    <div ng-include="filemanager_container_url" onload="loadConfiguration()"></div>
+    <div ng-include="filemanager_container_url"></div>
   </div>
 </div>
 
@@ -10,6 +10,7 @@
         $scope.filemanager_container_url = '';
         $scope.include = function (new_url) {
             console.log('include: ' + new_url);
+            loadConfiguration();
             $scope.filemanager_container_url = new_url;
             $scope.$apply();
         };
@@ -32,7 +33,7 @@
             fileManagerConfig.eventDispatcher = $.fn.upload_filemanager_dispatcher;
         };
 
-        $scope.loadConfiguration = function () {
+        loadConfiguration = function () {
             setDefaultConfig();
             $.extend(fileManagerConfig, $scope.config);
         };

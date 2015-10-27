@@ -158,7 +158,7 @@ module FileSystemHelper
   end
 
   def current_user_pwd
-    "users/#{current_user.id}"
+    "_users/#{current_user.id}"
   end
 
   private
@@ -218,7 +218,7 @@ module FileSystemHelper
             :size => '4096',
             :date => '2015-04-29 09:04:24',
             :type => 'dir'
-        }
+        } unless private_folder?(directory.key)
       end
     end
     directory_metas
@@ -288,6 +288,10 @@ module FileSystemHelper
     else
       true
     end
+  end
+
+  def private_folder?(folder_name)
+    folder_name.eql?('_users')
   end
 
 end

@@ -14,6 +14,7 @@
 
 <script>
     angular.module('FileManagerApp').config(['fileManagerConfigProvider', function (config) {
+        var defaults = config.$get();
         config.set({
             appName: 'camaleon-cms',
             listUrl: 'filemanager/handler',
@@ -28,7 +29,18 @@
             compressUrl: 'filemanager/handler',
             extractUrl: 'filemanager/handler',
             permissionsUrl: 'filemanager/handler',
-            tplPath: 'filemanager/templates'
+            tplPath: 'filemanager/templates',
+            defaultViewTemplate: 'main-icons.html',
+            allowedActions: angular.extend(defaults.allowedActions, {
+                navbar: {
+                    language: false
+                }
+            }),
+            tableColumns: angular.extend(defaults.tableColumns, {
+                date: false,
+                permissions: false,
+                size: false
+            })
         });
     }]);
 </script>
