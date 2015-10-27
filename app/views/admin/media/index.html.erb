@@ -32,9 +32,11 @@
             tplPath: 'filemanager/templates',
             defaultViewTemplate: 'main-icons.html',
             allowedActions: angular.extend(defaults.allowedActions, {
-                navbar: {
-                    language: false
-                }
+                changePermissions: false,
+                compress: false
+            }),
+            navbar: angular.extend(defaults.navbar, {
+                language: false
             }),
             tableColumns: angular.extend(defaults.tableColumns, {
                 date: false,
