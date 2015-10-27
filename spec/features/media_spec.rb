@@ -3,7 +3,7 @@ describe "the Media", js: true do
 
   it "list media" do
     admin_sign_in
-    visit '/admin/media'
+    visit "#{root_url}/admin/media"
 
     expect(page).to have_css('#elfinder')
   end

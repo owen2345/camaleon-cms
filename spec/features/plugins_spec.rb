@@ -3,7 +3,7 @@ describe "the Menus", js: true do
 
   it "Plugins list" do
     admin_sign_in
-    visit '/admin/plugins'
+    visit "#{root_url}/admin/plugins"
     expect(page).to have_css('#table-plugins-list')
     expect(page).to have_content("Attack")
     expect(page).to have_content("Contact Form")

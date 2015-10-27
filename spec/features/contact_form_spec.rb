@@ -3,7 +3,7 @@ describe "the Contact Form", js: true do
 
   it "create new contact form" do
     admin_sign_in
-    visit '/admin/plugins/contact_form/admin_forms'
+    visit "#{root_url}/admin/plugins/contact_form/admin_forms"
     expect(page).to have_content('Contact Form')
     within("#new_plugins_contact_form_models_contact_form") do
       fill_in 'plugins_contact_form_models_contact_form_name', :with => 'Test form'
@@ -30,7 +30,7 @@ describe "the Contact Form", js: true do
 
   it "check contact submitters" do
     admin_sign_in
-    visit '/admin/plugins/contact_form/admin_forms'
+    visit "#{root_url}/admin/plugins/contact_form/admin_forms"
     within("#admin_content") do
       all("table .btn-info").last.click
     end
@@ -41,7 +41,7 @@ describe "the Contact Form", js: true do
 
   it "delete content type" do
     admin_sign_in
-    visit '/admin/plugins/contact_form/admin_forms'
+    visit "#{root_url}/admin/plugins/contact_form/admin_forms"
     within '#admin_content' do
       all("table .btn-danger").last.click
     end

@@ -3,7 +3,7 @@ describe "the Menus", js: true do
 
   it "Menus list" do
     admin_sign_in
-    visit '/admin/appearances/nav_menus/menu'
+    visit "#{root_url}/admin/appearances/nav_menus/menu"
     expect(page).to have_css('#menu_content')
     wait(1)
     within "#menu_items" do
@@ -45,7 +45,7 @@ describe "the Menus", js: true do
 
   it "Menus Create and Delete" do
     admin_sign_in
-    visit '/admin/appearances/nav_menus/menu'
+    visit "#{root_url}/admin/appearances/nav_menus/menu"
     within "#menu_items" do
       click_link "create a new menu"
     end

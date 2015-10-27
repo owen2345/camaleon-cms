@@ -3,7 +3,7 @@ describe "the Shortcodes", js: true do
 
   it "Shortcodes list" do
     admin_sign_in
-    visit '/admin/settings/shortcodes'
+    visit "#{root_url}/admin/settings/shortcodes"
     expect(page).to have_content('Short Code')
   end
 

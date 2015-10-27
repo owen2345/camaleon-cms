@@ -3,7 +3,7 @@ describe "the Users", js: true do
 
   it "Users list" do
     admin_sign_in
-    visit '/admin/users'
+    visit "#{root_url}/admin/users"
     expect(page).to have_content("List Users")
 
     # create user
@@ -30,7 +30,7 @@ describe "the Users", js: true do
 
   it "Users Edit" do
     admin_sign_in
-    visit '/admin/users'
+    visit "#{root_url}/admin/users"
     within '#admin_content' do
       all(".btn-default")[1].click
     end
@@ -48,7 +48,7 @@ describe "the Users", js: true do
 
   it "Users Update Pass" do
     admin_sign_in
-    visit '/admin/users'
+    visit "#{root_url}/admin/users"
     within '#admin_content' do
       all(".btn-default")[1].click
     end
@@ -68,7 +68,7 @@ describe "the Users", js: true do
 
   it "Users destroy" do
     admin_sign_in
-    visit '/admin/users'
+    visit "#{root_url}/admin/users"
     within '#admin_content' do
       all(".btn-danger")[1].click
     end

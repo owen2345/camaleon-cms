@@ -3,7 +3,7 @@ describe "the Languages", js: true do
 
   it "Languages list" do
     admin_sign_in
-    visit '/admin/settings/languages'
+    visit "#{root_url}/admin/settings/languages"
     expect(page).to have_content("Languages configuration")
 
     # create user role

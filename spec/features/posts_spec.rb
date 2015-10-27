@@ -3,7 +3,7 @@ describe "the signin process", js: true do
 
   it "create new post" do
     admin_sign_in
-    visit '/admin/post_type/2/posts/new'
+    visit "#{root_url}/admin/post_type/2/posts/new"
     within("#form-post") do
       fill_in 'post_title', :with => 'Test Title'
       page.execute_script('$("#form-post .tinymce_textarea").tinymce().setContent("Pants are pretty sweet.")')
@@ -19,7 +19,7 @@ describe "the signin process", js: true do
 
   it "create edit post" do
     admin_sign_in
-    visit "/admin/post_type/2/posts/#{get_content_attr("post", "id", "last")}/edit"
+    visit "#{root_url}/admin/post_type/2/posts/#{get_content_attr("post", "id", "last")}/edit"
     within("#form-post") do
       fill_in 'post_title', :with => 'Test Title changed'
       page.execute_script('$("#form-post .tinymce_textarea").tinymce().setContent("Pants are pretty sweet. chaged")')

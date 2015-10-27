@@ -3,7 +3,7 @@ describe "the signin process", js: true do
   login_success
 
   it "signs me in not valid" do
-    visit '/admin/login'
+    visit "#{root_url}/admin/login"
     within("#login_user") do
       fill_in 'user_username', :with => 'admin'
       fill_in 'user_password', :with => 'ADMIN'
@@ -13,7 +13,7 @@ describe "the signin process", js: true do
   end
 
   it "forgot pass" do
-    visit '/admin/forgot'
+    visit "#{root_url}/admin/forgot"
     within("#login_user") do
       fill_in 'user_email', :with => 'admin@local.com'
     end
@@ -22,7 +22,7 @@ describe "the signin process", js: true do
   end
 
   it "Register User" do
-    visit '/admin/register'
+    visit "#{root_url}/admin/register"
     within("#login_user") do
       fill_in 'meta[first_name]', :with => 'Name'
       fill_in 'meta[last_name]', :with => 'Last Name'

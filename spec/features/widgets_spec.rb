@@ -3,7 +3,7 @@ describe "the Themes", js: true do
 
   it "Widgets list" do
     admin_sign_in
-    visit '/admin/appearances/widgets/main'
+    visit "#{root_url}/admin/appearances/widgets/main"
     expect(page).to have_css('#view_widget_list')
     within "#view_widget_list" do
       first('#new_widget_link').click
@@ -21,7 +21,7 @@ describe "the Themes", js: true do
 
   it "Widgets Edit" do
     admin_sign_in
-    visit '/admin/appearances/widgets/main'
+    visit "#{root_url}/admin/appearances/widgets/main"
     within "#view_widget_list" do
       first('.edit_link').click
       wait_for_ajax
@@ -38,7 +38,7 @@ describe "the Themes", js: true do
 
   it "Widgets destroy" do
     admin_sign_in
-    visit '/admin/appearances/widgets/main'
+    visit "#{root_url}/admin/appearances/widgets/main"
     within "#view_widget_list" do
       first('.del_link').click
     end

@@ -3,7 +3,7 @@ describe "the Custom Fields", js: true do
 
   it "Custom fields list" do
     admin_sign_in
-    visit '/admin/settings/custom_fields'
+    visit "#{root_url}/admin/settings/custom_fields"
     within '#admin_content' do
       click_link "Add Field Group"
     end
@@ -42,7 +42,7 @@ describe "the Custom Fields", js: true do
 
   it "delete custom field" do
     admin_sign_in
-    visit '/admin/settings/custom_fields'
+    visit "#{root_url}/admin/settings/custom_fields"
     within '#admin_content' do
       all("table .btn-danger").last.click
     end

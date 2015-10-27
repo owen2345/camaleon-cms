@@ -3,7 +3,7 @@ describe "the signin process", js: true do
 
   it "create new category" do
     admin_sign_in
-    visit '/admin/post_type/2/categories'
+    visit "#{root_url}/admin/post_type/2/categories"
     within("#form-category") do
       fill_in 'category_name', :with => 'Test cat'
       fill_in 'category_slug', :with => 'test-cat'

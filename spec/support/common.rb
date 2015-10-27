@@ -3,9 +3,10 @@
 # do login for admin panel and also verify if the site was created
 # if site is not created, then create a new site
 def login_success
+  Rails.logger.info "^^^^^^^^^^^^^^^^^^^^^#{root_url}"
   unless CamaleonCms::Site.any?
     it "Verify Install Camaleon" do
-      visit '/admin/installers'
+      visit "#{root_url}/admin/installers"
       within("#new_site") do
         fill_in 'site_name', :with => 'Test Site'
         select "Default Theme", from: "theme"
@@ -23,7 +24,7 @@ end
 # sign in for admin panel
 # skip: true => close the skip button for intro
 def admin_sign_in(close = false, user = "admin", pass = "admin")
-  visit '/admin/login'
+  visit "#{root_url}/admin/login"
   within("#login_user") do
     fill_in 'user_username', :with => user
     fill_in 'user_password', :with => pass

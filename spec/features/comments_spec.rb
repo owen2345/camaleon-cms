@@ -3,7 +3,7 @@ describe "the Comments", js: true do
 
   it "Add Comment" do
     admin_sign_in
-    visit "/#{get_content_attr("post", "the_slug", "last")}"
+    visit "#{root_url}/#{get_content_attr("post", "the_slug", "last")}"
     fill_in "textarea_comments", with: "Test comment"
     click_button 'Comment'
     expect(page).to have_css('.alert-success')
@@ -12,7 +12,7 @@ describe "the Comments", js: true do
 
   it "list comments post" do
     admin_sign_in
-    visit '/admin/comments'
+    visit "#{root_url}/admin/comments"
     within("#admin_content") do
       # verify post presence
       expect(page).to have_content("#{get_content_attr("post", "the_title", "last")}")

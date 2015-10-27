@@ -3,7 +3,7 @@ describe "the Themes", js: true do
 
   it "Themes list" do
     admin_sign_in
-    visit '/admin/appearances/themes'
+    visit "#{root_url}/admin/appearances/themes"
     expect(page).to have_css('#themes_page')
     within "#themes_page" do
       first('.preview_link').click

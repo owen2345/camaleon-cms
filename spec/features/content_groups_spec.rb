@@ -3,7 +3,7 @@ describe "the Content Groups", js: true do
 
   it "create new content group" do
     admin_sign_in
-    visit '/admin/settings/post_types'
+    visit "#{root_url}/admin/settings/post_types"
     expect(page).to have_content('Post')
     expect(page).to have_content('Page')
     within("#post_type_form") do
@@ -18,7 +18,7 @@ describe "the Content Groups", js: true do
 
   it "edit content type" do
     admin_sign_in
-    visit "/admin/settings/post_types"
+    visit "#{root_url}/admin/settings/post_types"
     within '#admin_content' do
       all("table .btn-default").last.click
     end
@@ -33,7 +33,7 @@ describe "the Content Groups", js: true do
 
   it "delete content type" do
     admin_sign_in
-    visit '/admin/settings/post_types'
+    visit "#{root_url}/admin/settings/post_types"
     within '#admin_content' do
       all("table .btn-danger").last.click
     end

@@ -3,7 +3,7 @@ describe "the Site Settings", js: true do
 
   it "Settings Form" do
     admin_sign_in
-    visit '/admin/settings/site'
+    visit "#{root_url}/admin/settings/site"
     expect(page).to have_content("Basic Information")
     expect(page).to have_content("Configuration")
     within '#site_settings_form' do
