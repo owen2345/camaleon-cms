@@ -104,7 +104,7 @@ var init_form_validations = function (form) {
                             set_texts(options.full_url ? base_path + image.url.to_filesystem_public_url() : image.url);
                             response(true);
                         } else {
-                            alert("File extension not allowed")
+                            alert("File extension not allowed");
                             response(false);
                         }
                     }
