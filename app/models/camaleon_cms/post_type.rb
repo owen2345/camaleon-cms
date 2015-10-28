@@ -8,7 +8,6 @@
 =end
 class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   default_scope { where(taxonomy: :post_type) }
-
   has_many :metas, ->{ where(object_class: 'PostType')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   has_many :categories, :class_name => "CamaleonCms::Category", foreign_key: :parent_id, dependent: :destroy
   has_many :post_tags, :class_name => "CamaleonCms::PostTag", foreign_key: :parent_id, dependent: :destroy
@@ -23,7 +22,6 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   scope :hidden_menu, -> {where(term_group: -1)}
   before_destroy :destroy_field_groups
   after_create :set_default_site_user_roles
-
 
   # check if current post type manage categories
   def manage_categories?
@@ -55,7 +53,6 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   #   has_comments: false,
   #   has_picture: true,
   #   has_template: true,
-  #   default_template: '',
   #   has_keywords: true,
   #   not_deleted: false,
   #   has_layout: false,
@@ -131,10 +128,10 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   # return all available route formats of this post type for content posts
   def contents_route_formats
     {
-      "cama_post_of_post_type" => "<code>/group/:post_type_id-:title/:slug</code>  <br>(Sample: http://localhost.com/group/17-services/myservice.html)",
-      "cama_post_of_category" => "<code>/category/:category_id-:title/:slug</code>  <br>(Sample: http://localhost.com/category/17-services/myservice.html)",
-      "cama_post_of_posttype" => "<code>/:post_type_title/:slug</code>  <br>(Sample: http://localhost.com/services/myservice.html)",
-      "post" => "<code>/:slug</code>  <br>(Sample: http://localhost.com/myservice.html)"
+      "cama_post_of_post_type" => "<code>/group/:post_type_id-:title/:slug</code><br>  (Sample: http://localhost.com/group/17-services/myservice.html)",
+      "cama_post_of_category" => "<code>/category/:category_id-:title/:slug</code><br>  (Sample: http://localhost.com/category/17-services/myservice.html)",
+      "cama_post_of_posttype" => "<code>/:post_type_title/:slug</code><br>  (Sample: http://localhost.com/services/myservice.html)",
+      "post" => "<code>/:slug</code><br>  (Sample: http://localhost.com/myservice.html)"
     }
   end
 
@@ -144,11 +141,18 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   end
 
   private
+  # skip save_metas_options callback after save changes (inherit from taxonomy) to call from here manually
+  def save_metas_options_skip
+    true
+  end
+
   # assign default roles for this post type
   # define default settings for this post type
   def set_default_site_user_roles
-    self.set_meta('_default', {has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_keywords: true, not_deleted: false, has_layout: false, default_layout: "", default_template: ''})
+    self.set_multiple_options({has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_keywords: true, not_deleted: false, has_layout: false, default_layout: ""})
+    save_metas_options
     self.site.set_default_user_roles(self)
+    default_category
   end
 
   # destroy all custom field groups assigned to this post type

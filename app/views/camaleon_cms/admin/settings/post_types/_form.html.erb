@@ -101,7 +101,7 @@
                         <label>Contents Route Format</label>
                         <div>
                             <% @post_type.contents_route_formats.each do |key, descr| %>
-                                <label><%= radio_button_tag "meta[contents_route_format]", key, key == @post_type.contents_route_format %> <small style="font-weight: normal"><%= raw descr %></small></label>
+                                <label><%= radio_button_tag "meta[contents_route_format]", key, key == @post_type.contents_route_format %> <small style="font-weight: normal"><%= raw descr %></small></label><br>
                             <% end %>
                         </div>
                     </div>

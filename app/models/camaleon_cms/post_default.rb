@@ -11,11 +11,8 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
   include CamaleonCms::CustomFieldsRead
   self.table_name = "#{PluginRoutes.system_info["db_prefix"]}posts"
 
-  #extend FriendlyId
-  attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order,
-                  :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order
+  attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order
   attr_accessor :draft_id
-
 
   has_many :term_relationships, class_name: "CamaleonCms::TermRelationship", foreign_key: :objectid, dependent: :destroy, primary_key: :id
   has_many :children, ->{ where(post_class: "PostDefault") }, class_name: "CamaleonCms::PostDefault", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
