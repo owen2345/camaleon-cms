@@ -8,9 +8,9 @@ module FileSystemHelper
     @file_system_type == :local
   end
 
-  def list_files(path, only_folders=false, mimeFilter=nil)
+  def list_files(path, pwd, only_folders=false, mimeFilter=nil)
     init
-    format_media_path(path)
+    format_media_path(path, pwd)
     init_storage(@media_path)
     if @file_system_type == :s3
       result = generate_tree_meta(only_folders, mimeFilter)
@@ -21,9 +21,9 @@ module FileSystemHelper
     result
   end
 
-  def add_folder(path, name)
+  def add_folder(path, pwd, name)
     init
-    format_media_path("/#{path}")
+    format_media_path("/#{path}", pwd)
     init_storage(@media_path)
     if @file_system_type == :s3
       key = "#{@bucket}/#{@media_path}#{name}"
@@ -34,16 +34,17 @@ module FileSystemHelper
     {succes: true, error: nil}
   end
 
-  def delete(path)
+  def delete(path, pwd, isDirectory = false)
     begin
       init
-      format_media_path(path)
+      format_media_path(path, pwd)
       init_storage(@local_root)
       if @file_system_type == :s3
-        @connection.delete_object(@bucket, @media_path)
-        #TODO if @media_path is a directory and contains more files, this method not delete the directory and no error is thrown out
+        key_to_delete = isDirectory ? @media_path : @media_path[0..-2] #Remove the last / only in files
+        @connection.delete_object(@bucket, key_to_delete)
+        #TODO if @media_path is a directory and contains more files, this method do not delete the directory and no error is thrown out
       else
-        if File.directory?(@media_path)
+        if isDirectory
           @connection.directories.get(path).destroy
         else
           file_basename = File.basename(@media_path)
@@ -58,10 +59,10 @@ module FileSystemHelper
     end
   end
 
-  def rename(path, new_path)
+  def rename(path, pwd, new_path)
     begin
       init
-      format_media_path(path)
+      format_media_path(path, pwd)
       init_storage(@local_root)
       if @file_system_type == :s3
         options = {'x-amz-acl' => 'public-read'}
@@ -82,10 +83,10 @@ module FileSystemHelper
     end
   end
 
-  def copy(path, new_path)
+  def copy(path, pwd, new_path)
     begin
       init
-      format_media_path(path)
+      format_media_path(path, pwd)
       init_storage(@local_root)
       if @file_system_type == :s3
         options = {'x-amz-acl' => 'public-read'}
@@ -104,14 +105,15 @@ module FileSystemHelper
     end
   end
 
-  def upload_files(destination, files)
+  def upload_files(destination, pwd, files)
     init
-    format_media_path(destination)
+    format_media_path(destination, pwd)
     init_storage(@local_root)
     if @file_system_type == :s3
       folder = @connection.directories.get(@bucket)
       files.each do |file|
-        folder.files.new({:key => "#{@media_path}#{file.original_filename}", :body => file.tempfile.open(), :public => true}).save
+        filename_key = "#{@media_path}#{file.original_filename}"
+        folder.files.new({:key => filename_key, :body => file.tempfile.open(), :public => true}).save
       end
     else
       folder = @connection.directories.get(destination)
@@ -128,12 +130,12 @@ module FileSystemHelper
     filename = path.split('/')[-1]
     directory = path.gsub(filename, '')
     init
-    format_media_path(directory)
+    format_media_path(directory, nil)
     init_storage(@local_root)
     if @file_system_type == :s3
-      #TODO test!
+      filename_key = "#{@media_path}#{filename}"
       folder = @connection.directories.get(@bucket)
-      folder.files.new({:key => "#{@media_path}#{destination_filename}", :body => image.to_blob, :public => true}).save
+      folder.files.new({:key => filename_key, :body => image.to_blob, :public => true}).save
     else
       folder = @connection.directories.get(directory)
       folder = @connection.directories.create(:key => directory) if folder.nil?
@@ -142,23 +144,36 @@ module FileSystemHelper
     {succes: true, error: nil}
   end
 
-  def obtain_external_url(path, preview = false)
+  def obtain_external_url(path, pwd, preview = false)
     init
-    format_media_path(path)
-    root_filesystem_public_url + path
+    format_media_path(path, pwd)
+    if path[0] == '/'
+      root_filesystem_public_url + path
+    else
+      root_filesystem_public_url + '/' + path
+    end
   end
 
   def root_filesystem_public_url
     init
     if @file_system_type == :s3
-      @cdn_url.nil? ? "https://s3.amazonaws.com/#{@bucket}" : @cdn_url
+      @cdn_url.nil? ? "https://s3.amazonaws.com/#{@bucket}/media/#{current_site.id}" : "#{@cdn_url}/media/#{current_site.id}"
     else
       root_url + "media/#{current_site.id}"
     end
   end
 
   def current_user_pwd
-    "users/#{current_user.id}"
+    "/_users/#{current_user.id}"
+  end
+
+  def file_exists_by_url?(url_file)
+    init
+    if @file_system_type == :s3
+      true
+    else
+      File.exist? h.url_to_file_path(url_file)
+    end
   end
 
   private
@@ -184,7 +199,7 @@ module FileSystemHelper
       unless only_folders
         response.contents.each do |file|
           filename = file.key.gsub(@media_path, '')
-          unless filename.length == media_path_size || filename[-1] == '/' || filename.length == 0
+          unless filename[-1] == '/' || filename.length == 0
             tree_metas << {
                 name: filename,
                 rights: "drwxr-xr-x",
@@ -196,13 +211,16 @@ module FileSystemHelper
         end
       end
       response.common_prefixes.each do |folder|
-        tree_metas << {
-            :name => folder.prefix.split('/').last,
-            :ights => 'drwxr-xr-x',
-            :size => '4096',
-            :date => '2015-04-29 09:04:24',
-            :type => 'dir'
-        } unless folder.prefix == '' || folder.prefix == @media_path || folder.prefix == '/'
+        unless folder.prefix == '' || folder.prefix == @media_path || folder.prefix == '/'
+          folder_name = folder.prefix.split('/').last
+          tree_metas << {
+              :name => folder_name,
+              :ights => 'drwxr-xr-x',
+              :size => '4096',
+              :date => '2015-04-29 09:04:24',
+              :type => 'dir'
+          } unless private_folder?(folder_name)
+        end
       end
     end
     tree_metas
@@ -218,7 +236,7 @@ module FileSystemHelper
             :size => '4096',
             :date => '2015-04-29 09:04:24',
             :type => 'dir'
-        }
+        } unless private_folder?(directory.key)
       end
     end
     directory_metas
@@ -245,14 +263,14 @@ module FileSystemHelper
     files_metas
   end
 
-  def format_media_path(path)
+  def format_media_path(path, pwd)
     if @file_system_type == :s3
       path = "#{path}/" unless path[-1] == '/'
-      @media_path = "#{base_path}#{path}"
+      @media_path = (pwd.nil? || pwd.eql?('/')) ? "#{base_path}#{path}" : "#{base_path}#{pwd}#{path}"
       @local_root = base_path
     else
       @local_root = "#{base_path}"
-      @media_path = File.join(@local_root, path)
+      @media_path = pwd.nil? ? File.join(@local_root, path) : File.join(@local_root, pwd, path)
     end
   end
 
@@ -270,6 +288,7 @@ module FileSystemHelper
       Aws.config.update({:region => 'us-east-1', :credentials => Aws::Credentials.new(@aws_access_key_id, @aws_secret_key)})
       @s3_client = Aws::S3::Client.new
     else
+      #TODO put valid endpoint
       endpoint = 'http://camaleon-site:3000'
       @connection = Fog::Storage.new({:provider => 'Local', :local_root => local_root, :endpoint => endpoint})
     end
@@ -288,6 +307,10 @@ module FileSystemHelper
     else
       true
     end
+  end
+
+  def private_folder?(folder_name)
+    folder_name.eql?('_users')
   end
 
 end

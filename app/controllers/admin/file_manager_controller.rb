@@ -24,7 +24,7 @@ class Admin::FileManagerController < AdminController
 
   def upload
     if params[:action] == 'upload'
-      final_destination = params[:pwd].nil? ? params[:destination] : params[:pwd] + params[:destination]
+      # final_destination = params[:pwd].nil? ? params[:destination] : params[:pwd] + params[:destination]
       files = []
       file_counter = 0
       loop do
@@ -33,7 +33,7 @@ class Admin::FileManagerController < AdminController
         files << file_param
         file_counter += 1
       end
-      @result_message = {result: upload_files(final_destination, files)}
+      @result_message = {result: upload_files(params[:destination], params[:pwd], files)}
       @result_status = 200
     else
       unknown_action(params[:action])
@@ -44,7 +44,7 @@ class Admin::FileManagerController < AdminController
 
   def download
     preview = (params[:preview] == 'true')
-    external_url = obtain_external_url(params[:path], preview)
+    external_url = obtain_external_url(params[:path], nil, preview)
     if preview
       redirect_to external_url
     else
@@ -73,36 +73,29 @@ class Admin::FileManagerController < AdminController
 
   private
 
-  def calc_pwd(params)
-    unless params[:pwd].nil?
-      url_path = params[:pwd] + params[:path]
-    else
-      url_path = params[:path]
-    end
-  end
-
   def list_action(params)
-    @result_message = {result: list_files(calc_pwd(params), params[:onlyFolders], params[:mimeFilter])}
+    @result_message = {result: list_files(params[:path], params[:pwd], params[:onlyFolders], params[:mimeFilter])}
     @result_status = 200
   end
 
   def add_folder_action(params)
-    @result_message = {result: add_folder(params[:path], params[:name])}
+    @result_message = {result: add_folder(params[:path], params[:pwd], params[:name])}
     @result_status = 200
   end
 
   def delete_action(params)
-    @result_message = {result: delete(params[:path])}
+    isDirectory = params[:type].nil? ? false : params[:type].eql?('dir')
+    @result_message = {result: delete(params[:path], params[:pwd], isDirectory)}
     @result_status = 200
   end
 
   def rename_action(params)
-    @result_message = {result: rename(params[:path], params[:newPath])}
+    @result_message = {result: rename(params[:path], params[:pwd], params[:newPath])}
     @result_status = 200
   end
 
   def copy_action(params)
-    @result_message = {result: copy(params[:path], params[:newPath])}
+    @result_message = {result: copy(params[:path], params[:pwd], params[:newPath])}
     @result_status = 200
   end
 

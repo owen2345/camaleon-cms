@@ -31,13 +31,15 @@ function cama_get_tinymce_settings(settings){
                     else if (type == 'media') return 'media';
                     else return 'default';
                 },
-                selected: function(file){
+                selected: function(file, response){
                     if (file.type != 'dir') {
                         if (type == 'media') type = 'video';
                         if (file.mime && (file.mime.indexOf(type) > -1 || type == "file")) {
                             $('#' + field_name).val(file.url.to_filesystem_public_url());
+                            response(true);
                         } else {
                             alert("You must upload a valid format: " + type)
+                            response(false);
                         }
                     }
                 }

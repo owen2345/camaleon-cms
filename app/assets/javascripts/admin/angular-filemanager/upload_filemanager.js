@@ -10,7 +10,11 @@
                             url: element.model.fullPath(),
                             type: element.model.type
                         };
-                        $.fn.upload_filemanager_dispatcher.onSelectedCallback(item);
+                        $.fn.upload_filemanager_dispatcher.onSelectedCallback(item, function (result) {
+                            if (result == true) {
+                                $('#modal_filemanager').modal('hide');
+                            }
+                        });
                     }
                     break;
                 default:
@@ -32,6 +36,7 @@
         var layout = (typeof options.layout === 'function') ? options.layout() : options.layout;
         if (layout == 'images') {
             filemanager_loader_scope.config.mimeFilter = 'images';
+            filemanager_loader_scope.config.autoImagePreview = false;
             filemanager_loader_scope.include('/admin/filemanager/view/modal_images');
         } else if (layout == 'media' || layout == 'videos') {
             filemanager_loader_scope.config.mimeFilter = 'videos';

@@ -34,7 +34,7 @@ module CamaleonCms::UploaderHelper
         formats: "*",
         create_folder: true,
         temporal_time: 0
-      }.merge(settings)
+    }.merge(settings)
     settings[:folder] = settings[:folder].to_s
     if settings[:create_folder] && !File.directory?(settings[:folder])
       FileUtils.mkdir_p(settings[:folder])
