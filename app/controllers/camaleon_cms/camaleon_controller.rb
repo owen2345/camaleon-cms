@@ -38,7 +38,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   # show page error
   def render_error(status = 404, exception = nil)
     Rails.logger.info "====================#{caller.inspect}"
-    render :file => "public/#{status}.html", :status => status, :layout => false
+    render "camaleon_cms/#{status}", :status => status
   end
 
   # generate captcha image

@@ -116,6 +116,7 @@ Rails.application.routes.draw do
         match 'elfinder/iframe' => 'media#iframe', via: :all
         match 'crop' => 'media#crop', via: :all
         get 'doc' => redirect('/docs/index.html?url=/api-docs.json')
+        get "*path" => :render_error
       end
 
     end

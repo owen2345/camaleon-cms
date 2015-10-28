@@ -27,11 +27,11 @@ module CamaleonCms::ContentHelper
 
   # draw all before contents registered by cama_content_prepend
   def cama_content_before_draw
-    @_before_content.join("")
+    @_before_content.join("") rescue ""
   end
 
   # draw all after contents registered by cama_content_append
   def cama_content_after_draw
-    @_after_content.join("")
+    @_after_content.join("") rescue ""
   end
 end
