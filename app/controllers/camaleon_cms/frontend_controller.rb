@@ -12,13 +12,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   prepend_before_action :cama_site_check_existence
   include CamaleonCms::Frontend::ApplicationHelper
 
-  layout Proc.new { |controller|
-    if current_theme.settings["gem_mode"]
-      "themes/#{current_theme.slug}/layouts/index"
-    else
-      "themes/#{current_theme.slug}/views/layouts/index"
-    end
-  }
+  layout "index"
 
   before_action :before_hooks
   after_action :after_hooks
@@ -184,8 +178,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
         r_file = "single"
       end
 
-
-      # puts "*******************layout: #{@post.get_layout(@post_type)} ---template: #{@post.get_template(@post_type)}"
+      puts "*******************layout: #{@post.get_layout(@post_type)} ---template: #{@post.get_template(@post_type)}==== exist template: #{lookup_context.template_exists?("page")}"
 
       layout_ = self.send :_layout
       meta_layout = @post.get_layout(@post_type)
@@ -222,6 +215,10 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     I18n.locale = params[:locale] || current_site.get_languages.first
     return page_not_found unless current_site.get_languages.include?(I18n.locale.to_sym) # verify if this locale is available for this site
 
+    views_dir = "app/apps/"
+    self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
+    self.prepend_view_path(Rails.root.join(views_dir).to_s)
+
     # define render paths
     lookup_context.prefixes.delete("frontend")
     lookup_context.prefixes.delete("application")
@@ -235,18 +232,20 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
     end
     theme_init()
-    camaleon_add_front_view_paths()
   end
 
+  # initialize hooks before to execute action
   def before_hooks
     hooks_run("front_before_load")
   end
 
+  # initialize hooks after executed action
   def after_hooks
     hooks_run("front_after_load")
   end
 
   # define default options for url helpers
+  # control for default locale
   def default_url_options(options = {})
     begin
       if current_site.get_languages.first.to_s == I18n.locale.to_s

@@ -47,11 +47,21 @@ end
 module ActionView
   class LookupContext #:nodoc:
     module ViewPaths
+      # fix to add camaleon prefix to search partials and layouts
       def find(name, prefixes = [], partial = false, keys = [], options = {})
-        prefixes += self.prefixes + [""] if prefixes.is_a?(Array) && partial
+        prefixes = [""] unless prefixes.present?
+        prefixes += self.prefixes if prefixes.is_a?(Array)
         @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
       end
       alias :find_template :find
+
+      # fix to add camaleon prefixes on verify template exist
+      def exists?(name, prefixes = [], partial = false, keys = [], options = {})
+        prefixes = [""] unless prefixes.present?
+        prefixes += self.prefixes if prefixes.is_a?(Array)
+        @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys, options))
+      end
+      alias :template_exists? :exists?
     end
   end
 end

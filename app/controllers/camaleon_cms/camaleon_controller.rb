@@ -105,15 +105,4 @@ class CamaleonCms::CamaleonController < ApplicationController
       site_load_custom_models(current_site)
     end
   end
-
-  # add custom views of camaleon
-  def camaleon_add_front_view_paths
-    if current_site.present?
-      if current_theme.present?
-        views_dir = "app/apps/"
-        self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
-        self.prepend_view_path(Rails.root.join(views_dir).to_s)
-      end
-    end
-  end
 end

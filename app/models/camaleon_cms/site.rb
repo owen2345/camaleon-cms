@@ -275,9 +275,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
                                         })
       if model_pt.valid?
         model_pt.set_meta('_default', pt[:options])
-        if pt[:options][:has_category]
-          model_pt.default_category
-        end
+        model_pt.default_category
       end
     end
 

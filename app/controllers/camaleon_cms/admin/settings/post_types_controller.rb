@@ -26,6 +26,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
   def update
     if @post_type.update(params[:post_type])
       @post_type.set_options_from_form(params[:meta]) if params[:meta].present?
+      @post_type.default_category
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
       redirect_to action: :index
     else
@@ -38,6 +39,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
     @post_type = current_site.post_types.new(data_term)
     if @post_type.save
       @post_type.set_options_from_form(params[:meta]) if params[:meta].present?
+      @post_type.default_category
       flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
       redirect_to action: :index
     else
@@ -47,7 +49,6 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
 
   def destroy
     flash[:notice] = t('camaleon_cms.admin.post_type.message.deleted') if @post_type.destroy
-
     redirect_to action: :index
   end
 
