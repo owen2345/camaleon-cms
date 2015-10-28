@@ -291,7 +291,7 @@ function init_post(obj) {
 // thumbnail updloader
 function upload_feature_image() {
     $.fn.upload_filemanager({
-        selected: function (res) {
+        selected: function (res, response) {
             var image = _.first(res);
             if (image.mime && image.mime.indexOf("image") > -1) {
                 var image_url = image.url.to_filesystem_public_url();
@@ -299,8 +299,10 @@ function upload_feature_image() {
                 $('#feature-image input').val(image_url);
                 $('#feature-image .meta strong').html(image.name);
                 $('#feature-image').show();
+                response(true);
             } else {
-                alert("You must upload an image")
+                alert("You must upload an image");
+                response(false);
             }
         }
     });

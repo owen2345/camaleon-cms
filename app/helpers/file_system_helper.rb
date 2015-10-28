@@ -112,7 +112,8 @@ module FileSystemHelper
     if @file_system_type == :s3
       folder = @connection.directories.get(@bucket)
       files.each do |file|
-        folder.files.new({:key => "#{@media_path}#{file.original_filename}", :body => file.tempfile.open(), :public => true}).save
+        filename_key = "#{@media_path}#{file.original_filename}"
+        folder.files.new({:key => filename_key, :body => file.tempfile.open(), :public => true}).save
       end
     else
       folder = @connection.directories.get(destination)
@@ -132,9 +133,9 @@ module FileSystemHelper
     format_media_path(directory, nil)
     init_storage(@local_root)
     if @file_system_type == :s3
-      #TODO test!
+      filename_key = "#{@media_path}#{filename}"
       folder = @connection.directories.get(@bucket)
-      folder.files.new({:key => "#{@media_path}#{destination_filename}", :body => image.to_blob, :public => true}).save
+      folder.files.new({:key => filename_key, :body => image.to_blob, :public => true}).save
     else
       folder = @connection.directories.get(directory)
       folder = @connection.directories.create(:key => directory) if folder.nil?
@@ -146,7 +147,11 @@ module FileSystemHelper
   def obtain_external_url(path, pwd, preview = false)
     init
     format_media_path(path, pwd)
-    root_filesystem_public_url + path
+    if path[0] == '/'
+      root_filesystem_public_url + path
+    else
+      root_filesystem_public_url + '/' + path
+    end
   end
 
   def root_filesystem_public_url
@@ -159,7 +164,16 @@ module FileSystemHelper
   end
 
   def current_user_pwd
-    "_users/#{current_user.id}"
+    "/_users/#{current_user.id}"
+  end
+
+  def file_exists_by_url?(url_file)
+    init
+    if @file_system_type == :s3
+      true
+    else
+      File.exist? h.url_to_file_path(url_file)
+    end
   end
 
   private
@@ -252,11 +266,11 @@ module FileSystemHelper
   def format_media_path(path, pwd)
     if @file_system_type == :s3
       path = "#{path}/" unless path[-1] == '/'
-      @media_path = pwd.nil? ? "#{pwd}#{base_path}#{path}" : "#{base_path}#{path}"
+      @media_path = (pwd.nil? || pwd.eql?('/')) ? "#{base_path}#{path}" : "#{base_path}#{pwd}#{path}"
       @local_root = base_path
     else
       @local_root = "#{base_path}"
-      @media_path = pwd.nil? ? File.join(@local_root, pwd, path) : File.join(@local_root, path)
+      @media_path = pwd.nil? ? File.join(@local_root, path) : File.join(@local_root, pwd, path)
     end
   end
 
@@ -274,6 +288,7 @@ module FileSystemHelper
       Aws.config.update({:region => 'us-east-1', :credentials => Aws::Credentials.new(@aws_access_key_id, @aws_secret_key)})
       @s3_client = Aws::S3::Client.new
     else
+      #TODO put valid endpoint
       endpoint = 'http://camaleon-site:3000'
       @connection = Fog::Storage.new({:provider => 'Local', :local_root => local_root, :endpoint => endpoint})
     end

@@ -315,13 +315,15 @@
                 //FIXME options.user_pwd
                 //FIXME only upload??
                 layout: 'user_images_or_upload',
-                selected: function (file) {
+                selected: function (file, response) {
                     if (file.type != 'dir') {
                         if (file.mime && file.mime.indexOf('image') > -1) {
                             $("#cp_target").html("<img id='crop_image' src='" + file.url.to_filesystem_public_url() + "' >");
-                            onSuccess()
+                            onSuccess();
+                            response(true);
                         } else {
-                            alert("File extension not allowed")
+                            alert("File extension not allowed");
+                            response(false);
                         }
                     }
                 },
