@@ -9,6 +9,7 @@
 class UserDecorator < ApplicationDecorator
   include CustomFieldsConcern
   delegate_all
+  require 'faraday'
 
   # return the identifier
   def the_username
@@ -27,13 +28,7 @@ class UserDecorator < ApplicationDecorator
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
   def the_avatar
-    #TODO verify if filemanager != filesystem
-    avatar_exists = File.exist? h.url_to_file_path(object.meta[:avatar])
-    if object.meta[:avatar].present? && avatar_exists
-      object.meta[:avatar]
-    else
-      h.asset_url("admin/img/no_image.jpg")
-    end
+    avatar_exists? ? object.meta[:avatar] : h.asset_url("admin/img/no_image.jpg")
   end
 
   # return the slogan for this user, default: Hello World
@@ -66,5 +61,15 @@ class UserDecorator < ApplicationDecorator
   # key: additional key for the model
   def cache_prefix(key = "")
     "#{h.current_site.cache_prefix}/user#{object.id}#{"/#{key}" if key.present?}"
+  end
+
+  private
+
+  def avatar_exists?
+    if object.meta[:avatar].present?
+      File.exist?(h.url_to_file_path(object.meta[:avatar])) || Faraday.head(object.meta[:avatar]).status == 200
+    else
+      false
+    end
   end
 end
