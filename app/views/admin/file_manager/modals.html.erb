@@ -1,0 +1,364 @@
+<div class="modal animated fadeIn" id="imagepreview">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form ng-submit="remove(temp)">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">{{"close" | translate}}</span>
+        </button>
+        <h4 class="modal-title">{{"preview" | translate}}</h4>
+      </div>
+      <div class="modal-body" ng-show="temp.getUrl().length > 10">
+        <div class="text-center">
+          <img id="imagepreview-target" class="preview" alt="{{temp.model.name}}" ng-class="{'loading': temp.inprocess}">
+          <span class="label label-warning" ng-show="temp.inprocess">{{'loading' | translate}} ...</span>
+        </div>
+        <div ng-include data-src="'error-bar'" class="clearfix"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"close" | translate}}</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="delete">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form ng-submit="remove(temp)">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">{{"close" | translate}}</span>
+        </button>
+        <h4 class="modal-title">{{"confirm" | translate}}</h4>
+      </div>
+      <div class="modal-body">
+        {{'sure_to_delete' | translate}} <b>{{temp.model.name}}</b> ?
+        <div ng-include data-src="'error-bar'" class="clearfix"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"cancel" | translate}}</button>
+        <button type="submit" class="btn btn-primary" ng-disabled="temp.inprocess" autofocus="autofocus">{{"remove" | translate}}</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="rename">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <form ng-submit="rename(temp)">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                  <span aria-hidden="true">&times;</span>
+                  <span class="sr-only">{{"close" | translate}}</span>
+              </button>
+              <h4 class="modal-title">{{'change_name_move' | translate}}</h4>
+            </div>
+            <div class="modal-body">
+              <label class="radio">{{'enter_new_name_for' | translate}} <b>{{temp.model.name}}</b></label>
+              <input class="form-control" ng-model="temp.tempModel.name" autofocus="autofocus">
+
+              <div ng-include data-src="'path-selector'" class="clearfix"></div>
+              <div ng-include data-src="'error-bar'" class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"cancel" | translate}}</button>
+              <button type="submit" class="btn btn-primary" ng-disabled="temp.inprocess">{{'rename' | translate}}</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="copy">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <form ng-submit="copy(temp)">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                  <span aria-hidden="true">&times;</span>
+                  <span class="sr-only">{{"close" | translate}}</span>
+              </button>
+              <h4 class="modal-title">{{'copy_file' | translate}}</h4>
+            </div>
+            <div class="modal-body">
+              <label class="radio">{{'enter_new_name_for' | translate}} <b>{{temp.model.name}}</b></label>
+              <input class="form-control" ng-model="temp.tempModel.name" autofocus="autofocus">
+
+              <div ng-include data-src="'path-selector'" class="clearfix"></div>
+              <div ng-include data-src="'error-bar'" class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"cancel" | translate}}</button>
+              <button type="submit" class="btn btn-primary" ng-disabled="temp.inprocess">Copy</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="compress">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <form ng-submit="compress(temp)">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                  <span aria-hidden="true">&times;</span>
+                  <span class="sr-only">{{"close" | translate}}</span>
+              </button>
+              <h4 class="modal-title">{{'compress' | translate}}</h4>
+            </div>
+            <div class="modal-body">
+              <div ng-show="temp.asyncSuccess">
+                  <div class="label label-success error-msg">{{'compression_started' | translate}}</div>
+              </div>
+              <div ng-hide="temp.asyncSuccess">
+                  <div ng-hide="config.allowedActions.compressChooseName">
+                    {{'sure_to_start_compression_with' | translate}} <b>{{temp.model.name}}</b> ?
+                  </div>
+                  <div ng-show="config.allowedActions.compressChooseName">
+                    <label class="radio">{{'enter_folder_name_for_compression' | translate}} <b>{{fileNavigator.currentPath.join('/')}}/{{temp.model.name}}</b></label>
+                    <input class="form-control" ng-model="temp.tempModel.name" autofocus="autofocus">
+                  </div>
+              </div>
+
+              <div ng-include data-src="'error-bar'" class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+              <div ng-show="temp.asyncSuccess">
+                  <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"close" | translate}}</button>
+              </div>
+              <div ng-hide="temp.asyncSuccess">
+                  <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"cancel" | translate}}</button>
+                  <button type="submit" class="btn btn-primary" ng-disabled="temp.inprocess">{{'compress' | translate}}</button>
+              </div>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="extract" ng-init="temp.emptyName()">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <form ng-submit="extract(temp)">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                  <span aria-hidden="true">&times;</span>
+                  <span class="sr-only">{{"close" | translate}}</span>
+              </button>
+              <h4 class="modal-title">{{'extract_item' | translate}}</h4>
+            </div>
+            <div class="modal-body">
+              <div ng-show="temp.asyncSuccess">
+                  <div class="label label-success error-msg">{{'extraction_started' | translate}}</div>
+              </div>
+              <div ng-hide="temp.asyncSuccess">
+                  <label class="radio">{{'enter_folder_name_for_extraction' | translate}} <b>{{temp.model.name}}</b></label>
+                  <input class="form-control" ng-model="temp.tempModel.name" autofocus="autofocus">
+                  <div ng-include data-src="'path-selector'" class="clearfix"></div>
+              </div>
+              <div ng-include data-src="'error-bar'" class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+              <div ng-show="temp.asyncSuccess">
+                  <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"close" | translate}}</button>
+              </div>
+              <div ng-hide="temp.asyncSuccess">
+                  <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"cancel" | translate}}</button>
+                  <button type="submit" class="btn btn-primary" ng-disabled="temp.inprocess">{{'extract' | translate}}</button>
+              </div>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="edit" ng-class="{'modal-fullscreen': fullscreen}">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <form ng-submit="edit(temp)">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                  <span aria-hidden="true">&times;</span>
+                  <span class="sr-only">{{"close" | translate}}</span>
+              </button>
+              <button type="button" class="close mr5" ng-click="fullscreen=!fullscreen">
+                  <span>&loz;</span>
+                  <span class="sr-only">{{'toggle_fullscreen' | translate}}</span>
+              </button>
+              <h4 class="modal-title">{{'edit_file' | translate}}</h4>
+            </div>
+            <div class="modal-body">
+                <label class="radio">{{'file_content' | translate}}</label>
+                <span class="label label-warning" ng-show="temp.inprocess">{{'loading' | translate}} ...</span>
+                <textarea class="form-control code" ng-model="temp.tempModel.content" ng-show="!temp.inprocess" autofocus="autofocus"></textarea>
+                <div ng-include data-src="'error-bar'" class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"cancel" | translate}}</button>
+              <button type="submit" class="btn btn-primary" ng-disabled="temp.inprocess">{{'edit' | translate}}</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="newfolder">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <form ng-submit="createFolder(temp)">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                  <span aria-hidden="true">&times;</span>
+                  <span class="sr-only">{{"close" | translate}}</span>
+              </button>
+              <h4 class="modal-title">{{'create_folder' | translate}}</h4>
+            </div>
+            <div class="modal-body">
+              <label class="radio">{{'folder_name' | translate}}</label>
+              <input class="form-control" ng-model="temp.tempModel.name" autofocus="autofocus">
+              <div ng-include data-src="'error-bar'" class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"cancel" | translate}}</button>
+              <button type="submit" class="btn btn-primary" ng-disabled="temp.inprocess">{{'create' | translate}}</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="uploadfile">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <form ng-submit="uploadFiles()">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                  <span aria-hidden="true">&times;</span>
+                  <span class="sr-only">{{"close" | translate}}</span>
+              </button>
+              <h4 class="modal-title">{{"upload_file" | translate}}</h4>
+            </div>
+            <div class="modal-body">
+              <label class="radio">{{"files_will_uploaded_to" | translate}} <b>{{fileNavigator.currentPath.join('/')}}</b></label>
+              <input type="file" class="form-control" ng-file="$parent.uploadFileList" autofocus="autofocus" multiple="multiple"/>
+              <div ng-include data-src="'error-bar'" class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+              <div ng-show="!fileUploader.requesting">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">{{"cancel" | translate}}</button>
+                  <button type="submit" class="btn btn-primary" ng-disabled="!uploadFileList.length || fileUploader.requesting">{{'upload' | translate}}</button>
+              </div>
+              <div ng-show="fileUploader.requesting">
+                  <span class="label label-warning">{{"uploading" | translate}} ...</span>
+              </div>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="changepermissions">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <form ng-submit="changePermissions(temp)">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                  <span aria-hidden="true">&times;</span>
+                  <span class="sr-only">{{"close" | translate}}</span>
+              </button>
+              <h4 class="modal-title">{{'change_permissions' | translate}}</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table mb0">
+                  <thead>
+                      <tr>
+                          <th>{{'permissions' | translate}}</th>
+                          <th class="col-xs-1 text-center">{{'exec' | translate}}</th>
+                          <th class="col-xs-1 text-center">{{'read' | translate}}</th>
+                          <th class="col-xs-1 text-center">{{'write' | translate}}</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr ng-repeat="(permTypeKey, permTypeValue) in temp.tempModel.perms">
+                          <td>{{permTypeKey | translate}}</td>
+                          <td ng-repeat="(permKey, permValue) in permTypeValue" class="col-xs-1 text-center" ng-click="main()">
+                              <label class="col-xs-12">
+                                <input type="checkbox" ng-model="temp.tempModel.perms[permTypeKey][permKey]">
+                              </label>
+                          </td>
+                      </tr>
+                </tbody>
+              </table>
+              <div class="checkbox" ng-show="config.enablePermissionsRecursive && temp.model.type === 'dir'">
+                <label>
+                  <input type="checkbox" ng-model="temp.tempModel.recursive"> {{'recursive' | translate}}
+                </label>
+              </div>
+              <div class="clearfix mt10">
+                  <span class="label label-primary pull-left">
+                    {{'original' | translate}}: {{temp.model.perms.toCode(temp.model.type === 'dir'?'d':'-')}} ({{temp.model.perms.toOctal()}})
+                  </span>
+                  <span class="label label-primary pull-right">
+                    {{'changes' | translate}}: {{temp.tempModel.perms.toCode(temp.model.type === 'dir'?'d':'-')}} ({{temp.tempModel.perms.toOctal()}})
+                  </span>
+              </div>
+              <div ng-include data-src="'error-bar'" class="clearfix"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">{{"cancel" | translate}}</button>
+              <button type="submit" class="btn btn-primary" ng-disabled="">{{'change' | translate}}</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal animated fadeIn" id="selector" ng-controller="ModalFileManagerCtrl">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">{{"close" | translate}}</span>
+        </button>
+        <h4 class="modal-title">{{"select_destination_folder" | translate}}</h4>
+      </div>
+      <div class="modal-body">
+        <div>
+            <div ng-include="config.tplPath + '/current-folder-breadcrumb.html'"></div>
+            <div ng-include="config.tplPath + '/main-table-modal.html'"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" ng-disabled="temp.inprocess">{{"close" | translate}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/ng-template" id="path-selector">
+  <div class="panel panel-primary mt10 mb0">
+    <div class="panel-body">
+        <div class="detail-sources">
+          <code class="mr5"><b>{{"source" | translate}}:</b> {{temp.model.fullPath()}}</code>
+        </div>
+        <div class="detail-sources">
+          <code class="mr5"><b>{{"destination" | translate}}:</b>{{temp.tempModel.fullPath()}}</code>
+          <a href="" class="label label-primary" ng-click="openNavigator(temp)">{{'change' | translate}}</a>
+        </div>
+    </div>
+  </div>
+</script>
+<script type="text/ng-template" id="error-bar">
+    <div class="label label-danger error-msg pull-left animated fadeIn" ng-show="temp.error">
+      <i class="glyphicon glyphicon-remove-circle"></i>
+      <span>{{temp.error}}</span>
+    </div>
+</script>

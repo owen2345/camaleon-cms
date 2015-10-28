@@ -11,6 +11,9 @@
 // elfinder for file uploads
 !(function($){
     $.fn.upload_elfinder = function(options){
+        //FIXME temporal
+        $.fn.upload_filemanager(options);
+
         var default_options = {type:"all",selected:false, mode: 'basic', params: [], tree: false, multiple: true, validate_size: false};
         options = $.extend(default_options, options);
         if(!options.locale) options.locale = CURRENT_LOCALE;
@@ -28,7 +31,7 @@
                     /*'download',*/ 'rm', 'duplicate', 'rename', 'mkdir', 'mkfile', 'upload', 'copy',
                     'cut', 'paste'/*, 'edit', 'extract', 'archive', 'search'*/, 'info', 'view'/*, 'help'*/,
                     'resize', 'sort'
-                ]
+                ];
                 break;
             default:
                 var cmds = [ 'rm',  'info', 'sort', 'view','upload', "resize"];

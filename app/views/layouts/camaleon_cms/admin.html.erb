@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <script>
         var root_url = '<%= root_url %>';
+        var root_filesystem_public_url = '<%= root_filesystem_public_url %>';
         var NO_IMAGE_URL = '<%= asset_url("camaleon_cms/image-not-found.png") %>';
         var CURRENT_LOCALE = '<%= current_locale %>';
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
@@ -45,5 +46,6 @@
         <%= render partial: "layouts/camaleon_cms/admin/footer" %>
     </div>
     <%= raw cama_content_after_draw %>
+  <%= render partial: 'layouts/admin/filemanager' %>
 </body>
 </html>

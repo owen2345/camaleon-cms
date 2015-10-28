@@ -36,13 +36,13 @@ Rails.application.routes.draw do
         get "posts" => 'posts#index'
       end
 
-      get 'profile' => "users#profile"
-      match 'profile/edit' => "users#profile_edit", via: [:get, :post, :patch]
-      resources :users, controller: 'users'  do
-        patch 'updated_ajax'
-      end
-      resources :user_roles, controller: 'user_roles'  do
-      end
+    get 'profile' => "users#profile"
+    match 'profile/edit' => "users#profile_edit", via: [:get, :post, :patch]
+    resources :users, controller: 'users'  do
+      patch 'updated_ajax'
+    end
+    resources :user_roles, controller: 'user_roles'  do
+    end
 
       namespace :settings do
         resources :post_types
@@ -115,6 +115,17 @@ Rails.application.routes.draw do
       match 'elfinder/iframe' => 'media#iframe', via: :all
       match 'crop' => 'media#crop', via: :all
       get 'doc' => redirect('/docs/index.html?url=/api-docs.json')
+
+      #FIXME do it filemanager scope
+      match 'filemanager/handler' => 'file_manager#handler', via: :all
+      match 'filemanager/upload' => 'file_manager#upload', via: :all
+      match 'filemanager/download' => 'file_manager#download', via: :all
+      get 'filemanager/templates/:view' => 'file_manager#templates'
+
+      scope :filemanager do
+        # match 'main' => 'file_manager#main', via: :all
+        match 'view/:config' => 'file_manager#view', via: :all
+      end
     end
 
   end
