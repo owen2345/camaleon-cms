@@ -110,32 +110,19 @@ class PluginRoutes
 
   # return the main site
   def self.main_site
-    r = cache_variable("main_site");  return r unless r.nil?
-    cache_variable("main_site", CamaleonCms::Site.first)
-  end
-
-  # return system information
-  def self.system_info2
-    camaleon_gem = get_gem('camaleon_cms')
-    return {} if !camaleon_gem
-    r = cache_variable("system_info");  return r unless r.nil?
-    res = JSON.parse(File.read(File.join(camaleon_gem.gem_dir, "config", "system.json")))
-    res = res.with_indifferent_access rescue res
-    return cache_variable("system_info", res) unless File.exist?(system_file = File.join(apps_dir, "..", '..', "config", "system.json"))
-    res = res.merge(JSON.parse(File.read(system_file)).with_indifferent_access).with_indifferent_access
-    res["key"] = "system"
-    res["path"] = ''
-    res["kind"] = "system"
-    res["hooks"] = {} unless res["hooks"].present?
-    res["hooks"]["on_notification"] = (res["hooks"]["on_notification"] || []) + ["admin_system_notifications"]
-    cache_variable("system_info", res)
+    r = nil
+    begin
+      r = get_sites.first
+    rescue => e
+    end
+    r
   end
 
   # update a system value
   # key: attribute name
   # value: new value for attribute
   def self.system_info_set(key, val)
-    s = self.main_site
+    s = main_site
     settings = s.get_meta("main_settings", {})
     settings[key] = val
     s.set_meta("main_settings", settings)
@@ -245,13 +232,14 @@ class PluginRoutes
 
   # return all sites registered for Plugin routes
   def self.get_sites
-    r = cache_variable("site_get_sites"); return r unless r.nil?
-    res = {}
+    res = []
+    r = cache_variable("site_get_sites"); return r if !r.nil? && r.any?
     begin
-      res = CamaleonCms::Site.eager_load(:metas).order(term_group: :desc).all
+      res = CamaleonCms::Site.order(id: :asc).all
+      cache_variable("site_get_sites", res)
     rescue
     end
-    cache_variable("site_get_sites", res)
+    res
   end
 
   # return all locales for all sites joined by |
