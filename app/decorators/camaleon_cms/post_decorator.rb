@@ -52,8 +52,30 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     args[:slug] = the_slug
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
-    as_path = args.delete(:as_path)
-    h.cama_url_to_fixed("post_#{as_path.present? ? "path" : "url"}", args)
+    p = args.delete(:as_path).present? ? "path" : "url"
+    l = _calc_locale(args[:locale])
+    ptype = object.post_type.decorate
+    p_url_format = ptype.contents_route_format
+    case p_url_format
+      when "cama_post_of_post_type"
+        args[:post_type_id] = ptype.id
+        args[:title] = ptype.the_title.parameterize
+      when "cama_post_of_category"
+        if ptype.manage_categories?
+          cat = object.categories.first.decorate rescue ptype.default_category.decorate
+          args[:category_id] = cat.id
+          args[:title] = cat.the_title.parameterize
+        else
+          p_url_format = "post"
+          l = ""
+        end
+      when "cama_post_of_posttype"
+        args[:post_type_title] = ptype.the_title.parameterize
+        l = ""
+      else
+        l = ""
+    end
+    h.cama_url_to_fixed("#{p_url_format}#{l}_#{p}", args)
   end
 
   # return a hash of frontend urls for this post

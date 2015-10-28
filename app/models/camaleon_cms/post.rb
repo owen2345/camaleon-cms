@@ -65,11 +65,6 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
     post_types.reorder(nil).first
   end
 
-  # return template assigned to this post
-  def template
-    get_meta("template", "")
-  end
-
   # check if this post was published
   def published?
     status == 'published'
@@ -96,6 +91,17 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
     get_option('has_content', (posttype || self.post_type).get_option('has_content', true))
   end
 
+  # return boolean
+  def manage_layout?(posttype = nil)
+    get_option('has_layout', (posttype || self.post_type).get_option('has_layout', false))
+  end
+
+  # check if current post can manage template
+  # return boolean
+  def manage_template?(posttype = nil)
+    get_option('has_template', (posttype || self.post_type).get_option('has_template', true))
+  end
+
   # check if current post can manage summary
   # return boolean
   def manage_summary?(posttype = nil)
@@ -114,12 +120,6 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
     get_option('has_picture', (posttype || self.post_type).get_option('has_picture', true))
   end
 
-  # check if current post can manage template
-  # return boolean
-  def manage_template?(posttype = nil)
-    get_option('has_template', (posttype || self.post_type).get_option('has_template', true))
-  end
-
   # check if current post can manage comments
   # return boolean
   def manage_comments?(posttype = nil)
@@ -132,8 +132,9 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   #   has_summary, boolean (default true)
   #   has_keywords, boolean (default true)
   #   has_picture, boolean (default true)
-  #   has_template, boolean (default true)
+  #   has_template, boolean (default false)
   #   has_comments, boolean (default false)
+  #   has_layout:  (boolean) (default false)
   # val: value for the setting
   def set_setting(key, val)
     set_option(key, val)
@@ -163,6 +164,27 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # thumb_url: String url
   def set_thumb(thumb_url)
     set_meta("thumb", thumb_url)
+  end
+
+  # save the layout name to be used on render this post
+  # layout_name: String layout name: my_layout.html.erb => 'my_layout'
+  def set_layout(layout_name)
+    set_meta("layout", layout_name)
+  end
+
+  # return the layout assigned to this post
+  # post_type: post type owner of this post
+  def get_layout(posttype = nil)
+    return "" if !manage_layout?(posttype)
+    get_meta('layout', (posttype || self.post_type).get_option('default_layout', nil))
+  end
+
+  # return the template assigned to this post
+  # verify default template defined in post type
+  # post_type: post type owner of this post
+  def get_template(posttype = nil)
+    return "" if !manage_template?(posttype)
+    get_meta('template', (posttype || self.post_type).get_option('default_template', nil))
   end
 
   # increment the counter of visitors

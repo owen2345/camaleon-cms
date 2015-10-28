@@ -226,3 +226,8 @@ input.code_style{
   font-weight: normal;
   border: none;
 }
+
+// fix tab content padding
+.tab-content > .tab-pane{
+  padding-top: 5px;
+}

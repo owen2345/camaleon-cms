@@ -13,7 +13,7 @@ class CamaleonCms::PostTagDecorator < CamaleonCms::TermTaxonomyDecorator
   def the_url(*args)
     args = args.extract_options!
     args[:post_tag_id] = the_id
-    args[:title] = the_title
+    args[:title] = the_title.parameterize
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
