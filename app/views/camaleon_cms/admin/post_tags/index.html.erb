@@ -1,0 +1,58 @@
+<div class="page-content-wrap">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+            <h4><span class="fa fa-folder"></span> <%= "#{@post_type.decorate.the_title.pluralize} / " if @post_type.present? %> <%= t('camaleon_cms.admin.post_type.tags').to_s.titleize.pluralize %></h4>
+        </div>
+        <%= render partial: 'form' %>
+      </div>
+    </div>
+    <div class="col-md-8">
+
+      <!-- START BASIC TABLE SAMPLE -->
+      <div class="panel panel-default">
+        <div class="panel-heading ui-draggable-handle">
+          <h4 class=""><%= t('camaleon_cms.admin.page_title.list')%></h4>
+        </div>
+        <div class="panel-body">
+
+          <table class="table table-responsive table-hover table-striped">
+            <thead>
+            <tr>
+              <th><%= t('camaleon_cms.admin.table.name')%></th>
+              <th><%= t('camaleon_cms.admin.table.description')%></th>
+              <th><%= t('camaleon_cms.admin.table.slug')%></th>
+              <th><%= t('camaleon_cms.admin.table.qty')%></th>
+              <th><%= t('camaleon_cms.admin.table.actions')%></th>
+            </tr>
+            </thead>
+
+            <tbody>
+                <% @post_tags.decorate.each do |tag| %>
+                    <tr>
+                        <td><%= tag.the_title %></td>
+                        <td><%= tag.the_content %></td>
+                        <td><%= tag.slug %></td>
+                        <td><%= tag.count %></td>
+                        <td>
+                            <%= link_to raw('<i class="fa fa-list"></i>'), admin_post_type_taxonomy_posts_path(@post_type.id, "post_tag", tag.id), class: "btn btn-default btn-xs cama_ajax_request", title: "#{@post_type.decorate.the_title.pluralize}-#{tag.slug.to_s.titleize}" if @post_type.present? %>
+                            <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: tag.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                            <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: tag.id }, method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" unless tag.get_option('not_deleted', false) %>
+                        </td>
+                    </tr>
+                <% end %>
+            </tbody>
+          </table>
+          <%= content_tag("div", raw(t('camaleon_cms.admin.message.data_found_list')), class: "alert alert-warning") if @post_tags.empty? %>
+          <%= raw cama_do_pagination(@post_tags) %>
+        </div>
+      </div>
+      <!-- END BASIC TABLE SAMPLE -->
+    </div>
+
+
+  </div>
+
+  <!-- END PAGE CONTENT WRAPPER -->
+</div>

@@ -1,0 +1,68 @@
+<!-- PAGE CONTENT WRAPPER -->
+<div class="page-content-wrap">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="pull-left"><span class="fa fa-file-o"></span> <%= t('camaleon_cms.admin.button.search')%></h4>
+                        </div>
+                        <div class="col-md-6">
+                            <form action="<%= admin_search_path %>" method="get" class="pull-right cama_ajax_request">
+                                <input type="hidden" name="kind" value="<%= params[:kind] %>">
+                                <div class="input-group">
+                                    <input type="text" name="q" class="form-control" placeholder="<%= t("camaleon_cms.admin.button.search") %>..." value="<%= params[:q] %>">
+                                    <span class="input-group-btn"><button type="submit" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i></button></span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <ul class="nav nav-tabs cama_ajax_request" role="tablist" id="search_results_tab">
+                        <li class="<%= "active" if params[:kind] == "content" %>">
+                            <a href="<%= admin_search_path(q: params[:q], kind: "content") %>"><%= t("camaleon_cms.admin.post_type.posts") %></a>
+                        </li>
+                        <li class="<%= "active" if params[:kind] == "category" %>">
+                            <a href="<%= admin_search_path(q: params[:q], kind: "category") %>"><%= t("camaleon_cms.admin.table.categories") %></a>
+                        </li>
+                        <li class="<%= "active" if params[:kind] == "tag" %>">
+                            <a href="<%= admin_search_path(q: params[:q], kind: "tag") %>"><%= t("camaleon_cms.admin.table.tags") %></a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active w_table_requests">
+                            <table class="table table-responsive table-hover table-striped">
+                                <thead>
+                                <tr>
+                                    <th><%= t('camaleon_cms.admin.table.id') %></th>
+                                    <th><%= t('camaleon_cms.admin.table.name') %></th>
+                                    <th><%= t('camaleon_cms.admin.table.post_type') %></th>
+                                    <th><%= t('camaleon_cms.admin.table.actions') %></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <% @items.decorate.each do |f| %>
+                                    <tr>
+                                        <td><%= f.id %></td>
+                                        <td><%= f.the_title %></td>
+                                        <td><%= f.post_type.decorate.the_title rescue "" %></td>
+                                        <td>
+                                            <a href="<%= f.the_url %>" class="btn btn-info btn-xs" target="_blank" title="<%= t('camaleon_cms.admin.button.preview') %>"><i class="fa fa-eye"></i></a>
+                                            <a href="<%= f.the_edit_url %>" class="btn btn-info btn-xs" target="_blank" title="<%= t('camaleon_cms.admin.button.edit') %>"><i class="fa fa-pencil"></i></a>
+                                        </td>
+                                    </tr>
+                                <% end %>
+                                </tbody>
+                            </table>
+                            <%= content_tag("div", raw(t('camaleon_cms.admin.message.data_found_list')), class: "alert alert-warning") if @items.empty? %>
+                            <%= raw cama_do_pagination(@items, panel_class: "cama_ajax_request") %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END BASIC TABLE SAMPLE -->
+        </div>
+    </div>
+</div>

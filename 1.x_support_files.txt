@@ -1,0 +1,5 @@
+These files will be removed in next versions:
+- bootstrap.min.css.scss instead use: camaleon_cms/bootstrap.min.css.scss
+- bootstrap.min.js instead use: camaleon_cms/bootstrap.min.js
+- bootstrap.min.js instead use: camaleon_cms/bootstrap.min.js
+

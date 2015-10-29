@@ -1,0 +1,12 @@
+<%= form_for @comment, as: "comment", url:url_for(action: @comment.new_record? ? :create : :update, post_id: @post.id), html: { class: "validate cama_ajax_request" } do |f| %>
+    <div class="panel-body">
+        <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @comment} %>
+        <div class="form-group">
+            <%= f.label :content %><br>
+            <%= f.text_area :content, :class => "form-control required", :rows => 4 %>
+        </div>
+    </div>
+    <div class="panel-footer text-right">
+        <button class="btn btn-primary" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+    </div>
+<% end %>

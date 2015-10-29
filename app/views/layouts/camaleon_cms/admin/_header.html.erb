@@ -1,0 +1,51 @@
+<header class="main-header">
+    <!-- Logo -->
+    <a href="<%= current_site.the_admin_url%>" class="logo" target="_blank">
+        <img src="<%= current_site.the_logo %>" alt="<%= current_site.the_title %>">
+    </a>
+    <!-- Header Navbar: style can be found in header.less -->
+    <nav class="navbar navbar-static-top" role="navigation">
+        <!-- Sidebar toggle button-->
+        <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </a>
+
+        <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">
+                <%= r = {html: ""}; hooks_run("admin_notifications", r); raw(r[:html]); %>
+                <li><a target="_blank" href="<%= current_site.the_url %>"><i class="fa fa-eye"></i> <%= t("camaleon_cms.common.visit") %></a></li>
+                <li class="dropdown user user-menu">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-intro2='<%= t("camaleon_cms.admin.intro.profile") %>' data-position='left'>
+                        <img src="<%= current_user.the_avatar %>" class="user-image" alt="User Image">
+                        <span class="hidden-xs"><%= current_user.fullname %></span>
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <!-- User image -->
+                        <li class="user-header">
+                            <img src="<%= current_user.the_avatar %>" class="img-circle" alt="User Image">
+                            <p>
+                                <%= current_user.fullname %> - <%= current_user.the_role %>
+                                <small><%= t("camaleon_cms.admin.header.member_since", time: l(current_user.created_at.to_date, format: :long) ) %></small>
+                            </p>
+                        </li>
+                        <!-- Menu Footer-->
+                        <li class="user-footer">
+                            <div class="pull-left">
+                                <a href="<%= admin_profile_edit_path %>" class="btn btn-primary cama_ajax_request"><%= t("camaleon_cms.admin.users.profile") %></a>
+                            </div>
+                            <div class="pull-right">
+                                <a href="<%= admin_logout_path %>" class="btn btn-danger"><%= t("camaleon_cms.admin.logout.logout") %></a>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                <!-- Control Sidebar Toggle Button -->
+                <li class="hidden"><a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a></li>
+            </ul>
+        </div>
+    </nav>
+</header>

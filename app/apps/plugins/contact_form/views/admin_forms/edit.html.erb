@@ -1,11 +1,6 @@
-<%
-   if @form.nil?
-     @form = current_site.contact_forms.new
-   end
-%>
-
+<% @form = current_site.contact_forms.new if @form.nil? %>
 <div class="page-title">
-  <h2><span class="fa fa-folder"></span>  <%= t('plugin.contact_form.contact_form') %></h2>
+  <h2><span class="fa fa-folder"></span>  <%= t('plugin.contact_form.contact_form') %> - <%= @form.name %></h2>
 </div>
 <div class="page-content-wrap">
 
@@ -20,35 +15,23 @@
 
             <div class="panel-heading">
               <div class="row">
-                <div class="col-md-12">
-                  <div class="form-group">
-                    <label><%= t('plugin.contact_form.edit') %> <%= @form.name %></label>
-                  </div>
-                  <div class="form-group">
+                <div class="col-md-6">
+                    <br>
                     <label><%= t('plugin.contact_form.copy_shortcode_post')%> </label>
                     <span><%= form_shortcode(@form.slug) %></span>
-                  </div>
                 </div>
-                <div class="col-md-8">
-
+                <div class="col-md-6 text-right">
+                    <a class="btn btn-default" href="<%= url_for action: :index %>"><%= t('plugin.contact_form.button.back') %></a>
+                    <button class="btn btn-primary" type="submit"><%= t('plugin.contact_form.button.submit') %></button>
                 </div>
               </div>
             </div>
 
             <div class="panel-body">
-                <%= render partial: 'layouts/admin/form_error', locals: {data: @form} %>
+                <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @form} %>
                 <div class="row">
                     <div class="code hidden"></div>
                 </div>
-                <div class="row">
-                    <div class="col-md-offset-10 col-md-2">
-                        <div class="form-group">
-                            <a class="btn btn-default" href="<%= url_for action: :index %>"><%= t('plugin.contact_form.button.back') %></a>
-                            <button class="btn btn-primary" type="submit"><%= t('plugin.contact_form.button.submit') %></button>
-                        </div>
-                    </div>
-                </div>
-                <hr>
                 <div class="row">
                     <div class="col-md-4" style="overflow: hidden">
 
@@ -62,12 +45,12 @@
                             <div class="panel-body">
                                 <div class="row">
                                     <div class="form-group">
-                                        <%= f.label nil, "#{t('admin.table.name')} <abbr title='required'>*</abbr>".html_safe, :class => ""  %><br>
+                                        <%= f.label nil, "#{t('camaleon_cms.admin.table.name')} <abbr title='required'>*</abbr>".html_safe, :class => ""  %><br>
                                         <%= f.text_field :name, :class => "form-control required", style: "" %>
                                     </div>
 
                                     <div class="form-group">
-                                        <%= f.label nil, "#{t('admin.table.slug')} <abbr title=\"required\">*</abbr>".html_safe, :class => ""  %>
+                                        <%= f.label nil, "#{t('camaleon_cms.admin.table.slug')} <abbr title=\"required\">*</abbr>".html_safe, :class => ""  %>
                                         <%= f.text_field :slug, :class => "form-control slug required", "data-parent" => "plugins_contact_form_models_contact_form_name", style: "" %>
                                     </div>
                                 </div>
@@ -299,13 +282,13 @@
             remove_option: '<%= t('plugin.contact_form.remove_option') %>',
             required: '<%= t('plugin.contact_form.required') %>',
             untitled: '<%= t('plugin.contact_form.untitled') %>',
-            text_box: '<%= t('admin.custom_field.fields.text_box') %>',
-            text_area: '<%= t('admin.custom_field.fields.text_area') %>',
-            select: '<%= t('admin.custom_field.fields.select') %>',
-            website: '<%= t('admin.custom_field.fields.website') %>',
-            email: '<%= t('admin.custom_field.fields.email') %>',
-            upload_file: '<%= t('admin.button.upload_file') %>',
-            multiple_choice: '<%= t('admin.custom_field.fields.multiple_choice') %>'
+            text_box: '<%= t('camaleon_cms.admin.custom_field.fields.text_box') %>',
+            text_area: '<%= t('camaleon_cms.admin.custom_field.fields.text_area') %>',
+            select: '<%= t('camaleon_cms.admin.custom_field.fields.select') %>',
+            website: '<%= t('camaleon_cms.admin.custom_field.fields.website') %>',
+            email: '<%= t('camaleon_cms.admin.custom_field.fields.email') %>',
+            upload_file: '<%= t('camaleon_cms.admin.button.upload_file') %>',
+            multiple_choice: '<%= t('camaleon_cms.admin.custom_field.fields.multiple_choice') %>'
 
         };
 

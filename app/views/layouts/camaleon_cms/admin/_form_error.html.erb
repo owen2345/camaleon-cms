@@ -1,0 +1,10 @@
+<% if data.errors.any? %>
+    <div id="error_explanation" class="alert alert-danger">
+      <strong><%= "#{(data.errors.count > 1)? "#{data.errors.count} #{t('camaleon_cms.admin.table.errors')}" : "#{data.errors.count} #{t('camaleon_cms.admin.table.error')}" }" %> <%= t('camaleon_cms.admin.message.so_their_data_has_not_been_saved')%>:</strong>
+      <ul>
+        <% data.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+<% end %>

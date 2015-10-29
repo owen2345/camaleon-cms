@@ -106,14 +106,14 @@ module Plugins::FrontCache::FrontCacheHelper
 
   # expire cache for a page after comment registered or updated
   def front_cache_before_load
-    PostComment.class_eval do
+    CamaleonCms::PostComment.class_eval do
       after_save :clear_front_page_cache
       def clear_front_page_cache
         self.post.decorate.front_clear_cache
       end
     end
 
-    PostDecorator.class_eval do
+    CamaleonCms::PostDecorator.class_eval do
       def front_clear_cache
         a = ActionController::Base.new
         object.slug.translations_array.each do |t|

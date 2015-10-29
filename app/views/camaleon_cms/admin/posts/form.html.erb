@@ -1,0 +1,98 @@
+<div class="content-frame">
+    <!-- END CONTENT FRAME TOP -->
+    <%= form_for @post, url: {action: @post.new_record? ? :create : :update}, html: {class: 'form-post row', id: 'form-post'} do |f| %>
+        <%= f.hidden_field :draft_id, value: @post.draft? ? @post.id : '' %>
+        <!-- START CONTENT FRAME BODY -->
+        <div class="content-frame-body col-md-9">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="pull-left">
+                        <span class="fa fa-file-o"></span>
+                        <% if !@post.new_record? %>
+                            <%= "#{t('admin.page_title.edit')} #{@post_type.the_title}: #{@post_decorate.the_title}" %> <%= raw @post_decorate.the_status.html_safe %>
+                        <% end %>
+                        <%#= raw(t('admin.page_title.edit') + " " + @post_type.the_title.to_s + ": " + @post_decorate.the_title + " #{@post_decorate.the_status}") if !@post.new_record? %>
+                        <%= link_to raw("#{t('admin.button.view_draft')}"), {action: :edit, id: @post.drafts.pluck('id')}, id: "view_draft", class: "label label-warning label-form", title: "#{t('admin.button.view_draft')}", target: '_blank' if @post.drafts.present? %>
+                        <%= t('admin.page_title.create') + " " + @post_type.the_title.to_s if @post.new_record? %>
+                    </h4>
+
+                    <ul class="panel-controls">
+                        <li><a class="panel-collapse" href="#"><span class="fa fa-angle-down"></span></a></li>
+                    </ul>
+                </div>
+                <div class="panel-body">
+                    <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @post} %>
+                    <div class="hidden">
+                        <%= f.hidden_field :slug, class: 'translatable slug-post' %>
+                    </div>
+                    <%= hidden_field :meta, :slug %>
+                    <div class="form-group">
+                        <%= f.label t('camaleon_cms.admin.table.title') %> <em class="text-danger">*</em><br>
+                        <%= f.text_field :title, :class => "form-control required translatable title-post" %>
+                    </div>
+                    <% if @post.manage_content?(@post_type) %>
+                        <div class="form-group">
+                            <%= f.label t('camaleon_cms.admin.sidebar.content') %> <em class="text-danger">*</em><br>
+                            <%= f.text_area :content, :class => "form-control tinymce_textarea required translatable", :height => '520px', :style => "width: 100%" %>
+                        </div>
+                    <% end %>
+                    <% if @post.manage_summary?(@post_type) %>
+                        <div class="form-group">
+                            <label for="post_summary"><%= t('camaleon_cms.admin.post_type.summary') %></label><br>
+                            <textarea name="meta[summary]" id="post_summary" class="form-control translatable" cols="30" rows="5"><%= @post.get_meta("summary", "") %></textarea>
+                        </div>
+                    <% end %>
+                    <% if @post.manage_keywords?(@post_type) %>
+                        <div class="form-group">
+                            <label for="post_keywords"><%= t('camaleon_cms.admin.table.keywords') %></label><br>
+                            <input name="post[keywords]" id="post_keywords" class="form-control translatable" value="<%= @post.get_option("keywords") %>"/>
+                        </div>
+                    <% end %>
+                </div>
+            </div>
+
+            <!-- render all custom fields assigned to this post -->
+            <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @post, field_groups: @post.get_field_groups({kind: "Post", include_parent: true}), show_shortcode: true} %>
+
+            <% unless @post.draft? || @post.new_record? %>
+                <% if @post.manage_comments?(@post_type) %>
+                    <div class="panel panel-default panel-lite">
+                        <div class="panel-heading">
+                            <h3 class="panel-title"><%= t('camaleon_cms.admin.post_type.comments') %></h3>
+                            <ul class="panel-controls">
+                                <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                            </ul>
+                        </div>
+                        <div class="panel-body ">
+                            <div class="form-group">
+                                <a href="<%= admin_post_comments_path(post_id: @post.id) %>" class="btn btn-default" target="_blank"><i class="fa fa-comments"></i> <%= t('camaleon_cms.admin.post_type.view_comments') %>(<%= @post.total_comments %>)</a>
+                            </div>
+                        </div>
+                    </div>
+                <% end %>
+            <% end %>
+        </div>
+        <!-- END CONTENT FRAME BODY -->
+        <%= render "sidebar", f: f %>
+    <% end %>
+
+    <script type="text/javascript">
+        jQuery(function($){
+            setTimeout(function(){
+                init_post({
+                    post_id: '<%= @post.draft? ? (@post.parent.present? ? @post.parent.id : nil) : @post.id %>',
+                    post_draft_id: '<%= @post.id if @post.draft? %>',
+                    post_status: '<%= @post.status %>',
+                    _post_path: '<%= post_url({slug: '__-__', locale: '____'}) %>',
+                    _drafts_path: '<%= (@post.draft? && !@post.new_record?) ? admin_post_type_draft_path(@post_type.id, @post) : admin_post_type_drafts_path(@post_type.id)  %>',
+                    _posts_path: '<%= admin_post_type_posts_path(@post_type.id) %>',
+                    _ajax_path: '<%= ajax_admin_post_type_posts_path(@post_type.id) %>',
+                    _post_tags_path: '<%= list_admin_post_type_post_tags_path(@post_type.id) %>',
+                    recover_draft: "<%= params['recover_draft'].present? && @post.draft? %>",
+                    _edit_post_path: '<%= edit_admin_post_type_post_path(@post_type.id, '____')%>'
+
+                });
+            }, 100);
+        });
+    </script>
+</div>
