@@ -128,9 +128,17 @@ Rails.application.routes.draw do
           # match 'main' => 'file_manager#main', via: :all
           match 'view/:config' => 'file_manager#view', via: :all
         end
-        get "*path" => :render_error
       end
     end
     eval(PluginRoutes.load("admin"))
+  end
+
+  # fix to catch route not found error
+  scope PluginRoutes.system_info["relative_url_root"] do
+    scope module: "camaleon_cms", as: "cama" do
+      namespace :admin do
+        get "*path" => 'admin#render_error', defaults:{error_msg: "Invalid route"}
+      end
+    end
   end
 end

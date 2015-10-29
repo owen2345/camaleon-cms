@@ -36,8 +36,10 @@ class CamaleonCms::CamaleonController < ApplicationController
   layout Proc.new { |controller| controller.request.xhr? ? false : 'default' }
 
   # show page error
-  def render_error(status = 404, exception = nil)
-    Rails.logger.info "====================#{caller.inspect}"
+  def render_error(status = 404, exception = nil, message = "")
+    Rails.logger.info "========#{exception.message if exception.present?}====#{params[:error_msg]}========#{caller.inspect}"
+    @message = "#{message} #{params[:error_msg] || (exception.present? ? "#{exception.message}<br><br>#{caller.inspect}" : "")}"
+    @message = "" if Rails.env == "production"
     render "camaleon_cms/#{status}", :status => status
   end
 
