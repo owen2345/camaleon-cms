@@ -41,4 +41,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'doorkeeper', '~> 3.0'
   s.add_dependency 'responders', '~> 2.0'
   s.add_dependency 'swagger-docs', '~> 0.1'
+  s.add_dependency 'active_model_serializers', '0.9.2'
 end
