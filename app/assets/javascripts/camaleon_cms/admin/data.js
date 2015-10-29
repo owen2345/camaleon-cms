@@ -38,7 +38,7 @@ function cama_get_tinymce_settings(settings){
                             $('#' + field_name).val(file.url.to_filesystem_public_url());
                             response(true);
                         } else {
-                            alert("You must upload a valid format: " + type)
+                            alert("You must upload a valid format: " + type);
                             response(false);
                         }
                     }

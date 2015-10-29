@@ -110,14 +110,21 @@ var init_form_validations = function (form) {
 
             $btn_upload.click(function () {
                 $.fn.upload_filemanager({
-                    selected: function (res, response) {
-                        var image = _.first(res);
-                        if (options.type == 'all' || (image.mime && image.mime.indexOf(options.type) > -1) || _.last(image.name.split(".")) == options.ext) {
-                            set_texts(options.full_url ? base_path + image.url.to_filesystem_public_url() : image.url);
-                            response(true);
-                        } else {
-                            alert("File extension not allowed")
-                            response(false);
+                    layout: function () {
+                        if (options.type == 'image') return 'images';
+                        else if (options.type == 'media') return 'media';
+                        else return 'default';
+                    },
+                    selected: function (file, response) {
+                        if (file.type != 'dir') {
+                            if (options.type == 'media') type = 'video';
+                            if (options.type == 'all' || (file.mime && file.mime.indexOf(options.type) > -1) || _.last(file.name.split(".")) == options.ext) {
+                                set_texts(options.full_url ? file.url.to_filesystem_public_url() : file.url);
+                                response(true);
+                            } else {
+                                alert("File extension not allowed");
+                                response(false);
+                            }
                         }
                     }
                 });

@@ -44,5 +44,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'swagger-docs', '~> 0.1'
   s.add_dependency 'fog', '~> 1.34'
   s.add_dependency 'aws-sdk', '~> 2'
+  s.add_dependency 'faraday', '~> 0.9.2'
   s.add_dependency 'active_model_serializers', '0.9.2'
 end
