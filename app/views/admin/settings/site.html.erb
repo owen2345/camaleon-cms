@@ -57,11 +57,11 @@
                 <%= f.label t('admin.table.description') %><br>
                 <%= f.text_area :description, :class => "form-control translatable" %>
               </div>
-              <div class="form-group">
+              <div class="form-group admin_logo_upload">
                 <label for=""><%= t('admin.table.logo') %></label><br>
                 <%= hidden_field :options, :logo, :class => "form-control unput_upload", :value => @site.the_logo %>
               </div>
-              <div class="form-group">
+              <div class="form-group admin_logo_upload">
                 <label for=""><%= t('admin.table.favicon') %></label><br>
                 <%= hidden_field :options, :icon, :class => "form-control unput_upload", :value => @site.the_icon, "data-label" => "#{t('admin.button.upload_icon')}", "data-ext" => "ico" %>
               </div>
