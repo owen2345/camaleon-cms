@@ -85,4 +85,95 @@ module Plugins::ContactForm::ContactFormHelper
   def contact_form_front_before_load
     append_asset_libraries({"plugin_contact_form"=> { css: [plugin_asset_path("css/front/railsform")] }})
   end
+
+  def perform_save_form(form, values, fields, settings, success, errors)
+    attachments = []
+    if validate_to_save_form(values, fields, settings, errors)
+      values[:fields].each do |f|
+        cid = f[:cid].to_sym
+        if f[:field_type] == 'file'
+          res = upload_file(fields[cid], {maximum: 5.megabytes, folder: current_site.upload_directory("uploads")})
+          if res[:error].present?
+            errors << res[:error]
+          else
+            attachments << res['file']
+          end
+        end
+      end
+
+      new_settings = {"fields" => fields, "created_at" => Time.now.strftime("%Y-%m-%d %H:%M:%S").to_s}.to_json
+      form_new = current_site.contact_forms.new(name: "response-#{Time.now}", description: form.description, settings: fix_meta_value(new_settings), site_id: form.site_id, parent_id: form.id)
+
+      if form_new.save
+        begin
+          content = render_to_string partial: 'contact_form/submission',
+                                     layout: false,
+                                     locals: {
+                                         file_attachments: attachments,
+                                         fields: convert_form_values(
+                                             values[:fields],
+                                             fields
+                                         )
+                                     }
+        rescue ActionView::MissingTemplate
+          content = render_to_string partial: 'contact_form/views/contact_form/submission',
+                                     layout: false,
+                                     locals: {
+                                         file_attachments: attachments,
+                                         fields: convert_form_values(
+                                             values[:fields],
+                                             fields
+                                         )
+                                     }
+        end
+
+        sendmail(
+            settings[:railscf_mail][:to], settings[:railscf_mail][:subject],
+            content,
+            settings[:railscf_mail][:to],
+            attachments
+        )
+        success << settings[:railscf_message][:mail_sent_ok]
+      else
+        errors << settings[:railscf_message][:mail_sent_ng]
+      end
+    end
+  end
+
+  def validate_to_save_form(values, fields, settings, errors)
+    validate = true
+    values[:fields].each do |f|
+      cid = f[:cid].to_sym
+      label = f[:label].to_sym
+
+      case f[:field_type].to_s
+        when 'text', 'website', 'paragraph', 'textarea', 'email', 'radio', 'checkboxes', 'dropdown', 'file'
+          if f[:required] && !fields[cid].present?
+            errors << "#{label}: #{settings[:railscf_message][:invalid_required]}"
+            validate = false
+          end
+          if f[:field_type].to_s == "email"
+            if !fields[cid].match(/\b[A-Z0-9._%a-z\-]+@(?:[A-Z0-9a-z\-]+\.)+[A-Za-z]{2,10}\z/)
+              errors << "#{label}: #{settings[:railscf_message][:invalid_email]}"
+              validate = false
+            end
+          end
+        when 'captcha'
+          unless captcha_verified?
+            errors << "#{label}: #{settings[:railscf_message][:captcha_not_match]}"
+            validate = false
+          end
+      end
+    end
+    validate
+  end
+
+  def fix_meta_value(value)
+    if (value.is_a?(Array) || value.is_a?(Hash))
+      value = value.to_json
+    elsif value.is_a?(String)
+      value = value.to_var
+    end
+    value
+  end
 end

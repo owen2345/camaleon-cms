@@ -8,6 +8,11 @@ Rails.application.routes.draw do
       get 'categories' => 'category#categories'
       get 'posts' => 'post#index'
       get 'pages' => 'page#index'
+
+      scope :contact_form do
+        get 'show/:slug' => 'contact_form#contact_form_by_slug'
+        post 'create' => 'contact_form#save_form'
+      end
     end
   end
 
