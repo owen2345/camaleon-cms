@@ -76,7 +76,7 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
       @post_tag = @post_type.post_tags.find_by_id(params[:id])
     rescue
       flash[:error] = t('camaleon_cms.admin.post_type.message.error')
-      redirect_to admin_path
+      redirect_to cama_admin_path
     end
   end
 end

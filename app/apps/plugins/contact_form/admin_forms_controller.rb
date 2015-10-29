@@ -79,7 +79,7 @@ class Plugins::ContactForm::AdminFormsController < CamaleonCms::Apps::PluginsAdm
       @form = current_site.contact_forms.find_by_id(params[:id])
     rescue
       flash[:error] = "Error form class"
-      redirect_to admin_path
+      redirect_to cama_admin_path
     end
   end
 end

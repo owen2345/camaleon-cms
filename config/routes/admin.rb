@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   scope PluginRoutes.system_info["relative_url_root"] do
-    scope module: "camaleon_cms" do
+    scope module: "camaleon_cms", as: "cama" do
       namespace :admin do
         get '/' => :dashboard
         get 'dashboard'

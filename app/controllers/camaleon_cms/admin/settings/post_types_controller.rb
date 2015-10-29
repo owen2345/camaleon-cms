@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::SettingsController
   before_action :set_post_type, only: ['show','edit','update','destroy']
-  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.content_groups"), :admin_settings_post_types_path
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.content_groups"), :cama_admin_settings_post_types_path
 
   def index
     @post_types = current_site.post_types
@@ -58,7 +58,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
       @post_type = current_site.post_types.find_by_id(params[:id])
     rescue
       flash[:error] = t('camaleon_cms.admin.post_type.message.error')
-      redirect_to admin_path
+      redirect_to cama_admin_path
     end
   end
 end

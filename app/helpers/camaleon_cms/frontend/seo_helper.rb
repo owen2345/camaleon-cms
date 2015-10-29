@@ -48,7 +48,7 @@ module CamaleonCms::Frontend::SeoHelper
         domain: request.host
       },
       alternate: [
-        { type: 'application/rss+xml', href: rss_url }
+        { type: 'application/rss+xml', href: cama_rss_url }
       ]
     }
 

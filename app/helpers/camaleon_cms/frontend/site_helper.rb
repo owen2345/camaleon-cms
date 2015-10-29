@@ -54,7 +54,7 @@ module CamaleonCms::Frontend::SiteHelper
   # show_seo: (Boolean) control to append or not the seo attributes
   def the_head(seo_attrs = {}, show_seo = true)
     icon = "<link rel='shortcut icon' href='#{current_site.the_icon}'>"
-    js = "<script>var ROOT_URL = '#{root_url}'; var LANGUAGE = '#{I18n.locale}'; </script>"
+    js = "<script>var ROOT_URL = '#{cama_root_url}'; var LANGUAGE = '#{I18n.locale}'; </script>"
     icon + "\n" + (csrf_meta_tag || "") + "\n" + (show_seo ? display_meta_tags(cama_the_seo.merge(seo_attrs)) : "") + "\n" + js + "\n" + cama_draw_custom_assets
   end
 end

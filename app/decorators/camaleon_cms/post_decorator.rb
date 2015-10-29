@@ -57,10 +57,10 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     ptype = object.post_type.decorate
     p_url_format = ptype.contents_route_format
     case p_url_format
-      when "cama_post_of_post_type"
+      when "post_of_post_type"
         args[:post_type_id] = ptype.id
         args[:title] = ptype.the_title.parameterize
-      when "cama_post_of_category"
+      when "post_of_category"
         if ptype.manage_categories?
           cat = object.categories.first.decorate rescue ptype.default_category.decorate
           args[:category_id] = cat.id
@@ -69,13 +69,13 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
           p_url_format = "post"
           l = ""
         end
-      when "cama_post_of_posttype"
+      when "post_of_posttype"
         args[:post_type_title] = ptype.the_title.parameterize
         l = ""
       else
         l = ""
     end
-    h.cama_url_to_fixed("#{p_url_format}#{l}_#{p}", args)
+    h.cama_url_to_fixed("cama_#{p_url_format}#{l}_#{p}", args)
   end
 
   # return a hash of frontend urls for this post
@@ -92,7 +92,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
 
   # return edit url for this post
   def the_edit_url
-    h.edit_admin_post_type_post_url(object.post_type.id, object)
+    h.edit_cama_admin_post_type_post_url(object.post_type.id, object)
   end
 
   # create the html link with edit link

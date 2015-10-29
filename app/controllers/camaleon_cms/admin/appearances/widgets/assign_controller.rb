@@ -24,7 +24,7 @@ class CamaleonCms::Admin::Appearances::Widgets::AssignController < CamaleonCms::
     else
       flash[:error] = t('camaleon_cms.admin.widgets.assign.error_updated')
     end
-    redirect_to admin_appearances_widgets_main_index_path
+    redirect_to cama_admin_appearances_widgets_main_index_path
   end
 
   def destroy

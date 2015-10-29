@@ -52,7 +52,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
       @nav_menu = current_site.nav_menus.new(menu_data)
       if @nav_menu.save
         flash[:notice] = t('camaleon_cms.admin.menus.message.created')
-        render json: {new: 1, nav_menu: @nav_menu, redirect: admin_appearances_nav_menus_menu_path({id: @nav_menu.id})}
+        render json: {new: 1, nav_menu: @nav_menu, redirect: cama_admin_appearances_nav_menus_menu_path({id: @nav_menu.id})}
       else
         render json: {error: t('camaleon_cms.admin.menus.message.error_menu')}
       end

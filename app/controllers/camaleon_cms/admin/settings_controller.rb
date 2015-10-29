@@ -11,7 +11,7 @@ class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.settings")
 
   def index
-    redirect_to admin_dashboard_path
+    redirect_to cama_admin_dashboard_path
   end
 
   def site

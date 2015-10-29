@@ -18,7 +18,7 @@ module CamaleonCms::CamaleonHelper
   def sendmail(email,subject='Tiene una notificacion',content='',from=nil,attachs=[],template_name = 'mailer', layout_name = 'mailer')
     Thread.abort_on_exception=true
     Thread.new do
-      HtmlMailer.sender(email, subject, content, from, attachs, root_url, current_site, template_name, layout_name).deliver_now
+      HtmlMailer.sender(email, subject, content, from, attachs, cama_root_url, current_site, template_name, layout_name).deliver_now
       ActiveRecord::Base.connection.close
     end
   end

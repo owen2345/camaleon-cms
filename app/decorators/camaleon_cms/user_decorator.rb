@@ -54,12 +54,12 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
-    h.cama_url_to_fixed("profile_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("cama_profile_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return the url for the profile in the admin module
   def the_admin_profile_url
-    h.admin_profile_url(object.id)
+    h.cama_admin_profile_url(object.id)
   end
 
   # return all contents created by this user in current site

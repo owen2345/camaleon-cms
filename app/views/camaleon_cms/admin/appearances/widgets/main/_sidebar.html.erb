@@ -1,5 +1,5 @@
 <div id="content-sidebar" class="col-md-4">
-    <a href="<%= new_admin_appearances_widgets_sidebar_path %>" title="<%= t('camaleon_cms.admin.widgets.create_sidebar') %>" class="ajax_link btn btn-default" ><%= t('camaleon_cms.admin.widgets.create_sidebar') %></a>
+    <a href="<%= new_cama_admin_appearances_widgets_sidebar_path %>" title="<%= t('camaleon_cms.admin.widgets.create_sidebar') %>" class="ajax_link btn btn-default" ><%= t('camaleon_cms.admin.widgets.create_sidebar') %></a>
     <div class="panel panel-default">
         <div class="panel-body">
             <div class="row">
@@ -11,8 +11,8 @@
                                 <small class="text-muted"><%= sidebar.description %></small>
                             </h3>
                             <ul class="panel-controls">
-                                <li><a href="<%= edit_admin_appearances_widgets_sidebar_path(sidebar) %>" class="panel-edit ajax_link" title="<%= t('camaleon_cms.admin.button.edit')%>"><span class="fa fa fa-edit"></span></a></li>
-                                <li><%= link_to raw('<span class="fa fa-times text-danger"></span>'), admin_appearances_widgets_sidebar_path(sidebar), method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "panel-delete", title: "#{t('camaleon_cms.admin.button.delete')}" %></li>
+                                <li><a href="<%= edit_cama_admin_appearances_widgets_sidebar_path(sidebar) %>" class="panel-edit ajax_link" title="<%= t('camaleon_cms.admin.button.edit')%>"><span class="fa fa fa-edit"></span></a></li>
+                                <li><%= link_to raw('<span class="fa fa-times text-danger"></span>'), cama_admin_appearances_widgets_sidebar_path(sidebar), method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "panel-delete", title: "#{t('camaleon_cms.admin.button.delete')}" %></li>
                                 <li><a class="panel-collapse" href="#"><span class="fa fa-angle-down"></span></a></li>
                             </ul>
                         </div>

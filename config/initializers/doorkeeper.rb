@@ -25,7 +25,7 @@ Doorkeeper.configure do
     begin
       authorize! :manager, :comments
     rescue CanCan::AccessDenied
-      redirect_to admin_dashboard_path
+      redirect_to cama_admin_dashboard_path
     end
   end
 

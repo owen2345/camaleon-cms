@@ -119,7 +119,7 @@
               <div id="content-items-default" class="form-group input-group-sm">
                 <% cf_get_items.each do |i,item| %>
                       <% next if item[:key] == "select_eval" %>
-                    <a id="item-<%= item[:key] %>" class="btn btn-default" href="<%= get_items_admin_settings_custom_fields_path(item[:key]) %>" style="margin-bottom: 4px"><%= item[:label] %></a>
+                    <a id="item-<%= item[:key] %>" class="btn btn-default" href="<%= cama_get_items_admin_settings_custom_fields_path(item[:key]) %>" style="margin-bottom: 4px"><%= item[:label] %></a>
                 <% end %>
               </div>
             </div>

@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
   include CamaleonCms::CommentHelper
-  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.comments"), :admin_comments_url
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.comments"), :cama_admin_comments_url
   before_action :validate_role
   before_action :set_post, except: :list
   before_action :set_comment, except: [:list, :index, :new, :create]
@@ -87,7 +87,7 @@ class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
       @comment = @post.comments.find(params[:id] || params[:comment_id])
     rescue
       flash[:error] = t('camaleon_cms.admin.comments.message.error')
-      redirect_to admin_path
+      redirect_to cama_admin_path
     end
   end
 

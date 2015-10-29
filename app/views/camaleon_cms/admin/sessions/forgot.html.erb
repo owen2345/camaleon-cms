@@ -3,7 +3,7 @@
   <%= render "layouts/camaleon_cms/admin/flash_messages" %>
   <% if @form_reset.present? %>
       <h3 class="login-title"><%= t('camaleon_cms.admin.login.reset_password') %></h3>
-      <%= form_for(@user, as: "user", :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => admin_forgot_path({h: params[:h]}) ) do |f| %>
+      <%= form_for(@user, as: "user", :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => cama_admin_forgot_path({h: params[:h]}) ) do |f| %>
           <div class="form-group">
             <div class="col-md-12">
               <%= f.password_field :password, :class => "form-control", :placeholder => t('camaleon_cms.admin.table.password') %>
@@ -22,7 +22,7 @@
       <% end %>
   <% else  %>
       <h3 class="login-title"><%= raw t('camaleon_cms.admin.login.reset_password_html')%> </h3>
-      <%= form_for(@user, as: "user", :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => admin_forgot_path ) do |f| %>
+      <%= form_for(@user, as: "user", :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => cama_admin_forgot_path ) do |f| %>
           <div class="form-group">
             <div class="col-md-12">
               <%= f.email_field :email, :class => "form-control", :placeholder => t("camaleon_cms.admin.login.email") %>
@@ -36,7 +36,7 @@
       <% end %>
   <% end %>
     <div class="text-right">
-        <%= link_to("#{t("camaleon_cms.common.login")}&raquo;".html_safe, admin_login_path, class: "btn btn-default") %>
+        <%= link_to("#{t("camaleon_cms.common.login")}&raquo;".html_safe, cama_admin_login_path, class: "btn btn-default") %>
     </div>
 </div>
 

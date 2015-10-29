@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   before_action :validate_role, except: [:profile, :profile_edit]
-  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.users"), :admin_users_url
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.users"), :cama_admin_users_url
   before_action :set_user, only: ['show', 'edit', 'update', 'destroy']
 
   def index
@@ -106,7 +106,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
       @user = current_site.users.find(params[:id])
     rescue
       flash[:error] = t('camaleon_cms.admin.users.message.error')
-      redirect_to admin_path
+      redirect_to cama_admin_path
     end
   end
 end

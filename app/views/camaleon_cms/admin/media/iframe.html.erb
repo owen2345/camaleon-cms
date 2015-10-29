@@ -15,7 +15,7 @@
 </style>
 <script>
     var options = <%= raw params.except(:controller, :action).to_json %>;
-    var root_url = '<%= root_url %>';
+    var root_url = '<%= cama_root_url %>';
     var root_filesystem_public_url = '<%= root_filesystem_public_url %>';
     String.prototype.to_url = function () { return root_url.slice(0, root_url.length - 1) + this; };
     String.prototype.to_filesystem_public_url = function () { return root_filesystem_public_url + this; };

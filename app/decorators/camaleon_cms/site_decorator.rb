@@ -121,7 +121,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
     lan.each do |lang|
       path = lang.to_s+'.png'
       img = "<img src='#{h.asset_path("camaleon_cms/language/#{path}")}'/>"
-      res << "<li class='#{ current_class if I18n.locale.to_s == lang.to_s}'> <a href='#{h.cama_url_to_fixed(current_page ? "url_for" : "root_url", {locale: lang})}'>#{img}</a> </li>"
+      res << "<li class='#{ current_class if I18n.locale.to_s == lang.to_s}'> <a href='#{h.cama_url_to_fixed(current_page ? "url_for" : "cama_root_url", {locale: lang})}'>#{img}</a> </li>"
     end
     res << "</ul>"
     res.join("")
@@ -153,7 +153,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:locale] = @_deco_locale unless args.include?(:locale)
     args[:host] = args[:host].split(":").first
     args.delete(:as_path)
-    h.cama_url_to_fixed("root_url", args)
+    h.cama_url_to_fixed("cama_root_url", args)
   end
 
   # draw bread crumb for current site
@@ -166,7 +166,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   def the_admin_url
     host = object.main_site? ? object.slug : (object.slug.include?(".") ? object.slug : "#{object.slug}.#{PluginRoutes.system_info["base_domain"]}" )
     port = (host.split(":")[1] rescue nil)
-    h.cama_url_to_fixed("admin_dashboard_url", host: host, port: port, locale: false)
+    h.cama_url_to_fixed("cama_admin_dashboard_url", host: host, port: port, locale: false)
   end
 
   # check if current user can manage sites

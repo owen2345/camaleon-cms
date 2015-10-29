@@ -28,7 +28,7 @@ module CamaleonCms::SessionHelper
     elsif (return_to = cookies.delete(:return_to)).present?
       redirect_to return_to
     else
-      redirect_to admin_dashboard_path
+      redirect_to cama_admin_dashboard_path
     end
   end
 
@@ -59,7 +59,7 @@ module CamaleonCms::SessionHelper
   def session_back_to_parent(redirect_url = nil)
     if cama_sign_in? && cookies[:parent_auth_token].present?
       cookies[:auth_token] = cookies[:parent_auth_token]
-      redirect_to (redirect_url||admin_dashboard_path), notice: "Welcome back!"
+      redirect_to (redirect_url || cama_admin_dashboard_path), notice: "Welcome back!"
     end
   end
 
@@ -69,7 +69,7 @@ module CamaleonCms::SessionHelper
     cookies.delete(:auth_token, domain: nil)
     cookies[:auth_token] = {value: nil, expires: 24.hours.ago, domain: (PluginRoutes.system_info["users_share_sites"] && CamaleonCms::Site.count > 1 ? :all : nil)}
     cookies.delete :login
-    redirect_to params[:return_to].present? ? params[:return_to] : admin_login_path, :notice => t('camaleon_cms.admin.logout.message.closed')
+    redirect_to params[:return_to].present? ? params[:return_to] : cama_admin_login_path, :notice => t('camaleon_cms.admin.logout.message.closed')
   end
 
   # check if current user is already signed
@@ -107,7 +107,7 @@ module CamaleonCms::SessionHelper
     unless cama_sign_in?
       flash[:error] = t('camaleon_cms.admin.login.please_login')
       cookies[:return_to] = params[:return_to].present? ? params[:return_to] : ((request.get? && params[:controller] != "admin/sessions") ? request.original_url : nil)
-      redirect_to admin_login_path
+      redirect_to cama_admin_login_path
     end
   end
 

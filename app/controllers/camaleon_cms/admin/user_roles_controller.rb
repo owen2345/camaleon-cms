@@ -8,8 +8,8 @@
 =end
 class CamaleonCms::Admin::UserRolesController < CamaleonCms::AdminController
   before_action :validate_role
-  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.users"), :admin_users_url
-  add_breadcrumb I18n.t("camaleon_cms.admin.users.user_roles"), :admin_user_roles_path
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.users"), :cama_admin_users_url
+  add_breadcrumb I18n.t("camaleon_cms.admin.users.user_roles"), :cama_admin_user_roles_path
   before_action :set_user_roles, only: ['show','edit','update','destroy']
 
   def index

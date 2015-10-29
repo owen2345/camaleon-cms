@@ -65,7 +65,7 @@
                         </div>
                         <div class="panel-body ">
                             <div class="form-group">
-                                <a href="<%= admin_post_comments_path(post_id: @post.id) %>" class="btn btn-default" target="_blank"><i class="fa fa-comments"></i> <%= t('camaleon_cms.admin.post_type.view_comments') %>(<%= @post.total_comments %>)</a>
+                                <a href="<%= cama_admin_post_comments_path(post_id: @post.id) %>" class="btn btn-default" target="_blank"><i class="fa fa-comments"></i> <%= t('camaleon_cms.admin.post_type.view_comments') %>(<%= @post.total_comments %>)</a>
                             </div>
                         </div>
                     </div>
@@ -83,13 +83,13 @@
                     post_id: '<%= @post.draft? ? (@post.parent.present? ? @post.parent.id : nil) : @post.id %>',
                     post_draft_id: '<%= @post.id if @post.draft? %>',
                     post_status: '<%= @post.status %>',
-                    _post_path: '<%= post_url({slug: '__-__', locale: '____'}) %>',
-                    _drafts_path: '<%= (@post.draft? && !@post.new_record?) ? admin_post_type_draft_path(@post_type.id, @post) : admin_post_type_drafts_path(@post_type.id)  %>',
-                    _posts_path: '<%= admin_post_type_posts_path(@post_type.id) %>',
-                    _ajax_path: '<%= ajax_admin_post_type_posts_path(@post_type.id) %>',
-                    _post_tags_path: '<%= list_admin_post_type_post_tags_path(@post_type.id) %>',
+                    _post_path: '<%= cama_post_url({slug: '__-__', locale: '____'}) %>',
+                    _drafts_path: '<%= (@post.draft? && !@post.new_record?) ? cama_admin_post_type_draft_path(@post_type.id, @post) : cama_admin_post_type_drafts_path(@post_type.id)  %>',
+                    _posts_path: '<%= cama_admin_post_type_posts_path(@post_type.id) %>',
+                    _ajax_path: '<%= ajax_cama_admin_post_type_posts_path(@post_type.id) %>',
+                    _post_tags_path: '<%= list_cama_admin_post_type_post_tags_path(@post_type.id) %>',
                     recover_draft: "<%= params['recover_draft'].present? && @post.draft? %>",
-                    _edit_post_path: '<%= edit_admin_post_type_post_path(@post_type.id, '____')%>'
+                    _edit_post_path: '<%= edit_cama_admin_post_type_post_path(@post_type.id, '____')%>'
 
                 });
             }, 100);

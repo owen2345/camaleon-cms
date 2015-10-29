@@ -1,5 +1,5 @@
-class Admin::FileManagerController < AdminController
-  include FileSystemHelper
+class CamaleonCms::Admin::FileManagerController < CamaleonCms::AdminController
+  include CamaleonCms::FileSystemHelper
   layout false
   skip_before_action :verify_authenticity_token
 
@@ -60,7 +60,7 @@ class Admin::FileManagerController < AdminController
   end
 
   def templates
-    render "admin/file_manager/#{params[:view]}"
+    render "camaleon_cms/admin/file_manager/#{params[:view]}"
   end
 
   def view

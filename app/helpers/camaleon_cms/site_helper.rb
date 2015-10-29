@@ -34,9 +34,9 @@ module CamaleonCms::SiteHelper
     if !current_site.present?
       if (PluginRoutes.main_site).present?
         base_domain = PluginRoutes.main_site.slug
-        redirect_to root_url(host: base_domain.split(":").first, port: (base_domain.split(":")[1] rescue nil))
+        redirect_to cama_root_url(host: base_domain.split(":").first, port: (base_domain.split(":")[1] rescue nil))
       else
-        redirect_to admin_installers_path
+        redirect_to cama_admin_installers_path
       end
     end
   end

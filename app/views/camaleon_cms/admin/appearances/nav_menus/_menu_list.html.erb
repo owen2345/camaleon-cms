@@ -1,6 +1,6 @@
 <div class="manage-menus panel panel-primary">
     <div class="panel-body">
-        <form action="<%= admin_appearances_nav_menus_menu_path %>" method="get" class="">
+        <form action="<%= cama_admin_appearances_nav_menus_menu_path %>" method="get" class="">
             <div class="form-group">
                 <label class="selected-menu" for="menu"><%= t('camaleon_cms.admin.menus.select_edit') %></label>
             </div>
@@ -13,7 +13,7 @@
                 </select>
                     <span class="input-group-btn">
                         <button class="btn btn-primary btn-flat" type="submit"><%= t('camaleon_cms.admin.menus.select') %></button>
-                        <a class="btn btn-default" href="<%= admin_appearances_nav_menus_menu_path({new: 1}) %>"> <%= t('camaleon_cms.admin.menus.create_new') %></a>
+                        <a class="btn btn-default" href="<%= cama_admin_appearances_nav_menus_menu_path({new: 1}) %>"> <%= t('camaleon_cms.admin.menus.create_new') %></a>
                     </span>
             </div>
         </form>

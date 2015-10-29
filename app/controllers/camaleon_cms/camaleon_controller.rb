@@ -96,7 +96,7 @@ class CamaleonCms::CamaleonController < ApplicationController
 
   # redirect to sessions login form when the session was expired.
   def auth_session_error
-    redirect_to root_path
+    redirect_to cama_root_path
   end
 
   # include CamaleonCms::all custom models created by installed plugins or themes for current site

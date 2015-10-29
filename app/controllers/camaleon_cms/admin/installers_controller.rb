@@ -24,7 +24,7 @@ class CamaleonCms::Admin::InstallersController < CamaleonCms::CamaleonController
     if @site.save
       site_after_install(@site, params[:theme])
       flash[:notice] = t('camaleon_cms.admin.sites.message.created')
-      redirect_to welcome_admin_installers_url
+      redirect_to action: :welcome
     else
       index
     end
@@ -35,6 +35,6 @@ class CamaleonCms::Admin::InstallersController < CamaleonCms::CamaleonController
   end
 
   def installer_verification
-    redirect_to root_url unless CamaleonCms::Site.count == 0
+    redirect_to cama_root_url unless CamaleonCms::Site.count == 0
   end
 end

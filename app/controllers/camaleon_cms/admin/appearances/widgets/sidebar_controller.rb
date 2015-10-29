@@ -21,7 +21,7 @@ class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms:
     else
       flash[:error] = t('camaleon_cms.admin.widgets.sidebar.error_created')
     end
-    redirect_to admin_appearances_widgets_main_index_path
+    redirect_to cama_admin_appearances_widgets_main_index_path
   end
 
   def edit
@@ -35,7 +35,7 @@ class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms:
     else
       flash[:error] = t('camaleon_cms.admin.widgets.sidebar.error_updated')
     end
-    redirect_to admin_appearances_widgets_main_index_path
+    redirect_to cama_admin_appearances_widgets_main_index_path
   end
 
   def reorder
@@ -48,7 +48,7 @@ class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms:
   def destroy
     @sidebar = current_site.sidebars.find(params[:id]).destroy
     flash[:notice] = t('camaleon_cms.admin.widgets.sidebar.error_deleted')
-    redirect_to admin_appearances_widgets_main_index_path
+    redirect_to cama_admin_appearances_widgets_main_index_path
   end
 
   private

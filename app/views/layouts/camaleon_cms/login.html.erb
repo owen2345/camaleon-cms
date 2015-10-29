@@ -13,7 +13,7 @@
 <body class="hold-transition login-page">
     <div class="col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3 login-box">
         <div class="login-logo">
-            <%= link_to(image_tag(current_site.the_logo), admin_login_path) rescue image_tag("camaleon_cms/camaleon.png") %>
+            <%= link_to(image_tag(current_site.the_logo), cama_admin_login_path) rescue image_tag("camaleon_cms/camaleon.png") %>
         </div>
         <div class="login-box-body">
             <%= yield %>

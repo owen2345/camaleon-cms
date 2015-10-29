@@ -61,7 +61,7 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
       @post_type = current_site.post_types.find_by_id(params[:post_type_id]).decorate
     rescue
       flash[:error] =  t('camaleon_cms.admin.request_error_message')
-      redirect_to admin_path, {error: 'Error Post Type'}
+      redirect_to cama_admin_path, {error: 'Error Post Type'}
     end
     add_breadcrumb @post_type.the_title, @post_type.the_admin_url
     add_breadcrumb t("camaleon_cms.admin.table.categories"), url_for({action: :index})
@@ -73,7 +73,7 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
       @category = CamaleonCms::Category.find_by_id(params[:id])
     rescue
       flash[:error] = t('camaleon_cms.admin.post_type.message.error')
-      redirect_to admin_path
+      redirect_to cama_admin_path
     end
   end
 end

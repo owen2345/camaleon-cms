@@ -13,7 +13,7 @@
   <div class="row">
     <div class="col-md-3 col-sm-4">
 
-      <%= form_for @user, url: admin_profile_edit_path, html: {class: 'form-horizontal form-ajax-profile'} do |f| %>
+      <%= form_for @user, url: cama_admin_profile_edit_path, html: {class: 'form-horizontal form-ajax-profile'} do |f| %>
 
           <div class="panel panel-default">
             <div class="panel-body">
@@ -78,7 +78,7 @@
     </div>
     <div class="col-md-6 col-sm-8">
 
-      <%= form_for @user, url: admin_profile_edit_path, html: {class: 'form-horizontal form-ajax-profile'} do |f| %>
+      <%= form_for @user, url: cama_admin_profile_edit_path, html: {class: 'form-horizontal form-ajax-profile'} do |f| %>
           <div class="panel panel-default">
             <div class="panel-body">
               <h3><span class="fa fa-pencil"></span> <%= t('admin.users.profile') %></h3>
@@ -169,7 +169,7 @@
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><%= t('admin.button.close') %></span></button>
         <h4 class="modal-title" id="smallModalHead"><%= t('admin.button.change_photo') %></h4>
       </div>
-      <form id="cp_crop" method="post" action="<%= admin_crop_path({saved_avatar: @user.id}) %>">
+      <form id="cp_crop" method="post" action="<%= cama_admin_crop_path({saved_avatar: @user.id}) %>">
         <div class="modal-body">
           <div class="text-center" id="cp_target"><%= t('admin.message.change_photo') %></div>
           <input type="hidden" name="cp_img_path" id="cp_img_path"/>
@@ -207,7 +207,7 @@
       <div class="modal-body">
         <p><%= t('admin.message.change_password') %></p>
       </div>
-      <%= form_for @user, url: admin_profile_edit_path, html: {class: 'validate-password form-ajax-password'} do |f| %>
+      <%= form_for @user, url: cama_admin_profile_edit_path, html: {class: 'validate-password form-ajax-password'} do |f| %>
           <div class="modal-body form-horizontal form-group-separated">
             <div class="form-group">
               <label class="col-md-3 control-label"><%= t('admin.table.old_password') %></label>

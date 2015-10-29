@@ -56,11 +56,11 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       @user = current_site.users.where(password_reset_token: params[:h]).first
       if @user.nil?
         flash[:error] = t('camaleon_cms.admin.login.message.forgot_url_incorrect')
-        redirect_to forgot_path
+        redirect_to cama_forgot_path
         return
       elsif @user.password_reset_sent_at < 2.hours.ago
         flash[:error] = t('camaleon_cms.admin.login.message.forgot_expired')
-        redirect_to admin_login_path
+        redirect_to cama_admin_login_path
       else
         # saved new password
         if params[:user].present?
@@ -86,7 +86,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       if @user.present?
         @user.send_password_reset
 
-        reset_url = admin_forgot_url({h: @user.password_reset_token})
+        reset_url = cama_admin_forgot_url({h: @user.password_reset_token})
 
         html = "<p>#{t('camaleon_cms.admin.login.message.hello')}, <b>#{@user.fullname}</b></p>
             <p>#{t('camaleon_cms.admin.login.message.reset_url')}:</p>
@@ -94,7 +94,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
         sendmail(@user.email, t('camaleon_cms.admin.login.message.subject_email'), html)
 
         flash[:notice] = t('camaleon_cms.admin.login.message.send_mail_succes')
-        redirect_to admin_login_path
+        redirect_to cama_admin_login_path
         return
       else
         flash[:error] = t('camaleon_cms.admin.login.message.send_mail_error')
@@ -123,7 +123,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       else
         if @user.save
           @user.set_meta_from_form(params[:meta])
-          r = {user: @user, message: t('camaleon_cms.admin.users.message.created'), redirect_url: admin_login_path}; hooks_run('user_after_register', r)
+          r = {user: @user, message: t('camaleon_cms.admin.users.message.created'), redirect_url: cama_admin_login_path}; hooks_run('user_after_register', r)
           flash[:notice] = r[:message]
           redirect_to r[:redirect_url]
         else
