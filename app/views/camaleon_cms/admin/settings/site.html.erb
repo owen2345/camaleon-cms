@@ -34,6 +34,9 @@
             <li class="<%= "active" if "email" == params[:tab] %>">
               <a data-toggle="tab" role="tab" href="#tab-email_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.email_settings') %></a>
             </li>
+            <li class="<%= 'active' if 'filesystem' == params[:tab] %>">
+              <a data-toggle="tab" role="tab" href="#tab-filesystem_settings" aria-expanded="false"><%= t('admin.settings.filesystem_settings') %></a>
+            </li>
           </ul>
           <div class="panel-body tab-content row">
 
@@ -161,6 +164,29 @@
               <div class="form-group">
                 <%= label_tag t('camaleon_cms.admin.settings.email_cc') %><br>
                 <%= text_field :options, :email_cc, :class => "form-control", value: @site.get_option("email_cc") %>
+              </div>
+            </div>
+
+            <div id="tab-filesystem_settings" class="<%= 'active' if 'filesystem' == params[:tab] %> tab-pane ">
+              <div class="form-group">
+                <%= label_tag t('admin.settings.filesystem_type') %><br>
+                <%= select_tag('options[filesystem_type]', options_for_select([['Local', :local], ['S3', :s3]], @site.get_option("filesystem_type")), :class => 'form-control required') %>
+              </div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.filesystem_s3_access_key') %><br>
+                <%= text_field :options, :filesystem_s3_access_key, :class => "form-control", value: @site.get_option("filesystem_s3_access_key") %>
+              </div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.filesystem_s3_secret_key') %><br>
+                <%= text_field :options, :filesystem_s3_secret_key, :class => "form-control", value: @site.get_option("filesystem_s3_secret_key") %>
+              </div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.filesystem_s3_bucket_name') %><br>
+                <%= text_field :options, :filesystem_s3_bucket_name, :class => "form-control", value: @site.get_option("filesystem_s3_bucket_name") %>
+              </div>
+              <div class="form-group">
+                <%= label_tag t('admin.settings.filesystem_cdn') %><br>
+                <%= text_field :options, :filesystem_cdn, :class => "form-control", value: @site.get_option("filesystem_cdn") %>
               </div>
             </div>
           </div>

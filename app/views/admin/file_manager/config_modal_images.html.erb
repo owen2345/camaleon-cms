@@ -1,0 +1,20 @@
+<div id="modal_filemanager" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal_filemanager_label">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content modal-content-lg">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="<%= t('admin.button.close') %>">
+          <span aria-hidden="true">&times;</span><span class="sr-only"><%= t('admin.button.close') %></span>
+        </button>
+        <h4 class="modal-title" id="modal_filemanager_label">Images</h4>
+      </div>
+      <div class="modal-body">
+        <div data-ng-app="FileManagerApp">
+          <angular-filemanager layout="selection"></angular-filemanager>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+    $('#modal_filemanager').modal('show');
+</script>

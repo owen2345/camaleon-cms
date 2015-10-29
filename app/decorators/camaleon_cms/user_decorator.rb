@@ -27,6 +27,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
   def the_avatar
+    #TODO verify if filemanager != filesystem
     avatar_exists = File.exist? h.cama_url_to_file_path(object.get_meta("avatar"))
     if object.get_meta("avatar").present? && avatar_exists
       object.get_meta("avatar")
