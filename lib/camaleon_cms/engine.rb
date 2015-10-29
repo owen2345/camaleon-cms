@@ -15,6 +15,7 @@ require 'will_paginate-bootstrap'
 require 'doorkeeper'
 require 'responders'
 require 'swagger/docs'
+require 'active_model_serializers'
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s
