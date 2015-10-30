@@ -27,7 +27,7 @@
             <tr>
                 <th><%= t('camaleon_cms.admin.table.id') %></th>
                 <th><%= t('camaleon_cms.admin.table.title') %></th>
-                <%= content_tag :th, t('camaleon_cms.admin.table.owner', default: "Owner") if @lists_tab == "draft" %>
+                <%= content_tag :th, t('camaleon_cms.admin.table.owner') if @lists_tab == "draft" %>
                 <th><%= t('camaleon_cms.admin.table.status') %></th>
                 <th><%= t('camaleon_cms.admin.table.author') %></th>
                 <% if @post_type.manage_categories? %>
@@ -53,7 +53,7 @@
                             <%= f.the_title %>
                         <% end %>
                     </td>
-                    <%= content_tag :td, link_to(parent.decorate.the_title, {action: :edit, id: parent.id}, class: "cama_ajax_request") if @lists_tab == "draft" && parent.present? %>
+                    <%= content_tag :td, parent.present? ? link_to(parent.decorate.the_title, {action: :edit, id: parent.id}, class: "cama_ajax_request") : "" if @lists_tab == "draft" %>
                     <td><%= link_to raw(f.the_status), {action: :index, s: f.status}, class: "cama_ajax_request" %>  </td>
                     <td><%= f.author.fullname %></td>
                     <% if @post_type.manage_categories? %>

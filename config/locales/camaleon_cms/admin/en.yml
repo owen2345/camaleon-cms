@@ -491,6 +491,7 @@ en:
         social: 'Social'
         skype: 'Skype'
         status: 'Status'
+        owner: 'Page Owner'
         tags: 'Tags'
         text: 'Text'
         title: 'Title'

@@ -1,5 +1,5 @@
 <div class="btn-group">
   <% @btns.each do |status, value| %>
-        <%= link_to "#{value}", {action: :index, s: status, q: params[:q] }, class: "btn btn-default cama_ajax_request #{ "btn-info" if status.to_s == params[:s] }" %>
+        <%= link_to "#{value}", {action: :index, s: status, q: params[:q] }, class: "btn cama_ajax_request #{ status.to_s == params[:s] ? "btn-info" : "btn-default" }" %>
   <% end  %>
 </div>

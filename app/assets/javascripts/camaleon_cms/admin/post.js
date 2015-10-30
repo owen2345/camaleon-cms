@@ -19,12 +19,12 @@ function init_post(obj) {
     var _ajax_path = obj._ajax_path;
     var _post_tags_path = obj._post_tags_path;
 
-    App_post.save_draft_ajax = function (callback) {
+    App_post.save_draft_ajax = function (callback, called_from_interval) {
         _draft_inited = true;
         var data = $form.serializeObject();
         data._method = post_draft_id ? 'patch' : 'post';
         data.post_id = post_id;
-        if (data.post.title && $form.data("hash") != get_hash_form()) {
+        if ($form.data("hash") != get_hash_form() || !called_from_interval) {
             $.ajax({
                 type: 'POST',
                 url: _drafts_path,
@@ -49,15 +49,12 @@ function init_post(obj) {
     App_post.save_draft = function () {
         App_post.save_draft_ajax(function () {
             $form.data("submitted", 1);
-            location.href = _posts_path + '?notice=' + I18n("msg.draft")
+            location.href = _posts_path + '?flash[notice]=' + I18n("msg.draft")
         });
 
     }
-
-    var t = setInterval(function () {
-        App_post.save_draft_ajax();
-    }, 3 * 60 * 1000);
-
+    if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
+    window["post_editor_draft_intrval"] = setInterval(function () { App_post.save_draft_ajax(null, true); }, 3 * 60 * 1000);
     window.save_draft = App_post.save_draft_ajax;
 
     if ($(".title-post" + class_translate).size() == 0) class_translate = '';
@@ -124,18 +121,24 @@ function init_post(obj) {
 
             $this.change(function () {
                 if (slug_tmp) ajax_set_slug(slug_tmp);
-                if (!_draft_inited) App_post.save_draft_ajax();
+                //if (!_draft_inited) App_post.save_draft_ajax();
             });
             if ($input_slug.val()) {
                 set_slug($input_slug.val());
                 if (post_status == "published") $link.find('.btn-view').show().attr('href', post_path.replace('__-__', $input_slug.val()))
             }
-            $link.find('.btn-preview').click(function () {
-                var href = $(this).attr('href');
-                App_post.save_draft_ajax();
-                var ar = href.split("draft_id=");
-                ar[1] = post_draft_id;
-                $(this).attr('href', ar.join("draft_id="))
+            $link.find('.btn-preview').click(function () { // preview button
+                var link = $(this);
+                showLoading();
+                App_post.save_draft_ajax(function(){
+                    hideLoading();
+                    var ar = link.attr("href").split("draft_id=");
+                    ar[1] = post_draft_id;
+                    var clone = link.clone().hide();
+                    clone.insertAfter(link).attr('href', ar.join("draft_id="))[0].click();
+                    clone.remove();
+                });
+                return false;
             });
             $link.find('.btn-edit').click(function () {
                 var $btn = $(this);
@@ -181,14 +184,6 @@ function init_post(obj) {
     }));
 
     $form.validate();
-    /*
-     * skip translation inputs
-     submitHandler: function(form){
-     jQuery(form).find(".translate-item").prop("disabled", false).attr("disabled", "disabled");
-     form.submit();
-     }
-     * */
-
     $("#post_status").change(function () {
         $('#post-actions .btn[data-type]').hide();
         $('#post-actions .btn[data-type="' + $(this).val() + '"]').show();
