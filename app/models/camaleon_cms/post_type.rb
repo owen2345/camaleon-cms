@@ -119,7 +119,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
       p.set_summary(_summary) if _summary.present?
       p.set_thumb(_thumb) if _thumb.present?
       _fields.each{ |k, v| p.save_field_value(k, v) } if _fields.present?
-      return p
+      return p.decorate
     else
       p.errors
     end
