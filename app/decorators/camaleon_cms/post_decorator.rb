@@ -46,7 +46,22 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     object.get_meta("thumb").present?
   end
 
+  # return the path for this page
+  # sample: /my-page.html
+  def the_path(*args)
+    args = args.extract_options!
+    args[:as_path] = true
+    the_url(args)
+  end
+
   # return front url for this post
+  # sample: http://localhost.com/my-page.html
+  # args:
+  #   locale: language (default current language)
+  #   as_path: return the path instead of full url, sample: /my-page.html
+  #   Also, you can pass extra attributes as params for the url, sample: page.the_url(my_param: 'value', other: "asd")
+  #     => http://localhost.com/my-page.html?my_param=value&other=asd
+  # Return String URL
   def the_url(*args)
     args = args.extract_options!
     args[:slug] = the_slug

@@ -83,7 +83,6 @@ class CamaleonCms::CamaleonController < ApplicationController
     # past plugins version support
     self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
     self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
-
   end
 
   # initialize ability for current user

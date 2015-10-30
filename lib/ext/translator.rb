@@ -50,8 +50,9 @@ class String
     return translations_per_locale if !self.squish.starts_with?("<!--") or self.blank?
 
     self.split('<!--:-->').each do |t|
-      t.match(/^<!--:([\w]{2})/) do |lang|
-        translations_per_locale[lang[1].to_sym] = t.gsub(/<!--:#{lang[1]}-->(.*)/, '\1')
+      t.match(/^<!--:([\w]{2,5})/) do |lang|
+        lt = lang[1].sub("--", "")
+        translations_per_locale[lt.to_sym] = t.gsub(/<!--:#{lt}-->(.*)/, '\1')
       end
     end
     translations_per_locale

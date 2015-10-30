@@ -178,8 +178,6 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
         r_file = "single"
       end
 
-      puts "*******************layout: #{@post.get_layout(@post_type)} ---------template: #{@post.get_template(@post_type)}"
-
       layout_ = self.send :_layout
       meta_layout = @post.get_layout(@post_type)
       layout_ = meta_layout if meta_layout.present? && lookup_context.template_exists?("layouts/#{meta_layout}")

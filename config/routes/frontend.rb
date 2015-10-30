@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   scope PluginRoutes.system_info["relative_url_root"], as: "cama" do
-    scope "(:locale)", locale: /#{PluginRoutes.all_locales}/, :defaults => {  } do
+    scope "(:locale)", locale: /#{PluginRoutes.all_locales+"|pt-BR"}/, :defaults => {  } do
       root 'camaleon_cms/frontend#index'
 
       controller "camaleon_cms/frontend" do
@@ -23,7 +23,7 @@ Rails.application.routes.draw do
         # get 'post_tag/:post_tag_id-:title' => :post_tag, as: :post_tag, constraints: {post_tag_id: /[0-9]+/}
         get "profile/:user_id-:user_name" => :profile, as: :profile, constraints: {user_id: /[0-9]+/}
         get 'search' => :search, as: :search
-        get ':post_type_title/:slug' => :post, as: :cama_post_of_posttype
+        get ':post_type_title/:slug' => :post, as: :cama_post_of_posttype, constraints:{ post_type_title: /(?!#{PluginRoutes.all_locales+"|pt-BR"})/ }
 
         post 'save_comment/:post_id' => :save_comment, as: :save_comment
         post 'save_form' => :save_form, as: :save_form

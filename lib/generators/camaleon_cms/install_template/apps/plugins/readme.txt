@@ -1,1 +1,0 @@
-Copy here all your plugins or overwrite specific camaleon plugin files.

@@ -9,10 +9,10 @@
                     <h4>
                         <span class="fa fa-file-o"></span>
                         <% if !@post.new_record? %>
-                            <%= "#{t('admin.page_title.edit')} #{@post_type.the_title}: #{@post_decorate.the_title}" %> <%= raw @post_decorate.the_status.html_safe %>
+                            <%= "#{t('camaleon_cms.admin.page_title.edit')} #{@post_type.the_title}: #{@post_decorate.the_title}" %> <%= raw @post_decorate.the_status.html_safe %>
                         <% end %>
-                        <%= link_to raw("#{t('admin.button.view_draft')}"), {action: :edit, id: @post.drafts.pluck('id')}, id: "view_draft", class: "label label-warning label-form", title: "#{t('admin.button.view_draft')}", target: '_blank' if @post.drafts.present? %>
-                        <%= t('admin.page_title.create') + " " + @post_type.the_title.to_s if @post.new_record? %>
+                        <%= link_to raw("#{t('camaleon_cms.admin.button.view_draft')}"), {action: :edit, id: @post.drafts.pluck('id')}, id: "view_draft", class: "label label-warning label-form", title: "#{t('camaleon_cms.admin.button.view_draft')}", target: '_blank' if @post.drafts.present? %>
+                        <%= t('camaleon_cms.admin.page_title.create') + " " + @post_type.the_title.to_s if @post.new_record? %>
                     </h4>
 
                     <ul class="panel-controls">
