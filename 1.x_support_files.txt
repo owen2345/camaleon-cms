@@ -7,5 +7,6 @@
 
 ## Models
 -
+
 ## Views
--
+- convert theme_asset_path into theme_asset_url

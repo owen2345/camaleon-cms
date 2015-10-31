@@ -146,12 +146,8 @@
     > label{
       display: block;
       .shortcode_field input{
-        //display: none;
-        min-width: 150px;
+        min-width: 250px;
       }
-    }
-    &:hover > label .shortcode_field{
-      display: block;
     }
     .actions{
       overflow: hidden;

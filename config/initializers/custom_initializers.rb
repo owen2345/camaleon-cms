@@ -15,3 +15,10 @@ if defined?(PluginRoutes)
     end
   end
 end
+
+require 'base64'
+Base64.class_eval do
+  def self.un_obfuscate(str)
+    Base64.decode64(str.slice(5..-1))
+  end
+end

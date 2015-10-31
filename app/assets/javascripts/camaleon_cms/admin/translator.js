@@ -19,7 +19,7 @@ jQuery(function($){
     $.fn.Translatable = function(languages, default_language){
         languages = languages || ADMIN_TRANSLATIONS; // rescue from admin variable
         default_language = default_language?default_language:languages[0];
-        var self = $(this).not(".translated-item");
+        var self = $(this).not(".translated-item, .translate-item");
 
         // decode translations
         // text: string containing translations

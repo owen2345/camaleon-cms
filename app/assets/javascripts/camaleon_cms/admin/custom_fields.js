@@ -99,8 +99,7 @@ function custom_field_editor($field) {
                 for (var lang in inputs) {
                     tinymce.init(cama_get_tinymce_settings({
                         selector: '#' + inputs[lang].attr("id"),
-                        height: 120,
-                        base_path: base_path
+                        height: 120
                     }));
                 }
                 return;
@@ -108,8 +107,7 @@ function custom_field_editor($field) {
         }
         tinymce.init(cama_get_tinymce_settings({
             selector: '#' + id,
-            height: 120,
-            base_path: base_path
+            height: 120
         }));
     }
 }

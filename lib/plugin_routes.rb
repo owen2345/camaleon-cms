@@ -101,6 +101,7 @@ class PluginRoutes
       begin
         settings = settings.merge(main_site.get_meta("main_settings", {}))
         settings["base_domain"] = main_site.slug
+        settings = settings.stringify_keys
         cache_variable("system_info", settings)
       rescue
       end
@@ -123,10 +124,11 @@ class PluginRoutes
   # value: new value for attribute
   def self.system_info_set(key, val)
     s = main_site
-    settings = s.get_meta("main_settings", {})
+    settings = s.get_meta("main_settings", {}).stringify_keys
     settings[key] = val
     s.set_meta("main_settings", settings)
-    self.reload
+    class_variable_set("@@cache_system_info", nil)
+    val
   end
 
   # reload routes

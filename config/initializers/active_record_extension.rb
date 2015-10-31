@@ -60,6 +60,7 @@ ActiveRecord::Base.class_eval do
   def cama_set_cache(key, val)
     @cama_cache_vars ||= {}
     @cama_cache_vars[cama_build_cache_key(key)] = val
+    val
   end
 
   # remove cache value for this key

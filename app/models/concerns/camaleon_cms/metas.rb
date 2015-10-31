@@ -23,7 +23,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # return true or false
   def set_meta(key, value)
     metas.where(key: key).update_or_create({value: fix_meta_value(value)})
-    cama_set_cache(key, value)
+    cama_set_cache("meta_#{key}", value)
   end
 
   # return value of meta with key: key,
@@ -44,7 +44,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # delete meta
   def delete_meta(key)
     metas.where(key: key).destroy_all
-    cama_remove_cache(key)
+    cama_remove_cache("meta_#{key}")
   end
 
   # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
@@ -60,6 +60,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
     data = options
     data[key] = fix_meta_var(value)
     set_meta('_default', data)
+    value
   end
 
   # return configuration for current object

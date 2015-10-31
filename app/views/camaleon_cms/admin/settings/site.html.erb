@@ -8,7 +8,7 @@
     <div class="panel-heading">
       <h4><span class="fa fa-cog"></span> <%= "#{t('camaleon_cms.admin.settings.configuration_site')}: #{@site.the_title} " %> </h4>
     </div>
-    <%= form_for @site, as: "site", url: {action: :site_saved}, html: {id: "site_settings_form", class: "panel-body cama_ajax_request"} do |f| %>
+    <%= form_for @site, as: "site", url: {action: :site_saved}, html: {id: "site_settings_form", class: "panel-body cama_ajax_request validate"} do |f| %>
         <% posts = current_site.posts.public_posts.all %>
         <div class="tabs">
           <ul role="tablist" class="nav nav-tabs">
@@ -201,6 +201,7 @@
 </div>
 <script>
     jQuery(function () {
+        return false;
         var panel = $("#site_settings_form");
         panel.validate();
         panel.find('.unput_upload').input_upload();
