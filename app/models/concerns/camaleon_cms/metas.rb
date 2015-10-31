@@ -10,9 +10,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   included do
     # options and metas auto save support
     attr_accessor :data_options
-    attr_accessible :data_options
     attr_accessor :data_metas
-    attr_accessible :data_metas
     after_save  :save_metas_options, unless: :save_metas_options_skip
     before_update :fix_save_metas_options_no_changed
 

@@ -16,6 +16,10 @@ module CamaleonCms::ThemeHelper
   # asset: asset file name, if asset is present return full path to this asset
   # sample: <script src="<%= theme_asset_path("js/admin.js") %>"></script> => return: /assets/themes/my_theme/assets/css/main-54505620f.css
   def theme_asset_path(asset = nil, theme_name = nil)
+    if theme_name.present? && theme_name.include?("/")
+      return theme_asset_url(theme_name, current_theme.slug)
+    end
+
     settings = theme_name.present? ? PluginRoutes.theme_info(theme_name) : current_theme.settings
     folder_name = settings["key"]
     if settings["gem_mode"]
@@ -45,7 +49,8 @@ module CamaleonCms::ThemeHelper
   # return theme view path including the path of current theme
   # view_name: name of the view or template
   # sample: theme_view("index") => "themes/my_theme/index"
-  def theme_view(view_name)
+  def theme_view(view_name, deprecated_attr = "")
+    view_name = deprecated_attr if deprecated_attr.present?
     if current_theme.settings["gem_mode"]
       "themes/#{current_theme.slug}/#{view_name}"
     else

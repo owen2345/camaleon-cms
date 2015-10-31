@@ -8,7 +8,13 @@
 =end
 class CamaleonCms::Apps::PluginsFrontController < CamaleonCms::FrontendController
   before_action :init_plugin
-
+  layout Proc.new { |controller|
+           if current_theme.settings["gem_mode"]
+             "themes/#{current_theme.slug}/layouts/index"
+           else
+             "themes/#{current_theme.slug}/views/layouts/index"
+           end
+         }
   private
 
   def init_plugin
@@ -20,5 +26,13 @@ class CamaleonCms::Apps::PluginsFrontController < CamaleonCms::FrontendControlle
       return
     end
     lookup_context.prefixes.prepend(params[:controller].sub("plugins/#{plugin_name}", "#{plugin_name}/views")) if !@plugin.settings["gem_mode"].present?
+
+    views_dir = "app/apps/"
+    self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
+    self.prepend_view_path(Rails.root.join(views_dir).to_s)
+    # lookup_context.prefixes.prepend("camaleon_cms/default_theme")
+    # lookup_context.prefixes.prepend("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
+    # lookup_context.prefixes.prepend("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
+    # lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
   end
 end

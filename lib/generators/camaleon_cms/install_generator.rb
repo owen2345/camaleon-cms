@@ -8,11 +8,11 @@ module CamaleonCms
 
       def create_initializer_file
         copy_file "system.json", "config/system.json"
-        # copy_file "plugin_routes.rb", "lib/plugin_routes.rb"
+        copy_file "plugin_routes.rb", "lib/plugin_routes.rb"
         # directory("apps", "app/apps")
-        # append_to_file 'Gemfile' do
-        #   "\n\n#################### Camaleon CMS include all gems for plugins and themes #################### \nrequire './lib/plugin_routes' \ninstance_eval(PluginRoutes.draw_gems)"
-        # end
+        append_to_file 'Gemfile' do
+          "\n\n#################### Camaleon CMS include all gems for plugins and themes #################### \nrequire './lib/plugin_routes' \ninstance_eval(PluginRoutes.draw_gems)"
+        end
       end
     end
   end

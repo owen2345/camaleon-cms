@@ -80,6 +80,12 @@ module CamaleonCms::PluginsHelper
   # return plugin full view path
   # plugin_key: plugin name
   def plugin_view(view_name, plugin_key = nil)
+    if plugin_key.present? && plugin_key.include?("/") # fix for 1.x
+      k = view_name
+      view_name = plugin_key
+      plugin_key = k
+    end
+
     plugin = current_plugin(plugin_key || self_plugin_key(1))
     if plugin.settings["gem_mode"]
       "plugins/#{plugin.slug}/#{view_name}"
@@ -93,6 +99,9 @@ module CamaleonCms::PluginsHelper
   # asset: (String) asset name
   # sample: <script src="<%= plugin_asset_path("js/admin.js") %>"></script> => /assets/plugins/my_plugin/assets/css/main-54505620f.css
   def plugin_asset_path(asset, plugin_key = nil)
+    if plugin_key.present? && plugin_key.include?("/")
+      return plugin_asset_url(plugin_key, asset || self_plugin_key(1))
+    end
     settings = current_plugin(plugin_key || self_plugin_key(1)).settings
     folder_name = settings["key"]
     if settings["gem_mode"]

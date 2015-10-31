@@ -19,6 +19,9 @@ class CamaleonCms::User < ActiveRecord::Base
   include CamaleonCms::CustomFieldsRead
   self.table_name = "#{PluginRoutes.system_info["db_prefix"]}users"
   attr_accessible :username, :role, :email, :parent_id, :last_login_at, :site_id, :password, :password_confirmation #, :profile_attributes
+  attr_accessible :data_options
+  attr_accessible :data_metas
+
   default_scope {order("#{CamaleonCms::User.table_name}.role ASC")}
 
   validates :username, :presence => true
