@@ -290,6 +290,7 @@ en:
         view_comments: 'View Comments'
       plugins:
         active_plugins: 'Active Plugins'
+        disabled_plugins: 'Disabled Plugins'
         all_plugins: 'All Plugins'
         status_false: 'Inactive'
         status_true: 'Active'

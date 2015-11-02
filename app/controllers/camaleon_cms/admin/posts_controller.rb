@@ -33,7 +33,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     end
 
     if params[:q].present?
-      posts_all = posts_all.where(params[:q].strip_stopwords2(I18n.locale).split(" ").map{|text| "#{CamaleonCms::Post.table_name}.title LIKE '%#{text}%'" }.join(" OR "))
+      posts_all = posts_all.where(params[:q].map{|text| "#{CamaleonCms::Post.table_name}.title LIKE '%#{text}%'" }.join(" OR "))
     end
 
     @posts = posts_all

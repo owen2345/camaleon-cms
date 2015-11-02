@@ -15,12 +15,16 @@
 
             <div role="tabpanel" class="tabs">
                 <ul role="tablist" class="nav nav-tabs" style="margin-top: 0">
-                    <li class="active" role="presentation"><a data-toggle="tab" role="tab" href="#tab_plugins_active"><%= t('camaleon_cms.admin.plugins.active_plugins')%> (<%= PluginRoutes.enabled_plugins(current_site).size %>)</a></li>
-                    <li class="" role="presentation"><a data-toggle="tab" role="tab" href="#tab_plugins_all"><%= t('camaleon_cms.admin.plugins.all_plugins')%> (<%= all_plugins.size %>)</a></li>
+                    <li class="active" role="presentation"><a data-toggle="tab" role="tab" href="#tab_plugins_active"><%= t('camaleon_cms.admin.plugins.active_plugins')%> (<%= PluginRoutes.enabled_plugins(current_site).size  %>)</a></li>
+                    <li class="" role="presentation"><a data-toggle="tab" role="tab" href="#tab_plugins_disabled"><%= t('camaleon_cms.admin.plugins.disabled_plugins')%> (<%= all_plugins.size - PluginRoutes.enabled_plugins(current_site).size  %>)</a></li>
+                    <!--<li class="" role="presentation"><a data-toggle="tab" role="tab" href="#tab_plugins_all"><%#= t('camaleon_cms.admin.plugins.all_plugins')%> (<%#= all_plugins.size %>)</a></li>-->
                 </ul>
                 <div class="tab-content">
-                    <div id="tab_plugins_all" class="tab-pane">
-                        <%= render partial: "plugins_list", locals: { plugins: all_plugins } %>
+                    <!--<div id="tab_plugins_all" class="tab-pane">-->
+                        <!--<%#= render partial: "plugins_list", locals: { plugins: all_plugins } %>-->
+                    <!--</div>-->
+                    <div id="tab_plugins_disabled" class="tab-pane">
+                        <%= render partial: "plugins_list", locals: { plugins: all_plugins - PluginRoutes.enabled_plugins(current_site) } %>
                     </div>
                     <div id="tab_plugins_active" class="tab-pane active">
                         <%= render partial: "plugins_list", locals: { plugins: PluginRoutes.enabled_plugins(current_site) } %>

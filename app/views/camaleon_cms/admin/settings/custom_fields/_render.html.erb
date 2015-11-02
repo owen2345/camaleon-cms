@@ -24,14 +24,14 @@
       values = record.get_fields(@field.slug)
       values = params[@field_name][@field.slug.to_sym][:values] if values.blank? && params[@field_name].present?
       is_disabled = @field.options[:disabled].present? || @field.options[:readonly].present?
-      obj_class = record.class.name.gsub("Decorator","").gsub("CamaleonCms::","")
+      obj_class = record.class.name.parseCamaClass.downcase
     %>
         <div class="item-custom-field c-field-<%= @field.options[:field_key] %>">
             <label for="input-<%= @rand %>">
                 <%= @field.the_name %>
                 <small class="hidden">(<%= @field.options[:field_key] %>)</small>
                 <%= raw "<em class='text-danger'>*</em>" if @field.options[:required].to_s.to_bool %>
-                <small class="shortcode_field"><br><input class="code_style" value="[data field='<%= @field.slug %>' <%= "object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record? %>]" readonly onFocus="this.select()"></small>
+                <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{@field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") if ["Post", "PostType", "Category", "PostTag", "Site", "User", "NavMenu", "Theme"].include?(obj_class) %></small>
             </label><br>
             <% if @field.description.present? %>
                 <p><small><%= @field.the_description %></small></p>

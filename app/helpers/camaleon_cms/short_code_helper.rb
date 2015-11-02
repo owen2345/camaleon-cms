@@ -44,7 +44,7 @@ module CamaleonCms::ShortCodeHelper
                   },
                   "Permit to generate specific data of a post.
                   Attributes:
-                    object: (String, defaut post) Model name: post | post_type | category | post_tag | site | user
+                    object: (String, defaut post) Model name: post | posttype | category | posttag | site | user |theme | navmenu
                     id: (Integer) Post id
                     key: (String) Post slug
                     field: (String) Custom field key, you can add render_field='true' to render field as html element, also you can add index=2 to indicate the value in position 2 for multitple values
@@ -55,7 +55,7 @@ module CamaleonCms::ShortCodeHelper
                     [data key='contact' attr='url'] ==> return the url of post with slug = contact
                     [data key='contact' attr='link'] ==> return the link with title as text of the link of post with slug = contact
                     [data object='site' attr='url'] ==> return the url of currrent site
-                    [data key='page' object='post_type' attr='url'] ==> return the url of post_type with slug = page
+                    [data key='page' object='posttype' attr='url'] ==> return the url of post_type with slug = page
                     [data field=icon index=2] ==> return the second value (multiple values) for this custom field with key=icon of current object
                     [data key='contact' field='sub_title'] ==> return the value of the custom_field with key=sub_title registered for post.slug = contact
                     [data object='site' field='sub_title'] ==> return the value of the custom_field with key=sub_title registered for current_site")
@@ -88,11 +88,14 @@ module CamaleonCms::ShortCodeHelper
   # run all shortcodes in the content
   # content: (string) text to find a short codes
   # args: custom arguments to pass for short codes render, sample: {owner: my_model, a: true}
-  # if args != Hash, this will re send as args = {owner: args}
+  #   if args != Hash, this will re send as args = {owner: args}
+  #   args should be include the owner model who is doing the action to optimize DB queries
+  # sample: do_shortcode("hello [greeting 'world']!", @my_post) ==> "hello world!"
+  # sample: do_shortcode("hello [greeting 'world']", {attr1: 'asd', owner: @my_post})
+  # return rendered string
   def do_shortcode(content, args = {})
     args = {owner: args} unless args.is_a?(Hash)
     content.scan(/#{cama_reg_shortcode}/) do |item|
-    # content.scan(/(\[(#{@_shortcodes.join("|")})\s?(.*?)\])/) do |item|
       shortcode, code, space, attrs = item
       content = content.sub(shortcode, _eval_shortcode(code, attrs, args))
     end
@@ -161,9 +164,13 @@ module CamaleonCms::ShortCodeHelper
   # execute shortcode data
   def cama_shortcode_data(attrs, args)
     res = ""
-    object = attrs["object"] || "post"
+    object = attrs["object"].downcase || "post"
     attr = attrs["attr"] || "title"
-    model = cama_shortcode_model_parser(object, attrs) || args[:owner]
+    if (args[:owner].present? && object == args[:owner].class.name.parseCamaClass.downcase) || !attrs["object"].present?
+      model = args[:owner]
+    else
+      model = cama_shortcode_model_parser(object, attrs) || args[:owner]
+    end
     return res unless model.present?
     
     if attrs["field"].present? # model custom fields
@@ -219,7 +226,7 @@ module CamaleonCms::ShortCodeHelper
         model = current_site.the_post(attrs["id"].to_i) if attrs["id"].present?
         model = current_site.the_post(attrs["key"].to_s) if attrs["key"].present?
 
-      when "post_type"
+      when "posttype"
         model = current_site.the_post_type(attrs["id"].to_i) if attrs["id"].present?
         model = current_site.the_post_type(attrs["key"].to_s) if attrs["key"].present?
 
@@ -227,12 +234,20 @@ module CamaleonCms::ShortCodeHelper
         model = current_site.the_category(attrs["id"].to_i) if attrs["id"].present?
         model = current_site.the_category(attrs["key"].to_s) if attrs["key"].present?
 
-      when "post_tag"
+      when "posttag"
         model = current_site.the_tag(attrs["id"].to_i) if attrs["id"].present?
         model = current_site.the_tag(attrs["key"].to_s) if attrs["key"].present?
 
       when "site"
         model = current_site
+
+      when "theme"
+        model = current_theme
+
+      when "navmenu"
+        model = current_site.nav_menu_items.find(attrs["id"]) if attrs["id"].present?
+        model = current_site.nav_menu_items.find_by_slug(attrs["key"]) if attrs["key"].present?
+
       when "user"
         model = current_site.the_user(attrs["id"].to_i) if attrs["id"].present?
         model = current_site.the_user(attrs["key"].to_s) if attrs["key"].present?

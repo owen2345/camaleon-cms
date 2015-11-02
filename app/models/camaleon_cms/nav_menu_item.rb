@@ -40,7 +40,6 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
   def update_count
     self.parent.update_column('count', self.parent.children.size) if self.parent.present?
     self.parent_item.update_column('count', self.parent_item.children.size) if self.parent_item.present?
+    self.update_column(:term_group, main_menu.parent_id)
   end
-
-
 end

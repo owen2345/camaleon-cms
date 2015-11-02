@@ -41,4 +41,9 @@ module CamaleonCms::Admin::ApplicationHelper
         </div>
     </div>"
   end
+
+  # print code with auto copy
+  def cama_shortcode_print(code)
+    "<input onmousedown=\"this.clicked = 1;\" readonly onfocus=\"if (!this.clicked) this.select(); else this.clicked = 2;\" onclick=\"if (this.clicked == 2) this.select(); this.clicked = 0;\" class='code_style' value=\"#{code}\">"
+  end
 end

@@ -82,46 +82,6 @@ module CamaleonCms::CamaleonHelper
     res.join("")
   end
 
-  ###### simple obfuscation methods ####
-  # generate obfuscated code
-  # return String
-  def cama_obfuscatee(text_code)
-    text = text_code
-    text = text.each_byte.map { |b| b.to_s(16) }.join
-    enc = []
-    s = []
-    array = text.split('').reverse
-    index = 0
-    array.each do |t|
-      _idf = "#{('a'..'z').to_a.shuffle[0]}#{index}"
-      enc << "def\s__#{_idf}\n\t'#{t}'\nend\n"
-      s << "__#{_idf}"
-      index += 1
-    end
-    enc << "def\s__#{index}\n\t#{s.to_a.join("+")}\nend\n"
-    enc << "def\s__#{index + 1}\n\t__#{index}.reverse\nend\n"
-    index += 1
-    enc << "def\s__#{index + 1}\n\t__#{index}.scan(/../)\nend\n"
-    index += 1
-    enc << "def\s__#{index + 1}\n\t__#{index}.map{|x|x.hex.chr}\nend\n"
-    index += 1
-    enc << "def\s__camaleon_res\n\t__#{index}.join\nend\n"
-    enc = enc.shuffle
-    Base64.encode64(enc.join)
-  end
-
-  # generate obfuscated code
-  # rebuilt obfuscated code
-  # return String
-  def cama_reverse_obfuscate(text_obfuscated)
-    begin
-      eval(Base64.decode64(text_obfuscated))
-      __camaleon_res
-    rescue
-      ''
-    end
-  end
-
   # save value as cache instance and return value
   # sample: cama_cache_fetch("my_key"){ 10+20*12 }
   def cama_cache_fetch(var_name)

@@ -112,7 +112,15 @@
       cursor: not-allowed;
     }
   }
+  form {
+    .form-group > .trans_panel{
+      margin-top: -25px;
+    }
+  }
+}
 
+#sidebar-menu{
+  z-index: 2;
 }
 
 // reset modals
@@ -165,7 +173,8 @@
 }
 
 // intro js custom
-.main-header{
+#main-header{
+  z-index: 4;
   &.introjs-fixParent{
     width: 100%;
     .navbar{
@@ -184,7 +193,7 @@
 
 // fix tinymce fullscreen
 div.mce-fullscreen{
-  z-index: 9999;
+  z-index: 10;
 }
 
 // custom loading style
