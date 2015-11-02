@@ -28,6 +28,7 @@ module CamaleonCms::CamaleonHelper
   # return html link
   def cama_edit_link(url, title = nil, attrs = { })
     return '' unless current_user.present?
+    return '' unless current_user.admin?
     attrs = {target: "_blank", style: "font-size:11px !important;cursor:pointer;"}.merge(attrs)
     ActionController::Base.helpers.link_to("&rarr; #{title || ct("edit")}".html_safe, url, attrs)
   end
@@ -49,15 +50,14 @@ module CamaleonCms::CamaleonHelper
 
   # theme common translation text
   # key: key for translation
-  # language: language for the translation, if it is nil, then will use current site language
-  # valid only for common translations, If you can to use other translations for themes or plugins,
-  # you can use the default of rails (I18n.t)
-  def ct(key, language = nil)
-    language = language || I18n.locale
+  # args: hash of arguments for i18n.t()
+  # database customized translations
+  def ct(key, args = {})
+    language = I18n.locale
     r = {flag: false, key: key, translation: "", locale: language.to_sym}
     hooks_run("on_translation", r)
     return r[:translation] if r[:flag]
-    translate("camaleon_cms.common.#{key}", locale: language)
+    I18n.translate("camaleon_cms.common.#{key}", args)
   end
 
   # check if current request was for admin panel

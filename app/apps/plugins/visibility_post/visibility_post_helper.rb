@@ -15,13 +15,9 @@ module Plugins::VisibilityPost::VisibilityPostHelper
   end
 
   def plugin_visibility_on_active(plugin)
-    # results = ActiveRecord::Base.connection.execute("ALTER TABLE posts ADD visibility varchar(100) default 'public'")
-    # results = ActiveRecord::Base.connection.execute("ALTER TABLE posts ADD visibility_value text")
   end
 
   def plugin_visibility_on_inactive(plugin)
-    # results = ActiveRecord::Base.connection.execute("ALTER TABLE posts drop column visibility")
-    # results = ActiveRecord::Base.connection.execute("ALTER TABLE posts drop column visibility_value")
   end
 
   def plugin_visibility_post_list(args)
@@ -69,12 +65,14 @@ module Plugins::VisibilityPost::VisibilityPostHelper
 
   private
   def _password_form()
-
-    "<form class='col-md-4'>
-        <h4>Protected article</h4>
+    "<form class='col-md-6 protected_form well'>
+        <h4>#{ct("proceted_article", default: 'Protected article')}</h4>
         <div class='control-group'>
           <label class='control-label'>#{t('camaleon_cms.admin.post_type.enter_password')}:</label>
           <input type='text' name='post_password' value='' class='form-control' />
+        </div>
+        <div class='control-group'>
+          <button class='btn btn-primary' type='submit'>#{ct('submit')}</button>
         </div>
     <form>"
   end
@@ -87,8 +85,8 @@ module Plugins::VisibilityPost::VisibilityPostHelper
   end
 
   def form_html(post)
-    append_asset_libraries({"plugin_visibility"=> { js: [plugin_asset_path("js/form.js")] }})
     add_asset_library('datetimepicker')
+    append_asset_libraries({"plugin_visibility"=> { js: [plugin_asset_path("js/form.js")] }})
 
     "
     <div class='form-group'>

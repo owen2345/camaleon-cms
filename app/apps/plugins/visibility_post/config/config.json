@@ -1,6 +1,6 @@
 {
   "title": "Visibility Posts",
-  "descr": "Please check documentation <a href='http://camaleon.tuzitio.com/store/plugins/8'>here.</a>",
+  "descr": "Permit to manage the permission of visualization for your contents (Public, Private, Password, Date from visibility). More info: <a target='_blank' href='http://camaleon.tuzitio.com/store/plugins/visibility_posts'>here.</a>",
   "version": "0.1",
   "key": "visibility_post",
   "helpers": [

@@ -14,7 +14,7 @@
                 </ul>
             </div>
             <div class="panel-body ">
-                <p><%= group.description %></p>
+                <%= content_tag :p, group.description if group.description.present? %>
     <% end %>
 
     <% group.fields.eager_load(:metas).each do |field|
@@ -29,10 +29,11 @@
         <div class="item-custom-field c-field-<%= @field.options[:field_key] %>">
             <label for="input-<%= @rand %>">
                 <%= @field.the_name %>
-                <small class="hidden">(<%= @field.options[:field_key] %>)</small>
                 <%= raw "<em class='text-danger'>*</em>" if @field.options[:required].to_s.to_bool %>
-                <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{@field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") if ["Post", "PostType", "Category", "PostTag", "Site", "User", "NavMenu", "Theme"].include?(obj_class) %></small>
-            </label><br>
+                <% if ["post", "posttype", "category", "postTag", "site", "user", "navmenu", "theme"].include?(obj_class) %>
+                    <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{@field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") %></small>
+                <% end %>
+            </label>
             <% if @field.description.present? %>
                 <p><small><%= @field.the_description %></small></p>
             <% end  %>
