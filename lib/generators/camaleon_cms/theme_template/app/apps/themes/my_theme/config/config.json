@@ -1,0 +1,14 @@
+{
+  "name" : "themeTitle",
+  "description" : "",
+  "thumb" : "images/image.png",
+  "helpers": [
+    "Themes::ThemeClass::MainHelper"
+  ],
+  "hooks": {
+    "on_active": ["themeKey_on_install_theme"],
+    "on_inactive": ["themeKey_on_uninstall_theme"],
+    "on_theme_settings": ["themeKey_settings"]
+    //here all your hooks
+  }
+}

@@ -1,0 +1,4 @@
+<!-- This page is viewed on admin->settings->site settings->tab theme -->
+<!-- This line will render all custom fields registered for this theme on install -->
+<!-- You can add your custom html contents here, but don't forget to save the values with hook on_theme_settings -->
+<%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: current_theme.get_field_groups, fields_name: "theme_fields"} %>

@@ -72,6 +72,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
+
     items[:checkboxes] = {
         key: 'checkboxes',
         label: 'Checkboxes',
