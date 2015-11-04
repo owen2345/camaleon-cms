@@ -4,6 +4,7 @@
 
 require 'base64'
 
+#TODO remove with elfinder?
 module ElFinder
   # Represents ElFinder connector on Rails side.
   class Connector

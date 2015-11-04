@@ -12,4 +12,3 @@
 //
 //= require jquery
 //= require ./plugins/bootstrap/bootstrap.min.js
-//= require ./plugins/modal_elfinder
