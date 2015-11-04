@@ -1,5 +1,5 @@
 // mixins
-@mixin link_round($radio: 30){
+@mixin link_round($radio: 30) {
   border: 1px solid #bbb;
   border-radius: 50%;
   color: #656d78;
@@ -13,60 +13,61 @@
   width: #{$radio}px;
 }
 
-#admin_content{
+#admin_content {
   min-height: 400px;
-  .panel{
+  .panel {
     &.panel-toggled > .panel-body {
       display: none;
     }
-    .panel-heading{
+    .panel-heading {
+      overflow: hidden;
       position: relative;
-      .panel-controls{
+      .panel-controls {
         float: right;
         list-style: outside none none;
         position: absolute;
         right: 26px;
         top: 5px;
-        li{
+        li {
           float: left;
-          a{
+          a {
             @include link_round();
           }
         }
       }
     }
-    .panel-footer{
+    .panel-footer {
       overflow: hidden;
     }
 
   }
 
   // label size
-  .label.label-form{
+  .label.label-form {
     font-size: 12px;
     vertical-align: middle;
   }
   // reset label inputs
-  label{
-    input[type="radio"], input[type="checkbox"]{
+  label {
+    input[type="radio"], input[type="checkbox"] {
       margin-right: 4px;
     }
   }
   // category lists
-  .categorychecklist{
+  .categorychecklist {
     padding-left: 10px;
     list-style: none;
-    ul{
+    ul {
       padding-left: 25px;
       list-style: none;
     }
   }
 
-  #form-post{
-    .sl-slug-edit{
+  #form-post {
+    .sl-slug-edit {
       margin-top: 4px;
     }
-    .gallery-item-remove{
+    .gallery-item-remove {
       position: absolute;
       margin-top: -22px;
     }
@@ -74,16 +75,16 @@
 
   // widgets
   #content-widget .widgets-available .small-box {
-    .inner{
+    .inner {
       padding-top: 30px;
     }
-    a{
+    a {
       position: absolute;
       top: 4px;
       right: 5px;
       @include link_round(25);
       background: rgba(250, 250, 250, 0.4);
-      &.edit_link{
+      &.edit_link {
         left: 5px;
         right: auto;
       }
@@ -116,51 +117,56 @@
 }
 
 // reset modals
-.modal, #admin_content{
-  .btn_upload{
+.modal, #admin_content {
+  .btn_upload {
     cursor: pointer;
   }
-  .input-append.date .input-group-addon{
+  .input-append.date .input-group-addon {
     padding: 7px 0;
     width: 30px;
   }
-  .input-group.color .input-group-addon{
+  .input-group.color .input-group-addon {
     background-color: #ccc;
   }
-  ul{
+  ul {
     padding: 0;
     list-style: none;
   }
   // translations
-  .trans_panel{
-    .nav-tabs .has-error { color: #a94442; }
-    .tab-pane .has-error { border: 1px solid #a94442; }
+  .trans_panel {
+    .nav-tabs .has-error {
+      color: #a94442;
+    }
+    .tab-pane .has-error {
+      border: 1px solid #a94442;
+    }
   }
-  .trans_panel{ //fix for multilanguage tabs
+  .trans_panel {
+    //fix for multilanguage tabs
     //margin-top: -25px;
   }
 
   // custom fields render in forms
-  .item-custom-field{
+  .item-custom-field {
     margin-bottom: 15px;
-    > label{
+    > label {
       display: block;
       .shortcode_field input{
         //display: none;
         min-width: 150px;
       }
     }
-    &:hover > label .shortcode_field{
+    &:hover > label .shortcode_field {
       display: block;
     }
-    .actions{
+    .actions {
       overflow: hidden;
       width: 67px;
       float: left;
-      .fa{
+      .fa {
         @include link_round;
       }
-      &+.group-input-fields-content{
+      & + .group-input-fields-content {
         margin-left: 75px;
       }
     }
@@ -169,26 +175,36 @@
 }
 
 // intro js custom
-.main-header{
-  &.introjs-fixParent{
+.main-header {
+  &.introjs-fixParent {
     width: 100%;
-    .navbar{
+    .navbar {
       width: 100%;
     }
   }
-  .logo img{
+  .logo img {
     max-width: 100%;
     max-height: 100%;
   }
 }
+
 //.introjs-skipbutton{ display: none; }
-#modal_elfinder{
-  z-index: 99999;
-}
 
 // fix tinymce fullscreen
-div.mce-fullscreen{
+div.mce-fullscreen {
   z-index: 9999;
+}
+
+#tab-information {
+  .admin_logo_upload {
+    a img {
+      border-radius: 0;
+      box-shadow: none;
+      border: 1px solid #d2d6de;
+      padding: 8px;
+      margin: 10px 10px 0 0;
+    }
+  }
 }
 
 // custom loading style

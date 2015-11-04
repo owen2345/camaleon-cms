@@ -100,7 +100,6 @@ module CamaleonCms::HtmlHelper
     libs[:multiselect] = {js: ['camaleon_cms/admin/bootstrap-select.js']}
     libs[:validate] = {js: ['camaleon_cms/admin/jquery.validate']}
     libs[:nav_menu] = {css: ['camaleon_cms/admin/nestable/jquery.nestable', "camaleon_cms/admin/nav-menu"], js: ["camaleon_cms/admin/jquery.nestable", 'camaleon_cms/admin/nav-menu']}
-    libs[:elfinder_front] = {js: ['camaleon_cms/elfinder_front.js']}
     libs[:admin_intro] = {js: ['camaleon_cms/admin/introjs/intro.min'], css: ["camaleon_cms/admin/introjs/introjs.min"]}
     libs
   end

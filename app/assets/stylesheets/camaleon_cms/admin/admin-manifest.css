@@ -18,8 +18,6 @@
  *= require ./angular-filemanager/dialogs
  *= require ./angular-filemanager/main
  *= require ./angular-filemanager/config
- *= require ./elfinder/elfinder
- *= require ./elfinder/elfinder-theme
  *= require ./bootstrap-datetimepicker
  *= require ./bootstrap-datepicker
  *= require ./introjs/introjs.min

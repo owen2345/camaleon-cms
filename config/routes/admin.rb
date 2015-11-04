@@ -14,7 +14,7 @@ Rails.application.routes.draw do
         match 'register' => 'sessions#register', via: [:get, :post, :patch]
         match 'api/:method', action: :api, via: [:get, :post], as: :api
 
-        resources :post_type , as: :post_type do
+        resources :post_type, as: :post_type do
           resources :posts, controller: 'posts' do
             # resources :comments
             get :trash
@@ -33,17 +33,17 @@ Rails.application.routes.draw do
           resources :drafts, controller: 'posts/drafts'
         end
 
-        scope 'post_type/:post_type_id/:taxonomy/:taxonomy_id' , as: :post_type_taxonomy do
+        scope 'post_type/:post_type_id/:taxonomy/:taxonomy_id', as: :post_type_taxonomy do
           get "posts" => 'posts#index'
         end
 
         get 'profile' => "users#profile"
         match 'profile/edit' => "users#profile_edit", via: [:get, :post, :patch]
-        resources :users, controller: 'users'  do
+        resources :users, controller: 'users' do
           patch 'updated_ajax'
         end
 
-        resources :user_roles, controller: 'user_roles'  do
+        resources :user_roles, controller: 'user_roles' do
         end
 
         namespace :settings do
@@ -113,19 +113,14 @@ Rails.application.routes.draw do
           get "welcome", on: :collection
         end
 
-        match 'elfinder' => 'media#elfinder', via: :all
-        match 'elfinder/iframe' => 'media#iframe', via: :all
         match 'crop' => 'media#crop', via: :all
         get 'doc' => redirect('/docs/index.html?url=/api-docs.json')
 
-        #FIXME do it filemanager scope
-        match 'filemanager/handler' => 'file_manager#handler', via: :all
-        match 'filemanager/upload' => 'file_manager#upload', via: :all
-        match 'filemanager/download' => 'file_manager#download', via: :all
-        get 'filemanager/templates/:view' => 'file_manager#templates'
-
         scope :filemanager do
-          # match 'main' => 'file_manager#main', via: :all
+          match 'handler' => 'file_manager#handler', via: :all
+          match 'upload' => 'file_manager#upload', via: :all
+          match 'download' => 'file_manager#download', via: :all
+          get 'templates/:view' => 'file_manager#templates'
           match 'view/:config' => 'file_manager#view', via: :all
         end
       end
@@ -137,7 +132,7 @@ Rails.application.routes.draw do
   scope PluginRoutes.system_info["relative_url_root"] do
     scope module: "camaleon_cms", as: "cama" do
       namespace :admin do
-        get "*path" => 'admin#render_error', defaults:{error_msg: "Invalid route"}
+        get "*path" => 'admin#render_error', defaults: {error_msg: "Invalid route"}
       end
     end
   end

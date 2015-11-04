@@ -9,6 +9,7 @@
 class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
   include CamaleonCms::CustomFieldsConcern
   delegate_all
+  require 'faraday'
 
   # return the identifier
   def the_username
@@ -27,13 +28,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
   def the_avatar
-    #TODO verify if filemanager != filesystem
-    avatar_exists = File.exist? h.cama_url_to_file_path(object.get_meta("avatar"))
-    if object.get_meta("avatar").present? && avatar_exists
-      object.get_meta("avatar")
-    else
-      h.asset_url("camaleon_cms/admin/img/no_image.jpg")
-    end
+    avatar_exists? ? object.meta[:avatar] : h.asset_url("camaleon_cms/admin/img/no_image.jpg")
   end
 
   # return the slogan for this user, default: Hello World
@@ -71,5 +66,15 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
   # key: additional key for the model
   def cache_prefix(key = "")
     "#{h.current_site.cache_prefix}/user#{object.id}#{"/#{key}" if key.present?}"
+  end
+
+  private
+
+  def avatar_exists?
+    if object.get_meta('avatar').present?
+      File.exist?(h.cama_url_to_file_path(object.get_meta('avatar'))) || Faraday.head(object.get_meta('avatar')).status == 200
+    else
+      false
+    end
   end
 end

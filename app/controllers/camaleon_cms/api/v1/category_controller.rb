@@ -8,7 +8,8 @@ class CamaleonCms::Api::V1::CategoryController < Api::ApiController
   end
 
   def categories
-    render json: current_site.full_categories
+    @categories = current_site.full_categories
+    render json: ActiveModel::ArraySerializer.new(@categories, each_serializer: Api::V1::CategorySerializer)
   end
 
 end
