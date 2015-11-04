@@ -19,32 +19,39 @@ module CamaleonCms::Frontend::SiteHelper
   end
 
   #**************** section is a? ****************#
+  # check if current section visited is home page
   def is_home?
-    params[:controller] == "frontend" && params[:action] == "index"
+    @cama_visited_home.present? || (["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "index")
   end
 
+  # check if current section visited is for post
   def is_page?
-    params[:controller] == "frontend" && params[:action] == "post"
+    ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "post"
   end
 
+  # check if current section visited is for ajax
   def is_ajax?
-    params[:controller] == "frontend" && params[:action] == "ajax"
+    ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "ajax"
   end
 
+  # check if current section visited is for search
   def is_search?
-    params[:controller] == "frontend" && params[:action] == "search"
+    ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "search"
   end
 
+  # check if current section visited is for post type
   def is_post_type?
-    params[:controller] == "frontend" && params[:action] == "post_type"
+    ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "post_type"
   end
 
+  # check if current section visited is for post tag
   def is_post_tag?
     params[:controller] == "frontend" && params[:action] == "post_tag"
   end
 
+  # check if current section visited is for category
   def is_category?
-    params[:controller] == "frontend" && params[:action] == "category"
+    ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "category"
   end
   #**************** end section is a? ****************#
 

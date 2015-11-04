@@ -97,9 +97,11 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   #   tags: String comma separated, => default (empty)
   #   slug: string key for post,    => default (empty)
   #   summary: String resume (optional)  => default (empty)
-  #   order_position: Integer to define the order position in the list (optional)
+  #   post_order: Integer to define the order position in the list (optional)
   #   fields: Hash of values for custom fields, sample => fields: {subtitle: 'abc', icon: 'test' } (optional)
-  #   settings: Hash of post settings, sample => settings: {has_content: false, has_summary: true } (optional, see more in post.set_setting(...))
+  #   settings: Hash of post settings, sample => settings:
+  #     {has_content: false, has_summary: true, default_layout: 'my_layout', default_template: 'my_template' } (optional, see more in post.set_setting(...))
+  #   data_metas: {template: "", layout: ""}
   # return created post if it was created, else return errors
   def add_post(args)
     _fields = args.delete(:fields)

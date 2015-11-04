@@ -134,7 +134,10 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   #   has_picture, boolean (default true)
   #   has_template, boolean (default false)
   #   has_comments, boolean (default false)
+  #   default_layout:  (string) (default layout) # this is still used if post type was inactivated layout and overwritten by dropdown in post view
+  #   default_template:  (string) (default template) # this is still used if post type was inactivated template and overwritten by dropdown in post view
   #   has_layout:  (boolean) (default false)
+  #   skip_fields:  (array) (default empty) array of custom field keys to avoid for this post, sample: ["subtitle", "icon"]
   # val: value for the setting
   def set_setting(key, val)
     set_option(key, val)
@@ -175,16 +178,16 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # return the layout assigned to this post
   # post_type: post type owner of this post
   def get_layout(posttype = nil)
-    return "" if !manage_layout?(posttype)
-    get_meta('layout', (posttype || self.post_type).get_option('default_layout', nil))
+    return get_option("default_template") if !manage_layout?(posttype)
+    get_meta('layout', get_option("default_layout") || (posttype || self.post_type).get_option('default_layout', nil))
   end
 
   # return the template assigned to this post
   # verify default template defined in post type
   # post_type: post type owner of this post
   def get_template(posttype = nil)
-    return "" if !manage_template?(posttype)
-    get_meta('template', (posttype || self.post_type).get_option('default_template', nil))
+    return get_option("default_template") if !manage_template?(posttype)
+    get_meta('template', get_option("default_template") || (posttype || self.post_type).get_option('default_template', nil))
   end
 
   # increment the counter of visitors

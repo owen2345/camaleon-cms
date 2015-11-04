@@ -103,11 +103,12 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   # Arguments:
   #   slug_or_id: string or integer
   # return:
-  # slug_or_id: nil => return all main_categories for this site
-  # slug_or_id: integer => return all main categories of the post_type with id = slug_or_id
-  # slug_or_id: string => return all main categories of the post_type with slug = slug_or_id
+  # slug_or_id: integer => return the post type with id = slug_or_id
+  # slug_or_id: string => return the post type with slug = slug_or_id
+  # slug_or_id: array => return all post types with slugs in the array of this site
   def the_post_type(slug_or_id)
     return object.post_types.find_by_slug(slug_or_id).decorate rescue nil if slug_or_id.is_a?(String)
+    return object.post_types.find_by_slug(slug_or_id).decorate rescue nil if slug_or_id.is_a?(Array)
     return object.post_types.find(slug_or_id).decorate rescue nil if slug_or_id.is_a?(Integer)
   end
 

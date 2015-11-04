@@ -56,6 +56,7 @@ function custom_field_colorpicker_val($field, value) {
     }
 }
 function custom_field_checkbox_val($field, values) {
+    if(values == "t") values = 1; // fix for values saved as true
     if ($field) {
         $field.find('input[value="' + values + '"]').prop('checked', true);
     }

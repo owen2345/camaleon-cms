@@ -45,7 +45,7 @@
                                         <% else %>
                                             <!--<a href="<%= "#{preview_cama_admin_appearances_themes_path(ccc_theme_preview: theme[:key])}" %>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>-->
                                             <a href="<%= current_site.the_url(ccc_theme_preview: theme[:key])%>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>
-                                            <a href="<%= cama_admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary cama_ajax_request"><%= t('camaleon_cms.admin.button.select')%></a>
+                                            <a href="<%= cama_admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary"><%= t('camaleon_cms.admin.button.select')%></a>
                                         <% end %>
                                     </div>
                                 </div>
