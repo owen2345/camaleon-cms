@@ -15,7 +15,7 @@ module CamaleonCms::Frontend::SiteHelper
   # return current url visited as path
   # http://localhost:9001/category/cat-post-2  => /category/cat-post-2
   def site_current_path
-    @_site_current_path ||= site_current_url.sub(root_url(locale: nil), "/")
+    @_site_current_path ||= site_current_url.sub(cama_root_url(locale: nil), "/")
   end
 
   #**************** section is a? ****************#

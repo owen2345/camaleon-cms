@@ -29,22 +29,22 @@ Gem::Specification.new do |s|
   s.add_dependency 'bcrypt'
   s.add_dependency 'cancancan', '~> 1.10'
   s.add_dependency 'draper', '~> 1.3'
-  # s.add_dependency 'dynamic_sitemaps'
-  s.add_dependency 'el_finder'
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
   s.add_dependency 'mobu'
-  s.add_dependency 'protected_attributes'
-  s.add_dependency 'rufus-scheduler' # deprecated
   s.add_dependency 'will_paginate'
   s.add_dependency 'will_paginate-bootstrap'
   s.add_dependency 'breadcrumbs_on_rails'
+
+  s.add_dependency 'protected_attributes' # remove in next versions
+  s.add_dependency 'rufus-scheduler' # remove in next versions
 
   # API
   s.add_dependency 'doorkeeper', '~> 3.0'
   s.add_dependency 'responders', '~> 2.0'
   s.add_dependency 'swagger-docs', '~> 0.1'
   s.add_dependency 'active_model_serializers', '0.9.2'
+  s.add_dependency 'faraday', '~> 0.9.2'
 
   # MEDIA MANAGER
   s.add_dependency 'fog', '~> 1.34'

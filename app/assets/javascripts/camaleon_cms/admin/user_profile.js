@@ -54,7 +54,7 @@ jQuery(function ($) {
     }
 
     $("#cp_photo").on("click", function () {
-        $.fn.upload_elfinder({
+        $.fn.upload_filemanager({
             layout: 'user_images_or_upload',
             selected: function (file) {
                 if (file.type != 'dir') {

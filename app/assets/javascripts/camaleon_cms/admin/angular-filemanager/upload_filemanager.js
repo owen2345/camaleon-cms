@@ -45,6 +45,11 @@
             filemanager_loader_scope.config.mimeFilter = 'images';
             filemanager_loader_scope.config.allowedActions = {navbar: {newFolder: false, uploadFile: true}};
             filemanager_loader_scope.include('/admin/filemanager/view/modal_images');
+        } else if (layout == 'audios_or_upload') {
+            filemanager_loader_scope.config.mimeFilter = 'audios';
+            filemanager_loader_scope.config.autoImagePreview = false;
+            filemanager_loader_scope.config.allowedActions = {navbar: {newFolder: true, uploadFile: true}};
+            filemanager_loader_scope.include('/admin/filemanager/view/modal_audios');
         } else if (layout == 'user_images_or_upload') {
             if (options.user_pwd != null) {
                 filemanager_loader_scope.config.pwd = options.user_pwd;

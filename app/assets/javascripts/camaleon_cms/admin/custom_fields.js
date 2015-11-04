@@ -140,47 +140,51 @@ function custom_field_text_box($field) {
     }
 }
 
-function load_upload_audio_field(dom, base_path) {
+function load_upload_audio_field(dom) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
-        layout: "audios",
-        selected: function (res, response) {
-            var file = _.first(res);
-            $input.val(file.url.to_filesystem_public_url());
-            response(true);
+        layout: "audios_or_upload",
+        selected: function (file, response) {
+            if (file.type != 'dir') {
+                $input.val(file.url.to_filesystem_public_url());
+                response(true);
+            }
         }
     });
 }
-function load_upload_file_field(dom, base_path) {
+function load_upload_file_field(dom) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
         layout: $input.data("formats") ? $input.data("formats") : "all",
-        selected: function (res, response) {
-            var file = _.first(res);
-            $input.val(base_path + file.url.to_filesystem_public_url());
-            response(true);
+        selected: function (file, response) {
+            if (file.type != 'dir') {
+                $input.val(file.url.to_filesystem_public_url());
+                response(true);
+            }
         }
     });
 }
-function load_upload_image_field(dom, base_path) {
+function load_upload_image_field(dom) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
         layout: "images",
-        selected: function (res, response) {
-            var file = _.first(res);
-            $input.val(base_path + file.url.to_filesystem_public_url());
-            response(true);
+        selected: function (file, response) {
+            if (file.type != 'dir') {
+                $input.val(file.url.to_filesystem_public_url());
+                response(true);
+            }
         }
     });
 }
-function load_upload_video_field(dom, base_path) {
+function load_upload_video_field(dom) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
         layout: "videos",
-        selected: function (res, response) {
-            var file = _.first(res);
-            $input.val(base_path + file.url.to_filesystem_public_url());
-            response(true);
+        selected: function (file, response) {
+            if (file.type != 'dir') {
+                $input.val(file.url.to_filesystem_public_url());
+                response(true);
+            }
         }
     });
 }
