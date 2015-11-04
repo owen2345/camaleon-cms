@@ -25,7 +25,7 @@
                             <img src="<%= @user.new_record? || !@user.get_meta("avatar") ? asset_path("camaleon_cms/admin/img/no_image.jpg") : @user.get_meta("avatar") %>" class="img-thumbnail input_upload"/>
                         </div>
                     </div>
-                    <div class="panel-body form-group-separated">
+                    <div class="panel-body user-form-left form-group-separated">
 
                         <div class="form-group">
                             <div class="col-md-12 col-xs-12">
@@ -34,28 +34,28 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="col-md-4 col-xs-6 control-label">#<%= t('admin.table.id')%></label>
+                            <label class="col-md-4 col-xs-6 control-label">#<%= t('camaleon_cms.admin.table.id')%></label>
                             <div class="col-md-8 col-xs-6">
                                 <%= f.text_field :id, :class => "form-control required", disabled: "disabled" %>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="col-md-4 col-xs-6 control-label"><%= t('admin.table.login')%></label>
+                            <label class="col-md-4 col-xs-6 control-label"><%= t('camaleon_cms.admin.table.login')%></label>
                             <div class="col-md-8 col-xs-6">
                                 <%= f.text_field :username, :class => "form-control required" %>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="col-md-4 col-xs-6 control-label"><%= t('admin.table.e_mail')%></label>
+                            <label class="col-md-4 col-xs-6 control-label"><%= t('camaleon_cms.admin.table.e_mail')%></label>
                             <div class="col-md-8 col-xs-6">
                                 <%= f.email_field :email, :class => "form-control required email"%>
                             </div>
                         </div>
                         <% if @user.new_record? %>
                             <div class="form-group">
-                                <label class="col-md-4 col-xs-6 control-label"><%= t('admin.table.password')%></label>
+                                <label class="col-md-4 col-xs-6 control-label"><%= t('camaleon_cms.admin.table.password')%></label>
                                 <div class="col-md-8 col-xs-6">
                                     <%= f.password_field :password, :class => "form-control required" %>
                                 </div>
@@ -63,7 +63,7 @@
                         <% end %>
 
                         <div class="form-group">
-                            <%= f.label "#{t('admin.table.role')}", class: "col-md-4 col-xs-6 control-label" %>
+                            <%= f.label "#{t('camaleon_cms.admin.table.role')}", class: "col-md-4 col-xs-6 control-label" %>
                             <div class="col-md-8 col-xs-6">
                                 <%= f.select :role,current_site.user_roles.reorder(:name).all.map{|role| [role.name, role.slug]}, {}, {:class => "form-control required"}%>
                             </div>
@@ -71,13 +71,13 @@
 
                         <div class="form-group">
                             <div class="col-md-12 col-xs-12">
-                                <button type="submit" class="btn btn-success btn-block" ><%= @user.new_record? ? t('admin.button.create') : t('admin.button.update') %></button>
+                                <button type="submit" class="btn btn-success btn-block" ><%= @user.new_record? ? t('camaleon_cms.admin.button.create') : t('camaleon_cms.admin.button.update') %></button>
                             </div>
                         </div>
                         <% if !@user.new_record? %>
                             <div class="form-group">
                                 <div class="col-md-12 col-xs-12">
-                                    <a href="#" class="btn btn-danger btn-block btn-rounded" data-toggle="modal" data-target="#modal_change_password"><%= t('admin.button.change_password') %></a>
+                                    <a href="#" class="btn btn-danger btn-block btn-rounded" data-toggle="modal" data-target="#modal_change_password"><%= t('camaleon_cms.admin.button.change_password') %></a>
                                 </div>
                             </div>
                         <% end %>
@@ -88,35 +88,36 @@
             </div>
             <div class="col-md-6 col-sm-8">
                 <div class="panel panel-default">
-                    <div class="panel-body">
-                        <h3><span class="fa fa-pencil"></span> <%= t('admin.users.profile') %></h3>
-                    </div>
                     <div class="panel-body form-group-separated">
-                        <%
-                           data_meta = @user.meta
-                           User::meta_default[:fields].each do |field, values| %>
-
-                            <div class="form-group">
-                                <label class="col-md-3 col-xs-5 control-label">
-                                    <%= t("admin.table.#{values[:label].gsub(' ','').tableize}")%>
-                                </label>
-                                <div class="col-md-9 col-xs-7">
-                                    <input type="text" name="<%=  "meta[#{field}]" %>" value="<%= data_meta[field] %>" class="form-control"/>
-                                </div>
-                            </div>
-                        <% end %>
-
                         <div class="form-group">
-                            <label class="col-md-3 col-xs-5 control-label"><%= t('admin.table.slogan') %></label>
+                            <label class="col-md-3 col-xs-5 control-label">
+                                <%= t("camaleon_cms.admin.table.first_names")%>
+                            </label>
                             <div class="col-md-9 col-xs-7">
-                                <textarea name="meta[slogan]" class="form-control"><%= @user.meta[:slogan] %></textarea>
+                                <input type="text" name="meta[first_name]" value="<%= @user.get_meta("first_name") %>" class="form-control required"/>
                             </div>
                         </div>
-                        <%= render partial: "admin/settings/custom_fields/render", locals: {record: @user, field_groups: @user.get_user_field_groups(current_site) } %>
+
+                        <div class="form-group">
+                            <label class="col-md-3 col-xs-5 control-label">
+                                <%= t("camaleon_cms.admin.table.last_names")%>
+                            </label>
+                            <div class="col-md-9 col-xs-7">
+                                <input type="text" name="meta[last_name]" value="<%= @user.get_meta("last_name") %>" class="form-control required"/>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-md-3 col-xs-5 control-label"><%= t('camaleon_cms.admin.table.slogan') %></label>
+                            <div class="col-md-9 col-xs-7">
+                                <textarea name="meta[slogan]" class="form-control"><%= @user.get_meta("slogan") %></textarea>
+                            </div>
+                        </div>
+                        <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @user, field_groups: @user.get_user_field_groups(current_site) } %>
                     </div>
                     <div class="panel-footer">
-                        <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('admin.button.back')%></a>
-                        <button class="btn btn-success pull-right"><%= @user.new_record? ? t('admin.button.create') : t('admin.button.update') %></button>
+                        <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back')%></a>
+                        <button class="btn btn-success pull-right"><%= @user.new_record? ? t('camaleon_cms.admin.button.create') : t('camaleon_cms.admin.button.update') %></button>
                     </div>
                 </div>
             </div>
@@ -160,7 +161,7 @@
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><%= t('camaleon_cms.admin.button.close') %></span></button>
                 <h4 class="modal-title" id="smallModalHead"><%= t('camaleon_cms.admin.button.change_photo') %></h4>
             </div>
-            <form id="cp_crop" method="post" action="<%= admin_crop_path({saved_avatar: @user.id}) %>">
+            <form id="cp_crop" method="post" action="<%= cama_admin_crop_path({saved_avatar: @user.id}) %>">
                 <div class="modal-body">
                     <div class="text-center" id="cp_target"><%= t('camaleon_cms.admin.message.change_photo') %></div>
                     <input type="hidden" name="cp_img_path" id="cp_img_path"/>
@@ -194,7 +195,7 @@
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><%= t('camaleon_cms.admin.button.close') %></span></button>
                 <h4 class="modal-title" id="smallModalHead"><%= t('camaleon_cms.admin.button.change_password') %></h4>
             </div>
-            <%= form_for @user, as: "user", url: @user.new_record? ? admin_users_path : admin_user_updated_ajax_path(@user), html:{id: "profie-form-ajax-password", class: 'validate-password form-ajax-password modal-body'} do |f| %>
+            <%= form_for @user, as: "user", url: @user.new_record? ? cama_admin_users_path : cama_admin_user_updated_ajax_path(@user), html:{id: "profie-form-ajax-password", class: 'validate-password form-ajax-password modal-body'} do |f| %>
                 <p><%= t('camaleon_cms.admin.message.change_password') %></p>
                 <div class="form-group">
                     <label class="col-md-3 control-label"><%= t('camaleon_cms.admin.table.old_password') %></label>

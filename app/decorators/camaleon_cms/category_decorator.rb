@@ -17,12 +17,12 @@ class CamaleonCms::CategoryDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:locale] = @_deco_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
-    h.cama_url_to_fixed("category#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("cama_category#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return edit url for this category
   def the_edit_url
-    h.edit_admin_post_type_category_url(object.post_type.id, object)
+    h.edit_cama_admin_post_type_category_url(object.post_type.id, object)
   end
 
   # return all children categories for the current category (active_record) filtered by permissions + hidden posts + roles + etc...

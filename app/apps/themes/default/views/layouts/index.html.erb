@@ -15,7 +15,7 @@
     <div id="page" class="hfeed site">
         <!-- header -->
         <header id="masthead" class="site-header" role="banner">
-            <a class="home-link" href="<%= root_url %>" title="<%= current_site.the_title %>" rel="home">
+            <a class="home-link" href="<%= current_site.the_url %>" title="<%= current_site.the_title %>" rel="home">
                 <h1 class="site-title"><%= current_site.the_title %></h1>
                 <h2 class="site-description"><%= current_site.the_content %></h2>
             </a>
@@ -33,9 +33,9 @@
                                 <li class="dropdown">
                                     <a class="dropdown-toggle" href="#"><img src="<%= current_user.decorate.the_avatar %>" style="max-width: 24px; border-radius: 50%" alt=""/> <%= current_user.username %></a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="<%= admin_dashboard_path %>">Dashboard</a></li>
-                                        <li><a href="<%= admin_profile_path %>">Profile</a></li>
-                                        <li><a href="<%= admin_logout_path %>">Logout</a></li>
+                                        <li><a href="<%= cama_admin_dashboard_path %>">Dashboard</a></li>
+                                        <li><a href="<%= cama_admin_profile_path %>">Profile</a></li>
+                                        <li><a href="<%= cama_admin_logout_path %>">Logout</a></li>
                                     </ul>
                                 </li>
                             <% else %>
@@ -43,8 +43,8 @@
                                 <li class="dropdown">
                                     <a id="login-user" class="dropdown-toggle" href="#">Login / Register</a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="<%= admin_login_path %>">Login</a></li>
-                                        <li><a href="<%= admin_register_path %>">Register</a></li>
+                                        <li><a href="<%= cama_admin_login_path %>">Login</a></li>
+                                        <li><a href="<%= cama_admin_register_path %>">Register</a></li>
                                     </ul>
                                 </li>
                             <% end %>

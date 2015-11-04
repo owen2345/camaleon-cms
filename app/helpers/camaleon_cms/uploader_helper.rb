@@ -7,7 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module CamaleonCms::UploaderHelper
-  include FileSystemHelper
+  include CamaleonCms::FileSystemHelper
   # upload a file into server
   # settings:
   #   folder: Directory where the file will be saved (default: current_site.upload_directory)
@@ -126,7 +126,7 @@ module CamaleonCms::UploaderHelper
 
   # convert downloaded file path into public url
   def cama_file_path_to_url(file_path)
-    file_path.sub(Rails.public_path.to_s, root_url)
+    file_path.sub(Rails.public_path.to_s, cama_root_url)
   end
 
   # convert public url to file path

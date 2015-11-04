@@ -74,7 +74,7 @@ module CamaleonCms::Frontend::NavMenuHelper
     nav_menu.eager_load(:metas).each do |nav_menu_item|
       data_nav_item = _get_link_nav_menu(nav_menu_item)
       next if data_nav_item == false
-      _is_current = site_current_path == data_nav_item[:link] || site_current_path == data_nav_item[:link].sub(".html", "")
+      _is_current = data_nav_item[:current] || site_current_path == data_nav_item[:link] || site_current_path == data_nav_item[:link].sub(".html", "")
       has_children = nav_menu_item.have_children? && (args[:levels] == -1 || (args[:levels] != -1 && level <= args[:levels]))
       r = {
         menu_item: nav_menu_item.decorate,
@@ -113,7 +113,7 @@ module CamaleonCms::Frontend::NavMenuHelper
   # check if menu is the current menu
   def cama_is_current_menu?(menu_item)
     r = _get_link_nav_menu(menu_item)
-    site_current_path == r[:link] || site_current_path.sub(".html", "") == r[:link].sub(".html", "") if r.present?
+    r[:current] || site_current_path == r[:link] || site_current_path.sub(".html", "") == r[:link].sub(".html", "") if r.present?
   end
 
   #******************* BREADCRUMBS *******************
@@ -150,19 +150,19 @@ module CamaleonCms::Frontend::NavMenuHelper
         when 'post'
           post = CamaleonCms::Post.find(nav_menu_item.get_option('object_id')).decorate
           return false unless post.can_visit?
-          {link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu}
+          {link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu, current: @cama_visited_post.present? && @cama_visited_post.id == post.id}
         when 'category'
           category = CamaleonCms::Category.find(nav_menu_item.get_option('object_id')).decorate
-          {link: category.the_url(as_path: true), name: category.the_title, type_menu: type_menu}
+          {link: category.the_url(as_path: true), name: category.the_title, type_menu: type_menu, current: @cama_visited_category.present? && @cama_visited_category.id == category.id}
         when 'post_tag'
           post_tag = CamaleonCms::PostTag.find(nav_menu_item.get_option('object_id')).decorate
-          {link: post_tag.the_url(as_path: true), name: post_tag.the_title, type_menu: type_menu}
+          {link: post_tag.the_url(as_path: true), name: post_tag.the_title, type_menu: type_menu, current: @cama_visited_tag.present? && @cama_visited_tag.id == post_tag.id}
         when 'post_type'
           post_type = CamaleonCms::PostType.find(nav_menu_item.get_option('object_id')).decorate
-          {link: post_type.the_url(as_path: true), name: post_type.the_title, type_menu: type_menu}
+          {link: post_type.the_url(as_path: true), name: post_type.the_title, type_menu: type_menu, current: @cama_visited_post_type.present? && @cama_visited_post_type.id == post_type.id}
         when 'external'
-          r = {link: nav_menu_item.get_option('object_id'), name: nav_menu_item.name.to_s.translate, type_menu: type_menu}
-          r[:link] = cama_url_to_fixed("root_url") if r[:link] == "root_url"
+          r = {link: nav_menu_item.get_option('object_id'), name: nav_menu_item.name.to_s.translate, type_menu: type_menu, current: false}
+          r[:link] = cama_url_to_fixed("cama_root_url") if r[:link] == "root_url"
           r
         else
           false

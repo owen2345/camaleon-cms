@@ -10,54 +10,54 @@ module CamaleonCms::Admin::MenusHelper
   include CamaleonCms::Admin::BreadcrumbHelper
 
   def admin_menus_add_commons
-    admin_menu_add_menu("dashboard", {icon: "dashboard", title: t('camaleon_cms.admin.sidebar.dashboard'), url: admin_dashboard_path})
+    admin_menu_add_menu("dashboard", {icon: "dashboard", title: t('camaleon_cms.admin.sidebar.dashboard'), url: cama_admin_dashboard_path})
     #if can? :manager, :content
     items = []
 
     current_site.post_types.eager_load(:metas).visible_menu.all.each do |pt|
       pt = pt.decorate
       items_i = []
-      items_i << {icon: "list", title: "#{t('camaleon_cms.admin.post_type.all')}", url: admin_post_type_posts_path(pt.id)} if can? :posts, pt
-      items_i << {icon: "plus", title: "#{t('camaleon_cms.admin.post_type.add_new')}  ", url: new_admin_post_type_post_path(pt.id)} if can? :create_post, pt
+      items_i << {icon: "list", title: "#{t('camaleon_cms.admin.post_type.all')}", url: cama_admin_post_type_posts_path(pt.id)} if can? :posts, pt
+      items_i << {icon: "plus", title: "#{t('camaleon_cms.admin.post_type.add_new')}  ", url: new_cama_admin_post_type_post_path(pt.id)} if can? :create_post, pt
       if pt.manage_categories?
-        items_i << {icon: "folder-open", title: t('camaleon_cms.admin.post_type.categories'), url: admin_post_type_categories_path(pt.id)} if can? :categories, pt
+        items_i << {icon: "folder-open", title: t('camaleon_cms.admin.post_type.categories'), url: cama_admin_post_type_categories_path(pt.id)} if can? :categories, pt
       end
       if pt.manage_tags?
-        items_i << {icon: "tags", title: t('camaleon_cms.admin.post_type.tags'), url: admin_post_type_post_tags_path(pt.id)} if can? :post_tags, pt
+        items_i << {icon: "tags", title: t('camaleon_cms.admin.post_type.tags'), url: cama_admin_post_type_post_tags_path(pt.id)} if can? :post_tags, pt
       end
       items << {icon: "copy", title: pt.the_title, url: "", items: items_i } if items_i.present? #if can? :posts, pt
     end
     admin_menu_add_menu("content", {icon: "database", title: t('camaleon_cms.admin.sidebar.contents'), url: "", items: items, datas: "data-intro='#{t("camaleon_cms.admin.intro.content")}' data-position='right' data-wait='600'"}) if items.present?
     #end
 
-    admin_menu_add_menu("media", {icon: "picture-o", title: t('camaleon_cms.admin.sidebar.media'), url: admin_media_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.media")}' data-position='right'"}) if can? :manager, :media
-    admin_menu_add_menu("comments", {icon: "comments", title: t('camaleon_cms.admin.sidebar.comments'), url: admin_comments_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.comments")}' data-position='right'"}) if can? :manager, :comments
+    admin_menu_add_menu("media", {icon: "picture-o", title: t('camaleon_cms.admin.sidebar.media'), url: cama_admin_media_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.media")}' data-position='right'"}) if can? :manager, :media
+    admin_menu_add_menu("comments", {icon: "comments", title: t('camaleon_cms.admin.sidebar.comments'), url: cama_admin_comments_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.comments")}' data-position='right'"}) if can? :manager, :comments
 
     items = []
-    items << {icon: "desktop", title: t('camaleon_cms.admin.sidebar.themes'), url: admin_appearances_themes_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.themes")}' data-position='right'"} if can? :manager, :themes
-    items << {icon: "archive", title: t('camaleon_cms.admin.sidebar.widgets'), url: admin_appearances_widgets_main_index_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.widgets")}' data-position='right'"} if can? :manager, :widgets
-    items << {icon: "list", title: t('camaleon_cms.admin.sidebar.menus'), url: admin_appearances_nav_menus_menu_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.menus", image: view_context.asset_path("camaleon_cms/admin/intro/menus.png"))}' data-position='right'"} if can? :manager, :nav_menu
+    items << {icon: "desktop", title: t('camaleon_cms.admin.sidebar.themes'), url: cama_admin_appearances_themes_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.themes")}' data-position='right'"} if can? :manager, :themes
+    items << {icon: "archive", title: t('camaleon_cms.admin.sidebar.widgets'), url: cama_admin_appearances_widgets_main_index_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.widgets")}' data-position='right'"} if can? :manager, :widgets
+    items << {icon: "list", title: t('camaleon_cms.admin.sidebar.menus'), url: cama_admin_appearances_nav_menus_menu_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.menus", image: view_context.asset_path("camaleon_cms/admin/intro/menus.png"))}' data-position='right'"} if can? :manager, :nav_menu
     admin_menu_add_menu("appearance", {icon: "paint-brush", title: t('camaleon_cms.admin.sidebar.appearance'), url: "", items: items, datas: "data-intro='#{t("camaleon_cms.admin.intro.appearance")}' data-position='right' data-wait='500'"}) if items.present?
 
 
-    admin_menu_add_menu("plugins", {icon: "plug", title: "#{t('camaleon_cms.admin.sidebar.plugins')} <small class='label label-primary'>#{PluginRoutes.all_plugins.size}</small>", url: admin_plugins_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.plugins")}' data-position='right'"}) if can? :manager, :plugins
+    admin_menu_add_menu("plugins", {icon: "plug", title: "#{t('camaleon_cms.admin.sidebar.plugins')} <small class='label label-primary'>#{PluginRoutes.all_plugins.size}</small>", url: cama_admin_plugins_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.plugins")}' data-position='right'"}) if can? :manager, :plugins
 
     if can? :manager, :users
       items = []
-      items << {icon: "list", title: t('camaleon_cms.admin.users.all_users'), url: admin_users_path}
-      items << {icon: "plus", title: t('camaleon_cms.admin.users.add_user'), url: new_admin_user_path}
-      items << {icon: "group", title: t('camaleon_cms.admin.users.user_roles'), url: admin_user_roles_path}
+      items << {icon: "list", title: t('camaleon_cms.admin.users.all_users'), url: cama_admin_users_path}
+      items << {icon: "plus", title: t('camaleon_cms.admin.users.add_user'), url: new_cama_admin_user_path}
+      items << {icon: "group", title: t('camaleon_cms.admin.users.user_roles'), url: cama_admin_user_roles_path}
       admin_menu_add_menu("users", {icon: "users", title: t('camaleon_cms.admin.sidebar.users'), url: "", items: items, datas: "data-intro='#{t("camaleon_cms.admin.intro.users")}' data-position='right' data-wait='500'"})
     end
 
     if can? :manager, :settings
       items = []
-      items << {icon: "desktop", title: t('camaleon_cms.admin.sidebar.general_site'), url: admin_settings_site_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.gral_site")}' data-position='right'"}
-      items << {icon: "cog", title: t('camaleon_cms.admin.sidebar.sites'), url: admin_settings_sites_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.sites")}' data-position='right'"} if current_site.manage_sites?
-      items << {icon: "files-o", title: t('camaleon_cms.admin.sidebar.content_groups'), url: admin_settings_post_types_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.post_type")}' data-position='right'"}
-      items << {icon: "cog", title: t('camaleon_cms.admin.sidebar.custom_fields'), url: admin_settings_custom_fields_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.custom_fields")}' data-position='right'"}
-      items << {icon: "language", title: t('camaleon_cms.admin.sidebar.languages'), url: admin_settings_languages_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.languages")}' data-position='right'"}
-      items << {icon: "code", title: t('camaleon_cms.admin.sidebar.shortcodes', default: "Shortcodes"), url: admin_settings_shortcodes_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.shortcodes")}' data-position='right'"}
+      items << {icon: "desktop", title: t('camaleon_cms.admin.sidebar.general_site'), url: cama_admin_settings_site_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.gral_site")}' data-position='right'"}
+      items << {icon: "cog", title: t('camaleon_cms.admin.sidebar.sites'), url: cama_admin_settings_sites_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.sites")}' data-position='right'"} if current_site.manage_sites?
+      items << {icon: "files-o", title: t('camaleon_cms.admin.sidebar.content_groups'), url: cama_admin_settings_post_types_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.post_type")}' data-position='right'"}
+      items << {icon: "cog", title: t('camaleon_cms.admin.sidebar.custom_fields'), url: cama_admin_settings_custom_fields_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.custom_fields")}' data-position='right'"}
+      items << {icon: "language", title: t('camaleon_cms.admin.sidebar.languages'), url: cama_admin_settings_languages_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.languages")}' data-position='right'"}
+      items << {icon: "code", title: t('camaleon_cms.admin.sidebar.shortcodes', default: "Shortcodes"), url: cama_admin_settings_shortcodes_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.shortcodes")}' data-position='right'"}
       admin_menu_add_menu("settings", {icon: "cogs", title: t('camaleon_cms.admin.sidebar.settings'), url: "", items: items, datas: "data-intro='#{t("camaleon_cms.admin.intro.settings")}' data-position='right' data-wait='500'"})
     end
 

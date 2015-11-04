@@ -17,22 +17,22 @@ class CamaleonCms::PostTypeDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
-    h.cama_url_to_fixed("post_type#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("cama_post_type#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return edit url for this post type
   def the_edit_url
-    h.edit_admin_settings_post_type_url(object.id)
+    h.edit_cama_admin_settings_post_type_url(object.id)
   end
 
   # return the admin list url for this post type
   def the_admin_url(list_type = "post")
     if list_type == "post"
-      h.admin_post_type_posts_path(object.id)
+      h.cama_admin_post_type_posts_path(object.id)
     elsif list_type == "tag"
-      h.admin_post_type_post_tags_path(object.id)
+      h.cama_admin_post_type_post_tags_path(object.id)
     else # categories
-      h.admin_post_type_categories_path(object.id)
+      h.cama_admin_post_type_categories_path(object.id)
     end
   end
 

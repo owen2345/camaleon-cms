@@ -25,7 +25,7 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
       @post_draft.set_meta_from_form(params[:meta])
       @post_draft.set_field_values(params[:field_options])
       @post_draft.set_option("keywords", post_data[:keywords])
-      msg = {draft: {id: @post_draft.id}, _drafts_path: admin_post_type_draft_path(@post_type.id, @post_draft)}
+      msg = {draft: {id: @post_draft.id}, _drafts_path: cama_admin_post_type_draft_path(@post_type.id, @post_draft)}
       r = {post: @post_draft, post_type: ""}; hooks_run("created_post", r)
     else
       msg = {error: @post_draft.errors.full_messages}

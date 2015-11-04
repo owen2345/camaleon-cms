@@ -1,0 +1,4 @@
+<div style="text-align:center">
+    <%= raw t("camaleon_cms.page_error_500") %>
+    <%= content_tag(:code, @message, class: "",) if @message.present? %>
+</div>

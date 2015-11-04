@@ -1,7 +1,6 @@
-<%= form_tag(search_path, :method => "get", :class => "form-search form-horizontal") do %>
-
+<%= form_tag(cama_search_path, :method => "get", :class => "form-search form-horizontal") do %>
     <div class="input-group">
-        <input type="text" name="q" class="form-control" placeholder="Search...">
+        <input type="text" name="q" class="form-control" placeholder="<%= t("camaleon_cms.common.search") %>...">
         <div class="input-group-btn">
             <button type="submit" class="btn"><i class="fa fa-search"></i></button>
         </div>

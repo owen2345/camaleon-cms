@@ -21,7 +21,6 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   has_many :posts, through: :post_types, :source => :posts
   has_many :plugins, :class_name => "CamaleonCms::Plugin", foreign_key: :parent_id, dependent: :destroy
   has_many :themes, :class_name => "CamaleonCms::Theme", foreign_key: :parent_id, dependent: :destroy
-  has_many :grid_templates, foreign_key: :parent_id, dependent: :destroy
 
   after_create :default_settings
   after_create :set_all_users
@@ -238,52 +237,14 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   # default structure for each new site
   def default_settings
     default_post_type = [
-        {
-            name: 'Post',
-            description: 'Posts',
-            options: {
-                has_category: true,
-                has_tags: true,
-                not_deleted: true,
-                has_summary: true,
-                has_content: true,
-                has_comments: true,
-                has_picture: true,
-                has_template: true,
-            }
-        },
-        {
-            name: 'Page',
-            description: 'Pages',
-            options: {
-                has_category: false,
-                has_tags: false,
-                not_deleted: true,
-                has_summary: false,
-                has_content: true,
-                has_comments: false,
-                has_picture: true,
-                has_template: true,
-            }
-        }
+        {name: 'Post', description: 'Posts', options: {has_category: true, has_tags: true, not_deleted: true, has_summary: true, has_content: true, has_comments: true, has_picture: true, has_template: true, }},
+        {name: 'Page', description: 'Pages', options: {has_category: false, has_tags: false, not_deleted: true, has_summary: false, has_content: true, has_comments: false, has_picture: true, has_template: true, }}
     ]
-
     default_post_type.each do |pt|
-      model_pt = self.post_types.create({
-                                            name: pt[:name],
-                                            slug: pt[:name].to_s.parameterize,
-                                            description: pt[:description]
-                                        })
-      if model_pt.valid?
-        model_pt.set_meta('_default', pt[:options])
-        if pt[:options][:has_category]
-          model_pt.default_category
-        end
-      end
+      model_pt = self.post_types.create({name: pt[:name], slug: pt[:name].to_s.parameterize, description: pt[:description], data_options: pt[:options]})
     end
 
     # nav menus
-    # @sidebar  = self.sidebars.new({name: 'default sidebar', slug: 'default-sidebar'})
     @nav_menu = self.nav_menus.new({name: "Main Menu", slug: "main_menu"})
     if @nav_menu.save
       self.post_types.all.each do |pt|
@@ -320,7 +281,6 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   def update_routes
     if self.id == CamaleonCms::Site.first.id
       PluginRoutes.system_info_set("base_domain", self.slug) if self.slug.present?
-      # self.update_column("slug", "")
     end
     PluginRoutes.reload
   end

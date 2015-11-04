@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin::SettingsController
   include CamaleonCms::Admin::CustomFieldsHelper
-  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.custom_fields"), :admin_settings_custom_fields_path
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.custom_fields"), :cama_admin_settings_custom_fields_path
   before_action :set_custom_field_group, only: ['show','edit','update','destroy']
 
   def index
@@ -66,6 +66,7 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   # destroy a custom field group
   def destroy
     @field_group.destroy
+    flash[:notice] = t('camaleon_cms.admin.custom_field.message.deleted', default: "Custom Field Group Deleted.")
     redirect_to action: :index
   end
 
@@ -85,7 +86,7 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
       @field_group = current_site.custom_field_groups.find(params[:id])
     rescue
       flash[:error] = t('camaleon_cms.admin.custom_field.message.custom_group_error')
-      redirect_to admin_path
+      redirect_to cama_admin_path
     end
   end
 end

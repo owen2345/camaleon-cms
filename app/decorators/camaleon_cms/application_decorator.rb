@@ -64,6 +64,6 @@ class CamaleonCms::ApplicationDecorator < Draper::Decorator
   # internal helper
   def _calc_locale(_l)
     _l = (_l || @_deco_locale || I18n.locale).to_s
-    "_#{_l}" if _l != "en"
+    "_#{_l}"# if _l != "en"
   end
 end

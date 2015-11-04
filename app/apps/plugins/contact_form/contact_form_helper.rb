@@ -74,12 +74,11 @@ module Plugins::ContactForm::ContactFormHelper
   end
 
   def contact_form_admin_before_load
-    admin_menu_append_menu_item("settings", {icon: "envelope-o", title: t('plugin.contact_form.contact_form'), url:  admin_plugins_contact_form_admin_forms_path, datas: "data-intro='This plugin permit you to create you contact forms with desired fields and paste your short_code in any content.' data-position='right'"})
+    admin_menu_append_menu_item("settings", {icon: "envelope-o", title: t('plugin.contact_form.contact_form'), url: admin_plugins_contact_form_admin_forms_path, datas: "data-intro='This plugin permit you to create you contact forms with desired fields and paste your short_code in any content.' data-position='right'"})
   end
 
   def contact_form_app_before_load
-    shortcode_add('forms', plugin_view("forms_shorcode"), "This is a shortocode for contact form to permit you to put your contact form in any content.
-    Sample: [forms slug='key-for-my-form']")
+    shortcode_add('forms', plugin_view("forms_shorcode"), "This is a shortocode for contact form to permit you to put your contact form in any content. Sample: [forms slug='key-for-my-form']")
   end
 
   def contact_form_front_before_load
@@ -153,13 +152,13 @@ module Plugins::ContactForm::ContactFormHelper
             validate = false
           end
           if f[:field_type].to_s == "email"
-            if !fields[cid].match(/\b[A-Z0-9._%a-z\-]+@(?:[A-Z0-9a-z\-]+\.)+[A-Za-z]{2,10}\z/)
+            if !fields[cid].match(/@/)
               errors << "#{label}: #{settings[:railscf_message][:invalid_email]}"
               validate = false
             end
           end
         when 'captcha'
-          unless captcha_verified?
+          unless cama_captcha_verified?
             errors << "#{label}: #{settings[:railscf_message][:captcha_not_match]}"
             validate = false
           end

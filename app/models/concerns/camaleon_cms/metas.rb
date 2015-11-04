@@ -8,6 +8,14 @@
 =end
 module CamaleonCms::Metas extend ActiveSupport::Concern
   included do
+    # options and metas auto save support
+    attr_accessor :data_options
+    attr_accessible :data_options
+    attr_accessor :data_metas
+    attr_accessible :data_metas
+    after_save  :save_metas_options, unless: :save_metas_options_skip
+    before_update :fix_save_metas_options_no_changed
+
     has_many :metas, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::", ""))}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   end
 
@@ -20,15 +28,16 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
 
   # return value of meta with key: key,
   # if meta not exist, return default
+  # return default if meta value == ""
   def get_meta(key, default = nil)
     cama_fetch_cache("meta_#{key}") do
       option = metas.where(key: key).first
+      res = ""
       if option.present?
         value = JSON.parse(option.value) rescue option.value
-        (value.is_a?(Hash) ? value.to_sym : value) rescue option.value
-      else
-        default
+        res = (value.is_a?(Hash) ? value.to_sym : value) rescue option.value
       end
+      res == "" ? default : res
     end
   end
 
@@ -56,11 +65,12 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # return configuration for current object
   # key: attribute name
   # default: if attribute not exist, return default
+  # return default if option value == ""
   # return value for attribute
   def get_option(key = nil, default = nil)
     values = options.present? ? options : {}
     key = key.to_sym
-    values.has_key?(key) ? values[key] : default
+    values.has_key?(key) && values[key] != "" ? values[key] : default
   end
 
   # delete attribute from configuration
@@ -80,6 +90,27 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
         data[key] = fix_meta_var(value)
       end
       set_meta('_default', data)
+    end
+  end
+
+  # permit to skip save_metas_options in specific models
+  def save_metas_options_skip
+    false
+  end
+
+  # fix to save options and metas when a model was not changed
+  def fix_save_metas_options_no_changed
+    save_metas_options unless self.changed?
+  end
+
+  # save all settings for this post type received in data_options and data_metas attribute (options and metas)
+  # sample: Site.first.post_types.create({name: "owen", slug: "my_post_type", data_options: { has_category: true, default_layout: "my_layout" }})
+  def save_metas_options
+    set_multiple_options(data_options)
+    if data_metas.present?
+      data_metas.each do |key, val|
+        set_meta(key, val)
+      end
     end
   end
 

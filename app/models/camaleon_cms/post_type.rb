@@ -8,7 +8,6 @@
 =end
 class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   default_scope { where(taxonomy: :post_type) }
-
   has_many :metas, ->{ where(object_class: 'PostType')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   has_many :categories, :class_name => "CamaleonCms::Category", foreign_key: :parent_id, dependent: :destroy
   has_many :post_tags, :class_name => "CamaleonCms::PostTag", foreign_key: :parent_id, dependent: :destroy
@@ -23,7 +22,6 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   scope :hidden_menu, -> {where(term_group: -1)}
   before_destroy :destroy_field_groups
   after_create :set_default_site_user_roles
-
 
   # check if current post type manage categories
   def manage_categories?
@@ -56,11 +54,14 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   #   has_picture: true,
   #   has_template: true,
   #   has_keywords: true,
-  #   not_deleted: false
+  #   not_deleted: false,
+  #   has_layout: false,
+  #   default_layout: '',
+  #   contents_route_format: 'post'
   # }
   def set_settings(settings = {})
     settings.each do |key, val|
-      self.set_setting(key, val)
+      self.set_option(key, val)
     end
   end
 
@@ -118,18 +119,40 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
       p.set_summary(_summary) if _summary.present?
       p.set_thumb(_thumb) if _thumb.present?
       _fields.each{ |k, v| p.save_field_value(k, v) } if _fields.present?
-      return p
+      return p.decorate
     else
       p.errors
     end
   end
 
+  # return all available route formats of this post type for content posts
+  def contents_route_formats
+    {
+      "post_of_post_type" => "<code>/group/:post_type_id-:title/:slug</code><br>  (Sample: http://localhost.com/group/17-services/myservice.html)",
+      "post_of_category" => "<code>/category/:category_id-:title/:slug</code><br>  (Sample: http://localhost.com/category/17-services/myservice.html)",
+      "post_of_posttype" => "<code>/:post_type_title/:slug</code><br>  (Sample: http://localhost.com/services/myservice.html)",
+      "post" => "<code>/:slug</code><br>  (Sample: http://localhost.com/myservice.html)"
+    }
+  end
+
+  # return the configuration of routes for post contents
+  def contents_route_format
+    get_option("contents_route_format", "post")
+  end
+
   private
+  # skip save_metas_options callback after save changes (inherit from taxonomy) to call from here manually
+  def save_metas_options_skip
+    true
+  end
+
   # assign default roles for this post type
   # define default settings for this post type
   def set_default_site_user_roles
-    self.set_meta('_default', {has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_keywords: true, not_deleted: false})
+    self.set_multiple_options({has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_keywords: true, not_deleted: false, has_layout: false, default_layout: ""})
+    save_metas_options
     self.site.set_default_user_roles(self)
+    default_category
   end
 
   # destroy all custom field groups assigned to this post type

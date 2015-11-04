@@ -50,21 +50,19 @@
                 </select>
             </div>
             <!-- templates -->
-            <% if @post.manage_template?(@post_type) %>
-                <% if (template_files = cama_get_list_template_files).present? %>
-                  <div class="form-group">
-                      <label class="control-label"><%= t('camaleon_cms.admin.post_type.template')%></label>
-                      <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.get_meta("template") ) }, {class: 'form-control'}) %>
-                  </div>
-                <% end %>
+            <% if @post.manage_template?(@post_type) && (template_files = cama_get_list_template_files).present? %>
+                <div class="form-group">
+                    <label class="control-label"><%= t('camaleon_cms.admin.post_type.template')%></label>
+                    <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.get_template(@post_type) ) }, {class: 'form-control'}) %>
+                </div>
+            <% end %>
 
-                <!-- layouts -->
-                <% if (layout_files = cama_get_list_layouts_files).present? %>
-                    <div class="form-group">
-                        <label class="control-label"><%= t('camaleon_cms.admin.post_type.layout')%></label>
-                        <%= select("meta", "layout", layout_files, { include_blank: true, selected: (params[:meta][:layout] rescue false || @post.get_meta("layout") ) }, {class: 'form-control'}) %>
-                    </div>
-                <% end %>
+            <!-- layouts -->
+            <% if @post.manage_layout? && (layout_files = cama_get_list_layouts_files).present? %>
+                <div class="form-group">
+                    <label class="control-label"><%= t('camaleon_cms.admin.post_type.layout')%></label>
+                    <%= select("meta", "layout", layout_files, { include_blank: true, selected: (params[:meta][:layout] rescue false || @post.get_layout(@post_type) ) }, {class: 'form-control'}) %>
+                </div>
             <% end %>
 
             <!-- has comments? -->

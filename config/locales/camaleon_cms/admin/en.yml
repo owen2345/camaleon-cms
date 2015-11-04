@@ -1,6 +1,8 @@
 en:
   camaleon_cms:
     welcome_message: "Welcome to Camaleon CMS"
+    page_not_exist: "<h1>ooops...</h1><h5>The page you're looking for does not exist.</h5>"
+    page_error_500: "<h1>ooops...</h1><h5>Error 500 Internal Server Error. Please contact to the administrator.</h5>"
     admin:
       request_error_message: "An error occurred, please contact to the administrator."
       header:
@@ -249,6 +251,8 @@ en:
         enter_password: 'Enter the password'
         featured_image: 'Featured Image'
         keywords: 'Keywords'
+        default_layout: 'Default Layout'
+        default_template: 'Default Template'
         message:
           error: 'Error class'
           error_term: 'Error term class'
@@ -271,14 +275,17 @@ en:
         layout: 'Layout'
         trash: 'Trash'
         tooltip:
-          permission_asing_categories: 'Permission to assign categories'
-          permission_add_tags: 'Permission to add Tags'
-          permission_add_content: 'Permission to add content'
-          permission_add_content_summary: 'Permission to add a content summary'
-          permission_reviews: 'Permission for reviews'
-          permission_add_image_presentation: 'Permission to add an image of presentation'
-          permission_manage_template: 'Permission Manage Template'
-          permission_add_keywords: 'Permission to add keywords'
+          permission_asing_categories: 'Permit to manage your post contents by categories'
+          permission_add_tags: 'Enable the field to enter tags in post content'
+          permission_add_content: 'Enable the editor to enter the post content'
+          permission_add_content_summary: 'Enable the field to enter the post summary'
+          permission_reviews: 'Enable the option to indicate if post contents can be commented'
+          permission_add_image_presentation: 'Enable the editor to upload thumbnail in post contents'
+          permission_manage_template: 'Enable the field to select template in contents. (template: file that will be used to render a content)'
+          permission_manage_layout: 'Enable the field to select layout in contents. (Layout: File wrapper in which will be rendered the template)'
+          permission_add_keywords: 'Enable the field to enter the post keywords (SEO)'
+          default_layout: 'Select the default layout for all contents of this post type'
+          default_template: 'Select the default template for all contents of this post type'
         upload_image: 'Upload Image'
         view_comments: 'View Comments'
       plugins:
@@ -428,6 +435,7 @@ en:
         hide: 'Hide'
         home_page: 'Home Page'
         has_keywords: 'Has Keywords'
+        manage_keywords: 'Manage Keywords'
         id: 'ID'
         images: 'Images'
         import: 'Import'
@@ -447,6 +455,7 @@ en:
         manage_summary: 'Manage Summary'
         manage_tags: 'Manage Tags'
         manage_template: 'Manage Template'
+        manage_layout: 'Manage Layout'
         modified: 'Modified'
         multiple_field_int: 'Multiple field?'
         required_field_int: 'Required field?'
@@ -457,6 +466,7 @@ en:
         no_default: 'No Default'
         old_password: 'Old Password'
         options: 'Options'
+        settings: 'Settings'
         options_field: 'Options Field'
         parent: 'Parent'
         password: 'Password'
@@ -481,6 +491,7 @@ en:
         social: 'Social'
         skype: 'Skype'
         status: 'Status'
+        owner: 'Page Owner'
         tags: 'Tags'
         text: 'Text'
         title: 'Title'

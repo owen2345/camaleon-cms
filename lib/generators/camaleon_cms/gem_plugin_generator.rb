@@ -60,29 +60,31 @@ module CamaleonCms
           directory(plugin_app, plugin_dir)
           gsub_file File.join(plugin_dir, "config", "routes.rb"), "end" do
             "
-              scope '(:locale)', locale: /\#{PluginRoutes.all_locales}/, :defaults => {  } do
-                # frontend
-                namespace :plugins do
-                  namespace '#{get_plugin_name}' do
-                    get 'index' => 'front#index'
-                  end
-                end
-              end
+    scope PluginRoutes.system_info[\"relative_url_root\"] do
+      scope '(:locale)', locale: /\#{PluginRoutes.all_locales}/, :defaults => {  } do
+        # frontend
+        namespace :plugins do
+          namespace '#{get_plugin_name}' do
+            get 'index' => 'front#index'
+          end
+        end
+      end
 
-              #Admin Panel
-              scope 'admin', as: 'admin' do
-                namespace 'plugins' do
-                  namespace '#{get_plugin_name}' do
-                    get 'index' => 'admin#index'
-                  end
-                end
-              end
+      #Admin Panel
+      scope 'admin', as: 'admin' do
+        namespace 'plugins' do
+          namespace '#{get_plugin_name}' do
+            get 'index' => 'admin#index'
+          end
+        end
+      end
 
-              # main routes
-              #scope '#{get_plugin_name}', module: 'plugins/#{get_plugin_name}/', as: '#{get_plugin_name}' do
-              #  Here my routes for main routes
-              #end
-            end"
+      # main routes
+      #scope '#{get_plugin_name}', module: 'plugins/#{get_plugin_name}/', as: '#{get_plugin_name}' do
+      #  Here my routes for main routes
+      #end
+    end
+  end"
           end
 
           append_to_file Rails.root.join("Gemfile") do

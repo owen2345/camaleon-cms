@@ -36,7 +36,7 @@
                         <td><%= tag.slug %></td>
                         <td><%= tag.count %></td>
                         <td>
-                            <%= link_to raw('<i class="fa fa-list"></i>'), admin_post_type_taxonomy_posts_path(@post_type.id, "post_tag", tag.id), class: "btn btn-default btn-xs cama_ajax_request", title: "#{@post_type.decorate.the_title.pluralize}-#{tag.slug.to_s.titleize}" if @post_type.present? %>
+                            <%= link_to raw('<i class="fa fa-list"></i>'), cama_admin_post_type_taxonomy_posts_path(@post_type.id, "post_tag", tag.id), class: "btn btn-default btn-xs cama_ajax_request", title: "#{@post_type.decorate.the_title.pluralize}-#{tag.slug.to_s.titleize}" if @post_type.present? %>
                             <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: tag.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
                             <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: tag.id }, method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" unless tag.get_option('not_deleted', false) %>
                         </td>

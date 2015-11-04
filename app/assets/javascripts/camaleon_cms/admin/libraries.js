@@ -5,6 +5,7 @@ function log(d) {
 // prepend flash message into current element
 // message: text message
 // kind: string kind of message, default danger (success, danger, info, warning)
+// sample: $("my_ele").flash_message("updated", "success");
 jQuery(function(){
     $.fn.flash_message = function(message, kind){
         if(!kind) kind = !message ? "success" : "danger";

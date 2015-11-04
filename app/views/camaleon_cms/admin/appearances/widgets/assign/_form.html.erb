@@ -26,7 +26,7 @@
 
 
         <div class="panel-footer">
-            <button data-confirm="Are you sure?" data-href="<%= admin_appearances_widgets_sidebar_assign_path(sidebar_id: sidebar.id, id: assigned.new_record? ? -1 : assigned.id) %>" class="btn btn-default btn-delete-widget"><%= t('camaleon_cms.admin.button.delete') %></button>
+            <button data-confirm="Are you sure?" data-href="<%= cama_admin_appearances_widgets_sidebar_assign_path(sidebar_id: sidebar.id, id: assigned.new_record? ? -1 : assigned.id) %>" class="btn btn-default btn-delete-widget"><%= t('camaleon_cms.admin.button.delete') %></button>
             <% unless widget.is_simple?  %>
                 <button class="btn btn-primary pull-right"><%= t('camaleon_cms.admin.button.submit') %></button>
             <% end %>

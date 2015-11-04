@@ -31,7 +31,7 @@
                 <small class="hidden">(<%= @field.options[:field_key] %>)</small>
                 <%= raw "<em class='text-danger'>*</em>" if @field.options[:required].to_s.to_bool %>
                 <% if defined? show_shortcode %>
-                    <small class="pull-right shortcode_field"><code>[data field='<%= @field.slug %>']</code></small>
+                    <small class="pull-right shortcode_field"><input class="code_style" value="[data field='<%= @field.slug %>' <%= "object='#{record.class.name.gsub("Decorator","").gsub("CamaleonCms::","")}' id='#{record.id}'" unless record.new_record? %>]" readonly onFocus="this.select()"></small>
                 <% end %>
             </label><br>
             <% if @field.description.present? %>
@@ -51,8 +51,8 @@
                 </div>
 
                 <ul id="sortable-<%= @rand %>" >
-
                 </ul>
+
                 <% if @field.options[:multiple].to_s.to_bool && !is_disabled %>
                     <div class="field_multiple_btn">
                         <a class="btn btn-warning btn-sm btn-add-field" href="#"> <i class="fa fa-plus"></i> <%= t('camaleon_cms.admin.button.add_new_field')%></a>

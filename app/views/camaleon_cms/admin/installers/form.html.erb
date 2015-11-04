@@ -1,5 +1,5 @@
 
-<%= form_for @site, as: "site", url: save_admin_installers_path, html: {class: 'form-horizontal', style: "color: #ccc;"} do |f| %>
+<%= form_for @site, as: "site", url: save_cama_admin_installers_path, html: {class: 'form-horizontal', style: "color: #ccc;"} do |f| %>
     <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @site} %>
     <div class="form-group">
         <%= f.label t('camaleon_cms.admin.button.domain') %><br>

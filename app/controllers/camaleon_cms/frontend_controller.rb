@@ -12,13 +12,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   prepend_before_action :cama_site_check_existence
   include CamaleonCms::Frontend::ApplicationHelper
 
-  layout Proc.new { |controller|
-    if current_theme.settings["gem_mode"]
-      "themes/#{current_theme.slug}/layouts/index"
-    else
-      "themes/#{current_theme.slug}/views/layouts/index"
-    end
-  }
+  layout "index"
 
   before_action :before_hooks
   after_action :after_hooks
@@ -26,6 +20,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
 
   # home page for frontend
   def index
+    @cama_visited_home = true
     cama_init_seo(current_site)
     if @_site_options[:home_page].present?
       render_post(@_site_options[:home_page].to_i)
@@ -44,15 +39,13 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
+    @cama_visited_category = @category
     cama_init_seo(@category)
     @children = @category.children.no_empty.decorate
     @posts = @category.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
-    if lookup_context.template_exists?(@category.the_slug, "categories")
-      r_file = "categories/#{@category.the_slug}"
-    else
-      r_file = "category"
-    end
-    r = {category: @category, layout: (self.send :_layout), render: r_file}; hooks_run("on_render_category", r)
+    r_file = lookup_context.template_exists?(@category.the_slug, "categories") ? "categories/#{@category.the_slug}" : "category"
+    layout_ = lookup_context.template_exists?("layouts/categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : (self.send :_layout)
+    r = {category: @category, layout: layout_, render: r_file}; hooks_run("on_render_category", r)
     render r[:render], layout: r[:layout]
   end
 
@@ -63,16 +56,14 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
+    @cama_visited_post_type = @post_type
     cama_init_seo(@post_type)
     @posts = @post_type.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
     @post_tags = @post_type.post_tags.eager_load(:metas)
-    if lookup_context.template_exists?(@post_type.the_slug, "post_types")
-      r_file = "post_types/#{@post_type.the_slug}"
-    else
-      r_file = "post_type"
-    end
-    r = {post_type: @post_type, layout: (self.send :_layout), render: r_file};  hooks_run("on_render_post_type", r)
+    r_file = lookup_context.template_exists?(@post_type.the_slug, "post_types") ? "post_types/#{@post_type.the_slug}" : "post_type"
+    layout_ = lookup_context.template_exists?("layouts/post_types/#{@post_type.the_slug}") ? "post_types/#{@post_type.the_slug}" : (self.send :_layout)
+    r = {post_type: @post_type, layout: layout_, render: r_file};  hooks_run("on_render_post_type", r)
     render r[:render], layout: r[:layout]
   end
 
@@ -84,31 +75,32 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
+    @cama_visited_tag = @post_tag
     cama_init_seo(@post_tag)
     @posts = @post_tag.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
-    if lookup_context.template_exists?(@post_tag.the_slug, "post_tags")
-      r_file = "post_tags/#{@post_tag.the_slug}"
-    else
-      r_file = "post_tag"
-    end
-    r = {post_tag: @post_tag, layout: (self.send :_layout), render: r_file}; hooks_run("on_render_post_tag", r)
+    r_file = lookup_context.template_exists?(@post_tag.the_slug, "post_tags") ? "post_tags/#{@post_tag.the_slug}" : "post_tag"
+    layout_ = lookup_context.template_exists?("layouts/post_tags/#{@post_tag.the_slug}") ? "post_tags/#{@post_tag.the_slug}" : (self.send :_layout)
+    r = {post_tag: @post_tag, layout: layout_, render: r_file}; hooks_run("on_render_post_tag", r)
     render r[:render], layout: r[:layout]
   end
 
   # search contents
   def search
     breadcrumb_add(ct("search"))
+    @cama_visited_search = params[:q]
     @posts = current_site.the_posts
     @posts = params[:q].present? ? @posts.where("title LIKE ? OR content_filtered LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%") : @posts.where("1=0")
     @posts_size = @posts.size
     @posts = @posts.paginate(:page => params[:page], :per_page => current_site.front_per_page)
-    r = {layout: (self.send :_layout), render: "search"}; hooks_run("on_render_search", r)
+    layout_ = lookup_context.template_exists?("layouts/search") ? "search" : (self.send :_layout)
+    r = {layout: layout_, render: "search"}; hooks_run("on_render_search", r)
     render r[:render], layout: r[:layout]
   end
 
   # ajax requests
   def ajax
     r = {render_file: nil, render_text: "", layout: (self.send :_layout) }
+    @cama_visited_ajax = true
     hooks_run("on_ajax", r)
     if r[:render_file]
       render r[:render_file], layout: r[:layout]
@@ -133,8 +125,10 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
+    @cama_visited_profile = true
     cama_init_seo(@user)
-    r = {user: @user, layout: (self.send :_layout), render: "profile"};  hooks_run("on_render_profile", r)
+    layout_ = lookup_context.template_exists?("layouts/profile") ? "profile" : (self.send :_layout)
+    r = {user: @user, layout: layout_, render: "profile"};  hooks_run("on_render_profile", r)
     render r[:render], layout: r[:layout]
   end
 
@@ -165,17 +159,17 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       page_not_found()
     else
       @post = @post.decorate
+      @cama_visited_post = @post
       cama_init_seo(@post)
       @post_type = @post.the_post_type
       @comments = @post.the_comments
       @categories = @post.the_categories
       @post.increment_visits!
       home_page = @_site_options[:home_page] rescue nil
-      r_file = ""
-      if lookup_context.template_exists?("page_#{@post.id}")
+      if @post.get_template(@post_type).present? && lookup_context.template_exists?(@post.get_template(@post_type))
+        r_file = @post.get_template(@post_type)
+      elsif lookup_context.template_exists?("page_#{@post.id}")
         r_file = "page_#{@post.id}"
-      elsif @post.template.present? && lookup_context.template_exists?(@post.template)
-        r_file = @post.template
       elsif home_page.present? && @post.id.to_s == home_page
         r_file = "index"
       elsif lookup_context.template_exists?("#{@post_type.slug}")
@@ -185,7 +179,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       end
 
       layout_ = self.send :_layout
-      meta_layout = @post.get_meta("layout")
+      meta_layout = @post.get_layout(@post_type)
       layout_ = meta_layout if meta_layout.present? && lookup_context.template_exists?("layouts/#{meta_layout}")
       r = {post: @post, post_type: @post_type, layout: layout_, render: r_file}
       hooks_run("on_render_post", r) if from_url
@@ -211,7 +205,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   # if url hasn't a locale, then it will use default locale set on application.rb
   def init_frontent
     # preview theme initializing
-    if cama_sign_in? && params[:ccc_theme_preview].present? && request.referrer.include?("preview?ccc_theme_preview=") && can?(:manager, :themes)
+    if cama_sign_in? && params[:ccc_theme_preview].present? && can?(:manager, :themes)
       @_current_theme = (current_site.themes.where(slug: params[:ccc_theme_preview]).first_or_create!.decorate)
     end
 
@@ -219,30 +213,37 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     I18n.locale = params[:locale] || current_site.get_languages.first
     return page_not_found unless current_site.get_languages.include?(I18n.locale.to_sym) # verify if this locale is available for this site
 
+    views_dir = "app/apps/"
+    self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
+    self.prepend_view_path(Rails.root.join(views_dir).to_s)
+
     # define render paths
     lookup_context.prefixes.delete("frontend")
     lookup_context.prefixes.delete("application")
     lookup_context.prefixes.delete("camaleon_cms/frontend")
     lookup_context.prefixes.delete("camaleon_cms/camaleon")
 
-    lookup_context.prefixes.prepend("camaleon_cms/default_theme")
-    lookup_context.prefixes.prepend("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
-    lookup_context.prefixes.prepend("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
-    lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
-
+    if ['camaleon_cms/frontend', 'frontend'].include?(params[:controller]) # 'frontend' will be removed in new versions (move into camaleon_cms/frontend)
+      lookup_context.prefixes.prepend("camaleon_cms/default_theme")
+      lookup_context.prefixes.prepend("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
+      lookup_context.prefixes.prepend("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
+      lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
+    end
     theme_init()
-    camaleon_add_front_view_paths()
   end
 
+  # initialize hooks before to execute action
   def before_hooks
     hooks_run("front_before_load")
   end
 
+  # initialize hooks after executed action
   def after_hooks
     hooks_run("front_after_load")
   end
 
   # define default options for url helpers
+  # control for default locale
   def default_url_options(options = {})
     begin
       if current_site.get_languages.first.to_s == I18n.locale.to_s

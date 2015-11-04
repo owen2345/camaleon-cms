@@ -46,14 +46,51 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     object.get_meta("thumb").present?
   end
 
+  # return the path for this page
+  # sample: /my-page.html
+  def the_path(*args)
+    args = args.extract_options!
+    args[:as_path] = true
+    the_url(args)
+  end
+
   # return front url for this post
+  # sample: http://localhost.com/my-page.html
+  # args:
+  #   locale: language (default current language)
+  #   as_path: return the path instead of full url, sample: /my-page.html
+  #   Also, you can pass extra attributes as params for the url, sample: page.the_url(my_param: 'value', other: "asd")
+  #     => http://localhost.com/my-page.html?my_param=value&other=asd
+  # Return String URL
   def the_url(*args)
     args = args.extract_options!
     args[:slug] = the_slug
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
-    as_path = args.delete(:as_path)
-    h.cama_url_to_fixed("post_#{as_path.present? ? "path" : "url"}", args)
+    p = args.delete(:as_path).present? ? "path" : "url"
+    l = _calc_locale(args[:locale])
+    ptype = object.post_type.decorate
+    p_url_format = ptype.contents_route_format
+    case p_url_format
+      when "post_of_post_type"
+        args[:post_type_id] = ptype.id
+        args[:title] = ptype.the_title.parameterize
+      when "post_of_category"
+        if ptype.manage_categories?
+          cat = object.categories.first.decorate rescue ptype.default_category.decorate
+          args[:category_id] = cat.id
+          args[:title] = cat.the_title.parameterize
+        else
+          p_url_format = "post"
+          l = ""
+        end
+      when "post_of_posttype"
+        args[:post_type_title] = ptype.the_title.parameterize
+        l = ""
+      else
+        l = ""
+    end
+    h.cama_url_to_fixed("cama_#{p_url_format}#{l}_#{p}", args)
   end
 
   # return a hash of frontend urls for this post
@@ -70,7 +107,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
 
   # return edit url for this post
   def the_edit_url
-    h.edit_admin_post_type_post_url(object.post_type.id, object)
+    h.edit_cama_admin_post_type_post_url(object.post_type.id, object)
   end
 
   # create the html link with edit link

@@ -25,7 +25,7 @@ module CamaleonCms::Admin::PostTypeHelper
   def post_type_list_taxonomy(taxonomies, color="primary")
     html = ""
     taxonomies.decorate.each do |f|
-      html += "<a class='cama_ajax_request' href='#{admin_post_type_taxonomy_posts_path(@post_type.id, f.taxonomy, f.id)}'><span class='label label-#{color} label-form'>#{f.the_title}</span></a> "
+      html += "<a class='cama_ajax_request' href='#{cama_admin_post_type_taxonomy_posts_path(@post_type.id, f.taxonomy, f.id)}'><span class='label label-#{color} label-form'>#{f.the_title}</span></a> "
     end
     return html
   end

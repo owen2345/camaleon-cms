@@ -38,6 +38,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
 
     @posts = posts_all
     params[:s] = 'published' unless params[:s].present?
+    @lists_tab = params[:s]
     add_breadcrumb I18n.t("camaleon_cms.admin.post_type.#{params[:s]}") if params[:s].present?
     case params[:s]
       when "published", "pending", "draft", "trash"
@@ -184,7 +185,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     @post_type = current_site.post_types.find_by_id(params[:post_type_id] )
     unless @post_type.present?
       flash[:error] =  t('camaleon_cms.admin.request_error_message')
-      redirect_to admin_path
+      redirect_to cama_admin_path
     end
     @post_type = @post_type.decorate
     add_breadcrumb @post_type.the_title, @post_type.the_admin_url
@@ -196,7 +197,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
       @post_decorate = @post.decorate
     rescue
       flash[:error] =  t('camaleon_cms.admin.post.message.error', post_type: @post_type.decorate.the_title)
-      redirect_to admin_path
+      redirect_to cama_admin_path
     end
   end
 

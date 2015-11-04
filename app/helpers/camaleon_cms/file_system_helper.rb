@@ -1,4 +1,4 @@
-module FileSystemHelper
+module CamaleonCms::FileSystemHelper
   require 'fog'
   require 'aws-sdk'
 
@@ -159,7 +159,7 @@ module FileSystemHelper
     if @file_system_type == :s3
       @cdn_url.nil? ? "https://s3.amazonaws.com/#{@bucket}/media/#{current_site.id}" : "#{@cdn_url}/media/#{current_site.id}"
     else
-      root_url + "media/#{current_site.id}"
+      cama_root_url + "media/#{current_site.id}"
     end
   end
 

@@ -1,7 +1,6 @@
 <%
-   if @post_type.nil?
-     @post_type = current_site.post_types.new
-   end
+   @post_type = current_site.post_types.new if @post_type.nil?
+   groups = @post_type.get_field_groups({kind: "post_type"})
 %>
 <%= form_for @post_type, as: "post_type", url:{action: @post_type.new_record? ? :create : :update} , html:{class: 'validate-post-type cama_ajax_request', id: "post_type_form"} do |f| %>
     <%= f.hidden_field :parent_id  %>
@@ -21,63 +20,103 @@
           <%= f.label t('camaleon_cms.admin.table.description') %><br>
           <%= f.text_area :description, :class => "form-control translatable", :rows => 4 %>
         </div>
-        <div class="form-group">
-            <label><%= t('camaleon_cms.admin.table.default_thumbnail') %></label><br>
-            <%= hidden_field :meta, :default_thumb, :class => "form-control unput_upload", :value => @post_type.get_option('default_thumb') %>
-        </div>
 
-        <h4 style="margin-bottom: 12px"><%= t('camaleon_cms.admin.table.options') %></h4>
+        <h4><%= t('camaleon_cms.admin.table.settings') %></h4>
 
-        <div class="form-group">
-            <input name="meta[has_category]" type="hidden" value="false"/>
-            <label class="check0"><input name="meta[has_category]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_category', false) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_category') %>
-            </label>
-            <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_asing_categories')}", 'right') %>
-        </div>
-        <div class="form-group">
-            <input name="meta[has_tags]" type="hidden" value="false"/>
-            <label class="check0"><input name="meta[has_tags]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_tags', false) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_tags') %>
-            </label>
-            <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_tags')}", 'right') %>
-        </div>
+        <!-- Settings -->
+        <div>
+            <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active"><a href="#post_type_setting_admin" aria-controls="profile" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.post_type.back_settings", default: "Admin") %></a></li>
+                <li role="presentation"><a href="#post_type_setting_front" aria-controls="home" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.post_type.front_settings", default: "Visitor") %></a></li>
+                <% if groups.present? %>
+                    <li role="presentation"><a href="#post_type_setting_custom" aria-controls="messages" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.post_type.front_settings", default: "Custom") %></a></li>
+                <% end %>
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="post_type_setting_admin">
+                    <div class="form-group">
+                        <input name="meta[has_layout]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_layout]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_layout') %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_layout') %></label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_manage_layout')}", 'right') %>
+                    </div>
+                    <div class="form-group">
+                        <label><%= t('camaleon_cms.admin.post_type.default_layout') %> <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.default_layout')}", 'right') %></label>
+                        <%= select("meta", "default_layout", cama_get_list_layouts_files, { include_blank: true, selected: @post_type.get_option("default_layout") }, {class: 'form-control'}) %>
+                    </div>
 
-        <div class="form-group">
-            <input name="meta[has_content]" type="hidden" value="false"/>
-            <label class="check0"><input name="meta[has_content]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_content', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_content') %>
-            </label>
-            <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_content')}", 'right') %>
+                    <div class="form-group">
+                        <input name="meta[has_template]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_template]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_template', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_template') %></label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_manage_template')}", 'right') %>
+                    </div>
+                    <div class="form-group">
+                        <label><%= t('camaleon_cms.admin.post_type.default_template') %> <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.default_template')}", 'right') %></label>
+                        <%= select("meta", "default_template", cama_get_list_template_files, { include_blank: true, selected: @post_type.get_option("default_template") }, {class: 'form-control'}) %>
+                    </div>
+
+
+                    <div class="form-group">
+                        <input name="meta[has_category]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_category]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_category', false) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_category') %></label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_asing_categories')}", 'right') %>
+                    </div>
+                    <div class="form-group">
+                        <input name="meta[has_tags]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_tags]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_tags', false) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_tags') %>
+                        </label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_tags')}", 'right') %>
+                    </div>
+                    <div class="form-group">
+                        <input name="meta[has_content]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_content]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_content', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_content') %>
+                        </label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_content')}", 'right') %>
+                    </div>
+                    <div class="form-group">
+                        <input name="meta[has_summary]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_summary]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_summary', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_summary') %>
+                        </label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_content_summary')}", 'right') %>
+                    </div>
+                    <div class="form-group">
+                        <input name="meta[has_comments]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_comments]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_comments', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.permit_comments_default') %>
+                        </label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_reviews')}", 'right') %>
+                    </div>
+                    <div class="form-group">
+                        <input name="meta[has_picture]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_picture]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_picture', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_picture') %>
+                        </label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_image_presentation')}", 'right') %>
+                    </div>
+                    <div class="form-group">
+                        <input name="meta[has_keywords]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_keywords]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_keywords', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_keywords') %></label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_keywords')}", 'right') %>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="post_type_setting_front">
+                    <div class="form-group">
+                        <label>Contents Route Format</label>
+                        <div>
+                            <% @post_type.contents_route_formats.each do |key, descr| %>
+                                <label><%= radio_button_tag "meta[contents_route_format]", key, key == @post_type.contents_route_format %> <small style="font-weight: normal"><%= raw descr %></small></label><br>
+                            <% end %>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><%= t('camaleon_cms.admin.table.default_thumbnail') %></label><br>
+                        <%= hidden_field :meta, :default_thumb, :class => "form-control unput_upload", :value => @post_type.get_option('default_thumb') %>
+                    </div>
+                </div>
+                <% if groups.present? %>
+                    <div id="post_type_setting_custom">
+                        <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @post_type, field_groups: groups} %>
+                    </div>
+                <% end %>
+            </div>
         </div>
-        <div class="form-group">
-            <input name="meta[has_summary]" type="hidden" value="false"/>
-            <label class="check0"><input name="meta[has_summary]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_summary', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_summary') %>
-            </label>
-            <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_content_summary')}", 'right') %>
-        </div>
-        <div class="form-group">
-            <input name="meta[has_comments]" type="hidden" value="false"/>
-            <label class="check0"><input name="meta[has_comments]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_comments', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.permit_comments_default') %>
-            </label>
-            <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_reviews')}", 'right') %>
-        </div>
-        <div class="form-group">
-            <input name="meta[has_picture]" type="hidden" value="false"/>
-            <label class="check0"><input name="meta[has_picture]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_picture', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_picture') %>
-            </label>
-            <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_image_presentation')}", 'right') %>
-        </div>
-        <div class="form-group">
-            <input name="meta[has_template]" type="hidden" value="false"/>
-            <label class="check0"><input name="meta[has_template]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_template', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_template') %>
-            </label>
-            <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_manage_template')}", 'right') %>
-        </div>
-        <div class="form-group">
-            <input name="meta[has_keywords]" type="hidden" value="false"/>
-            <label class="check0"><input name="meta[has_keywords]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_keywords', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.has_keywords') %>
-            </label>
-            <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_keywords')}", 'right') %>
-        </div>
-        <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @post_type, field_groups: @post_type.get_field_groups({kind: "post_type"}) } %>
     </div>
 
     <div class="panel-footer">
@@ -87,7 +126,9 @@
 <% end %>
 <script>
     jQuery(function($){
-        $('#post_type_form .unput_upload').input_upload();
+        var form = $("#post_type_form");
+//        form.find("input[type='checkbox'][name='meta[has_layout]'], input[type='checkbox'][name='meta[has_template]']").change(function(){ var n = $(this).closest(".form-group").next(); if($(this).is(":checked")) n.fadeIn(); else n.fadeOut(); }).trigger("change");
+        form.find('.unput_upload').input_upload();
     });
 </script>
 

@@ -13,16 +13,16 @@ class CamaleonCms::PostTagDecorator < CamaleonCms::TermTaxonomyDecorator
   def the_url(*args)
     args = args.extract_options!
     args[:post_tag_id] = the_id
-    args[:title] = the_title
+    args[:title] = the_title.parameterize
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
-    h.cama_url_to_fixed("post_tag#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("cama_post_tag#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return edit url for this post
   def the_edit_url
-    h.edit_admin_post_type_post_tag_url(object.post_type.id, object)
+    h.edit_cama_admin_post_type_post_tag_url(object.post_type.id, object)
   end
 
   # return the post type of this post tag

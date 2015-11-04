@@ -28,7 +28,7 @@ module CamaleonCms::CommentHelper
                     <div class='comment_content'>#{comment.content}</div>
                     <div class='comment_actions'>
                         <div class='pull-left'>
-                            <a href='#{admin_post_comment_answer_path(@post.id, comment.id)}' data-comment-id='#{comment.id}' title='#{t('camaleon_cms.admin.comments.tooltip.reply_comment')}' class='btn btn-info reply btn-xs ajax_modal'><span class='fa fa-mail-reply'></span></a>
+                            <a href='#{cama_admin_post_comment_answer_path(@post.id, comment.id)}' data-comment-id='#{comment.id}' title='#{t('camaleon_cms.admin.comments.tooltip.reply_comment')}' class='btn btn-info reply btn-xs ajax_modal'><span class='fa fa-mail-reply'></span></a>
                             #{link_to raw('<i class="fa fa-trash-o"></i>'), { action: :destroy, id: comment.id }, method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.comments.tooltip.delete_comment')}" }
                         </div>
                         <div class='pull-right'>

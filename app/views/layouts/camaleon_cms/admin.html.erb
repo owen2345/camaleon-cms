@@ -9,16 +9,17 @@
     <%= stylesheet_link_tag "camaleon_cms/admin/admin-manifest", media: "all" %>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <script>
-        var root_url = '<%= root_url %>';
+        var root_url = '<%= cama_root_url %>';
+        var root_admin_url = '<%= cama_admin_url %>';
         var root_filesystem_public_url = '<%= root_filesystem_public_url %>';
         var NO_IMAGE_URL = '<%= asset_url("camaleon_cms/image-not-found.png") %>';
         var CURRENT_LOCALE = '<%= current_locale %>';
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
         var tinymce_global_settings = {language_url: "<%= asset_path("camaleon_cms/admin/tinymce/langs/#{current_locale}.js") %>", custom_css: [], custom_toolbar: [], post_render: [], init: [], setups: []};
-        var I18n_data = <%= I18n.backend.send(:translations)[current_locale.to_sym][:camaleon_cms][:admin][:js].to_json.html_safe %>
+        var I18n_data = <%= I18n.backend.send(:translations)[current_locale.to_sym][:camaleon_cms][:admin][:js].to_json.html_safe rescue "{}" %>
     </script>
     <%= javascript_include_tag "camaleon_cms/admin/admin-manifest" %>
-    <%= javascript_include_tag "camaleon_cms/admin/#{current_locale}.js" if current_locale != "en" %> <!-- validator translations -->
+    <%= javascript_include_tag "camaleon_cms/admin/jquery_validate/#{current_locale}.js" if current_locale != "en" %> <!-- validator translations -->
     <%= javascript_include_tag "camaleon_cms/admin/elfinder/i18n/elfinder.#{current_locale}.js" if current_locale != "en" %> <!-- elfinder translations -->
     <%= raw the_head({}, false) %>
     <!--[if lt IE 9]>

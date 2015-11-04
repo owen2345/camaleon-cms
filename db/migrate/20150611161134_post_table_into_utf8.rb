@@ -13,7 +13,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.datetime "last_login_at"
 
       # t.integer  "site_id",   default: -1, index: true
-      t.timestamps
+      t.timestamps null: false
       t.belongs_to :site, index: true, default: -1#, foreign_key: true
     end
 
@@ -28,7 +28,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.integer  "term_order", index: true
       t.string   "status"
 
-      t.timestamps
+      t.timestamps null: false
       t.belongs_to :user, index: true#, foreign_key: true
     end
 
@@ -45,7 +45,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.text     "visibility_value"
       t.string   "post_class", default: "Post", index: true
 
-      t.timestamps
+      t.timestamps null: false
       t.belongs_to :user, index: true#, foreign_key: true
     end
 
@@ -75,7 +75,7 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       t.integer  "comment_parent", index: true
       t.belongs_to :post, index: true#, foreign_key: true
       t.belongs_to :user, index: true#, foreign_key: true
-      t.timestamps
+      t.timestamps null: false
     end
 
     create_table "#{PluginRoutes.system_info["db_prefix"]}custom_fields" do |t|

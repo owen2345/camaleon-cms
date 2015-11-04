@@ -14,13 +14,13 @@ end
 class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
-  self.table_name = "#{PluginRoutes.system_info["db_prefix"]}term_taxonomy"
+  self.table_name = "#{PluginRoutes.system_info(true)["db_prefix"]}term_taxonomy"
   attr_accessible :taxonomy, :description, :parent_id, :count, :name, :slug, :term_group, :status, :term_order, :user_id
 
   # callbacks
-
   before_validation :before_validating
   before_destroy :destroy_dependencies
+
   # validates
   validates :name, :taxonomy, presence: true
   validates_with CamaleonCms::UniqValidator
@@ -77,6 +77,4 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   def destroy_dependencies
     in_nav_menu_items.destroy_all
   end
-
-
 end

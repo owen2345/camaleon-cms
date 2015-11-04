@@ -30,11 +30,14 @@ module Plugins::FrontCache::FrontCacheHelper
     if @caches[:paths].include?(front_request_key) || (params[:action] == "index" && @caches[:home].present?) # cache paths and home page
       @_plugin_do_cache = true
     elsif params[:action] == "post" && !params[:draft_id].present?
-      post = current_site.posts.find_by_slug(params[:slug]).decorate
-      if post.can_visit?
-        @post = post
-        @post_type = post.the_post_type
-        @_plugin_do_cache = true if can_cache_page?
+      begin
+        post = current_site.posts.find_by_slug(params[:slug]).decorate
+        if post.can_visit?
+          @post = post
+          @post_type = post.the_post_type
+          @_plugin_do_cache = true if can_cache_page?
+        end
+      rescue # skip post not found
       end
     end
   end

@@ -1,0 +1,4 @@
+<div style="text-align:center">
+    <%= raw t("camaleon_cms.page_not_exist") %>
+    <%= content_tag(:code, @message, class: "",) if @message.present? %>
+</div>

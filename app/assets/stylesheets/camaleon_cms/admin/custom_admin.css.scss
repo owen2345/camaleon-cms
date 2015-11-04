@@ -151,9 +151,9 @@
     margin-bottom: 15px;
     > label {
       display: block;
-      .shortcode_field {
-        display: none;
-        font-weight: normal;
+      .shortcode_field input{
+        //display: none;
+        min-width: 150px;
       }
     }
     &:hover > label .shortcode_field {
@@ -210,6 +210,7 @@ div.mce-fullscreen {
   }
 }
 
+// custom loading style
 #cama_custom_loading{
   .back_spinner{
     position: fixed;
@@ -232,4 +233,20 @@ div.mce-fullscreen {
     border-radius: 10px;
     background: image_url("camaleon_cms/admin/admin_spinner.gif") no-repeat center center #2D95BF;
   }
+}
+
+// copy paste code style
+input.code_style{
+  background-color: #f9f2f4;
+  border-radius: 4px;
+  color: #c7254e;
+  font-size: 90%;
+  padding: 2px 4px;
+  font-weight: normal;
+  border: none;
+}
+
+// fix tab content padding
+.tab-content > .tab-pane{
+  padding-top: 5px;
 }

@@ -36,9 +36,11 @@ class CamaleonCms::CamaleonController < ApplicationController
   layout Proc.new { |controller| controller.request.xhr? ? false : 'default' }
 
   # show page error
-  def render_error(status = 404, exception = nil)
-    Rails.logger.info "====================#{caller.inspect}"
-    render :file => "public/#{status}.html", :status => status, :layout => false
+  def render_error(status = 404, exception = nil, message = "")
+    Rails.logger.info "========#{exception.message if exception.present?}====#{params[:error_msg]}========#{caller.inspect}"
+    @message = "#{message} #{params[:error_msg] || (exception.present? ? "#{exception.message}<br><br>#{caller.inspect}" : "")}"
+    @message = "" if Rails.env == "production"
+    render "camaleon_cms/#{status}", :status => status
   end
 
   # generate captcha image
@@ -78,10 +80,9 @@ class CamaleonCms::CamaleonController < ApplicationController
 
     request.env.except!('HTTP_X_FORWARDED_HOST') if request.env['HTTP_X_FORWARDED_HOST'] # just drop the variable
 
-    # past plugins versio support
+    # past plugins version support
     self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
     self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
-
   end
 
   # initialize ability for current user
@@ -96,24 +97,13 @@ class CamaleonCms::CamaleonController < ApplicationController
 
   # redirect to sessions login form when the session was expired.
   def auth_session_error
-    redirect_to root_path
+    redirect_to cama_root_path
   end
 
   # include CamaleonCms::all custom models created by installed plugins or themes for current site
   def cama_load_custom_models
     if current_site.present?
       site_load_custom_models(current_site)
-    end
-  end
-
-  # add custom views of camaleon
-  def camaleon_add_front_view_paths
-    if current_site.present?
-      if current_theme.present?
-        views_dir = "app/apps/"
-        self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
-        self.prepend_view_path(Rails.root.join(views_dir).to_s)
-      end
     end
   end
 end

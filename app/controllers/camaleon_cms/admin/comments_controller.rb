@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
   include CamaleonCms::CommentHelper
-  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.comments"), :admin_comments_url
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.comments"), :cama_admin_comments_url
   before_action :validate_role
   before_action :set_post, except: :list
   before_action :set_comment, except: [:list, :index, :new, :create]
@@ -41,8 +41,9 @@ class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
   # toggle status of a comment
   def toggle_status
     _s = {a: "approved", s: "spam", p: "pending"}
-    @comment.update(approved: _s[params[:s].to_sym])
-    params[:notice] = t('camaleon_cms.admin.comments.message.change_status')
+    k = _s[params[:s].to_sym]
+    @comment.update(approved: k)
+    flash[:notice] = "#{t('camaleon_cms.admin.comments.message.change_status')} #{t("camaleon_cms.admin.comments.message.#{k}")}"
     redirect_to action: :index
   end
 
@@ -86,7 +87,7 @@ class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
       @comment = @post.comments.find(params[:id] || params[:comment_id])
     rescue
       flash[:error] = t('camaleon_cms.admin.comments.message.error')
-      redirect_to admin_path
+      redirect_to cama_admin_path
     end
   end
 

@@ -32,11 +32,11 @@ module CamaleonCms::SiteHelper
   # check if current site exist, if not, this will be redirected to main domain
   def cama_site_check_existence()
     if !current_site.present?
-      if (site = CamaleonCms::Site.first).present?
-        base_domain = PluginRoutes.system_info["base_domain"]
-        redirect_to root_url(host: base_domain.split(":").first, port: (base_domain.split(":")[1] rescue nil))
+      if (PluginRoutes.main_site).present?
+        base_domain = PluginRoutes.main_site.slug
+        redirect_to cama_root_url(host: base_domain.split(":").first, port: (base_domain.split(":")[1] rescue nil))
       else
-        redirect_to admin_installers_path
+        redirect_to cama_admin_installers_path
       end
     end
   end
@@ -81,7 +81,7 @@ module CamaleonCms::SiteHelper
     theme_key ||= site.get_theme_slug
     _s = current_site
     current_site(site)
-    PluginRoutes.system_info[:default_plugins].each{|p| plugin_install(p) } # auto install plugins
+    PluginRoutes.system_info["default_plugins"].each{|p| plugin_install(p) } # auto install plugins
     site_install_theme(theme_key)
     current_site(_s)
   end

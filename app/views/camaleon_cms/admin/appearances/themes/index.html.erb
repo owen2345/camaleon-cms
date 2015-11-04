@@ -37,14 +37,15 @@
                                         <% if current_theme.slug == theme[:key] && params[:set].nil? %>
                                             <% r = {links: []}; hook_run(theme, "theme_options", r) %>
                                             <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), admin_plugins_export_content_settings_path(file: ["app", "apps", 'themes', theme[:key], 'data.json'].join("/"))) if current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
-                                            <% r[:links] << link_to('Settings', admin_settings_site_path(tab: "theme"), class: "btn btn-primary") if File.exist?(current_theme.settings_file) %>
+                                            <% r[:links] << link_to('Settings', cama_admin_settings_site_path(tab: "theme"), class: "btn btn-primary") if File.exist?(current_theme.settings_file) %>
 
                                             <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), "#", {'onclick' => "alert('You need to install import/export plugin to import sample data.'); return false;"}) if !current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
                                             <%= raw r[:links].join(" | ") %>
                                             <span class="btn btn-success"><%= t('camaleon_cms.admin.button.actived').upcase %></span>
                                         <% else %>
-                                            <a href="<%= "#{preview_admin_appearances_themes_path(ccc_theme_preview: theme[:key])}" %>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>
-                                            <a href="<%= admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary cama_ajax_request"><%= t('camaleon_cms.admin.button.select')%></a>
+                                            <!--<a href="<%= "#{preview_cama_admin_appearances_themes_path(ccc_theme_preview: theme[:key])}" %>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>-->
+                                            <a href="<%= current_site.the_url(ccc_theme_preview: theme[:key])%>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>
+                                            <a href="<%= cama_admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary cama_ajax_request"><%= t('camaleon_cms.admin.button.select')%></a>
                                         <% end %>
                                     </div>
                                 </div>

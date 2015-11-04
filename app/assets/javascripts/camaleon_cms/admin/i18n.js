@@ -8,8 +8,12 @@
 // default_val: (String) this value is returned if there is no exist translation for key
 // if default_val is empty, will be returned the last key titleized
 var I18n = function(key, default_val){
-    var res = eval("I18n_data."+key);
-    if(!res) res = default_val ? default_val : (""+key.split(".").pop()).titleize();
+    try {
+        var res = eval("I18n_data." + key);
+        if (!res) res = default_val ? default_val : ("" + key.split(".").pop()).titleize();
+    }catch(e){
+        var res = (""+key.split(".").pop()).titleize();
+    }
     return res;
 }
 

@@ -3,7 +3,7 @@ require 'actionpack/page_caching'
 require 'bcrypt'
 require 'cancancan'
 require 'draper'
-require 'dynamic_sitemaps'
+# require 'dynamic_sitemaps'
 require 'el_finder'
 require 'meta-tags'
 require 'mini_magick'
@@ -44,6 +44,9 @@ module CamaleonCms
       app.config.assets.paths << File.join($camaleon_engine_dir, "app", "apps")
       app.config.assets.paths << File.join($camaleon_engine_dir, 'app', 'assets', 'fonts')
       app.config.encoding = "utf-8"
+
+      # add prefix url, like: http://localhost.com/blog/
+      config.action_controller.relative_url_root = PluginRoutes.system_info["relative_url_root"] if PluginRoutes.system_info["relative_url_root"].present?
 
       #multiple route files
       app.routes_reloader.paths.push(File.join(engine_dir, "config", "routes", "admin.rb"))
