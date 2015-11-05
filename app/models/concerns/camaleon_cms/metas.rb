@@ -85,7 +85,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   def set_multiple_options(h = {})
     if h.present?
       data = options
-      h.each do |key, value|
+      h.to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
       end
       set_meta('_default', data)
