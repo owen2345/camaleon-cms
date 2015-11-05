@@ -83,7 +83,7 @@ module CamaleonCms::SiteHelper
     current_site(site)
     PluginRoutes.system_info["default_plugins"].each{|p| plugin_install(p) } # auto install plugins
     site_install_theme(theme_key)
-    current_site(_s)
+    current_site(_s) if _s.present?
   end
 
   # install theme for current site

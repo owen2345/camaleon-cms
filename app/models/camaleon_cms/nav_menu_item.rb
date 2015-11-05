@@ -36,6 +36,13 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
     self.children.count != 0
   end
 
+  # add sub menu for a menu item
+  # same values of NavMenu#append_menu_item
+  # return item created
+  def append_menu_item(value)
+    children.create({name: value[:label], data_options: {type: value[:type], object_id: value[:link]}})
+  end
+
   private
   def update_count
     self.parent.update_column('count', self.parent.children.size) if self.parent.present?

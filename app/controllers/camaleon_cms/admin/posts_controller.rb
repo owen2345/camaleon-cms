@@ -186,6 +186,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     unless @post_type.present?
       flash[:error] =  t('camaleon_cms.admin.request_error_message')
       redirect_to cama_admin_path
+      return
     end
     @post_type = @post_type.decorate
     add_breadcrumb @post_type.the_title, @post_type.the_admin_url

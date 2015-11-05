@@ -48,8 +48,16 @@ module CamaleonCms::ShortCodeHelper
                     id: (Integer) Post id
                     key: (String) Post slug
                     field: (String) Custom field key, you can add render_field='true' to render field as html element, also you can add index=2 to indicate the value in position 2 for multitple values
-                    attr: (String) attribute name: title | created_at | excerpt | url | link | thumb | updated_at | author_name | author_url
-                    Note: If id and key is not present, then will be rendered of current model
+                    attrs: (String) attribute name
+                            post: title | created_at | excerpt | url | link | thumb | updated_at | author_name | author_url
+                            posttype: title | created_at | excerpt | url | link | thumb | updated_at
+                            category: title | created_at | excerpt | url | link | thumb | updated_at
+                            posttag: title | created_at | excerpt | url | link | thumb | updated_at
+                            site: title | created_at | excerpt | url | link | thumb | updated_at
+                            user: title | created_at | excerpt | url | link | thumb | updated_at
+                            theme: title | created_at | excerpt | url | link | thumb | updated_at
+                            navmenu: title | created_at | excerpt | url | link | thumb | updated_at
+                    Note: If id and key is not present, then will be rendered for current model
                   Sample:
                     [data id='122' attr='title'] ==> return the title of post with id = 122
                     [data key='contact' attr='url'] ==> return the url of post with slug = contact
@@ -209,10 +217,21 @@ module CamaleonCms::ShortCodeHelper
             else
               res =  model.the_thumb_url
           end
-        when "author_name"
-          res = object=="post" ? model.the_author.the_name : ""
-        when "author_url"
-          res = object=="post" ? model.the_author.the_url : ""
+        else
+          case object
+            when 'site'
+              case attr
+                when "title"
+                when "title"
+              end
+            when 'post'
+              case attr
+                when "author_name"
+                  res = model.the_author.the_name rescue ''
+                when "author_url"
+                  res = model.the_author.the_name rescue ''
+              end
+          end
       end
     end
     res

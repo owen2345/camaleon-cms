@@ -68,10 +68,10 @@ module CamaleonCms::Frontend::NavMenuHelper
   # draw menu items
   def cama_menu_draw_items(args, nav_menu, level = 0)
     html = ""
-    _args = args.dup
     parent_current = false
     index = 0
     nav_menu.eager_load(:metas).each do |nav_menu_item|
+      _args = args.dup
       data_nav_item = _get_link_nav_menu(nav_menu_item)
       next if data_nav_item == false
       _is_current = data_nav_item[:current] || site_current_path == data_nav_item[:link] || site_current_path == data_nav_item[:link].sub(".html", "")
@@ -105,7 +105,7 @@ module CamaleonCms::Frontend::NavMenuHelper
     if level == 0
       html
     else
-      html = "<#{_args[:sub_container]} class='#{_args[:sub_class]} #{"parent-#{args[:item_current]}" if parent_current} level-#{level}'>#{html}</#{_args[:sub_container]}>"
+      html = "<#{args[:sub_container]} class='#{args[:sub_class]} #{"parent-#{args[:item_current]}" if parent_current} level-#{level}'>#{html}</#{args[:sub_container]}>"
       [html, parent_current]
     end
   end

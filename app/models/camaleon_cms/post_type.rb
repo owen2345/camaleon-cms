@@ -159,6 +159,10 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
 
   # destroy all custom field groups assigned to this post type
   def destroy_field_groups
+    if self.slug == "post" || self.slug == "page"
+      errors.add(:base, "This post type can not be deleted.")
+      return false
+    end
     self.get_field_groups.destroy_all
   end
 
