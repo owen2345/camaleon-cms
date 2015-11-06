@@ -22,6 +22,6 @@ Rails.application.routes.draw do
     # public
     get 'error', as: "error", to: 'camaleon_cms/camaleon#render_error'
     get 'captcha', as: "captcha", to: 'camaleon_cms/camaleon#captcha'
+    eval(PluginRoutes.load("main"))
   end
-  eval(PluginRoutes.load("main"))
 end

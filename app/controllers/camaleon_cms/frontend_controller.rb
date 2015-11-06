@@ -88,12 +88,11 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   def search
     breadcrumb_add(ct("search"))
     @cama_visited_search = params[:q]
-    @posts = current_site.the_posts
-    @posts = params[:q].present? ? @posts.where("title LIKE ? OR content_filtered LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%") : @posts.where("1=0")
+    layout_ = lookup_context.template_exists?("layouts/search") ? "search" : (self.send :_layout)
+    r = {layout: layout_, render: "search", posts: nil}; hooks_run("on_render_search", r)
+    @posts = r[:posts].present? ? r[:posts] : current_site.the_posts.where("title LIKE ? OR content_filtered LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%")
     @posts_size = @posts.size
     @posts = @posts.paginate(:page => params[:page], :per_page => current_site.front_per_page)
-    layout_ = lookup_context.template_exists?("layouts/search") ? "search" : (self.send :_layout)
-    r = {layout: layout_, render: "search"}; hooks_run("on_render_search", r)
     render r[:render], layout: r[:layout]
   end
 

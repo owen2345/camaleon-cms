@@ -132,6 +132,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
     {
       "post_of_post_type" => "<code>/group/:post_type_id-:title/:slug</code><br>  (Sample: http://localhost.com/group/17-services/myservice.html)",
       "post_of_category" => "<code>/category/:category_id-:title/:slug</code><br>  (Sample: http://localhost.com/category/17-services/myservice.html)",
+      "post_of_category_post_type" => "<code>/:post_type_title/category/:category_id-:title/:slug</code><br>  (Sample: http://localhost.com/services/category/17-services/myservice.html)",
       "post_of_posttype" => "<code>/:post_type_title/:slug</code><br>  (Sample: http://localhost.com/services/myservice.html)",
       "post" => "<code>/:slug</code><br>  (Sample: http://localhost.com/myservice.html)"
     }
