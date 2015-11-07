@@ -52,9 +52,12 @@ function init_post(obj) {
             location.href = _posts_path + '?flash[notice]=' + I18n("msg.draft")
         });
 
-    }
-    if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
-    window["post_editor_draft_intrval"] = setInterval(function () { App_post.save_draft_ajax(null, true); }, 3 * 60 * 1000);
+    };
+
+    if (window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
+    window["post_editor_draft_intrval"] = setInterval(function () {
+        App_post.save_draft_ajax(null, true);
+    }, 3 * 60 * 1000);
     window.save_draft = App_post.save_draft_ajax;
 
     if ($(".title-post" + class_translate).size() == 0) class_translate = '';
@@ -130,7 +133,7 @@ function init_post(obj) {
             $link.find('.btn-preview').click(function () { // preview button
                 var link = $(this);
                 showLoading();
-                App_post.save_draft_ajax(function(){
+                App_post.save_draft_ajax(function () {
                     hideLoading();
                     var ar = link.attr("href").split("draft_id=");
                     ar[1] = post_draft_id;
@@ -255,7 +258,7 @@ function init_post(obj) {
                 return;
             return "You sure to leave the page without saving changes?";
         };
-    }
+    };
     setTimeout(form_later_actions, 1000);
 
     // wait for render editors
@@ -286,18 +289,14 @@ function init_post(obj) {
 // thumbnail updloader
 function upload_feature_image() {
     $.fn.upload_filemanager({
-        selected: function (res, response) {
-            var image = _.first(res);
-            if (image.mime && image.mime.indexOf("image") > -1) {
-                var image_url = image.url.to_filesystem_public_url();
-                $('#feature-image img').attr('src', image_url);
-                $('#feature-image input').val(image_url);
-                $('#feature-image .meta strong').html(image.name);
+        selected: function (file) {
+            if (file.type != 'dir') {
+                var imageUrl = file.url.to_filesystem_public_url();
+                $('#feature-image img').attr('src', imageUrl);
+                $('#feature-image input').val(imageUrl);
+                $('#feature-image .meta strong').html(file.name);
                 $('#feature-image').show();
                 response(true);
-            } else {
-                alert("You must upload an image");
-                response(false);
             }
         }
     });
