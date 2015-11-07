@@ -36,6 +36,11 @@
           }
         }
       }
+      > .btn{
+        position: absolute;
+        right: 26px;
+        top: 14px;
+      }
     }
     .panel-footer {
       overflow: hidden;
@@ -135,8 +140,17 @@
     padding: 7px 0;
     width: 30px;
   }
-  .input-group.color .input-group-addon {
-    background-color: #ccc;
+  .input-group.color{
+    .input-group-addon {
+      background-color: #ccc;
+    }
+    .over_field + span{
+      padding: 5px;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 30px;
+    }
   }
   ul {
     padding: 0;

@@ -137,7 +137,7 @@ var init_form_validations = function (form) {
             function set_texts(url) {
                 $content_image.find('img').attr('src', url);
                 $content_image.find('a').attr('href', url);
-                $that.val(url);
+                $that.val(url).trigger("change");
                 $content_image.find('strong').html(_.last(url.split('/')));
                 $content_image.show()
             }
@@ -154,9 +154,11 @@ var init_form_validations = function (form) {
             var input = $(this);
             var def = {
                 type: (input.attr("data-format") || "image"),
+                layout: (input.attr("data-format") || "images"),
                 selected: function (res) {
-                    var file = _.first(res);
+                    var file = _.first(res) || res;
                     input.val(file.url.to_filesystem_public_url());
+                    $('#modal_filemanager').modal('hide');
                 }
             };
             if (!input.parent().hasClass("input-group")) {
