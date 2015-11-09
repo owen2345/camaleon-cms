@@ -18,12 +18,16 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     init_media_vars
   end
 
+  # crop a image to save as a new file
   def crop
-    url_image = cama_crop_image(params[:cp_img_path], params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
+    path_image = Rails.root.join("tmp", File.basename(params[:cp_img_path])).to_s
+    File.open(path_image, 'wb'){ |fo| fo.write(open(params[:cp_img_path]).read) }
+    crop_path = cama_crop_image(path_image, params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
+    res = upload_file(crop_path, {remove_source: true})
     if params[:saved_avatar].present?
-      CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', url_image)
+      CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', res["url"])
     end
-    render text: url_image
+    render text: res["url"]
   end
 
   # render media for modal content

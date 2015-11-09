@@ -14,6 +14,7 @@ module CamaleonCms::UploaderHelper
   #   generate_thumb: true, # generate thumb image if this is image format (default true)
   #   maximum: maximum bytes permitted to upload (default: 1000MG)
   #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
+  #   remove_source: Boolean (delete source file after saved if this is true, default false)
   #   temporal_time: if great than 0 seconds, then this file will expire (removed) in that time (default: 0)
   #     To manage jobs, please check http://edgeguides.rubyonrails.org/active_job_basics.html
   #     Note: if you are using temporal_time, you will need to copy the file to another directory later
@@ -33,8 +34,8 @@ module CamaleonCms::UploaderHelper
         generate_thumb: true,
         temporal_time: 0,
         filename: (uploaded_io.original_filename rescue uploaded_io.path.split("/").last).parameterize(".").downcase.gsub(" ", "-"),
-        file_size: File.size(uploaded_io.to_io)
-
+        file_size: File.size(uploaded_io.to_io),
+        remove_source: false
     }.merge(settings)
 
     res = {error: nil}
@@ -85,11 +86,11 @@ module CamaleonCms::UploaderHelper
       thumb_name = "#{File.basename(file.key).parameterize}#{File.extname(file.key)}"
       # Thread.new do
         path_thumb = cama_resize_and_crop(uploaded_io.path, @fog_connection_hook_res[:thumb][:w], @fog_connection_hook_res[:thumb][:h], {overwrite: false, output_name: thumb_name})
-        thumb_res = upload_file(path_thumb, {generate_thumb: false, folder: settings[:folder].split("/").push(@fog_connection_hook_res[:thumb_folder_name]).join("/")})
-        FileUtils.rm_f(path_thumb)
+        thumb_res = upload_file(path_thumb, {generate_thumb: false, remove_source: true, folder: settings[:folder].split("/").push(@fog_connection_hook_res[:thumb_folder_name]).join("/")})
         # ActiveRecord::Base.connection.close
       # end
     end
+    FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
     current_site.set_meta("cache_browser_files", nil)
     res
   end
@@ -101,7 +102,7 @@ module CamaleonCms::UploaderHelper
     @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :local_root => Rails.root.join("public").to_s, :provider   => 'Local', endpoint: current_site.the_url }) : @fog_connection_hook_res[:connection]
 
     # AWS test
-    # @fog_connection_hook_res ||= {connection: nil, bucket_name: "owencio", thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
+    # @fog_connection_hook_res ||= {connection: nil, thumb_folder_name: "thumb", bucket_name: "owencio", thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
     # @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :aws_access_key_id => "AKIAIFKEYS4ZQ2AR25KQ", :provider   => 'AWS', aws_secret_access_key: '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', :region  => 'us-west-2' }) : @fog_connection_hook_res[:connection]
 
     @fog_connection_bucket_dir ||= @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name])
@@ -222,18 +223,21 @@ module CamaleonCms::UploaderHelper
   # resize: true/false
   #   (true => resize the image to this dimension)
   #   (false => crop the image with this dimension)
-  def cama_crop_image(file, w, h, w_offset, h_offset, resize = nil )
-    file_dir = File.join(Rails.public_path, file)
-    image = MiniMagick::Image.open(file_dir)
+  # replace: Boolean (replace current image or create another file)
+  def cama_crop_image(file_path, w, h, w_offset, h_offset, resize = nil , replace: true)
+    image = MiniMagick::Image.open(file_path)
     image.combine_options do |i|
       i.resize(resize) if resize.present?
       i.crop "#{w.to_i}x#{h.to_i}+#{w_offset}+#{h_offset}!"
     end
-    ext = File.extname(file_dir)
-    # image.write file_dir.gsub(ext, "_crop#{ext}")
-    destination = file_dir.gsub(ext, "_crop#{ext}")
-    upload_image_file(image, destination)
-    destination
+
+    res = file_path
+    if replace
+      ext = File.extname(file_path)
+      res = file_path.gsub(ext, "_crop#{ext}")
+    end
+    image.write res
+    res
   end
 
   # resize and crop a file
