@@ -9,16 +9,17 @@ window["cama_init_media"] = (media_panel)->
     media_info_tab_info.click()
     tpl =
       "<div class='p_thumb'></div>" +
-      "<div class='p_label'><b>Name: </b><br> <span>"+data["name"]+"</span></div>" +
+      "<div class='p_label'><b>"+I18n("button.name")+": </b><br> <span>"+data["name"]+"</span></div>" +
       "<div class='p_body'>" +
-        "<div><b>Url:</b><br> <a target='_blank' href='"+data["url"]+"'>"+data["url"]+"</a></div>" +
-        "<div><b>Size:</b><br> <span>"+data["size"]+"</span></div>" +
+        "<div><b>"+I18n("button.url")+":</b><br> <a target='_blank' href='"+data["url"]+"'>"+data["url"]+"</a></div>" +
+        "<div><b>"+I18n("button.size")+":</b><br> <span>"+data["size"]+"</span></div>" +
       "</div>"
 
     if window["callback_media_uploader"]
-      tpl += "<div class='p_footer'>" +
-          "<a href='#' class='btn btn-primary insert_btn'>Insert</a>" +
-          "</div>"
+      if !media_panel.attr("data-formats") || (media_panel.attr("data-formats")  && $.inArray(data["format"], media_panel.attr("data-formats").split(",")) >= 0)
+        tpl += "<div class='p_footer'>" +
+                "<a href='#' class='btn btn-primary insert_btn'>"+I18n("button.insert")+"</a>" +
+                "</div>"
 
     media_info.html(tpl)
     media_info.find(".p_thumb").html(item.find(".thumb").html())
@@ -28,6 +29,7 @@ window["cama_init_media"] = (media_panel)->
         data["mime"] = data["type"]
         window["callback_media_uploader"](data)
         window["callback_media_uploader"] = null
+        media_panel.closest(".modal").modal("hide")
         return false
 
   media_panel.on("click", ".file_item", ->
@@ -47,8 +49,10 @@ window["cama_init_media"] = (media_panel)->
     dynamicFormData: customFileData,
     onSuccess: (files,res_upload,xhr,pd)->
       if res_upload.search("<") == 0 # success upload
+        p = media_panel.find(".media_browser_list").prepend(res_upload)
+        if $(pd.statusbar).siblings().length == 0
+          p.children().first().click()
         $(pd.statusbar).remove();
-        media_panel.find(".media_browser_list").prepend(res_upload).children().first().click()
 
       else
         $(pd.statusbar).find(".ajax-file-upload-progress").html("<span style='color: red;'>"+res_upload+"</span>");
@@ -73,7 +77,7 @@ window["cama_init_media"] = (media_panel)->
     for value, index in folder_items
       name = value
       if value == "/" || value == ""
-        name = "root"
+        name = I18n("button.root")
       if index == folder_items.length - 1
         breadrumb.push("<li><span>"+name+"</span></li>")
       else
@@ -105,8 +109,8 @@ $ ->
   # file structure: {"name":"422.html","size":1547, "url":"http://localhost:3000/media/1/422.html", "format":"doc","type":"text/html"}
   $.fn.upload_filemanager = (args)->
     args = args || {}
-    open_modal({title: args["title"] || "Media Uploader", modal_size: "modal-lg", mode: "ajax", url: root_url+"/admin/media/ajax", ajax_params: {media_formats: args["formats"]}, callback: (modal)->
+    open_modal({title: args["title"] || I18n("msg.media_title"), modal_size: "modal-lg", mode: "ajax", url: root_url+"/admin/media/ajax", ajax_params: {media_formats: args["formats"]}, callback: (modal)->
       if args["selected"]
         window["callback_media_uploader"] = args["selected"]
-      modal.children(".modal-dialog").css("width", "90%")
+      modal.css("z-index", args["zindex"] || 99999).children(".modal-dialog").css("width", "90%")
     })

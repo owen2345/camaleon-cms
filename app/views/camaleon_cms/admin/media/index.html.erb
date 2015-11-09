@@ -5,12 +5,12 @@
 
     <div class="col-md-3 media_file_info_col">
         <ul class="nav nav-tabs nav-justified" role="tablist">
-            <li role="presentation" class="active"><a href="#cama_media_upload" class="link_media_upload" role="tab" data-toggle="tab">Upload</a></li>
-            <li role="presentation"><a href="#cama_media_info" class="link_media_info" role="tab" data-toggle="tab">Info</a></li>
+            <li role="presentation" class="active"><a href="#cama_media_upload" class="link_media_upload" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.button.upload_file") %></a></li>
+            <li role="presentation"><a href="#cama_media_info" class="link_media_info" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.media.info") %></a></li>
         </ul>
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="cama_media_upload">
-                <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path %>">Upload</div>
+                <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
             </div>
             <div role="tabpanel" class="tab-pane" id="cama_media_info">
                 <div class="media_file_info"></div>

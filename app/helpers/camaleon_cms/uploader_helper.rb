@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module CamaleonCms::UploaderHelper
-  include CamaleonCms::FileSystemHelper
   # upload a file into server
   # settings:
   #   folder: Directory where the file will be saved (default: "")
@@ -91,6 +90,7 @@ module CamaleonCms::UploaderHelper
         # ActiveRecord::Base.connection.close
       # end
     end
+    current_site.set_meta("cache_browser_files", nil)
     res
   end
 
@@ -126,11 +126,15 @@ module CamaleonCms::UploaderHelper
 
   # Generate Hash structure of files from FOG
   def cama_uploader_browser_files
+    cache_res = current_site.get_meta("cache_browser_files")
+    return cache_res.with_indifferent_access if cache_res.present?
+
     @browser_files = {folders: {}, files: [], path: ""}
     cama_uploader_init_connection()
     @fog_connection_bucket_dir.files.all.each do |file|
       cama_uploader_browser_files_parse_file(@browser_files, File.dirname(file.key), file)
     end
+    current_site.set_meta("cache_browser_files", @browser_files)
     @browser_files
   end
 
@@ -153,17 +157,6 @@ module CamaleonCms::UploaderHelper
     path = "#{current_site.id}/#{path}".split("/")
     path.delete("")
     _cama_media_find_folder(path.join("/"))
-  end
-
-  # render as html list all folders of this tree
-  # if tree is not present, will render all tree
-  def cama_media_draw_folders(tree)
-    res = ""
-    tree[:folders].each do |fname, folder|
-      res << "<li data-fname='#{fname}'> <span>#{fname}</span> #{ cama_media_draw_folders(folder) if folder[:folders].present? }</li>"
-    end
-    res = "<ul>#{res}</ul>" if res.present?
-    res
   end
 
   # parse file information of FOG file

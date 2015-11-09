@@ -143,48 +143,36 @@ function custom_field_text_box($field) {
 function load_upload_audio_field(dom) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
-        layout: "audios_or_upload",
+        formats: "audio",
         selected: function (file, response) {
-            if (file.type != 'dir') {
-                $input.val(file.url.to_filesystem_public_url());
-                response(true);
-            }
+            $input.val(file.url);
         }
     });
 }
 function load_upload_file_field(dom) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
-        layout: $input.data("formats") ? $input.data("formats") : "all",
+        formats: $input.data("formats") ? $input.data("formats") : "",
         selected: function (file, response) {
-            if (file.type != 'dir') {
-                $input.val(file.url.to_filesystem_public_url());
-                response(true);
-            }
+            $input.val(file.url);
         }
     });
 }
 function load_upload_image_field(dom) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
-        layout: "images",
+        formats: "image",
         selected: function (file, response) {
-            if (file.type != 'dir') {
-                $input.val(file.url.to_filesystem_public_url());
-                response(true);
-            }
+            $input.val(file.url);
         }
     });
 }
 function load_upload_video_field(dom) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
-        layout: "videos",
+        formats: "videos",
         selected: function (file, response) {
-            if (file.type != 'dir') {
-                $input.val(file.url.to_filesystem_public_url());
-                response(true);
-            }
+            $input.val(file.url);
         }
     });
 }

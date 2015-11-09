@@ -55,16 +55,10 @@ jQuery(function ($) {
 
     $("#cp_photo").on("click", function () {
         $.fn.upload_filemanager({
-            layout: 'user_images_or_upload',
+            formats: 'image',
             selected: function (file) {
-                if (file.type != 'dir') {
-                    if (image.mime && image.mime.indexOf('image') > -1) {
-                        $("#cp_target").html("<img id='crop_image' src='" + file.url.to_filesystem_public_url() + "' >");
-                        onSuccess()
-                    } else {
-                        alert("File extension not allowed")
-                    }
-                }
+                $("#cp_target").html("<img id='crop_image' src='" + file.url + "' >");
+                onSuccess()
             },
             user_pwd: '<%= current_user_pwd %>'
         });

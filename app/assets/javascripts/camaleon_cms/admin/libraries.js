@@ -111,22 +111,9 @@ var init_form_validations = function (form) {
 
             $btn_upload.click(function () {
                 $.fn.upload_filemanager({
-                    layout: function () {
-                        if (options.type == 'image') return 'images';
-                        else if (options.type == 'media') return 'media';
-                        else return 'default';
-                    },
+                    formats: options.type,
                     selected: function (file, response) {
-                        if (file.type != 'dir') {
-                            if (options.type == 'media') type = 'video';
-                            if (options.type == 'all' || (file.mime && file.mime.indexOf(options.type) > -1) || _.last(file.name.split(".")) == options.ext) {
-                                set_texts(options.full_url ? file.url.to_filesystem_public_url() : file.url);
-                                response(true);
-                            } else {
-                                alert("File extension not allowed");
-                                response(false);
-                            }
-                        }
+                        set_texts(file.url);
                     }
                 });
                 return false;
@@ -153,12 +140,9 @@ var init_form_validations = function (form) {
         this.each(function () {
             var input = $(this);
             var def = {
-                type: (input.attr("data-format") || "image"),
-                layout: (input.attr("data-format") || "images"),
-                selected: function (res) {
-                    var file = _.first(res) || res;
-                    input.val(file.url.to_filesystem_public_url());
-                    $('#modal_filemanager').modal('hide');
+                formats: (input.attr("data-format") || "image"),
+                selected: function (file) {
+                    input.val(file.url);
                 }
             };
             if (!input.parent().hasClass("input-group")) {
@@ -300,9 +284,6 @@ String.prototype.hashCode = function () {
 // convert string path into full url
 String.prototype.to_url = function () {
     return root_url.slice(0, root_url.length - 1) + this;
-};
-String.prototype.to_filesystem_public_url = function () {
-    return root_filesystem_public_url + this;
 };
 // jquery browser supoer
 !function (a) {

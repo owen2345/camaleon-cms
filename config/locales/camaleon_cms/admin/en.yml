@@ -160,6 +160,7 @@ en:
       media:
         media_manager: 'Media Manager'
         home: "Home"
+        info: "Information"
       menus:
         link_url: 'Link URL'
         message:

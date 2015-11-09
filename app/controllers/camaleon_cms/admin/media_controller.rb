@@ -50,7 +50,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   private
   # init basic media variables
   def init_media_vars
-    @media_formats = (params[:media_formats] || "").split(",")
+    @media_formats = (params[:media_formats] || "").sub("media", ",video,audio").sub("all", "").split(",")
     @folder = params[:folder] || "/"
     @tree = cama_media_find_folder(@folder)
   end

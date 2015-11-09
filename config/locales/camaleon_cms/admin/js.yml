@@ -21,6 +21,7 @@ en:
           recover: 'Recovering...'
           type_contents: 'Type Contents'
           confirm_del: "Are you sure to delete this item?"
+          media_title: 'Media Uploader'
 
         button:
           edit: "Edit"
@@ -33,6 +34,11 @@ en:
           settings: 'Settings'
           save: "Save"
           submit: "Submit"
+          name: "Name"
+          size: "Size"
+          insert: "Insert"
+          url: "URL"
+          root: "root"
 
 es:
   camaleon_cms:
