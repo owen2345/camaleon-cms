@@ -1,0 +1,14 @@
+<% @tree[:files].each do |file| next if @media_formats.present? && !@media_formats.include?(file["format"]) %>
+    <%= render "render_file_item", file: file %>
+<% end %>
+
+<% @tree[:folders].each do |fname, folder| %>
+    <div class="folder_item" data-key="<%= fname %>">
+        <div class="thumb">
+            <i class="fa fa-folder"></i>
+        </div>
+        <div class="label_thumb">
+            <%= fname %>
+        </div>
+    </div>
+<% end %>

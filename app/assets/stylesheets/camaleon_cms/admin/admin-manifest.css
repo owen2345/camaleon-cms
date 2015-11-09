@@ -14,14 +14,14 @@
  *= require ./lte/skins/skin-blue
  *= require ./custom_admin
 
- *= require ./angular-filemanager/animations
- *= require ./angular-filemanager/dialogs
- *= require ./angular-filemanager/main
- *= require ./angular-filemanager/config
  *= require ./bootstrap-datetimepicker
  *= require ./bootstrap-datepicker
  *= require ./introjs/introjs.min
  *= require ./tageditor/jquery.tag-editor
+
+ *= require ./uploader/uploadfile
+
+
 
  // tinymce
  *= require camaleon_cms/admin/tinymce/skins/lightgray/content.min

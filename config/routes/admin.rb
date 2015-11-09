@@ -113,15 +113,12 @@ Rails.application.routes.draw do
           get "welcome", on: :collection
         end
 
-        match 'crop' => 'media#crop', via: :all
         get 'doc' => redirect('/docs/index.html?url=/api-docs.json')
 
-        scope :filemanager do
-          match 'handler' => 'file_manager#handler', via: :all
-          match 'upload' => 'file_manager#upload', via: :all
-          match 'download' => 'file_manager#download', via: :all
-          get 'templates/:view' => 'file_manager#templates'
-          match 'view/:config' => 'file_manager#view', via: :all
+        match 'crop' => 'media#crop', via: :all
+        resources :media, only: [] do
+          get "ajax", on: :collection
+          post "upload", on: :collection
         end
       end
     end

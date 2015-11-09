@@ -9,15 +9,13 @@
 class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   skip_before_filter :cama_authenticate, only: :img
   skip_before_filter :admin_logged_actions, except: :index
-  skip_before_filter :verify_authenticity_token
+  skip_before_filter :verify_authenticity_token, only: :upload
 
+  # render media section
   def index
     authorize! :manager, :media
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
-  end
-
-  def iframe
-    render layout: false
+    init_media_vars
   end
 
   def crop
@@ -27,4 +25,34 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     end
     render text: url_image
   end
+
+  # render media for modal content
+  def ajax
+    init_media_vars
+    render partial: "files_list" if params[:partial].present?
+    render "index", layout: false unless params[:partial].present?
+  end
+
+  # upload files from media uploader
+  def upload
+    f = {error: "File not found."}
+    if params[:file_upload].present?
+      f = upload_file(params[:file_upload], {folder: params[:folder]})
+    end
+
+    unless f[:error].present?
+      render partial: "render_file_item", locals:{ file: f }
+    else
+      render inlien: f[:error]
+    end
+  end
+
+  private
+  # init basic media variables
+  def init_media_vars
+    @media_formats = (params[:media_formats] || "").split(",")
+    @folder = params[:folder] || "/"
+    @tree = cama_media_find_folder(@folder)
+  end
+
 end

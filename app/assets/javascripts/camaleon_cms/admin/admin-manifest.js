@@ -18,12 +18,6 @@
 //= require ./jquery.validate
 
 //= require jquery_ujs
-//= require ./angular/angular
-//= require ./angular/angular-translate.min
-//= require ./angular/angular-cookies.min
-
-//= require ./angular-filemanager/angular-filemanager.min
-//= require ./angular-filemanager/upload_filemanager
 
 //= require ./jquery.slugify
 //= require ./translator
@@ -36,6 +30,7 @@
 
 
 //= require ./modal
+//= require ./uploader/uploader_manifest
 
 //= require ./tageditor/jquery.caret.min
 //= require ./tageditor/jquery.tag-editor

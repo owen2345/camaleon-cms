@@ -1,48 +1,22 @@
-<!-- PAGE CONTENT WRAPPER -->
-<div class="page-content-wrap">
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h4><span class="fa fa-picture-o"></span> <%= t('admin.sidebar.media') %></h4>
+<div class="row" id="cama_media_gallery" data-formats="<%= @media_formats.join(",") %>" data-folder="<%= @folder %>" data-url="<%= ajax_cama_admin_media_path %>">
+    <div class="col-md-9 media_browser_list">
+        <%= render "files_list" %>
     </div>
-    <div class="panel-body">
-      <div data-ng-app="FileManagerApp">
-        <angular-filemanager></angular-filemanager>
-      </div>
-    </div>
-  </div>
-</div>
 
-<script>
-    angular.module('FileManagerApp').config(['fileManagerConfigProvider', function (config) {
-        var defaults = config.$get();
-        config.set({
-            appName: 'camaleon-cms',
-            listUrl: 'filemanager/handler',
-            uploadUrl: 'filemanager/upload',
-            renameUrl: 'filemanager/handler',
-            copyUrl: 'filemanager/handler',
-            removeUrl: 'filemanager/handler',
-            editUrl: 'filemanager/handler',
-            getContentUrl: 'filemanager/handler',
-            createFolderUrl: 'filemanager/handler',
-            downloadFileUrl: 'filemanager/download',
-            compressUrl: 'filemanager/handler',
-            extractUrl: 'filemanager/handler',
-            permissionsUrl: 'filemanager/handler',
-            tplPath: 'filemanager/templates',
-            defaultViewTemplate: 'main-icons.html',
-            allowedActions: angular.extend(defaults.allowedActions, {
-                changePermissions: false,
-                compress: false
-            }),
-            navbar: angular.extend(defaults.navbar, {
-                language: false
-            }),
-            tableColumns: angular.extend(defaults.tableColumns, {
-                date: true,
-                permissions: false,
-                size: true
-            })
-        });
-    }]);
-</script>
+    <div class="col-md-3 media_file_info_col">
+        <ul class="nav nav-tabs nav-justified" role="tablist">
+            <li role="presentation" class="active"><a href="#cama_media_upload" class="link_media_upload" role="tab" data-toggle="tab">Upload</a></li>
+            <li role="presentation"><a href="#cama_media_info" class="link_media_info" role="tab" data-toggle="tab">Info</a></li>
+        </ul>
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="cama_media_upload">
+                <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path %>">Upload</div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="cama_media_info">
+                <div class="media_file_info"></div>
+            </div>
+        </div>
+    </div>
+    <ol class="breadcrumb media_folder_breadcrumb"></ol>
+</div>
+<script>jQuery(function(){ cama_init_media($("#cama_media_gallery")); });</script>

@@ -1,0 +1,22 @@
+<div class="file_item <%= file["format"] %>_format">
+    <div class="thumb">
+        <% case file["format"]  %>
+        <% when "image"  %>
+            <img src="<%= file["thumb"] %>" alt="">
+        <% when "audio"  %>
+            <i class="fa fa-file-audio-o"></i>
+        <% when "video"  %>
+            <i class="fa  fa-film"></i>
+        <% when "compress"  %>
+            <i class="fa fa-file-archive-o"></i>
+        <% when "doc"  %>
+            <i class="fa fa-file-text-o"></i>
+        <% when "else"  %>
+            <i class="fa fa-file-o"></i>
+        <% end %>
+    </div>
+    <div class="label_thumb">
+        <%= file["name"] %>
+    </div>
+    <textarea class="hidden data_value"><%= raw file.to_json %></textarea>
+</div>
