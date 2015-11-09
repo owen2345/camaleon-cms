@@ -39,6 +39,37 @@ module SessionHelper
     @user && @user.authenticate(password)
   end
 
+  ##
+  # User registration.
+  #
+  # user_data must contain:
+  # - email
+  # - username
+  # - password
+  # - password_confirmation
+  #
+  # meta must contain:
+  # - first_name
+  # - last_name
+  #
+  def register_user(user_data, meta)
+    @user = current_site.users.new(user_data)
+    r = {user: @user, params: params}; hook_run('user_before_register', r)
+
+    if current_site.security_user_register_captcha_enabled? && !captcha_verified?
+      {:result => false, :type => :captcha_error, :message => t('admin.users.message.error_captcha')}
+    else
+      if @user.save
+        @user.set_meta_from_form(meta)
+        r = {user: @user, message: t('admin.users.message.created'), redirect_url: admin_login_path}; hooks_run('user_after_register', r)
+
+        {:result => true, :message => r[:message], :redirect_url => r[:redirect_url]}
+      else
+        {:result => false, :type => :no_saved}
+      end
+    end
+  end
+
   # check if current host is heroku
   def on_heroku?
     ENV.keys.any? { |var_name| var_name.match(/(heroku|dyno)/i) }

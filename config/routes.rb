@@ -9,6 +9,11 @@ Rails.application.routes.draw do
       get 'posts' => 'post#index'
       get 'pages' => 'page#index'
 
+      scope :users do
+        get '*' => 'user#users'
+        post 'create' => 'user#create'
+      end
+
       scope :contact_form do
         get 'show/:slug' => 'contact_form#contact_form_by_slug'
         post 'create' => 'contact_form#save_form'

@@ -105,35 +105,25 @@ class Admin::SessionsController < CamaleonController
 
   def register
     @user ||= current_site.users.new
-
     if params[:user].present?
       params[:user][:role] = "client"
 
       user_data = params[:user]
-
-      @user = current_site.users.new(user_data)
-      r = {user: @user, params: params}; hooks_run('user_before_register', r)
-
-      if current_site.security_user_register_captcha_enabled? && !captcha_verified?
+      result = register_user(user_data, params[:meta])
+      if result[:result] == false && result[:type] == :captcha_error
         @first_name = params[:meta][:first_name]
         @last_name = params[:meta][:last_name]
 
         @user.errors[:captcha] = t('admin.users.message.error_captcha')
         render 'register'
+      elsif result[:result]
+        flash[:notice] = result[:message]
+        redirect_to result[:redirect_url]
       else
-        if @user.save
-          @user.set_meta_from_form(params[:meta])
-          r = {user: @user, message: t('admin.users.message.created'), redirect_url: admin_login_path}; hooks_run('user_after_register', r)
-          flash[:notice] = r[:message]
-          redirect_to r[:redirect_url]
-        else
-          @first_name = params[:meta][:first_name]
-          @last_name = params[:meta][:last_name]
-          render 'register'
-        end
+        @first_name = params[:meta][:first_name]
+        @last_name = params[:meta][:last_name]
+        render 'register'
       end
-    else
-      render 'register'
     end
   end
 
