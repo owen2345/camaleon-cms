@@ -1,4 +1,4 @@
-class Api::V1::ContactFormController < Api::ApiController
+class Api::V1::ContactFormController < CamaleonCms::Api::ApiController
   #TODO this controller must be into ContactForm plugin app
   skip_before_filter :verify_authenticity_token
 

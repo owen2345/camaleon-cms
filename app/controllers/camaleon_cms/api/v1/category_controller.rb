@@ -1,4 +1,4 @@
-class CamaleonCms::Api::V1::CategoryController < Api::ApiController
+class CamaleonCms::Api::V1::CategoryController < CamaleonCms::Api::ApiController
 
   swagger_controller :categories, 'Categories'
 
