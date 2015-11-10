@@ -15,7 +15,7 @@ module Plugins::FrontCache::FrontCacheHelper
       current_site.set_option("refresh_cache", false)
     end
 
-    return if signin? # avoid cache if current visitor is logged in
+    return if signin? || Rails.env == "development" # avoid cache if current visitor is logged in or development environment
 
     cache_key = front_cache_get_key
     if !flash.keys.present? && front_cache_exist?(cache_key) # recover cache file

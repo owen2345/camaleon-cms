@@ -8,18 +8,18 @@
  * You're free to add application-wide styles to this file and they'll appear at the top of the
  * compiled file, but it's generally better to create a new file per style scope.
  *
- *= require ./jquery/jquery-ui
+ *= require ./jquery/_jquery-ui
  *= require camaleon_cms/bootstrap.min
- *= require ./lte/admin
+ *= require ./lte/_admin
  *= require ./lte/skins/skin-blue
- *= require ./custom_admin
+ *= require ./_custom_admin
 
  *= require ./bootstrap-datetimepicker
  *= require ./bootstrap-datepicker
- *= require ./introjs/introjs.min
- *= require ./tageditor/jquery.tag-editor
+ *= require ./introjs/_introjs.min
+ *= require ./tageditor/_jquery.tag-editor
 
- *= require ./uploader/uploadfile
+ *= require ./uploader/_uploadfile
 
 
 
@@ -27,6 +27,6 @@
  *= require camaleon_cms/admin/tinymce/skins/lightgray/content.min
 
  // post
- *= require ./jquery.tagsinput
+ *= require ./_jquery.tagsinput
  */
 

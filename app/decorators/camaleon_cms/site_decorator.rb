@@ -41,7 +41,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
     if slug_or_id.present?
       the_contents(slug_or_id)
     else
-      h.verify_front_visibility(object.posts)
+      h.verify_front_visibility(object.posts).eager_load(:post_type)
     end
   end
 

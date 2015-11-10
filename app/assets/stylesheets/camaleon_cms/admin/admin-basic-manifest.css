@@ -9,7 +9,7 @@
  * compiled file, but it's generally better to create a new file per style scope.
  *
  *= require camaleon_cms/bootstrap.min
- *= require ./lte/admin
- *= require ./custom_admin
+ *= require ./lte/_admin
+ *= require ./_custom_admin
  *= require ./lte/skins/skin-blue
  */

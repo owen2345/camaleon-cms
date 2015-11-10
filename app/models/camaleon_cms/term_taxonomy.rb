@@ -35,10 +35,10 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   has_many :user_relationships, :class_name => "CamaleonCms::UserRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
   has_many :users, through: :user_relationships, :source => :user
 
-  # find by slug of this collection
-  def self.find_by_slug(slug)
-    self.where("#{CamaleonCms::TermTaxonomy.table_name}.slug = ? OR #{CamaleonCms::TermTaxonomy.table_name}.slug LIKE ? ", slug, "%-->#{slug}<!--%").reorder("").first
-  end
+  # # find by slug of this collection
+  # def self.find_by_slug(slug)
+  #   self.where("#{CamaleonCms::TermTaxonomy.table_name}.slug = ? OR #{CamaleonCms::TermTaxonomy.table_name}.slug LIKE ? ", slug, "%-->#{slug}<!--%").reorder("").first
+  # end
 
   # return all children taxonomy
   # sample: sub categories of a category

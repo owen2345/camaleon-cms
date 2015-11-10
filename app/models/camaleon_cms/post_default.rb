@@ -15,6 +15,8 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
   attr_accessor :draft_id
   attr_accessible :data_options
   attr_accessible :data_metas
+  cattr_accessor :current_user
+  cattr_accessor :current_site
 
   has_many :term_relationships, class_name: "CamaleonCms::TermRelationship", foreign_key: :objectid, dependent: :destroy, primary_key: :id
   has_many :children, ->{ where(post_class: "PostDefault") }, class_name: "CamaleonCms::PostDefault", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
@@ -28,7 +30,12 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
 
   # find a content by slug (support multi language)
   def self.find_by_slug(slug)
-    self.where("#{CamaleonCms::Post.table_name}.slug = ? OR #{CamaleonCms::Post.table_name}.slug LIKE ? ", slug, "%-->#{slug}<!--%").reorder("").first
+    if self.class.current_site.present? && self.class.current_site.get_languages.count <= 1
+      res = self.where(slug: slug)
+    else
+      res = self.where("#{CamaleonCms::Post.table_name}.slug = ? OR #{CamaleonCms::Post.table_name}.slug LIKE ? ", slug, "%-->#{slug}<!--%")
+    end
+    res.reorder("").first
   end
 
   # return the parent of a post (support for sub contents or tree of posts)
