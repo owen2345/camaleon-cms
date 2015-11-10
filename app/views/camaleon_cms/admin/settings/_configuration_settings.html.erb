@@ -1,0 +1,35 @@
+<% posts = current_site.posts.public_posts.all %>
+<div id="tab-configuration" class="<%= "active" if "config" == params[:tab] %> tab-pane ">
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.table.home_page') %></label><br>
+        <%= select_tag "options[home_page]", options_for_select([[t('camaleon_cms.admin.table.default'), ""]]+(posts.collect { |x| x = x.decorate; [x.the_title, x.id] }), @site.options[:home_page]), class: "form-control select" %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.table.page_404') %></label><br>
+        <%= select_tag "options[error_404]", options_for_select([[t('camaleon_cms.admin.table.default'), ""]]+(posts.collect { |x| x = x.decorate; [x.the_title, x.id] }), @site.options[:error_404]), class: "form-control select" %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.table.email_address') %></label><br>
+        <%= email_field :options, :email, :class => "form-control", :value => @site.options[:email] %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.list_per_page_front') %></label><br>
+        <%= text_field :options, :front_per_page, :class => "form-control number", :value => @site.front_per_page %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.list_per_page_admin') %></label><br>
+        <%= text_field :options, :admin_per_page, :class => "form-control number", :value => @site.admin_per_page %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.comment_status') %></label><br>
+        <%= check_box :options, :comment_status, {checked: @site.front_comment_status == "approved"}, "approved", "pending" %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.allow_user_registration') %></label><br>
+        <%= check_box :meta, :has_create_account, {checked: @site.get_option('has_create_account', false), class: "icheckbox0"}, "true", "" %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.security.captcha_user_register') %></label><br>
+        <%= check_box :options, :security_captcha_user_register, {checked: @site.security_user_register_captcha_enabled?, class: "icheckbox0"}, "true", "" %>
+    </div>
+</div>

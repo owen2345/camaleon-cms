@@ -340,6 +340,7 @@ en:
         filesystem_s3_access_key: "AWS S3 Access Key"
         filesystem_s3_secret_key: "AWS S3 Secret Key"
         filesystem_s3_bucket_name: "AWS S3 Bucket name"
+        filesystem_region: "AWS S3 Region"
         filesystem_cdn: "CDN url"
         security:
           captcha_user_register: "Enable captcha on user registration?"

@@ -111,12 +111,7 @@ class PluginRoutes
 
   # return the main site
   def self.main_site
-    r = nil
-    begin
-      r = get_sites.first
-    rescue => e
-    end
-    r
+    @@main_site ||= get_sites.first rescue nil
   end
 
   # update a system value
@@ -133,8 +128,9 @@ class PluginRoutes
 
   # reload routes
   def self.reload
+    @@all_sites = nil
+    @@main_site = nil
     @@_vars.each { |v| class_variable_set("@@cache_#{v}", nil) }
-    # WPRails::Application.routes_reloader.reload!
     Rails.application.reload_routes!
   end
 
@@ -236,14 +232,7 @@ class PluginRoutes
 
   # return all sites registered for Plugin routes
   def self.get_sites
-    res = []
-    r = cache_variable("site_get_sites"); return r if !r.nil? && r.any?
-    begin
-      res = CamaleonCms::Site.order(id: :asc).all
-      cache_variable("site_get_sites", res)
-    rescue
-    end
-    res
+    @@all_sites ||= CamaleonCms::Site.order(id: :asc).all rescue nil
   end
 
   # return all locales for all sites joined by |

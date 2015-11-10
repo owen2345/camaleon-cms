@@ -113,7 +113,11 @@ module CamaleonCms::UploaderHelper
   # destroy a folder from fog
   def cama_uploader_destroy_folder(folder)
     cama_uploader_init_connection(true)
-    @fog_connection_bucket_dir.files.head("#{current_site.id}/#{folder}/".gsub(/(\/){2,}/, "/")).destroy
+    if @fog_connection.class.name.include?("AWS")
+      dir = @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name], prefix: "#{current_site.id}/#{folder}".gsub(/(\/){2,}/, "/"))
+      dir.files.each{|f| f.destroy }
+    end
+    @fog_connection_bucket_dir.files.head("#{current_site.id}/#{folder}/".gsub(/(\/){2,}/, "/")).destroy rescue ""
   end
 
   # add a new folder in fog
@@ -124,16 +128,16 @@ module CamaleonCms::UploaderHelper
 
   # initialize fog uploader and trigger hook to customize fog storage
   def cama_uploader_init_connection(clear_cache = false)
-    # local test
-    # @fog_connection_hook_res ||= {connection: nil, thumb_folder_name: "thumb", bucket_name: "media", thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
-    # @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :local_root => Rails.root.join("public").to_s, :provider   => 'Local', endpoint: current_site.the_url }) : @fog_connection_hook_res[:connection]
-
-    # AWS test
-    @fog_connection_hook_res ||= {connection: nil, thumb_folder_name: "thumb", bucket_name: "owencio", thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
-    @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :aws_access_key_id => "AKIAIFKEYS4ZQ2AR25KQ", :provider   => 'AWS', aws_secret_access_key: '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', :region  => 'us-west-2' }) : @fog_connection_hook_res[:connection]
-
+    server = current_site.get_option("filesystem_type", "local")
+    @fog_connection_hook_res ||= {server: server, connection: nil, thumb_folder_name: "thumb", bucket_name: server == "local" ? "media" : current_site.get_option("filesystem_s3_bucket_name"), thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
+    case server
+      when "local"
+        @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :local_root => Rails.root.join("public").to_s, :provider   => 'Local', endpoint: current_site.the_url }) : @fog_connection_hook_res[:connection]
+      when "s3"
+        @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :aws_access_key_id => current_site.get_option("filesystem_s3_access_key"), :provider   => 'AWS', aws_secret_access_key: current_site.get_option("filesystem_s3_secret_key"), :region  => current_site.get_option("filesystem_region") }) : @fog_connection_hook_res[:connection]
+    end
     @fog_connection_bucket_dir ||= @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name])
-    current_site.set_meta("cache_browser_files", nil) if clear_cache
+    current_site.set_meta("cache_browser_files_#{@fog_connection_hook_res}", nil) if clear_cache
   end
 
   # verify if this file name already exist
@@ -156,7 +160,7 @@ module CamaleonCms::UploaderHelper
   # Generate Hash structure of files from FOG
   def cama_uploader_browser_files(load_cache = true)
     if load_cache
-      cache_res = current_site.get_meta("cache_browser_files")
+      cache_res = current_site.get_meta("cache_browser_files_#{@fog_connection_hook_res}")
       return cache_res.with_indifferent_access if cache_res.present?
     end
 
@@ -165,7 +169,7 @@ module CamaleonCms::UploaderHelper
     @fog_connection_bucket_dir.files.all.each do |file|
       cama_uploader_browser_files_parse_file(@browser_files, File.dirname(file.key), file)
     end
-    current_site.set_meta("cache_browser_files", @browser_files)
+    current_site.set_meta("cache_browser_files_#{@fog_connection_hook_res}", @browser_files)
   end
 
   # add full file path into browser structure
