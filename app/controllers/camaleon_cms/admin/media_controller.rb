@@ -53,7 +53,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
         cama_uploader_destroy_folder(params[:folder])
         render inline: ""
       when "del_file"
-        cama_uploader_destroy_file(params[:file].gsub("//", "/"))
+        cama_uploader_destroy_file(params[:folder].gsub("//", "/"))
         render inline: ""
     end
   end
