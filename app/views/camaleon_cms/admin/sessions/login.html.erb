@@ -38,7 +38,7 @@
         <%= r = {html: ""}; hooks_run("user_login_form", r); raw(r[:html]); %>
 
         <div class="row">
-            <% if current_site.get_option('has_create_account', false) %>
+            <% if current_site.get_option('permit_create_account', false) %>
                 <div class="col-xs-6"><%= t('camaleon_cms.admin.login.do_not_have_account_yet') %><br> <a href="<%= cama_admin_register_path %>"><%= t('camaleon_cms.admin.login.create_account') %></a></div>
             <% end %>
             <div class="col-xs-6">

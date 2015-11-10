@@ -83,6 +83,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
     if @user.save
       @user.set_meta_from_form(params[:meta]) if params[:meta].present?
       @user.set_field_values(params[:field_options])
+      r={user: @user}; hooks_run('user_created', r)
       flash[:notice] = t('camaleon_cms.admin.users.message.created')
       redirect_to action: :index
     else
@@ -91,7 +92,10 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   end
 
   def destroy
-    flash[:notice] = t('camaleon_cms.admin.users.message.deleted') if @user.destroy
+    if @user.destroy
+      flash[:notice] = t('camaleon_cms.admin.users.message.deleted')
+      r={user: @user}; hooks_run('user_destroyed', r)
+    end
     redirect_to action: :index
   end
 

@@ -5,6 +5,7 @@ en:
     page_error_500: "<h1>ooops...</h1><h5>Error 500 Internal Server Error. Please contact to the administrator.</h5>"
     admin:
       request_error_message: "An error occurred, please contact to the administrator."
+      authorization_error: "You don't have authorization for this section."
       header:
         member_since: "Member since %{time}"
       button:
