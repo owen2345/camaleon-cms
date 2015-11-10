@@ -18,10 +18,9 @@ module Plugins::FrontCache::FrontCacheHelper
     return if signin? # avoid cache if current visitor is logged in
 
     cache_key = front_cache_get_key
-    ActionController::Base.page_cache_directory = Rails.root.join("tmp", "cache", "pages")
-    if page_cache_exist?(cache_key) # recover cache file
+    if !flash.keys.present? && front_cache_exist?(cache_key) # recover cache file
       Rails.logger.info "============================================== readed cache: #{cache_key}"
-      render text: File.read(page_cache_get(cache_key)).gsub("{{form_authenticity_token}}", form_authenticity_token)
+      render text: front_cache_get(cache_key).gsub("{{form_authenticity_token}}", form_authenticity_token)
       return
     end
 
@@ -31,7 +30,7 @@ module Plugins::FrontCache::FrontCacheHelper
       @_plugin_do_cache = true
     elsif params[:action] == "post" && !params[:draft_id].present?
       begin
-        post = current_site.posts.find_by_slug(params[:slug]).decorate
+        post = current_site.the_posts.find_by_slug(params[:slug]).decorate
         if post.can_visit?
           @post = post
           @post_type = post.the_post_type
@@ -45,16 +44,10 @@ module Plugins::FrontCache::FrontCacheHelper
 
   def front_cache_front_after_load
     cache_key = front_cache_get_key
-    # expire pages if already exist flash messages
-    if flash.keys.present?
-      expire_page(current_site.cache_prefix("#{cache_key}"))
-      expire_page(current_site.cache_prefix("___#{cache_key}"))
-    end
-
     if @_plugin_do_cache && !flash.keys.present?
-      cache_page(response.body
+      front_cache_create(cache_key, response.body
                      .gsub(/csrf-token" content="(.*?)"/, 'csrf-token" content="{{form_authenticity_token}}"')
-                     .gsub(/name="authenticity_token" value="(.*?)"/, 'name="authenticity_token" value="{{form_authenticity_token}}"'), cache_key, false)
+                     .gsub(/name="authenticity_token" value="(.*?)"/, 'name="authenticity_token" value="{{form_authenticity_token}}"'))
       Rails.logger.info "============================================== cache saved as: #{cache_key}"
     end
   end
@@ -135,25 +128,37 @@ module Plugins::FrontCache::FrontCacheHelper
   # save as cache all post requests
   def front_cache_post_requests
     if (request.post? || request.patch?)
-      # current_site.set_meta("last_submit", Time.now.to_s)
       front_cache_clean()
     end
   end
 
   # clear all frontend cache files
   def front_cache_clean
-    # TODO replace with custom cache page
-    begin
-      FileUtils.rm_f(cache_store.cache_path) # clear fragment caches
-      FileUtils.rm_rf(File.join(ActionController::Base.page_cache_directory, current_site.id.to_s)) # clear site pages cache
-    rescue
-    end
+    FileUtils.rm_rf(Rails.root.join("tmp", "cache", "pages", current_site.id.to_s)) # clear site pages cache
   end
 
   private
+
+  def front_cache_exist?(key)
+    File.exist?(Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, key).to_s)
+  end
+
+  def front_cache_get(key)
+    File.read(Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, key).to_s)
+  end
+
+  def front_cache_destroy(key)
+    FileUtils.rm_f(Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, key).to_s) # clear site pages cache
+  end
+
+  def front_cache_create(key, content)
+    path = Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, key).to_s
+    File.open(path, 'wb'){ |fo| fo.write(content) }
+    content
+  end
+
   def front_cache_get_key(prefix = "")
-    k = front_request_key.parameterize
-    current_site.cache_prefix("#{prefix}#{ k.present? ? k : "home"}")
+    request.path_info.split("?").first.parameterize
   end
 
   # check if current post can be cached (skip private pages)

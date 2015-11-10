@@ -1,5 +1,4 @@
 require 'rubygems'
-require 'actionpack/page_caching'
 require 'bcrypt'
 require 'cancancan'
 require 'draper'
