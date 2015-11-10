@@ -176,6 +176,7 @@ function init_post(obj) {
         }
     });
 
+    try{$(".tinymce_textarea:not(.translated-item)", $form).tinymce().destroy();}catch(e){}
     tinymce.init(cama_get_tinymce_settings({
         selector: '.tinymce_textarea:not(.translated-item)',
         height: '480px',
