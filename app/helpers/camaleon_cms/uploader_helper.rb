@@ -15,6 +15,7 @@ module CamaleonCms::UploaderHelper
   #   maximum: maximum bytes permitted to upload (default: 1000MG)
   #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
   #   remove_source: Boolean (delete source file after saved if this is true, default false)
+  #   same_name: Boolean (save the file with the same name if defined true, else search for a non used name)
   #   temporal_time: if great than 0 seconds, then this file will expire (removed) in that time (default: 0)
   #     To manage jobs, please check http://edgeguides.rubyonrails.org/active_job_basics.html
   #     Note: if you are using temporal_time, you will need to copy the file to another directory later
@@ -25,7 +26,7 @@ module CamaleonCms::UploaderHelper
       return {error: "File is empty", file: nil, size: nil}
     end
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
-    cama_uploader_init_connection()
+    cama_uploader_init_connection(true)
     settings = settings.to_sym
     settings = {
         folder: "",
@@ -35,7 +36,8 @@ module CamaleonCms::UploaderHelper
         temporal_time: 0,
         filename: (uploaded_io.original_filename rescue uploaded_io.path.split("/").last).parameterize(".").downcase.gsub(" ", "-"),
         file_size: File.size(uploaded_io.to_io),
-        remove_source: false
+        remove_source: false,
+        same_name: false
     }.merge(settings)
 
     res = {error: nil}
@@ -68,7 +70,12 @@ module CamaleonCms::UploaderHelper
     end
 
     # save file
-    partial_path = "#{"#{current_site.id}"}/#{cama_uploader_check_name("#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}")}"
+    if settings[:same_name]
+      partial_path = "#{"#{current_site.id}"}/#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}"
+    else
+      partial_path = "#{"#{current_site.id}"}/#{cama_uploader_check_name("#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}")}"
+    end
+    partial_path = partial_path.gsub(/(\/){2,}/, "/")
     file = @fog_connection_bucket_dir.files.create({:key => partial_path, :body => uploaded_io, :public => true})
 
     if settings[:temporal_time] > 0 # temporal file upload (always put as local for temporal files)
@@ -82,30 +89,51 @@ module CamaleonCms::UploaderHelper
     res = cama_uploader_parse_file(file)
 
     # generate thumb
-    if settings[:generate_thumb] && res["format"] == "image"
-      thumb_name = "#{File.basename(file.key).parameterize}#{File.extname(file.key)}"
-      # Thread.new do
-        path_thumb = cama_resize_and_crop(uploaded_io.path, @fog_connection_hook_res[:thumb][:w], @fog_connection_hook_res[:thumb][:h], {overwrite: false, output_name: thumb_name})
-        thumb_res = upload_file(path_thumb, {generate_thumb: false, remove_source: true, folder: settings[:folder].split("/").push(@fog_connection_hook_res[:thumb_folder_name]).join("/")})
-        # ActiveRecord::Base.connection.close
-      # end
+    if settings[:generate_thumb] && res["format"] == "image" && File.extname(file.key) != ".gif"
+      thumb_name = cama_parse_for_thumb_name(file.key)
+      path_thumb = cama_resize_and_crop(uploaded_io.path, @fog_connection_hook_res[:thumb][:w], @fog_connection_hook_res[:thumb][:h], {overwrite: false, output_name: thumb_name.split("/").last})
+      thumb_res = upload_file(path_thumb, {generate_thumb: false, same_name: true, remove_source: true, folder: settings[:folder].split("/").push(@fog_connection_hook_res[:thumb_folder_name]).join("/")})
     end
     FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
-    current_site.set_meta("cache_browser_files", nil)
     res
   end
 
+  # destroy file from fog
+  # sample: "owen/campaign-date-picker_1.png"
+  def cama_uploader_destroy_file(file_path, destroy_thumb = true)
+    cama_uploader_init_connection(true)
+    file = @fog_connection_bucket_dir.files.head("#{current_site.id}/#{file_path}".gsub(/(\/){2,}/, "/"))
+    _file =  cama_uploader_parse_file(file)
+    if destroy_thumb && _file["format"] == "image" && File.extname(file_path) != ".gif" # destroy thumb
+      cama_uploader_destroy_file("#{File.dirname(file_path)}/#{cama_parse_for_thumb_name(file.key)}", false) rescue ""
+    end
+    file.destroy
+  end
+
+  # destroy a folder from fog
+  def cama_uploader_destroy_folder(folder)
+    cama_uploader_init_connection(true)
+    @fog_connection_bucket_dir.files.head("#{current_site.id}/#{folder}/".gsub(/(\/){2,}/, "/")).destroy
+  end
+
+  # add a new folder in fog
+  def cama_uploader_add_folder(folder)
+    cama_uploader_init_connection(true)
+    @fog_connection_bucket_dir.files.create({:key => "#{current_site.id}/#{folder}/".gsub(/(\/){2,}/, "/"), content: "", :public => true})
+  end
+
   # initialize fog uploader and trigger hook to customize fog storage
-  def cama_uploader_init_connection()
+  def cama_uploader_init_connection(clear_cache = false)
     # local test
-    @fog_connection_hook_res ||= {connection: nil, thumb_folder_name: "thumb", bucket_name: "media", thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
-    @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :local_root => Rails.root.join("public").to_s, :provider   => 'Local', endpoint: current_site.the_url }) : @fog_connection_hook_res[:connection]
+    # @fog_connection_hook_res ||= {connection: nil, thumb_folder_name: "thumb", bucket_name: "media", thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
+    # @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :local_root => Rails.root.join("public").to_s, :provider   => 'Local', endpoint: current_site.the_url }) : @fog_connection_hook_res[:connection]
 
     # AWS test
-    # @fog_connection_hook_res ||= {connection: nil, thumb_folder_name: "thumb", bucket_name: "owencio", thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
-    # @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :aws_access_key_id => "AKIAIFKEYS4ZQ2AR25KQ", :provider   => 'AWS', aws_secret_access_key: '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', :region  => 'us-west-2' }) : @fog_connection_hook_res[:connection]
+    @fog_connection_hook_res ||= {connection: nil, thumb_folder_name: "thumb", bucket_name: "owencio", thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
+    @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :aws_access_key_id => "AKIAIFKEYS4ZQ2AR25KQ", :provider   => 'AWS', aws_secret_access_key: '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', :region  => 'us-west-2' }) : @fog_connection_hook_res[:connection]
 
     @fog_connection_bucket_dir ||= @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name])
+    current_site.set_meta("cache_browser_files", nil) if clear_cache
   end
 
   # verify if this file name already exist
@@ -115,20 +143,22 @@ module CamaleonCms::UploaderHelper
     cama_uploader_init_connection()
     files = @fog_connection_bucket_dir.files
     res = partial_path
-    if files.head("#{current_site.id}/#{res}").present?
+    if files.head("#{current_site.id}/#{res}".gsub(/(\/){2,}/, "/")).present?
       dirname = "#{File.dirname(partial_path)}/" if partial_path.include?("/")
       (1..999).each do |i|
         res = "#{dirname}#{File.basename(partial_path, File.extname(partial_path))}_#{i}#{File.extname(partial_path)}"
-        break unless files.head("#{current_site.id}/#{res}").present?
+        break unless files.head("#{current_site.id}/#{res}".gsub(/(\/){2,}/, "/")).present?
       end
     end
-    res
+    res.gsub(/(\/){2,}/, "/")
   end
 
   # Generate Hash structure of files from FOG
-  def cama_uploader_browser_files
-    cache_res = current_site.get_meta("cache_browser_files")
-    return cache_res.with_indifferent_access if cache_res.present?
+  def cama_uploader_browser_files(load_cache = true)
+    if load_cache
+      cache_res = current_site.get_meta("cache_browser_files")
+      return cache_res.with_indifferent_access if cache_res.present?
+    end
 
     @browser_files = {folders: {}, files: [], path: ""}
     cama_uploader_init_connection()
@@ -136,7 +166,6 @@ module CamaleonCms::UploaderHelper
       cama_uploader_browser_files_parse_file(@browser_files, File.dirname(file.key), file)
     end
     current_site.set_meta("cache_browser_files", @browser_files)
-    @browser_files
   end
 
   # add full file path into browser structure
@@ -148,16 +177,31 @@ module CamaleonCms::UploaderHelper
       folder_src[:folders][f] = {folders: {}, files: []} unless folder_src[:folders].keys.include?(f)
       cama_uploader_browser_files_parse_file(folder_src[:folders][f], folder_dst.split("/").from(1).join("/"), file)
     else
-      folder_src[:files] << cama_uploader_parse_file(file)
+      if file.key.end_with?("/")
+        folder_src[:folders][file.key.split("/").last] = {folders: {}, files: []}
+      else
+        r_file = cama_uploader_parse_file(file)
+        folder_src[:files] << r_file if r_file["url"].present? # skip non public url files (protected)
+      end
     end
   end
 
   # search a folder by path and return all folders and files
   # sample: cama_media_find_folder("test/exit")
   def cama_media_find_folder(path = "")
-    path = "#{current_site.id}/#{path}".split("/")
-    path.delete("")
-    _cama_media_find_folder(path.join("/"))
+    res = nil
+    folder = cama_uploader_browser_files[:folders]
+    "#{current_site.id}/#{path}".gsub(/(\/){2,}/, "/").split("/").each do |k|
+      if k.present?
+        begin
+          res =  folder[k]
+          folder = folder[k][:folders]
+        rescue
+          break
+        end
+      end
+    end
+    res || {folders: {}, files: []}
   end
 
   # parse file information of FOG file
@@ -166,8 +210,11 @@ module CamaleonCms::UploaderHelper
     ext = File.extname(file.key).sub(".", "").downcase
     res["format"] = "unknown"
     if "jpg,jpeg,png,gif,bmp".split(",").include?(ext)
-      thumb_name = "#{File.basename(file.key).parameterize}#{File.extname(file.key)}"
-      res["thumb"] = "#{File.dirname(res["url"])}/#{@fog_connection_hook_res[:thumb_folder_name]}/#{thumb_name}"
+      if File.extname(res["name"]) == ".gif"
+        res["thumb"] = res["url"]
+      else
+        res["thumb"] = "#{File.dirname(res["url"])}/#{cama_parse_for_thumb_name(file.key)}" rescue ""
+      end
       res["format"] = "image"
     end
     if "flv,webm,wmv,avi,swf,mp4".split(",").include?(ext)
@@ -277,7 +324,7 @@ module CamaleonCms::UploaderHelper
     img.write(file) if settings[:overwrite]
     unless settings[:overwrite]
       if settings[:output_name].present?
-        img.write(file = File.join(File.dirname(file), settings[:output_name]))
+        img.write(file = File.join(File.dirname(file), settings[:output_name]).to_s)
       else
         img.write(file = uploader_verify_name(File.join(File.dirname(file), "crop_#{File.basename(file)}")))
       end
@@ -306,17 +353,9 @@ module CamaleonCms::UploaderHelper
     return [ horizontal_offset, vertical_offset ]
   end
 
-  # auxiliar method for cama_media_find_folder
-  def _cama_media_find_folder(path, tree = nil)
-    res = {}
-    (tree || cama_uploader_browser_files[:folders]).each do |fname, folder|
-      if path == fname
-        res = folder
-      else
-        path = path.split("/").from(1).join("/")
-        res = _cama_media_find_folder(path, folder[:folders])
-      end
-    end
-    res
+  # convert file path into thumb path format
+  # return the image name into thumb format: owewen.png into thumb/owen-png.png
+  def cama_parse_for_thumb_name(file_path)
+    "#{@fog_connection_hook_res[:thumb_folder_name]}/#{File.basename(file_path).parameterize}#{File.extname(file_path)}"
   end
 end

@@ -10,12 +10,13 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   skip_before_filter :cama_authenticate, only: :img
   skip_before_filter :admin_logged_actions, except: :index
   skip_before_filter :verify_authenticity_token, only: :upload
+  before_action :init_media_vars
 
   # render media section
   def index
     authorize! :manager, :media
+    @show_file_actions = true
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
-    init_media_vars
   end
 
   # crop a image to save as a new file
@@ -32,9 +33,25 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # render media for modal content
   def ajax
-    init_media_vars
     render partial: "files_list" if params[:partial].present?
     render "index", layout: false unless params[:partial].present?
+  end
+
+  # do background actions in fog
+  def actions
+    authorize! :manager, :media
+    params[:folder] = params[:folder].gsub("//", "/") if params[:folder].present?
+    case params[:media_action]
+      when "new_folder"
+        cama_uploader_add_folder(params[:folder])
+        render partial: "render_folder_item", locals: { fname: params[:folder].split("/").last}
+      when "del_folder"
+        cama_uploader_destroy_folder(params[:folder])
+        render inline: ""
+      when "del_file"
+        cama_uploader_destroy_file(params[:file].gsub("//", "/"))
+        render inline: ""
+    end
   end
 
   # upload files from media uploader
@@ -57,6 +74,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     @media_formats = (params[:media_formats] || "").sub("media", ",video,audio").sub("all", "").split(",")
     @folder = params[:folder] || "/"
     @tree = cama_media_find_folder(@folder)
+    @show_file_actions ||= params[:actions] || false
   end
 
 end

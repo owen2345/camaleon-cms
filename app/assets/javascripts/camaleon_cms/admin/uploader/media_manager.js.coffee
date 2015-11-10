@@ -103,6 +103,51 @@ window["cama_init_media"] = (media_panel)->
     )
   )
 
+
+  # element actions
+  media_panel.on("click", "a.add_folder", ->
+    content = $("<form><div><label for=''>Folder: </label> <input name='folder' class='form-control required'> </div><div><button class='btn btn-primary' type='submit'>Create</button></div> </form>")
+    callback = (modal)->
+      btn = modal.find("button")
+      input = modal.find("input").keyup(->
+        if $(this).val()
+          btn.removeAttr("disabled")
+        else
+          btn.attr("disabled", "true")
+      ).trigger("keyup")
+      modal.find("form").submit ->
+        showLoading()
+        $.post(media_panel.attr("data-url_actions"), {folder: media_panel.attr("data-folder")+"/"+input.val(), media_action: "new_folder"}, (res)->
+          hideLoading()
+          modal.modal("hide")
+          if res.search("<") == 0 # success upload
+            media_panel.find(".media_browser_list").append(res)
+          else
+            $.fn.alert({type: 'error', content: res, title: "Error"})
+        )
+        return false
+    open_modal({title: "New Folder", content: content, callback: callback})
+    return false
+  )
+  # destroy file and folder
+  media_panel.on("click", "a.del_item, a.del_folder", ->
+    unless confirm(I18n("msg.delete_item"))
+      return false
+    link = $(this)
+    item = link.closest(".media_item")
+    showLoading()
+    $.post(media_panel.attr("data-url_actions"), {folder: media_panel.attr("data-folder")+"/"+item.attr("data-key"), media_action: if link.hasClass("del_folder") then "del_folder" else "del_file"}, (res)->
+      hideLoading()
+      if res
+        $.fn.alert({type: 'error', content: res, title: "Error"})
+      else
+        item.remove()
+        media_info.html("")
+    )
+    return false
+  )
+
+
 # jquery library for modal updaloder
 $ ->
   # sample: $.fn.upload_filemanager({title: "My title", formats: "image,video", selected: function(file){ alert(file["name"]) }})

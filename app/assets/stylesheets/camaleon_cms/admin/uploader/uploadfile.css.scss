@@ -155,6 +155,23 @@ margin: 5px 10px 5px 0px;
       margin: 5px;
       height: 152px;
       overflow: hidden;
+      .actions{
+        position: absolute;
+        top: 0;
+        width: 100%;
+        display: none;
+        background-color: rgba(240, 240, 240, 0.5);
+        cursor: default;
+        text-align: center;
+        width: 100%;
+        font-size: 17px;
+        .del_item, .del_folder{
+          color: red;
+        }
+      }
+      &:hover .actions{
+        display: block;
+      }
       .thumb{
         background-color: #EEEEEE;
         border: 1px solid #ccc;
@@ -230,5 +247,10 @@ margin: 5px 10px 5px 0px;
     position: absolute;
     top: 0;
     width: 100%;
+  }
+  .add_folder{
+    position: absolute;
+    right: 17px;
+    top: 5px;
   }
 }

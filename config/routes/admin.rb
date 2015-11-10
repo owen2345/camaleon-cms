@@ -6,7 +6,6 @@ Rails.application.routes.draw do
         get 'dashboard'
         get 'ajax'
         get 'search'
-        get 'media' => 'media#index'
         get 'login' => 'sessions#login'
         post 'login' => 'sessions#login_post'
         get 'logout' => 'sessions#logout'
@@ -115,10 +114,11 @@ Rails.application.routes.draw do
 
         get 'doc' => redirect('/docs/index.html?url=/api-docs.json')
 
-        match 'crop' => 'media#crop', via: :all
-        resources :media, only: [] do
+        resources :media, only: [:index] do
+          match 'crop', via: :all
           get "ajax", on: :collection
           post "upload", on: :collection
+          post "actions", on: :collection
         end
       end
     end

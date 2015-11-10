@@ -1,4 +1,4 @@
-<div class="file_item <%= file["format"] %>_format">
+<div class="media_item file_item <%= file["format"] %>_format" data-key="<%= file["name"] %>">
     <div class="thumb">
         <% case file["format"]  %>
         <% when "image"  %>
@@ -19,4 +19,9 @@
         <%= file["name"] %>
     </div>
     <textarea class="hidden data_value"><%= raw file.to_json %></textarea>
+    <% if @show_file_actions %>
+        <div class="actions">
+            <a href="#" class="del_item"><i class="fa fa-trash"></i></a>
+        </div>
+    <% end %>
 </div>
