@@ -43,6 +43,9 @@ jQuery(function ($) {
                         if (res != "") $("#modal_change_password .modal-body").flash_message(res);
                         $("#user_image").html('<img class="img-thumbnail" src="' + res + '?r=' + Math.random() + '"/>');
                         hideLoading();
+                    },
+                    error: function(){
+                        $.fn.alert({type: 'error', content: 'Internal Error', title: "Error"})
                     }
                 }).submit();
                 $("#cp_target").html("Use form below to upload file. Only image files.");

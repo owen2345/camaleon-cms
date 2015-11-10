@@ -22,7 +22,11 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   # crop a image to save as a new file
   def crop
     path_image = Rails.root.join("tmp", File.basename(params[:cp_img_path])).to_s
-    File.open(path_image, 'wb'){ |fo| fo.write(open(params[:cp_img_path]).read) }
+    if current_site.get_option("filesystem_type", "local") == "local"
+      FileUtils.cp(Rails.root.join("public", "media", params[:cp_img_path].scan(/\/media\/(.*)/).first.first).to_s, path_image)
+    else
+      File.open(path_image, 'wb'){ |fo| fo.write(open(params[:cp_img_path]).read) }
+    end
     crop_path = cama_crop_image(path_image, params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
     res = upload_file(crop_path, {remove_source: true})
     if params[:saved_avatar].present?

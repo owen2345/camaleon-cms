@@ -115,7 +115,7 @@ Rails.application.routes.draw do
         get 'doc' => redirect('/docs/index.html?url=/api-docs.json')
 
         resources :media, only: [:index] do
-          match 'crop', via: :all
+          match 'crop', via: :all, on: :collection
           get "ajax", on: :collection
           post "upload", on: :collection
           post "actions", on: :collection

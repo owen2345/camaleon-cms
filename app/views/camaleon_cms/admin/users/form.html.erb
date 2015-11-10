@@ -161,7 +161,7 @@
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><%= t('camaleon_cms.admin.button.close') %></span></button>
                 <h4 class="modal-title" id="smallModalHead"><%= t('camaleon_cms.admin.button.change_photo') %></h4>
             </div>
-            <form id="cp_crop" method="post" action="<%= cama_admin_crop_path({saved_avatar: @user.id}) %>">
+            <form id="cp_crop" method="post" action="<%= crop_cama_admin_media_path({saved_avatar: @user.id}) %>">
                 <div class="modal-body">
                     <div class="text-center" id="cp_target"><%= t('camaleon_cms.admin.message.change_photo') %></div>
                     <input type="hidden" name="cp_img_path" id="cp_img_path"/>
