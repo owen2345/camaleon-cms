@@ -57,11 +57,11 @@
               </div>
               <div class="form-group admin_logo_upload">
                 <label for=""><%= t('camaleon_cms.admin.table.logo') %></label><br>
-                <%= hidden_field :options, :logo, :class => "form-control unput_upload", :value => @site.the_logo %>
+                <%= hidden_field :options, :logo, :class => "form-control unput_upload", :value => @site.get_option("logo") %>
               </div>
               <div class="form-group admin_logo_upload">
                 <label for=""><%= t('camaleon_cms.admin.table.favicon') %></label><br>
-                <%= hidden_field :options, :icon, :class => "form-control unput_upload", :value => @site.the_icon, "data-label" => "#{t('camaleon_cms.admin.button.upload_icon')}", "data-ext" => "ico" %>
+                <%= hidden_field :options, :icon, :class => "form-control unput_upload", :value => @site.get_option("icon"), "data-label" => "#{t('camaleon_cms.admin.button.upload_icon')}", "data-ext" => "ico" %>
               </div>
             </div>
             <%= render "configuration_settings" %>
