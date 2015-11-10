@@ -75,13 +75,9 @@ class PluginRoutes
     nil
   end
 
-  # return system settings defined in:
-  #   + gem/config/system.json
-  #   + app/config/system.json
-  #   + main_site.get_meta("main_settings")
-  # skip_site_settings_db: is a fix to avoid infite cicle
-  def self.system_info(skip_site_settings_db = false)
-    r = cache_variable("system_info");  return r unless r.nil?
+  # return system static settings (config.json values)
+  def self.static_system_info
+    r = cache_variable("statis_system_info");  return r unless r.nil?
     settings = {}
 
     gem_settings = File.join($camaleon_engine_dir, "config", "system.json")
@@ -95,7 +91,17 @@ class PluginRoutes
     settings["path"] = ''
     settings["kind"] = "system"
     settings["hooks"]["on_notification"] = (settings["hooks"]["on_notification"] || []) + ["admin_system_notifications"]
+    cache_variable("statis_system_info", settings)
+  end
 
+  # return system settings defined in:
+  #   + gem/config/system.json
+  #   + app/config/system.json
+  #   + main_site.get_meta("main_settings")
+  # skip_site_settings_db: is a fix to avoid infite cicle
+  def self.system_info(skip_site_settings_db = false)
+    r = cache_variable("system_info");  return r unless r.nil?
+    settings = static_system_info
     unless skip_site_settings_db
       main_site = self.main_site
       begin
@@ -232,7 +238,11 @@ class PluginRoutes
 
   # return all sites registered for Plugin routes
   def self.get_sites
-    @@all_sites ||= CamaleonCms::Site.order(id: :asc).all rescue nil
+    begin
+      @@all_sites ||= CamaleonCms::Site.order(id: :asc).all
+    rescue
+      []
+    end
   end
 
   # return all locales for all sites joined by |

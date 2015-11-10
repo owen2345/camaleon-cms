@@ -9,7 +9,7 @@
 class CamaleonCms::PostDefault < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
-  self.table_name = "#{PluginRoutes.system_info["db_prefix"]}posts"
+  self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}posts"
 
   attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order
   attr_accessor :draft_id

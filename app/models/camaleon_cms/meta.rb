@@ -7,6 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Meta < ActiveRecord::Base
-  self.table_name = "#{PluginRoutes.system_info["db_prefix"]}metas"
+  self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}metas"
   attr_accessible :objectid, :key, :value, :object_class
 end

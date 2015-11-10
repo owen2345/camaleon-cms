@@ -9,7 +9,7 @@
 class CamaleonCms::CustomField < ActiveRecord::Base
   include CamaleonCms::Metas
   has_many :metas, ->{ where(object_class: 'CustomField')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-  self.table_name = "#{PluginRoutes.system_info["db_prefix"]}custom_fields"
+  self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}custom_fields"
   default_scope {order("#{CamaleonCms::CustomField.table_name}.field_order ASC")}
   # status: nil -> visible on list group fields
   attr_accessible :object_class, :objectid, :description, :parent_id, :count, :name, :slug, :field_order, :status, :is_repeat
