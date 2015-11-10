@@ -281,7 +281,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   # reload system routes for this site
   def update_routes
     if self.id == CamaleonCms::Site.first.id
-      PluginRoutes.system_info_set("base_domain", self.slug) if self.slug.present?
+      set_option("base_domain", self.slug, "main_settings") if self.slug.present?
     end
     PluginRoutes.reload
   end

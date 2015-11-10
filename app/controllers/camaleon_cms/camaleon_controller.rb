@@ -32,6 +32,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
+  helper_method :current_user
 
   layout Proc.new { |controller| controller.request.xhr? ? false : 'default' }
 

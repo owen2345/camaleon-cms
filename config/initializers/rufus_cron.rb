@@ -15,19 +15,20 @@ end
 
 if loaded_rufus
   $scheduler = Rufus::Scheduler.singleton
-  # $scheduler.cron '00 05 * * *' do
-  #
-  # end
 
-  sites = CamaleonCms::Site.all rescue []
-  sites.each do |site|
-    # triggering cron hooks
-    c = CamaleonCms::CamaleonController.new
-    c.instance_eval do
-      @current_site = site
-      @_hooks_skip = []
+  # TODO will be deprecated to use this by initializers
+  begin
+    sites = CamaleonCms::Site.all rescue []
+    sites.each do |site|
+      # triggering cron hooks
+      c = CamaleonCms::CamaleonController.new
+      c.instance_eval do
+        @current_site = site
+        @_hooks_skip = []
+      end
+      r = {site: site, eval: nil}; c.hooks_run("cron", r)
+      r[:eval].call(r) if r[:eval].present? # evaluate the cron job created by plugin or theme
     end
-    r = {site: site, eval: nil}; c.hooks_run("cron", r)
-    r[:eval].call(r) if r[:eval].present? # evaluate the cron job created by plugin or theme
+  rescue
   end
 end
