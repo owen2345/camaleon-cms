@@ -26,24 +26,29 @@
   rails new my_project
   ```
 * Add the gem in your Gemfile
+  
   ```
   gem "camaleon_cms", github: 'owen2345/camaleon-cms', branch: "moduler" # version 2
   # If you are using Camaleon CMS 1x, you can use this patch to use this new version
   gem "camaleon_cms", github: 'owen2345/camaleoncms_1xmigration'
   ```
 * Install required Gem and dependencies
+  
   ```
   bundle install
   ```
 * Install the CMS (This will copy some basic templates and plugins in your project)
+
   ```
   rails generate camaleon_cms:install
   ```
 * Create database structure
+
   ```
   rake db:migrate
   ```
 * Start your server
+
   ```
   rails server # and then go to your browser http://localhost:3000/
   ```
@@ -154,6 +159,5 @@ Visit the web site for more information: http://camaleon.tuzitio.com/
   -   Rebuilt Media Manager and removed elfinder library
   -   Added support of multiples permalinks, I.E. you can define the permalink structure for each of content type
   -   Added PT-br language
-  ....
 
 See more here: http://camaleon.tuzitio.com/version-history.html
