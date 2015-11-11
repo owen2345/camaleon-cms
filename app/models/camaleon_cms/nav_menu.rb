@@ -30,11 +30,16 @@ class CamaleonCms::NavMenu < CamaleonCms::TermTaxonomy
     item
   end
 
+  # skip uniq slug validation
+  def skip_slug_validation?
+    true
+  end
+
   private
   def saved_nav_items (nav_menu_item, items)
     items.each do |key, value|
       item = nav_menu_item.children.new({name: value[:label]})
-      if item.save
+      if item.save!
         item.set_meta('_default',{type: value[:type], object_id: value[:link]})
         saved_nav_items(item, value[:children]) if value[:children].present?
 

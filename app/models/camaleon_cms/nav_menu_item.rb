@@ -43,6 +43,11 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
     children.create({name: value[:label], data_options: {type: value[:type], object_id: value[:link]}})
   end
 
+  # skip uniq slug validation
+  def skip_slug_validation?
+    true
+  end
+
   private
   def update_count
     self.parent.update_column('count', self.parent.children.size) if self.parent.present?

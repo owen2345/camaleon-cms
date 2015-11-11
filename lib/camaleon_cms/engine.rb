@@ -6,17 +6,10 @@ require 'meta-tags'
 require 'mini_magick'
 require 'mobu'
 require 'protected_attributes'
-require 'rufus-scheduler'
 require 'will_paginate'
 require 'will_paginate-bootstrap'
 require 'breadcrumbs_on_rails'
 require 'fog'
-
-# move to plugin
-require 'doorkeeper'
-require 'responders'
-require 'swagger/docs'
-require 'active_model_serializers'
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s
