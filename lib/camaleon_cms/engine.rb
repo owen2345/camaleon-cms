@@ -47,7 +47,7 @@ module CamaleonCms
       app.config.encoding = "utf-8"
 
       # add prefix url, like: http://localhost.com/blog/
-      config.action_controller.relative_url_root = PluginRoutes.system_info["relative_url_root"] if PluginRoutes.system_info["relative_url_root"].present?
+      # config.action_controller.relative_url_root = PluginRoutes.system_info["relative_url_root"] if PluginRoutes.system_info["relative_url_root"].present?
 
       #multiple route files
       app.routes_reloader.paths.push(File.join(engine_dir, "config", "routes", "admin.rb"))

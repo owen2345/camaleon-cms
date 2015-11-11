@@ -3,9 +3,9 @@ module CamaleonCms::CommentHelper
   # user_id, author, aothor_email, author_ip, approved, :agent
   def cama_comments_get_common_data
     comment_data = {}
-    comment_data[:user_id] = current_user.id
-    comment_data[:author] = current_user.the_name
-    comment_data[:author_email] = current_user.email
+    comment_data[:user_id] = cama_current_user.id
+    comment_data[:author] = cama_current_user.the_name
+    comment_data[:author_email] = cama_current_user.email
     comment_data[:author_IP] = request.remote_ip.to_s
     comment_data[:approved] = "approved"
     comment_data[:agent] = request.user_agent.force_encoding("ISO-8859-1").encode("UTF-8")

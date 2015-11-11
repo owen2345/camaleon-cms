@@ -124,7 +124,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   # return html link
   # attrs: Hash of link tag attributes, sample: {id: "myid", class: "sss" }
   def the_edit_link(title = nil, attrs = { })
-    return '' unless h.current_user.present?
+    return '' unless h.cama_current_user.present?
     attrs = {target: "_blank", style: "font-size:11px !important;cursor:pointer;"}.merge(attrs)
     h.link_to("&rarr; #{title || h.ct("edit")}".html_safe, the_edit_url, attrs)
   end

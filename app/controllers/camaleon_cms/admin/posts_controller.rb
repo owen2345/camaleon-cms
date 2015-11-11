@@ -71,7 +71,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     authorize! :create_post, @post_type
 
     post_data = params[:post]
-    post_data[:user_id] = current_user.id
+    post_data[:user_id] = cama_current_user.id
     post_data[:status] == 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
     post_data[:data_tags] = params[:tags].to_s
     post_data[:data_categories] = params[:categories] || []

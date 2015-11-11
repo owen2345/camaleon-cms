@@ -74,14 +74,14 @@ module CamaleonCms::SessionHelper
 
   # check if current user is already signed
   def cama_sign_in?
-    !current_user.nil?
+    !cama_current_user.nil?
   end
   alias_method :signin?, :cama_sign_in?
 
   # return the role for current user
   # if not logged in, then return 'public'
   def cama_current_role
-    (cama_sign_in?) ? current_user.role : 'public'
+    (cama_sign_in?) ? cama_current_user.role : 'public'
   end
 
   # return current user logged in

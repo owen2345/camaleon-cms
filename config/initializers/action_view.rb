@@ -14,7 +14,8 @@ module ActionView
       # fix to add camaleon prefix to search partials and layouts
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         prefixes = [""] unless prefixes.present?
-        prefixes += self.prefixes if prefixes.is_a?(Array)
+        prefixes = self.prefixes + prefixes if prefixes.is_a?(Array)
+        Rails.logger.info "%%%%%%%%%%%%%% #{prefixes.inspect}"
         @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
       end
       alias :find_template :find

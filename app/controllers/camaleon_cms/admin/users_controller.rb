@@ -18,13 +18,13 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
 
   def profile
     add_breadcrumb I18n.t("camaleon_cms.admin.users.profile")
-    @user = params[:user_id].present? ? current_site.the_user(params[:user_id].to_i).object : current_user.object
+    @user = params[:user_id].present? ? current_site.the_user(params[:user_id].to_i).object : cama_current_user.object
     return edit
   end
 
   def profile_edit
     add_breadcrumb I18n.t("camaleon_cms.admin.users.profile")
-    @user = current_user.object
+    @user = cama_current_user.object
     return edit
   end
 
@@ -39,7 +39,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
       @user.set_field_values(params[:field_options])
       r = {user: @user, message: t('camaleon_cms.admin.users.message.updated'), params: params}; hooks_run('user_after_edited', r)
       flash[:notice] = r[:message]
-      if current_user.id == @user.id
+      if cama_current_user.id == @user.id
         redirect_to action: :profile_edit
       else
         redirect_to action: :index
@@ -102,7 +102,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   private
 
   def validate_role
-    (params[:id].present? && current_user.id == params[:id]) || authorize!(:manager, :users)
+    (params[:id].present? && cama_current_user.id == params[:id]) || authorize!(:manager, :users)
   end
 
   def set_user

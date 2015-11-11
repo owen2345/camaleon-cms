@@ -31,7 +31,7 @@
                         <ul class="nav navbar-nav nav-menu" style="float: right;">
                             <% if signin?  %>
                                 <li class="dropdown">
-                                    <a class="dropdown-toggle" href="#"><img src="<%= current_user.decorate.the_avatar %>" style="max-width: 24px; border-radius: 50%" alt=""/> <%= current_user.username %></a>
+                                    <a class="dropdown-toggle" href="#"><img src="<%= cama_current_user.decorate.the_avatar %>" style="max-width: 24px; border-radius: 50%" alt=""/> <%= cama_current_user.username %></a>
                                     <ul class="dropdown-menu">
                                         <li><a href="<%= cama_admin_dashboard_path %>">Dashboard</a></li>
                                         <li><a href="<%= cama_admin_profile_path %>">Profile</a></li>

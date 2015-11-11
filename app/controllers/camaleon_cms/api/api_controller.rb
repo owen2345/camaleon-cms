@@ -1,7 +1,7 @@
 class CamaleonCms::Api::ApiController < CamaleonCms::CamaleonController
   #before_action -> { doorkeeper_authorize! :client }
   def account
-    render json: current_user
+    render json: cama_current_user
   end
 
   def render_json_error(error, status = 404)
