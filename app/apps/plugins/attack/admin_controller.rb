@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class Plugins::Attack::AdminController < Apps::PluginsAdminController
+class Plugins::Attack::AdminController < CamaleonCms::Apps::PluginsAdminController
   def settings
     @attack = current_site.get_meta("attack_config")
   end

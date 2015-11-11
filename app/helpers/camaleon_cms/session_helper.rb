@@ -85,7 +85,7 @@ module CamaleonCms::SessionHelper
   end
 
   # return current user logged in
-  def current_user
+  def cama_current_user
     return @current_user if defined?(@current_user)
     # api current user...
     @current_user = cama_calc_api_current_user
@@ -99,6 +99,7 @@ module CamaleonCms::SessionHelper
       @current_user = (current_site.users_include_admins.find_by_auth_token(c[0]).decorate rescue nil)
     end
   end
+  alias_method :current_user, :cama_current_user
 
   # check if a visitor was logged in
   # if the user was not logged in, then redirect to login url

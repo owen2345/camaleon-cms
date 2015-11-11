@@ -32,7 +32,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
-  helper_method :current_user
+  helper_method :cama_current_user
 
   layout Proc.new { |controller| controller.request.xhr? ? false : 'default' }
 
@@ -73,13 +73,13 @@ class CamaleonCms::CamaleonController < ApplicationController
     # past plugins version support
     self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
     self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
-    CamaleonCms::PostDefault.current_user = current_user
+    CamaleonCms::PostDefault.current_user = cama_current_user
     CamaleonCms::PostDefault.current_site = current_site
   end
 
   # initialize ability for current user
   def current_ability
-    @current_ability ||= CamaleonCms::Ability.new(current_user, current_site)
+    @current_ability ||= CamaleonCms::Ability.new(cama_current_user, current_site)
   end
 
   def cama_after_actions

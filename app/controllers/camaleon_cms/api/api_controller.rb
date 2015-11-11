@@ -1,4 +1,4 @@
-class CamaleonCms::Api::ApiController < CamaleonController
+class CamaleonCms::Api::ApiController < CamaleonCms::CamaleonController
   #before_action -> { doorkeeper_authorize! :client }
   def account
     render json: current_user
