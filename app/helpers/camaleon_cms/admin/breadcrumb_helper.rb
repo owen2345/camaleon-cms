@@ -11,7 +11,7 @@ module CamaleonCms::Admin::BreadcrumbHelper
   def cama_admin_title_draw
     res = [t("camaleon_cms.admin.sidebar_top.admin_panel")]
     @breadcrumbs.reverse.slice(0, 2).reverse.each{|b| res << b.name }
-    res.join(" &raquo; ").sub("<i class='glyphicon glyphicon-home'></i>", "")
+    res.join(" &raquo; ")
   end
 
   # add breadcrumb item at the end
