@@ -132,7 +132,8 @@ module CamaleonCms::UploaderHelper
     @fog_connection_hook_res ||= {server: server, connection: nil, thumb_folder_name: "thumb", bucket_name: server == "local" ? "media" : current_site.get_option("filesystem_s3_bucket_name"), thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
     case server
       when "local"
-        @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :local_root => Rails.root.join("public").to_s, :provider   => 'Local', endpoint: cama_root_url }) : @fog_connection_hook_res[:connection]
+        Dir.mkdir(Rails.root.join("public", "media").to_s) unless Dir.exist?(Rails.root.join("public", "media").to_s)
+        @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :local_root => Rails.root.join("public").to_s, :provider   => 'Local', endpoint: root_url }) : @fog_connection_hook_res[:connection]
       when "s3"
         @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :aws_access_key_id => current_site.get_option("filesystem_s3_access_key"), :provider   => 'AWS', aws_secret_access_key: current_site.get_option("filesystem_s3_secret_key"), :region  => current_site.get_option("filesystem_region") }) : @fog_connection_hook_res[:connection]
     end
@@ -257,7 +258,7 @@ module CamaleonCms::UploaderHelper
 
   # convert downloaded file path into public url
   def cama_file_path_to_url(file_path)
-    file_path.sub(Rails.public_path.to_s, cama_root_url)
+    file_path.sub(Rails.public_path.to_s, root_url)
   end
 
   # convert public url to file path
