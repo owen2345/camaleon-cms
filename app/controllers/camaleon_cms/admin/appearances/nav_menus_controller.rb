@@ -87,7 +87,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
 
   def get_nav_items(menu_items, parent_id = 0)
     items = []
-    menu_items.eager_load(:metas).each do |nav_item|
+    menu_items.eager_load(:metas, :field_values).each do |nav_item|
       object = _get_object_nav_menu(nav_item)
       if object.present?
         items << {id: nav_item.id, label: object[:name], link: nav_item.options[:object_id], url_edit: object[:url_edit], type: nav_item.options[:type], parent: parent_id.to_i, fields: "#{nav_item.get_field_values_hash.to_json}"}
