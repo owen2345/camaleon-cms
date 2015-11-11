@@ -16,7 +16,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
   # you can pass return_to as a param (mysite.com/admin/login?return_to=my-url) and this will be used after user logged in
   def login
     if signin?
-      redirect_to (params[:return_to].present? ? params[:return_to] : admin_dashboard_path)
+      redirect_to (params[:return_to].present? ? params[:return_to] : cama_admin_dashboard_path)
     else
       @user ||= current_site.users.new
     end
