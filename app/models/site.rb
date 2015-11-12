@@ -35,7 +35,7 @@ class Site < TermTaxonomy
   # all user roles for this site
   def user_roles
     if PluginRoutes.system_info["users_share_sites"]
-      Site.first.user_roles_rel
+      Site.main_site.user_roles_rel
     else
       user_roles_rel
     end
@@ -174,13 +174,13 @@ class Site < TermTaxonomy
 
   # return main site
   def self.main_site
-    Site.first
+    @main_site ||= Site.order(:created_at).first
   end
 
   # check if this site is the main site
   # main site is a site that doesn't have slug
   def main_site?
-    @_is_default_site ||= (Site.first.id == self.id)
+    @_is_default_site ||= (Site.main_site.id == self.id)
   end
 
   alias_method :is_default?, :main_site?
@@ -321,7 +321,7 @@ class Site < TermTaxonomy
   # update all routes of the system
   # reload system routes for this site
   def update_routes
-    if self.id == Site.first.id
+    if self.id == Site.main_site.id
       PluginRoutes.system_info_set("base_domain", self.slug) if self.slug.present?
       # self.update_column("slug", "")
     end

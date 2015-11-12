@@ -18,11 +18,11 @@ module SiteHelper
     else
       host = request.original_url.to_s.parse_domain
       if host == PluginRoutes.system_info["base_domain"]
-        site = Site.first.decorate rescue nil
+        site = Site.main_site.try(:decorate)
       else
         s = [host]
         s << request.subdomain if request.subdomain.present?
-        site = Site.where(slug: s).first.decorate rescue nil
+        site = Site.where(slug: s).first.try(:decorate)
       end
     end
     puts "============================ Please define the $current_site = Site.first.decorate " unless site.present?
