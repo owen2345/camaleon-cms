@@ -15,7 +15,8 @@ module Plugins::FrontCache::FrontCacheHelper
       current_site.set_option("refresh_cache", false)
     end
 
-    return if signin? || Rails.env == "development" # avoid cache if current visitor is logged in or development environment
+    return if signin? || Rails.env == "development" || Rails.env == "test" # avoid cache if current visitor is logged in or development environment
+    # return if signin? # avoid cache if current visitor is logged in or development environment
 
     cache_key = front_cache_get_key
     if !flash.keys.present? && front_cache_exist?(cache_key) # recover cache file
@@ -102,22 +103,6 @@ module Plugins::FrontCache::FrontCacheHelper
 
   # expire cache for a page after comment registered or updated
   def front_cache_before_load
-    CamaleonCms::PostComment.class_eval do
-      after_save :clear_front_page_cache
-      def clear_front_page_cache
-        self.post.decorate.front_clear_cache
-      end
-    end
-
-    CamaleonCms::PostDecorator.class_eval do
-      def front_clear_cache
-        a = ActionController::Base.new
-        object.slug.translations_array.each do |t|
-          a.expire_page(h.current_site.cache_prefix("#{t}"))
-          a.expire_page(h.current_site.cache_prefix("___#{t}"))
-        end
-      end
-    end
   end
 
   def front_cache_plugin_options(arg)
@@ -140,19 +125,21 @@ module Plugins::FrontCache::FrontCacheHelper
   private
 
   def front_cache_exist?(key)
-    File.exist?(Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, key).to_s)
+    File.exist?(Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, "#{key}.html").to_s)
   end
 
   def front_cache_get(key)
-    File.read(Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, key).to_s)
+    File.read(Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, "#{key}.html").to_s)
   end
 
   def front_cache_destroy(key)
-    FileUtils.rm_f(Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, key).to_s) # clear site pages cache
+    FileUtils.rm_f(Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, "#{key}.html").to_s) # clear site pages cache
   end
 
   def front_cache_create(key, content)
-    path = Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, key).to_s
+    dir = Rails.root.join("tmp", "cache", "pages", current_site.id.to_s).to_s
+    FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
+    path = File.join(dir, "#{key}.html").to_s
     File.open(path, 'wb'){ |fo| fo.write(content) }
     content
   end
