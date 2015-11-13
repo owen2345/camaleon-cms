@@ -9,7 +9,7 @@
 class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
   include CamaleonCms::CustomFieldsConcern
   delegate_all
-  require 'faraday'
+  # require 'faraday'
 
   # return the identifier
   def the_username
