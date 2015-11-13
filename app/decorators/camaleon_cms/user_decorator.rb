@@ -71,10 +71,12 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
   private
 
   def avatar_exists?
-    if object.get_meta('avatar').present?
-      File.exist?(h.cama_url_to_file_path(object.get_meta('avatar'))) || Faraday.head(object.get_meta('avatar')).status == 200
-    else
-      false
-    end
+    # TODO change verification
+    # if object.get_meta('avatar').present?
+    #   File.exist?(h.cama_url_to_file_path(object.get_meta('avatar'))) || Faraday.head(object.get_meta('avatar')).status == 200
+    # else
+    #   false
+    # end
+    object.get_meta('avatar').present?
   end
 end
