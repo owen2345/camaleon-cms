@@ -30,7 +30,7 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
 
   # find a content by slug (support multi language)
   def self.find_by_slug(slug)
-    if self.name.constantize.current_site.present? && self.name.constantize.current_site.get_meta("languages_site", []).count <= 1
+    if current_site.present? && current_site.get_meta("languages_site", []).count <= 1
       res = self.where(slug: slug)
     else
       res = self.where("#{CamaleonCms::Post.table_name}.slug = ? OR #{CamaleonCms::Post.table_name}.slug LIKE ? ", slug, "%-->#{slug}<!--%")
