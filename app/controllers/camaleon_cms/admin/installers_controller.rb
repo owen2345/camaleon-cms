@@ -20,7 +20,7 @@ class CamaleonCms::Admin::InstallersController < CamaleonCms::CamaleonController
   end
 
   def save
-    @site = CamaleonCms::Site.new(params[:site].permit(:slug, :name ))
+    @site = CamaleonCms::Site.new(params[:site].permit(:slug, :name )).decorate
     if @site.save
       site_after_install(@site, params[:theme])
       flash[:notice] = t('camaleon_cms.admin.sites.message.created')

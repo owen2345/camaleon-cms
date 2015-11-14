@@ -42,17 +42,24 @@ class CamaleonCms::PostTypeDecorator < CamaleonCms::TermTaxonomyDecorator
     h.breadcrumb_add(self.the_title, is_parent ? self.the_url : nil) if add_post_type
   end
 
-  # return all categories for the post_type (active_record) filtered by permissions + hidden posts + roles + etc...
+  # return main categories (first level) for the post_type (active_record) filtered by permissions
   # in return object, you can add custom where's or pagination like here:
   # http://edgeguides.rubyonrails.org/active_record_querying.html
   def the_categories
     object.categories
   end
 
+  # return full categories (all levels) for the post_type (active_record) filtered by permissions
+  # in return object, you can add custom where's or pagination like here:
+  # http://edgeguides.rubyonrails.org/active_record_querying.html
+  def the_full_categories
+    object.full_categories
+  end
+
   # return a category from this post_type with id (integer) or by slug (string)
   def the_category(slug_or_id)
-    return object.full_categories.where(id: slug_or_id).first if slug_or_id.is_a?(Integer)
-    return object.full_categories.find_by_slug(slug_or_id) if slug_or_id.is_a?(String)
+    return the_categories.where(id: slug_or_id).first if slug_or_id.is_a?(Integer)
+    return the_categories.find_by_slug(slug_or_id) if slug_or_id.is_a?(String)
   end
 
   # return all post_tags for the post_type (active_record) filtered by permissions + hidden posts + roles + etc...

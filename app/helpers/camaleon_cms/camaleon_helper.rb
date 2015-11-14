@@ -27,8 +27,8 @@ module CamaleonCms::CamaleonHelper
   # verify if current user is logged in, if not, then return nil
   # return html link
   def cama_edit_link(url, title = nil, attrs = { })
-    return '' unless current_user.present?
-    return '' unless current_user.admin?
+    return '' unless cama_current_user.present?
+    return '' unless cama_current_user.admin?
     attrs = {target: "_blank", style: "font-size:11px !important;cursor:pointer;"}.merge(attrs)
     ActionController::Base.helpers.link_to("&rarr; #{title || ct("edit")}".html_safe, url, attrs)
   end

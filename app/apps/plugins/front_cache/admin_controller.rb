@@ -6,7 +6,7 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class Plugins::FrontCache::AdminController < Apps::PluginsAdminController
+class Plugins::FrontCache::AdminController < CamaleonCms::Apps::PluginsAdminController
   include Plugins::FrontCache::FrontCacheHelper
   def settings
     add_asset_library("multiselect")

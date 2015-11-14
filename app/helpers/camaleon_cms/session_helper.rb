@@ -74,18 +74,18 @@ module CamaleonCms::SessionHelper
 
   # check if current user is already signed
   def cama_sign_in?
-    !current_user.nil?
+    !cama_current_user.nil?
   end
   alias_method :signin?, :cama_sign_in?
 
   # return the role for current user
   # if not logged in, then return 'public'
   def cama_current_role
-    (cama_sign_in?) ? current_user.role : 'public'
+    (cama_sign_in?) ? cama_current_user.role : 'public'
   end
 
   # return current user logged in
-  def current_user
+  def cama_current_user
     return @current_user if defined?(@current_user)
     # api current user...
     @current_user = cama_calc_api_current_user
@@ -99,6 +99,7 @@ module CamaleonCms::SessionHelper
       @current_user = (current_site.users_include_admins.find_by_auth_token(c[0]).decorate rescue nil)
     end
   end
+  alias_method :current_user, :cama_current_user
 
   # check if a visitor was logged in
   # if the user was not logged in, then redirect to login url

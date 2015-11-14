@@ -75,13 +75,9 @@ class PluginRoutes
     nil
   end
 
-  # return system settings defined in:
-  #   + gem/config/system.json
-  #   + app/config/system.json
-  #   + main_site.get_meta("main_settings")
-  # skip_site_settings_db: is a fix to avoid infite cicle
-  def self.system_info(skip_site_settings_db = false)
-    r = cache_variable("system_info");  return r unless r.nil?
+  # return system static settings (config.json values)
+  def self.static_system_info
+    r = cache_variable("statis_system_info");  return r unless r.nil?
     settings = {}
 
     gem_settings = File.join($camaleon_engine_dir, "config", "system.json")
@@ -95,7 +91,17 @@ class PluginRoutes
     settings["path"] = ''
     settings["kind"] = "system"
     settings["hooks"]["on_notification"] = (settings["hooks"]["on_notification"] || []) + ["admin_system_notifications"]
+    cache_variable("statis_system_info", settings)
+  end
 
+  # return system settings defined in:
+  #   + gem/config/system.json
+  #   + app/config/system.json
+  #   + main_site.get_meta("main_settings")
+  # skip_site_settings_db: is a fix to avoid infite cicle
+  def self.system_info(skip_site_settings_db = false)
+    r = cache_variable("system_info");  return r unless r.nil?
+    settings = static_system_info
     unless skip_site_settings_db
       main_site = self.main_site
       begin
@@ -111,12 +117,7 @@ class PluginRoutes
 
   # return the main site
   def self.main_site
-    r = nil
-    begin
-      r = get_sites.first
-    rescue => e
-    end
-    r
+    @@main_site ||= get_sites.first rescue nil
   end
 
   # update a system value
@@ -133,8 +134,9 @@ class PluginRoutes
 
   # reload routes
   def self.reload
+    @@all_sites = nil
+    @@main_site = nil
     @@_vars.each { |v| class_variable_set("@@cache_#{v}", nil) }
-    # WPRails::Application.routes_reloader.reload!
     Rails.application.reload_routes!
   end
 
@@ -226,22 +228,21 @@ class PluginRoutes
 
   def self.cache_variable(var_name, value=nil)
     @@_vars.push(var_name).uniq
-    cache = class_variable_get("@@cache_#{var_name}") rescue nil
-    return cache if value.nil?
+    #if Rails.env != "development" # disable cache plugin routes for develoment mode
+      cache = class_variable_get("@@cache_#{var_name}") rescue nil
+      return cache if value.nil?
+    #end
     class_variable_set("@@cache_#{var_name}", value)
     value
   end
 
   # return all sites registered for Plugin routes
   def self.get_sites
-    res = []
-    r = cache_variable("site_get_sites"); return r if !r.nil? && r.any?
     begin
-      res = CamaleonCms::Site.order(id: :asc).all
-      cache_variable("site_get_sites", res)
+      @@all_sites ||= CamaleonCms::Site.order(id: :asc).all
     rescue
+      []
     end
-    res
   end
 
   # return all locales for all sites joined by |

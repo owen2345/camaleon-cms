@@ -1,21 +1,15 @@
 require 'rubygems'
-require 'actionpack/page_caching'
 require 'bcrypt'
 require 'cancancan'
 require 'draper'
-# require 'dynamic_sitemaps'
 require 'meta-tags'
 require 'mini_magick'
 require 'mobu'
 require 'protected_attributes'
-require 'rufus-scheduler'
 require 'will_paginate'
 require 'will_paginate-bootstrap'
-require 'doorkeeper'
-require 'responders'
 require 'breadcrumbs_on_rails'
-require 'swagger/docs'
-require 'active_model_serializers'
+require 'fog'
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s
@@ -46,7 +40,7 @@ module CamaleonCms
       app.config.encoding = "utf-8"
 
       # add prefix url, like: http://localhost.com/blog/
-      config.action_controller.relative_url_root = PluginRoutes.system_info["relative_url_root"] if PluginRoutes.system_info["relative_url_root"].present?
+      # config.action_controller.relative_url_root = PluginRoutes.system_info["relative_url_root"] if PluginRoutes.system_info["relative_url_root"].present?
 
       #multiple route files
       app.routes_reloader.paths.push(File.join(engine_dir, "config", "routes", "admin.rb"))

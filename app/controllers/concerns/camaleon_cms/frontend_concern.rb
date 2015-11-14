@@ -38,9 +38,9 @@ module CamaleonCms::FrontendConcern extend ActiveSupport::Concern
     @post = current_site.posts.find_by_id(params[:post_id]).decorate
     if @post.can_commented?
       comment_data = {}
-      comment_data[:user_id] = current_user.id
-      comment_data[:author] = current_user.the_name
-      comment_data[:author_email] = current_user.email
+      comment_data[:user_id] = cama_current_user.id
+      comment_data[:author] = cama_current_user.the_name
+      comment_data[:author_email] = cama_current_user.email
       comment_data[:author_url] = ""
       comment_data[:author_IP] = request.remote_ip.to_s
       comment_data[:approved] = current_site.front_comment_status

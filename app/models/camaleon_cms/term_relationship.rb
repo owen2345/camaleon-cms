@@ -7,7 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::TermRelationship < ActiveRecord::Base
-  self.table_name = "#{PluginRoutes.system_info["db_prefix"]}term_relationships"
+  self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}term_relationships"
   attr_accessible :objectid, :term_taxonomy_id, :term_order
   default_scope ->{ order(term_order: :asc) }
 

@@ -11,34 +11,29 @@
 // about supported directives.
 //
 //= require jquery
-//= require ./data
+//= require ./_data
 //= require camaleon_cms/bootstrap.min
-//= require ./jquery-ui.min
-//= require ./underscore
+//= require ./_jquery-ui.min
+//= require ./_underscore
 //= require ./jquery.validate
 
 //= require jquery_ujs
-//= require ./angular/angular
-//= require ./angular/angular-translate.min
-//= require ./angular/angular-cookies.min
 
-//= require ./angular-filemanager/angular-filemanager.min
-//= require ./angular-filemanager/upload_filemanager
+//= require ./_jquery.slugify
+//= require ./_translator
+//= require ./_i18n
+//= require ./_custom_fields
 
-//= require ./jquery.slugify
-//= require ./translator
-//= require ./i18n
-//= require ./custom_fields
-
-//= require ./libraries
-//= require ./actions
-//= require ./introjs/intro.min
+//= require ./_libraries
+//= require ./_actions
+//= require ./introjs/_intro.min
 
 
-//= require ./modal
+//= require ./_modal
+//= require ./uploader/uploader_manifest
 
-//= require ./tageditor/jquery.caret.min
-//= require ./tageditor/jquery.tag-editor
+//= require ./tageditor/_jquery.caret.min
+//= require ./tageditor/_jquery.tag-editor
 
 //= require ./lte/app
 
@@ -47,5 +42,5 @@
 //= require ./tinymce/plugins/filemanager/plugin.min
 
 // post
-//= require ./jquery.tagsinput.min
-//= require ./post
+//= require ./_jquery.tagsinput.min
+//= require ./_post

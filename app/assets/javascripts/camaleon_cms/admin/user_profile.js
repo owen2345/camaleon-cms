@@ -43,6 +43,9 @@ jQuery(function ($) {
                         if (res != "") $("#modal_change_password .modal-body").flash_message(res);
                         $("#user_image").html('<img class="img-thumbnail" src="' + res + '?r=' + Math.random() + '"/>');
                         hideLoading();
+                    },
+                    error: function(){
+                        $.fn.alert({type: 'error', content: 'Internal Error', title: "Error"})
                     }
                 }).submit();
                 $("#cp_target").html("Use form below to upload file. Only image files.");
@@ -55,16 +58,10 @@ jQuery(function ($) {
 
     $("#cp_photo").on("click", function () {
         $.fn.upload_filemanager({
-            layout: 'user_images_or_upload',
+            formats: 'image',
             selected: function (file) {
-                if (file.type != 'dir') {
-                    if (image.mime && image.mime.indexOf('image') > -1) {
-                        $("#cp_target").html("<img id='crop_image' src='" + file.url.to_filesystem_public_url() + "' >");
-                        onSuccess()
-                    } else {
-                        alert("File extension not allowed")
-                    }
-                }
+                $("#cp_target").html("<img id='crop_image' src='" + file.url + "' >");
+                onSuccess()
             },
             user_pwd: '<%= current_user_pwd %>'
         });

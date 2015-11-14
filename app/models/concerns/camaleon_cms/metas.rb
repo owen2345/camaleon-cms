@@ -46,18 +46,20 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   end
 
   # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
-  def options
-    get_meta("_default", {})
+  def options(meta_key = "_default")
+    get_meta(meta_key, {})
   end
 
   # add configuration for current object
   # key: attribute name
   # value: attribute value
-  def set_option(key, value = nil)
+  # meta_key: (String) name of the meta attribute
+  # sample: mymodel.set_custom_option("my_settings", "color", "red")
+  def set_option(key, value = nil, meta_key = "_default")
     return if key.nil?
-    data = options
+    data = options(meta_key)
     data[key] = fix_meta_var(value)
-    set_meta('_default', data)
+    set_meta(meta_key, data)
     value
   end
 
@@ -66,29 +68,29 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # default: if attribute not exist, return default
   # return default if option value == ""
   # return value for attribute
-  def get_option(key = nil, default = nil)
-    values = options.present? ? options : {}
+  def get_option(key = nil, default = nil, meta_key = "_default")
+    values = options(meta_key)
     key = key.to_sym
     values.has_key?(key) && values[key] != "" ? values[key] : default
   end
 
   # delete attribute from configuration
-  def delete_option(key)
-    values = options
+  def delete_option(key, meta_key = "_default")
+    values = options(meta_key)
     key = key.to_sym
     values.delete(key) if values.has_key?(key)
-    set_meta('_default', values)
+    set_meta(meta_key, values)
   end
 
   # set multiple configurations
   # h: {ket1: "sdsds", ff: "fdfdfdfd"}
-  def set_multiple_options(h = {})
+  def set_multiple_options(h = {}, meta_key = "_default")
     if h.present?
-      data = options
-      h.each do |key, value|
+      data = options(meta_key)
+      h.to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
       end
-      set_meta('_default', data)
+      set_meta(meta_key, data)
     end
   end
 

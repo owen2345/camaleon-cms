@@ -37,7 +37,7 @@ module Plugins::VisibilityPost::VisibilityPostHelper
     post = args[:post]
     return args[:flag] = false if post.published_at.present? && post.published_at > Time.now
     return if post.visibility != 'private'
-    args[:flag] = false unless signin? && post.visibility_value.split(",").include?(current_user.get_role(current_site).id)
+    args[:flag] = false unless signin? && post.visibility_value.split(",").include?(cama_current_user.get_role(current_site).id)
   end
 
   def plugin_visibility_extra_columns(args)

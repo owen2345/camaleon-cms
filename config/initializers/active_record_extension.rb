@@ -73,6 +73,7 @@ ActiveRecord::Base.class_eval do
     @cama_cache_vars ||= {}
     _key = cama_build_cache_key(key)
     if @cama_cache_vars.has_key?(_key)
+      # puts "*********** using model cache var: #{_key}"
       @cama_cache_vars[_key]
     else
       @cama_cache_vars[_key] = yield

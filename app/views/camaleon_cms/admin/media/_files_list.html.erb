@@ -1,0 +1,7 @@
+<% @tree[:files].each do |file| next if @media_formats.present? && !@media_formats.include?(file["format"]) %>
+    <%= render "render_file_item", file: file %>
+<% end %>
+
+<% @tree[:folders].each do |fname, folder| %>
+    <%= render "render_folder_item", fname: fname, folder: folder %>
+<% end %>

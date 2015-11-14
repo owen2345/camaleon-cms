@@ -6,7 +6,6 @@ Rails.application.routes.draw do
         get 'dashboard'
         get 'ajax'
         get 'search'
-        get 'media' => 'media#index'
         get 'login' => 'sessions#login'
         post 'login' => 'sessions#login_post'
         get 'logout' => 'sessions#logout'
@@ -113,15 +112,13 @@ Rails.application.routes.draw do
           get "welcome", on: :collection
         end
 
-        match 'crop' => 'media#crop', via: :all
         get 'doc' => redirect('/docs/index.html?url=/api-docs.json')
 
-        scope :filemanager do
-          match 'handler' => 'file_manager#handler', via: :all
-          match 'upload' => 'file_manager#upload', via: :all
-          match 'download' => 'file_manager#download', via: :all
-          get 'templates/:view' => 'file_manager#templates'
-          match 'view/:config' => 'file_manager#view', via: :all
+        resources :media, only: [:index] do
+          match 'crop', via: :all, on: :collection
+          get "ajax", on: :collection
+          post "upload", on: :collection
+          post "actions", on: :collection
         end
       end
     end

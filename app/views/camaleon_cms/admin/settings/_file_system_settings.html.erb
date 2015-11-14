@@ -1,0 +1,23 @@
+<div id="tab-filesystem_settings" class="<%= 'active' if 'filesystem' == params[:tab] %> tab-pane ">
+    <div class="form-group">
+        <%= label_tag t('camaleon_cms.admin.settings.aws', default: "Save Files in AWS3") %><br>
+        <%= check_box :options, :filesystem_type, {checked: @site.get_option("filesystem_type") == "s3"}, "s3", "local" %>
+    </div>
+
+    <div class="form-group">
+        <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_access_key') %><br>
+        <%= text_field :options, :filesystem_s3_access_key, :class => "form-control required", value: @site.get_option("filesystem_s3_access_key") %>
+    </div>
+    <div class="form-group">
+        <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_secret_key') %><br>
+        <%= text_field :options, :filesystem_s3_secret_key, :class => "form-control required", value: @site.get_option("filesystem_s3_secret_key") %>
+    </div>
+    <div class="form-group">
+        <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_bucket_name') %><br>
+        <%= text_field :options, :filesystem_s3_bucket_name, :class => "form-control required", value: @site.get_option("filesystem_s3_bucket_name") %>
+    </div>
+    <div class="form-group">
+        <%= label_tag t('camaleon_cms.admin.settings.filesystem_region') %><br>
+        <%= text_field :options, :filesystem_region, :class => "form-control required", value: @site.get_option("filesystem_region") %>
+    </div>
+</div>

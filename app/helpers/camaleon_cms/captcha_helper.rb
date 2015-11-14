@@ -31,7 +31,7 @@ module CamaleonCms::CaptchaHelper
   def cama_captcha_tag(len = 5, img_args = {alt: ""}, input_args = {})
     input_args[:placeholder] = "Please enter the text of the image" unless input_args[:placeholder].present?
     img_args["onclick"] = "this.src = \"#{cama_captcha_url(len: len)}\"+\"&t=\"+(new Date().getTime());"
-    "<div><img src='#{cama_captcha_url(len: len)}' #{img_args.collect{|k, v| "#{k}='#{v}'" }.join(" ") } /> <input type='text' name='captcha' #{input_args.collect{|k, v| "#{k}='#{v}'" }.join(" ") } /> </div>"
+    "<div><img style='cursor: pointer;' src='#{cama_captcha_url(len: len)}' #{img_args.collect{|k, v| "#{k}='#{v}'" }.join(" ") } /> <input type='text' name='captcha' #{input_args.collect{|k, v| "#{k}='#{v}'" }.join(" ") } /> </div>"
   end
 
   # verify captcha value

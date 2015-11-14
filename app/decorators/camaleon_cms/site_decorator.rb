@@ -16,11 +16,11 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   # return logo url for this site
   # default: this url will be returned if logo is not present.
   def the_logo(default = nil)
-    object.options[:logo] || (default || "#{h.asset_url("camaleon_cms/camaleon.png")}")
+    object.get_option("logo") || (default || "#{h.asset_url("camaleon_cms/camaleon.png")}")
   end
 
   def the_icon
-    object.options[:icon] || '/favicon.ico'
+    object.get_option("icon") || h.asset_url('camaleon_cms/favicon.ico')
   end
 
   # return all contents from this site registered for post_type = slug (filter visibility, hidden, expired, ...)
@@ -31,14 +31,17 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
     return h.verify_front_visibility(object.posts.where("#{CamaleonCms::TermTaxonomy.table_name}.slug in (?)", slug_or_id)).eager_load(:post_type) if slug_or_id.is_a?(Array)
   end
 
-  # return all contents for this site registered for post_type = slug (filter visibility, hidden, expired, ...)
-  # slug: slug of the post_type
-  # if slug is not present, then this will return all posts for this site
+  # return all contents for this site filteredby (visibility, hidden, expired, ...)
+  # slug_or_id: (slug of the post_type) possible values:
+  #   empty: return all posts of the current site
+  #   string: return all posts of post_type with slug = slug_or_id
+  #   integer: return all posts of post_type with id = slug_or_id
+  #   array: return all posts of post_types with slug in slug_or_id
   def the_posts(slug_or_id = nil)
     if slug_or_id.present?
       the_contents(slug_or_id)
     else
-      h.verify_front_visibility(object.posts)
+      h.verify_front_visibility(object.posts).eager_load(:post_type)
     end
   end
 
@@ -136,7 +139,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   # return the role_id of current visitor for this site
   # if the visitor was not logged in, then return -1
   def visitor_role
-    h.signin? ? h.current_user.get_role(object).slug : "-1"
+    h.signin? ? h.cama_current_user.get_role(object).slug : "-1"
   end
 
   # check if plugin_key is already installed for this site

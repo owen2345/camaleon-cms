@@ -7,7 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::CustomFieldsRelationship < ActiveRecord::Base
-  self.table_name = "#{PluginRoutes.system_info["db_prefix"]}custom_fields_relationships"
+  self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}custom_fields_relationships"
   attr_accessible :objectid, :custom_field_id, :term_order, :value, :object_class, :custom_field_slug
   default_scope {order("#{CamaleonCms::CustomFieldsRelationship.table_name}.term_order ASC")}
   # relations

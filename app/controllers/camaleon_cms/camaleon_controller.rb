@@ -32,7 +32,6 @@ class CamaleonCms::CamaleonController < ApplicationController
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
-
   layout Proc.new { |controller| controller.request.xhr? ? false : 'default' }
 
   # show page error
@@ -54,17 +53,6 @@ class CamaleonCms::CamaleonController < ApplicationController
     # including all helpers (system, themes, plugins) for this site
     PluginRoutes.enabled_apps(current_site, current_theme.slug).each{|plugin| plugin_load_helpers(plugin) }
 
-    # Set default cache file store directory for current site
-    # Sample: Rails.cache.write("#{current_site.id}-#{Time.now}", 1)
-    begin
-      cache_store.cache_path = File.join(cache_store.cache_path.split("site-#{current_site.id}").first, "site-#{current_site.id}")
-    rescue
-      # skip error for non cache file, sample: dalli
-      # you need to define your cache store settings by config file or using the hook "app_before_load"
-      # for multi site support you can use namespace: "site-#{current_site.id}"
-    end
-
-
     # initializing short codes
     shortcodes_init()
 
@@ -83,11 +71,13 @@ class CamaleonCms::CamaleonController < ApplicationController
     # past plugins version support
     self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
     self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
+    CamaleonCms::PostDefault.current_user = cama_current_user
+    CamaleonCms::PostDefault.current_site = current_site
   end
 
   # initialize ability for current user
   def current_ability
-    @current_ability ||= CamaleonCms::Ability.new(current_user, current_site)
+    @current_ability ||= CamaleonCms::Ability.new(cama_current_user, current_site)
   end
 
   def cama_after_actions

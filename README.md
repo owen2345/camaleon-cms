@@ -8,7 +8,7 @@
 ![](https://img.shields.io/badge/Support-Inmediate-green.svg)
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/owen2345/Camaleon-CMS-Sample)   
-# CAMALEON CMS
+# CAMALEON CMS V2
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
 
 # Requirements
@@ -26,25 +26,21 @@
   rails new my_project
   ```
 * Add the gem in your Gemfile
-
+  
   ```
-  gem 'camaleon_cms', '0.2.1' # if you want the previous stable version
-  gem 'camaleon_cms' # if you want the latest version (1.0)
+  gem "camaleon_cms", github: 'owen2345/camaleon-cms', branch: "moduler" # version 2
+  # If you are using Camaleon CMS 1x, you can use this patch to use this new version
+  gem "camaleon_cms", github: 'owen2345/camaleoncms_1xmigration'
   ```
-* Install the gem
-
+* Install required Gem and dependencies
+  
   ```
-  bundle install # bundle update if you have previous version installed
+  bundle install
   ```
 * Install the CMS (This will copy some basic templates and plugins in your project)
 
   ```
   rails generate camaleon_cms:install
-  ```
-* Install required Gems for CMS and basic plugins
-
-  ```
-  bundle install
   ```
 * Create database structure
 
@@ -55,36 +51,6 @@
 
   ```
   rails server # and then go to your browser http://localhost:3000/
-  ```
-
-# Migrating from 0.2.x or earlier?
-
-1. Install camaleon as a gem as stated above or run `bundle update 'camaleon_cms'`
-1. Remove `lib/Gemfile_camaleon`
-
-  ```bash
-  rm lib/Gemfile_camaleon
-  ```
-1. Remove code from `Gemfile`
-
-  ```bash
-  require './lib/plugin_routes'
-  instance_eval(PluginRoutes.draw_gems)
-  ```
-1. Install gems
-
-  ```bash
-  bundle install
-  ```
-1. Update `lib/plugin_routes.rb`
-
-  ```bash
-  rails generate camaleon_cms:install
-  ```
-1. Start/restart Rails
-
-  ```bash
-  rails server
   ```
 
 # Camaleon CMS (It adapts to your needs)
@@ -106,19 +72,22 @@ It was released on July, 2015 and tested previously with more than 20 projects b
 ## With Camaleon you can do:
 * Multiples sites in the same installation
 * Multilanguage sites
+* Design and create the architecture of your project without programming by dynamic contents and fields
 * Extend or customize the functionalities by plugins
 * Manage your content visualization by themes
 * Advanced User roles
+* Integrate into existent rails 4 projects
 * Other features:
   - Shortcodes
   - Widgets
   - Drag and Drop / Sortable / Multi level menus
-  - Templates for pages
+  - Templates/Layouts for pages
   - Easy migration from wordpress
 
 ## Some features are:
 * Easy administration
   Camaleon CMS permit you to adapt the CMS to all your needs and not you adapt to the CMS.
+I.E. you can create your custom architecture with all attributes that you need for each kind of content.
 * Security
   - Remote code execution
   - SQL injections
@@ -131,13 +100,12 @@ It was released on July, 2015 and tested previously with more than 20 projects b
     - Cache contents
     - Cache queries
     - Manifests (compress and join asset files)
-  Customize your content for Desktop, Mobile and Tablet
+    - Customize your content visualization for Desktop, Mobile and Tablet
 * SEO & HTML5
-  - Automatic Sitemap generations
+  - Sitemap generations
   - Seo Configuration
   - Seo for social media
-  - Customize your content for Desktop, Mobile and Tablet
-  - All generated content is compatible with HTML5
+  - All generated content is compatible with HTML5 and bootstrap 3
 
 ## Camaleon CMS come with basic and important plugins like:
 * Ecommerce
@@ -167,7 +135,8 @@ http://camaleon.tuzitio.com/license.html/
 
 ## Coming soon
 * Documentation and Videos
-* Create more basic plugins and themes
+* Create/Update Manuals
+* TDD (rspec)
 
 
 ## Contributing
@@ -180,22 +149,15 @@ http://camaleon.tuzitio.com/license.html/
 Visit the web site for more information: http://camaleon.tuzitio.com/
 
 ## Version History
-* Version 1.0.8
-  - Fix logo size on admin panel
-  - Fixed: Raise error when visiting unexisting urls. Example: Random troll writes domain.com/asdasdasd/adfasdasd.
-  - Allow email domains up to 10 characters in the contact form plugin
-  - Added advanced shortcodes to print data in any content:Permit to generate specific data of a post. (see more details in link below)
-  - fixed vertical scroll for multiple modals- added a library to create inline field to upload fields.
-  - Added control to clean cache after restart server.
-  - Added hook to include custom links from plugins or themes.
-  - changed custom sitemap into hash.
-  - added sitemap skippers to filter private elements.
-  - fixed the_breadcrumb for current_site.
-  - Unify current_user removing current_resource_owner. Solved bug with login_user_with_password.
-  - Added generic API response methods, render_json_error & render_json_ok.
-
-migration 1.x to 2.0
-- require bootstrap.min.css ==> require camaleon_cms/bootstrap.min.css
-- require bootstrap.min.js ==> require camaleon_cms/bootstrap.min.js
+* Version 2.0
+  -   Support to integrate into existent Ruby in Rails 4 projects
+  -   Moved all files into separated folder to avoid overwritten problems, such as: models, controllers, helpers, ... and also you can define the prefix for your datatables
+  -   Added support to define the prefix url for your the CMS, like: http://localhost.com/blog/
+  -   Improved SQL performance and Javascript performance for admin panel
+  -   Added native support for AWS S3 to manage cloud files
+  -   Added control to define layouts and templates by admin panel
+  -   Rebuilt Media Manager and removed elfinder library
+  -   Added support of multiples permalinks, I.E. you can define the permalink structure for each of content type
+  -   Added PT-br language
 
 See more here: http://camaleon.tuzitio.com/version-history.html

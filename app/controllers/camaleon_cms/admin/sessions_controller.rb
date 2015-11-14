@@ -10,12 +10,13 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
   skip_before_filter :cama_authenticate
   before_action :before_hook_session
   after_action :after_hook_session
+  before_action :verificate_register_permission, only: [:register]
   layout 'camaleon_cms/login'
 
   # you can pass return_to as a param (mysite.com/admin/login?return_to=my-url) and this will be used after user logged in
   def login
     if signin?
-      redirect_to (params[:return_to].present? ? params[:return_to] : admin_dashboard_path)
+      return redirect_to (params[:return_to].present? ? params[:return_to] : cama_admin_dashboard_path)
     else
       @user ||= current_site.users.new
     end
@@ -28,10 +29,12 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
     data_user[:password] = cipher.decrypt(data_user[:password]) rescue nil
     @user = current_site.users.find_by_username(data_user[:username])
     captcha_validate = captcha_verify_if_under_attack("login")
-    r = {user: @user, params: params, password: data_user[:password], captcha_validate: captcha_validate}; hooks_run("user_before_login", r)
+    r = {user: @user, params: params, password: data_user[:password], captcha_validate: captcha_validate, stop_process: false}; hooks_run("user_before_login", r)
+    return if r[:stop_process] # permit to redirect for data completion
     if captcha_validate && @user && @user.authenticate(data_user[:password])
       cama_captcha_reset_attack("login")
-      login_user(@user, params[:remember_me].present?)
+      r={user: @user, redirect_to: nil }; hooks_run('after_login', r)
+      login_user(@user, params[:remember_me].present?, r[:redirect_to])
     else
       cama_captcha_increment_attack("login")
       if captcha_validate
@@ -105,12 +108,9 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
 
   def register
     @user ||= current_site.users.new
-
     if params[:user].present?
-      params[:user][:role] = "client"
-
+      params[:user][:role] = PluginRoutes.system_info["default_user_role"]
       user_data = params[:user]
-
       @user = current_site.users.new(user_data)
       r = {user: @user, params: params}; hooks_run('user_before_register', r)
 
@@ -125,6 +125,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
           @user.set_meta_from_form(params[:meta])
           r = {user: @user, message: t('camaleon_cms.admin.users.message.created'), redirect_url: cama_admin_login_path}; hooks_run('user_after_register', r)
           flash[:notice] = r[:message]
+          r={user: @user}; hooks_run('user_registered', r)
           redirect_to r[:redirect_url]
         else
           @first_name = params[:meta][:first_name]
@@ -147,4 +148,13 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
   def after_hook_session
     hooks_run("session_after_load")
   end
+
+  # verify if current permit to register users by frontend
+  def verificate_register_permission
+    unless current_site.get_option('permit_create_account', false)
+      flash[:error] = t('camaleon_cms.admin.authorization_error', default: "You don't have authorization for this section.")
+      return redirect_to action: :login
+    end
+  end
+
 end

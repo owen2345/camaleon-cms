@@ -71,8 +71,6 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   def get_field_value(_key, _default = nil)
     v = _default
     v = get_field_values(_key).first rescue _default
-    # v = _default if v.nil?
-    # v
     v.present? ? v : _default
   end
   alias_method :get_field, :get_field_value

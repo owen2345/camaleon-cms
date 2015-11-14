@@ -5,6 +5,7 @@ en:
     page_error_500: "<h1>ooops...</h1><h5>Error 500 Internal Server Error. Please contact to the administrator.</h5>"
     admin:
       request_error_message: "An error occurred, please contact to the administrator."
+      authorization_error: "You don't have authorization for this section."
       header:
         member_since: "Member since %{time}"
       button:
@@ -14,6 +15,7 @@ en:
         add_menu: 'Add to Menu'
         add_widget: 'Add Widget'
         accept: 'Accept'
+        add_folder: 'Add Folder'
         actived: 'Activated'
         activate_plugin: 'Activate Plugin'
         back: 'Back'
@@ -160,6 +162,7 @@ en:
       media:
         media_manager: 'Media Manager'
         home: "Home"
+        info: "Information"
       menus:
         link_url: 'Link URL'
         message:
@@ -338,6 +341,7 @@ en:
         filesystem_s3_access_key: "AWS S3 Access Key"
         filesystem_s3_secret_key: "AWS S3 Secret Key"
         filesystem_s3_bucket_name: "AWS S3 Bucket name"
+        filesystem_region: "AWS S3 Region"
         filesystem_cdn: "CDN url"
         security:
           captcha_user_register: "Enable captcha on user registration?"

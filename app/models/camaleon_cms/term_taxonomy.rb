@@ -8,13 +8,15 @@
 =end
 class CamaleonCms::UniqValidator < ActiveModel::Validator
   def validate(record)
-    record.errors[:base] << "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}" if CamaleonCms::TermTaxonomy.where(slug: record.slug).where.not(id: record.id).where("#{CamaleonCms::TermTaxonomy.table_name}.taxonomy" => record.taxonomy).where("#{CamaleonCms::TermTaxonomy.table_name}.parent_id" => record.parent_id).size > 0
+    unless record.skip_slug_validation?
+      record.errors[:base] << "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}" if CamaleonCms::TermTaxonomy.where(slug: record.slug).where.not(id: record.id).where("#{CamaleonCms::TermTaxonomy.table_name}.taxonomy" => record.taxonomy).where("#{CamaleonCms::TermTaxonomy.table_name}.parent_id" => record.parent_id).size > 0
+    end
   end
 end
 class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
-  self.table_name = "#{PluginRoutes.system_info(true)["db_prefix"]}term_taxonomy"
+  self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}term_taxonomy"
   attr_accessible :taxonomy, :description, :parent_id, :count, :name, :slug, :term_group, :status, :term_order, :user_id
   attr_accessible :data_options
   attr_accessible :data_metas
@@ -34,11 +36,6 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   belongs_to :parent, class_name: "CamaleonCms::TermTaxonomy", foreign_key: :parent_id
   has_many :user_relationships, :class_name => "CamaleonCms::UserRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
   has_many :users, through: :user_relationships, :source => :user
-
-  # find by slug of this collection
-  def self.find_by_slug(slug)
-    self.where("#{CamaleonCms::TermTaxonomy.table_name}.slug = ? OR #{CamaleonCms::TermTaxonomy.table_name}.slug LIKE ? ", slug, "%-->#{slug}<!--%").reorder("").first
-  end
 
   # return all children taxonomy
   # sample: sub categories of a category
@@ -61,17 +58,18 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
     CamaleonCms::NavMenuItem.joins(:metas).where("value LIKE ?","%\"object_id\":\"#{self.id}\"%").where("value LIKE ?","%\"type\":\"#{self.taxonomy}\"%").readonly(false)
   end
 
+  # permit to skip slug validations for children models, like menu items
+  def skip_slug_validation?
+    false
+  end
+
   private
   # callback before validating
   def before_validating
     slug = self.slug
     slug = self.name if slug.blank?
     self.name = slug unless self.name.present?
-    if slug.to_s.translations.present?
-      self.slug = slug.to_s.translations.inject({}) { |h, (k, v)| h[k] = v.to_s.parameterize; h }.to_translate
-    else
-      self.slug = slug.to_s.parameterize
-    end
+    self.slug = slug.to_s.parameterize
   end
 
   # destroy all dependencies
@@ -79,4 +77,5 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   def destroy_dependencies
     in_nav_menu_items.destroy_all
   end
+
 end

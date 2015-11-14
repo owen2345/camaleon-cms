@@ -132,6 +132,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
     {
       "post_of_post_type" => "<code>/group/:post_type_id-:title/:slug</code><br>  (Sample: http://localhost.com/group/17-services/myservice.html)",
       "post_of_category" => "<code>/category/:category_id-:title/:slug</code><br>  (Sample: http://localhost.com/category/17-services/myservice.html)",
+      "post_of_category_post_type" => "<code>/:post_type_title/category/:category_id-:title/:slug</code><br>  (Sample: http://localhost.com/services/category/17-services/myservice.html)",
       "post_of_posttype" => "<code>/:post_type_title/:slug</code><br>  (Sample: http://localhost.com/services/myservice.html)",
       "post" => "<code>/:slug</code><br>  (Sample: http://localhost.com/myservice.html)"
     }
@@ -151,14 +152,17 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   # assign default roles for this post type
   # define default settings for this post type
   def set_default_site_user_roles
-    self.set_multiple_options({has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_keywords: true, not_deleted: false, has_layout: false, default_layout: ""})
-    save_metas_options
+    self.set_multiple_options({has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_keywords: true, not_deleted: false, has_layout: false, default_layout: ""}.merge((data_options||{}).to_sym))
     self.site.set_default_user_roles(self)
     default_category
   end
 
   # destroy all custom field groups assigned to this post type
   def destroy_field_groups
+    if self.slug == "post" || self.slug == "page"
+      errors.add(:base, "This post type can not be deleted.")
+      return false
+    end
     self.get_field_groups.destroy_all
   end
 

@@ -87,6 +87,16 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
       when "post_of_posttype"
         args[:post_type_title] = ptype.the_title.parameterize
         l = ""
+      when "post_of_category_post_type"
+        if ptype.manage_categories?
+          cat = object.categories.first.decorate rescue ptype.default_category.decorate
+          args[:post_type_title] = ptype.the_title.parameterize
+          args[:category_id] = cat.id
+          args[:title] = cat.the_title.parameterize
+        else
+          p_url_format = "post"
+          l = ""
+        end
       else
         l = ""
     end
@@ -114,7 +124,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   # return html link
   # attrs: Hash of link tag attributes, sample: {id: "myid", class: "sss" }
   def the_edit_link(title = nil, attrs = { })
-    return '' unless h.current_user.present?
+    return '' unless h.cama_current_user.present?
     attrs = {target: "_blank", style: "font-size:11px !important;cursor:pointer;"}.merge(attrs)
     h.link_to("&rarr; #{title || h.ct("edit")}".html_safe, the_edit_url, attrs)
   end

@@ -43,7 +43,7 @@
                                     <div class=" tab-content">
                                         <div class="tab-pane active class_type" id="tab-<%= pt.slug %>-posts" data-type="post" data-post_type="<%= pt.slug %>">
                                             <ul class="categorychecklist">
-                                                <% pt.posts.published.each do |p|
+                                                <% pt.posts.eager_load(:post_type).published.each do |p|
                                                   p = p.decorate
                                                 %>
                                                     <li>

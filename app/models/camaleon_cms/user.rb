@@ -17,7 +17,7 @@ end
 class CamaleonCms::User < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
-  self.table_name = "#{PluginRoutes.system_info["db_prefix"]}users"
+  self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}users"
   attr_accessible :username, :role, :email, :parent_id, :last_login_at, :site_id, :password, :password_confirmation #, :profile_attributes
   attr_accessible :data_options
   attr_accessible :data_metas

@@ -62,7 +62,7 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
     post_data = params[:post]
     post_data[:status] = 'draft'
     post_data[:post_parent] = params[:post_id]
-    post_data[:user_id] = current_user.id unless post_data[:user_id].present?
+    post_data[:user_id] = cama_current_user.id unless post_data[:user_id].present?
     post_data
   end
 end

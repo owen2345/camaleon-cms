@@ -7,7 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::UserRelationship < ActiveRecord::Base
-  self.table_name = "#{PluginRoutes.system_info["db_prefix"]}user_relationships"
+  self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}user_relationships"
   attr_accessible :user_id, :term_taxonomy_id, :term_order, :active
 
   belongs_to :term_taxonomies, :class_name => "CamaleonCms::TermTaxonomy", foreign_key: :term_taxonomy_id, inverse_of: :user_relationships
