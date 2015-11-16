@@ -33,7 +33,7 @@ module CamaleonCms::SiteHelper
   def cama_site_check_existence()
     if !current_site.present?
       if (PluginRoutes.main_site).present?
-        base_domain = PluginRoutes.main_site.slug
+        base_domain = PluginRoutes.system_info["base_domain"]
         redirect_to cama_root_url(host: base_domain.split(":").first, port: (base_domain.split(":")[1] rescue nil))
       else
         redirect_to cama_admin_installers_path
