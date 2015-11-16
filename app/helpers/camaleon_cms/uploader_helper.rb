@@ -214,7 +214,7 @@ module CamaleonCms::UploaderHelper
     res = {"name"=> File.basename(file.key), "size"=> file.content_length, "url"=> (file.public_url rescue "#{@fog_connection.endpoint}/#{file.key}"), "deleteUrl"=> "" }
     ext = File.extname(file.key).sub(".", "").downcase
     res["format"] = "unknown"
-    if "jpg,jpeg,png,gif,bmp".split(",").include?(ext)
+    if "jpg,jpeg,png,gif,bmp,ico".split(",").include?(ext)
       if File.extname(res["name"]) == ".gif"
         res["thumb"] = res["url"]
       else
