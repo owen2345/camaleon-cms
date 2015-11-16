@@ -7,7 +7,8 @@ namespace :camaleon_cms do
   #   gem 'capybara'
   #   gem "selenium-webdriver"
   # end
-  # After run: rails generate rspec:install
+  # After run: rails generate rspec:install, support folder
+  # copy rails helper, rspec_helper,
   task :rspec => :environment do
     Dir[File.join($camaleon_engine_dir, "spec", "features", "*.rb")].each{|p|
       system("rspec #{p}")
