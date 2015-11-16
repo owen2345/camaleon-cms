@@ -106,7 +106,7 @@ class PluginRoutes
       main_site = self.main_site
       begin
         settings = settings.merge(main_site.get_meta("main_settings", {}))
-        settings["base_domain"] = main_site.slug
+        settings["base_domain"] = main_site.slug if main_site.slug.present?
         settings = settings.stringify_keys
         cache_variable("system_info", settings)
       rescue
