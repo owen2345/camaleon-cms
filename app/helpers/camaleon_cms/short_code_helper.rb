@@ -18,7 +18,7 @@ module CamaleonCms::ShortCodeHelper
                 Sample: [widget widget_key]")
 
     shortcode_add("load_libraries",
-                  lambda{|attrs, args| add_asset_library(*attrs["data"].to_s.split(",")); return ""; },
+                  lambda{|attrs, args| cama_load_libraries(*attrs["data"].to_s.split(",")); return ""; },
                   "Permit to load libraries on demand, sample: [load_libraries data='datepicker,tinymce']")
 
     shortcode_add("asset",
@@ -145,7 +145,7 @@ module CamaleonCms::ShortCodeHelper
   # determine the content to replace instead the shortcode
   # return string
   def _eval_shortcode(code, attrs, args={}, template = nil)
-    template ||= (@_shortcodes_template[code].present? ? @_shortcodes_template[code] : "shortcode_templates/#{code}")
+    template ||= (@_shortcodes_template[code].present? ? @_shortcodes_template[code] : "camaleon_cms/shortcode_templates/#{code}")
     if @_shortcodes_template[code].class.name == "Proc"
       res = @_shortcodes_template[code].call(_shortcode_parse_attr(attrs), args)
     else
