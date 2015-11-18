@@ -30,7 +30,7 @@
   ```
   gem "camaleon_cms", github: 'owen2345/camaleon-cms', branch: "moduler" # version 2
   # If you are using Camaleon CMS 1x, you can use this patch to use this new version
-  gem "camaleon_cms", github: 'owen2345/camaleoncms_1xmigration'
+  gem "migration1x", github: 'owen2345/camaleoncms_1xmigration'
   ```
 * Install required Gem and dependencies
   

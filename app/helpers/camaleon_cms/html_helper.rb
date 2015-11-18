@@ -13,8 +13,20 @@ module CamaleonCms::HtmlHelper
     @_assets_content = []
   end
 
+  # register a new asset library to be included on demand calling by: cama_load_libraries(...)
+  # sample: cama_assets_library_register("my_library", {js: ["url_js", "url_js2"], css: ["url_css1", "url_css2"]})
+  #   cama_load_libraries("my_library")
+  def cama_assets_library_register(key, assets = {})
+    key = key.to_sym
+    cama_assets_libraries
+    @_cama_assets_libraries[key] = {css: [], js: [] } unless @_cama_assets_libraries[key].present?
+    @_cama_assets_libraries[key][:css] += assets[:css] if assets[:css].present?
+    @_cama_assets_libraries[key][:js] += assets[:js] if assets[:js].present?
+  end
+
   # enable to load admin or registered libraries (colorpicker, datepicker, form_builder, tinymce, form_ajax, cropper)
   # sample: add_asset_library("datepicker", "colorpicker")
+  # This will add this assets library in the admin head or in a custom place by calling: cama_draw_custom_assets()
   def cama_load_libraries(*keys)
     keys.each do |key|
       library = cama_assets_libraries[key.to_sym]
@@ -88,6 +100,7 @@ module CamaleonCms::HtmlHelper
 
   private
   def cama_assets_libraries
+    return @_cama_assets_libraries if @_cama_assets_libraries.present?
     libs = {}
     libs[:colorpicker] = {js: ['camaleon_cms/admin/bootstrap-colorpicker'], css: ["camaleon_cms/admin/colorpicker.css"]}
     libs[:datepicker] = {js: ['camaleon_cms/admin/bootstrap-datepicker']}
@@ -101,6 +114,6 @@ module CamaleonCms::HtmlHelper
     libs[:validate] = {js: ['camaleon_cms/admin/jquery.validate']}
     libs[:nav_menu] = {css: ['camaleon_cms/admin/nestable/jquery.nestable', "camaleon_cms/admin/nav-menu"], js: ["camaleon_cms/admin/jquery.nestable", 'camaleon_cms/admin/nav-menu']}
     libs[:admin_intro] = {js: ['camaleon_cms/admin/introjs/intro.min'], css: ["camaleon_cms/admin/introjs/introjs.min"]}
-    libs
+    @_cama_assets_libraries = libs
   end
 end
