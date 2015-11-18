@@ -66,9 +66,9 @@
             <% end %>
 
             <!-- has comments? -->
-            <% if @post_type.get_option('has_comments', false) || @post.manage_comments?(@post_type) %>
+            <% if @post.manage_comments?(@post_type) %>
                 <div class="form-group">
-                    <label class="control-label"><%= check_box("meta", "has_comments", {checked: ( params[:meta][:has_comments] == '1' rescue false || @post.manage_comments?(@post_type))  }) %> &nbsp; <%= t('camaleon_cms.admin.post_type.permit_comments')%></label>
+                    <label class="control-label"><%= check_box("meta", "has_comments", {checked: ( params[:meta][:has_comments] == '1' rescue false || @post.can_commented?)  }) %> &nbsp; <%= t('camaleon_cms.admin.post_type.permit_comments')%></label>
                 </div>
             <% end %>
             <%= raw @post_form_extra_settings.join("") if @post_form_extra_settings.present? %>

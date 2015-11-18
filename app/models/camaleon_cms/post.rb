@@ -126,6 +126,13 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
     get_option('has_comments', (posttype || self.post_type).get_option('has_comments', false))
   end
 
+  # check if the post can be commented
+  # sample: @post.can_commented?
+  # return Boolean (true/false)
+  def can_commented?
+    manage_comments? && get_meta('has_comments').to_s == "1"
+  end
+
   # define post configuration for current post
   # possible key values (String):
   #   has_content, boolean (default true)

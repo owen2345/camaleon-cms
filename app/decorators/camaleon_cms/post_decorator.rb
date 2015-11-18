@@ -191,12 +191,6 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     r[:flag] && object.status == 'published'
   end
 
-  # check if the post can be commented
-  def can_commented?
-    object.manage_comments?
-  end
-
-
   # add_post_type: true/false to include post type link
   # children: true/false (show/hide last item link)
   # show_categories: true/false, true: add categories tree to the breadcrumb
