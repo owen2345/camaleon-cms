@@ -86,6 +86,8 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   end
 
   # return the post_tag object with id or slug = slug_or_id from this site
+  # sample: current_site.the_tag('test').the_url
+  # sample2: current_site.the_tag('test').the_posts
   def the_tag(slug_or_id)
     return object.post_tags.where(id: slug_or_id).first.decorate rescue nil if slug_or_id.is_a?(Integer)
     return object.post_tags.find_by_slug(slug_or_id).decorate rescue nil if slug_or_id.is_a?(String)
