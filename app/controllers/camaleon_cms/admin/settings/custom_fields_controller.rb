@@ -9,7 +9,8 @@
 class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin::SettingsController
   include CamaleonCms::Admin::CustomFieldsHelper
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.custom_fields"), :cama_admin_settings_custom_fields_path
-  before_action :set_custom_field_group, only: ['show','edit','update','destroy']
+  before_action :set_custom_field_group, only: [:show,:edit,:update,:destroy]
+  before_action :set_post_data, only: [:create, :update]
 
   def index
     @field_groups = current_site.custom_field_groups.visible_group
@@ -30,8 +31,6 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   end
 
   def update
-    post_data = params[:custom_field_group]
-    post_data[:object_class], post_data[:objectid] = post_data[:assign_group].split(',')
     if @field_group.update(post_data)
       @field_group.add_fields(params[:fields], params[:field_options])
       @field_group.set_option('caption', post_data[:caption])
@@ -50,8 +49,6 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
 
   # create a new custom field group
   def create
-    post_data = params[:custom_field_group]
-    post_data[:object_class], post_data[:objectid] = post_data[:assign_group].split(',')
     @field_group = current_site.custom_field_groups.new(post_data)
     if @field_group.save
       @field_group.add_fields(params[:fields], params[:field_options])
@@ -80,6 +77,11 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   end
 
   private
+
+  def set_post_data
+    post_data = params[:custom_field_group]
+    post_data[:object_class], post_data[:objectid] = post_data[:assign_group].split(',')
+  end
 
   def set_custom_field_group
     begin

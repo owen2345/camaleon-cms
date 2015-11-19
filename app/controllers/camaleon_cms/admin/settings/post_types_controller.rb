@@ -7,7 +7,8 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::SettingsController
-  before_action :set_post_type, only: ['show','edit','update','destroy']
+  before_action :set_post_type, only: [:show,:edit,:update, :destroy]
+  before_action :set_data_term, only: [:update, :create]
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.content_groups"), :cama_admin_settings_post_types_path
 
   def index
@@ -24,8 +25,6 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
   end
 
   def update
-    data_term = params[:post_type]
-    data_term[:data_options] = params[:meta]
     if @post_type.update(params[:post_type])
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
       redirect_to action: :index
@@ -35,8 +34,6 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
   end
 
   def create
-    data_term = params[:post_type]
-    data_term[:data_options] = params[:meta]
     @post_type = current_site.post_types.new(data_term)
     if @post_type.save
       flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
@@ -52,6 +49,11 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
   end
 
   private
+
+  def set_data_term
+    data_term = params[:post_type]
+    data_term[:data_options] = params[:meta]
+  end
 
   def set_post_type
     begin

@@ -7,9 +7,10 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::Settings::SitesController < CamaleonCms::Admin::SettingsController
-  before_action :set_site, only: ['show','edit','update','destroy']
+  before_action :set_site, only: [:show, :edit, :update, :destroy]
   before_action :check_shared_status
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.sites"), :cama_admin_settings_sites_path
+
   def index
     @sites = CamaleonCms::Site.all.order(:term_group)
     @sites = @sites.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
