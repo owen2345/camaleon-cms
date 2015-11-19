@@ -22,6 +22,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   scope :hidden_menu, -> {where(term_group: -1)}
   before_destroy :destroy_field_groups
   after_create :set_default_site_user_roles
+  before_update :default_category
 
   # check if current post type manage categories
   def manage_categories?
