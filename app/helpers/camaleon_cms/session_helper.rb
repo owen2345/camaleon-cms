@@ -40,6 +40,36 @@ module CamaleonCms::SessionHelper
     @user && @user.authenticate(password)
   end
 
+  ##
+  # User registration.
+  #
+  # user_data must contain:
+  # - email
+  # - username
+  # - password
+  # - password_confirmation
+  #
+  # meta must contain:
+  # - first_name
+  # - last_name
+  #
+  def cama_register_user(user_data, meta)
+    @user = current_site.users.new(user_data)
+    r = {user: @user, params: params}; hook_run('user_before_register', r)
+
+    if current_site.security_user_register_captcha_enabled? && !cama_captcha_verified?
+      {:result => false, :type => :captcha_error, :message => t('camaleon_cms.admin.users.message.error_captcha')}
+    else
+      if @user.save
+        @user.set_meta_from_form(meta)
+        r = {user: @user, message: t('camaleon_cms.admin.users.message.created'), redirect_url: cama_admin_login_path}; hooks_run('user_after_register', r)
+        {:result => true, :message => r[:message], :redirect_url => r[:redirect_url]}
+      else
+        {:result => false, :type => :no_saved}
+      end
+    end
+  end
+
   # check if current host is heroku
   def cama_on_heroku?
     ENV.keys.any? { |var_name| var_name.match(/(heroku|dyno)/i) }
@@ -76,6 +106,7 @@ module CamaleonCms::SessionHelper
   def cama_sign_in?
     !cama_current_user.nil?
   end
+
   alias_method :signin?, :cama_sign_in?
 
   # return the role for current user
@@ -99,6 +130,7 @@ module CamaleonCms::SessionHelper
       @current_user = (current_site.users_include_admins.find_by_auth_token(c[0]).decorate rescue nil)
     end
   end
+
   alias_method :current_user, :cama_current_user
 
   # check if a visitor was logged in

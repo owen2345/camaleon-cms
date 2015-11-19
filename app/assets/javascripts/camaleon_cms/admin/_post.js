@@ -176,7 +176,6 @@ function init_post(obj) {
         }
     });
 
-    try{$(".tinymce_textarea:not(.translated-item)", $form).tinymce().destroy();}catch(e){}
     tinymce.init(cama_get_tinymce_settings({
         selector: '.tinymce_textarea:not(.translated-item)',
         height: '480px',
@@ -287,16 +286,18 @@ function init_post(obj) {
 // thumbnail updloader
 function upload_feature_image() {
     $.fn.upload_filemanager({
-        formats: "image",
-        selected: function (image) {
+        selected: function (res, response) {
+            var image = _.first(res);
             if (image.mime && image.mime.indexOf("image") > -1) {
-                var image_url = image.url;
+                var image_url = image.url.to_filesystem_public_url();
                 $('#feature-image img').attr('src', image_url);
                 $('#feature-image input').val(image_url);
                 $('#feature-image .meta strong').html(image.name);
                 $('#feature-image').show();
+                response(true);
             } else {
                 alert("You must upload an image");
+                response(false);
             }
         }
     });
