@@ -8,6 +8,7 @@
 =end
 class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms::AdminController
   before_action :check_permission_role
+  before_action :set_sidebar, only: [:edit, :update, :destroy]
 
   def new
     @sidebar ||= current_site.sidebars.new
@@ -25,12 +26,11 @@ class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms:
   end
 
   def edit
-    @sidebar = current_site.sidebars.find(params[:id])
     new
   end
 
   def update
-    if current_site.sidebars.find(params[:id]).update(params[:widget_sidebar])
+    if @sidebar.update(params[:widget_sidebar])
       flash[:notice] = t('camaleon_cms.admin.widgets.sidebar.updated')
     else
       flash[:error] = t('camaleon_cms.admin.widgets.sidebar.error_updated')
@@ -46,12 +46,17 @@ class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms:
   end
 
   def destroy
-    @sidebar = current_site.sidebars.find(params[:id]).destroy
+    @sidebar = @sidebar.destroy
     flash[:notice] = t('camaleon_cms.admin.widgets.sidebar.error_deleted')
     redirect_to cama_admin_appearances_widgets_main_index_path
   end
 
   private
+
+  def set_sidebar
+    @sidebar = current_site.sidebars.find(params[:id])
+  end
+
   def check_permission_role
     authorize! :manager, :widgets
   end
