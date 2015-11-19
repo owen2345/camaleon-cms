@@ -82,7 +82,7 @@
                     post_id: '<%= @post.draft? ? (@post.parent.present? ? @post.parent.id : nil) : @post.id %>',
                     post_draft_id: '<%= @post.id if @post.draft? %>',
                     post_status: '<%= @post.status %>',
-                    _post_path: '<%= cama_post_url({slug: '__-__', locale: '____'}) %>',
+                    _post_path: '<%= @post_type.posts.new({slug: '__-__', locale: '____'}).decorate.the_url() %>',
                     _drafts_path: '<%= (@post.draft? && !@post.new_record?) ? cama_admin_post_type_draft_path(@post_type.id, @post) : cama_admin_post_type_drafts_path(@post_type.id)  %>',
                     _posts_path: '<%= cama_admin_post_type_posts_path(@post_type.id) %>',
                     _ajax_path: '<%= ajax_cama_admin_post_type_posts_path(@post_type.id) %>',
