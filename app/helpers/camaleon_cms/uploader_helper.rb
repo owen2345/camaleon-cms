@@ -211,7 +211,7 @@ module CamaleonCms::UploaderHelper
 
   # parse file information of FOG file
   def cama_uploader_parse_file(file)
-    res = {"name"=> File.basename(file.key), "size"=> file.content_length, "url"=> (file.public_url rescue "#{@fog_connection.endpoint}/#{file.key}"), "deleteUrl"=> "" }
+    res = {"name"=> File.basename(file.key), "size"=> file.content_length, "url"=> (file.public_url rescue "https://storagegateway.us-east-1.amazonaws.com/#{file.key}"), "deleteUrl"=> "" }
     ext = File.extname(file.key).sub(".", "").downcase
     res["format"] = "unknown"
     if "jpg,jpeg,png,gif,bmp,ico".split(",").include?(ext)
