@@ -7,14 +7,13 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsController
+  before_action :set_post_data_params, only: [:create, :update]
+
   def index
     render json: @post_type
   end
 
   def create
-    post_data = get_params_data
-    post_data[:data_tags] = params[:tags].to_s
-    post_data[:data_categories] = params[:categories] || []
     if params[:post_id].present?
       @post_draft = CamaleonCms::Post.drafts.where(post_parent: params[:post_id]).first
       @post_draft.attributes = post_data if @post_draft.present?
@@ -22,9 +21,7 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
     @post_draft = @post_type.posts.new(post_data) unless @post_draft.present?
     r = {post: @post_draft, post_type: ""}; hooks_run("create_post", r)
     if @post_draft.save(:validate => false)
-      @post_draft.set_meta_from_form(params[:meta])
-      @post_draft.set_field_values(params[:field_options])
-      @post_draft.set_option("keywords", post_data[:keywords])
+      @post_draft.set_params(params[:meta], params[:field_options], post_data[:keywords])
       msg = {draft: {id: @post_draft.id}, _drafts_path: cama_admin_post_type_draft_path(@post_type.id, @post_draft)}
       r = {post: @post_draft, post_type: ""}; hooks_run("created_post", r)
     else
@@ -35,16 +32,11 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
   end
 
   def update
-    post_data = get_params_data
-    post_data[:data_tags] = params[:tags].to_s
-    post_data[:data_categories] = params[:categories] || []
     @post_draft = CamaleonCms::Post.drafts.find(params[:id])
     @post_draft.attributes = post_data
     r = {post: @post_draft, post_type: ""}; hooks_run("update_post", r)
     if @post_draft.save(validate: false)
-      @post_draft.set_meta_from_form(params[:meta])
-      @post_draft.set_field_values(params[:field_options])
-      @post_draft.set_option("keywords", post_data[:keywords])
+      @post_draft.set_params(params[:meta], params[:field_options], post_data[:keywords])
       hooks_run("updated_post", {post: @post_draft, post_type: ""})
       msg = {draft: {id: @post_draft.id}}
     else
@@ -64,5 +56,11 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
     post_data[:post_parent] = params[:post_id]
     post_data[:user_id] = cama_current_user.id unless post_data[:user_id].present?
     post_data
+  end
+
+  def set_post_data_params
+    post_data = get_params_data
+    post_data[:data_tags] = params[:tags].to_s
+    post_data[:data_categories] = params[:categories] || []
   end
 end
