@@ -8,6 +8,7 @@
 =end
 class CamaleonCms::Admin::Appearances::Widgets::MainController < CamaleonCms::AdminController
   before_action :check_permission_role
+  before_action :set_widgets, only: [:edit, :update, :destroy]
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.appearance")
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.widgets")
 
@@ -21,7 +22,6 @@ class CamaleonCms::Admin::Appearances::Widgets::MainController < CamaleonCms::Ad
   end
 
   def edit
-    @widget = current_site.widgets.find(params[:id])
     new
   end
 
@@ -37,7 +37,6 @@ class CamaleonCms::Admin::Appearances::Widgets::MainController < CamaleonCms::Ad
   end
 
   def update
-    @widget = current_site.widgets.find(params[:id])
     if @widget.update!(params[:widget_main])
       flash[:notice] = t('camaleon_cms.admin.widgets.message.updated')
     else
@@ -47,12 +46,17 @@ class CamaleonCms::Admin::Appearances::Widgets::MainController < CamaleonCms::Ad
   end
 
   def destroy
-    @widget = current_site.widgets.find(params[:id]).destroy!
+    @widget = @widget.destroy!
     flash[:notice] = t('camaleon_cms.admin.widgets.message.deleted')
     redirect_to action: :index
   end
 
   private
+
+  def set_widgets
+    @widget = current_site.widgets.find(params[:id])
+  end
+
   def check_permission_role
     authorize! :manager, :widgets
   end

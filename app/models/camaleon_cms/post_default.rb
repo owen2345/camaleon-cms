@@ -64,6 +64,13 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
     CamaleonCms::NavMenuItem.joins(:metas).where("value LIKE ?","%\"object_id\":\"#{self.id}\"%").where("value LIKE ?","%\"type\":\"post\"%").readonly(false)
   end
 
+  # Set the meta, field values and the post keywords here
+  def set_params(meta, field_options, post_data_keywords)
+    self.set_meta_from_form(meta)
+    self.set_field_values(field_options)
+    self.set_option("keywords", post_data_keywords)
+  end
+
   private
   def before_validating
     #self.slug = self.title if self.slug.blank?
