@@ -15,7 +15,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
 
   def index
     authorize! :posts, @post_type
-    posts_all = @post_type.posts
+    posts_all = @post_type.posts.eager_load(:parent, :post_type)
     if params[:taxonomy].present? && params[:taxonomy_id].present?
       if params[:taxonomy] == "category"
         cat_owner = current_site.full_categories.find(params[:taxonomy_id]).decorate
