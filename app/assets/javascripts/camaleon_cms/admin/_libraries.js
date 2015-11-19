@@ -223,7 +223,9 @@ var init_form_validations = function (form) {
 
     /************ Custom jquery validation as defaults ***************/
     jQuery.validator.setDefaults({
-        focusInvalid: true, ignore: ".translated-item", errorPlacement: function (a, b) {
+        focusInvalid: true,
+        ignore: ".translated-item",
+        errorPlacement: function (a, b) {
             if (!a.text()) return;
             if (b.parent().hasClass('trans_tab_item')) { // tabs
                 var parent = b.parent();
@@ -237,9 +239,16 @@ var init_form_validations = function (form) {
                 else
                     b.parent().after(a.addClass('help-block')).parent().addClass('has-error');
             }
-        }, success: function (error, element) {
+        },
+        success: function (error, element) {
             $(element).parent().removeClass('has-error').parent().removeClass('has-error')
             if ($(element).parent().hasClass('tab-pane')) $("a[href='#" + $(element).parent().attr('id') + "']").removeClass('has-error');
+        },
+        highlight: function(element, errorClass){ //fix for error fields in hidden tab
+            var tab = "";
+            if(!$(element).is(":visible") && (tab = $(element).closest(".tab-pane")).length && tab.attr("id")){
+                tab.closest(".tabs").find(" > ul a[href='#"+tab.attr("id")+"']").click();
+            }
         }
     });
 
