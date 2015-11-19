@@ -69,13 +69,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
 
   def create
     authorize! :create_post, @post_type
-
-    post_data = params[:post]
-    post_data[:user_id] = cama_current_user.id
-    post_data[:status] == 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
-    post_data[:data_tags] = params[:tags].to_s
-    post_data[:data_categories] = params[:categories] || []
-
+    post_data = get_post_data(true)
     CamaleonCms::Post.drafts.find(post_data[:draft_id]).destroy rescue nil
     @post = @post_type.posts.create(post_data)
     r = {post: @post, post_type: @post_type}; hooks_run("create_post", r)
@@ -104,14 +98,8 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   def update
     @post = @post.parent if @post.draft? && @post.parent.present?
     authorize! :update, @post
-
     @post.drafts.destroy_all
-
-    post_data = params[:post]
-    post_data[:post_parent] = nil
-    post_data[:status] == 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
-    post_data[:data_tags] = params[:tags].to_s
-    post_data[:data_categories] = params[:categories] || []
+    post_data = get_post_data
     r = {post: @post, post_type: @post_type}; hooks_run("update_post", r)
     @post = r[:post]
     if @post.update(post_data)
@@ -122,7 +110,6 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
       flash[:notice] = t('camaleon_cms.admin.post.message.updated', post_type: @post_type.decorate.the_title)
       redirect_to action: :edit, id: @post.id
     else
-      # render 'form'
       edit
     end
   end
@@ -200,6 +187,18 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
       flash[:error] =  t('camaleon_cms.admin.post.message.error', post_type: @post_type.decorate.the_title)
       redirect_to cama_admin_path
     end
+  end
+
+  # return common params data for posts
+  # is_create: indicate if this info is for create a new post
+  def get_post_data(is_create = false)
+    post_data = params[:post]
+    post_data[:post_parent] = nil
+    post_data[:user_id] = cama_current_user.id if is_create
+    post_data[:status] == 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
+    post_data[:data_tags] = params[:tags].to_s
+    post_data[:data_categories] = params[:categories] || []
+    post_data
   end
 
   # valid slug post
