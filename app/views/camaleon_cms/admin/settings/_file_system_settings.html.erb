@@ -20,4 +20,8 @@
         <%= label_tag t('camaleon_cms.admin.settings.filesystem_region') %><br>
         <%= text_field :options, :filesystem_region, :class => "form-control required", value: @site.get_option("filesystem_region") %>
     </div>
+    <div class="form-group">
+        <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_endpoint') %><br>
+        <%= text_field :options, :filesystem_s3_endpoint, :class => "form-control required", value: @site.get_option("filesystem_s3_endpoint") %>
+    </div>
 </div>
