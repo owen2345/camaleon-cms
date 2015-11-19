@@ -123,7 +123,9 @@ module CamaleonCms::UploaderHelper
   # add a new folder in fog
   def cama_uploader_add_folder(folder)
     cama_uploader_init_connection(true)
-    @fog_connection_bucket_dir.files.create({:key => "#{current_site.id}/#{folder}/".gsub(/(\/){2,}/, "/"), content: "", :public => true})
+    key = "#{current_site.id}/#{folder}/".split("/").clean_empty.join("/")
+    key += '/_tmp.txt' unless @fog_connection.class.name.include?("AWS")
+    @fog_connection_bucket_dir.files.create({:key => key, content: "", :public => true})
   end
 
   # initialize fog uploader and trigger hook to customize fog storage
@@ -186,7 +188,7 @@ module CamaleonCms::UploaderHelper
         folder_src[:folders][file.key.split("/").last] = {folders: {}, files: []}
       else
         r_file = cama_uploader_parse_file(file)
-        folder_src[:files] << r_file if r_file["url"].present? # skip non public url files (protected)
+        folder_src[:files] << r_file if r_file["url"].present? && !file.key.include?('/_tmp.txt') # skip non public url files (protected)
       end
     end
   end
