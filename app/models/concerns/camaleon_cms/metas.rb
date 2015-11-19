@@ -11,7 +11,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
     # options and metas auto save support
     attr_accessor :data_options
     attr_accessor :data_metas
-    after_save  :save_metas_options, unless: :save_metas_options_skip
+    after_create  :save_metas_options, unless: :save_metas_options_skip
     before_update :fix_save_metas_options_no_changed
 
     has_many :metas, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::", ""))}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
@@ -101,7 +101,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
 
   # fix to save options and metas when a model was not changed
   def fix_save_metas_options_no_changed
-    save_metas_options unless self.changed?
+    save_metas_options #unless self.changed?
   end
 
   # save all settings for this post type received in data_options and data_metas attribute (options and metas)
