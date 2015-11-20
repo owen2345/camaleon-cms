@@ -16,7 +16,6 @@ class CamaleonCms::Category < CamaleonCms::TermTaxonomy
   has_many :children, class_name: "CamaleonCms::Category", foreign_key: :parent_id
   belongs_to :parent, class_name: "CamaleonCms::Category", foreign_key: :parent_id
   belongs_to :post_type_parent, class_name: "CamaleonCms::PostType", foreign_key: :parent_id
-  belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
 
   scope :no_empty, ->{ where("count > 0") } # return all categories that contains at least one post
   scope :empty, ->{ where(count: [0,nil]) } # return all categories that does not contain any post

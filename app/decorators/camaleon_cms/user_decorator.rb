@@ -61,12 +61,6 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
     h.current_site.posts.where(user_id: object.id)
   end
 
-  # cache identifier, the format is: [current-site-prefix]/[object-id]-[object-last_updated]/[current locale]
-  # key: additional key for the model
-  def cache_prefix(key = "")
-    "#{h.current_site.cache_prefix}/user#{object.id}#{"/#{key}" if key.present?}"
-  end
-
   private
 
   def avatar_exists?

@@ -84,20 +84,16 @@ class CamaleonCms::TermTaxonomyDecorator < CamaleonCms::ApplicationDecorator
     h.link_to("&rarr; #{title || h.ct("edit")}".html_safe, the_edit_url, attrs)
   end
 
-  # cache identifier, the format is: [current-site-prefix]/[object-id]-[object-last_updated]/[current locale]
-  # key: additional key for the model
-  def cache_prefix(key = "")
-    res = ""
-    case object.class.name
-      when "CamaleonCms::PostType"
-        res = "#{h.current_site.cache_prefix}/ptype#{object.id}#{"/#{key}" if key.present?}"
-      when "CamaleonCms::Category"
-        res = "#{h.current_site.cache_prefix}/pcat#{object.id}#{"/#{key}" if key.present?}"
-      when "CamaleonCms::PostTag"
-        res = "#{h.current_site.cache_prefix}/ptag#{object.id}#{"/#{key}" if key.present?}"
-      when "CamaleonCms::Site"
-        res = "/#{object.id}/#{I18n.locale}#{"/#{key}" if key.present?}"
-    end
-    res
+  # return the user owner of this item
+  # sample: my_item.the_owner.the_url
+  def the_owner
+    owner.decorate rescue nil
   end
+
+  # return the parent item of this item
+  # sample: my_item.the_parent.the_url
+  def the_parent
+    parent.decorate rescue nil
+  end
+
 end

@@ -34,6 +34,7 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   has_many :term_relationships, :class_name => "CamaleonCms::TermRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
   has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
   belongs_to :parent, class_name: "CamaleonCms::TermTaxonomy", foreign_key: :parent_id
+  belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
   has_many :user_relationships, :class_name => "CamaleonCms::UserRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
   has_many :users, through: :user_relationships, :source => :user
 
