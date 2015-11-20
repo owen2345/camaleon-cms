@@ -8,7 +8,7 @@
 =end
 module CamaleonCms::MetasDecoratorMethods
   # return meta value translated for key in this model
-  def the_option(key)
+  def the_meta(key)
     object.get_meta(key, "").translate(@_deco_locale)
   end
 
