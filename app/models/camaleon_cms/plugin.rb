@@ -44,7 +44,8 @@ class CamaleonCms::Plugin < CamaleonCms::TermTaxonomy
   # check if current installation version is older
   # return boolean
   def old_version?
-    self.installed_version.to_s != self.settings["version"].to_s
+    # self.installed_version.to_s != self.settings["version"].to_s
+    false
   end
 
   # set a new installation version for this plugin
@@ -54,6 +55,7 @@ class CamaleonCms::Plugin < CamaleonCms::TermTaxonomy
 
   # return gem installed version
   def installed_version
+    return ""
     res = self.get_option("version_installed")
     unless res.present? # fix for old installations
       res = self.settings["version"]
