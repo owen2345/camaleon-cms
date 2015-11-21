@@ -62,6 +62,7 @@ class CamaleonCms::Plugin < CamaleonCms::TermTaxonomy
     res
   end
 
+  # return the title of this plugin
   def title
     PluginRoutes.plugin_info(self.slug)["title"]
   end

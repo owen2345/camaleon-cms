@@ -192,6 +192,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     end
   end
 
+  # return all users including administrators
   def users_include_admins
     if PluginRoutes.system_info["users_share_sites"]
       CamaleonCms::User.where(site_id: -1)
