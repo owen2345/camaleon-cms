@@ -85,7 +85,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
         when 'Widget::Main'
           caption = "Fields for Widget <b>(#{CamaleonCms::Widget::Main.find(self.objectid).name.translate})</b>"
         when 'Theme'
-          caption = "Field settings for Theme <b>(#{self.objectid})</b>"
+          caption = "Field settings for Theme <b>(#{self.site.themes.find(self.objectid).name rescue self.objectid})</b>"
         when 'NavMenu'
           caption = "Field settings for Menus <b>(#{CamaleonCms::NavMenu.find(self.objectid).name})</b>"
         when 'Site'
