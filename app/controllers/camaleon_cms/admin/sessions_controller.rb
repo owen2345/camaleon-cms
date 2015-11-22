@@ -120,8 +120,8 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
         render 'register'
       elsif result[:result]
         flash[:notice] = result[:message]
-        r = {user: @user}; hooks_run('user_registered', r)
-        redirect_to result[:redirect_url]
+        r = {user: @user, redirect_url: result[:redirect_url]}; hooks_run('user_registered', r)
+        redirect_to r[:redirect_url]
       else
         @first_name = params[:meta][:first_name]
         @last_name = params[:meta][:last_name]

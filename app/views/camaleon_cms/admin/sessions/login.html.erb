@@ -35,7 +35,7 @@
         <hr>
 
         <%= raw cama_content_before_draw %>
-        <%= r = {html: ""}; hooks_run("user_login_form", r); raw(r[:html]); %>
+        <%= r = {html: "", f: f}; hooks_run("user_login_form", r); raw(r[:html]); %>
 
         <div class="row">
             <% if current_site.get_option('permit_create_account', false) %>
