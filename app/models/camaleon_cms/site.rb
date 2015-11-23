@@ -111,7 +111,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
 
   # security: user register form show captcha?
   def security_user_register_captcha_enabled?
-    get_option('security_captcha_user_register', true) == true
+    get_option('security_captcha_user_register', false) == true
   end
 
   # auto create default user roles
