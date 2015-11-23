@@ -30,34 +30,34 @@ class CamaleonCms::Ability
       ids_delete_other = @roles_post_type[:delete_other] || []
       ids_delete_publish = @roles_post_type[:delete_publish] || []
 
-      can :posts, PostType do |pt|
+      can :posts, CamaleonCms::PostType do |pt|
         (ids_edit + ids_edit_other + ids_edit_publish).to_i.include?(pt.id) rescue false
       end
 
-      can :create_post, PostType do |pt|
+      can :create_post, CamaleonCms::PostType do |pt|
         ids_edit.to_i.include?(pt.id) rescue false
       end
-      can :publish_post, PostType do |pt|
+      can :publish_post, CamaleonCms::PostType do |pt|
         ids_publish.to_i.include?(pt.id) rescue false
       end
 
-      can :categories, PostType do |pt|
+      can :categories, CamaleonCms::PostType do |pt|
         @roles_post_type[:manage_categories].to_i.include?(pt.id) rescue false
       end
-      can :post_tags, PostType do |pt|
+      can :post_tags, CamaleonCms::PostType do |pt|
         @roles_post_type[:manage_tags].to_i.include?(pt.id) rescue false
       end
 
-      can :update, Post do |post|
+      can :update, CamaleonCms::Post do |post|
         pt_id = post.post_type.id
         r = false
         r ||= (ids_edit).to_i.include?(pt_id) && post.user_id == user.id rescue false
-        r ||= (ids_edit_publish ).to_i.include?(pt_id) && post.published? rescue false
-        r ||= (ids_edit_other).to_i.include?(pt_id) && post.user_id != user.id  rescue false
+        r ||= (ids_edit_publish).to_i.include?(pt_id) && post.published? rescue false
+        r ||= (ids_edit_other).to_i.include?(pt_id) && post.user_id != user.id rescue false
         r
       end
 
-      can :destroy, Post do |post|
+      can :destroy, CamaleonCms::Post do |post|
         pt_id = post.post_type.id
         r = false
         r ||= (ids_delete).to_i.include?(pt_id) && post.user_id == user.id rescue false
@@ -65,7 +65,6 @@ class CamaleonCms::Ability
         r ||= (ids_delete_other).to_i.include?(pt_id) && post.user_id != user.id rescue false
         r
       end
-
 
 
       #others
@@ -81,8 +80,6 @@ class CamaleonCms::Ability
 
 
     end
-
-
 
 
     # variants:
@@ -103,8 +100,6 @@ class CamaleonCms::Ability
     # can :read, Photo, Photo.scope_defined do |photo|
     #   photo.groups.empty?
     # end
-
-
 
 
     # See the wiki for details:
