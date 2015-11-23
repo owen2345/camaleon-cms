@@ -21,10 +21,4 @@ class CamaleonCms::CustomFieldDecorator < Draper::Decorator
       object.description
     end
   end
-
-  # cache identifier, the format is: [current-site-prefix]/[object-id]-[object-last_updated]/[current locale]
-  # key: additional key for the model
-  def cache_prefix(key = "")
-    "#{h.current_site.cache_prefix}/cfield#{object.id}#{"/#{key}" if key.present?}"
-  end
 end

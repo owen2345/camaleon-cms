@@ -1,7 +1,6 @@
 {
   "title": "pluginTitle",
   "descr": "",
-  "version": "0.1",
   "key": "pluginKey",
   "helpers": [
     "Plugins::PluginClass::MainHelper"
@@ -12,9 +11,6 @@
     ],
     "on_inactive": [
       "pluginKey_on_inactive"
-    ],
-    "on_upgrade": [
-      "pluginKey_on_upgrade"
     ]
     //here you can add all your hooks (read documentation)
   }

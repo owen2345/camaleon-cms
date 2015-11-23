@@ -13,7 +13,9 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   before_action :set_post_data, only: [:create, :update]
 
   def index
-    @field_groups = current_site.custom_field_groups.visible_group
+    @field_groups = current_site.custom_field_groups.visible_group.eager_load(:site)
+    @field_groups = @field_groups.where(object_class: params[:c]) if params[:c].present?
+    @field_groups = @field_groups.where(objectid: params[:id]) if params[:id].present?
     @field_groups = @field_groups.paginate(page: params[:page], per_page: current_site.admin_per_page)
   end
 
