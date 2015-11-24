@@ -33,9 +33,9 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   end
 
   def update
-    if @field_group.update(post_data)
+    if @field_group.update(@post_data)
       @field_group.add_fields(params[:fields], params[:field_options])
-      @field_group.set_option('caption', post_data[:caption])
+      @field_group.set_option('caption', @post_data[:caption])
       flash[:notice] = t('camaleon_cms.admin.custom_field.message.custom_updated')
       redirect_to action: :edit, id: @field_group.id
     else
@@ -51,10 +51,10 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
 
   # create a new custom field group
   def create
-    @field_group = current_site.custom_field_groups.new(post_data)
+    @field_group = current_site.custom_field_groups.new(@post_data)
     if @field_group.save
       @field_group.add_fields(params[:fields], params[:field_options])
-      @field_group.set_option('caption', post_data[:caption])
+      @field_group.set_option('caption', @post_data[:caption])
       flash[:notice] = t('camaleon_cms.admin.custom_field.message.custom_created')
       redirect_to action: :edit, id: @field_group.id
     else
@@ -81,8 +81,8 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   private
 
   def set_post_data
-    post_data = params[:custom_field_group]
-    post_data[:object_class], post_data[:objectid] = post_data[:assign_group].split(',')
+    @post_data = params[:custom_field_group]
+    @post_data[:object_class], @post_data[:objectid] = @post_data[:assign_group].split(',')
   end
 
   def set_custom_field_group
