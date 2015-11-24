@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::SettingsController
   before_action :set_post_type, only: [:show,:edit,:update, :destroy]
-  before_action :set_data_term, only: [:update, :create]
+  before_action :set_data_term, only: :create
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.content_groups"), :cama_admin_settings_post_types_path
 
   def index
@@ -34,7 +34,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
   end
 
   def create
-    @post_type = current_site.post_types.new(data_term)
+    @post_type = current_site.post_types.new(@data_term)
     if @post_type.save
       flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
       redirect_to action: :index
@@ -53,6 +53,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
   def set_data_term
     data_term = params[:post_type]
     data_term[:data_options] = params[:meta]
+    @data_term = data_term
   end
 
   def set_post_type
