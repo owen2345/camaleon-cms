@@ -341,7 +341,7 @@ class PluginRoutes
       if File.exist?(config)
         p = JSON.parse(File.read(config))
         p = p.with_indifferent_access rescue p
-        p["key"] = File.basename(path)
+        p["key"] = gem.name if p["key"].nil? # TODO REVIEW ERROR FOR conflict plugin keys
         p["path"] = path
         p["kind"] = "theme"
         p["gem_mode"] = true
