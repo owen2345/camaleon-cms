@@ -4,7 +4,7 @@
         <% if @post_type.the_slug == "page" %>
             <div class="col-md-12 page-view">
                 <article class="post-content">
-                    <h1><%= @post.the_title %> <%= ptype.the_edit_link %></h1>
+                    <h1><%= @post.the_title %> <%= @post.the_edit_link %></h1>
                     <div class="item-content">
                         <%= raw @post.the_content %>
                     </div>
