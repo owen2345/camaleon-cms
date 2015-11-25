@@ -72,7 +72,7 @@ class CamaleonCms::PostTypeDecorator < CamaleonCms::TermTaxonomyDecorator
   # return thumbnail for this post type
   # default: if thumbnail is not present, will render default
   def the_thumb_url(default = nil)
-    th = object.get_option("thumb")
+    th = object.get_option("thumb", object.get_option("default_thumb"))
     th.present? ? th : (default || h.asset_url("camaleon_cms/image-not-found.png"))
   end
 end

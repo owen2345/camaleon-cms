@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::SettingsController
   before_action :set_post_type, only: [:show,:edit,:update, :destroy]
-  before_action :set_data_term, only: :create
+  before_action :set_data_term, only: [:create, :update]
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.content_groups"), :cama_admin_settings_post_types_path
 
   def index
@@ -25,7 +25,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
   end
 
   def update
-    if @post_type.update(params[:post_type])
+    if @post_type.update(@data_term)
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
       redirect_to action: :index
     else

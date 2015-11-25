@@ -1,6 +1,6 @@
 <article id="category-view" class="category_<%= @category.slug %>">
     <%= render partial: 'partials/breadcrumb', locals: {breadcrumb: @category.the_breadcrumb } %>
-    <h1><%= @category.the_title %></h1>
+    <h1><%= @category.the_title %><%= @category.the_edit_link %></h1>
     <div class="content">
         <%= raw @category.the_content %>
     </div><br><br>
