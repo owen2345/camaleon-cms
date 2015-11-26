@@ -13,6 +13,7 @@ module ActionView
     module ViewPaths
       # fix to add camaleon prefix to search partials and layouts
       def find(name, prefixes = [], partial = false, keys = [], options = {})
+        # todo: avoid prefix for render file the full path
         prefixes = [""] unless prefixes.present?
         prefixes = self.prefixes + prefixes if prefixes.is_a?(Array)
         @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
@@ -21,6 +22,7 @@ module ActionView
 
       # fix to add camaleon prefixes on verify template exist
       def exists?(name, prefixes = [], partial = false, keys = [], options = {})
+        # todo: avoid prefix for render file the full path
         prefixes = [""] unless prefixes.present?
         prefixes += self.prefixes if prefixes.is_a?(Array)
         @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys, options))
