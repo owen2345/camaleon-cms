@@ -107,15 +107,17 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     fields.to_sym
   end
 
-  # return all custom fields
-  def get_fields_object(only_frontend = false)
+  # return all custom fields for current element
+  # {my_field_slug: {options: {}, values: [], name: '', ...} }
+  # deprecated f attribute
+  def get_fields_object(f=true)
     fields = {}
     self.field_values.to_a.uniq.each do |field_value|
       custom_field = field_value.custom_fields
-      if !only_frontend || custom_field.options[:show_frontend].to_s.to_bool
-        values = custom_field.values.where(objectid: self.id).pluck(:value)
-        fields[field_value.custom_field_slug] = custom_field.attributes.merge(options: custom_field.options, values: custom_field.options[:multiple].to_s.to_bool ? values : values.first)
-      end
+      # if custom_field.options[:show_frontend].to_s.to_bool
+      values = custom_field.values.where(objectid: self.id).pluck(:value)
+      fields[field_value.custom_field_slug] = custom_field.attributes.merge(options: custom_field.options, values: custom_field.options[:multiple].to_s.to_bool ? values : values.first)
+      # end
     end
     fields.to_sym
   end
