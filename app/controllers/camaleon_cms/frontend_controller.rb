@@ -165,10 +165,10 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       @categories = @post.the_categories
       @post.increment_visits!
       home_page = @_site_options[:home_page] rescue nil
-      if @post.get_template(@post_type).present? && lookup_context.template_exists?(@post.get_template(@post_type))
-        r_file = @post.get_template(@post_type)
-      elsif lookup_context.template_exists?("page_#{@post.id}")
+      if lookup_context.template_exists?("page_#{@post.id}")
         r_file = "page_#{@post.id}"
+      elsif @post.get_template(@post_type).present? && lookup_context.template_exists?(@post.get_template(@post_type))
+        r_file = @post.get_template(@post_type)
       elsif home_page.present? && @post.id.to_s == home_page
         r_file = "index"
       elsif lookup_context.template_exists?("#{@post_type.slug}")
