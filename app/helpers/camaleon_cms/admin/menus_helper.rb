@@ -40,7 +40,7 @@ module CamaleonCms::Admin::MenusHelper
     admin_menu_add_menu("appearance", {icon: "paint-brush", title: t('camaleon_cms.admin.sidebar.appearance'), url: "", items: items, datas: "data-intro='#{t("camaleon_cms.admin.intro.appearance")}' data-position='right' data-wait='500'"}) if items.present?
 
 
-    admin_menu_add_menu("plugins", {icon: "plug", title: "#{t('camaleon_cms.admin.sidebar.plugins')} <small class='label label-primary'>#{PluginRoutes.all_plugins.clone.delete_if{|plugin| plugin[:domain].present? && !(plugin[:domain].split(",").include?(current_site.the_slug) || plugin[:domain].split(",").include?(dom)) }.size}</small>", url: cama_admin_plugins_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.plugins")}' data-position='right'"}) if can? :manager, :plugins
+    admin_menu_add_menu("plugins", {icon: "plug", title: "#{t('camaleon_cms.admin.sidebar.plugins')} <small class='label label-primary'>#{PluginRoutes.all_plugins.clone.delete_if{|plugin| plugin[:domain].present? && !plugin[:domain].split(",").include?(current_site.the_slug) }.size}</small>", url: cama_admin_plugins_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.plugins")}' data-position='right'"}) if can? :manager, :plugins
 
     if can? :manager, :users
       items = []
