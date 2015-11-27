@@ -31,7 +31,7 @@
                                     </div>
                                     <div class="panel-body" style="min-height: 120px;">
                                         <h3><%= theme[:name] %></h3>
-                                        <p><%= theme[:description] %></p>
+                                        <div><%= raw theme[:description] %></div>
                                     </div>
                                     <div class="panel-footer text-muted text-right">
                                         <% if current_theme.slug == theme[:key] && params[:set].nil? %>
