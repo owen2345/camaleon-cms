@@ -1,4 +1,13 @@
 Rails.application.routes.draw do
+
+  # frontend plugins
+  scope PluginRoutes.system_info["relative_url_root"] do
+    scope "(:locale)", locale: /#{PluginRoutes.all_locales}/, :defaults => {  } do
+      instance_eval(PluginRoutes.load("front"))
+    end
+  end
+
+  # frontend camaleon cms
   scope PluginRoutes.system_info["relative_url_root"], as: "cama" do
     scope "(:locale)", locale: /#{PluginRoutes.all_locales}/, :defaults => {  } do
       root 'camaleon_cms/frontend#index'
@@ -35,12 +44,6 @@ Rails.application.routes.draw do
 
       get ":slug" => 'camaleon_cms/frontend#post', format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-]+/}
       get ":slug" => 'camaleon_cms/frontend#post', :as => :post, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-]+/}
-    end
-  end
-
-  scope PluginRoutes.system_info["relative_url_root"] do
-    scope "(:locale)", locale: /#{PluginRoutes.all_locales}/, :defaults => {  } do
-      instance_eval(PluginRoutes.load("front"))
     end
   end
 
