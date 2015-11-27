@@ -57,7 +57,7 @@ module CamaleonCms::UploaderHelper
           settings[:formats] = "zip,7z,rar,tar,bz2,gz,rar2"
       end
 
-      unless settings[:formats].downcase.split(",").include?(File.extname(file_path).sub(".", "").downcase)
+      unless settings[:formats].downcase.split(",").include?(File.extname(settings[:filename]).sub(".", "").downcase)
         res[:error] = ct("file_format_error")
         return res
       end
