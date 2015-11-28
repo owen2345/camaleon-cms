@@ -42,8 +42,8 @@ Rails.application.routes.draw do
         get "ajax"
       end
 
-      get ":slug" => 'camaleon_cms/frontend#post', format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-]+/}
-      get ":slug" => 'camaleon_cms/frontend#post', :as => :post, constraints: { slug: /(?!admin)[a-zA-Z0-9\._=\s\-]+/}
+      get ":slug" => 'camaleon_cms/frontend#post', format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /[a-zA-Z0-9\._=\s\-]+/}
+      get ":slug" => 'camaleon_cms/frontend#post', :as => :post, constraints: { slug: /[a-zA-Z0-9\._=\s\-]+/}
     end
   end
 
