@@ -1,5 +1,7 @@
 <%
-   groups = @site.get_field_groups()
+   groups = @site.get_field_groups
+   theme_field_groups = current_theme.get_field_groups
+   show_theme_tab = (theme_field_groups.present? || File.exist?(current_theme.settings_file)) ? true : false
 %>
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap">
@@ -21,7 +23,7 @@
                   <a data-toggle="tab" role="tab" href="#tab-other-configuration" aria-expanded="false"><%= t('camaleon_cms.admin.post_type.other_configuration') %></a>
                 </li>
             <% end %>
-            <% if File.exist?(current_theme.settings_file) %>
+            <% if show_theme_tab %>
                 <li class="<%= "active" if "theme" == params[:tab] %>">
                   <a data-toggle="tab" role="tab" href="#tab-theme-configuration" aria-expanded="false"><%= t('camaleon_cms.admin.settings.theme_setting') %></a>
                 </li>
@@ -70,9 +72,14 @@
                   <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @site, field_groups: groups} %>
                 </div>
             <% end %>
-            <% if File.exist?(current_theme.settings_file) %>
+            <% if show_theme_tab %>
                 <div id="tab-theme-configuration" class="<%= "active" if "theme" == params[:tab] %> tab-pane">
-                  <%= render file: current_theme.settings_file %>
+                    <% if File.exist?(current_theme.settings_file) %>
+                        <%= render file: current_theme.settings_file %>
+                        <%= render(partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: theme_field_groups}) unless File.read(current_theme.settings_file).include?('.get_field_groups') %>
+                    <% else %>
+                        <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: theme_field_groups} %>
+                    <% end %>
                 </div>
             <% end %>
               <%= render "seo_settings", f: f %>
