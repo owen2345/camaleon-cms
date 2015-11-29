@@ -12,9 +12,8 @@ module CamaleonCms::SiteHelper
     @current_site = site.decorate if site.present?
     return $current_site if defined?($current_site)
     return @current_site if defined?(@current_site)
-    all_sites = CamaleonCms::Site.all
-    if all_sites.size == 1
-      site = all_sites.first.decorate
+    if PluginRoutes.get_sites.size == 1
+      site = PluginRoutes.get_sites.first.decorate
     else
       host = request.original_url.to_s.parse_domain
       if host == PluginRoutes.system_info["base_domain"]
