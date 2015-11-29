@@ -9,7 +9,7 @@
 class CamaleonCms::ApplicationDecorator < Draper::Decorator
   delegate_all
   @_deco_locale = nil
-  include MetasDecoratorMethods
+  include CamaleonCms::MetasDecoratorMethods
 
   # return the keywords for this model
   def the_keywords

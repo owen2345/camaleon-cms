@@ -7,7 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::TermTaxonomyDecorator < CamaleonCms::ApplicationDecorator
-  include CustomFieldsConcern
+  include CamaleonCms::CustomFieldsConcern
   delegate_all
 
   # return the title for current locale
