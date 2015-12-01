@@ -161,7 +161,7 @@ module CamaleonCms::Frontend::NavMenuHelper
           post_type = CamaleonCms::PostType.find(nav_menu_item.get_option('object_id')).decorate
           {link: post_type.the_url(as_path: true), name: post_type.the_title, type_menu: type_menu, current: @cama_visited_post_type.present? && @cama_visited_post_type.id == post_type.id}
         when 'external'
-          r = {link: nav_menu_item.get_option('object_id'), name: nav_menu_item.name.to_s.translate, type_menu: type_menu, current: false}
+          r = {link: nav_menu_item.get_option('object_id', ""), name: nav_menu_item.name.to_s.translate, type_menu: type_menu, current: false}
           r[:link] = cama_url_to_fixed("cama_root_url") if r[:link] == "root_url"
           r
         else
