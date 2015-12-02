@@ -37,7 +37,7 @@
   ```
   bundle install
   ```
-* Install the CMS (This will copy some basic templates and plugins in your project)
+* Install the CMS (before this, you can change defaut configuration in config/system.json)
 
   ```
   rails generate camaleon_cms:install
@@ -52,6 +52,7 @@
   ```
   rails server # and then go to your browser http://localhost:3000/
   ```
+  Previous stable version (1x): https://github.com/owen2345/camaleon-cms/tree/version_1x
 
 # Camaleon CMS (It adapts to your needs)
 
@@ -85,6 +86,7 @@ It was released on July, 2015 and tested previously with more than 20 projects b
   - Easy migration from wordpress
 
 ## Some features are:
+* Integrate into existent Ruby on Rails Projects
 * Easy administration
   Camaleon CMS permit you to adapt the CMS to all your needs and not you adapt to the CMS.
 I.E. you can create your custom architecture with all attributes that you need for each kind of content.
