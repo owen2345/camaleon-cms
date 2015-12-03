@@ -20,7 +20,6 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   # home page for frontend
   def index
     @cama_visited_home = true
-    cama_init_seo(current_site)
     if @_site_options[:home_page].present?
       render_post(@_site_options[:home_page].to_i)
     else
@@ -39,7 +38,6 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       return page_not_found
     end
     @cama_visited_category = @category
-    cama_init_seo(@category)
     @children = @category.children.no_empty.decorate
     @posts = @category.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     r_file = lookup_context.template_exists?("categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : "category"
@@ -56,7 +54,6 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       return page_not_found
     end
     @cama_visited_post_type = @post_type
-    cama_init_seo(@post_type)
     @posts = @post_type.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
     @post_tags = @post_type.post_tags.eager_load(:metas)
@@ -75,7 +72,6 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       return page_not_found
     end
     @cama_visited_tag = @post_tag
-    cama_init_seo(@post_tag)
     @posts = @post_tag.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     r_file = lookup_context.template_exists?("post_tags/#{@post_tag.the_slug}") ? "post_tags/#{@post_tag.the_slug}" : "post_tag"
     layout_ = lookup_context.template_exists?("layouts/post_tags/#{@post_tag.the_slug}") ? "post_tags/#{@post_tag.the_slug}" : (self.send :_layout)
@@ -124,7 +120,6 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       return page_not_found
     end
     @cama_visited_profile = true
-    cama_init_seo(@user)
     layout_ = lookup_context.template_exists?("layouts/profile") ? "profile" : (self.send :_layout)
     r = {user: @user, layout: layout_, render: "profile"};  hooks_run("on_render_profile", r)
     render r[:render], layout: r[:layout]
@@ -158,7 +153,6 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     else
       @post = @post.decorate
       @cama_visited_post = @post
-      cama_init_seo(@post)
       @post_type = @post.the_post_type
       @comments = @post.the_comments
       @categories = @post.the_categories

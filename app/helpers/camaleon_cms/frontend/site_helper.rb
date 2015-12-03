@@ -26,32 +26,37 @@ module CamaleonCms::Frontend::SiteHelper
 
   # check if current section visited is for post
   def is_page?
-    ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "post"
+    @cama_visited_post.present?
+  end
+
+  # check if current section visited is for post
+  def is_profile?
+    @cama_visited_profile.present?
   end
 
   # check if current section visited is for ajax
   def is_ajax?
-    ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "ajax"
+    @cama_visited_ajax.present?
   end
 
   # check if current section visited is for search
   def is_search?
-    ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "search"
+    @cama_visited_search.present? || ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "search"
   end
 
   # check if current section visited is for post type
   def is_post_type?
-    ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "post_type"
+    @cama_visited_post_type.present?
   end
 
   # check if current section visited is for post tag
   def is_post_tag?
-    params[:controller] == "frontend" && params[:action] == "post_tag"
+    @cama_visited_tag.present?
   end
 
   # check if current section visited is for category
   def is_category?
-    ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "category"
+    @cama_visited_category.present?
   end
   #**************** end section is a? ****************#
 
@@ -62,6 +67,6 @@ module CamaleonCms::Frontend::SiteHelper
   def the_head(seo_attrs = {}, show_seo = true)
     icon = "<link rel='shortcut icon' href='#{current_site.the_icon}'>"
     js = "<script>var ROOT_URL = '#{cama_root_url}'; var LANGUAGE = '#{I18n.locale}'; </script>"
-    icon + "\n" + (csrf_meta_tag || "") + "\n" + (show_seo ? display_meta_tags(cama_the_seo.merge(seo_attrs)) : "") + "\n" + js + "\n" + cama_draw_custom_assets
+    icon + "\n" + (csrf_meta_tag || "") + "\n" + (show_seo ? display_meta_tags(cama_the_seo(seo_attrs)) : "") + "\n" + js + "\n" + cama_draw_custom_assets
   end
 end

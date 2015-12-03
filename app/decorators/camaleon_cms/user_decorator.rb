@@ -35,11 +35,6 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
     object.get_meta("slogan", "Hello World")
   end
 
-  # generate all seo attributes for profile page
-  def the_seo
-    h.cama_build_seo({ image: (the_avatar rescue nil), title: the_name, object: self })
-  end
-
   # return front url for this user
   def the_url(*args)
     args = args.extract_options!

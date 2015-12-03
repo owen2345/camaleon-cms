@@ -44,11 +44,6 @@ class CamaleonCms::ApplicationDecorator < Draper::Decorator
     h.breadcrumb_draw
   end
 
-  # build the attributes for this model
-  def the_seo
-    h.cama_build_seo({ image: (the_thumb_url() rescue nil), title: the_title, description: the_excerpt, keywords: the_keywords, object: self })
-  end
-
   # ---------------------
   def set_decoration_locale(locale)
     @_deco_locale = locale.to_sym
