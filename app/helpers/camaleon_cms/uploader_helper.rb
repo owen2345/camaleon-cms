@@ -160,55 +160,22 @@ module CamaleonCms::UploaderHelper
     res.gsub(/(\/){2,}/, "/")
   end
 
-  # Generate Hash structure of files from FOG
-  def cama_uploader_browser_files(load_cache = true)
-    if load_cache
-      cache_res = current_site.get_meta("cache_browser_files_#{@fog_connection_hook_res}")
-      return cache_res.with_indifferent_access if cache_res.present?
-    end
-
-    @browser_files = {folders: {}, files: [], path: ""}
-    cama_uploader_init_connection()
-    @fog_connection_bucket_dir.files.all.each do |file|
-      cama_uploader_browser_files_parse_file(@browser_files, File.dirname(file.key), file)
-    end
-    current_site.set_meta("cache_browser_files_#{@fog_connection_hook_res}", @browser_files)
-  end
-
-  # add full file path into browser structure
-  # sample: 1/500_3.html => {folders: { 1:{ folders:{}, files: [{name: 503.html, ..}] } } }
-  def cama_uploader_browser_files_parse_file(folder_src, folder_dst, file)
-    if folder_dst.present?
-      return "" if folder_dst.start_with?(@fog_connection_hook_res[:thumb_folder_name]) # thumb folders ignored
-      f = folder_dst.split("/").first
-      folder_src[:folders][f] = {folders: {}, files: []} unless folder_src[:folders].keys.include?(f)
-      cama_uploader_browser_files_parse_file(folder_src[:folders][f], folder_dst.split("/").from(1).join("/"), file)
-    else
-      if file.key.end_with?("/")
-        folder_src[:folders][file.key.split("/").last] = {folders: {}, files: []}
-      else
-        r_file = cama_uploader_parse_file(file)
-        folder_src[:files] << r_file if r_file["url"].present? && !file.key.include?('/_tmp.txt') # skip non public url files (protected)
-      end
-    end
-  end
-
   # search a folder by path and return all folders and files
   # sample: cama_media_find_folder("test/exit")
   def cama_media_find_folder(path = "")
-    res = nil
-    folder = cama_uploader_browser_files[:folders]
-    "#{current_site.id}/#{path}".gsub(/(\/){2,}/, "/").split("/").each do |k|
-      if k.present?
-        begin
-          res =  folder[k]
-          folder = folder[k][:folders]
-        rescue
-          break
-        end
+    cama_uploader_init_connection(true)
+
+    prefix  = "#{current_site.id}/#{path}/".gsub(/(\/){2,}/, "/")
+    res     = {folders: {}, files: []}
+
+    @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name], prefix: prefix).files.each do |file|
+      res[:files] << cama_uploader_parse_file(file) if file.key =~ %r|#{prefix}[^/]+$| && !file.key.include?('/_tmp.txt')
+      if file.key =~ %r|#{prefix}([^/]+)/|
+        folder_name = "#{$~[1]}"
+        res[:folders][folder_name] = {folders: {}, files: []} unless (folder_name == @fog_connection_hook_res[:thumb_folder_name])
       end
     end
-    res || {folders: {}, files: []}
+    return res
   end
 
   # parse file information of FOG file
