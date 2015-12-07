@@ -265,10 +265,6 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
         @nav_menu.append_menu_item({label: title, type: 'post', link: post.id})
       end
     end
-
-    # default theme
-    # self.themes.create(slug: PluginRoutes.system_info["default_template"])
-    # self.set_option('_theme', PluginRoutes.system_info["default_template"])
   end
 
   # assign all users to this new site

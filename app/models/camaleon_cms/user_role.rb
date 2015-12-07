@@ -99,11 +99,6 @@ class CamaleonCms::UserRole < CamaleonCms::TermTaxonomy
               label: "#{I18n.t('camaleon_cms.admin.users.roles_values.comments')}",
               description: "#{I18n.t('camaleon_cms.admin.users.tool_tip.comments')}"
           },
-          #{
-          #    key: 'forms',
-          #    label: "#{I18n.t('camaleon_cms.admin.users.roles_values.forms')}",
-          #    description: "#{I18n.t('camaleon_cms.admin.users.tool_tip.forms')}"
-          #},
           {
               key: 'themes',
               label: "#{I18n.t('camaleon_cms.admin.users.roles_values.themes')}",

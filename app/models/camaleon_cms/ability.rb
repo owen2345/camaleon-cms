@@ -105,4 +105,19 @@ class CamaleonCms::Ability
     # See the wiki for details:
     # https://github.com/CanCanCommunity/cancancan/wiki/Defining-Abilities
   end
+
+  #overwrite can method to support decorator class names
+  def can?(action, subject, *extra_args)
+    if subject.is_a?(Draper::Decorator)
+      super(action,subject.model,*extra_args)
+    else
+      super(action,subject,*extra_args)
+    end
+  end
+
+  #overwrite cannot method to support decorator class names
+  def cannot?(*args)
+    !can?(*args)
+  end
+
 end
