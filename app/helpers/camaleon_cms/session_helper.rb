@@ -15,11 +15,8 @@ module CamaleonCms::SessionHelper
     c[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && CamaleonCms::Site.count > 1
     c[:expires] = 1.month.from_now if remember_me
 
-    CamaleonCms::Site.main_site.set_meta("share_sessions", false) if cookies.delete(:login).present?
     user.update({last_login_at: Time.zone.now})
-
     cookies[:auth_token] = c
-    cookies[:login] = true
 
     # user redirection
     flash[:notice] = t('camaleon_cms.admin.login.message.success', locale: current_site.get_admin_language)
@@ -97,8 +94,9 @@ module CamaleonCms::SessionHelper
   def cama_logout_user
     cookies.delete(:auth_token, domain: :all)
     cookies.delete(:auth_token, domain: nil)
-    cookies[:auth_token] = {value: nil, expires: 24.hours.ago, domain: (PluginRoutes.system_info["users_share_sites"] && CamaleonCms::Site.count > 1 ? :all : nil)}
-    cookies.delete :login
+    c_data = {value: nil, expires: 24.hours.ago}
+    c_data[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && CamaleonCms::Site.count > 1
+    cookies[:auth_token] = c_data
     redirect_to params[:return_to].present? ? params[:return_to] : cama_admin_login_path, :notice => t('camaleon_cms.admin.logout.message.closed')
   end
 
