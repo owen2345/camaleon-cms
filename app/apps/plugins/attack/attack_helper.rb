@@ -60,9 +60,9 @@ module Plugins::Attack::AttackHelper
     return unless config.present?
 
     # clear past requests
-    if (Time.parse(config[:cleared])) < 1.hour.ago
+    if (Time.parse(config[:cleared]) rescue 2.hours.ago) < 1.hour.ago
       current_site.attack.where("plugins_attacks.created_at < ?", 1.hour.ago).delete_all
-      config[:cleared] = Time.now
+      config[:cleared] = Time.now.to_s
       current_site.set_meta("attack_config", config)
     end
 
@@ -85,7 +85,6 @@ module Plugins::Attack::AttackHelper
         return
       end
     end
-
     q.create()
   end
 
