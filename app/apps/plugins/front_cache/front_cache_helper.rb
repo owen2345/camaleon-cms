@@ -145,7 +145,7 @@ module Plugins::FrontCache::FrontCacheHelper
   end
 
   def front_cache_get_key(prefix = "")
-    request.path_info.split("?").first.parameterize
+    request.path_info.parameterize
   end
 
   # check if current post can be cached (skip private pages)
