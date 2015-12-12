@@ -22,10 +22,10 @@ class CamaleonCms::User < ActiveRecord::Base
   attr_accessible :data_options
   attr_accessible :data_metas
 
-  default_scope {order("#{CamaleonCms::User.table_name}.role ASC")}
+  default_scope { order("#{CamaleonCms::User.table_name}.role ASC") }
 
   validates :username, :presence => true
-  validates :email, :presence => true, :format => { :with => /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i } #, :unless => Proc.new { |a| a.auth_social.present? }
+  validates :email, :presence => true, :format => {:with => /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i} #, :unless => Proc.new { |a| a.auth_social.present? }
   validates_with CamaleonCms::UniqValidatorUser
 
   has_secure_password #validations: :auth_social.nil?
@@ -37,8 +37,8 @@ class CamaleonCms::User < ActiveRecord::Base
   before_destroy :reassign_posts
   # relations
 
-  has_many :metas, ->{ where(object_class: 'User')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-  has_many :user_relationships, class_name: "CamaleonCms::UserRelationship", foreign_key: :user_id, dependent: :destroy#,  inverse_of: :user
+  has_many :metas, -> { where(object_class: 'User') }, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  has_many :user_relationships, class_name: "CamaleonCms::UserRelationship", foreign_key: :user_id, dependent: :destroy #,  inverse_of: :user
   has_many :term_taxonomies, foreign_key: :term_taxonomy_id, class_name: "CamaleonCms::TermTaxonomy", through: :user_relationships, :source => :term_taxonomies
   has_many :sites, foreign_key: :term_taxonomy_id, class_name: "CamaleonCms::Site", through: :user_relationships, :source => :term_taxonomies
   has_many :all_posts, class_name: "CamaleonCms::Post"
@@ -49,8 +49,8 @@ class CamaleonCms::User < ActiveRecord::Base
   scope :not_actives, -> { where(:active => 0) }
 
   #vars
-  STATUS = {0 => 'Active', 1=>'Not Active'}
-  ROLE = { 'admin'=>'Administrator', 'client' => 'Client'}
+  STATUS = {0 => 'Active', 1 => 'Not Active'}
+  ROLE = {'admin' => 'Administrator', 'client' => 'Client'}
 
   # return all posts of this user on site
   def posts(site)
@@ -112,7 +112,11 @@ class CamaleonCms::User < ActiveRecord::Base
     save!
   end
 
-
+  def send_confirm_email
+    generate_token(:confirm_email_token)
+    self.confirm_email_sent_at = Time.zone.now
+    save!
+  end
 
   private
   def create_profile

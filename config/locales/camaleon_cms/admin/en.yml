@@ -152,6 +152,9 @@ en:
         last_name: "Last Name"
         email: "Email"
         remember_me: "Remember Me"
+        confirm:
+          text: "Please confirm your account by clicking this link"
+          subject: "Confirm your account"
       logout:
         log: 'Log'
         out: 'Out'

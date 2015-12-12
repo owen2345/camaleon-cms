@@ -23,6 +23,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   include CamaleonCms::ContentHelper
   include CamaleonCms::CaptchaHelper
   include CamaleonCms::UploaderHelper
+  include CamaleonCms::EmailHelper
   include Mobu::DetectMobile
 
   prepend_before_action :cama_load_custom_models
@@ -51,7 +52,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   private
   def cama_before_actions
     # including all helpers (system, themes, plugins) for this site
-    PluginRoutes.enabled_apps(current_site, current_theme.slug).each{|plugin| plugin_load_helpers(plugin) }
+    PluginRoutes.enabled_apps(current_site, current_theme.slug).each { |plugin| plugin_load_helpers(plugin) }
 
     # initializing short codes
     shortcodes_init()

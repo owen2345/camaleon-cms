@@ -14,11 +14,12 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
   default from: "Camaleon CMS <owenperedo@gmail.com>"
   after_action :set_delivery_options
 
-  def sender(email, subject='Hello', content='', from=nil, attachs=[], url_base='', current_site, template_name, layout_name)
+  def sender(email, subject='Hello', content='', from=nil, attachs=[], url_base='', current_site, template_name, layout_name, extra_data)
     @subject = subject
     @html = content
     @url_base = url_base
     @current_site = current_site
+    @extra_data = extra_data
 
     mail_data = {to: email, subject: subject}
     mail_data[:from] = from if from.present?

@@ -120,6 +120,8 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
         render 'register'
       elsif result[:result]
         flash[:notice] = result[:message]
+        #FIXME if email validation after register create user validate token and send email
+        #FIXME email validate after register configuration enabled?
         r = {user: @user, redirect_url: result[:redirect_url]}; hooks_run('user_registered', r)
         redirect_to r[:redirect_url]
       else
@@ -130,6 +132,10 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
     else
       render 'register'
     end
+  end
+
+  def confirm_email
+
   end
 
   private
