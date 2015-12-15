@@ -9,6 +9,7 @@
 #encoding: utf-8
 module CamaleonCms::HtmlHelper
   def cama_html_helpers_init
+    @_pre_assets_content = [] #Assets contents before the libraries import
     @_assets_libraries = {}
     @_assets_content = []
   end
@@ -33,6 +34,7 @@ module CamaleonCms::HtmlHelper
       @_assets_libraries[key.to_sym] = library if library.present?
     end
   end
+
   alias_method :add_asset_library, :cama_load_libraries
 
   # add custom asset libraries (js, css or both) for the current request, also you can add extra css or js files for existent libraries
@@ -50,6 +52,7 @@ module CamaleonCms::HtmlHelper
       end
     end
   end
+
   alias_method :append_asset_libraries, :cama_load_custom_assets
 
   # add asset content into custom assets
@@ -58,6 +61,19 @@ module CamaleonCms::HtmlHelper
   # this will be printed with <%raw cama_draw_custom_assets %>
   def append_asset_content(content)
     @_assets_content << content
+  end
+
+  # add pre asset content into custom assets
+  # content may be: <script>alert()</script>
+  # content may be: <style>a{color: red;}</style>
+  # this will be printed before assets_library with <%raw cama_draw_pre_asset_contents %>
+  def append_pre_asset_content(content)
+    @_pre_assets_content << content
+  end
+
+  # return all scripts to be executed before import the js libraries(cama_draw_custom_assets)
+  def cama_draw_pre_asset_contents
+    @_pre_assets_content.join('').html_safe
   end
 
   # return all js libraries added [aa.js, bb,js, ..]
