@@ -76,7 +76,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
         if params[:user].present?
           if @user.update(params[:user].permit(:password, :password_confirmation))
             flash[:notice] = t('camaleon_cms.admin.login.message.reset_password_succes')
-            redirect_to admin_login_path
+            redirect_to cama_admin_login_path
             return
           else
             flash[:error] = t('camaleon_cms.admin.login.message.reset_password_error')
