@@ -114,6 +114,10 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     get_option('security_captcha_user_register', false) == true
   end
 
+  def need_validate_email?
+    get_option('need_validate_email', false) == true
+  end
+
   # auto create default user roles
   def set_default_user_roles(post_type = nil)
     user_role = self.user_roles.where({slug: 'admin', term_group: -1}).first_or_create({name: 'Administrator', description: 'Default roles admin'})
