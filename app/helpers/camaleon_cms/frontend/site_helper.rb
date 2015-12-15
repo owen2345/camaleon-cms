@@ -58,6 +58,7 @@ module CamaleonCms::Frontend::SiteHelper
   def is_category?
     @cama_visited_category.present?
   end
+
   #**************** end section is a? ****************#
 
   # show custom assets added by plugins
@@ -67,6 +68,7 @@ module CamaleonCms::Frontend::SiteHelper
   def the_head(seo_attrs = {}, show_seo = true)
     icon = "<link rel='shortcut icon' href='#{current_site.the_icon}'>"
     js = "<script>var ROOT_URL = '#{cama_root_url}'; var LANGUAGE = '#{I18n.locale}'; </script>"
+    js += cama_draw_pre_asset_contents
     icon + "\n" + (csrf_meta_tag || "") + "\n" + (show_seo ? display_meta_tags(cama_the_seo(seo_attrs)) : "") + "\n" + js + "\n" + cama_draw_custom_assets
   end
 end
