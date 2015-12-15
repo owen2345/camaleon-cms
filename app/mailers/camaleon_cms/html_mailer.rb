@@ -28,14 +28,14 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
       mail_data[:from] = current_site.get_option("email_from")
       mail_data[:cc] = current_site.get_option("email_cc")
       mail_data[:delivery_method] = :smtp
-      mail_data[:delivery_method_options] = { user_name: current_site.get_option("email_username"),
-                                              password: current_site.get_option("email_pass"),
-                                              address: current_site.get_option("email_server"),
-                                              port: current_site.get_option("email_port"),
-                                              domain: (current_site.the_url.to_s.parse_domain rescue "localhost"),
-                                              authentication: "plain",
-                                              enable_starttls_auto: true
-                                            }
+      mail_data[:delivery_method_options] = {user_name: current_site.get_option("email_username"),
+                                             password: current_site.get_option("email_pass"),
+                                             address: current_site.get_option("email_server"),
+                                             port: current_site.get_option("email_port"),
+                                             domain: (current_site.the_url.to_s.parse_domain rescue "localhost"),
+                                             authentication: "plain",
+                                             enable_starttls_auto: true
+      }
     end
 
     views_dir = "app/apps/"
@@ -47,15 +47,15 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     lookup_context.prefixes.prepend("themes/#{theme.slug}/views") unless theme.settings["gem_mode"]
 
     # run hook "email" to customize values
-    r = {template_name: template_name, layout_name: layout_name, mail_data: mail_data, files: attachs, format: "html" }
+    r = {template_name: template_name, layout_name: layout_name, mail_data: mail_data, files: attachs, format: "html"}
     hooks_run("email", r)
 
     if r[:files].present?
-      r[:files].each{|attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb'){|f| f.read} }
+      r[:files].each { |attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read } }
     end
 
-    mail(r[:mail_data]){|format| format.html { render r[:template_name], layout: r[:layout_name] } } if r[:format] == "html"
-    mail(r[:mail_data]){|format| format.text { render r[:template_name], layout: r[:layout_name] } } if r[:format] == "txt"
+    mail(r[:mail_data]) { |format| format.html { render r[:template_name], layout: r[:layout_name] } } if r[:format] == "html"
+    mail(r[:mail_data]) { |format| format.text { render r[:template_name], layout: r[:layout_name] } } if r[:format] == "txt"
     mail(r[:mail_data]) unless r[:format].present?
 
   end

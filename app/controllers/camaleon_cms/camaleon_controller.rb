@@ -52,7 +52,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   private
   def cama_before_actions
     # including all helpers (system, themes, plugins) for this site
-    PluginRoutes.enabled_apps(current_site, current_theme.slug).each { |plugin| plugin_load_helpers(plugin) }
+    PluginRoutes.enabled_apps(current_site, current_theme.slug).each{|plugin| plugin_load_helpers(plugin) }
 
     # initializing short codes
     shortcodes_init()

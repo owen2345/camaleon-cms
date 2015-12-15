@@ -32,8 +32,8 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
     r = {user: @user, params: params, password: data_user[:password], captcha_validate: captcha_validate, stop_process: false}; hooks_run("user_before_login", r)
     return if r[:stop_process] # permit to redirect for data completion
     if captcha_validate && @user && @user.authenticate(data_user[:password])
-      #Valid email validation...
-      if @user.is_valid_email?
+      #Email validation if is necessary
+      if @user.is_valid_email? || !current_site.need_validate_email?
         cama_captcha_reset_attack("login")
         r={user: @user, redirect_to: nil}; hooks_run('after_login', r)
         login_user(@user, params[:remember_me].present?, r[:redirect_to])
