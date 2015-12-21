@@ -128,6 +128,11 @@ es:
           subject_email: 'Restablecer tus accesos'
           send_mail_succes: 'Envio con éxito restablecimiento de correo electrónico.'
           send_mail_error: 'No se encontró la dirección de correo electrónico.'
+          invalid_caption: 'Captcha incorrecta'
+          email_not_validated: 'Email inválido.'
+          confirm_email_token_incorrect: 'URL incorrecta'
+          confirm_email_token_expired: 'URL de confirmación de correo caducada'
+          confirm_email_success: 'Email confirmado correctamente!'
         personal_info: 'Información Personal'
         please_login: 'por favor iniciar sesión'
         reCaptcha: 'reCaptcha'
@@ -144,6 +149,9 @@ es:
         last_name: "Apellidos"
         email: "Correo"
         remember_me: "Recordar"
+        confirm:
+          text: "Por favor confirma tu cuenta pulsando en este enlace"
+          subject: "Confirma tu cuenta"
       logout:
         log: 'Log'
         out: 'Out'
@@ -329,6 +337,7 @@ es:
         filesystem_cdn: "CDN url"
         security:
           captcha_user_register: "¿Activar captcha en el registro de usuarios?"
+          need_validate_email: "¿Es necesario validar el email?"
         message:
           language_updated: 'Tus idiomas se han configurado.'
           site_updated: 'El sitio ha sido actualizado.'
@@ -526,6 +535,7 @@ es:
          requires_different_name: 'Requiere diferente nombre'
          requires_different_username: 'Requiere diferente nombre de usuario'
          requires_different_email: 'Requiere diferente correo electrónico'
+         created_pending_validate_email: 'El usuario ha sido creado, por favor confirma tu email'
         new_photo: 'Nueva Fotografía'
         others_permissions: 'Otros permisos'
         profile: 'Perfil'
