@@ -1,4 +1,5 @@
 <%
+   append_asset_libraries({"plugin_contact_form"=> { css: [plugin_asset_path("css/front/railsform")] }})
    @form =  current_site.contact_forms.where({slug: attributes['slug']}).first
    if @form.present?
 

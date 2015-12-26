@@ -82,7 +82,7 @@ module Plugins::ContactForm::ContactFormHelper
   end
 
   def contact_form_front_before_load
-    append_asset_libraries({"plugin_contact_form"=> { css: [plugin_asset_path("css/front/railsform")] }})
+
   end
 
   def perform_save_form(form, values, fields, settings, success, errors)

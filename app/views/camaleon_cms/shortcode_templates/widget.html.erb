@@ -3,8 +3,8 @@
    widget = @current_site.widgets.where("slug = ?", key).first
 %>
 <% if widget.present? %>
-    <% if key == 'visits-counter' %>
-        <%=  render partial: plugin_view("admin/partials/table") %>
+    <% if (r = widget.renderer).present? %>
+        <%= render partial: r, locals: {attributes: attributes } %>
     <% else %>
         <%= raw widget[:description].translate %>
     <% end %>
