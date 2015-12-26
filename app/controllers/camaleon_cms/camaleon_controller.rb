@@ -23,6 +23,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   include CamaleonCms::ContentHelper
   include CamaleonCms::CaptchaHelper
   include CamaleonCms::UploaderHelper
+  include CamaleonCms::EmailHelper
   include Mobu::DetectMobile
 
   prepend_before_action :cama_load_custom_models

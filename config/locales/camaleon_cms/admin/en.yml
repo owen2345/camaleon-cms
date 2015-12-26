@@ -135,6 +135,10 @@ en:
           send_mail_succes: 'Send email reset success.'
           send_mail_error: 'Not found email address.'
           invalid_caption: 'Invalid captcha'
+          email_not_validated: 'Email has not been validated.'
+          confirm_email_token_incorrect: 'URL incorrect'
+          confirm_email_token_expired: 'Confirm email URL expired'
+          confirm_email_success: 'Confirm email success!'
         personal_info: 'Personal info'
         please_login: 'Please login'
         reset_password: 'reset password'
@@ -152,6 +156,9 @@ en:
         last_name: "Last Name"
         email: "Email"
         remember_me: "Remember Me"
+        confirm:
+          text: "Please confirm your account by clicking this link"
+          subject: "Confirm your account"
       logout:
         log: 'Log'
         out: 'Out'
@@ -346,6 +353,7 @@ en:
         filesystem_cdn: "CDN url"
         security:
           captcha_user_register: "Enable captcha on user registration?"
+          need_validate_email: "Need validate email?"
         message:
           language_updated: 'Your languages was configured.'
           site_updated: 'The site has been updated.'
@@ -550,6 +558,7 @@ en:
          requires_different_name: 'Requires different name'
          requires_different_username: 'Requires different username'
          requires_different_email: 'Requires different email'
+         created_pending_validate_email: "The user has been created, please confirm your email"
         new_photo: 'New Photo'
         others_permissions: 'Others permissions'
         profile: 'Profile'

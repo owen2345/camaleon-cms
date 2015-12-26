@@ -21,6 +21,7 @@ class CamaleonCms::User < ActiveRecord::Base
   attr_accessible :username, :role, :email, :parent_id, :last_login_at, :site_id, :password, :password_confirmation #, :profile_attributes
   attr_accessible :data_options
   attr_accessible :data_metas
+  attr_accessible :is_valid_email
 
   default_scope {order("#{CamaleonCms::User.table_name}.role ASC")}
 
@@ -112,7 +113,11 @@ class CamaleonCms::User < ActiveRecord::Base
     save!
   end
 
-
+  def send_confirm_email
+    generate_token(:confirm_email_token)
+    self.confirm_email_sent_at = Time.zone.now
+    save!
+  end
 
   private
   def create_profile

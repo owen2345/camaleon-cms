@@ -59,7 +59,8 @@ module CamaleonCms::SessionHelper
     else
       if @user.save
         @user.set_meta_from_form(meta)
-        r = {user: @user, message: t('camaleon_cms.admin.users.message.created'), redirect_url: cama_admin_login_path}; hooks_run('user_after_register', r)
+        message = current_site.need_validate_email? ? t('camaleon_cms.admin.users.message.created_pending_validate_email') : t('camaleon_cms.admin.users.message.created')
+        r = {user: @user, message: message, redirect_url: cama_admin_login_path}; hooks_run('user_after_register', r)
         {:result => true, :message => r[:message], :redirect_url => r[:redirect_url]}
       else
         {:result => false, :type => :no_saved}
