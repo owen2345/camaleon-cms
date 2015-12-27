@@ -21,7 +21,7 @@ module CamaleonCms::Frontend::SiteHelper
   #**************** section is a? ****************#
   # check if current section visited is home page
   def is_home?
-    @cama_visited_home.present? || (["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "index")
+    @cama_visited_home.present?
   end
 
   # check if current section visited is for post
@@ -41,7 +41,7 @@ module CamaleonCms::Frontend::SiteHelper
 
   # check if current section visited is for search
   def is_search?
-    @cama_visited_search.present? || ["camaleon_cms/frontend", "frontend"].include?(params[:controller]) && params[:action] == "search"
+    @cama_visited_search.present?
   end
 
   # check if current section visited is for post type
@@ -66,9 +66,8 @@ module CamaleonCms::Frontend::SiteHelper
   # seo_attrs: Custom attributes for seo in Hash format
   # show_seo: (Boolean) control to append or not the seo attributes
   def the_head(seo_attrs = {}, show_seo = true)
-    icon = "<link rel='shortcut icon' href='#{current_site.the_icon}'>"
-    js = "<script>var ROOT_URL = '#{cama_root_url}'; var LANGUAGE = '#{I18n.locale}'; </script>"
+    js = "<script>var ROOT_URL = '#{cama_root_url}'; var LANGUAGE = '#{I18n.locale}'; </script>".html_safe
     js += cama_draw_pre_asset_contents
-    icon + "\n" + (csrf_meta_tag || "") + "\n" + (show_seo ? display_meta_tags(cama_the_seo(seo_attrs)) : "") + "\n" + js + "\n" + cama_draw_custom_assets
+    (csrf_meta_tag || "") + "\n" + display_meta_tags(cama_the_seo(seo_attrs)) + "\n" + js + "\n" + cama_draw_custom_assets
   end
 end

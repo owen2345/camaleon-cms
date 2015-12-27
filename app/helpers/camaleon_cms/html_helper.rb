@@ -73,7 +73,7 @@ module CamaleonCms::HtmlHelper
 
   # return all scripts to be executed before import the js libraries(cama_draw_custom_assets)
   def cama_draw_pre_asset_contents
-    @_pre_assets_content.join('').html_safe
+    (@_pre_assets_content || []).join('').html_safe
   end
 
   # return all js libraries added [aa.js, bb,js, ..]

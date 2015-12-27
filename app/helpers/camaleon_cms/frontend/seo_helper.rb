@@ -42,14 +42,14 @@ module CamaleonCms::Frontend::SeoHelper
     options[:image] = options[:image] || current_site.get_option("screenshot", current_site.the_logo)
     options[:title] = I18n.transliterate(options[:title].present? ? "#{current_site.the_title} | #{options[:title]}" : current_site.the_title)
     options[:description] = I18n.transliterate(options[:description].present? ? options[:description].to_s : current_site.the_option("seo_description"))
-    options[:keywords] = I18n.transliterate(options[:keywords].present? ? options[:keywords] : current_site.the_option("keywords"))
     options[:url] = request.original_url
     s = {
       title: options[:title],
       description: options[:description],
-      keywords: options[:keywords],
+      keywords: I18n.transliterate(options[:keywords].present? ? options[:keywords] : current_site.the_option("keywords")),
       image: options[:image],
       author: current_site.get_option('seo_author'),
+      icon: current_site.the_icon,
       og: {
         title: options[:title],
         description: options[:description],

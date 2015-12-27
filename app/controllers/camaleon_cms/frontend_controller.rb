@@ -82,7 +82,8 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   # search contents
   def search
     breadcrumb_add(ct("search"))
-    @cama_visited_search = params[:q]
+    @cama_visited_search = true
+    @param_search = params[:q]
     layout_ = lookup_context.template_exists?("layouts/search") ? "search" : (self.send :_layout)
     r = {layout: layout_, render: "search", posts: nil}; hooks_run("on_render_search", r)
     @posts = r[:posts] != nil ? r[:posts] : current_site.the_posts.where("title LIKE ? OR content_filtered LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%")
