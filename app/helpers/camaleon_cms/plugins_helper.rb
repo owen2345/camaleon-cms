@@ -97,7 +97,8 @@ module CamaleonCms::PluginsHelper
   # return plugin full asset path
   # plugin_key: plugin name
   # asset: (String) asset name
-  # sample: <script src="<%= plugin_asset_path("js/admin.js") %>"></script> => /assets/plugins/my_plugin/assets/css/main-54505620f.css
+  # sample: <script src="<%= plugin_asset_path("admin.js") %>"></script> => /assets/plugins/my_plugin/admin-54505620f.js
+  # sample: <script src="<%= plugin_asset_path("admin.js", 'my_plugin') %>"></script> => /assets/plugins/my_plugin/admin-54505620f.js
   def plugin_asset_path(asset, plugin_key = nil)
     if plugin_key.present? && plugin_key.include?("/")
       return plugin_asset_url(plugin_key, asset || self_plugin_key(1))
