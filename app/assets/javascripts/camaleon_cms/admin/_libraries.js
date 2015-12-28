@@ -104,32 +104,34 @@ var init_form_validations = function (form) {
         $(this).each(function () {
             var $that = $(this);
             var options = $.extend({}, default_options, $that.data() || {});
-            var $content_image = $("<div class='content-upload-plugin'><a href='#' target='_blank'><img src=''><strong></strong></a></div>").hide();
+            var $content_image = $("<div class='content-upload-plugin'><a style='' href='#' target='_blank'><img src=''><br><span class='rm-file btn btn-xs btn-danger'><i class='fa fa-trash'></i></span> <strong></strong></a></div>").hide();
             if (options.type != 'image') $content_image.find('img').remove();
             var $btn_upload = $('<a class="btn btn-default" href="#"><i class="fa fa-upload"></i> ' + options.label + '</a>')
             $content_image.find('img').css('max-height', options.height);
+            $content_image.find(".rm-file").click(function(){ $that.val("").trigger("change"); return false; });
 
-            $btn_upload.click(function () {
+            $btn_upload.click(function(){
                 $.fn.upload_filemanager({
                     formats: options.type,
                     selected: function (file, response) {
-                        set_texts(file.url);
+                        $that.val(file.url).trigger("change");
                     }
                 });
                 return false;
             });
 
             $that.after($content_image).after($btn_upload);
-
-            function set_texts(url) {
-                $content_image.find('img').attr('src', url);
-                $content_image.find('a').attr('href', url);
-                $that.val(url).trigger("change");
-                $content_image.find('strong').html(_.last(url.split('/')));
-                $content_image.show()
-            }
-
-            if ($that.val()) set_texts($that.val())
+            $that.change(function(){
+                var url = $that.val();
+                if(url){
+                    $content_image.find('img').attr('src', url);
+                    $content_image.find('a').attr('href', url);
+                    $content_image.find('strong').html(_.last(url.split('/')));
+                    $content_image.show();
+                }else{
+                    $content_image.hide();
+                }
+            }).trigger("change");
         });
     };
 

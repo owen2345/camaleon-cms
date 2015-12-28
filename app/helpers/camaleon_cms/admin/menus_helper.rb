@@ -25,7 +25,7 @@ module CamaleonCms::Admin::MenusHelper
       if pt.manage_tags?
         items_i << {icon: "tags", title: t('camaleon_cms.admin.post_type.tags'), url: cama_admin_post_type_post_tags_path(pt.id)} if can? :post_tags, pt
       end
-      items << {icon: "copy", title: pt.the_title, url: "", items: items_i } if items_i.present? #if can? :posts, pt
+      items << {icon: pt.get_option('icon', "copy"), title: pt.the_title, url: "", items: items_i } if items_i.present? #if can? :posts, pt
     end
     admin_menu_add_menu("content", {icon: "database", title: t('camaleon_cms.admin.sidebar.contents'), url: "", items: items, datas: "data-intro='#{t("camaleon_cms.admin.intro.content")}' data-position='right' data-wait='600'"}) if items.present?
     #end

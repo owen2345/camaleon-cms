@@ -263,6 +263,7 @@ en:
         keywords: 'Keywords'
         default_layout: 'Default Layout'
         default_template: 'Default Template'
+        icon: 'Icon'
         message:
           error: 'Error class'
           error_term: 'Error term class'
