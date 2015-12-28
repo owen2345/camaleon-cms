@@ -16,14 +16,17 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
   def create
     if params[:post_id].present?
       @post_draft = CamaleonCms::Post.drafts.where(post_parent: params[:post_id]).first
-      @post_draft.attributes = @post_data if @post_draft.present?
+      if @post_draft.present?
+        @post_draft.set_option('draft_status', @post_draft.status)
+        @post_draft.attributes = @post_data
+      end
     end
     @post_draft = @post_type.posts.new(@post_data) unless @post_draft.present?
-    r = {post: @post_draft, post_type: ""}; hooks_run("create_post", r)
+    r = {post: @post_draft, post_type: @post_type}; hooks_run("create_post_draft", r)
     if @post_draft.save(:validate => false)
       @post_draft.set_params(params[:meta], params[:field_options], @post_data[:keywords])
       msg = {draft: {id: @post_draft.id}, _drafts_path: cama_admin_post_type_draft_path(@post_type.id, @post_draft)}
-      r = {post: @post_draft, post_type: ""}; hooks_run("created_post", r)
+      r = {post: @post_draft, post_type: ""}; hooks_run("created_post_draft", r)
     else
       msg = {error: @post_draft.errors.full_messages}
     end
@@ -34,10 +37,10 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
   def update
     @post_draft = CamaleonCms::Post.drafts.find(params[:id])
     @post_draft.attributes = @post_data
-    r = {post: @post_draft, post_type: ""}; hooks_run("update_post", r)
+    r = {post: @post_draft, post_type: @post_type}; hooks_run("update_post", r)
     if @post_draft.save(validate: false)
       @post_draft.set_params(params[:meta], params[:field_options], @post_data[:keywords])
-      hooks_run("updated_post", {post: @post_draft, post_type: ""})
+      hooks_run("updated_post_draft", {post: @post_draft, post_type: ""})
       msg = {draft: {id: @post_draft.id}}
     else
       msg = {error: @post_draft.errors.full_messages}
