@@ -1,25 +1,42 @@
-<div class="row" id="cama_media_gallery" data-url_actions="<%= actions_cama_admin_media_path(actions: @show_file_actions) %>" data-formats="<%= @media_formats.join(",") %>" data-folder="<%= @folder %>" data-url="<%= ajax_cama_admin_media_path(actions: @show_file_actions) %>">
-    <div class="col-md-9 media_browser_list">
-        <%= render "files_list" %>
+<div id="cama_media_gallery" data-url_actions="<%= actions_cama_admin_media_path(actions: @show_file_actions) %>" data-formats="<%= @media_formats.join(",") %>" data-folder="<%= @folder %>" data-url="<%= ajax_cama_admin_media_path(actions: @show_file_actions) %>">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <div class="row">
+        <div class="col-md-12">
+          <h4 class="pull-left">root</h4>
+          <ol class="pull-left breadcrumb media_folder_breadcrumb"></ol>
+          <% if @show_file_actions %>
+              <a href="#" class="btn btn-primary pull-right add_folder">
+                <i class="fa fa-plus"></i> <%= t("camaleon_cms.admin.button.add_folder") %>
+              </a>
+          <% end %>
+        </div>
+      </div>
     </div>
+    <div class="panel-body">
+      <div class="row" style="margin-bottom: 16px">
+        <div class="col-md-9 media_browser_list">
+          <%= render "files_list" %>
+        </div>
 
-    <div class="col-md-3 media_file_info_col">
-        <ul class="nav nav-tabs nav-justified" role="tablist">
+        <div class="col-md-3 media_file_info_col">
+          <ul class="nav nav-tabs nav-justified" role="tablist">
             <li role="presentation" class="active"><a href="#cama_media_upload" class="link_media_upload" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.button.upload_file") %></a></li>
             <li role="presentation"><a href="#cama_media_info" class="link_media_info" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.media.info") %></a></li>
-        </ul>
-        <div class="tab-content">
+          </ul>
+          <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="cama_media_upload">
-                <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions) %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
+              <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions) %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
             </div>
             <div role="tabpanel" class="tab-pane" id="cama_media_info">
-                <div class="media_file_info"></div>
+              <div class="media_file_info"></div>
             </div>
+          </div>
         </div>
+      </div>
     </div>
-    <ol class="breadcrumb media_folder_breadcrumb"></ol>
-    <% if @show_file_actions %>
-        <a href="#" class="btn btn-primary pull-right add_folder btn-xs"><i class="fa fa-folder-plus"></i> <%= t("camaleon_cms.admin.button.add_folder") %></a>
-    <% end %>
+  </div>
 </div>
-<script>jQuery(function(){ cama_init_media($("#cama_media_gallery")); });</script>
+<script>jQuery(function () {
+  cama_init_media($("#cama_media_gallery"));
+});</script>
