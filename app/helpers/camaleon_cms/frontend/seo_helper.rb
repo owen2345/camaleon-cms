@@ -13,55 +13,52 @@ module CamaleonCms::Frontend::SeoHelper
     if is_home?
       data2 = {}
     elsif is_page?
-      data2 = {image: @cama_visited_post.the_thumb_url, title: @cama_visited_post.the_title, description: @cama_visited_post.the_excerpt, keywords: @cama_visited_post.the_keywords, object: @cama_visited_post }
+      data2 = {image: @cama_visited_post.the_thumb_url, title: "#{current_site.the_title} | #{@cama_visited_post.the_title}", description: @cama_visited_post.the_excerpt, keywords: @cama_visited_post.the_keywords, object: @cama_visited_post }
     elsif is_ajax?
       data2 = {}
     elsif is_search?
       data2 = {title: "#{current_site.the_title} | #{ct("search_title", default: "Search")}"}
     elsif is_post_type?
-      data2 = {image: @cama_visited_post_type.the_thumb_url, title: @cama_visited_post_type.the_title, description: @cama_visited_post_type.the_excerpt, keywords: @cama_visited_post_type.the_keywords, object: @cama_visited_post_type }
+      data2 = {image: @cama_visited_post_type.the_thumb_url, title: "#{current_site.the_title} | #{@cama_visited_post_type.the_title}", description: @cama_visited_post_type.the_excerpt, keywords: @cama_visited_post_type.the_keywords, object: @cama_visited_post_type }
     elsif is_post_tag?
-      data2 = {image: @cama_visited_tag.the_thumb_url, title: @cama_visited_tag.the_title, description: @cama_visited_tag.the_excerpt, keywords: @cama_visited_tag.the_keywords, object: @cama_visited_tag }
+      data2 = {image: @cama_visited_tag.the_thumb_url, title: "#{current_site.the_title} | #{@cama_visited_tag.the_title}", description: @cama_visited_tag.the_excerpt, keywords: @cama_visited_tag.the_keywords, object: @cama_visited_tag }
     elsif is_category?
-      data2 = {image: @cama_visited_category.the_thumb_url, title: @cama_visited_category.the_title, description: @cama_visited_category.the_excerpt, keywords: @cama_visited_category.the_keywords, object: @cama_visited_category }
+      data2 = {image: @cama_visited_category.the_thumb_url, title: "#{current_site.the_title} | #{@cama_visited_category.the_title}", description: @cama_visited_category.the_excerpt, keywords: @cama_visited_category.the_keywords, object: @cama_visited_category }
     else
       data2 = {}
     end
-    cama_build_seo((@_cama_seo_default_values || {}).merge(data2).merge(data))
+    cama_build_seo(data2.merge(@_cama_seo_setting_values || {}).merge(data))
   end
 
-  # permit to define define default seo attributes by code without hooks
-  # @Sample: cama_seo_default({title: "my custom title", description: "my descr", keywords: "my keywords", image: 'my img url'})
-  def cama_seo_default(options)
-    @_cama_seo_default_values ||= {}
-    @_cama_seo_default_values = @_cama_seo_default_values.merge(options)
+  # permit to define seo attributes by code without hooks (check here for more attributes: https://github.com/kpumuk/meta-tags)
+  # @Sample: cama_seo_settings({title: "my custom title", description: "my descr", keywords: "my keywords", image: 'my img url'})
+  def cama_seo_settings(options)
+    @_cama_seo_setting_values ||= {}
+    @_cama_seo_setting_values = @_cama_seo_setting_values.merge(options)
   end
 
   # create seo attributes with options + default attributes
   def cama_build_seo(options = {})
-    options[:image] = options[:image] || current_site.get_option("screenshot", current_site.the_logo)
-    options[:title] = I18n.transliterate(options[:title].present? ? "#{current_site.the_title} | #{options[:title]}" : current_site.the_title)
+    options[:image] = current_site.get_option("screenshot", current_site.the_logo) unless options[:image].present?
+    options[:title] = I18n.transliterate(options[:title].present? ? options[:title] : current_site.the_title)
     options[:description] = I18n.transliterate(options[:description].present? ? options[:description].to_s : current_site.the_option("seo_description"))
     options[:url] = request.original_url
     s = {
-      title: options[:title],
-      description: options[:description],
       keywords: I18n.transliterate(options[:keywords].present? ? options[:keywords] : current_site.the_option("keywords")),
-      image: options[:image],
       author: current_site.get_option('seo_author'),
       icon: current_site.the_icon,
       og: {
         title: options[:title],
         description: options[:description],
         type: 'website',
-        url: request.original_url,
+        url: options[:url],
         image: options[:image]
       },
       twitter: {
         card: 'summary',
         title: options[:title],
         description: options[:description],
-        url:   request.original_url,
+        url:   options[:url],
         image: options[:image],
         site: current_site.get_option('twitter_card'),
         creator: current_site.get_option('twitter_card'),
@@ -70,7 +67,7 @@ module CamaleonCms::Frontend::SeoHelper
       alternate: [
         { type: 'application/rss+xml', href: cama_rss_url }
       ]
-    }
+    }.merge(options.except(:object))
 
     l = current_site.get_languages
     if l.size > 1
