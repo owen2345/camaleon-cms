@@ -10,6 +10,7 @@
  *
  *= require ./jquery/_jquery-ui
  *= require camaleon_cms/bootstrap.min
+ *= require font-awesome
  *= require ./lte/_admin
  *= require ./lte/skins/skin-blue
  *= require ./_custom_admin

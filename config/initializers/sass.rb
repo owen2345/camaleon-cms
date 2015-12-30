@@ -12,18 +12,18 @@ module Sprockets
       # return them path (this prefix automatically the path with current theme location)
       # Sample: .container{ background: #ffffff url(asset_theme_path('img/patterns/pattern1.jpg')); }
       def asset_theme_path(path, options = {})
-        asset_path(Autoload::Sass::Script::String.new("#{get_theme_prefix}/#{path.value}"), options)
-      end
-
-      # return them path (this prefix automatically the path with current theme location)
-      def asset_plugin_path(path, options = {})
-        asset_path(Autoload::Sass::Script::String.new("#{get_plugin_prefix}/#{path.value}"), options)
+        asset_path(Autoload::Sass::Script::String.new("#{get_theme_prefix}/#{path.value}".gsub("//", "/")), options)
       end
 
       # return them path (this prefix automatically the path with current theme location)
       # Sample: .container{ background: #ffffff asset-theme-url('img/patterns/pattern1.jpg'); }
       def asset_theme_url(path, options = {})
-        asset_url(Autoload::Sass::Script::String.new("#{get_theme_prefix}/#{path.value}"), options)
+        asset_url(Autoload::Sass::Script::String.new("#{get_theme_prefix}/#{path.value}".gsub("//", "/")), options)
+      end
+
+      # return them path (this prefix automatically the path with current theme location)
+      def asset_plugin_path(path, options = {})
+        asset_path(Autoload::Sass::Script::String.new("#{get_plugin_prefix}/#{path.value}"), options)
       end
 
       # return them path (this prefix automatically the path with current theme location)

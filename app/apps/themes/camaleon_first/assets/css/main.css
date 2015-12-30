@@ -9,6 +9,7 @@
  * compiled file, but it's generally better to create a new file per style scope.
  *
  *= require camaleon_cms/bootstrap.min.css
+ *= require font-awesome
  *= require ./wpbase
  *= require ./magnific-ver
  *= require ./style-ver

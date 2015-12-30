@@ -7,7 +7,6 @@
     <%= raw the_head({}) if current_site.present? %>
     <title><%= (content_for?(:title) ? yield(:title) : t('camaleon_cms.admin.login.login')) %></title>
     <%= stylesheet_link_tag "camaleon_cms/admin/admin-basic-manifest", media: "all" %>
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <%= javascript_include_tag "camaleon_cms/admin/admin-basic-manifest" %>
 </head>
 <body class="hold-transition login-page">

@@ -10,6 +10,7 @@ require 'will_paginate'
 require 'will_paginate-bootstrap'
 require 'breadcrumbs_on_rails'
 require 'fog'
+require 'font-awesome-rails'
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s
