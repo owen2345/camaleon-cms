@@ -11,8 +11,8 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   delegate_all
 
 
-  def the_title
-    r = {title: object.title.to_s.translate(get_locale), post: object}
+  def the_title(locale = nil)
+    r = {title: object.title.to_s.translate(get_locale(locale)), post: object}
     h.hooks_run("post_the_title", r)
     r[:title]
   end
@@ -64,9 +64,9 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   # Return String URL
   def the_url(*args)
     args = args.extract_options!
-    args[:slug] = the_slug
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
+    args[:slug] = the_slug(args[:locale])
     p = args.delete(:as_path).present? ? "path" : "url"
     l = _calc_locale(args[:locale])
     ptype = object.post_type.decorate
@@ -74,25 +74,25 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     case p_url_format
       when "post_of_post_type"
         args[:post_type_id] = ptype.id
-        args[:title] = ptype.the_title.parameterize
+        args[:title] = ptype.the_title(args[:locale]).parameterize
       when "post_of_category"
         if ptype.manage_categories?
           cat = object.categories.first.decorate rescue ptype.default_category.decorate
           args[:category_id] = cat.id
-          args[:title] = cat.the_title.parameterize
+          args[:title] = cat.the_title(args[:locale]).parameterize
         else
           p_url_format = "post"
           l = ""
         end
       when "post_of_posttype"
-        args[:post_type_title] = ptype.the_title.parameterize
+        args[:post_type_title] = ptype.the_title(args[:locale]).parameterize
         l = ""
       when "post_of_category_post_type"
         if ptype.manage_categories?
           cat = object.categories.first.decorate rescue ptype.default_category.decorate
-          args[:post_type_title] = ptype.the_title.parameterize
+          args[:post_type_title] = ptype.the_title(args[:locale]).parameterize
           args[:category_id] = cat.id
-          args[:title] = cat.the_title.parameterize
+          args[:title] = cat.the_title(args[:locale]).parameterize
         else
           p_url_format = "post"
           l = ""

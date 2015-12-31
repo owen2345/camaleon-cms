@@ -13,7 +13,6 @@ function init_post(obj) {
     var post_id = obj.post_id;
     var post_draft_id = obj.post_draft_id;
     var post_status = obj.post_status;
-    var _post_path = obj._post_path;
     var _drafts_path = obj._drafts_path;
     var _posts_path = obj._posts_path;
     var _ajax_path = obj._ajax_path;
@@ -64,10 +63,10 @@ function init_post(obj) {
             if (class_translate) {
                 var lng = $this.attr("name").match(/-(.*)-/i).pop();
                 var $input_slug = $('.slug-post' + class_translate + '[name^="translation-' + lng + '"]')
-                var post_path = _post_path.replace('____', lng)
+                var post_path = obj._post_urls[lng];
             } else {
                 var $input_slug = $('.slug-post');
-                var post_path = _post_path.replace('/____', '');
+                var post_path = obj._post_urls[Object.keys(obj._post_urls)[0]];
             }
 
             var $link = $('<div class="sl-slug-edit">' +

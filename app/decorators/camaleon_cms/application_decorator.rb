@@ -18,8 +18,8 @@ class CamaleonCms::ApplicationDecorator < Draper::Decorator
     k.to_s.translate(get_locale)
   end
 
-  def the_slug
-    object.slug.translate(get_locale)
+  def the_slug(locale = nil)
+    object.slug.translate(get_locale(locale))
   end
 
   # return the identifier
@@ -53,6 +53,7 @@ class CamaleonCms::ApplicationDecorator < Draper::Decorator
   # if the request is not for frontend, then this will show current locale visited
   def get_locale(locale = nil)
     l = locale || @_deco_locale
+    return l if l.present?
     (h.cama_is_admin_request? rescue false) ? h.current_site.get_languages.first : l
   end
 

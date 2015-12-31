@@ -19,7 +19,7 @@ Rails.application.routes.draw do
 
           get "#{I18n.t("routes.category", default: "category", locale: _l)}/:category_id-:title" => :category, as: "category_#{_l}", constraints: {category_id: /[0-9]+/}
           get "#{I18n.t("routes.category", default: "category", locale: _l)}/:category_id-:title/:slug" => :post, as: "post_of_category_#{_l}", constraints: {category_id: /[0-9]+/}
-          get ":post_type_title/#{I18n.t("routes.category", default: "category", locale: _l)}/:category_id-:title/:slug" => :post, as: "post_of_category_post_type_#{_l}", constraints:{ post_type_title: /(?!(#{PluginRoutes.all_locales}))[\w]+/, category_id: /[0-9]+/ }
+          get ":post_type_title/#{I18n.t("routes.category", default: "category", locale: _l)}/:category_id-:title/:slug" => :post, as: "post_of_category_post_type_#{_l}", constraints:{ post_type_title: /(?!(#{PluginRoutes.all_locales}))[\w\.\-]+/, category_id: /[0-9]+/ }
 
           get "#{I18n.t("routes.tag", default: "tag", locale: _l)}/:post_tag_id-:title" => :post_tag, as: "post_tag_#{_l}", constraints: {post_tag_id: /[0-9]+/}
           get "#{I18n.t("routes.tag", default: "tag", locale: _l)}/:post_tag_id-:title/:slug" => :post, as: "post_of_tag_#{_l}", constraints: {post_tag_id: /[0-9]+/}
@@ -30,7 +30,7 @@ Rails.application.routes.draw do
 
         get "profile/:user_id-:user_name" => :profile, as: :profile, constraints: {user_id: /[0-9]+/}
         get 'search' => :search, as: :search
-        get ':post_type_title/:slug' => :post, as: :post_of_posttype, constraints:{ post_type_title: /(?!(#{PluginRoutes.all_locales}))[\w]+/ }
+        get ':post_type_title/:slug' => :post, as: :post_of_posttype, constraints:{ post_type_title: /(?!(#{PluginRoutes.all_locales}))[\w\.\-]+/ }
 
         post 'save_comment/:post_id' => :save_comment, as: :save_comment
         post 'save_form' => :save_form, as: :save_form
