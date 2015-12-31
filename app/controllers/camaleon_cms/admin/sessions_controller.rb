@@ -18,6 +18,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
     if signin?
       return redirect_to (params[:return_to].present? ? params[:return_to] : cama_admin_dashboard_path)
     else
+      cookies[:return_to] = params[:return_to] if params[:return_to].present?
       @user ||= current_site.users.new
     end
     render "login"
