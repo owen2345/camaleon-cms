@@ -9,9 +9,12 @@
 class CamaleonCms::CustomFieldDecorator < Draper::Decorator
   delegate_all
 
+  # return translated title for this custom field
   def the_name
     object.name.start_with?('t(')? eval(object.name.sub('t(', 'I18n.t(')) : object.name
   end
+
+  # return translated description for this custom field
   def the_description
     if object.description.start_with?('t(')
       eval(object.description.sub('t(', 'I18n.t('))
