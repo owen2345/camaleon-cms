@@ -29,14 +29,11 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   validates :name, :taxonomy, presence: true
   validates_with CamaleonCms::UniqValidator
 
-  #default_scope order('users.role ASC')
   # relations
   has_many :term_relationships, :class_name => "CamaleonCms::TermRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
   has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
   belongs_to :parent, class_name: "CamaleonCms::TermTaxonomy", foreign_key: :parent_id
   belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
-  has_many :user_relationships, :class_name => "CamaleonCms::UserRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
-  has_many :users, through: :user_relationships, :source => :user
 
   # return all children taxonomy
   # sample: sub categories of a category

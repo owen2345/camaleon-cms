@@ -238,6 +238,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
       CamaleonCms::User.where(site_id: self.id).destroy_all
     end
     FileUtils.rm_rf(upload_directory) # destroy current media directory
+    users.destroy_all unless PluginRoutes.system_info["users_share_sites"] # destroy all users assigned fot this site
   end
 
   # default structure for each new site
