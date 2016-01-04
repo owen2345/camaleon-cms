@@ -132,4 +132,8 @@ module CamaleonCms::HtmlHelper
     libs[:admin_intro] = {js: ['camaleon_cms/admin/introjs/intro.min'], css: ["camaleon_cms/admin/introjs/introjs.min"]}
     @_cama_assets_libraries = libs
   end
+
+  def cama_print_i18n_value(value)
+    value.start_with?('t(') ? eval(value.sub('t(', 'I18n.t(')) : value
+  end
 end
