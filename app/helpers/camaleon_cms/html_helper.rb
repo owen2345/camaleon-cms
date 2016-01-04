@@ -133,6 +133,7 @@ module CamaleonCms::HtmlHelper
     @_cama_assets_libraries = libs
   end
 
+  # execute translation for value if this value is like: t(admin.my_text) ==> My Text
   def cama_print_i18n_value(value)
     value.start_with?('t(') ? eval(value.sub('t(', 'I18n.t(')) : value
   end

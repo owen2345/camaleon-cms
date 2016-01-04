@@ -10,16 +10,10 @@ class CamaleonCms::CustomFieldDecorator < Draper::Decorator
   delegate_all
 
   def the_name
-    cama_print_i18n_value(object.name)
+    h.cama_print_i18n_value(object.name)
   end
 
   def the_description
-    if object.description.start_with?('t(')
-      eval(object.description.sub('t(', 'I18n.t('))
-    elsif object.description.start_with?('eval(')
-      eval(object.description)
-    else
-      object.description
-    end
+    h.cama_print_i18n_value(object.description)
   end
 end
