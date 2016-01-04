@@ -1,10 +1,8 @@
-
-
 <% fields.each do |slug, field|
   field_key = field[:options][:field_key]
 %>
     <div class="field-box field-<%= slug %> field-type-<%= field_key %>">
-      <strong><%= field[:name] %></strong><br/>
+      <strong><%= cama_print_i18n_value(field[:name]) %></strong><br/>
       <%
          values = field[:values].is_a?(Array) ? field[:values] : [field[:values]]
       %>
