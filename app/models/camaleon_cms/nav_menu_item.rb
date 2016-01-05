@@ -18,12 +18,10 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
 
   # return the main menu
   def main_menu
-    ctg = self
-    begin
-      main_menu = ctg.parent
-      ctg = ctg.parent_item
-    end while ctg.present?
-    main_menu
+    main_menu = self.parent
+    return main_menu if main_menu.present?
+    parent_menu = self.parent_item
+    parent_menu.main_menu if parent_menu.present?
   end
 
   # return the type of this menu (post|category|post_tag|post_type|external)
