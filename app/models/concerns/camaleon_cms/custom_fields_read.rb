@@ -41,6 +41,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
         self.custom_field_groups.where(object_class: class_name)
       when 'NavMenuItem'
         # self.main_menu.custom_field_groups //verify this problem
+        puts "get_field_groups - NavMenuItem: **************#{self.inspect}***** #{self.main_menu.inspect}"
         CamaleonCms::NavMenu.find(self.main_menu.id).get_field_groups
       when 'PostType'
         if args[:kind] == "all"
