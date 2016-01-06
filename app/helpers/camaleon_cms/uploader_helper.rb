@@ -71,9 +71,9 @@ module CamaleonCms::UploaderHelper
 
     # save file
     if settings[:same_name]
-      partial_path = "#{"#{current_site.id}"}/#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}"
+      partial_path = "#{current_site.upload_directory_name}/#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}"
     else
-      partial_path = "#{"#{current_site.id}"}/#{cama_uploader_check_name("#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}")}"
+      partial_path = "#{current_site.upload_directory_name}/#{cama_uploader_check_name("#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}")}"
     end
     partial_path = partial_path.gsub(/(\/){2,}/, "/")
     file = @fog_connection_bucket_dir.files.create({:key => partial_path, :body => uploaded_io, :public => true})
@@ -102,7 +102,7 @@ module CamaleonCms::UploaderHelper
   # sample: "owen/campaign-date-picker_1.png"
   def cama_uploader_destroy_file(file_path, destroy_thumb = true)
     cama_uploader_init_connection(true)
-    file = @fog_connection_bucket_dir.files.head("#{current_site.id}/#{file_path}".gsub(/(\/){2,}/, "/"))
+    file = @fog_connection_bucket_dir.files.head("#{current_site.upload_directory_name}/#{file_path}".gsub(/(\/){2,}/, "/"))
     _file =  cama_uploader_parse_file(file)
     if destroy_thumb && _file["format"] == "image" && File.extname(file_path) != ".gif" # destroy thumb
       cama_uploader_destroy_file("#{File.dirname(file_path)}/#{cama_parse_for_thumb_name(file.key)}", false) rescue ""
@@ -114,16 +114,16 @@ module CamaleonCms::UploaderHelper
   def cama_uploader_destroy_folder(folder)
     cama_uploader_init_connection(true)
     if @fog_connection.class.name.include?("AWS")
-      dir = @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name], prefix: "#{current_site.id}/#{folder}".gsub(/(\/){2,}/, "/"))
+      dir = @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name], prefix: "#{current_site.upload_directory_name}/#{folder}".gsub(/(\/){2,}/, "/"))
       dir.files.each{|f| f.destroy }
     end
-    @fog_connection_bucket_dir.files.head("#{current_site.id}/#{folder}/".gsub(/(\/){2,}/, "/")).destroy rescue ""
+    @fog_connection_bucket_dir.files.head("#{current_site.upload_directory_name}/#{folder}/".gsub(/(\/){2,}/, "/")).destroy rescue ""
   end
 
   # add a new folder in fog
   def cama_uploader_add_folder(folder)
     cama_uploader_init_connection(true)
-    key = "#{current_site.id}/#{folder}/".split("/").clean_empty.join("/")
+    key = "#{current_site.upload_directory_name}/#{folder}/".split("/").clean_empty.join("/")
     key += '/_tmp.txt' unless @fog_connection.class.name.include?("AWS")
     @fog_connection_bucket_dir.files.create({:key => key, content: "", :public => true})
   end
@@ -132,9 +132,9 @@ module CamaleonCms::UploaderHelper
   def cama_uploader_init_connection(clear_cache = false)
     server = current_site.get_option("filesystem_type", "local")
     @fog_connection_hook_res ||= {server: server, connection: nil, thumb_folder_name: "thumb", bucket_name: server == "local" ? "media" : current_site.get_option("filesystem_s3_bucket_name"), thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
-    case server
+    case @fog_connection_hook_res[:server]
       when "local"
-        Dir.mkdir(Rails.root.join("public", "media").to_s) unless Dir.exist?(Rails.root.join("public", "media").to_s)
+        Dir.mkdir(Rails.root.join("public", @fog_connection_hook_res[:bucket_name]).to_s) unless Dir.exist?(Rails.root.join("public", @fog_connection_hook_res[:bucket_name]).to_s)
         @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :local_root => Rails.root.join("public").to_s, :provider   => 'Local', endpoint: (root_url rescue cama_root_url) }) : @fog_connection_hook_res[:connection]
       when "s3"
         @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :aws_access_key_id => current_site.get_option("filesystem_s3_access_key"), :provider   => 'AWS', aws_secret_access_key: current_site.get_option("filesystem_s3_secret_key"), :region  => current_site.get_option("filesystem_region") }) : @fog_connection_hook_res[:connection]
@@ -150,11 +150,11 @@ module CamaleonCms::UploaderHelper
     cama_uploader_init_connection()
     files = @fog_connection_bucket_dir.files
     res = partial_path
-    if files.head("#{current_site.id}/#{res}".gsub(/(\/){2,}/, "/")).present?
+    if files.head("#{current_site.upload_directory_name}/#{res}".gsub(/(\/){2,}/, "/")).present?
       dirname = "#{File.dirname(partial_path)}/" if partial_path.include?("/")
       (1..999).each do |i|
         res = "#{dirname}#{File.basename(partial_path, File.extname(partial_path))}_#{i}#{File.extname(partial_path)}"
-        break unless files.head("#{current_site.id}/#{res}".gsub(/(\/){2,}/, "/")).present?
+        break unless files.head("#{current_site.upload_directory_name}/#{res}".gsub(/(\/){2,}/, "/")).present?
       end
     end
     res.gsub(/(\/){2,}/, "/")
@@ -165,7 +165,7 @@ module CamaleonCms::UploaderHelper
   def cama_media_find_folder(path = "")
     cama_uploader_init_connection(true)
 
-    prefix  = "#{current_site.id}/#{path}/".gsub(/(\/){2,}/, "/")
+    prefix  = "#{current_site.upload_directory_name}/#{path}/".gsub(/(\/){2,}/, "/")
     res     = {folders: {}, files: []}
 
     @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name], prefix: prefix).files.each do |file|

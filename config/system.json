@@ -9,7 +9,9 @@
   "default_user_role": "client", // default user role for all new users
   "users_share_sites": true, //(boolean) true: permit to share users between sites, false: All users are assigned for an unique site.
   "db_prefix": "", // prefix name for database tables
-  "relative_url_root": "" // URL prefix, for example to get http://localhost:3000/blog/, this should be "blog"
+  "relative_url_root": "", // URL prefix, for example to get http://localhost:3000/blog/, this should be "blog"
+
+  "media_slug_folder": false // permit to use site slug for upload media folder instead of site-id
 }
 
 // Note: after any change in this file, you need to restart your server to apply changes.

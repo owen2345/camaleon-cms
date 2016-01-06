@@ -91,7 +91,7 @@ module Plugins::ContactForm::ContactFormHelper
       values[:fields].each do |f|
         cid = f[:cid].to_sym
         if f[:field_type] == 'file'
-          res = upload_file(fields[cid], {maximum: 5.megabytes, folder: current_site.upload_directory("uploads")})
+          res = upload_file(fields[cid], {maximum: 5.megabytes, folder: 'contact_form'})
           if res[:error].present?
             errors << res[:error]
           else

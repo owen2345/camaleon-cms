@@ -205,9 +205,14 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     end
   end
 
-  # return upload directory for this site
+  # return upload directory for this site (deprecated for cloud support)
   def upload_directory(inner_directory = nil)
-    File.join(Rails.public_path, "/media/#{self.id}", inner_directory.to_s)
+    File.join(Rails.public_path, "/media/#{PluginRoutes.static_system_info["media_slug_folder"] ? self.slug : self.id}", inner_directory.to_s)
+  end
+
+  # return the directory name where to upload file for this site
+  def upload_directory_name
+    "#{PluginRoutes.static_system_info["media_slug_folder"] ? self.slug : self.id}"
   end
 
   # return an available slug for a new post
@@ -237,7 +242,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     unless PluginRoutes.system_info["users_share_sites"]
       CamaleonCms::User.where(site_id: self.id).destroy_all
     end
-    FileUtils.rm_rf(upload_directory) # destroy current media directory
+    FileUtils.rm_rf(File.join(Rails.public_path, "/media/#{upload_directory_name}").to_s) # destroy current media directory
     users.destroy_all unless PluginRoutes.system_info["users_share_sites"] # destroy all users assigned fot this site
   end
 
