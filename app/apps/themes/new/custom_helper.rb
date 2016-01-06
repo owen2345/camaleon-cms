@@ -27,7 +27,9 @@ module Themes::New::CustomHelper
       group.add_manual_field({"name"=>"Footer text", "slug"=>"theme_custom_footer_text"},{field_key: "editor", translate: true})
     end
 
-    theme.site.nav_menus.create(name: "Main Menu", slug: "main_menu")
+    unless theme.site.nav_menus.where(slug: "main_menu").any?
+      theme.site.nav_menus.create(name: "Main Menu", slug: "main_menu")
+    end
   end
 
   def theme_custom_on_uninstall_theme(theme)
