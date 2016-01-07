@@ -37,6 +37,7 @@ module CamaleonCms::Frontend::SeoHelper
     @_cama_seo_setting_values = @_cama_seo_setting_values.merge(options)
   end
 
+  private
   # create seo attributes with options + default attributes
   def cama_build_seo(options = {})
     options[:image] = current_site.get_option("screenshot", current_site.the_logo) unless options[:image].present?
