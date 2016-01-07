@@ -69,12 +69,12 @@
                                     <% end %>
                                 </optgroup>
 
-                                <optgroup label="<%= t('camaleon_cms.admin.sidebar.widgets') %>">
-                                    <% current_site.widgets.each do |widget| %>
-                                        <% value = "#{widget.class.name},#{widget.id}" %>
-                                        <option value="<%= value %>" data-help="<%= "#{t('camaleon_cms.admin.settings.tooltip.add_custom_field_widget')}"+ widget.name %>"><%= widget.name %></option>
-                                    <% end %>
-                                </optgroup>
+                                <!--optgroup label="<%#= t('camaleon_cms.admin.sidebar.widgets') %>">
+                                    <%# current_site.widgets.each do |widget| %>
+                                        <%# value = "#{widget.class.name},#{widget.id}" %>
+                                        <option value="<%#= value %>" data-help="<%#= "#{t('camaleon_cms.admin.settings.tooltip.add_custom_field_widget')}"+ widget.name %>"><%#= widget.name %></option>
+                                    <%# end %>
+                                </optgroup -->
                                 <option value="_post_simple" >Select Post Simple</option>
                             </select>
                             <select id="select_post_simple" name="custom_field_group[assign_group]" class="form-control required" style="display: none" disabled>
