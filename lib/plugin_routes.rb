@@ -62,80 +62,44 @@ class PluginRoutes
     res
   end
 
-  # return plugin information
-  def self.plugin_info(plugin_key)
-    self.all_plugins.each{|p| return p if p["key"] == plugin_key }
-    nil
-  end
-
-  # return theme information
-  # if theme_name is nil, the use current site theme
-  def self.theme_info(theme_name)
-    self.all_themes.each{|p| return p if p["key"] == theme_name }
-    nil
-  end
-
-  # return system static settings (config.json values)
-  def self.static_system_info
-    r = cache_variable("statis_system_info");  return r unless r.nil?
-    settings = {}
-
-    gem_settings = File.join($camaleon_engine_dir, "config", "system.json")
-    app_settings = Rails.root.join("config", "system.json")
-
-    settings = settings.merge(JSON.parse(File.read(gem_settings))) if File.exist?(gem_settings)
-    settings = settings.merge(JSON.parse(File.read(app_settings))) if File.exist?(app_settings)
-
-    # custom settings
-    settings["key"] = "system"
-    settings["path"] = ''
-    settings["kind"] = "system"
-    settings["hooks"]["on_notification"] = (settings["hooks"]["on_notification"] || []) + ["admin_system_notifications"]
-    cache_variable("statis_system_info", settings)
-  end
-
-  # return system settings defined in:
-  #   + gem/config/system.json
-  #   + app/config/system.json
-  #   + main_site.get_meta("main_settings")
-  # skip_site_settings_db: is a fix to avoid infite cicle
-  def self.system_info(skip_site_settings_db = false)
-    r = cache_variable("system_info");  return r unless r.nil?
-    settings = static_system_info
-    unless skip_site_settings_db
-      main_site = self.main_site
-      begin
-        settings = settings.merge(main_site.get_meta("main_settings", {}))
-        settings["base_domain"] = main_site.slug if main_site.slug.present?
-        settings = settings.stringify_keys
-        cache_variable("system_info", settings)
-      rescue
-      end
+  class << self
+    # return plugin information
+    def plugin_info(plugin_key)
+      self.all_plugins.each{|p| return p if p["key"] == plugin_key }
+      nil
     end
-    settings
-  end
 
-  # return the main site
-  def self.main_site
-    @@main_site ||= get_sites.first rescue nil
-  end
+    # return theme information
+    # if theme_name is nil, the use current site theme
+    def theme_info(theme_name)
+      self.all_themes.each{|p| return p if p["key"] == theme_name }
+      nil
+    end
 
-  # update a system value
-  # key: attribute name
-  # value: new value for attribute
-  def self.system_info_set(key, val)
-    s = main_site
-    settings = s.get_meta("main_settings", {}).stringify_keys
-    settings[key] = val
-    s.set_meta("main_settings", settings)
-    class_variable_set("@@cache_system_info", nil)
-    val
+    # return system static settings (config.json values)
+    def static_system_info
+      r = cache_variable("statis_system_info");  return r unless r.nil?
+      settings = {}
+
+      gem_settings = File.join($camaleon_engine_dir, "config", "system.json")
+      app_settings = Rails.root.join("config", "system.json")
+
+      settings = settings.merge(JSON.parse(File.read(gem_settings))) if File.exist?(gem_settings)
+      settings = settings.merge(JSON.parse(File.read(app_settings))) if File.exist?(app_settings)
+
+      # custom settings
+      settings["key"] = "system"
+      settings["path"] = ''
+      settings["kind"] = "system"
+      settings["hooks"]["on_notification"] = (settings["hooks"]["on_notification"] || []) + ["admin_system_notifications"]
+      cache_variable("statis_system_info", settings)
+    end
+    alias_method :system_info, :static_system_info
   end
 
   # reload routes
   def self.reload
     @@all_sites = nil
-    @@main_site = nil
     @@_vars.each { |v| class_variable_set("@@cache_#{v}", nil) }
     Rails.application.reload_routes!
   end

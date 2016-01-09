@@ -33,7 +33,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   # all user roles for this site
   def user_roles
     if PluginRoutes.system_info["users_share_sites"]
-      CamaleonCms::Site.first.user_roles_rel
+      CamaleonCms::Site.main_site.user_roles_rel
     else
       user_roles_rel
     end
@@ -176,13 +176,13 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
 
   # return main site
   def self.main_site
-    CamaleonCms::Site.first
+    @main_site ||= CamaleonCms::Site.reorder(id: :ASC).first
   end
 
   # check if this site is the main site
   # main site is a site that doesn't have slug
   def main_site?
-    @_is_default_site ||= (CamaleonCms::Site.first.id == self.id)
+    self.class.main_site == self
   end
 
   alias_method :is_default?, :main_site?
@@ -287,9 +287,6 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   # update all routes of the system
   # reload system routes for this site
   def update_routes
-    if self.id == CamaleonCms::Site.first.id
-      set_option("base_domain", self.slug, "main_settings") if self.slug.present?
-    end
     PluginRoutes.reload
   end
 

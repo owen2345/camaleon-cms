@@ -15,14 +15,9 @@ module CamaleonCms::SiteHelper
     if PluginRoutes.get_sites.size == 1
       site = CamaleonCms::Site.first.decorate
     else
-      host = request.original_url.to_s.parse_domain
-      if host == PluginRoutes.system_info["base_domain"]
-        site = CamaleonCms::Site.first.decorate rescue nil
-      else
-        s = [host]
-        s << request.subdomain if request.subdomain.present?
-        site = CamaleonCms::Site.where(slug: s).first.decorate rescue nil
-      end
+      host = [request.original_url.to_s.parse_domain]
+      host << request.subdomain if request.subdomain.present?
+      site = CamaleonCms::Site.where(slug: host).first.decorate rescue nil
     end
     puts "============================ Please define the $current_site = CamaleonCms::Site.first.decorate " unless site.present?
     @current_site = site
@@ -31,9 +26,8 @@ module CamaleonCms::SiteHelper
   # check if current site exist, if not, this will be redirected to main domain
   def cama_site_check_existence()
     if !current_site.present?
-      if (PluginRoutes.main_site).present?
-        base_domain = PluginRoutes.system_info["base_domain"]
-        redirect_to cama_root_url(host: base_domain.split(":").first, port: (base_domain.split(":")[1] rescue nil))
+      if Cama::Site.main_site.present?
+        redirect_to Cama::Site.main_site.decorate.the_url
       else
         redirect_to cama_admin_installers_path
       end

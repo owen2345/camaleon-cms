@@ -7,4 +7,5 @@ Cama::PostTag = CamaleonCms::PostTag
 Cama::PostType = CamaleonCms::PostType
 Cama::TermTaxonomy = CamaleonCms::TermTaxonomy
 Cama::TermRelationship = CamaleonCms::TermRelationship
+Cama::User = CamaleonCms::User
 

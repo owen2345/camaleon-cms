@@ -28,10 +28,15 @@ class CamaleonCms::Admin::Settings::SitesController < CamaleonCms::Admin::Settin
   end
 
   def update
+    tmp = @site.slug
     if @site.update(params[:site])
       save_metas(@site)
       flash[:notice] = t('camaleon_cms.admin.sites.message.updated')
-      redirect_to action: :index
+      if @site.id == Cama::Site.main_site.id && tmp != @site.slug
+        redirect_to @site.the_admin_url
+      else
+        redirect_to action: :index
+      end
     else
       edit
     end

@@ -5,7 +5,6 @@
   "default_plugins": ["front_cache", "contact_form", "attack"], // Default plugins installed for each new site
   "available_languages": ["es", "en", "fr", "zh", "de", "it", "pt_br"], // Available languages for frontend panel, here all locales: https://github.com/svenfuchs/rails-i18n
   "admin_available_languages": ["en", "es", "it", "pt_br"], //Available languages for the admin panel
-  "base_domain": "localhost:3000", // primary domain
   "default_user_role": "client", // default user role for all new users
   "users_share_sites": true, //(boolean) true: permit to share users between sites, false: All users are assigned for an unique site.
   "db_prefix": "", // prefix name for database tables
