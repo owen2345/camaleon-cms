@@ -16,6 +16,7 @@ jQuery(function(){
             open_modal(c_settings);
             e.preventDefault();
         });
+        return this;
     }
 
     // custom alert dialog
@@ -85,10 +86,11 @@ jQuery(function(){
  * type: modal color (primary|default|success)
  * zindex: Integer zindex position (default null)
  * on_submit: Function executed after submit button click (if this is present, enable the submit button beside cancel button)
+ * on_close: function executed after modal closed
  * return modal object
  */
 function open_modal(settings){
-    var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, zindex: null, modal_size: "", type: '', modal_settings:{}, on_submit: null, callback: function(){}}
+    var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, zindex: null, modal_size: "", type: '', modal_settings:{}, on_submit: null, callback: function(){}, on_close: function(){}}
     settings = $.extend({}, def, settings);
     var modal = $('<div id="ow_inline_modal" class="modal fade modal-'+settings.type+'">'+
         '<div class="modal-dialog '+settings.modal_size+'">'+
@@ -105,6 +107,7 @@ function open_modal(settings){
 
     // on modal hide
     modal.on("hidden.bs.modal", function(e){
+        settings.on_close(modal);
         if(!$(e["currentTarget"]).attr("data-skip_destroy")) $(e["currentTarget"]).remove();
         modal_fix_multiple();
     });

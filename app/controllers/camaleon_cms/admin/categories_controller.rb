@@ -48,6 +48,11 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
     end
   end
 
+  # return html category list used to reload categories list in post editor form
+  def list
+    render inline: post_type_html_inputs(@post_type, "categories", "categories" , "checkbox" , params[:categories] || [], "categorychecklist", true )
+  end
+
   def destroy
     flash[:notice] = t('camaleon_cms.admin.post_type.message.deleted') if @category.destroy
 

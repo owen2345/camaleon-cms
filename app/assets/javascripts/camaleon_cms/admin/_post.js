@@ -192,7 +192,7 @@ function init_post(obj) {
     // here all later actions
     var form_later_actions = function () {
         /*********** scroller (fix buttons position) ***************/
-        var panel_scroll = $("#form-post > .content-frame-right");
+        var panel_scroll = $("#form-post > #post_right_bar");
         var fixed_position = panel_scroll.children(":first");
         var fixed_offset_top = panel_scroll.offset().top;
         $(window).scroll(function () {
@@ -237,9 +237,9 @@ function init_post(obj) {
         });
 
         // sidebar toggle
-        $("#admin_content .content-frame-right-toggle").on("click", function () {
-            $(".content-frame-right").is(":visible") ? $(".content-frame-right").hide() : $(".content-frame-right").show();
-        });
+        //$("#admin_content #post_right_bar-toggle").on("click", function () {
+        //    $("#post_right_bar").is(":visible") ? $("#post_right_bar").hide() : $("#post_right_bar").show();
+        //});
 
         /*********** control save changes before unload form. ***************/
         $form.submit(function () {
@@ -255,6 +255,18 @@ function init_post(obj) {
                 return;
             return "You sure to leave the page without saving changes?";
         };
+
+        /*********** link to create categories *************/
+        $form.find("#post_add_new_category").ajax_modal({modal_size: 'modal-lg', mode: 'iframe', callback: function(modal){
+            modal.find('iframe').on('load', function(){
+                $(this).contents().find("#main-header, #sidebar-menu, #main-footer").hide();
+                $(this).contents().find('#admin_content').parent().css("margin-left", 0);
+            });
+        }, on_close: function(modal){
+            var panel_cats = $form.find("#post_right_bar .list-categories");
+            $.get($form.find("#post_add_new_category").data('reload-url'), {categories: panel_cats.find("input:checkbox:checked").map(function(i, el){ return $(this).val(); }).get()}, function(res){ panel_cats.html(res); });
+        }});
+        /*********** end *************/
     }
     setTimeout(form_later_actions, 1000);
 

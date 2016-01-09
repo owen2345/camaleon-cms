@@ -24,11 +24,11 @@ Rails.application.routes.draw do
             end
           end
 
-          resources :categories, controller: 'categories'
+          resources :categories, controller: 'categories' do
+            get 'list', on: :collection
+          end
           resources :post_tags, controller: 'post_tags' do
-            collection do
-              get 'list'
-            end
+            get 'list', on: :collection
           end
           resources :drafts, controller: 'posts/drafts'
         end
