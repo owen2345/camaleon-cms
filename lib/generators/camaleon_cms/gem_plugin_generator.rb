@@ -19,6 +19,7 @@ module CamaleonCms
           FileUtils.rm_r(plugin_app) if Dir.exist?(plugin_app)
 
           FileUtils.mkdir_p(plugin_dir)
+          puts "============= command: #{"cd #{Rails.root}; rails plugin new apps/plugins/#{get_plugin_name} --full"}"
           system("cd #{Rails.root}; rails plugin new apps/plugins/#{get_plugin_name} --full")
 
           FileUtils.cp_r(File.join($camaleon_engine_dir, "lib", "generators", "camaleon_cms", "gem_plugin_template"), plugin_app)
