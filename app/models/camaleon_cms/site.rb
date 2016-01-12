@@ -217,9 +217,10 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
 
   # return an available slug for a new post
   # slug: (String) possible slug value
+  # post_id: (integer, optional) current post id
   # sample: ("<!--:es-->features-1<!--:--><!--:en-->caract-1<!--:-->") | ("features")
   # return: (String) available slugs
-  def get_valid_post_slug(slug)
+  def get_valid_post_slug(slug, post_id=nil)
     slugs = slug.translations
     if slugs.present?
       slugs.each do |k, v|
@@ -229,7 +230,8 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     else
       res = slug
       (1..9999).each do |i|
-        break unless self.posts.find_by_slug(res)
+        p = self.posts.find_by_slug(res)
+        break if !p.present? || (p.present? && p.id == post_id)
         res = "#{slug}-#{i}"
       end
       res
@@ -290,7 +292,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     PluginRoutes.reload
   end
 
-  def before_validating
-    #overwriting/skipping term_taxonomy validations
-  end
+  # def before_validating
+  #   #overwriting/skipping term_taxonomy validations
+  # end
 end
