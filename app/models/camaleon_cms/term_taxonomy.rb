@@ -67,7 +67,7 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
     slug = self.slug
     slug = self.name if slug.blank?
     self.name = slug unless self.name.present?
-    self.slug = slug.to_s.parameterize
+    self.slug = slug.to_s.parameterize.try(:downcase)
   end
 
   # destroy all dependencies
