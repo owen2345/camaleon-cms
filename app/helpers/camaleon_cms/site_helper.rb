@@ -19,8 +19,10 @@ module CamaleonCms::SiteHelper
       host << request.subdomain if request.subdomain.present?
       site = CamaleonCms::Site.where(slug: host).first.decorate rescue nil
     end
-    puts "============================ Please define the $current_site = CamaleonCms::Site.first.decorate " unless site.present?
-    @current_site = site
+    r = {site: site, request: request};
+    cama_current_site_helper(r) rescue nil
+    puts "============================ Please define the $current_site = CamaleonCms::Site.first.decorate " unless r[:site].present?
+    @current_site = r[:site]
   end
 
   # check if current site exist, if not, this will be redirected to main domain
