@@ -290,7 +290,10 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     PluginRoutes.reload
   end
 
-  # def before_validating
-  #   #overwriting/skipping term_taxonomy validations
-  # end
+  def before_validating
+    slug = self.slug
+    slug = self.name if slug.blank?
+    self.name = slug unless self.name.present?
+    self.slug = slug.to_s.try(:downcase)
+  end
 end
