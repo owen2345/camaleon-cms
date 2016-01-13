@@ -134,16 +134,15 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     if user_role.valid?
       d = {}
       if post_type.present?
-        d = user_role.get_meta("_post_type", {})
+        d = user_role.get_meta("_post_type_#{self.id}", {})
         CamaleonCms::UserRole::ROLES[:post_type].each { |value|
-          value_old = d[value[:key]] || []
-          d[value[:key]] = value_old + [post_type.id]
+          value_old = d[value[:key].to_sym] || []
+          d[value[:key].to_sym] = value_old + [post_type.id]
         }
       else
         pts = self.post_types.all.pluck(:id)
         CamaleonCms::UserRole::ROLES[:post_type].each { |value| d[value[:key]] = pts }
       end
-
       user_role.set_meta("_post_type_#{self.id}", d || {})
     end
 
@@ -151,16 +150,15 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     if user_role.valid?
       d = {}
       if post_type.present?
-        d = user_role.get_meta("_post_type", {})
+        d = user_role.get_meta("_post_type_#{self.id}", {})
         CamaleonCms::UserRole::ROLES[:post_type].each { |value|
-          value_old = d[value[:key]] || []
-          d[value[:key]] = value_old + [post_type.id] if value[:key].to_s == 'edit'
+          value_old = d[value[:key].to_sym] || []
+          d[value[:key].to_sym] = value_old + [post_type.id] if value[:key].to_s == 'edit'
         }
       else
         pts = self.post_types.all.pluck(:id)
         CamaleonCms::UserRole::ROLES[:post_type].each { |value| d[value[:key]] = pts if value[:key].to_s == 'edit' }
       end
-
       user_role.set_meta("_post_type_#{self.id}", d || {})
     end
 
