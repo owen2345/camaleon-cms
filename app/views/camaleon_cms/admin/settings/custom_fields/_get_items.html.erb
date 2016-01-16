@@ -3,7 +3,7 @@
    @item_options_value = @item_options_value || {}
    @item_id = @item_value[:id] || ''
    @index = "#{@item_id}_#{Time.now.to_i}_#{rand(999...99999)}"
-   @field_config = cf_get_items[@key.to_sym]
+   @field_config = cama_custom_field_elements[@key.to_sym]
    colors = ['primary','success','warning','colorful','info','danger']
 %>
 

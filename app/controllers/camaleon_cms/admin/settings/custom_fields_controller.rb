@@ -7,7 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin::SettingsController
-  include CamaleonCms::Admin::CustomFieldsHelper
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.custom_fields"), :cama_admin_settings_custom_fields_path
   before_action :set_custom_field_group, only: [:show,:edit,:update,:destroy]
   before_action :set_post_data, only: [:create, :update]

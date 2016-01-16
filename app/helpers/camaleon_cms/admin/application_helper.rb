@@ -11,6 +11,7 @@ module CamaleonCms::Admin::ApplicationHelper
   include CamaleonCms::Admin::MenusHelper
   include CamaleonCms::Admin::PostTypeHelper
   include CamaleonCms::Admin::CategoryHelper
+  include CamaleonCms::Admin::CustomFieldsHelper
 
   # load system notification
   def admin_system_notifications(args)

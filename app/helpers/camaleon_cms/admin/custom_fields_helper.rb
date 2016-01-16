@@ -8,9 +8,9 @@
 =end
 #encoding: utf-8
 module CamaleonCms::Admin::CustomFieldsHelper
-  def cf_get_items
+  def cama_custom_field_elements
+    return @_cama_custom_field_elements if @_cama_custom_field_elements.present?
     items = {}
-
     items[:text_box] = {
         key: 'text_box',
         label: t('camaleon_cms.admin.custom_field.fields.text_box'),
@@ -72,7 +72,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
     items[:checkboxes] = {
         key: 'checkboxes',
         label: 'Checkboxes',
@@ -86,7 +85,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
     items[:audio] = {
         key: 'audio',
         label: 'Audio',
@@ -97,9 +95,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
-
-
     items[:colorpicker] = {
         key: 'colorpicker',
         label: t('camaleon_cms.admin.custom_field.fields.colorpicker'),
@@ -131,7 +126,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
     items[:date] = {
         key: 'date',
         label: t('camaleon_cms.admin.custom_field.fields.date'),
@@ -158,7 +152,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
     items[:editor] = {
         key: 'editor',
         label: 'Editor',
@@ -170,7 +163,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
     items[:email] = {
         key: 'email',
         label: t('camaleon_cms.admin.custom_field.fields.email'),
@@ -181,7 +173,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
     items[:file] = {
         key: 'file',
         label: t('camaleon_cms.admin.custom_field.fields.file'),
@@ -199,7 +190,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             }
         ]
     }
-
     items[:image] = {
         key: 'image',
         label: t('camaleon_cms.admin.custom_field.fields.image'),
@@ -210,7 +200,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
     items[:numeric] = {
         key: 'numeric',
         label: t('camaleon_cms.admin.custom_field.fields.numeric'),
@@ -221,7 +210,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
     items[:phone] = {
         key: 'phone',
         label: t('camaleon_cms.admin.custom_field.fields.phone'),
@@ -232,8 +220,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
-
     items[:url] = {
         key: 'url',
         label: 'URL',
@@ -254,7 +240,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
     items[:users] = {
         key: 'users',
         label: t('camaleon_cms.admin.custom_field.fields.users'),
@@ -264,7 +249,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
     items[:posts] = {
         key: 'posts',
         label: t('camaleon_cms.admin.custom_field.fields.posts'),
@@ -282,7 +266,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             }
         ]
     }
-
     # evaluate the content of command value on listing
     # sample: get_select_options({})
     items[:select_eval] = {
@@ -302,7 +285,6 @@ module CamaleonCms::Admin::CustomFieldsHelper
             }
         ]
     }
-
     items[:field_attrs] = {
         key: 'field_attrs',
         label: t('camaleon_cms.admin.custom_field.fields.field_attrs'),
@@ -312,10 +294,8 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true
         }
     }
-
-
-
-    items
+    r = {fields: items}; hooks_run("extra_custom_fields", r)
+    @_cama_custom_field_elements = r[:fields]
   end
 
   # add your model class into custom fields editor

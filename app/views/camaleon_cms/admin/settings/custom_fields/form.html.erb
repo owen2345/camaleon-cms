@@ -125,7 +125,7 @@
                     </div>
                     <div class="panel-body">
                         <div id="content-items-default" class="form-group input-group-sm">
-                            <% cf_get_items.each do |i,item| %>
+                            <% cama_custom_field_elements.each do |i,item| %>
                                 <% next if item[:key] == "select_eval" %>
                                 <a id="item-<%= item[:key] %>" class="btn btn-default" href="<%= get_items_cama_admin_settings_custom_fields_path(item[:key]) %>" style="margin-bottom: 4px"><%= item[:label] %></a>
                             <% end %>
