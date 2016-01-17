@@ -120,7 +120,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     @post = @post_type.posts.find(params[:post_id])
     authorize! :destroy, @post
     @post.set_option('status_default', @post.status)
-    @post.children.destroy_all unless @post.draft?
+    # @post.children.destroy_all unless @post.draft? TODO: why delete children?
     @post.update_column('status', 'trash')
     @post.update_extra_data
     flash[:notice] = t('camaleon_cms.admin.post.message.trash', post_type: @post_type.decorate.the_title)

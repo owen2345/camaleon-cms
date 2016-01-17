@@ -139,8 +139,13 @@
 <script>
     jQuery(function($){
         var form = $("#post_type_form");
-//        form.find("input[type='checkbox'][name='meta[has_layout]'], input[type='checkbox'][name='meta[has_template]']").change(function(){ var n = $(this).closest(".form-group").next(); if($(this).is(":checked")) n.fadeIn(); else n.fadeOut(); }).trigger("change");
         form.find('.unput_upload').input_upload();
+        form.find("[name='meta[has_parent_structure]']").change(function(){ // permit hierarchy route only for post types enabled "Manage page hierarchy"
+            var item = form.find("#meta_contents_route_format_hierarchy_post");
+            item.parent().siblings().find("input").prop("disabled", $(this).is(":checked"));
+            if($(this).is(":checked")) item.prop("checked", true).prop("disabled", false);
+            else item.prop("disabled", true)
+        }).trigger("change");
     });
 </script>
 
