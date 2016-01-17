@@ -43,13 +43,11 @@
                                     <div class=" tab-content">
                                         <div class="tab-pane active class_type" id="tab-<%= pt.slug %>-posts" data-type="post" data-post_type="<%= pt.slug %>">
                                             <ul class="categorychecklist">
-                                                <% pt.posts.eager_load(:post_type).published.each do |p|
-                                                  p = p.decorate
-                                                %>
+                                                <% (pt.manage_hierarchy? ? cama_hierarchy_post_list(pt.posts.eager_load(:post_type).published.decorate.to_a) : pt.posts.eager_load(:post_type).published.decorate).each do |p| %>
                                                     <li>
                                                         <label class="class_slug" data-post_link_edit="<%= p.the_edit_url %>">
                                                             <input type="checkbox" value="<%= p.id %>">
-                                                            <%= p.the_title %>
+                                                            <%= p.the_hierarchy_title %>
                                                         </label>
                                                     </li>
                                                 <% end %>
@@ -99,7 +97,6 @@
     </div>
     <!-- END PAGE CONTENT WRAPPER -->
 </div>
-
 <script>
     var RENDER_FORM = '<%=  cama_admin_appearances_nav_menus_form_path(menu_id: @nav_menu.id) %>';
     var main_menus_panel;

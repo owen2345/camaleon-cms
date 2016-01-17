@@ -71,6 +71,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     l = _calc_locale(args[:locale])
     ptype = object.post_type.decorate
     p_url_format = ptype.contents_route_format
+    p_url_format = "hierarchy_post" if ptype.manage_hierarchy?
     case p_url_format
       when "post_of_post_type"
         args[:post_type_id] = ptype.id
@@ -96,6 +97,14 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
         else
           p_url_format = "post"
           l = ""
+        end
+      when 'hierarchy_post'
+        l = ""
+        if object.post_parent.present?
+          slugs = ([args[:slug]]+object.parents.map{|parent| parent.decorate.the_slug(args[:locale]) }).reverse
+          args[:slug], args[:parent_title] = slugs.slice(1..-1).join("/"), slugs.first
+        else
+          p_url_format = "post"
         end
       else
         l = ""
@@ -195,18 +204,31 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   # children: true/false (show/hide last item link)
   # show_categories: true/false, true: add categories tree to the breadcrumb
   def generate_breadcrumb(show_categories = true, add_post_type = true)
+    p_type = object.post_type
     f_cat = object.categories.first
     if f_cat.present? && show_categories
       f_cat.decorate.generate_breadcrumb(add_post_type, true)
     else
-      object.post_type.decorate.generate_breadcrumb(add_post_type, true)
+      p_type.decorate.generate_breadcrumb(add_post_type, true)
     end
+    object.parents.reverse.each{|p| p=p.decorate; h.breadcrumb_add(p.the_title, p.published? ? p.the_url : nil) } if object.post_parent.present? && p_type.manage_hierarchy?
     h.breadcrumb_add(self.the_title)
   end
 
   # return the post type of this post
   def the_post_type
     object.post_type.decorate
+  end
+
+  # return the title with hierarchy prefixed
+  # sample: title paren 1 - title parent 2 -.. -...
+  # if add_parent_title: true will add parent title like: —— item 1.1.1 | item 1.1
+  def the_hierarchy_title
+    return the_title unless object.post_parent.present?
+    res = '&#8212;' * object.parents.count
+    res << " " + the_title
+    res << " | #{object.parent.decorate.the_title}" if object.show_title_with_parent
+    res.html_safe
   end
 
 end

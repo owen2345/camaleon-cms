@@ -65,6 +65,14 @@
                 </div>
             <% end %>
 
+            <!-- page hierarchi -->
+            <% if @post_type.manage_hierarchy? %>
+                <div class="form-group">
+                    <label class="control-label"><%= t('camaleon_cms.admin.post_type.post_parent', layout: 'Parent Page')%></label>
+                    <%= f.select :post_parent, cama_hierarchy_post_list(@post_type.posts.published.decorate.to_a).map{|p| [p.the_hierarchy_title, p.id] }, { include_blank: true, selected: (params[:post][:post_parent] rescue false || @post.post_parent ), disabled: (@post.full_children.cama_pluck(:id) << @post.id) }, {class: 'form-control'} %>
+                </div>
+            <% end %>
+
             <!-- has comments? -->
             <% if @post.manage_comments?(@post_type) %>
                 <div class="form-group">

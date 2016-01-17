@@ -30,6 +30,31 @@ module CamaleonCms::Admin::PostTypeHelper
     return html
   end
 
+
+  # sort array of posts to build post's tree
+  # skip_non_parent_posts: don't include post's where root post doesn't exist
+  # internal control for recursive items
+  def cama_hierarchy_post_list(posts_list, parent_id = nil, skip_non_parent_posts = false)
+    res = []
+    @_cama_hierarchy_post_list_no_parent ||= posts_list.clone
+    posts_list.each do |element|
+      if element.post_parent.to_s == parent_id.to_s
+        res << element
+        @_cama_hierarchy_post_list_no_parent.delete_item(element)
+        res += cama_hierarchy_post_list(posts_list, element.id)
+      end
+    end
+
+    if !parent_id.present? && !skip_non_parent_posts
+      @_cama_hierarchy_post_list_no_parent.each do |element|
+        element.show_title_with_parent = true
+        res << element
+        res += cama_hierarchy_post_list(posts_list, element.id)
+      end
+    end
+    res
+  end
+
   private
 
   def post_type_taxonomy_html_(categories, taxonomy="categories", name="categories", type="checkbox", values=[], class_cat="", required = false)

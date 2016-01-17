@@ -12,7 +12,7 @@ class CamaleonCms::PostUniqValidator < ActiveModel::Validator
       slug_array = record.slug.to_s.translations_array
       ptype = record.post_type
       if ptype.present? # only for posts that belongs to a post type model
-        posts = ptype.site.posts.where("(#{slug_array.map {|s| "#{CamaleonCms::Post.table_name}.slug LIKE '%-->#{s}<!--%'"}.join(" OR ")} ) OR #{CamaleonCms::Post.table_name}.slug = ?",  record.slug).where("#{CamaleonCms::Post.table_name}.status != 'draft'").where(post_parent: nil).where.not(id: record.id)
+        posts = ptype.site.posts.where("(#{slug_array.map {|s| "#{CamaleonCms::Post.table_name}.slug LIKE '%-->#{s}<!--%'"}.join(" OR ")} ) OR #{CamaleonCms::Post.table_name}.slug = ?",  record.slug).where("#{CamaleonCms::Post.table_name}.status != 'draft'").where.not(id: record.id)
         if posts.size > 0
           if slug_array.size > 1
             record.errors[:base] << "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}: #{posts.pluck(:slug).map{|slug| record.slug.to_s.translations.map{|lng, r_slug| "#{r_slug} (#{lng})" if slug.translations_array.include?(r_slug) }.join(",") }.join(",").split(",").uniq.clean_empty.join(", ")} "
@@ -20,6 +20,9 @@ class CamaleonCms::PostUniqValidator < ActiveModel::Validator
             record.errors[:base] << "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}: #{record.slug.to_s} "
           end
         end
+
+        # avoid recursive page parent
+        record.errors[:base] << I18n.t('camaleon_cms.admin.post.message.recursive_hierarchy', default: 'Parent Post Recursive') if record.post_parent.present? && ptype.manage_hierarchy? && record.parents.cama_pluck(:id).include?(record.id)
       else
         # validation for other classes
       end
@@ -54,11 +57,35 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   scope :trash, -> {where(status: 'trash')}
   scope :no_trash, -> {where.not(status: 'trash')}
   scope :published, -> {where(status: 'published')}
+  scope :root_posts, -> {where(post_parent: [nil, ''])}
   scope :drafts, -> {where(status: 'draft')}
   scope :pendings, -> {where(status: 'pending')}
   scope :latest, -> {reorder(created_at: :desc)}
 
   validates_with CamaleonCms::PostUniqValidator
+  attr_accessor :show_title_with_parent
+
+  # return all parents for current page hierarchy ordered bottom to top
+  def parents
+    cama_fetch_cache("parents_#{self.id}") do
+      res = []
+      p = self.parent
+      while p.present?
+        res << p
+        p = p.parent
+      end
+      res
+    end
+  end
+
+  # return all children elements for current post (page hierarchy)
+  def full_children
+    cama_fetch_cache("full_children_#{self.id}") do
+      res = self.children.to_a
+      res.each{|c|  res += c.full_children }
+      res
+    end
+  end
 
   # return the post type of this post (DEPRECATED)
   def get_post_type_depre

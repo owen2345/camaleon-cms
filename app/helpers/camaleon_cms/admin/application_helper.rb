@@ -35,10 +35,10 @@ module CamaleonCms::Admin::ApplicationHelper
     will_paginate_options.delete(:panel_class)
     "<div class='row #{custom_class} pagination_panel cama_ajax_request'>
         <div class='col-md-6'>
-          #{will_paginate items, will_paginate_options }
+          #{will_paginate(items, will_paginate_options) rescue '' }
         </div>
         <div class='col-md-6 text-right total-items'>
-          <strong>Total: #{items.total_entries} </strong>
+          <strong>Total: #{items.total_entries rescue items.count} </strong>
         </div>
     </div>"
   end

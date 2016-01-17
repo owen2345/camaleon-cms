@@ -144,6 +144,11 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
     get_option("contents_route_format", "post")
   end
 
+  # verify if this post_type support for page hierarchy (parents)
+  def manage_hierarchy?
+    get_option('has_parent_structure', false)
+  end
+
   private
   # skip save_metas_options callback after save changes (inherit from taxonomy) to call from here manually
   def save_metas_options_skip

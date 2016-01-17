@@ -109,7 +109,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     if params[:draft_id].present?
       draft_render
     else
-      render_post(@post || params[:slug].to_s, true)
+      render_post(@post || params[:slug].to_s.split("/").last, true)
     end
   end
 

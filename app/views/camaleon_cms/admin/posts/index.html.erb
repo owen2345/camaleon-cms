@@ -44,17 +44,17 @@
             </tr>
             </thead>
             <tbody>
-            <% @posts.eager_load(:categories, :post_tags).each do |f| f = f.decorate; parent = f.parent %>
+            <% (@post_type.manage_hierarchy? ? cama_hierarchy_post_list(@posts.eager_load(:categories, :post_tags).decorate.to_a) : @posts.eager_load(:categories, :post_tags).decorate).each do |f| title = f.the_hierarchy_title %>
                 <tr data-id="<%= f.id %>" class="<%= "sortable" if can? :update, f %>">
                     <td><%= f.id %></td>
                     <td>
                         <% if !f.trash? && (can? :update, f) %>
-                            <%= link_to f.the_title, {action: :edit, id: f.id}, class: "cama_ajax_request" %>
+                            <%= link_to title, {action: :edit, id: f.id}, class: "cama_ajax_request" %>
                         <% else %>
-                            <%= f.the_title %>
+                            <%= title %>
                         <% end %>
                     </td>
-                    <%= content_tag :td, parent.present? ? link_to(parent.decorate.the_title, {action: :edit, id: parent.id}, class: "cama_ajax_request") : "" if @lists_tab == "draft" %>
+                    <%= content_tag :td, link_to(f.parent.decorate.the_title, {action: :edit, id: f.post_parent}, class: "cama_ajax_request") if @lists_tab == "draft" && f.post_parent.present? %>
                     <td><%= link_to raw(f.the_status), {action: :index, s: f.status}, class: "cama_ajax_request" %>  </td>
                     <td><%= f.author.fullname %></td>
                     <% if @post_type.manage_categories? %>

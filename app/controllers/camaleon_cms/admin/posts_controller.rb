@@ -15,6 +15,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
 
   def index
     authorize! :posts, @post_type
+    per_page = current_site.admin_per_page
     posts_all = @post_type.posts.eager_load(:parent, :post_type)
     if params[:taxonomy].present? && params[:taxonomy_id].present?
       if params[:taxonomy] == "category"
@@ -49,9 +50,10 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     end
 
     @btns = {published: "#{t('camaleon_cms.admin.post_type.published')} (#{posts_all.where(status: "published").size})", all: "#{t('camaleon_cms.admin.post_type.all')} (#{posts_all.no_trash.size})", pending: "#{t('camaleon_cms.admin.post_type.pending')} (#{posts_all.where(status: "pending").size})", draft: "#{t('camaleon_cms.admin.post_type.draft')} (#{posts_all.where(status: "draft").size})", trash: "#{t('camaleon_cms.admin.post_type.trash')} (#{posts_all.where(status: "trash").size})"}
-    r = {posts: @posts, post_type: @post_type, btns: @btns, all_posts: posts_all, render: 'index' }
+    r = {posts: @posts, post_type: @post_type, btns: @btns, all_posts: posts_all, render: 'index', per_page: per_page }
     hooks_run("list_post", r)
-    @posts = r[:posts].paginate(:page => params[:page], :per_page => current_site.admin_per_page)
+    per_page = 9999999 if @post_type.manage_hierarchy?
+    @posts = r[:posts].paginate(:page => params[:page], :per_page => per_page)
     render r[:render]
   end
 
@@ -153,15 +155,8 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     json = {error: 'Not Found'}
     case params[:method]
       when 'exist_slug'
-        slug_orig = params[:slug].to_s
-        slug = slug_orig
-        post_id = params[:post_id].present? ? params[:post_id] : 0
-        i = 0
-        while _exist_slug?(slug, post_id)  do
-          i +=1
-          slug = "#{slug_orig}-#{i}"
-        end
-        json = {slug: slug, index: i}
+        slug = current_site.get_valid_post_slug(params[:slug].to_s, params[:post_id])
+        json = {slug: slug, index: 1}
     end
     render json: json
   end
@@ -193,16 +188,10 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   # is_create: indicate if this info is for create a new post
   def get_post_data(is_create = false)
     post_data = params[:post]
-    post_data[:post_parent] = nil
     post_data[:user_id] = cama_current_user.id if is_create
     post_data[:status] == 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
     post_data[:data_tags] = params[:tags].to_s
     post_data[:data_categories] = params[:categories] || []
     post_data
-  end
-
-  # valid slug post
-  def _exist_slug?(slug, post_id)
-    current_site.posts.where("#{CamaleonCms::Post.table_name}.slug LIKE ? OR #{CamaleonCms::Post.table_name}.slug = ?",  "%-->#{slug}<!--%", slug).where("#{CamaleonCms::Post.table_name}.status != 'draft'").where(post_parent: nil).where.not(id: post_id).present?
   end
 end

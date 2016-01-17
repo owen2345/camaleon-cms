@@ -51,4 +51,9 @@ class Array
     self.uniq.map{|us_id| "__#{us_id}__"}.join(',')
   end
 
+  # alternative pluck method for arrays
+  def cama_pluck(attribute)
+    self.map{|i| i.send(attribute) }
+  end
+
 end

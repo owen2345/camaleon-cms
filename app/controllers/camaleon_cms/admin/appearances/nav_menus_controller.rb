@@ -87,7 +87,6 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
 
   def get_nav_items(menu_items, parent_id = 0)
     items = []
-    # menu_items.eager_load(:metas, :field_values).each do |nav_item| # changed for "DEPRECATION WARNING: The association scope 'field_values' is instance dependent"
     menu_items.eager_load(:metas).each do |nav_item|
       object = _get_object_nav_menu(nav_item)
       if object.present?
@@ -119,7 +118,8 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
         else
           false
       end
-    rescue
+    rescue => e
+      puts "@@@@@@@@@@@@@@@@@@@@@@@@@ Skipped menu for: #{e.message} (#{nav_menu_item})"
       false
     end
   end

@@ -39,15 +39,17 @@
                                     <th><%= t('camaleon_cms.admin.table.id') %></th>
                                     <th><%= t('camaleon_cms.admin.table.name') %></th>
                                     <th><%= t('camaleon_cms.admin.table.post_type') %></th>
+                                    <%= content_tag :th, t('camaleon_cms.admin.table.status') if params[:kind] == "content" %>
                                     <th><%= t('camaleon_cms.admin.table.actions') %></th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <% @items.decorate.each do |f| %>
+                                <% (params[:kind] == "content" ? cama_hierarchy_post_list(@items.decorate.to_a) : @items.decorate).each do |f| title = (params[:kind] == "content" ? f.the_hierarchy_title : f.the_title) %>
                                     <tr>
                                         <td><%= f.id %></td>
-                                        <td><%= f.the_title %></td>
-                                        <td><%= f.post_type.decorate.the_title rescue "" %></td>
+                                        <td><%= title %></td>
+                                        <td><%= f.post_type.decorate.the_title rescue "-not found PostType-" %></td>
+                                        <%= content_tag :td, raw(f.the_status) if params[:kind] == "content" %>
                                         <td>
                                             <a href="<%= f.the_url %>" class="btn btn-info btn-xs" target="_blank" title="<%= t('camaleon_cms.admin.button.preview') %>"><i class="fa fa-eye"></i></a>
                                             <a href="<%= f.the_edit_url %>" class="btn btn-info btn-xs" target="_blank" title="<%= t('camaleon_cms.admin.button.edit') %>"><i class="fa fa-pencil"></i></a>
