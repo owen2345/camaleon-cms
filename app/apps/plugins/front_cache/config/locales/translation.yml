@@ -35,3 +35,23 @@ es:
         settings_saved: 'Ajustes guardados!'
         cache_destroyed: 'Caché destruida!'
       settings: 'Ajustes'
+
+
+nl:
+  plugin:
+    front_cache:
+      button:
+        add_new_path: 'Nieuwe locatie toevoegen'
+      custom_url_paths: 'Aangepaste URL locaties'
+      clean_cache: 'Cache opschonen'
+      title: "Frontend cache pagina's"
+      home_page: 'Home Page'
+      pages: "Pagina's"
+      pages_of: "Pagina van"
+      skip_cache_pages: 'Pagina cache overslaan'
+      message:
+        please_checkpost_need_cache: 'Kijk alle berichten of post types die je moet cachen.'
+        enabled_cache_inner_content_logged_users: 'Activeer cache voor gelogde gebruikers'
+        settings_saved: 'instellingen opgeslagen!'
+        cache_destroyed: 'Cache vernietigd!'
+      settings: 'instellingen'
