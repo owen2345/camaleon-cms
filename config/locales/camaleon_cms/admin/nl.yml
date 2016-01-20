@@ -69,7 +69,7 @@ nl:
 
       comments:
         new_msg: 'Nieuwe reactie voor deze inhoud'
-        comments_list_post: 'Overzicht reacties'
+        comments_list_post: 'Reactieoverzicht'
         responses: 'Reacties'
         message:
           approved: 'Goedgekeurd'
@@ -186,7 +186,7 @@ nl:
       message:
         are_you_sure_you_want_log_out_int: 'Weet je zeker dat je uit wilt loggen?'
         are_you_sure_to_import: "Wit je zeker dat je wilt importeren?"
-        data_found_list: 'Geen data gevonden in lijst'
+        data_found_list: 'Geen data gevonden in het overzicht'
         delete: 'Weet je zeker dat dit item wilt verwijderen?'
         delete_item: 'Wilt u dit item echt verwijderen?'
         edit_menu: 'Plaatst elk item in de gewenste volgorde. Klik op het icoontje van een potlood om het item te bewerken en klik op het icoon in de vorm van x om het item te verwijderen.'
@@ -296,7 +296,7 @@ nl:
           permission_manage_layout: 'Zet dit aan om layout te kunnen kiezen bij de inhoud.'
           permission_add_keywords: 'Veld om sleutelwoorden toe te voegen aan inhoud aanzetten'
           default_layout: 'Selecteer de standaard layout voor alle inhoud van dit inhoudstype'
-          default_template: 'Selecteer de standaard template  voor alle inhoud van dit inhoudstype'
+          default_template: 'Selecteer de standaard sjabloon voor alle inhoud van dit inhoudstype'
         upload_image: 'Afbeelding uploaden'
         view_comments: 'Reacties bekijken'
       plugins:
@@ -474,7 +474,7 @@ nl:
         manage_picture: 'Beheer afbeelding'
         manage_summary: 'Beheer overzicht'
         manage_tags: 'Beheer tags'
-        manage_template: 'Beheer template'
+        manage_template: 'Beheer sjabloon'
         manage_layout: 'Beheer layout'
         modified: 'Aangepast'
         multiple_field_int: 'Meerdere velden?'
@@ -572,20 +572,20 @@ nl:
           media: 'Media'
           publish: 'Publiceer'
           themes: "Thema's"
-          html_create_or_edit: 'Maak<br>of bewerk'
+          html_create_or_edit: 'Toevoegen<br>en bewerken'
           html_edit_other: 'Bewerk<br>andere'
-          html_edit_publish: 'Bewerk<br>publiceer'
+          html_edit_publish: 'Bewerk<br>gepubliceerd'
           html_delete_other: 'Verwijder<br>andere'
-          html_delete_publish: 'Verwijder<br>publiceer'
+          html_delete_publish: 'Verwijder<br>gepubliceerd'
           html_read_private: 'Lees<br>privé'
           html_manage_categories: 'Beheer<br>categorieëen'
           html_manage_tags: 'Beheer<br>tags'
         tool_tip:
           comments: 'Reacties toestaan'
-          delete: 'Je moet toestemming om maken of bewerken om berichten te verwijderen uit uw woning. '
-          forms: 'Tormulier sectie toestaan'
+          delete: 'Je moet de rechten toevoegen en bewerken hebben om je eigen inhoud te bewerken of te verwijderen. '
+          forms: 'Toegang tot formulieren'
           media: 'Toegang tot media'
-          publish: 'Je hebt de volgende rechten aanmaken of bewerken, bewerk andere, bewerk of publiceren nodig om dit aan te passen'
+          publish: 'Je hebt de volgende rechten toevoegen en bewerken, bewerk andere, bewerk gepubliceerd nodig om dit aan te passen'
           themes: "Toegang tot thema's"
           widgets: 'Toegang tot widgets'
           menus: "Toegang tot menu's"
@@ -596,7 +596,7 @@ nl:
           edit_other: 'Maak of pas de inhoud van andere gebruikers aan (de inhoud is nog niet gepubliceerd)'
           edit_publish: 'Staat je toe om gepubliceerde inhoud te bewerken'
           delete_other: 'Je hebt rechten nodig om andere berichten van andere gebruikers aan te passen of te verwijderen'
-          delete_publish: 'Je hebt de volgende rechten nodig verwijder, verwijder andere, om deze permissie te activeren'
+          delete_publish: 'Je hebt de volgende rechten nodig verwijder, verwijder andere, om deze optie te activeren'
           read_private: 'Staat je toe om privé inhoud te zien'
           manage_categories: "Rechten om categorieën aan te maken, te bewerken of te verwijderen"
           manage_tags: 'Rechten om berichtens tags aan te maken, te bewerken of te verwijderen'
