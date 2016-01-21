@@ -30,8 +30,4 @@ $.extend( $.validator.messages, {
     bankaccountNL: "Vul hier een geldig bankrekeningnummer in.",
     giroaccountNL: "Vul hier een geldig gironummer in.",
     bankorgiroaccountNL: "Vul hier een geldig bank- of gironummer in."
-<<<<<<< HEAD
 } );
-=======
-} );
->>>>>>> 6787f2a69e9a1303b5b443de8fb116af51f9efe9
