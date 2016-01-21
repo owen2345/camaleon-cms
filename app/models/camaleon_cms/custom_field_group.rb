@@ -7,6 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
+  self.primary_key = :id
   # attrs required: name, slug, description
   default_scope { where.not(object_class: '_fields').reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC") }
 

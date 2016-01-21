@@ -7,6 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::CustomField < ActiveRecord::Base
+  self.primary_key = :id
   include CamaleonCms::Metas
   has_many :metas, ->{ where(object_class: 'CustomField')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}custom_fields"
