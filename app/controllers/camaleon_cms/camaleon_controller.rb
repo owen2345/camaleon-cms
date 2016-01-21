@@ -11,6 +11,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   add_flash_types :error
   add_flash_types :notice
 
+  include ApplicationHelper rescue nil # fix for: ApplicationHelper removed from the module tree but is still active!
   include CamaleonCms::CamaleonHelper
   include CamaleonCms::SessionHelper
   include CamaleonCms::SiteHelper
