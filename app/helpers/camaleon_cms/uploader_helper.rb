@@ -13,6 +13,7 @@ module CamaleonCms::UploaderHelper
   #     sample: temporal => will save in /rails_path/public/temporal
   #   generate_thumb: true, # generate thumb image if this is image format (default true)
   #   maximum: maximum bytes permitted to upload (default: 1000MG)
+  #   dimension: dimension for the image (sample: 30x30 | x30 | 30x)
   #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
   #   remove_source: Boolean (delete source file after saved if this is true, default false)
   #   same_name: Boolean (save the file with the same name if defined true, else search for a non used name)
@@ -26,6 +27,13 @@ module CamaleonCms::UploaderHelper
       return {error: "File is empty", file: nil, size: nil}
     end
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
+
+    if settings[:dimension].present? # resize file into specific dimensions
+      r={file: uploaded_io.path, w: settings[:dimension].split('x')[0], h: settings[:dimension].split('x')[1], w_offset: 0, h_offset: 0, resize: true, replace: true}; hooks_run("on_uploader_resize", r)
+      resize_path = cama_crop_image(r[:file], r[:w], r[:h], r[:w_offset], r[:h_offset], r[:resize] , r[:replace])
+      uploaded_io = File.open(resize_path)
+    end
+
     cama_uploader_init_connection(true)
     settings = settings.to_sym
     settings = {
@@ -245,15 +253,17 @@ module CamaleonCms::UploaderHelper
   #   (true => resize the image to this dimension)
   #   (false => crop the image with this dimension)
   # replace: Boolean (replace current image or create another file)
-  def cama_crop_image(file_path, w, h, w_offset, h_offset, resize = nil , replace: true)
+  def cama_crop_image(file_path, w, h, w_offset = 0, h_offset = 0, resize = false , replace = true)
     image = MiniMagick::Image.open(file_path)
     image.combine_options do |i|
-      i.resize(resize) if resize.present?
-      i.crop "#{w.to_i}x#{h.to_i}+#{w_offset}+#{h_offset}!"
+      puts "&&&&&&&&&&& #{"#{w.to_i if w.present?}x#{h.to_i if h.present?}!"}"
+      puts "@@@@@@@@@ #{w.to_i if w.present?}x#{h.to_i if h.present?}+#{w_offset}+#{h_offset}!"
+      i.resize("#{w.to_i if w.present?}x#{h.to_i if h.present?}!") if resize
+      i.crop "#{w.to_i if w.present?}x#{h.to_i if h.present?}+#{w_offset}+#{h_offset}!" unless resize
     end
 
     res = file_path
-    if replace
+    unless replace
       ext = File.extname(file_path)
       res = file_path.gsub(ext, "_crop#{ext}")
     end

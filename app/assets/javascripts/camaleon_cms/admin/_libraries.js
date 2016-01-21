@@ -98,13 +98,15 @@ var init_form_validations = function (form) {
 
 // file uploader
 (function ($) {
+    // sample: <input name="icon" class="upload_input" type="hidden" data-dimension="23x22" value="current_image_url"/>
+    //          $(".upload_input").input_upload({label: '', title: 'Select Images', type: 'image', dimension: '30x30'});
     $.fn.input_upload = function (options_init) {
         var default_options = {label: I18n("msg.upload_image"), type: "image", ext: "none", icon: "upload", full_url: true, height: '100px'};
         default_options = $.extend({}, default_options, options_init || {});
         $(this).each(function () {
             var $that = $(this);
             var options = $.extend({}, default_options, $that.data() || {});
-            var $content_image = $("<div class='content-upload-plugin'><a style='' href='#' target='_blank'><img src=''><br><span class='rm-file btn btn-xs btn-danger'><i class='fa fa-trash'></i></span> <strong></strong></a></div>").hide();
+            var $content_image = $("<div class='content-upload-plugin'><a style='' href='#' target='_blank'><img src=''><br><span class='rm-file btn btn-xs btn-danger'><i class='fa fa-trash'></i></span></a></div>").hide();
             if (options.type != 'image') $content_image.find('img').remove();
             var $btn_upload = $('<a class="btn btn-default" href="#"><i class="fa fa-upload"></i> ' + options.label + '</a>')
             $content_image.find('img').css('max-height', options.height);
@@ -115,7 +117,9 @@ var init_form_validations = function (form) {
                     formats: options.type,
                     selected: function (file, response) {
                         $that.val(file.url).trigger("change");
-                    }
+                    },
+                    dimension: $that.attr('data-dimension') || options["dimension"],
+                    title: $that.attr('title') || options["title"],
                 });
                 return false;
             });
@@ -126,7 +130,7 @@ var init_form_validations = function (form) {
                 if(url){
                     $content_image.find('img').attr('src', url);
                     $content_image.find('a').attr('href', url);
-                    $content_image.find('strong').html(_.last(url.split('/')));
+                    //$content_image.find('strong').html(_.last(url.split('/')));
                     $content_image.show();
                 }else{
                     $content_image.hide();

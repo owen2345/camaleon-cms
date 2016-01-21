@@ -5,6 +5,7 @@ window["cama_init_media"] = (media_panel)->
 
   ################ visualize item
   show_file = (item) ->
+    item.addClass('selected').siblings().removeClass('selected')
     data = eval("("+item.find(".data_value").val()+")")
     media_info_tab_info.click()
     tpl =
@@ -23,6 +24,20 @@ window["cama_init_media"] = (media_panel)->
 
     media_info.html(tpl)
     media_info.find(".p_thumb").html(item.find(".thumb").html())
+    if data["format"] == "image"
+      img = $('<img src="'+data["url"]+'">').hide()
+      media_info.append(img)
+      if media_panel.attr("data-dimension")
+        media_info.find(".p_footer").hide()
+      img.load ->
+        media_info.find(".p_body").append("<div class='cdimension'><b>"+I18n("button.dimension")+": </b><span>"+this.width+"x"+this.height+"</span></div>")
+        ww = parseInt(media_panel.attr("data-dimension").split("x")[0]) || this.width
+        hh = parseInt(media_panel.attr("data-dimension").split("x")[1]) || this.height
+        if media_panel.attr("data-dimension") && this.width == ww && this.height == hh
+          media_info.find(".p_footer").show()
+        else
+          media_info.find(".cdimension").css("color", 'red')
+        media_info.find(".p_thumb").html(img.show())
 
     if window["callback_media_uploader"] # trigger callback
       media_info.find(".insert_btn").click ->
@@ -150,11 +165,12 @@ window["cama_init_media"] = (media_panel)->
 
 # jquery library for modal updaloder
 $ ->
-  # sample: $.fn.upload_filemanager({title: "My title", formats: "image,video", selected: function(file){ alert(file["name"]) }})
+  # sample: $.fn.upload_filemanager({title: "My title", formats: "image,video", dimension: "30x30", selected: function(file){ alert(file["name"]) }})
   # file structure: {"name":"422.html","size":1547, "url":"http://localhost:3000/media/1/422.html", "format":"doc","type":"text/html"}
+  # dimension: dimension: "30x30" | "x30" | dimension: "30x"
   $.fn.upload_filemanager = (args)->
     args = args || {}
-    open_modal({title: args["title"] || I18n("msg.media_title"), modal_size: "modal-lg", mode: "ajax", url: root_url+"/admin/media/ajax", ajax_params: {media_formats: args["formats"]}, callback: (modal)->
+    open_modal({title: args["title"] || I18n("msg.media_title"), modal_size: "modal-lg", mode: "ajax", url: root_url+"/admin/media/ajax", ajax_params: {media_formats: args["formats"], dimension: args["dimension"] }, callback: (modal)->
       if args["selected"]
         window["callback_media_uploader"] = args["selected"]
       modal.css("z-index", args["zindex"] || 99999).children(".modal-dialog").css("width", "90%")

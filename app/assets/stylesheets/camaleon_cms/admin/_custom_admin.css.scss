@@ -265,3 +265,16 @@ input.code_style{
 .tab-content > .tab-pane{
   padding-top: 5px;
 }
+.content-upload-plugin{
+  min-height: 45px;
+  position: relative;
+  .rm-file{
+    position: absolute;
+    top: 100%;
+    margin-top: -22px;
+  }
+  img{
+    max-height: 100px;
+    max-width: 200px;
+  }
+}

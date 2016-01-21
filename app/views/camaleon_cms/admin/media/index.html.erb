@@ -1,4 +1,4 @@
-<div id="cama_media_gallery" data-url_actions="<%= actions_cama_admin_media_path(actions: @show_file_actions) %>" data-formats="<%= @media_formats.join(",") %>" data-folder="<%= @folder %>" data-url="<%= ajax_cama_admin_media_path(actions: @show_file_actions) %>">
+<div id="cama_media_gallery" data-url_actions="<%= actions_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-formats="<%= @media_formats.join(",") %>" data-folder="<%= @folder %>" data-url="<%= ajax_cama_admin_media_path(actions: @show_file_actions) %>" data-dimension="<%= params[:dimension] %>">
   <div class="panel panel-default">
     <div class="panel-heading">
       <div class="row">
@@ -26,7 +26,7 @@
           </ul>
           <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="cama_media_upload">
-              <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions) %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
+              <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
             </div>
             <div role="tabpanel" class="tab-pane" id="cama_media_info">
               <div class="media_file_info"></div>

@@ -62,7 +62,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   def upload
     f = {error: "File not found."}
     if params[:file_upload].present?
-      f = upload_file(params[:file_upload], {folder: params[:folder]})
+      f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension']})
     end
 
     unless f[:error].present?

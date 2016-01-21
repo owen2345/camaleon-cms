@@ -148,11 +148,15 @@ margin: 5px 10px 5px 0px;
     .file_item, .folder_item{
       position: relative;
       cursor: pointer;
-      width: 150px;
+      width: 157px;
       float: left;
-      margin: 5px;
-      height: 152px;
+      margin: 0px;
+      height: 157px;
       overflow: hidden;
+      border: 5px solid transparent;
+      &.selected{
+        border-color: #3c8dbc;
+      }
       .actions{
         position: absolute;
         top: 0;
