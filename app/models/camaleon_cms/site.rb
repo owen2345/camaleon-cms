@@ -287,7 +287,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   # update all routes of the system
   # reload system routes for this site
   def update_routes
-    PluginRoutes.reload
+    PluginRoutes.reload if self.slug_changed?
   end
 
   def before_validating
