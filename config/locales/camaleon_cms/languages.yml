@@ -8,6 +8,7 @@ en:
     pt: "Português"
     it: "Italian"
     ru: "Russian"
+    nl: "Dutch"
 
 es:
   languages:
@@ -19,6 +20,7 @@ es:
     pt: "Portugues"
     it: "Italiano"
     ru: "Russian"
+    nl: "Holandés"
 
 it:
   languages:
@@ -30,6 +32,7 @@ it:
     pt: "Portoghese"
     it: "Italiano"
     ru: "Russian"
+    nl: "Olandese"
 
 ru:
   languages:
@@ -41,3 +44,16 @@ ru:
     pt: "Португальский"
     it: "Итальянский"
     ru: "Русский"
+    nl: "Голландский"
+
+nl:
+  languages:
+    es: "Spaans"
+    en: "Engels"
+    fr: "Frans"
+    zh: "Chinees"
+    de: "Duits"
+    pt: "Portugees"
+    it: "Italiaans"
+    ru: "Russisch"
+    nl: "Nederlands"

@@ -40,15 +40,15 @@ nl:
   plugin:
     attack:
       title: 'Aanval'
-      attack_security: 'Aanval beveiliging'
+      attack_security: 'Beveiliging tegen aanvallen'
       form:
         in: 'in'
-        seconds: 'Seconden'
-        minutes: 'Minuten'
+        seconds: 'seconden'
+        minutes: 'minuten'
         type_max_requests_time: 'Max. %{type} Aanvragen'
         type_time_requests_seconds: '%{type} tijd verzoek [seconds]'
-        ban_time_minutes: 'Ban tijd'
-        ban_messages: 'Ban bericht'
+        ban_time_minutes: 'Tijdduur ban'
+        ban_messages: 'Melding bij ban'
         request_limit_exceeded: 'Verzoek limiet overschreden!'
       messages:
         settings_saved: 'instellingen opgeslagen!'
