@@ -15,7 +15,7 @@ module CamaleonCms::CaptchaHelper
     text = cama_rand_str(len)
     session[:captcha] = text
     img.combine_options do |c|
-      c.resize "150x40"
+      # c.resize "150x40"
       c.gravity 'Center'
       c.fill("#FFFFFF")
       c.draw "text 0,5 #{text}"

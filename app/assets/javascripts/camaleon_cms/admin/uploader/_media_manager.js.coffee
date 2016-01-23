@@ -10,33 +10,36 @@ window["cama_init_media"] = (media_panel)->
     media_info_tab_info.click()
     tpl =
       "<div class='p_thumb'></div>" +
-      "<div class='p_label'><b>"+I18n("button.name")+": </b><br> <span>"+data["name"]+"</span></div>" +
-      "<div class='p_body'>" +
+        "<div class='p_label'><b>"+I18n("button.name")+": </b><br> <span>"+data["name"]+"</span></div>" +
+        "<div class='p_body'>" +
         "<div><b>"+I18n("button.url")+":</b><br> <a target='_blank' href='"+data["url"]+"'>"+data["url"]+"</a></div>" +
         "<div><b>"+I18n("button.size")+":</b><br> <span>"+data["size"]+"</span></div>" +
-      "</div>"
+        "</div>"
 
     if window["callback_media_uploader"]
       if !media_panel.attr("data-formats") || (media_panel.attr("data-formats")  && $.inArray(data["format"], media_panel.attr("data-formats").split(",")) >= 0)
         tpl += "<div class='p_footer'>" +
-                "<a href='#' class='btn btn-primary insert_btn'>"+I18n("button.insert")+"</a>" +
-                "</div>"
+          "<button class='btn btn-primary insert_btn'>"+I18n("button.insert")+"</button>" +
+          "</div>"
 
     media_info.html(tpl)
     media_info.find(".p_thumb").html(item.find(".thumb").html())
-    if data["format"] == "image"
+    if data["format"] == "image" && media_panel.attr("data-dimension") # verify dimensions
       img = $('<img src="'+data["url"]+'">').hide()
-      media_info.append(img)
-      if media_panel.attr("data-dimension")
-        media_info.find(".p_footer").hide()
+      btn = media_info.append(img).find(".p_footer .insert_btn")
+      btn.prop('disabled', true)
       img.load ->
         media_info.find(".p_body").append("<div class='cdimension'><b>"+I18n("button.dimension")+": </b><span>"+this.width+"x"+this.height+"</span></div>")
         ww = parseInt(media_panel.attr("data-dimension").split("x")[0]) || this.width
         hh = parseInt(media_panel.attr("data-dimension").split("x")[1]) || this.height
         if media_panel.attr("data-dimension") && this.width == ww && this.height == hh
-          media_info.find(".p_footer").show()
+          btn.prop('disabled', false)
         else
           media_info.find(".cdimension").css("color", 'red')
+          cut = $("<button class='btn btn-info pull-right'><i class='fa fa-crop'></i> "+I18n("button.crop_image")+"</button>").click(->
+            $.fn.upload_url({url: data["url"]})
+          )
+          btn.after(cut)
         media_info.find(".p_thumb").html(img.show())
 
     if window["callback_media_uploader"] # trigger callback
@@ -56,21 +59,24 @@ window["cama_init_media"] = (media_panel)->
   ########## file uploader
   p_upload = media_panel.find(".cama_media_fileuploader")
   customFileData = ->
-    return {folder: media_panel.attr("data-folder") }
+    return {folder: media_panel.attr("data-folder"), formats: media_panel.attr("data-formats") }
 
   p_upload.uploadFile({
     url: p_upload.attr("data-url"),
     fileName: "file_upload",
     dynamicFormData: customFileData,
-    onSuccess: (files,res_upload,xhr,pd)->
+    onSuccess: ((files,res_upload,xhr,pd)->
       if res_upload.search("<") == 0 # success upload
-        p = media_panel.find(".media_browser_list").prepend(res_upload)
-        if $(pd.statusbar).siblings().length == 0
-          p.children().first().click()
+        media_panel.trigger("add_file", {item: res_upload, selected: $(pd.statusbar).siblings().not('.error_file_upload').size() == 0})
         $(pd.statusbar).remove();
-
       else
         $(pd.statusbar).find(".ajax-file-upload-progress").html("<span style='color: red;'>"+res_upload+"</span>");
+    ),
+    onError: ((files,status,errMsg,pd) ->
+      $(pd.statusbar).addClass('error_file_upload').find(".ajax-file-upload-filename").append(" <i class='fa fa-times btn btn-danger btn-xs' onclick='$(this).closest(\".ajax-file-upload-statusbar\").remove();'></i>")
+    )
+
+
   })
   ## end file uploader
 
@@ -116,6 +122,11 @@ window["cama_init_media"] = (media_panel)->
       media_panel.find(".media_browser_list").html(res)
       hideLoading()
     )
+  ).bind("add_file", (e,  data)-> # add html item in the list
+    item = $(data["item"])
+    media_panel.find(".media_browser_list").prepend(item)
+    if data["selected"] == true || data["selected"] == undefined
+      item.click()
   )
 
 
@@ -144,6 +155,7 @@ window["cama_init_media"] = (media_panel)->
     open_modal({title: "New Folder", content: content, callback: callback})
     return false
   )
+
   # destroy file and folder
   media_panel.on("click", "a.del_item, a.del_folder", ->
     unless confirm(I18n("msg.delete_item"))
@@ -154,13 +166,48 @@ window["cama_init_media"] = (media_panel)->
     $.post(media_panel.attr("data-url_actions"), {folder: media_panel.attr("data-folder")+"/"+item.attr("data-key"), media_action: if link.hasClass("del_folder") then "del_folder" else "del_file"}, (res)->
       hideLoading()
       if res
-        $.fn.alert({type: 'error', content: res, title: "Error"})
+        $.fn.alert({type: 'error', content: res, title: I18n("button.error")})
       else
         item.remove()
         media_info.html("")
+    ).error(->
+      $.fn.alert({type: 'error', content: I18n("msg.internal_error"), title: I18n("button.error")})
     )
     return false
   )
+
+  # upload from url form
+  media_panel.find("#cama_media_external").submit( ->
+    unless $(this).valid()
+      return false
+    $.fn.upload_url({url: $(this).find("input").val(), callback: ->
+      media_panel.find("#cama_media_external")[0].reset();
+    })
+    return false
+  ).validate()
+
+$ ->
+  # sample: $.fn.upload_url({url: 'http://camaleon.tuzitio.com/media/132/logo2.png', dimension: '120x120', folder: 'my_folder'})
+  # dimension: default current dimension
+  # folder: default current folder
+  $.fn.upload_url = (args)->
+    media_panel = $("#cama_media_gallery")
+    data = {folder: media_panel.attr("data-folder"), media_action: "crop_url", formats: media_panel.attr("data-formats"), onerror: (message) ->
+      $.fn.alert({type: 'error', content: message, title: I18n("msg.error_uploading")})
+    }
+    $.extend(data, args); on_error = data["onerror"]; delete data["onerror"];
+    showLoading()
+    $.post(media_panel.attr("data-url_actions"), data, (res_upload)->
+      hideLoading()
+      if res_upload.search("<") == 0 # success upload
+        media_panel.trigger("add_file", {item: res_upload})
+        if data["callback"]
+          data["callback"](res_upload)
+      else
+        $.fn.alert({type: 'error', content: res_upload, title: I18n("button.error")})
+    ).error(->
+      $.fn.alert({type: 'error', content: I18n("msg.internal_error"), title: I18n("button.error")})
+    )
 
 
 # jquery library for modal updaloder

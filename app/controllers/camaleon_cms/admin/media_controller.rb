@@ -55,21 +55,27 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
       when "del_file"
         cama_uploader_destroy_file(params[:folder].gsub("//", "/"))
         render inline: ""
+      when 'crop_url'
+        params[:url] = Rails.public_path.join(params[:url].sub(current_site.the_url, '')).to_s if params[:url].include?(current_site.the_url) # local file
+        r = cama_tmp_upload(params[:url], formats: params[:formats])
+        unless r[:error].present?
+          params[:file_upload] = r[:file_path]
+          upload({remove_source: true})
+        else
+          render inline: r[:error]
+        end
     end
   end
 
   # upload files from media uploader
-  def upload
+  def upload(settings = {})
     f = {error: "File not found."}
     if params[:file_upload].present?
-      f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension']})
+      f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats]}.merge(settings))
     end
 
-    unless f[:error].present?
-      render partial: "render_file_item", locals:{ file: f }
-    else
-      render inlien: f[:error]
-    end
+    render(partial: "render_file_item", locals:{ file: f }) unless f[:error].present?
+    render inline: f[:error] if f[:error].present?
   end
 
   private

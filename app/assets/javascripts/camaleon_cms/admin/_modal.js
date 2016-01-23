@@ -25,7 +25,7 @@ jQuery(function(){
     // type: error | warning | success
     $.fn.alert = function (options) {
         hideLoading();
-        var default_options = {title: I18n("msg.updated_success"), type: "success" };
+        var default_options = {title: I18n("msg.updated_success"), type: "success", zindex: '99999999', id: 'cama_alert_modal' };
         options = $.extend(default_options, options || {});
         if(options.type == "error") options.type = "danger";
         if(options.type == "alert") options.type = "warning";
@@ -34,40 +34,6 @@ jQuery(function(){
             options.title = "";
         }
         open_modal(options);
-        return;
-
-
-
-        if (options.type == "error") options.type = "danger";
-        if (options.type == "alert") options.type = "warning";
-
-        var html = '<div class="message-box message-box-'+options.type+' animated fadeIn open" >'+
-            '<div class="mb-container">'+
-            '<div class="mb-middle">'+
-            '<div class="mb-title"><span class="fa fa-'+options.icon+'"></span> '+options.title+'</div>'  +
-            '<div class="mb-content">'+
-            options.content+
-            '</div>'+
-            '<div class="mb-footer">'+
-            '<button class="btn btn-default btn-lg pull-right mb-control-close">'+options.close+'</button>'+
-            '</div>'+
-            '</div>' +
-            '</div>' +
-            '</div>' ;
-
-        if(options.type === 'warning')
-            playAudio('alert');
-
-        if(options.type === 'danger')
-            playAudio('fail');
-
-        var $html = $(html);
-        $html.find('.mb-control-close').click(function(){
-            $html.remove();
-            return false;
-        })
-        $('body').append($html);
-
     };
 });
 
@@ -90,9 +56,9 @@ jQuery(function(){
  * return modal object
  */
 function open_modal(settings){
-    var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, zindex: null, modal_size: "", type: '', modal_settings:{}, on_submit: null, callback: function(){}, on_close: function(){}}
+    var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, id: 'ow_inline_modal', zindex: null, modal_size: "", type: '', modal_settings:{}, on_submit: null, callback: function(){}, on_close: function(){}}
     settings = $.extend({}, def, settings);
-    var modal = $('<div id="ow_inline_modal" class="modal fade modal-'+settings.type+'">'+
+    var modal = $('<div id="'+settings.id+'" class="modal fade modal-'+settings.type+'">'+
         '<div class="modal-dialog '+settings.modal_size+'">'+
         '<div class="modal-content">'+
         '<div class="modal-header">'+

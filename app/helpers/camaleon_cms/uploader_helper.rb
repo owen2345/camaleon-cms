@@ -36,6 +36,7 @@ module CamaleonCms::UploaderHelper
 
     cama_uploader_init_connection(true)
     settings = settings.to_sym
+    settings[:uploaded_io] = uploaded_io
     settings = {
         folder: "",
         maximum: 100.megabytes,
@@ -47,29 +48,12 @@ module CamaleonCms::UploaderHelper
         remove_source: false,
         same_name: false
     }.merge(settings)
+    hooks_run("before_upload", settings)
 
     res = {error: nil}
 
     # formats validations
-    if settings[:formats] != "*"
-      case settings[:formats]
-        when "images"
-          settings[:formats] = "jpg,jpeg,png,gif,bmp"
-        when "videos"
-          settings[:formats] = "flv,webm,wmv,avi,swf,mp4"
-        when "audios"
-          settings[:formats] = "mp3,ogg"
-        when "documents"
-          settings[:formats] = "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt"
-        when "compresed"
-          settings[:formats] = "zip,7z,rar,tar,bz2,gz,rar2"
-      end
-
-      unless settings[:formats].downcase.split(",").include?(File.extname(settings[:filename]).sub(".", "").downcase)
-        res[:error] = ct("file_format_error")
-        return res
-      end
-    end
+    return {error: "#{ct("file_format_error")} (#{settings[:formats]})"} unless cama_verify_format(uploaded_io.path, settings[:formats])
 
     # file size validations
     if settings[:maximum] < settings[:file_size]
@@ -256,8 +240,6 @@ module CamaleonCms::UploaderHelper
   def cama_crop_image(file_path, w, h, w_offset = 0, h_offset = 0, resize = false , replace = true)
     image = MiniMagick::Image.open(file_path)
     image.combine_options do |i|
-      puts "&&&&&&&&&&& #{"#{w.to_i if w.present?}x#{h.to_i if h.present?}!"}"
-      puts "@@@@@@@@@ #{w.to_i if w.present?}x#{h.to_i if h.present?}+#{w_offset}+#{h_offset}!"
       i.resize("#{w.to_i if w.present?}x#{h.to_i if h.present?}!") if resize
       i.crop "#{w.to_i if w.present?}x#{h.to_i if h.present?}+#{w_offset}+#{h_offset}!" unless resize
     end
@@ -314,6 +296,58 @@ module CamaleonCms::UploaderHelper
       end
     end
     file
+  end
+
+  # upload tmp file
+  # support for url and local path
+  # sample:
+  # cama_tmp_upload('http://camaleon.tuzitio.com/media/132/logo2.png')  ==> /var/rails/my_project/public/tmp/1/logo2.png
+  # cama_tmp_upload('/var/www/media/132/logo 2.png')  ==> /var/rails/my_project/public/tmp/1/logo-2.png
+  # accept args:
+  #   name: to indicate the name to use, sample: cama_tmp_upload('/var/www/media/132/logo 2.png', {name: 'owen.png', formats: 'images'})
+  #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
+  def cama_tmp_upload(uploaded_io, args = {})
+    tmp_path = Rails.public_path.join("tmp", current_site.id.to_s)
+    FileUtils.mkdir_p(tmp_path) unless Dir.exist?(tmp_path)
+    if uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://")
+      return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_verify_format(uploaded_io, args[:formats])
+      name = args[:name] || uploaded_io.split("/").last
+      name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
+      path = uploader_verify_name( File.join(tmp_path, name))
+      File.open(path, 'wb'){|file| file.write(open(uploaded_io).read) }
+    else
+      uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
+      return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_verify_format(uploaded_io.path, args[:formats])
+      name = args[:name] || uploaded_io.path.split("/").last
+      name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
+      path = uploader_verify_name( File.join(tmp_path, name))
+      File.open(path, "wb"){|f| f.write(uploaded_io.read) }
+    end
+    {file_path: path, error: nil}
+  end
+
+  # verify permitted formats (return boolean true | false)
+  # true: if format is accepted
+  # false: if format is not accepted
+  def cama_verify_format(file_path, formats)
+    return true if formats == "*" || !formats
+    formats = formats.downcase.split(",")
+    if formats.include? "image"
+      formats += "jpg,jpeg,png,gif,bmp,ico".split(',')
+    end
+    if formats.include? "video"
+      formats += "flv,webm,wmv,avi,swf,mp4".split(',')
+    end
+    if formats.include? "audio"
+      formats += "mp3,ogg".split(',')
+    end
+    if formats.include? "document"
+      formats += "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt".split(',')
+    end
+    if formats.include?("compress") || formats.include?("compres")
+      formats += "zip,7z,rar,tar,bz2,gz,rar2".split(',')
+    end
+    formats.include?(File.extname(file_path).sub(".", "").downcase)
   end
 
   private

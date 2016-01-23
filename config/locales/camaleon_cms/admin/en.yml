@@ -170,6 +170,7 @@ en:
         media_manager: 'Media Manager'
         home: "Home"
         info: "Information"
+        external: "Upload From URL"
       menus:
         link_url: 'Link URL'
         message:
