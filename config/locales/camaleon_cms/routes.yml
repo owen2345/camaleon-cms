@@ -40,8 +40,8 @@ it:
 
 ru:
   routes:
-    group: группа
-    category: категория
-    tag: тег
-    search: поиск
-    profile: профиль
+    group: group
+    category: category
+    tag: tag
+    search: search
+    profile: profile
