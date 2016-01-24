@@ -70,7 +70,7 @@ jQuery(function($){
                 var l = languages[ii];
                 var key = "translation-"+l+"-"+TRANSLATOR_counter;
                 tabs_title.push('<li role="presentation" class="pull-right '+(ii==0?"active":"")+'"><a href="#pane-'+key+'" role="tab" data-toggle="tab">'+ l.titleize()+'</a></li>');
-                var clone = ele.clone(true).attr({id: key, name: key}).addClass("translate-item").val(get_translation(translations, l));
+                var clone = ele.clone(true).attr({id: key}).removeAttr('name').addClass("translate-item").val(get_translation(translations, l));
                 inputs[l] = clone;
                 clone.wrap("<div class='tab-pane "+class_group+" trans_tab_item "+(ii==0?"active":"")+"' id='pane-"+key+"'/>");
                 tabs_content.push(clone.parent());

@@ -28,11 +28,7 @@ module CamaleonCms::UploaderHelper
     end
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
 
-    if settings[:dimension].present? # resize file into specific dimensions
-      r={file: uploaded_io.path, w: settings[:dimension].split('x')[0], h: settings[:dimension].split('x')[1], w_offset: 0, h_offset: 0, resize: true, replace: true}; hooks_run("on_uploader_resize", r)
-      resize_path = cama_crop_image(r[:file], r[:w], r[:h], r[:w_offset], r[:h_offset], r[:resize] , r[:replace])
-      uploaded_io = File.open(resize_path)
-    end
+    uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension])) if settings[:dimension].present? # resize file into specific dimensions
 
     cama_uploader_init_connection(true)
     settings = settings.to_sym
@@ -238,10 +234,14 @@ module CamaleonCms::UploaderHelper
   #   (false => crop the image with this dimension)
   # replace: Boolean (replace current image or create another file)
   def cama_crop_image(file_path, w, h, w_offset = 0, h_offset = 0, resize = false , replace = true)
+    force = ""
+    force = "!" if w.present? && h.present? && !w.include?("?") && !h.include?("?")
     image = MiniMagick::Image.open(file_path)
+    w = image[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : image[:width] if w.present? && w.include?('?')
+    h = image[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : image[:height] if h.present? && h.include?('?')
     image.combine_options do |i|
-      i.resize("#{w.to_i if w.present?}x#{h.to_i if h.present?}!") if resize
-      i.crop "#{w.to_i if w.present?}x#{h.to_i if h.present?}+#{w_offset}+#{h_offset}!" unless resize
+      i.resize("#{w if w.present?}x#{h if h.present?}#{force}") if resize
+      i.crop "#{w if w.present?}x#{h if h.present?}+#{w_offset}+#{h_offset}#{force}" unless resize
     end
 
     res = file_path
@@ -306,15 +306,17 @@ module CamaleonCms::UploaderHelper
   # accept args:
   #   name: to indicate the name to use, sample: cama_tmp_upload('/var/www/media/132/logo 2.png', {name: 'owen.png', formats: 'images'})
   #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
+  #   dimension: 20x30
   def cama_tmp_upload(uploaded_io, args = {})
-    tmp_path = Rails.public_path.join("tmp", current_site.id.to_s)
+    tmp_path = args[:path] || Rails.public_path.join("tmp", current_site.id.to_s)
     FileUtils.mkdir_p(tmp_path) unless Dir.exist?(tmp_path)
-    if uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://")
+    if uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://"))
       return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_verify_format(uploaded_io, args[:formats])
       name = args[:name] || uploaded_io.split("/").last
       name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
       path = uploader_verify_name( File.join(tmp_path, name))
       File.open(path, 'wb'){|file| file.write(open(uploaded_io).read) }
+      path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
     else
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
       return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_verify_format(uploaded_io.path, args[:formats])
@@ -322,13 +324,25 @@ module CamaleonCms::UploaderHelper
       name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
       path = uploader_verify_name( File.join(tmp_path, name))
       File.open(path, "wb"){|f| f.write(uploaded_io.read) }
+      path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
     end
     {file_path: path, error: nil}
+  end
+
+  # resize image if the format is correct
+  # return resized file path
+  def cama_resize_upload(image_path, dimesion)
+    if cama_verify_format(image_path, 'image') && dimesion.present?
+      r={file: image_path, w: dimesion.split('x')[0], h: dimesion.split('x')[1], w_offset: 0, h_offset: 0, resize: !dimesion.split('x')[2] || dimesion.split('x')[2] == "resize", replace: true}; hooks_run("on_uploader_resize", r)
+      image_path = cama_crop_image(r[:file], r[:w], r[:h], r[:w_offset], r[:h_offset], r[:resize] , r[:replace])
+    end
+    image_path
   end
 
   # verify permitted formats (return boolean true | false)
   # true: if format is accepted
   # false: if format is not accepted
+  # sample: cama_verify_format(file_path, 'image,audio,docx,xls') => return true if the file extension is in formats
   def cama_verify_format(file_path, formats)
     return true if formats == "*" || !formats
     formats = formats.downcase.split(",")

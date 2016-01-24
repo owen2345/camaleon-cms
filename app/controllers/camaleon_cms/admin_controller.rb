@@ -19,7 +19,7 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
   before_action :admin_before_hooks
   after_action :admin_after_hooks
   layout Proc.new { |controller| params[:cama_ajax_request].present? ? "camaleon_cms/admin/_ajax" : 'camaleon_cms/admin' }
-  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.dashboard"), :cama_admin_path
+  add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.dashboard", default: 'Dashboard'), :cama_admin_path
 
   # render admin dashboard
   def index
