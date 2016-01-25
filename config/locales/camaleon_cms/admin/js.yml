@@ -125,6 +125,7 @@ it:
           settings: 'Impostazioni'
           save: "Salvare"
           submit: "Presentare"
+
 nl:
   camaleon_cms:
     admin:
@@ -166,3 +167,45 @@ nl:
           insert: "Invoegen"
           url: "URL"
           root: "root"
+
+pt-BR:
+  camaleon_cms:
+    admin:
+      js:
+        msg:
+          approved: 'Aprovado'
+          draft: 'Projecto salvas com sucesso'
+          updated_success: 'Atualizado com sucesso'
+          edit_menu: 'Coloque cada item na ordem de sua preferência. Clique no ícone de um lápis para editar o item e clique no ícone em forma de x para excluir o item.'
+          delete_item: 'Você realmente quer apagar este item?'
+          remove_items_submenu: 'Realmente remover este item e seus itens de menu sub?'
+          you_must_upload_image: 'Você deve fazer upload de uma imagem'
+          you_must_upload_video: 'Você deve fazer upload de um vídeo'
+          no_response_fields: 'Nenhum campo de resposta '
+          you_must_upload_json_file: 'Você deve fazer upload de um arquivo json'
+          no_templates_defined: 'Não foram definidos modelos'
+          avatar_updated: 'atualização Avatar'
+          form_error: 'formulário de erro'
+          option_title: 'opção Título'
+          permalink: 'Link permanente'
+          recover: 'recuperando...'
+          type_contents: 'tipo de Conteúdo'
+          confirm_del: "Tem certeza que quer apagar este item?"
+          media_title: 'mídia Uploader'
+
+        button:
+          edit: "Editar"
+          accept: "Aceitar"
+          cancel: "Cancelar"
+          delete: "Excluir"
+          clone: "Clone"
+          add_tag: 'Adicionar etiqueta'
+          close: 'Fechar'
+          settings: 'Configurações'
+          save: "Guardar"
+          submit: "Enviar"
+          name: "Nome"
+          size: "Tamanho"
+          insert: "Inserir"
+          url: "URL"
+          root: "raiz"
