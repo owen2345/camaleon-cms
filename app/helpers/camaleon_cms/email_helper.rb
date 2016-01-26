@@ -9,9 +9,9 @@ module CamaleonCms::EmailHelper
   # layout_name: path of the template to render
   # template_name: template name to render in template_path
   def send_email(email, subject='Tiene una notificacion', content='', from=nil, attachs=[], template_name = 'mailer', layout_name = 'camaleon_cms/mailer', extra_data = {})
-    # Thread.abort_on_exception=true
+    Thread.abort_on_exception=true
     Thread.new do
-      HtmlMailer.sender(email, subject, content, from, attachs, cama_root_url, current_site, template_name, layout_name, extra_data).deliver_now
+      CamaleonCms::HtmlMailer.sender(email, subject, content, from, attachs, cama_root_url, current_site, template_name, layout_name, extra_data).deliver_now
       ActiveRecord::Base.connection.close
     end
   end
