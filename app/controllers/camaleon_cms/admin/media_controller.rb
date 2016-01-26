@@ -84,7 +84,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     @media_formats = (params[:media_formats] || "").sub("media", ",video,audio").sub("all", "").split(",")
     @folder = params[:folder] || "/"
     @tree = cama_media_find_folder(@folder)
-    @show_file_actions ||= params[:actions].to_s == true
+    @show_file_actions ||= params[:actions].to_s == 'true'
   end
 
 end
