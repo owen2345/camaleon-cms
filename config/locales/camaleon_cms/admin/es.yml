@@ -51,6 +51,7 @@ es:
        update_menu: 'Actualización de Menú'
        upload_audio: 'Subir Audio'
        upload_file: 'Subir Archivo'
+       drag_drop: 'Arrastra & suelta archivos'
        upload_image: 'Subir Imagen'
        upload_icon: 'Subir Icono'
        upload_video: 'Subir Video'

@@ -59,6 +59,7 @@ en:
         upload_image: 'Upload Image'
         upload_icon: 'Upload Icon'
         upload_video: 'Upload Video'
+        drag_drop: 'Drag & drop files'
         view_draft: 'View Draft'
         view_page: 'View Page'
         yes: 'Yes'

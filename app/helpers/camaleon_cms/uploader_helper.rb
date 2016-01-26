@@ -233,12 +233,12 @@ module CamaleonCms::UploaderHelper
   #   (true => resize the image to this dimension)
   #   (false => crop the image with this dimension)
   # replace: Boolean (replace current image or create another file)
-  def cama_crop_image(file_path, w, h, w_offset = 0, h_offset = 0, resize = false , replace = true)
+  def cama_crop_image(file_path, w=nil, h=nil, w_offset = 0, h_offset = 0, resize = false , replace = true)
     force = ""
     force = "!" if w.present? && h.present? && !w.include?("?") && !h.include?("?")
     image = MiniMagick::Image.open(file_path)
-    w = image[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : image[:width] if w.present? && w.include?('?')
-    h = image[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : image[:height] if h.present? && h.include?('?')
+    w = image[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : image[:width] if w.present? && w.to_s.include?('?')
+    h = image[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : image[:height] if h.present? && h.to_s.include?('?')
     image.combine_options do |i|
       i.resize("#{w if w.present?}x#{h if h.present?}#{force}") if resize
       i.crop "#{w if w.present?}x#{h if h.present?}+#{w_offset}+#{h_offset}#{force}" unless resize
@@ -267,6 +267,8 @@ module CamaleonCms::UploaderHelper
   def cama_resize_and_crop(file, w, h, settings = {})
     settings = {gravity: :north_east, overwrite: true, output_name: ""}.merge(settings)
     img = MiniMagick::Image.open(file)
+    w = img[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : img[:width] if w.present? && w.to_s.include?('?')
+    h = img[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : img[:height] if h.present? && h.to_s.include?('?')
     w_original, h_original = [img[:width].to_f, img[:height].to_f]
 
     # check proportions
@@ -333,8 +335,12 @@ module CamaleonCms::UploaderHelper
   # return resized file path
   def cama_resize_upload(image_path, dimesion)
     if cama_verify_format(image_path, 'image') && dimesion.present?
-      r={file: image_path, w: dimesion.split('x')[0], h: dimesion.split('x')[1], w_offset: 0, h_offset: 0, resize: !dimesion.split('x')[2] || dimesion.split('x')[2] == "resize", replace: true}; hooks_run("on_uploader_resize", r)
-      image_path = cama_crop_image(r[:file], r[:w], r[:h], r[:w_offset], r[:h_offset], r[:resize] , r[:replace])
+      r={file: image_path, w: dimesion.split('x')[0], h: dimesion.split('x')[1], w_offset: 0, h_offset: 0, resize: !dimesion.split('x')[2] || dimesion.split('x')[2] == "resize", replace: true, gravity: :north_east}; hooks_run("on_uploader_resize", r)
+      if r[:w].present? && r[:h].present?
+        image_path = cama_resize_and_crop(r[:file], r[:w].to_i, r[:h].to_i, {overwrite: r[:replace], gravity: r[:gravity] })
+      else
+        image_path = cama_crop_image(r[:file], r[:w], r[:h], r[:w_offset], r[:h_offset], r[:resize] , r[:replace])
+      end
     end
     image_path
   end

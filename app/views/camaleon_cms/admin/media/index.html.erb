@@ -26,7 +26,7 @@
           </ul>
           <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="cama_media_upload">
-                <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
+                <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-dragDropStr="<%= t("camaleon_cms.admin.button.drag_drop") %>" data-uploadStr="<%= t("camaleon_cms.admin.button.upload_file") %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
                 <hr/>
                 <form id="cama_media_external">
                     <fieldset>

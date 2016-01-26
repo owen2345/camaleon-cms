@@ -50,6 +50,7 @@ pt_br:
        update_menu: 'Atualizar Menu'
        upload_audio: 'Atualizar Áudio'
        upload_file: 'Atualizar Arquivo'
+       drag_drop: 'Arraste e solte os arquivos aqui'
        upload_image: 'Atualizar Imagem'
        upload_icon: 'Atualizar Ícone'
        upload_video: 'Atualizar Vídeo'

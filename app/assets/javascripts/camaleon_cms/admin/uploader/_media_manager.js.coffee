@@ -64,6 +64,8 @@ window["cama_init_media"] = (media_panel)->
   p_upload.uploadFile({
     url: p_upload.attr("data-url"),
     fileName: "file_upload",
+    dragDropStr: '<span><b>'+p_upload.attr('data-dragDropStr')+'</b></span>',
+    uploadStr: p_upload.attr('data-uploadStr'),
     dynamicFormData: customFileData,
     onSuccess: ((files,res_upload,xhr,pd)->
       if res_upload.search("<") == 0 # success upload
@@ -75,8 +77,6 @@ window["cama_init_media"] = (media_panel)->
     onError: ((files,status,errMsg,pd) ->
       $(pd.statusbar).addClass('error_file_upload').find(".ajax-file-upload-filename").append(" <i class='fa fa-times btn btn-danger btn-xs' onclick='$(this).closest(\".ajax-file-upload-statusbar\").remove();'></i>")
     )
-
-
   })
   ## end file uploader
 

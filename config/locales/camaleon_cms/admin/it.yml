@@ -48,6 +48,7 @@ it:
        update_menu: 'Aggiorna menù'
        upload_audio: 'Carica Audio'
        upload_file: 'Carica File'
+       drag_drop: 'Trascinare e rilasciare i file qui'
        upload_image: 'Carica Immagine'
        upload_icon: 'Carica Icona'
        upload_video: 'Carica Video'
