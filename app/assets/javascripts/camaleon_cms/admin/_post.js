@@ -61,7 +61,7 @@ function init_post(obj) {
         var $this = $(this);
         if (!$this.hasClass('sluged')) {
             if (class_translate) {
-                var lng = $this.attr("name").match(/-(.*)-/i).pop();
+                var lng = $this.attr("id").match(/-(.*)-/i).pop();
                 var $input_slug = $('.slug-post' + class_translate + '[name^="translation-' + lng + '"]')
                 var post_path = obj._post_urls[lng];
             } else {

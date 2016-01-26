@@ -75,13 +75,11 @@ function custom_field_date($field) {
         var box = $field.find(".date-input-box");
         if (box.hasClass('is_datetimepicker')) {
             box.datetimepicker({
-                language: 'es',
                 pick12HourFormat: true,
                 format: 'yyyy-MM-dd hh:mm'
             });
         } else {
             box.datepicker({
-                language: 'es',
                 format: 'yyyy-mm-dd',
                 autoclose: true,
                 todayBtn: "linked"

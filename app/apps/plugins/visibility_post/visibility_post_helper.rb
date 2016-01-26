@@ -91,8 +91,8 @@ module Plugins::VisibilityPost::VisibilityPostHelper
     "
     <div class='form-group'>
                   <label class='control-label'>#{t('camaleon_cms.admin.post_type.published_date')}</label>
-                  <div id='published_from' data-locale='#{current_locale}' class='input-append date'>
-                      <input type='text' name='post[published_at]' data-format='yyyy-MM-dd hh:mm:ss'  value='#{@post[:published_at]}' />
+                  <div id='published_from' data-locale='#{current_locale}' class='input-group date'>
+                      <input type='text' name='post[published_at]' data-format='yyyy-MM-dd hh:mm:ss' class='form-control ' value='#{@post[:published_at]}' />
                       <span class='add-on input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span>
                   </div>
     </div><!-- calendar for published at -->

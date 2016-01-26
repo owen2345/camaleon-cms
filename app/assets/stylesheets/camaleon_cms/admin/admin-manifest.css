@@ -15,7 +15,6 @@
  *= require ./lte/skins/skin-blue
  *= require ./_custom_admin
 
- *= require ./bootstrap-datetimepicker
  *= require ./bootstrap-datepicker
  *= require ./introjs/_introjs.min
  *= require ./tageditor/_jquery.tag-editor
