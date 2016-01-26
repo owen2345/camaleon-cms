@@ -154,12 +154,22 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   # return root url for this site
   def the_url(*args)
     args = args.extract_options!
-    args[:host] = object.main_site? ? object.slug : (object.slug.include?(".") ? object.slug : "#{object.slug}.#{Cama::Site.main_site.slug}")
-    args[:port] = (args[:host].split(":")[1] rescue nil)
+    unless args[:as_path]
+      args[:host] = object.main_site? ? object.slug : (object.slug.include?(".") ? object.slug : "#{object.slug}.#{Cama::Site.main_site.slug}")
+      args[:port] = (args[:host].split(":")[1] rescue nil)
+      args[:host] = args[:host].split(":").first
+    end
     args[:locale] = @_deco_locale unless args.include?(:locale)
-    args[:host] = args[:host].split(":").first
-    args.delete(:as_path)
-    h.cama_url_to_fixed("cama_root_url", args)
+    postfix = 'url'
+    postfix = 'path' if args.delete(:as_path)
+    h.cama_url_to_fixed("cama_root_#{postfix}", args)
+  end
+
+  # return the path for this site
+  def the_path(*args)
+    args = args.extract_options!
+    args[:as_path] = true
+    the_url(args)
   end
 
   # draw bread crumb for current site

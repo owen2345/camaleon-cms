@@ -219,6 +219,17 @@ class PluginRoutes
     cache_variable("site_all_locales", res.uniq.join("|"))
   end
 
+  # return all locales for translated routes
+  def self.all_locales_for_routes
+    r = cache_variable("all_locales_for_routes"); return r unless r.nil?
+    res = {}
+    all_locales.split("|").each do |l|
+      res[l] = "_#{l}"
+    end
+    res[false] = ''
+    cache_variable("all_locales_for_routes", res)
+  end
+
   # return apps directory path
   def self.apps_dir
     Rails.root.join("app", "apps").to_s
