@@ -18,10 +18,17 @@ module CamaleonCms::EmailHelper
 
   def send_user_confirm_email(user_to_confirm)
     user_to_confirm.send_confirm_email
-    confirm_email_url = cama_admin_confirm_email_url({h: @user.confirm_email_token})
+    confirm_email_url = cama_admin_confirm_email_url({h: user_to_confirm.confirm_email_token})
     Rails.logger.info "Sending email verification to #{user_to_confirm}"
     extra_data = {:url => confirm_email_url, :fullname => user_to_confirm.fullname}
     send_email(user_to_confirm.email, t('camaleon_cms.admin.login.confirm.text'), '', nil, [], 'confirm_email', 'camaleon_cms/mailer', extra_data)
+  end
+
+  def send_password_reset_email(user_to_send)
+    user_to_send.send_password_reset
+    reset_url = cama_admin_forgot_url({h: user_to_send.password_reset_token})
+    extra_data = {:url => reset_url, :fullname => user_to_send.fullname}
+    send_email(user_to_send.email, t('camaleon_cms.admin.login.message.subject_email'), '', nil, [], 'password_reset', 'camaleon_cms/mailer', extra_data)
   end
 
 end

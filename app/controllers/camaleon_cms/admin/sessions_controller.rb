@@ -95,15 +95,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       data_user = params[:user]
       @user = current_site.users.find_by_email(data_user[:email])
       if @user.present?
-        @user.send_password_reset
-
-        reset_url = cama_admin_forgot_url({h: @user.password_reset_token})
-
-        html = "<p>#{t('camaleon_cms.admin.login.message.hello')}, <b>#{@user.fullname}</b></p>
-            <p>#{t('camaleon_cms.admin.login.message.reset_url')}:</p>
-            <p><a href='#{reset_url}'><b>#{reset_url}</b></a></p> "
-        sendmail(@user.email, t('camaleon_cms.admin.login.message.subject_email'), html)
-
+        send_password_reset_email(@user)
         flash[:notice] = t('camaleon_cms.admin.login.message.send_mail_succes')
         redirect_to cama_admin_login_path
         return
