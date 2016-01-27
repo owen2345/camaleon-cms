@@ -350,7 +350,7 @@ module CamaleonCms::UploaderHelper
   # false: if format is not accepted
   # sample: cama_verify_format(file_path, 'image,audio,docx,xls') => return true if the file extension is in formats
   def cama_verify_format(file_path, formats)
-    return true if formats == "*" || !formats
+    return true if formats == "*" || !formats.present?
     formats = formats.downcase.split(",")
     if formats.include? "image"
       formats += "jpg,jpeg,png,gif,bmp,ico".split(',')
