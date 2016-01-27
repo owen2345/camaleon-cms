@@ -132,7 +132,7 @@ window["cama_init_media"] = (media_panel)->
 
   # element actions
   media_panel.on("click", "a.add_folder", ->
-    content = $("<form><div><label for=''>Folder: </label> <input name='folder' class='form-control required'> </div><div><button class='btn btn-primary' type='submit'>Create</button></div> </form>")
+    content = $("<form><div><label for=''>"+I18n('button.folder')+": </label> <div class='input-group'><input name='folder' class='form-control required' placeholder='Folder name..'><span class='input-group-btn'><button class='btn btn-primary' type='submit'>"+I18n('button.create')+"</button></span></div></div> </form>")
     callback = (modal)->
       btn = modal.find("button")
       input = modal.find("input").keyup(->
