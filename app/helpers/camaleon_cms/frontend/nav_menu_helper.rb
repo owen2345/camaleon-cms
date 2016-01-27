@@ -38,6 +38,7 @@ module CamaleonCms::Frontend::NavMenuHelper
                     #     settings: (Hash) menu settings
                     #     index: (Integer) Index Position of this menu
                     #     link_attrs: (String) Here you can add your custom attrs for current link, sample: id='my_id' data-title='#{args[:link][:name]}'
+                    #     item_container_attrs: (String) Here you can add your custom attrs for link container.
                     # In settings you can change the values for this item, like after, before, ..:
                     # sample: lambda{|args| args[:settings][:after] = "<span class='caret'></span>" if args[:has_children]; args[:link_attrs] = "id='#{menu_item.id}'";  }
                     # sample: lambda{|args| args[:settings][:before] = "<i class='fa fa-home'></i>" if args[:level] == 0 && args[:index] == 0;  }
@@ -83,6 +84,7 @@ module CamaleonCms::Frontend::NavMenuHelper
         settings: _args,
         has_children: has_children,
         link_attrs: '',
+        item_container_attrs: '',
         index: index
       }
       args[:callback_item].call(r)
@@ -95,7 +97,7 @@ module CamaleonCms::Frontend::NavMenuHelper
       end
       parent_current = true if _is_current || current_children
 
-      html += "<#{_args[:item_container]} class='#{_args[:item_class]} #{_args[:item_class_parent] if has_children} #{"#{_args[:item_current]}" if _is_current} #{"current-menu-ancestor" if current_children }'>#{_args[:link_before]}
+      html += "<#{_args[:item_container]} #{r[:item_container_attrs]} class='#{_args[:item_class]} #{_args[:item_class_parent] if has_children} #{"#{_args[:item_current]}" if _is_current} #{"current-menu-ancestor" if current_children }'>#{_args[:link_before]}
                 <a #{r[:link_attrs]} href='#{data_nav_item[:link]}' class='#{args[:link_current] if _is_current} #{_args[:link_class_parent] if has_children} #{_args[:link_class]}' #{"data-toggle='dropdown'" if has_children } >#{_args[:before]}#{data_nav_item[:name]}#{_args[:after]}</a> #{_args[:link_after]}
                 #{ html_children }
               </#{_args[:item_container]}>"
