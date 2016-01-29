@@ -270,6 +270,8 @@ module CamaleonCms::UploaderHelper
     w = img[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : img[:width] if w.present? && w.to_s.include?('?')
     h = img[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : img[:height] if h.present? && h.to_s.include?('?')
     w_original, h_original = [img[:width].to_f, img[:height].to_f]
+    w = w.to_i if w.present?
+    h = h.to_i if h.present?
 
     # check proportions
     if w_original * h < h_original * w

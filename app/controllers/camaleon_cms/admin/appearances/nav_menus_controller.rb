@@ -114,7 +114,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
           post_type = CamaleonCms::PostType.find(nav_menu_item.get_option('object_id')).decorate
           {link: post_type.the_url, name: post_type.the_title, url_edit: post_type.the_edit_url}
         when 'external'
-          {link: nav_menu_item.get_option('object_id'), name: nav_menu_item.name.to_s.translate}
+          {link: nav_menu_item.get_option('object_id'), name: nav_menu_item.name.to_s}
         else
           false
       end
