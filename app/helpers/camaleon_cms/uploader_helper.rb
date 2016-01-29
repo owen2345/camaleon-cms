@@ -337,7 +337,7 @@ module CamaleonCms::UploaderHelper
     if cama_verify_format(image_path, 'image') && dimesion.present?
       r={file: image_path, w: dimesion.split('x')[0], h: dimesion.split('x')[1], w_offset: 0, h_offset: 0, resize: !dimesion.split('x')[2] || dimesion.split('x')[2] == "resize", replace: true, gravity: :north_east}; hooks_run("on_uploader_resize", r)
       if r[:w].present? && r[:h].present?
-        image_path = cama_resize_and_crop(r[:file], r[:w].to_i, r[:h].to_i, {overwrite: r[:replace], gravity: r[:gravity] })
+        image_path = cama_resize_and_crop(r[:file], r[:w], r[:h], {overwrite: r[:replace], gravity: r[:gravity] })
       else
         image_path = cama_crop_image(r[:file], r[:w], r[:h], r[:w_offset], r[:h_offset], r[:resize] , r[:replace])
       end
@@ -362,7 +362,7 @@ module CamaleonCms::UploaderHelper
       formats += "mp3,ogg".split(',')
     end
     if formats.include? "document"
-      formats += "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt".split(',')
+      formats += "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,htm".split(',')
     end
     if formats.include?("compress") || formats.include?("compres")
       formats += "zip,7z,rar,tar,bz2,gz,rar2".split(',')

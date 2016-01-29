@@ -1386,7 +1386,26 @@ $.extend($.fn, {
         swf: "video",
         mov: "video",
         mpeg: "video",
-        mjpg: "video"
+        mjpg: "video",
+
+		pdf: 'document',
+		xls: 'document',
+		xlsx: 'document',
+		doc: 'document',
+		docx: 'document',
+		ppt: 'document',
+		pptx: 'document',
+		html: 'document',
+		htm: 'document',
+		txt: 'document',
+
+		zip: 'compress',
+		"7z": 'compress',
+		rar: 'compress',
+		tar: 'compress',
+		bz2: 'compress',
+		gz: 'compress',
+		rar2: 'compress'
     }
 
     // return the video id of a video url

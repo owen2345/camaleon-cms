@@ -28,10 +28,16 @@ module CamaleonCms::CaptchaHelper
   # build a captcha tag (image with captcha)
   # img_args: attributes for image_tag
   # input_args: attributes for input field
-  def cama_captcha_tag(len = 5, img_args = {alt: ""}, input_args = {})
+  def cama_captcha_tag(len = 5, img_args = {alt: ""}, input_args = {}, bootstrap_group_mode = false)
     input_args[:placeholder] = "Please enter the text of the image" unless input_args[:placeholder].present?
     img_args["onclick"] = "this.src = \"#{cama_captcha_url(len: len)}\"+\"&t=\"+(new Date().getTime());"
-    "<div><img style='cursor: pointer;' src='#{cama_captcha_url(len: len)}' #{img_args.collect{|k, v| "#{k}='#{v}'" }.join(" ") } /> <input type='text' name='captcha' #{input_args.collect{|k, v| "#{k}='#{v}'" }.join(" ") } /> </div>"
+    img = "<img style='cursor: pointer;' src='#{cama_captcha_url(len: len)}' #{img_args.collect{|k, v| "#{k}='#{v}'" }.join(" ") } />"
+    input = "<input type='text' name='captcha' #{input_args.collect{|k, v| "#{k}='#{v}'" }.join(" ") } />"
+    if bootstrap_group_mode
+      "<div class='input-group input-group-captcha'><span class='input-group-btn' style='vertical-align: top;'>#{img}</span>#{input}</div>"
+    else
+      "<div class='input-group-captcha'>#{img}#{input}</div>"
+    end
   end
 
   # verify captcha value

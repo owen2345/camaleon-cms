@@ -7,7 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::NavMenu < CamaleonCms::TermTaxonomy
-  default_scope { where(taxonomy: :nav_menu) }
+  default_scope { where(taxonomy: :nav_menu).order(id: :asc) }
   has_many :metas, ->{ where(object_class: 'NavMenu')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   has_many :children, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, dependent: :destroy
   belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
