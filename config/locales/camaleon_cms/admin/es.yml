@@ -148,7 +148,8 @@ es:
         password_confirm: "Confirmación de contraseña"
         first_name: "Nombre"
         last_name: "Apellidos"
-        email: "Correo"
+        email: welcome:
+
         remember_me: "Recordar"
         confirm:
           text: "Por favor confirma tu cuenta pulsando en este enlace"
