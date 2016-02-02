@@ -1,6 +1,5 @@
 # class Plugins::PluginClass::PluginClass < ActiveRecord::Base
-  # attr_accessible :path, :browser_key
-  # belongs_to :site
+  # belongs_to :site, class_name: "CamleonCms::Site"
 
   # here create your models normally
   # notice: your tables in database will be plugins_pluginKey in plural (check rails documentation)
