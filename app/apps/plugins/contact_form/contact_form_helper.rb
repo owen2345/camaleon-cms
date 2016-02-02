@@ -103,12 +103,16 @@ module Plugins::ContactForm::ContactFormHelper
       new_settings = {"fields" => fields, "created_at" => Time.now.strftime("%Y-%m-%d %H:%M:%S").to_s}.to_json
       form_new = current_site.contact_forms.new(name: "response-#{Time.now}", description: form.description, settings: fix_meta_value(new_settings), site_id: form.site_id, parent_id: form.id)
 
-      #FIXME verify if all runs OK
       if form_new.save
-        extra_data = {
-            fields: convert_form_values(values[:fields], fields)
-        }
-        send_email(settings[:railscf_mail][:to], settings[:railscf_mail][:subject], '', settings[:railscf_mail][:to], attachments, 'contact_form_email', 'camaleon_cms/mailer', extra_data)
+        content = get_content_from_submission_partial(attachments, values, fields)
+        content = get_content_from_views_submission_partial(attachments, values, fields) unless content.nil?
+
+        if content.nil?
+          extra_data = {fields: convert_form_values(values[:fields], fields)}
+          send_email(settings[:railscf_mail][:to], settings[:railscf_mail][:subject], '', settings[:railscf_mail][:to], attachments, 'contact_form_email', 'camaleon_cms/mailer', extra_data)
+        else
+          sendmail(settings[:railscf_mail][:to], settings[:railscf_mail][:subject], content, settings[:railscf_mail][:to], attachments)
+        end
         success << settings[:railscf_message][:mail_sent_ok]
       else
         errors << settings[:railscf_message][:mail_sent_ng]
@@ -152,4 +156,41 @@ module Plugins::ContactForm::ContactFormHelper
     end
     value
   end
+
+  private
+
+  def get_content_from_submission_partial(attachments, values, fields)
+    begin
+      content = render_to_string partial: 'contact_form/submission',
+                                 layout: false,
+                                 locals: {
+                                     file_attachments: attachments,
+                                     fields: convert_form_values(
+                                         values[:fields],
+                                         fields
+                                     )
+                                 }
+    rescue ActionView::MissingTemplate
+      content = nil
+    end
+    content
+  end
+
+  def get_content_from_views_submission_partial(attachments, values, fields)
+    begin
+      content = render_to_string partial: 'contact_form/views/contact_form/submission',
+                                 layout: false,
+                                 locals: {
+                                     file_attachments: attachments,
+                                     fields: convert_form_values(
+                                         values[:fields],
+                                         fields
+                                     )
+                                 }
+    rescue ActionView::MissingTemplate
+      content = nil
+    end
+    content
+  end
+
 end
