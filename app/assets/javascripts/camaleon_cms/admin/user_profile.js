@@ -2,14 +2,14 @@ jQuery(function ($) {
     var form = $("#user_form");
     form.validate();
 
-    $('#profie-form-ajax-password').ajaxForm({
-        beforeSend: function () {
-            showLoading();
-        }, success: function (res) {
-            $("#modal_change_password .modal-body").flash_message(res);
-            hideLoading();
-        }
-    });
+    $('#profie-form-ajax-password').validate({submitHandler: function(){
+        showLoading();
+        var form2 = $(this.currentForm);
+        $.post(form2.attr("action"), form2.serialize(), function(res){
+            form2.flash_message(res);
+        }).complete(function(){ hideLoading(); });
+        return false;
+    } });
 
 
     // on success photo crop

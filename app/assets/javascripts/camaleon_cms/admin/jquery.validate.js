@@ -1386,7 +1386,26 @@ $.extend($.fn, {
         swf: "video",
         mov: "video",
         mpeg: "video",
-        mjpg: "video"
+        mjpg: "video",
+
+		pdf: 'document',
+		xls: 'document',
+		xlsx: 'document',
+		doc: 'document',
+		docx: 'document',
+		ppt: 'document',
+		pptx: 'document',
+		html: 'document',
+		htm: 'document',
+		txt: 'document',
+
+		zip: 'compress',
+		"7z": 'compress',
+		rar: 'compress',
+		tar: 'compress',
+		bz2: 'compress',
+		gz: 'compress',
+		rar2: 'compress'
     }
 
     // return the video id of a video url
@@ -1443,7 +1462,7 @@ $.extend($.fn, {
                 if (b.attr('name') == 'categories[]')
                     b.parent().before(a.addClass('help-block')).parent().addClass('has-error');
                 else
-                    b.parent().after(a.addClass('help-block')).parent().addClass('has-error');
+                    b.after(a.addClass('help-block')).parent().addClass('has-error');
             }
         },
         success: function (error, element) {
@@ -1453,7 +1472,7 @@ $.extend($.fn, {
         highlight: function(element, errorClass){ //fix for error fields in hidden tab
             var tab = "";
             if(!$(element).is(":visible") && (tab = $(element).closest(".tab-pane")).length && tab.attr("id")){
-                tab.closest(".tabs").find(" > ul a[href='#"+tab.attr("id")+"']").click();
+                tab.closest(".tabs, .nav-tabs").find(" > ul a[href='#"+tab.attr("id")+"']").click();
             }
         }
     });

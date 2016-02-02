@@ -52,14 +52,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   # update som ajax requests from profile or user form
   def updated_ajax
     @user = current_site.users.find(params[:user_id])
-    # update password
-    if params[:password]
-      if @user.authenticate(params[:password][:password_old])
-        render inline: @user.update(params[:password]) ? "" : @user.errors.full_messages.join(', ')
-      else
-        render inline: t('camaleon_cms.admin.users.message.incorrect_old_password')
-      end
-    end
+    render inline: @user.update(params[:password]) ? "" : @user.errors.full_messages.join(', ')
   end
 
   def edit

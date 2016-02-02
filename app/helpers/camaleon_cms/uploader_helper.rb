@@ -111,9 +111,9 @@ module CamaleonCms::UploaderHelper
   # add a new folder in fog
   def cama_uploader_add_folder(folder)
     cama_uploader_init_connection(true)
-    key = "#{current_site.upload_directory_name}/#{folder}/".split("/").clean_empty.join("/")
-    key += '/_tmp.txt' unless @fog_connection.class.name.include?("AWS")
-    @fog_connection_bucket_dir.files.create({:key => key, content: "", :public => true})
+    key = "#{@fog_connection_hook_res[:bucket_name]}/#{current_site.upload_directory_name}/#{folder}/".split("/").clean_empty.join("/")
+    dir = @fog_connection.directories.create(:key => key)
+    dir.files.create({:key => '_tmp.txt', content: "", :public => true}) unless @fog_connection.class.name.include?("AWS")
   end
 
   # initialize fog uploader and trigger hook to customize fog storage
@@ -270,6 +270,8 @@ module CamaleonCms::UploaderHelper
     w = img[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : img[:width] if w.present? && w.to_s.include?('?')
     h = img[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : img[:height] if h.present? && h.to_s.include?('?')
     w_original, h_original = [img[:width].to_f, img[:height].to_f]
+    w = w.to_i if w.present?
+    h = h.to_i if h.present?
 
     # check proportions
     if w_original * h < h_original * w
@@ -337,7 +339,7 @@ module CamaleonCms::UploaderHelper
     if cama_verify_format(image_path, 'image') && dimesion.present?
       r={file: image_path, w: dimesion.split('x')[0], h: dimesion.split('x')[1], w_offset: 0, h_offset: 0, resize: !dimesion.split('x')[2] || dimesion.split('x')[2] == "resize", replace: true, gravity: :north_east}; hooks_run("on_uploader_resize", r)
       if r[:w].present? && r[:h].present?
-        image_path = cama_resize_and_crop(r[:file], r[:w].to_i, r[:h].to_i, {overwrite: r[:replace], gravity: r[:gravity] })
+        image_path = cama_resize_and_crop(r[:file], r[:w], r[:h], {overwrite: r[:replace], gravity: r[:gravity] })
       else
         image_path = cama_crop_image(r[:file], r[:w], r[:h], r[:w_offset], r[:h_offset], r[:resize] , r[:replace])
       end
@@ -350,7 +352,7 @@ module CamaleonCms::UploaderHelper
   # false: if format is not accepted
   # sample: cama_verify_format(file_path, 'image,audio,docx,xls') => return true if the file extension is in formats
   def cama_verify_format(file_path, formats)
-    return true if formats == "*" || !formats
+    return true if formats == "*" || !formats.present?
     formats = formats.downcase.split(",")
     if formats.include? "image"
       formats += "jpg,jpeg,png,gif,bmp,ico".split(',')
@@ -362,7 +364,7 @@ module CamaleonCms::UploaderHelper
       formats += "mp3,ogg".split(',')
     end
     if formats.include? "document"
-      formats += "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt".split(',')
+      formats += "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,htm".split(',')
     end
     if formats.include?("compress") || formats.include?("compres")
       formats += "zip,7z,rar,tar,bz2,gz,rar2".split(',')

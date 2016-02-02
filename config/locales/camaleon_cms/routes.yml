@@ -37,3 +37,11 @@ it:
     tag: etichetta
     search: ricerca
     profile: profilo
+
+ru:
+  routes:
+    group: group
+    category: category
+    tag: tag
+    search: search
+    profile: profile

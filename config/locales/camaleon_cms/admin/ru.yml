@@ -1,0 +1,659 @@
+ru:
+  camaleon_cms:
+    welcome_message: "Добро пожаловать в Camaleon CMS"
+    page_not_exist: "<h1>ой...</h1><h5>Страница, которую вы ищете, не существует.</h5>"
+    page_error_500: "<h1>ой...</h1><h5>Ошибка 500 Внутренняя ошибка сервера. Пожалуйста, свяжитесь с администратором.</h5>"
+    admin:
+      request_error_message: "Произошла ошибка, пожалуйста, свяжитесь с администратором."
+      authorization_error: "У вас нет прав для этого раздела."
+      header:
+        member_since: "Участник с %{time}"
+      button:
+        activity: 'Активность'
+        add_new_field: 'Добавить новое поле'
+        add_option: 'Добавить опцию'
+        add_menu: 'Добавить в меню'
+        add_widget: 'Добавить виджет'
+        accept: 'Принять'
+        add_folder: 'Добавить папку'
+        actived: 'Активированный'
+        activate_plugin: 'Активизировать плагин'
+        back: 'Назад'
+        change_photo: 'Изменить фотографию'
+        change_password: 'Поменять пароль'
+        create_menu: 'Создать меню'
+        create: 'Создать'
+        cancel: 'Отмена'
+        chat: 'Чат'
+        close: 'Закрыть'
+        delete: 'Удалить'
+        disable_plugin: 'Отключить плагин'
+        enter: 'Войти'
+        edit: 'Редактировать'
+        new: 'Новый'
+        following: 'Следует'
+        log_in: 'Войти'
+        move_trash: 'Переместить в корзину'
+        no: 'Нет'
+        none: 'Ничто'
+        not_actived: 'Не активен'
+        publish: 'Публиковать'
+        preview: 'Предварительный просмотр'
+        proccess: 'Обработать'
+        recover: 'Восстановить'
+        restore: 'Восстановить'
+        restore_selections: 'Восстановить отмеченные'
+        delete_complete: "Удалить полностью"
+        select: 'Выбрать'
+        select_all: 'Выбрать все'
+        select_file: 'Выберите файл'
+        select_none: 'Выбрать ничего'
+        sign_up: 'Зарегистрироваться'
+        submit: 'Отправить'
+        settings: 'Настройки'
+        sortable: 'Сортируемый'
+        update: 'Обновить'
+        update_menu: 'Обновить меню'
+        upload_audio: 'Загрузить Аудио'
+        upload_file: 'Загрузить файл'
+        upload_image: 'Загрузить изображение'
+        upload_icon: 'Загрузить Иконку'
+        upload_video: 'Загрузить видео'
+        view_draft: 'Посмотреть эскиз'
+        view_page: 'Просмотр страницы'
+        yes: 'Да'
+        out_yes: 'Да'
+        out_not: 'Нет'
+        domain: "Домен"
+        search: "Поиск"
+
+      comments:
+        new_msg: "Новый комментарий для этого контента"
+        comments_list_post: 'Показать список комментариев для поста'
+        responses: 'Ответы'
+        message:
+          approved: 'Одобрен'
+          change_status: 'Статус ответа был изменен на '
+          created: 'Комментарий был создан.'
+          destroy: 'Ответы были удалены.'
+          destroy_comments: 'Комментарии были удалены.'
+          deleted: 'Ответы были удалены.'
+          error: 'Комментраий не найден'
+          pending: 'Рассматривается'
+          responses: 'Ответ был создан.'
+          spam: 'Спам'
+          there_no_comments: 'Нет комментариев.'
+          updated: 'Комментарий был обновлен.'
+
+        tooltip:
+          approved_comment: 'Подтвердить комментарий'
+          comment_pending: 'Комментарий на пересмотр'
+          comment_spam: 'Комментарий на Спам'
+          reply_comment: 'Ответить на комментарий'
+          delete_comment: 'Удалить комментарий'
+      custom_field:
+        message:
+          custom_group_error: 'Ошибка группы настраиваемых полей '
+          custom_created: 'Группа настраиваемых полей был создан.'
+          custom_updated: 'Группа настраиваемых полей был обновлен.'
+        fields:
+          text_box: 'Text Box'
+          text_area: 'Text Area'
+          select: 'Select'
+          colorpicker: 'Colorpicker'
+          date: 'Дата'
+          email: 'Эл. адрес'
+          file: 'Файл'
+          image: 'Изображение'
+          numeric: 'Числовое'
+          phone: 'Телефон'
+          users: 'Пользователи'
+          posts: 'Посты'
+          select_eval: 'Select Eval'
+          field_attrs: 'Атрибуты полей'
+          website: 'Вебсайт'
+          multiple_choice: 'Radio Button'
+
+
+      login:
+        already_have_account: 'Уже есть аккаунт?'
+        authentication: 'Аутентификация'
+        captcha: 'Captcha'
+        create_account: 'Завести аккаунт'
+        login: 'Вход'
+        forgot_your_password_int: 'Забыли пароль?'
+        message:
+          success: 'Добро пожаловать!!!'
+          fail: 'Неверное имя пользователя или пароль'
+          forgot_url_incorrect: 'Неверный URL'
+          forgot_expired: 'Сброс истек.'
+          hello: 'Привет'
+          reset_password_succes: 'Сброс пароля прошло успешно!'
+          reset_password_error: 'Неверный пароль'
+          reset_url: 'Сброс URL'
+          subject_email: 'Сбросить доступ'
+          send_mail_succes: 'Отправить на эл. адрес об успешном сбросе доступа.'
+          send_mail_error: 'Адрес электронной почты не найден.'
+          invalid_caption: 'Неверный captcha'
+          email_not_validated: 'E-mail не был подтвержден.'
+          confirm_email_token_incorrect: 'Неверный URL'
+          confirm_email_token_expired: 'Подтвердить адрес электронной почты URL истек срок'
+          confirm_email_success: 'Эл. почта подтверждена.'
+        personal_info: 'Личная информация'
+        please_login: 'Пожалуйста, войдите'
+        reset_password: 'Сброс пароля'
+        reCaptcha: 'reCaptcha'
+        send_email: 'Отправить по электронной почте'
+        reset_password_html: '<strong>Отправить по электронной почте</strong>, сброс пароля'
+        welcome: 'Добро пожаловать'
+        welcome_login_html: '<strong>Добро пожаловать</strong>, Пожалуйста, войдите'
+        do_not_have_account_yet: "Еще нет аккаунта?"
+        msg_registration_html: '<strong>Регистрация</strong>, заполните форму'
+        username: "Имя пользователя"
+        password: "Пароль"
+        password_confirm: "Подтверждение пароля"
+        first_name: "Имя"
+        last_name: "Фамилия"
+        email: "Эл. почта"
+        remember_me: "Запомнить"
+        confirm:
+          text: "Пожалуйста, подтвердите свою учетную запись, нажав на эту ссылку"
+          subject: "Подтвердите свой аккаунт"
+      logout:
+        log: 'Log'
+        out: 'Out'
+        logout: 'Logout'
+        logout_html: 'Log <strong>Out</strong>?'
+        message:
+          closed: 'Сессия закрыта'
+      media:
+        media_manager: 'Media Manager'
+        home: "Домой"
+        info: "Информация"
+      menus:
+        link_url: 'URL ссылка'
+        message:
+          created: 'nav menu был создан.'
+          deleted: 'nav menu был удален.'
+          error_menu: 'Ошибка Меню'
+        name_link: 'Название ссылки'
+        name_menu: 'Название меню'
+        external_link: 'Внешняя ссылка'
+        or: 'или'
+        create_new: 'создать новое меню'
+        select: 'Выберите Меню'
+        select_edit: 'Выберите меню, которое нужно отредактировать:'
+      message:
+        are_you_sure_you_want_log_out_int: 'Вы действительно хотите выйти?'
+        are_you_sure_to_import: "Вы уверены, что хотите импортировать?"
+        data_found_list: 'Нет данных в списке'
+        delete: 'Вы действительно хотите удалить этот элемент?'
+        delete_item: 'Действительно хотите удалить этот элемент?'
+        edit_menu: 'Поместите каждый элемент в нужном порядке. Нажмите на иконку карандаша для редактирования и нажмите на иконку в виде х, чтобы удалить элемент.'
+        add_menus: 'Добавить пункты меню в левой колонке.'
+        press_no_continue_work_press_yes_logout: 'Нажмите Нет, если вы хотите, чтобы продолжить работу. Нажмите Да, чтобы выйти текущего пользователя.'
+        updated_success: 'Успешно Обновлено'
+        remove_items_submenu: 'Действительно удалить этот элемент и его под элементы меню?'
+        you_must_upload_image: 'Вы должны загрузить изображение'
+        you_must_upload_video: 'Вы должны загрузить видео'
+        so_their_data_has_not_been_saved: 'так что их данные не были сохранены'
+        no_response_fields: 'Нет полей для ответа '
+        quick_info: 'Краткая информация этого пользователя'
+        was_inactivated: 'был инактивирован.'
+        was_activated: 'был активирован.'
+        was_upgraded: 'был обновлен.'
+        can_not_be_removed: 'не может быть удален.'
+        was_removed: 'был удален.'
+        processing: 'Обработка...'
+        change_photo: 'Используйте форму, чтобы загрузить файл. Только файлы изображений.'
+        change_password: 'Чтобы изменить пароль, введите старый пароль, а затем ввести новый пароль и повторите новый пароль.'
+        you_must_upload_json_file: 'Вы должны загрузить файл в формате JSON'
+        import_process: 'Импорт в процессе'
+        unauthorized: "Доступ закрыт"
+        welcome: 'Добро пожаловать в админ панель вашего сайта.'
+        no_templates_defined: 'Шаблоны не определены'
+        avatar_updated: 'Аватар Обновлен'
+        form_error: 'Ошибка формы'
+      page_title:
+        page_title: 'Заголовок страницы'
+        create: 'Создать'
+        details: 'Детали'
+        edit: 'Редактировать'
+        add: 'Добавить'
+        list: 'Список'
+        list_of: 'Список '
+        new_site: 'Новый сайт'
+        edit_site: 'Редактировать сайт'
+        update: 'Обновить'
+      post:
+        add_tag: 'Добавить тег'
+        clone: 'Клонировать'
+        clone_content: 'Клонировать контент'
+        label_required: 'Необходимая метка'
+        placeholder_required: 'Неоюходимый заполнитель'
+        message:
+          created: '%{post_type} был создан.'
+          updated: '%{post_type} был обновлен.'
+          deleted: '%{post_type} был удален.'
+          error: 'Ошибка %{post_type}'
+          error_post_type: 'Ошибка %{post_type}'
+          trash: '%{post_type} был перемещен в корзину.'
+          requires_different_slug: 'Требует другой slug'
+          restore: '%{post_type} был восстановлен.'
+          draft: 'Эскиз был успешно сохранен.'
+          recover: 'Восстановление...'
+        permalink: 'Постоянная ссылка'
+      post_type:
+        all: 'Все элементы'
+        add: 'Добавить'
+        add_category: 'Добавить категорию'
+        add_post_type: 'Добавить тип поста'
+        add_new: 'Добавить новое'
+        add_post_tag: 'Добавить тэг поста'
+        categories: 'Категории'
+        category: 'Категория'
+        configuration: 'Конфигурация'
+        other_configuration: 'Пользовательские конфигурации'
+        comments: 'Комментарии'
+        draft: 'Эскиз'
+        edit_post_type: 'Редактировать тип поста'
+        edit_category: 'Редактировать Категорию'
+        enter_password: 'Введите пароль'
+        featured_image: 'Популярное изображение'
+        keywords: 'Ключевые слова'
+        default_layout: ' Макет по умолчанию'
+        default_template: 'Шаблон по умолчанию'
+        icon: 'Иконка'
+        message:
+          error: 'Ошибка класса'
+          error_term: 'Ошибка термин класс'
+          created: 'Сохранено'
+          updated: 'Обновлено'
+          deleted: 'Удалено'
+          no_created_html: '<br> Не найден %{taxonomy}'
+        pending: 'Рассматривается'
+        permit_comments: 'Разрешить комментарии?'
+        post_types: 'Типы постов'
+        posts: 'Посты'
+        post_tags: 'Тэги поста'
+        published: 'Опубликованный'
+        published_date: 'Дата публикации'
+        save_draft: 'Сохранить эскиз'
+        save_pending: 'Сохранить рассматривание'
+        summary: 'Резюме'
+        tags: 'Тэги'
+        template: 'Шаблон'
+        layout: 'Макет'
+        trash: 'Корзина'
+        tooltip:
+          permission_asing_categories: 'Разрешение на управление содержание поста по категориям'
+          permission_add_tags: 'Включите поле для ввода тегов в содержание поста'
+          permission_add_content: 'Включить редактор для ввода контента в пост'
+          permission_add_content_summary: 'Включить поле для ввода аннотацию в пост'
+          permission_reviews: 'Включить опцию, чтобы указать, если содержимое поста может быть прокомментирован'
+          permission_add_image_presentation: 'Включить редактор для загрузки эскиза в содержание поста'
+          permission_manage_template: 'Включить поле для выбора шаблона по содержанию. (шаблон: файл, который будет использоваться для отображения содержания)'
+          permission_manage_layout: 'Включить поле для выбора макета в содержание. (Макет: обертка файла, в котором будет отрисован шаблон)'
+          permission_add_keywords: 'Включить поле для ввода ключевых слов для поста (SEO)'
+          default_layout: 'Выберите макет по умолчанию для всех содержаний постов данного типа'
+          default_template: 'Выберите шаблон по умолчанию для всех содержаний постов данного типа'
+        upload_image: 'Загрузить изображение'
+        view_comments: 'Посмотреть Комментарии'
+      plugins:
+        active_plugins: 'Активные плагины'
+        disabled_plugins: 'Выключенные плагины'
+        all_plugins: 'Все плагины'
+        status_false: 'Неактивные'
+        status_true: 'Активные'
+        type_contents: 'Типы содержаний'
+        upgrade_to: "Обновить до"
+      settings:
+        activate_create_account: 'Активировать Создание аккаунта'
+        activate_login_social_networks: 'Активизировать вход через социальные сети'
+        add_field_group: 'Добавить группу полей'
+        admin_language: 'Язык админки'
+        allow_user_registration: 'Разрешить регистрацию пользователей'
+        available_fields: 'Доступные поля'
+        available_languages: 'Доступные языки'
+        categories_in: 'Категорий в '
+        configuration_site: 'Конфигурация сайта'
+        current_languages: 'Текущие языки'
+        details_custom_field_group: 'Детали группы пользовательских полей'
+        details_site: 'Информация о сайте'
+        edit_custom_field_group: 'Редактировать группу пользовательских полей'
+        field: 'Поле'
+        fields: 'Поля'
+        information_basic: 'Основная информация'
+        theme_setting: "Настройки темы"
+        input_only_date: 'Введите только дату'
+        input_date_time: 'Введите дату и время'
+        languages_configuration: 'Конфигурация языков'
+        list_custom_fields_group: 'Список груп ползовательских полей'
+        list_sites: 'Список сайтов'
+        login_twitter: 'Twitter'
+        login_facebook: 'Facebook'
+        login_google: 'Google+'
+        email_enabled: "Использовать эти настройки для отправки писем"
+        email_server: "Сервер эл. почты"
+        email_port: "Порт эл. почты"
+        email_domain: "Домен эл. почты"
+        email_username: "Имя пользователя"
+        email_pass: "Пароль пользователя"
+        email_from: "Email From"
+        email_cc: "Email CC"
+        twitter_card: "Twitter Card"
+        author: "Имя автора"
+        seo_setting: "Настройки Seo"
+        email_settings: "Настройки Email (SMTP)"
+        filesystem_type: "Тип файловой системы"
+        filesystem_s3_access_key: "AWS S3 Access Key"
+        filesystem_s3_secret_key: "AWS S3 Secret Key"
+        filesystem_s3_bucket_name: "AWS S3 Bucket name"
+        filesystem_s3_endpoint: "AWS S3 Bucket endpoint"
+        filesystem_region: "AWS S3 Region"
+        filesystem_cdn: "CDN url"
+        security:
+          captcha_user_register: "Включить капчу на регистрацию пользователя?"
+          need_validate_email: "Необходимость проверки электронной почты?"
+        message:
+          language_updated: 'Конфигурация языков завершена.'
+          site_updated: 'Сайт был обновлен.'
+        new_custom_field_group: 'Новая группа пользовательских полей'
+        options_select: 'Варианты выбора'
+        option_title: 'Название варианта'
+        others: 'Другие'
+        please_separated_commas: 'Пожалуйста через запятые'
+        comment_status: 'Регистрировать комментарии как утвержденных?'
+        list_per_page_front: 'Количество элементов будут показаны на фронтенде'
+        list_per_page_admin: 'Количество элементов будут показаны на бэкенде'
+        permission_register_users: 'Разрешение на регистрацию пользователей'
+        permission_login_twitter: 'Разрешение входа с помощью Twitter'
+        permission_login_facebook: 'Разрешение входа с помощью Facebook'
+        permission_login_google: 'Разрешение входа с помощью Google+'
+        posts_in: 'Посты в'
+        settings: 'Настройки'
+        tooltip:
+          add_custom_field_posts: 'Добавить пользовательское поле в посты '
+          add_custom_field_categories: 'Добавить пользовательское поле в категории '
+          add_custom_field_users: 'Добавить пользовательское поле в Пользователей '
+          add_custom_field_sites: 'Добавить пользовательское поле в Сайт '
+          add_custom_field_themes: 'Добавить пользовательское поле в Тему '
+          add_custom_field_widget: 'Добавить пользовательское поле в Виджет '
+        untitled: 'Без названия'
+        where_display_group: 'Где отобразить эту группу'
+      sidebar:
+        appearance: 'Внешний вид'
+        comments: 'Комментарии'
+        content: 'Содержание'
+        contents: 'Содержании'
+        content_groups: 'Группы содержании'
+        custom_fields: 'Пользовательские поля'
+        dashboard: 'Панель управления'
+        general_site: 'Главный сайт'
+        information: 'Информация'
+        languages: 'Языки'
+        shortcodes: "Shortcodes"
+        media: 'Медиа'
+        menus: 'Меню'
+        navigation: 'Навигация'
+        plugins: 'Плагины'
+        post_type: 'Тип поста'
+        settings: 'Настройки'
+        site_settings: 'Настройки сайта'
+        sites: 'Сайты'
+        themes: 'Темы'
+        users: 'Пользователи'
+        widget: 'Виджет'
+        widgets: 'Виджеты'
+        main_navigation: "Главная Навигация"
+      sidebar_top:
+        admin_panel: 'Админ. Панель'
+        visit: 'Посетить'
+      sites:
+        add_site: 'Добавить сайт'
+        message:
+          error: 'Сайт не найден'
+          created: 'Сайт был создан.'
+          updated: 'Сайт был обновлен.'
+          deleted: 'Правильно удален'
+          enter_key_domain: 'Введите ключевое слово или домен'
+          enter_key_domain_empty: 'Введите ключевое слово (site2) или домен (my_domain.com). Ключевое слово будет вашим поддоменом.'
+      signin:
+        message:
+          enter_username_password: 'Вы должны ввести имя пользователя и / или пароль'
+          combination_username_password_invalid: 'Сочетание имени пользователя / пароля недействительно.'
+          success_user: 'Удачно пользователь'
+      table:
+        actions: 'Действия'
+        attribute: 'Атрибут'
+        author: 'Автор'
+        basic: 'Основной'
+        categories: 'Категории'
+        updated_at: "Обновлено"
+        comments: 'Комментарии'
+        count: 'Количество'
+        date_published: 'Дата публикации'
+        default: 'По умолчанию'
+        default_thumbnail: 'Маленький рисунок по умолчанию'
+        default_value: 'Значение по умолчанию'
+        description: 'Описание'
+        dimensions: 'Размеры'
+        display_objects: 'Показать объекты'
+        draft: 'Эскиз'
+        email: 'Эл. почта'
+        e_mail: 'Эл. почта'
+        email_address: 'Адрес электронной почты'
+        error: 'Ошибка'
+        errors: 'ошибки'
+        excerpt: 'Выдержка'
+        facebook: 'Facebook'
+        favicon: 'Favicon'
+        screenshot: "Screenshot"
+        first_names: 'Имя'
+        group_name: 'Имя группы'
+        google_plus: 'Google plus'
+        hide: 'Спрятать'
+        home_page: 'Домашняя страница'
+        has_keywords: 'Имеет Ключевые слова'
+        manage_keywords: 'Управление ключевыми словами'
+        id: 'ID'
+        images: 'Изображения'
+        import: 'Импортировать'
+        instagram: 'Instagram'
+        keywords: 'Ключевые слова (вводите через запятую)'
+        kind: 'Разновидность'
+        last_login: 'Последний Вход'
+        last_names: 'Фамилия'
+        last_visit: 'Последнее посещение'
+        link: 'Ссылка'
+        linkedin: 'Linkedin'
+        login: 'Вход'
+        logo: 'Логотип'
+        manage_category: 'Управление Категорией'
+        manage_content: 'Управление Контентента'
+        manage_picture: 'Управление Изображения'
+        manage_summary: 'Управление Описания'
+        manage_tags: 'Управление Тэгами'
+        manage_template: 'Управление Шаблоном'
+        manage_layout: 'Управление Макетом'
+        modified: 'Изменен'
+        multiple_field_int: 'Несколько полей?'
+        required_field_int: 'Обязательное поле?'
+        translate_field_int: 'Перевести поле?'
+        show_in_frontend: 'Показать в фронтэнде (только содержание поста)'
+        name: 'Имя'
+        new_password: 'Новый пароль'
+        no_default: 'Нет По умолчанию'
+        old_password: 'Старый пароль'
+        options: 'Опции'
+        settings: 'Настройки'
+        options_field: 'Опции поле'
+        parent: 'Родитель'
+        password: 'Пароль'
+        password_confirmation: 'Подтверждение пароля'
+        password_protection: 'Защита пароля'
+        permit_comments_default: 'Разрешить комментарии (по умолчанию)'
+        post: 'Пост'
+        post_type: 'Тип поста'
+        pending: 'Рассматривается'
+        private: 'Закрытый'
+        public: 'Открытый'
+        qty: 'Количество'
+        quick_info: 'Краткая информация'
+        registration: 'Регистрация'
+        repeat_new: 'Повторить новый'
+        role: 'Роль'
+        slogan: 'Слоган'
+        slug: 'Slug'
+        short_code: 'Краткий код'
+        site_name: 'Название Сайта'
+        size: 'Размер'
+        social: 'Социальня сеть'
+        skype: 'Skype'
+        status: 'Статус'
+        owner: 'Владелец страницы'
+        tags: 'Тэги'
+        text: 'Текст'
+        title: 'Заголовок'
+        total: 'Всего'
+        trash: 'Корзина'
+        twitter: 'Twitter'
+        username: 'Имя пользователя'
+        value: 'Значение'
+        version: 'Версия'
+        visibility: 'Видимость'
+        page_404: 'Страница 404'
+        youtube: 'Youtube'
+        more_actions: 'Больше действии'
+        more_actions_info: 'Больше действии...'
+        shorcodes: "Shortcodes"
+      themes:
+        footer_copyright: 'Footer Copyright'
+        theme_select: 'Выбрать тему'
+        title: 'Настройки темы %{theme} '
+        analytics_code: 'Код аналитики'
+        social_share: 'Social share'
+
+        message:
+          updated: 'Тема'
+      users:
+        all_users: 'Все пользователи'
+        add_user: 'Добавить пользователя'
+        add_user_role: 'Добавить роль пользователя'
+        avatar: 'Аватар'
+        create_user: 'Создать пользователя'
+        edit_profile: 'Редактировать профиль'
+        list_users: 'Список пользователей'
+        list_user_roles: 'Роли пользователей'
+        message:
+         error: 'Пользователь не найден.'
+         error_captcha: 'Ой! Это ошибка капчи!'
+         created: 'Пользователь был создан.'
+         updated: 'Пользователь был обновлен.'
+         deleted: 'Пользователь был удален.'
+         incorrect_old_password: 'Неправильный старый пароль'
+         rol_error: 'Группа пользователей не найдено.'
+         rol_created: 'Роль пользователя была создана.'
+         rol_updated: 'Роль пользователя был обновлен.'
+         rol_deleted: 'Роль пользователя была удалена.'
+         requires_different_name: 'Требуется другое имя'
+         requires_different_username: 'Требуется другое имя пользователя'
+         requires_different_email: 'Требуется другая эл. почта'
+         created_pending_validate_email: "Пользователь был создан, пожалуйста, подтвердите вашу электронную почту"
+        new_photo: 'Новая фотография'
+        others_permissions: 'Другие разрешения'
+        profile: 'Профиль'
+        slogan: 'Слоган'
+        type_contents: 'Тип Контента'
+        user_roles: 'Роли пользователей'
+        roles_values:
+          comments: 'Комментарии'
+          forms: 'Формы'
+          media: 'Медиа'
+          publish: 'Опубликовать'
+          themes: 'Темы'
+          html_create_or_edit: 'Создать <br>или  Редактировать'
+          html_edit_other: 'Редактировать <br> Другие'
+          html_edit_publish: 'Редактировать <br> Опубликовать'
+          html_delete_other: 'Удалить <br> Другие'
+          html_delete_publish: 'Удалить <br> Опубликовать'
+          html_read_private: 'Читать <br> Приватный'
+          html_manage_categories: 'Управление <br> Категориями'
+          html_manage_tags: 'Управление <br> Тэгами'
+        tool_tip:
+          comments: 'Разрешается комментирование данного раздела'
+          delete: 'Вам требуется разрешение на Созадние или Редактирование, чтобы вы могли удалять ваши посты.'
+          forms: 'Разрешается Формы раздела'
+          media: 'Permission to the midsection'
+          publish: 'Вам требуется разрешение на Создание, Редактирование, Редактирование других или Опубликовать чтобы включить это разрешение'
+          themes: 'Разрешение тем на раздел'
+          widgets: 'Разрешение виджетов на раздел'
+          menus: 'Разрешение на раздел Меню'
+          plugins: 'Разрешение на раздел Плагинов'
+          users: 'Разрешение на создание, редактирование и удаление Пользователей'
+          settings: 'Разрешение на раздел Настройки'
+          create_or_edit: 'Это позволяет создавать и редактировать ваши посты (пост не публикуется)'
+          edit_other: 'Это позволяет редактировать посты других пользователей (пост не публикуется)'
+          edit_publish: 'Это позволяет редактировать опубликованный пост'
+          delete_other: 'Вам требуется разрешение на удаление и редактирование постов других пользователей.'
+          delete_publish: 'Вам требуется разрешение Удалить или Удалять других, чтобы включить это разрешение'
+          read_private: 'Позволяет просматривать приватные сообщения'
+          manage_categories: 'Разрешение на создание, редактирование и удаление категории'
+          manage_tags: 'Разрешение на создание, редактирование и удаление тегов постов'
+      validate:
+        required: 'Это поле обязательно к заполнению.'
+        remote: 'Пожалуйста, исправьте это поле.'
+        email: 'Пожалуйста, введите правильный адрес электронной почты.'
+        url: 'Пожалуйста введите правильный URL.'
+        date: 'Пожалуйста, введите правильную дату.'
+        dateiso: 'Пожалуйста, введите правильную дату (ISO).'
+        number: 'Пожалуйста введите правильное число.'
+        digits: 'Пожалуйста, вводите только цифры.'
+        creditcard: 'Пожалуйста, введите правильный номер кредитной карты.'
+        equalto: 'Пожалуйста, введите то же значение снова.'
+        maxlength: 'Пожалуйста, введите не более {0} символов.'
+        minlength: 'Пожалуйста, введите по крайней мере {0} символов.'
+        rangelength: 'Пожалуйста, введите значение с размером между {0} и {1} символов.'
+        range: 'Пожалуйста, введите значение между {0} и {1}.'
+        max: 'Пожалуйста, введите значение меньше или равное {0}.'
+        min: 'Пожалуйста, введите значение, большее или равное {0}.'
+      widgets:
+        create_widget: 'Создать Виджет'
+        create_sidebar: 'Создать боковую панель'
+        complex_widgets: 'Комплексные Виджеты'
+        simple_widgets: 'Простые Виджеты'
+        message:
+          created: 'Виджет был создан.'
+          updated: 'Виджет был обновлен.'
+          deleted: 'Виджет был удален.'
+          error_created: 'Виджет не создан.'
+          error_updated: 'Виджет не обновлен.'
+          not_registered_widgets: 'Нет зарегистрированных виджетов'
+        assign:
+          updated: "Привязка виджета обновлено"
+          error_updated: "Привязка виджета не обновлено"
+        sidebar:
+          created: "Создать боковую панель."
+          updated: "Обновить боковую панель."
+          error_created: "Боковая панель не создана."
+          error_updated: "Боковая панель не обновлена."
+          error_deleted: "Боковая панель удалена."
+      intro:
+        profile: "Здесь вы можете увидеть настройки вашего профиля."
+        content: "Этот блок содержит все группы контента вашего сайта. Каждый контент может иметь различную структуру, которых можно настроить в Настройки => Группа контентов"
+        #dashboard: "In this section you can see "
+        media: "В этом разделе, вы можете управлять доступными медиа файлами"
+        comments: "В этом разделе вы можете управлять всеми комментариями ваших контентов"
+        appearance: "Управлять всей информацией, связанной с Public Interface"
+        themes: "В этом разделе вы можете выбрать нужную тему (Public Interface)"
+        widgets: "Этот модуль позволяет вам управлять вашими виджетами и вставлять код на любой контент."
+        menus: "<img style=\"max-width: 100%;\" src=\"%{image}\" /> Этот модуль позволяет вам управлять вашими меню для Public Interface на разных уровнях."
+        plugins: "В этом разделе вы можете увидеть все плагины (пользовательские приложения, чтобы расширить функциональность вашего сайта)."
+        users: "Позволяет вам управлять всеми пользователями сайта. А также, вы можете управлять ролями пользователей."
+        settings: "В этом разделе вы можете найти все конфигурации сайта"
+        gral_site: "В этом разделе вы можете настроить все параметры вашего сайта и текущую тему"
+        sites: "Этот модуль позволяет вам управлять под сайтами (Видимио только для главного сайта). Проверте /config/system.json чтобы настроить параметры."
+        custom_fields: "Этот раздел позволяет вам расширять ваши контент и темы, добавляя новые поля."
+        post_type: "Этот модуль позволяет вам управлять вашими группами контентов без программирования."
+        languages: "Этот модуль позволяет вам управлять всеми языками для вашего сайта. Также вы можете настроить язык для вашего админ-панели."
+        shortcodes: "В этом разделе вы можете увидеть все доступные shortcodes для использования в ваших контентах."

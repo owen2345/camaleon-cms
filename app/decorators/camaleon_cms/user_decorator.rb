@@ -40,6 +40,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
     args = args.extract_options!
     args[:user_id] = the_id
     args[:user_name] = the_name.parameterize
+    args[:user_name] = the_username unless args[:user_name].present?
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)

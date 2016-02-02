@@ -109,7 +109,7 @@ module CamaleonCms::SiteHelper
   # load all custom models customized by plugins or templates in custom_models.rb
   def site_load_custom_models(site)
     PluginRoutes.enabled_apps(site).each{ |app|
-      next unless app["path"].present?
+      next if !app.present? || !app["path"].present?
       s = File.join(app["path"], "config", "custom_models.rb")
       eval(File.read(s)) if File.exist?(s)
     }

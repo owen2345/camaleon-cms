@@ -13,7 +13,8 @@ class CamaleonCms::CategoryDecorator < CamaleonCms::TermTaxonomyDecorator
   def the_url(*args)
     args = args.extract_options!
     args[:category_id] = the_id
-    args[:title] = the_title.parameterize
+    args[:title] = the_title.parameterize || the_slug
+    args[:title] = the_slug unless args[:title].present?
     args[:locale] = @_deco_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)

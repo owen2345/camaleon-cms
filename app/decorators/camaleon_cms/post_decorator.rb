@@ -76,24 +76,29 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
       when "post_of_post_type"
         args[:post_type_id] = ptype.id
         args[:title] = ptype.the_title(args[:locale]).parameterize
+        args[:title] = ptype.the_slug unless args[:title].present?
       when "post_of_category"
         if ptype.manage_categories?
           cat = object.categories.first.decorate rescue ptype.default_category.decorate
           args[:category_id] = cat.id
           args[:title] = cat.the_title(args[:locale]).parameterize
+          args[:title] = cat.the_slug unless args[:title].present?
         else
           p_url_format = "post"
           l = ""
         end
       when "post_of_posttype"
         args[:post_type_title] = ptype.the_title(args[:locale]).parameterize
+        args[:post_type_title] = ptype.the_slug unless args[:post_type_title].present?
         l = ""
       when "post_of_category_post_type"
         if ptype.manage_categories?
           cat = object.categories.first.decorate rescue ptype.default_category.decorate
           args[:post_type_title] = ptype.the_title(args[:locale]).parameterize
+          args[:post_type_title] = ptype.the_slug unless args[:post_type_title].present?
           args[:category_id] = cat.id
           args[:title] = cat.the_title(args[:locale]).parameterize
+          args[:title] = cat.the_slug unless args[:title].present?
         else
           p_url_format = "post"
           l = ""
