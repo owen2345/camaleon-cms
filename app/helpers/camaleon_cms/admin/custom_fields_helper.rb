@@ -198,7 +198,15 @@ module CamaleonCms::Admin::CustomFieldsHelper
             multiple: true,
             default_value: true,
             show_frontend: true
-        }
+        },
+        extra_fields:[
+            {
+                type: 'text_box',
+                key: 'dimension',
+                label: 'Dimensions',
+                description: 'Crop images with dimension (widthxheight), sample:<br>400x300 | 400x | x300 | ?400x?500 | ?1400x (? => maximum, empty => auto)'
+            }
+        ]
     }
     items[:numeric] = {
         key: 'numeric',

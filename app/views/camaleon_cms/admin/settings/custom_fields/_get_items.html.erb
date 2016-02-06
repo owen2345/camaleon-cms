@@ -64,6 +64,7 @@
                   else
                     html += "#{text_field(:field_options, input[:key], index: @index , value: @item_options_value[input[:key].to_sym] || '', class: 'form-control') }"
                 end
+                html += "<small>#{input[:description]}</small>" if input[:description].present?
             end
         end
     %>

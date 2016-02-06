@@ -53,4 +53,8 @@ class CamaleonCms::NavMenu < CamaleonCms::TermTaxonomy
       end
     end
   end
+
+  # overwrite termtaxonomy method
+  def destroy_dependencies
+  end
 end

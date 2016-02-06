@@ -219,7 +219,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   end
 
   def _destroy_custom_field_groups
-    class_name = self.class.to_s.gsub("Decorator","")
+    class_name = self.class.to_s.parseCamaClass
     if ['Category','Post','PostTag'].include?(class_name)
       CamaleonCms::CustomFieldGroup.where(objectid: self.id, object_class: class_name).destroy_all
     elsif ['PostType'].include?(class_name)

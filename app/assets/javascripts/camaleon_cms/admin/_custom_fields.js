@@ -160,6 +160,7 @@ function load_upload_image_field(dom) {
     var $input = $(dom).parents('li:first').find('input');
     $.fn.upload_filemanager({
         formats: "image",
+        dimension: $input.attr("data-dimension"),
         selected: function (file, response) {
             $input.val(file.url);
         }

@@ -117,7 +117,19 @@ function do_settings_menu(link){
             form.find(".translated-item").trigger("trans_integrate");
             var data = eval("("+(li.attr("data-fields")||"{}")+")");
             for(var key in data){
-                if(data[key]) form.find("[name='field_options["+key+"][values][]']").val(data[key]);
+                if(data[key]){
+                    var finput = form.find("[name='field_options["+key+"][values][]']");
+                    var fparent = finput.closest('.item-custom-field');
+                    if(typeof data[key] == 'object') { //multiple
+                        for(var jkey=0; jkey < data[key].length; jkey++){
+                            if(jkey > 0) fparent.find(".btn-add-field").click();
+                            fparent.find("[name='field_options["+key+"][values][]']:last").val(data[key][jkey]);
+                        }
+                    }else{
+                        finput.val(data[key]);
+                    }
+
+                }
             }
             init_form_validations(form);
         }, 300);
@@ -126,10 +138,12 @@ function do_settings_menu(link){
             form.find(".translated-item").trigger("trans_integrate");
             var data = {};
             var form_fields = form.serializeObject().field_options;
-            console.log(form_fields);
             for(var key in form_fields){
-                data[key] = form.find("[name='field_options["+key+"][values][]']").val();
-                console.log("ssss", data);
+                var f_vals = [];
+                var _f = form.find("[name='field_options["+key+"][values][]']");
+                if(_f.size() == 0) f_vals = _f.val();
+                else _f.each(function(){ f_vals.push($(this).val());  });
+                data[key] = f_vals;
             }
             li.attr("data-fields", JSON.stringify(data));
             modal.modal("hide");
