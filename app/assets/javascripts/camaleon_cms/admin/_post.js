@@ -56,16 +56,16 @@ function init_post(obj) {
     window["post_editor_draft_intrval"] = setInterval(function () { if($form.length == 0){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 3 * 60 * 1000);
     window.save_draft = App_post.save_draft_ajax;
 
-    if ($(".title-post" + class_translate).size() == 0) class_translate = '';
-    $(".title-post" + class_translate).each(function () {
+    if($form.find(".title-post" + class_translate).size() == 0) class_translate = '';
+    $form.find(".title-post" + class_translate).each(function () {
         var $this = $(this);
         if (!$this.hasClass('sluged')) {
             if (class_translate) {
-                var lng = $this.attr("id").match(/-(.*)-/i).pop();
-                var $input_slug = $('.slug-post' + class_translate + '[name^="translation-' + lng + '"]')
+                var lng = $this.attr("data-translation_l");
+                var $input_slug = $form.find('.slug-post' + class_translate + '[data-translation_l="' + lng + '"]');
                 var post_path = obj._post_urls[lng];
             } else {
-                var $input_slug = $('.slug-post');
+                var $input_slug = $form.find('.slug-post');
                 var post_path = obj._post_urls[Object.keys(obj._post_urls)[0]];
             }
 
@@ -104,9 +104,7 @@ function init_post(obj) {
             }
 
             function set_meta_slug() {
-                $('#meta_slug').val($('.slug-post' + class_translate).map(function () {
-                    return this.value;
-                }).get().join(","));
+                $('#meta_slug').val($form.find('.slug-post' + class_translate).map(function () { return this.value; }).get().join(","));
             }
 
             var slug_tmp = null;
@@ -120,7 +118,6 @@ function init_post(obj) {
 
             $this.change(function () {
                 if (slug_tmp) ajax_set_slug(slug_tmp);
-                //if (!_draft_inited) App_post.save_draft_ajax();
             });
             if ($input_slug.val()) {
                 set_slug($input_slug.val());
@@ -300,15 +297,11 @@ function upload_feature_image() {
     $.fn.upload_filemanager({
         formats: "image",
         selected: function (image) {
-            if (image.mime && image.mime.indexOf("image") > -1) {
-                var image_url = image.url;
-                $('#feature-image img').attr('src', image_url);
-                $('#feature-image input').val(image_url);
-                $('#feature-image .meta strong').html(image.name);
-                $('#feature-image').show();
-            } else {
-                alert("You must upload an image");
-            }
+            var image_url = image.url;
+            $('#feature-image img').attr('src', image_url);
+            $('#feature-image input').val(image_url);
+            $('#feature-image .meta strong').html(image.name);
+            $('#feature-image').show();
         }
     });
 }
