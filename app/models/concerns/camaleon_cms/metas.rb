@@ -29,7 +29,11 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # return default if meta value == ""
   def get_meta(key, default = nil)
     cama_fetch_cache("meta_#{key}") do
-      option = metas.where(key: key).first
+      if metas.is_a?(ActiveRecord::Associations::CollectionProxy)
+        option = metas.select{|m| m.key.eql?(key)}.first
+      else
+        option = metas.where(key: key).first
+      end
       res = ""
       if option.present?
         value = JSON.parse(option.value) rescue option.value
