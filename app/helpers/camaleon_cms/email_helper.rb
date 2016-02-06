@@ -27,7 +27,11 @@ module CamaleonCms::EmailHelper
   def send_password_reset_email(user_to_send)
     user_to_send.send_password_reset
     reset_url = cama_admin_forgot_url({h: user_to_send.password_reset_token})
-    extra_data = {:url => reset_url, :fullname => user_to_send.fullname}
+    extra_data = {
+        :url => reset_url,
+        :fullname => user_to_send.fullname,
+        :user => user_to_send
+    }
     send_email(user_to_send.email, t('camaleon_cms.admin.login.message.subject_email'), '', nil, [], 'password_reset', 'camaleon_cms/mailer', extra_data)
   end
 
