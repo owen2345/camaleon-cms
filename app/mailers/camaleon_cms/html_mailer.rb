@@ -16,7 +16,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
 
   # content='', from=nil, attachs=[], url_base='', current_site, template_name, layout_name, extra_data, format, cc_to
   def sender(email, subject='Hello', data = {})
-    data = {}.merge(data)
+    data = {cc_to: [], from: current_site.get_option("email")}.merge(data)
     @subject = subject
     @html = data[:content]
     @url_base = data[:url_base]
@@ -24,8 +24,6 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     @extra_data = data[:extra_data]
 
     mail_data = {to: email, subject: subject}
-    mail_data[:from] = data[:from] if data[:from].present?
-    mail_data[:cc] = data[:cc_to].join(",") if data[:cc_to].present?
     if current_site.get_option("mailer_enabled") == 1
       mail_data[:delivery_method] = :smtp
       mail_data[:delivery_method_options] = {user_name: current_site.get_option("email_username"),
@@ -36,7 +34,11 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
                                              authentication: "plain",
                                              enable_starttls_auto: true
       }
+      data[:cc] << current_site.get_option("email_cc")
+      data[:from] = current_site.get_option("email_from", data[:from])
     end
+    mail_data[:cc] = data[:cc_to].join(",") if data[:cc_to].present?
+    mail_data[:from] = data[:from] if data[:from].present?
 
     views_dir = "app/apps/"
     self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
