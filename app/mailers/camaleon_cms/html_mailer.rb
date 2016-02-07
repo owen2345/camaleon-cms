@@ -16,12 +16,14 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
 
   # content='', from=nil, attachs=[], url_base='', current_site, template_name, layout_name, extra_data, format, cc_to
   def sender(email, subject='Hello', data = {})
+    @current_site = data[:current_site]
+    current_site = data[:current_site]
     data = {cc_to: [], from: current_site.get_option("email")}.merge(data)
     @subject = subject
     @html = data[:content]
     @url_base = data[:url_base]
-    @current_site = data[:current_site]
     @extra_data = data[:extra_data]
+    data[:cc_to] = [data[:cc_to]] if data[:cc_to].is_a?(String) || !data[:cc_to].present?
 
     mail_data = {to: email, subject: subject}
     if current_site.get_option("mailer_enabled") == 1
@@ -34,7 +36,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
                                              authentication: "plain",
                                              enable_starttls_auto: true
       }
-      data[:cc] << current_site.get_option("email_cc")
+      data[:cc_to].push(current_site.get_option("email_cc"))
       data[:from] = current_site.get_option("email_from", data[:from])
     end
     mail_data[:cc] = data[:cc_to].join(",") if data[:cc_to].present?
