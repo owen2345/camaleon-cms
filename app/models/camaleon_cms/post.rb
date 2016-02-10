@@ -32,7 +32,7 @@ end
 
 class CamaleonCms::Post < CamaleonCms::PostDefault
   include CamaleonCms::CategoriesTagsForPosts
-  default_scope ->{ where(post_class: "Post").order(post_order: :asc) }
+  default_scope ->{ where(post_class: "Post").order(post_order: :asc, created_at: :desc) }
   has_many :metas, ->{ where(object_class: 'Post')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
 
   # DEPRECATED
