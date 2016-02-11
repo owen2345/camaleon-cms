@@ -15,7 +15,7 @@ module Plugins::FrontCache::FrontCacheHelper
       current_site.set_option("refresh_cache", false)
     end
 
-    return if signin? || Rails.env == "development" || Rails.env == "test" # avoid cache if current visitor is logged in or development environment
+    return if signin? || Rails.env == "development" || Rails.env == "test" || !request.get? # avoid cache if current visitor is logged in or development environment
     # return if signin? # avoid cache if current visitor is logged in or development environment
 
     cache_key = front_cache_get_key
