@@ -106,12 +106,11 @@ module Plugins::ContactForm::ContactFormHelper
       if form_new.save
         content = get_content_from_submission_partial(attachments, values, fields)
         content = get_content_from_views_submission_partial(attachments, values, fields) unless content.nil?
-
         if content.nil?
           extra_data = {fields: convert_form_values(values[:fields], fields)}
-          send_email(settings[:railscf_mail][:to], settings[:railscf_mail][:subject], '', settings[:railscf_mail][:to], attachments, 'contact_form_email', 'camaleon_cms/mailer', extra_data)
+          cama_send_email(settings[:railscf_mail][:to], settings[:railscf_mail][:subject], {attachments: attachments, content: content, template_name: 'contact_form_email', layout_name: 'camaleon_cms/mailer', extra_data: extra_data})
         else
-          sendmail(settings[:railscf_mail][:to], settings[:railscf_mail][:subject], content, settings[:railscf_mail][:to], attachments)
+          cama_send_email(settings[:railscf_mail][:to], settings[:railscf_mail][:subject], {attachments: attachments, content: content})
         end
         success << settings[:railscf_message][:mail_sent_ok]
       else

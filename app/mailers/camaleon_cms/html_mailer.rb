@@ -51,7 +51,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     lookup_context.prefixes.prepend("themes/#{theme.slug}/views") unless theme.settings["gem_mode"]
 
     # run hook "email" to customize values
-    r = {template_name: data[:template_name], layout_name: data[:layout_name], mail_data: mail_data, files: data[:attachs], format: data[:format] || 'html'}
+    r = {template_name: data[:template_name], layout_name: data[:layout_name], mail_data: mail_data, files: data[:attachs] || data[:attachments], format: data[:format] || 'html'}
     hooks_run("email", r)
 
     if r[:files].present?

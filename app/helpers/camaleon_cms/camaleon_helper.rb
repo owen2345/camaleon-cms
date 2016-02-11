@@ -7,22 +7,6 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module CamaleonCms::CamaleonHelper
-  # send and email
-  # email: email to
-  # subject: Subject of the email
-  # content: content of the email
-  # from: email figured as from
-  # attachs: array of files to be attached to the email
-  # layout_name: path of the template to render
-  # template_name: template name to render in template_path
-  def sendmail(email,subject='Tiene una notificacion',content='',from=nil,attachs=[],template_name = 'mailer', layout_name = 'camaleon_cms/mailer')
-    Thread.abort_on_exception=true
-    Thread.new do
-      HtmlMailer.sender(email, subject, content, from, attachs, cama_root_url, current_site, template_name, layout_name, {}).deliver_now
-      ActiveRecord::Base.connection.close
-    end
-  end
-
   # create the html link with the url passed
   # verify if current user is logged in, if not, then return nil
   # return html link
