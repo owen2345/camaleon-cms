@@ -23,7 +23,5 @@ jQuery(function($){
     }).filter(":checked").trigger("change");
 
     var cal_input = $("#form-post").find('#published_from');
-    cal_input.datetimepicker({
-        language: CURRENT_LOCALE
-    });
+    cal_input.datetimepicker({format: 'YYYY-MM-DD HH:mm'});
 });

@@ -85,9 +85,7 @@ module Plugins::VisibilityPost::VisibilityPostHelper
   end
 
   def form_html(post)
-    add_asset_library('datetimepicker')
     append_asset_libraries({"plugin_visibility"=> { js: [plugin_asset_path("js/form.js")] }})
-
     "
     <div class='form-group'>
                   <label class='control-label'>#{t('camaleon_cms.admin.post_type.published_date')}</label>

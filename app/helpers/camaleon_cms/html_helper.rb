@@ -119,8 +119,8 @@ module CamaleonCms::HtmlHelper
     return @_cama_assets_libraries if @_cama_assets_libraries.present?
     libs = {}
     libs[:colorpicker] = {js: ['camaleon_cms/admin/bootstrap-colorpicker'], css: ["camaleon_cms/admin/colorpicker.css"]}
-    libs[:datepicker] = {js: ['camaleon_cms/admin/bootstrap-datepicker']}
-    libs[:datetimepicker] = {js: ['camaleon_cms/admin/bootstrap-datetimepicker.min'], css: ['camaleon_cms/admin/bootstrap-datetimepicker']}
+    libs[:datepicker] = {js: []}
+    libs[:datetimepicker] = {js: [], css: []}
     libs[:tinymce] = {js: ['camaleon_cms/admin/tinymce/tinymce.min', "camaleon_cms/admin/tinymce/plugins/filemanager/plugin.min"], css: ["camaleon_cms/admin/tinymce/skins/lightgray/content.min"]}
     libs[:form_builder] = {css:['camaleon_cms/admin/form-builder/formbuilder'],js: ['camaleon_cms/admin/form-builder/vendor', 'camaleon_cms/admin/form-builder/formbuilder' ]}
     libs[:form_ajax] = {js: ['camaleon_cms/admin/form/jquery.form']}

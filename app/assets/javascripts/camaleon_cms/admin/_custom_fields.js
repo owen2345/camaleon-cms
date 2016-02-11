@@ -74,16 +74,9 @@ function custom_field_date($field) {
     if ($field) {
         var box = $field.find(".date-input-box");
         if (box.hasClass('is_datetimepicker')) {
-            box.datetimepicker({
-                pick12HourFormat: true,
-                format: 'yyyy-MM-dd hh:mm'
-            });
+            box.datetimepicker({ format: 'YYYY-MM-DD HH:mm' });
         } else {
-            box.datepicker({
-                format: 'yyyy-mm-dd',
-                autoclose: true,
-                todayBtn: "linked"
-            });
+            box.datepicker();
         }
     }
 }

@@ -17,6 +17,10 @@
 //= require ./_underscore
 //= require ./jquery.validate
 
+// date picker
+//= require ./momentjs/_moment
+//= require ./bootstrap-datepicker
+
 //= require jquery_ujs
 
 //= require ./_jquery.slugify
