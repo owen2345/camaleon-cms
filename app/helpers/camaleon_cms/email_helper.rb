@@ -10,7 +10,7 @@ module CamaleonCms::EmailHelper
   # template_name: template name to render in template_path
   def send_email(email, subject='Tiene una notificacion', content='', from=nil, attachs=[], template_name = 'mailer', layout_name = 'camaleon_cms/mailer', extra_data = {})
     args = {template_name: template_name, layout_name: layout_name, from: from || current_site.get_option("email"), url_base: cama_root_url, content: content, attachs: attachs, extra_data: extra_data, current_site: current_site}
-    Thread.abort_on_exception=false
+    Thread.abort_on_exception=true
     Thread.new do
       CamaleonCms::HtmlMailer.sender(email, subject, args).deliver_now
       ActiveRecord::Base.connection.close
@@ -20,7 +20,7 @@ module CamaleonCms::EmailHelper
   # short method of send_email
   def cama_send_email(email_to, subject, args = {})
     args = {template_name: 'mailer', layout_name: 'camaleon_cms/mailer', from: current_site.get_option("email"), url_base: cama_root_url, current_site: current_site}.merge(args)
-    Thread.abort_on_exception=false
+    Thread.abort_on_exception=true
     Thread.new do
       CamaleonCms::HtmlMailer.sender(email_to, subject, args).deliver_now
       ActiveRecord::Base.connection.close
