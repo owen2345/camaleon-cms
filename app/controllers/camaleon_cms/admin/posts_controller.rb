@@ -35,7 +35,6 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
 
     if params[:q].present?
       posts_all = posts_all.where("#{CamaleonCms::Post.table_name}.title LIKE ?", "%#{params[:q]}%")
-      puts "@@@@@@@@@@@@@@@@@@@@@@@@: #{posts_all.to_sql}"
     end
 
     @posts = posts_all
