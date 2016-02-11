@@ -54,7 +54,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     r = {posts: @posts, post_type: @post_type, btns: @btns, all_posts: posts_all, render: 'index', per_page: per_page }
     hooks_run("list_post", r)
     per_page = 9999999 if @post_type.manage_hierarchy?
-    @posts = r[:posts].paginate(:page => params[:page], :per_page => per_page)
+    @posts = r[:posts].paginate(:page => params[:page], :per_page => r[:per_page])
     render r[:render]
   end
 
