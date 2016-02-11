@@ -39,7 +39,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
       data[:cc_to].push(current_site.get_option("email_cc"))
       data[:from] = current_site.get_option("email_from", data[:from])
     end
-    mail_data[:cc] = data[:cc_to].join(",") if data[:cc_to].present?
+    mail_data[:cc] = data[:cc_to].clean_empty.join(",") if data[:cc_to].present?
     mail_data[:from] = data[:from] if data[:from].present?
 
     views_dir = "app/apps/"
