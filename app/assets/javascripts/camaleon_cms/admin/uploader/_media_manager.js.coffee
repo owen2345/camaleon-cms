@@ -17,7 +17,7 @@ window["cama_init_media"] = (media_panel)->
         "</div>"
 
     if window["callback_media_uploader"]
-      if !media_panel.attr("data-formats") || (media_panel.attr("data-formats")  && $.inArray(data["format"], media_panel.attr("data-formats").split(",")) >= 0)
+      if !media_panel.attr("data-formats") || (media_panel.attr("data-formats")  && ($.inArray(data["format"], media_panel.attr("data-formats").split(",")) >= 0 || $.inArray(data["url"].split(".").pop().toLowerCase(), media_panel.attr("data-formats").split(",")) >= 0))
         tpl += "<div class='p_footer'>" +
           "<button class='btn btn-primary insert_btn'>"+I18n("button.insert")+"</button>" +
           "</div>"

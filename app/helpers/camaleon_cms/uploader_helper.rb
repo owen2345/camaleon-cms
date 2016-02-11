@@ -185,8 +185,8 @@ module CamaleonCms::UploaderHelper
     if "mp3,ogg".split(",").include?(ext)
       res["format"] = "audio"
     end
-    if "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt".split(",").include?(ext)
-      res["format"] = "doc"
+    if "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,xml,json".split(",").include?(ext)
+      res["format"] = "document"
     end
     if "zip,7z,rar,tar,bz2,gz,rar2".split(",").include?(ext)
       res["format"] = "compress"
@@ -364,7 +364,7 @@ module CamaleonCms::UploaderHelper
       formats += "mp3,ogg".split(',')
     end
     if formats.include? "document"
-      formats += "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,htm".split(',')
+      formats += "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,htm,json,xml".split(',')
     end
     if formats.include?("compress") || formats.include?("compres")
       formats += "zip,7z,rar,tar,bz2,gz,rar2".split(',')

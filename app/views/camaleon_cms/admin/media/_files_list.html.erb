@@ -1,4 +1,4 @@
-<% @tree[:files].each do |file| next if @media_formats.present? && !@media_formats.include?(file["format"]) %>
+<% @tree[:files].each do |file| next if @media_formats.present? && !@media_formats.include?(file["format"]) && !@media_formats.include?(file["url"].split('.').last) %>
     <%= render "render_file_item", file: file %>
 <% end %>
 

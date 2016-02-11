@@ -162,7 +162,12 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:locale] = @_deco_locale unless args.include?(:locale)
     postfix = 'url'
     postfix = 'path' if args.delete(:as_path)
-    h.cama_url_to_fixed("cama_root_#{postfix}", args)
+    begin
+      h.cama_url_to_fixed("cama_root_#{postfix}", args)
+    rescue # undefined method `host' for nil:NilClass (called from rake:tasks)
+      parms = args.except(:host, :port, :locale, :as_path)
+      "http://#{args[:host]}#{":#{args[:port]}" if args[:port].present?}#{"/#{args[:locale]}" if args[:locale].present?}/#{"?#{parms.to_param}" if parms.present?}"
+    end
   end
 
   # return the path for this site
