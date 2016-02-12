@@ -16,8 +16,8 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
 
   # content='', from=nil, attachs=[], url_base='', current_site, template_name, layout_name, extra_data, format, cc_to
   def sender(email, subject='Hello', data = {})
-    data[:current_site] = CamaleonCms::Site.main_site unless data[:current_site].present?
-    data[:current_site] = CamaleonCms::Site.find(data[:current_site]) if data[:current_site].is_a?(Integer)
+    data[:current_site] = CamaleonCms::Site.main_site.decorate unless data[:current_site].present?
+    data[:current_site] = CamaleonCms::Site.find(data[:current_site]).decorate if data[:current_site].is_a?(Integer)
     @current_site = data[:current_site]
     current_site = data[:current_site]
     data = {cc_to: [], from: current_site.get_option("email")}.merge(data)
