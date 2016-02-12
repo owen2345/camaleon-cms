@@ -51,7 +51,11 @@
             </div>
 
             <!-- render all custom fields assigned to this post -->
-            <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @post, field_groups: @post.get_field_groups({kind: "Post", include_parent: true}), show_shortcode: true} %>
+            <%
+              r = {render: 'camaleon_cms/admin/settings/custom_fields/render', record: @post, field_groups: @post.get_field_groups({kind: 'Post', include_parent: true}), show_shortcode: true}
+              hooks_run('posts_form_custom_fields_render', r)
+            %>
+             <%= render partial: r[:render], locals: {record: r[:record], field_groups: r[:field_groups], show_shortcode: r[:show_shortcode]} %>
 
             <% unless @post.draft? || @post.new_record? %>
                 <% if @post.manage_comments?(@post_type) %>
