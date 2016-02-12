@@ -20,10 +20,15 @@ module CamaleonCms::EmailHelper
   # short method of send_email
   def cama_send_email(email_to, subject, args = {})
     args = {template_name: 'mailer', layout_name: 'camaleon_cms/mailer', from: current_site.get_option("email"), url_base: cama_root_url, current_site: current_site}.merge(args)
-    Thread.abort_on_exception=true
-    Thread.new do
-      CamaleonCms::HtmlMailer.sender(email_to, subject, args).deliver_now
-      ActiveRecord::Base.connection.close
+    if args[:deliver_later].present?
+      args[:current_site] = args[:current_site].id
+      CamaleonCms::HtmlMailer.sender(email_to, subject, args).deliver_later
+    else
+      Thread.abort_on_exception=true
+      Thread.new do
+        CamaleonCms::HtmlMailer.sender(email_to, subject, args).deliver_now
+        ActiveRecord::Base.connection.close
+      end
     end
   end
 
