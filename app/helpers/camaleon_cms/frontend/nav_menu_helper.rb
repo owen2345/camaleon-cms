@@ -112,12 +112,6 @@ module CamaleonCms::Frontend::NavMenuHelper
     end
   end
 
-  # check if menu is the current menu
-  def cama_is_current_menu?(menu_item)
-    r = _get_link_nav_menu(menu_item)
-    r[:current] || site_current_path == r[:link] || site_current_path.sub(".html", "") == r[:link].sub(".html", "") if r.present?
-  end
-
   #******************* BREADCRUMBS *******************
   # draw the breadcrumb as html list
   def breadcrumb_draw
@@ -152,16 +146,16 @@ module CamaleonCms::Frontend::NavMenuHelper
         when 'post'
           post = CamaleonCms::Post.find(nav_menu_item.get_option('object_id')).decorate
           return false unless post.can_visit?
-          {link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu, current: @cama_visited_post.present? && @cama_visited_post.id == post.id}
+          r = {link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu, current: @cama_visited_post.present? && @cama_visited_post.id == post.id}
         when 'category'
           category = CamaleonCms::Category.find(nav_menu_item.get_option('object_id')).decorate
-          {link: category.the_url(as_path: true), name: category.the_title, type_menu: type_menu, current: @cama_visited_category.present? && @cama_visited_category.id == category.id}
+          r = {link: category.the_url(as_path: true), name: category.the_title, type_menu: type_menu, current: @cama_visited_category.present? && @cama_visited_category.id == category.id}
         when 'post_tag'
           post_tag = CamaleonCms::PostTag.find(nav_menu_item.get_option('object_id')).decorate
-          {link: post_tag.the_url(as_path: true), name: post_tag.the_title, type_menu: type_menu, current: @cama_visited_tag.present? && @cama_visited_tag.id == post_tag.id}
+          r = {link: post_tag.the_url(as_path: true), name: post_tag.the_title, type_menu: type_menu, current: @cama_visited_tag.present? && @cama_visited_tag.id == post_tag.id}
         when 'post_type'
           post_type = CamaleonCms::PostType.find(nav_menu_item.get_option('object_id')).decorate
-          {link: post_type.the_url(as_path: true), name: post_type.the_title, type_menu: type_menu, current: @cama_visited_post_type.present? && @cama_visited_post_type.id == post_type.id}
+          r = {link: post_type.the_url(as_path: true), name: post_type.the_title, type_menu: type_menu, current: @cama_visited_post_type.present? && @cama_visited_post_type.id == post_type.id}
         when 'external'
           r = {link: nav_menu_item.get_option('object_id', ""), name: nav_menu_item.name.to_s.translate, type_menu: type_menu, current: false}
           r[:link] = cama_root_path if r[:link] == "root_url"
@@ -169,11 +163,17 @@ module CamaleonCms::Frontend::NavMenuHelper
           r[:current] = r[:link] == site_current_url || r[:link] == site_current_path
           r
         else
-          false
+          return false
       end
     rescue => e
       puts "-------------------------- menu item error: #{e.message}"
-      false
+      return false
     end
+
+    # permit to mark as a current menu custom paths
+    # sample: @cama_current_menu_path = '/my_section'
+    # sample2: @cama_current_menu_path = ['/my_section', '/mi_seccion'] # multi language support
+    r[:current] = true if @cama_current_menu_path.present? && !r[:current] && (@cama_current_menu_path.is_a?(String) ? @cama_current_menu_path == r[:link] : @cama_current_menu_path.include?(r[:link]))
+    r
   end
 end
