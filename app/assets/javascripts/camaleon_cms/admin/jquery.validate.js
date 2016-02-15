@@ -140,14 +140,14 @@ $.extend($.fn, {
 				$.extend( existingRules, $.validator.normalizeRule( argument ) );
 				// remove messages from rules, but allow them to be set separately
 				delete existingRules.messages;
-				staticRules[ element.name ] = existingRules;
+				staticRules[ element.name || element.dataset.name ] = existingRules;
 				if ( argument.messages ) {
-					settings.messages[ element.name ] = $.extend( settings.messages[ element.name ], argument.messages );
+					settings.messages[ element.name || element.dataset.name ] = $.extend( settings.messages[ element.name || element.dataset.name ], argument.messages );
 				}
 				break;
 			case "remove":
 				if ( !argument ) {
-					delete staticRules[ element.name ];
+					delete staticRules[ element.name || element.dataset.name ];
 					return existingRules;
 				}
 				filtered = {};
@@ -263,24 +263,24 @@ $.extend( $.validator, {
 			}
 		},
 		onfocusout: function( element ) {
-			if ( !this.checkable( element ) && ( element.name in this.submitted || !this.optional( element ) ) ) {
+			if ( !this.checkable( element ) && ( (element.name||element.dataset.name) in this.submitted || !this.optional( element ) ) ) {
 				this.element( element );
 			}
 		},
 		onkeyup: function( element, event ) {
 			if ( event.which === 9 && this.elementValue( element ) === "" ) {
 				return;
-			} else if ( element.name in this.submitted || element === this.lastElement ) {
+			} else if ( (element.name||element.dataset.name) in this.submitted || element === this.lastElement ) {
 				this.element( element );
 			}
 		},
 		onclick: function( element ) {
 			// click on selects, radiobuttons and checkboxes
-			if ( element.name in this.submitted ) {
+			if ( (element.name||element.dataset.name) in this.submitted ) {
 				this.element( element );
 
 			// or option elements, check parent select in that case
-			} else if ( element.parentNode.name in this.submitted ) {
+			} else if ( (element.parentNode.name||element.parentNode.dataset.name) in this.submitted ) {
 				this.element( element.parentNode );
 			}
 		},
@@ -293,7 +293,7 @@ $.extend( $.validator, {
 		},
 		unhighlight: function( element, errorClass, validClass ) {
 			if ( element.type === "radio" ) {
-				this.findByName( element.name ).removeClass( errorClass ).addClass( validClass );
+				this.findByName( element.name||element.dataset.name ).removeClass( errorClass ).addClass( validClass );
 			} else {
 				$( element ).removeClass( errorClass ).addClass( validClass );
 			}
@@ -411,16 +411,16 @@ $.extend( $.validator, {
 			this.lastElement = checkElement;
 
 			if ( checkElement === undefined ) {
-				delete this.invalid[ cleanElement.name ];
+				delete this.invalid[ cleanElement.name||cleanElement.dataset.name ];
 			} else {
 				this.prepareElement( checkElement );
 				this.currentElements = $( checkElement );
 
 				result = this.check( checkElement ) !== false;
 				if ( result ) {
-					delete this.invalid[ checkElement.name ];
+					delete this.invalid[ checkElement.name||checkElement.dataset.name ];
 				} else {
-					this.invalid[ checkElement.name ] = true;
+					this.invalid[ checkElement.name||checkElement.dataset.name ] = true;
 				}
 			}
 			// Add aria-invalid status for screen readers
@@ -448,7 +448,7 @@ $.extend( $.validator, {
 				}
 				// remove items from success list
 				this.successList = $.grep( this.successList, function( element ) {
-					return !( element.name in errors );
+					return !( (element.name||element.dataset.name) in errors );
 				});
 			}
 			if ( this.settings.showErrors ) {
@@ -521,7 +521,7 @@ $.extend( $.validator, {
 		findLastActive: function() {
 			var lastActive = this.lastActive;
 			return lastActive && $.grep( this.errorList, function( n ) {
-				return n.element.name === lastActive.name;
+				return (n.element.name||n.element.dataset.name) === (lastActive.name||lastActive.dataset.name);
 			}).length === 1 && lastActive;
 		},
 
@@ -535,16 +535,16 @@ $.extend( $.validator, {
 			.not( ":submit, :reset, :image, [disabled]" )
 			.not( this.settings.ignore )
 			.filter( function() {
-				if ( !this.name && validator.settings.debug && window.console ) {
+				if ( !(this.name||this.dataset.name) && validator.settings.debug && window.console ) {
 					console.error( "%o has no name assigned", this );
 				}
 
 				// select only the first element for each name, and only those with rules specified
-				if ( this.name in rulesCache || !validator.objectLength( $( this ).rules() ) ) {
+				if ( (this.name||this.dataset.name) in rulesCache || !validator.objectLength( $( this ).rules() ) ) {
 					return false;
 				}
 
-				rulesCache[ this.name ] = true;
+				rulesCache[ (this.name||this.dataset.name) ] = true;
 				return true;
 			});
 		},
@@ -583,7 +583,7 @@ $.extend( $.validator, {
 				type = element.type;
 
 			if ( type === "radio" || type === "checkbox" ) {
-				return $( "input[name='" + element.name + "']:checked" ).val();
+				return $( "input[name='" + element.name + "']:checked, input[data-name='" + element.dataset.name + "']:checked" ).val();
 			} else if ( type === "number" && typeof element.validity !== "undefined" ) {
 				return element.validity.badInput ? false : $element.val();
 			}
@@ -671,12 +671,12 @@ $.extend( $.validator, {
 
 		defaultMessage: function( element, method ) {
 			return this.findDefined(
-				this.customMessage( element.name, method ),
+				this.customMessage( (element.name||element.dataset.name), method ),
 				this.customDataMessage( element, method ),
 				// title is never undefined, so handle empty string as undefined
 				!this.settings.ignoreTitle && element.title || undefined,
 				$.validator.messages[ method ],
-				"<strong>Warning: No message defined for " + element.name + "</strong>"
+				"<strong>Warning: No message defined for " + (element.name||element.dataset.name) + "</strong>"
 			);
 		},
 
@@ -694,8 +694,8 @@ $.extend( $.validator, {
 				method: rule.method
 			});
 
-			this.errorMap[ element.name ] = message;
-			this.submitted[ element.name ] = message;
+			this.errorMap[ element.name||element.dataset.name ] = message;
+			this.submitted[ element.name||element.dataset.name ] = message;
 		},
 
 		addWrapper: function( toToggle ) {
@@ -793,7 +793,7 @@ $.extend( $.validator, {
 					$( element ).attr( "aria-describedby", describedBy );
 
 					// If this element is grouped, then assign to all elements in the same group
-					group = this.groups[ element.name ];
+					group = this.groups[ element.name||element.dataset.name ];
 					if ( group ) {
 						$.each( this.groups, function( name, testgroup ) {
 							if ( testgroup === group ) {
@@ -829,13 +829,13 @@ $.extend( $.validator, {
 		},
 
 		idOrName: function( element ) {
-			return this.groups[ element.name ] || ( this.checkable( element ) ? element.name : element.id || element.name );
+			return this.groups[ element.name||element.dataset.name ] || ( this.checkable( element ) ? element.name : element.id || element.name||element.dataset.name );
 		},
 
 		validationTargetFor: function( element ) {
 			// if radio/checkbox, validate first element in group instead
 			if ( this.checkable( element ) ) {
-				element = this.findByName( element.name ).not( this.settings.ignore )[ 0 ];
+				element = this.findByName( element.name||element.dataset.name ).not( this.settings.ignore )[ 0 ];
 			}
 			return element;
 		},
@@ -845,7 +845,9 @@ $.extend( $.validator, {
 		},
 
 		findByName: function( name ) {
-			return $( this.currentForm ).find( "[name='" + name + "']" );
+			var item = $( this.currentForm ).find( "[name='" + name + "']" );
+            if(!item.size()) item = $( this.currentForm ).find( "[data-name='" + name + "']" );
+            return item;
 		},
 
 		getLength: function( value, element ) {
@@ -882,7 +884,7 @@ $.extend( $.validator, {
 		},
 
 		startRequest: function( element ) {
-			if ( !this.pending[ element.name ] ) {
+			if ( !this.pending[ element.name||element.dataset.name ] ) {
 				this.pendingRequest++;
 				this.pending[ element.name ] = true;
 			}
@@ -894,7 +896,7 @@ $.extend( $.validator, {
 			if ( this.pendingRequest < 0 ) {
 				this.pendingRequest = 0;
 			}
-			delete this.pending[ element.name ];
+			delete this.pending[ element.name||element.dataset.name ];
 			if ( valid && this.pendingRequest === 0 && this.formSubmitted && this.form() ) {
 				$( this.currentForm ).submit();
 				this.formSubmitted = false;
@@ -1009,7 +1011,7 @@ $.extend( $.validator, {
 			validator = $.data( element.form, "validator" );
 
 		if ( validator.settings.rules ) {
-			rules = $.validator.normalizeRule( validator.settings.rules[ element.name ] ) || {};
+			rules = $.validator.normalizeRule( validator.settings.rules[ element.name||element.dataset.name ] ) || {};
 		}
 		return rules;
 	},
@@ -1255,11 +1257,11 @@ $.extend( $.validator, {
 			var previous = this.previousValue( element ),
 				validator, data;
 
-			if (!this.settings.messages[ element.name ] ) {
-				this.settings.messages[ element.name ] = {};
+			if (!this.settings.messages[ element.name||element.dataset.name ] ) {
+				this.settings.messages[ element.name||element.dataset.name ] = {};
 			}
-			previous.originalMessage = this.settings.messages[ element.name ].remote;
-			this.settings.messages[ element.name ].remote = previous.message;
+			previous.originalMessage = this.settings.messages[ element.name||element.dataset.name ].remote;
+			this.settings.messages[ element.name||element.dataset.name ].remote = previous.message;
 
 			param = typeof param === "string" && { url: param } || param;
 
@@ -1271,11 +1273,11 @@ $.extend( $.validator, {
 			validator = this;
 			this.startRequest( element );
 			data = {};
-			data[ element.name ] = value;
+			data[ element.name||element.dataset.name ] = value;
 			$.ajax( $.extend( true, {
 				url: param,
 				mode: "abort",
-				port: "validate" + element.name,
+				port: "validate" + (element.name||element.dataset.name),
 				dataType: "json",
 				data: data,
 				context: validator.currentForm,
@@ -1283,19 +1285,19 @@ $.extend( $.validator, {
 					var valid = response === true || response === "true",
 						errors, message, submitted;
 
-					validator.settings.messages[ element.name ].remote = previous.originalMessage;
+					validator.settings.messages[ element.name||element.dataset.name ].remote = previous.originalMessage;
 					if ( valid ) {
 						submitted = validator.formSubmitted;
 						validator.prepareElement( element );
 						validator.formSubmitted = submitted;
 						validator.successList.push( element );
-						delete validator.invalid[ element.name ];
+						delete validator.invalid[ element.name||element.dataset.name ];
 						validator.showErrors();
 					} else {
 						errors = {};
 						message = response || validator.defaultMessage( element, "remote" );
-						errors[ element.name ] = previous.message = $.isFunction( message ) ? message( value ) : message;
-						validator.invalid[ element.name ] = true;
+						errors[ element.name||element.dataset.name ] = previous.message = $.isFunction( message ) ? message( value ) : message;
+						validator.invalid[ element.name||element.dataset.name ] = true;
 						validator.showErrors( errors );
 					}
 					previous.valid = valid;
