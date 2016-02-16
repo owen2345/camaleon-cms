@@ -14,14 +14,6 @@ pt:
     search: buscar
     profile: perfil
 
-pt_br:
-  routes:
-    group: grupo
-    category: categoria
-    tag: etiqueta
-    search: buscar
-    profile: perfil
-
 fr:
   routes:
     group: groupe
