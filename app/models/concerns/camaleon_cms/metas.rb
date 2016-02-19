@@ -28,14 +28,15 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # if meta not exist, return default
   # return default if meta value == ""
   def get_meta(key, default = nil)
-    cama_fetch_cache("meta_#{key}") do
-      option = metas.select{|m| m.key.eql?(key)}.first
-      res = ""
+    key_str = key.is_a?(Symbol) ? key.to_s : key
+    cama_fetch_cache("meta_#{key_str}") do
+      option = metas.select { |m| m.key.eql?(key_str) }.first
+      res = ''
       if option.present?
         value = JSON.parse(option.value) rescue option.value
         res = (value.is_a?(Hash) ? value.to_sym : value) rescue option.value
       end
-      res == "" ? default : res
+      res == '' ? default : res
     end
   end
 
