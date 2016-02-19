@@ -18,8 +18,8 @@
     </script>
     <%= javascript_include_tag "camaleon_cms/admin/admin-manifest" %>
 
-    <%= javascript_include_tag "camaleon_cms/admin/jquery_validate/#{current_locale}.js" if current_locale != "en" %>
-    <%= javascript_include_tag "camaleon_cms/admin/momentjs/#{current_locale}.js" %>
+    <%= javascript_include_tag "camaleon_cms/admin/jquery_validate/#{current_locale}.js" if current_locale != 'en' %>
+    <%= javascript_include_tag "camaleon_cms/admin/momentjs/#{current_locale}.js" if current_locale != 'en' %>
 
     <%= raw the_head({}, false) %>
     <%= yield :head if content_for? :head %>
