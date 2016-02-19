@@ -15,6 +15,7 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
 
   after_create :update_count
   #before_destroy :update_count
+  alias_attribute :site_id, :term_group
 
   # return the main menu
   def main_menu

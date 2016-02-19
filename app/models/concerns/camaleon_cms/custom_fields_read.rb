@@ -97,13 +97,15 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
 
 
   # return all values
-  # {key1: value3, key2: [value1, value2], key3: value4}
-  def get_field_values_hash
+  # {key1: "single value", key2: [multiple, values], key3: value4} if include_options = false
+  # {key1: {values: "single value", options: {a:1, b: 4}}, key2: {values: [multiple, values], options: {a=1, b=2} }} if include_options = true
+  def get_field_values_hash(include_options = false)
     fields = {}
     self.field_values.to_a.uniq.each do |field_value|
       custom_field = field_value.custom_fields
       values = custom_field.values.where(objectid: self.id).pluck(:value)
-      fields[field_value.custom_field_slug] = custom_field.options[:multiple].to_s.to_bool ? values : values.first
+      fields[field_value.custom_field_slug] = custom_field.options[:multiple].to_s.to_bool ? values : values.first unless include_options
+      fields[field_value.custom_field_slug] = {values: custom_field.options[:multiple].to_s.to_bool ? values : values.first, options: custom_field.options, id: custom_field.id} if include_options
     end
     fields.to_sym
   end

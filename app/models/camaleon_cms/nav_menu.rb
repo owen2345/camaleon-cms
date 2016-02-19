@@ -44,12 +44,7 @@ class CamaleonCms::NavMenu < CamaleonCms::TermTaxonomy
         saved_nav_items(item, value[:children]) if value[:children].present?
 
         # save custom fields for this menu item
-        if value[:fields].present?
-          value[:fields].each do |k, v|
-            item.save_field_value(k, v)
-          end
-        end
-
+        item.set_field_values(value[:fields]) if value[:fields].present?
       end
     end
   end

@@ -8,7 +8,7 @@ module CamaleonCms::EmailHelper
   # attachs: array of files to be attached to the email
   # layout_name: path of the template to render
   # template_name: template name to render in template_path
-  def send_email(email, subject='Tiene una notificacion', content='', from=nil, attachs=[], template_name = 'mailer', layout_name = 'camaleon_cms/mailer', extra_data = {})
+  def send_email(email, subject='Tiene una notificacion', content='', from=nil, attachs=[], template_name = nil, layout_name = nil, extra_data = {})
     args = {template_name: template_name, layout_name: layout_name, from: from || current_site.get_option("email"), url_base: cama_root_url, content: content, attachs: attachs, extra_data: extra_data, current_site: current_site}
     Thread.abort_on_exception=true
     Thread.new do
@@ -19,7 +19,7 @@ module CamaleonCms::EmailHelper
 
   # short method of send_email
   def cama_send_email(email_to, subject, args = {})
-    args = {template_name: 'mailer', layout_name: 'camaleon_cms/mailer', from: current_site.get_option("email"), url_base: cama_root_url, current_site: current_site}.merge(args)
+    args = {from: current_site.get_option("email"), url_base: cama_root_url, current_site: current_site}.merge(args)
     if args[:deliver_later].present?
       args[:current_site] = args[:current_site].id
       CamaleonCms::HtmlMailer.sender(email_to, subject, args).deliver_later

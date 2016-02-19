@@ -58,6 +58,10 @@ jQuery(function(){
 function open_modal(settings){
     var def = {title: "", content: null, url: null, show_footer: false, mode: "inline", ajax_params: {}, id: 'ow_inline_modal', zindex: null, modal_size: "", type: '', modal_settings:{}, on_submit: null, callback: function(){}, on_close: function(){}}
     settings = $.extend({}, def, settings);
+    if(settings.id){
+        var hidden_modal = $("#"+settings.id);
+        if(hidden_modal.size()){ hidden_modal.modal('show'); return hidden_modal; }
+    }
     var modal = $('<div id="'+settings.id+'" class="modal fade modal-'+settings.type+'">'+
         '<div class="modal-dialog '+settings.modal_size+'">'+
         '<div class="modal-content">'+

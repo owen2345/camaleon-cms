@@ -150,7 +150,11 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     end
 
     unless @post.present?
-      page_not_found()
+      if params[:format] == 'html' || !params[:format].present?
+        page_not_found()
+      else
+        render nothing: true, status: 404
+      end
     else
       @post = @post.decorate
       @cama_visited_post = @post
@@ -222,6 +226,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       lookup_context.prefixes.prepend("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
       lookup_context.prefixes.prepend("themes/#{current_site.id}/views")
     end
+    lookup_context.prefixes = lookup_context.prefixes.uniq
     theme_init()
   end
 

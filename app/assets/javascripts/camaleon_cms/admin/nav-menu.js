@@ -6,6 +6,7 @@ function do_add_item_menu(data){
     var link = data.link ? data.link.toString() : "";
     var parent_id = data.parent_id;
     var extra_html = data.extra_html;
+    var item_id = data.item_id;
     var id = data.id ? data.id : $("#nestable .dd-item").length + 1;
 
     var link_data = '';
@@ -20,7 +21,7 @@ function do_add_item_menu(data){
     // custom fields icon
     if(main_menus_panel.attr("data-fields_support") == "true") link_data += '<a class="text-edit" title="'+I18n("button.settings")+'" href="'+data.url_content+'" onclick="do_settings_menu(this); return false;" rel="1"><i class="fa fa-cog"></i></a>';
 
-    var item = $('<li class="dd-item dd3-item" data-type="'+type+'" data-id="'+id+'" data-parent="'+(parent_id ? parent_id : "")+'"><div class="dd-handle dd3-handle"></div> <div class="dd3-content"><span>'+text + "</span> " + extra_html +' <span class="label">'+type+'</span> '+ link_data +' <a href="#" onclick="do_delete_menu(this); return false;" class="text-danger" title="'+I18n("button.delete")+'"><i class="fa fa-times-circle"></i></a> </div></li>');
+    var item = $('<li class="dd-item dd3-item" data-type="'+type+'" data-id="'+id+'" data-item_id="'+item_id+'" data-parent="'+(parent_id ? parent_id : "")+'"><div class="dd-handle dd3-handle"></div> <div class="dd3-content"><span>'+text + "</span> " + extra_html +' <span class="label">'+type+'</span> '+ link_data +' <a href="#" onclick="do_delete_menu(this); return false;" class="text-danger" title="'+I18n("button.delete")+'"><i class="fa fa-times-circle"></i></a> </div></li>');
     item.attr("data-fields", data.fields).attr("data-label", text).attr("data-link", link);
     if(parent_id > 0)
     {
@@ -91,7 +92,7 @@ function do_delete_menu(link){
 // edit form for custom links
 function do_edit_menu(link){
     var li = $(link).closest("li");
-    open_modal({title: "Edit Menu", url: $(link).attr("href"), mode: "ajax", callback: function(modal){
+    open_modal({title: "Edit Menu", url: RENDER_FORM.replace('-9999', li.attr('data-item_id')), mode: "ajax", callback: function(modal){
         modal.find(".panel-footer").html("<button type='submit' class='btn btn-primary'>Update</button>");
         var form = modal.find("form");
         form.find("#external_label").val(li.attr("data-label"));
@@ -111,41 +112,13 @@ function do_edit_menu(link){
 // edit form for custom fields
 function do_settings_menu(link){
     var li = $(link).closest("li");
-    open_modal({title: "Configuration Menu", url: $(link).attr("href")+"&custom_fields=true", mode: "ajax", callback: function(modal){
+    open_modal({id: 'menu_item_'+li.attr('data-id'), title: "Configuration Menu", url: RENDER_FORM.replace('-9999', li.attr('data-item_id'))+"&custom_fields=true", mode: "ajax", callback: function(modal){
+        modal.attr('data-skip_destroy', true);
         var form = modal.find("form");
-        setTimeout(function(){
-            form.find(".translated-item").trigger("trans_integrate");
-            var data = eval("("+(li.attr("data-fields")||"{}")+")");
-            for(var key in data){
-                if(data[key]){
-                    var finput = form.find("[name='field_options["+key+"][values][]']");
-                    var fparent = finput.closest('.item-custom-field');
-                    if(typeof data[key] == 'object') { //multiple
-                        for(var jkey=0; jkey < data[key].length; jkey++){
-                            if(jkey > 0) fparent.find(".btn-add-field").click();
-                            fparent.find("[name='field_options["+key+"][values][]']:last").val(data[key][jkey]);
-                        }
-                    }else{
-                        finput.val(data[key]);
-                    }
-
-                }
-            }
-            init_form_validations(form);
-        }, 300);
         form.submit(function(){
             if(!form.valid()) return false;
-            form.find(".translated-item").trigger("trans_integrate");
-            var data = {};
-            var form_fields = form.serializeObject().field_options;
-            for(var key in form_fields){
-                var f_vals = [];
-                var _f = form.find("[name='field_options["+key+"][values][]']");
-                if(_f.size() == 0) f_vals = _f.val();
-                else _f.each(function(){ f_vals.push($(this).val());  });
-                data[key] = f_vals;
-            }
-            li.attr("data-fields", JSON.stringify(data));
+            form.find(".translate-item").trigger("change_in");
+            li.attr("data-fields", JSON.stringify(form.serializeObject().field_options));
             modal.modal("hide");
             return false;
         });
@@ -157,7 +130,7 @@ function do_settings_menu(link){
 function render_menu(items){
     $.each(items, function (i, item) {
         var r_id = do_add_item_menu({
-            id: item.id,
+            item_id: item.id,
             type: item.type,
             link: item.link,
             url_edit: item.url_edit,

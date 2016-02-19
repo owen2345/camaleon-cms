@@ -37,7 +37,7 @@ class CamaleonCms::CamaleonController < ApplicationController
 
   # show page error
   def render_error(status = 404, exception = nil, message = "")
-    Rails.logger.info "========#{exception.message if exception.present?}====#{params[:error_msg]}========#{caller.inspect}"
+    Rails.logger.info "======url: #{request.original_url rescue nil}======message: #{exception.message if exception.present?}====#{params[:error_msg]}========#{caller.inspect}"
     @message = "#{message} #{params[:error_msg] || (exception.present? ? "#{exception.message}<br><br>#{caller.inspect}" : "")}"
     @message = "" if Rails.env == "production"
     render "camaleon_cms/#{status}", :status => status

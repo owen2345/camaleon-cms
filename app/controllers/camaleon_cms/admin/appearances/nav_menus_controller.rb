@@ -76,7 +76,11 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
   # show external menu form
   def form
     if params[:custom_fields].present?
-      @nav_menu = current_site.nav_menus.find_by_id(params[:menu_id])
+      if params[:item_id] == 'undefined'
+        @nav_menu = current_site.nav_menus.find_by_id(params[:menu_id])
+      else
+        @nav_menu = current_site.nav_menu_items.find_by_id(params[:item_id])
+      end
       render "_custom_fields", layout: "camaleon_cms/admin/_ajax"
     else
       render "_external_menu", layout: false, locals: {submit: true}
@@ -90,7 +94,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
     menu_items.eager_load(:metas).each do |nav_item|
       object = _get_object_nav_menu(nav_item)
       if object.present?
-        items << {id: nav_item.id, label: object[:name], link: nav_item.options[:object_id], url_edit: object[:url_edit], type: nav_item.options[:type], parent: parent_id.to_i, fields: "#{nav_item.get_field_values_hash.to_json}"}
+        items << {id: nav_item.id, label: object[:name], link: nav_item.options[:object_id], url_edit: object[:url_edit], type: nav_item.options[:type], parent: parent_id.to_i, fields: "#{nav_item.get_field_values_hash(true).to_json}"}
         items += get_nav_items(nav_item.children, nav_item.id)
       end
     end
