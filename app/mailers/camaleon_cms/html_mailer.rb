@@ -20,7 +20,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     data[:current_site] = CamaleonCms::Site.find(data[:current_site]).decorate if data[:current_site].is_a?(Integer)
     @current_site = data[:current_site]
     current_site = data[:current_site]
-    data = {cc_to: [], from: current_site.get_option("email")}.merge(data)
+    data = {cc_to: [], from: current_site.get_option("email"), template_name: 'mailer', layout_name: 'camaleon_cms/mailer', format: 'html'}.merge(data)
     @subject = subject
     @html = data[:content]
     @url_base = data[:url_base]
@@ -51,19 +51,13 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     theme = current_site.get_theme
     lookup_context.prefixes.prepend("themes/#{theme.slug}") if theme.settings["gem_mode"]
     lookup_context.prefixes.prepend("themes/#{theme.slug}/views") unless theme.settings["gem_mode"]
-
-    # run hook "email" to customize values
-    r = {template_name: data[:template_name] || 'mailer', layout_name: data[:layout_name] || 'camaleon_cms/mailer', mail_data: mail_data, files: data[:attachs] || data[:attachments], format: data[:format] || 'html'}
-    hooks_run("email", r)
-
-    if r[:files].present?
-      r[:files].each { |attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read } }
+    if data[:files].present?
+      data[:files].each { |attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read } }
     end
 
-    mail(r[:mail_data]) { |format| format.html { render r[:template_name], layout: r[:layout_name] } } if r[:format] == "html"
-    mail(r[:mail_data]) { |format| format.text { render r[:template_name], layout: r[:layout_name] } } if r[:format] == "txt"
-    mail(r[:mail_data]) unless r[:format].present?
-
+    mail(mail_data) { |format| format.html { render data[:template_name], layout: data[:layout_name] } } if data[:format] == "html"
+    mail(mail_data) { |format| format.text { render data[:template_name], layout: data[:layout_name] } } if data[:format] == "txt"
+    mail(mail_data) unless data[:format].present?
   end
 
   private
