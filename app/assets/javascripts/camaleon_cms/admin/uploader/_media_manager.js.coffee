@@ -1,4 +1,4 @@
-window["cama_init_media"] = (media_panel)->
+window["cama_init_media"] = (media_panel) ->
   media_info = media_panel.find(".media_file_info")
   media_info_tab_info = media_panel.find(".media_file_info_col .nav-tabs .link_media_info")
   media_link_tab_upload = media_panel.find(".media_file_info_col .nav-tabs .link_media_upload")

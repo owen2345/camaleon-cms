@@ -19,6 +19,15 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
   end
 
+  def search
+    authorize! :manager, :media
+    @tree = { files: cama_media_search_file(params[:q]), folders: [] }
+    @search = params[:q]
+    add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
+    add_breadcrumb params[:q]
+    render 'index'
+  end
+
   # crop a image to save as a new file
   def crop
     path_image = Rails.root.join("tmp", File.basename(params[:cp_img_path])).to_s
