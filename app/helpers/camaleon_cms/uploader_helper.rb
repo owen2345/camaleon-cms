@@ -78,12 +78,18 @@ module CamaleonCms::UploaderHelper
 
     # generate thumb
     if settings[:generate_thumb] && res["format"] == "image" && File.extname(file.key) != ".gif"
-      thumb_name = cama_parse_for_thumb_name(file.key)
-      path_thumb = cama_resize_and_crop(uploaded_io.path, @fog_connection_hook_res[:thumb][:w], @fog_connection_hook_res[:thumb][:h], {overwrite: false, output_name: thumb_name.split("/").last})
-      thumb_res = upload_file(path_thumb, {generate_thumb: false, same_name: true, remove_source: true, folder: settings[:folder].split("/").push(@fog_connection_hook_res[:thumb_folder_name]).join("/")})
+
+      cama_uploader_generate_thumbnail(uploaded_io.path, file.key, settings[:folder].split("/").push(@fog_connection_hook_res[:thumb_folder_name]).join("/"))
     end
     FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
     res
+  end
+
+  # generate thumbnail
+  def cama_uploader_generate_thumbnail(source_path, filename, folder)
+    thumb_name = cama_parse_for_thumb_name(filename)
+    path_thumb = cama_resize_and_crop(source_path, @fog_connection_hook_res[:thumb][:w], @fog_connection_hook_res[:thumb][:h], {overwrite: false, output_name: thumb_name.split("/").last})
+    upload_file(path_thumb, {generate_thumb: false, same_name: true, remove_source: true, folder: folder})
   end
 
   # destroy file from fog
