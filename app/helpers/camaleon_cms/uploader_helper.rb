@@ -172,6 +172,20 @@ module CamaleonCms::UploaderHelper
     return res
   end
 
+  # search for a file by filename
+  # sample: cama_media_search_file("")
+  def cama_media_search_file(filename)
+    cama_uploader_init_connection(true)
+
+    prefix  = current_site.upload_directory_name.gsub(/(\/){2,}/, "/")
+
+    @fog_connection.directories
+    .get(@fog_connection_hook_res[:bucket_name], prefix: prefix)
+    .files
+    .select { |file| file.key.split('/').last.include?(filename) && !file.key.include?('/_tmp.txt') }
+    .map { |file| cama_uploader_parse_file(file) }
+  end
+
   # parse file information of FOG file
   def cama_uploader_parse_file(file)
     res = {"name"=> File.basename(file.key), "file"=> file.key, "size"=> file.content_length, "url"=> (file.public_url rescue [current_site.get_option("filesystem_s3_endpoint"), file.key ].join("/")), "deleteUrl"=> "" }
