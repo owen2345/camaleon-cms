@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   skip_before_filter :cama_authenticate, only: :img
-  skip_before_filter :admin_logged_actions, except: :index
+  skip_before_filter :admin_logged_actions, except: [:index, :search]
   skip_before_filter :verify_authenticity_token, only: :upload
   before_action :init_media_vars
 
