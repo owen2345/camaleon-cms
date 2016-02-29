@@ -50,13 +50,14 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
   def search
     add_breadcrumb I18n.t("camaleon_cms.admin.button.search")
     params[:kind] = "content" unless params[:kind].present?
+    params[:q] = (params[:q] || '').downcase
     case params[:kind]
       when "category"
-        @items = current_site.full_categories.where("#{CamaleonCms::Category.table_name}.name LIKE ?", "%#{params[:q]}%")
+        @items = current_site.full_categories.where("LOWER(#{CamaleonCms::Category.table_name}.name) LIKE ?", "%#{params[:q]}%")
       when "tag"
-        @items = current_site.post_tags.where("#{CamaleonCms::PostTag.table_name}.name LIKE ?", "%#{params[:q]}%")
+        @items = current_site.post_tags.where("LOWER(#{CamaleonCms::PostTag.table_name}.name) LIKE ?", "%#{params[:q]}%")
       else
-        @items = current_site.posts.where("#{CamaleonCms::Post.table_name}.title LIKE ?", "%#{params[:q]}%")
+        @items = current_site.posts.where("LOWER(#{CamaleonCms::Post.table_name}.title) LIKE ?", "%#{params[:q]}%")
     end
     @items = @items.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
