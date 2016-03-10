@@ -19,6 +19,7 @@ function cama_get_tinymce_settings(settings){
         //forced_root_block: '',
         extended_valid_elements: 'i[*],div[*],p[*],li[*],a[*],ol[*],ul[*],span[*]',
         toolbar: "bold italic | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect | bullist numlist | outdent indent | undo redo | link unlink image media | forecolor backcolor | styleselect template "+tinymce_global_settings["custom_toolbar"].join(","),
+        image_caption: true,
         language: CURRENT_LOCALE,
         relative_urls: false,
         remove_script_host: false,
