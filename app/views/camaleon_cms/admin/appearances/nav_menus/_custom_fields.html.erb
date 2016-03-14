@@ -1,5 +1,7 @@
 <form class="menus_field_form required">
-    <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @nav_menu, field_groups: @nav_menu.get_field_groups()} %>
+    <% if @nav_menu.present? %>
+      <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @nav_menu, field_groups: @nav_menu.get_field_groups()} %>
+    <% end %>
     <div class="text-right">
         <button class="btn btn-primary" type="submit"><%= t("camaleon_cms.admin.button.submit") %> <i class="fa fa-arrow-right"></i></button>
     </div>

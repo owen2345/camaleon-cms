@@ -69,7 +69,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
       end
     end
     ids_deletes = ids_old - ids_saved
-    self.fields.where(id: ids_deletes).destroy_all if ids_deletes.present?
+    self.fields.where(id: ids_deletes).destroy_all if ids_deletes.any?
   end
 
   # generate the caption for this group
