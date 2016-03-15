@@ -23,9 +23,6 @@
 
 
 
- // tinymce
- *= require camaleon_cms/admin/tinymce/skins/lightgray/content.min
-
  // post
  *= require ./_jquery.tagsinput
  */
