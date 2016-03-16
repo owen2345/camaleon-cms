@@ -171,8 +171,9 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     ids_old = self.field_values.pluck(:id)
     ids_saved = []
     if datas.present?
+      byebug
       datas.each do |key, values|
-        if values[:values].present?
+        if (values[:values].present? && values[:values].kind_of?(Array))
           order_value = 0
           values[:values].each do |value|
             item = self.field_values.where({custom_field_id: values[:id], custom_field_slug: key, value: fix_meta_value(value)}).first_or_create!()
@@ -181,6 +182,15 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
               ids_saved << item.id
               order_value += 1
             end
+          end
+        end
+        if (values[:values].present? && values[:values].kind_of?(String))
+          order_value = 0
+          item = self.field_values.where({custom_field_id: values[:id], custom_field_slug: key, value: fix_meta_value(values[:values])}).first_or_create!()
+          if defined?(item.id)
+            item.update_column('term_order', order_value)
+            ids_saved << item.id
+            order_value += 1
           end
         end
       end

@@ -14,8 +14,11 @@ class CamaleonCms::NavMenu < CamaleonCms::TermTaxonomy
 
   # add multiple menu items for current menu only used from form
   def add_menu_items(menu_data=[])
-    children.destroy_all
-    saved_nav_items(self, menu_data) if menu_data.present?
+    byebug
+    if menu_data.present?
+      children.destroy_all
+      saved_nav_items(self, menu_data)
+    end
   end
 
   # add menu item for current menu
