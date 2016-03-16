@@ -46,7 +46,9 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # render media for modal content
   def ajax
-    render partial: "files_list" if params[:partial].present?
+    if params[:partial].present?
+      render partial: "files_list", locals: { files: @tree[:files], folders: @tree[:folders] }
+    end
     render "index", layout: false unless params[:partial].present?
   end
 
