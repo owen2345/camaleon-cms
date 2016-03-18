@@ -15,13 +15,13 @@ module CamaleonCms::EmailHelper
 
   # short method of send_email
   def cama_send_email(email_to, subject, args = {})
-    args = {from: current_site.get_option("email"), url_base: cama_root_url, current_site: current_site, cc_to: [], template_name: 'mailer', layout_name: 'camaleon_cms/mailer', format: 'html'}.merge(args)
+    args = {from: current_site.get_option("email"), url_base: cama_root_url, current_site: current_site, cc_to: [], template_name: 'mailer', layout_name: 'camaleon_cms/mailer', format: 'html', subject: subject}.merge(args)
     args[:attachments] = args[:attachs] if args[:attachs].present?
     args[:current_site] = args[:current_site].id
 
     # run hook "email" to customize values
     hooks_run("email", args)
-    CamaleonCms::HtmlMailer.sender(email_to, subject, args).deliver_later
+    CamaleonCms::HtmlMailer.sender(email_to, args[:subject], args).deliver_later
   end
 
   def send_user_confirm_email(user_to_confirm)
