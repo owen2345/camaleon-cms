@@ -12,6 +12,7 @@ jQuery(function(){
             var title = $(this).attr("title");
             title = (title == "")? $(this).attr("data-original-title") : title
             var def = {title: title?title:$(this).data("title"), mode: "ajax", url: $(this).attr("href"), show_footer: $(this).data("show_footer")};
+            if($(this).attr('data-modal_size')) def["modal_size"] = $(this).attr('data-modal_size');
             var c_settings = $.extend({}, def, settings);
             open_modal(c_settings);
             e.preventDefault();
