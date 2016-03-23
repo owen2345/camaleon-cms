@@ -55,8 +55,14 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
       data[:files].each { |attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read } }
     end
 
-    mail(mail_data) { |format| format.html { render data[:template_name], layout: data[:layout_name] } } if data[:format] == "html"
-    mail(mail_data) { |format| format.text { render data[:template_name], layout: data[:layout_name] } } if data[:format] == "txt"
+    layout = data[:layout_name].present? ? data[:layout_name] : false
+    if data[:template_name].present? # render email with template
+      mail(mail_data) { |format| format.html { render data[:template_name], layout: layout } } if data[:format] == "html"
+      mail(mail_data) { |format| format.text { render data[:template_name], layout: layout } } if data[:format] == "txt"
+    else # inline render content
+      mail(mail_data) { |format| format.html { render inline: @html, layout: layout } } if data[:format] == "html"
+      mail(mail_data) { |format| format.text { render inline: @html, layout: layout } } if data[:format] == "txt"
+    end
     mail(mail_data) unless data[:format].present?
   end
 
