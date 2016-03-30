@@ -63,13 +63,13 @@ module CamaleonCms::Admin::PostTypeHelper
     categories.decorate.each do |f|
       html += "<li>"
       html +=  "<label class='class_slug' data-post_link_edit='#{f.the_edit_url}'> "
-      html +=  "<input type='#{type}' name='#{name}[]' #{ values.to_i.include?(f.id) ? "checked" : ""} value='#{f.id}' class = '#{ "required" if required }' />"
+      html +=  "<input data-error-place='#validation_error_list_#{name}' type='#{type}' name='#{name}[]' #{ values.to_i.include?(f.id) ? "checked" : ""} value='#{f.id}' class = '#{ "required" if required }' />"
       html += "#{f.the_title} </label> "
       html +=  post_type_html_inputs(f, "children" , name, type, values, "children")  if f.children.present?
       html += "</li>"
     end
 
-    html += "</ul>"
+    html += "</ul><div id='validation_error_list_#{name}'></div>"
     return html
   end
 end

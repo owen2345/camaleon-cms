@@ -27,7 +27,7 @@
                     <%= hidden_field :meta, :slug %>
                     <div class="form-group">
                         <%= f.label t('camaleon_cms.admin.table.title') %> <em class="text-danger">*</em><br>
-                        <%= f.text_field :title, :class => "form-control required translatable title-post" %>
+                        <%= f.text_field :title, :class => "form-control required translatable required_all_langs title-post" %>
                     </div>
                     <% if @post.manage_content?(@post_type) %>
                         <div class="form-group">
