@@ -45,7 +45,7 @@ module Plugins::AuthoringPost::AuthoringPostHelper
     "
     <div class='form-group'>
       <label class='control-label'>#{t('camaleon_cms.admin.table.author')}</label>
-      <select id='post_user_id' #{can?(:edit_other, post) && (can?(:edit_publish, post) || !post.published?) ? '' : 'disabled'} name='post[user_id]' class='form-control select valid' aria-invalid='false'>#{plugin_authoring_authors_list(post)}</select>
+      <select id='post_user_id' #{can?(:edit_other, post.post_type) && (can?(:edit_publish, post.post_type) || !post.published?) ? '' : 'disabled'} name='post[user_id]' class='form-control select valid' aria-invalid='false'>#{plugin_authoring_authors_list(post)}</select>
     </div>
     "
   end
