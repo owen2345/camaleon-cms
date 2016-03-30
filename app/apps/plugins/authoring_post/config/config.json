@@ -1,0 +1,24 @@
+{
+  "title": "Authoring Posts",
+  "descr": "Permit to change post author</a>",
+  "version": "0.1",
+  "key": "authoring_post",
+  "helpers": [
+    "Plugins::AuthoringPost::AuthoringPostHelper"
+  ],
+  "options": [
+  ],
+  "hooks": {
+    "on_active": ["plugin_authoring_on_active"],
+    "on_inactive": ["plugin_authoring_on_inactive"],
+    "list_post": ["plugin_authoring_post_list"],
+    "new_post":["plugin_authoring_new_post"],
+    "edit_post":["plugin_authoring_new_post"],
+    "created_post":["plugin_authoring_create_post"],
+    "updated_post":["plugin_authoring_create_post"],
+    "post_the_content": ["plugin_authoring_post_the_content"],
+    "filter_post": ["plugin_authoring_filter_post"],
+    "post_can_visit": ["plugin_authoring_can_visit"],
+    "list_post_extra_columns": ["plugin_authoring_extra_columns"]
+  }
+}
