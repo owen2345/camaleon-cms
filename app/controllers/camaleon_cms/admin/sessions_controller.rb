@@ -154,7 +154,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
   private
 
   def before_hook_session
-    I18n.locale = params[:locale] || current_site.get_languages.first
+    I18n.locale = params[:locale] || session[:cama_current_language] || current_site.get_languages.first
     hooks_run("session_before_load")
   end
 

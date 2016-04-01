@@ -208,7 +208,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     end
 
     @_site_options = current_site.options
-    I18n.locale = params[:locale] || current_site.get_languages.first
+    I18n.locale = params[:locale] || session[:cama_current_language] || current_site.get_languages.first
     return page_not_found unless current_site.get_languages.include?(I18n.locale.to_sym) # verify if this locale is available for this site
 
     # define render paths
