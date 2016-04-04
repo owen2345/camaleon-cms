@@ -24,7 +24,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     # include_parent: (boolean, default false) Permit to recover groups from self + parent post_type (argument valid only for Post | PostTag | Category)
   # args: (String) => is a value for kind attribute
   def get_field_groups(args = {})
-    args = args.is_a?(String) ?  {kind: args, include_parent: false } : {kind: "post", include_parent: false }.merge(args)
+    args = args.is_a?(String) ?  {kind: args, include_parent: false } : {kind: "Post", include_parent: false }.merge(args)
     class_name = self.class.to_s.gsub("Decorator","").gsub("CamaleonCms::","")
     case class_name
       when 'Category','Post','PostTag'
