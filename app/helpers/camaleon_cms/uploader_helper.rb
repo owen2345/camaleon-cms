@@ -57,6 +57,8 @@ module CamaleonCms::UploaderHelper
       return res
     end
 
+    File.chmod(0644, uploaded_io.path) # fix reading permission (Fix Fog-Local)
+
     # save file
     if settings[:same_name]
       partial_path = "#{current_site.upload_directory_name}/#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}"

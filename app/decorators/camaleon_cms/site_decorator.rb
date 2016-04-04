@@ -127,7 +127,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
     lan.each do |lang|
       path = lang.to_s+'.png'
       img = "<img src='#{h.asset_path("camaleon_cms/language/#{path}")}'/>"
-      res << "<li class='#{ current_class if I18n.locale.to_s == lang.to_s}'> <a href='#{h.cama_url_to_fixed(current_page ? "url_for" : "cama_root_url", {locale: lang})}'>#{img}</a> </li>"
+      res << "<li class='#{ current_class if I18n.locale.to_s == lang.to_s}'> <a href='#{h.cama_url_to_fixed(current_page ? "url_for" : "cama_root_url", {locale: lang, cama_set_language: lang})}'>#{img}</a> </li>"
     end
     res << "</ul>"
     res.join("")
