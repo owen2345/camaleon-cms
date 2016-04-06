@@ -41,9 +41,4 @@ Gem::Specification.new do |s|
   # MEDIA MANAGER
   s.add_dependency 'fog', '~> 1.34'
   s.add_dependency 'aws-sdk', '~> 2'
-
-  # development and test
-  s.add_development_dependency "rspec"
-  # s.add_development_dependency "capybara"
-  # s.add_development_dependency "selenium-webdriver"
 end
