@@ -164,26 +164,36 @@ Visit the web site for more information: http://camaleon.tuzitio.com/
 
 See more here: http://camaleon.tuzitio.com/version-history.html
 
-## For Testing (In progress creating new test and rebuilding current tests)
+## For Testing with Rspec (In progress creating new test and rebuilding current tests)
   - Add this gem into your Gemfile
+
   ```
   gem 'rspec-rails'
   gem 'capybara'
   ```
   - In your console
+
   ```
   rails generate rspec:install
   ```
   - Add this to spec/rails_helper.rb (Insert before line of "RSpec.configure do |config|")
+
   ```
   Dir[File.join($camaleon_engine_dir, 'spec/support/**/*.rb')].each { |f| require f }
   ```
-  - Execute your tests like this (all tasks)
-  ```
-  rake camaleon_cms:rspec
-  ```
   - Execute single test file
+
   ```
   rake camaleon_cms:rspec[spec/routing/post_type_routes_spec.rb]
-  rake camaleon_cms:rspec[spec/decorators]
   ```
+  - Execute many files within directory (read more rspec gem)
+
+    ```
+    rake camaleon_cms:rspec[spec/decorators]
+    ```
+
+  - Execute all test of camaleon cms (In progress fixing wrong test files)
+
+    ```
+    rake camaleon_cms:rspec
+    ```
