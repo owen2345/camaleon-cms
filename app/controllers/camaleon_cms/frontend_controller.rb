@@ -86,7 +86,8 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     @param_search = params[:q]
     layout_ = lookup_context.template_exists?("layouts/search") ? "search" : (self.send :_layout)
     r = {layout: layout_, render: "search", posts: nil}; hooks_run("on_render_search", r)
-    @posts = r[:posts] != nil ? r[:posts] : current_site.the_posts.where("title LIKE ? OR content_filtered LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%")
+    params[:q] = (params[:q] || '').downcase
+    @posts = r[:posts] != nil ? r[:posts] : current_site.the_posts.where("LOWER(title) LIKE ? OR LOWER(content_filtered) LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%")
     @posts_size = @posts.size
     @posts = @posts.paginate(:page => params[:page], :per_page => current_site.front_per_page)
     render r[:render], layout: r[:layout]
@@ -207,7 +208,8 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     end
 
     @_site_options = current_site.options
-    I18n.locale = params[:locale] || current_site.get_languages.first
+    session[:cama_current_language] = params[:cama_set_language].to_sym if params[:cama_set_language].present?
+    I18n.locale = params[:locale] || session[:cama_current_language] || current_site.get_languages.first
     return page_not_found unless current_site.get_languages.include?(I18n.locale.to_sym) # verify if this locale is available for this site
 
     # define render paths

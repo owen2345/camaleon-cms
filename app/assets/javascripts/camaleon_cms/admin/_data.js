@@ -3,12 +3,7 @@ function cama_get_tinymce_settings(settings){
     if(!settings) settings = {};
     var def = {
         selector: ".tinymce_textarea",
-        plugins: [
-            "advlist autolink lists link image charmap print preview hr anchor pagebreak",
-            "searchreplace wordcount visualblocks visualchars code fullscreen",
-            "insertdatetime media nonbreaking save table contextmenu directionality",
-            "emoticons template paste textcolor colorpicker textpattern filemanager"
-        ],
+        plugins: "advlist autolink lists link image charmap print preview hr anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking save table contextmenu directionality emoticons template paste textcolor colorpicker textpattern filemanager",
         menubar: "edit insert view format table tools",
         image_advtab: true,
         statusbar: true,
@@ -19,6 +14,7 @@ function cama_get_tinymce_settings(settings){
         //forced_root_block: '',
         extended_valid_elements: 'i[*],div[*],p[*],li[*],a[*],ol[*],ul[*],span[*]',
         toolbar: "bold italic | alignleft aligncenter alignright alignjustify | fontselect fontsizeselect | bullist numlist | outdent indent | undo redo | link unlink image media | forecolor backcolor | styleselect template "+tinymce_global_settings["custom_toolbar"].join(","),
+        image_caption: true,
         language: CURRENT_LOCALE,
         relative_urls: false,
         remove_script_host: false,

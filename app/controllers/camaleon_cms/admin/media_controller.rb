@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   skip_before_filter :cama_authenticate, only: :img
-  skip_before_filter :admin_logged_actions, except: :index
+  skip_before_filter :admin_logged_actions, except: [:index, :search]
   skip_before_filter :verify_authenticity_token, only: :upload
   before_action :init_media_vars
 
@@ -17,6 +17,15 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     authorize! :manager, :media
     @show_file_actions = true
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
+  end
+
+  def search
+    authorize! :manager, :media
+    @tree = { files: cama_media_search_file(params[:q]), folders: [] }
+    @search = params[:q]
+    add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
+    add_breadcrumb params[:q]
+    render 'index'
   end
 
   # crop a image to save as a new file
@@ -37,7 +46,9 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # render media for modal content
   def ajax
-    render partial: "files_list" if params[:partial].present?
+    if params[:partial].present?
+      render partial: "files_list", locals: { files: @tree[:files], folders: @tree[:folders] }
+    end
     render "index", layout: false unless params[:partial].present?
   end
 

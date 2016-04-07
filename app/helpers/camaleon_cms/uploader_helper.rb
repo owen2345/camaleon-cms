@@ -57,6 +57,8 @@ module CamaleonCms::UploaderHelper
       return res
     end
 
+    File.chmod(0644, uploaded_io.path) # fix reading permission (Fix Fog-Local)
+
     # save file
     if settings[:same_name]
       partial_path = "#{current_site.upload_directory_name}/#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}"
@@ -78,12 +80,18 @@ module CamaleonCms::UploaderHelper
 
     # generate thumb
     if settings[:generate_thumb] && res["format"] == "image" && File.extname(file.key) != ".gif"
-      thumb_name = cama_parse_for_thumb_name(file.key)
-      path_thumb = cama_resize_and_crop(uploaded_io.path, @fog_connection_hook_res[:thumb][:w], @fog_connection_hook_res[:thumb][:h], {overwrite: false, output_name: thumb_name.split("/").last})
-      thumb_res = upload_file(path_thumb, {generate_thumb: false, same_name: true, remove_source: true, folder: settings[:folder].split("/").push(@fog_connection_hook_res[:thumb_folder_name]).join("/")})
+
+      cama_uploader_generate_thumbnail(uploaded_io.path, file.key, settings[:folder].split("/").push(@fog_connection_hook_res[:thumb_folder_name]).join("/"))
     end
     FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
     res
+  end
+
+  # generate thumbnail
+  def cama_uploader_generate_thumbnail(source_path, filename, folder)
+    thumb_name = cama_parse_for_thumb_name(filename)
+    path_thumb = cama_resize_and_crop(source_path, @fog_connection_hook_res[:thumb][:w], @fog_connection_hook_res[:thumb][:h], {overwrite: false, output_name: thumb_name.split("/").last})
+    upload_file(path_thumb, {generate_thumb: false, same_name: true, remove_source: true, folder: folder})
   end
 
   # destroy file from fog
@@ -164,6 +172,20 @@ module CamaleonCms::UploaderHelper
       end
     end
     return res
+  end
+
+  # search for a file by filename
+  # sample: cama_media_search_file("")
+  def cama_media_search_file(filename)
+    cama_uploader_init_connection(true)
+
+    prefix  = current_site.upload_directory_name.gsub(/(\/){2,}/, "/")
+
+    @fog_connection.directories
+    .get(@fog_connection_hook_res[:bucket_name], prefix: prefix)
+    .files
+    .select { |file| file.key.split('/').last.include?(filename) && !file.key.include?('/_tmp.txt') }
+    .map { |file| cama_uploader_parse_file(file) }
   end
 
   # parse file information of FOG file

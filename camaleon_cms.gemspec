@@ -20,7 +20,6 @@ Gem::Specification.new do |s|
   s.requirements << 'imagemagick'
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
-
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", "public/**/*"]
   s.test_files = Dir["test/**/*"]
 
@@ -35,15 +34,11 @@ Gem::Specification.new do |s|
   s.add_dependency 'will_paginate-bootstrap'
   s.add_dependency 'breadcrumbs_on_rails'
   s.add_dependency 'font-awesome-rails'
+  s.add_dependency 'tinymce-rails', '~> 4.3'
 
   s.add_dependency 'protected_attributes' # remove in next versions
 
   # MEDIA MANAGER
   s.add_dependency 'fog', '~> 1.34'
   s.add_dependency 'aws-sdk', '~> 2'
-
-  # development and test
-  s.add_development_dependency "rspec"
-  # s.add_development_dependency "capybara"
-  # s.add_development_dependency "selenium-webdriver"
 end

@@ -116,6 +116,7 @@ Rails.application.routes.draw do
         resources :media, only: [:index] do
           match 'crop', via: :all, on: :collection
           get "ajax", on: :collection
+          get 'search', on: :collection
           post "upload", on: :collection
           post "actions", on: :collection
         end

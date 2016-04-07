@@ -42,7 +42,7 @@
 //= require ./lte/app
 
 // tinymce
-//= require ./tinymce/tinymce.min
+//= require tinymce-jquery
 //= require ./tinymce/plugins/filemanager/plugin.min
 
 // post

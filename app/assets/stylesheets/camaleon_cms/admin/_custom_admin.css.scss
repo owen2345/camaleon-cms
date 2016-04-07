@@ -21,7 +21,7 @@
       display: none;
     }
     .panel-heading {
-      overflow: hidden;
+      //overflow: hidden;
       position: relative;
       .panel-controls {
         float: right;
@@ -277,4 +277,8 @@ input.code_style{
     max-height: 100px;
     max-width: 200px;
   }
+}
+label.error, span.error{
+  color: #a94442;
+  font-size: 11px;
 }

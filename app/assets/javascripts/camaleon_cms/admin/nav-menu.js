@@ -95,12 +95,12 @@ function do_edit_menu(link){
     open_modal({title: "Edit Menu", url: RENDER_FORM.replace('-9999', li.attr('data-item_id')), mode: "ajax", callback: function(modal){
         modal.find(".panel-footer").html("<button type='submit' class='btn btn-primary'>Update</button>");
         var form = modal.find("form");
-        form.find("#external_label").val(li.attr("data-label"));
-        form.find("#external_url").val(li.attr("data-link"));
+        form.find("#external_label").val(li.data("label"));
+        form.find("#external_url").val(li.data("link"));
         init_form_validations(form);
         form.submit(function(){
-            li.attr("data-label", form.find("#external_label").val());
-            li.attr("data-link", form.find("#external_url").val());
+            li.data("label", form.find("#external_label").val());
+            li.data("link", form.find("#external_url").val());
             li.children(".dd3-content").children("span:first").html(form.find("#external_label").val());
             modal.modal("hide");
             return false;
@@ -156,6 +156,9 @@ function render_menu(items){
             $(this).children("li").remove();
         }
     });
+
+    // change menu selector
+    $("#menu_items #menu").change(function(){ $(this).closest('form').submit(); });
 
     // save menu items (main form)
     $("#menu_form").submit(function () {

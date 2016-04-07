@@ -1,4 +1,4 @@
-window["cama_init_media"] = (media_panel)->
+window["cama_init_media"] = (media_panel) ->
   media_info = media_panel.find(".media_file_info")
   media_info_tab_info = media_panel.find(".media_file_info_col .nav-tabs .link_media_info")
   media_link_tab_upload = media_panel.find(".media_file_info_col .nav-tabs .link_media_upload")
@@ -134,7 +134,7 @@ window["cama_init_media"] = (media_panel)->
   media_panel.on("click", "a.add_folder", ->
     content = $("<form><div><label for=''>"+I18n('button.folder')+": </label> <div class='input-group'><input name='folder' class='form-control required' placeholder='Folder name..'><span class='input-group-btn'><button class='btn btn-primary' type='submit'>"+I18n('button.create')+"</button></span></div></div> </form>")
     callback = (modal)->
-      btn = modal.find("button")
+      btn = modal.find(".btn-primary")
       input = modal.find("input").keyup(->
         if $(this).val()
           btn.removeAttr("disabled")
@@ -217,7 +217,7 @@ $ ->
   # dimension: dimension: "30x30" | "x30" | dimension: "30x"
   $.fn.upload_filemanager = (args)->
     args = args || {}
-    open_modal({title: args["title"] || I18n("msg.media_title"), modal_size: "modal-lg", mode: "ajax", url: root_url+"/admin/media/ajax", ajax_params: {media_formats: args["formats"], dimension: args["dimension"] }, callback: (modal)->
+    open_modal({title: args["title"] || I18n("msg.media_title"), id: 'cama_modal_file_uploader', modal_size: "modal-lg", mode: "ajax", url: root_url+"/admin/media/ajax", ajax_params: {media_formats: args["formats"], dimension: args["dimension"] }, callback: (modal)->
       if args["selected"]
         window["callback_media_uploader"] = args["selected"]
       modal.css("z-index", args["zindex"] || 99999).children(".modal-dialog").css("width", "90%")
