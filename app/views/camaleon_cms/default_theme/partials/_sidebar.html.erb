@@ -9,7 +9,7 @@
 <% categories = post.the_categories.decorate %>
 <% if categories.present? %>
     <div class="panel panel-default">
-        <div class="panel-heading"><%= ct("categories") %></div>
+        <div class="panel-heading"><%= ct("categories", default: 'Categories') %></div>
         <div class="panel-body">
             <ul>
                 <% categories.each do |cat| %>
@@ -22,7 +22,7 @@
 
 <div class="panel panel-default">
     <div class="panel-heading">
-        <%= ct("latest_articles") %>
+        <%= ct("latest_articles", default: 'Latest Articles') %>
     </div>
     <div class="panel-body">
         <ul>
@@ -36,7 +36,7 @@
 <% tags = post.the_tags.decorate %>
 <% if tags.present? %>
     <div class="panel panel-default">
-        <div class="panel-heading"><%= ct("post_tag_list") %></div>
+        <div class="panel-heading"><%= ct("post_tag_list", default: 'Tags') %></div>
         <div class="panel-body">
             <% tags.each do |post_tag| %>
                 <a class="btn btn-default btn-xs" href="<%= post_tag.the_url %>"><%= post_tag.the_title %></a>
@@ -48,7 +48,7 @@
 <!-- custom fields -->
 <% if post.render_fields.present? %>
     <div class="panel panel-default">
-        <div class="panel-heading"><%= ct("extra_attributes") %></div>
+        <div class="panel-heading"><%= ct("extra_attributes", default: 'Extra Attributes') %></div>
         <div class="panel-body">
             <%= raw post.render_fields %>
         </div>
