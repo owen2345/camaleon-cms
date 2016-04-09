@@ -140,7 +140,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   def the_edit_link(title = nil, attrs = { })
     return '' unless h.cama_current_user.present?
     attrs = {target: "_blank", style: "font-size:11px !important;cursor:pointer;"}.merge(attrs)
-    h.link_to("&rarr; #{title || h.ct("edit")}".html_safe, the_edit_url, attrs)
+    h.link_to("&rarr; #{title || h.ct("edit", default: 'Edit')}".html_safe, the_edit_url, attrs)
   end
 
   # show thumbnail image as html
@@ -161,16 +161,16 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     case self.status
       when "published"
         color = "info"
-        status = I18n.t('camaleon_cms.admin.post_type.published')
+        status = I18n.t('camaleon_cms.admin.post_type.published', default: 'Published')
       when "draft"
         color = "warning"
-        status = I18n.t('camaleon_cms.admin.table.draft')
+        status = I18n.t('camaleon_cms.admin.table.draft', default: 'Draft')
       when "trash"
         color = "danger"
-        status = I18n.t('camaleon_cms.admin.table.trash')
+        status = I18n.t('camaleon_cms.admin.table.trash', default: 'Trash')
       when "pending"
         color = "default"
-        status = I18n.t('camaleon_cms.admin.table.pending')
+        status = I18n.t('camaleon_cms.admin.table.pending', default: 'Pending')
       else
         color = "default"
         status = self.status
