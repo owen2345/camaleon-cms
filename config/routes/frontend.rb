@@ -43,7 +43,8 @@ Rails.application.routes.draw do
 
         controller "camaleon_cms/frontend" do
           PluginRoutes.get_sites.each do |s|
-            constraints(PluginRoutes.get_sites.count <= 1 ? {} : {host: s.slug.split(":").first}) do
+            h = s.slug.split(":").first
+            constraints(PluginRoutes.get_sites.count <= 1 ? {} : {host: h.include?(".") ? h : "#{h}.#{Cama::Site.main_site.slug.split(':').first}" }) do
               s.post_types.pluck(:slug, :id).each do |pt_slug, pt_id|
                 PluginRoutes.all_locales.split("|").each do |_l|
                   get "#{I18n.t("routes.post_types.#{pt_slug}", default: pt_slug, locale: _l)}" => :post_type, as: "post_type_#{pt_id}_#{_l}", defaults: {post_type_id: pt_id}
