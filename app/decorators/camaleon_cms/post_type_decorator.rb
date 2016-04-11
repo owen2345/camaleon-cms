@@ -17,11 +17,7 @@ class CamaleonCms::PostTypeDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = "html"
     as_path = args.delete(:as_path)
-    # begin
-      h.cama_url_to_fixed("cama_post_type_#{self.id}#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
-    # rescue
-    #   the_group_url(args)
-    # end
+    h.cama_url_to_fixed("cama_post_type_#{self.id}#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return the public url with group structure
