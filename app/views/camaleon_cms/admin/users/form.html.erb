@@ -150,27 +150,19 @@
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><%= t('camaleon_cms.admin.button.close') %></span></button>
                 <h4 class="modal-title" id="smallModalHead"><%= t('camaleon_cms.admin.button.change_photo') %></h4>
             </div>
-            <form id="cp_crop" method="post" action="<%= crop_cama_admin_media_path({saved_avatar: @user.id}) %>">
-                <div class="modal-body">
-                    <div class="text-center" id="cp_target"><%= t('camaleon_cms.admin.message.change_photo') %></div>
-                    <input type="hidden" name="cp_img_path" id="cp_img_path"/>
-                    <input type="hidden" name="ic_x" id="ic_x"/>
-                    <input type="hidden" name="ic_y" id="ic_y"/>
-                    <input type="hidden" name="ic_w" id="ic_w"/>
-                    <input type="hidden" name="ic_h" id="ic_h"/>
-                    <input type="hidden" name="ic_resize" id="ic_resize"/>
-                </div>
-            </form>
-            <div class="modal-body form-horizontal form-group-separated">
-                <div class="form-group">
-                    <label class="col-md-4 control-label"><%= t('camaleon_cms.admin.users.new_photo') %></label>
-                    <div class="col-md-4">
-                        <a id="cp_photo" class="btn btn-info" href="#"><%= t('camaleon_cms.admin.button.select_file') %></a>
-                    </div>
-                </div>
-            </div>
+            <%= form_tag crop_cama_admin_media_path({saved_avatar: @user.id}), id: 'cp_crop', class: 'modal-body', style: 'min-height: 200px; max-height: 400px; overflow: auto;' do %>
+                <input type="hidden" name="cp_img_path" id="cp_img_path"/>
+                <input type="hidden" name="ic_x" id="ic_x"/>
+                <input type="hidden" name="ic_y" id="ic_y"/>
+                <input type="hidden" name="ic_w" id="ic_w"/>
+                <input type="hidden" name="ic_h" id="ic_h"/>
+                <input type="hidden" name="ic_resize" id="ic_resize"/>
+                <div id="cp_target"></div>
+            <% end %>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-success disabled" id="cp_accept"><%= t('camaleon_cms.admin.button.accept') %></button>
+                <a id="cp_photo" class="pull-left btn btn-link" href="#"><%= t('camaleon_cms.admin.users.new_photo') %></a>
+                <button type="button" class="btn btn-success" disabled="" id="cp_accept"><%= t('camaleon_cms.admin.button.accept') %></button>
                 <button type="button" class="btn btn-default" data-dismiss="modal"><%= t('camaleon_cms.admin.button.close') %></button>
             </div>
         </div>
@@ -204,5 +196,5 @@
 <!-- EOF MODALS -->
 
 
-<% add_asset_library('form_ajax', 'cropper') %>
+<% add_asset_library('cropper') %>
 <%= javascript_include_tag "camaleon_cms/admin/user_profile" %>
