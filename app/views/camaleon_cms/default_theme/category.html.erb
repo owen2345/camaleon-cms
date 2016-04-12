@@ -17,7 +17,7 @@
             <%= render partial: 'partials/post_list_item', locals: {post: post.decorate} %>
         <% end %>
     </div>
-    <%= content_tag("div", raw(ct('no_contents_found')), class: "alert alert-warning") if @posts.empty? %>
+    <%= content_tag("div", raw(ct('no_contents_found', default: 'No contents found')), class: "alert alert-warning") if @posts.empty? %>
     <%= will_paginate @posts, renderer: BootstrapPagination::Rails if @posts.present? %>
 
 </article>

@@ -22,6 +22,9 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   scope :hidden_menu, -> {where(term_group: -1)}
   before_destroy :destroy_field_groups
   after_create :set_default_site_user_roles
+  after_create :refresh_routes
+  after_destroy :refresh_routes
+  after_update :check_refresh_routes
   before_update :default_category
 
   # check if current post type manage categories
@@ -172,6 +175,16 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
     #   return false
     # end
     self.get_field_groups.destroy_all
+  end
+
+  # reload routes to enable this post type url, like: http://localhost/my-slug
+  def refresh_routes
+    PluginRoutes.reload
+  end
+
+  # check if slug was changed
+  def check_refresh_routes
+    refresh_routes if self.slug_changed?
   end
 
 end

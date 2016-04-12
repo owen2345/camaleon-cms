@@ -9,9 +9,12 @@ namespace :camaleon_cms do
   # end
   # After run: rails generate rspec:install, support folder
   # copy rails helper, rspec_helper,
-  task :rspec => :environment do
-    Dir[File.join($camaleon_engine_dir, "spec", "features", "*.rb")].each{|p|
-      system("rspec #{p}")
-    }
+  task :rspec, [:file] => :environment do |task, args|
+    if args.file.present?
+      puts "************* running: #{"rspec #{File.join($camaleon_engine_dir, args.file)}"}"
+      system("rspec #{File.join($camaleon_engine_dir, args.file)}")
+    else
+      Dir[File.join($camaleon_engine_dir, "spec", "features", "*.rb")].each{|p| system("rspec #{p}") }
+    end
   end
 end

@@ -14,7 +14,7 @@
                 <!-- custom fields -->
                 <% if @post.render_fields.present? %>
                     <hr>
-                    <h4><%= ct("extra_attributes") %></h4>
+                    <h4><%= ct("extra_attributes", default: 'Extra Attributes') %></h4>
                     <%= raw @post.render_fields %>
                 <% end %>
             </article>

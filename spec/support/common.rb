@@ -82,7 +82,7 @@ def fix_db
 end
 
 def pages_test
-  current_site = Site.first.decorate
+  current_site = Cama::Site.first.decorate
   page1 = current_site.the_post_type("post").add_post(title: "test1", content: "content [data key='subtitle']", summary: "summary", order_position: 2)
   page1.add_field({"name"=>"Sub Title", "slug"=>"subtitle"}, {"field_key"=>"text_box", "translate"=>true, default_value: "test sub title"})
   page1.set_settings({has_summary: true, default_template: "home/page2", has_picture: true})
@@ -93,4 +93,19 @@ def pages_test
     expect(page).to have_content p.the_title
   end
   the_tags.decorate.send(pos).send(attr)
+end
+
+# return the current for testing case
+def get_current_test_site
+  Cama::Site.first || create_test_site
+end
+
+# create a new post type for first site
+def create_test_post_type(args = {})
+  get_current_test_site.post_types.create({name: 'Test', slug: 'test', description: 'this is a test', data_options: {}}.merge(args))
+end
+
+# create a test site
+def create_test_site(args = {})
+  Cama::Site.create({slug: 'test', name: 'Test Site'}.merge(args))
 end

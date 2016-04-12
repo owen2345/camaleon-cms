@@ -14,44 +14,37 @@ jQuery(function ($) {
 
     // on success photo crop
     function onSuccess() {
-        $("#cp_photo").parent("a").find("span").html("Choose another photo");
-        var img = $("#cp_target").find("#crop_image")
+        var form = $("#cp_crop");
+        var img = form.find("#crop_image");
         if (img.length === 1) {
-            $("#cp_img_path").val(img.attr("src"));
-
+            form.find("[name='cp_img_path']").val(img.attr("src"));
             img.cropper({
                 aspectRatio: 1,
+                minWidth: 100,
+                minHeight: 100,
+                maxWidth: 200,
+                maxHeight: 200,
                 done: function (data) {
-                    $("#ic_x").val(data.x);
-                    $("#ic_y").val(data.y);
-                    $("#ic_h").val(data.height);
-                    $("#ic_w").val(data.width);
+                    form.find("[name='ic_x']").val(data.x);
+                    form.find("[name='ic_y']").val(data.y);
+                    form.find("[name='ic_h']").val(data.height);
+                    form.find("[name='ic_w']").val(data.width);
                 }
             });
 
-            $("#cp_accept").prop("disabled", false).removeClass("disabled");
-            $("#cp_crop").css({"width": "400px", "margin": "0px auto"});
-            $("#cp_crop").find('.modal-body').css({"max-height": "400px", "overflow": "auto"});
-            $("#cp_accept").unbind("click").on("click", function () {
-                //$("#user_image").html('<img src="/assets/loader.gif"/>');
+            $("#cp_accept").prop("disabled", false).unbind("click").on("click", function () {
                 $("#modal_change_photo").modal("hide");
-                $("#cp_crop").ajaxForm({
-                    beforeSend: function () {
-                        showLoading();
-                    }, success: function (res) {
-                        hideLoading();
-                        if (res != "") $("#modal_change_password .modal-body").flash_message(res);
-                        $("#user_image").html('<img class="img-thumbnail" src="' + res + '?r=' + Math.random() + '"/>');
-                        hideLoading();
-                    },
-                    error: function(){
-                        $.fn.alert({type: 'error', content: 'Internal Error', title: "Error"})
-                    }
-                }).submit();
-                $("#cp_target").html("Use form below to upload file. Only image files.");
-                $("#cp_photo").val("").parent("a").find("span").html("Select file");
-                $("#cp_accept").prop("disabled", true).addClass("disabled");
+                showLoading();
+                $.post(form.attr('action'), form.serialize(), function(res){
+                    hideLoading();
+                    $("#user_image").html('<img class="img-thumbnail" src="' + res + '?r=' + Math.random() + '"/>');
+                }).error(function(){
+                    $.fn.alert({type: 'error', content: 'Internal Error', title: "Error"})
+                });
+                $("#cp_accept").prop("disabled", true);
                 $("#cp_img_path").val("");
+                $("#cp_target").html("");
+                return false;
             });
         }
     }
@@ -65,6 +58,7 @@ jQuery(function ($) {
             },
             user_pwd: '<%= current_user_pwd %>'
         });
+        return false;
     });
 
 });

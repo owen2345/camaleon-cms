@@ -524,7 +524,7 @@ es:
         list_user_roles: 'Roles de Usuario'
         message:
          error: 'Usuario no encontrado.'
-         error_captcha: 'Oh! Es error con el CAPTCHA!'
+         error_captcha: 'Código de seguridad incorrecto'
          created: 'El usuario ha sido creado.'
          updated: 'El usuario ha sido actualizado.'
          deleted: 'El usuario ha sido eliminado.'

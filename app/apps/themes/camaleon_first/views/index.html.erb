@@ -13,7 +13,7 @@
 
 <!-- +++++ Projects Section +++++ -->
 <div class="container pt">
-    <h3><%= ct("latest_articles") %></h3>
+    <h3><%= ct("latest_articles", default: 'Latest Articles') %></h3>
     <div class="row mt centered latest_articles">
         <% current_site.the_posts(current_theme.get_field("recent_post_type")).latest.limit(current_theme.get_field("home_qty")).decorate.each do |post| %>
             <!-- PORTFOLIO ITEM -->
