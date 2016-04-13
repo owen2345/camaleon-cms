@@ -1,5 +1,5 @@
 module CamaleonCms::EmailHelper
-
+  include CamaleonCms::HooksHelper
   # send and email
   # email: email to
   # subject: Subject of the email
@@ -9,13 +9,17 @@ module CamaleonCms::EmailHelper
   # layout_name: path of the template to render
   # template_name: template name to render in template_path
   def send_email(email, subject='Tiene una notificacion', content='', from=nil, attachs=[], template_name = nil, layout_name = nil, extra_data = {})
-    args = {template_name: template_name, layout_name: layout_name, from: from || current_site.get_option("email"), url_base: cama_root_url, content: content, attachs: attachs, extra_data: extra_data, current_site: current_site}
+    args = {attachs: attachs, extra_data: extra_data}
+    args[:template_name] = template_name if template_name.present?
+    args[:layout_name] = layout_name if layout_name.present?
+    args[:from] = from if from.present?
+    args[:content] = content if content.present?
     cama_send_email(email, subject, args)
   end
 
   # short method of send_email
   def cama_send_email(email_to, subject, args = {})
-    args = {from: current_site.get_option("email"), url_base: cama_root_url, current_site: current_site, cc_to: [], template_name: 'mailer', layout_name: 'camaleon_cms/mailer', format: 'html', subject: subject}.merge(args)
+    args = {url_base: cama_root_url, current_site: current_site, subject: subject}.merge(args)
     args[:attachments] = args[:attachs] if args[:attachs].present?
     args[:current_site] = args[:current_site].id
 

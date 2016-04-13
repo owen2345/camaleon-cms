@@ -1,4 +1,13 @@
 <div id="tab-email_settings" class="<%= "active" if "email" == params[:tab] %> tab-pane ">
+    <div class="form-group">
+        <%= label_tag t('camaleon_cms.admin.settings.email_from') %><br>
+        <%= text_field :options, :email, :class => "form-control", value: @site.get_option("email"), placeholder: 'My Name <my_email@gmyserver.com>' %>
+    </div>
+    <div class="form-group">
+        <%= label_tag t('camaleon_cms.admin.settings.email_cc') %><br>
+        <%= text_field :options, :email_cc, :class => "form-control", value: @site.get_option("email_cc"), placeholder: 'test@gmail.com,test2@gmail.com' %>
+    </div>
+    <hr>
     <div class="alert alert-info">Gmail Need Permissions:
         <a href="http://know.mailsbestfriend.com/smtp_error_password_command_failed_5345714-1194946499.shtml" target="_blank">Check
             here.</a></div>
@@ -6,28 +15,22 @@
         <%= label_tag t('camaleon_cms.admin.settings.email_enabled') %><br>
         <%= check_box :options, :mailer_enabled, {checked: @site.get_option("mailer_enabled") == 1}, 1, 0 %>
     </div>
-    <div class="form-group">
-        <%= label_tag t('camaleon_cms.admin.settings.email_server') %> (*)<br>
-        <%= text_field :options, :email_server, :class => "form-control required", value: @site.get_option("email_server") %>
-    </div>
-    <div class="form-group">
-        <%= label_tag t('camaleon_cms.admin.settings.email_port') %> (*)<br>
-        <%= text_field :options, :email_port, :class => "form-control required", value: @site.get_option("email_port") %>
-    </div>
-    <div class="form-group">
-        <%= label_tag t('camaleon_cms.admin.settings.email_username') %> (*)<br>
-        <%= text_field :options, :email_username, :class => "form-control required", value: @site.get_option("email_username") %>
-    </div>
-    <div class="form-group">
-        <%= label_tag t('camaleon_cms.admin.settings.email_pass') %> (*)<br>
-        <%= text_field :options, :email_pass, :class => "form-control required", value: @site.get_option("email_pass") %>
-    </div>
-    <div class="form-group">
-        <%= label_tag t('camaleon_cms.admin.settings.email_from') %> (*)<br>
-        <%= text_field :options, :email_from, :class => "form-control required", value: @site.get_option("email_from") %>
-    </div>
-    <div class="form-group">
-        <%= label_tag t('camaleon_cms.admin.settings.email_cc') %><br>
-        <%= text_field :options, :email_cc, :class => "form-control", value: @site.get_option("email_cc") %>
+    <div class="toggleable">
+        <div class="form-group">
+            <%= label_tag t('camaleon_cms.admin.settings.email_server') %> (*)<br>
+            <%= text_field :options, :email_server, :class => "form-control required", value: @site.get_option("email_server"), placeholder: 'smtp.gmail.com' %>
+        </div>
+        <div class="form-group">
+            <%= label_tag t('camaleon_cms.admin.settings.email_port') %> (*)<br>
+            <%= text_field :options, :email_port, :class => "form-control required", value: @site.get_option("email_port"), placeholder: '587' %>
+        </div>
+        <div class="form-group">
+            <%= label_tag t('camaleon_cms.admin.settings.email_username') %> (*)<br>
+            <%= text_field :options, :email_username, :class => "form-control required", value: @site.get_option("email_username"), placeholder: 'myuser@gmail.com' %>
+        </div>
+        <div class="form-group">
+            <%= label_tag t('camaleon_cms.admin.settings.email_pass') %> (*)<br>
+            <%= text_field :options, :email_pass, :class => "form-control required", value: @site.get_option("email_pass"), placeholder: 'mypassword' %>
+        </div>
     </div>
 </div>

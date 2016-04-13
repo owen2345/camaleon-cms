@@ -332,6 +332,8 @@ es:
         seo_setting: "Posicionamiento Web."
         email_settings: "Configuración de Correo (SMTP)"
         filesystem_type: "Tipo de sistema de ficheros"
+        filesystem_max_file_size: "Tamaño Max. a Subir [MB]"
+        filesystem_thumb_size: "Tamaño de miniaturas [100x100]"
         filesystem_s3_access_key: "AWS S3 Clave de acceso"
         filesystem_s3_secret_key: "AWS S3 Contraseña de acceso"
         filesystem_s3_bucket_name: "AWS S3 nombre del bucket"

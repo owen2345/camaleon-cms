@@ -18,9 +18,8 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
   def sender(email, subject='Hello', data = {})
     data[:current_site] = CamaleonCms::Site.main_site.decorate unless data[:current_site].present?
     data[:current_site] = CamaleonCms::Site.find(data[:current_site]).decorate if data[:current_site].is_a?(Integer)
-    @current_site = data[:current_site]
-    current_site = data[:current_site]
-    data = {cc_to: [], from: current_site.get_option("email"), template_name: 'mailer', layout_name: 'camaleon_cms/mailer', format: 'html'}.merge(data)
+    current_site = @current_site = data[:current_site]
+    data = {cc_to: current_site.get_option("email_cc", '').split(','), from: current_site.get_option("email_from") || current_site.get_option("email"), template_name: 'mailer', layout_name: 'camaleon_cms/mailer', format: 'html'}.merge(data)
     @subject = subject
     @html = data[:content]
     @url_base = data[:url_base]
@@ -38,8 +37,6 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
                                              authentication: "plain",
                                              enable_starttls_auto: true
       }
-      data[:cc_to].push(current_site.get_option("email_cc"))
-      data[:from] = current_site.get_option("email_from", data[:from])
     end
     mail_data[:cc] = data[:cc_to].clean_empty.join(",") if data[:cc_to].present?
     mail_data[:from] = data[:from] if data[:from].present?

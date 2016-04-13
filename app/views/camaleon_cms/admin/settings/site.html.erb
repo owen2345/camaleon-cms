@@ -44,8 +44,8 @@
 
             <div id="tab-information" class="tab-pane <%= "active" if ["", nil].include?(params[:tab]) %> ">
               <div class="form-group">
-                <%= f.label t('camaleon_cms.admin.table.slug') %><br>
-                <small><%= t('camaleon_cms.admin.sites.message.enter_key_domain') %></small>
+                <%= f.label t('camaleon_cms.admin.button.domain', default: 'Domain') %><br>
+                <small><%= t('camaleon_cms.admin.sites.message.enter_key_domain', default: 'Enter your domain here') %></small>
                 <br>
                 <%= f.text_field :slug, :class => "form-control required" %>
               </div>
@@ -102,17 +102,17 @@
         // smtp
         panel.find("#options_mailer_enabled").change(function () {
             if (!$(this).is(":checked"))
-                panel.find("#tab-email_settings").find("input, select, textarea").not(this).not("input[type='hidden']").attr("disabled", true)
+                panel.find("#tab-email_settings .toggleable").find("input, select, textarea").not(this).not("input[type='hidden']").attr("disabled", true)
             else
-                panel.find("#tab-email_settings").find("input, select, textarea").not(this).removeAttr("disabled")
+                panel.find("#tab-email_settings .toggleable").find("input, select, textarea").not(this).removeAttr("disabled")
         }).trigger("change");
 
         // filesystem
         panel.find("#options_filesystem_type").change(function () {
             if (!$(this).is(":checked"))
-                panel.find("#tab-filesystem_settings").find("input, select, textarea").not(this).not("input[type='hidden']").attr("disabled", true)
+                panel.find("#tab-filesystem_settings .toggleable").find("input, select, textarea").not(this).not("input[type='hidden']").attr("disabled", true)
             else
-                panel.find("#tab-filesystem_settings").find("input, select, textarea").not(this).removeAttr("disabled")
+                panel.find("#tab-filesystem_settings .toggleable").find("input, select, textarea").not(this).removeAttr("disabled")
             $(this).removeAttr("disabled");
         }).trigger("change");
     });

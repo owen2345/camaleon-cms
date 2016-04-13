@@ -9,10 +9,6 @@
         <%= select_tag "options[error_404]", options_for_select([[t('camaleon_cms.admin.table.default'), ""]]+(posts.collect { |x| x = x.decorate; [x.the_title, x.id] }), @site.options[:error_404]), class: "form-control select" %>
     </div>
     <div class="form-group">
-        <label for=""><%= t('camaleon_cms.admin.table.email_address') %></label><br>
-        <%= email_field :options, :email, :class => "form-control", :value => @site.options[:email] %>
-    </div>
-    <div class="form-group">
         <label for=""><%= t('camaleon_cms.admin.settings.list_per_page_front') %></label><br>
         <%= text_field :options, :front_per_page, :class => "form-control number", :value => @site.front_per_page %>
     </div>

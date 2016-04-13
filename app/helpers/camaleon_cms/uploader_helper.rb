@@ -7,6 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module CamaleonCms::UploaderHelper
+  include ActionView::Helpers::NumberHelper
   # upload a file into server
   # settings:
   #   folder: Directory where the file will be saved (default: "")
@@ -35,7 +36,7 @@ module CamaleonCms::UploaderHelper
     settings[:uploaded_io] = uploaded_io
     settings = {
         folder: "",
-        maximum: 100.megabytes,
+        maximum: current_site.get_option('filesystem_max_size', 100).to_f.megabytes,
         formats: "*",
         generate_thumb: true,
         temporal_time: 0,
@@ -53,7 +54,7 @@ module CamaleonCms::UploaderHelper
 
     # file size validations
     if settings[:maximum] < settings[:file_size]
-      res[:error] = ct("file_size_exceeded")
+      res[:error] = "#{ct("file_size_exceeded", default: "File size exceeded")} (#{number_to_human_size(settings[:maximum])})"
       return res
     end
 
@@ -80,7 +81,6 @@ module CamaleonCms::UploaderHelper
 
     # generate thumb
     if settings[:generate_thumb] && res["format"] == "image" && File.extname(file.key) != ".gif"
-
       cama_uploader_generate_thumbnail(uploaded_io.path, file.key, settings[:folder].split("/").push(@fog_connection_hook_res[:thumb_folder_name]).join("/"))
     end
     FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
@@ -127,7 +127,8 @@ module CamaleonCms::UploaderHelper
   # initialize fog uploader and trigger hook to customize fog storage
   def cama_uploader_init_connection(clear_cache = false)
     server = current_site.get_option("filesystem_type", "local")
-    @fog_connection_hook_res ||= {server: server, connection: nil, thumb_folder_name: "thumb", bucket_name: server == "local" ? "media" : current_site.get_option("filesystem_s3_bucket_name"), thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
+    w, h = current_site.get_option('filesystem_thumb_size', '100x100').split('x')
+    @fog_connection_hook_res ||= {server: server, connection: nil, thumb_folder_name: "thumb", bucket_name: server == "local" ? "media" : current_site.get_option("filesystem_s3_bucket_name"), thumb: {w: w.to_i, h: h.to_i}}; hooks_run("on_uploader", @fog_connection_hook_res)
     case @fog_connection_hook_res[:server]
       when "local"
         Dir.mkdir(Rails.root.join("public", @fog_connection_hook_res[:bucket_name]).to_s) unless Dir.exist?(Rails.root.join("public", @fog_connection_hook_res[:bucket_name]).to_s)
@@ -201,7 +202,7 @@ module CamaleonCms::UploaderHelper
       end
       res["format"] = "image"
     end
-    if "flv,webm,wmv,avi,swf,mp4".split(",").include?(ext)
+    if "flv,webm,wmv,avi,swf,mp4,mov,mpg".split(",").include?(ext)
       res["format"] = "video"
     end
     if "mp3,ogg".split(",").include?(ext)
@@ -380,7 +381,7 @@ module CamaleonCms::UploaderHelper
       formats += "jpg,jpeg,png,gif,bmp,ico".split(',')
     end
     if formats.include? "video"
-      formats += "flv,webm,wmv,avi,swf,mp4".split(',')
+      formats += "flv,webm,wmv,avi,swf,mp4,mov,mpg".split(',')
     end
     if formats.include? "audio"
       formats += "mp3,ogg".split(',')
