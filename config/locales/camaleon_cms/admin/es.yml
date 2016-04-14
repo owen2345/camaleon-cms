@@ -2,6 +2,7 @@
 es:
   camaleon_cms:
     welcome_message: "Bienvenido a Camaleon CMS"
+    captcha_placeholder: 'Por favor ingrese el texto de la imagen'
     admin:
       request_error_message: "Un error a ocurrido, por favor contacte con el administrador."
       button:

@@ -41,6 +41,7 @@ Rails.application.routes.draw do
         get "rss", defaults: { format: "rss" }
         get "ajax"
 
+        # post types
         controller "camaleon_cms/frontend" do
           PluginRoutes.get_sites.each do |s|
             h = s.slug.split(":").first
@@ -54,9 +55,11 @@ Rails.application.routes.draw do
           end
         end
 
-        get ':parent_title/*slug' => :post, as: :hierarchy_post, constraints:{ parent_title: /(?!(#{PluginRoutes.all_locales}))[\w\.\-]+/ }
-        get ":slug" => :post, format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /[a-zA-Z0-9\._=\s\-]+/}
-        get ":slug" => :post, :as => :post, constraints: { slug: /[a-zA-Z0-9\._=\s\-]+/}
+        # posts
+        constraints(format: /html|rss/) do
+          get ':parent_title/*slug(.:format)' => :post, as: :hierarchy_post, constraints:{ parent_title: /(?!(#{PluginRoutes.all_locales}))[\w\-]+/, slug: /[a-zA-Z0-9_=\s\-\/]+/ }
+          get ":slug(.:format)" => :post, :as => :post, constraints: { slug: /[a-zA-Z0-9_=\s\-]+/}
+        end
       end
     end
   end
