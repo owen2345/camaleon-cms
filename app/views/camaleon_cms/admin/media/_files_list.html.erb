@@ -1,7 +1,2 @@
-<% files.each do |file| next if @media_formats.present? && !@media_formats.include?(file["format"]) && !@media_formats.include?(file["url"].split('.').last) %>
-    <%= render "render_file_item", file: file %>
-<% end %>
-
-<% folders.each do |fname, folder| %>
-    <%= render "render_folder_item", fname: fname, folder: folder %>
-<% end %>
+<%= render "render_file_item", files: files %>
+<%= render "render_folder_item", folders: folders %>

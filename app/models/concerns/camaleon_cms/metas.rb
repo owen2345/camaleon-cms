@@ -34,7 +34,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
       res = ''
       if option.present?
         value = JSON.parse(option.value) rescue option.value
-        res = (value.is_a?(Hash) ? value.to_sym : value) rescue option.value
+        res = (value.is_a?(Hash) ? value.with_indifferent_access : value) rescue option.value
       end
       res == '' ? default : res
     end

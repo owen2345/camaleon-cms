@@ -1,13 +1,15 @@
-<div class="media_item folder_item" data-key="<%= fname %>">
-    <div class="thumb">
-        <i class="fa fa-folder"></i>
-    </div>
-    <div class="label_thumb">
-        <%= fname %>
-    </div>
-    <% if @show_file_actions %>
-        <div class="actions">
-            <a href="#" class="del_folder"><i class="fa fa-trash"></i></a>
+<% (folders rescue {fname => folder}).each do |fname, folder| %>
+    <div class="media_item folder_item" data-key="<%= fname %>">
+        <div class="thumb">
+            <i class="fa fa-folder"></i>
         </div>
-    <% end %>
-</div>
+        <div class="label_thumb">
+            <%= fname %>
+        </div>
+        <% if @show_file_actions %>
+            <div class="actions">
+                <a href="#" class="del_folder"><i class="fa fa-trash"></i></a>
+            </div>
+        <% end %>
+    </div>
+<% end %>

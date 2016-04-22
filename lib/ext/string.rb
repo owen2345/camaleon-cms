@@ -127,4 +127,16 @@ class String
     self.gsub("Decorator","").gsub("CamaleonCms::","")
   end
 
+  # convert url into custom url with postfix,
+  # sample: "http://localhost/company/rack_multipart20160124_2288_8xcdjs.jpg".cama_add_postfix_url('thumbs/') into http://localhost/company/thumbs/rack_multipart20160124_2288_8xcdjs.jpg
+  def cama_add_postfix_url(postfix)
+    File.join(File.dirname(self), "#{postfix}#{File.basename(self)}")
+  end
+
+  # Sample:
+  #  /var/www/media/132/logo.png ==> /var/www/media/132/logo_2.png
+  def cama_add_postfix_file_name(postfix)
+    File.join(File.dirname(self), "#{File.basename(self, File.extname(self))}#{postfix}#{File.extname(self)}")
+  end
+
 end

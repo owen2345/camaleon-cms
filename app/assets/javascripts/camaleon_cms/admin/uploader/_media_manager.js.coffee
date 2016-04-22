@@ -13,7 +13,7 @@ window["cama_init_media"] = (media_panel) ->
         "<div class='p_label'><b>"+I18n("button.name")+": </b><br> <span>"+data["name"]+"</span></div>" +
         "<div class='p_body'>" +
         "<div><b>"+I18n("button.url")+":</b><br> <a target='_blank' href='"+data["url"]+"'>"+data["url"]+"</a></div>" +
-        "<div><b>"+I18n("button.size")+":</b><br> <span>"+data["size"]+"</span></div>" +
+        "<div><b>"+I18n("button.size")+":</b> <span>"+cama_humanFileSize(data["size"])+"</span></div>" +
         "</div>"
 
     if window["callback_media_uploader"]
@@ -24,15 +24,16 @@ window["cama_init_media"] = (media_panel) ->
 
     media_info.html(tpl)
     media_info.find(".p_thumb").html(item.find(".thumb").html())
-    if data["format"] == "image" && media_panel.attr("data-dimension") # verify dimensions
-      img = $('<img src="'+data["url"]+'">').hide()
-      btn = media_info.append(img).find(".p_footer .insert_btn")
-      btn.prop('disabled', true)
-      img.load ->
-        media_info.find(".p_body").append("<div class='cdimension'><b>"+I18n("button.dimension")+": </b><span>"+this.width+"x"+this.height+"</span></div>")
-        ww = parseInt(media_panel.attr("data-dimension").split("x")[0]) || this.width
-        hh = parseInt(media_panel.attr("data-dimension").split("x")[1]) || this.height
-        if media_panel.attr("data-dimension") && this.width == ww && this.height == hh
+    if data["format"] == "image"
+      ww = parseInt(data['dimension'].split("x")[0])
+      hh = parseInt(data['dimension'].split("x")[1])
+      media_info.find(".p_body").append("<div class='cdimension'><b>"+I18n("button.dimension")+": </b><span>"+ww+"x"+hh+"</span></div>")
+      if media_panel.attr("data-dimension") # verify dimensions
+        btn = media_info.find(".p_footer .insert_btn")
+        btn.prop('disabled', true)
+        _ww = parseInt(media_panel.attr("data-dimension").split("x")[0])
+        _hh = parseInt(media_panel.attr("data-dimension").split("x")[1])
+        if _ww == ww && _hh == hh
           btn.prop('disabled', false)
         else
           media_info.find(".cdimension").css("color", 'red')
@@ -40,7 +41,6 @@ window["cama_init_media"] = (media_panel) ->
             $.fn.upload_url({url: data["url"]})
           )
           btn.after(cut)
-        media_info.find(".p_thumb").html(img.show())
 
     if window["callback_media_uploader"] # trigger callback
       media_info.find(".insert_btn").click ->
@@ -68,7 +68,7 @@ window["cama_init_media"] = (media_panel) ->
     uploadStr: p_upload.attr('data-uploadStr'),
     dynamicFormData: customFileData,
     onSuccess: ((files,res_upload,xhr,pd)->
-      if res_upload.search("<") == 0 # success upload
+      if res_upload.search("media_item") >= 0 # success upload
         media_panel.trigger("add_file", {item: res_upload, selected: $(pd.statusbar).siblings().not('.error_file_upload').size() == 0})
         $(pd.statusbar).remove();
       else
@@ -83,6 +83,7 @@ window["cama_init_media"] = (media_panel) ->
   ######### folders breadcrumb
   media_panel.find(".media_folder_breadcrumb").on("click", "a", ->
     media_panel.trigger("navigate_to", {folder: $(this).attr("data-path")})
+    return false
   )
   media_panel.on("click", ".folder_item", ->
     media_panel.trigger("navigate_to", {folder: media_panel.attr("data-folder")+"/"+$(this).attr("data-key")})
@@ -146,7 +147,7 @@ window["cama_init_media"] = (media_panel) ->
         $.post(media_panel.attr("data-url_actions"), {folder: media_panel.attr("data-folder")+"/"+input.val(), media_action: "new_folder"}, (res)->
           hideLoading()
           modal.modal("hide")
-          if res.search("<") == 0 # success upload
+          if res.search("folder_item") >= 0 # success upload
             media_panel.find(".media_browser_list").append(res)
           else
             $.fn.alert({type: 'error', content: res, title: "Error"})
@@ -199,7 +200,7 @@ $ ->
     showLoading()
     $.post(media_panel.attr("data-url_actions"), data, (res_upload)->
       hideLoading()
-      if res_upload.search("<") == 0 # success upload
+      if res_upload.search("media_item") >= 0 # success upload
         media_panel.trigger("add_file", {item: res_upload})
         if data["callback"]
           data["callback"](res_upload)
@@ -222,3 +223,11 @@ $ ->
         window["callback_media_uploader"] = args["selected"]
       modal.css("z-index", args["zindex"] || 99999).children(".modal-dialog").css("width", "90%")
     })
+
+window['cama_humanFileSize'] = (size)->
+  units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  i = 0;
+  while(size >= 1024)
+    size /= 1024;
+    ++i;
+  return size.toFixed(1) + ' ' + units[i];
