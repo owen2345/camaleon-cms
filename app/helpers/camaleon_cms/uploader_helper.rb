@@ -244,8 +244,7 @@ module CamaleonCms::UploaderHelper
   # return the current uploader
   def cama_uploader
     case current_site.get_option("filesystem_type", "local").downcase
-      when 's3'
-      when 'aws'
+      when 's3' || 'aws'
         @cama_uploader ||= CamaleonCmsAwsUploader.new({current_site: current_site})
       else
         @cama_uploader ||= CamaleonCmsLocalUploader.new({current_site: current_site})

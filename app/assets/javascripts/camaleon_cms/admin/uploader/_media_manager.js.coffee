@@ -59,7 +59,7 @@ window["cama_init_media"] = (media_panel) ->
   ########## file uploader
   p_upload = media_panel.find(".cama_media_fileuploader")
   customFileData = ->
-    return {folder: media_panel.attr("data-folder"), formats: media_panel.attr("data-formats") }
+    return {folder: media_panel.attr("data-folder").replace(/\/{2,}/g, '/'), formats: media_panel.attr("data-formats") }
 
   p_upload.uploadFile({
     url: p_upload.attr("data-url"),
@@ -86,7 +86,7 @@ window["cama_init_media"] = (media_panel) ->
     return false
   )
   media_panel.on("click", ".folder_item", ->
-    media_panel.trigger("navigate_to", {folder: media_panel.attr("data-folder")+"/"+$(this).attr("data-key")})
+    media_panel.trigger("navigate_to", {folder: media_panel.attr("data-folder")+"/"+$(this).attr("data-key").replace(/\/{2,}/g, '/')})
   )
   media_panel.bind("update_breadcrumb", ->
     folder = media_panel.attr("data-folder").replace("//", "/")
@@ -104,7 +104,7 @@ window["cama_init_media"] = (media_panel) ->
         breadrumb.push("<li><span>"+name+"</span></li>")
       else
         folder_prefix.push(value)
-        breadrumb.push("<li><a data-path='"+(folder_prefix.join("/") || "/")+"' href='#'>"+name+"</a></li>")
+        breadrumb.push("<li><a data-path='"+(folder_prefix.join("/") || "/").replace(/\/{2,}/g, '/')+"' href='#'>"+name+"</a></li>")
     media_panel.find(".media_folder_breadcrumb").html(breadrumb.join(""))
   ).trigger("update_breadcrumb")
   ## end folders
@@ -119,7 +119,7 @@ window["cama_init_media"] = (media_panel) ->
     media_link_tab_upload.click()
 
     showLoading()
-    $.get(media_panel.attr("data-url"), {folder: folder, partial: true, media_formats: media_panel.attr("data-formats")}, (res)->
+    $.get(media_panel.attr("data-url"), {folder: folder.replace(/\/{2,}/g, '/'), partial: true, media_formats: media_panel.attr("data-formats")}, (res)->
       media_panel.find(".media_browser_list").html(res)
       hideLoading()
     )
@@ -144,7 +144,7 @@ window["cama_init_media"] = (media_panel) ->
       ).trigger("keyup")
       modal.find("form").submit ->
         showLoading()
-        $.post(media_panel.attr("data-url_actions"), {folder: media_panel.attr("data-folder")+"/"+input.val(), media_action: "new_folder"}, (res)->
+        $.post(media_panel.attr("data-url_actions"), {folder: media_panel.attr("data-folder")+"/"+input.val().replace(/\/{2,}/g, '/'), media_action: "new_folder"}, (res)->
           hideLoading()
           modal.modal("hide")
           if res.search("folder_item") >= 0 # success upload
@@ -164,7 +164,7 @@ window["cama_init_media"] = (media_panel) ->
     link = $(this)
     item = link.closest(".media_item")
     showLoading()
-    $.post(media_panel.attr("data-url_actions"), {folder: media_panel.attr("data-folder")+"/"+item.attr("data-key"), media_action: if link.hasClass("del_folder") then "del_folder" else "del_file"}, (res)->
+    $.post(media_panel.attr("data-url_actions"), {folder: media_panel.attr("data-folder")+"/"+item.attr("data-key").replace(/\/{2,}/g, '/'), media_action: if link.hasClass("del_folder") then "del_folder" else "del_file"}, (res)->
       hideLoading()
       if res
         $.fn.alert({type: 'error', content: res, title: I18n("button.error")})
@@ -193,7 +193,7 @@ $ ->
   # folder: default current folder
   $.fn.upload_url = (args)->
     media_panel = $("#cama_media_gallery")
-    data = {folder: media_panel.attr("data-folder"), media_action: "crop_url", formats: media_panel.attr("data-formats"), onerror: (message) ->
+    data = {folder: media_panel.attr("data-folder").replace(/\/{2,}/g, '/'), media_action: "crop_url", formats: media_panel.attr("data-formats"), onerror: (message) ->
       $.fn.alert({type: 'error', content: message, title: I18n("msg.error_uploading")})
     }
     $.extend(data, args); on_error = data["onerror"]; delete data["onerror"];

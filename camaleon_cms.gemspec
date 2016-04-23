@@ -39,6 +39,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'protected_attributes' # remove in next versions
 
   # MEDIA MANAGER
-  s.add_dependency 'fog', '~> 1.34'
   s.add_dependency 'aws-sdk', '~> 2'
 end
