@@ -64,7 +64,8 @@ window["cama_init_media"] = (media_panel) ->
   p_upload.uploadFile({
     url: p_upload.attr("data-url"),
     fileName: "file_upload",
-    dragDropStr: '<span><b>'+p_upload.attr('data-dragDropStr')+'</b></span>',
+    uploadButtonClass: "btn btn-primary btn-block",
+    dragDropStr: '<span style="display: block;"><b>'+p_upload.attr('data-dragDropStr')+'</b></span>',
     uploadStr: p_upload.attr('data-uploadStr'),
     dynamicFormData: customFileData,
     onSuccess: ((files,res_upload,xhr,pd)->
@@ -143,13 +144,13 @@ window["cama_init_media"] = (media_panel) ->
     return false
 
   # reload current directory
-  media_panel.find('.cam_media_reload').click ->
+  media_panel.find('.cam_media_reload').click (e)->
     showLoading()
     $.get(media_panel.attr("data-url"), {partial: true, media_formats: media_panel.attr("data-formats"), folder: media_panel.attr("data-folder"), cama_media_reload: $(this).attr('data-action')}, (res)->
       media_panel.find(".media_browser_list").html(res)
       hideLoading()
     )
-    return false
+    e.preventDefault()
 
   # element actions
   media_panel.on("click", "a.add_folder", ->

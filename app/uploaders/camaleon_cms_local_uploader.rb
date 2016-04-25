@@ -53,7 +53,7 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     d, is_new_folder = File.join(@root_folder, key).to_s, false
     unless Dir.exist?(d)
       FileUtils.mkdir_p(d)
-      is_new_folder = true if File.basename(d) == 'thumb'
+      is_new_folder = true if File.basename(d) != 'thumb'
     end
     f = file_parse(key)
     cache_item(f) if is_new_folder
