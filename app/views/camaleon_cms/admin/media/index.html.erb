@@ -15,11 +15,11 @@
                               <div class="btn-group" role="group">
                                   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cogs"></i> <span class="caret"></span></button>
                                   <ul class="dropdown-menu pull-right">
-                                      <li><a href="#" class="cam_media_reload" data-action="reload"><i class="fa fa-refresh"></i> Reload</a></li>
+                                      <li><a href="#" class="cam_media_reload" data-action="reload"><i class="fa fa-refresh"></i> <%= t('camaleon_cms.common.reload', default: 'Reload') %></a></li>
                                       <% if @show_file_actions %>
                                           <li><a href="#" class="add_folder"> <i class="fa fa-plus"></i> <%= t("camaleon_cms.admin.button.add_folder") %></a></li>
                                       <% end %>
-                                      <li><a href="#" class="cam_media_reload" data-action="clear_cache"><i class="fa fa-recycle"></i> Clear Cache</a></li>
+                                      <li><a href="#" class="cam_media_reload" data-action="clear_cache"><i class="fa fa-recycle"></i> <%= t('camaleon_cms.common.clear_cache', default: 'Clear Cache') %></a></li>
                                   </ul>
                               </div>
                           </div>

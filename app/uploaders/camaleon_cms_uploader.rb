@@ -1,0 +1,119 @@
+class CamaleonCmsUploader
+  attr_accessor :thumb
+  # root_folder, current_site, service = 'Local', thumb
+  def initialize(args = {})
+    @current_site = args[:current_site]
+    @root_folder = args[:root_folder] || @current_site.upload_directory
+    @service = args[:service] || 'Local'
+    t_w, t_h = @current_site.get_option('filesystem_thumb_size', '100x100').split('x')
+    @thumb = args[:thumb] || {w: t_w, h: t_h}
+  end
+
+  # return all files structure, within folder prefix
+  # return json like:
+  # {files: {'file_name': {'name'=> 'a.jpg', key: '/test/a.jpg', url: '', url: '', size: '', format: '', thumb: 'thumb_url', type: '', created_at: '', dimension: '120x120'}}, folders: {'folder name' => {name: 'folder name', key: '/folder name', ...}}}
+  def objects(prefix = '/')
+    prefix = "/#{prefix}" unless prefix.starts_with?('/')
+    db = @current_site.get_meta('cama_media_cache', nil) || browser_files
+    db[prefix.gsub('//', '/')] || {files: {}, folders: {}}
+  end
+
+  # clean cached of files structure saved into DB
+  def clear_cache
+    @current_site.set_meta('cama_media_cache', nil)
+  end
+
+  # search for folders or files that includes search_text in their names
+  def search(search_text)
+    res = {files: {}, folders: {}}
+    (@current_site.get_meta('cama_media_cache', nil) || browser_files).each do |folder_key, object|
+      res[:folders][folder_key] = get_file(folder_key) if !['', '/'].include?(folder_key) && folder_key.split('/').last.include?(search_text)
+      object[:files].each do |file_key, obj|
+        res[:files][file_key] = obj if file_key.include?(search_text)
+      end
+      res
+    end
+    res
+  end
+
+  # reload cache files structure
+  def reload
+    browser_files
+  end
+
+  # save file_parsed as a cache into DB
+  # file_parsed: (HASH) File parsed object
+  # objects_db: HASH Object where to add the current object (optional)
+  def cache_item(file_parsed, _objects_db = nil)
+    objects_db = _objects_db || @current_site.get_meta('cama_media_cache', {}) || {}
+    prefix = File.dirname(file_parsed['key'])
+
+    s = prefix.split('/').clean_empty
+    return file_parsed if s.last == 'thumb'
+    s.each_with_index{|_s, i| k = "/#{File.join(s.slice(0, i), _s)}"; cache_item(file_parse(k), objects_db) unless objects_db[k].present? } unless ['/', '', '.'].include?(prefix)
+
+    objects_db[prefix] = {files: {}, folders: {}} if objects_db[prefix].nil?
+    if file_parsed['format'] == 'folder'
+      objects_db[prefix][:folders][file_parsed['name']] = file_parsed
+    else
+      objects_db[prefix][:files][file_parsed['name']] = file_parsed
+    end
+    @current_site.set_meta('cama_media_cache', objects_db) if _objects_db.nil?
+    file_parsed
+  end
+
+
+  # convert current string path into file version_path, sample:
+  # /media/1/screen.png into /media/1/thumb/screen-png.png
+  # /media/1/screen.png into /media/1/crop_40x40/screen-png.png
+  def version_path(image_path, version_name = 'thumb')
+    File.join(File.dirname(image_path), version_name, "#{File.basename(image_path).parameterize}#{File.extname(image_path)}")
+  end
+
+  # return the file format (String) of path (depends of file extension)
+  def self.get_file_format(path)
+    ext = File.extname(path).sub(".", "").downcase
+    format = "unknown"
+    format = "image" if "jpg,jpeg,png,gif,bmp,ico".split(",").include?(ext)
+    format = "video" if "flv,webm,wmv,avi,swf,mp4,mov,mpg".split(",").include?(ext)
+    format = "audio" if "mp3,ogg".split(",").include?(ext)
+    format = "document" if "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,xml,json".split(",").include?(ext)
+    format = "compress" if "zip,7z,rar,tar,bz2,gz,rar2".split(",").include?(ext)
+    format
+  end
+
+  # verify permitted formats (return boolean true | false)
+  # true: if format is accepted
+  # false: if format is not accepted
+  # sample: validate_file_format('/var/www/myfile.xls', 'image,audio,docx,xls') => return true if the file extension is in formats
+  def self.validate_file_format(key, valid_formats = "*")
+    return true if valid_formats == "*" || !valid_formats.present?
+    valid_formats = valid_formats.gsub(' ', '').downcase.split(',')
+    valid_formats.include?(File.extname(key).sub(".", "").downcase) || valid_formats.include?(get_file_format(key))
+  end
+
+
+  # verify if this file name already exist
+  # if the file is already exist, return a new name for this file
+  # sample: search_new_key("my_file/file.txt")
+  def search_new_key(key)
+    _key = key
+    if get_file(key).present?
+      (1..999).each do |i|
+        _key = key.cama_add_postfix_file_name("_#{i}")
+        break unless get_file(_key).present?
+      end
+    end
+    _key
+  end
+
+  # check if file with :key exist and return parsed_file, else return nil
+  def get_file(key, use_cache = true)
+    if use_cache
+      db = (@current_site.get_meta('cama_media_cache') || {})[File.dirname(key)] || {}
+    else
+      db = objects(File.dirname(key)) unless use_cache
+    end
+    (db[:files][File.basename(key)] || db[:folders][File.basename(key)]) rescue nil
+  end
+end

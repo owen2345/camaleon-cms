@@ -75,6 +75,8 @@ es:
       logout: "Salir"
       confirm: "Estas seguro?"
       register: "Registrarse"
+      reload: 'Recargar'
+      clear_cache: 'Limpiar Caché'
 
       comment_msg: "Tu debes estar logeado para comentar"
       comment: "Comentario"
