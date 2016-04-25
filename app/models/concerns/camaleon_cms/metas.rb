@@ -14,7 +14,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
     after_create  :save_metas_options, unless: :save_metas_options_skip
     before_update :fix_save_metas_options_no_changed
 
-    has_many :metas, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::", ""))}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+    has_many :metas, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::", ""))}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
   end
 
   # Add meta with value or Update meta with key: key
@@ -30,7 +30,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   def get_meta(key, default = nil)
     key_str = key.is_a?(Symbol) ? key.to_s : key
     cama_fetch_cache("meta_#{key_str}") do
-      option = metas.select { |m| m.key.eql?(key_str) }.first
+      option = metas.where(key: key_str).first
       res = ''
       if option.present?
         value = JSON.parse(option.value) rescue option.value

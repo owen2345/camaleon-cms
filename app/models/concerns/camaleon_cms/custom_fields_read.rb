@@ -8,10 +8,10 @@
 =end
 module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   included do
-    has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))} , :class_name => "CamaleonCms::CustomField" ,foreign_key: :objectid
-    has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :destroy
-    has_many :custom_field_values, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :destroy
     before_destroy :_destroy_custom_field_groups
+    has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))} , :class_name => "CamaleonCms::CustomField" ,foreign_key: :objectid
+    has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
+    has_many :custom_field_values, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
   end
 
 
@@ -40,9 +40,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
       when 'Site'
         self.custom_field_groups.where(object_class: class_name)
       when 'NavMenuItem'
-        # self.main_menu.custom_field_groups //verify this problem
-        puts "get_field_groups - NavMenuItem: **************#{self.inspect}***** #{self.main_menu.inspect}"
-        CamaleonCms::NavMenu.find(self.main_menu.id).get_field_groups
+        self.main_menu.custom_field_groups
       when 'PostType'
         if args[:kind] == "all"
           self.site.custom_field_groups.where(object_class: ["PostType_Post", "PostType_Post", "PostType_PostTag", "PostType"], objectid:  self.id )
