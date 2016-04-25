@@ -86,7 +86,10 @@ window["cama_init_media"] = (media_panel) ->
     return false
   )
   media_panel.on("click", ".folder_item", ->
-    media_panel.trigger("navigate_to", {folder: media_panel.attr("data-folder")+"/"+$(this).attr("data-key").replace(/\/{2,}/g, '/')})
+    f = media_panel.attr("data-folder")+"/"+$(this).attr("data-key")
+    if $(this).attr("data-key").search('/') >= 0
+      f = $(this).attr("data-key")
+    media_panel.trigger("navigate_to", {folder: f.replace(/\/{2,}/g, '/')})
   )
   media_panel.bind("update_breadcrumb", ->
     folder = media_panel.attr("data-folder").replace("//", "/")
@@ -130,6 +133,23 @@ window["cama_init_media"] = (media_panel) ->
       item.click()
   )
 
+  # search file
+  media_panel.find('#cama_search_form').submit ->
+    showLoading()
+    $.get(media_panel.attr("data-url"), {search: $(this).find('input:text').val(), partial: true, media_formats: media_panel.attr("data-formats")}, (res)->
+      media_panel.find(".media_browser_list").html(res)
+      hideLoading()
+    )
+    return false
+
+  # reload current directory
+  media_panel.find('.cam_media_reload').click ->
+    showLoading()
+    $.get(media_panel.attr("data-url"), {partial: true, media_formats: media_panel.attr("data-formats"), folder: media_panel.attr("data-folder"), cama_media_reload: $(this).attr('data-action')}, (res)->
+      media_panel.find(".media_browser_list").html(res)
+      hideLoading()
+    )
+    return false
 
   # element actions
   media_panel.on("click", "a.add_folder", ->

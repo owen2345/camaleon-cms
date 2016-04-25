@@ -74,20 +74,6 @@ module CamaleonCms::UploaderHelper
     thumb
   end
 
-  # search for a file by filename
-  # sample: cama_media_search_file("")
-  def cama_media_search_file(filename)
-    cama_uploader_init_connection(true)
-
-    prefix  = current_site.upload_directory_name.gsub(/(\/){2,}/, "/")
-
-    @fog_connection.directories
-    .get(@fog_connection_hook_res[:bucket_name], prefix: prefix)
-    .files
-    .select { |file| file.key.split('/').last.include?(filename) && !file.key.include?('/_tmp.txt') }
-    .map { |file| cama_uploader_parse_file(file) }
-  end
-
   # helper to find an available filename for file_path in that directory
   # sample: uploader_verify_name("/var/www/my_image.jpg")
   #   return "/var/www/my_image_1.jpg" => if "/var/www/my_image.jpg" exist
@@ -250,22 +236,6 @@ module CamaleonCms::UploaderHelper
         @cama_uploader ||= CamaleonCmsLocalUploader.new({current_site: current_site})
     end
     @cama_uploader
-  end
-
-  # initialize fog uploader and trigger hook to customize fog storage
-  def cama_uploader_init_connection(clear_cache = false)
-    server = current_site.get_option("filesystem_type", "local")
-    w, h = current_site.get_option('filesystem_thumb_size', '100x100').split('x')
-    @fog_connection_hook_res ||= {server: server, connection: nil, thumb_folder_name: "thumb", bucket_name: server == "local" ? "media" : current_site.get_option("filesystem_s3_bucket_name"), thumb: {w: w.to_i, h: h.to_i}}; hooks_run("on_uploader", @fog_connection_hook_res)
-    case @fog_connection_hook_res[:server]
-      when "local"
-        Dir.mkdir(Rails.root.join("public", @fog_connection_hook_res[:bucket_name]).to_s) unless Dir.exist?(Rails.root.join("public", @fog_connection_hook_res[:bucket_name]).to_s)
-        @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :local_root => Rails.root.join("public").to_s, :provider   => 'Local', endpoint: (root_url rescue cama_root_url) }) : @fog_connection_hook_res[:connection]
-      when "s3"
-        @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :aws_access_key_id => current_site.get_option("filesystem_s3_access_key"), :provider   => 'AWS', aws_secret_access_key: current_site.get_option("filesystem_s3_secret_key"), :region  => current_site.get_option("filesystem_region") }) : @fog_connection_hook_res[:connection]
-    end
-    @fog_connection_bucket_dir ||= @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name])
-    current_site.set_meta("cache_browser_files_#{@fog_connection_hook_res}", nil) if clear_cache
   end
 
   private

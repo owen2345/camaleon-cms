@@ -19,15 +19,6 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
   end
 
-  def search
-    authorize! :manager, :media
-    @tree = { files: cama_media_search_file(params[:q]), folders: [] }
-    @search = params[:q]
-    add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
-    add_breadcrumb params[:q]
-    render 'index'
-  end
-
   # crop a image to save as a new file
   def crop
     path_image = cama_tmp_upload(params[:cp_img_path])[:file_path]
@@ -39,6 +30,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # render media for modal content
   def ajax
+    @tree = cama_uploader.search(params[:search]) if params[:search].present?
     if params[:partial].present?
       render partial: "files_list", locals: { files: @tree[:files], folders: @tree[:folders] }
     end
@@ -83,7 +75,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   private
   # init basic media variables
   def init_media_vars
-    # cama_uploader.clear_cache
+    cama_uploader.clear_cache if params[:cama_media_reload].present? && params[:cama_media_reload] == 'clear_cache'
     @media_formats = (params[:media_formats] || "").sub("media", ",video,audio").sub("all", "").split(",")
     @tree = cama_uploader.objects(@folder = params[:folder] || "/")
     @show_file_actions ||= params[:actions].to_s == 'true'

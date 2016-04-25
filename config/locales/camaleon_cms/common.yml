@@ -106,7 +106,7 @@ es:
       next: "Siguiente"
       prev: "Anterior"
       current: "Actual"
-      search: "Búsqueda"
+      search: "Buscar"
       file_format_error: "Formato de archivo no permitido"
       file_size_exceeded: "Tamaño excedido"
 
