@@ -236,6 +236,21 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     end
   end
 
+  # check if current site is active or not
+  def is_active?
+    !self.status.present? || self.status == 'active'
+  end
+
+  # check if current site is active or not
+  def is_inactive?
+    self.status == 'inactive'
+  end
+
+  # check if current site is in maintenance or not
+  def is_maintenance?
+    self.status == 'maintenance'
+  end
+
   private
   # destroy all things before site destroy
   def destroy_site
@@ -250,7 +265,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   def default_settings
     default_post_type = [
         {name: 'Post', description: 'Posts', options: {has_category: true, has_tags: true, not_deleted: true, has_summary: true, has_content: true, has_comments: true, has_picture: true, has_template: true, }},
-        {name: 'Page', description: 'Pages', options: {has_category: false, has_tags: false, not_deleted: true, has_summary: false, has_content: true, has_comments: false, has_picture: true, has_template: true, }}
+        {name: 'Page', description: 'Pages', options: {has_category: false, has_tags: false, not_deleted: true, has_summary: false, has_content: true, has_comments: false, has_picture: true, has_template: true, has_layout: true}}
     ]
     default_post_type.each do |pt|
       model_pt = self.post_types.create({name: pt[:name], slug: pt[:name].to_s.parameterize, description: pt[:description], data_options: pt[:options]})

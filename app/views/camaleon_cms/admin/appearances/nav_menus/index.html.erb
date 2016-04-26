@@ -78,7 +78,6 @@
                         <div class="panel-heading">
                             <h4 class="panel-title"><%= t('camaleon_cms.admin.menus.external_link') %></h4>
                             <ul class="panel-controls">
-                                <!--<li><a href="#" class="panel-fullscreen"><span class="fa fa-expand"></span></a></li>-->
                                 <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
                             </ul>
                         </div>
@@ -86,16 +85,10 @@
                     </div>
                 </div>
                 <!-- END ACCORDION -->
-
             </div>
-
-
             <%= render "menu_form" %>
-
-            <!--/form-->
         </div>
     </div>
-    <!-- END PAGE CONTENT WRAPPER -->
 </div>
 <script>
     var RENDER_FORM = '<%=  cama_admin_appearances_nav_menus_form_path(menu_id: @nav_menu.id, cama_skip_breadcrumb: true, item_id: '-9999') %>';

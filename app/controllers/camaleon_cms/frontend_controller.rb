@@ -9,7 +9,6 @@
 class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   include CamaleonCms::FrontendConcern
   prepend_before_action :init_frontent
-  prepend_before_action :cama_site_check_existence
   include CamaleonCms::Frontend::ApplicationHelper
   layout Proc.new { |controller| params[:cama_ajax_request].present? ? "cama_ajax" : 'index' }
 

@@ -1,5 +1,5 @@
 <form class="form-custom-link validate <%= submit ? "" : "panel-body" %>">
-    <div class="alert alert-info">You can use root_url as main url.</div>
+    <div class="alert alert-info">You can use <b>root_url</b> as main url.</div>
     <div class="form-group">
         <label><%= t('camaleon_cms.admin.menus.name_link')%></label>
         <input id="external_label" class="form-control translatable required" name="external_label" />
@@ -9,6 +9,6 @@
         <input id="external_url" class="form-control translatable" name="external_url" />
     </div>
     <div class="text-right">
-        <button type="submit" id="add_external_link" class="btn btn-primary"><%= t('camaleon_cms.admin.button.add_menu')%> <i class="fa fa-arrow-right"></i></button>
+        <button type="submit" id="add_external_link" class="btn btn-primary"><%= submit ? t('camaleon_cms.admin.button.update_menu', default: 'Update Menu') : t('camaleon_cms.admin.button.add_menu', default: 'Add to Menu') %> <i class="fa fa-arrow-right"></i></button>
     </div>
 </form>

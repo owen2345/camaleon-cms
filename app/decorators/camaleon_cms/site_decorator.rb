@@ -194,4 +194,16 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   def manage_sites?
     self.main_site? && h.current_user.admin?
   end
+
+  # return the text status of current site
+  def the_status
+    I18n.t("camaleon_cms.models.site.status_options.#{object.status || 'active'}", default: (object.status || 'active').titleize)
+  end
+
+  # return an array for select options of all status for this site
+  def the_status_options
+    ['active', 'inactive', 'maintenance'].map do |o|
+      [I18n.t("camaleon_cms.models.site.status_options.#{o}", default: o.titleize), o == 'active' ? '': o]
+    end
+  end
 end

@@ -25,17 +25,6 @@ module CamaleonCms::SiteHelper
     @current_site = r[:site]
   end
 
-  # check if current site exist, if not, this will be redirected to main domain
-  def cama_site_check_existence()
-    if !current_site.present?
-      if Cama::Site.main_site.present?
-        redirect_to Cama::Site.main_site.decorate.the_url
-      else
-        redirect_to cama_admin_installers_path
-      end
-    end
-  end
-
   # return current theme model for current site
   def current_theme
     @_current_theme ||= current_site.get_theme.decorate
