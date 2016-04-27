@@ -333,6 +333,7 @@ es:
         author: "Nombre de Autor"
         seo_setting: "Posicionamiento Web."
         email_settings: "Configuración de Correo (SMTP)"
+        media_settings: "Configuración de Multimedia"
         filesystem_type: "Tipo de sistema de ficheros"
         filesystem_max_file_size: "Tamaño Max. a Subir [MB]"
         filesystem_thumb_size: "Tamaño de miniaturas [100x100]"

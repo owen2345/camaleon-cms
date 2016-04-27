@@ -31,12 +31,9 @@
             <li class="<%= "active" if "seo" == params[:tab] %>">
               <a data-toggle="tab" role="tab" href="#tab-seo_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.seo_setting') %></a>
             </li>
-            <li class="<%= "active" if "email" == params[:tab] %>">
-              <a data-toggle="tab" role="tab" href="#tab-email_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.email_settings') %></a>
-            </li>
-            <li class="<%= 'active' if 'filesystem' == params[:tab] %>">
-              <a data-toggle="tab" role="tab" href="#tab-filesystem_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.filesystem_settings') %></a>
-            </li>
+            <li class="<%= "active" if "email" == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-email_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.email_settings') %></a></li>
+            <li class="<%= 'active' if 'filesystem' == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-filesystem_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.filesystem_settings', default: 'Filesystem Settings ') %></a></li>
+            <li class="<%= 'active' if 'media' == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-media_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.media_settings', default: 'Media Settings') %></a></li>
           </ul>
           <div class="panel-body tab-content row">
 
@@ -85,6 +82,7 @@
               <%= render "seo_settings", f: f %>
               <%= render "email_settings", f: f %>
               <%= render "file_system_settings", f: f %>
+              <%= render "media_settings", f: f %>
           </div>
           <div class="panel-footer">
             <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
