@@ -1,14 +1,15 @@
-<form class="form-custom-link validate <%= submit ? "" : "panel-body" %>">
-    <div class="alert alert-info">You can use <b>root_url</b> as main url.</div>
+<%= form_tag url_for({action: :update_menu_item, nav_menu_id: nav_menu.id, id: menu_item.id || '-1'}), class: "form-custom-link validate #{menu_item.new_record? ? "panel-body" : ""}" do %>
+    <div class="alert alert-info"><%= raw t('.root_alert_info', default: 'You can use <b>root_url</b> as main url.') %></div>
     <div class="form-group">
         <label><%= t('camaleon_cms.admin.menus.name_link')%></label>
-        <input id="external_label" class="form-control translatable required" name="external_label" />
+        <input id="external_label" class="form-control translatable required" name="external_label" value="<%= menu_item.label %>" />
     </div>
     <div class="form-group">
         <label><%= t('camaleon_cms.admin.menus.link_url')%></label>
-        <input id="external_url" class="form-control translatable" name="external_url" />
+        <input id="external_url" class="form-control translatable" name="external_url" value="<%= menu_item.url %>" />
     </div>
+    <%= r = {html: "", menu_item: menu_item, nav_menu: nav_menu}; hooks_run("menu_external_form", r); raw(r[:html]); %>
     <div class="text-right">
-        <button type="submit" id="add_external_link" class="btn btn-primary"><%= submit ? t('camaleon_cms.admin.button.update_menu', default: 'Update Menu') : t('camaleon_cms.admin.button.add_menu', default: 'Add to Menu') %> <i class="fa fa-arrow-right"></i></button>
+        <button type="submit" id="add_external_link" class="btn btn-primary"><%= menu_item.new_record? ? t('camaleon_cms.admin.button.add_menu', default: 'Add to Menu') : t('camaleon_cms.admin.button.update_menu', default: 'Update Menu') %> <i class="fa fa-arrow-right"></i></button>
     </div>
-</form>
+<% end %>

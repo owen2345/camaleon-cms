@@ -12,6 +12,9 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))} , :class_name => "CamaleonCms::CustomField" ,foreign_key: :objectid
     has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
     has_many :custom_field_values, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
+
+    # valid only for simple groups and not for complex like: posts, post, ... where the group is for individual or children groups
+    has_many :field_groups, ->(object){where(object_class: object.class.to_s.parseCamaClass)}, :class_name => "CamaleonCms::CustomFieldGroup", foreign_key: :objectid
   end
 
 
@@ -25,32 +28,32 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # args: (String) => is a value for kind attribute
   def get_field_groups(args = {})
     args = args.is_a?(String) ?  {kind: args, include_parent: false } : {kind: "post", include_parent: false }.merge(args)
-    class_name = self.class.to_s.gsub("Decorator","").gsub("CamaleonCms::","")
+    class_name = self.class.to_s.parseCamaClass
     case class_name
       when 'Category','Post','PostTag'
         if args[:include_parent]
-           self.post_type.site.custom_field_groups.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
+          CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
         else
-          self.post_type.site.custom_field_groups.where(objectid: self.id || -1, object_class: class_name)
+          CamaleonCms::CustomFieldGroup.where(objectid: self.id || -1, object_class: class_name)
         end
       when 'Widget::Main'
-        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id)
+        self.field_groups
       when 'Theme'
-        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id)
+        self.field_groups
       when 'Site'
-        self.custom_field_groups.where(object_class: class_name)
+        self.field_groups
       when 'NavMenuItem'
-        self.main_menu.custom_field_groups
+        self.main_menu.field_groups
       when 'PostType'
         if args[:kind] == "all"
-          self.site.custom_field_groups.where(object_class: ["PostType_Post", "PostType_Post", "PostType_PostTag", "PostType"], objectid:  self.id )
+          CamaleonCms::CustomFieldGroup.where(object_class: ["PostType_Post", "PostType_Post", "PostType_PostTag", "PostType"], objectid:  self.id )
         elsif args[:kind] == "post_type"
-          self.site.custom_field_groups.where(object_class: class_name)
+          self.field_groups
         else
-          self.site.custom_field_groups.where(object_class: "PostType_#{args[:kind]}", objectid:  self.id )
+          CamaleonCms::CustomFieldGroup.where(object_class: "PostType_#{args[:kind]}", objectid:  self.id )
         end
       else # 'Plugin' or other class
-        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id) if defined?(self.site)
+        self.field_groups
     end
   end
 

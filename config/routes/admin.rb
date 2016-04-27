@@ -86,11 +86,14 @@ Rails.application.routes.draw do
               match "load_data", via: [:get, :post, :patch]
             end
           end
-
-          namespace :nav_menus do
-            match 'menu', via: [:get, :delete]
-            post 'save'
-            get 'form'
+          resources :nav_menus do
+            get 'item_delete/:id' => :delete_menu_item, as: :delete_menu_item
+            get 'custom_settings/:id' => :custom_settings, as: :custom_settings
+            post 'save_custom_settings/:id' => :save_custom_settings, as: :save_custom_settings
+            get 'edit_menu_item/:id' => :edit_menu_item, as: :edit_menu_item
+            post 'update_menu_item/:id' => :update_menu_item, as: :update_menu_item
+            post 'add_items' => :add_items, as: :add_items
+            post 'reorder_items' => :reorder_items, as: :reorder_items
           end
 
           namespace :widgets do

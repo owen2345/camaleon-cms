@@ -616,6 +616,23 @@ es:
           error_created: 'No se ha creado el Widget.'
           error_updated: 'No se ha actualizado el Widget.'
           not_registered_widgets: 'No existen widgets registrados'
+      appearances:
+        nav_menus:
+          menu_items:
+            edit_menu_item: 'Editar Menú Item'
+            edit_custom_settings: 'Editar Configuración'
+          update:
+            updated_menu: 'El menú fué actualizado'
+          create:
+            created_menu: 'El menú fué creado'
+          destroy:
+              deleted_menu: 'El menú fué eliminado'
+          menu_options:
+            edit_menu: 'Editar Menú'
+            delete_menu: 'Eliminar Menú'
+            create_menu: 'Crear Menú'
+          external_menu:
+            root_alert_info: 'Tu puedes usar <b>root_url</b> para url de inicio'
 
     models:
       site:

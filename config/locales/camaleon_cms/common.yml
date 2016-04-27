@@ -9,7 +9,7 @@ en:
       send: "Send"
       login: "Login"
       logout: "Logout"
-      confirm: "Are you confirm?"
+      confirm: "Are you sure?"
       register: "Register"
       proceted_article: 'Protected article'
 

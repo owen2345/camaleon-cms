@@ -16,6 +16,7 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
   after_create :update_count
   #before_destroy :update_count
   alias_attribute :site_id, :term_group
+  alias_attribute :label, :name
 
   # return the main menu
   def main_menu
@@ -30,6 +31,12 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
     self.get_option('type')
   end
 
+  # return the url of the external menu item
+  # return the object_id of menus like posttype, post, category, ...
+  def url
+    get_option('object_id')
+  end
+
   # check if this menu have children
   def have_children?
     self.children.count != 0
@@ -40,6 +47,12 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
   # return item created
   def append_menu_item(value)
     children.create({name: value[:label], data_options: {type: value[:type], object_id: value[:link]}})
+  end
+
+  # update current menu
+  # value: same as append_menu_item (label, link)
+  def update_menu_item(value)
+    self.update({name: value[:label], data_options: {object_id: value[:link]}})
   end
 
   # skip uniq slug validation

@@ -54,14 +54,15 @@
     display: none;
 }
 .colorpicker {
-    top: 0;
-    left: 0;
-    padding: 4px;
-    min-width: 120px;
-    margin-top: 1px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
+  top: 0;
+  left: 0;
+  padding: 4px;
+  min-width: 120px;
+  margin-top: 1px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  z-index: 99999;
 }
 .colorpicker.dropdown-menu {
     margin-top: 8px;

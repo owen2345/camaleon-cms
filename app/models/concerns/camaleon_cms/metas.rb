@@ -94,6 +94,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
       set_meta(meta_key, data)
     end
   end
+  alias_method :set_options, :set_multiple_options
 
   # permit to skip save_metas_options in specific models
   def save_metas_options_skip

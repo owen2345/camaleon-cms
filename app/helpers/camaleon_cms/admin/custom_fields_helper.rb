@@ -18,7 +18,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
             required: true,
             multiple: true,
             translate: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -30,7 +30,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
             required: true,
             multiple: true,
             translate: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -68,7 +68,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: false,
-            default_value: true,
+            default_value: '1',
             show_frontend: true
         }
     }
@@ -91,7 +91,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -122,7 +122,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -148,7 +148,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -159,7 +159,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
             required: false,
             multiple: true,
             translate: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -169,7 +169,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -179,7 +179,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true,
         },
         extra_fields:[
@@ -196,7 +196,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         },
         extra_fields:[
@@ -214,7 +214,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -224,7 +224,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -234,7 +234,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -244,7 +244,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -282,7 +282,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: false,
-            default_value: false,
+            default_value: '',
             show_frontend: false
         },
         extra_fields:[
