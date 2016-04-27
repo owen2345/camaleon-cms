@@ -35,6 +35,6 @@ module CamaleonCms::Frontend::ApplicationHelper
       options[:locale] = nil if options[:locale].present? && current_site.get_languages.first.to_s == options[:locale].to_s
     end
     options.delete(:format) if PluginRoutes.system_info["skip_format_url"].present?
-    send(url_to, *(args << options))
+    send(url_to.to_underscore, *(args << options))
   end
 end
