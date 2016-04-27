@@ -19,9 +19,10 @@
 
 // date picker
 //= require ./momentjs/_moment
-//= require ./bootstrap-datepicker
+//= require ./_bootstrap-datepicker
 
 //= require jquery_ujs
+//= require ./_bootstrap-select
 
 //= require ./_jquery.slugify
 //= require ./_translator

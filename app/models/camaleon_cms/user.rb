@@ -74,8 +74,9 @@ class CamaleonCms::User < ActiveRecord::Base
     self.role == 'client'
   end
 
+  # return the UserRole Object of this user in Site
   def get_role(site)
-    site.user_roles.where(slug: self.role).first
+    @_user_role ||= site.user_roles.where(slug: self.role).first
   end
 
   def set_meta_from_form(metas)

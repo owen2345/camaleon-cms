@@ -97,7 +97,7 @@ $ ->
   })
 
   # menus list - change dropdown
-  panel.find('#menu_items form select').change ->
+  panel.find('#menu_items #switch_nav_menu_form select').change ->
     unless $(this).val()
       return
     $(this).closest('form').submit()

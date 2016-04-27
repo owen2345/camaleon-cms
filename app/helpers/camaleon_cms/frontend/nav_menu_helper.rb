@@ -162,10 +162,12 @@ module CamaleonCms::Frontend::NavMenuHelper
           r[:link] = site_current_path if site_current_path == "#{current_site.the_path}#{r[:link]}"
           r[:current] = r[:link] == site_current_url || r[:link] == site_current_path
           # permit to customize or mark as current menu
-          # rr: (HASH) {menu_item: Model Menu Item, parsed_menu: Parsed Menu }
+          # _args: (HASH) {menu_item: Model Menu Item, parsed_menu: Parsed Menu }
           #   Sample parsed_menu: {link: "url of the link", name: "Text of the menu", type_menu: 'external', current: Boolean (true => is current menu, false => not current menu item)}
-          rr = {menu_item: nav_menu_item, parsed_menu: r};  hooks_run("on_external_menu", rr)
-          rr[:parsed_menu]
+          _args = {menu_item: nav_menu_item, parsed_menu: r};  hooks_run("on_external_menu", _args)
+          r = _args[:parsed_menu]
+          return false if _args[:parsed_menu] == false
+
         else
           return false
       end
