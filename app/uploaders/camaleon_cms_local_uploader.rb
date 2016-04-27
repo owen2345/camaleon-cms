@@ -14,6 +14,11 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     objects
   end
 
+  def after_initialize
+    @root_folder = @args[:root_folder] || @current_site.upload_directory
+    FileUtils.mkdir_p(@root_folder) unless Dir.exist?(@root_folder)
+  end
+
   def file_parse(key)
     file_path = File.join(@root_folder, key)
     url_path, is_dir = file_path.sub(Rails.root.join('public').to_s, ''), File.directory?(file_path)

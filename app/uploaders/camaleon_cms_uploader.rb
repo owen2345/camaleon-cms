@@ -3,10 +3,14 @@ class CamaleonCmsUploader
   # root_folder, current_site, service = 'Local', thumb
   def initialize(args = {})
     @current_site = args[:current_site]
-    @root_folder = args[:root_folder] || @current_site.upload_directory
-    @service = args[:service] || 'Local'
     t_w, t_h = @current_site.get_option('filesystem_thumb_size', '100x100').split('x')
     @thumb = args[:thumb] || {w: t_w, h: t_h}
+    @args = args
+    after_initialize
+  end
+
+  def after_initialize
+
   end
 
   # return all files structure, within folder prefix
