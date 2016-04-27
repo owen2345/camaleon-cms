@@ -14,7 +14,7 @@ pt:
     search: buscar
     profile: perfil
 
-pt_br:
+pt-BR:
   routes:
     group: grupo
     category: categoria
