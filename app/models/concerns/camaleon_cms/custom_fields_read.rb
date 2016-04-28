@@ -174,7 +174,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
       datas.each do |key, values|
         if values[:values].present?
           order_value = -1
-          values[:values].each do |value|
+          (values[:values].is_a?(Hash) ? values[:values].values : values[:values]).each do |value|
             item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: key, value: fix_meta_value(value), term_order: order_value += 1})
           end
         end

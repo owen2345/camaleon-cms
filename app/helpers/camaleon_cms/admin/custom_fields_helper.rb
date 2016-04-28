@@ -299,7 +299,8 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: false,
             multiple: true,
-            show_frontend: true
+            show_frontend: true,
+            translate: true
         }
     }
     r = {fields: items}; hooks_run("extra_custom_fields", r)

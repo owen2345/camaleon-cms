@@ -4,13 +4,21 @@ function build_custom_field(values, multiple, field_key, rand, default_value) {
     var callback = $content.find('.clone-field .group-input-fields-content').attr('data-callback-function');
     var callback_set_value = $content.find('.clone-field .group-input-fields-content').attr('data-callback-set-value');
     var $field = $('<li>' + $content.find('.clone-field').html() + '</li>');
+    var field_counter = 0;
 
     function add_field(value) {
         var field = $field.clone(true);
+
+        var input = field.find('.input-value');
+        if(input.length > 0) input.attr('name', input.attr('name').replace('[]', '['+field_counter+']'))
+        input = field.find('.input-attr');
+        if(input.length > 0) input.attr('name', input.attr('name').replace('[]', '['+field_counter+']'))
+
         if (value) field.find('.input-value').val(value);
         $sortable.append(field);
         if (value && callback_set_value)eval(callback_set_value + "(field, value);")
         else if (callback) eval(callback + "(field);")
+        field_counter ++;
     }
 
     if (values.length > 0) {
@@ -108,6 +116,7 @@ function custom_field_field_attrs_val($field, value) {
         var data = $.parseJSON(value);
         $field.find('.input-attr').val(data.attr);
         $field.find('.input-value').val(data.value)
+        $field.find('.input-attr, .input-value').filter('.is_translate').addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
     }
 }
 function custom_field_radio_val($field, value) {

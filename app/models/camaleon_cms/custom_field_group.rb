@@ -26,6 +26,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
   # for select, radio and checkboxes add:
   # -- multiple_options: [{"title"=>"Option Title", "value"=>"2", "default"=>"1"}, {"title"=>"abcde", "value"=>"3"}]
   # -- add default for default value
+  # -- label_eval: (Boolean, default false), true => will evaluate the label and description of current field using (eval('my_label')) to have translatable|dynamic labels
   # SAMPLE: my_model.add_field({"name"=>"Sub Title", "slug"=>"subtitle"}, {"field_key"=>"text_box", "translate"=>true, default_value: "Get in Touch"})
 
   def add_manual_field(item, options)
