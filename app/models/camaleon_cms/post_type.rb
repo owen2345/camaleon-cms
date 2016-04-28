@@ -7,25 +7,26 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
-  default_scope { where(taxonomy: :post_type) }
-  has_many :metas, ->{ where(object_class: 'PostType')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
-  has_many :categories, :class_name => "CamaleonCms::Category", foreign_key: :parent_id, dependent: :destroy
-  has_many :post_tags, :class_name => "CamaleonCms::PostTag", foreign_key: :parent_id, dependent: :destroy
+
+  has_many :metas, -> { where(object_class: 'PostType') }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
+  has_many :categories, class_name:"CamaleonCms::Category", foreign_key: :parent_id, dependent: :destroy
+  has_many :post_tags, class_name: "CamaleonCms::PostTag", foreign_key: :parent_id, dependent: :destroy
   has_many :posts, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy
   has_many :posts_draft, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy, source: :drafts
-  has_many :field_group_taxonomy, -> {where("object_class LIKE ?","PostType_%")}, :class_name => "CamaleonCms::CustomField", foreign_key: :objectid, dependent: :destroy
-
+  has_many :field_group_taxonomy, -> { where("object_class LIKE ?","PostType_%") }, class_name: "CamaleonCms::CustomField", foreign_key: :objectid, dependent: :destroy
   belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
-  belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
+  belongs_to :site, class_name: "CamaleonCms::Site", foreign_key: :parent_id
 
-  scope :visible_menu, -> {where(term_group: nil)}
-  scope :hidden_menu, -> {where(term_group: -1)}
+  default_scope { where(taxonomy: :post_type) }
+  scope :visible_menu, -> { where(term_group: nil) }
+  scope :hidden_menu, -> { where(term_group: -1) }
+
   before_destroy :destroy_field_groups
+  before_update :default_category
   after_create :set_default_site_user_roles
   after_create :refresh_routes
   after_destroy :refresh_routes
   after_update :check_refresh_routes
-  before_update :default_category
 
   # check if current post type manage categories
   def manage_categories?

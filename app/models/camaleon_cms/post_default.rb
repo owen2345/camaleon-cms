@@ -9,17 +9,20 @@
 class CamaleonCms::PostDefault < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
+
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}posts"
 
-  attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order
-  attr_accessor :draft_id
+  attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order,
+    :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order
   attr_accessible :data_options
   attr_accessible :data_metas
   cattr_accessor :current_user
   cattr_accessor :current_site
 
+  attr_accessor :draft_id
+
   has_many :term_relationships, class_name: "CamaleonCms::TermRelationship", foreign_key: :objectid, dependent: :destroy, primary_key: :id
-  has_many :children, ->{ where(post_class: "PostDefault") }, class_name: "CamaleonCms::PostDefault", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
+  has_many :children, -> { where(post_class: "PostDefault") }, class_name: "CamaleonCms::PostDefault", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
 
   validates :title, :slug, presence: true
 

@@ -32,38 +32,38 @@ end
 
 class CamaleonCms::Post < CamaleonCms::PostDefault
   include CamaleonCms::CategoriesTagsForPosts
-  default_scope ->{ where(post_class: "Post").order(post_order: :asc, created_at: :desc) }
+
+  attr_accessor :show_title_with_parent
+
   has_many :metas, ->{ where(object_class: 'Post')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
 
   # DEPRECATED
   has_many :post_relationships, class_name: "CamaleonCms::PostRelationship", foreign_key: :objectid, dependent: :destroy,  inverse_of: :posts
-  has_many :post_types, class_name: "CamaleonCms::PostType", through: :post_relationships, :source => :post_type
+  has_many :post_types, class_name: "CamaleonCms::PostType", through: :post_relationships, source: :post_type
   # END DEPRECATED
 
   has_many :term_relationships, class_name: "CamaleonCms::TermRelationship", foreign_key: :objectid, dependent: :destroy,  inverse_of: :objects
-  has_many :categories, class_name: "CamaleonCms::Category", through: :term_relationships, :source => :term_taxonomies
-  has_many :post_tags, class_name: "CamaleonCms::PostTag", through: :term_relationships, :source => :term_taxonomies
+  has_many :categories, class_name: "CamaleonCms::Category", through: :term_relationships, source: :term_taxonomies
+  has_many :post_tags, class_name: "CamaleonCms::PostTag", through: :term_relationships, source: :term_taxonomies
   has_many :comments, class_name: "CamaleonCms::PostComment", foreign_key: :post_id, dependent: :destroy
-  has_many :drafts, ->{where(status: 'draft')}, class_name: "CamaleonCms::Post", foreign_key: :post_parent, dependent: :destroy
+  has_many :drafts, -> { where( status: 'draft') }, class_name: "CamaleonCms::Post", foreign_key: :post_parent, dependent: :destroy
   has_many :children, class_name: "CamaleonCms::Post", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
-
   belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
   belongs_to :parent, class_name: "CamaleonCms::Post", foreign_key: :post_parent
   belongs_to :post_type, class_name: "CamaleonCms::PostType", foreign_key: :taxonomy_id
 
-  scope :visible_frontend, -> {where(status: 'published')}
-  scope :public_posts, -> {visible_frontend.where(visibility: ['public', ""]) } #public posts (not passwords, not privates)
-
-  scope :trash, -> {where(status: 'trash')}
-  scope :no_trash, -> {where.not(status: 'trash')}
-  scope :published, -> {where(status: 'published')}
-  scope :root_posts, -> {where(post_parent: [nil, ''])}
-  scope :drafts, -> {where(status: 'draft')}
-  scope :pendings, -> {where(status: 'pending')}
-  scope :latest, -> {reorder(created_at: :desc)}
+  default_scope ->{ where(post_class: "Post").order(post_order: :asc, created_at: :desc) }
+  scope :visible_frontend, -> { where(status: 'published') }
+  scope :public_posts, -> { visible_frontend.where(visibility: ['public', ""]) } # public posts (not passwords, not privates)
+  scope :trash, -> { where(status: 'trash') }
+  scope :no_trash, -> { where.not(status: 'trash') }
+  scope :published, -> { where(status: 'published') }
+  scope :root_posts, -> { where(post_parent: [nil, '']) }
+  scope :drafts, -> { where(status: 'draft') }
+  scope :pendings, -> { where(status: 'pending') }
+  scope :latest, -> { reorder(created_at: :desc) }
 
   validates_with CamaleonCms::PostUniqValidator
-  attr_accessor :show_title_with_parent
 
   # return all parents for current page hierarchy ordered bottom to top
   def parents
@@ -82,7 +82,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   def full_children
     cama_fetch_cache("full_children_#{self.id}") do
       res = self.children.to_a
-      res.each{|c|  res += c.full_children }
+      res.each{ |c|  res += c.full_children }
       res
     end
   end
@@ -212,7 +212,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # return the layout assigned to this post
   # post_type: post type owner of this post
   def get_layout(posttype = nil)
-    return get_option("default_template") if !manage_layout?(posttype)
+    return get_option("default_template") unless manage_layout?(posttype)
     get_meta('layout', get_option("default_layout") || (posttype || self.post_type).get_option('default_layout', nil))
   end
 
@@ -220,13 +220,13 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # verify default template defined in post type
   # post_type: post type owner of this post
   def get_template(posttype = nil)
-    return get_option("default_template") if !manage_template?(posttype)
+    return get_option("default_template") unless manage_template?(posttype)
     get_meta('template', get_option("default_template") || (posttype || self.post_type).get_option('default_template', nil))
   end
 
   # increment the counter of visitors
   def increment_visits!
-    set_meta("visits", total_visits+1)
+    set_meta("visits", total_visits + 1)
   end
 
   # return the quantity of visits for this post

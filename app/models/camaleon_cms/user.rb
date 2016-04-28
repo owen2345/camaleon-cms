@@ -17,41 +17,43 @@ end
 class CamaleonCms::User < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
+
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}users"
+
   attr_accessible :username, :role, :email, :parent_id, :last_login_at, :site_id, :password, :password_confirmation #, :profile_attributes
   attr_accessible :data_options
   attr_accessible :data_metas
   attr_accessible :is_valid_email
 
-  default_scope {order("#{CamaleonCms::User.table_name}.role ASC")}
 
-  validates :username, :presence => true
-  validates :email, :presence => true, :format => { :with => /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i } #, :unless => Proc.new { |a| a.auth_social.present? }
+  # relations
+  has_many :metas, -> { where(object_class: 'User') }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  has_many :user_relationships, class_name: "CamaleonCms::UserRelationship", foreign_key: :user_id, dependent: :destroy#,  inverse_of: :user
+  has_many :term_taxonomies, foreign_key: :term_taxonomy_id, class_name: "CamaleonCms::TermTaxonomy", through: :user_relationships, source: :term_taxonomies
+  has_many :sites, foreign_key: :term_taxonomy_id, class_name: "CamaleonCms::Site", through: :user_relationships, source: :term_taxonomies
+  has_many :all_posts, class_name: "CamaleonCms::Post"
+
+  validates :username, presence: true
+  validates :email, presence: true, format: { with: /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i } #, :unless => Proc.new { |a| a.auth_social.present? }
   validates_with CamaleonCms::UniqValidatorUser
 
-  has_secure_password #validations: :auth_social.nil?
+  has_secure_password # validations: :auth_social.nil?
+
+  #scopes
+  default_scope { order("#{CamaleonCms::User.table_name}.role ASC") }
+  scope :admin_scope, -> { where(role: 'admin') }
+  scope :actives, -> { where(active:  1) }
+  scope :not_actives, -> { where(active: 0) }
+
+  #vars
+  STATUS = { 0 => 'Active', 1 => 'Not Active' }
+  ROLE = { 'admin' => 'Administrator', 'client' => 'Client'}
 
   before_create { generate_token(:auth_token) }
   before_save :before_saved
   before_create :before_saved
   after_create :set_all_sites
   before_destroy :reassign_posts
-  # relations
-
-  has_many :metas, ->{ where(object_class: 'User')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-  has_many :user_relationships, class_name: "CamaleonCms::UserRelationship", foreign_key: :user_id, dependent: :destroy#,  inverse_of: :user
-  has_many :term_taxonomies, foreign_key: :term_taxonomy_id, class_name: "CamaleonCms::TermTaxonomy", through: :user_relationships, :source => :term_taxonomies
-  has_many :sites, foreign_key: :term_taxonomy_id, class_name: "CamaleonCms::Site", through: :user_relationships, :source => :term_taxonomies
-  has_many :all_posts, class_name: "CamaleonCms::Post"
-
-  #scopes
-  scope :admin_scope, -> { where(:role => 'admin') }
-  scope :actives, -> { where(:active => 1) }
-  scope :not_actives, -> { where(:active => 0) }
-
-  #vars
-  STATUS = {0 => 'Active', 1=>'Not Active'}
-  ROLE = { 'admin'=>'Administrator', 'client' => 'Client'}
 
   # return all posts of this user on site
   def posts(site)
@@ -81,7 +83,7 @@ class CamaleonCms::User < ActiveRecord::Base
 
   def set_meta_from_form(metas)
     metas.each do |key, value|
-      self.metas.where({key: key}).update_or_create({value: value})
+      self.metas.where(key: key).update_or_create({ value: value })
     end
   end
 

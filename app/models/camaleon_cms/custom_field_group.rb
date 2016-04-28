@@ -7,13 +7,16 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
+
   self.primary_key = :id
   # attrs required: name, slug, description
+
+  has_many :metas, -> { where(object_class: 'CustomFieldGroup') }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  has_many :fields, -> { where(object_class: '_fields') }, class_name: "CamaleonCms::CustomField", foreign_key: :parent_id, dependent: :destroy
+  belongs_to :site, class_name: "CamaleonCms::Site", foreign_key: :parent_id
+
   default_scope { where.not(object_class: '_fields').reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC") }
 
-  has_many :metas, ->{ where(object_class: 'CustomFieldGroup')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-  has_many :fields, -> {where(object_class: '_fields')}, :class_name => "CamaleonCms::CustomField", foreign_key: :parent_id, dependent: :destroy
-  belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
   before_validation :before_validating
 
   # ------------------- fields -----------------
@@ -114,13 +117,13 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
   # auto save the default field values
   def auto_save_default_values(field, options)
     class_name = self.object_class.split("_").first
-    if ["Post", "Category", "Plugin", "Theme"].include?(class_name) && self.objectid.present? && options[:default_value].present?
+    if class_name.in?(%w(Post Category Plugin Theme)) && self.objectid.present? && options[:default_value].present?
       if class_name == "Theme"
         owner = "CamaleonCms::#{class_name}".constantize.where(id: self.objectid).first # owner model
       else
         owner = "CamaleonCms::#{class_name}".constantize.find(self.objectid) rescue "CamaleonCms::#{class_name}".constantize.where(slug: self.objectid).first # owner model
       end
-      owner.field_values.create!({custom_field_id: field.id, custom_field_slug: field.slug, value: fix_meta_value(options["default_value"]||options[:default_value])}) if owner.present?
+      owner.field_values.create!({ custom_field_id: field.id, custom_field_slug: field.slug, value: fix_meta_value(options["default_value"]||options[:default_value]) }) if owner.present?
     end
   end
 end

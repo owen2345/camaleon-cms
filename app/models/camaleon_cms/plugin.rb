@@ -11,12 +11,16 @@ class CamaleonCms::Plugin < CamaleonCms::TermTaxonomy
   #   term_group => status active (1, nil)
   #   slug => plugin key
   #   name => plugin name
-  default_scope { where(taxonomy: :plugin) }
-  has_many :metas, ->{ where(object_class: 'Plugin')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-  belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
-  scope :active, ->{ where(term_group: 1) }
-  before_validation :set_default
+
   attr_accessor :error
+
+  has_many :metas, -> { where(object_class: 'Plugin') }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  belongs_to :site, class_name: "CamaleonCms::Site", foreign_key: :parent_id
+
+  default_scope { where(taxonomy: :plugin) }
+  scope :active, -> { where(term_group: 1) }
+
+  before_validation :set_default
   before_destroy :destroy_custom_fields
 
   # active the plugin
@@ -75,7 +79,7 @@ class CamaleonCms::Plugin < CamaleonCms::TermTaxonomy
   end
 
   def destroy_custom_fields
-    self.get_field_groups().destroy_all
+    self.get_field_groups.destroy_all
   end
 
 end

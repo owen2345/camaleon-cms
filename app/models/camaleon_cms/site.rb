@@ -7,28 +7,30 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Site < CamaleonCms::TermTaxonomy
+
   # attrs: [name, description, slug]
+  has_many :metas, -> { where(object_class: 'Site') }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
+  has_many :post_types, class_name: "CamaleonCms::PostType", foreign_key: :parent_id, dependent: :destroy
+  has_many :nav_menus, class_name: "CamaleonCms::NavMenu", foreign_key: :parent_id, dependent: :destroy
+  has_many :nav_menu_items, class_name: "CamaleonCms::NavMenuItem", foreign_key: :term_group
+  has_many :widgets, class_name: "CamaleonCms::Widget::Main", foreign_key: :parent_id, dependent: :destroy
+  has_many :sidebars, class_name: "CamaleonCms::Widget::Sidebar", foreign_key: :parent_id, dependent: :destroy
+  has_many :user_roles_rel, class_name: "CamaleonCms::UserRole", foreign_key: :parent_id, dependent: :destroy
+  has_many :custom_field_groups, class_name: "CamaleonCms::CustomFieldGroup", foreign_key: :parent_id, dependent: :destroy
+  has_many :term_taxonomies, class_name: "CamaleonCms::TermTaxonomy", foreign_key: :parent_id
+  has_many :posts, through: :post_types, source: :posts
+  has_many :plugins, class_name: "CamaleonCms::Plugin", foreign_key: :parent_id, dependent: :destroy
+  has_many :themes, class_name: "CamaleonCms::Theme", foreign_key: :parent_id, dependent: :destroy
+
+  validates_uniqueness_of :slug, scope: :taxonomy
+
   default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
-  has_many :metas, -> { where(object_class: 'Site') }, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
-  has_many :post_types, :class_name => "CamaleonCms::PostType", foreign_key: :parent_id, dependent: :destroy
-  has_many :nav_menus, :class_name => "CamaleonCms::NavMenu", foreign_key: :parent_id, dependent: :destroy
-  has_many :nav_menu_items, :class_name => "CamaleonCms::NavMenuItem", foreign_key: :term_group
-  has_many :widgets, :class_name => "CamaleonCms::Widget::Main", foreign_key: :parent_id, dependent: :destroy
-  has_many :sidebars, :class_name => "CamaleonCms::Widget::Sidebar", foreign_key: :parent_id, dependent: :destroy
-  has_many :user_roles_rel, :class_name => "CamaleonCms::UserRole", foreign_key: :parent_id, dependent: :destroy
-  has_many :custom_field_groups, :class_name => "CamaleonCms::CustomFieldGroup", foreign_key: :parent_id, dependent: :destroy
-  has_many :term_taxonomies, :class_name => "CamaleonCms::TermTaxonomy", foreign_key: :parent_id
 
-  has_many :posts, through: :post_types, :source => :posts
-  has_many :plugins, :class_name => "CamaleonCms::Plugin", foreign_key: :parent_id, dependent: :destroy
-  has_many :themes, :class_name => "CamaleonCms::Theme", foreign_key: :parent_id, dependent: :destroy
-
+  before_destroy :destroy_site
   after_create :default_settings
   after_create :set_all_users
   after_create :set_default_user_roles
   after_save :update_routes
-  before_destroy :destroy_site
-  validates_uniqueness_of :slug, scope: :taxonomy
 
   # all user roles for this site
   def user_roles
@@ -41,7 +43,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
 
   #select full_categories for the site, include all children categories
   def full_categories
-    CamaleonCms::Category.where({term_group: self.id})
+    CamaleonCms::Category.where(term_group: self.id)
   end
 
   # all post_tags for this site
@@ -120,7 +122,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
 
   # auto create default user roles
   def set_default_user_roles(post_type = nil)
-    user_role = self.user_roles.where({slug: 'admin', term_group: -1}).first_or_create({name: 'Administrator', description: 'Default roles admin'})
+    user_role = self.user_roles.where({ slug: 'admin', term_group: -1 }).first_or_create({ name: 'Administrator', description: 'Default roles admin' })
     if user_role.valid?
       d, m = {}, {}
       pts = self.post_types.all.pluck(:id)
@@ -267,12 +269,13 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
         {name: 'Post', description: 'Posts', options: {has_category: true, has_tags: true, not_deleted: true, has_summary: true, has_content: true, has_comments: true, has_picture: true, has_template: true, }},
         {name: 'Page', description: 'Pages', options: {has_category: false, has_tags: false, not_deleted: true, has_summary: false, has_content: true, has_comments: false, has_picture: true, has_template: true, has_layout: true}}
     ]
+
     default_post_type.each do |pt|
-      model_pt = self.post_types.create({name: pt[:name], slug: pt[:name].to_s.parameterize, description: pt[:description], data_options: pt[:options]})
+      self.post_types.create({ name: pt[:name], slug: pt[:name].to_s.parameterize, description: pt[:description], data_options: pt[:options] })
     end
 
     # nav menus
-    @nav_menu = self.nav_menus.new({name: "Main Menu", slug: "main_menu"})
+    @nav_menu = self.nav_menus.new({ name: "Main Menu", slug: "main_menu" })
     if @nav_menu.save
       self.post_types.all.each do |pt|
         if pt.slug == "post"

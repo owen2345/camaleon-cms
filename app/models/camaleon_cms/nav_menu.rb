@@ -7,10 +7,11 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::NavMenu < CamaleonCms::TermTaxonomy
-  default_scope { where(taxonomy: :nav_menu).order(id: :asc) }
-  has_many :metas, ->{ where(object_class: 'NavMenu')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  has_many :metas, -> { where(object_class: 'NavMenu') }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   has_many :children, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, dependent: :destroy
-  belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
+  belongs_to :site, class_name: "CamaleonCms::Site", foreign_key: :parent_id
+
+  default_scope { where(taxonomy: :nav_menu).order(id: :asc) }
 
   # add menu item for current menu
   # value: (Hash) is a hash object that contains label, type, link
@@ -20,7 +21,7 @@ class CamaleonCms::NavMenu < CamaleonCms::TermTaxonomy
   # sample: {label: "my label", type: "category", link: 12}
   # return item created
   def append_menu_item (value)
-    item = children.create!({name: value[:label], data_options: {type: value[:type], object_id: value[:link]}})
+    item = children.create!({ name: value[:label], data_options: { type: value[:type], object_id: value[:link] } })
     item
   end
 
