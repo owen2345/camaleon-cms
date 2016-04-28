@@ -39,6 +39,7 @@ pt-BR:
        recover: 'Recuperar'
        restore: 'Restaurar'
        restore_selections: 'Restaurar seleções'
+       search: 'Procurar'
        select: 'Selecionar'
        select_all: 'Selecionar Tudo'
        select_file: 'Selecionar Arquivo'
