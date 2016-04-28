@@ -33,9 +33,9 @@
                                 <li class="dropdown">
                                     <a class="dropdown-toggle" href="#"><img src="<%= cama_current_user.decorate.the_avatar %>" style="max-width: 24px; border-radius: 50%" alt=""/> <%= cama_current_user.username %></a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="<%= cama_admin_dashboard_path %>">Dashboard</a></li>
-                                        <li><a href="<%= cama_admin_profile_path %>">Profile</a></li>
-                                        <li><a href="<%= cama_admin_logout_path %>">Logout</a></li>
+                                        <li><a href="<%= cama_admin_dashboard_path %>"><%= I18n.t('camaleon_cms.dashboard') %></a></li>
+                                        <li><a href="<%= cama_admin_profile_path %>"><%= I18n.t('camaleon_cms.profile') %></a></li>
+                                        <li><a href="<%= cama_admin_logout_path %>"><%= I18n.t('camaleon_cms.logout') %></a></li>
                                     </ul>
                                 </li>
                             <% else %>
