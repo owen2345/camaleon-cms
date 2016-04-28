@@ -2,6 +2,7 @@
 <ol class="dd-list">
     <% items.each do |item|
       item_data = parse_menu_item(item)
+      next  unless item_data.present?
     %>
         <li class="dd-item" data-id="<%= item.id %>">
             <div class="dd-handle dd3-handle"></div>

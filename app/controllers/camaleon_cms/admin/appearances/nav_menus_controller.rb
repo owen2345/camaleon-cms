@@ -123,18 +123,18 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
         when 'post'
           post = CamaleonCms::Post.find(nav_menu_item.get_option('object_id')).decorate
           return false unless post.status == 'published'
-          {link: post.the_url, name: post.the_title, url_edit: post.the_edit_url }
+          {name: post.the_title(locale: @frontend_locale), url_edit: post.the_edit_url }
         when 'category'
           category = CamaleonCms::Category.find(nav_menu_item.get_option('object_id')).decorate
-          {link: category.the_url, name: category.the_title, url_edit: category.the_edit_url}
+          {name: category.the_title, url_edit: category.the_edit_url}
         when 'post_tag'
           post_tag = CamaleonCms::PostTag.find(nav_menu_item.get_option('object_id')).decorate
-          {link: post_tag.the_url, name: post_tag.the_title, url_edit: post_tag.the_edit_url}
+          {name: post_tag.the_title, url_edit: post_tag.the_edit_url}
         when 'post_type'
           post_type = CamaleonCms::PostType.find(nav_menu_item.get_option('object_id')).decorate
-          {link: post_type.the_url, name: post_type.the_title, url_edit: post_type.the_edit_url}
+          {name: post_type.the_title, url_edit: post_type.the_edit_url}
         when 'external'
-          {link: nav_menu_item.get_option('object_id'), name: nav_menu_item.name.to_s}
+          {name: nav_menu_item.name.to_s}
         else
           false
       end
