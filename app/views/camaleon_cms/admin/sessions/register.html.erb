@@ -8,17 +8,17 @@
         <h4><%= t('camaleon_cms.admin.login.personal_info') %></h4>
         <div class="form-group">
             <div class="col-md-12">
-                <input type="text" class="form-control" placeholder="<%= t("camaleon_cms.admin.login.first_name") %>" name="meta[first_name]" value="<%= @first_name if @first_name.present? %>"/>
+                <input type="text" class="form-control" placeholder="<%= t("camaleon_cms.admin.login.first_name", default: 'First Name') %>" name="meta[first_name]" value="<%= @first_name if @first_name.present? %>"/>
             </div>
         </div>
         <div class="form-group">
             <div class="col-md-12">
-                <input type="text" class="form-control" placeholder="<%= t("camaleon_cms.admin.login.last_name") %>" name="meta[last_name]" value="<%= @last_name if @last_name.present? %>"/>
+                <input type="text" class="form-control" placeholder="<%= t("camaleon_cms.admin.login.last_name", default: 'Last Name') %>" name="meta[last_name]" value="<%= @last_name if @last_name.present? %>"/>
             </div>
         </div>
         <div class="form-group">
             <div class="col-md-12">
-                <%= f.email_field :email, :class => "form-control required email", placeholder: t("camaleon_cms.admin.login.email") %>
+                <%= f.email_field :email, :class => "form-control required email", placeholder: t("camaleon_cms.admin.login.email", default: 'Email') %>
             </div>
         </div>
 
@@ -26,25 +26,25 @@
         <h4><%= t('camaleon_cms.admin.login.authentication') %></h4>
         <div class="form-group">
             <div class="col-md-12">
-                <%= f.text_field :username, :class => "form-control required", placeholder: t("camaleon_cms.admin.login.username") %>
+                <%= f.text_field :username, :class => "form-control required", placeholder: t("camaleon_cms.admin.login.username", default: 'User Name') %>
             </div>
         </div>
         <div class="form-group">
             <div class="col-md-12">
-                <%= f.password_field :password, :class => "form-control #{"required" if @user.new_record?}", placeholder: t("camaleon_cms.admin.login.password") %>
+                <%= f.password_field :password, :class => "form-control #{"required" if @user.new_record?}", placeholder: t("camaleon_cms.admin.login.password", default: 'Password') %>
             </div>
         </div>
         <div class="form-group">
             <div class="col-md-12">
-                <%= f.password_field :password_confirmation, :class => "form-control #{"required" if @user.new_record?}", "equalTo" => "#user_password", placeholder: t("camaleon_cms.admin.login.password_confirm") %>
+                <%= f.password_field :password_confirmation, :class => "form-control #{"required" if @user.new_record?}", "equalTo" => "#user_password", placeholder: t("camaleon_cms.admin.login.password_confirm", default: 'Password Confirmation') %>
             </div>
         </div>
 
         <% if current_site.security_user_register_captcha_enabled? %>
-            <h4><%= t('camaleon_cms.admin.login.captcha') %></h4>
+            <h4><%= t('camaleon_cms.admin.login.captcha', default: 'Security Code') %></h4>
             <div class="form-group">
                 <div class="col-md-12">
-                    <%= raw cama_captcha_tag(5, {}, {class: 'form-control required', placeholder: t('camaleon_cms.admin.login.captcha')}) %>
+                    <%= raw cama_captcha_tag(5, {}, {class: 'form-control required', placeholder: t('camaleon_cms.admin.login.captcha', default: 'Security Code')}) %>
                 </div>
             </div>
         <% end %>
