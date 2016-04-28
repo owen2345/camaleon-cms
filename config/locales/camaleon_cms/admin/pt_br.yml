@@ -223,7 +223,7 @@ pt-BR:
           error: 'Erro %{post_type}'
           error_post_type: 'Erro %{post_type}'
           trash: 'O %{post_type} foi movido para lixeira.'
-          requires_different_slug: 'Slug diferente é necessário'
+          requires_different_slug: 'É necessário que o slug seja único'
           restore: 'O %{post_type} foi restaurado.'
           draft: 'Rascunho salvo com sucesso'
           recover: 'Recuperar...'
