@@ -28,6 +28,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   after_create :set_default_user_roles
   after_save :update_routes
   before_destroy :destroy_site
+  after_destroy :reload_routes
   validates_uniqueness_of :slug, scope: :taxonomy
 
   # all user roles for this site
@@ -303,6 +304,10 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   # reload system routes for this site
   def update_routes
     PluginRoutes.reload if self.slug_changed?
+  end
+
+  def reload_routes
+    PluginRoutes.reload
   end
 
   def before_validating

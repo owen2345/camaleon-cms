@@ -169,17 +169,18 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
 
   # destroy all custom field groups assigned to this post type
   def destroy_field_groups
-    # TODO: CHANGE TO SUPPORT DESTROY FOR SITE DESTROY
-    # if self.slug == "post" || self.slug == "page"
-    #   errors.add(:base, "This post type can not be deleted.")
-    #   return false
-    # end
+    unless self.destroyed_by_association.present?
+      if self.slug == "post" || self.slug == "page"
+        errors.add(:base, "This post type can not be deleted.")
+        return false
+      end
+    end
     self.get_field_groups.destroy_all
   end
 
   # reload routes to enable this post type url, like: http://localhost/my-slug
   def refresh_routes
-    PluginRoutes.reload
+    PluginRoutes.reload unless self.destroyed_by_association.present?
   end
 
   # check if slug was changed
