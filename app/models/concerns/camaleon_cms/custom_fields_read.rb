@@ -169,7 +169,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   def add_custom_field_to_default_group(item, options, kind = "Post")
     g = get_field_groups(kind).where(slug: "_default").first
     g = add_custom_field_group({name: "Default Field Group", slug: "_default"}, kind) unless g.present?
-    f = g.add_manual_field(item, options)
+    g.add_manual_field(item, options)
   end
   alias_method :add_field, :add_custom_field_to_default_group
 
