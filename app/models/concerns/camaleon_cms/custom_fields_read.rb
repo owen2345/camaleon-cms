@@ -169,26 +169,17 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # :key3 : {id: 4555, values: ['uno','dos']}
   # }
   def set_field_values(datas = {})
-    ids_old = self.field_values.pluck(:id)
-    ids_saved = []
+    self.field_values.delete_all
     if datas.present?
       datas.each do |key, values|
         if values[:values].present?
-          order_value = 0
+          order_value = -1
           values[:values].each do |value|
-            item = self.field_values.where({custom_field_id: values[:id], custom_field_slug: key, value: fix_meta_value(value)}).first_or_create!()
-            if defined?(item.id)
-              item.update_column('term_order', order_value)
-              ids_saved << item.id
-              order_value += 1
-            end
+            item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: key, value: fix_meta_value(value), term_order: order_value += 1})
           end
         end
       end
     end
-
-    ids_deletes = ids_old - ids_saved
-    self.field_values.where(id: ids_deletes).destroy_all if ids_deletes.present?
   end
 
   # return field object for current model
