@@ -95,6 +95,9 @@ Rails.application.routes.draw do
             post 'add_items' => :add_items, as: :add_items
             post 'reorder_items' => :reorder_items, as: :reorder_items
           end
+          namespace :nav_menus do
+            get 'menu' => :index
+          end
 
           namespace :widgets do
             resources :main, except: [:show]

@@ -11,7 +11,13 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.menus")
   before_action :check_menu_permission
   def index
-    @nav_menu = params[:id].present? ? current_site.nav_menus.find_by_id(params[:id]) : current_site.nav_menus.first
+    if params[:id].present?
+      @nav_menu = current_site.nav_menus.find_by_id(params[:id])
+    elsif params[:slug].present?
+      @nav_menu = current_site.nav_menus.find_by_slug(params[:slug])
+    else
+      @nav_menu = current_site.nav_menus.first
+    end
     @post_types = current_site.post_types
     add_asset_library("nav_menu")
     render "index"
