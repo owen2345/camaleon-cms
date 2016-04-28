@@ -7,16 +7,19 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
-  default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
-  has_many :metas, ->{ where(object_class: 'NavMenuItem')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+
+  has_many :metas, -> { where(object_class: 'NavMenuItem') }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  has_many :children, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, dependent: :destroy
   belongs_to :parent, class_name: "CamaleonCms::NavMenu"
   belongs_to :parent_item, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id
-  has_many :children, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, dependent: :destroy
+
+  default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
+
+  alias_attribute :site_id, :term_group
+  alias_attribute :label, :name
 
   after_create :update_count
   #before_destroy :update_count
-  alias_attribute :site_id, :term_group
-  alias_attribute :label, :name
 
   # return the main menu
   def main_menu
@@ -39,20 +42,20 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
 
   # check if this menu have children
   def have_children?
-    self.children.count != 0
+    self.children.present?
   end
 
   # add sub menu for a menu item
   # same values of NavMenu#append_menu_item
   # return item created
   def append_menu_item(value)
-    children.create({name: value[:label], data_options: {type: value[:type], object_id: value[:link]}})
+    children.create({ name: value[:label], data_options: { type: value[:type], object_id: value[:link] } })
   end
 
   # update current menu
   # value: same as append_menu_item (label, link)
   def update_menu_item(value)
-    self.update({name: value[:label], data_options: {object_id: value[:link]}})
+    self.update({ name: value[:label], data_options: { object_id: value[:link] } })
   end
 
   # skip uniq slug validation

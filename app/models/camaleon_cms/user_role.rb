@@ -7,11 +7,13 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::UserRole < CamaleonCms::TermTaxonomy
+
+  has_many :metas, -> { where(object_class: 'UserRole') }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  has_many :user_relationships, class_name: "CamaleonCms::UserRelationship", foreign_key: :term_taxonomy_id, dependent: :destroy
+  has_many :users, through: :user_relationships, source: :user
+  belongs_to :site, class_name:"CamaleonCms::Site", foreign_key: :parent_id
+
   default_scope { where(taxonomy: :user_roles) }
-  has_many :metas, ->{ where(object_class: 'UserRole')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-  has_many :user_relationships, :class_name => "CamaleonCms::UserRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
-  has_many :users, through: :user_relationships, :source => :user
-  belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
 
   def roles_post_type
     self.get_meta("_post_type")

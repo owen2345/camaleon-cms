@@ -13,27 +13,30 @@ class CamaleonCms::UniqValidator < ActiveModel::Validator
     end
   end
 end
+
 class CamaleonCms::TermTaxonomy < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
+
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}term_taxonomy"
+
   attr_accessible :taxonomy, :description, :parent_id, :count, :name, :slug, :term_group, :status, :term_order, :user_id
   attr_accessible :data_options
   attr_accessible :data_metas
 
-  # callbacks
-  before_validation :before_validating
-  before_destroy :destroy_dependencies
+  # relations
+  has_many :term_relationships, class_name: "CamaleonCms::TermRelationship", foreign_key: :term_taxonomy_id, dependent: :destroy
+  has_many :posts, foreign_key: :objectid, through: :term_relationships, source: :objects
+  belongs_to :parent, class_name: "CamaleonCms::TermTaxonomy", foreign_key: :parent_id
+  belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
 
   # validates
   validates :name, :taxonomy, presence: true
   validates_with CamaleonCms::UniqValidator
 
-  # relations
-  has_many :term_relationships, :class_name => "CamaleonCms::TermRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
-  has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
-  belongs_to :parent, class_name: "CamaleonCms::TermTaxonomy", foreign_key: :parent_id
-  belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
+  # callbacks
+  before_validation :before_validating
+  before_destroy :destroy_dependencies
 
   # return all children taxonomy
   # sample: sub categories of a category
