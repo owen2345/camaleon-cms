@@ -33,9 +33,9 @@
                                 <li class="dropdown">
                                     <a class="dropdown-toggle" href="#"><img src="<%= cama_current_user.decorate.the_avatar %>" style="max-width: 24px; border-radius: 50%" alt=""/> <%= cama_current_user.username %></a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="<%= cama_admin_dashboard_path %>">Dashboard</a></li>
-                                        <li><a href="<%= cama_admin_profile_path %>">Profile</a></li>
-                                        <li><a href="<%= cama_admin_logout_path %>">Logout</a></li>
+                                        <li><a href="<%= cama_admin_dashboard_path %>"><%= I18n.t('camaleon_cms.common.dashboard') %></a></li>
+                                        <li><a href="<%= cama_admin_profile_path %>"><%= I18n.t('camaleon_cms.common.profile') %></a></li>
+                                        <li><a href="<%= cama_admin_logout_path %>"><%= I18n.t('camaleon_cms.common.logout') %></a></li>
                                     </ul>
                                 </li>
                             <% else %>
@@ -43,8 +43,8 @@
                                 <li class="dropdown">
                                     <a id="login-user" class="dropdown-toggle" href="#">Login / Register</a>
                                     <ul class="dropdown-menu">
-                                        <li><a href="<%= cama_admin_login_path %>">Login</a></li>
-                                        <li><a href="<%= cama_admin_register_path %>">Register</a></li>
+                                        <li><a href="<%= cama_admin_login_path %>"><%= I18n.t('camaleon_cms.common.login') %></a></li>
+                                        <li><a href="<%= cama_admin_register_path %>"><%= I18n.t('camaleon_cms.common.register') %></a></li>
                                     </ul>
                                 </li>
                             <% end %>

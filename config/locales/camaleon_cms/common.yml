@@ -4,6 +4,8 @@
 en:
   camaleon_cms:
     common:
+      profile: "Profile"
+      dashboard: "Dashboard"
       read_more: "Read More"
       submit: "Submit"
       send: "Send"
@@ -323,6 +325,8 @@ ru:
 pt-BR:
   camaleon_cms:
     common:
+      profile: "Perfil"
+      dashboard: "Página Inicial"
       read_more: "Ler Mais"
       submit: "Submeter"
       send: "Enviar"
@@ -344,7 +348,6 @@ pt-BR:
       edit: "Editar"
 
       recent_posts: "Posts Recentes"
-
 
       search_msg: "Procurar Resultados para:"
       search_not_found: "A busca não achou nenhum item"
