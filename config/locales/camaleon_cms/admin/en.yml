@@ -1,5 +1,6 @@
 en:
   camaleon_cms:
+    see_intro: "See intro"
     welcome_message: "Welcome to Camaleon CMS"
     page_not_exist: "<h1>ooops...</h1><h5>The page you're looking for does not exist.</h5>"
     page_error_500: "<h1>ooops...</h1><h5>Error 500 Internal Server Error. Please contact to the administrator.</h5>"

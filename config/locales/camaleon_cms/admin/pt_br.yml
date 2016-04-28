@@ -1,6 +1,7 @@
 # pt-BR translations for Camaleon CMS by Igor_portela
 pt-BR:
   camaleon_cms:
+    see_intro: "Ver introdução"
     camaleon_message: "Bem-vindo ao Camaleon CMS"
     admin:
       header:
@@ -353,6 +354,7 @@ pt-BR:
         appearance: 'Aparência'
         comments: 'Comentários'
         content: 'Conteúdo'
+        contents: 'Conteúdos'
         content_groups: 'Gupos de conteúdo'
         custom_fields: 'Campos personalizados'
         dashboard: 'Painel'
