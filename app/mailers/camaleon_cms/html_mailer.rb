@@ -49,9 +49,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     theme = current_site.get_theme
     lookup_context.prefixes.prepend("themes/#{theme.slug}") if theme.settings["gem_mode"]
     lookup_context.prefixes.prepend("themes/#{theme.slug}/views") unless theme.settings["gem_mode"]
-    if data[:files].present?
-      data[:files].each { |attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read } }
-    end
+    (data[:files] || data[:attachments] || []).each { |attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read } }
 
     layout = data[:layout_name].present? ? data[:layout_name] : false
     if data[:template_name].present? # render email with template
