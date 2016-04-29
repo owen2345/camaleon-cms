@@ -38,7 +38,7 @@ jQuery(function($){
                 var splitted = text.split('<!--:-->');
                 for(var i in splitted){
                     var str = splitted[i];
-                    var m_atch = str.trim().match(/^<!--:([\w]{2,5})/);
+                    var m_atch = str.trim().match(/^<!--:([\w||-]{2,5})/);
                     if(m_atch && m_atch.length == 2){
                         m_atch[1] = m_atch[1].replace("--", "")
                         translations_per_locale[m_atch[1]] = str.replace("<!--:"+m_atch[1]+"-->", "")
