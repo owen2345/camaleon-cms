@@ -129,13 +129,13 @@ pt-BR:
           send_mail_succes: 'Email de redefinição enviado com sucesso.'
           send_mail_error: 'Nenhum endereço de email encontrado.'
         personal_info: 'Informações pessoais'
-        please_login: 'Por favor entre'
+        please_login: 'Por favor faça login para prosseguir'
         reset_password: 'Redefinir senha'
         reCaptcha: 'reCaptcha'
         send_email: 'Enviar email'
         reset_password_html: '<strong>Enviar email</strong>, redefinir senha'
         welcome: 'Bem-vindo'
-        welcome_login_html: '<strong>Bem-vindo</strong>, Por favor entre'
+        welcome_login_html: '<strong>Bem-vindo</strong>, por favor faça login para prosseguir'
         do_not_have_account_yet: "Não tem uma conta ainda?"
         msg_registration_html: '<strong>Inscrição</strong>, use o formulário abaixo'
         username: "Usuário"
