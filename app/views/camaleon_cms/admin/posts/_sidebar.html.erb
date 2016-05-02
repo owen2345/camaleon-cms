@@ -134,7 +134,7 @@
                         </a>
                         <input name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>"/>
                     </div>
-                    <a href="#" class="btn btn-default" onclick="upload_feature_image(); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image')%></a>
+                    <a href="#" class="btn btn-default" onclick="upload_feature_image({versions: '<%= @post_type.get_option('posts_thumb_versions') %>', thumb_size: '<%= @post_type.get_option('posts_thumb_size') %>', dimension: '<%= @post_type.get_option('posts_image_dimension') %>' }); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image')%></a>
                 </div>
             </div>
         </div>

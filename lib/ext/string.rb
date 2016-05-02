@@ -134,7 +134,7 @@ class String
   end
 
   # Sample:
-  #  /var/www/media/132/logo.png ==> /var/www/media/132/logo_2.png
+  #  '/var/www/media/132/logo.png'.cama_add_postfix_file_name('_2') ==> /var/www/media/132/logo_2.png
   def cama_add_postfix_file_name(postfix)
     File.join(File.dirname(self), "#{File.basename(self, File.extname(self))}#{postfix}#{File.extname(self)}")
   end

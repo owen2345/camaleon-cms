@@ -68,10 +68,12 @@ class CamaleonCmsUploader
 
 
   # convert current string path into file version_path, sample:
-  # /media/1/screen.png into /media/1/thumb/screen-png.png
-  # /media/1/screen.png into /media/1/crop_40x40/screen-png.png
-  def version_path(image_path, version_name = 'thumb')
-    File.join(File.dirname(image_path), version_name, "#{File.basename(image_path).parameterize}#{File.extname(image_path)}")
+  # version_path('/media/1/screen.png') into /media/1/thumb/screen-png.png (thumbs)
+  # Sample: version_path('/media/1/screen.png', '200x200') ==> /media/1/thumb/screen-png_200x200.png (image versions)
+  def version_path(image_path, version_name = nil)
+    res = File.join(File.dirname(image_path), 'thumb', "#{File.basename(image_path).parameterize}#{File.extname(image_path)}")
+    res = res.cama_add_postfix_file_name("_#{version_name}") if version_name.present?
+    res
   end
 
   # return the file format (String) of path (depends of file extension)

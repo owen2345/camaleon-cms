@@ -293,8 +293,8 @@ function init_post(obj) {
 }
 
 // thumbnail updloader
-function upload_feature_image() {
-    $.fn.upload_filemanager({
+function upload_feature_image(data) {
+    $.fn.upload_filemanager($.extend({
         formats: "image",
         selected: function (image) {
             var image_url = image.url;
@@ -303,5 +303,5 @@ function upload_feature_image() {
             $('#feature-image .meta strong').html(image.name);
             $('#feature-image').show();
         }
-    });
+    }, data));
 }

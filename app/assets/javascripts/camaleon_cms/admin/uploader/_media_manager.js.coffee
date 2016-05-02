@@ -59,7 +59,7 @@ window["cama_init_media"] = (media_panel) ->
   ########## file uploader
   p_upload = media_panel.find(".cama_media_fileuploader")
   customFileData = ->
-    return {folder: media_panel.attr("data-folder").replace(/\/{2,}/g, '/'), formats: media_panel.attr("data-formats") }
+    return {folder: media_panel.attr("data-folder").replace(/\/{2,}/g, '/'), formats: media_panel.attr("data-formats"), versions: media_panel.attr("data-versions"), thumb_size: media_panel.attr("data-thumb_size") }
 
   p_upload.uploadFile({
     url: p_upload.attr("data-url"),
@@ -209,12 +209,12 @@ window["cama_init_media"] = (media_panel) ->
   ).validate()
 
 $ ->
-  # sample: $.fn.upload_url({url: 'http://camaleon.tuzitio.com/media/132/logo2.png', dimension: '120x120', folder: 'my_folder'})
+  # sample: $.fn.upload_url({url: 'http://camaleon.tuzitio.com/media/132/logo2.png', dimension: '120x120', versions: '200x200', folder: 'my_folder', thumb_size: '100x100'})
   # dimension: default current dimension
   # folder: default current folder
   $.fn.upload_url = (args)->
     media_panel = $("#cama_media_gallery")
-    data = {folder: media_panel.attr("data-folder").replace(/\/{2,}/g, '/'), media_action: "crop_url", formats: media_panel.attr("data-formats"), onerror: (message) ->
+    data = {folder: media_panel.attr("data-folder").replace(/\/{2,}/g, '/'), media_action: "crop_url", formats: media_panel.attr("data-formats"), versions: media_panel.attr("data-versions"), thumb_size: media_panel.attr("data-thumb_size"), onerror: (message) ->
       $.fn.alert({type: 'error', content: message, title: I18n("msg.error_uploading")})
     }
     $.extend(data, args); on_error = data["onerror"]; delete data["onerror"];
@@ -234,12 +234,12 @@ $ ->
 
 # jquery library for modal updaloder
 $ ->
-  # sample: $.fn.upload_filemanager({title: "My title", formats: "image,video", dimension: "30x30", selected: function(file){ alert(file["name"]) }})
+  # sample: $.fn.upload_filemanager({title: "My title", formats: "image,video", dimension: "30x30", versions: '100x100,200x200', thumb_size: '100x100', selected: function(file){ alert(file["name"]) }})
   # file structure: {"name":"422.html","size":1547, "url":"http://localhost:3000/media/1/422.html", "format":"doc","type":"text/html"}
   # dimension: dimension: "30x30" | "x30" | dimension: "30x"
   $.fn.upload_filemanager = (args)->
     args = args || {}
-    open_modal({title: args["title"] || I18n("msg.media_title"), id: 'cama_modal_file_uploader', modal_size: "modal-lg", mode: "ajax", url: root_admin_url+"/media/ajax", ajax_params: {media_formats: args["formats"], dimension: args["dimension"] }, callback: (modal)->
+    open_modal({title: args["title"] || I18n("msg.media_title"), id: 'cama_modal_file_uploader', modal_size: "modal-lg", mode: "ajax", url: root_admin_url+"/media/ajax", ajax_params: {media_formats: args["formats"], dimension: args["dimension"], versions: args["versions"], thumb_size: args["thumb_size"] }, callback: (modal)->
       if args["selected"]
         window["callback_media_uploader"] = args["selected"]
       modal.css("z-index", args["zindex"] || 99999).children(".modal-dialog").css("width", "90%")
