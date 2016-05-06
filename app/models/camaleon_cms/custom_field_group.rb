@@ -9,6 +9,7 @@
 class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
   self.primary_key = :id
   # attrs required: name, slug, description
+  alias_attribute :site_id, :parent_id
   default_scope { where.not(object_class: '_fields').reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC") }
 
   has_many :metas, ->{ where(object_class: 'CustomFieldGroup')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy

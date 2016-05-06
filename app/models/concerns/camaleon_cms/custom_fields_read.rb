@@ -144,6 +144,15 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     values = values.with_indifferent_access
     group = get_field_groups(kind).where(slug: values[:slug]).first
     unless group.present?
+      site = case self.class.to_s.parseCamaClass
+              when 'Category','Post','PostTag'
+                self.post_type.site
+              when 'Site'
+                self
+              else
+                self.site
+             end
+      values[:parent_id] = site.id if site.present?
       group = get_field_groups(kind).create(values)
     end
     group

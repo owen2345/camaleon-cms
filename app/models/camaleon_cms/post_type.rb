@@ -7,6 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
+  alias_attribute :site_id, :parent_id
   default_scope { where(taxonomy: :post_type) }
   has_many :metas, ->{ where(object_class: 'PostType')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
   has_many :categories, :class_name => "CamaleonCms::Category", foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type_parent
