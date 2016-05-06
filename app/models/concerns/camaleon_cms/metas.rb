@@ -96,6 +96,14 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   end
   alias_method :set_options, :set_multiple_options
 
+  # save multiple metas
+  # sample: set_metas({name: 'Owen', email: 'owenperedo@gmail.com'})
+  def set_metas(data_metas)
+    data_metas.each do |key, value|
+      self.set_meta(key, value)
+    end
+  end
+
   # permit to skip save_metas_options in specific models
   def save_metas_options_skip
     false

@@ -79,12 +79,6 @@ class CamaleonCms::User < ActiveRecord::Base
     @_user_role ||= site.user_roles.where(slug: self.role).first
   end
 
-  def set_meta_from_form(metas)
-    metas.each do |key, value|
-      self.metas.where({key: key}).update_or_create({value: value})
-    end
-  end
-
   def assign_site(site)
     self.user_relationships.where(term_taxonomy_id: site.id).first_or_create
   end

@@ -275,7 +275,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         ]
     }
     # evaluate the content of command value on listing
-    # sample: get_select_options({})
+    # sample command: options_from_collection_for_select(current_site.the_posts("commerce").decorate, :id, :the_title)
     items[:select_eval] = {
         key: 'select_eval',
         label: t('camaleon_cms.admin.custom_field.fields.select_eval'),

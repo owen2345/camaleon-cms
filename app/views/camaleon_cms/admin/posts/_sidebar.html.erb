@@ -76,6 +76,11 @@
                     <label class="control-label"><%= check_box("meta", "has_comments", {checked: ( params[:meta][:has_comments] == '1' rescue false || @post.can_commented?)  }) %> &nbsp; <%= t('camaleon_cms.admin.post_type.permit_comments')%></label>
                 </div>
             <% end %>
+            <% if @post_type.get_option('has_featured', false) %>
+                <div class="form-group">
+                    <label class="control-label"><%= f.check_box :is_feature %> &nbsp; <%= t('camaleon_cms.admin.post.is_featured', default: 'Is Featured?')%></label>
+                </div>
+            <% end %>
             <%= raw @post_form_extra_settings.join("") if @post_form_extra_settings.present? %>
         </div>
     </div>
@@ -115,7 +120,7 @@
     <% if @post.manage_picture?(@post_type) %>
         <div class="panel panel-default panel-lite">
             <div class="panel-heading">
-                <h3 class="panel-title"><%= t('camaleon_cms.admin.post_type.featured_image')%> </h3>
+                <h3 class="panel-title"><%= t(@post_type.get_option('posts_feature_image_label', 'camaleon_cms.admin.post_type.featured_image'), default: @post_type.get_option('posts_feature_image_label_default', 'Featured Image'))%> <%= "(#{@post_type.get_option('posts_image_dimension')})" if @post_type.get_option('posts_image_dimension').present? %></h3>
                 <ul class="panel-controls">
                     <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
                 </ul>
@@ -134,7 +139,8 @@
                         </a>
                         <input name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>"/>
                     </div>
-                    <a href="#" class="btn btn-default" onclick="upload_feature_image({versions: '<%= @post_type.get_option('posts_thumb_versions') %>', thumb_size: '<%= @post_type.get_option('posts_thumb_size') %>', dimension: '<%= @post_type.get_option('posts_image_dimension') %>' }); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image')%></a>
+                    <!-- posts_thumb_versions ==> '200x200,400x450', posts_thumb_size ==> '100x100', posts_image_dimension ==> '1200x1200'-->
+                    <a href="#" class="btn btn-default" onclick="upload_feature_image({versions: '<%= @post_type.get_option('posts_thumb_versions') %>', thumb_size: '<%= @post_type.get_option('posts_thumb_size') %>', dimension: '<%= @post_type.get_option('posts_image_dimension') %>' }); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image', default: 'Upload Image')%></a>
                 </div>
             </div>
         </div>

@@ -34,7 +34,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
     return c if c.present?
 
     field_item = self.fields.create!(item)
-    field_item.set_meta('_default', options)
+    field_item.set_options(options)
     auto_save_default_values(field_item, options)
     field_item
   end

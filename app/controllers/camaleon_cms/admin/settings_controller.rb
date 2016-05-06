@@ -22,11 +22,13 @@ class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
   def site_saved
     @site = current_site
     if @site.update(params[:site])
-      @site.set_options_from_form(params[:meta]) if params[:meta].present?
+      @site.set_options(params[:meta]) if params[:meta].present?
       @site.set_multiple_options(params[:options])
       @site.set_field_values(params[:field_options])
       theme = @site.get_theme.decorate
       theme.set_field_values(params[:theme_fields]) if params[:theme_fields].present?
+      theme.set_options(params[:theme_option]) if params[:theme_option].present?
+      theme.set_metas(params[:theme_meta]) if params[:theme_meta].present?
       flash[:notice] = t('camaleon_cms.admin.settings.message.site_updated')
       hook_run(theme.settings, "on_theme_settings", theme)
       redirect_to action: :site

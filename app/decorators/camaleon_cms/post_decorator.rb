@@ -40,6 +40,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     th = object.get_meta("thumb")
     th.present? ? th : (default || object.post_type.get_option('default_thumb', nil) || h.asset_url("camaleon_cms/image-not-found.png"))
   end
+  alias_method :the_image_url, :the_thumb_url
 
   # check if this page has registered the thumbnail
   def has_thumb?
@@ -236,4 +237,8 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     res.html_safe
   end
 
+  # fix for "Using Draper::Decorator without inferred source class"
+  def self.object_class_name
+    'CamaleonCms::Post'
+  end
 end

@@ -16,8 +16,8 @@ function build_custom_field(values, multiple, field_key, rand, default_value) {
 
         if (value) field.find('.input-value').val(value);
         $sortable.append(field);
-        if (value && callback_set_value)eval(callback_set_value + "(field, value);")
-        else if (callback) eval(callback + "(field);")
+        if(callback) eval(callback + "(field, value);")
+        if(callback_set_value) eval(callback_set_value + "(field, value);")
         field_counter ++;
     }
 
@@ -113,7 +113,7 @@ function custom_field_editor($field) {
 }
 function custom_field_field_attrs_val($field, value) {
     if ($field) {
-        var data = $.parseJSON(value);
+        var data = $.parseJSON(value || '{}');
         $field.find('.input-attr').val(data.attr);
         $field.find('.input-value').val(data.value)
         $field.find('.input-attr, .input-value').filter('.is_translate').addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
@@ -163,6 +163,8 @@ function load_upload_image_field(dom) {
     $.fn.upload_filemanager({
         formats: "image",
         dimension: $input.attr("data-dimension"),
+        versions: $input.attr("data-versions"),
+        thumb_size: $input.attr("data-thumb_size"),
         selected: function (file, response) {
             $input.val(file.url);
         }

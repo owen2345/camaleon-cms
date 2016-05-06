@@ -26,7 +26,7 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
 
   def update
     if @category.update(params[:category])
-      @category.set_options_from_form(params[:meta])
+      @category.set_options(params[:meta])
       @category.set_field_values(params[:field_options])
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
       redirect_to action: :index
@@ -39,7 +39,7 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
     data_term = params[:category]
     @category = @post_type.categories.new(data_term)
     if @category.save
-      @category.set_options_from_form(params[:meta])
+      @category.set_options(params[:meta])
       @category.set_field_values(params[:field_options])
       flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
       redirect_to action: :index

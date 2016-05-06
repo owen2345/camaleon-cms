@@ -92,6 +92,10 @@
                         <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_reviews')}", 'right') %>
                     </div>
                     <div class="form-group">
+                        <input name="meta[has_featured]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_featured]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_featured', false) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.permit_is_featured', default: 'Permit Featured Articles') %></label>
+                    </div>
+                    <div class="form-group">
                         <input name="meta[has_picture]" type="hidden" value="false"/>
                         <label class="check0"><input name="meta[has_picture]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_picture', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_picture') %>
                         </label>

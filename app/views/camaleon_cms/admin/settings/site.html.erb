@@ -72,7 +72,7 @@
             <% if show_theme_tab %>
                 <div id="tab-theme-configuration" class="<%= "active" if "theme" == params[:tab] %> tab-pane">
                     <% if File.exist?(current_theme.settings_file) %>
-                        <%= render file: current_theme.settings_file %>
+                        <%= render template: "themes/#{current_theme.settings_file.split('/app/apps/themes/').last}" %>
                         <%= render(partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: theme_field_groups}) unless File.read(current_theme.settings_file).include?('.get_field_groups') %>
                     <% else %>
                         <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: theme_field_groups} %>
@@ -95,7 +95,7 @@
     jQuery(function () {
         var panel = $("#site_settings_form");
         panel.validate();
-        panel.find('.unput_upload').input_upload();
+        panel.find('.unput_upload, .input_upload').input_upload();
 
         // smtp
         panel.find("#options_mailer_enabled").change(function () {
