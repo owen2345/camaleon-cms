@@ -18,7 +18,7 @@ pt-BR:
   routes:
     group: grupo
     category: categoria
-    tag: etiqueta
+    tag: tag
     search: buscar
     profile: perfil
 

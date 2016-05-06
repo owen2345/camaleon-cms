@@ -214,7 +214,7 @@ pt-BR:
         add_tag: 'Adicionar uma tag'
         clone: 'Clonar'
         clone_content: 'Clonar conteúdo'
-        label_required: 'Etiqueta(label) necessária'
+        label_required: 'Tag(label) necessária'
         placeholder_required: 'Placeholder necessário'
         message:
           created: 'O %{post_type} foi criado.'
