@@ -41,15 +41,12 @@ module CamaleonCms::SessionHelper
   # User registration.
   #
   # user_data must contain:
+  # - first_name
   # - email
   # - username
   # - password
   # - password_confirmation
-  #
-  # meta must contain:
-  # - first_name
-  # - last_name
-  #
+
   def cama_register_user(user_data, meta)
     @user = current_site.users.new(user_data)
     r = {user: @user, params: params}; hook_run('user_before_register', r)
