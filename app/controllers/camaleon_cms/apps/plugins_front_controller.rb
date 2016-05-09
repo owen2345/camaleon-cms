@@ -25,8 +25,8 @@ class CamaleonCms::Apps::PluginsFrontController < CamaleonCms::FrontendControlle
       redirect_to cama_root_url
       return
     end
-    lookup_context.prefixes.prepend(params[:controller].sub("plugins/#{plugin_name}", "#{plugin_name}/views")) if !@plugin.settings["gem_mode"].present?
-    lookup_context.prefixes.prepend("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
-    lookup_context.prefixes.prepend("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
+    lookup_context.prefixes.append(params[:controller].sub("plugins/#{plugin_name}", "#{plugin_name}/views")) if !@plugin.settings["gem_mode"].present?
+    lookup_context.prefixes.append("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
+    lookup_context.prefixes.append("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
   end
 end
