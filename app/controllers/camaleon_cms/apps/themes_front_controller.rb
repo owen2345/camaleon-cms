@@ -16,7 +16,7 @@ class CamaleonCms::Apps::ThemesFrontController < CamaleonCms::FrontendController
     @theme = current_theme
     return render_error(404) unless current_theme.slug == theme_name
     lookup_context.prefixes = []
-    lookup_context.prefixes.append(params[:controller].sub("themes/#{theme_name}", "themes/#{theme_name}/views"))  unless current_theme.settings["gem_mode"]
+    lookup_context.prefixes.prepend(params[:controller].sub("themes/#{theme_name}", "themes/#{theme_name}/views"))  unless current_theme.settings["gem_mode"]
     lookup_context.prefixes.append("themes/#{current_theme.slug}") if current_theme.settings["gem_mode"]
     lookup_context.prefixes.append("themes/#{current_theme.slug}/views") unless current_theme.settings["gem_mode"]
   end
