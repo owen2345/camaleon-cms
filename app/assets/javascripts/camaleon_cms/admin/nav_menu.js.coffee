@@ -24,7 +24,7 @@ $ ->
   save_menu = (data)->
     showLoading()
     $.post(list_panel.attr('data-url'), data, (res)->
-      list_panel.append(res).nestable()
+      list_panel.children('.dd-list').append($(res).children())
       hideLoading()
     )
 
