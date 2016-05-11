@@ -266,16 +266,7 @@ function init_post(obj) {
         /*********** end *************/
     }
     setTimeout(form_later_actions, 1000);
-
-    // wait for render editors
-    var wait_render;
-
-    function onEditorPostRender(editor) {
-        if (wait_render) clearTimeout(wait_render);
-        wait_render = setTimeout(function () {
-            $form.data("hash", get_hash_form());
-        }, 1000);
-    }
+    setTimeout(function(){ $form.data("hash", get_hash_form()); }, 4000);
 
     function get_hash_form() {
         for (editor in tinymce.editors) {
