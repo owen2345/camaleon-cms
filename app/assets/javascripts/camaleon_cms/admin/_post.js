@@ -176,7 +176,6 @@ function init_post(obj) {
     tinymce.init(cama_get_tinymce_settings({
         selector: '.tinymce_textarea:not(.translated-item)',
         height: '480px',
-        onPostRender: onEditorPostRender,
         base_path: obj.base_path
     }));
 
