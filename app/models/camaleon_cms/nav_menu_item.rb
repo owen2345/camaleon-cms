@@ -9,10 +9,11 @@
 class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
   default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
   has_many :metas, ->{ where(object_class: 'NavMenuItem')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-  belongs_to :parent, class_name: "CamaleonCms::NavMenu"
-  belongs_to :parent_item, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id
-  has_many :children, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, dependent: :destroy
+  belongs_to :parent, class_name: "CamaleonCms::NavMenu", inverse_of: :children
+  belongs_to :parent_item, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, inverse_of: :children
+  has_many :children, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent_item
 
+  before_create :set_parent_site
   after_create :update_count
   #before_destroy :update_count
   alias_attribute :site_id, :term_group
@@ -65,5 +66,11 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
     self.parent.update_column('count', self.parent.children.size) if self.parent.present?
     self.parent_item.update_column('count', self.parent_item.children.size) if self.parent_item.present?
     self.update_column(:term_group, main_menu.parent_id)
+  end
+
+  # fast access from site to menu items
+  def set_parent_site
+    self.site_id = self.parent_item.site_id if self.parent_item.present?
+    self.site_id = self.parent.site_id if self.parent.present?
   end
 end

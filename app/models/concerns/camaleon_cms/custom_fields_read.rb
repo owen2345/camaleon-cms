@@ -37,12 +37,6 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
         else
           CamaleonCms::CustomFieldGroup.where(objectid: self.id || -1, object_class: class_name)
         end
-      when 'Widget::Main'
-        self.field_groups
-      when 'Theme'
-        self.field_groups
-      when 'Site'
-        self.field_groups
       when 'NavMenuItem'
         self.main_menu.field_groups
       when 'PostType'
@@ -53,7 +47,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
         else
           CamaleonCms::CustomFieldGroup.where(object_class: "PostType_#{args[:kind]}", objectid:  self.id )
         end
-      else # 'Plugin' or other class
+      else # 'Plugin' or other classes
         self.field_groups
     end
   end
@@ -144,14 +138,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     values = values.with_indifferent_access
     group = get_field_groups(kind).where(slug: values[:slug]).first
     unless group.present?
-      site = case self.class.to_s.parseCamaClass
-              when 'Category','Post','PostTag'
-                self.post_type.site
-              when 'Site'
-                self
-              else
-                self.site
-             end
+      site = _cama_get_field_site
       values[:parent_id] = site.id if site.present?
       group = get_field_groups(kind).create(values)
     end
@@ -233,6 +220,17 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     elsif ["NavMenuItem"].include?(class_name) # menu items doesn't include field groups
     else
       get_field_groups().destroy_all if get_field_groups.present?
+    end
+  end
+  # return the Site Model owner of current model
+  def _cama_get_field_site
+    case self.class.to_s.parseCamaClass
+      when 'Category','Post','PostTag'
+        self.post_type.site
+      when 'Site'
+        self
+      else
+        self.site
     end
   end
 end

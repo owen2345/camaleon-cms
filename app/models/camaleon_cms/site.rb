@@ -11,7 +11,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
   has_many :metas, -> { where(object_class: 'Site') }, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
   has_many :post_types, :class_name => "CamaleonCms::PostType", foreign_key: :parent_id, dependent: :destroy
-  has_many :nav_menus, :class_name => "CamaleonCms::NavMenu", foreign_key: :parent_id, dependent: :destroy
+  has_many :nav_menus, :class_name => "CamaleonCms::NavMenu", foreign_key: :parent_id, dependent: :destroy, inverse_of: :site
   has_many :nav_menu_items, :class_name => "CamaleonCms::NavMenuItem", foreign_key: :term_group
   has_many :widgets, :class_name => "CamaleonCms::Widget::Main", foreign_key: :parent_id, dependent: :destroy
   has_many :sidebars, :class_name => "CamaleonCms::Widget::Sidebar", foreign_key: :parent_id, dependent: :destroy
