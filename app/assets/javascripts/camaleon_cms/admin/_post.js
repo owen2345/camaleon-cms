@@ -265,7 +265,7 @@ function init_post(obj) {
         /*********** end *************/
     }
     setTimeout(form_later_actions, 1000);
-    setTimeout(function(){ $form.data("hash", get_hash_form()); }, 4000);
+    setTimeout(function(){ $form.data("hash", get_hash_form()); }, 2000);
 
     function get_hash_form() {
         for (editor in tinymce.editors) {
