@@ -71,13 +71,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     v.present? ? v : _default
   end
   alias_method :get_field, :get_field_value
-
-  # the same as the_field() but if the value is not present, this will return default value
-  def get_field!(_key, _default = nil)
-    v = _default
-    v = get_field_values(_key).first rescue _default
-    v.present? ? v : _default
-  end
+  alias_method :get_field!, :get_field_value
 
   # get custom field values
   # _key: custom field key
@@ -86,7 +80,8 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   end
   alias_method :get_fields, :get_field_values
 
-  # ------------- new function update field value -------------
+  # update new value for field with slug _key
+  # Sample: my_posy.update_field_value('sub_title', 'Test Sub Title')
   def update_field_value(_key, value = nil)
     self.field_values.where(custom_field_slug: _key).first.update_column('value', value) rescue nil
   end
@@ -166,10 +161,10 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # :key3 : {id: 4555, values: ['uno','dos']}
   # }
   def set_field_values(datas = {})
-    self.field_values.delete_all
     if datas.present?
       datas.each do |key, values|
         if values[:values].present?
+          self.field_values.where(custom_field_id: values[:id]).delete_all
           order_value = -1
           (values[:values].is_a?(Hash) ? values[:values].values : values[:values]).each do |value|
             item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: key, value: fix_meta_value(value), term_order: order_value += 1})

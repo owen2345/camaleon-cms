@@ -6,16 +6,15 @@ function build_custom_field(values, multiple, field_key, rand, default_value, di
     var field_counter = 0;
 
     function add_field(value) {
-        console.log(value)
         var field = $field.clone(true);
-        field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) }).prop('readonly', disabled);
+        field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) }).prop('disabled', disabled);
         if (value) field.find('.input-value').val(value);
         $sortable.append(field);
         if(callback) eval(callback + "(field, value);");
         field_counter ++;
     }
 
-    if(values.length >= 0) values = [default_value];
+    if(values.length <= 0) values = [default_value];
     if (field_key == 'checkboxes') {
         add_field(values);
     } else {

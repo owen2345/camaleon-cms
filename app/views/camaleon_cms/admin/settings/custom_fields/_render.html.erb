@@ -42,7 +42,7 @@
                                 <i class="fa fa-arrows" style="cursor: move"></i> <i class="fa fa-times text-danger" style="cursor: pointer"></i>
                             </div>
                         <% end %>
-                        <%= render(cama_custom_field_elements[field.options[:field_key].to_sym][:render] || "camaleon_cms/admin/settings/custom_fields/fields/#{field.options[:field_key]}", field: field, values: values, is_disabled: is_disabled, default_use: default_use, field_name: field_name) rescue 'Template not found' %>
+                        <%= render(field.get_option('render') || cama_custom_field_elements[field.get_option('field_key').to_sym][:render] || "camaleon_cms/admin/settings/custom_fields/fields/#{field.options[:field_key]}", field: field, values: values, is_disabled: is_disabled, default_use: default_use, field_name: field_name) rescue 'Template not found' %>
                     </div>
                 </div>
 
