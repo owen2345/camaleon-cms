@@ -8,7 +8,6 @@ function build_custom_field(values, multiple, field_key, rand, default_value) {
 
     function add_field(value) {
         var field = $field.clone(true);
-
         var input = field.find('.input-value');
         if(input.length > 0) input.attr('name', input.attr('name').replace('[]', '['+field_counter+']'))
         input = field.find('.input-attr');
@@ -32,7 +31,7 @@ function build_custom_field(values, multiple, field_key, rand, default_value) {
         }
     } else add_field(default_value);
 
-    if (multiple) {
+    if (multiple) { // sortable
         $content.find('.btn-add-field').click(function () {
             add_field(default_value);
             return false;
@@ -158,8 +157,7 @@ function load_upload_file_field(dom) {
         }
     });
 }
-function load_upload_image_field(dom) {
-    var $input = $(dom).parents('li:first').find('input');
+function load_upload_image_field($input) {
     $.fn.upload_filemanager({
         formats: "image",
         dimension: $input.attr("data-dimension"),
