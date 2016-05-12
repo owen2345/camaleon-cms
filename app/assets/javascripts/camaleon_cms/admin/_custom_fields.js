@@ -1,41 +1,32 @@
-function build_custom_field(values, multiple, field_key, rand, default_value) {
+function build_custom_field(values, multiple, field_key, rand, default_value, disabled) {
     var $content = $("#content-field-" + rand);
     var $sortable = $("#sortable-" + rand);
-    var callback = $content.find('.clone-field .group-input-fields-content').attr('data-callback-function');
-    var callback_set_value = $content.find('.clone-field .group-input-fields-content').attr('data-callback-set-value');
+    var callback = $content.find('.clone-field .group-input-fields-content').attr('data-callback-render');
     var $field = $('<li>' + $content.find('.clone-field').html() + '</li>');
     var field_counter = 0;
 
     function add_field(value) {
+        console.log(value)
         var field = $field.clone(true);
-        var input = field.find('.input-value');
-        if(input.length > 0) input.attr('name', input.attr('name').replace('[]', '['+field_counter+']'))
-        input = field.find('.input-attr');
-        if(input.length > 0) input.attr('name', input.attr('name').replace('[]', '['+field_counter+']'))
-
+        field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) }).prop('readonly', disabled);
         if (value) field.find('.input-value').val(value);
         $sortable.append(field);
-        if(callback) eval(callback + "(field, value);")
-        if(callback_set_value) eval(callback_set_value + "(field, value);")
+        if(callback) eval(callback + "(field, value);");
         field_counter ++;
     }
 
-    if (values.length > 0) {
-        if (field_key == 'checkboxes') {
-            add_field(values);
-        } else {
-            if (!multiple && values.length > 1) values = [values[0]];
-            $.each(values, function (i, value) {
-                add_field(value);
-            });
-        }
-    } else add_field(default_value);
+    if(values.length >= 0) values = [default_value];
+    if (field_key == 'checkboxes') {
+        add_field(values);
+    } else {
+        if (!multiple && values.length > 1) values = [values[0]];
+        $.each(values, function (i, value) {
+            add_field(value);
+        });
+    }
 
     if (multiple) { // sortable
-        $content.find('.btn-add-field').click(function () {
-            add_field(default_value);
-            return false;
-        });
+        $content.find('.btn-add-field').click(function () { add_field(default_value); return false; });
         $sortable.delegate('.actions .fa-times', "click", function () {
             var parent = $(this).parents('li');
             if (confirm(I18n("msg.delete_item"))) {
@@ -44,11 +35,8 @@ function build_custom_field(values, multiple, field_key, rand, default_value) {
             return false;
         });
         $sortable.find('li:first .fa-times').hide();
-        $sortable.sortable({
-            handle: ".fa-arrows"
-        });
+        $sortable.sortable({ handle: ".fa-arrows" });
     }
-
     $content.find('.clone-field').remove();
 }
 

@@ -54,7 +54,7 @@
                     </div>
                 <% end %>
             </div>
-            <script> jQuery(function(){ build_custom_field(<%= raw(values.to_json) %>, <%= field.options[:multiple].to_s.to_bool  %>, '<%= field.options[:field_key]  %>', '<%= rand %>', '<%= field.options[:default_value] if record.new_record? %>'); }); </script>
+            <script> jQuery(function(){ build_custom_field(<%= raw(values.to_json) %>, <%= field.options[:multiple].to_s.to_bool  %>, '<%= field.options[:field_key]  %>', '<%= rand %>', '<%= field.options[:default_value] if record.new_record? %>', <%= field.options[:readonly].present? || field.options[:disabled].present? %>); }); </script>
         </div>
     <% end %>
     <%= raw footer %>
