@@ -11,7 +11,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     before_destroy :_destroy_custom_field_groups
     has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))} , :class_name => "CamaleonCms::CustomField" ,foreign_key: :objectid
     has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
-    has_many :custom_field_values, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
+    has_many :custom_field_values, ->(object){ where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::", ""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
 
     # valid only for simple groups and not for complex like: posts, post, ... where the group is for individual or children groups
     has_many :field_groups, ->(object){where(object_class: object.class.to_s.parseCamaClass)}, :class_name => "CamaleonCms::CustomFieldGroup", foreign_key: :objectid
