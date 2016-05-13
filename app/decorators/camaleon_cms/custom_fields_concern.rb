@@ -44,9 +44,10 @@ module CamaleonCms::CustomFieldsConcern
   def the_attribute_fields(field_key)
     r = []
     object.get_fields(field_key).each do |text|
-      _r = JSON.parse(text || '{}')
-      _r['attr'] = h.do_shortcode(_r['attr'].to_s.translate(@_deco_locale), object)
-      _r['value'] = h.do_shortcode(_r['value'].to_s.translate(@_deco_locale), object)
+      _r = JSON.parse(text || '{}').with_indifferent_access
+      _r.keys.each do |k|
+        _r[k] = h.do_shortcode(_r[k].to_s.translate(@_deco_locale), object)
+      end
       r << _r
     end
     r
@@ -56,9 +57,10 @@ module CamaleonCms::CustomFieldsConcern
   # translated and short codes evaluated like the content
   # default_val: default value returned when this field was not registered
   def the_attribute_field(field_key, default_val = '')
-    r = JSON.parse(object.get_field(field_key, default_val) || '{}')
-    r['attr'] = h.do_shortcode(r['attr'].to_s.translate(@_deco_locale), object)
-    r['value'] = h.do_shortcode(r['value'].to_s.translate(@_deco_locale), object)
+    r = JSON.parse(object.get_field(field_key, default_val) || '{}').with_indifferent_access
+    r.keys.each do |k|
+      r[k] = h.do_shortcode(r[k].to_s.translate(@_deco_locale), object)
+    end
     r
   end
 end
