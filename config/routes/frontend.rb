@@ -41,22 +41,23 @@ Rails.application.routes.draw do
         get "rss", defaults: { format: "rss" }
         get "ajax"
 
+        # post types
         controller "camaleon_cms/frontend" do
           PluginRoutes.get_sites.each do |s|
             h = s.slug.split(":").first
             constraints(PluginRoutes.get_sites.count <= 1 ? {} : {host: h.include?(".") ? h : "#{h}.#{Cama::Site.main_site.slug.split(':').first}" }) do
               s.post_types.pluck(:slug, :id).each do |pt_slug, pt_id|
-                PluginRoutes.all_locales.split("|").each do |_l|
-                  get "#{I18n.t("routes.post_types.#{pt_slug}", default: pt_slug, locale: _l)}" => :post_type, as: "post_type_#{pt_id}_#{_l}", defaults: {post_type_id: pt_id}
-                end
+                get ":post_type_slug" => :post_type, as: "post_type_#{pt_id}", post_type_id: pt_id, constraints: {post_type_slug: /(#{PluginRoutes.all_locales.split("|").map{|_l| I18n.t("routes.post_types.#{pt_slug}", default: pt_slug, locale: _l) }.uniq.join('|') })/}
               end
             end
           end
         end
 
-        get ':parent_title/*slug' => :post, as: :hierarchy_post, constraints:{ parent_title: /(?!(#{PluginRoutes.all_locales}))[\w\.\-]+/ }
-        get ":slug" => :post, format: true, :as => :post1, defaults: { format: :html }, constraints: { slug: /[a-zA-Z0-9\._=\s\-]+/}
-        get ":slug" => :post, :as => :post, constraints: { slug: /[a-zA-Z0-9\._=\s\-]+/}
+        # posts
+        constraints(format: /html|rss/) do
+          get ':parent_title/*slug(.:format)' => :post, as: :hierarchy_post, constraints:{ parent_title: /(?!(#{PluginRoutes.all_locales}))[\w\-]+/, slug: /[a-zA-Z0-9_=\s\-\/]+/ }
+          get ":slug(.:format)" => :post, :as => :post, constraints: { slug: /[a-zA-Z0-9_=\s\-]+/}
+        end
       end
     end
   end

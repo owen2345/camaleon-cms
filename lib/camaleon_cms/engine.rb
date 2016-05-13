@@ -9,7 +9,7 @@ require 'protected_attributes'
 require 'will_paginate'
 require 'will_paginate-bootstrap'
 require 'breadcrumbs_on_rails'
-require 'fog'
+require 'aws-sdk'
 require 'font-awesome-rails'
 require 'tinymce-rails'
 

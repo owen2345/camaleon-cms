@@ -8,10 +8,13 @@
 =end
 module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   included do
-    has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))} , :class_name => "CamaleonCms::CustomField" ,foreign_key: :objectid
-    has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :destroy
-    has_many :custom_field_values, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :destroy
     before_destroy :_destroy_custom_field_groups
+    has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))} , :class_name => "CamaleonCms::CustomField" ,foreign_key: :objectid
+    has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
+    has_many :custom_field_values, ->(object){ where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::", ""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
+
+    # valid only for simple groups and not for complex like: posts, post, ... where the group is for individual or children groups
+    has_many :field_groups, ->(object){where(object_class: object.class.to_s.parseCamaClass)}, :class_name => "CamaleonCms::CustomFieldGroup", foreign_key: :objectid
   end
 
 
@@ -21,6 +24,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # args: (Hash)
     # kind: argument only for PostType Objects: (Post (Default) | Category | PostTag).
       # If kind = "post_type" this will return groups for all post_types
+      # If kind = "Post" this will return all groups for all posts from current post type + groups of current post type
     # include_parent: (boolean, default false) Permit to recover groups from self + parent post_type (argument valid only for Post | PostTag | Category)
   # args: (String) => is a value for kind attribute
   def get_field_groups(args = {})
@@ -29,30 +33,22 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     case class_name
       when 'Category','Post','PostTag'
         if args[:include_parent]
-           self.post_type.site.custom_field_groups.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
+          CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
         else
-          self.post_type.site.custom_field_groups.where(objectid: self.id || -1, object_class: class_name)
+          CamaleonCms::CustomFieldGroup.where(objectid: self.id || -1, object_class: class_name)
         end
-      when 'Widget::Main'
-        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id)
-      when 'Theme'
-        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id)
-      when 'Site'
-        self.custom_field_groups.where(object_class: class_name)
       when 'NavMenuItem'
-        # self.main_menu.custom_field_groups //verify this problem
-        puts "get_field_groups - NavMenuItem: **************#{self.inspect}***** #{self.main_menu.inspect}"
-        CamaleonCms::NavMenu.find(self.main_menu.id).get_field_groups
+        self.main_menu.field_groups
       when 'PostType'
         if args[:kind] == "all"
-          self.site.custom_field_groups.where(object_class: ["PostType_Post", "PostType_Post", "PostType_PostTag", "PostType"], objectid:  self.id )
+          CamaleonCms::CustomFieldGroup.where(object_class: ["PostType_Post", "PostType_Post", "PostType_PostTag", "PostType"], objectid:  self.id )
         elsif args[:kind] == "post_type"
-          self.site.custom_field_groups.where(object_class: class_name)
+          self.field_groups
         else
-          self.site.custom_field_groups.where(object_class: "PostType_#{args[:kind]}", objectid:  self.id )
+          CamaleonCms::CustomFieldGroup.where(object_class: "PostType_#{args[:kind]}", objectid:  self.id )
         end
-      else # 'Plugin' or other class
-        self.site.custom_field_groups.where(object_class: class_name, objectid:  self.id) if defined?(self.site)
+      else # 'Plugin' or other classes
+        self.field_groups
     end
   end
 
@@ -142,6 +138,8 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     values = values.with_indifferent_access
     group = get_field_groups(kind).where(slug: values[:slug]).first
     unless group.present?
+      site = _cama_get_field_site
+      values[:parent_id] = site.id if site.present?
       group = get_field_groups(kind).create(values)
     end
     group
@@ -168,26 +166,17 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # :key3 : {id: 4555, values: ['uno','dos']}
   # }
   def set_field_values(datas = {})
-    ids_old = self.field_values.pluck(:id)
-    ids_saved = []
+    self.field_values.delete_all
     if datas.present?
       datas.each do |key, values|
         if values[:values].present?
-          order_value = 0
-          values[:values].each do |value|
-            item = self.field_values.where({custom_field_id: values[:id], custom_field_slug: key, value: fix_meta_value(value)}).first_or_create!()
-            if defined?(item.id)
-              item.update_column('term_order', order_value)
-              ids_saved << item.id
-              order_value += 1
-            end
+          order_value = -1
+          (values[:values].is_a?(Hash) ? values[:values].values : values[:values]).each do |value|
+            item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: key, value: fix_meta_value(value), term_order: order_value += 1})
           end
         end
       end
     end
-
-    ids_deletes = ids_old - ids_saved
-    self.field_values.where(id: ids_deletes).destroy_all if ids_deletes.present?
   end
 
   # return field object for current model
@@ -231,6 +220,17 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     elsif ["NavMenuItem"].include?(class_name) # menu items doesn't include field groups
     else
       get_field_groups().destroy_all if get_field_groups.present?
+    end
+  end
+  # return the Site Model owner of current model
+  def _cama_get_field_site
+    case self.class.to_s.parseCamaClass
+      when 'Category','Post','PostTag'
+        self.post_type.site
+      when 'Site'
+        self
+      else
+        self.site
     end
   end
 end

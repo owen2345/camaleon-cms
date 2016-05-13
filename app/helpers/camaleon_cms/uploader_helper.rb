@@ -7,214 +7,87 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 module CamaleonCms::UploaderHelper
+  include ActionView::Helpers::NumberHelper
   # upload a file into server
   # settings:
   #   folder: Directory where the file will be saved (default: "")
   #     sample: temporal => will save in /rails_path/public/temporal
   #   generate_thumb: true, # generate thumb image if this is image format (default true)
   #   maximum: maximum bytes permitted to upload (default: 1000MG)
-  #   dimension: dimension for the image (sample: 30x30 | x30 | 30x)
+  #   dimension: dimension for the image (sample: 30x30 | x30 | 30x | 300x300?)
   #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
   #   remove_source: Boolean (delete source file after saved if this is true, default false)
   #   same_name: Boolean (save the file with the same name if defined true, else search for a non used name)
+  #   versions: String (Create multiple versions of the image uploaded), sample: '300x300,505x350' ==> Will create two extra file with this dimensions
+  #   thumb_size: String (redefine the dimensions of the thumbnail, sample: '100x100' ==> only for images)
   #   temporal_time: if great than 0 seconds, then this file will expire (removed) in that time (default: 0)
   #     To manage jobs, please check http://edgeguides.rubyonrails.org/active_job_basics.html
   #     Note: if you are using temporal_time, you will need to copy the file to another directory later
   # sample: upload_file(params[:my_file], {formats: "images", folder: "temporal"})
   # sample: upload_file(params[:my_file], {formats: "jpg,png,gif,mp3,mp4", temporal_time: 10.minutes, maximum: 10.megabytes})
   def upload_file(uploaded_io, settings = {})
-    unless uploaded_io.present?
-      return {error: "File is empty", file: nil, size: nil}
-    end
+    return {error: "File is empty", file: nil, size: nil} unless uploaded_io.present?
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
-
     uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension])) if settings[:dimension].present? # resize file into specific dimensions
-
-    cama_uploader_init_connection(true)
     settings = settings.to_sym
     settings[:uploaded_io] = uploaded_io
     settings = {
         folder: "",
-        maximum: 100.megabytes,
+        maximum: current_site.get_option('filesystem_max_size', 100).to_f.megabytes,
         formats: "*",
         generate_thumb: true,
         temporal_time: 0,
         filename: (uploaded_io.original_filename rescue uploaded_io.path.split("/").last).parameterize(".").downcase.gsub(" ", "-"),
         file_size: File.size(uploaded_io.to_io),
         remove_source: false,
-        same_name: false
+        same_name: false,
+        versions: '',
+        thumb_size: nil
     }.merge(settings)
     hooks_run("before_upload", settings)
-
     res = {error: nil}
 
     # formats validations
-    return {error: "#{ct("file_format_error")} (#{settings[:formats]})"} unless cama_verify_format(uploaded_io.path, settings[:formats])
+    return {error: "#{ct("file_format_error")} (#{settings[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io.path, settings[:formats])
 
     # file size validations
     if settings[:maximum] < settings[:file_size]
-      res[:error] = ct("file_size_exceeded")
+      res[:error] = "#{ct("file_size_exceeded", default: "File size exceeded")} (#{number_to_human_size(settings[:maximum])})"
       return res
     end
 
-    File.chmod(0644, uploaded_io.path) # fix reading permission (Fix Fog-Local)
-
     # save file
-    if settings[:same_name]
-      partial_path = "#{current_site.upload_directory_name}/#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}"
-    else
-      partial_path = "#{current_site.upload_directory_name}/#{cama_uploader_check_name("#{"#{settings[:folder]}/" if settings[:folder].present?}#{settings[:filename]}")}"
-    end
-    partial_path = partial_path.gsub(/(\/){2,}/, "/")
-    file = @fog_connection_bucket_dir.files.create({:key => partial_path, :body => uploaded_io, :public => true})
+    key = File.join(settings[:folder], settings[:filename]).to_s.gsub(/(\/){2,}/, "/")
+    res = cama_uploader.add_file(uploaded_io, key, {same_name: settings[:same_name]})
+    {} if settings[:temporal_time] > 0 # temporal file upload (always put as local for temporal files) (TODO: use delayjob)
 
-    if settings[:temporal_time] > 0 # temporal file upload (always put as local for temporal files)
-      Thread.new do
-        sleep(settings[:temporal_time])
-        file.destroy
-        ActiveRecord::Base.connection.close
+    # generate image versions
+    if res['format'] == 'image'
+      settings[:versions].to_s.gsub(' ', '').split(',').each do |v|
+        version_path = cama_resize_upload(uploaded_io.path, v, {replace: false})
+        cama_uploader.add_file(version_path, cama_uploader.version_path(res['key'], v), is_thumb: true, same_name: true)
+        FileUtils.rm_f(version_path)
       end
     end
 
-    res = cama_uploader_parse_file(file)
-
     # generate thumb
-    if settings[:generate_thumb] && res["format"] == "image" && File.extname(file.key) != ".gif"
+    cama_uploader_generate_thumbnail(uploaded_io.path, res['key'], settings[:thumb_size]) if settings[:generate_thumb] && res['thumb'].present?
 
-      cama_uploader_generate_thumbnail(uploaded_io.path, file.key, settings[:folder].split("/").push(@fog_connection_hook_res[:thumb_folder_name]).join("/"))
-    end
     FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
     res
   end
 
-  # generate thumbnail
-  def cama_uploader_generate_thumbnail(source_path, filename, folder)
-    thumb_name = cama_parse_for_thumb_name(filename)
-    path_thumb = cama_resize_and_crop(source_path, @fog_connection_hook_res[:thumb][:w], @fog_connection_hook_res[:thumb][:h], {overwrite: false, output_name: thumb_name.split("/").last})
-    upload_file(path_thumb, {generate_thumb: false, same_name: true, remove_source: true, folder: folder})
-  end
-
-  # destroy file from fog
-  # sample: "owen/campaign-date-picker_1.png"
-  def cama_uploader_destroy_file(file_path, destroy_thumb = true)
-    cama_uploader_init_connection(true)
-    file = @fog_connection_bucket_dir.files.head("#{current_site.upload_directory_name}/#{file_path}".gsub(/(\/){2,}/, "/"))
-    _file =  cama_uploader_parse_file(file)
-    if destroy_thumb && _file["format"] == "image" && File.extname(file_path) != ".gif" # destroy thumb
-      cama_uploader_destroy_file("#{File.dirname(file_path)}/#{cama_parse_for_thumb_name(file.key)}", false) rescue ""
-    end
-    file.destroy
-  end
-
-  # destroy a folder from fog
-  def cama_uploader_destroy_folder(folder)
-    cama_uploader_init_connection(true)
-    if @fog_connection.class.name.include?("AWS")
-      dir = @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name], prefix: "#{current_site.upload_directory_name}/#{folder}".gsub(/(\/){2,}/, "/"))
-      dir.files.each{|f| f.destroy }
-    end
-    @fog_connection_bucket_dir.files.head("#{current_site.upload_directory_name}/#{folder}/".gsub(/(\/){2,}/, "/")).destroy rescue ""
-  end
-
-  # add a new folder in fog
-  def cama_uploader_add_folder(folder)
-    cama_uploader_init_connection(true)
-    key = "#{@fog_connection_hook_res[:bucket_name]}/#{current_site.upload_directory_name}/#{folder}/".split("/").clean_empty.join("/")
-    dir = @fog_connection.directories.create(:key => key)
-    dir.files.create({:key => '_tmp.txt', content: "", :public => true}) unless @fog_connection.class.name.include?("AWS")
-  end
-
-  # initialize fog uploader and trigger hook to customize fog storage
-  def cama_uploader_init_connection(clear_cache = false)
-    server = current_site.get_option("filesystem_type", "local")
-    @fog_connection_hook_res ||= {server: server, connection: nil, thumb_folder_name: "thumb", bucket_name: server == "local" ? "media" : current_site.get_option("filesystem_s3_bucket_name"), thumb: {w: 100, h: 100}}; hooks_run("on_uploader", @fog_connection_hook_res)
-    case @fog_connection_hook_res[:server]
-      when "local"
-        Dir.mkdir(Rails.root.join("public", @fog_connection_hook_res[:bucket_name]).to_s) unless Dir.exist?(Rails.root.join("public", @fog_connection_hook_res[:bucket_name]).to_s)
-        @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :local_root => Rails.root.join("public").to_s, :provider   => 'Local', endpoint: (root_url rescue cama_root_url) }) : @fog_connection_hook_res[:connection]
-      when "s3"
-        @fog_connection ||= !@fog_connection_hook_res[:connection].present? ? Fog::Storage.new({ :aws_access_key_id => current_site.get_option("filesystem_s3_access_key"), :provider   => 'AWS', aws_secret_access_key: current_site.get_option("filesystem_s3_secret_key"), :region  => current_site.get_option("filesystem_region") }) : @fog_connection_hook_res[:connection]
-    end
-    @fog_connection_bucket_dir ||= @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name])
-    current_site.set_meta("cache_browser_files_#{@fog_connection_hook_res}", nil) if clear_cache
-  end
-
-  # verify if this file name already exist
-  # if the file is already exist, return a new name for this file
-  # sample: cama_uploader_check_name("my_file/file.txt")
-  def cama_uploader_check_name(partial_path)
-    cama_uploader_init_connection()
-    files = @fog_connection_bucket_dir.files
-    res = partial_path
-    if files.head("#{current_site.upload_directory_name}/#{res}".gsub(/(\/){2,}/, "/")).present?
-      dirname = "#{File.dirname(partial_path)}/" if partial_path.include?("/")
-      (1..999).each do |i|
-        res = "#{dirname}#{File.basename(partial_path, File.extname(partial_path))}_#{i}#{File.extname(partial_path)}"
-        break unless files.head("#{current_site.upload_directory_name}/#{res}".gsub(/(\/){2,}/, "/")).present?
-      end
-    end
-    res.gsub(/(\/){2,}/, "/")
-  end
-
-  # search a folder by path and return all folders and files
-  # sample: cama_media_find_folder("test/exit")
-  def cama_media_find_folder(path = "")
-    cama_uploader_init_connection(true)
-
-    prefix  = "#{current_site.upload_directory_name}/#{path}/".gsub(/(\/){2,}/, "/")
-    res     = {folders: {}, files: []}
-
-    @fog_connection.directories.get(@fog_connection_hook_res[:bucket_name], prefix: prefix).files.each do |file|
-      res[:files] << cama_uploader_parse_file(file) if file.key =~ %r|#{prefix}[^/]+$| && !file.key.include?('/_tmp.txt')
-      if file.key =~ %r|#{prefix}([^/]+)/|
-        folder_name = "#{$~[1]}"
-        res[:folders][folder_name] = {folders: {}, files: []} unless (folder_name == @fog_connection_hook_res[:thumb_folder_name])
-      end
-    end
-    return res
-  end
-
-  # search for a file by filename
-  # sample: cama_media_search_file("")
-  def cama_media_search_file(filename)
-    cama_uploader_init_connection(true)
-
-    prefix  = current_site.upload_directory_name.gsub(/(\/){2,}/, "/")
-
-    @fog_connection.directories
-    .get(@fog_connection_hook_res[:bucket_name], prefix: prefix)
-    .files
-    .select { |file| file.key.split('/').last.include?(filename) && !file.key.include?('/_tmp.txt') }
-    .map { |file| cama_uploader_parse_file(file) }
-  end
-
-  # parse file information of FOG file
-  def cama_uploader_parse_file(file)
-    res = {"name"=> File.basename(file.key), "file"=> file.key, "size"=> file.content_length, "url"=> (file.public_url rescue [current_site.get_option("filesystem_s3_endpoint"), file.key ].join("/")), "deleteUrl"=> "" }
-    ext = File.extname(file.key).sub(".", "").downcase
-    res["format"] = "unknown"
-    if "jpg,jpeg,png,gif,bmp,ico".split(",").include?(ext)
-      if File.extname(res["name"]) == ".gif"
-        res["thumb"] = res["url"]
-      else
-        res["thumb"] = "#{File.dirname(res["url"])}/#{cama_parse_for_thumb_name(file.key)}" rescue ""
-      end
-      res["format"] = "image"
-    end
-    if "flv,webm,wmv,avi,swf,mp4".split(",").include?(ext)
-      res["format"] = "video"
-    end
-    if "mp3,ogg".split(",").include?(ext)
-      res["format"] = "audio"
-    end
-    if "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,xml,json".split(",").include?(ext)
-      res["format"] = "document"
-    end
-    if "zip,7z,rar,tar,bz2,gz,rar2".split(",").include?(ext)
-      res["format"] = "compress"
-    end
-    res["type"] = (MIME::Types.type_for(file.key).first.content_type rescue "")
-    res
+  # generate thumbnail of a existent image
+  # key: key of the current file
+  # the thumbnail will be saved in my_images/my_img.png => my_images/thumb/my_img.png
+  def cama_uploader_generate_thumbnail(uploaded_io, key, thumb_size = nil)
+    w, h = cama_uploader.thumb[:w], cama_uploader.thumb[:h]
+    w, h = thumb_size.split('x') if thumb_size.present?
+    uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
+    path_thumb = cama_resize_and_crop(uploaded_io.path, w, h)
+    thumb = cama_uploader.add_file(path_thumb, cama_uploader.version_path(key), is_thumb: true, same_name: true)
+    FileUtils.rm_f(path_thumb)
+    thumb
   end
 
   # helper to find an available filename for file_path in that directory
@@ -337,15 +210,16 @@ module CamaleonCms::UploaderHelper
     tmp_path = args[:path] || Rails.public_path.join("tmp", current_site.id.to_s)
     FileUtils.mkdir_p(tmp_path) unless Dir.exist?(tmp_path)
     if uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://"))
-      return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_verify_format(uploaded_io, args[:formats])
-      name = args[:name] || uploaded_io.split("/").last
+      return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io, args[:formats])
+      uploaded_io = Rails.public_path.join(uploaded_io.sub(current_site.the_url, '')).to_s if uploaded_io.include?(current_site.the_url) # local file
+      name = args[:name] || uploaded_io.split("/").last.split('?').first
       name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
       path = uploader_verify_name( File.join(tmp_path, name))
       File.open(path, 'wb'){|file| file.write(open(uploaded_io).read) }
       path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
     else
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
-      return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_verify_format(uploaded_io.path, args[:formats])
+      return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io.path, args[:formats])
       name = args[:name] || uploaded_io.path.split("/").last
       name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
       path = uploader_verify_name( File.join(tmp_path, name))
@@ -357,9 +231,9 @@ module CamaleonCms::UploaderHelper
 
   # resize image if the format is correct
   # return resized file path
-  def cama_resize_upload(image_path, dimesion)
-    if cama_verify_format(image_path, 'image') && dimesion.present?
-      r={file: image_path, w: dimesion.split('x')[0], h: dimesion.split('x')[1], w_offset: 0, h_offset: 0, resize: !dimesion.split('x')[2] || dimesion.split('x')[2] == "resize", replace: true, gravity: :north_east}; hooks_run("on_uploader_resize", r)
+  def cama_resize_upload(image_path, dimesion, args = {})
+    if cama_uploader.class.validate_file_format(image_path, 'image') && dimesion.present?
+      r= {file: image_path, w: dimesion.split('x')[0], h: dimesion.split('x')[1], w_offset: 0, h_offset: 0, resize: !dimesion.split('x')[2] || dimesion.split('x')[2] == "resize", replace: true, gravity: :north_east}.merge(args); hooks_run("on_uploader_resize", r)
       if r[:w].present? && r[:h].present?
         image_path = cama_resize_and_crop(r[:file], r[:w], r[:h], {overwrite: r[:replace], gravity: r[:gravity] })
       else
@@ -369,29 +243,15 @@ module CamaleonCms::UploaderHelper
     image_path
   end
 
-  # verify permitted formats (return boolean true | false)
-  # true: if format is accepted
-  # false: if format is not accepted
-  # sample: cama_verify_format(file_path, 'image,audio,docx,xls') => return true if the file extension is in formats
-  def cama_verify_format(file_path, formats)
-    return true if formats == "*" || !formats.present?
-    formats = formats.downcase.split(",")
-    if formats.include? "image"
-      formats += "jpg,jpeg,png,gif,bmp,ico".split(',')
+  # return the current uploader
+  def cama_uploader
+    case current_site.get_option("filesystem_type", "local").downcase
+      when 's3' || 'aws'
+        @cama_uploader ||= CamaleonCmsAwsUploader.new({current_site: current_site})
+      else
+        @cama_uploader ||= CamaleonCmsLocalUploader.new({current_site: current_site})
     end
-    if formats.include? "video"
-      formats += "flv,webm,wmv,avi,swf,mp4".split(',')
-    end
-    if formats.include? "audio"
-      formats += "mp3,ogg".split(',')
-    end
-    if formats.include? "document"
-      formats += "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,htm,json,xml".split(',')
-    end
-    if formats.include?("compress") || formats.include?("compres")
-      formats += "zip,7z,rar,tar,bz2,gz,rar2".split(',')
-    end
-    formats.include?(File.extname(file_path).sub(".", "").downcase)
+    @cama_uploader
   end
 
   private

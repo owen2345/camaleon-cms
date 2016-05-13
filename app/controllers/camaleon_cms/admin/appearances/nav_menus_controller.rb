@@ -9,116 +9,132 @@
 class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminController
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.appearance")
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.menus")
-  def menu
-    authorize! :manager, :menu
-    unless params[:new].present?
-      if params[:id].present?
-        @nav_menu = current_site.nav_menus.find_by_id(params[:id])
-        if request.delete? && @nav_menu.present?
-          @nav_menu.destroy
-          flash[:notice] = t('camaleon_cms.admin.menus.message.deleted')
-          redirect_to action: :menu
-          return
-        end
-      end
-
-      unless @nav_menu.present?
-        if params[:slug].present?
-          @nav_menu = current_site.nav_menus.where({slug: params[:slug]}).first
-        else
-          @nav_menu = current_site.nav_menus.last
-        end
-      end
-
+  before_action :check_menu_permission
+  def index
+    if params[:id].present?
+      @nav_menu = current_site.nav_menus.find_by_id(params[:id])
+    elsif params[:slug].present?
+      @nav_menu = current_site.nav_menus.find_by_slug(params[:slug])
+    else
+      @nav_menu = current_site.nav_menus.first
     end
-    @nav_menu = current_site.nav_menus.new unless @nav_menu.present?
-    items = []
-    unless @nav_menu.new_record?
-      items = get_nav_items(@nav_menu.children)
-    end
-    @items = items
-
-    @nav_menus = current_site.nav_menus.all
     @post_types = current_site.post_types
     add_asset_library("nav_menu")
     render "index"
   end
 
-  # save changes of the menu
-  def save
-    authorize! :manager, :menu
-    unless params[:nav_menu][:id].present?   # new
-      menu_data = params[:nav_menu]
-      @nav_menu = current_site.nav_menus.new(menu_data)
-      if @nav_menu.save
-        flash[:notice] = t('camaleon_cms.admin.menus.message.created')
-        render json: {new: 1, nav_menu: @nav_menu, redirect: cama_admin_appearances_nav_menus_menu_path({id: @nav_menu.id})}
-      else
-        render json: {error: t('camaleon_cms.admin.menus.message.error_menu')}
-      end
-    else
-      @nav_menu = current_site.nav_menus.find(params[:nav_menu][:id])
-      if @nav_menu.update(params[:nav_menu])
-        @nav_menu.add_menu_items(params[:menu_data])
-
-        if params[:nav_menu_location].present?
-          params[:nav_menu_location].each do |location|
-            current_site.set_option("_nav_menu_#{location}", @nav_menu.id)
-          end
-        end
-        render json: {update: 1, nav_menu: @nav_menu}
-      else
-        render json: {error: t('camaleon_cms.admin.menus.message.error_menu')}
-      end
-    end
+  def new
+    @nav_menu = current_site.nav_menus.new
+    render partial: 'form'
   end
 
-  # show external menu form
-  def form
-    if params[:custom_fields].present?
-      if params[:item_id] == 'undefined'
-        @nav_menu = current_site.nav_menus.find_by_id(params[:menu_id])
-      else
-        @nav_menu = current_site.nav_menu_items.find_by_id(params[:item_id])
-      end
-      render "_custom_fields", layout: "camaleon_cms/admin/_ajax"
-    else
-      render "_external_menu", layout: false, locals: {submit: true}
+  def create
+    nav_menu = current_site.nav_menus.new(params[:nav_menu])
+    nav_menu.save
+    flash[:notice] = t('.created_menu', default: 'Created Menu')
+    redirect_to action: :index, id: nav_menu.id
+  end
+
+  def update
+    nav_menu = current_site.nav_menus.find(params[:id])
+    nav_menu.update(params[:nav_menu])
+    flash[:notice] = t('.updated_menu', default: 'Menu updated')
+    redirect_to action: :index, id: nav_menu.id
+  end
+
+  def edit
+    @nav_menu = current_site.nav_menus.find(params[:id])
+    render partial: 'form'
+  end
+
+  def destroy
+    current_site.nav_menus.find(params[:id]).destroy
+    flash[:notice] = t('.deleted_menu', default: 'Menu destroyed')
+    redirect_to action: :index
+  end
+
+  def custom_settings
+    @nav_menu = current_site.nav_menus.find(params[:nav_menu_id])
+    @nav_menu_item = current_site.nav_menu_items.find(params[:id])
+    render "_custom_fields", layout: "camaleon_cms/admin/_ajax"
+  end
+
+  def save_custom_settings
+    @nav_menu_item = current_site.nav_menu_items.find(params[:id])
+    @nav_menu_item.set_field_values(params[:field_options])
+    render nothing: true
+  end
+
+  # render edit external menu item
+  def edit_menu_item
+    render "_external_menu", layout: false, locals: {nav_menu: current_site.nav_menus.find(params[:nav_menu_id]), menu_item: current_site.nav_menu_items.find(params[:id])}
+  end
+
+  # update an external menu item
+  def update_menu_item
+    @nav_menu = current_site.nav_menus.find(params[:nav_menu_id])
+    item = current_site.nav_menu_items.find(params[:id])
+    item.update_menu_item({label: params[:external_label], link: params[:external_url]})
+    item.set_options(params[:options]) if params[:options].present?
+    render partial: 'menu_items', locals: {items: [item], nav_menu: @nav_menu}
+  end
+
+  def delete_menu_item
+    # @nav_menu = current_site.nav_menus.find(params[:nav_menu_id])
+    current_site.nav_menu_items.find(params[:id]).destroy
+    render nothing: true
+  end
+
+  # update the reorder of items
+  def reorder_items(items = nil, parent_id = nil, is_root = true)
+    items = params[:items] if items.nil?
+    parent_id = params[:nav_menu_id] if parent_id.nil?
+    items.each do |index, _item|
+      item = current_site.nav_menu_items.find(_item['id'])
+      item.update_column(:parent_id, parent_id)
+      reorder_items(_item['children'], _item['id'], false) if _item['children'].present?
     end
+    render(inline: '') if is_root
+  end
+
+  # add items to specific nav-menu
+  def add_items
+    items = []
+    @nav_menu = current_site.nav_menus.find(params[:nav_menu_id])
+    if params[:external].present?
+      item = @nav_menu.append_menu_item({label: params[:external][:external_label], link: params[:external][:external_url], type: "external"})
+      item.set_options(params[:external][:options]) if params[:external][:options].present?
+      items << item
+    end
+
+    if params[:items].present?
+      params[:items].each do |index, item|
+        item = @nav_menu.append_menu_item({label: 'auto', link: item['id'], type: item['kind']})
+        items << item
+      end
+    end
+    render partial: 'menu_items', locals: {items: items, nav_menu: @nav_menu}
   end
 
   private
-
-  def get_nav_items(menu_items, parent_id = 0)
-    items = []
-    menu_items.eager_load(:metas).each do |nav_item|
-      object = _get_object_nav_menu(nav_item)
-      if object.present?
-        items << {id: nav_item.id, label: object[:name], link: nav_item.options[:object_id], url_edit: object[:url_edit], type: nav_item.options[:type], parent: parent_id.to_i, fields: "#{nav_item.get_field_values_hash(true).to_json}"}
-        items += get_nav_items(nav_item.children, nav_item.id)
-      end
-    end
-    return items
-  end
-
-  def _get_object_nav_menu(nav_menu_item)
+  def parse_menu_item(nav_menu_item)
     begin
       case nav_menu_item.get_option('type')
         when 'post'
           post = CamaleonCms::Post.find(nav_menu_item.get_option('object_id')).decorate
           return false unless post.status == 'published'
-          {link: post.the_url, name: post.the_title, url_edit: post.the_edit_url }
+          {name: post.the_title(locale: @frontend_locale), url_edit: post.the_edit_url }
         when 'category'
           category = CamaleonCms::Category.find(nav_menu_item.get_option('object_id')).decorate
-          {link: category.the_url, name: category.the_title, url_edit: category.the_edit_url}
+          {name: category.the_title, url_edit: category.the_edit_url}
         when 'post_tag'
           post_tag = CamaleonCms::PostTag.find(nav_menu_item.get_option('object_id')).decorate
-          {link: post_tag.the_url, name: post_tag.the_title, url_edit: post_tag.the_edit_url}
+          {name: post_tag.the_title, url_edit: post_tag.the_edit_url}
         when 'post_type'
           post_type = CamaleonCms::PostType.find(nav_menu_item.get_option('object_id')).decorate
-          {link: post_type.the_url, name: post_type.the_title, url_edit: post_type.the_edit_url}
+          {name: post_type.the_title, url_edit: post_type.the_edit_url}
         when 'external'
-          {link: nav_menu_item.get_option('object_id'), name: nav_menu_item.name.to_s}
+          {name: nav_menu_item.name.to_s}
         else
           false
       end
@@ -126,5 +142,10 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
       puts "@@@@@@@@@@@@@@@@@@@@@@@@@ Skipped menu for: #{e.message} (#{nav_menu_item})"
       false
     end
+  end
+  helper_method :parse_menu_item
+
+  def check_menu_permission
+    authorize! :manager, :menu
   end
 end

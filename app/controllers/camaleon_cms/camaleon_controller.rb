@@ -102,4 +102,28 @@ class CamaleonCms::CamaleonController < ApplicationController
       site_load_custom_models(current_site)
     end
   end
+
+  # check if current site exist, if not, this will be redirected to main domain
+  # Also, check current site status
+  def cama_site_check_existence()
+    if !current_site.present?
+      if Cama::Site.main_site.present?
+        redirect_to Cama::Site.main_site.decorate.the_url
+      else
+        redirect_to cama_admin_installers_path
+      end
+    elsif (cama_current_user.present? && !cama_current_user.admin?) || !cama_current_user.present?
+      # inactive page control
+      if current_site.is_inactive?
+        p = current_site.posts.find(current_site.get_option('page_inactive')).decorate
+        redirect_to(p.the_url) if params != {"controller"=>"camaleon_cms/frontend", "action"=>"post", "slug"=>p.the_slug}
+      end
+
+      # maintenance page and IP's control
+      if current_site.is_maintenance? && !current_site.get_option('maintenance_ips', '').split(',').include?(request.remote_ip)
+        p = current_site.posts.find(current_site.get_option('page_maintenance')).decorate
+        redirect_to(p.the_url) if params != {"controller"=>"camaleon_cms/frontend", "action"=>"post", "slug"=>p.the_slug}
+      end
+    end
+  end
 end

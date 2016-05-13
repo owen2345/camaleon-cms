@@ -1,0 +1,12 @@
+<div class="col-md-7">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <%= t('camaleon_cms.admin.message.add_menus') %> <%= image_tag('camaleon_cms/admin/admin_spinner.gif', id: 'menu_reoreder_loading', class: 'pull-right', style: 'background: #3C8DBC; width: 20px; border-radius: 10px; display: none;') %>
+        </div>
+        <div class="panel-body">
+            <div class="dd" id="menus_list" data-url="<%= url_for(action: :add_items, nav_menu_id: @nav_menu.id) %>" data-reorder_url="<%= url_for(action: :reorder_items, nav_menu_id: @nav_menu.id) %>">
+                <%= render 'menu_items', items: @nav_menu.children.all, nav_menu: @nav_menu %>
+            </div>
+        </div>
+    </div>
+</div>

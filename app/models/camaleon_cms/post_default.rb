@@ -11,7 +11,7 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
   include CamaleonCms::CustomFieldsRead
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}posts"
 
-  attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order
+  attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order, :is_feature
   attr_accessor :draft_id
   attr_accessible :data_options
   attr_accessible :data_metas
@@ -20,6 +20,7 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
 
   has_many :term_relationships, class_name: "CamaleonCms::TermRelationship", foreign_key: :objectid, dependent: :destroy, primary_key: :id
   has_many :children, ->{ where(post_class: "PostDefault") }, class_name: "CamaleonCms::PostDefault", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
+  scope :featured, ->{ where(is_feature: true) }
 
   validates :title, :slug, presence: true
 
@@ -27,6 +28,7 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
   before_validation :before_validating
   before_save :before_saved
   before_destroy :destroy_dependencies
+
 
   # find a content by slug (support multi language)
   def self.find_by_slug(slug)
@@ -52,13 +54,6 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
     end
   end
 
-  # save meta values passed from form
-  def set_meta_from_form(data_metas)
-    data_metas.each do |key, value|
-      self.set_meta(key, value)
-    end
-  end
-
   # return all menu items in which this post was assigned
   def in_nav_menu_items
     CamaleonCms::NavMenuItem.joins(:metas).where("value LIKE ?","%\"object_id\":\"#{self.id}\"%").where("value LIKE ?","%\"type\":\"post\"%").readonly(false)
@@ -66,7 +61,7 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
 
   # Set the meta, field values and the post keywords here
   def set_params(meta, field_options, post_data_keywords)
-    self.set_meta_from_form(meta)
+    self.set_metas(meta)
     self.set_field_values(field_options)
     self.set_option("keywords", post_data_keywords)
   end

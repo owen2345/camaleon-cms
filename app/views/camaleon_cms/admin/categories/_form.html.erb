@@ -1,10 +1,4 @@
-<%
-   if @category.nil?
-     @category = @post_type.categories.new
-   end
-
-
-%>
+<% @category = @post_type.categories.new if @category.nil? %>
 <%= form_for @category, as: "category", url:{action: @category.new_record? ? :create : :update},  html: {class: 'validate cama_ajax_request', id: 'form-category'}  do |f| %>
     <%= f.hidden_field :parent_id  %>
     <%= f.hidden_field :taxonomy %>
@@ -31,8 +25,6 @@
     </div>
 
     <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @category, field_groups: @post_type.get_field_groups({kind: "Category"})} %>
-
-
 
     <div class="panel-footer">
       <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back')%></a>

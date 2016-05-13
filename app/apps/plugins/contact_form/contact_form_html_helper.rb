@@ -128,7 +128,7 @@ module Plugins::ContactForm::ContactFormHtmlHelper
       if field[:field_type] == 'file'
         values[label] << fields[cid].original_filename if fields[cid].present?
       elsif field[:field_type] == 'captcha'
-        values[label] << session[:captcha]
+        values[label] << '--'
       elsif field[:field_type] == 'radio' || field[:field_type] == 'checkboxes'
         values[label] << fields[cid].join(',') if fields[cid].present?
       else

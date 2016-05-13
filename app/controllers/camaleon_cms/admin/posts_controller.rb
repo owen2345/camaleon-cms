@@ -78,7 +78,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     r = {post: @post, post_type: @post_type}; hooks_run("create_post", r)
     @post = r[:post]
     if @post.valid?
-      @post.set_meta_from_form(params[:meta])
+      @post.set_metas(params[:meta])
       @post.set_field_values(params[:field_options])
       @post.set_option("keywords", post_data[:keywords])
       flash[:notice] = t('camaleon_cms.admin.post.message.created', post_type: @post_type.decorate.the_title)
@@ -106,7 +106,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     r = {post: @post, post_type: @post_type}; hooks_run("update_post", r)
     @post = r[:post]
     if @post.update(post_data)
-      @post.set_meta_from_form(params[:meta])
+      @post.set_metas(params[:meta])
       @post.set_field_values(params[:field_options])
       @post.set_option("keywords", post_data[:keywords])
       hooks_run("updated_post", {post: @post, post_type: @post_type})

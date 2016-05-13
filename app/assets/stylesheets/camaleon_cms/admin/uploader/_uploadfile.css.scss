@@ -231,6 +231,7 @@ margin: 5px 10px 5px 0px;
       .ajax-upload-dragdrop{
         width: 100% !important;
         min-height: 200px;
+        padding-top: 65px;
         &.state-hover{
           background-color: #ccc;
         }
@@ -239,17 +240,5 @@ margin: 5px 10px 5px 0px;
     .ajax-file-upload-statusbar{
       width: 100% !important;
     }
-  }
-
-  .media_folder_breadcrumb{
-    left: 0;
-    position: absolute;
-    top: 0;
-    width: 100%;
-  }
-  .add_folder{
-    position: absolute;
-    right: 17px;
-    top: 5px;
   }
 }

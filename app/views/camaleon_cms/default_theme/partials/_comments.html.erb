@@ -4,13 +4,13 @@
             <div class="col-md-12">
                 <h2 class="page-header"><%= ct('comments', default: 'Comments')%></h2>
                 <section class="comment-list">
-                    <%= render partial: "partials/comments_list", locals: { comments: post.the_comments, children: "" } %>
+                    <%= render partial: "partials/#{defined?(style2) ? 'comments_list2' : 'comments_list'}", locals: { comments: post.the_comments, children: "" } %>
                 </section>
             </div>
         </div>
     <% end %>
 
-    <div class="row">
+    <div class="row comment_form_panel">
         <div class="col-md-12 col-sm-12">
             <h3><%= ct('comment_new', default: 'New Comment')%></h3>
             <% if signin? %>

@@ -81,6 +81,8 @@ var init_form_validations = function (form) {
                         $that.val(file.url).trigger("change");
                     },
                     dimension: $that.attr('data-dimension') || options["dimension"],
+                    versions: $that.attr('data-versions') || options["versions"],
+                    thumb_size: $that.attr('data-thumb_size') || options["thumb_size"],
                     title: $that.attr('title') || options["title"],
                 });
                 return false;

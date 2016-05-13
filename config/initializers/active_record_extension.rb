@@ -37,9 +37,7 @@ ActiveRecord::Associations::CollectionProxy.class_eval do
   # order: (String) order direction (ASC | DESC)
   # sample: CamaleonCms::Site.first.posts.sort_by_field("untitled-field-attributes", "desc")
   def sort_by_field(key, order = "ASC")
-    # class_name = self.build.class.name
-    # table_name = class_name.classify.table_name
-    self.includes(:custom_field_values).where("#{CamaleonCms::CustomFieldsRelationship.table_name}.custom_field_slug = ? and #{CamaleonCms::CustomFieldsRelationship.table_name}.object_class = ?", key, self.build.class.name).reorder("#{CamaleonCms::CustomFieldsRelationship.table_name}.value #{order}")
+    self.joins("LEFT OUTER JOIN #{CamaleonCms::CustomFieldsRelationship.table_name} ON #{CamaleonCms::CustomFieldsRelationship.table_name}.objectid = #{self.build.class.table_name}.id").where("#{CamaleonCms::CustomFieldsRelationship.table_name}.custom_field_slug = ? and #{CamaleonCms::CustomFieldsRelationship.table_name}.object_class = ?", key, self.build.class.name.parseCamaClass).reorder("#{CamaleonCms::CustomFieldsRelationship.table_name}.value #{order}")
   end
 
   # Filter by custom field values
@@ -48,8 +46,10 @@ ActiveRecord::Associations::CollectionProxy.class_eval do
   # sample: my_posts_that_include_my_field = CamaleonCms::Site.first.posts.filter_by_field("untitled-field-attributes")
   #   this will return all posts of the first site that include custom field "untitled-field-attributes"
   #   additionally, you can add extra filter: my_posts_that_include_my_field.where("#{CamaleonCms::CustomFieldsRelationship.table_name}.value=?", "my_value_for_field")
-  def filter_by_field(key)
-    self.includes(:custom_field_values).where("#{CamaleonCms::CustomFieldsRelationship.table_name}.custom_field_slug = ? and #{CamaleonCms::CustomFieldsRelationship.table_name}.object_class = ?", key, self.build.class.name)
+  def filter_by_field(key, args = {})
+    res = self.joins("LEFT OUTER JOIN #{CamaleonCms::CustomFieldsRelationship.table_name} ON #{CamaleonCms::CustomFieldsRelationship.table_name}.objectid = #{self.build.class.table_name}.id").where("#{CamaleonCms::CustomFieldsRelationship.table_name}.custom_field_slug = ? and #{CamaleonCms::CustomFieldsRelationship.table_name}.object_class = ?", key, self.build.class.name.parseCamaClass)
+    res = res.where("#{CamaleonCms::CustomFieldsRelationship.table_name}.value = ?", args[:value]) if args[:value]
+    res
   end
 end
 

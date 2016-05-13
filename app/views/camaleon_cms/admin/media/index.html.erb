@@ -1,30 +1,31 @@
-<div class="row">
-  <div class="col-md-3 col-md-offset-9">
-    <%= form_tag search_cama_admin_media_path, method: 'get' do %>
-      <div class="input-group">
-        <%= text_field_tag :q, @search, class: 'form-control' %>
-        <span class="input-group-btn">
-          <%= submit_tag t('camaleon_cms.admin.button.search'), class: 'btn btn-default' %>
-        </span>
-      </div>
-    <% end %>
-  </div>
-</div>
-
-<br/>
-
-<div id="cama_media_gallery" data-url_actions="<%= actions_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-formats="<%= @media_formats.join(",") %>" data-folder="<%= @folder %>" data-url="<%= ajax_cama_admin_media_path(actions: @show_file_actions) %>" data-dimension="<%= params[:dimension] %>">
+<div id="cama_media_gallery" data-url_actions="<%= actions_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-versions="<%= params[:versions] %>" data-thumb_size="<%= params[:thumb_size] %>" data-formats="<%= @media_formats.join(",") %>" data-folder="<%= @folder %>" data-url="<%= ajax_cama_admin_media_path(actions: @show_file_actions) %>" data-dimension="<%= params[:dimension] %>">
   <div class="panel panel-default">
     <div class="panel-heading">
       <div class="row">
         <div class="col-md-12">
-          <h4 class="pull-left">root</h4>
-          <ol class="pull-left breadcrumb media_folder_breadcrumb"></ol>
-          <% if @show_file_actions %>
-              <a href="#" class="btn btn-primary pull-right add_folder">
-                <i class="fa fa-plus"></i> <%= t("camaleon_cms.admin.button.add_folder") %>
-              </a>
-          <% end %>
+          <div class="row">
+              <div class="col-md-8">
+                  <ol style="margin-bottom: 0; padding-bottom: 0" class="breadcrumb media_folder_breadcrumb"></ol>
+              </div>
+              <div class="col-md-4">
+                  <%= form_tag '#', id: 'cama_search_form', class: 'input-group' do %>
+                      <input placeholder="Folder name.." class="form-control required" name="folder">
+                          <div class="input-group-btn">
+                              <button type="submit" class="btn btn-default"><i class="fa fa-search"></i> <%= t('camaleon_cms.common.search', default: 'Search') %></button>
+                              <div class="btn-group" role="group">
+                                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cogs"></i> <span class="caret"></span></button>
+                                  <ul class="dropdown-menu pull-right">
+                                      <li><a href="#" class="cam_media_reload" data-action="reload"><i class="fa fa-refresh"></i> <%= t('camaleon_cms.common.reload', default: 'Reload') %></a></li>
+                                      <% if @show_file_actions %>
+                                          <li><a href="#" class="add_folder"> <i class="fa fa-plus"></i> <%= t("camaleon_cms.admin.button.add_folder") %></a></li>
+                                      <% end %>
+                                      <li><a href="#" class="cam_media_reload" data-action="clear_cache"><i class="fa fa-recycle"></i> <%= t('camaleon_cms.common.clear_cache', default: 'Clear Cache') %></a></li>
+                                  </ul>
+                              </div>
+                          </div>
+                  <% end %>
+              </div>
+          </div>
         </div>
       </div>
     </div>

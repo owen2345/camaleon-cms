@@ -1,0 +1,10 @@
+<div id="tab-media_settings" class="<%= 'active' if 'media' == params[:tab] %> tab-pane ">
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.filesystem_max_file_size', default: 'Max. File Size to Upload [MB]') %></label><br>
+        <%= number_field :options, :filesystem_max_size, :class => "form-control number", :value => @site.get_option('filesystem_max_size', 100), placeholder: '100' %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.filesystem_thumb_size', default: 'Thumbnail dimension [100x100]') %></label><br>
+        <%= text_field :options, :filesystem_thumb_size, :class => "form-control", :value => @site.get_option('filesystem_thumb_size', '100x100'), placeholder: '100x100' %>
+    </div>
+</div>

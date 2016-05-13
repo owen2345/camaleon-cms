@@ -1,0 +1,21 @@
+<div class="manage-menus panel panel-primary">
+    <div class="panel-body">
+        <form action="<%= url_for(action: :index) %>" method="get" id="switch_nav_menu_form">
+            <div>
+                <label class="selected-menu" for="menu"><%= t('camaleon_cms.admin.menus.select_edit') %></label>
+            </div>
+            <div class="input-group input-group-sm">
+                <select id="menu" class="select form-control" name="id">
+                    <% current_site.nav_menus.each do |menu| %>
+                        <option value="<%= menu.id %>" <%= 'selected' if @nav_menu.present? && @nav_menu.id == menu.id %> ><%= menu.name %></option>
+                    <% end %>
+                </select>
+                <span class="input-group-btn">
+                    <%= link_to(t('camaleon_cms.admin.button.edit', default: 'Edit'), url_for(action: :edit, id: @nav_menu.id), class: 'btn btn-primary edit_menu_link', title: t('.edit_menu', default: 'Edit Menu')) if @nav_menu.present? %>
+                    <%= link_to("<i class='fa fa-times'></i> #{t('camaleon_cms.admin.button.delete', default: 'Delete')}".html_safe, {action: :destroy, id: @nav_menu.id}, method: :delete, data: { confirm: t('camaleon_cms.common.confirm') }, class: 'btn btn-danger', title: t('.delete_menu', default: 'Delete Current Menu')) if @nav_menu.present? %>
+                    <a class="btn btn-default new_menu_link" href="<%= url_for(action: :new) %>" title="<%= t('camaleon_cms.admin.menus.create_new') %>"> <%= t('.create_menu', default: 'Create Menu') %></a>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>

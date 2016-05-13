@@ -36,7 +36,7 @@ module CamaleonCms::Admin::MenusHelper
     items = []
     items << {icon: "desktop", title: t('camaleon_cms.admin.sidebar.themes'), url: cama_admin_appearances_themes_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.themes")}' data-position='right'"} if can? :manager, :themes
     items << {icon: "archive", title: t('camaleon_cms.admin.sidebar.widgets'), url: cama_admin_appearances_widgets_main_index_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.widgets")}' data-position='right'"} if can? :manager, :widgets
-    items << {icon: "list", title: t('camaleon_cms.admin.sidebar.menus'), url: cama_admin_appearances_nav_menus_menu_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.menus", image: view_context.asset_path("camaleon_cms/admin/intro/menus.png"))}' data-position='right'"} if can? :manager, :nav_menu
+    items << {icon: "list", title: t('camaleon_cms.admin.sidebar.menus'), url: cama_admin_appearances_nav_menus_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.menus", image: view_context.asset_path("camaleon_cms/admin/intro/menus.png"))}' data-position='right'"} if can? :manager, :nav_menu
     items << {icon: "code", title: t('camaleon_cms.admin.sidebar.shortcodes', default: "Shortcodes"), url: cama_admin_settings_shortcodes_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.shortcodes")}' data-position='right'"} if can? :manager, :shortcodes
     admin_menu_add_menu("appearance", {icon: "paint-brush", title: t('camaleon_cms.admin.sidebar.appearance'), url: "", items: items, datas: "data-intro='#{t("camaleon_cms.admin.intro.appearance")}' data-position='right' data-wait='500'"}) if items.present?
 

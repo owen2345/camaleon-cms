@@ -10,8 +10,6 @@
                 <% else  %>
                     <div class="col-md-12 input-submit"><%= f.submit "#{ (@post.new_record?) ? t('camaleon_cms.admin.page_title.create') : t('camaleon_cms.admin.page_title.update')}", class: "btn btn-success btn-lg btn-block" %></div>
                 <% end  %>
-
-
             </div>
         </div>
         <div class="panel-footer">
@@ -29,7 +27,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="panel panel-default panel-lite">
         <div class="panel-heading">
@@ -50,7 +47,7 @@
                 </select>
             </div>
             <!-- templates -->
-            <% if @post.manage_template?(@post_type) && (template_files = cama_get_list_template_files).present? %>
+            <% if @post.manage_template?(@post_type) && (template_files = cama_get_list_template_files(@post_type)).present? %>
                 <div class="form-group">
                     <label class="control-label"><%= t('camaleon_cms.admin.post_type.template')%></label>
                     <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.get_template(@post_type) ) }, {class: 'form-control'}) %>
@@ -58,7 +55,7 @@
             <% end %>
 
             <!-- layouts -->
-            <% if @post.manage_layout? && (layout_files = cama_get_list_layouts_files).present? %>
+            <% if @post.manage_layout? && (layout_files = cama_get_list_layouts_files(@post_type)).present? %>
                 <div class="form-group">
                     <label class="control-label"><%= t('camaleon_cms.admin.post_type.layout')%></label>
                     <%= select("meta", "layout", layout_files, { include_blank: true, selected: (params[:meta][:layout] rescue false || @post.get_layout(@post_type) ) }, {class: 'form-control'}) %>
@@ -77,6 +74,11 @@
             <% if @post.manage_comments?(@post_type) %>
                 <div class="form-group">
                     <label class="control-label"><%= check_box("meta", "has_comments", {checked: ( params[:meta][:has_comments] == '1' rescue false || @post.can_commented?)  }) %> &nbsp; <%= t('camaleon_cms.admin.post_type.permit_comments')%></label>
+                </div>
+            <% end %>
+            <% if @post_type.get_option('has_featured', false) %>
+                <div class="form-group">
+                    <label class="control-label"><%= f.check_box :is_feature %> &nbsp; <%= t('camaleon_cms.admin.post.is_featured', default: 'Is Featured?')%></label>
                 </div>
             <% end %>
             <%= raw @post_form_extra_settings.join("") if @post_form_extra_settings.present? %>
@@ -118,7 +120,7 @@
     <% if @post.manage_picture?(@post_type) %>
         <div class="panel panel-default panel-lite">
             <div class="panel-heading">
-                <h3 class="panel-title"><%= t('camaleon_cms.admin.post_type.featured_image')%> </h3>
+                <h3 class="panel-title"><%= t(@post_type.get_option('posts_feature_image_label', 'camaleon_cms.admin.post_type.featured_image'), default: @post_type.get_option('posts_feature_image_label_default', 'Featured Image'))%> <%= "(#{@post_type.get_option('posts_image_dimension')})" if @post_type.get_option('posts_image_dimension').present? %></h3>
                 <ul class="panel-controls">
                     <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
                 </ul>
@@ -137,9 +139,12 @@
                         </a>
                         <input name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>"/>
                     </div>
-                    <a href="#" class="btn btn-default" onclick="upload_feature_image(); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image')%></a>
+                    <!-- posts_thumb_versions ==> '200x200,400x450', posts_thumb_size ==> '100x100', posts_image_dimension ==> '1200x1200'-->
+                    <a href="#" class="btn btn-default" onclick="upload_feature_image({versions: '<%= @post_type.get_option('posts_thumb_versions') %>', thumb_size: '<%= @post_type.get_option('posts_thumb_size') %>', dimension: '<%= @post_type.get_option('posts_image_dimension') %>' }); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image', default: 'Upload Image')%></a>
                 </div>
             </div>
         </div>
     <% end %>
+
+    <%= _hook_args = {html: "", f: f, post: @post, post_type: @post_type}; hooks_run("post_form_sidebar_custom_html", _hook_args); raw(_hook_args[:html]); %>
 </div>

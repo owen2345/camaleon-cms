@@ -19,33 +19,18 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
   end
 
-  def search
-    authorize! :manager, :media
-    @tree = { files: cama_media_search_file(params[:q]), folders: [] }
-    @search = params[:q]
-    add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
-    add_breadcrumb params[:q]
-    render 'index'
-  end
-
   # crop a image to save as a new file
   def crop
-    path_image = Rails.root.join("tmp", File.basename(params[:cp_img_path])).to_s
-    if current_site.get_option("filesystem_type", "local") == "local"
-      FileUtils.cp(Rails.root.join("public", "media", params[:cp_img_path].scan(/\/media\/(.*)/).first.first).to_s, path_image)
-    else
-      File.open(path_image, 'wb'){ |fo| fo.write(open(params[:cp_img_path]).read) }
-    end
+    path_image = cama_tmp_upload(params[:cp_img_path])[:file_path]
     crop_path = cama_crop_image(path_image, params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
     res = upload_file(crop_path, {remove_source: true})
-    if params[:saved_avatar].present?
-      CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', res["url"])
-    end
+    CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', res["url"]) if params[:saved_avatar].present? # save current crop image as avatar
     render text: res["url"]
   end
 
   # render media for modal content
   def ajax
+    @tree = cama_uploader.search(params[:search]) if params[:search].present?
     if params[:partial].present?
       render partial: "files_list", locals: { files: @tree[:files], folders: @tree[:folders] }
     end
@@ -54,20 +39,20 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # do background actions in fog
   def actions
-    authorize! :manager, :media
+    if params[:media_action] != 'crop_url'
+      authorize! :manager, :media
+    end
     params[:folder] = params[:folder].gsub("//", "/") if params[:folder].present?
     case params[:media_action]
       when "new_folder"
-        cama_uploader_add_folder(params[:folder])
-        render partial: "render_folder_item", locals: { fname: params[:folder].split("/").last}
+        render partial: "render_folder_item", locals: { fname: params[:folder].split("/").last, folder: cama_uploader.add_folder(params[:folder])}
       when "del_folder"
-        cama_uploader_destroy_folder(params[:folder])
+        cama_uploader.delete_folder(params[:folder])
         render inline: ""
       when "del_file"
-        cama_uploader_destroy_file(params[:folder].gsub("//", "/"))
+        cama_uploader.delete_file(params[:folder].gsub("//", "/"))
         render inline: ""
       when 'crop_url'
-        params[:url] = Rails.public_path.join(params[:url].sub(current_site.the_url, '')).to_s if params[:url].include?(current_site.the_url) # local file
         r = cama_tmp_upload(params[:url], formats: params[:formats])
         unless r[:error].present?
           params[:file_upload] = r[:file_path]
@@ -82,7 +67,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   def upload(settings = {})
     f = {error: "File not found."}
     if params[:file_upload].present?
-      f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats]}.merge(settings))
+      f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats], versions: params[:versions], thumb_size: params[:thumb_size]}.merge(settings))
     end
 
     render(partial: "render_file_item", locals:{ file: f }) unless f[:error].present?
@@ -92,9 +77,9 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   private
   # init basic media variables
   def init_media_vars
+    cama_uploader.clear_cache if params[:cama_media_reload].present? && params[:cama_media_reload] == 'clear_cache'
     @media_formats = (params[:media_formats] || "").sub("media", ",video,audio").sub("all", "").split(",")
-    @folder = params[:folder] || "/"
-    @tree = cama_media_find_folder(@folder)
+    @tree = cama_uploader.objects(@folder = params[:folder] || "/")
     @show_file_actions ||= params[:actions].to_s == 'true'
   end
 

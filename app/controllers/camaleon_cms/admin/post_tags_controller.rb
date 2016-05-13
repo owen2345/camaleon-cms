@@ -29,7 +29,7 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
   # save changes of a post tag
   def update
     if @post_tag.update(params[:post_tag])
-      @post_tag.set_options_from_form(params[:meta]) if params[:meta].present?
+      @post_tag.set_options(params[:meta]) if params[:meta].present?
       @post_tag.set_field_values(params[:field_options])
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
       redirect_to action: :index
@@ -43,7 +43,7 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
     data_term = params[:post_tag]
     @post_tag = @post_type.post_tags.new(data_term)
     if @post_tag.save
-      @post_tag.set_options_from_form(params[:meta]) if params[:meta].present?
+      @post_tag.set_options(params[:meta]) if params[:meta].present?
       @post_tag.set_field_values(params[:field_options])
       flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
       redirect_to action: :index

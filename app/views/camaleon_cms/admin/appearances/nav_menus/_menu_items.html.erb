@@ -1,0 +1,18 @@
+<% custom_fields = nav_menu.get_field_groups.any? %>
+<ol class="dd-list">
+    <% items.each do |item|
+      item_data = parse_menu_item(item)
+      next  unless item_data.present?
+    %>
+        <li class="dd-item" data-id="<%= item.id %>">
+            <div class="dd-handle dd3-handle"></div>
+            <div class="dd3-content"><span><%= item_data[:name] %></span>
+                <span class="label label-default"><%= item.get_option('type') %></span>
+                <%= link_to('<i class="fa fa-edit"></i>'.html_safe, item_data[:url_edit] || url_for(action: :edit_menu_item, nav_menu_id: nav_menu.id, id: item.id), target: '_blank', title: t('.edit_menu_item', default: 'Edit Menu Item'), class: "item_#{item.get_option('type')}") %>
+                <%= link_to('<i class="fa fa-cog"></i>'.html_safe, {action: :custom_settings, nav_menu_id: nav_menu.id, id: item.id, cama_skip_breadcrumb: true}, class: 'custom_settings_link', title: t('.edit_custom_settings', default: 'Edit Configurations')) if custom_fields %>
+                <%= link_to('<i class="fa fa-times-circle"></i>'.html_safe, url_for(action: :delete_menu_item, nav_menu_id: nav_menu.id, id: item.id), class: 'delete_menu_item') %>
+            </div>
+            <%= render('menu_items', items: item.children, nav_menu: nav_menu) if item.children.any? %>
+        </li>
+    <% end %>
+</ol>

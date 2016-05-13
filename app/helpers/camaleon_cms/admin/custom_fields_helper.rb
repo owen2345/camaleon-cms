@@ -18,7 +18,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
             required: true,
             multiple: true,
             translate: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -30,7 +30,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
             required: true,
             multiple: true,
             translate: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -68,7 +68,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: false,
-            default_value: true,
+            default_value: '1',
             show_frontend: true
         }
     }
@@ -91,7 +91,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -122,7 +122,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -148,7 +148,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -159,7 +159,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
             required: false,
             multiple: true,
             translate: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -169,7 +169,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -179,7 +179,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true,
         },
         extra_fields:[
@@ -196,7 +196,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         },
         extra_fields:[
@@ -214,7 +214,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -224,7 +224,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -234,7 +234,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -244,7 +244,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
-            default_value: true,
+            default_value: '',
             show_frontend: true
         }
     }
@@ -275,14 +275,14 @@ module CamaleonCms::Admin::CustomFieldsHelper
         ]
     }
     # evaluate the content of command value on listing
-    # sample: get_select_options({})
+    # sample command: options_from_collection_for_select(current_site.the_posts("commerce").decorate, :id, :the_title)
     items[:select_eval] = {
         key: 'select_eval',
         label: t('camaleon_cms.admin.custom_field.fields.select_eval'),
         options: {
             required: true,
             multiple: false,
-            default_value: false,
+            default_value: '',
             show_frontend: false
         },
         extra_fields:[
@@ -299,7 +299,8 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: false,
             multiple: true,
-            show_frontend: true
+            show_frontend: true,
+            translate: true
         }
     }
     r = {fields: items}; hooks_run("extra_custom_fields", r)

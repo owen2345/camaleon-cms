@@ -2,6 +2,7 @@
 es:
   camaleon_cms:
     welcome_message: "Bienvenido a Camaleon CMS"
+    captcha_placeholder: 'Por favor ingrese el texto de la imagen'
     admin:
       request_error_message: "Un error a ocurrido, por favor contacte con el administrador."
       button:
@@ -9,6 +10,7 @@ es:
        add_new_field: 'Añadir nuevo campo'
        add_option: 'Añadir opción'
        add_menu: 'Añadir Menú'
+       update_menu: 'Actualizar Menú'
        add_widget: 'Añadir Widget'
        accept: 'Aceptar'
        actived: 'Activado'
@@ -224,6 +226,7 @@ es:
         clone_content: 'Clonar contenido'
         label_required: 'Etiqueta Requerida'
         placeholder_required: 'Placeholder Requerido'
+        is_featured: 'Es Destacado?'
         message:
           created: 'El %{post_type} se ha creado.'
           updated: 'El %{post_type} se ha actualizado.'
@@ -331,11 +334,15 @@ es:
         author: "Nombre de Autor"
         seo_setting: "Posicionamiento Web."
         email_settings: "Configuración de Correo (SMTP)"
+        media_settings: "Configuración de Multimedia"
         filesystem_type: "Tipo de sistema de ficheros"
+        filesystem_max_file_size: "Tamaño Max. a Subir [MB]"
+        filesystem_thumb_size: "Tamaño de miniaturas [100x100]"
         filesystem_s3_access_key: "AWS S3 Clave de acceso"
         filesystem_s3_secret_key: "AWS S3 Contraseña de acceso"
         filesystem_s3_bucket_name: "AWS S3 nombre del bucket"
         filesystem_cdn: "CDN url"
+        filesystem_s3_cloudfront: 'Cloudfront URL'
         security:
           captcha_user_register: "¿Activar captcha en el registro de usuarios?"
           need_validate_email: "¿Es necesario validar el email?"
@@ -365,6 +372,12 @@ es:
           add_custom_field_widget: 'Agregar Campo Personalizado en Widgets '
         untitled: 'Intitulado'
         where_display_group: 'Dónde mostrar este grupo'
+        configuration_settings:
+          maintenance_page: 'Página a mostrar para mantenimiento'
+          inactive_page: 'Página a mostrar para inactivo'
+          status: 'Estado del Sitio'
+          default_page: 'Por defecto'
+          maintenance_ips: "IP's de Mantenimiento (Separado por comas)"
       sidebar:
         appearance: 'Apariencia'
         comments: 'Comentarios'
@@ -473,6 +486,7 @@ es:
         password_confirmation: 'Confirmación de Contraseña'
         password_protection: 'Protección por contraseña'
         permit_comments_default: 'Permitir Comentarios (por defecto)'
+        permit_is_featured: 'Permitir Articulos Destacados'
         post: 'Articulo'
         post_type: 'Tipo de Articulo'
         pending: 'Pendiente'
@@ -606,3 +620,27 @@ es:
           error_created: 'No se ha creado el Widget.'
           error_updated: 'No se ha actualizado el Widget.'
           not_registered_widgets: 'No existen widgets registrados'
+      appearances:
+        nav_menus:
+          menu_items:
+            edit_menu_item: 'Editar Menú Item'
+            edit_custom_settings: 'Editar Configuración'
+          update:
+            updated_menu: 'El menú fué actualizado'
+          create:
+            created_menu: 'El menú fué creado'
+          destroy:
+              deleted_menu: 'El menú fué eliminado'
+          menu_options:
+            edit_menu: 'Editar Menú'
+            delete_menu: 'Eliminar Menú'
+            create_menu: 'Crear Menú'
+          external_menu:
+            root_alert_info: 'Tu puedes usar <b>root_url</b> para url de inicio'
+
+    models:
+      site:
+        status_options:
+          active: 'Activo'
+          inactive: 'In activo'
+          maintenance: 'En Mantenimiento'

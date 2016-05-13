@@ -203,7 +203,7 @@ class PluginRoutes
   # return all sites registered for Plugin routes
   def self.get_sites
     begin
-      @@all_sites ||= CamaleonCms::Site.order(id: :asc).all
+      @@all_sites ||= CamaleonCms::Site.order(id: :asc).all.to_a
     rescue
       []
     end

@@ -1,0 +1,24 @@
+<ul class="media-list comments-list">
+    <% comments.each do |comment| user = comment.comment_user.decorate %>
+        <li class="media">
+            <div class="media-left">
+                <%= link_to(image_tag(user.the_avatar, class: "media-object", style: 'width: 64px;'), user.the_url) %>
+            </div>
+            <div class="media-body">
+                <h4 class="media-heading"><%= link_to(user.the_name, user.the_url) %> <small class="pull-right"><%= comment.decorate.the_created_at %></small></h4>
+                <div><%= raw comment.content %></div>
+                <% comment.children.approveds.each do |answer| user2 = answer.comment_user.decorate %>
+                    <div class="media">
+                        <div class="media-left">
+                            <%= link_to(image_tag(user2.the_avatar, class: "media-object", style: 'width: 64px;'), user2.the_url) %>
+                        </div>
+                        <div class="media-body">
+                            <h4 class="media-heading"><%= link_to(user2.the_name, user.the_url) %> <small class="pull-right"><%= answer.decorate.the_created_at %></small></h4>
+                            <div><%= raw answer.content %></div>
+                        </div>
+                    </div>
+                <% end %>
+            </div>
+        </li>
+    <% end %>
+</ul>

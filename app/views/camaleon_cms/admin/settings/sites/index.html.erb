@@ -21,6 +21,7 @@
                 <th><%= t('camaleon_cms.admin.table.slug') %></th>
                 <th><%= t('camaleon_cms.admin.table.description') %></th>
                 <th><%= t('camaleon_cms.admin.table.default') %></th>
+                <th><%= t('camaleon_cms.admin.table.status') %></th>
                 <th><%= t('camaleon_cms.admin.table.actions') %></th>
                 <th></th>
             </tr>
@@ -33,10 +34,11 @@
                     <td><%= f.slug %></td>
                     <td><%= f.the_description %></td>
                     <td><%= (f.main_site?)? true : false %></td>
+                    <td><%= f.the_status %></td>
                     <td>
-                    <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
-                    <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
-                                method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" unless current_site.id == f.id %>
+                        <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                        <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
+                                    method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" unless current_site.id == f.id %>
                     </td>
                     <td>
                         <a target="_blank" class="btn btn-info btn-xs" href="<%= f.the_url %>" target="_blank" title="<%= t("camaleon_cms.common.visit") %>"><i class="fa fa-eye"></i></a>

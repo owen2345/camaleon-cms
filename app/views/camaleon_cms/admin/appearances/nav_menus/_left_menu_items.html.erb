@@ -1,0 +1,77 @@
+<div class="panel-group <%= "disabled" if @nav_menu.new_record? %>">
+    <% @post_types.each do |pt|
+      pt = pt.decorate %>
+        <div class="panel panel-default <%= 'panel-toggled' if pt.slug != 'post' %>">
+            <div class="panel-heading">
+                <h4 class="panel-title class_type" data-type="post_type">
+                    <label class=" nowrap class_slug" data-post_link_edit="">
+                        <input type="checkbox" name="pt[]" value="<%= pt.id %>">
+                        <span class="lbl hidden"><%= pt.the_title %></span>
+                    </label>
+                    <%= pt.the_title %>
+                </h4>
+                <ul class="panel-controls">
+                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a> </li>
+                </ul>
+            </div>
+            <div class="panel-body nav-tabs-vertical0" id="acc-<%= pt.slug %>" style="padding: 0">
+                <div class="tabs">
+                    <ul class="nav nav-tabs ">
+                        <li class="active">
+                            <a href="#tab-<%= pt.slug %>-posts" role="tab" data-toggle="tab"><%= t('camaleon_cms.admin.post_type.posts') %></a>
+                        </li>
+                        <% if pt.manage_categories? %>
+                            <li>
+                                <a href="#tab-<%= pt.slug %>-categories" role="tab" data-toggle="tab"><%= t('camaleon_cms.admin.post_type.categories') %></a>
+                            </li>
+                        <% end %>
+                        <% if pt.manage_tags? %>
+                            <li>
+                                <a href="#tab-<%= pt.slug %>-tags" role="tab" data-toggle="tab"><%= t('camaleon_cms.admin.post_type.tags') %></a>
+                            </li>
+                        <% end %>
+                    </ul>
+                    <div class=" tab-content">
+                        <div class="tab-pane active class_type" id="tab-<%= pt.slug %>-posts" data-type="post" data-post_type="<%= pt.slug %>">
+                            <ul class="categorychecklist">
+                                <% (pt.manage_hierarchy? ? cama_hierarchy_post_list(pt.posts.eager_load(:post_type).published.decorate.to_a) : pt.posts.eager_load(:post_type).published.decorate).each do |p| %>
+                                    <li>
+                                        <label class="class_slug" data-post_link_edit="<%= p.the_edit_url %>">
+                                            <input type="checkbox" value="<%= p.id %>">
+                                            <%= p.the_hierarchy_title %>
+                                        </label>
+                                    </li>
+                                <% end %>
+                            </ul>
+                        </div>
+                        <% if pt.manage_categories? %>
+                            <div class="tab-pane class_type" id="tab-<%= pt.slug %>-categories" data-type="category" data-post_type="<%= pt.slug %>">
+                                <%= raw post_type_html_inputs(pt, "categories", "categories", "checkbox", [], "categorychecklist") %>
+                            </div>
+                        <% end %>
+                        <% if pt.manage_tags? %>
+                            <div class="tab-pane class_type" id="tab-<%= pt.slug %>-tags" data-type="post_tag" data-post_type="<%= pt.slug %>">
+                                <%= raw post_type_html_inputs(pt, "post_tags", "post_tags", "checkbox", [], "categorychecklist") %>
+                            </div>
+                        <% end %>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <button class="add_links_to_menu btn btn-primary pull-right" type=""><%= t('camaleon_cms.admin.button.add_menu') %><i class="fa fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+    <% end %>
+
+    <%= render "custom_menus" %>
+
+    <div class="panel panel-default panel-toggled">
+        <div class="panel-heading">
+            <h4 class="panel-title"><%= t('camaleon_cms.admin.menus.external_link') %></h4>
+            <ul class="panel-controls">
+                <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+            </ul>
+        </div>
+        <%= render partial: "external_menu", locals: {menu_item: @nav_menu.children.new, nav_menu: @nav_menu } %>
+    </div>
+</div>

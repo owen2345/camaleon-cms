@@ -8,7 +8,7 @@ jQuery(document).on("ready page:changed", function(){
 // show admin intro presentation
 function init_intro(){
     var finish = function(){
-        $.get(root_url+"/admin/ajax", {mode: "save_intro"});
+        $.get(root_admin_url+"/ajax", {mode: "save_intro"});
         var layer = $(".introjs-overlay").clone();
         var of = $(".introjs-tooltip").offset();
         var c = $(".introjs-tooltip").clone().css($.extend({}, {"min-width": "0", position: "absolute", overflow: "hidden", "zIndex": 9999999}, of));

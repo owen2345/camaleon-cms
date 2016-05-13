@@ -7,12 +7,14 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
+  alias_attribute :site_id, :parent_id
   default_scope { where(taxonomy: :post_type) }
-  has_many :metas, ->{ where(object_class: 'PostType')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-  has_many :categories, :class_name => "CamaleonCms::Category", foreign_key: :parent_id, dependent: :destroy
-  has_many :post_tags, :class_name => "CamaleonCms::PostTag", foreign_key: :parent_id, dependent: :destroy
-  has_many :posts, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy
-  has_many :posts_draft, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy, source: :drafts
+  has_many :metas, ->{ where(object_class: 'PostType')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
+  has_many :categories, :class_name => "CamaleonCms::Category", foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type_parent
+  has_many :post_tags, :class_name => "CamaleonCms::PostTag", foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type
+  has_many :posts, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy, inverse_of: :post_type
+  has_many :posts_through_categories, foreign_key: :objectid, through: :term_relationships, :source => :objects
+  has_many :posts_draft, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy, source: :drafts, inverse_of: :post_type
   has_many :field_group_taxonomy, -> {where("object_class LIKE ?","PostType_%")}, :class_name => "CamaleonCms::CustomField", foreign_key: :objectid, dependent: :destroy
 
   belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
@@ -169,22 +171,22 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
 
   # destroy all custom field groups assigned to this post type
   def destroy_field_groups
-    # TODO: CHANGE TO SUPPORT DESTROY FOR SITE DESTROY
-    # if self.slug == "post" || self.slug == "page"
-    #   errors.add(:base, "This post type can not be deleted.")
-    #   return false
-    # end
+    unless self.destroyed_by_association.present?
+      if self.slug == "post" || self.slug == "page"
+        errors.add(:base, "This post type can not be deleted.")
+        return false
+      end
+    end
     self.get_field_groups.destroy_all
   end
 
   # reload routes to enable this post type url, like: http://localhost/my-slug
   def refresh_routes
-    PluginRoutes.reload
+    PluginRoutes.reload unless self.destroyed_by_association.present?
   end
 
   # check if slug was changed
   def check_refresh_routes
     refresh_routes if self.slug_changed?
   end
-
 end

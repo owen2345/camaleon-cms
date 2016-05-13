@@ -1,17 +1,33 @@
-<% posts = current_site.posts.public_posts.all %>
+<% posts = current_site.the_posts('page').public_posts.all.decorate %>
 <div id="tab-configuration" class="<%= "active" if "config" == params[:tab] %> tab-pane ">
     <div class="form-group">
         <label for=""><%= t('camaleon_cms.admin.table.home_page') %></label><br>
-        <%= select_tag "options[home_page]", options_for_select([[t('camaleon_cms.admin.table.default'), ""]]+(posts.collect { |x| x = x.decorate; [x.the_title, x.id] }), @site.options[:home_page]), class: "form-control select" %>
+        <%= select_tag "options[home_page]", options_from_collection_for_select(posts, :id, :the_title, current_site.get_option('home_page')), include_blank: t('.default_page', default: '- Default -'), class: "form-control select" %>
     </div>
     <div class="form-group">
         <label for=""><%= t('camaleon_cms.admin.table.page_404') %></label><br>
-        <%= select_tag "options[error_404]", options_for_select([[t('camaleon_cms.admin.table.default'), ""]]+(posts.collect { |x| x = x.decorate; [x.the_title, x.id] }), @site.options[:error_404]), class: "form-control select" %>
+        <%= select_tag "options[error_404]", options_from_collection_for_select(posts, :id, :the_title, current_site.get_option('error_404')), include_blank: t('.default_page', default: '- Default -'), class: "form-control select" %>
     </div>
+
     <div class="form-group">
-        <label for=""><%= t('camaleon_cms.admin.table.email_address') %></label><br>
-        <%= email_field :options, :email, :class => "form-control", :value => @site.options[:email] %>
+        <%= f.label t('.status', default: 'Site Status') %><br>
+        <%= f.select :status, current_site.the_status_options, {}, :class => "form-control" %>
     </div>
+    <div class="hidden site_options_for_status status_maintenance">
+        <div class="form-group">
+            <%= label_tag 'options[page_maintenance]', t('.maintenance_page', default: 'Page to show for Maintenance') %>
+            <%= select_tag 'options[page_maintenance]', options_from_collection_for_select(posts, :id, :the_title, current_site.get_option('page_maintenance')), :class => "form-control" %>
+        </div>
+        <div class="form-group">
+            <label for=""><%= t('.maintenance_ips', default: 'Maintenance IP\'s (Separated by commas)') %></label><br>
+            <%= text_field :options, :maintenance_ips, :class => "form-control", :value => @site.get_option('maintenance_ips') %>
+        </div>
+    </div>
+    <div class=" site_options_for_status status_inactive">
+        <%= label_tag 'options[page_inactive]', t('.inactive_page', default: 'Page to show for Inactive') %>
+        <%= select_tag 'options[page_inactive]', options_from_collection_for_select(posts, :id, :the_title, current_site.get_option('page_inactive')), :class => "form-control" %>
+    </div>
+
     <div class="form-group">
         <label for=""><%= t('camaleon_cms.admin.settings.list_per_page_front') %></label><br>
         <%= text_field :options, :front_per_page, :class => "form-control number", :value => @site.front_per_page %>
@@ -37,3 +53,11 @@
     <%= check_box :options, :need_validate_email, {checked: @site.need_validate_email?, class: "icheckbox0"}, "true", "" %>
   </div>
 </div>
+<script>
+    jQuery(function(){
+        var form = $('#site_settings_form');
+        form.find('#site_status').change(function(){
+            form.find('.site_options_for_status').hide().removeClass('hidden').filter('.status_'+$(this).val()).slideDown();
+        }).trigger('change');
+    })
+</script>

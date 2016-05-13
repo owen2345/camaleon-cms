@@ -128,7 +128,7 @@ module CamaleonCms::HtmlHelper
     libs[:post] = {js: ["camaleon_cms/admin/jquery.tagsinput.min", 'camaleon_cms/admin/post'], css: ["camaleon_cms/admin/jquery.tagsinput"]}
     libs[:multiselect] = {js: ['camaleon_cms/admin/bootstrap-select.js']}
     libs[:validate] = {js: ['camaleon_cms/admin/jquery.validate']}
-    libs[:nav_menu] = {css: ['camaleon_cms/admin/nestable/jquery.nestable', "camaleon_cms/admin/nav-menu"], js: ["camaleon_cms/admin/jquery.nestable", 'camaleon_cms/admin/nav-menu']}
+    libs[:nav_menu] = {css: ['camaleon_cms/admin/nestable/jquery.nestable'], js: ["camaleon_cms/admin/jquery.nestable", 'camaleon_cms/admin/nav_menu']}
     libs[:admin_intro] = {js: ['camaleon_cms/admin/introjs/intro.min'], css: ["camaleon_cms/admin/introjs/introjs.min"]}
     @_cama_assets_libraries = libs
   end

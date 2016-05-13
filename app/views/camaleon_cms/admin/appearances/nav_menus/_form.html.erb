@@ -1,0 +1,13 @@
+<%= form_for @nav_menu, url: {action: (@nav_menu.new_record? ? :create : :update), id: @nav_menu.id}, as: "nav_menu", method: (@nav_menu.new_record? ? 'post' : 'patch'), html: {id: "menu_form"} do |f| %>
+    <div class="form-group">
+        <label><%= t('camaleon_cms.admin.menus.name_menu') %>:</label>
+        <%= f.text_field :name, class: 'form-control menu-input-title' %>
+    </div>
+    <div class="form-group">
+        <label>Slug:</label>
+        <%= f.text_field :slug, class: 'form-control menu-input-slug slug', 'data-parent' => 'nav_menu_name' %>
+    </div>
+    <div class="form-group text-right">
+        <button class="btn btn-primary" type=""><%= @nav_menu.new_record? ? t('camaleon_cms.admin.button.create_menu') : t('camaleon_cms.admin.button.update_menu') %></button>
+    </div>
+<% end %>

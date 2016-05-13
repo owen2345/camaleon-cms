@@ -314,7 +314,7 @@ en:
         activate_login_social_networks: 'Activate Login Social Networks'
         add_field_group: 'Add Field Group'
         admin_language: 'Admin language'
-        allow_user_registration: 'Allow user registration'
+        allow_user_registration: 'Allow user registration?'
         available_fields: 'Available fields'
         available_languages: 'Available languages'
         categories_in: 'Categories in'
