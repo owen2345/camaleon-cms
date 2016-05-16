@@ -2,8 +2,12 @@
 pt-BR:
   camaleon_cms:
     see_intro: "Ver introdução"
-    camaleon_message: "Bem-vindo ao Camaleon CMS"
+    welcome_message: "Bem-vindo ao Camaleon CMS"
+    page_not_exist: "<h1>ooops...</h1><h5>A página que você procura não existe.</h5>"
+    page_error_500: "<h1>ooops...</h1><h5>Erro tipo 500 - Erro interno de servidor. Por favor, contate o administrador.</h5>"
     admin:
+      request_error_message: "Um erro ocorreu, por favor contate o administrador."
+      authorization_error: "Você não possui autorização para essa seção."
       header:
         member_since: "Membro desde %{time}"
       button:
