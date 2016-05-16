@@ -290,6 +290,9 @@ pt-BR:
         type_contents: 'Tipo de conteúdo'
         upgrade_to: "Atualizar para"
       settings:
+        aws: "Salvar arquivos na Amazon"
+        filesystem_thumb_size: "Tamanho do thumbnail [100x100]"
+        filesystem_max_file_size: "Tamanho máximo do arquivo para Upload [MB]"
         activate_create_account: 'Ative criar conta'
         activate_login_social_networks: 'Ative login por meio de redes sociais'
         add_field_group: 'Adicionar grupo de campo'
