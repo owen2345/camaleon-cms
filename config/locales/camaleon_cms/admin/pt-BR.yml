@@ -327,6 +327,13 @@ pt-BR:
         author: "Nome do autor"
         seo_setting: "Configurações SEO"
         email_settings: "Configurações de Email (SMTP)"
+        filesystem_type: "Tipo de sistema de arquivos"
+        filesystem_s3_access_key: "Chave de acesso da AWS S3"
+        filesystem_s3_secret_key: "Chave secreta da AWS S3"
+        filesystem_s3_bucket_name: "Nome do Bucket da AWS S3"
+        filesystem_s3_endpoint: "Endpoint do bucket da AWS S3"
+        filesystem_region: "Região da AWS S3"
+        filesystem_cdn: "Url da CDN"
         security:
           captcha_user_register: "Habilitar captcha no registro de usuários"
         message:
