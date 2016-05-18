@@ -27,6 +27,12 @@ module CamaleonCms::UploaderHelper
   # sample: upload_file(params[:my_file], {formats: "jpg,png,gif,mp3,mp4", temporal_time: 10.minutes, maximum: 10.megabytes})
   def upload_file(uploaded_io, settings = {})
     return {error: "File is empty", file: nil, size: nil} unless uploaded_io.present?
+    if uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://")) # download url file
+      tmp = cama_tmp_upload(uploaded_io)
+      return tmp if tmp[:error].present?
+      settings[:remove_source] = true
+      uploaded_io = tmp[:file_path]
+    end
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
     uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension])) if settings[:dimension].present? # resize file into specific dimensions
     settings = settings.to_sym
@@ -206,26 +212,23 @@ module CamaleonCms::UploaderHelper
   #   name: to indicate the name to use, sample: cama_tmp_upload('/var/www/media/132/logo 2.png', {name: 'owen.png', formats: 'images'})
   #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
   #   dimension: 20x30
+  # return: {file_path, error}
   def cama_tmp_upload(uploaded_io, args = {})
     tmp_path = args[:path] || Rails.public_path.join("tmp", current_site.id.to_s)
     FileUtils.mkdir_p(tmp_path) unless Dir.exist?(tmp_path)
     if uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://"))
       return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io, args[:formats])
-      uploaded_io = Rails.public_path.join(uploaded_io.sub(current_site.the_url, '')).to_s if uploaded_io.include?(current_site.the_url) # local file
-      name = args[:name] || uploaded_io.split("/").last.split('?').first
-      name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
-      path = uploader_verify_name( File.join(tmp_path, name))
-      File.open(path, 'wb'){|file| file.write(open(uploaded_io).read) }
-      path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
-    else
-      uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
-      return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io.path, args[:formats])
-      name = args[:name] || uploaded_io.path.split("/").last
-      name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
-      path = uploader_verify_name( File.join(tmp_path, name))
-      File.open(path, "wb"){|f| f.write(uploaded_io.read) }
-      path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
+      uploaded_io = Rails.public_path.join(uploaded_io.sub(current_site.the_url, '')).to_s if uploaded_io.include?(current_site.the_url) && Rails.env != 'production' # local file
+      _tmp_name = uploaded_io.path.split("/").last.split('?').first; args[:name] = args[:name] || _tmp_name
+      uploaded_io = open(uploaded_io)
     end
+    uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
+    return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(_tmp_name || uploaded_io.path, args[:formats])
+    return {error: "#{ct("file_size_exceeded", default: "File size exceeded")} (#{number_to_human_size(args[:maximum])})"} if args[:maximum].present? && args[:maximum] < (uploaded_io.size rescue File.size(uploaded_io))
+    name = args[:name] || uploaded_io.path.split("/").last; name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
+    path = uploader_verify_name(File.join(tmp_path, name))
+    File.open(path, "wb"){|f| f.write(uploaded_io.read) }
+    path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
     {file_path: path, error: nil}
   end
 

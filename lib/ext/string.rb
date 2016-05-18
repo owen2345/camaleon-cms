@@ -26,6 +26,14 @@ class String
     self == 'false' || self == 'true'
   end
 
+  # check if current string is true or false
+  # cases for true: '1' | 'true'
+  # cases for false: '0' | 'false' | ''
+  # return boolean
+  def cama_true?
+    self == 'true' || self == '1'
+  end
+
   def to_var
     if is_float?
       self.to_f
@@ -118,6 +126,18 @@ class String
     host = (uri.host || self).downcase
     h = host.start_with?('www.') ? host[4..-1] : host
     "#{h}#{":#{uri.port}" unless [80, 443].include?(uri.port)}"
+  end
+
+  # parse all codes in current text to replace with values
+  # sample: "Hello [c1]".cama_replace_codes({c1: 'World'}) ==> Hello World
+  def cama_replace_codes(values, format_code = '[')
+    res = self
+    values.each do |k, v|
+      v = v.join(',') if v.is_a?(Array)
+      res = res.gsub("[#{k}]", v) if format_code == '['
+      res = res.gsub("{#{k}}", v) if format_code == '{'
+    end
+    res
   end
 
   # return cleaned model class name

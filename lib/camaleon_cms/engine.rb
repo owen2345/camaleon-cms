@@ -21,9 +21,9 @@ module CamaleonCms
     config.before_initialize do |app|
       if app.respond_to?(:console)
         app.console do
-          puts "******** Camaleon CMS: To use custom models and helpers of installed plugins, write this: ********"
-          puts "- include CamaleonCms::SiteHelper"
-          puts "- site_console_switch(CamaleonCms::Site.first.decorate)"
+          # puts "******** Camaleon CMS: ********"
+          # puts "- include CamaleonCms::SiteHelper"
+          # puts "- $current_site = CamaleonCms::Site.first.decorate"
         end
       end
     end

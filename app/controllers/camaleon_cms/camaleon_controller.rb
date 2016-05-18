@@ -26,7 +26,6 @@ class CamaleonCms::CamaleonController < ApplicationController
   include CamaleonCms::EmailHelper
   include Mobu::DetectMobile
 
-  prepend_before_action :cama_load_custom_models
   before_action :cama_site_check_existence, except: [:render_error, :captcha]
   before_action :cama_before_actions, except: [:render_error, :captcha]
   after_action :cama_after_actions, except: [:render_error, :captcha]
@@ -94,13 +93,6 @@ class CamaleonCms::CamaleonController < ApplicationController
   # redirect to sessions login form when the session was expired.
   def auth_session_error
     redirect_to cama_root_path
-  end
-
-  # include CamaleonCms::all custom models created by installed plugins or themes for current site
-  def cama_load_custom_models
-    if current_site.present?
-      site_load_custom_models(current_site)
-    end
   end
 
   # check if current site exist, if not, this will be redirected to main domain

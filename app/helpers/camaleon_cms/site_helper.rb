@@ -95,23 +95,4 @@ module CamaleonCms::SiteHelper
     hook_run(theme, "on_inactive", theme_model) if theme_model.present?
     # theme_model.destroy
   end
-
-
-  # load all custom models customized by plugins or templates in custom_models.rb
-  def site_load_custom_models(site)
-    PluginRoutes.enabled_apps(site).each{ |app|
-      next if !app.present? || !app["path"].present?
-      s = File.join(app["path"], "config", "custom_models.rb")
-      eval(File.read(s)) if File.exist?(s)
-    }
-  end
-
-  #################### ONLY FOR CONSOLE ####################
-  # switch console sessions and redefine current for the console session
-  # site: Site model used as current site
-  # return nil
-  def site_console_switch(site = nil)
-    $current_site = site
-    site_load_custom_models($current_site)
-  end
 end
