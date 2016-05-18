@@ -7,8 +7,8 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
+  before_action :init_frontent
   include CamaleonCms::FrontendConcern
-  prepend_before_action :init_frontent
   include CamaleonCms::Frontend::ApplicationHelper
   layout Proc.new { |controller| params[:cama_ajax_request].present? ? "cama_ajax" : 'index' }
 

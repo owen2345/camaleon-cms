@@ -6,7 +6,9 @@
   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
-class Plugins::Attack::Models::Attack < ActiveRecord::Base
-  attr_accessible :path, :browser_key
-  belongs_to :site
+Rails.application.config.to_prepare do
+  class Plugins::Attack::Models::Attack < ActiveRecord::Base
+    attr_accessible :path, :browser_key
+    belongs_to :site
+  end
 end

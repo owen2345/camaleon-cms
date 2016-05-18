@@ -12,6 +12,7 @@ if(CamaleonCms::Site.any? rescue false)
     if ap["path"].present?
       f = File.join(ap["path"], "config", "initializer.rb")
       eval(File.read(f)) if File.exist?(f)
+
       f = File.join(ap["path"], "config", "custom_models.rb")
       eval(File.read(f)) if File.exist?(f)
     end

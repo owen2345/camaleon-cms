@@ -26,6 +26,8 @@ class CamaleonCms::CamaleonController < ApplicationController
   include CamaleonCms::EmailHelper
   include Mobu::DetectMobile
 
+  PluginRoutes.all_helpers.each{|h| include h.constantize }
+
   before_action :cama_site_check_existence, except: [:render_error, :captcha]
   before_action :cama_before_actions, except: [:render_error, :captcha]
   after_action :cama_after_actions, except: [:render_error, :captcha]

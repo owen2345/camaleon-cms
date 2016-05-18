@@ -12,6 +12,7 @@ require 'breadcrumbs_on_rails'
 require 'aws-sdk'
 require 'font-awesome-rails'
 require 'tinymce-rails'
+require 'cama_contact_form'
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s
