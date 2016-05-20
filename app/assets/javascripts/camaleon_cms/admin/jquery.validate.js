@@ -112,7 +112,7 @@
     $.validator.addMethod("file_format", function (value, element) {
         var formats = $(element).attr("data-formats");
         var ext = value.split(".").pop().toLowerCase();
-        if (formats)
+        if (formats && value)
             return ($.inArray("video", formats.split(",")) >= 0 && $.cama_check_video_url(value)) || $.inArray($.file_formats[ext], formats.split(",")) >= 0 || $.inArray(ext, formats.split(",")) >= 0
 
         return true;
