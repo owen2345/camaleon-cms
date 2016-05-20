@@ -91,7 +91,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
     parent_id = params[:nav_menu_id] if parent_id.nil?
     items.each do |index, _item|
       item = current_site.nav_menu_items.find(_item['id'])
-      item.update_column(:parent_id, parent_id)
+      item.update_columns parent_id: parent_id, term_order: index
       reorder_items(_item['children'], _item['id'], false) if _item['children'].present?
     end
     render(inline: '') if is_root
