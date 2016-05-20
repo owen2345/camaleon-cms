@@ -226,6 +226,7 @@ es:
         clone_content: 'Clonar contenido'
         label_required: 'Etiqueta Requerida'
         placeholder_required: 'Placeholder Requerido'
+        is_featured: 'Es Destacado?'
         message:
           created: 'El %{post_type} se ha creado.'
           updated: 'El %{post_type} se ha actualizado.'
@@ -485,6 +486,7 @@ es:
         password_confirmation: 'Confirmación de Contraseña'
         password_protection: 'Protección por contraseña'
         permit_comments_default: 'Permitir Comentarios (por defecto)'
+        permit_is_featured: 'Permitir Articulos Destacados'
         post: 'Articulo'
         post_type: 'Tipo de Articulo'
         pending: 'Pendiente'

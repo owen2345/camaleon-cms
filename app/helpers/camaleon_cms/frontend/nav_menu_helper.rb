@@ -112,6 +112,49 @@ module CamaleonCms::Frontend::NavMenuHelper
     end
   end
 
+  # filter and parse all menu items visible for current user and adding the flag for current_parent or current_item
+  # max_levels: max levels to iterate
+  # return an multidimensional array with all items until level 'max_levels'
+  # internal_level: ingnore (managed by internal recursion)
+  def cama_menu_parse_items(items, max_levels=-1, internal_level=0)
+    res, is_current_parent, levels = [], false, [0]
+    items.each_with_index do |nav_menu_item, index|
+      data_nav_item = _get_link_nav_menu(nav_menu_item)
+      next if data_nav_item == false
+      _is_current = data_nav_item[:current] || site_current_path == data_nav_item[:link] || site_current_path == data_nav_item[:link].sub(".html", "")
+      has_children = nav_menu_item.have_children?
+      has_children = false if max_levels > 0 && max_levels == internal_level
+      data_nav_item[:label] = data_nav_item[:name]
+      data_nav_item[:url] = data_nav_item[:link]
+      r = {
+          menu_item: nav_menu_item.decorate,
+          level: internal_level,
+          has_children: has_children,
+          index: index,
+          current_item: _is_current,
+          current_parent: false,
+          levels: 0
+      }.merge(data_nav_item.except(:current, :name, :link))
+
+      if has_children
+        r[:children], _is_current_parent, r[:levels] = cama_menu_parse_items(nav_menu_item.children, max_levels, internal_level + 1)
+        if _is_current_parent
+          is_current_parent = true
+          r[:current_parent] = true
+        end
+        r[:levels] = r[:levels] + 1
+      end
+      levels << r[:levels]
+      res << r
+    end
+
+    if internal_level == 0
+      res
+    else
+      [res, is_current_parent, levels.max]
+    end
+  end
+
   #******************* BREADCRUMBS *******************
   # draw the breadcrumb as html list
   def breadcrumb_draw

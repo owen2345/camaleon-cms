@@ -7,15 +7,15 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Category < CamaleonCms::TermTaxonomy
-  # term_group = site_id
-  # status = post_type_id
-
+  alias_attribute :site_id, :term_group
+  alias_attribute :post_type_id, :status
   default_scope { where(taxonomy: :category) }
   has_many :metas, ->{ where(object_class: 'Category')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
   has_many :children, class_name: "CamaleonCms::Category", foreign_key: :parent_id, dependent: :destroy
   belongs_to :parent, class_name: "CamaleonCms::Category", foreign_key: :parent_id
-  belongs_to :post_type_parent, class_name: "CamaleonCms::PostType", foreign_key: :parent_id
+  belongs_to :post_type_parent, class_name: "CamaleonCms::PostType", foreign_key: :parent_id, inverse_of: :categories
+  belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :site_id
 
   scope :no_empty, ->{ where("count > 0") } # return all categories that contains at least one post
   scope :empty, ->{ where(count: [0,nil]) } # return all categories that does not contain any post
@@ -40,7 +40,7 @@ class CamaleonCms::Category < CamaleonCms::TermTaxonomy
   private
   def set_site
     pt = self.post_type
-    self.term_group = pt.site.id unless self.term_group.present?
+    self.site_id = pt.site_id unless self.site_id.present?
     self.status = pt.id unless self.status.present?
   end
 

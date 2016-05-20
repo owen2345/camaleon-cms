@@ -41,15 +41,12 @@ module CamaleonCms::SessionHelper
   # User registration.
   #
   # user_data must contain:
+  # - first_name
   # - email
   # - username
   # - password
   # - password_confirmation
-  #
-  # meta must contain:
-  # - first_name
-  # - last_name
-  #
+
   def cama_register_user(user_data, meta)
     @user = current_site.users.new(user_data)
     r = {user: @user, params: params}; hook_run('user_before_register', r)
@@ -58,7 +55,7 @@ module CamaleonCms::SessionHelper
       {:result => false, :type => :captcha_error, :message => t('camaleon_cms.admin.users.message.error_captcha')}
     else
       if @user.save
-        @user.set_meta_from_form(meta)
+        @user.set_metas(meta)
         message = current_site.need_validate_email? ? t('camaleon_cms.admin.users.message.created_pending_validate_email') : t('camaleon_cms.admin.users.message.created')
         r = {user: @user, message: message, redirect_url: cama_admin_login_path}; hooks_run('user_after_register', r)
         {:result => true, :message => r[:message], :redirect_url => r[:redirect_url]}

@@ -9,6 +9,7 @@
 class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
   self.primary_key = :id
   # attrs required: name, slug, description
+  alias_attribute :site_id, :parent_id
   default_scope { where.not(object_class: '_fields').reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC") }
 
   has_many :metas, ->{ where(object_class: 'CustomFieldGroup')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
@@ -26,6 +27,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
   # for select, radio and checkboxes add:
   # -- multiple_options: [{"title"=>"Option Title", "value"=>"2", "default"=>"1"}, {"title"=>"abcde", "value"=>"3"}]
   # -- add default for default value
+  # -- label_eval: (Boolean, default false), true => will evaluate the label and description of current field using (eval('my_label')) to have translatable|dynamic labels
   # SAMPLE: my_model.add_field({"name"=>"Sub Title", "slug"=>"subtitle"}, {"field_key"=>"text_box", "translate"=>true, default_value: "Get in Touch"})
 
   def add_manual_field(item, options)
@@ -33,7 +35,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
     return c if c.present?
 
     field_item = self.fields.create!(item)
-    field_item.set_meta('_default', options)
+    field_item.set_options(options)
     auto_save_default_values(field_item, options)
     field_item
   end

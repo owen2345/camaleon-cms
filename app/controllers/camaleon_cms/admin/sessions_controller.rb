@@ -114,9 +114,6 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       user_data = params[:user]
       result = cama_register_user(user_data, params[:meta])
       if result[:result] == false && result[:type] == :captcha_error
-        @first_name = params[:meta][:first_name]
-        @last_name = params[:meta][:last_name]
-
         @user.errors[:captcha] = t('camaleon_cms.admin.users.message.error_captcha')
         render 'register'
       elsif result[:result]
@@ -125,8 +122,6 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
         r = {user: @user, redirect_url: result[:redirect_url]}; hooks_run('user_registered', r)
         redirect_to r[:redirect_url]
       else
-        @first_name = params[:meta][:first_name]
-        @last_name = params[:meta][:last_name]
         render 'register'
       end
     else

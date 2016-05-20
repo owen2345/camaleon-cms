@@ -31,24 +31,26 @@ module CamaleonCms::SiteHelper
   end
 
   # get list templates files of current theme
-  def cama_get_list_template_files
+  def cama_get_list_template_files(post_type)
     contained_files = []
     Dir[File.join(current_theme.settings["path"], "views", '*')].each do |path|
       f_name = File.basename(path)
       contained_files << f_name.split(".").first if f_name.include?('template_')
     end
-    contained_files
+    _args={tempates: contained_files, post_type: post_type}; hooks_run("post_get_list_templates", _args)
+    _args[:tempates]
   end
 
   # get list layouts files of current theme
   # return an array of layouts for current theme
-  def cama_get_list_layouts_files
+  def cama_get_list_layouts_files(post_type)
     contained_files = []
     Dir[File.join(current_theme.settings["path"], "views", "layouts", '*')].each do |path|
       f_name = File.basename(path)
       contained_files << f_name.split(".").first unless f_name.start_with?('_')
     end
-    contained_files
+    _args={layouts: contained_files, post_type: post_type}; hooks_run("post_get_list_layouts", _args)
+    _args[:layouts]
   end
 
 

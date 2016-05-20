@@ -11,7 +11,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     before_destroy :_destroy_custom_field_groups
     has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))} , :class_name => "CamaleonCms::CustomField" ,foreign_key: :objectid
     has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
-    has_many :custom_field_values, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
+    has_many :custom_field_values, ->(object){ where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::", ""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
 
     # valid only for simple groups and not for complex like: posts, post, ... where the group is for individual or children groups
     has_many :field_groups, ->(object){where(object_class: object.class.to_s.parseCamaClass)}, :class_name => "CamaleonCms::CustomFieldGroup", foreign_key: :objectid
@@ -24,10 +24,11 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # args: (Hash)
     # kind: argument only for PostType Objects: (Post (Default) | Category | PostTag).
       # If kind = "post_type" this will return groups for all post_types
+      # If kind = "Post" this will return all groups for all posts from current post type + groups of current post type
     # include_parent: (boolean, default false) Permit to recover groups from self + parent post_type (argument valid only for Post | PostTag | Category)
   # args: (String) => is a value for kind attribute
   def get_field_groups(args = {})
-    args = args.is_a?(String) ?  {kind: args, include_parent: false } : {kind: "post", include_parent: false }.merge(args)
+    args = args.is_a?(String) ?  {kind: args, include_parent: false } : {kind: "Post", include_parent: false }.merge(args)
     class_name = self.class.to_s.parseCamaClass
     case class_name
       when 'Category','Post','PostTag'
@@ -36,12 +37,6 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
         else
           CamaleonCms::CustomFieldGroup.where(objectid: self.id || -1, object_class: class_name)
         end
-      when 'Widget::Main'
-        self.field_groups
-      when 'Theme'
-        self.field_groups
-      when 'Site'
-        self.field_groups
       when 'NavMenuItem'
         self.main_menu.field_groups
       when 'PostType'
@@ -52,7 +47,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
         else
           CamaleonCms::CustomFieldGroup.where(object_class: "PostType_#{args[:kind]}", objectid:  self.id )
         end
-      else # 'Plugin' or other class
+      else # 'Plugin' or other classes
         self.field_groups
     end
   end
@@ -143,6 +138,8 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     values = values.with_indifferent_access
     group = get_field_groups(kind).where(slug: values[:slug]).first
     unless group.present?
+      site = _cama_get_field_site
+      values[:parent_id] = site.id if site.present?
       group = get_field_groups(kind).create(values)
     end
     group
@@ -174,7 +171,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
       datas.each do |key, values|
         if values[:values].present?
           order_value = -1
-          values[:values].each do |value|
+          (values[:values].is_a?(Hash) ? values[:values].values : values[:values]).each do |value|
             item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: key, value: fix_meta_value(value), term_order: order_value += 1})
           end
         end
@@ -223,6 +220,17 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     elsif ["NavMenuItem"].include?(class_name) # menu items doesn't include field groups
     else
       get_field_groups().destroy_all if get_field_groups.present?
+    end
+  end
+  # return the Site Model owner of current model
+  def _cama_get_field_site
+    case self.class.to_s.parseCamaClass
+      when 'Category','Post','PostTag'
+        self.post_type.site
+      when 'Site'
+        self
+      else
+        self.site
     end
   end
 end

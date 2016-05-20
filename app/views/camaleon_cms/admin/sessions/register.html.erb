@@ -8,12 +8,12 @@
         <h4><%= t('camaleon_cms.admin.login.personal_info') %></h4>
         <div class="form-group">
             <div class="col-md-12">
-                <input type="text" class="form-control" placeholder="<%= t("camaleon_cms.admin.login.first_name", default: 'First Name') %>" name="meta[first_name]" value="<%= @first_name if @first_name.present? %>"/>
+                <%= f.text_field :first_name, class: 'form-control required', placeholder: t("camaleon_cms.admin.login.first_name", default: 'First Name') %>
             </div>
         </div>
         <div class="form-group">
             <div class="col-md-12">
-                <input type="text" class="form-control" placeholder="<%= t("camaleon_cms.admin.login.last_name", default: 'Last Name') %>" name="meta[last_name]" value="<%= @last_name if @last_name.present? %>"/>
+                <%= f.text_field :last_name, class: 'form-control', placeholder: t("camaleon_cms.admin.login.last_name", default: 'Last Name') %>
             </div>
         </div>
         <div class="form-group">

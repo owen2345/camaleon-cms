@@ -18,9 +18,7 @@ class CamaleonCms::User < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}users"
-  attr_accessible :username, :role, :email, :parent_id, :last_login_at, :site_id, :password, :password_confirmation #, :profile_attributes
-  attr_accessible :data_options
-  attr_accessible :data_metas
+  attr_accessible :username, :role, :email, :parent_id, :last_login_at, :site_id, :password, :password_confirmation, :first_name, :last_name #, :profile_attributes
   attr_accessible :is_valid_email
 
   default_scope {order("#{CamaleonCms::User.table_name}.role ASC")}
@@ -63,7 +61,7 @@ class CamaleonCms::User < ActiveRecord::Base
   end
 
   def fullname
-    get_meta("first_name").blank? ? self.username.titleize : "#{get_meta("first_name")} #{get_meta("last_name")}".titleize
+    "#{self.first_name} #{self.last_name}".titleize
   end
 
   def admin?
@@ -77,12 +75,6 @@ class CamaleonCms::User < ActiveRecord::Base
   # return the UserRole Object of this user in Site
   def get_role(site)
     @_user_role ||= site.user_roles.where(slug: self.role).first
-  end
-
-  def set_meta_from_form(metas)
-    metas.each do |key, value|
-      self.metas.where({key: key}).update_or_create({value: value})
-    end
   end
 
   def assign_site(site)
