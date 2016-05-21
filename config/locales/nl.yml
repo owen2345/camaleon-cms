@@ -1,4 +1,5 @@
 nl:
+  updated_at: "Bijgewerkt op"
   activerecord:
     errors:
       messages:

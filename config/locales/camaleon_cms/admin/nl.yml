@@ -172,6 +172,7 @@ nl:
         info: "Informatie"
       menus:
         link_url: 'Link URL'
+        menus: "Menu's"
         message:
           created: 'Het menu is aangemaakt.'
           deleted: 'Het menu is verwijderd.'
