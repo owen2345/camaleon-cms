@@ -59,7 +59,7 @@ module CamaleonCms::Frontend::NavMenuHelper
     nav_menu = current_site.nav_menus.first unless nav_menu.present?
     html = "<#{args[:container]} class='#{args[:container_class]}' id='#{args[:container_id]}'>#{args[:container_prepend]}{__}#{args[:container_append]}</#{args[:container]}>"
     if nav_menu.present?
-      html = html.sub("{__}", cama_menu_draw_items(args, nav_menu.children))
+      html = html.sub("{__}", cama_menu_draw_items(args, nav_menu.children.reorder(:term_order)))
     else
       html = html.sub("{__}", "")
     end
@@ -91,7 +91,7 @@ module CamaleonCms::Frontend::NavMenuHelper
       _args = r[:settings]
 
       if has_children
-        html_children, current_children = cama_menu_draw_items(args, nav_menu_item.children, level + 1)
+        html_children, current_children = cama_menu_draw_items(args, nav_menu_item.children.reorder(:term_order), level + 1)
       else
         html_children, current_children = "", false
       end
@@ -137,7 +137,7 @@ module CamaleonCms::Frontend::NavMenuHelper
       }.merge(data_nav_item.except(:current, :name, :link))
 
       if has_children
-        r[:children], _is_current_parent, r[:levels] = cama_menu_parse_items(nav_menu_item.children, max_levels, internal_level + 1)
+        r[:children], _is_current_parent, r[:levels] = cama_menu_parse_items(nav_menu_item.children.reorder(:term_order), max_levels, internal_level + 1)
         if _is_current_parent
           is_current_parent = true
           r[:current_parent] = true
