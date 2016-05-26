@@ -39,7 +39,9 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # do background actions in fog
   def actions
-    authorize! :manager, :media
+    if params[:media_action] != 'crop_url'
+      authorize! :manager, :media
+    end
     params[:folder] = params[:folder].gsub("//", "/") if params[:folder].present?
     case params[:media_action]
       when "new_folder"
@@ -65,7 +67,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   def upload(settings = {})
     f = {error: "File not found."}
     if params[:file_upload].present?
-      f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats]}.merge(settings))
+      f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats], versions: params[:versions], thumb_size: params[:thumb_size]}.merge(settings))
     end
 
     render(partial: "render_file_item", locals:{ file: f }) unless f[:error].present?

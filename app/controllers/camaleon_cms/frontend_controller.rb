@@ -7,8 +7,8 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
+  before_action :init_frontent
   include CamaleonCms::FrontendConcern
-  prepend_before_action :init_frontent
   include CamaleonCms::Frontend::ApplicationHelper
   layout Proc.new { |controller| params[:cama_ajax_request].present? ? "cama_ajax" : 'index' }
 
@@ -39,8 +39,12 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     @cama_visited_category = @category
     @children = @category.children.no_empty.decorate
     @posts = @category.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
-    r_file = lookup_context.template_exists?("categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : "category"
-    layout_ = lookup_context.template_exists?("layouts/categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : (self.send :_layout)
+    r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/category_#{@category.the_slug}") ? "post_types/#{@post_type.the_slug}/category_#{@post_type.the_slug}" : nil  # specific template category with specific slug within a posttype
+    r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/category") ? "post_types/#{@post_type.the_slug}/category" : nil unless r_file.present? # default template category for all categories within a posttype
+    r_file = lookup_context.template_exists?("categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : 'category' unless r_file.present?  # default template category for all categories for all posttypes
+
+    layout_ = lookup_context.template_exists?("layouts/post_types/#{@post_type.the_slug}/category") ? "post_types/#{@post_type.the_slug}/category" : nil unless layout_.present? # layout for all categories within a posttype
+    layout_ = lookup_context.template_exists?("layouts/categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : (self.send :_layout) unless layout_.present? # layout for categories for all post types
     r = {category: @category, layout: layout_, render: r_file}; hooks_run("on_render_category", r)
     render r[:render], layout: r[:layout]
   end
@@ -72,7 +76,9 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     end
     @cama_visited_tag = @post_tag
     @posts = @post_tag.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
-    r_file = lookup_context.template_exists?("post_tags/#{@post_tag.the_slug}") ? "post_tags/#{@post_tag.the_slug}" : "post_tag"
+    r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/post_tag_#{@post_tag.the_slug}") ? "post_types/#{@post_type.the_slug}/post_tag_#{@post_tag.the_slug}" : nil
+    r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/post_tag") ? "post_types/#{@post_type.the_slug}/post_tag" : nil unless r_file.present?
+    r_file = lookup_context.template_exists?("post_tags/#{@post_tag.the_slug}") ? "post_tags/#{@post_tag.the_slug}" : "post_tag" unless r_file.present?
     layout_ = lookup_context.template_exists?("layouts/post_tags/#{@post_tag.the_slug}") ? "post_tags/#{@post_tag.the_slug}" : (self.send :_layout)
     r = {post_tag: @post_tag, layout: layout_, render: r_file}; hooks_run("on_render_post_tag", r)
     render r[:render], layout: r[:layout]
@@ -169,6 +175,8 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
         r_file = @post.get_template(@post_type)
       elsif home_page.present? && @post.id.to_s == home_page
         r_file = "index"
+      elsif lookup_context.template_exists?("post_types/#{@post_type.the_slug}/single")
+        r_file = "post_types/#{@post_type.the_slug}/single"
       elsif lookup_context.template_exists?("#{@post_type.slug}")
         r_file = "#{@post_type.slug}"
       else

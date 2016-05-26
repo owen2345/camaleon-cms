@@ -68,22 +68,47 @@ class CamaleonCmsUploader
 
 
   # convert current string path into file version_path, sample:
-  # /media/1/screen.png into /media/1/thumb/screen-png.png
-  # /media/1/screen.png into /media/1/crop_40x40/screen-png.png
-  def version_path(image_path, version_name = 'thumb')
-    File.join(File.dirname(image_path), version_name, "#{File.basename(image_path).parameterize}#{File.extname(image_path)}")
+  # version_path('/media/1/screen.png') into /media/1/thumb/screen-png.png (thumbs)
+  # Sample: version_path('/media/1/screen.png', '200x200') ==> /media/1/thumb/screen-png_200x200.png (image versions)
+  def version_path(image_path, version_name = nil)
+    res = File.join(File.dirname(image_path), 'thumb', "#{File.basename(image_path).parameterize}#{File.extname(image_path)}")
+    res = res.cama_add_postfix_file_name("_#{version_name}") if version_name.present?
+    res
   end
 
   # return the file format (String) of path (depends of file extension)
   def self.get_file_format(path)
     ext = File.extname(path).sub(".", "").downcase
     format = "unknown"
-    format = "image" if "jpg,jpeg,png,gif,bmp,ico".split(",").include?(ext)
-    format = "video" if "flv,webm,wmv,avi,swf,mp4,mov,mpg".split(",").include?(ext)
-    format = "audio" if "mp3,ogg".split(",").include?(ext)
-    format = "document" if "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,xml,json".split(",").include?(ext)
-    format = "compress" if "zip,7z,rar,tar,bz2,gz,rar2".split(",").include?(ext)
+    format = "image" if get_file_format_extensions('image').split(",").include?(ext)
+    format = "video" if get_file_format_extensions('video').split(",").include?(ext)
+    format = "audio" if get_file_format_extensions('audio').split(",").include?(ext)
+    format = "document" if get_file_format_extensions('document').split(",").include?(ext)
+    format = "compress" if get_file_format_extensions('compress').split(",").include?(ext)
     format
+  end
+
+  # return the files extensión for each format
+  # support for multiples formats, sample: image,audio
+  def self.get_file_format_extensions(format)
+    res = []
+    format.downcase.gsub(' ', '').split(',').each do |f|
+      res << case f
+                when 'image', 'images'
+                  "jpg,jpeg,png,gif,bmp,ico"
+                when 'video', 'videos'
+                  "flv,webm,wmv,avi,swf,mp4,mov,mpg"
+                when 'audio'
+                  "mp3,ogg"
+                when 'document', 'documents'
+                  "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,xml,json"
+                when 'compress'
+                  "zip,7z,rar,tar,bz2,gz,rar2"
+                else
+                  ''
+              end
+    end
+    res.join(',')
   end
 
   # verify permitted formats (return boolean true | false)
@@ -92,8 +117,8 @@ class CamaleonCmsUploader
   # sample: validate_file_format('/var/www/myfile.xls', 'image,audio,docx,xls') => return true if the file extension is in formats
   def self.validate_file_format(key, valid_formats = "*")
     return true if valid_formats == "*" || !valid_formats.present?
-    valid_formats = valid_formats.gsub(' ', '').downcase.split(',')
-    valid_formats.include?(File.extname(key).sub(".", "").downcase) || valid_formats.include?(get_file_format(key))
+    valid_formats = valid_formats.gsub(' ', '').downcase.split(',') + get_file_format_extensions(valid_formats).split(',')
+    valid_formats.include?(File.extname(key).sub(".", "").downcase)
   end
 
 

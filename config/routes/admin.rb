@@ -86,7 +86,7 @@ Rails.application.routes.draw do
               match "load_data", via: [:get, :post, :patch]
             end
           end
-          resources :nav_menus do
+          resources :nav_menus, except: :show do
             get 'item_delete/:id' => :delete_menu_item, as: :delete_menu_item
             get 'custom_settings/:id' => :custom_settings, as: :custom_settings
             post 'save_custom_settings/:id' => :save_custom_settings, as: :save_custom_settings
@@ -94,6 +94,10 @@ Rails.application.routes.draw do
             post 'update_menu_item/:id' => :update_menu_item, as: :update_menu_item
             post 'add_items' => :add_items, as: :add_items
             post 'reorder_items' => :reorder_items, as: :reorder_items
+          end
+
+          namespace :nav_menus do # fix for previous nav menu url
+            get 'menu' => :index
           end
 
           namespace :widgets do

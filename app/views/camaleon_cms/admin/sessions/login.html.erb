@@ -1,17 +1,17 @@
 <script>var kk = "<%= cama_get_session_id %>";</script>
 <%= javascript_include_tag "camaleon_cms/admin/login_manifest" %>
 <div class="login-body">
-    <h3 class="login-box-msg"><%= raw t('camaleon_cms.admin.login.welcome_login_html') %>  </h3>
+    <h3 class="login-box-msg"><%= raw t('camaleon_cms.admin.login.welcome_login_html', default: 'Please Login') %>  </h3>
     <%= render "layouts/camaleon_cms/admin/flash_messages" %>
     <%= form_for(@user, as: "user", :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => cama_admin_login_path ) do |f| %>
         <div class="form-group">
             <div class="col-md-12">
-                <%= f.text_field :username, :class => "form-control", :placeholder => t("camaleon_cms.admin.login.username") %>
+                <%= f.text_field :username, :class => "form-control", :placeholder => t("camaleon_cms.admin.login.username", default: 'Username') %>
             </div>
         </div>
         <div class="form-group">
             <div class="col-md-12">
-                <%= f.password_field :password, :class => "form-control", :placeholder => t("camaleon_cms.admin.login.password") %>
+                <%= f.password_field :password, :class => "form-control", :placeholder => t("camaleon_cms.admin.login.password", default: 'Password') %>
             </div>
         </div>
         <div class="form-group">
@@ -23,12 +23,12 @@
         <div class="row">
             <div class="col-xs-6">
                 <div class="checkbox">
-                    <label><input name="remember_me" type="checkbox"> <%= t("camaleon_cms.admin.login.remember_me") %> </label>
+                    <label><input name="remember_me" type="checkbox"> <%= t("camaleon_cms.admin.login.remember_me", default: 'Remember me') %> </label>
                 </div>
             </div>
             <!-- /.col -->
             <div class="col-xs-6">
-                <button type="submit" class="btn btn-primary btn-block btn-flat"><%= t('camaleon_cms.admin.button.log_in') %></button>
+                <button type="submit" class="btn btn-primary btn-block btn-flat"><%= t('camaleon_cms.admin.button.log_in', default: 'Log In') %></button>
             </div>
             <!-- /.col -->
         </div>
@@ -39,10 +39,10 @@
 
         <div class="row">
             <% if current_site.get_option('permit_create_account', false) %>
-                <div class="col-xs-6"><%= t('camaleon_cms.admin.login.do_not_have_account_yet') %><br> <a href="<%= cama_admin_register_path %>"><%= t('camaleon_cms.admin.login.create_account') %></a></div>
+                <div class="col-xs-6"><%= t('camaleon_cms.admin.login.do_not_have_account_yet') %><br> <a href="<%= cama_admin_register_path %>"><%= t('camaleon_cms.admin.login.create_account', default: 'Create Account') %></a></div>
             <% end %>
             <div class="col-xs-6">
-                <a href="<%= cama_admin_forgot_path %>" class=""><%= t('camaleon_cms.admin.login.forgot_your_password_int') %></a>
+                <a href="<%= cama_admin_forgot_path %>" class=""><%= t('camaleon_cms.admin.login.forgot_your_password_int', default: 'Forgot Password') %></a>
             </div>
         </div>
     <% end %>

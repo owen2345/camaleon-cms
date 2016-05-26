@@ -41,16 +41,6 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
     CamaleonCms::TermTaxonomy.where("#{CamaleonCms::TermTaxonomy.table_name}.parent_id = ?", self.id)
   end
 
-  # save multiple option at once
-  # sample: set_options_from_form({option1: 1, option2: 'b', ..})
-  def set_options_from_form(metas = [])
-    if metas.present?
-      metas.each do |key, value|
-        self.set_option(key, value)
-      end
-    end
-  end
-
   # return all menu items in which this taxonomy was assigned
   def in_nav_menu_items
     CamaleonCms::NavMenuItem.joins(:metas).where("value LIKE ?","%\"object_id\":\"#{self.id}\"%").where("value LIKE ?","%\"type\":\"#{self.taxonomy}\"%").readonly(false)

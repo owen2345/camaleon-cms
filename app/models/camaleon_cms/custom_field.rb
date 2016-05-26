@@ -18,6 +18,7 @@ class CamaleonCms::CustomField < ActiveRecord::Base
   has_many :values, :class_name => "CamaleonCms::CustomFieldsRelationship", :foreign_key => :custom_field_id, dependent: :destroy
   belongs_to :custom_field_group, class_name: "CamaleonCms::CustomFieldGroup"
   belongs_to :parent, class_name: "CamaleonCms::CustomField", :foreign_key => :parent_id
+  alias_attribute :label, :name
 
   scope :configuration, -> {where(parent_id: -1)}
   scope :visible_group, -> {where(status: nil)}

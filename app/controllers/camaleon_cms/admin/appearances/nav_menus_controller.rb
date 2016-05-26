@@ -11,7 +11,13 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.menus")
   before_action :check_menu_permission
   def index
-    @nav_menu = params[:id].present? ? current_site.nav_menus.find_by_id(params[:id]) : current_site.nav_menus.first
+    if params[:id].present?
+      @nav_menu = current_site.nav_menus.find_by_id(params[:id])
+    elsif params[:slug].present?
+      @nav_menu = current_site.nav_menus.find_by_slug(params[:slug])
+    else
+      @nav_menu = current_site.nav_menus.first
+    end
     @post_types = current_site.post_types
     add_asset_library("nav_menu")
     render "index"
@@ -85,7 +91,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
     parent_id = params[:nav_menu_id] if parent_id.nil?
     items.each do |index, _item|
       item = current_site.nav_menu_items.find(_item['id'])
-      item.update_column(:parent_id, parent_id)
+      item.update_columns parent_id: parent_id, term_order: index
       reorder_items(_item['children'], _item['id'], false) if _item['children'].present?
     end
     render(inline: '') if is_root
@@ -117,18 +123,18 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
         when 'post'
           post = CamaleonCms::Post.find(nav_menu_item.get_option('object_id')).decorate
           return false unless post.status == 'published'
-          {link: post.the_url, name: post.the_title, url_edit: post.the_edit_url }
+          {name: post.the_title(locale: @frontend_locale), url_edit: post.the_edit_url }
         when 'category'
           category = CamaleonCms::Category.find(nav_menu_item.get_option('object_id')).decorate
-          {link: category.the_url, name: category.the_title, url_edit: category.the_edit_url}
+          {name: category.the_title, url_edit: category.the_edit_url}
         when 'post_tag'
           post_tag = CamaleonCms::PostTag.find(nav_menu_item.get_option('object_id')).decorate
-          {link: post_tag.the_url, name: post_tag.the_title, url_edit: post_tag.the_edit_url}
+          {name: post_tag.the_title, url_edit: post_tag.the_edit_url}
         when 'post_type'
           post_type = CamaleonCms::PostType.find(nav_menu_item.get_option('object_id')).decorate
-          {link: post_type.the_url, name: post_type.the_title, url_edit: post_type.the_edit_url}
+          {name: post_type.the_title, url_edit: post_type.the_edit_url}
         when 'external'
-          {link: nav_menu_item.get_option('object_id'), name: nav_menu_item.name.to_s}
+          {name: nav_menu_item.name.to_s}
         else
           false
       end

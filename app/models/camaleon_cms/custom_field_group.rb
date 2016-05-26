@@ -9,6 +9,7 @@
 class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
   self.primary_key = :id
   # attrs required: name, slug, description
+  alias_attribute :site_id, :parent_id
   default_scope { where.not(object_class: '_fields').reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC") }
 
   has_many :metas, ->{ where(object_class: 'CustomFieldGroup')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
@@ -16,24 +17,21 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
   belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
   before_validation :before_validating
 
-  # ------------------- fields -----------------
   # add fields to group
   # item:
   # -  sample:  {"name"=>"Label", "slug"=>"my_slug", "description"=>"my description (optional)"}
   # -  options (textbox sample):  {"field_key":"text_box","multiple":"1","required":"1","translate":"1"}
-
-  # check all options for each case in Admin::CustomFieldsHelper
-  # for select, radio and checkboxes add:
-  # -- multiple_options: [{"title"=>"Option Title", "value"=>"2", "default"=>"1"}, {"title"=>"abcde", "value"=>"3"}]
-  # -- add default for default value
+  #   * field_key (string) | translate (boolean) | default_value (unique value) | default_values (array - multiple values for this field) | label_eval (boolean) | multiple_options (array)
+  #   * multiple_options (used for select, radio and checkboxes ): [{"title"=>"Option Title", "value"=>"2", "default"=>"1"}, {"title"=>"abcde", "value"=>"3"}]
+  #   * label_eval: (Boolean, default false), true => will evaluate the label and description of current field using (eval('my_label')) to have translatable|dynamic labels
+  #****** check all options for each case in Admin::CustomFieldsHelper ****
   # SAMPLE: my_model.add_field({"name"=>"Sub Title", "slug"=>"subtitle"}, {"field_key"=>"text_box", "translate"=>true, default_value: "Get in Touch"})
-
   def add_manual_field(item, options)
     c = get_field(item[:slug] || item["slug"])
     return c if c.present?
 
     field_item = self.fields.create!(item)
-    field_item.set_meta('_default', options)
+    field_item.set_options(options)
     auto_save_default_values(field_item, options)
     field_item
   end
@@ -113,14 +111,17 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
   # TODO VERIFY CLASS NAME
   # auto save the default field values
   def auto_save_default_values(field, options)
+    options = options.with_indifferent_access
     class_name = self.object_class.split("_").first
-    if ["Post", "Category", "Plugin", "Theme"].include?(class_name) && self.objectid.present? && options[:default_value].present?
+    if ["Post", "Category", "Plugin", "Theme"].include?(class_name) && self.objectid.present? && (options[:default_value].present? || options[:default_values].present?)
       if class_name == "Theme"
         owner = "CamaleonCms::#{class_name}".constantize.where(id: self.objectid).first # owner model
       else
         owner = "CamaleonCms::#{class_name}".constantize.find(self.objectid) rescue "CamaleonCms::#{class_name}".constantize.where(slug: self.objectid).first # owner model
       end
-      owner.field_values.create!({custom_field_id: field.id, custom_field_slug: field.slug, value: fix_meta_value(options["default_value"]||options[:default_value])}) if owner.present?
+      (options[:default_values] || [options[:default_value]] || []).each do |value|
+        owner.field_values.create!({custom_field_id: field.id, custom_field_slug: field.slug, value: fix_meta_value(value)}) if owner.present?
+      end
     end
   end
 end

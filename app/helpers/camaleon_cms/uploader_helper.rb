@@ -14,10 +14,12 @@ module CamaleonCms::UploaderHelper
   #     sample: temporal => will save in /rails_path/public/temporal
   #   generate_thumb: true, # generate thumb image if this is image format (default true)
   #   maximum: maximum bytes permitted to upload (default: 1000MG)
-  #   dimension: dimension for the image (sample: 30x30 | x30 | 30x)
+  #   dimension: dimension for the image (sample: 30x30 | x30 | 30x | 300x300?)
   #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
   #   remove_source: Boolean (delete source file after saved if this is true, default false)
   #   same_name: Boolean (save the file with the same name if defined true, else search for a non used name)
+  #   versions: String (Create multiple versions of the image uploaded), sample: '300x300,505x350' ==> Will create two extra file with this dimensions
+  #   thumb_size: String (redefine the dimensions of the thumbnail, sample: '100x100' ==> only for images)
   #   temporal_time: if great than 0 seconds, then this file will expire (removed) in that time (default: 0)
   #     To manage jobs, please check http://edgeguides.rubyonrails.org/active_job_basics.html
   #     Note: if you are using temporal_time, you will need to copy the file to another directory later
@@ -25,6 +27,12 @@ module CamaleonCms::UploaderHelper
   # sample: upload_file(params[:my_file], {formats: "jpg,png,gif,mp3,mp4", temporal_time: 10.minutes, maximum: 10.megabytes})
   def upload_file(uploaded_io, settings = {})
     return {error: "File is empty", file: nil, size: nil} unless uploaded_io.present?
+    if uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://")) # download url file
+      tmp = cama_tmp_upload(uploaded_io)
+      return tmp if tmp[:error].present?
+      settings[:remove_source] = true
+      uploaded_io = tmp[:file_path]
+    end
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
     uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension])) if settings[:dimension].present? # resize file into specific dimensions
     settings = settings.to_sym
@@ -38,7 +46,9 @@ module CamaleonCms::UploaderHelper
         filename: (uploaded_io.original_filename rescue uploaded_io.path.split("/").last).parameterize(".").downcase.gsub(" ", "-"),
         file_size: File.size(uploaded_io.to_io),
         remove_source: false,
-        same_name: false
+        same_name: false,
+        versions: '',
+        thumb_size: nil
     }.merge(settings)
     hooks_run("before_upload", settings)
     res = {error: nil}
@@ -57,8 +67,18 @@ module CamaleonCms::UploaderHelper
     res = cama_uploader.add_file(uploaded_io, key, {same_name: settings[:same_name]})
     {} if settings[:temporal_time] > 0 # temporal file upload (always put as local for temporal files) (TODO: use delayjob)
 
+    # generate image versions
+    if res['format'] == 'image'
+      settings[:versions].to_s.gsub(' ', '').split(',').each do |v|
+        version_path = cama_resize_upload(uploaded_io.path, v, {replace: false})
+        cama_uploader.add_file(version_path, cama_uploader.version_path(res['key'], v), is_thumb: true, same_name: true)
+        FileUtils.rm_f(version_path)
+      end
+    end
+
     # generate thumb
-    cama_uploader_generate_thumbnail(uploaded_io.path, res['key']) if settings[:generate_thumb] && res['thumb'].present?
+    cama_uploader_generate_thumbnail(uploaded_io.path, res['key'], settings[:thumb_size]) if settings[:generate_thumb] && res['thumb'].present?
+
     FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
     res
   end
@@ -66,9 +86,11 @@ module CamaleonCms::UploaderHelper
   # generate thumbnail of a existent image
   # key: key of the current file
   # the thumbnail will be saved in my_images/my_img.png => my_images/thumb/my_img.png
-  def cama_uploader_generate_thumbnail(uploaded_io, key)
+  def cama_uploader_generate_thumbnail(uploaded_io, key, thumb_size = nil)
+    w, h = cama_uploader.thumb[:w], cama_uploader.thumb[:h]
+    w, h = thumb_size.split('x') if thumb_size.present?
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
-    path_thumb = cama_resize_and_crop(uploaded_io.path, cama_uploader.thumb[:w], cama_uploader.thumb[:h])
+    path_thumb = cama_resize_and_crop(uploaded_io.path, w, h)
     thumb = cama_uploader.add_file(path_thumb, cama_uploader.version_path(key), is_thumb: true, same_name: true)
     FileUtils.rm_f(path_thumb)
     thumb
@@ -190,34 +212,31 @@ module CamaleonCms::UploaderHelper
   #   name: to indicate the name to use, sample: cama_tmp_upload('/var/www/media/132/logo 2.png', {name: 'owen.png', formats: 'images'})
   #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
   #   dimension: 20x30
+  # return: {file_path, error}
   def cama_tmp_upload(uploaded_io, args = {})
     tmp_path = args[:path] || Rails.public_path.join("tmp", current_site.id.to_s)
     FileUtils.mkdir_p(tmp_path) unless Dir.exist?(tmp_path)
     if uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://"))
       return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io, args[:formats])
-      uploaded_io = Rails.public_path.join(uploaded_io.sub(current_site.the_url, '')).to_s if uploaded_io.include?(current_site.the_url) # local file
-      name = args[:name] || uploaded_io.split("/").last.split('?').first
-      name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
-      path = uploader_verify_name( File.join(tmp_path, name))
-      File.open(path, 'wb'){|file| file.write(open(uploaded_io).read) }
-      path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
-    else
-      uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
-      return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io.path, args[:formats])
-      name = args[:name] || uploaded_io.path.split("/").last
-      name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
-      path = uploader_verify_name( File.join(tmp_path, name))
-      File.open(path, "wb"){|f| f.write(uploaded_io.read) }
-      path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
+      uploaded_io = Rails.public_path.join(uploaded_io.sub(current_site.the_url, '')).to_s if uploaded_io.include?(current_site.the_url) && Rails.env != 'production' # local file
+      _tmp_name = uploaded_io.path.split("/").last.split('?').first; args[:name] = args[:name] || _tmp_name
+      uploaded_io = open(uploaded_io)
     end
+    uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
+    return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(_tmp_name || uploaded_io.path, args[:formats])
+    return {error: "#{ct("file_size_exceeded", default: "File size exceeded")} (#{number_to_human_size(args[:maximum])})"} if args[:maximum].present? && args[:maximum] < (uploaded_io.size rescue File.size(uploaded_io))
+    name = args[:name] || uploaded_io.path.split("/").last; name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
+    path = uploader_verify_name(File.join(tmp_path, name))
+    File.open(path, "wb"){|f| f.write(uploaded_io.read) }
+    path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
     {file_path: path, error: nil}
   end
 
   # resize image if the format is correct
   # return resized file path
-  def cama_resize_upload(image_path, dimesion)
+  def cama_resize_upload(image_path, dimesion, args = {})
     if cama_uploader.class.validate_file_format(image_path, 'image') && dimesion.present?
-      r={file: image_path, w: dimesion.split('x')[0], h: dimesion.split('x')[1], w_offset: 0, h_offset: 0, resize: !dimesion.split('x')[2] || dimesion.split('x')[2] == "resize", replace: true, gravity: :north_east}; hooks_run("on_uploader_resize", r)
+      r= {file: image_path, w: dimesion.split('x')[0], h: dimesion.split('x')[1], w_offset: 0, h_offset: 0, resize: !dimesion.split('x')[2] || dimesion.split('x')[2] == "resize", replace: true, gravity: :north_east}.merge(args); hooks_run("on_uploader_resize", r)
       if r[:w].present? && r[:h].present?
         image_path = cama_resize_and_crop(r[:file], r[:w], r[:h], {overwrite: r[:replace], gravity: r[:gravity] })
       else

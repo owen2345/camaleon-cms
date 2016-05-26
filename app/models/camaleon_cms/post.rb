@@ -32,6 +32,7 @@ end
 
 class CamaleonCms::Post < CamaleonCms::PostDefault
   include CamaleonCms::CategoriesTagsForPosts
+  alias_attribute :post_type_id, :taxonomy_id
   default_scope ->{ where(post_class: "Post").order(post_order: :asc, created_at: :desc) }
   has_many :metas, ->{ where(object_class: 'Post')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
 
@@ -49,7 +50,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
 
   belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
   belongs_to :parent, class_name: "CamaleonCms::Post", foreign_key: :post_parent
-  belongs_to :post_type, class_name: "CamaleonCms::PostType", foreign_key: :taxonomy_id
+  belongs_to :post_type, class_name: "CamaleonCms::PostType", foreign_key: :taxonomy_id, inverse_of: :posts
 
   scope :visible_frontend, -> {where(status: 'published')}
   scope :public_posts, -> {visible_frontend.where(visibility: ['public', ""]) } #public posts (not passwords, not privates)
@@ -238,5 +239,12 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # TODO comments count
   def total_comments
     self.get_meta("comments_count", 0).to_i
+  end
+
+  # manage the custom decorators for posts
+  # sample: my_post_type.set_option('cama_post_decorator_class', 'ProductDecorator')
+    # Sample: https://github.com/owen2345/camaleon-ecommerce/tree/master/app/decorators/
+  def decorator_class
+    (self.post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator') rescue 'CamaleonCms::PostDecorator').constantize
   end
 end

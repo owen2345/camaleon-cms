@@ -226,6 +226,7 @@ es:
         clone_content: 'Clonar contenido'
         label_required: 'Etiqueta Requerida'
         placeholder_required: 'Placeholder Requerido'
+        is_featured: 'Es Destacado?'
         message:
           created: 'El %{post_type} se ha creado.'
           updated: 'El %{post_type} se ha actualizado.'
@@ -333,6 +334,7 @@ es:
         author: "Nombre de Autor"
         seo_setting: "Posicionamiento Web."
         email_settings: "Configuración de Correo (SMTP)"
+        media_settings: "Configuración de Multimedia"
         filesystem_type: "Tipo de sistema de ficheros"
         filesystem_max_file_size: "Tamaño Max. a Subir [MB]"
         filesystem_thumb_size: "Tamaño de miniaturas [100x100]"
@@ -340,6 +342,7 @@ es:
         filesystem_s3_secret_key: "AWS S3 Contraseña de acceso"
         filesystem_s3_bucket_name: "AWS S3 nombre del bucket"
         filesystem_cdn: "CDN url"
+        filesystem_s3_cloudfront: 'Cloudfront URL'
         security:
           captcha_user_register: "¿Activar captcha en el registro de usuarios?"
           need_validate_email: "¿Es necesario validar el email?"
@@ -483,6 +486,7 @@ es:
         password_confirmation: 'Confirmación de Contraseña'
         password_protection: 'Protección por contraseña'
         permit_comments_default: 'Permitir Comentarios (por defecto)'
+        permit_is_featured: 'Permitir Articulos Destacados'
         post: 'Articulo'
         post_type: 'Tipo de Articulo'
         pending: 'Pendiente'

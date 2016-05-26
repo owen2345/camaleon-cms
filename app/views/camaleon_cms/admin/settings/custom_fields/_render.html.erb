@@ -1,4 +1,4 @@
-<% @default_use = record.new_record?; @field_name = (defined?(fields_name) ? fields_name : "field_options").to_sym %>
+<% default_use = record.new_record?; field_name = (defined?(fields_name) ? fields_name : "field_options").to_sym %>
 <% field_groups.each do |group| %>
     <%
     fields = group.fields.where.not(slug: record.get_option("skip_fields", [])).eager_load(:metas)
@@ -14,47 +14,47 @@
     <%= raw header %>
     <%
     fields.each do |field| # iterate all fields of current group
-      @field = field.decorate
-      @field = @field || {options:{}}
-      @rand = "#{field.id}#{rand(99)}"
-      values = record.get_fields(@field.slug)
-      values = params[@field_name][@field.slug.to_sym][:values] if values.blank? && params[@field_name].present?
-      is_disabled = @field.options[:disabled].present? || @field.options[:readonly].present?
+      field = field.decorate
+      field = field || {options:{}}
+      rand = "#{field.id}#{rand(99)}"
+      values = record.get_fields(field.slug)
+      values = params[field_name][field.slug.to_sym][:values] if values.blank? && params[field_name].present?
+      is_disabled = field.options[:disabled].present? || field.options[:readonly].present?
       obj_class = record.class.name.parseCamaClass.downcase
     %>
-        <div class="item-custom-field c-field-<%= @field.options[:field_key] %>">
-            <label for="input-<%= @rand %>">
-                <%= @field.the_name %>
-                <%= raw "<em class='text-danger'>*</em>" if @field.options[:required].to_s.to_bool %>
+        <div class="item-custom-field c-field-<%= field.options[:field_key] %>">
+            <label for="input-<%= rand %>">
+                <%= field.options[:label_eval].present? ? eval(field.name) : field.name %>
+                <%= raw "<em class='text-danger'>*</em>" if field.options[:required].to_s.to_bool %>
                 <% if ["post", "posttype", "category", "postTag", "site", "user", "navmenu", "theme"].include?(obj_class) %>
-                    <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{@field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") %></small>
+                    <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") %></small>
                 <% end %>
             </label>
-            <% if @field.description.present? %>
-                <p><small><%= @field.the_description %></small></p>
+            <% if field.description.present? %>
+                <p><small><%= field.options[:label_eval].present? ? eval(field.description) : field.description %></small></p>
             <% end  %>
-            <input name="<%= @field_name %>[<%= @field.slug %>][id]" type="hidden" value="<%= @field.id %>"/>
-            <div id="content-field-<%= @rand %>" class="editor-custom-fields">
+            <input name="<%= field_name %>[<%= field.slug %>][id]" type="hidden" value="<%= field.id %>"/>
+            <div id="content-field-<%= rand %>" class="editor-custom-fields">
                 <div class="clone-field hidden">
                     <div class="input-group-parent">
-                        <% if @field.options[:multiple].to_s.to_bool && !is_disabled %>
+                        <% if field.options[:multiple].to_s.to_bool && !is_disabled %>
                             <div class="actions">
-                                <i class="fa fa-arrows"></i> <i class="fa fa-times text-danger"></i>
+                                <i class="fa fa-arrows" style="cursor: move"></i> <i class="fa fa-times text-danger" style="cursor: pointer"></i>
                             </div>
                         <% end %>
-                        <%= render cama_custom_field_elements[@field.options[:field_key].to_sym][:render] || "camaleon_cms/admin/settings/custom_fields/fields/#{@field.options[:field_key]}" %>
+                        <%= render(field.get_option('render') || cama_custom_field_elements[field.get_option('field_key').to_sym][:render] || "camaleon_cms/admin/settings/custom_fields/fields/#{field.options[:field_key]}", field: field, values: values, is_disabled: is_disabled, default_use: default_use, field_name: field_name) rescue 'Template not found' %>
                     </div>
                 </div>
 
-                <ul id="sortable-<%= @rand %>"></ul>
+                <ul id="sortable-<%= rand %>"></ul>
 
-                <% if @field.options[:multiple].to_s.to_bool && !is_disabled %>
+                <% if field.options[:multiple].to_s.to_bool && !is_disabled %>
                     <div class="field_multiple_btn">
                         <a class="btn btn-warning btn-sm btn-add-field" href="#"> <i class="fa fa-plus"></i> <%= t('camaleon_cms.admin.button.add_new_field')%></a>
                     </div>
                 <% end %>
             </div>
-            <script> jQuery(function(){ build_custom_field(<%= raw(values.to_json) %>, <%= @field.options[:multiple].to_s.to_bool  %>, '<%= @field.options[:field_key]  %>', '<%= @rand %>', '<%= @field.options[:default_value] if record.new_record? %>'); }); </script>
+            <script> jQuery(function(){ build_custom_field(<%= raw(values.to_json) %>, <%= field.options[:multiple].to_s.to_bool  %>, '<%= field.options[:field_key]  %>', '<%= rand %>', '<%= field.options[:default_value] if record.new_record? %>', <%= field.options[:readonly].present? || field.options[:disabled].present? %>); }); </script>
         </div>
     <% end %>
     <%= raw footer %>

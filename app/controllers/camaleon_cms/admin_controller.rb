@@ -69,7 +69,7 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
     @_admin_menus = {}
     @_admin_breadcrumb = []
     @_extra_models_for_fields = []
-    # self.append_view_path(Rails.root.join("app", "apps"))
+    @cama_i18n_frontend = current_site.get_languages.first
   end
 
   # trigger hooks for admin panel before admin load

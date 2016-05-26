@@ -1,37 +1,32 @@
 <div id="tab-filesystem_settings" class="<%= 'active' if 'filesystem' == params[:tab] %> tab-pane ">
     <div class="form-group">
-        <label for=""><%= t('camaleon_cms.admin.settings.filesystem_max_file_size', default: 'Max. File Size to Upload [MB]') %></label><br>
-        <%= number_field :options, :filesystem_max_size, :class => "form-control number", :value => @site.get_option('filesystem_max_size', 100), placeholder: '100' %>
-    </div>
-    <div class="form-group">
-        <label for=""><%= t('camaleon_cms.admin.settings.filesystem_thumb_size', default: 'Thumbnail dimension [100x100]') %></label><br>
-        <%= text_field :options, :filesystem_thumb_size, :class => "form-control", :value => @site.get_option('filesystem_thumb_size', '100x100'), placeholder: '100x100' %>
-    </div>
-    <hr>
-    <div class="form-group">
         <%= label_tag t('camaleon_cms.admin.settings.aws', default: "Save Files in AWS3") %><br>
         <%= check_box :options, :filesystem_type, {checked: @site.get_option("filesystem_type") == "s3"}, "s3", "local" %>
     </div>
     <div class="toggleable">
         <div class="form-group">
-            <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_access_key') %> <small>(Sample: AKIAJAwdgTSHWLAD5VGA)</small><br>
-            <%= text_field :options, :filesystem_s3_access_key, :class => "form-control required", value: @site.get_option("filesystem_s3_access_key") %>
+            <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_access_key') %> <small>(*)</small><br>
+            <%= text_field :options, :filesystem_s3_access_key, :class => "form-control required", value: @site.get_option("filesystem_s3_access_key"), placeholder: 'AKIAJAwdgTSHWLAD5VGA' %>
         </div>
         <div class="form-group">
-            <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_secret_key') %> <small>(Sample: f5T2CntRcPQBPzACBHUyvM4zEpkiZdH/77N85seBM)</small><br>
-            <%= text_field :options, :filesystem_s3_secret_key, :class => "form-control required", value: @site.get_option("filesystem_s3_secret_key") %>
+            <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_secret_key') %> <small>(*)</small><br>
+            <%= text_field :options, :filesystem_s3_secret_key, :class => "form-control required", value: @site.get_option("filesystem_s3_secret_key"), placeholder: 'f5T2CntRcPQBPzACBHUyvM4zEpkiZdH/77N85seBM' %>
         </div>
         <div class="form-group">
-            <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_bucket_name') %> <small>(Sample: my_bucket)</small><br>
-            <%= text_field :options, :filesystem_s3_bucket_name, :class => "form-control required", value: @site.get_option("filesystem_s3_bucket_name") %>
+            <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_bucket_name') %> <small>(*)</small><br>
+            <%= text_field :options, :filesystem_s3_bucket_name, :class => "form-control required", value: @site.get_option("filesystem_s3_bucket_name"), placeholder: 'my_bucket' %>
         </div>
         <div class="form-group">
-            <%= label_tag t('camaleon_cms.admin.settings.filesystem_region', default: 'filesystem_region') %> <small>(Sample: us-west-2)</small><br>
-            <%= text_field :options, :filesystem_region, :class => "form-control required", value: @site.get_option("filesystem_region") %>
+            <%= label_tag t('camaleon_cms.admin.settings.filesystem_region', default: 'filesystem_region') %> <small>(*)</small><br>
+            <%= text_field :options, :filesystem_region, :class => "form-control required", value: @site.get_option("filesystem_region"), placeholder: 'us-west-2' %>
         </div>
+        <!--<div class="form-group">
+            <%#= label_tag t('camaleon_cms.admin.settings.filesystem_s3_endpoint', default: 'filesystem_s3_endpoint') %> <small>(*)</small><br>
+            <%#= text_field :options, :filesystem_s3_endpoint, :class => "form-control required", value: @site.get_option("filesystem_s3_endpoint"), placeholder: 's3-us-west-2.amazonaws.com' %>
+        </div>-->
         <div class="form-group">
-            <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_endpoint', default: 'filesystem_s3_endpoint') %> <small>(Sample: s3-us-west-2.amazonaws.com)</small><br>
-            <%= text_field :options, :filesystem_s3_endpoint, :class => "form-control required", value: @site.get_option("filesystem_s3_endpoint") %>
+            <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_cloudfront', default: 'Cloudfront URL') %><br>
+            <%= text_field :options, :filesystem_s3_cloudfront, :class => "form-control", value: @site.get_option("filesystem_s3_cloudfront"), placeholder: 'https://cloudfront_id.cloudfront.net' %>
         </div>
     </div>
 </div>

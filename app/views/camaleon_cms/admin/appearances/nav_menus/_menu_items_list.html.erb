@@ -5,7 +5,7 @@
         </div>
         <div class="panel-body">
             <div class="dd" id="menus_list" data-url="<%= url_for(action: :add_items, nav_menu_id: @nav_menu.id) %>" data-reorder_url="<%= url_for(action: :reorder_items, nav_menu_id: @nav_menu.id) %>">
-                <%= render 'menu_items', items: @nav_menu.children.all, nav_menu: @nav_menu %>
+                <%= render 'menu_items', items: @nav_menu.children.reorder(:term_order).all, nav_menu: @nav_menu %>
             </div>
         </div>
     </div>

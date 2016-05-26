@@ -583,26 +583,3 @@ it:
           error_created: 'Widget non creato.'
           error_updated: 'Widget non aggiornato.'
           not_registered_widgets: 'Non ci sono widget registrati'
-
-    plugin:
-      contact_form:
-        contact_form: 'Form di contatto'
-        add_form: 'Aggiungi form'
-        label_required: "ergoineroinregfoin"
-        placeholder_required: "rofmfvopfrmpvo"
-        list: 'Lista'
-        name: 'Nome'
-        description: 'Descrizione'
-        slug: 'Slug'
-        shortcode: 'Shortcode'
-        count: 'Contatore'
-        actions: 'Azioni'
-        msg_data_found_list: 'Nessun messaggio trovato'
-        button:
-          back: 'Indietro'
-          submit: 'Conferma'
-      attack:
-        settings: 'Impostazioni'
-      front_cache:
-        settings: 'Impostazioni'
-        clean_cache: 'Pulisci Cache'

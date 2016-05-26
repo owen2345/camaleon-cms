@@ -16,6 +16,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
 
   # content='', from=nil, attachs=[], url_base='', current_site, template_name, layout_name, extra_data, format, cc_to
   def sender(email, subject='Hello', data = {})
+    data = data.to_sym
     data[:current_site] = CamaleonCms::Site.main_site.decorate unless data[:current_site].present?
     data[:current_site] = CamaleonCms::Site.find(data[:current_site]).decorate if data[:current_site].is_a?(Integer)
     current_site = @current_site = data[:current_site]
@@ -48,9 +49,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     theme = current_site.get_theme
     lookup_context.prefixes.prepend("themes/#{theme.slug}") if theme.settings["gem_mode"]
     lookup_context.prefixes.prepend("themes/#{theme.slug}/views") unless theme.settings["gem_mode"]
-    if data[:files].present?
-      data[:files].each { |attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read } }
-    end
+    (data[:files] || data[:attachments] || []).each { |attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read } }
 
     layout = data[:layout_name].present? ? data[:layout_name] : false
     if data[:template_name].present? # render email with template
