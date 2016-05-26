@@ -3,6 +3,7 @@ pt-BR:
   camaleon_cms:
     see_intro: "Ver introdução"
     welcome_message: "Bem-vindo ao Camaleon CMS"
+    captcha_placeholder: 'Por favor, digite o texto da imagem'
     page_not_exist: "<h1>ooops...</h1><h5>A página que você procura não existe.</h5>"
     page_error_500: "<h1>ooops...</h1><h5>Erro tipo 500 - Erro interno de servidor. Por favor, contate o administrador.</h5>"
     admin:
@@ -132,6 +133,11 @@ pt-BR:
           subject_email: 'Restabeleça seu acesso'
           send_mail_succes: 'Email de redefinição enviado com sucesso.'
           send_mail_error: 'Nenhum endereço de email encontrado.'
+          invalid_caption: 'Catpcha Inválido'
+          email_not_validated: 'Email não foi validado'
+          confirm_email_token_incorrect: 'URL incorreta'
+          confirm_email_token_expired: 'URL de confirmação expirou'
+          confirm_email_success: 'Email confirmado com sucesso'
         personal_info: 'Informações pessoais'
         please_login: 'Por favor faça login para prosseguir'
         reset_password: 'Redefinir senha'
