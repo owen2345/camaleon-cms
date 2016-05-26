@@ -301,6 +301,7 @@ pt-BR:
         upgrade_to: "Atualizar para"
       settings:
         aws: "Salvar arquivos na Amazon"
+        filesystem_settings: "Configurações de arquivos"
         filesystem_thumb_size: "Tamanho do thumbnail [100x100]"
         filesystem_max_file_size: "Tamanho máximo do arquivo para Upload [MB]"
         activate_create_account: 'Ative criar conta'
