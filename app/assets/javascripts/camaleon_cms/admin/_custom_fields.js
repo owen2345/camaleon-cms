@@ -144,6 +144,16 @@ function load_upload_file_field(dom) {
         }
     });
 }
+function load_upload_private_file_field(dom) {
+    var $input = $(dom).parents('li:first').find('input');
+    $.fn.upload_filemanager({
+        formats: $input.data("formats") ? $input.data("formats") : "",
+        selected: function (file, response) {
+            $input.val(file.url.split('?file=')[1].replace(/%2/g, '/'));
+        },
+        private: true
+    });
+}
 function load_upload_image_field($input) {
     $.fn.upload_filemanager({
         formats: "image",

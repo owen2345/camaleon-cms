@@ -6,7 +6,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     bucket.objects.each do |file|
       cache_item(file_parse(file), objects)
     end
-    @current_site.set_meta('cama_media_cache', objects)
+    @current_site.set_meta(cache_key, objects)
     objects
   end
 

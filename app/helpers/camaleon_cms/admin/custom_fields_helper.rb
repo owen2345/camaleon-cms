@@ -303,6 +303,22 @@ module CamaleonCms::Admin::CustomFieldsHelper
             translate: true
         }
     }
+    items[:private_file] = {
+        key: 'private_file',
+        label: t('camaleon_cms.admin.custom_field.fields.private_file', default: 'Private File'),
+        options: {
+            required: true,
+            multiple: true,
+            default_value: ''
+        },
+        extra_fields:[
+            {
+                type: 'text_box',
+                key: 'formats',
+                label: 'File Formats (image,video,audio)'
+            }
+        ]
+    }
     r = {fields: items}; hooks_run("extra_custom_fields", r)
     @_cama_custom_field_elements = r[:fields]
   end

@@ -150,7 +150,11 @@ module CamaleonCms::PluginsHelper
   def self_plugin_key(index = 0)
     k = "/plugins/"
     f = caller[index]
-    f.split(k).last.split("/").first if f.include?(k)
+    if f.include?(k)
+      f.split(k).last.split("/").first
+    else
+      f.split('/gems/').last.split("/").first
+    end
   end
 
   # method called only from files within plugins directory

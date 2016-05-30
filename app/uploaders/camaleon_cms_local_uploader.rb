@@ -1,4 +1,5 @@
 class CamaleonCmsLocalUploader < CamaleonCmsUploader
+  PRIVATE_DIRECTORY = 'private'
   def browser_files(prefix = '/', objects = {})
     objects[prefix] = {files: {}, folders: {}}
     path = File.join(@root_folder, prefix)
@@ -10,12 +11,27 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
       cache_item(obj, objects)
       browser_files(File.join(prefix, obj['name']), objects) if obj['format'] == 'folder'
     end
-    @current_site.set_meta('cama_media_cache', objects) if prefix == '/'
+    @current_site.set_meta(cache_key, objects) if prefix == '/'
     objects
   end
 
+  # return the full file path for private file with key
+  # sample: 'my_file.pdf' ==> /var/www/my_app/private/my_file.pdf
+  def self.private_file_path(key, current_site)
+    Rails.root.join(self::PRIVATE_DIRECTORY, current_site.id.to_s, key.gsub(/(\/){2,}/, "/")).to_s
+  end
+
+  # check if this uploader is private mode
+  def is_private_uploader?
+    @args[:private]
+  end
+
   def after_initialize
-    @root_folder = @args[:root_folder] || @current_site.upload_directory
+    if is_private_uploader?
+      @root_folder = Rails.root.join(self.class::PRIVATE_DIRECTORY, @current_site.id.to_s).to_s
+    else
+      @root_folder = @args[:root_folder] || @current_site.upload_directory
+    end
     FileUtils.mkdir_p(@root_folder) unless Dir.exist?(@root_folder)
   end
 
@@ -25,7 +41,7 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     res = {
         "name" => File.basename(file_path),
         "key" => parse_key(file_path),
-        "url" => is_dir ? '' : File.join(@current_site.the_url(locale: false), url_path),
+        "url" => is_dir ? '' : (is_private_uploader? ? url_path.sub("#{@root_folder}/", '') : File.join(@current_site.the_url(locale: false), url_path)),
         "is_folder" => is_dir,
         "size" => is_dir ? 0 : File.size(file_path).round(2),
         "format" => is_dir ? 'folder' : self.class.get_file_format(file_path),

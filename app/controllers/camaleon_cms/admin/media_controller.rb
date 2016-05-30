@@ -7,10 +7,9 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
-  skip_before_filter :cama_authenticate, only: :img
-  skip_before_filter :admin_logged_actions, except: [:index, :search]
+  skip_before_filter :admin_logged_actions, except: [:index, :download_private_file]
   skip_before_filter :verify_authenticity_token, only: :upload
-  before_action :init_media_vars
+  before_action :init_media_vars, except: :download_private_file
 
   # render media section
   def index
@@ -26,6 +25,16 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     res = upload_file(crop_path, {remove_source: true})
     CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', res["url"]) if params[:saved_avatar].present? # save current crop image as avatar
     render text: res["url"]
+  end
+
+  # download private files
+  def download_private_file
+    f_path = CamaleonCmsLocalUploader::private_file_path(params[:file], current_site)
+    if File.exist?(f_path)
+      send_file f_path, disposition: 'inline'
+    else
+      raise ActionController::RoutingError, 'File not found'
+    end
   end
 
   # render media for modal content
@@ -77,6 +86,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   private
   # init basic media variables
   def init_media_vars
+    @cama_uploader = CamaleonCmsLocalUploader.new({current_site: current_site, private: true}) if params[:private].present?
     cama_uploader.clear_cache if params[:cama_media_reload].present? && params[:cama_media_reload] == 'clear_cache'
     @media_formats = (params[:media_formats] || "").sub("media", ",video,audio").sub("all", "").split(",")
     @tree = cama_uploader.objects(@folder = params[:folder] || "/")

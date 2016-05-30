@@ -219,7 +219,7 @@ module CamaleonCms::UploaderHelper
     if uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://"))
       return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io, args[:formats])
       uploaded_io = Rails.public_path.join(uploaded_io.sub(current_site.the_url, '')).to_s if uploaded_io.include?(current_site.the_url) && Rails.env != 'production' # local file
-      _tmp_name = uploaded_io.path.split("/").last.split('?').first; args[:name] = args[:name] || _tmp_name
+      _tmp_name = uploaded_io.split("/").last.split('?').first; args[:name] = args[:name] || _tmp_name
       uploaded_io = open(uploaded_io)
     end
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
@@ -248,13 +248,13 @@ module CamaleonCms::UploaderHelper
 
   # return the current uploader
   def cama_uploader
+    @cama_uploader ||=
     case current_site.get_option("filesystem_type", "local").downcase
       when 's3' || 'aws'
-        @cama_uploader ||= CamaleonCmsAwsUploader.new({current_site: current_site})
+        CamaleonCmsAwsUploader.new({current_site: current_site})
       else
-        @cama_uploader ||= CamaleonCmsLocalUploader.new({current_site: current_site})
+        CamaleonCmsLocalUploader.new({current_site: current_site})
     end
-    @cama_uploader
   end
 
   private

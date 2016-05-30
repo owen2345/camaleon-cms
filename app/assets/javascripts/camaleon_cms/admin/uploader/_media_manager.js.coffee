@@ -12,7 +12,7 @@ window["cama_init_media"] = (media_panel) ->
       "<div class='p_thumb'></div>" +
         "<div class='p_label'><b>"+I18n("button.name")+": </b><br> <span>"+data["name"]+"</span></div>" +
         "<div class='p_body'>" +
-        "<div><b>"+I18n("button.url")+":</b><br> <a target='_blank' href='"+data["url"]+"'>"+data["url"]+"</a></div>" +
+        "<div style='overflow: auto;'><b>"+I18n("button.url")+":</b><br> <a target='_blank' href='"+data["url"]+"'>"+data["url"]+"</a></div>" +
         "<div><b>"+I18n("button.size")+":</b> <span>"+cama_humanFileSize(data["size"])+"</span></div>" +
         "</div>"
 
@@ -59,7 +59,7 @@ window["cama_init_media"] = (media_panel) ->
   ########## file uploader
   p_upload = media_panel.find(".cama_media_fileuploader")
   customFileData = ->
-    return {folder: media_panel.attr("data-folder").replace(/\/{2,}/g, '/'), formats: media_panel.attr("data-formats"), versions: media_panel.attr("data-versions"), thumb_size: media_panel.attr("data-thumb_size") }
+    return cama_media_get_custom_params()
 
   p_upload.uploadFile({
     url: p_upload.attr("data-url"),
@@ -123,7 +123,7 @@ window["cama_init_media"] = (media_panel) ->
     media_link_tab_upload.click()
 
     showLoading()
-    $.get(media_panel.attr("data-url"), {folder: folder.replace(/\/{2,}/g, '/'), partial: true, media_formats: media_panel.attr("data-formats")}, (res)->
+    $.get(media_panel.attr("data-url"), cama_media_get_custom_params({partial: true, folder: folder}), (res)->
       media_panel.find(".media_browser_list").html(res)
       hideLoading()
     )
@@ -137,7 +137,7 @@ window["cama_init_media"] = (media_panel) ->
   # search file
   media_panel.find('#cama_search_form').submit ->
     showLoading()
-    $.get(media_panel.attr("data-url"), {search: $(this).find('input:text').val(), partial: true, media_formats: media_panel.attr("data-formats")}, (res)->
+    $.get(media_panel.attr("data-url"), cama_media_get_custom_params({search: $(this).find('input:text').val(), partial: true}), (res)->
       media_panel.find(".media_browser_list").html(res)
       hideLoading()
     )
@@ -146,7 +146,7 @@ window["cama_init_media"] = (media_panel) ->
   # reload current directory
   media_panel.find('.cam_media_reload').click (e)->
     showLoading()
-    $.get(media_panel.attr("data-url"), {partial: true, media_formats: media_panel.attr("data-formats"), folder: media_panel.attr("data-folder"), cama_media_reload: $(this).attr('data-action')}, (res)->
+    $.get(media_panel.attr("data-url"), cama_media_get_custom_params({partial: true, cama_media_reload: $(this).attr('data-action')}), (res)->
       media_panel.find(".media_browser_list").html(res)
       hideLoading()
     )
@@ -165,7 +165,7 @@ window["cama_init_media"] = (media_panel) ->
       ).trigger("keyup")
       modal.find("form").submit ->
         showLoading()
-        $.post(media_panel.attr("data-url_actions"), {folder: media_panel.attr("data-folder")+"/"+input.val().replace(/\/{2,}/g, '/'), media_action: "new_folder"}, (res)->
+        $.post(media_panel.attr("data-url_actions"), cama_media_get_custom_params({folder: media_panel.attr("data-folder")+"/"+input.val(), media_action: "new_folder"}), (res)->
           hideLoading()
           modal.modal("hide")
           if res.search("folder_item") >= 0 # success upload
@@ -174,7 +174,7 @@ window["cama_init_media"] = (media_panel) ->
             $.fn.alert({type: 'error', content: res, title: "Error"})
         )
         return false
-    open_modal({title: "New Folder", content: content, callback: callback})
+    open_modal({title: "New Folder", content: content, callback: callback, zindex: 9999999})
     return false
   )
 
@@ -185,7 +185,7 @@ window["cama_init_media"] = (media_panel) ->
     link = $(this)
     item = link.closest(".media_item")
     showLoading()
-    $.post(media_panel.attr("data-url_actions"), {folder: media_panel.attr("data-folder")+"/"+item.attr("data-key").replace(/\/{2,}/g, '/'), media_action: if link.hasClass("del_folder") then "del_folder" else "del_file"}, (res)->
+    $.post(media_panel.attr("data-url_actions"), cama_media_get_custom_params({folder: media_panel.attr("data-folder")+"/"+item.attr("data-key"), media_action: if link.hasClass("del_folder") then "del_folder" else "del_file"}), (res)->
       hideLoading()
       if res
         $.fn.alert({type: 'error', content: res, title: I18n("button.error")})
@@ -208,15 +208,26 @@ window["cama_init_media"] = (media_panel) ->
     return false
   ).validate()
 
+# return extra attributes for media panel
+window['cama_media_get_custom_params'] = (custom_settings)->
+  media_panel = $("#cama_media_gallery")
+  r = eval("("+media_panel.attr('data-extra-params')+")")
+  r['folder'] = media_panel.attr("data-folder")
+  if custom_settings
+    $.extend(r, custom_settings)
+  r['folder'] = r['folder'].replace(/\/{2,}/g, '/')
+  return r
+
 $ ->
   # sample: $.fn.upload_url({url: 'http://camaleon.tuzitio.com/media/132/logo2.png', dimension: '120x120', versions: '200x200', folder: 'my_folder', thumb_size: '100x100'})
   # dimension: default current dimension
   # folder: default current folder
+  # private: (Boolean) if true => list private files
   $.fn.upload_url = (args)->
     media_panel = $("#cama_media_gallery")
-    data = {folder: media_panel.attr("data-folder").replace(/\/{2,}/g, '/'), media_action: "crop_url", formats: media_panel.attr("data-formats"), versions: media_panel.attr("data-versions"), thumb_size: media_panel.attr("data-thumb_size"), onerror: (message) ->
+    data = cama_media_get_custom_params({media_action: "crop_url", onerror: (message) ->
       $.fn.alert({type: 'error', content: message, title: I18n("msg.error_uploading")})
-    }
+    })
     $.extend(data, args); on_error = data["onerror"]; delete data["onerror"];
     showLoading()
     $.post(media_panel.attr("data-url_actions"), data, (res_upload)->
@@ -237,9 +248,10 @@ $ ->
   # sample: $.fn.upload_filemanager({title: "My title", formats: "image,video", dimension: "30x30", versions: '100x100,200x200', thumb_size: '100x100', selected: function(file){ alert(file["name"]) }})
   # file structure: {"name":"422.html","size":1547, "url":"http://localhost:3000/media/1/422.html", "format":"doc","type":"text/html"}
   # dimension: dimension: "30x30" | "x30" | dimension: "30x"
+  # private: (boolean) if true => browser private files that are not possible access by public url
   $.fn.upload_filemanager = (args)->
     args = args || {}
-    open_modal({title: args["title"] || I18n("msg.media_title"), id: 'cama_modal_file_uploader', modal_size: "modal-lg", mode: "ajax", url: root_admin_url+"/media/ajax", ajax_params: {media_formats: args["formats"], dimension: args["dimension"], versions: args["versions"], thumb_size: args["thumb_size"] }, callback: (modal)->
+    open_modal({title: args["title"] || I18n("msg.media_title"), id: 'cama_modal_file_uploader', modal_size: "modal-lg", mode: "ajax", url: root_admin_url+"/media/ajax", ajax_params: {media_formats: args["formats"], dimension: args["dimension"], versions: args["versions"], thumb_size: args["thumb_size"], private: args['private'] }, callback: (modal)->
       if args["selected"]
         window["callback_media_uploader"] = args["selected"]
       modal.css("z-index", args["zindex"] || 99999).children(".modal-dialog").css("width", "90%")

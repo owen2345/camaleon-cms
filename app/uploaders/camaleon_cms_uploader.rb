@@ -18,19 +18,19 @@ class CamaleonCmsUploader
   # {files: {'file_name': {'name'=> 'a.jpg', key: '/test/a.jpg', url: '', url: '', size: '', format: '', thumb: 'thumb_url', type: '', created_at: '', dimension: '120x120'}}, folders: {'folder name' => {name: 'folder name', key: '/folder name', ...}}}
   def objects(prefix = '/')
     prefix = "/#{prefix}" unless prefix.starts_with?('/')
-    db = @current_site.get_meta('cama_media_cache', nil) || browser_files
+    db = @current_site.get_meta(cache_key, nil) || browser_files
     db[prefix.gsub('//', '/')] || {files: {}, folders: {}}
   end
 
   # clean cached of files structure saved into DB
   def clear_cache
-    @current_site.set_meta('cama_media_cache', nil)
+    @current_site.set_meta(cache_key, nil)
   end
 
   # search for folders or files that includes search_text in their names
   def search(search_text)
     res = {files: {}, folders: {}}
-    (@current_site.get_meta('cama_media_cache', nil) || browser_files).each do |folder_key, object|
+    (@current_site.get_meta(cache_key, nil) || browser_files).each do |folder_key, object|
       res[:folders][folder_key] = get_file(folder_key) if !['', '/'].include?(folder_key) && folder_key.split('/').last.include?(search_text)
       object[:files].each do |file_key, obj|
         res[:files][file_key] = obj if file_key.include?(search_text)
@@ -49,7 +49,7 @@ class CamaleonCmsUploader
   # file_parsed: (HASH) File parsed object
   # objects_db: HASH Object where to add the current object (optional)
   def cache_item(file_parsed, _objects_db = nil)
-    objects_db = _objects_db || @current_site.get_meta('cama_media_cache', {}) || {}
+    objects_db = _objects_db || @current_site.get_meta(cache_key, {}) || {}
     prefix = File.dirname(file_parsed['key'])
 
     s = prefix.split('/').clean_empty
@@ -62,7 +62,7 @@ class CamaleonCmsUploader
     else
       objects_db[prefix][:files][file_parsed['name']] = file_parsed
     end
-    @current_site.set_meta('cama_media_cache', objects_db) if _objects_db.nil?
+    @current_site.set_meta(cache_key, objects_db) if _objects_db.nil?
     file_parsed
   end
 
@@ -139,10 +139,17 @@ class CamaleonCmsUploader
   # check if file with :key exist and return parsed_file, else return nil
   def get_file(key, use_cache = true)
     if use_cache
-      db = (@current_site.get_meta('cama_media_cache') || {})[File.dirname(key)] || {}
+      db = (@current_site.get_meta(cache_key) || {})[File.dirname(key)] || {}
     else
       db = objects(File.dirname(key)) unless use_cache
     end
     (db[:files][File.basename(key)] || db[:folders][File.basename(key)]) rescue nil
   end
+
+  private
+  def cache_key
+    "cama_media_cache#{'_private' if is_private_uploader?}"
+  end
+  def is_private_uploader?() end
+
 end
