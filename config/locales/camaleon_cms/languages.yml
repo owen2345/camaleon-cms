@@ -57,3 +57,16 @@ nl:
     it: "Italiaans"
     ru: "Russisch"
     nl: "Nederlands"
+
+pt-BR:
+  languages:
+    es: "Espanhol"
+    en: "Inglês"
+    fr: "Francês"
+    zh: "Chinês"
+    de: "Alemão"
+    pt: "Português (Portugal)"
+    it: "Italiano"
+    ru: "Russo"
+    nl: "Holandês"
+    pt-BR: "Português (Brasil)"

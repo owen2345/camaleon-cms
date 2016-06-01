@@ -16,6 +16,25 @@
         settings_saved: 'Settings saved!'
       settings: 'Settings'
 
+pt-BR:
+  plugin:
+    attack:
+      title: 'Ataque'
+      attack_security: 'Segurança contra ataques'
+      form:
+        in: 'em'
+        seconds: 'Segundos'
+        minutes: 'Minutos'
+        type_max_requests_time: 'Requisições %{type} máximas'
+        type_time_requests_seconds: 'Requisições %{type} por tipo [segundos]'
+        ban_time_minutes: 'Tempo de expulsão'
+        ban_messages: 'Mensagem de expulsão'
+        request_limit_exceeded: 'Número de requisições excedeu o limite!'
+      messages:
+        settings_saved: 'Configurações salvas com sucesso!'
+      settings: 'Configurações'
+
+
 
 es:
   plugin:
