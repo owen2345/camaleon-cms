@@ -42,13 +42,13 @@
           </ul>
           <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="cama_media_upload">
-                <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-dragDropStr="<%= t("camaleon_cms.admin.button.drag_drop") %>" data-uploadStr="<%= t("camaleon_cms.admin.button.upload_file") %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
+                <div class="cama_media_fileuploader" data-input-id="cama-upload-files" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-dragDropStr="<%= t("camaleon_cms.admin.button.drag_drop") %>" data-uploadStr="<%= t("camaleon_cms.admin.button.upload_file") %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
                 <hr/>
                 <form id="cama_media_external">
                     <fieldset>
                         <legend><%= t("camaleon_cms.admin.media.external", default: 'From URL') %></legend>
                         <div class="form-group">
-                            <input type="text" class="form-control" placeholder="http://..." class="required">
+                            <input type="text" name="remote_file" class="form-control" placeholder="http://..." class="required">
                         </div>
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary"><%= t("camaleon_cms.admin.button.submit") %></button>

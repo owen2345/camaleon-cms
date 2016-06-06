@@ -1,9 +1,10 @@
+require "rails_helper"
 describe "the Themes", js: true do
   login_success
 
   it "Themes list" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/appearances/themes"
+    visit "#{cama_root_relative_path}/admin/appearances/themes"
     expect(page).to have_css('#themes_page')
     within "#themes_page" do
       first('.preview_link').click

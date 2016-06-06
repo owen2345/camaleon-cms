@@ -1,9 +1,10 @@
+require "rails_helper"
 describe "the Languages", js: true do
   login_success
 
   it "Languages list" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/settings/languages"
+    visit "#{cama_root_relative_path}/admin/settings/languages"
     expect(page).to have_content("Languages configuration")
 
     # create user role

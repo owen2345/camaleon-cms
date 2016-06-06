@@ -1,9 +1,10 @@
+require "rails_helper"
 describe "the Sites", js: true do
   login_success
 
   it "Sites list" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/settings/sites"
+    visit "#{cama_root_relative_path}/admin/settings/sites"
     expect(page).to have_content("List Sites")
 
     # create user role
@@ -21,7 +22,7 @@ describe "the Sites", js: true do
 
   it "Site Edit" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/settings/sites"
+    visit "#{cama_root_relative_path}/admin/settings/sites"
     within '#admin_content' do
       all(".btn-default").last.click
     end
@@ -34,7 +35,7 @@ describe "the Sites", js: true do
 
   it "Site destroy" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/settings/sites"
+    visit "#{cama_root_relative_path}/admin/settings/sites"
     within '#admin_content' do
       all(".btn-danger").last.click
     end

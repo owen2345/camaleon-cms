@@ -13,7 +13,7 @@ module CamaleonCms::SiteHelper
     return $current_site if defined?($current_site)
     return @current_site if defined?(@current_site)
     if PluginRoutes.get_sites.size == 1
-      site = CamaleonCms::Site.first.decorate
+      site = CamaleonCms::Site.first.decorate rescue nil
     else
       host = [request.original_url.to_s.parse_domain]
       host << request.subdomain if request.subdomain.present?

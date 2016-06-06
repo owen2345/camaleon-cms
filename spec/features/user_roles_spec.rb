@@ -1,9 +1,10 @@
+require "rails_helper"
 describe "the User Roles", js: true do
   login_success
 
   it "User Roles list" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/user_roles"
+    visit "#{cama_root_relative_path}/admin/user_roles"
     expect(page).to have_content("User Roles")
     expect(page).to have_content("Administrator")
     expect(page).to have_content("Editor")
@@ -32,7 +33,7 @@ describe "the User Roles", js: true do
 
   it "User Role Edit" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/user_roles"
+    visit "#{cama_root_relative_path}/admin/user_roles"
     within '#admin_content' do
       all(".btn-default").last.click
     end
@@ -49,7 +50,7 @@ describe "the User Roles", js: true do
 
   it "User Group destroy" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/user_roles"
+    visit "#{cama_root_relative_path}/admin/user_roles"
     within '#admin_content' do
       all(".btn-danger").last.click
     end

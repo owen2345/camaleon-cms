@@ -1,9 +1,10 @@
+require "rails_helper"
 describe "the Menus", js: true do
   login_success
 
   it "Plugins list" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/plugins"
+    visit "#{cama_root_relative_path}/admin/plugins"
     expect(page).to have_css('#table-plugins-list')
     expect(page).to have_content("Attack")
     expect(page).to have_content("Contact Form")
