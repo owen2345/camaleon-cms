@@ -56,7 +56,7 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
 
   # return all menu items in which this post was assigned
   def in_nav_menu_items
-    CamaleonCms::NavMenuItem.joins(:metas).where("value LIKE ?","%\"object_id\":\"#{self.id}\"%").where("value LIKE ?","%\"type\":\"post\"%").readonly(false)
+    CamaleonCms::NavMenuItem.where(url: self.id, kind: 'post')
   end
 
   # Set the meta, field values and the post keywords here

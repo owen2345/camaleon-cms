@@ -119,19 +119,19 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
   private
   def parse_menu_item(nav_menu_item)
     begin
-      case nav_menu_item.get_option('type')
+      case nav_menu_item.kind
         when 'post'
-          post = CamaleonCms::Post.find(nav_menu_item.get_option('object_id')).decorate
+          post = CamaleonCms::Post.find(nav_menu_item.url).decorate
           return false unless post.status == 'published'
           {name: post.the_title(locale: @frontend_locale), url_edit: post.the_edit_url }
         when 'category'
-          category = CamaleonCms::Category.find(nav_menu_item.get_option('object_id')).decorate
+          category = CamaleonCms::Category.find(nav_menu_item.url).decorate
           {name: category.the_title, url_edit: category.the_edit_url}
         when 'post_tag'
-          post_tag = CamaleonCms::PostTag.find(nav_menu_item.get_option('object_id')).decorate
+          post_tag = CamaleonCms::PostTag.find(nav_menu_item.url).decorate
           {name: post_tag.the_title, url_edit: post_tag.the_edit_url}
         when 'post_type'
-          post_type = CamaleonCms::PostType.find(nav_menu_item.get_option('object_id')).decorate
+          post_type = CamaleonCms::PostType.find(nav_menu_item.url).decorate
           {name: post_type.the_title, url_edit: post_type.the_edit_url}
         when 'external'
           {name: nav_menu_item.name.to_s}

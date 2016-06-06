@@ -144,6 +144,7 @@ module CamaleonCms::Frontend::NavMenuHelper
         end
         r[:levels] = r[:levels] + 1
       end
+      is_current_parent = true if r[:current_item]
       levels << r[:levels]
       res << r
     end
@@ -183,24 +184,24 @@ module CamaleonCms::Frontend::NavMenuHelper
 
   private
   def _get_link_nav_menu(nav_menu_item)
-    type_menu = nav_menu_item.get_option('type')
+    type_menu = nav_menu_item.kind
     begin
       case type_menu
         when 'post'
-          post = CamaleonCms::Post.find(nav_menu_item.get_option('object_id')).decorate
+          post = CamaleonCms::Post.find(nav_menu_item.url).decorate
           return false unless post.can_visit?
           r = {link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu, current: @cama_visited_post.present? && @cama_visited_post.id == post.id}
         when 'category'
-          category = CamaleonCms::Category.find(nav_menu_item.get_option('object_id')).decorate
+          category = CamaleonCms::Category.find(nav_menu_item.url).decorate
           r = {link: category.the_url(as_path: true), name: category.the_title, type_menu: type_menu, current: @cama_visited_category.present? && @cama_visited_category.id == category.id}
         when 'post_tag'
-          post_tag = CamaleonCms::PostTag.find(nav_menu_item.get_option('object_id')).decorate
+          post_tag = CamaleonCms::PostTag.find(nav_menu_item.url).decorate
           r = {link: post_tag.the_url(as_path: true), name: post_tag.the_title, type_menu: type_menu, current: @cama_visited_tag.present? && @cama_visited_tag.id == post_tag.id}
         when 'post_type'
-          post_type = CamaleonCms::PostType.find(nav_menu_item.get_option('object_id')).decorate
+          post_type = CamaleonCms::PostType.find(nav_menu_item.url).decorate
           r = {link: post_type.the_url(as_path: true), name: post_type.the_title, type_menu: type_menu, current: @cama_visited_post_type.present? && @cama_visited_post_type.id == post_type.id}
         when 'external'
-          r = {link: nav_menu_item.get_option('object_id', "").to_s.translate, name: nav_menu_item.name.to_s.translate, type_menu: type_menu, current: false}
+          r = {link: nav_menu_item.url.to_s.translate, name: nav_menu_item.name.to_s.translate, type_menu: type_menu, current: false}
           r[:link] = cama_root_path if r[:link] == "root_url"
           r[:link] = site_current_path if site_current_path == "#{current_site.the_path}#{r[:link]}"
           r[:current] = r[:link] == site_current_url || r[:link] == site_current_path

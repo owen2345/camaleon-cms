@@ -10,6 +10,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   add_flash_types :warning
   add_flash_types :error
   add_flash_types :notice
+  add_flash_types :info
 
   include CamaleonCms::CamaleonHelper
   include CamaleonCms::SessionHelper
@@ -26,7 +27,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   include CamaleonCms::EmailHelper
   include Mobu::DetectMobile
 
-  PluginRoutes.all_helpers.each{|h| include h.constantize }
+  # PluginRoutes.all_helpers.each{|h| include h.constantize }
 
   before_action :cama_site_check_existence, except: [:render_error, :captcha]
   before_action :cama_before_actions, except: [:render_error, :captcha]
@@ -73,10 +74,6 @@ class CamaleonCms::CamaleonController < ApplicationController
     views_dir = "app/apps/"
     self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
     self.prepend_view_path(Rails.root.join(views_dir).to_s)
-
-    # past plugins version support
-    self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
-    self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
 
     CamaleonCms::PostDefault.current_user = cama_current_user
     CamaleonCms::PostDefault.current_site = current_site
