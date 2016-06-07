@@ -17,7 +17,7 @@ module ActionView
           #puts "rendering specific file (render file: '....')"
         else
           prefixes = [""] unless prefixes.present?
-          prefixes = self.prefixes + prefixes if prefixes.is_a?(Array)
+          prefixes = (self.prefixes + prefixes).uniq if prefixes.is_a?(Array)
         end
         @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
       end
@@ -26,7 +26,7 @@ module ActionView
       # fix to add camaleon prefixes on verify template exist
       def exists?(name, prefixes = [], partial = false, keys = [], options = {})
         prefixes = [""] unless prefixes.present?
-        prefixes += self.prefixes if prefixes.is_a?(Array)
+        prefixes = (prefixes+self.prefixes).uniq if prefixes.is_a?(Array)
         @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys, options))
       end
       alias :template_exists? :exists?
