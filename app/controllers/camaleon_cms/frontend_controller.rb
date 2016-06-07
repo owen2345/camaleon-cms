@@ -232,7 +232,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     lookup_context.prefixes.append("camaleon_cms/default_theme")
 
     lookup_context.prefixes = lookup_context.prefixes.uniq
-
+    lookup_context.use_camaleon_partial_prefixes = true
     theme_init()
   end
 
