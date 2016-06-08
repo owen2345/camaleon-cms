@@ -55,6 +55,8 @@ Rails.application.routes.draw do
             end
           end
           get 'site'
+          get 'theme'
+          post 'save_theme'
           get "languages"
           get "shortcodes"
           post "languages" => :save_languages

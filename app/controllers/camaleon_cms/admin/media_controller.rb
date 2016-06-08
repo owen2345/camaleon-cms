@@ -13,7 +13,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # render media section
   def index
-    authorize! :manager, :media
+    authorize! :manage, :media
     @show_file_actions = true
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
   end
@@ -49,7 +49,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   # do background actions in fog
   def actions
     if params[:media_action] != 'crop_url'
-      authorize! :manager, :media
+      authorize! :manage, :media
     end
     params[:folder] = params[:folder].gsub("//", "/") if params[:folder].present?
     case params[:media_action]

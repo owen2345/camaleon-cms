@@ -1,8 +1,4 @@
-<%
-   groups = @site.get_field_groups
-   theme_field_groups = current_theme.get_field_groups
-   show_theme_tab = (theme_field_groups.present? || File.exist?(current_theme.settings_file)) ? true : false
-%>
+<% groups = @site.get_field_groups %>
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap">
   <div class="panel panel-default">
@@ -21,11 +17,6 @@
             <% if groups.present? %>
                 <li class="<%= "active" if "other_config" == params[:tab] %>">
                   <a data-toggle="tab" role="tab" href="#tab-other-configuration" aria-expanded="false"><%= t('camaleon_cms.admin.post_type.other_configuration') %></a>
-                </li>
-            <% end %>
-            <% if show_theme_tab %>
-                <li class="<%= "active" if "theme" == params[:tab] %>">
-                  <a data-toggle="tab" role="tab" href="#tab-theme-configuration" aria-expanded="false"><%= t('camaleon_cms.admin.settings.theme_setting') %></a>
                 </li>
             <% end %>
             <li class="<%= "active" if "seo" == params[:tab] %>">
@@ -67,16 +58,6 @@
             <% if groups.present? %>
                 <div id="tab-other-configuration" class="<%= "active" if "other_config" == params[:tab] %> tab-pane ">
                   <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @site, field_groups: groups} %>
-                </div>
-            <% end %>
-            <% if show_theme_tab %>
-                <div id="tab-theme-configuration" class="<%= "active" if "theme" == params[:tab] %> tab-pane">
-                    <% if File.exist?(current_theme.settings_file) %>
-                        <%= render template: "themes/#{current_theme.settings_file.split('/app/apps/themes/').last}" %>
-                        <%= render(partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: theme_field_groups}) unless File.read(current_theme.settings_file).include?('.get_field_groups') %>
-                    <% else %>
-                        <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: theme_field_groups} %>
-                    <% end %>
                 </div>
             <% end %>
               <%= render "seo_settings", f: f %>

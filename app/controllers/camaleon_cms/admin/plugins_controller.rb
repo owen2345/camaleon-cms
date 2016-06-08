@@ -53,6 +53,6 @@ class CamaleonCms::Admin::PluginsController < CamaleonCms::AdminController
   private
 
   def validate_role
-    authorize! :manager, :plugins
+    authorize! :manage, :plugins
   end
 end

@@ -92,6 +92,6 @@ class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
   end
 
   def validate_role
-    authorize! :manager, :comments
+    authorize! :manage, :comments
   end
 end

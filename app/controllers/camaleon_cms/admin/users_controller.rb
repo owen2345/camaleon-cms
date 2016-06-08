@@ -95,7 +95,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   private
 
   def validate_role
-    (params[:id].present? && cama_current_user.id == params[:id]) || authorize!(:manager, :users)
+    (params[:id].present? && cama_current_user.id == params[:id]) || authorize!(:manage, :users)
   end
 
   def set_user
