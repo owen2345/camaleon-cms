@@ -69,11 +69,11 @@ module CamaleonCms::PluginsHelper
   # return plugin full layout path
   # plugin_key: plugin name
   def plugin_layout(layout_name, plugin_key = nil)
-    plugin = current_plugin(plugin_key || self_plugin_key(1))
-    if plugin.settings["gem_mode"]
-      "plugins/#{plugin.slug}/layouts/#{layout_name}"
+    key = plugin_key || self_plugin_key(1)
+    if PluginRoutes.plugin_info(key)["gem_mode"]
+      "plugins/#{key}/layouts/#{layout_name}"
     else
-      "plugins/#{plugin.slug}/views/layouts/#{layout_name}"
+      "plugins/#{key}/views/layouts/#{layout_name}"
     end
   end
 
@@ -85,12 +85,11 @@ module CamaleonCms::PluginsHelper
       view_name = plugin_key
       plugin_key = k
     end
-
-    plugin = current_plugin(plugin_key || self_plugin_key(1))
-    if plugin.settings["gem_mode"]
-      "plugins/#{plugin.slug}/#{view_name}"
+    key = plugin_key || self_plugin_key(1)
+    if PluginRoutes.plugin_info(key)["gem_mode"]
+      "plugins/#{key}/#{view_name}"
     else
-      "plugins/#{plugin.slug}/views/#{view_name}"
+      "plugins/#{key}/views/#{view_name}"
     end
   end
 
@@ -103,12 +102,11 @@ module CamaleonCms::PluginsHelper
     if plugin_key.present? && plugin_key.include?("/")
       return plugin_asset_url(plugin_key, asset || self_plugin_key(1))
     end
-    settings = current_plugin(plugin_key || self_plugin_key(1)).settings
-    folder_name = settings["key"]
-    if settings["gem_mode"]
-      "plugins/#{folder_name}/#{asset}"
+    key = plugin_key || self_plugin_key(1)
+    if PluginRoutes.plugin_info(key)["gem_mode"]
+      "plugins/#{key}/#{asset}"
     else
-      "plugins/#{folder_name}/assets/#{asset}"
+      "plugins/#{key}/assets/#{asset}"
     end
   end
   alias_method :plugin_asset, :plugin_asset_path
@@ -120,9 +118,8 @@ module CamaleonCms::PluginsHelper
   # sample:
   #   plugin_asset_url("css/main.css") => return: http://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
   def plugin_asset_url(asset, plugin_key = nil)
-    settings = current_plugin(plugin_key || self_plugin_key(1)).settings
-    folder_name = settings["key"]
-    p = settings["gem_mode"] ? "plugins/#{folder_name}/#{asset}" : "plugins/#{folder_name}/assets/#{asset}"
+    key = plugin_key || self_plugin_key(1)
+    p = PluginRoutes.plugin_info(key)["gem_mode"] ? "plugins/#{key}/#{asset}" : "plugins/#{key}/assets/#{asset}"
     begin
       asset_url(p)
     rescue NoMethodError => e
