@@ -1,42 +1,81 @@
-function build_custom_field(values, multiple, field_key, rand, default_value, disabled) {
-    var $content = $("#content-field-" + rand);
-    var $sortable = $("#sortable-" + rand);
-    var callback = $content.find('.clone-field .group-input-fields-content').attr('data-callback-render');
-    var $field = $('<li>' + $content.find('.clone-field').html() + '</li>');
-    var field_counter = 0;
+// build custom field groups with values recovered from DB received in field_values
+function build_custom_field_group(field_values, group_id, fields_data, is_repeat){
+    if(field_values.length == 0) field_values = [{}];
+    var group_panel = $('#custom_field_group_'+group_id);
+    var group_panel_body = group_panel.find(' > .panel-body');
+    var group_clone = group_panel_body.children('.custom_sortable_grouped').clone().removeClass('hidden');
+    var field_group_counter = 0;
+    group_panel_body.children('.custom_sortable_grouped').remove();
 
-    function add_field(value) {
+    function add_group(values){
+        var clone = group_clone.clone();
+        clone.find('input, textarea, select').not('.code_style').each(function(){ $(this).attr('name', $(this).attr('name').replace('field_options', 'field_options['+field_group_counter+']')) });
+        group_panel_body.append(clone);
+        group_panel.trigger('update_custom_group_number');
+        for(var k in fields_data){
+            cama_build_custom_field(clone.find('.content-field-'+fields_data[k].id), fields_data[k], values[k]);
+        }
+        if(field_group_counter == 0) clone.children('.header-field-grouped').find('.del').remove();
+        field_group_counter ++;
+        return false;
+    }
+
+    if(is_repeat){
+        group_panel_body.sortable({ handle: ".move.fa-arrows", items: ' > .custom_sortable_grouped', update: function(){ group_panel.trigger('update_custom_group_number'); }});
+        group_panel.find('.btn.duplicate_cutom_group').click(add_group);
+        group_panel_body.on('click', '.header-field-grouped .del', function(){
+            if(confirm(I18n("msg.delete_item"))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function(){ $(this).remove(); group_panel.trigger('update_custom_group_number'); });
+            return false;
+        });
+        group_panel.bind('update_custom_group_number', function(){ $(this).find('.custom_sortable_grouped').each(function(index){ $(this).find('.cama_custom_group_number').val(index); }); });
+        $.each(field_values, function(field_val, key){ add_group(this); });
+    }else{
+        add_group(field_values[0]);
+    }
+}
+
+function cama_build_custom_field(panel, field_data, values){
+    values = values || [];
+    var field_counter = 0;
+    var $field = panel.clone().wrap('li');
+    panel.html("<div class='cama_w_custom_fields'></div>"+(field_data.multiple ? "<div class='field_multiple_btn'> <a href='#' class='btn btn-warning btn-xs'> <i class='fa fa-plus'></i> "+panel.attr('data-add_field_title')+"</a></div>" : ''));
+    var field_actions = '<div class="actions"><i style="cursor: move" class="fa fa-arrows"></i> <i style="cursor: pointer" class="fa fa-times text-danger"></i></div>';
+    var callback = $field.find('.group-input-fields-content').attr('data-callback-render');
+    var $sortable = panel.children('.cama_w_custom_fields');
+    function add_field(value){
         var field = $field.clone(true);
-        field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) }).prop('disabled', disabled);
-        if (value) field.find('.input-value').val(value);
+        if(field_data.multiple) {
+            field.prepend(field_actions);
+            if(field_counter == 0) field.children('.actions').find('.fa-times').remove();
+        }
+        field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) });
+        if(field_data.disabled){
+            field.find('input, textarea, select').prop('readonly', true).filter('select').click(function(){ return false; }).focus(function(){ $(this).blur(); });
+            field.find('.btn').addClass('disabled').unbind().click(function(){ return false; });
+        }
+
+        if(value) field.find('.input-value').val(value);
         $sortable.append(field);
         if(callback) eval(callback + "(field, value);");
         field_counter ++;
     }
-
-    if(values.length <= 0) values = [default_value];
-    if (field_key == 'checkboxes') {
-        add_field(values);
-    } else {
-        if (!multiple && values.length > 1) values = [values[0]];
+    if(values.length <= 0) values = [field_data.default_value];
+    if(field_data.kind != 'checkboxes') {
+        if (!field_data.multiple && values.length > 1) values = [values[0]];
         $.each(values, function (i, value) {
             add_field(value);
         });
-    }
+    } else add_field(values);
 
-    if (multiple) { // sortable
-        $content.find('.btn-add-field').click(function () { add_field(default_value); return false; });
-        $sortable.delegate('.actions .fa-times', "click", function () {
-            var parent = $(this).parents('li');
-            if (confirm(I18n("msg.delete_item"))) {
-                parent.remove();
-            }
+    if(field_data.multiple){ // sortable actions
+        panel.find('.field_multiple_btn .btn').click(function () { add_field(field_data.default_value); return false; });
+        panel.delegate('.actions .fa-times', "click", function () {
+            var parent = $(this).closest('.editor-custom-fields');
+            if (confirm(I18n("msg.delete_item"))) parent.remove();
             return false;
         });
-        $sortable.find('li:first .fa-times').hide();
-        $sortable.sortable({ handle: ".fa-arrows" });
+        $sortable.sortable({ handle: ".fa-arrows", items: ' > .editor-custom-fields' });
     }
-    $content.find('.clone-field').remove();
 }
 
 function custom_field_colorpicker($field) {
@@ -126,8 +165,8 @@ function custom_field_text_box($field) {
     }
 }
 
-function load_upload_audio_field(dom) {
-    var $input = $(dom).parents('li:first').find('input');
+function load_upload_audio_field(thiss) {
+    var $input = $(thiss).prev();
     $.fn.upload_filemanager({
         formats: "audio",
         selected: function (file, response) {
@@ -135,8 +174,8 @@ function load_upload_audio_field(dom) {
         }
     });
 }
-function load_upload_file_field(dom) {
-    var $input = $(dom).parents('li:first').find('input');
+function load_upload_file_field(thiss) {
+    var $input = $(thiss).prev();
     $.fn.upload_filemanager({
         formats: $input.data("formats") ? $input.data("formats") : "",
         selected: function (file, response) {
@@ -144,8 +183,8 @@ function load_upload_file_field(dom) {
         }
     });
 }
-function load_upload_private_file_field(dom) {
-    var $input = $(dom).parents('li:first').find('input');
+function load_upload_private_file_field(thiss) {
+    var $input = $(thiss).prev();
     $.fn.upload_filemanager({
         formats: $input.data("formats") ? $input.data("formats") : "",
         selected: function (file, response) {
@@ -165,8 +204,8 @@ function load_upload_image_field($input) {
         }
     });
 }
-function load_upload_video_field(dom) {
-    var $input = $(dom).parents('li:first').find('input');
+function load_upload_video_field(thiss) {
+    var $input = $(thiss).prev();
     $.fn.upload_filemanager({
         formats: "video",
         selected: function (file, response) {

@@ -63,6 +63,7 @@ class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
     current_theme.set_field_values(params[:theme_fields]) if params[:theme_fields].present?
     current_theme.set_options(params[:theme_option]) if params[:theme_option].present?
     current_theme.set_metas(params[:theme_meta]) if params[:theme_meta].present?
+    current_theme.set_field_values(params[:field_options])
     hook_run(current_theme.settings, "on_theme_settings", current_theme)# permit to save extra/custom values by this hook
     flash[:notice] = t('camaleon_cms.admin.message.updated_success', default: 'Theme updated successfully')
     redirect_to action: :theme

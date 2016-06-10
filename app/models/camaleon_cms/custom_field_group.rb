@@ -30,9 +30,11 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
     c = get_field(item[:slug] || item["slug"])
     return c if c.present?
 
-    field_item = self.fields.create!(item)
-    field_item.set_options(options)
-    auto_save_default_values(field_item, options)
+    field_item = self.fields.new(item)
+    if field_item.save
+      field_item.set_options(options)
+      auto_save_default_values(field_item, options)
+    end
     field_item
   end
   alias_method :add_field, :add_manual_field
@@ -43,31 +45,31 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
   end
 
   # only used by form on admin panel (protected)
+  # return array of failed_fields and full_fields [[failed fields], [all fields]]
   def add_fields(items, item_options)
-    ids_old = self.fields.pluck("#{CamaleonCms::CustomField.table_name}.id")
-    ids_saved = []
-    order_index = 0
+    self.fields.where.not(id: items.map{|k, obj| obj['id'] }.uniq).destroy_all
+    cache_fields, order_index, errors_saved = [], 0, []
     if items.present?
       items.each do |i,item|
         item[:field_order] = order_index
         options = item_options[i] || {}
-        if item[:id].present?
-          field_item = self.fields.find(item[:id])
+        if item[:id].present? && (field_item = self.fields.where(id: item[:id]).first).present?
           saved = field_item.update(item)
+          cache_fields << field_item
         else
           field_item = self.fields.new(item)
+          cache_fields << field_item
           saved = field_item.save
           auto_save_default_values(field_item, options) if saved
+          errors_saved << field_item unless saved
         end
         if saved
           field_item.set_meta('_default', options)
-          ids_saved << field_item.id
           order_index += 1
         end
       end
     end
-    ids_deletes = ids_old - ids_saved
-    self.fields.where(id: ids_deletes).destroy_all if ids_deletes.any?
+    [errors_saved, cache_fields]
   end
 
   # generate the caption for this group
@@ -108,7 +110,6 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
     self.slug = "_group-#{self.name.to_s.parameterize}" unless self.slug.present?
   end
 
-  # TODO VERIFY CLASS NAME
   # auto save the default field values
   def auto_save_default_values(field, options)
     options = options.with_indifferent_access

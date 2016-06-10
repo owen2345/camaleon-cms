@@ -3,11 +3,13 @@ es:
   camaleon_cms:
     welcome_message: "Bienvenido a Camaleon CMS"
     captcha_placeholder: 'Por favor ingrese el texto de la imagen'
+    errors_found_msg: 'Se encontraron varios errores, por favor verifique.'
     admin:
       request_error_message: "Un error a ocurrido, por favor contacte con el administrador."
       button:
        activity: 'Actividad'
        add_new_field: 'Añadir nuevo campo'
+       add_new_group: 'Añadir nuevo grupo'
        add_option: 'Añadir opción'
        add_menu: 'Añadir Menú'
        update_menu: 'Actualizar Menú'
@@ -89,6 +91,7 @@ es:
           reply_comment: 'Responder Comentario'
           delete_comment: 'Eliminar Comentario'
       custom_field:
+        custom_group_support_multiple: 'Soporta multiple grupos?'
         message:
           custom_group_error: 'Error grupo de campos personalizados'
           custom_created: 'El grupo de campos personalizados se ha creado.'

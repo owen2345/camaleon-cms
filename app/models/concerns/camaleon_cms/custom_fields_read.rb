@@ -65,9 +65,8 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # _key: custom field key
   # if value is not present, then return default
   # return default only if the field was not registered
-  def get_field_value(_key, _default = nil)
-    v = _default
-    v = get_field_values(_key).first rescue _default
+  def get_field_value(_key, _default = nil, group_number = 0)
+    v = get_field_values(_key, group_number).first rescue _default
     v.present? ? v : _default
   end
   alias_method :get_field, :get_field_value
@@ -75,15 +74,35 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
 
   # get custom field values
   # _key: custom field key
-  def get_field_values(_key)
-    self.field_values.where(custom_field_slug: _key).pluck(:value)
+  def get_field_values(_key, group_number = 0)
+    self.field_values.where(custom_field_slug: _key, group_number: group_number).pluck(:value)
   end
   alias_method :get_fields, :get_field_values
 
+  # return the field values grouped by group_number
+  # group_or_slug: (string group slug or custom_group model)
+  # return the values grouped for group_or_slug
+  # sample return: [{"untitled-text-box":["sample value for textbox"],"untitled-text-area": ['sample value']}, {"untitled-text-box":["sample value2 for textbox"],"untitled-text-area": ['sample value2 for textarea']}]
+  def get_fields_grouped(group_or_slug)
+    group_or_slug = get_field_groups.where(slug: group_or_slug) if group_or_slug.is_a?(String)
+    return [] unless group_or_slug.present?
+    res = []
+    field_slugs = group_or_slug.fields.pluck(:slug)
+    _groups = field_values.where(custom_field_slug: field_slugs).order(group_number: :asc).pluck(:group_number).uniq
+    (_groups.present? && group_or_slug.is_repeat ? _groups : [0]).each do |group_number|
+      group = {}
+      field_slugs.each do |field_slug|
+        group[field_slug] = get_field_values(field_slug, group_number)
+      end
+      res << group
+    end
+    res
+  end
+
   # update new value for field with slug _key
   # Sample: my_posy.update_field_value('sub_title', 'Test Sub Title')
-  def update_field_value(_key, value = nil)
-    self.field_values.where(custom_field_slug: _key).first.update_column('value', value) rescue nil
+  def update_field_value(_key, value = nil, group_number = 0)
+    self.field_values.where(custom_field_slug: _key, group_number: group_number).first.update_column('value', value) rescue nil
   end
 
 
@@ -122,6 +141,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     # name: name for the group
     # slug: key for group (if slug = _default => this will never show title and description)
     # description: description for the group (optional)
+    # is_repeat: (boolean, optional -> default false) indicate if group support multiple format (repeated values)
   # Model supported: PostType, Category, Post, Posttag, Widget, Plugin, Theme, User and Custom models pre configured
   # Note 1: If you need add fields for all post's or all categories, then you need to add the fields into the
   #     post_type.add_custom_field_group(values, kind = "Post")
@@ -152,22 +172,22 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   end
   alias_method :add_field, :add_custom_field_to_default_group
 
-  # only custom field plugin (protected)
-  # example:
-  # id: custom_field_id
+  # save all fields sent from browser (reservated for browser request)
+  # sample:
   # {
-  # :key : {id: 123, values: ['uno','dos']}
-  # :key2 : {id: 455, values: ['uno','dos']}
-  # :key3 : {id: 4555, values: ['uno','dos']}
+  #   "0"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}},
+  #   "1"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}}
   # }
   def set_field_values(datas = {})
     if datas.present?
-      datas.each do |key, values|
-        if values[:values].present?
-          self.field_values.where(custom_field_id: values[:id]).delete_all
-          order_value = -1
-          (values[:values].is_a?(Hash) ? values[:values].values : values[:values]).each do |value|
-            item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: key, value: fix_meta_value(value), term_order: order_value += 1})
+      self.field_values.delete_all
+      datas.each do |index, fields_data|
+        fields_data.each do |field_key, values|
+          if values[:values].present?
+            order_value = -1
+            (values[:values].is_a?(Hash) ? values[:values].values : values[:values]).each do |value|
+              item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: field_key, value: fix_meta_value(value), term_order: order_value += 1, group_number: values[:group_number] || 0})
+            end
           end
         end
       end
@@ -179,20 +199,39 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     CamaleonCms::CustomField.where(parent_id: get_field_groups.pluck(:id), slug: slug).first || CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups({include_parent: true})).first
   end
 
-  # clear and register values for this custom field
+  # Set custom field values for current model
   # key: slug of the custom field
   # value: array of values for multiple values support
   # value: string value
   def save_field_value(key, value, order = 0, clear = true)
-    field = get_field_object(key)
-    return unless field.present?
-    self.field_values.where({custom_field_slug: key}).destroy_all if clear
+    set_field_value(key, value, {clear: clear, order: order})
+  end
+
+  # Set custom field values for current model (support for multiple group values)
+  # key: (string required) slug of the custom field
+  # value: (array | string) array: array of values for multiple values support, string: uniq value for the custom field
+  # args:
+  #   field_id: (integer optional) identifier of the custom field
+  #   order: order or position of the field value
+  #   group_number: number of the group (only for custom field group with is_repeat enabled)
+  #   clear: (boolean, default true) if true, will remove previous values and set these values, if not will append values
+  # return false if the was not saved because there is not present the field with slug: key
+  # sample: my_post.set_field_value('subtitle', 'Sub Title')
+  # sample: my_post.set_field_value('subtitle', ['Sub Title1', 'Sub Title2']) # set values for a field (for fields that support multiple values)
+  # sample: my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1})
+  # sample: my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1, group_number: 1}) # add field values for fields in group 1
+  def set_field_value(key, value, args = {})
+    args = {order: 0, group_number: 0, field_id: nil, clear: true}.merge(args)
+    args[:field_id] = get_field_object(key).id rescue nil unless args[:field_id].present?
+    return false unless args[:field_id].present?
+    self.field_values.where({custom_field_slug: key, group_number: args[:group_number]}).delete_all if args[:clear]
+    v = {custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value), term_order: args[:order], group_number: args[:group_number]}
     if value.is_a?(Array)
       value.each do |val|
-        self.field_values.create!({custom_field_id: field.id, custom_field_slug: key, value: fix_meta_value(val), term_order: order})
+        self.field_values.create!(v.merge({value: fix_meta_value(val)}))
       end
     else
-      self.field_values.create!({custom_field_id: field.id, custom_field_slug: key, value: fix_meta_value(value), term_order: order})
+      self.field_values.create!(v)
     end
   end
 
