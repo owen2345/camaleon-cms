@@ -21,13 +21,26 @@ function build_custom_field_group(field_values, group_id, fields_data, is_repeat
     }
 
     if(is_repeat){
-        group_panel_body.sortable({ handle: ".move.fa-arrows", items: ' > .custom_sortable_grouped', update: function(){ group_panel.trigger('update_custom_group_number'); }});
+        group_panel_body.sortable({ handle: ".move.fa-arrows", items: ' > .custom_sortable_grouped',
+            update: function(){ group_panel.trigger('update_custom_group_number'); },
+            start: function (e, ui) { // fix tinymce
+                $(ui.item).find('.mce-panel').each(function () {
+                    tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
+                });
+            },
+            stop: function (e, ui) { // fix tinymce
+                $(ui.item).find('.cama_restore_editor').each(function () {
+                    tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
+                });
+            }});
         group_panel.find('.btn.duplicate_cutom_group').click(add_group);
-        group_panel_body.on('click', '.header-field-grouped .del', function(){
-            if(confirm(I18n("msg.delete_item"))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function(){ $(this).remove(); group_panel.trigger('update_custom_group_number'); });
+        group_panel_body.on('click', '.header-field-grouped .del', function(){ if(confirm(I18n("msg.delete_item"))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function(){ $(this).remove(); group_panel.trigger('update_custom_group_number'); }); return false; });
+        group_panel_body.on('click', '.header-field-grouped .toggleable', function(){
+            if($(this).hasClass('fa-angle-down')) $(this).removeClass('fa-angle-down').addClass('fa-angle-up').closest('.header-field-grouped').next().slideUp();
+            else $(this).removeClass('fa-angle-up').addClass('fa-angle-down').closest('.header-field-grouped').next().slideDown();
             return false;
         });
-        group_panel.bind('update_custom_group_number', function(){ $(this).find('.custom_sortable_grouped').each(function(index){ $(this).find('.cama_custom_group_number').val(index); }); });
+        group_panel.bind('update_custom_group_number', function(){ $(this).find('.custom_sortable_grouped').each(function(index){ $(this).find('input.cama_custom_group_number').val(index); }); });
         $.each(field_values, function(field_val, key){ add_group(this); });
     }else{
         add_group(field_values[0]);
@@ -69,12 +82,19 @@ function cama_build_custom_field(panel, field_data, values){
 
     if(field_data.multiple){ // sortable actions
         panel.find('.field_multiple_btn .btn').click(function () { add_field(field_data.default_value); return false; });
-        panel.delegate('.actions .fa-times', "click", function () {
-            var parent = $(this).closest('.editor-custom-fields');
-            if (confirm(I18n("msg.delete_item"))) parent.remove();
-            return false;
+        panel.delegate('.actions .fa-times', "click", function () { if(confirm(I18n("msg.delete_item"))) $(this).closest('.editor-custom-fields').remove(); return false; });
+        $sortable.sortable({ handle: ".fa-arrows", items: ' > .editor-custom-fields',
+            start: function (e, ui) { // fix tinymce
+                $(ui.item).find('.mce-panel').each(function () {
+                    tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
+                });
+            },
+            stop: function (e, ui) { // fix tinymce
+                $(ui.item).find('.cama_restore_editor').each(function () {
+                    tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
+                });
+            }
         });
-        $sortable.sortable({ handle: ".fa-arrows", items: ' > .editor-custom-fields' });
     }
 }
 

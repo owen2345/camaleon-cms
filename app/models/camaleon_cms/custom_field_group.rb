@@ -15,6 +15,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
   has_many :metas, ->{ where(object_class: 'CustomFieldGroup')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   has_many :fields, -> {where(object_class: '_fields')}, :class_name => "CamaleonCms::CustomField", foreign_key: :parent_id, dependent: :destroy
   belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
+  validates_uniqueness_of :slug, scope: [:object_class, :objectid]
   before_validation :before_validating
 
   # add fields to group

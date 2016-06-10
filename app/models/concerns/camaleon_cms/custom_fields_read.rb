@@ -21,22 +21,25 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # get custom field groups for current object
   # only: Post_type, Post, Category, PostTag, Widget, Site and a Custom model pre configured
   # return collections CustomFieldGroup
-  # args: (Hash)
-    # kind: argument only for PostType Objects: (Post (Default) | Category | PostTag).
+  # args: (Hash, used only for PostType Objects)
+    # kind: (Post (Default) | Category | PostTag | PostType).
+      # If kind = "Post" this will return all groups for all posts from current post type
+      # If kind = "Category" this will return all groups for all categories from current post type
+      # If kind = "PostTag" this will return all groups for all posttags from current post type
+      # If kind = "all" this will return all groups from current post type
       # If kind = "post_type" this will return groups for all post_types
-      # If kind = "Post" this will return all groups for all posts from current post type + groups of current post type
-    # include_parent: (boolean, default false) Permit to recover groups from self + parent post_type (argument valid only for Post | PostTag | Category)
-  # args: (String) => is a value for kind attribute
+  # Sample: mypost.get_field_groups() ==> return fields for posts from parent posttype
+  # Sample: mycat.get_field_groups() ==> return fields for categories from parent posttype
+  # Sample: myposttag.get_field_groups() ==> return fields for posttags from parent posttype
+  # Sample: mypost_type.get_field_groups({kind: 'Post'}) => return custom fields for posts
+  # Sample: mypost_type.get_field_groups({kind: 'Category'}) => return custom fields for posts
+  # Sample: mypost_type.get_field_groups({kind: 'PostTag'}) => return custom fields for posts
   def get_field_groups(args = {})
     args = args.is_a?(String) ?  {kind: args, include_parent: false } : {kind: "Post", include_parent: false }.merge(args)
     class_name = self.class.to_s.parseCamaClass
     case class_name
       when 'Category','Post','PostTag'
-        if args[:include_parent]
-          CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
-        else
-          CamaleonCms::CustomFieldGroup.where(objectid: self.id || -1, object_class: class_name)
-        end
+        CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
       when 'NavMenuItem'
         self.main_menu.field_groups
       when 'PostType'
@@ -79,32 +82,33 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   end
   alias_method :get_fields, :get_field_values
 
-  # return the field values grouped by group_number
-  # group_or_slug: (string group slug or custom_group model)
-  # return the values grouped for group_or_slug
-  # sample return: [{"untitled-text-box":["sample value for textbox"],"untitled-text-area": ['sample value']}, {"untitled-text-box":["sample value2 for textbox"],"untitled-text-area": ['sample value2 for textarea']}]
-  def get_fields_grouped(group_or_slug)
-    group_or_slug = get_field_groups.where(slug: group_or_slug) if group_or_slug.is_a?(String)
-    return [] unless group_or_slug.present?
+  # return the values of custom fields grouped by group_number
+  # field_keys: (array of keys)
+  # samples: my_object.get_fields_grouped(['my_slug1', 'my_slug2'])
+  #   return: [
+  #             { my_slug1: ["val 1"], my_slug2: ['val 2']},
+  #             { my_slug1: ["val2 for slug1"], my_slug2: ['val 2 for slug2']}
+  #   ] ==> 2 groups
+  #
+  #   return: [
+  #             { my_slug1: ["val 1", 'val 2 for fields multiple support'], my_slug2: ['val 2']},
+  #             { my_slug1: ["val2 for slug1", 'val 2'], my_slug2: ['val 2 for slug2']}
+  #             { my_slug1: ["val3 for slug1", 'val 3'], my_slug2: ['val 3 for slug2']}
+  #   ] ==> 3 groups
+  #
+  #   puts res[0][:my_slug1].first ==> "val 1"
+  # TODO: Improve query for performance
+  def get_fields_grouped(field_keys)
     res = []
-    field_slugs = group_or_slug.fields.pluck(:slug)
-    _groups = field_values.where(custom_field_slug: field_slugs).order(group_number: :asc).pluck(:group_number).uniq
-    (_groups.present? && group_or_slug.is_repeat ? _groups : [0]).each do |group_number|
+    field_values.where(custom_field_slug: field_keys).order(group_number: :asc).pluck(:group_number).each do |group_number|
       group = {}
-      field_slugs.each do |field_slug|
-        group[field_slug] = get_field_values(field_slug, group_number)
+      field_keys.each do |field_key|
+        group[field_key.to_sym] = get_field_values(field_key, group_number)
       end
       res << group
     end
     res
   end
-
-  # update new value for field with slug _key
-  # Sample: my_posy.update_field_value('sub_title', 'Test Sub Title')
-  def update_field_value(_key, value = nil, group_number = 0)
-    self.field_values.where(custom_field_slug: _key, group_number: group_number).first.update_column('value', value) rescue nil
-  end
-
 
   # return all values
   # {key1: "single value", key2: [multiple, values], key3: value4} if include_options = false
@@ -172,6 +176,11 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   end
   alias_method :add_field, :add_custom_field_to_default_group
 
+  # return field object for current model
+  def get_field_object(slug)
+    CamaleonCms::CustomField.where(parent_id: get_field_groups.pluck(:id), slug: slug).first || CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups({include_parent: true})).first
+  end
+
   # save all fields sent from browser (reservated for browser request)
   # sample:
   # {
@@ -194,9 +203,10 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     end
   end
 
-  # return field object for current model
-  def get_field_object(slug)
-    CamaleonCms::CustomField.where(parent_id: get_field_groups.pluck(:id), slug: slug).first || CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups({include_parent: true})).first
+  # update new value for field with slug _key
+  # Sample: my_posy.update_field_value('sub_title', 'Test Sub Title')
+  def update_field_value(_key, value = nil, group_number = 0)
+    self.field_values.where(custom_field_slug: _key, group_number: group_number).first.update_column('value', value) rescue nil
   end
 
   # Set custom field values for current model

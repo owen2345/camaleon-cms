@@ -10,29 +10,32 @@
             <div class="custom_sortable_grouped hidden">
                 <% if group.is_repeat %>
                     <div class="text-right header-field-grouped bg-info">
+                        <i class="fa fa-angle-down toggleable" style="cursor: pointer"></i>
                         <i style="cursor: pointer" class="fa fa-times del text-danger"></i> <i style="cursor: move" class="fa fa-arrows move"></i>
                     </div>
                 <% end %>
-                <% fields.decorate.each do |field| is_disabled = field.options[:disabled].present? || field.options[:readonly].present?; group_field_data[field.slug] = {default_value: record.new_record? ? field.options[:default_value] : '', is_disabled: is_disabled, id: field.id, multiple: field.options[:multiple].to_s.to_bool && !is_disabled, kind: field.get_option('field_key')} %>
-                    <div class="item-custom-field c-field-<%= field.options[:field_key] %>">
-                        <input name="<%= field_name %>[<%= field.slug %>][id]" type="hidden" value="<%= field.id %>"/>
-                        <input name="<%= field_name %>[<%= field.slug %>][group_number]" class="cama_custom_group_number" type="hidden" value="0"/>
-                        <label>
-                            <%= field.options[:label_eval].present? ? eval(field.name) : field.name %>
-                            <%= raw "<em class='text-danger'>*</em>" if field.options[:required].to_s.to_bool %>
-                            <% if ["post", "posttype", "category", "postTag", "site", "user", "navmenu", "theme"].include?(obj_class) %>
-                                <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") %></small>
-                            <% end %>
-                        </label>
-                        <% if field.description.present? %>
-                            <p><small><%= field.options[:label_eval].present? ? eval(field.description) : field.description %></small></p>
-                        <% end  %>
-                        <div class="editor-custom-fields content-field-<%= field.id %>" data-add_field_title="<%= t('camaleon_cms.admin.button.add_new_field', default: 'Add new field')%>">
-                            <%= render(field.get_option('render') || cama_custom_field_elements[field.get_option('field_key').to_sym][:render] || "camaleon_cms/admin/settings/custom_fields/fields/#{field.options[:field_key]}", field: field, values: nil, is_disabled: is_disabled, default_use: default_use, field_name: field_name) %>
+                <div class="fields_container">
+                    <% fields.decorate.each do |field| is_disabled = field.options[:disabled].present? || field.options[:readonly].present?; group_field_data[field.slug] = {default_value: record.new_record? ? field.options[:default_value] : '', is_disabled: is_disabled, id: field.id, multiple: field.options[:multiple].to_s.to_bool && !is_disabled, kind: field.get_option('field_key')} %>
+                        <div class="item-custom-field c-field-<%= field.options[:field_key] %>">
+                            <input name="<%= field_name %>[<%= field.slug %>][id]" type="hidden" value="<%= field.id %>"/>
+                            <input name="<%= field_name %>[<%= field.slug %>][group_number]" class="cama_custom_group_number" type="hidden" value="0"/>
+                            <label>
+                                <%= field.options[:label_eval].present? ? eval(field.name) : field.name %>
+                                <%= raw "<em class='text-danger'>*</em>" if field.options[:required].to_s.to_bool %>
+                                <% if ["post", "posttype", "category", "postTag", "site", "user", "navmenu", "theme"].include?(obj_class) %>
+                                    <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") %></small>
+                                <% end %>
+                            </label>
+                            <% if field.description.present? %>
+                                <p><small><%= field.options[:label_eval].present? ? eval(field.description) : field.description %></small></p>
+                            <% end  %>
+                            <div class="editor-custom-fields content-field-<%= field.id %>" data-add_field_title="<%= t('camaleon_cms.admin.button.add_new_field', default: 'Add new field')%>">
+                                <%= render(field.get_option('render') || cama_custom_field_elements[field.get_option('field_key').to_sym][:render] || "camaleon_cms/admin/settings/custom_fields/fields/#{field.options[:field_key]}", field: field, values: nil, is_disabled: is_disabled, default_use: default_use, field_name: field_name) %>
+                            </div>
                         </div>
-                    </div>
-                <% end %>
-                <script> jQuery(function(){ build_custom_field_group(<%= raw(params[:field_options].present? ? (r = []; params[:field_options].each{|k, v| val = {}; v.each{|kk, vv| val["#{kk}"] = vv['values'].values; }; r << val }; r) : record.get_fields_grouped(group).to_json) %>, '<%= group.id %>', <%= raw group_field_data.to_json %>, <%= group.is_repeat %>); }); </script>
+                    <% end %>
+                </div>
+                <script> jQuery(function(){ build_custom_field_group(<%= raw(params[:field_options].present? ? (r = []; params[:field_options].each{|k, v| val = {}; v.each{|kk, vv| val["#{kk}"] = vv['values'].values; }; r << val }; r) : record.get_fields_grouped(fields.pluck(:slug).uniq).to_json) %>, '<%= group.id %>', <%= raw group_field_data.to_json %>, <%= group.is_repeat %>); }); </script>
             </div>
         </div>
         <% if group.is_repeat %>
