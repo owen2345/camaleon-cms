@@ -7,14 +7,12 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 # load all custom initializers of plugins or themes
-if(CamaleonCms::Site.any? rescue false)
-  PluginRoutes.all_apps.each do |ap|
-    if ap["path"].present?
-      f = File.join(ap["path"], "config", "initializer.rb")
-      eval(File.read(f)) if File.exist?(f)
+PluginRoutes.all_apps.each do |ap|
+  if ap["path"].present?
+    f = File.join(ap["path"], "config", "initializer.rb")
+    eval(File.read(f)) if File.exist?(f)
 
-      f = File.join(ap["path"], "config", "custom_models.rb")
-      eval(File.read(f)) if File.exist?(f)
-    end
+    f = File.join(ap["path"], "config", "custom_models.rb")
+    eval(File.read(f)) if File.exist?(f)
   end
 end

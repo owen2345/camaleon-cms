@@ -148,10 +148,11 @@ module CamaleonCms::PluginsHelper
     k = "/plugins/"
     f = caller[index]
     if f.include?(k)
-      f.split(k).last.split("/").first
+      key = f.split(k).last.split("/").first
     else
-      f.split('/gems/').last.split("/").first
+      key = f.split('/gems/').last.split("/").first
     end
+    PluginRoutes.plugin_info(key)['key'] rescue raise("Not found plugin with key: #{key} or dirname: #{key}")
   end
 
   # method called only from files within plugins directory

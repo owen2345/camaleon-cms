@@ -65,7 +65,7 @@ class PluginRoutes
   class << self
     # return plugin information
     def plugin_info(plugin_key)
-      self.all_plugins.each{|p| return p if p["key"] == plugin_key }
+      self.all_plugins.each{|p| return p if p["key"] == plugin_key || p['path'].split('/').last == plugin_key }
       nil
     end
 
