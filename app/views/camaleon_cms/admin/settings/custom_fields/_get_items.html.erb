@@ -39,9 +39,9 @@
     <%
        html = ''
        if @field_config[:extra_fields].present?
-
            @field_config[:extra_fields].each do |input|
                 type = input[:type]
+                html += '<div class="form-group">'
                 html += "<label>#{input[:label]}</label>" if input[:label].present?
                 case type
                   when 'select'
@@ -64,10 +64,11 @@
                     html += "#{text_field(:field_options, input[:key], index: @index , value: @item_options_value[input[:key].to_sym] || '', class: 'form-control') }"
                 end
                 html += "<small>#{input[:description]}</small>" if input[:description].present?
+                html += '</div>'
             end
         end
     %>
-    <div class="form-group">
+    <div>
       <%= raw html %>
     </div>
     <% if @field_config[:options][:multiple_options].present? %>

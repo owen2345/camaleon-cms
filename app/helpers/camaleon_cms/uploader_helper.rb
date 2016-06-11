@@ -18,7 +18,8 @@ module CamaleonCms::UploaderHelper
   #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
   #   remove_source: Boolean (delete source file after saved if this is true, default false)
   #   same_name: Boolean (save the file with the same name if defined true, else search for a non used name)
-  #   versions: String (Create multiple versions of the image uploaded), sample: '300x300,505x350' ==> Will create two extra file with this dimensions
+  #   versions: (String) Create addtional multiple versions of the image uploaded, sample: '300x300,505x350' ==> Will create two extra images with these dimensions
+  #       sample "test.png", versions: '200x200,450x450' will generate: thumb/test-png_200x200.png, test-png_450x450.png
   #   thumb_size: String (redefine the dimensions of the thumbnail, sample: '100x100' ==> only for images)
   #   temporal_time: if great than 0 seconds, then this file will expire (removed) in that time (default: 0)
   #     To manage jobs, please check http://edgeguides.rubyonrails.org/active_job_basics.html
@@ -26,6 +27,7 @@ module CamaleonCms::UploaderHelper
   # sample: upload_file(params[:my_file], {formats: "images", folder: "temporal"})
   # sample: upload_file(params[:my_file], {formats: "jpg,png,gif,mp3,mp4", temporal_time: 10.minutes, maximum: 10.megabytes})
   def upload_file(uploaded_io, settings = {})
+    cached_name = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.original_filename : nil
     return {error: "File is empty", file: nil, size: nil} unless uploaded_io.present?
     if uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://")) # download url file
       tmp = cama_tmp_upload(uploaded_io)
@@ -35,6 +37,7 @@ module CamaleonCms::UploaderHelper
     end
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
     uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension])) if settings[:dimension].present? # resize file into specific dimensions
+
     settings = settings.to_sym
     settings[:uploaded_io] = uploaded_io
     settings = {
@@ -43,7 +46,7 @@ module CamaleonCms::UploaderHelper
         formats: "*",
         generate_thumb: true,
         temporal_time: 0,
-        filename: (uploaded_io.original_filename rescue uploaded_io.path.split("/").last).parameterize(".").downcase.gsub(" ", "-"),
+        filename: ((cached_name || uploaded_io.original_filename) rescue uploaded_io.path.split("/").last).parameterize(".").downcase.gsub(" ", "-"),
         file_size: File.size(uploaded_io.to_io),
         remove_source: false,
         same_name: false,
@@ -61,7 +64,6 @@ module CamaleonCms::UploaderHelper
       res[:error] = "#{ct("file_size_exceeded", default: "File size exceeded")} (#{number_to_human_size(settings[:maximum])})"
       return res
     end
-
     # save file
     key = File.join(settings[:folder], settings[:filename]).to_s.gsub(/(\/){2,}/, "/")
     res = cama_uploader.add_file(uploaded_io, key, {same_name: settings[:same_name]})
