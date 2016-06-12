@@ -1,23 +1,23 @@
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <!-- META SECTION -->
-        <title><%= current_site.the_title %></title>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <!-- END META SECTION -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- META SECTION -->
+    <title><%= current_site.the_title %></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- END META SECTION -->
 
-        <%= stylesheet_link_tag theme_asset_path("css/main") %>
-        <%= javascript_include_tag theme_asset_path("js/main.js") %>
-        <%= raw the_head %>
-    </head>
-    <body>
+    <%= stylesheet_link_tag theme_asset_path("css/main") %>
+    <%= javascript_include_tag theme_asset_path("js/main.js") %>
+    <%= raw the_head %>
+</head>
+<body>
 
     <!-- container -->
     <div class="container">
         <!-- header -->
-        <div class="navbar navbar-default">
+        <div class="navbar navbar-primary">
             <div class="navbar-header">
                 <a id="logo" class="navbar-brand" href="<%= current_site.the_url %>"><%= image_tag current_site.the_logo, class: "img-responsive" %></a>
                 <button data-target="#navbar-main" data-toggle="collapse" type="button" class="navbar-toggle">
@@ -40,7 +40,6 @@
                             </ul>
                         </li>
                     <% else %>
-
                         <li class="dropdown">
                             <a id="login-user" class="dropdown-toggle" data-toggle="dropdown" href="#">Login / Register</a>
                             <ul class="dropdown-menu">
@@ -66,5 +65,5 @@
         <!-- ./footer -->
     </div>
     <!-- ./container -->
-    </body>
-    </html>
+</body>
+</html>
