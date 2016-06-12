@@ -86,24 +86,24 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # field_keys: (array of keys)
   # samples: my_object.get_fields_grouped(['my_slug1', 'my_slug2'])
   #   return: [
-  #             { my_slug1: ["val 1"], my_slug2: ['val 2']},
-  #             { my_slug1: ["val2 for slug1"], my_slug2: ['val 2 for slug2']}
+  #             { 'my_slug1' => ["val 1"], 'my_slug2' => ['val 2']},
+  #             { 'my_slug1' => ["val2 for slug1"], 'my_slug2' => ['val 2 for slug2']}
   #   ] ==> 2 groups
   #
   #   return: [
-  #             { my_slug1: ["val 1", 'val 2 for fields multiple support'], my_slug2: ['val 2']},
-  #             { my_slug1: ["val2 for slug1", 'val 2'], my_slug2: ['val 2 for slug2']}
-  #             { my_slug1: ["val3 for slug1", 'val 3'], my_slug2: ['val 3 for slug2']}
+  #             { 'my_slug1' => ["val 1", 'val 2 for fields multiple support'], 'my_slug2' => ['val 2']},
+  #             { 'my_slug1' => ["val2 for slug1", 'val 2'], 'my_slug2' => ['val 2 for slug2']}
+  #             { 'my_slug1' => ["val3 for slug1", 'val 3'], 'my_slug2' => ['val 3 for slug2']}
   #   ] ==> 3 groups
   #
-  #   puts res[0][:my_slug1].first ==> "val 1"
-  # TODO: Improve query for performance
+  #   puts res[0]['my_slug1'].first ==> "val 1"
   def get_fields_grouped(field_keys)
     res = []
-    field_values.where(custom_field_slug: field_keys).order(group_number: :asc).pluck(:group_number).each do |group_number|
+    field_values.where(custom_field_slug: field_keys).order(group_number: :asc).group_by(&:group_number).each do |group_number, group_fields|
       group = {}
       field_keys.each do |field_key|
-        group[field_key.to_sym] = get_field_values(field_key, group_number)
+        group[field_key] = []
+        group_fields.each{ |field| group[field_key] << field.value if field_key == field.custom_field_slug }
       end
       res << group
     end
