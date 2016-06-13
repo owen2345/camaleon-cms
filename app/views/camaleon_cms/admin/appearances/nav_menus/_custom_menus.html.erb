@@ -1,4 +1,11 @@
-<% r = {custom_menus: {}, menu: @nav_menu}; hooks_run("nav_menu_custom", r) %>
+<%
+# #sample hook:
+#def perspective_nav_menu_custom(args)
+    # args[:custom_menus]['pers_features'] = {link: "#{current_site.the_url(as_path: true)}#features", title: 'Features'}
+    # args[:custom_menus]['pers_portfolio'] = {link: "#{current_site.the_url(as_path: true)}#portfolio", title: 'Portfolio'}
+    # args[:custom_menus]['pers_contact_us'] = {link: "#{current_site.the_url(as_path: true)}#contact", title: 'Contact Us'}
+# end
+r = {custom_menus: {}, menu: @nav_menu}; hooks_run("nav_menu_custom", r) %>
 <% if r[:custom_menus].present? %>
     <div class="panel panel-default panel-toggled custom_menus">
         <div class="panel-heading">
@@ -15,7 +22,7 @@
                     <% r[:custom_menus].each do |k, item| %>
                         <li>
                             <label class="class_slug">
-                                <input type="checkbox" value="<%= item[:link] %>"> <%= item[:title] %>
+                                <input type="checkbox" value="<%= item[:link] %>" data-label="<%= item[:title] %>"> <%= item[:title] %>
                             </label>
                         </li>
                     <% end %>
