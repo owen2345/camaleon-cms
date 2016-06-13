@@ -73,7 +73,7 @@
             <!-- has comments? -->
             <% if @post.manage_comments?(@post_type) %>
                 <div class="form-group">
-                    <label class="control-label"><%= check_box("meta", "has_comments", {checked: ( params[:meta][:has_comments] == '1' rescue false || @post.can_commented?)  }) %> &nbsp; <%= t('camaleon_cms.admin.post_type.permit_comments')%></label>
+                    <label class="control-label"><%= check_box("meta", "has_comments", {checked: ((params[:meta][:has_comments] == '1' rescue false) || (@post.new_record? ? true : @post.get_meta('has_comments').to_s.cama_true?))  }) %> &nbsp; <%= t('camaleon_cms.admin.post_type.permit_comments')%></label>
                 </div>
             <% end %>
             <% if @post_type.get_option('has_featured', false) %>
