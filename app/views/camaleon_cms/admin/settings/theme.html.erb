@@ -1,0 +1,20 @@
+<% theme_field_groups = current_theme.get_field_groups %>
+<div class="page-content-wrap">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4><span class="fa fa-cog"></span> <%= t('camaleon_cms.admin.settings.theme_setting') %> </h4>
+        </div>
+        <%= form_tag url_for({action: :save_theme}), id: "theme_settings_form", class: "panel-body cama_ajax_request validate" do %>
+            <% if File.exist?(current_theme.settings_file) %>
+                <%= render template: "themes/#{current_theme.settings_file.split('/app/apps/themes/').last}" %>
+                <%= render(partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: theme_field_groups}) unless File.read(current_theme.settings_file).include?('.get_field_groups') %>
+            <% else %>
+                <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: theme_field_groups} %>
+            <% end %>
+
+            <div class="panel-footer">
+                <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+            </div>
+        <% end %>
+    </div>
+</div>

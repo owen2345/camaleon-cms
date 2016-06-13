@@ -4,10 +4,7 @@ module Themes::ThemeClass::MainHelper
   end
 
   def themeKey_settings(theme)
-    # here your code on save settings for current site, by default params[:theme_fields] is auto saved into theme
-    # Also, you can save your extra values added in admin/settings.html.erb
-    # sample: theme.set_meta("my_key", params[:my_value])
-    theme.set_field_values(params[:field_options])
+    # callback to save custom values of fields added in my_theme/views/admin/settings.html.erb
   end
 
   # callback called after theme installed

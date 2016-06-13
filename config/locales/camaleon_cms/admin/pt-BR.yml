@@ -1,8 +1,14 @@
 # pt-BR translations for Camaleon CMS by Igor_portela
-pt_br:
+pt-BR:
   camaleon_cms:
-    camaleon_message: "Bem-vindo ao Camaleon CMS"
+    see_intro: "Ver introdução"
+    welcome_message: "Bem-vindo ao Camaleon CMS"
+    captcha_placeholder: 'Por favor, digite o texto da imagem'
+    page_not_exist: "<h1>ooops...</h1><h5>A página que você procura não existe.</h5>"
+    page_error_500: "<h1>ooops...</h1><h5>Erro tipo 500 - Erro interno de servidor. Por favor, contate o administrador.</h5>"
     admin:
+      request_error_message: "Um erro ocorreu, por favor contate o administrador."
+      authorization_error: "Você não possui autorização para essa seção."
       header:
         member_since: "Membro desde %{time}"
       button:
@@ -34,10 +40,11 @@ pt_br:
        not_actived: 'Desativado'
        publish: 'Publicar'
        preview: 'Visualização'
-       proccess: 'Processo'
+       proccess: 'Enviar'
        recover: 'Recuperar'
        restore: 'Restaurar'
        restore_selections: 'Restaurar seleções'
+       search: 'Procurar'
        select: 'Selecionar'
        select_all: 'Selecionar Tudo'
        select_file: 'Selecionar Arquivo'
@@ -126,14 +133,19 @@ pt_br:
           subject_email: 'Restabeleça seu acesso'
           send_mail_succes: 'Email de redefinição enviado com sucesso.'
           send_mail_error: 'Nenhum endereço de email encontrado.'
+          invalid_caption: 'Catpcha Inválido'
+          email_not_validated: 'Email não foi validado'
+          confirm_email_token_incorrect: 'URL incorreta'
+          confirm_email_token_expired: 'URL de confirmação expirou'
+          confirm_email_success: 'Email confirmado com sucesso'
         personal_info: 'Informações pessoais'
-        please_login: 'Por favor entre'
+        please_login: 'Por favor faça login para prosseguir'
         reset_password: 'Redefinir senha'
         reCaptcha: 'reCaptcha'
         send_email: 'Enviar email'
         reset_password_html: '<strong>Enviar email</strong>, redefinir senha'
         welcome: 'Bem-vindo'
-        welcome_login_html: '<strong>Bem-vindo</strong>, Por favor entre'
+        welcome_login_html: '<strong>Bem-vindo</strong>, por favor faça login para prosseguir'
         do_not_have_account_yet: "Não tem uma conta ainda?"
         msg_registration_html: '<strong>Inscrição</strong>, use o formulário abaixo'
         username: "Usuário"
@@ -212,7 +224,7 @@ pt_br:
         add_tag: 'Adicionar uma tag'
         clone: 'Clonar'
         clone_content: 'Clonar conteúdo'
-        label_required: 'Etiqueta(label) necessária'
+        label_required: 'Tag(label) necessária'
         placeholder_required: 'Placeholder necessário'
         message:
           created: 'O %{post_type} foi criado.'
@@ -221,7 +233,7 @@ pt_br:
           error: 'Erro %{post_type}'
           error_post_type: 'Erro %{post_type}'
           trash: 'O %{post_type} foi movido para lixeira.'
-          requires_different_slug: 'Slug diferente é necessário'
+          requires_different_slug: 'É necessário que o slug seja único'
           restore: 'O %{post_type} foi restaurado.'
           draft: 'Rascunho salvo com sucesso'
           recover: 'Recuperar...'
@@ -244,6 +256,9 @@ pt_br:
         enter_password: 'Entre com a senha'
         featured_image: 'Imagem destacada'
         keywords: 'Palavras-chave'
+        default_layout: 'Layout Padrão'
+        default_template: 'Template Padrão'
+        icon: 'Ícone'
         message:
           error: 'Erro de classe'
           error_term: 'Erro de termo de classe'
@@ -274,6 +289,7 @@ pt_br:
           permission_add_image_presentation: 'Permissão para adicionar uma imagem de apresentação'
           permission_manage_template: 'Permissão gerenciar Template'
           permission_add_keywords: 'Permissão para adicionar palavras-chave'
+          permission_to_support_parent_structure: 'Permitir o post indicar página pai'
         upload_image: 'Carregar imagem'
         view_comments: 'Ver comentários'
       plugins:
@@ -284,6 +300,10 @@ pt_br:
         type_contents: 'Tipo de conteúdo'
         upgrade_to: "Atualizar para"
       settings:
+        aws: "Salvar arquivos na Amazon"
+        filesystem_settings: "Configurações de arquivos"
+        filesystem_thumb_size: "Tamanho do thumbnail [100x100]"
+        filesystem_max_file_size: "Tamanho máximo do arquivo para Upload [MB]"
         activate_create_account: 'Ative criar conta'
         activate_login_social_networks: 'Ative login por meio de redes sociais'
         add_field_group: 'Adicionar grupo de campo'
@@ -321,6 +341,13 @@ pt_br:
         author: "Nome do autor"
         seo_setting: "Configurações SEO"
         email_settings: "Configurações de Email (SMTP)"
+        filesystem_type: "Tipo de sistema de arquivos"
+        filesystem_s3_access_key: "Chave de acesso da AWS S3"
+        filesystem_s3_secret_key: "Chave secreta da AWS S3"
+        filesystem_s3_bucket_name: "Nome do Bucket da AWS S3"
+        filesystem_s3_endpoint: "Endpoint do bucket da AWS S3"
+        filesystem_region: "Região da AWS S3"
+        filesystem_cdn: "Url da CDN"
         security:
           captcha_user_register: "Habilitar captcha no registro de usuários"
         message:
@@ -353,6 +380,7 @@ pt_br:
         appearance: 'Aparência'
         comments: 'Comentários'
         content: 'Conteúdo'
+        contents: 'Conteúdos'
         content_groups: 'Gupos de conteúdo'
         custom_fields: 'Campos personalizados'
         dashboard: 'Painel'
@@ -421,6 +449,7 @@ pt_br:
         hide: 'Esconder'
         home_page: 'Página inicial'
         has_keywords: 'Tem palavras-chave'
+        manage_keywords: 'Gerenciar Palavras Chave'
         id: 'ID'
         images: 'Imagens'
         import: 'Importar'
@@ -434,12 +463,13 @@ pt_br:
         linkedin: 'Linkedin'
         login: 'Login'
         logo: 'Logo'
-        manage_category: 'Genrenciar Categoria'
-        manage_content: 'Genrenciar Conteúdo'
-        manage_picture: 'Genrenciar Imagem'
-        manage_summary: 'Genrenciar Resumo'
-        manage_tags: 'Genrenciar Tags'
-        manage_template: 'Genrenciar Template'
+        manage_category: 'Gerenciar Categoria'
+        manage_content: 'Gerenciar Conteúdo'
+        manage_picture: 'Gerenciar Imagem'
+        manage_summary: 'Gerenciar Resumo'
+        manage_tags: 'Gerenciar Tags'
+        manage_template: 'Gerenciar Template'
+        manage_layout: 'Gerenciar Layout'
         modified: 'Modificado'
         multiple_field_int: 'Campo múltiplo?'
         required_field_int: 'Campo obrigatório?'
@@ -463,10 +493,10 @@ pt_br:
         public: 'Público'
         qty: 'Quantidade'
         quick_info: 'Informação rápida'
-        registration: 'Registration'
-        repeat_new: 'Repeat New'
-        role: 'Role'
-        slogan: 'Slogan'
+        registration: 'Registro'
+        repeat_new: 'Repetir Novo'
+        role: 'Cargo'
+        slogan: 'Descrição'
         slug: 'Slug'
         short_code: 'Short Code'
         site_name: 'Nome do Site'

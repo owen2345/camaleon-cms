@@ -6,7 +6,7 @@ jQuery(function($){
     $content_fields.sortable({
         handle: ".panel-sortable"
     });
-    //$content_fields.disableSelection();
+    var slugger_count = $content_fields.children().length;
     cama_custom_field_set_slug();
 
     $("#content-items-default > a", panel).click(function(){
@@ -14,10 +14,12 @@ jQuery(function($){
         showLoading();
         $.post(href, function(html){
             hideLoading();
-            var li = '<li class="item">' + html + '</li>';
-            $content_fields.append(li)
-            cama_custom_field_set_slug();
-            $content_fields.find("input.text-title").trigger("keyup");
+            var li = $('<li class="item">' + html + '</li>');
+            $content_fields.append(li);
+            cama_custom_field_set_slug(li);
+            var title_field = li.find("input.text-title");
+            title_field.val(title_field.val() + '-' + (slugger_count ++));
+            title_field.trigger("keyup");
             $('[data-toggle="tooltip"], a[title!=""]', $content_fields).tooltip();
         });
         return false;
@@ -52,8 +54,8 @@ jQuery(function($){
         $('#select_assign_group_caption', panel).val(option.parent('optgroup').attr("label") + ': ' + option.text());
     }).val(group_class_name).trigger('change');
 
-    function cama_custom_field_set_slug(){
-        $('.text-slug:not(.runned)', panel).each(function(){
+    function cama_custom_field_set_slug(_panel){
+        $('.text-slug:not(.runned)', _panel || panel).each(function(){
             var $parent = $(this).parents('.panel-item');
             var $label = $parent.find('.span-title');
             $(this).slugify($parent.find('.text-title'), {

@@ -21,7 +21,7 @@ class CamaleonCms::NavMenu < CamaleonCms::TermTaxonomy
   # sample: {label: "my label", type: "category", link: 12}
   # return item created
   def append_menu_item (value)
-    item = children.create!({name: value[:label], data_options: {type: value[:type], object_id: value[:link]}})
+    item = children.create!({name: value[:label], url: value[:link], kind: value[:type]})
     item
   end
 

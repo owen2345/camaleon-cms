@@ -19,6 +19,9 @@ class CamaleonCms::Apps::PluginsAdminController < CamaleonCms::AdminController
       redirect_to cama_root_url
       return
     end
-    lookup_context.prefixes.prepend(params[:controller].sub("plugins/#{plugin_name}", "#{plugin_name}/views")) if !@plugin.settings["gem_mode"].present?
+    if !@plugin.settings["gem_mode"].present?
+      lookup_context.prefixes.delete_if{|t| t =~ /plugins\/(.*)\/views/i }
+      lookup_context.prefixes.prepend(params[:controller].sub("plugins/#{plugin_name}", "plugins/#{plugin_name}/views"))
+    end
   end
 end

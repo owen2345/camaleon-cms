@@ -176,15 +176,18 @@ See more here: http://camaleon.tuzitio.com/version-history.html
   - Add this gem into your Gemfile
 
   ```
-  gem 'rspec-rails'
-  gem 'capybara'
+  group :development, :test do
+    gem 'rspec-rails', '~> 3.4'
+    gem 'capybara'
+    gem 'selenium-webdriver'
+  end
   ```
   - In your console
 
   ```
   rails generate rspec:install
   ```
-  - Add this to spec/rails_helper.rb (Insert before line of "RSpec.configure do |config|")
+  - Add this to spec/rails_helper.rb (Insert before line of "RSpec.configure do |config|") and change use_transactional_fixtures into false
 
   ```
   Dir[File.join($camaleon_engine_dir, 'spec/support/**/*.rb')].each { |f| require f }

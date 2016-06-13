@@ -37,7 +37,7 @@
                                         <% if current_theme.slug == theme[:key] && params[:set].nil? %>
                                             <% r = {links: []}; hook_run(theme, "theme_options", r) %>
                                             <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), admin_plugins_export_content_settings_path(file: ["app", "apps", 'themes', theme[:key], 'data.json'].join("/"))) if current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
-                                            <% r[:links] << link_to('Settings', cama_admin_settings_site_path(tab: "theme"), class: "btn btn-primary") if File.exist?(current_theme.settings_file) %>
+                                            <% r[:links] << link_to('Settings', cama_admin_settings_theme_path, class: "btn btn-primary") if File.exist?(current_theme.settings_file) %>
 
                                             <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), "#", {'onclick' => "alert('You need to install import/export plugin to import sample data.'); return false;"}) if !current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
                                             <%= raw r[:links].join(" | ") %>
@@ -54,7 +54,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
@@ -64,6 +63,5 @@
         page.find(".preview_link").ajax_modal({mode: "iframe", modal_size: "modal-lg", callback: function(modal){
             modal.children(".modal-dialog").css("width", "98%").find("iframe").css("min-height", $(window).height()-150);
         }});
-
     });
 </script>

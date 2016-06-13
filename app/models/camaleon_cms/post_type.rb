@@ -108,21 +108,21 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   #   settings: Hash of post settings, sample => settings:
   #     {has_content: false, has_summary: true, default_layout: 'my_layout', default_template: 'my_template' } (optional, see more in post.set_setting(...))
   #   data_metas: {template: "", layout: ""}
+  # sample: my_posttype.add_post(title: "My Title", post_order: 5, content: 'lorem_ipsum', settings: {default_template: "home/counters", has_content: false, has_keywords: false, skip_fields: ["sub_tite", 'banner']}, fields: {pattern: true, bg: 'http://www.reallusion.com/de/images/3dx5/whatsnew/3dx5_features_banner_bg_02.jpg'})
+  #   More samples here: https://gist.github.com/owen2345/eba9691585ed78ad6f7b52e9591357bf
   # return created post if it was created, else return errors
   def add_post(args)
     _fields = args.delete(:fields)
     _settings = args.delete(:settings)
     _summary = args.delete(:summary)
     _order_position = args.delete(:order_position)
-    _categories = args.delete(:categories)
-    _tags = args.delete(:tags)
+    args[:data_categories] = _categories = args.delete(:categories)
+    args[:data_tags] = args.delete(:tags)
     _thumb = args.delete(:thumb)
     p = self.posts.new(args)
     p.slug = self.site.get_valid_post_slug(p.title.parameterize) unless p.slug.present?
     if p.save!
       _settings.each{ |k, v| p.set_setting(k, v) } if _settings.present?
-      p.assign_category(_categories) if _categories.present? && self.manage_categories?
-      p.assign_tags(_tags) if _tags.present? && self.manage_tags?
       p.set_position(_order_position) if _order_position.present?
       p.set_summary(_summary) if _summary.present?
       p.set_thumb(_thumb) if _thumb.present?

@@ -203,8 +203,14 @@ module CamaleonCms::Admin::CustomFieldsHelper
             {
                 type: 'text_box',
                 key: 'dimension',
-                label: 'Dimensions',
-                description: 'Crop images with dimension (widthxheight), sample:<br>400x300 | 400x | x300 | ?400x?500 | ?1400x (? => maximum, empty => auto)'
+                label: t('camaleon_cms.admin.custom_field.fields.image_dimension', default: 'Dimension'),
+                description: t('camaleon_cms.admin.custom_field.fields.image_dimension_descr', default: 'Crop the image with indicated dimension (widthxheight), sample: 400x300 <br>Possible values: 400x300 | 400x | x300 | ?400x?500 | ?1400x (? => maximum, empty => auto)'),
+            },
+            {
+                type: 'text_box',
+                key: 'versions',
+                label: t('camaleon_cms.admin.custom_field.fields.image_versions_descr', default: 'Versions'),
+                description: t('camaleon_cms.admin.custom_field.fields.image_versions_descr', default: 'Create addtional multiple versions of the image uploaded, sample: \'300x300,505x350\' ==> Will create two extra images with these dimensions')
             }
         ]
     }
@@ -302,6 +308,22 @@ module CamaleonCms::Admin::CustomFieldsHelper
             show_frontend: true,
             translate: true
         }
+    }
+    items[:private_file] = {
+        key: 'private_file',
+        label: t('camaleon_cms.admin.custom_field.fields.private_file', default: 'Private File'),
+        options: {
+            required: true,
+            multiple: true,
+            default_value: ''
+        },
+        extra_fields:[
+            {
+                type: 'text_box',
+                key: 'formats',
+                label: 'File Formats (image,video,audio)'
+            }
+        ]
     }
     r = {fields: items}; hooks_run("extra_custom_fields", r)
     @_cama_custom_field_elements = r[:fields]

@@ -18,6 +18,8 @@ class CamaleonCms::CustomField < ActiveRecord::Base
   has_many :values, :class_name => "CamaleonCms::CustomFieldsRelationship", :foreign_key => :custom_field_id, dependent: :destroy
   belongs_to :custom_field_group, class_name: "CamaleonCms::CustomFieldGroup"
   belongs_to :parent, class_name: "CamaleonCms::CustomField", :foreign_key => :parent_id
+  alias_attribute :label, :name
+  validates_uniqueness_of :slug, scope: [:parent_id, :object_class]
 
   scope :configuration, -> {where(parent_id: -1)}
   scope :visible_group, -> {where(status: nil)}
@@ -29,5 +31,4 @@ class CamaleonCms::CustomField < ActiveRecord::Base
     self.slug = self.name if self.slug.blank?
     self.slug = self.slug.to_s.parameterize
   end
-
 end

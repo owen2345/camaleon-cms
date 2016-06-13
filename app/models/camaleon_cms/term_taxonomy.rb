@@ -43,7 +43,7 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
 
   # return all menu items in which this taxonomy was assigned
   def in_nav_menu_items
-    CamaleonCms::NavMenuItem.joins(:metas).where("value LIKE ?","%\"object_id\":\"#{self.id}\"%").where("value LIKE ?","%\"type\":\"#{self.taxonomy}\"%").readonly(false)
+    CamaleonCms::NavMenuItem.where(url: self.id, kind: self.taxonomy)
   end
 
   # permit to skip slug validations for children models, like menu items
