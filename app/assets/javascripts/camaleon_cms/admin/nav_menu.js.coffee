@@ -79,7 +79,7 @@ $ ->
           return false
         showLoading()
         $.post(form.attr('action'), form.serialize(), (res)->
-          link.closest('li').replaceWith(res)
+          link.closest('li').replaceWith($(res).html())
           modal.modal("hide")
           hideLoading()
         )
