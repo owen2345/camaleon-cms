@@ -15,7 +15,7 @@
                     </div>
                 <% end %>
                 <div class="fields_container">
-                    <% fields.decorate.each do |field| is_disabled = field.options[:disabled].present? || field.options[:readonly].present?; group_field_data[field.slug] = {default_value: record.new_record? ? field.options[:default_value] : '', is_disabled: is_disabled, id: field.id, multiple: field.options[:multiple].to_s.to_bool && !is_disabled, kind: field.get_option('field_key')} %>
+                    <% fields.decorate.each do |field| is_disabled = field.options[:disabled].present? || field.options[:readonly].present?; group_field_data[field.slug] = {default_value: field.options[:default_value], is_disabled: is_disabled, id: field.id, multiple: field.options[:multiple].to_s.to_bool && !is_disabled, kind: field.get_option('field_key')} %>
                         <div class="item-custom-field c-field-<%= field.options[:field_key] %>">
                             <input name="<%= field_name %>[<%= field.slug %>][id]" type="hidden" value="<%= field.id %>"/>
                             <input name="<%= field_name %>[<%= field.slug %>][group_number]" class="cama_custom_group_number" type="hidden" value="0"/>

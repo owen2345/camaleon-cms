@@ -53,6 +53,19 @@ module CamaleonCms::CustomFieldsConcern
     r
   end
 
+  # the same function as get_fields_grouped(..) but this returns translated and shortcodes evaluated
+  def the_fields_grouped(field_keys)
+    res = []
+    object.get_fields_grouped(field_keys).each do |_group|
+      group = {}.with_indifferent_access
+      _group.keys.each do |k|
+        group[k] = _group[k].map{|v| h.do_shortcode(v.to_s.translate(@_deco_locale), object) }
+      end
+      res << group
+    end
+    res
+  end
+
   # return custom field content with key field_key (only for type attributes)
   # translated and short codes evaluated like the content
   # default_val: default value returned when this field was not registered
