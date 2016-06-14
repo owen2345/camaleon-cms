@@ -20,6 +20,10 @@ class CamaleonCms::PostCommentDecorator < Draper::Decorator
   end
   alias_method :the_author, :the_user
 
+  def the_post
+    object.post.decorate
+  end
+
   def the_content
     object.content
   end

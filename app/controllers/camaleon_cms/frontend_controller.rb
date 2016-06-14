@@ -69,7 +69,11 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   # render contents for the post tag
   def post_tag
     begin
-      @post_tag = current_site.post_tags.find(params[:post_tag_id]).decorate
+      if params[:post_tag_slug].present?
+        @post_tag = current_site.post_tags.find_by_slug(params[:post_tag_id]).decorate
+      else
+        @post_tag = current_site.post_tags.find(params[:post_tag_id]).decorate
+      end
       @post_type = @post_tag.the_post_type
     rescue
       return page_not_found

@@ -38,7 +38,9 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     args = args.is_a?(String) ?  {kind: args, include_parent: false } : {kind: "Post", include_parent: false }.merge(args)
     class_name = self.class.to_s.parseCamaClass
     case class_name
-      when 'Category','Post','PostTag'
+      when 'Category','PostTag'
+        self.post_type.get_field_groups(class_name)
+      when 'Post'
         CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
       when 'NavMenuItem'
         self.main_menu.field_groups
@@ -159,7 +161,11 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     unless group.present?
       site = _cama_get_field_site
       values[:parent_id] = site.id if site.present?
-      group = get_field_groups(kind).create(values)
+      if self.is_a?(CamaleonCms::Post) # harcoded for post to support custom field groups
+        group = CamaleonCms::CustomFieldGroup.where(object_class: "Post", objectid: self.id).create!(values)
+      else
+        group = get_field_groups(kind).create!(values)
+      end
     end
     group
   end

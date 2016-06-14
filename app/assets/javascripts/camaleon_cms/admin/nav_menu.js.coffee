@@ -42,6 +42,20 @@ $ ->
     save_menu(data)
     return false
 
+  # add custom menu items (non-external)
+  menu_items_available.find(".add_links_custom_to_menu").click ->
+    data = {custom_items: [], authenticity_token: menu_form.find('[name="authenticity_token"]').val()}
+    flag =false
+    $(this).closest('.panel').find('input:checkbox:checked').each(->
+      flag = true
+      data['custom_items'].push({url: $(this).val(), label: $(this).attr('data-label')})
+    ).prop('checked', false)
+
+    unless flag
+      return false
+    save_menu(data)
+    return false
+
   # add external link
   menu_items_available.find('.form-custom-link').submit ->
     form = $(this)
@@ -65,7 +79,7 @@ $ ->
           return false
         showLoading()
         $.post(form.attr('action'), form.serialize(), (res)->
-          link.closest('li').replaceWith(res)
+          link.closest('li').replaceWith($(res).html())
           modal.modal("hide")
           hideLoading()
         )
