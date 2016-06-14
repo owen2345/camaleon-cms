@@ -213,7 +213,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # return the layout assigned to this post
   # post_type: post type owner of this post
   def get_layout(posttype = nil)
-    return get_option("default_template") if !manage_layout?(posttype)
+    return get_option("default_layout") if !manage_layout?(posttype)
     get_meta('layout', get_option("default_layout") || (posttype || self.post_type).get_option('default_layout', nil))
   end
 
