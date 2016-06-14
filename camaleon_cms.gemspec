@@ -36,7 +36,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'font-awesome-rails'
   s.add_dependency 'tinymce-rails', '~> 4.3'
 
-  s.add_dependency 'cama_contact_form', '~> 0.0.10'
+  s.add_dependency 'cama_contact_form', '~> 0.0.11'
 
   s.add_dependency 'protected_attributes' # remove in next versions
 
