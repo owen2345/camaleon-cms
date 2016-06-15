@@ -356,6 +356,7 @@ es:
         options_select: 'Selecciones opciones'
         option_title: 'Opción Título'
         comment_status: 'Registrar comentarios como aprobados?'
+        comment_anonymous: 'Permitir comentarios anónimos'
         list_per_page_front: 'Cantidad de items para listar en panel público'
         list_per_page_admin: 'Cantidad de items para listar en panel admin'
         please_separated_commas: 'Por favor, separar por comas'

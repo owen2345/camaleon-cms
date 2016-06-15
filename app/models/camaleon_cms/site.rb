@@ -252,6 +252,17 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     self.status == 'maintenance'
   end
 
+  # return the anonymous user
+  # if the anonymous user not exist, will create one
+  def get_anonymous_user
+    user = self.users.where(username: 'anonymous').first
+    unless user.present?
+      pass = "anonymous#{rand(9999)}"
+      user = self.users.create({email: 'anonymous_user@local.com', username: 'anonymous', password: pass, password_confirmation: pass, first_name: 'Anonymous'})
+    end
+    user
+  end
+
   private
   # destroy all things before site destroy
   def destroy_site
@@ -291,6 +302,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
         @nav_menu.append_menu_item({label: title, type: 'post', link: post.id})
       end
     end
+    get_anonymous_user
   end
 
   # assign all users to this new site
