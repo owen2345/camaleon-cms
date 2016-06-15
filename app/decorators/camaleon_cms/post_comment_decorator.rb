@@ -27,4 +27,21 @@ class CamaleonCms::PostCommentDecorator < Draper::Decorator
   def the_content
     object.content
   end
+
+  def the_answers
+    object.children.approveds
+  end
+
+  def the_author_name
+    object.author.presence || object.user.full_name
+  end
+
+  def the_author_email
+    object.author_email.presence || object.user.email
+  end
+
+  def the_author_url
+    object.author_url.presence || (object.user.username == 'anonymous' ? '' : object.user.decorate.the_url)
+  end
+
 end
