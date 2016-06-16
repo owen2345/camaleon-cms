@@ -82,7 +82,7 @@ it:
         in: 'in'
         seconds: 'Secondi'
         minutes: 'Minuti'
-        type_max_requests_time: ''Numero massimo di richieste %{type}''
+        type_max_requests_time: 'Numero massimo di richieste %{type}'
         type_time_requests_seconds: '%{type} tempo richiesto [secondi]'
         ban_time_minutes: 'Tempo di espulsione'
         ban_messages: 'Messaggio di espulsione'
