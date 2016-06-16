@@ -69,6 +69,16 @@ class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
     redirect_to action: :theme
   end
 
+  # send email test
+  def test_email
+    begin
+      CamaleonCms::HtmlMailer.sender(params[:email], 'Test', {content: 'Test content'}).deliver_now
+      render nothing: true
+    rescue => e
+      render inline: e.message, status: 502
+    end
+  end
+
   private
 
   def validate_role
