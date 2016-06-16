@@ -298,6 +298,7 @@ class PluginRoutes
         p = p.with_indifferent_access rescue p
         p["key"] = gem.name if p["key"].nil? # TODO REVIEW ERROR FOR conflict plugin keys
         #p["key"] = File.basename(path)
+        p["version"] = gem.version
         p["path"] = path
         p["kind"] = "plugin"
         p["gem_mode"] = true
