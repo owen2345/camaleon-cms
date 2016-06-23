@@ -1,3 +1,4 @@
+# encoding: utf-8
 en:
   languages:
     es: "Spanish"
@@ -62,6 +63,19 @@ nl:
     it: "Italiaans"
     ru: "Russisch"
     nl: "Nederlands"
+
+pt:
+  languages:
+    es: "Espanhol"
+    en: "Inglês"
+    fr: "Francês"
+    zh: "Chinês"
+    de: "Alemão"
+    pt: "Português (Portugal)"
+    pt-BR: "Português (Brasil)"
+    it: "Italiano"
+    ru: "Russo"
+    nl: "Holandês"
 
 pt-BR:
   languages:

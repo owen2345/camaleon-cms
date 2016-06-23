@@ -1,3 +1,4 @@
+# encoding: utf-8
 en:
   plugin:
     front_cache:
@@ -55,6 +56,25 @@ nl:
         settings_saved: 'instellingen opgeslagen!'
         cache_destroyed: 'Cache opgeschoond!'
       settings: 'instellingen'
+
+pt-BR:
+  plugin:
+    front_cache:
+      button:
+        add_new_path: 'Adicionar novo caminho'
+      custom_url_paths: 'Caminhos de URL personalizados'
+      clean_cache: 'Limpar Cache'
+      title: 'Cache de Páginas de Front End'
+      home_page: 'Página Inicial'
+      pages: 'Páginas'
+      pages_of: 'Páginas de'
+      skip_cache_pages: 'Saltar Cache de Páginas'
+      message:
+        please_checkpost_need_cache: 'Por favor verifique todas as publicações ou o tipo do publicação que precisa colocar em cache.'
+        enabled_cache_inner_content_logged_users: 'Permitir cache para conteúdo interno de utilizadores ligados'
+        settings_saved: 'Configurações Gravadas!'
+        cache_destroyed: 'Cache destruída!'
+      settings: 'Configurações'
 
 pt-BR:
   plugin:
