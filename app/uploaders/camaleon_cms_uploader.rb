@@ -18,19 +18,19 @@ class CamaleonCmsUploader
   # {files: {'file_name': {'name'=> 'a.jpg', key: '/test/a.jpg', url: '', url: '', size: '', format: '', thumb: 'thumb_url', type: '', created_at: '', dimension: '120x120'}}, folders: {'folder name' => {name: 'folder name', key: '/folder name', ...}}}
   def objects(prefix = '/')
     prefix = "/#{prefix}" unless prefix.starts_with?('/')
-    db = @current_site.get_meta('cama_media_cache', nil) || browser_files
+    db = @current_site.get_meta(cache_key, nil) || browser_files
     db[prefix.gsub('//', '/')] || {files: {}, folders: {}}
   end
 
   # clean cached of files structure saved into DB
   def clear_cache
-    @current_site.set_meta('cama_media_cache', nil)
+    @current_site.set_meta(cache_key, nil)
   end
 
   # search for folders or files that includes search_text in their names
   def search(search_text)
     res = {files: {}, folders: {}}
-    (@current_site.get_meta('cama_media_cache', nil) || browser_files).each do |folder_key, object|
+    (@current_site.get_meta(cache_key, nil) || browser_files).each do |folder_key, object|
       res[:folders][folder_key] = get_file(folder_key) if !['', '/'].include?(folder_key) && folder_key.split('/').last.include?(search_text)
       object[:files].each do |file_key, obj|
         res[:files][file_key] = obj if file_key.include?(search_text)
@@ -49,7 +49,7 @@ class CamaleonCmsUploader
   # file_parsed: (HASH) File parsed object
   # objects_db: HASH Object where to add the current object (optional)
   def cache_item(file_parsed, _objects_db = nil)
-    objects_db = _objects_db || @current_site.get_meta('cama_media_cache', {}) || {}
+    objects_db = _objects_db || @current_site.get_meta(cache_key, {}) || {}
     prefix = File.dirname(file_parsed['key'])
 
     s = prefix.split('/').clean_empty
@@ -62,28 +62,53 @@ class CamaleonCmsUploader
     else
       objects_db[prefix][:files][file_parsed['name']] = file_parsed
     end
-    @current_site.set_meta('cama_media_cache', objects_db) if _objects_db.nil?
+    @current_site.set_meta(cache_key, objects_db) if _objects_db.nil?
     file_parsed
   end
 
 
   # convert current string path into file version_path, sample:
-  # /media/1/screen.png into /media/1/thumb/screen-png.png
-  # /media/1/screen.png into /media/1/crop_40x40/screen-png.png
-  def version_path(image_path, version_name = 'thumb')
-    File.join(File.dirname(image_path), version_name, "#{File.basename(image_path).parameterize}#{File.extname(image_path)}")
+  # version_path('/media/1/screen.png') into /media/1/thumb/screen-png.png (thumbs)
+  # Sample: version_path('/media/1/screen.png', '200x200') ==> /media/1/thumb/screen-png_200x200.png (image versions)
+  def version_path(image_path, version_name = nil)
+    res = File.join(File.dirname(image_path), 'thumb', "#{File.basename(image_path).parameterize}#{File.extname(image_path)}")
+    res = res.cama_add_postfix_file_name("_#{version_name}") if version_name.present?
+    res
   end
 
   # return the file format (String) of path (depends of file extension)
   def self.get_file_format(path)
     ext = File.extname(path).sub(".", "").downcase
     format = "unknown"
-    format = "image" if "jpg,jpeg,png,gif,bmp,ico".split(",").include?(ext)
-    format = "video" if "flv,webm,wmv,avi,swf,mp4,mov,mpg".split(",").include?(ext)
-    format = "audio" if "mp3,ogg".split(",").include?(ext)
-    format = "document" if "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,xml,json".split(",").include?(ext)
-    format = "compress" if "zip,7z,rar,tar,bz2,gz,rar2".split(",").include?(ext)
+    format = "image" if get_file_format_extensions('image').split(",").include?(ext)
+    format = "video" if get_file_format_extensions('video').split(",").include?(ext)
+    format = "audio" if get_file_format_extensions('audio').split(",").include?(ext)
+    format = "document" if get_file_format_extensions('document').split(",").include?(ext)
+    format = "compress" if get_file_format_extensions('compress').split(",").include?(ext)
     format
+  end
+
+  # return the files extensión for each format
+  # support for multiples formats, sample: image,audio
+  def self.get_file_format_extensions(format)
+    res = []
+    format.downcase.gsub(' ', '').split(',').each do |f|
+      res << case f
+                when 'image', 'images'
+                  "jpg,jpeg,png,gif,bmp,ico"
+                when 'video', 'videos'
+                  "flv,webm,wmv,avi,swf,mp4,mov,mpg"
+                when 'audio'
+                  "mp3,ogg"
+                when 'document', 'documents'
+                  "pdf,xls,xlsx,doc,docx,ppt,pptx,html,txt,xml,json"
+                when 'compress'
+                  "zip,7z,rar,tar,bz2,gz,rar2"
+                else
+                  ''
+              end
+    end
+    res.join(',')
   end
 
   # verify permitted formats (return boolean true | false)
@@ -92,8 +117,8 @@ class CamaleonCmsUploader
   # sample: validate_file_format('/var/www/myfile.xls', 'image,audio,docx,xls') => return true if the file extension is in formats
   def self.validate_file_format(key, valid_formats = "*")
     return true if valid_formats == "*" || !valid_formats.present?
-    valid_formats = valid_formats.gsub(' ', '').downcase.split(',')
-    valid_formats.include?(File.extname(key).sub(".", "").downcase) || valid_formats.include?(get_file_format(key))
+    valid_formats = valid_formats.gsub(' ', '').downcase.split(',') + get_file_format_extensions(valid_formats).split(',')
+    valid_formats.include?(File.extname(key).sub(".", "").downcase)
   end
 
 
@@ -114,10 +139,17 @@ class CamaleonCmsUploader
   # check if file with :key exist and return parsed_file, else return nil
   def get_file(key, use_cache = true)
     if use_cache
-      db = (@current_site.get_meta('cama_media_cache') || {})[File.dirname(key)] || {}
+      db = (@current_site.get_meta(cache_key) || {})[File.dirname(key)] || {}
     else
       db = objects(File.dirname(key)) unless use_cache
     end
     (db[:files][File.basename(key)] || db[:folders][File.basename(key)]) rescue nil
   end
+
+  private
+  def cache_key
+    "cama_media_cache#{'_private' if is_private_uploader?}"
+  end
+  def is_private_uploader?() end
+
 end

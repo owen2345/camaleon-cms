@@ -7,16 +7,20 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
-  default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
-  has_many :metas, ->{ where(object_class: 'NavMenuItem')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-  belongs_to :parent, class_name: "CamaleonCms::NavMenu"
-  belongs_to :parent_item, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id
-  has_many :children, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, dependent: :destroy
-
-  after_create :update_count
-  #before_destroy :update_count
   alias_attribute :site_id, :term_group
   alias_attribute :label, :name
+  alias_attribute :url, :description
+  alias_attribute :kind, :slug
+  attr_accessible :label, :url, :kind
+  default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
+  has_many :metas, ->{ where(object_class: 'NavMenuItem')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  belongs_to :parent, class_name: "CamaleonCms::NavMenu", inverse_of: :children
+  belongs_to :parent_item, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, inverse_of: :children
+  has_many :children, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent_item
+
+  before_create :set_parent_site
+  after_create :update_count
+  #before_destroy :update_count
 
   # return the main menu
   def main_menu
@@ -24,17 +28,6 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
     return main_menu if main_menu.present?
     parent_menu = self.parent_item
     parent_menu.main_menu if parent_menu.present?
-  end
-
-  # return the type of this menu (post|category|post_tag|post_type|external)
-  def get_type
-    self.get_option('type')
-  end
-
-  # return the url of the external menu item
-  # return the object_id of menus like posttype, post, category, ...
-  def url
-    get_option('object_id')
   end
 
   # check if this menu have children
@@ -46,19 +39,17 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
   # same values of NavMenu#append_menu_item
   # return item created
   def append_menu_item(value)
-    children.create({name: value[:label], data_options: {type: value[:type], object_id: value[:link]}})
+    children.create({name: value[:label], url: value[:link], kind: value[:type]})
   end
 
   # update current menu
   # value: same as append_menu_item (label, link)
   def update_menu_item(value)
-    self.update({name: value[:label], data_options: {object_id: value[:link]}})
+    self.update({name: value[:label], url: value[:link]})
   end
 
-  # skip uniq slug validation
-  def skip_slug_validation?
-    true
-  end
+  # overwrite skip uniq slug validation
+  def skip_slug_validation?; true end
 
   private
   def update_count
@@ -66,4 +57,13 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
     self.parent_item.update_column('count', self.parent_item.children.size) if self.parent_item.present?
     self.update_column(:term_group, main_menu.parent_id)
   end
+
+  # fast access from site to menu items
+  def set_parent_site
+    self.site_id = self.parent_item.site_id if self.parent_item.present?
+    self.site_id = self.parent.site_id if self.parent.present?
+  end
+
+  # overwrite inherit method
+  def destroy_dependencies; end
 end

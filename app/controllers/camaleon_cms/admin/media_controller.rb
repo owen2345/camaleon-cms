@@ -7,14 +7,13 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
-  skip_before_filter :cama_authenticate, only: :img
-  skip_before_filter :admin_logged_actions, except: [:index, :search]
+  skip_before_filter :admin_logged_actions, except: [:index, :download_private_file]
   skip_before_filter :verify_authenticity_token, only: :upload
-  before_action :init_media_vars
+  before_action :init_media_vars, except: :download_private_file
 
   # render media section
   def index
-    authorize! :manager, :media
+    authorize! :manage, :media
     @show_file_actions = true
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
   end
@@ -28,6 +27,16 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     render text: res["url"]
   end
 
+  # download private files
+  def download_private_file
+    f_path = CamaleonCmsLocalUploader::private_file_path(params[:file], current_site)
+    if File.exist?(f_path)
+      send_file f_path, disposition: 'inline'
+    else
+      raise ActionController::RoutingError, 'File not found'
+    end
+  end
+
   # render media for modal content
   def ajax
     @tree = cama_uploader.search(params[:search]) if params[:search].present?
@@ -39,7 +48,9 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # do background actions in fog
   def actions
-    authorize! :manager, :media
+    if params[:media_action] != 'crop_url'
+      authorize! :manage, :media
+    end
     params[:folder] = params[:folder].gsub("//", "/") if params[:folder].present?
     case params[:media_action]
       when "new_folder"
@@ -65,7 +76,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   def upload(settings = {})
     f = {error: "File not found."}
     if params[:file_upload].present?
-      f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats]}.merge(settings))
+      f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats], versions: params[:versions], thumb_size: params[:thumb_size]}.merge(settings))
     end
 
     render(partial: "render_file_item", locals:{ file: f }) unless f[:error].present?
@@ -75,6 +86,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   private
   # init basic media variables
   def init_media_vars
+    @cama_uploader = CamaleonCmsLocalUploader.new({current_site: current_site, private: true}) if params[:private].present?
     cama_uploader.clear_cache if params[:cama_media_reload].present? && params[:cama_media_reload] == 'clear_cache'
     @media_formats = (params[:media_formats] || "").sub("media", ",video,audio").sub("all", "").split(",")
     @tree = cama_uploader.objects(@folder = params[:folder] || "/")

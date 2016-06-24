@@ -1,3 +1,4 @@
+# encoding: utf-8
 en:
   plugin:
     front_cache:
@@ -55,3 +56,60 @@ nl:
         settings_saved: 'instellingen opgeslagen!'
         cache_destroyed: 'Cache opgeschoond!'
       settings: 'instellingen'
+
+pt-BR:
+  plugin:
+    front_cache:
+      button:
+        add_new_path: 'Adicionar novo caminho'
+      custom_url_paths: 'Caminhos de URL personalizados'
+      clean_cache: 'Limpar Cache'
+      title: 'Cache de Páginas de Front End'
+      home_page: 'Página Inicial'
+      pages: 'Páginas'
+      pages_of: 'Páginas de'
+      skip_cache_pages: 'Saltar Cache de Páginas'
+      message:
+        please_checkpost_need_cache: 'Por favor verifique todas as publicações ou o tipo do publicação que precisa colocar em cache.'
+        enabled_cache_inner_content_logged_users: 'Permitir cache para conteúdo interno de utilizadores ligados'
+        settings_saved: 'Configurações Gravadas!'
+        cache_destroyed: 'Cache destruída!'
+      settings: 'Configurações'
+
+pt-BR:
+  plugin:
+    front_cache:
+      button:
+        add_new_path: 'Adicionar novo caminho'
+      custom_url_paths: 'Caminhos de URL customizados'
+      clean_cache: 'Limpar Cache'
+      title: 'Cache de Páginas de Front End'
+      home_page: 'Página Inicial'
+      pages: 'Páginas'
+      pages_of: 'Páginas de'
+      skip_cache_pages: 'Pular Cache de Páginas'
+      message:
+        please_checkpost_need_cache: 'Por favor cheque todos os posts ou o tipo do post que você precisa cachear.'
+        enabled_cache_inner_content_logged_users: 'Permitir cache para conteúdo interno de usuários logados'
+        settings_saved: 'Configurações Salvas!'
+        cache_destroyed: 'Cache destruído!'
+      settings: 'Configurações'
+
+it:
+  plugin:
+    front_cache:
+      button:
+        add_new_path: 'Aggiungi un nuovo percorso'
+      custom_url_paths: 'URL personalizzate'
+      clean_cache: 'Pulisci la cache'
+      title: 'Frontend cache'
+      home_page: 'Home Page'
+      pages: 'Pagine'
+      pages_of: 'Pagine di'
+      skip_cache_pages: 'Pagine da non cachare'
+      message:
+        please_checkpost_need_cache: 'Per favore, verifica tutti i tipi di messaggi o e-mail che è necessario memorizzare nella cache.'
+        enabled_cache_inner_content_logged_users: 'Attiva il contenuto della cache interna per gli utenti registrati'
+        settings_saved: 'Impostazioni salvate!'
+        cache_destroyed: 'Cache distrutta!'
+      settings: 'Impostazioni'

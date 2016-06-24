@@ -1,4 +1,4 @@
-<% if post.has_thumb? %>
+<% if post.has_thumb? && !defined?(skip_thumb) %>
     <div class="panel panel-default">
         <div class="panel-body">
             <%= raw post.the_link_thumb({}, {class: "img-responsive img-rounded col-md-12 col-lg-12"}) %>
@@ -7,11 +7,11 @@
 <%  end %>
 
 <% categories = post.the_categories.decorate %>
-<% if categories.present? %>
+<% if categories.present? && !defined?(skip_categories) %>
     <div class="panel panel-default">
         <div class="panel-heading"><%= ct("categories", default: 'Categories') %></div>
         <div class="panel-body">
-            <ul>
+            <ul style="list-style-position: inside">
                 <% categories.each do |cat| %>
                     <li><a href="<%= cat.the_url %>"><%= cat.the_title %></a></li>
                 <% end %>
@@ -20,33 +20,53 @@
     </div>
 <% end %>
 
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <%= ct("latest_articles", default: 'Latest Articles') %>
-    </div>
-    <div class="panel-body">
-        <ul>
-            <% current_site.the_posts("post").latest.limit(7).decorate.each do |p| %>
-                <li><a href="<%= p.the_url %>"><%= p.the_title %></a></li>
-            <% end %>
-        </ul>
-    </div>
-</div>
-
-<% tags = post.the_tags.decorate %>
-<% if tags.present? %>
+<% if !defined?(skip_last_articles) %>
     <div class="panel panel-default">
-        <div class="panel-heading"><%= ct("post_tag_list", default: 'Tags') %></div>
+        <div class="panel-heading">
+            <%= ct("latest_articles", default: 'Latest Articles') %>
+        </div>
         <div class="panel-body">
-            <% tags.each do |post_tag| %>
-                <a class="btn btn-default btn-xs" href="<%= post_tag.the_url %>"><%= post_tag.the_title %></a>
-            <% end %>
+            <ul style="list-style-position: inside">
+                <% current_site.the_posts("post").latest.limit(7).decorate.each do |p| %>
+                    <li><a href="<%= p.the_url %>"><%= p.the_title %></a></li>
+                <% end %>
+            </ul>
         </div>
     </div>
 <% end %>
 
+<% if !defined?(skip_similar_art) %>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <%= ct("related_articles", default: 'Related Articles') %>
+        </div>
+        <div class="panel-body">
+            <ul style="list-style-position: inside">
+                <% post.the_related_posts.latest.limit(7).decorate.each do |p| %>
+                    <li><a href="<%= p.the_url %>"><%= p.the_title %></a></li>
+                <% end %>
+            </ul>
+        </div>
+    </div>
+<% end %>
+
+
+<% if !defined?(skip_tasg) %>
+    <% tags = post.the_tags.decorate %>
+    <% if tags.present? %>
+        <div class="panel panel-default">
+            <div class="panel-heading"><%= ct("post_tag_list", default: 'Tags') %></div>
+            <div class="panel-body">
+                <% tags.each do |post_tag| %>
+                    <a class="btn btn-default btn-xs" href="<%= post_tag.the_url %>"><%= post_tag.the_title %></a>
+                <% end %>
+            </div>
+        </div>
+    <% end %>
+<% end %>
+
 <!-- custom fields -->
-<% if post.render_fields.present? %>
+<% if post.render_fields.present? && !defined?(skip_fields) %>
     <div class="panel panel-default">
         <div class="panel-heading"><%= ct("extra_attributes", default: 'Extra Attributes') %></div>
         <div class="panel-body">

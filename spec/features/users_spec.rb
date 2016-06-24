@@ -1,9 +1,10 @@
+require "rails_helper"
 describe "the Users", js: true do
   login_success
 
   it "Users list" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/users"
+    visit "#{cama_root_relative_path}/admin/users"
     expect(page).to have_content("List Users")
 
     # create user
@@ -30,7 +31,7 @@ describe "the Users", js: true do
 
   it "Users Edit" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/users"
+    visit "#{cama_root_relative_path}/admin/users"
     within '#admin_content' do
       all(".btn-default")[1].click
     end
@@ -48,7 +49,7 @@ describe "the Users", js: true do
 
   it "Users Update Pass" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/users"
+    visit "#{cama_root_relative_path}/admin/users"
     within '#admin_content' do
       all(".btn-default")[1].click
     end
@@ -68,7 +69,7 @@ describe "the Users", js: true do
 
   it "Users destroy" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/users"
+    visit "#{cama_root_relative_path}/admin/users"
     within '#admin_content' do
       all(".btn-danger")[1].click
     end

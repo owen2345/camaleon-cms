@@ -59,7 +59,7 @@ module CamaleonCms::Frontend::NavMenuHelper
     nav_menu = current_site.nav_menus.first unless nav_menu.present?
     html = "<#{args[:container]} class='#{args[:container_class]}' id='#{args[:container_id]}'>#{args[:container_prepend]}{__}#{args[:container_append]}</#{args[:container]}>"
     if nav_menu.present?
-      html = html.sub("{__}", cama_menu_draw_items(args, nav_menu.children))
+      html = html.sub("{__}", cama_menu_draw_items(args, nav_menu.children.reorder(:term_order)))
     else
       html = html.sub("{__}", "")
     end
@@ -91,7 +91,7 @@ module CamaleonCms::Frontend::NavMenuHelper
       _args = r[:settings]
 
       if has_children
-        html_children, current_children = cama_menu_draw_items(args, nav_menu_item.children, level + 1)
+        html_children, current_children = cama_menu_draw_items(args, nav_menu_item.children.reorder(:term_order), level + 1)
       else
         html_children, current_children = "", false
       end
@@ -109,6 +109,50 @@ module CamaleonCms::Frontend::NavMenuHelper
     else
       html = "<#{args[:sub_container]} class='#{args[:sub_class]} #{"parent-#{args[:item_current]}" if parent_current} level-#{level}'>#{html}</#{args[:sub_container]}>"
       [html, parent_current]
+    end
+  end
+
+  # filter and parse all menu items visible for current user and adding the flag for current_parent or current_item
+  # max_levels: max levels to iterate
+  # return an multidimensional array with all items until level 'max_levels'
+  # internal_level: ingnore (managed by internal recursion)
+  def cama_menu_parse_items(items, max_levels=-1, internal_level=0)
+    res, is_current_parent, levels = [], false, [0]
+    items.each_with_index do |nav_menu_item, index|
+      data_nav_item = _get_link_nav_menu(nav_menu_item)
+      next if data_nav_item == false
+      _is_current = data_nav_item[:current] || site_current_path == data_nav_item[:link] || site_current_path == data_nav_item[:link].sub(".html", "")
+      has_children = nav_menu_item.have_children?
+      has_children = false if max_levels > 0 && max_levels == internal_level
+      data_nav_item[:label] = data_nav_item[:name]
+      data_nav_item[:url] = data_nav_item[:link]
+      r = {
+          menu_item: nav_menu_item.decorate,
+          level: internal_level,
+          has_children: has_children,
+          index: index,
+          current_item: _is_current,
+          current_parent: false,
+          levels: 0
+      }.merge(data_nav_item.except(:current, :name, :link))
+
+      if has_children
+        r[:children], _is_current_parent, r[:levels] = cama_menu_parse_items(nav_menu_item.children.reorder(:term_order), max_levels, internal_level + 1)
+        if _is_current_parent
+          is_current_parent = true
+          r[:current_parent] = true
+        end
+        r[:levels] = r[:levels] + 1
+      end
+      is_current_parent = true if r[:current_item]
+      levels << r[:levels]
+      res << r
+    end
+
+    if internal_level == 0
+      res
+    else
+      [res, is_current_parent, levels.max]
     end
   end
 
@@ -140,24 +184,24 @@ module CamaleonCms::Frontend::NavMenuHelper
 
   private
   def _get_link_nav_menu(nav_menu_item)
-    type_menu = nav_menu_item.get_option('type')
+    type_menu = nav_menu_item.kind
     begin
       case type_menu
         when 'post'
-          post = CamaleonCms::Post.find(nav_menu_item.get_option('object_id')).decorate
+          post = CamaleonCms::Post.find(nav_menu_item.url).decorate
           return false unless post.can_visit?
           r = {link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu, current: @cama_visited_post.present? && @cama_visited_post.id == post.id}
         when 'category'
-          category = CamaleonCms::Category.find(nav_menu_item.get_option('object_id')).decorate
+          category = CamaleonCms::Category.find(nav_menu_item.url).decorate
           r = {link: category.the_url(as_path: true), name: category.the_title, type_menu: type_menu, current: @cama_visited_category.present? && @cama_visited_category.id == category.id}
         when 'post_tag'
-          post_tag = CamaleonCms::PostTag.find(nav_menu_item.get_option('object_id')).decorate
+          post_tag = CamaleonCms::PostTag.find(nav_menu_item.url).decorate
           r = {link: post_tag.the_url(as_path: true), name: post_tag.the_title, type_menu: type_menu, current: @cama_visited_tag.present? && @cama_visited_tag.id == post_tag.id}
         when 'post_type'
-          post_type = CamaleonCms::PostType.find(nav_menu_item.get_option('object_id')).decorate
+          post_type = CamaleonCms::PostType.find(nav_menu_item.url).decorate
           r = {link: post_type.the_url(as_path: true), name: post_type.the_title, type_menu: type_menu, current: @cama_visited_post_type.present? && @cama_visited_post_type.id == post_type.id}
         when 'external'
-          r = {link: nav_menu_item.get_option('object_id', "").to_s.translate, name: nav_menu_item.name.to_s.translate, type_menu: type_menu, current: false}
+          r = {link: nav_menu_item.url.to_s.translate, name: nav_menu_item.name.to_s.translate, type_menu: type_menu, current: false}
           r[:link] = cama_root_path if r[:link] == "root_url"
           r[:link] = site_current_path if site_current_path == "#{current_site.the_path}#{r[:link]}"
           r[:current] = r[:link] == site_current_url || r[:link] == site_current_path

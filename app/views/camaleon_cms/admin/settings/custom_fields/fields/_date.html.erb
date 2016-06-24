@@ -1,6 +1,6 @@
-<div class="group-input-fields-content" data-callback-function="custom_field_date" style="max-width: 300px;">
-  <div class="input-group date date-input-box <%= "is_datetimepicker" if @field.options[:type_date].to_s.to_bool %>">
-    <input type="text" data-locale='<%= current_locale %>' name="<%= @field_name %>[<%= @field.slug %>][values][]" class="input-value form-control <%= "required" if @field.options[:required].to_s.to_bool %>" <%= "readonly" if @field.options[:readonly].present? %> <%= "disabled" if @field.options[:disabled].present? %>/>
+<div class="group-input-fields-content" data-callback-render="custom_field_date" style="max-width: 300px;">
+  <div class="input-group date date-input-box <%= "is_datetimepicker" if field.options[:type_date].to_s.to_bool %>">
+    <input type="text" data-locale='<%= current_locale %>' name="<%= field_name %>[<%= field.slug %>][values][]" class="data-error-place-parent input-value form-control <%= "required" if field.options[:required].to_s.to_bool %>" />
     <span class="add-on input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
   </div>
 </div>

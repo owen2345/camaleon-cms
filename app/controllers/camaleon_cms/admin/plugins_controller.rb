@@ -17,11 +17,13 @@ class CamaleonCms::Admin::PluginsController < CamaleonCms::AdminController
     status = params[:status].to_bool
     if status == true # to inactivate
       plugin = plugin_uninstall(params[:id])
+      hooks_run("plugin_#{params[:id]}_after_uninstall", {plugin: plugin})
       flash[:notice] = "Plugin \"#{plugin.title}\" #{t('camaleon_cms.admin.message.was_inactivated')}"
     end
 
     unless status # to activate
       plugin = plugin_install(params[:id])
+      hooks_run("plugin_#{params[:id]}_after_install", {plugin: plugin})
       flash[:notice] = "Plugin \"#{plugin.title}\" #{t('camaleon_cms.admin.message.was_activated')}"
     end
     PluginRoutes.reload
@@ -32,6 +34,7 @@ class CamaleonCms::Admin::PluginsController < CamaleonCms::AdminController
   def upgrade
     plugin = plugin_upgrade(params[:plugin_id])
     flash[:notice] = "Plugin \"#{plugin.title}\" #{t('camaleon_cms.admin.message.was_upgraded')}"
+    hooks_run("plugin_#{params[:plugin_id]}_after_upgrade", {plugin: plugin})
     PluginRoutes.reload
     redirect_to action: :index
   end
@@ -43,12 +46,13 @@ class CamaleonCms::Admin::PluginsController < CamaleonCms::AdminController
     else
       flash[:error] = "Plugin \"#{plugin.title}\" #{t('camaleon_cms.admin.message.can_not_be_removed')}"
     end
+    hooks_run("plugin_#{params[:id]}_after_destroy", {plugin: plugin})
     redirect_to action: :index
   end
 
   private
 
   def validate_role
-    authorize! :manager, :plugins
+    authorize! :manage, :plugins
   end
 end

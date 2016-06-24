@@ -47,8 +47,6 @@
                 </div>
           </div>
         </div>
-
-
         <script>
             jQuery(function($){
                 var values = <%= raw(values.to_json) %>;
@@ -63,7 +61,6 @@
                     if(data.key) field.find('.input-key').val(data.key);
                     if(data.value) field.find('.input-value').val(data.value);
                     $sortable.append(field);
-
                 }
                 if(values.length > 0) {
                     $.each(values, function(i, data){
@@ -83,20 +80,14 @@
                         }
                         return false;
                     });
-                    //$sortable.find('li:first .fa-times').hide();
                     $sortable.sortable({
                         handle: ".fa-arrows"
                     });
                 }
-
                 $content.find('.clone-field').remove();
             });
         </script>
-
-
   </div>
-
-
 </div>
 
 

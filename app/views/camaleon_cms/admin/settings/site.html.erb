@@ -1,8 +1,4 @@
-<%
-   groups = @site.get_field_groups
-   theme_field_groups = current_theme.get_field_groups
-   show_theme_tab = (theme_field_groups.present? || File.exist?(current_theme.settings_file)) ? true : false
-%>
+<% groups = @site.get_field_groups %>
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap">
   <div class="panel panel-default">
@@ -23,20 +19,12 @@
                   <a data-toggle="tab" role="tab" href="#tab-other-configuration" aria-expanded="false"><%= t('camaleon_cms.admin.post_type.other_configuration') %></a>
                 </li>
             <% end %>
-            <% if show_theme_tab %>
-                <li class="<%= "active" if "theme" == params[:tab] %>">
-                  <a data-toggle="tab" role="tab" href="#tab-theme-configuration" aria-expanded="false"><%= t('camaleon_cms.admin.settings.theme_setting') %></a>
-                </li>
-            <% end %>
             <li class="<%= "active" if "seo" == params[:tab] %>">
               <a data-toggle="tab" role="tab" href="#tab-seo_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.seo_setting') %></a>
             </li>
-            <li class="<%= "active" if "email" == params[:tab] %>">
-              <a data-toggle="tab" role="tab" href="#tab-email_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.email_settings') %></a>
-            </li>
-            <li class="<%= 'active' if 'filesystem' == params[:tab] %>">
-              <a data-toggle="tab" role="tab" href="#tab-filesystem_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.filesystem_settings') %></a>
-            </li>
+            <li class="<%= "active" if "email" == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-email_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.email_settings') %></a></li>
+            <li class="<%= 'active' if 'filesystem' == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-filesystem_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.filesystem_settings', default: 'Filesystem Settings ') %></a></li>
+            <li class="<%= 'active' if 'media' == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-media_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.media_settings', default: 'Media Settings') %></a></li>
           </ul>
           <div class="panel-body tab-content row">
 
@@ -72,19 +60,10 @@
                   <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @site, field_groups: groups} %>
                 </div>
             <% end %>
-            <% if show_theme_tab %>
-                <div id="tab-theme-configuration" class="<%= "active" if "theme" == params[:tab] %> tab-pane">
-                    <% if File.exist?(current_theme.settings_file) %>
-                        <%= render file: current_theme.settings_file %>
-                        <%= render(partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: theme_field_groups}) unless File.read(current_theme.settings_file).include?('.get_field_groups') %>
-                    <% else %>
-                        <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: current_theme, field_groups: theme_field_groups} %>
-                    <% end %>
-                </div>
-            <% end %>
               <%= render "seo_settings", f: f %>
               <%= render "email_settings", f: f %>
               <%= render "file_system_settings", f: f %>
+              <%= render "media_settings", f: f %>
           </div>
           <div class="panel-footer">
             <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
@@ -97,7 +76,7 @@
     jQuery(function () {
         var panel = $("#site_settings_form");
         panel.validate();
-        panel.find('.unput_upload').input_upload();
+        panel.find('.unput_upload, .input_upload').input_upload();
 
         // smtp
         panel.find("#options_mailer_enabled").change(function () {

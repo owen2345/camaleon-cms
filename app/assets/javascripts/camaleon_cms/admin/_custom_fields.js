@@ -1,48 +1,101 @@
-function build_custom_field(values, multiple, field_key, rand, default_value) {
-    var $content = $("#content-field-" + rand);
-    var $sortable = $("#sortable-" + rand);
-    var callback = $content.find('.clone-field .group-input-fields-content').attr('data-callback-function');
-    var callback_set_value = $content.find('.clone-field .group-input-fields-content').attr('data-callback-set-value');
-    var $field = $('<li>' + $content.find('.clone-field').html() + '</li>');
+// build custom field groups with values recovered from DB received in field_values
+function build_custom_field_group(field_values, group_id, fields_data, is_repeat){
+    if(field_values.length == 0) field_values = [{}];
+    var group_panel = $('#custom_field_group_'+group_id);
+    var group_panel_body = group_panel.find(' > .panel-body');
+    var group_clone = group_panel_body.children('.custom_sortable_grouped').clone().removeClass('hidden');
+    var field_group_counter = 0;
+    group_panel_body.children('.custom_sortable_grouped').remove();
 
-    function add_field(value) {
-        var field = $field.clone(true);
-        if (value) field.find('.input-value').val(value);
-        $sortable.append(field);
-        if (value && callback_set_value)eval(callback_set_value + "(field, value);")
-        else if (callback) eval(callback + "(field);")
-    }
-
-    if (values.length > 0) {
-        if (field_key == 'checkboxes') {
-            add_field(values);
-        } else {
-            if (!multiple && values.length > 1) values = [values[0]];
-            $.each(values, function (i, value) {
-                add_field(value);
-            });
+    function add_group(values){
+        var clone = group_clone.clone();
+        clone.find('input, textarea, select').not('.code_style').each(function(){ $(this).attr('name', $(this).attr('name').replace('field_options', 'field_options['+field_group_counter+']')) });
+        group_panel_body.append(clone);
+        group_panel.trigger('update_custom_group_number');
+        for(var k in fields_data){
+            cama_build_custom_field(clone.find('.content-field-'+fields_data[k].id), fields_data[k], values[k]);
         }
-    } else add_field(default_value);
-
-    if (multiple) {
-        $content.find('.btn-add-field').click(function () {
-            add_field(default_value);
-            return false;
-        });
-        $sortable.delegate('.actions .fa-times', "click", function () {
-            var parent = $(this).parents('li');
-            if (confirm(I18n("msg.delete_item"))) {
-                parent.remove();
-            }
-            return false;
-        });
-        $sortable.find('li:first .fa-times').hide();
-        $sortable.sortable({
-            handle: ".fa-arrows"
-        });
+        if(field_group_counter == 0) clone.children('.header-field-grouped').find('.del').remove();
+        field_group_counter ++;
+        return false;
     }
 
-    $content.find('.clone-field').remove();
+    if(is_repeat){
+        group_panel_body.sortable({ handle: ".move.fa-arrows", items: ' > .custom_sortable_grouped',
+            update: function(){ group_panel.trigger('update_custom_group_number'); },
+            start: function (e, ui) { // fix tinymce
+                $(ui.item).find('.mce-panel').each(function () {
+                    tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
+                });
+            },
+            stop: function (e, ui) { // fix tinymce
+                $(ui.item).find('.cama_restore_editor').each(function () {
+                    tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
+                });
+            }});
+        group_panel.find('.btn.duplicate_cutom_group').click(add_group);
+        group_panel_body.on('click', '.header-field-grouped .del', function(){ if(confirm(I18n("msg.delete_item"))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function(){ $(this).remove(); group_panel.trigger('update_custom_group_number'); }); return false; });
+        group_panel_body.on('click', '.header-field-grouped .toggleable', function(){
+            if($(this).hasClass('fa-angle-down')) $(this).removeClass('fa-angle-down').addClass('fa-angle-up').closest('.header-field-grouped').next().slideUp();
+            else $(this).removeClass('fa-angle-up').addClass('fa-angle-down').closest('.header-field-grouped').next().slideDown();
+            return false;
+        });
+        group_panel.bind('update_custom_group_number', function(){ $(this).find('.custom_sortable_grouped').each(function(index){ $(this).find('input.cama_custom_group_number').val(index); }); });
+        $.each(field_values, function(field_val, key){ add_group(this); });
+    }else{
+        add_group(field_values[0]);
+    }
+}
+
+function cama_build_custom_field(panel, field_data, values){
+    values = values || [];
+    var field_counter = 0;
+    var $field = panel.clone().wrap('li');
+    panel.html("<div class='cama_w_custom_fields'></div>"+(field_data.multiple ? "<div class='field_multiple_btn'> <a href='#' class='btn btn-warning btn-xs'> <i class='fa fa-plus'></i> "+panel.attr('data-add_field_title')+"</a></div>" : ''));
+    var field_actions = '<div class="actions"><i style="cursor: move" class="fa fa-arrows"></i> <i style="cursor: pointer" class="fa fa-times text-danger"></i></div>';
+    var callback = $field.find('.group-input-fields-content').attr('data-callback-render');
+    var $sortable = panel.children('.cama_w_custom_fields');
+    function add_field(value){
+        var field = $field.clone(true);
+        if(field_data.multiple) {
+            field.prepend(field_actions);
+            if(field_counter == 0) field.children('.actions').find('.fa-times').remove();
+        }
+        field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) });
+        if(field_data.disabled){
+            field.find('input, textarea, select').prop('readonly', true).filter('select').click(function(){ return false; }).focus(function(){ $(this).blur(); });
+            field.find('.btn').addClass('disabled').unbind().click(function(){ return false; });
+        }
+
+        if(value) field.find('.input-value').val(value);
+        $sortable.append(field);
+        if(callback) eval(callback + "(field, value);");
+        field_counter ++;
+    }
+    if(values.length <= 0) values = [field_data.default_value];
+    if(field_data.kind != 'checkboxes') {
+        if (!field_data.multiple && values.length > 1) values = [values[0]];
+        $.each(values, function (i, value) {
+            add_field(value);
+        });
+    } else add_field(values);
+
+    if(field_data.multiple){ // sortable actions
+        panel.find('.field_multiple_btn .btn').click(function () { add_field(field_data.default_value); return false; });
+        panel.delegate('.actions .fa-times', "click", function () { if(confirm(I18n("msg.delete_item"))) $(this).closest('.editor-custom-fields').remove(); return false; });
+        $sortable.sortable({ handle: ".fa-arrows", items: ' > .editor-custom-fields',
+            start: function (e, ui) { // fix tinymce
+                $(ui.item).find('.mce-panel').each(function () {
+                    tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
+                });
+            },
+            stop: function (e, ui) { // fix tinymce
+                $(ui.item).find('.cama_restore_editor').each(function () {
+                    tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
+                });
+            }
+        });
+    }
 }
 
 function custom_field_colorpicker($field) {
@@ -105,9 +158,10 @@ function custom_field_editor($field) {
 }
 function custom_field_field_attrs_val($field, value) {
     if ($field) {
-        var data = $.parseJSON(value);
+        var data = $.parseJSON(value || '{}');
         $field.find('.input-attr').val(data.attr);
         $field.find('.input-value').val(data.value)
+        $field.find('.input-attr, .input-value').filter('.is_translate').addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
     }
 }
 function custom_field_radio_val($field, value) {
@@ -131,8 +185,8 @@ function custom_field_text_box($field) {
     }
 }
 
-function load_upload_audio_field(dom) {
-    var $input = $(dom).parents('li:first').find('input');
+function load_upload_audio_field(thiss) {
+    var $input = $(thiss).prev();
     $.fn.upload_filemanager({
         formats: "audio",
         selected: function (file, response) {
@@ -140,8 +194,8 @@ function load_upload_audio_field(dom) {
         }
     });
 }
-function load_upload_file_field(dom) {
-    var $input = $(dom).parents('li:first').find('input');
+function load_upload_file_field(thiss) {
+    var $input = $(thiss).prev();
     $.fn.upload_filemanager({
         formats: $input.data("formats") ? $input.data("formats") : "",
         selected: function (file, response) {
@@ -149,18 +203,29 @@ function load_upload_file_field(dom) {
         }
     });
 }
-function load_upload_image_field(dom) {
-    var $input = $(dom).parents('li:first').find('input');
+function load_upload_private_file_field(thiss) {
+    var $input = $(thiss).prev();
+    $.fn.upload_filemanager({
+        formats: $input.data("formats") ? $input.data("formats") : "",
+        selected: function (file, response) {
+            $input.val(file.url.split('?file=')[1].replace(/%2/g, '/'));
+        },
+        private: true
+    });
+}
+function load_upload_image_field($input) {
     $.fn.upload_filemanager({
         formats: "image",
         dimension: $input.attr("data-dimension"),
+        versions: $input.attr("data-versions"),
+        thumb_size: $input.attr("data-thumb_size"),
         selected: function (file, response) {
             $input.val(file.url);
         }
     });
 }
-function load_upload_video_field(dom) {
-    var $input = $(dom).parents('li:first').find('input');
+function load_upload_video_field(thiss) {
+    var $input = $(thiss).prev();
     $.fn.upload_filemanager({
         formats: "video",
         selected: function (file, response) {

@@ -1,7 +1,7 @@
 <div id="tab-email_settings" class="<%= "active" if "email" == params[:tab] %> tab-pane ">
     <div class="form-group">
         <%= label_tag t('camaleon_cms.admin.settings.email_from') %><br>
-        <%= text_field :options, :email, :class => "form-control", value: @site.get_option("email"), placeholder: 'My Name <my_email@gmyserver.com>' %>
+        <%= text_field :options, :email_from, :class => "form-control", value: @site.get_option("email_from"), placeholder: 'My Name <my_email@gmyserver.com>' %>
     </div>
     <div class="form-group">
         <%= label_tag t('camaleon_cms.admin.settings.email_cc') %><br>
@@ -9,8 +9,14 @@
     </div>
     <hr>
     <div class="alert alert-info">Gmail Need Permissions:
-        <a href="http://know.mailsbestfriend.com/smtp_error_password_command_failed_5345714-1194946499.shtml" target="_blank">Check
-            here.</a></div>
+        <div class="pull-left">
+            <a href="http://know.mailsbestfriend.com/smtp_error_password_command_failed_5345714-1194946499.shtml" target="_blank">Check
+                here.</a>
+        </div>
+        <div class="pull-right">
+            <a id="cama_email_send_test_email" class="btn btn-xs btn-primary" href="<%= url_for(action: :test_email) %>"><%= t('camaleon_cms.admin.settings.send_test_email', default: 'Send Test Email') %></a>
+        </div>
+    </div>
     <div class="form-group">
         <%= label_tag t('camaleon_cms.admin.settings.email_enabled') %><br>
         <%= check_box :options, :mailer_enabled, {checked: @site.get_option("mailer_enabled") == 1}, 1, 0 %>
@@ -34,3 +40,19 @@
         </div>
     </div>
 </div>
+<script>
+    jQuery(function(){ // test email configuration
+        $('#cama_email_send_test_email').click(function(){
+            var link = $(this);
+            var content = '<form><div><label for=""><%= t('camaleon_cms.admin.table.email', default: 'Email') %>: </label> <div class="input-group"><input class="form-control required email data-error-place-parent" name="email"><span class="input-group-btn"><button type="submit" class="btn btn-primary"><%= t('camaleon_cms.admin.settings.send_test_email') %></button></span></div></div></form>';
+            open_modal({title: link.text(), content: content, callback: function(modal){
+                var form = modal.find('form');
+                form.validate({submitHandler: function(){
+                    showLoading();
+                    $.get(link.attr('href'), form.serialize(), function(){ hideLoading(); }).complete(function(){ modal.modal('hide'); }).error(function(r){ $.fn.alert({title: r.responseText, type: 'error'}) });
+                }});
+            }});
+            return false;
+        });
+    });
+</script>

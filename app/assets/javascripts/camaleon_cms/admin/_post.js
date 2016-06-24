@@ -176,7 +176,6 @@ function init_post(obj) {
     tinymce.init(cama_get_tinymce_settings({
         selector: '.tinymce_textarea:not(.translated-item)',
         height: '480px',
-        onPostRender: onEditorPostRender,
         base_path: obj.base_path
     }));
 
@@ -266,16 +265,7 @@ function init_post(obj) {
         /*********** end *************/
     }
     setTimeout(form_later_actions, 1000);
-
-    // wait for render editors
-    var wait_render;
-
-    function onEditorPostRender(editor) {
-        if (wait_render) clearTimeout(wait_render);
-        wait_render = setTimeout(function () {
-            $form.data("hash", get_hash_form());
-        }, 1000);
-    }
+    setTimeout(function(){ $form.data("hash", get_hash_form()); }, 2000);
 
     function get_hash_form() {
         for (editor in tinymce.editors) {
@@ -293,8 +283,8 @@ function init_post(obj) {
 }
 
 // thumbnail updloader
-function upload_feature_image() {
-    $.fn.upload_filemanager({
+function upload_feature_image(data) {
+    $.fn.upload_filemanager($.extend({
         formats: "image",
         selected: function (image) {
             var image_url = image.url;
@@ -303,5 +293,5 @@ function upload_feature_image() {
             $('#feature-image .meta strong').html(image.name);
             $('#feature-image').show();
         }
-    });
+    }, data));
 }

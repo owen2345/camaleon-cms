@@ -7,12 +7,15 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
+  alias_attribute :site_id, :parent_id
   default_scope { where(taxonomy: :post_type) }
   has_many :metas, ->{ where(object_class: 'PostType')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
-  has_many :categories, :class_name => "CamaleonCms::Category", foreign_key: :parent_id, dependent: :destroy
-  has_many :post_tags, :class_name => "CamaleonCms::PostTag", foreign_key: :parent_id, dependent: :destroy
-  has_many :posts, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy
-  has_many :posts_draft, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy, source: :drafts
+  has_many :categories, :class_name => "CamaleonCms::Category", foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type_parent
+  has_many :post_tags, :class_name => "CamaleonCms::PostTag", foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type
+  has_many :posts, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy, inverse_of: :post_type
+  has_many :comments, through: :posts
+  has_many :posts_through_categories, foreign_key: :objectid, through: :term_relationships, :source => :objects
+  has_many :posts_draft, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy, source: :drafts, inverse_of: :post_type
   has_many :field_group_taxonomy, -> {where("object_class LIKE ?","PostType_%")}, :class_name => "CamaleonCms::CustomField", foreign_key: :objectid, dependent: :destroy
 
   belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
@@ -106,21 +109,21 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   #   settings: Hash of post settings, sample => settings:
   #     {has_content: false, has_summary: true, default_layout: 'my_layout', default_template: 'my_template' } (optional, see more in post.set_setting(...))
   #   data_metas: {template: "", layout: ""}
+  # sample: my_posttype.add_post(title: "My Title", post_order: 5, content: 'lorem_ipsum', settings: {default_template: "home/counters", has_content: false, has_keywords: false, skip_fields: ["sub_tite", 'banner']}, fields: {pattern: true, bg: 'http://www.reallusion.com/de/images/3dx5/whatsnew/3dx5_features_banner_bg_02.jpg'})
+  #   More samples here: https://gist.github.com/owen2345/eba9691585ed78ad6f7b52e9591357bf
   # return created post if it was created, else return errors
   def add_post(args)
     _fields = args.delete(:fields)
     _settings = args.delete(:settings)
     _summary = args.delete(:summary)
     _order_position = args.delete(:order_position)
-    _categories = args.delete(:categories)
-    _tags = args.delete(:tags)
+    args[:data_categories] = _categories = args.delete(:categories)
+    args[:data_tags] = args.delete(:tags)
     _thumb = args.delete(:thumb)
     p = self.posts.new(args)
     p.slug = self.site.get_valid_post_slug(p.title.parameterize) unless p.slug.present?
     if p.save!
       _settings.each{ |k, v| p.set_setting(k, v) } if _settings.present?
-      p.assign_category(_categories) if _categories.present? && self.manage_categories?
-      p.assign_tags(_tags) if _tags.present? && self.manage_tags?
       p.set_position(_order_position) if _order_position.present?
       p.set_summary(_summary) if _summary.present?
       p.set_thumb(_thumb) if _thumb.present?
@@ -169,22 +172,22 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
 
   # destroy all custom field groups assigned to this post type
   def destroy_field_groups
-    # TODO: CHANGE TO SUPPORT DESTROY FOR SITE DESTROY
-    # if self.slug == "post" || self.slug == "page"
-    #   errors.add(:base, "This post type can not be deleted.")
-    #   return false
-    # end
+    unless self.destroyed_by_association.present?
+      if self.slug == "post" || self.slug == "page"
+        errors.add(:base, "This post type can not be deleted.")
+        return false
+      end
+    end
     self.get_field_groups.destroy_all
   end
 
   # reload routes to enable this post type url, like: http://localhost/my-slug
   def refresh_routes
-    PluginRoutes.reload
+    PluginRoutes.reload unless self.destroyed_by_association.present?
   end
 
   # check if slug was changed
   def check_refresh_routes
     refresh_routes if self.slug_changed?
   end
-
 end

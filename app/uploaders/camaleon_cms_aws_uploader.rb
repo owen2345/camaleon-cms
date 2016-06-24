@@ -6,7 +6,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     bucket.objects.each do |file|
       cache_item(file_parse(file), objects)
     end
-    @current_site.set_meta('cama_media_cache', objects)
+    @current_site.set_meta(cache_key, objects)
     objects
   end
 
@@ -18,7 +18,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     res = {
         "name" => File.basename(key),
         "key" => key,
-        "url" => is_dir ? '' : s3_file.public_url,
+        "url" => is_dir ? '' : (@current_site.get_option("filesystem_s3_cloudfront").present? ? File.join(@current_site.get_option("filesystem_s3_cloudfront"), key) : s3_file.public_url),
         "is_folder" => is_dir,
         "size" => is_dir ? 0 : s3_file.size.round(2),
         "format" => is_dir ? 'folder' : self.class.get_file_format(key),

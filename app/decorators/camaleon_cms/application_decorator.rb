@@ -49,17 +49,14 @@ class CamaleonCms::ApplicationDecorator < Draper::Decorator
     @_deco_locale = locale.to_sym
   end
 
-  # verify admin request to show the first language as the locale
-  # if the request is not for frontend, then this will show current locale visited
+  # get the locale for current decorator
   def get_locale(locale = nil)
-    l = locale || @_deco_locale
-    return l if l.present?
-    (h.cama_is_admin_request? rescue false) ? h.current_site.get_languages.first : l
+    locale || @_deco_locale || (h.cama_get_i18n_frontend rescue false) || I18n.locale
   end
 
-  # internal helper
+  # return the current locale prefixed to add in frontend routes
   def _calc_locale(_l)
-    _l = (_l || @_deco_locale || I18n.locale).to_s
-    "_#{_l}"# if _l != "en"
+    _l = (_l || @_deco_locale || (h.cama_get_i18n_frontend rescue false) || I18n.locale).to_s
+    "_#{_l}"
   end
 end

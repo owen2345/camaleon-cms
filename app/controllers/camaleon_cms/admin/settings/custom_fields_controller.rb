@@ -32,10 +32,7 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   end
 
   def update
-    if @field_group.update(@post_data)
-      @field_group.add_fields(params[:fields], params[:field_options])
-      @field_group.set_option('caption', @post_data[:caption])
-      flash[:notice] = t('camaleon_cms.admin.custom_field.message.custom_updated')
+    if @field_group.update(@post_data) && _save_fields(@field_group)
       redirect_to action: :edit, id: @field_group.id
     else
       render 'form'
@@ -51,10 +48,7 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   # create a new custom field group
   def create
     @field_group = current_site.custom_field_groups.new(@post_data)
-    if @field_group.save
-      @field_group.add_fields(params[:fields], params[:field_options])
-      @field_group.set_option('caption', @post_data[:caption])
-      flash[:notice] = t('camaleon_cms.admin.custom_field.message.custom_created')
+    if @field_group.save && _save_fields(@field_group)
       redirect_to action: :edit, id: @field_group.id
     else
       new
@@ -91,5 +85,17 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
       flash[:error] = t('camaleon_cms.admin.custom_field.message.custom_group_error')
       redirect_to cama_admin_path
     end
+  end
+
+  # return boolean: true if all fields were saved successfully
+  def _save_fields(group)
+    errors_saved, all_fields = group.add_fields(params[:fields], params[:field_options])
+    group.set_option('caption', @post_data[:caption])
+    if errors_saved.present?
+      flash[:error] = "<b>#{t('camaleon_cms.errors_found_msg', default: 'Several errors were found, please check.')}</b><br>#{errors_saved.map{|field| "#{field.name}: " + "#{field.errors.messages.map{|k,v| "#{k.to_s.titleize}: #{v.join('|')}"}.join(', ')}" }.join('<br>')}"
+    else
+      flash[:notice] = t('camaleon_cms.admin.custom_field.message.custom_updated')
+    end
+    true
   end
 end

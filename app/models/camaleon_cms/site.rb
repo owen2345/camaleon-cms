@@ -11,7 +11,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
   has_many :metas, -> { where(object_class: 'Site') }, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
   has_many :post_types, :class_name => "CamaleonCms::PostType", foreign_key: :parent_id, dependent: :destroy
-  has_many :nav_menus, :class_name => "CamaleonCms::NavMenu", foreign_key: :parent_id, dependent: :destroy
+  has_many :nav_menus, :class_name => "CamaleonCms::NavMenu", foreign_key: :parent_id, dependent: :destroy, inverse_of: :site
   has_many :nav_menu_items, :class_name => "CamaleonCms::NavMenuItem", foreign_key: :term_group
   has_many :widgets, :class_name => "CamaleonCms::Widget::Main", foreign_key: :parent_id, dependent: :destroy
   has_many :sidebars, :class_name => "CamaleonCms::Widget::Sidebar", foreign_key: :parent_id, dependent: :destroy
@@ -28,6 +28,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   after_create :set_default_user_roles
   after_save :update_routes
   before_destroy :destroy_site
+  after_destroy :reload_routes
   validates_uniqueness_of :slug, scope: :taxonomy
 
   # all user roles for this site
@@ -251,6 +252,17 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     self.status == 'maintenance'
   end
 
+  # return the anonymous user
+  # if the anonymous user not exist, will create one
+  def get_anonymous_user
+    user = self.users.where(username: 'anonymous').first
+    unless user.present?
+      pass = "anonymous#{rand(9999)}"
+      user = self.users.create({email: 'anonymous_user@local.com', username: 'anonymous', password: pass, password_confirmation: pass, first_name: 'Anonymous'})
+    end
+    user
+  end
+
   private
   # destroy all things before site destroy
   def destroy_site
@@ -285,11 +297,12 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
           content = "<p style='text-align: center;'><img width='155' height='155' src='http://camaleon.tuzitio.com/media/132/logo2.png' alt='logo' /></p><p><strong>Camaleon CMS</strong>&nbsp;is a free and open-source tool and a fexible content management system (CMS) based on <a href='rubyonrails.org'>Ruby on Rails 4</a>&nbsp;and MySQL.&nbsp;</p> <p>With Camaleon you can do the following:</p> <ul> <li>Create instantly a lot of sites&nbsp;in the same installation</li> <li>Manage your content information in several languages</li> <li>Extend current functionality by&nbsp;plugins (MVC structure and no more echo or prints anywhere)</li> <li>Create or install different themes for each site</li> <li>Create your own structure without coding anything (adapt Camaleon as you want&nbsp;and not you for Camaleon)</li> <li>Create your store and start to sell your products using our plugins</li> <li>Avoid web attacks</li> <li>Compare the speed and enjoy the speed of your new Camaleon site</li> <li>Customize or create your themes for mobile support</li> <li>Support&nbsp;more visitors at the same time</li> <li>Manage your information with a panel like wordpress&nbsp;</li> <li>All urls are oriented for SEO</li> <li>Multiples roles of users</li> </ul>"
         end
         user = self.users.admin_scope.first
-        user = self.users.admin_scope.create({email: 'admin@local.com', username: 'admin', password: 'admin', password_confirmation: 'admin'}) unless user.present?
+        user = self.users.admin_scope.create({email: 'admin@local.com', username: 'admin', password: 'admin', password_confirmation: 'admin', first_name: 'Administrator'}) unless user.present?
         post = pt.add_post({title: title, slug: slug, content: content, user_id: user.id, status: 'published'})
         @nav_menu.append_menu_item({label: title, type: 'post', link: post.id})
       end
     end
+    get_anonymous_user
   end
 
   # assign all users to this new site
@@ -303,6 +316,10 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   # reload system routes for this site
   def update_routes
     PluginRoutes.reload if self.slug_changed?
+  end
+
+  def reload_routes
+    PluginRoutes.reload
   end
 
   def before_validating

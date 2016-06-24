@@ -1,17 +1,18 @@
+require "rails_helper"
 describe "the signin process", js: true do
   login_success
 
   it "create new post" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/post_type/2/posts/new"
+    visit "#{cama_root_relative_path}/admin/post_type/2/posts/new"
     within("#form-post") do
       fill_in 'post_title', :with => 'Test Title'
       page.execute_script('$("#form-post .tinymce_textarea").tinymce().setContent("Pants are pretty sweet.")')
       page.execute_script('$("#form-post input[name=\'categories[]\']:first").prop("checked", true)')
+      wait(20)
       fill_in 'post_summary', :with => 'test summary'
       fill_in 'post_keywords', :with => 'test keywords'
-      fill_in 'tags', :with => 'owen,dota'
-      # check("Uncategorized")
+      page.execute_script("$('#form-post input[name=\"tags\"]').val('owen,dota')")
     end
     click_button 'Create'
     expect(page).to have_css('.alert-success')
@@ -19,7 +20,7 @@ describe "the signin process", js: true do
 
   it "create edit post" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/post_type/2/posts/#{get_content_attr("post", "id", "last")}/edit"
+    visit "#{cama_root_relative_path}/admin/post_type/2/posts/#{get_content_attr("post", "id", "last")}/edit"
     within("#form-post") do
       fill_in 'post_title', :with => 'Test Title changed'
       page.execute_script('$("#form-post .tinymce_textarea").tinymce().setContent("Pants are pretty sweet. chaged")')

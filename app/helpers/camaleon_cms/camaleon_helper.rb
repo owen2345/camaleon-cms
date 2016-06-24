@@ -46,7 +46,7 @@ module CamaleonCms::CamaleonHelper
 
   # check if current request was for admin panel
   def cama_is_admin_request?
-    !(@_admin_menus.nil?)
+    @cama_i18n_frontend.present?
   end
 
   # generate loop categories html sitemap links

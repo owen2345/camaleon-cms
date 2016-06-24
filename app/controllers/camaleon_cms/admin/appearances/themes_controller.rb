@@ -12,7 +12,7 @@ class CamaleonCms::Admin::Appearances::ThemesController < CamaleonCms::AdminCont
   def index
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.themes")
     PluginRoutes.reload
-    authorize! :manager, :themes
+    authorize! :manage, :themes
     if params[:set].present?
       site_install_theme(params[:set])
       flash.now[:notice] = t('camaleon_cms.admin.themes.message.updated')

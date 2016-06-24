@@ -65,7 +65,7 @@ class PluginRoutes
   class << self
     # return plugin information
     def plugin_info(plugin_key)
-      self.all_plugins.each{|p| return p if p["key"] == plugin_key }
+      self.all_plugins.each{|p| return p if p["key"] == plugin_key || p['path'].split('/').last == plugin_key }
       nil
     end
 
@@ -168,14 +168,14 @@ class PluginRoutes
   end
 
   # all helpers of enabled plugins
-  def self.plugin_helpers
+  def self.all_helpers
     r = cache_variable("plugins_helper")
     return r unless r.nil?
     res = []
-    all_enabled_apps.each do |settings|
+    all_apps.each do |settings|
       res += settings["helpers"] if settings["helpers"].present?
     end
-    cache_variable("plugins_helper", res)
+    cache_variable("plugins_helper", res.uniq)
   end
 
   # destroy plugin
@@ -203,7 +203,7 @@ class PluginRoutes
   # return all sites registered for Plugin routes
   def self.get_sites
     begin
-      @@all_sites ||= CamaleonCms::Site.order(id: :asc).all
+      @@all_sites ||= CamaleonCms::Site.order(id: :asc).all.to_a
     rescue
       []
     end
@@ -298,8 +298,10 @@ class PluginRoutes
         p = p.with_indifferent_access rescue p
         p["key"] = gem.name if p["key"].nil? # TODO REVIEW ERROR FOR conflict plugin keys
         #p["key"] = File.basename(path)
+        p["version"] = gem.version
         p["path"] = path
         p["kind"] = "plugin"
+        p["descr"] = gem.description unless p["descr"].present?
         p["gem_mode"] = true
         entries << p
       end

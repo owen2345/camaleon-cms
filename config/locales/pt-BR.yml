@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 ---
 pt-BR:
   date:
@@ -10,7 +12,7 @@ pt-BR:
     - Sex
     - Sáb
     abbr_month_names:
-    - 
+    -
     - Jan
     - Fev
     - Mar
@@ -36,7 +38,7 @@ pt-BR:
       long: "%d de %B de %Y"
       short: "%d de %B"
     month_names:
-    - 
+    -
     - Janeiro
     - Fevereiro
     - Março

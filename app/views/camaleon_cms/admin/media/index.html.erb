@@ -1,4 +1,4 @@
-<div id="cama_media_gallery" data-url_actions="<%= actions_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-formats="<%= @media_formats.join(",") %>" data-folder="<%= @folder %>" data-url="<%= ajax_cama_admin_media_path(actions: @show_file_actions) %>" data-dimension="<%= params[:dimension] %>">
+<div id="cama_media_gallery" data-url_actions="<%= actions_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-extra-params="<%= {versions: params[:versions], thumb_size: params[:thumb_size], formats: @media_formats.join(","), media_formats: @media_formats.join(","), dimension: params[:dimension], private: params[:private]}.to_json %>" data-versions="<%= params[:versions] %>" data-thumb_size="<%= params[:thumb_size] %>" data-formats="<%= @media_formats.join(",") %>" data-folder="<%= @folder %>" data-url="<%= ajax_cama_admin_media_path(actions: @show_file_actions) %>" data-dimension="<%= params[:dimension] %>">
   <div class="panel panel-default">
     <div class="panel-heading">
       <div class="row">
@@ -42,13 +42,13 @@
           </ul>
           <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="cama_media_upload">
-                <div class="cama_media_fileuploader" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-dragDropStr="<%= t("camaleon_cms.admin.button.drag_drop") %>" data-uploadStr="<%= t("camaleon_cms.admin.button.upload_file") %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
+                <div class="cama_media_fileuploader" data-input-id="cama-upload-files" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-dragDropStr="<%= t("camaleon_cms.admin.button.drag_drop") %>" data-uploadStr="<%= t("camaleon_cms.admin.button.upload_file") %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
                 <hr/>
                 <form id="cama_media_external">
                     <fieldset>
                         <legend><%= t("camaleon_cms.admin.media.external", default: 'From URL') %></legend>
                         <div class="form-group">
-                            <input type="text" class="form-control" placeholder="http://..." class="required">
+                            <input type="text" name="remote_file" class="form-control" placeholder="http://..." class="required">
                         </div>
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary"><%= t("camaleon_cms.admin.button.submit") %></button>

@@ -63,7 +63,7 @@ class CamaleonCms::Admin::UserRolesController < CamaleonCms::AdminController
 
   private
   def validate_role
-    authorize! :manager, :users
+    authorize! :manage, :users
   end
 
   def set_user_roles

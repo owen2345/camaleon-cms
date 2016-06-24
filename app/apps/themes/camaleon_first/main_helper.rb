@@ -12,9 +12,7 @@ module Themes::CamaleonFirst::MainHelper
   end
 
   def camaleon_first_settings(theme)
-    # here your code on save settings for current site, by default params[:theme_fields] is auto saved into theme
-    # Also, you can save your extra values added in admin/settings.html.erb
-    # sample: theme.set_meta("my_key", params[:my_value])
+
   end
 
   # return a list of options for "Recent items from " on site settings -> theme settings

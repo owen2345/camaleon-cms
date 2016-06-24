@@ -14,7 +14,7 @@ module CamaleonCms::ThemeHelper
   # return theme full asset path
   # theme_name: theme name, if nil, then will use current theme
   # asset: asset file name, if asset is present return full path to this asset
-  # sample: <script src="<%= theme_asset_path("js/admin.js") %>"></script> => return: /assets/themes/my_theme/assets/css/main-54505620f.css
+  # sample: <script src="<%= theme_asset_path("js/admin.js") %>"></script> => return: /assets/themes/my_theme/assets/js/admin-54505620f.js
   def theme_asset_path(asset = nil, theme_name = nil)
     if theme_name.present? && theme_name.include?("/")
       return theme_asset_url(theme_name, current_theme.slug)

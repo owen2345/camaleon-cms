@@ -8,6 +8,6 @@
         <%= f.text_field :slug, class: 'form-control menu-input-slug slug', 'data-parent' => 'nav_menu_name' %>
     </div>
     <div class="form-group text-right">
-        <button class="btn btn-primary" type=""><%= @nav_menu.new_record? ? t('camaleon_cms.admin.button.create_menu') : t('camaleon_cms.admin.button.update_menu') %></button>
+        <button class="btn btn-primary" type="submit"><%= @nav_menu.new_record? ? t('camaleon_cms.admin.button.create_menu') : t('camaleon_cms.admin.button.update_menu') %></button>
     </div>
 <% end %>

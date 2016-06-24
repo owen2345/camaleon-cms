@@ -36,22 +36,31 @@ module CamaleonCms::FrontendConcern extend ActiveSupport::Concern
   # save comment from a post
   def save_comment
     @post = current_site.posts.find_by_id(params[:post_id]).decorate
-    if @post.can_commented?
-      comment_data = {}
-      comment_data[:user_id] = cama_current_user.id
-      comment_data[:author] = cama_current_user.the_name
-      comment_data[:author_email] = cama_current_user.email
-      comment_data[:author_url] = ""
+    user = current_user
+    comment_data = {}
+    if !user.present? && current_site.get_option('permit_anonimos_comment', false)
+      user = current_site.get_anonymous_user
+      comment_data[:is_anonymous] = true
+      comment_data[:author] = params[:post_comment][:name]
+      comment_data[:author_email] = params[:post_comment][:email]
+    else
+      comment_data[:author] = user.fullname
+      comment_data[:author_email] = user.email
+    end
+
+    if @post.can_commented? && user.present?
+      comment_data[:user_id] = user.id
+      comment_data[:author_url] = params[:post_comment][:url] || ""
       comment_data[:author_IP] = request.remote_ip.to_s
       comment_data[:approved] = current_site.front_comment_status
       comment_data[:agent] = request.user_agent.force_encoding("ISO-8859-1").encode("UTF-8")
       comment_data[:content] = params[:post_comment][:content]
-      @comment = @post.comments.main.new(comment_data)
+      @comment = params[:post_comment][:parent_id].present? ? @post.comments.find_by_id(params[:post_comment][:parent_id]).children.new(comment_data) :  @post.comments.main.new(comment_data)
       if @comment.save
         flash[:notice] = t('camaleon_cms.admin.comments.message.created')
         redirect_to :back
       else
-        flash[:error] = t('camaleon_cms.admin.validate.required')
+        flash[:error] = "#{t('camaleon_cms.common.comment_error', default: 'An error was occurred on save comment')}:<br> #{@comment.errors.full_messages.join(', ')}"
         redirect_to :back
       end
     else

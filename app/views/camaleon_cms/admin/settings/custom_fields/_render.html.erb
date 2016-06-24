@@ -1,61 +1,45 @@
-<% @default_use = record.new_record?; @field_name = (defined?(fields_name) ? fields_name : "field_options").to_sym %>
-<% field_groups.each do |group| %>
-    <%
-    fields = group.fields.where.not(slug: record.get_option("skip_fields", [])).eager_load(:metas)
-    next if fields.size == 0
-    if defined?(skip_panel) || group.slug == "_default"
-        header = "<div class=\"panel panel-default panel-lite c-field-group\" data-slug=\"#{group.slug}\"> <div class=\"panel-body\">"
-        footer = "</div></div>"
-    else
-        header = "<div class=\"panel panel-default panel-lite c-field-group\" data-slug=\"#{group.slug}\"><div class=\"panel-heading\"><h3 class=\"panel-title\">#{group.name}</h3><ul class=\"panel-controls\"><li><a class=\"panel-collapse\" href='#'><span class='fa fa-angle-down'></span></a></li></ul></div><div class='panel-body'>#{content_tag :p, group.description if group.description.present?}"
-        footer = "</div></div>"
-    end
-    %>
-    <%= raw header %>
-    <%
-    fields.each do |field| # iterate all fields of current group
-      @field = field.decorate
-      @field = @field || {options:{}}
-      @rand = "#{field.id}#{rand(99)}"
-      values = record.get_fields(@field.slug)
-      values = params[@field_name][@field.slug.to_sym][:values] if values.blank? && params[@field_name].present?
-      is_disabled = @field.options[:disabled].present? || @field.options[:readonly].present?
-      obj_class = record.class.name.parseCamaClass.downcase
-    %>
-        <div class="item-custom-field c-field-<%= @field.options[:field_key] %>">
-            <label for="input-<%= @rand %>">
-                <%= @field.the_name %>
-                <%= raw "<em class='text-danger'>*</em>" if @field.options[:required].to_s.to_bool %>
-                <% if ["post", "posttype", "category", "postTag", "site", "user", "navmenu", "theme"].include?(obj_class) %>
-                    <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{@field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") %></small>
-                <% end %>
-            </label>
-            <% if @field.description.present? %>
-                <p><small><%= @field.the_description %></small></p>
-            <% end  %>
-            <input name="<%= @field_name %>[<%= @field.slug %>][id]" type="hidden" value="<%= @field.id %>"/>
-            <div id="content-field-<%= @rand %>" class="editor-custom-fields">
-                <div class="clone-field hidden">
-                    <div class="input-group-parent">
-                        <% if @field.options[:multiple].to_s.to_bool && !is_disabled %>
-                            <div class="actions">
-                                <i class="fa fa-arrows"></i> <i class="fa fa-times text-danger"></i>
-                            </div>
-                        <% end %>
-                        <%= render cama_custom_field_elements[@field.options[:field_key].to_sym][:render] || "camaleon_cms/admin/settings/custom_fields/fields/#{@field.options[:field_key]}" %>
-                    </div>
-                </div>
-
-                <ul id="sortable-<%= @rand %>"></ul>
-
-                <% if @field.options[:multiple].to_s.to_bool && !is_disabled %>
-                    <div class="field_multiple_btn">
-                        <a class="btn btn-warning btn-sm btn-add-field" href="#"> <i class="fa fa-plus"></i> <%= t('camaleon_cms.admin.button.add_new_field')%></a>
-                    </div>
-                <% end %>
-            </div>
-            <script> jQuery(function(){ build_custom_field(<%= raw(values.to_json) %>, <%= @field.options[:multiple].to_s.to_bool  %>, '<%= @field.options[:field_key]  %>', '<%= @rand %>', '<%= @field.options[:default_value] if record.new_record? %>'); }); </script>
+<% default_use = record.new_record?; field_name = (defined?(fields_name) ? fields_name : "field_options").to_sym; obj_class = record.class.name.parseCamaClass.downcase %>
+<% field_groups.each do |group| fields = group.fields.where.not(slug: record.get_option("skip_fields", [])).eager_load(:metas); next if fields.size == 0; group_field_data = {} %>
+    <div class="panel panel-default panel-lite c-field-group" id="custom_field_group_<%= group.id %>">
+        <div class="panel-heading <%= 'hidden' if defined?(skip_panel) || group.slug == "_default" %>">
+            <h3 class="panel-title"><%= group.name %></h3>
+            <ul class="panel-controls"><li><a class="panel-collapse" href='#'><span class='fa fa-angle-down'></span></a></li></ul>
         </div>
-    <% end %>
-    <%= raw footer %>
+        <div class='panel-body'>
+            <%= content_tag :p, group.description if group.description.present? %>
+            <div class="custom_sortable_grouped hidden">
+                <% if group.is_repeat %>
+                    <div class="text-right header-field-grouped bg-info">
+                        <i class="fa fa-angle-down toggleable" style="cursor: pointer"></i>
+                        <i style="cursor: pointer" class="fa fa-times del text-danger"></i> <i style="cursor: move" class="fa fa-arrows move"></i>
+                    </div>
+                <% end %>
+                <div class="fields_container">
+                    <% fields.decorate.each do |field| is_disabled = field.options[:disabled].present? || field.options[:readonly].present?; group_field_data[field.slug] = {default_value: field.options[:default_value], is_disabled: is_disabled, id: field.id, multiple: field.options[:multiple].to_s.to_bool && !is_disabled, kind: field.get_option('field_key')} %>
+                        <div class="item-custom-field c-field-<%= field.options[:field_key] %>">
+                            <input name="<%= field_name %>[<%= field.slug %>][id]" type="hidden" value="<%= field.id %>"/>
+                            <input name="<%= field_name %>[<%= field.slug %>][group_number]" class="cama_custom_group_number" type="hidden" value="0"/>
+                            <label>
+                                <%= field.options[:label_eval].present? ? eval(field.name) : field.name %>
+                                <%= raw "<em class='text-danger'>*</em>" if field.options[:required].to_s.to_bool %>
+                                <% if ["post", "posttype", "category", "postTag", "site", "user", "navmenu", "theme"].include?(obj_class) %>
+                                    <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") %></small>
+                                <% end %>
+                            </label>
+                            <% if field.description.present? %>
+                                <p><small><%= field.options[:label_eval].present? ? eval(field.description) : field.description %></small></p>
+                            <% end  %>
+                            <div class="editor-custom-fields content-field-<%= field.id %>" data-add_field_title="<%= t('camaleon_cms.admin.button.add_new_field', default: 'Add new field')%>">
+                                <%= render(field.get_option('render') || cama_custom_field_elements[field.get_option('field_key').to_sym][:render] || "camaleon_cms/admin/settings/custom_fields/fields/#{field.options[:field_key]}", field: field, values: nil, is_disabled: is_disabled, default_use: default_use, field_name: field_name) %>
+                            </div>
+                        </div>
+                    <% end %>
+                </div>
+                <script> jQuery(function(){ build_custom_field_group(<%= raw(params[:field_options].present? ? (r = []; params[:field_options].each{|k, v| val = {}; v.each{|kk, vv| val["#{kk}"] = vv['values'].values; }; r << val }; r) : record.get_fields_grouped(fields.pluck(:slug).uniq).to_json) %>, '<%= group.id %>', <%= raw group_field_data.to_json %>, <%= group.is_repeat %>); }); </script>
+            </div>
+        </div>
+        <% if group.is_repeat %>
+            <div class="panel-footer text-right"><a href="#" class="btn btn-warning duplicate_cutom_group btn-xs"><i class="fa fa-plus"></i> <%= t('camaleon_cms.admin.button.add_new_group', default: 'Add new group')%></a></div>
+        <% end %>
+    </div>
 <% end %>

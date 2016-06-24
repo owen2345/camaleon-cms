@@ -4,28 +4,30 @@ require 'rails_helper'
 # do login for admin panel and also verify if the site was created
 # if site is not created, then create a new site
 def login_success
-  unless CamaleonCms::Site.any?
-    #ActiveRecord::Base.connection.execute("BEGIN TRANSACTION; END;")
+  if !CamaleonCms::Site.any? && !defined?($install_called)
     it "Verify Install Camaleon" do
-      visit "#{cama_root_path}/admin/installers"
+      visit "#{cama_root_relative_path}/admin/installers"
       within("#new_site") do
         fill_in 'site_name', :with => 'Test Site'
         select "Default Theme", from: "theme"
       end
       click_button 'Submit'
       expect(page).to have_content 'successfully'
-    end
-  end
 
-  it "signs me in" do
-    admin_sign_in(true)
+      admin_sign_in(true)
+    end
+    $install_called = true
+  else
+    it "signs me in" do
+      admin_sign_in
+    end
   end
 end
 
 # sign in for admin panel
 # skip: true => close the skip button for intro
 def admin_sign_in(close = false, user = "admin", pass = "admin")
-  visit "#{cama_root_path}/admin/login"
+  visit "#{cama_root_relative_path}/admin/login"
   within("#login_user") do
     fill_in 'user_username', :with => user
     fill_in 'user_password', :with => pass
@@ -36,8 +38,8 @@ def admin_sign_in(close = false, user = "admin", pass = "admin")
   click_link "Skip" if close
 end
 
-def cama_root_path
-  "/#{PluginRoutes.system_info["relative_url_root"]}" if PluginRoutes.system_info["relative_url_root"].present?
+def cama_root_relative_path
+  "#{PluginRoutes.system_info["relative_url_root"]}" if PluginRoutes.system_info["relative_url_root"].present?
 end
 
 # open file manager modal and upload a new file
@@ -56,21 +58,21 @@ end
 
 # return the id of the first post
 def get_content_attr(post_type = "post", attr = "id", pos = "first")
-  res = Site.first.decorate.the_post_type(post_type).decorate.the_posts.send(pos).decorate.send(attr)
+  res = Cama::Site.first.decorate.the_post_type(post_type).decorate.the_posts.send(pos).decorate.send(attr)
   fix_db
   res
 end
 
 # return the id of the first post
 def get_cat_attr(attr = "id", pos = "first")
-  res = Site.first.decorate.the_full_categories.decorate.send(pos).send(attr)
+  res = Cama::Site.first.decorate.the_full_categories.decorate.send(pos).send(attr)
   fix_db
   res
 end
 
 # return the id of the first post
 def get_tag_attr(attr = "id", pos = "first")
-  res = Site.first.decorate.the_tags.decorate.send(pos).send(attr)
+  res = Cama::Site.first.decorate.the_tags.decorate.send(pos).send(attr)
   fix_db
   res
 end
