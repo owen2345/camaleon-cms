@@ -10,7 +10,6 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
   include CamaleonCms::SiteHelper
   include CamaleonCms::HooksHelper
   include CamaleonCms::PluginsHelper
-  include CamaleonCms::SiteHelper
   #include ApplicationHelper
   default from: "Camaleon CMS <owenperedo@gmail.com>"
   after_action :set_delivery_options
