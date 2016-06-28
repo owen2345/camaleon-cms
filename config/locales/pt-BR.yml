@@ -155,18 +155,18 @@ pt-BR:
         format: "%n %u"
         units:
           billion:
-            one: mil milhões
-            other: mil milhões
+            one: bilhão
+            other: bilhões
           million:
             one: milhão
             other: milhões
           quadrillion:
-            one: mil biliões
-            other: mil biliões
+            one: quadrilhão
+            other: quadrilhões
           thousand: mil
           trillion:
-            one: bilião
-            other: biliões
+            one: trilhão
+            other: trilhões
           unit: ''
       format:
         delimiter: ''
