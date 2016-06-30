@@ -27,7 +27,7 @@ module Plugins::FrontCache::FrontCacheHelper
 
     @caches = current_site.get_meta("front_cache_elements")
     @_plugin_do_cache = false
-    if @caches[:paths].include?(front_request_key) || (params[:action] == "index" && @caches[:home].present?) # cache paths and home page
+    if match_path_patterns? || (params[:action] == "index" && @caches[:home].present?) # cache paths and home page
       @_plugin_do_cache = true
     elsif params[:action] == "post" && !params[:draft_id].present?
       begin
@@ -157,4 +157,9 @@ module Plugins::FrontCache::FrontCacheHelper
     request.path_info.split("?").first
   end
 
+  def match_path_patterns?
+    @caches[:paths].any? do |path_pattern|
+      front_request_key =~ Regexp.new(path_pattern)
+    end
+  end
 end
