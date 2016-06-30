@@ -10,6 +10,7 @@
         form.on("click", ".del_path", function(){
             $(this).closest(".input-group").remove();
         });
+        $('#cache_front_form select').selectpicker();
     });
 </script>
 <%= form_for(admin_plugins_front_cache_settings_path, html:{ id: "cache_front_form" }) do %>

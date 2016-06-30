@@ -9,8 +9,7 @@
 class Plugins::FrontCache::AdminController < CamaleonCms::Apps::PluginsAdminController
   include Plugins::FrontCache::FrontCacheHelper
   def settings
-    add_asset_library("multiselect")
-    @caches = current_site.get_meta("front_cache_elements", {})
+    @caches = current_site.get_meta("front_cache_elements", {paths: []})
     @caches[:paths] << "" unless @caches[:paths].present?
   end
 
