@@ -199,7 +199,7 @@ en:
         remove_items_submenu: 'Really remove this item and its sub menu items?'
         you_must_upload_image: 'You must upload an image'
         you_must_upload_video: 'You must upload an video'
-        so_their_data_has_not_been_saved: 'so their data has not been saved'
+        so_their_data_has_not_been_saved: 'So their data has not been saved'
         no_response_fields: 'No response fields '
         quick_info: 'Some quick info about this user'
         was_inactivated: 'was inactivated.'
@@ -353,6 +353,7 @@ en:
         filesystem_s3_secret_key: "AWS S3 Secret Key"
         filesystem_s3_bucket_name: "AWS S3 Bucket name"
         filesystem_s3_endpoint: "AWS S3 Bucket endpoint"
+        send_test_email: 'Send Test Email'
         filesystem_region: "AWS S3 Region"
         filesystem_cdn: "CDN url"
         security:

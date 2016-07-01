@@ -77,7 +77,7 @@ class CamaleonCms::Ability
       can :manage, :plugins   if @roles_manager[:plugins] rescue false
       can :manage, :users     if @roles_manager[:users] rescue false
       can :manage, :settings  if @roles_manager[:settings] rescue false
-      @roles_manager.each do |rol_manage_key, val_role|
+      @roles_manager.try(:each) do |rol_manage_key, val_role|
         can :manage, rol_manage_key.to_sym if val_role.to_s.cama_true? rescue false
       end
     end

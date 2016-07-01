@@ -55,6 +55,7 @@ Rails.application.routes.draw do
             end
           end
           get 'site'
+          get 'test_email'
           get 'theme'
           post 'save_theme'
           get "languages"

@@ -145,10 +145,11 @@ module CamaleonCms::PluginsHelper
   # return plugin key for current plugin file (helper|controller|view)
   # index: internal control (ignored)
   def self_plugin_key(index = 0)
-    k = "/plugins/"
     f = caller[index]
-    if f.include?(k)
-      key = f.split(k).last.split("/").first
+    if f.include?('/apps/plugins/')
+      key = f.split('/apps/plugins/').last.split("/").first
+    elsif f.include?('/plugins/')
+      key = f.split('/plugins/').last.split("/").first
     else
       key = f.split('/gems/').last.split("/").first
     end

@@ -39,7 +39,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     @cama_visited_category = @category
     @children = @category.children.no_empty.decorate
     @posts = @category.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
-    r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/category_#{@category.the_slug}") ? "post_types/#{@post_type.the_slug}/category_#{@post_type.the_slug}" : nil  # specific template category with specific slug within a posttype
+    r_file = lookup_context.template_exists?("category_#{@category.the_slug}") ? "category_#{@category.the_slug}" : nil  # specific template category with specific slug within a posttype
     r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/category") ? "post_types/#{@post_type.the_slug}/category" : nil unless r_file.present? # default template category for all categories within a posttype
     r_file = lookup_context.template_exists?("categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : 'category' unless r_file.present?  # default template category for all categories for all posttypes
 
@@ -80,10 +80,8 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     end
     @cama_visited_tag = @post_tag
     @posts = @post_tag.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
-    r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/post_tag_#{@post_tag.the_slug}") ? "post_types/#{@post_type.the_slug}/post_tag_#{@post_tag.the_slug}" : nil
-    r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/post_tag") ? "post_types/#{@post_type.the_slug}/post_tag" : nil unless r_file.present?
-    r_file = lookup_context.template_exists?("post_tags/#{@post_tag.the_slug}") ? "post_tags/#{@post_tag.the_slug}" : "post_tag" unless r_file.present?
-    layout_ = lookup_context.template_exists?("layouts/post_tags/#{@post_tag.the_slug}") ? "post_tags/#{@post_tag.the_slug}" : (self.send :_layout)
+    r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/post_tag") ? "post_types/#{@post_type.the_slug}/post_tag" : 'post_tag'
+    layout_ = lookup_context.template_exists?("layouts/post_tag") ? "post_tag" : (self.send :_layout)
     r = {post_tag: @post_tag, layout: layout_, render: r_file}; hooks_run("on_render_post_tag", r)
     render r[:render], layout: r[:layout]
   end
@@ -91,12 +89,13 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   # search contents
   def search
     breadcrumb_add(ct("search"))
+    items = params[:post_type_slugs].present? ? current_site.the_posts(params[:post_type_slugs].split(',')) : current_site.the_posts
     @cama_visited_search = true
     @param_search = params[:q]
     layout_ = lookup_context.template_exists?("layouts/search") ? "search" : (self.send :_layout)
     r = {layout: layout_, render: "search", posts: nil}; hooks_run("on_render_search", r)
     params[:q] = (params[:q] || '').downcase
-    @posts = r[:posts] != nil ? r[:posts] : current_site.the_posts.where("LOWER(title) LIKE ? OR LOWER(content_filtered) LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%")
+    @posts = r[:posts] != nil ? r[:posts] : items.where("LOWER(title) LIKE ? OR LOWER(content_filtered) LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%")
     @posts_size = @posts.size
     @posts = @posts.paginate(:page => params[:page], :per_page => current_site.front_per_page)
     render r[:render], layout: r[:layout]

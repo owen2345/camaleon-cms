@@ -95,12 +95,16 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   private
 
   def validate_role
-    (params[:id].present? && cama_current_user.id == params[:id]) || authorize!(:manage, :users)
+    (user_id_param.present? && cama_current_user.id.to_s == user_id_param) || authorize!(:manage, :users)
+  end
+
+  def user_id_param
+    user_params = params[:id] || params[:user_id]
   end
 
   def set_user
     begin
-      @user = current_site.users.find(params[:id])
+      @user = current_site.users.find(user_id_param)
     rescue
       flash[:error] = t('camaleon_cms.admin.users.message.error')
       redirect_to cama_admin_path

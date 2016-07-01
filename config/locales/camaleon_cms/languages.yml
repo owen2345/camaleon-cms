@@ -1,3 +1,4 @@
+# encoding: utf-8
 en:
   languages:
     es: "Spanish"
@@ -5,7 +6,8 @@ en:
     fr: "French"
     zh: "Chinese"
     de: "Deutsch"
-    pt: "Português"
+    pt: "Português (Portugal)"
+    pt-BR: "Português (Brazil)"
     it: "Italian"
     ru: "Russian"
     nl: "Dutch"
@@ -17,7 +19,8 @@ es:
     fr: "Francés"
     zh: "Chino"
     de: "Alemán"
-    pt: "Portugues"
+    pt: "Portugues (Portugal)"
+    pt-BR: "Portugues (Brasil)"
     it: "Italiano"
     ru: "Russian"
     nl: "Holandés"
@@ -29,7 +32,8 @@ it:
     fr: "Francese"
     zh: "Cinese"
     de: "Tedesco"
-    pt: "Portoghese"
+    pt: "Portoghese (Portogallo)"
+    pt-BR: "Portoghese (Brasile)"
     it: "Italiano"
     ru: "Russian"
     nl: "Olandese"
@@ -41,7 +45,8 @@ ru:
     fr: "Французский"
     zh: "Китайский"
     de: "Немецкий"
-    pt: "Португальский"
+    pt: "Португальский (Португалия)"
+    pt-BR: "Португальский (Бразилия)"
     it: "Итальянский"
     ru: "Русский"
     nl: "Голландский"
@@ -53,10 +58,24 @@ nl:
     fr: "Frans"
     zh: "Chinees"
     de: "Duits"
-    pt: "Portugees"
+    pt: "Portugees (Portugal)"
+    pt-BR: "Portugees (Brazilië)"
     it: "Italiaans"
     ru: "Russisch"
     nl: "Nederlands"
+
+pt:
+  languages:
+    es: "Espanhol"
+    en: "Inglês"
+    fr: "Francês"
+    zh: "Chinês"
+    de: "Alemão"
+    pt: "Português (Portugal)"
+    pt-BR: "Português (Brasil)"
+    it: "Italiano"
+    ru: "Russo"
+    nl: "Holandês"
 
 pt-BR:
   languages:
@@ -66,7 +85,7 @@ pt-BR:
     zh: "Chinês"
     de: "Alemão"
     pt: "Português (Portugal)"
+    pt-BR: "Português (Brasil)"
     it: "Italiano"
     ru: "Russo"
     nl: "Holandês"
-    pt-BR: "Português (Brasil)"
