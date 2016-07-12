@@ -346,6 +346,7 @@ es:
         filesystem_s3_bucket_name: "AWS S3 nombre del bucket"
         filesystem_cdn: "CDN url"
         filesystem_s3_cloudfront: 'Cloudfront URL'
+        custom_fields_show_shortcodes: 'Mostrar códigos abreviados de los campos personalizados?'
         security:
           captcha_user_register: "¿Activar captcha en el registro de usuarios?"
           need_validate_email: "¿Es necesario validar el email?"
