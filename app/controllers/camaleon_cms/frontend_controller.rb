@@ -70,7 +70,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   def post_tag
     begin
       if params[:post_tag_slug].present?
-        @post_tag = current_site.post_tags.find_by_slug(params[:post_tag_id]).decorate
+        @post_tag = current_site.post_tags.find_by_slug(params[:post_tag_slug]).decorate
       else
         @post_tag = current_site.post_tags.find(params[:post_tag_id]).decorate
       end
