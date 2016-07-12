@@ -336,7 +336,7 @@ en:
         login_twitter: 'Twitter'
         login_facebook: 'Facebook'
         login_google: 'Google+'
-        email_enabled: "Use this settings to send emails"
+        email_enabled: "Use these settings to send emails"
         email_server: "Email Server"
         email_port: "Email Port"
         email_domain: "Email Domain"
