@@ -40,6 +40,12 @@ class CamaleonCms::Ability
       can :publish_post, CamaleonCms::PostType do |pt|
         ids_publish.to_i.include?(pt.id) rescue false
       end
+      can :edit_other, CamaleonCms::PostType do |pt|
+        ids_edit_other.to_i.include?(pt.id) rescue false
+      end
+      can :edit_publish, CamaleonCms::PostType do |pt|
+        ids_edit_publish.to_i.include?(pt.id) rescue false
+      end
 
       can :categories, CamaleonCms::PostType do |pt|
         @roles_post_type[:manage_categories].to_i.include?(pt.id) rescue false

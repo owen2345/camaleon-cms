@@ -36,7 +36,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # Sample: mypost_type.get_field_groups({kind: 'PostTag'}) => return custom fields for posts
   def get_field_groups(args = {})
     args = args.is_a?(String) ?  {kind: args, include_parent: false } : {kind: "Post", include_parent: false }.merge(args)
-    class_name = self.class.to_s.parseCamaClass
+    class_name = self.class.to_s.gsub("Decorator","").gsub("CamaleonCms::","")
     case class_name
       when 'Category','PostTag'
         self.post_type.get_field_groups(class_name)
