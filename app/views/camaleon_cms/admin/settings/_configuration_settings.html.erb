@@ -52,10 +52,14 @@
         <label for=""><%= t('camaleon_cms.admin.settings.security.captcha_user_register') %></label><br>
         <%= check_box :options, :security_captcha_user_register, {checked: @site.security_user_register_captcha_enabled?, class: "icheckbox0"}, "true", "" %>
     </div>
-  <div class="form-group">
-    <label for=""><%= t('camaleon_cms.admin.settings.security.need_validate_email') %></label><br>
-    <%= check_box :options, :need_validate_email, {checked: @site.need_validate_email?, class: "icheckbox0"}, "true", "" %>
-  </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.security.need_validate_email') %></label><br>
+        <%= check_box :options, :need_validate_email, {checked: @site.need_validate_email?, class: "icheckbox0"}, "true", "" %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.custom_fields_show_shortcodes', default: 'Show shortcodes of custom fields?') %></label><br>
+        <%= check_box :options, :custom_fields_show_shortcodes, {checked: @site.get_option('custom_fields_show_shortcodes', false), class: "icheckbox0"}, "true", "" %>
+    </div>
 </div>
 <script>
     jQuery(function(){

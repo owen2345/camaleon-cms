@@ -158,7 +158,8 @@ function custom_field_editor($field) {
 }
 function custom_field_field_attrs_val($field, value) {
     if ($field) {
-        var data = $.parseJSON(value || '{}');
+        value = value || '{}'
+        var data = typeof(value) == 'object' ? value : $.parseJSON(value);
         $field.find('.input-attr').val(data.attr);
         $field.find('.input-value').val(data.value)
         $field.find('.input-attr, .input-value').filter('.is_translate').addClass('translatable').Translatable(ADMIN_TRANSLATIONS);

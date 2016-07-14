@@ -22,7 +22,7 @@
                             <label>
                                 <%= field.options[:label_eval].present? ? eval(field.name) : field.name %>
                                 <%= raw "<em class='text-danger'>*</em>" if field.options[:required].to_s.to_bool %>
-                                <% if ["post", "posttype", "category", "postTag", "site", "user", "navmenu", "theme"].include?(obj_class) %>
+                                <% if current_site.get_option('custom_fields_show_shortcodes') && ["post", "posttype", "category", "postTag", "site", "user", "navmenu", "theme"].include?(obj_class) %>
                                     <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") %></small>
                                 <% end %>
                             </label>
@@ -35,7 +35,7 @@
                         </div>
                     <% end %>
                 </div>
-                <script> jQuery(function(){ build_custom_field_group(<%= raw(params[:field_options].present? ? (r = []; params[:field_options].each{|k, v| val = {}; v.each{|kk, vv| val["#{kk}"] = vv['values'].values; }; r << val }; r) : record.get_fields_grouped(fields.pluck(:slug).uniq).to_json) %>, '<%= group.id %>', <%= raw group_field_data.to_json %>, <%= group.is_repeat %>); }); </script>
+                <script> jQuery(function(){ build_custom_field_group(<%= raw(params[:field_options].present? ? (r = []; params[:field_options].each{|k, v| val = {}; v.each{|kk, vv| val["#{kk}"] = vv['values'].values; }; r << val }; r.to_json) : record.get_fields_grouped(fields.pluck(:slug).uniq).to_json) %>, '<%= group.id %>', <%= raw group_field_data.to_json %>, <%= group.is_repeat %>); }); </script>
             </div>
         </div>
         <% if group.is_repeat %>
