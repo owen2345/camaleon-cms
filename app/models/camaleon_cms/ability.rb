@@ -83,33 +83,10 @@ class CamaleonCms::Ability
       can :manage, :plugins   if @roles_manager[:plugins] rescue false
       can :manage, :users     if @roles_manager[:users] rescue false
       can :manage, :settings  if @roles_manager[:settings] rescue false
-
-
+      @roles_manager.try(:each) do |rol_manage_key, val_role|
+        can :manage, rol_manage_key.to_sym if val_role.to_s.cama_true? rescue false
+      end
     end
-
-
-    # variants:
-
-    # can [:update, :destroy], [Article, Comment]
-
-    #alias_action :create, :read, :update, :destroy, :to => :crud
-    # can :crud, User
-
-    # can :invite, User
-
-    # can :read, Project, :priority => 1..3
-
-    # conditions:
-    # can :read, Project, :active => true, :user_id => user.id
-    # can :read, Project, :category => { :visible => true }
-    # can :manage, Project, :group => { :id => user.group_ids }
-    # can :read, Photo, Photo.scope_defined do |photo|
-    #   photo.groups.empty?
-    # end
-
-
-    # See the wiki for details:
-    # https://github.com/CanCanCommunity/cancancan/wiki/Defining-Abilities
   end
 
   #overwrite can method to support decorator class names

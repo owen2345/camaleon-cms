@@ -58,6 +58,6 @@ class CamaleonCms::Admin::Appearances::Widgets::MainController < CamaleonCms::Ad
   end
 
   def check_permission_role
-    authorize! :manager, :widgets
+    authorize! :manage, :widgets
   end
 end

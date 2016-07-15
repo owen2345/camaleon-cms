@@ -1,4 +1,5 @@
-﻿en:
+﻿# encoding: utf-8
+en:
   plugin:
     attack:
       title: 'Attack'
@@ -15,6 +16,43 @@
       messages:
         settings_saved: 'Settings saved!'
       settings: 'Settings'
+
+pt:
+  plugin:
+    attack:
+      title: 'Ataque'
+      attack_security: 'Segurança contra ataques'
+      form:
+        in: 'em'
+        seconds: 'Segundos'
+        minutes: 'Minutos'
+        type_max_requests_time: 'Requisições %{type} máximas'
+        type_time_requests_seconds: 'Requisições %{type} por tipo [segundos]'
+        ban_time_minutes: 'Tempo de expulsão'
+        ban_messages: 'Mensagem de expulsão'
+        request_limit_exceeded: 'Número de requisições excedeu o limite!'
+      messages:
+        settings_saved: 'Configurações gravadas com sucesso!'
+      settings: 'Configurações'
+
+pt-BR:
+  plugin:
+    attack:
+      title: 'Ataque'
+      attack_security: 'Segurança contra ataques'
+      form:
+        in: 'em'
+        seconds: 'Segundos'
+        minutes: 'Minutos'
+        type_max_requests_time: 'Requisições %{type} máximas'
+        type_time_requests_seconds: 'Requisições %{type} por tipo [segundos]'
+        ban_time_minutes: 'Tempo de expulsão'
+        ban_messages: 'Mensagem de expulsão'
+        request_limit_exceeded: 'Número de requisições excedeu o limite!'
+      messages:
+        settings_saved: 'Configurações salvas com sucesso!'
+      settings: 'Configurações'
+
 
 
 es:
@@ -53,3 +91,21 @@ nl:
       messages:
         settings_saved: 'instellingen opgeslagen!'
       settings: 'instellingen'
+
+it:
+  plugin:
+    attack:
+      title: 'Attack'
+      attack_security: 'Attack security'
+      form:
+        in: 'in'
+        seconds: 'Secondi'
+        minutes: 'Minuti'
+        type_max_requests_time: 'Numero massimo di richieste %{type}'
+        type_time_requests_seconds: '%{type} tempo richiesto [secondi]'
+        ban_time_minutes: 'Tempo di espulsione'
+        ban_messages: 'Messaggio di espulsione'
+        request_limit_exceeded: 'Il numero di richieste ha superato il limite!'
+      messages:
+        settings_saved: 'Impostazioni salvate!'
+      settings: 'Impostazioni'

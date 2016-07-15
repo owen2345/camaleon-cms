@@ -43,7 +43,7 @@ module CamaleonCms::HtmlHelper
   # sample: (update existent library)
   #   append_asset_libraries({"colorpicker"=>{js: [plugin_asset("js/my_custom_js")] } })
   # return nil
-  def cama_load_custom_assets(libraries)
+  def append_asset_libraries(libraries)
     libraries.each do |key, library|
       if @_assets_libraries.include?(key)
         @_assets_libraries[key.to_sym] = @_assets_libraries[key.to_sym].merge(library)
@@ -52,8 +52,7 @@ module CamaleonCms::HtmlHelper
       end
     end
   end
-
-  alias_method :append_asset_libraries, :cama_load_custom_assets
+  alias_method :cama_load_custom_assets, :append_asset_libraries
 
   # add asset content into custom assets
   # content may be: <script>alert()</script>

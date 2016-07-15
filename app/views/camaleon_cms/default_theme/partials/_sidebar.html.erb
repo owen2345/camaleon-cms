@@ -11,7 +11,7 @@
     <div class="panel panel-default">
         <div class="panel-heading"><%= ct("categories", default: 'Categories') %></div>
         <div class="panel-body">
-            <ul>
+            <ul style="list-style-position: inside">
                 <% categories.each do |cat| %>
                     <li><a href="<%= cat.the_url %>"><%= cat.the_title %></a></li>
                 <% end %>
@@ -26,7 +26,7 @@
             <%= ct("latest_articles", default: 'Latest Articles') %>
         </div>
         <div class="panel-body">
-            <ul>
+            <ul style="list-style-position: inside">
                 <% current_site.the_posts("post").latest.limit(7).decorate.each do |p| %>
                     <li><a href="<%= p.the_url %>"><%= p.the_title %></a></li>
                 <% end %>
@@ -41,7 +41,7 @@
             <%= ct("related_articles", default: 'Related Articles') %>
         </div>
         <div class="panel-body">
-            <ul>
+            <ul style="list-style-position: inside">
                 <% post.the_related_posts.latest.limit(7).decorate.each do |p| %>
                     <li><a href="<%= p.the_url %>"><%= p.the_title %></a></li>
                 <% end %>

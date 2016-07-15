@@ -10,6 +10,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   add_flash_types :warning
   add_flash_types :error
   add_flash_types :notice
+  add_flash_types :info
 
   include CamaleonCms::CamaleonHelper
   include CamaleonCms::SessionHelper
@@ -26,7 +27,8 @@ class CamaleonCms::CamaleonController < ApplicationController
   include CamaleonCms::EmailHelper
   include Mobu::DetectMobile
 
-  prepend_before_action :cama_load_custom_models
+  PluginRoutes.all_helpers.each{|h| include h.constantize }
+
   before_action :cama_site_check_existence, except: [:render_error, :captcha]
   before_action :cama_before_actions, except: [:render_error, :captcha]
   after_action :cama_after_actions, except: [:render_error, :captcha]
@@ -52,7 +54,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   private
   def cama_before_actions
     # including all helpers (system, themes, plugins) for this site
-    PluginRoutes.enabled_apps(current_site, current_theme.slug).each{|plugin| plugin_load_helpers(plugin) }
+    # PluginRoutes.enabled_apps(current_site, current_theme.slug).each{|plugin| plugin_load_helpers(plugin) }
 
     # initializing short codes
     shortcodes_init()
@@ -73,10 +75,6 @@ class CamaleonCms::CamaleonController < ApplicationController
     self.prepend_view_path(File.join($camaleon_engine_dir, views_dir).to_s)
     self.prepend_view_path(Rails.root.join(views_dir).to_s)
 
-    # past plugins version support
-    self.prepend_view_path(File.join($camaleon_engine_dir, "app", "apps", "plugins"))
-    self.prepend_view_path(Rails.root.join("app", "apps", 'plugins'))
-
     CamaleonCms::PostDefault.current_user = cama_current_user
     CamaleonCms::PostDefault.current_site = current_site
   end
@@ -94,13 +92,6 @@ class CamaleonCms::CamaleonController < ApplicationController
   # redirect to sessions login form when the session was expired.
   def auth_session_error
     redirect_to cama_root_path
-  end
-
-  # include CamaleonCms::all custom models created by installed plugins or themes for current site
-  def cama_load_custom_models
-    if current_site.present?
-      site_load_custom_models(current_site)
-    end
   end
 
   # check if current site exist, if not, this will be redirected to main domain

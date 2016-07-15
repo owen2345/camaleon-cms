@@ -26,8 +26,8 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
   end
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
-  def the_avatar
-    avatar_exists? ? object.get_meta("avatar") : h.asset_url("camaleon_cms/admin/img/no_image.jpg")
+  def the_avatar(default_avatar = nil)
+    avatar_exists? ? object.get_meta("avatar") : (default_avatar || h.asset_url("camaleon_cms/admin/img/no_image.jpg"))
   end
 
   # return the slogan for this user, default: Hello World

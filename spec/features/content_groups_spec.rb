@@ -1,9 +1,10 @@
+require "rails_helper"
 describe "the Content Groups", js: true do
   login_success
 
   it "create new content group" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/settings/post_types"
+    visit "#{cama_root_relative_path}/admin/settings/post_types"
     expect(page).to have_content('Post')
     expect(page).to have_content('Page')
     within("#post_type_form") do
@@ -18,7 +19,7 @@ describe "the Content Groups", js: true do
 
   it "edit content type" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/settings/post_types"
+    visit "#{cama_root_relative_path}/admin/settings/post_types"
     within '#admin_content' do
       all("table .btn-default").last.click
     end
@@ -33,7 +34,7 @@ describe "the Content Groups", js: true do
 
   it "delete content type" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/settings/post_types"
+    visit "#{cama_root_relative_path}/admin/settings/post_types"
     within '#admin_content' do
       all("table .btn-danger").last.click
     end

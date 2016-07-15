@@ -1,65 +1,44 @@
+require "rails_helper"
 describe "the Menus", js: true do
   login_success
 
   it "Menus list" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/appearances/nav_menus/menu"
+    visit "#{cama_root_relative_path}/admin/appearances/nav_menus"
     expect(page).to have_css('#menu_content')
-    wait(1)
     within "#menu_items" do
       # post menus
       check("Sample Post")
-      page.execute_script('$("#acc-post .nav-tabs li").eq(1).find("a").click()')
-      check("Uncategorized")
-      click_button "Add to Menu"
+      page.execute_script('$("#acc-post input").prop("checked", true)')
+      page.execute_script('$("#acc-post").prev().find("input").prop("checked", true)')
+      page.execute_script('$("#acc-post .add_links_to_menu").click()')
+      wait_for_ajax
 
       # custom links
       all(".panel-collapse").last.click
-      wait(1)
+      wait(3)
       within ".form-custom-link" do
         fill_in "external_label", with: "name link"
         fill_in "external_url", with: "http://mytest.com"
-        click_button "Add to Menu"
+        find("#add_external_link").click
+        wait_for_ajax
       end
     end
 
-    # verificarion
-    within '#menu_form' do
-      expect(page).to have_content("Sample Post")
-      expect(page).to have_content("Uncategorized")
-      expect(page).to have_content("name link")
-      click_button "Update Menu"
+    within '#menus_list' do
+      all('.delete_menu_item').each do |btn|
+        btn.click
+        page.driver.browser.switch_to.alert.accept
+        wait_for_ajax
+      end
     end
-    wait_for_ajax
-    expect(page).to have_css('.alert-success')
 
-    # verification after refresh
-    # page.driver.navigate.refresh
-    visit(current_path)
-    within '#menu_form' do
-      expect(page).to have_content("Sample Post")
-      expect(page).to have_content("Uncategorized")
-      expect(page).to have_content("name link")
-    end
   end
 
   it "Menus Create and Delete" do
     admin_sign_in
-    visit "#{cama_root_path}/admin/appearances/nav_menus/menu"
-    within "#menu_items" do
-      click_link "create a new menu"
-    end
-    expect(page).to have_css('#menu_form')
-    within '#menu_form' do
-      fill_in "nav_menu_name", with: "Test nav"
-      fill_in "nav_menu_slug", with: "test-nav"
-      click_button "Create Menu"
-    end
-
-    expect(page).to have_css(".alert-success")
-    within '#menu_form' do
-      click_link "Delete"
-    end
+    visit "#{cama_root_relative_path}/admin/appearances/nav_menus"
+    page.execute_script('$("#switch_nav_menu_form .btn-danger").click()')
     page.driver.browser.switch_to.alert.accept
     expect(page).to have_css('.alert-success')
   end

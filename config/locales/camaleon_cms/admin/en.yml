@@ -1,5 +1,6 @@
 en:
   camaleon_cms:
+    see_intro: "See intro"
     welcome_message: "Welcome to Camaleon CMS"
     page_not_exist: "<h1>ooops...</h1><h5>The page you're looking for does not exist.</h5>"
     page_error_500: "<h1>ooops...</h1><h5>Error 500 Internal Server Error. Please contact to the administrator.</h5>"
@@ -198,7 +199,7 @@ en:
         remove_items_submenu: 'Really remove this item and its sub menu items?'
         you_must_upload_image: 'You must upload an image'
         you_must_upload_video: 'You must upload an video'
-        so_their_data_has_not_been_saved: 'so their data has not been saved'
+        so_their_data_has_not_been_saved: 'So their data has not been saved'
         no_response_fields: 'No response fields '
         quick_info: 'Some quick info about this user'
         was_inactivated: 'was inactivated.'
@@ -335,7 +336,7 @@ en:
         login_twitter: 'Twitter'
         login_facebook: 'Facebook'
         login_google: 'Google+'
-        email_enabled: "Use this settings to send emails"
+        email_enabled: "Use these settings to send emails"
         email_server: "Email Server"
         email_port: "Email Port"
         email_domain: "Email Domain"
@@ -352,6 +353,7 @@ en:
         filesystem_s3_secret_key: "AWS S3 Secret Key"
         filesystem_s3_bucket_name: "AWS S3 Bucket name"
         filesystem_s3_endpoint: "AWS S3 Bucket endpoint"
+        send_test_email: 'Send Test Email'
         filesystem_region: "AWS S3 Region"
         filesystem_cdn: "CDN url"
         security:
@@ -644,18 +646,18 @@ en:
         profile: "In this place you can see your profile options."
         content: "This block contains all content groups of your site. Each content can have different structure configured in settings => Content Groups"
         #dashboard: "In this section you can see "
-        media: "This section manage your all your public media files"
-        comments: "This section manage all the comments of your contents"
-        appearance: "Manage all the information related to Public Interface"
-        themes: "In this section you can choose your preferred theme (Public Interface)"
-        widgets: "This module permit you to manage your widgets and paste the code in any content."
-        menus: "<img style=\"max-width: 100%;\" src=\"%{image}\" /> This module permit you to control your menus for Public Interface in multiple levels."
+        media: "This section manages all your public media files."
+        comments: "This section manages all the comments of your contents."
+        appearance: "Manage all the information related to Public Interface."
+        themes: "In this section you can choose your preferred theme (Public Interface)."
+        widgets: "This module permits you to manage your widgets and paste the code in any content."
+        menus: "<img style=\"max-width: 100%;\" src=\"%{image}\" /> This module permits you to control your menus for Public Interface in multiple levels."
         plugins: "In this section you can see all plugins (custom applications to extend your site functionality)."
-        users: "Permit you to manage all users of the site. Also you can manage the roles for the users."
-        settings: "In this section you can find all site configurations"
+        users: "Permits you to manage all users of the site. Also you can manage the roles for the users."
+        settings: "In this section you can find all site configurations."
         gral_site: "This is a section where you can configure all settings of the site and current theme"
-        sites: "This module permit you to manage your sub sites, i.e. you can create unlimited sites like this (This is visible only for main site). Check /config/system.json to customize settings."
-        custom_fields: "This section permit you to extend easily your contents, themes,... by custom fields."
+        sites: "This module permits you to manage your sub sites, i.e. you can create unlimited sites like this (This is visible only for main site). Check /config/system.json to customize settings."
+        custom_fields: "This section permits you to extend easily your contents, themes,... by custom fields."
         post_type: "In this module you can manage your content groups without programing anything."
-        languages: "This module permit you to manage all languages for your site. Also you can configure the language for your admin panel."
+        languages: "This module permits you to manage all languages for your site. Also you can configure the language for your admin panel."
         shortcodes: "In this section you can see all available shortcodes to use in your contents."

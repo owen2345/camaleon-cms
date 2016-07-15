@@ -19,7 +19,9 @@ jQuery(function(){
 /****************** form validations ************/
 // panel can be a object: $("#my_form")
 // if panel is null, then this will be replaced by body
-var init_form_validations = function (form) {
+    // args: {validate_settings}
+var init_form_validations = function (form, args) {
+    args = args || {};
     // slug management
     // you need to add class no_translate to avoid translations in slugs
     (form ? form : $('#admin_content')).find('input.slug').each(function () {
@@ -54,7 +56,7 @@ var init_form_validations = function (form) {
             $form.find('.translatable').Translatable();
         }
     }).filter(".validate").each(function () {
-        $(this).validate()
+        $(this).validate(args['validate_settings'])
     });
 };
 

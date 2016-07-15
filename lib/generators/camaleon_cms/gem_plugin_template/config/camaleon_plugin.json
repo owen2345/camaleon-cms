@@ -1,7 +1,7 @@
 {
   "title": "pluginTitle",
   "descr": "",
-  "key": "pluginKey",
+  "key": "pluginKey", // must be the name of the folder of your plugin, sample: app/views/plugins/<my_plugin> ==> 'my_plugin'
   "helpers": [
     "Plugins::PluginClass::MainHelper"
   ],

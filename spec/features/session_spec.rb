@@ -1,9 +1,10 @@
+require "rails_helper"
 describe "the signin process", js: true do
 
   login_success
 
   it "signs me in not valid" do
-    visit "#{cama_root_path}/admin/login"
+    visit "#{cama_root_relative_path}/admin/login"
     within("#login_user") do
       fill_in 'user_username', :with => 'admin'
       fill_in 'user_password', :with => 'ADMIN'
@@ -13,7 +14,7 @@ describe "the signin process", js: true do
   end
 
   it "forgot pass" do
-    visit "#{cama_root_path}/admin/forgot"
+    visit "#{cama_root_relative_path}/admin/forgot"
     within("#login_user") do
       fill_in 'user_email', :with => 'admin@local.com'
     end
@@ -22,7 +23,7 @@ describe "the signin process", js: true do
   end
 
   it "Enable Register" do
-    visit "#{cama_root_path}/admin/settings/site?tab=config" do
+    visit "#{cama_root_relative_path}/admin/settings/site?tab=config" do
       within '#site_settings_form' do
         check "meta_permit_create_account"
         click_button 'Submit'
@@ -33,7 +34,7 @@ describe "the signin process", js: true do
 
 
   it "Register User" do
-    visit "#{cama_root_path}/admin/register"
+    visit "#{cama_root_relative_path}/admin/register"
     within("#login_user") do
       fill_in 'meta[first_name]', :with => 'Name'
       fill_in 'meta[last_name]', :with => 'Last Name'

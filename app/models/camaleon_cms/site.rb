@@ -252,6 +252,17 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
     self.status == 'maintenance'
   end
 
+  # return the anonymous user
+  # if the anonymous user not exist, will create one
+  def get_anonymous_user
+    user = self.users.where(username: 'anonymous').first
+    unless user.present?
+      pass = "anonymous#{rand(9999)}"
+      user = self.users.create({email: 'anonymous_user@local.com', username: 'anonymous', password: pass, password_confirmation: pass, first_name: 'Anonymous'})
+    end
+    user
+  end
+
   private
   # destroy all things before site destroy
   def destroy_site
@@ -283,7 +294,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
         else
           title = "Welcome"
           slug = 'welcome'
-          content = "<p style='text-align: center;'><img width='155' height='155' src='http://camaleon.tuzitio.com/media/132/logo2.png' alt='logo' /></p><p><strong>Camaleon CMS</strong>&nbsp;is a free and open-source tool and a fexible content management system (CMS) based on <a href='rubyonrails.org'>Ruby on Rails 4</a>&nbsp;and MySQL.&nbsp;</p> <p>With Camaleon you can do the following:</p> <ul> <li>Create instantly a lot of sites&nbsp;in the same installation</li> <li>Manage your content information in several languages</li> <li>Extend current functionality by&nbsp;plugins (MVC structure and no more echo or prints anywhere)</li> <li>Create or install different themes for each site</li> <li>Create your own structure without coding anything (adapt Camaleon as you want&nbsp;and not you for Camaleon)</li> <li>Create your store and start to sell your products using our plugins</li> <li>Avoid web attacks</li> <li>Compare the speed and enjoy the speed of your new Camaleon site</li> <li>Customize or create your themes for mobile support</li> <li>Support&nbsp;more visitors at the same time</li> <li>Manage your information with a panel like wordpress&nbsp;</li> <li>All urls are oriented for SEO</li> <li>Multiples roles of users</li> </ul>"
+          content = "<p style='text-align: center;'><img width='155' height='155' src='http://camaleon.tuzitio.com/media/132/logo2.png' alt='logo' /></p><p><strong>Camaleon CMS</strong>&nbsp;is a free and open-source tool and a fexible content management system (CMS) based on <a href='http://rubyonrails.org'>Ruby on Rails 4</a>&nbsp;and MySQL.&nbsp;</p> <p>With Camaleon you can do the following:</p> <ul> <li>Create instantly a lot of sites&nbsp;in the same installation</li> <li>Manage your content information in several languages</li> <li>Extend current functionality by&nbsp;plugins (MVC structure and no more echo or prints anywhere)</li> <li>Create or install different themes for each site</li> <li>Create your own structure without coding anything (adapt Camaleon as you want&nbsp;and not you for Camaleon)</li> <li>Create your store and start to sell your products using our plugins</li> <li>Avoid web attacks</li> <li>Compare the speed and enjoy the speed of your new Camaleon site</li> <li>Customize or create your themes for mobile support</li> <li>Support&nbsp;more visitors at the same time</li> <li>Manage your information with a panel like wordpress&nbsp;</li> <li>All urls are oriented for SEO</li> <li>Multiples roles of users</li> </ul>"
         end
         user = self.users.admin_scope.first
         user = self.users.admin_scope.create({email: 'admin@local.com', username: 'admin', password: 'admin', password_confirmation: 'admin', first_name: 'Administrator'}) unless user.present?
@@ -291,6 +302,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
         @nav_menu.append_menu_item({label: title, type: 'post', link: post.id})
       end
     end
+    get_anonymous_user
   end
 
   # assign all users to this new site

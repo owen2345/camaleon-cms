@@ -34,6 +34,9 @@ module Plugins::Attack::AttackHelper
         t.datetime "created_at"
       end
     end
+    CamaleonCms::Site.class_eval do
+      has_many :attack, class_name: "Plugins::Attack::Models::Attack"
+    end
   end
 
   # here all actions on going to inactive

@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 ---
 pt-BR:
   date:
@@ -10,7 +12,7 @@ pt-BR:
     - Sex
     - Sáb
     abbr_month_names:
-    - 
+    -
     - Jan
     - Fev
     - Mar
@@ -36,7 +38,7 @@ pt-BR:
       long: "%d de %B de %Y"
       short: "%d de %B"
     month_names:
-    - 
+    -
     - Janeiro
     - Fevereiro
     - Março
@@ -153,18 +155,18 @@ pt-BR:
         format: "%n %u"
         units:
           billion:
-            one: mil milhões
-            other: mil milhões
+            one: bilhão
+            other: bilhões
           million:
             one: milhão
             other: milhões
           quadrillion:
-            one: mil biliões
-            other: mil biliões
+            one: quadrilhão
+            other: quadrilhões
           thousand: mil
           trillion:
-            one: bilião
-            other: biliões
+            one: trilhão
+            other: trilhões
           unit: ''
       format:
         delimiter: ''

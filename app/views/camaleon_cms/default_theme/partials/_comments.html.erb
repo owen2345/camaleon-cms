@@ -16,8 +16,6 @@
             <% if signin? %>
                 <%= form_for post, url:{action: :save_comment, post_id: post.id}, html: {method: "post", class: "form-comment"} do |f|%>
                     <%= render partial: "camaleon_cms/flash_messages" %>
-                    <input type="hidden" name="post_comment[post_id]" value="<%= post.id %>">
-                    <input type="hidden" name="slug" value="<%= post.slug %>">
                     <div class="form-group">
                         <textarea id="textarea_comments" name="post_comment[content]" class="form-control counted" placeholder="<%= ct('comment', default: 'Here your comment')%>"></textarea>
                     </div>

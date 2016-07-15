@@ -4,7 +4,7 @@
         <div class="panel-body ">
             <div class="row">
                 <% if @post.draft? && !@post.parent.present?  %>
-                    <div class="col-md-12 input-submit"><%= f.submit "#{ (@post.new_record?) ? t('camaleon_cms.admin.page_title.create') : t('camaleon_cms.admin.button.publish')}", class: "btn btn-success btn-lg btn-block", onclick: "$('#post_status').val('#{@post.get_option('draft_status')}')" %></div>
+                    <div class="col-md-12 input-submit"><%= f.submit "#{ (@post.new_record?) ? t('camaleon_cms.admin.page_title.create') : t('camaleon_cms.admin.button.update')}", class: "btn btn-success btn-lg btn-block", onclick: "$('#post_status').val('#{@post.get_option('draft_status')}')" %></div>
                 <% elsif @post.draft? && @post.parent.present? %>
                     <div class="col-md-12 input-submit"><%= f.submit "#{ t('camaleon_cms.admin.button.recover') }", class: "btn btn-success btn-lg btn-block", onclick: "$('#post_status').val('#{@post.get_option('draft_status')}')" %></div>
                 <% else  %>
@@ -73,7 +73,7 @@
             <!-- has comments? -->
             <% if @post.manage_comments?(@post_type) %>
                 <div class="form-group">
-                    <label class="control-label"><%= check_box("meta", "has_comments", {checked: ( params[:meta][:has_comments] == '1' rescue false || @post.can_commented?)  }) %> &nbsp; <%= t('camaleon_cms.admin.post_type.permit_comments')%></label>
+                    <label class="control-label"><%= check_box("meta", "has_comments", {checked: ((params[:meta][:has_comments] == '1' rescue false) || (@post.new_record? ? true : @post.get_meta('has_comments').to_s.cama_true?))  }) %> &nbsp; <%= t('camaleon_cms.admin.post_type.permit_comments')%></label>
                 </div>
             <% end %>
             <% if @post_type.get_option('has_featured', false) %>
