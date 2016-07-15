@@ -22,7 +22,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     if @_site_options[:home_page].present?
       render_post(@_site_options[:home_page].to_i)
     else
-      r = {layout: (self.send :_layout), render: "index"}
+      r = {layout: cama_controller_layout, render: "index"}
       hooks_run("on_render_index", r)
       render r[:render], layout: r[:layout]
     end

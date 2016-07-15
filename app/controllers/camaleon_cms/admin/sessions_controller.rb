@@ -7,7 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
-  skip_before_filter :cama_authenticate
+  skip_before_filter :cama_authenticate, raise: false
   before_action :before_hook_session
   after_action :after_hook_session
   before_action :verificate_register_permission, only: [:register]
