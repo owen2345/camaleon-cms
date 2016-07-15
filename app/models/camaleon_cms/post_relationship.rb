@@ -10,7 +10,7 @@
 # DEPRECATED MODEL, NOT USED ANY MORE
 class CamaleonCms::PostRelationship < ActiveRecord::Base
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}term_relationships"
-  attr_accessible :objectid, :term_taxonomy_id, :term_order
+  # attr_accessible :objectid, :term_taxonomy_id, :term_order
   default_scope ->{ order(term_order: :asc) }
 
   belongs_to :post_type, :class_name => "CamaleonCms::PostType", foreign_key: :term_taxonomy_id, inverse_of: :post_relationships

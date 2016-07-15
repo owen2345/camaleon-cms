@@ -51,7 +51,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
   private
 
   def set_data_term
-    data_term = params[:post_type]
+    data_term = params.require(:post_type).permit!
     data_term[:data_options] = params[:meta]
     @data_term = data_term
   end

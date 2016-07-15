@@ -34,7 +34,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   end
 
   def update
-    if @user.update(params[:user])
+    if @user.update(params.require(:user).permit!)
       @user.set_metas(params[:meta]) if params[:meta].present?
       @user.set_field_values(params[:field_options])
       r = {user: @user, message: t('camaleon_cms.admin.users.message.updated'), params: params}; hooks_run('user_after_edited', r)
@@ -52,7 +52,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   # update som ajax requests from profile or user form
   def updated_ajax
     @user = current_site.users.find(params[:user_id])
-    render inline: @user.update(params[:password]) ? "" : @user.errors.full_messages.join(', ')
+    render inline: @user.update(params.require(:password).permit!) ? "" : @user.errors.full_messages.join(', ')
   end
 
   def edit
@@ -71,7 +71,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   end
 
   def create
-    user_data = params[:user]
+    user_data = params.require(:user).permit!
     @user = current_site.users.new(user_data)
     if @user.save
       @user.set_metas(params[:meta]) if params[:meta].present?

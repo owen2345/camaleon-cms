@@ -25,7 +25,7 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
   end
 
   def update
-    if @category.update(params[:category])
+    if @category.update(params.require(:category).permit!)
       @category.set_options(params[:meta])
       @category.set_field_values(params[:field_options])
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
@@ -36,8 +36,7 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
   end
 
   def create
-    data_term = params[:category]
-    @category = @post_type.categories.new(data_term)
+    @category = @post_type.categories.new(params.require(:category).permit!)
     if @category.save
       @category.set_options(params[:meta])
       @category.set_field_values(params[:field_options])
@@ -55,7 +54,6 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
 
   def destroy
     flash[:notice] = t('camaleon_cms.admin.post_type.message.deleted') if @category.destroy
-
     redirect_to action: :index
   end
 

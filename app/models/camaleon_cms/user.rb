@@ -18,8 +18,8 @@ class CamaleonCms::User < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}users"
-  attr_accessible :username, :role, :email, :parent_id, :last_login_at, :site_id, :password, :password_confirmation, :first_name, :last_name #, :profile_attributes
-  attr_accessible :is_valid_email
+  # attr_accessible :username, :role, :email, :parent_id, :last_login_at, :site_id, :password, :password_confirmation, :first_name, :last_name #, :profile_attributes
+  # attr_accessible :is_valid_email
 
   default_scope {order("#{CamaleonCms::User.table_name}.role ASC")}
 

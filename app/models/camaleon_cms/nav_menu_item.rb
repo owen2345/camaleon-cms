@@ -11,7 +11,7 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
   alias_attribute :label, :name
   alias_attribute :url, :description
   alias_attribute :kind, :slug
-  attr_accessible :label, :url, :kind
+  # attr_accessible :label, :url, :kind
   default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
   has_many :metas, ->{ where(object_class: 'NavMenuItem')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   belongs_to :parent, class_name: "CamaleonCms::NavMenu", inverse_of: :children

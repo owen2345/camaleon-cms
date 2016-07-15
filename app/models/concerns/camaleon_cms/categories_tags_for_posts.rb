@@ -10,7 +10,7 @@ module CamaleonCms::CategoriesTagsForPosts extend ActiveSupport::Concern
   included do
     # data_tags: (String) tags name separated by commas, sample: "Tag1,Tag two,tag new"
     # data_categories: (Array) array of category ids assigned for this post, sample: [1,2,3]
-    attr_accessible :data_tags, :data_categories
+    # attr_accessible :data_tags, :data_categories
     attr_accessor :data_tags, :data_categories
 
     after_save :save_extra_data

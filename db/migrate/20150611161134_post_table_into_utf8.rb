@@ -1,6 +1,6 @@
 class PostTableIntoUtf8 < ActiveRecord::Migration
   def change
-    create_table "#{PluginRoutes.static_system_info["db_prefix"]}users" do |t|
+    create_table CamaleonCms::User.table_name do |t|
       t.string   "username", index: true
       t.string   "role", default: "client", index: true
       t.string   "email", index: true

@@ -111,7 +111,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
     if params[:user].present?
       params[:user][:role] = PluginRoutes.system_info["default_user_role"]
       params[:user][:is_valid_email] = false if current_site.need_validate_email?
-      user_data = params[:user]
+      user_data = params.require(:user).permit!
       result = cama_register_user(user_data, params[:meta])
       if result[:result] == false && result[:type] == :captcha_error
         @user.errors[:captcha] = t('camaleon_cms.admin.users.message.error_captcha')

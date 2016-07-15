@@ -18,7 +18,7 @@ class CamaleonCms::Admin::Appearances::Widgets::AssignController < CamaleonCms::
   end
 
   def update
-    if @assigned.update(params[:assign])
+    if @assigned.update(params.require(:assign).permit!)
       @assigned.set_field_values(params[:field_options])
       flash[:notice] = t('camaleon_cms.admin.widgets.assign.updated')
     else

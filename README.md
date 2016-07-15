@@ -53,6 +53,19 @@
   ```
   Previous stable version (1x): https://github.com/owen2345/camaleon-cms/tree/version_1x
 
+# Rails 5 support
+* Add this in your Gemfile
+  ```
+  gem 'activemodel-serializers-xml', git: 'https://github.com/rails/activemodel-serializers-xml'
+  ```
+* Create a file "lib/rails/test_unit/sub_test_task.rb" in your project (draper patch)
+  ```
+  # lib/rails/test_unit/sub_test_task.rb
+  class Rails::SubTestTask < Rake::TestTask
+  end
+  ```
+
+
 # Camaleon CMS (It adapts to your needs)
 
 Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 and Ruby 1.9.3+. This CMS is an alternative to wordpress for Ruby on Rails developers to manage advanced contents easily.

@@ -16,7 +16,7 @@ class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms:
   end
 
   def create
-    @sidebar = current_site.sidebars.new(params[:widget_sidebar])
+    @sidebar = current_site.sidebars.new(params.require(:widget_sidebar).permit!)
     if @sidebar.save
       flash[:notice] = t('camaleon_cms.admin.widgets.sidebar.created')
     else
@@ -30,7 +30,7 @@ class CamaleonCms::Admin::Appearances::Widgets::SidebarController < CamaleonCms:
   end
 
   def update
-    if @sidebar.update(params[:widget_sidebar])
+    if @sidebar.update(params.require(:widget_sidebar).permit!)
       flash[:notice] = t('camaleon_cms.admin.widgets.sidebar.updated')
     else
       flash[:error] = t('camaleon_cms.admin.widgets.sidebar.error_updated')

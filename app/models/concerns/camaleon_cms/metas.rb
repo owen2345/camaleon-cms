@@ -85,7 +85,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
 
   # set multiple configurations
   # h: {ket1: "sdsds", ff: "fdfdfdfd"}
-  def set_multiple_options(h = {}, meta_key = "_default")
+  def set_options(h = {}, meta_key = "_default")
     if h.present?
       data = options(meta_key)
       h.to_sym.each do |key, value|
@@ -94,7 +94,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
       set_meta(meta_key, data)
     end
   end
-  alias_method :set_options, :set_multiple_options
+  alias_method :set_multiple_options, :set_options
 
   # save multiple metas
   # sample: set_metas({name: 'Owen', email: 'owenperedo@gmail.com'})

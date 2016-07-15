@@ -23,13 +23,12 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", "public/**/*"]
   s.test_files = Dir["test/**/*"]
 
-  # deprecated in Rails 4
   s.add_dependency 'bcrypt'
   s.add_dependency 'cancancan', '~> 1.10'
   s.add_dependency 'draper', '~> 1.3'
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
-  s.add_dependency 'mobu'
+  # s.add_dependency 'mobu'
   s.add_dependency 'will_paginate'
   s.add_dependency 'will_paginate-bootstrap'
   s.add_dependency 'breadcrumbs_on_rails'
@@ -37,8 +36,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'tinymce-rails', '~> 4.3'
 
   s.add_dependency 'cama_contact_form', '~> 0.0.11'
-
-  s.add_dependency 'protected_attributes' # remove in next versions
 
   # MEDIA MANAGER
   s.add_dependency 'aws-sdk', '~> 2'
