@@ -117,9 +117,4 @@ class CamaleonCms::CamaleonController < ApplicationController
       end
     end
   end
-
-  private
-  def cama_controller_layout
-    self.send(:_layout) rescue self.class.send(:_layout)
-  end
 end
