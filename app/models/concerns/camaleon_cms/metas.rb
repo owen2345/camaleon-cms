@@ -99,7 +99,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # save multiple metas
   # sample: set_metas({name: 'Owen', email: 'owenperedo@gmail.com'})
   def set_metas(data_metas)
-    data_metas.each do |key, value|
+    (data_metas.nil? ? {} : data_metas).each do |key, value|
       self.set_meta(key, value)
     end
   end

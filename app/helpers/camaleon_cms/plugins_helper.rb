@@ -36,14 +36,18 @@ module CamaleonCms::PluginsHelper
   # plugin_key: key of the plugin
   # return model of the plugin
   def plugin_install(plugin_key)
-    plugin_model = current_site.plugins.where(slug: plugin_key).first_or_create!
-    plugin_model.installed_version= plugin_model.settings["version"]
-    return plugin_model if plugin_model.active?
-    plugin_model.active
-    PluginRoutes.reload
-    # plugins_initialize(self)
-    hook_run(plugin_model.settings, "on_active", plugin_model)
-    plugin_model
+    if PluginRoutes.plugin_info(plugin_key).nil?
+      Rails.logger.info "=========== Plugin not found: #{plugin_key}"
+    else
+      plugin_model = current_site.plugins.where(slug: plugin_key).first_or_create!
+      plugin_model.installed_version= plugin_model.settings["version"]
+      return plugin_model if plugin_model.active?
+      plugin_model.active
+      PluginRoutes.reload
+      # plugins_initialize(self)
+      hook_run(plugin_model.settings, "on_active", plugin_model)
+      plugin_model
+    end
   end
 
   # uninstall a plugin from current site
