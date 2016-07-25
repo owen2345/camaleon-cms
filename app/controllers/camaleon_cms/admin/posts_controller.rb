@@ -10,8 +10,8 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.contents")
   before_action :set_post_type, :except => [:ajax]
   before_action :set_post, only: ['show','edit','update','destroy']
-  skip_before_filter :admin_logged_actions, only: [:trash, :restore, :destroy, :ajax], raise: false
-  skip_before_filter :verify_authenticity_token, only: [:ajax], raise: false
+  skip_before_action :admin_logged_actions, only: [:trash, :restore, :destroy, :ajax], raise: false
+  skip_before_action :verify_authenticity_token, only: [:ajax], raise: false
 
   def index
     authorize! :posts, @post_type
