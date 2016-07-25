@@ -1,6 +1,6 @@
 <% content_for(:title, t("camaleon_cms.admin.users.create_user")) %>
 <div class="login-body">
-    <%= render "layouts/camaleon_cms/admin/flash_messages" %>
+    <%= render "camaleon_cms/flash_messages" %>
 
     <h3 class="login-title"><%= raw t('camaleon_cms.admin.login.msg_registration_html') %></h3>
     <%= form_for(@user, as: "user", :url => cama_admin_register_path, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  } ) do |f| %>
