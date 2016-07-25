@@ -88,7 +88,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   def set_options(h = {}, meta_key = "_default")
     if h.present?
       data = options(meta_key)
-      h.to_sym.each do |key, value|
+      (h.is_a?(ActionController::Parameters) ? h.to_h: h).to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
       end
       set_meta(meta_key, data)
@@ -128,7 +128,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   private
   # fix to parse value
   def fix_meta_value(value)
-    if (value.is_a?(Array) || value.is_a?(Hash))
+    if (value.is_a?(Array) || value.is_a?(Hash) || value.is_a?(ActionController::Parameters))
       value = value.to_json
     end
     fix_meta_var(value)
