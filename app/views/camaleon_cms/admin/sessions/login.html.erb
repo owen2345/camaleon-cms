@@ -2,7 +2,7 @@
 <%= javascript_include_tag "camaleon_cms/admin/login_manifest" %>
 <div class="login-body">
     <h3 class="login-box-msg"><%= raw t('camaleon_cms.admin.login.welcome_login_html', default: 'Please Login') %>  </h3>
-    <%= render "layouts/camaleon_cms/admin/flash_messages" %>
+    <%= render "camaleon_cms/flash_messages" %>
     <%= form_for(@user, as: "user", :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => cama_admin_login_path ) do |f| %>
         <div class="form-group">
             <div class="col-md-12">
