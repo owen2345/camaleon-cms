@@ -11,10 +11,10 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
   include CamaleonCms::CustomFieldsRead
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}posts"
 
-  attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order, :is_feature
+  # attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order, :is_feature
   attr_accessor :draft_id
-  attr_accessible :data_options
-  attr_accessible :data_metas
+  # attr_accessible :data_options
+  # attr_accessible :data_metas
   cattr_accessor :current_user
   cattr_accessor :current_site
 
@@ -60,10 +60,10 @@ class CamaleonCms::PostDefault < ActiveRecord::Base
   end
 
   # Set the meta, field values and the post keywords here
-  def set_params(meta, field_options, post_data_keywords)
+  def set_params(meta, custom_fields, options)
     self.set_metas(meta)
-    self.set_field_values(field_options)
-    self.set_option("keywords", post_data_keywords)
+    self.set_field_values(custom_fields)
+    self.set_options(options)
   end
 
   private

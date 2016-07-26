@@ -13,7 +13,7 @@ class CamaleonCms::CustomField < ActiveRecord::Base
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}custom_fields"
   default_scope {order("#{CamaleonCms::CustomField.table_name}.field_order ASC")}
   # status: nil -> visible on list group fields
-  attr_accessible :object_class, :objectid, :description, :parent_id, :count, :name, :slug, :field_order, :status, :is_repeat
+  # attr_accessible :object_class, :objectid, :description, :parent_id, :count, :name, :slug, :field_order, :status, :is_repeat
   validates :name, :object_class, presence: true
   has_many :values, :class_name => "CamaleonCms::CustomFieldsRelationship", :foreign_key => :custom_field_id, dependent: :destroy
   belongs_to :custom_field_group, class_name: "CamaleonCms::CustomFieldGroup"

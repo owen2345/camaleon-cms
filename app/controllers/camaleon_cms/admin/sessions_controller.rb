@@ -7,7 +7,7 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
-  skip_before_filter :cama_authenticate
+  skip_before_action :cama_authenticate, raise: false
   before_action :before_hook_session
   after_action :after_hook_session
   before_action :verificate_register_permission, only: [:register]
@@ -111,7 +111,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
     if params[:user].present?
       params[:user][:role] = PluginRoutes.system_info["default_user_role"]
       params[:user][:is_valid_email] = false if current_site.need_validate_email?
-      user_data = params[:user]
+      user_data = params.require(:user).permit!
       result = cama_register_user(user_data, params[:meta])
       if result[:result] == false && result[:type] == :captcha_error
         @user.errors[:captcha] = t('camaleon_cms.admin.users.message.error_captcha')

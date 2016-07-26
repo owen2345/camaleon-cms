@@ -13,7 +13,6 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
 
   def index
     @post_tags = @post_type.post_tags
-
     @post_tags = @post_tags.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
 
@@ -28,7 +27,7 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
 
   # save changes of a post tag
   def update
-    if @post_tag.update(params[:post_tag])
+    if @post_tag.update(params.require(:post_tag).permit!)
       @post_tag.set_options(params[:meta]) if params[:meta].present?
       @post_tag.set_field_values(params[:field_options])
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
@@ -40,8 +39,7 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
 
   # render post tag create form
   def create
-    data_term = params[:post_tag]
-    @post_tag = @post_type.post_tags.new(data_term)
+    @post_tag = @post_type.post_tags.new(params.require(:post_tag).permit!)
     if @post_tag.save
       @post_tag.set_options(params[:meta]) if params[:meta].present?
       @post_tag.set_field_values(params[:field_options])

@@ -217,9 +217,9 @@ function load_upload_private_file_field(thiss) {
 function load_upload_image_field($input) {
     $.fn.upload_filemanager({
         formats: "image",
-        dimension: $input.attr("data-dimension"),
-        versions: $input.attr("data-versions"),
-        thumb_size: $input.attr("data-thumb_size"),
+        dimension: $input.attr("data-dimension") || '',
+        versions: $input.attr("data-versions") || '',
+        thumb_size: $input.attr("data-thumb_size") || '',
         selected: function (file, response) {
             $input.val(file.url);
         }

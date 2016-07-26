@@ -23,7 +23,7 @@ class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
 
   def site_saved
     @site = current_site
-    if @site.update(params[:site])
+    if @site.update(params.require(:site).permit!)
       @site.set_options(params[:meta]) if params[:meta].present?
       @site.set_multiple_options(params[:options])
       @site.set_field_values(params[:field_options])

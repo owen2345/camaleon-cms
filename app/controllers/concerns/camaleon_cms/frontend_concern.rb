@@ -13,10 +13,10 @@ module CamaleonCms::FrontendConcern extend ActiveSupport::Concern
   #   you can add custom sitemap elements in the attr "custom", like: https://github.com/owen2345/camaleon-cms/issues/106#issuecomment-146232211
   #   you can customize your content for html or xml format
   def sitemap
-    r = {layout: (params[:format] == "html" ? (self.send :_layout) : false), render: "sitemap", custom: {}, format: params[:format], skip_post_ids: [], skip_posttype_ids: [], skip_cat_ids: [], skip_tag_ids: []}
+    r = {layout: (params[:format] == "html" ? nil : false), render: "sitemap", custom: {}, format: params[:format], skip_post_ids: [], skip_posttype_ids: [], skip_cat_ids: [], skip_tag_ids: []}
     hooks_run("on_render_sitemap", r)
     @r = r
-    render r[:render], layout: r[:layout]
+    render r[:render], (!r[:layout].nil? ? {layout: r[:layout]} : {})
   end
 
   # accessing for robots.txt

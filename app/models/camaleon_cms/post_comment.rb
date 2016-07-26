@@ -9,8 +9,7 @@
 class CamaleonCms::PostComment < ActiveRecord::Base
   include CamaleonCms::Metas
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}comments"
-  attr_accessible :user_id, :post_id, :content, :author, :author_email, :author_url, :author_IP,
-                  :approved, :agent, :agent, :typee, :comment_parent, :is_anonymous
+  # attr_accessible :user_id, :post_id, :content, :author, :author_email, :author_url, :author_IP, :approved, :agent, :agent, :typee, :comment_parent, :is_anonymous
   attr_accessor :is_anonymous
 
   #default_scope order('comments.created_at ASC')

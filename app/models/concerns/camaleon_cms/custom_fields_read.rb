@@ -200,7 +200,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
         fields_data.each do |field_key, values|
           if values[:values].present?
             order_value = -1
-            (values[:values].is_a?(Hash) ? values[:values].values : values[:values]).each do |value|
+            ((values[:values].is_a?(Hash) || values[:values].is_a?(ActionController::Parameters)) ? values[:values].values : values[:values]).each do |value|
               item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: field_key, value: fix_meta_value(value), term_order: order_value += 1, group_number: values[:group_number] || 0})
             end
           end
@@ -253,7 +253,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
 
   private
   def fix_meta_value(value)
-    if (value.is_a?(Array) || value.is_a?(Hash))
+    if (value.is_a?(Array) || value.is_a?(Hash) || value.is_a?(ActionController::Parameters))
       value = value.to_json
     end
     value

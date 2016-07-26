@@ -89,7 +89,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
     if manage_categories?
       cat = self.categories.find_by_slug("uncategorized")
       unless cat.present?
-        cat = self.categories.create({name: 'Uncategorized', slug: 'uncategorized', parent: self.id})
+        cat = self.categories.create({name: 'Uncategorized', slug: 'uncategorized', parent_id: self.id})
         cat.set_option("not_deleted", true)
       end
       cat

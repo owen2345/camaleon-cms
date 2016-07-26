@@ -14,7 +14,8 @@ Rails.application.config.assets.version = '1.0'
 Rails.application.config.tinymce.install = :compile
 
 # Add additional assets to the asset load path
-# Rails.application.config.assets.paths << Emoji.images_path
+Rails.application.config.assets.precompile += %w( camaleon_cms/* )
+Rails.application.config.assets.precompile += %w( themes/*/assets/* )
 
 # This will precompile any assets, not just JavaScript (.js, .coffee, .swf, .css, .scss)
 Rails.application.config.assets.precompile << Proc.new { |path|

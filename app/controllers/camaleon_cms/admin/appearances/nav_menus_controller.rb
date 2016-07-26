@@ -29,7 +29,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
   end
 
   def create
-    nav_menu = current_site.nav_menus.new(params[:nav_menu])
+    nav_menu = current_site.nav_menus.new(params.require(:nav_menu).permit!)
     nav_menu.save
     flash[:notice] = t('.created_menu', default: 'Created Menu')
     redirect_to action: :index, id: nav_menu.id
@@ -37,7 +37,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
 
   def update
     nav_menu = current_site.nav_menus.find(params[:id])
-    nav_menu.update(params[:nav_menu])
+    nav_menu.update(params.require(:nav_menu).permit!)
     flash[:notice] = t('.updated_menu', default: 'Menu updated')
     redirect_to action: :index, id: nav_menu.id
   end
