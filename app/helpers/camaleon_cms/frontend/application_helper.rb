@@ -10,6 +10,7 @@ module CamaleonCms::Frontend::ApplicationHelper
   include CamaleonCms::Frontend::SiteHelper
   include CamaleonCms::Frontend::NavMenuHelper
   include CamaleonCms::Frontend::SeoHelper
+  include CamaleonCms::Frontend::ContentSelectHelper
 
   # add where conditionals to filter private/hidden/expired/drafts/unpublished
   # note: only for post records
