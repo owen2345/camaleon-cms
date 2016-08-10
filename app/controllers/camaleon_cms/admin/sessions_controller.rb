@@ -50,7 +50,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       else
         flash[:error] = t('camaleon_cms.admin.login.message.invalid_caption')
       end
-      @user = current_site.users.new(data_user)
+      @user = current_site.users.new(data_user.permit!)
       login
     end
   end
@@ -101,7 +101,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
         return
       else
         flash[:error] = t('camaleon_cms.admin.login.message.send_mail_error')
-        @user = current_site.users.new(data_user)
+        @user = current_site.users.new(data_user.permit!)
       end
     end
   end
