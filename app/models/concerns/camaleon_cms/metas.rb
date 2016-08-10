@@ -85,21 +85,21 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
 
   # set multiple configurations
   # h: {ket1: "sdsds", ff: "fdfdfdfd"}
-  def set_multiple_options(h = {}, meta_key = "_default")
+  def set_options(h = {}, meta_key = "_default")
     if h.present?
       data = options(meta_key)
-      h.to_sym.each do |key, value|
+      (h.is_a?(ActionController::Parameters) ? h.to_h: h).to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
       end
       set_meta(meta_key, data)
     end
   end
-  alias_method :set_options, :set_multiple_options
+  alias_method :set_multiple_options, :set_options
 
   # save multiple metas
   # sample: set_metas({name: 'Owen', email: 'owenperedo@gmail.com'})
   def set_metas(data_metas)
-    data_metas.each do |key, value|
+    (data_metas.nil? ? {} : data_metas).each do |key, value|
       self.set_meta(key, value)
     end
   end
@@ -128,7 +128,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   private
   # fix to parse value
   def fix_meta_value(value)
-    if (value.is_a?(Array) || value.is_a?(Hash))
+    if (value.is_a?(Array) || value.is_a?(Hash) || value.is_a?(ActionController::Parameters))
       value = value.to_json
     end
     fix_meta_var(value)

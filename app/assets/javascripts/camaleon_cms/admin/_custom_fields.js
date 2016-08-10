@@ -158,7 +158,8 @@ function custom_field_editor($field) {
 }
 function custom_field_field_attrs_val($field, value) {
     if ($field) {
-        var data = $.parseJSON(value || '{}');
+        value = value || '{}'
+        var data = typeof(value) == 'object' ? value : $.parseJSON(value);
         $field.find('.input-attr').val(data.attr);
         $field.find('.input-value').val(data.value)
         $field.find('.input-attr, .input-value').filter('.is_translate').addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
@@ -216,9 +217,9 @@ function load_upload_private_file_field(thiss) {
 function load_upload_image_field($input) {
     $.fn.upload_filemanager({
         formats: "image",
-        dimension: $input.attr("data-dimension"),
-        versions: $input.attr("data-versions"),
-        thumb_size: $input.attr("data-thumb_size"),
+        dimension: $input.attr("data-dimension") || '',
+        versions: $input.attr("data-versions") || '',
+        thumb_size: $input.attr("data-thumb_size") || '',
         selected: function (file, response) {
             $input.val(file.url);
         }

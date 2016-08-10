@@ -27,7 +27,7 @@ class CamaleonCms::Admin::UserRolesController < CamaleonCms::AdminController
   end
 
   def create
-    user_role_data = params[:user_role]
+    user_role_data = params.require(:user_role).permit!
     @user_role = current_site.user_roles.new(user_role_data)
     if @user_role.save
       @user_role.set_meta("_post_type_#{current_site.id.to_s}", defined?(params[:rol_values][:post_type]) ? params[:rol_values][:post_type] : {})
@@ -45,7 +45,7 @@ class CamaleonCms::Admin::UserRolesController < CamaleonCms::AdminController
   end
 
   def update
-    if @user_role.editable? && @user_role.update(params[:user_role])
+    if @user_role.editable? && @user_role.update(params.require(:user_role).permit!)
       @user_role.set_meta("_post_type_#{current_site.id.to_s}", defined?(params[:rol_values][:post_type]) ? params[:rol_values][:post_type] : {})
       @user_role.set_meta("_manager_#{current_site.id.to_s}", defined?(params[:rol_values][:post_type]) ? params[:rol_values][:manager] : {})
       flash[:notice] = t('camaleon_cms.admin.users.message.rol_updated')

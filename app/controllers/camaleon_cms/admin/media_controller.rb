@@ -7,8 +7,8 @@
   See the  GNU Affero General Public License (GPLv3) for more details.
 =end
 class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
-  skip_before_filter :admin_logged_actions, except: [:index, :download_private_file]
-  skip_before_filter :verify_authenticity_token, only: :upload
+  skip_before_action :admin_logged_actions, except: [:index, :download_private_file], raise: false
+  skip_before_action :verify_authenticity_token, only: :upload, raise: false
   before_action :init_media_vars, except: :download_private_file
 
   # render media section

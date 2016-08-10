@@ -11,7 +11,6 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   include CamaleonCms::FrontendConcern
   include CamaleonCms::Frontend::ApplicationHelper
   layout Proc.new { |controller| params[:cama_ajax_request].present? ? "cama_ajax" : 'index' }
-
   before_action :before_hooks
   after_action :after_hooks
   # rescue_from ActiveRecord::RecordNotFound, with: :page_not_found
@@ -22,9 +21,8 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     if @_site_options[:home_page].present?
       render_post(@_site_options[:home_page].to_i)
     else
-      r = {layout: (self.send :_layout), render: "index"}
-      hooks_run("on_render_index", r)
-      render r[:render], layout: r[:layout]
+      r = {layout: nil, render: "index"}; hooks_run("on_render_index", r)
+      render r[:render], (!r[:layout].nil? ? {layout: r[:layout]} : {})
     end
   end
 
@@ -44,9 +42,9 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     r_file = lookup_context.template_exists?("categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : 'category' unless r_file.present?  # default template category for all categories for all posttypes
 
     layout_ = lookup_context.template_exists?("layouts/post_types/#{@post_type.the_slug}/category") ? "post_types/#{@post_type.the_slug}/category" : nil unless layout_.present? # layout for all categories within a posttype
-    layout_ = lookup_context.template_exists?("layouts/categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : (self.send :_layout) unless layout_.present? # layout for categories for all post types
+    layout_ = lookup_context.template_exists?("layouts/categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : nil unless layout_.present? # layout for categories for all post types
     r = {category: @category, layout: layout_, render: r_file}; hooks_run("on_render_category", r)
-    render r[:render], layout: r[:layout]
+    render r[:render], (!r[:layout].nil? ? {layout: r[:layout]} : {})
   end
 
   # render contents from post type
@@ -56,21 +54,22 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
+    @object = @post_type
     @cama_visited_post_type = @post_type
     @posts = @post_type.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
     @post_tags = @post_type.post_tags.eager_load(:metas)
     r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}") ? "post_types/#{@post_type.the_slug}" : "post_type"
-    layout_ = lookup_context.template_exists?("layouts/post_types/#{@post_type.the_slug}") ? "post_types/#{@post_type.the_slug}" : (self.send :_layout)
+    layout_ = lookup_context.template_exists?("layouts/post_types/#{@post_type.the_slug}") ? "post_types/#{@post_type.the_slug}" : nil
     r = {post_type: @post_type, layout: layout_, render: r_file};  hooks_run("on_render_post_type", r)
-    render r[:render], layout: r[:layout]
+    render r[:render], (!r[:layout].nil? ? {layout: r[:layout]} : {})
   end
 
   # render contents for the post tag
   def post_tag
     begin
       if params[:post_tag_slug].present?
-        @post_tag = current_site.post_tags.find_by_slug(params[:post_tag_id]).decorate
+        @post_tag = current_site.post_tags.find_by_slug(params[:post_tag_slug]).decorate
       else
         @post_tag = current_site.post_tags.find(params[:post_tag_id]).decorate
       end
@@ -78,12 +77,13 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
+    @object = @post_tag
     @cama_visited_tag = @post_tag
     @posts = @post_tag.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/post_tag") ? "post_types/#{@post_type.the_slug}/post_tag" : 'post_tag'
-    layout_ = lookup_context.template_exists?("layouts/post_tag") ? "post_tag" : (self.send :_layout)
+    layout_ = lookup_context.template_exists?("layouts/post_tag") ? "post_tag" : nil
     r = {post_tag: @post_tag, layout: layout_, render: r_file}; hooks_run("on_render_post_tag", r)
-    render r[:render], layout: r[:layout]
+    render r[:render], (!r[:layout].nil? ? {layout: r[:layout]} : {})
   end
 
   # search contents
@@ -92,22 +92,22 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     items = params[:post_type_slugs].present? ? current_site.the_posts(params[:post_type_slugs].split(',')) : current_site.the_posts
     @cama_visited_search = true
     @param_search = params[:q]
-    layout_ = lookup_context.template_exists?("layouts/search") ? "search" : (self.send :_layout)
+    layout_ = lookup_context.template_exists?("layouts/search") ? "search" : nil
     r = {layout: layout_, render: "search", posts: nil}; hooks_run("on_render_search", r)
     params[:q] = (params[:q] || '').downcase
     @posts = r[:posts] != nil ? r[:posts] : items.where("LOWER(title) LIKE ? OR LOWER(content_filtered) LIKE ?", "%#{params[:q]}%", "%#{params[:q]}%")
     @posts_size = @posts.size
     @posts = @posts.paginate(:page => params[:page], :per_page => current_site.front_per_page)
-    render r[:render], layout: r[:layout]
+    render r[:render], (!r[:layout].nil? ? {layout: r[:layout]} : {})
   end
 
   # ajax requests
   def ajax
-    r = {render_file: nil, render_text: "", layout: (self.send :_layout) }
+    r = {render_file: nil, render_text: "", layout: nil }
     @cama_visited_ajax = true
     hooks_run("on_ajax", r)
     if r[:render_file]
-      render r[:render_file], layout: r[:layout]
+      render r[:render_file], (!r[:layout].nil? ? {layout: r[:layout]} : {})
     else
       render inline: r[:render_text]
     end
@@ -129,16 +129,18 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
+    @object = @user
     @cama_visited_profile = true
-    layout_ = lookup_context.template_exists?("layouts/profile") ? "profile" : (self.send :_layout)
+    layout_ = lookup_context.template_exists?("layouts/profile") ? "profile" : nil
     r = {user: @user, layout: layout_, render: "profile"};  hooks_run("on_render_profile", r)
-    render r[:render], layout: r[:layout]
+    render r[:render], (!r[:layout].nil? ? {layout: r[:layout]} : {})
   end
 
   private
   # render a post from draft
   def draft_render
     post_draft = current_site.posts.drafts.find(params[:draft_id])
+    @object = post_draft
     if can?(:update, post_draft)
       render_post(post_draft)
     else
@@ -166,6 +168,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       end
     else
       @post = @post.decorate
+      @object = @post
       @cama_visited_post = @post
       @post_type = @post.the_post_type
       @comments = @post.the_comments
@@ -186,12 +189,12 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
         r_file = "single"
       end
 
-      layout_ = self.send :_layout
+      layout_ = nil
       meta_layout = @post.get_layout(@post_type)
       layout_ = meta_layout if meta_layout.present? && lookup_context.template_exists?("layouts/#{meta_layout}")
       r = {post: @post, post_type: @post_type, layout: layout_, render: r_file}
       hooks_run("on_render_post", r) if from_url
-      render r[:render], layout: r[:layout]
+      render r[:render], (!r[:layout].nil? ? {layout: r[:layout]} : {})
     end
   end
 

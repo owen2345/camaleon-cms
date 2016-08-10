@@ -50,7 +50,13 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     lookup_context.prefixes.prepend("themes/#{theme.slug}") if theme.settings["gem_mode"]
     lookup_context.prefixes.prepend("themes/#{theme.slug}/views") unless theme.settings["gem_mode"]
     lookup_context.use_camaleon_partial_prefixes = true
-    (data[:files] || data[:attachments] || []).each{ |attach| attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read } if File.exist?(attach) }
+    (data[:files] || data[:attachments] || []).each{ |attach|
+      if File.exist?(attach) && !File.directory?(attach)
+        attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read }
+      else
+        Rails.logger.error "File not attached in the mail: #{attach}"
+      end
+    }
 
     layout = data[:layout_name].present? ? data[:layout_name] : false
     if data[:template_name].present? # render email with template

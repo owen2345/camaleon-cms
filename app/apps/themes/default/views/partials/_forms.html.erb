@@ -10,7 +10,7 @@
         <%= hidden_field_tag "post_id", post_id %>
 
         <div class="row">
-            <%= render :partial =>  "/camaleon_cms/flash_messages", locals: @validation  %>
+            <%= render :partial =>  "camaleon_cms/flash_messages", locals: @validation  %>
         </div>
         <%= raw form_element_object(@form.id, options, post_id) %>
 

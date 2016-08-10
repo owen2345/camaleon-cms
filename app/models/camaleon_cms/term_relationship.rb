@@ -8,7 +8,6 @@
 =end
 class CamaleonCms::TermRelationship < ActiveRecord::Base
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}term_relationships"
-  attr_accessible :objectid, :term_taxonomy_id, :term_order
   default_scope ->{ order(term_order: :asc) }
 
   belongs_to :term_taxonomies, :class_name => "CamaleonCms::TermTaxonomy", foreign_key: :term_taxonomy_id, inverse_of: :term_relationships

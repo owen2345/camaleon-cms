@@ -10,8 +10,8 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.contents")
   before_action :set_post_type, :except => [:ajax]
   before_action :set_post, only: ['show','edit','update','destroy']
-  skip_before_filter :admin_logged_actions, only: [:trash, :restore, :destroy, :ajax]
-  skip_before_filter :verify_authenticity_token, only: [:ajax]
+  skip_before_action :admin_logged_actions, only: [:trash, :restore, :destroy, :ajax], raise: false
+  skip_before_action :verify_authenticity_token, only: [:ajax], raise: false
 
   def index
     authorize! :posts, @post_type
@@ -74,13 +74,13 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     authorize! :create_post, @post_type
     post_data = get_post_data(true)
     CamaleonCms::Post.drafts.find(post_data[:draft_id]).destroy rescue nil
-    @post = @post_type.posts.create(post_data)
+    @post = @post_type.posts.new(post_data)
     r = {post: @post, post_type: @post_type}; hooks_run("create_post", r)
     @post = r[:post]
-    if @post.valid?
+    if @post.save
       @post.set_metas(params[:meta])
       @post.set_field_values(params[:field_options])
-      @post.set_option("keywords", post_data[:keywords])
+      @post.set_options(params[:options])
       flash[:notice] = t('camaleon_cms.admin.post.message.created', post_type: @post_type.decorate.the_title)
       r = {post: @post, post_type: @post_type}; hooks_run("created_post", r)
       redirect_to action: :edit, id: @post.id
@@ -108,7 +108,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     if @post.update(post_data)
       @post.set_metas(params[:meta])
       @post.set_field_values(params[:field_options])
-      @post.set_option("keywords", post_data[:keywords])
+      @post.set_options(params[:options])
       hooks_run("updated_post", {post: @post, post_type: @post_type})
       flash[:notice] = t('camaleon_cms.admin.post.message.updated', post_type: @post_type.decorate.the_title)
       redirect_to action: :edit, id: @post.id
@@ -188,7 +188,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   # return common params data for posts
   # is_create: indicate if this info is for create a new post
   def get_post_data(is_create = false)
-    post_data = params[:post]
+    post_data = params.require(:post).permit!
     post_data[:user_id] = cama_current_user.id if is_create
     post_data[:status] == 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
     post_data[:data_tags] = params[:tags].to_s

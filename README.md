@@ -28,9 +28,21 @@
 * Add the gem in your Gemfile
 
   ```
-  gem "camaleon_cms",  '>=2.2.0' # Stable versions 2.1.2.0, 2.1.1.4, 2.1.1, 2.1.0
+  gem "camaleon_cms",  '>=2.2.1' # Stable versions 2.1.2.0, 2.1.1.4, 2.1.1, 2.1.0
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # current development version
   ```
+* Only Rails 5 support
+  
+  Add in your Gemfile
+  ```
+  gem 'activemodel-serializers-xml', git: 'https://github.com/rails/activemodel-serializers-xml'
+  ```
+  Create a file "lib/rails/test_unit/sub_test_task.rb" in your project (draper patch)
+  ```
+  class Rails::SubTestTask < Rake::TestTask
+  end
+  ```
+  
 * Install required Gem and dependencies
 
   ```
@@ -52,6 +64,7 @@
   rails server # and then go to your browser http://localhost:3000/
   ```
   Previous stable version (1x): https://github.com/owen2345/camaleon-cms/tree/version_1x
+
 
 # Camaleon CMS (It adapts to your needs)
 

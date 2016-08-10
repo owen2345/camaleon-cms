@@ -8,7 +8,7 @@
 =end
 class CamaleonCms::Widget::Main < CamaleonCms::TermTaxonomy
   default_scope { where(taxonomy: :widget) }
-  attr_accessible :excerpt, :renderer
+  # attr_accessible :excerpt, :renderer
   # name: "title"
   # description: "content for this"
   # slug: "key for this"

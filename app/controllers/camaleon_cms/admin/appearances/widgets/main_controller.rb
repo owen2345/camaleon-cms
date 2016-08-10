@@ -27,7 +27,7 @@ class CamaleonCms::Admin::Appearances::Widgets::MainController < CamaleonCms::Ad
 
   def create
     params[:widget_main][:status] = "simple"
-    @widget = current_site.widgets.new(params[:widget_main])
+    @widget = current_site.widgets.new(params.require(:widget_main).permit!)
     if @widget.save!
       flash[:notice] = t('camaleon_cms.admin.widgets.message.created')
     else
@@ -37,7 +37,7 @@ class CamaleonCms::Admin::Appearances::Widgets::MainController < CamaleonCms::Ad
   end
 
   def update
-    if @widget.update!(params[:widget_main])
+    if @widget.update!(params.require(:widget_main).permit!)
       flash[:notice] = t('camaleon_cms.admin.widgets.message.updated')
     else
       flash[:error] = t('camaleon_cms.admin.widgets.message.error_updated')

@@ -16,7 +16,7 @@ class CamaleonCms::Widget::Assigned < CamaleonCms::PostDefault
   alias_attribute :sidebar_id, :post_parent
   alias_attribute :item_order, :taxonomy_id
 
-  attr_accessible :widget_id, :sidebar_id, :item_order
+  # attr_accessible :widget_id, :sidebar_id, :item_order
 
   has_many :metas, ->{ where(object_class: 'Widget::Assigned')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   belongs_to :sidebar, class_name: "CamaleonCms::Widget::Sidebar", foreign_key: :post_parent

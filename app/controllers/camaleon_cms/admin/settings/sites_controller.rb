@@ -29,7 +29,7 @@ class CamaleonCms::Admin::Settings::SitesController < CamaleonCms::Admin::Settin
 
   def update
     tmp = @site.slug
-    if @site.update(params[:site])
+    if @site.update(params.require(:site).permit!)
       save_metas(@site)
       flash[:notice] = t('camaleon_cms.admin.sites.message.updated')
       if @site.id == Cama::Site.main_site.id && tmp != @site.slug
@@ -49,7 +49,7 @@ class CamaleonCms::Admin::Settings::SitesController < CamaleonCms::Admin::Settin
   end
 
   def create
-    site_data = params[:site]
+    site_data = params.require(:site).permit!
     @site = CamaleonCms::Site.new(site_data)
     if @site.save
       save_metas(@site)

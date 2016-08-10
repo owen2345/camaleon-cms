@@ -74,8 +74,9 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   private
 
   def set_post_data
-    @post_data = params[:custom_field_group]
-    @post_data[:object_class], @post_data[:objectid] = @post_data[:assign_group].split(',')
+    @post_data = params.require(:custom_field_group).permit!
+    @post_data[:object_class], @post_data[:objectid] = @post_data.delete(:assign_group).split(',')
+    @caption = @post_data.delete(:caption)
   end
 
   def set_custom_field_group
@@ -89,8 +90,8 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
 
   # return boolean: true if all fields were saved successfully
   def _save_fields(group)
-    errors_saved, all_fields = group.add_fields(params[:fields], params[:field_options])
-    group.set_option('caption', @post_data[:caption])
+    errors_saved, all_fields = group.add_fields(params.require(:fields).permit!, params.require(:field_options).permit!)
+    group.set_option('caption', @caption)
     if errors_saved.present?
       flash[:error] = "<b>#{t('camaleon_cms.errors_found_msg', default: 'Several errors were found, please check.')}</b><br>#{errors_saved.map{|field| "#{field.name}: " + "#{field.errors.messages.map{|k,v| "#{k.to_s.titleize}: #{v.join('|')}"}.join(', ')}" }.join('<br>')}"
     else
