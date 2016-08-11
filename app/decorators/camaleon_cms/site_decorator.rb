@@ -96,7 +96,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   # return the user object with id or username = id_or_username from this site
   def the_user(id_or_username)
     return object.users.where(id: id_or_username).first.decorate rescue nil if id_or_username.is_a?(Integer)
-    return object.users.find_by_username(id_or_username).decorate rescue nil if id_or_username.is_a?(String)
+    return object.users.find_by_login(id_or_username).decorate rescue nil if id_or_username.is_a?(String)
   end
 
   # return all post types for this site

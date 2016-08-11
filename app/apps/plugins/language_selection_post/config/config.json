@@ -1,0 +1,23 @@
+{
+  "title": "Language Selection",
+  "descr": "Permit to configure in which language the post will be showm. Adds the method in_current_locale to CamaleonCms::Post, which can be used in public pages",
+  "version": "0.1",
+  "key": "authoring_post",
+  "helpers": [
+    "Plugins::LanguageSelectionPost::LanguageSelectionPostHelper"
+  ],
+  "options": [
+  ],
+  "hooks": {
+    "on_active": ["plugin_language_selection_on_active"],
+    "on_inactive": ["plugin_language_selection_on_inactive"],
+    "new_post":["plugin_language_selection_new_post"],
+    "edit_post":["plugin_language_selection_new_post"],
+    "created_post":["plugin_language_selection_create_post"],
+    "updated_post":["plugin_language_selection_create_post"],
+    "post_the_content": ["plugin_language_selection_post_the_content"],
+    "filter_post": ["plugin_language_selection_filter_post"],
+    "post_can_visit": ["plugin_language_selection_can_visit"],
+    "list_post_extra_columns": ["plugin_language_selection_extra_columns"]
+  }
+}

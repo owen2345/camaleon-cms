@@ -94,6 +94,10 @@ class CamaleonCms::User < ActiveRecord::Base
   end
 
   # auth
+  def self.find_by_login(login)
+    find_by_username(login) || find_by_email(login)
+  end
+
   def generate_token(column)
     begin
       self[column] = SecureRandom.urlsafe_base64
