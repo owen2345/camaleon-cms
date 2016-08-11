@@ -95,6 +95,14 @@ class PluginRoutes
       cache_variable("statis_system_info", settings)
     end
     alias_method :system_info, :static_system_info
+
+    def isRails4?
+      Rails.version.to_s[0].to_i == 4
+    end
+
+    def isRails5?
+      Rails.version.to_s[0].to_i == 5
+    end
   end
 
   # reload routes
@@ -337,5 +345,30 @@ class PluginRoutes
     false
   rescue
     Gem.available?(name)
+  end
+end
+
+#********* fix missing helper method for breadcrumb on rails gem **********#
+if PluginRoutes.isRails5?
+  module BreadcrumbsOnRails
+    module ActionController extend ActiveSupport::Concern
+      def self.included(base = nil, &block)
+        if base.nil?
+          @_included_block = block
+        else
+          super
+        end
+      end
+
+      included do |base|
+        extend          ClassMethods
+        helper          HelperMethods if respond_to? :helper
+        helper_method   :add_breadcrumb, :breadcrumbs  if respond_to? :helper_method
+
+        unless base.respond_to?(:before_action)
+          base.alias_method :before_action, :before_filter
+        end
+      end
+    end
   end
 end
