@@ -16,8 +16,8 @@ class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
   def site_saved
     @site = current_site
     if @site.update(params.require(:site).permit!)
-      @site.set_options(params[:meta]) if params[:meta].present?
-      @site.set_multiple_options(params[:options])
+      @site.set_options(params[:options]) if params[:options].present?
+      @site.set_metas(params[:metas]) if params[:metas].present?
       @site.set_field_values(params[:field_options])
       flash[:notice] = t('camaleon_cms.admin.settings.message.site_updated')
       redirect_to action: :site
