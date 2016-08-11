@@ -46,6 +46,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
+    @object = @post_type
     @cama_visited_post_type = @post_type
     @posts = @post_type.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
@@ -68,6 +69,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
+    @object = @post_tag
     @cama_visited_tag = @post_tag
     @posts = @post_tag.the_posts.paginate(:page => params[:page], :per_page => current_site.front_per_page).eager_load(:metas)
     r_file = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/post_tag") ? "post_types/#{@post_type.the_slug}/post_tag" : 'post_tag'
@@ -119,6 +121,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       return page_not_found
     end
+    @object = @user
     @cama_visited_profile = true
     layout_ = lookup_context.template_exists?("layouts/profile") ? "profile" : nil
     r = {user: @user, layout: layout_, render: "profile"};  hooks_run("on_render_profile", r)
@@ -129,6 +132,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   # render a post from draft
   def draft_render
     post_draft = current_site.posts.drafts.find(params[:draft_id])
+    @object = post_draft
     if can?(:update, post_draft)
       render_post(post_draft)
     else
@@ -156,6 +160,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       end
     else
       @post = @post.decorate
+      @object = @post
       @cama_visited_post = @post
       @post_type = @post.the_post_type
       @comments = @post.the_comments
