@@ -1,6 +1,6 @@
 {
   "title": "Language Selection",
-  "descr": "Permit to configure in which language the post will be show",
+  "descr": "Permit to configure in which language the post will be showm. Adds the method in_current_locale to CamaleonCms::Post, which can be used in public pages",
   "version": "0.1",
   "key": "authoring_post",
   "helpers": [
