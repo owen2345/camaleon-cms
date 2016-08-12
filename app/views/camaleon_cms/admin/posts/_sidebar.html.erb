@@ -4,7 +4,7 @@
         <div class="panel-body ">
             <div class="row">
                 <% if @post.draft? && !@post.parent.present?  %>
-                    <div class="col-md-12 input-submit"><%= f.submit "#{ (@post.new_record?) ? t('camaleon_cms.admin.page_title.create') : t('camaleon_cms.admin.button.update')}", class: "btn btn-success btn-lg btn-block", onclick: "$('#post_status').val('#{@post.get_option('draft_status')}')" %></div>
+                    <div class="col-md-12 input-submit"><%= f.submit "#{ (@post.new_record?) ? t('camaleon_cms.admin.page_title.create') : t('camaleon_cms.admin.button.update')}", class: "btn btn-success btn-lg btn-block" %></div>
                 <% elsif @post.draft? && @post.parent.present? %>
                     <div class="col-md-12 input-submit"><%= f.submit "#{ t('camaleon_cms.admin.button.recover') }", class: "btn btn-success btn-lg btn-block", onclick: "$('#post_status').val('#{@post.get_option('draft_status')}')" %></div>
                 <% else  %>
@@ -40,7 +40,7 @@
                 <label class=" control-label"><%= t('camaleon_cms.admin.post_type.published')%></label>
                 <select id="post_status" name="post[status]" class="form-control select">
                     <% if can? :publish_post, @post_type %>
-                        <option class="<%= 'hidden' if @post.draft? %>" value="published" <%= (@post[:status] == "published") ? "selected": "" %> ><%= t('camaleon_cms.admin.post_type.published')%></option>
+                        <option class="" value="published" <%= (@post[:status] == "published") ? "selected": "" %> ><%= t('camaleon_cms.admin.post_type.published')%></option>
                     <% end  %>
                     <option value="pending" <%= (@post[:status] == "pending") ? "selected": "" %>><%= t('camaleon_cms.admin.table.pending')%></option>
                     <option value="draft" <%= (@post[:status] == "draft") ? "selected": "" %>><%= t('camaleon_cms.admin.table.draft')%></option>
