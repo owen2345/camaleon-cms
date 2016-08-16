@@ -154,12 +154,15 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:locale] = @_deco_locale unless args.include?(:locale)
     postfix = 'url'
     postfix = 'path' if args.delete(:as_path)
-    begin
+    skip_relative_url_root = args.delete(:skip_relative_url_root)
+    res = begin
       h.cama_url_to_fixed("cama_root_#{postfix}", args)
     rescue # undefined method `host' for nil:NilClass (called from rake:tasks)
       parms = args.except(:host, :port, :locale, :as_path)
-      "http://#{args[:host]}#{":#{args[:port]}" if args[:port].present?}#{"/#{args[:locale]}" if args[:locale].present?}/#{"?#{parms.to_param}" if parms.present?}"
+      "http://#{args[:host]}#{":#{args[:port]}" if args[:port].present?}#{"/#{PluginRoutes.static_system_info['relative_url_root']}" if PluginRoutes.static_system_info['relative_url_root'].present?}#{"/#{args[:locale]}" if args[:locale].present?}/#{"?#{parms.to_param}" if parms.present?}"
     end
+    res = res.sub("/#{PluginRoutes.static_system_info['relative_url_root']}", '') if skip_relative_url_root && PluginRoutes.static_system_info['relative_url_root'].present?
+    res
   end
 
   # return the path for this site
