@@ -28,7 +28,7 @@
 * Add the gem in your Gemfile
 
   ```
-  gem "camaleon_cms",  '>=2.3.1' # Stable versions 2.2.1, 2.1.1, 2.1.0
+  gem "camaleon_cms",  '>=2.3.2' # Stable versions 2.2.1, 2.1.1, 2.1.0
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # current development version
   ```
 * Only Rails 5 support
