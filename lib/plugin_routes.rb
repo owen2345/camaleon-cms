@@ -103,6 +103,10 @@ class PluginRoutes
     def isRails5?
       Rails.version.to_s[0].to_i == 5
     end
+    # convert action parameter into hash
+    def fixActionParameter(h)
+      (h.is_a?(ActionController::Parameters) ? h.to_hash : h)
+    end
   end
 
   # reload routes

@@ -80,7 +80,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   def set_options(h = {}, meta_key = "_default")
     if h.present?
       data = options(meta_key)
-      (h.is_a?(ActionController::Parameters) ? h.to_hash : h).to_sym.each do |key, value|
+      PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
       end
       set_meta(meta_key, data)
