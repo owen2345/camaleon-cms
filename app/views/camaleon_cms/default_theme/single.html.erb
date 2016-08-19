@@ -21,7 +21,7 @@
         <% else %>
             <div class="col-md-9 post-view">
                 <article class="post-content">
-                    <h1><%= raw @post.the_title %></h1>
+                    <h1><%= raw @post.the_title %> <%= @post.the_edit_link %></h1>
                     <div class="author">
                         <time datetime=""><%= @post.the_created_at %></time>
                     </div>

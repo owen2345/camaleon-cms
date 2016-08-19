@@ -131,7 +131,7 @@ module CamaleonCms::ShortCodeHelper
   # if empty, codes will be replaced with all registered shortcodes
   # Return: (String) reg expression string
   def cama_reg_shortcode(codes = nil)
-    "(\\[(#{codes || @_shortcodes.join("|")})(\s|\\]){1}(.*?)\\])"
+    "(\\[(#{codes || @_shortcodes.join("|")})(\s|\\]){0}(.*?)\\])"
   end
 
   # determine the content to replace instead the shortcode
