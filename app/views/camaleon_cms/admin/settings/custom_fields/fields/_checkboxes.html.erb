@@ -3,3 +3,12 @@
         <div class="checkbox"><label><input type="checkbox" value="<%= option[:value] %>" name="<%= field_name %>[<%= field.slug %>][values][<%= index %>]" <%= 'checked' if default_use && option[:default].present? %> > <%= option[:title] %></label></div>
     <% end %>
 </div>
+<script type="text/javascript">
+if($('.group-input-fields-content input[type="checkbox"]').length > 0){
+  $('.group-input-fields-content input[type="checkbox"]').each(function(){
+    if($(this).attr('checked')){
+      $(this).prop('checked', true);
+    }
+  });
+}
+</script>
