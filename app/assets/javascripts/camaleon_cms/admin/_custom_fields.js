@@ -61,7 +61,7 @@ function cama_build_custom_field(panel, field_data, values){
             field.prepend(field_actions);
             if(field_counter == 0) field.children('.actions').find('.fa-times').remove();
         }
-        field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) });
+        if(!$field.find('.group-input-fields-content').hasClass('cama_skip_cf_rename_multiple')) field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) });
         if(field_data.disabled){
             field.find('input, textarea, select').prop('readonly', true).filter('select').click(function(){ return false; }).focus(function(){ $(this).blur(); });
             field.find('.btn').addClass('disabled').unbind().click(function(){ return false; });
@@ -119,7 +119,6 @@ function custom_field_checkboxs_val($field, values) {
         var selector = values.map(function (value) {
             return "input[value='" + value + "']"
         }).join(',');
-        $field.find('input').prop('checked', false);
         $field.find(selector).prop('checked', true);
     }
 }
