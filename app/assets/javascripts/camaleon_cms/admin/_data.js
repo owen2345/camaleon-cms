@@ -60,6 +60,7 @@ function cama_get_tinymce_settings(settings){
         },
         onPostRender: function(editor){}
     };
+    for(var ff in tinymce_global_settings["settings"]) tinymce_global_settings["settings"][ff](settings, def);
     return $.extend({}, def, settings);
 }
 

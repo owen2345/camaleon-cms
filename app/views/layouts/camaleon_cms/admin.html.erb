@@ -13,7 +13,7 @@
         var NO_IMAGE_URL = '<%= asset_url("camaleon_cms/image-not-found.png") %>';
         var CURRENT_LOCALE = '<%= current_locale %>';
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
-        var tinymce_global_settings = {language_url: "<%= asset_path("camaleon_cms/admin/tinymce/langs/#{current_locale}.js") %>", custom_css: [], custom_toolbar: [], post_render: [], init: [], setups: []};
+        var tinymce_global_settings = {language_url: "<%= asset_path("camaleon_cms/admin/tinymce/langs/#{current_locale}.js") %>", custom_css: [], custom_toolbar: [], post_render: [], init: [], setups: [], settings: []};
         var I18n_data = <%= I18n.backend.send(:translations)[current_locale.to_sym][:camaleon_cms][:admin][:js].to_json.html_safe rescue "{}" %>
     </script>
     <%= javascript_include_tag "camaleon_cms/admin/admin-manifest" %>
