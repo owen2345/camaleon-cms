@@ -110,7 +110,7 @@ module CamaleonCms::Frontend::NavMenuHelper
   # internal_level: ingnore (managed by internal recursion)
   def cama_menu_parse_items(items, max_levels=-1, internal_level=0)
     res, is_current_parent, levels = [], false, [0]
-    items.each_with_index do |nav_menu_item, index|
+    items.reorder(:term_order).each_with_index do |nav_menu_item, index|
       data_nav_item = _get_link_nav_menu(nav_menu_item)
       next if data_nav_item == false
       _is_current = data_nav_item[:current] || site_current_path == data_nav_item[:link] || site_current_path == data_nav_item[:link].sub(".html", "")
@@ -129,7 +129,7 @@ module CamaleonCms::Frontend::NavMenuHelper
       }.merge(data_nav_item.except(:current, :name, :link))
 
       if has_children
-        r[:children], _is_current_parent, r[:levels] = cama_menu_parse_items(nav_menu_item.children.reorder(:term_order), max_levels, internal_level + 1)
+        r[:children], _is_current_parent, r[:levels] = cama_menu_parse_items(nav_menu_item.children, max_levels, internal_level + 1)
         if _is_current_parent
           is_current_parent = true
           r[:current_parent] = true
