@@ -1,11 +1,3 @@
-=begin
-  Camaleon CMS is a content management system
-  Copyright (C) 2015 by Owen Peredo Diaz
-  Email: owenperedo@gmail.com
-  This program is free software: you can redistribute it and/or modify   it under the terms of the GNU Affero General Public License as  published by the Free Software Foundation, either version 3 of the  License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the  GNU Affero General Public License (GPLv3) for more details.
-=end
 module CamaleonCms::Frontend::NavMenuHelper
   # draw nav menu as html list
   # key: slug for nav menu
@@ -118,7 +110,7 @@ module CamaleonCms::Frontend::NavMenuHelper
   # internal_level: ingnore (managed by internal recursion)
   def cama_menu_parse_items(items, max_levels=-1, internal_level=0)
     res, is_current_parent, levels = [], false, [0]
-    items.each_with_index do |nav_menu_item, index|
+    items.reorder(:term_order).each_with_index do |nav_menu_item, index|
       data_nav_item = _get_link_nav_menu(nav_menu_item)
       next if data_nav_item == false
       _is_current = data_nav_item[:current] || site_current_path == data_nav_item[:link] || site_current_path == data_nav_item[:link].sub(".html", "")
@@ -137,7 +129,7 @@ module CamaleonCms::Frontend::NavMenuHelper
       }.merge(data_nav_item.except(:current, :name, :link))
 
       if has_children
-        r[:children], _is_current_parent, r[:levels] = cama_menu_parse_items(nav_menu_item.children.reorder(:term_order), max_levels, internal_level + 1)
+        r[:children], _is_current_parent, r[:levels] = cama_menu_parse_items(nav_menu_item.children, max_levels, internal_level + 1)
         if _is_current_parent
           is_current_parent = true
           r[:current_parent] = true
@@ -184,13 +176,12 @@ module CamaleonCms::Frontend::NavMenuHelper
 
   private
   def _get_link_nav_menu(nav_menu_item)
-    type_menu = nav_menu_item.kind
+    type_menu, r = nav_menu_item.kind, false
     begin
       case type_menu
         when 'post'
           post = CamaleonCms::Post.find(nav_menu_item.url).decorate
-          return false unless post.can_visit?
-          r = {link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu, current: @cama_visited_post.present? && @cama_visited_post.id == post.id}
+          r = {link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu, current: @cama_visited_post.present? && @cama_visited_post.id == post.id} if post.can_visit?
         when 'category'
           category = CamaleonCms::Category.find(nav_menu_item.url).decorate
           r = {link: category.the_url(as_path: true), name: category.the_title, type_menu: type_menu, current: @cama_visited_category.present? && @cama_visited_category.id == category.id}
@@ -205,25 +196,26 @@ module CamaleonCms::Frontend::NavMenuHelper
           r[:link] = cama_root_path if r[:link] == "root_url"
           r[:link] = site_current_path if site_current_path == "#{current_site.the_path}#{r[:link]}"
           r[:current] = r[:link] == site_current_url || r[:link] == site_current_path
+
           # permit to customize or mark as current menu
           # _args: (HASH) {menu_item: Model Menu Item, parsed_menu: Parsed Menu }
           #   Sample parsed_menu: {link: "url of the link", name: "Text of the menu", type_menu: 'external', current: Boolean (true => is current menu, false => not current menu item)}
           _args = {menu_item: nav_menu_item, parsed_menu: r};  hooks_run("on_external_menu", _args)
           r = _args[:parsed_menu]
-          return false if _args[:parsed_menu] == false
-
-        else
-          return false
       end
     rescue => e
       puts "-------------------------- menu item error: #{e.message}"
-      return false
     end
 
-    # permit to mark as a current menu custom paths
-    # sample: @cama_current_menu_path = '/my_section'
-    # sample2: @cama_current_menu_path = ['/my_section', '/mi_seccion'] # multi language support
-    r[:current] = true if @cama_current_menu_path.present? && !r[:current] && (@cama_current_menu_path.is_a?(String) ? @cama_current_menu_path == r[:link] : @cama_current_menu_path.include?(r[:link]))
-    r
+    if r != false
+      # permit to mark as a current menu custom paths
+      # sample: @cama_current_menu_path = '/my_section'
+      # sample2: @cama_current_menu_path = ['/my_section', '/mi_seccion'] # multi language support
+      r[:current] = true if @cama_current_menu_path.present? && !r[:current] && (@cama_current_menu_path.is_a?(String) ? @cama_current_menu_path == r[:link] : @cama_current_menu_path.include?(r[:link]))
+    end
+
+    # permit to customize data of parsed menu item or skip menu item by assigning false into :parsed_menu
+    _args = {menu_item: nav_menu_item, parsed_menu: r};  hooks_run("on_render_front_menu_item", _args)
+    _args[:parsed_menu]
   end
 end

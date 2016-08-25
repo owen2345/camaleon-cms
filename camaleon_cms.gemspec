@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'bcrypt'
   s.add_dependency 'cancancan', '~> 1.10'
-  s.add_dependency 'draper', '~> 1.3'
+  s.add_dependency 'draper', '>=1.3'
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
   # s.add_dependency 'mobu'

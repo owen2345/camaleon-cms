@@ -1,11 +1,3 @@
-=begin
-  Camaleon CMS is a content management system
-  Copyright (C) 2015 by Owen Peredo Diaz
-  Email: owenperedo@gmail.com
-  This program is free software: you can redistribute it and/or modify   it under the terms of the GNU Affero General Public License as  published by the Free Software Foundation, either version 3 of the  License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the  GNU Affero General Public License (GPLv3) for more details.
-=end
 class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
   before_action :validate_role, except: [:theme, :save_theme]
   before_action :validate_role_theme, only: [:theme, :save_theme]
@@ -24,8 +16,8 @@ class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
   def site_saved
     @site = current_site
     if @site.update(params.require(:site).permit!)
-      @site.set_options(params[:meta]) if params[:meta].present?
-      @site.set_multiple_options(params[:options])
+      @site.set_options(params[:options]) if params[:options].present?
+      @site.set_metas(params[:metas]) if params[:metas].present?
       @site.set_field_values(params[:field_options])
       flash[:notice] = t('camaleon_cms.admin.settings.message.site_updated')
       redirect_to action: :site

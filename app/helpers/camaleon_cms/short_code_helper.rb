@@ -1,11 +1,3 @@
-=begin
-  Camaleon CMS is a content management system
-  Copyright (C) 2015 by Owen Peredo Diaz
-  Email: owenperedo@gmail.com
-  This program is free software: you can redistribute it and/or modify   it under the terms of the GNU Affero General Public License as  published by the Free Software Foundation, either version 3 of the  License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the  GNU Affero General Public License (GPLv3) for more details.
-=end
 module CamaleonCms::ShortCodeHelper
   # Internal method
   def shortcodes_init
@@ -139,7 +131,7 @@ module CamaleonCms::ShortCodeHelper
   # if empty, codes will be replaced with all registered shortcodes
   # Return: (String) reg expression string
   def cama_reg_shortcode(codes = nil)
-    "(\\[(#{codes || @_shortcodes.join("|")})(\s|\\]){1}(.*?)\\])"
+    "(\\[(#{codes || (@_shortcodes || []).join("|")})(\s|\\]){0}(.*?)\\])"
   end
 
   # determine the content to replace instead the shortcode

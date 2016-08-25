@@ -1,11 +1,3 @@
-=begin
-  Camaleon CMS is a content management system
-  Copyright (C) 2015 by Owen Peredo Diaz
-  Email: owenperedo@gmail.com
-  This program is free software: you can redistribute it and/or modify   it under the terms of the GNU Affero General Public License as  published by the Free Software Foundation, either version 3 of the  License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the  GNU Affero General Public License (GPLv3) for more details.
-=end
 class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
   skip_before_action :cama_authenticate, raise: false
   before_action :before_hook_session
@@ -25,7 +17,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
   end
 
   def login_post
-    data_user = params[:user]
+    data_user = user_permit_data
     cipher = Gibberish::AES::CBC.new(cama_get_session_id)
     data_user[:password] = cipher.decrypt(data_user[:password]) rescue nil
     @user = current_site.users.find_by_username(data_user[:username])
@@ -92,7 +84,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
     # TODO: Move this out of the controller
     # send email reset password
     if params[:user].present?
-      data_user = params[:user]
+      data_user = user_permit_data
       @user = current_site.users.find_by_email(data_user[:email])
       if @user.present?
         send_password_reset_email(@user)
@@ -111,7 +103,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
     if params[:user].present?
       params[:user][:role] = PluginRoutes.system_info["default_user_role"]
       params[:user][:is_valid_email] = false if current_site.need_validate_email?
-      user_data = params.require(:user).permit!
+      user_data = user_permit_data
       result = cama_register_user(user_data, params[:meta])
       if result[:result] == false && result[:type] == :captcha_error
         @user.errors[:captcha] = t('camaleon_cms.admin.users.message.error_captcha')
@@ -164,6 +156,10 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       flash[:error] = t('camaleon_cms.admin.authorization_error', default: "You don't have authorization for this section.")
       return redirect_to action: :login
     end
+  end
+
+  def user_permit_data
+    params.require(:user).permit!
   end
 
 end

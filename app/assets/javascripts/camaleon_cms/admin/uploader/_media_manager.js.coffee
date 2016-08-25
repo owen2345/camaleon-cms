@@ -6,7 +6,8 @@ window["cama_init_media"] = (media_panel) ->
   ################ visualize item
   show_file = (item) ->
     item.addClass('selected').siblings().removeClass('selected')
-    data = eval("("+item.find(".data_value").val()+")")
+    data = item.data('eval-data') || eval("("+item.find(".data_value").val()+")")
+    item.data('eval-data', data)
     media_info_tab_info.click()
     tpl =
       "<div class='p_thumb'></div>" +
@@ -25,22 +26,33 @@ window["cama_init_media"] = (media_panel) ->
     media_info.html(tpl)
     media_info.find(".p_thumb").html(item.find(".thumb").html())
     if data["format"] == "image"
-      ww = parseInt(data['dimension'].split("x")[0])
-      hh = parseInt(data['dimension'].split("x")[1])
-      media_info.find(".p_body").append("<div class='cdimension'><b>"+I18n("button.dimension")+": </b><span>"+ww+"x"+hh+"</span></div>")
-      if media_panel.attr("data-dimension") # verify dimensions
-        btn = media_info.find(".p_footer .insert_btn")
-        btn.prop('disabled', true)
-        _ww = parseInt(media_panel.attr("data-dimension").split("x")[0])
-        _hh = parseInt(media_panel.attr("data-dimension").split("x")[1])
-        if _ww == ww && _hh == hh
-          btn.prop('disabled', false)
-        else
-          media_info.find(".cdimension").css("color", 'red')
-          cut = $("<button class='btn btn-info pull-right'><i class='fa fa-crop'></i> "+I18n("button.crop_image")+"</button>").click(->
-            $.fn.upload_url({url: data["url"]})
-          )
-          btn.after(cut)
+      draw_image = ->
+        ww = parseInt(data['dimension'].split("x")[0])
+        hh = parseInt(data['dimension'].split("x")[1])
+        media_info.find(".p_body").append("<div class='cdimension'><b>"+I18n("button.dimension")+": </b><span>"+ww+"x"+hh+"</span></div>")
+        if media_panel.attr("data-dimension") # verify dimensions
+          btn = media_info.find(".p_footer .insert_btn")
+          btn.prop('disabled', true)
+          _ww = parseInt(media_panel.attr("data-dimension").split("x")[0])
+          _hh = parseInt(media_panel.attr("data-dimension").split("x")[1])
+          if _ww == ww && _hh == hh
+            btn.prop('disabled', false)
+          else
+            media_info.find(".cdimension").css("color", 'red')
+            cut = $("<button class='btn btn-info pull-right'><i class='fa fa-crop'></i> "+I18n("button.crop_image")+"</button>").click(->
+              $.fn.upload_url({url: data["url"]})
+            )
+            btn.after(cut)
+
+      if !data['dimension'] && media_panel.attr("data-dimension") # if not dimension in the image and required dimension
+        img = new Image()
+        img.onload = ->
+          data['dimension'] = this.width+'x'+this.height
+          item.data('eval-data', data)
+          draw_image()
+        img.src = data["url"]
+      else
+        draw_image()
 
     if window["callback_media_uploader"] # trigger callback
       media_info.find(".insert_btn").click ->

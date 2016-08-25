@@ -1,11 +1,3 @@
-=begin
-  Camaleon CMS is a content management system
-  Copyright (C) 2015 by Owen Peredo Diaz
-  Email: owenperedo@gmail.com
-  This program is free software: you can redistribute it and/or modify   it under the terms of the GNU Affero General Public License as  published by the Free Software Foundation, either version 3 of the  License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the  GNU Affero General Public License (GPLv3) for more details.
-=end
 class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   delegate_all
 
@@ -162,12 +154,15 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:locale] = @_deco_locale unless args.include?(:locale)
     postfix = 'url'
     postfix = 'path' if args.delete(:as_path)
-    begin
+    skip_relative_url_root = args.delete(:skip_relative_url_root)
+    res = begin
       h.cama_url_to_fixed("cama_root_#{postfix}", args)
     rescue # undefined method `host' for nil:NilClass (called from rake:tasks)
       parms = args.except(:host, :port, :locale, :as_path)
-      "http://#{args[:host]}#{":#{args[:port]}" if args[:port].present?}#{"/#{args[:locale]}" if args[:locale].present?}/#{"?#{parms.to_param}" if parms.present?}"
+      "http://#{args[:host]}#{":#{args[:port]}" if args[:port].present?}#{"/#{PluginRoutes.static_system_info['relative_url_root']}" if PluginRoutes.static_system_info['relative_url_root'].present?}#{"/#{args[:locale]}" if args[:locale].present?}/#{"?#{parms.to_param}" if parms.present?}"
     end
+    res = res.sub("/#{PluginRoutes.static_system_info['relative_url_root']}", '') if skip_relative_url_root && PluginRoutes.static_system_info['relative_url_root'].present?
+    res
   end
 
   # return the path for this site

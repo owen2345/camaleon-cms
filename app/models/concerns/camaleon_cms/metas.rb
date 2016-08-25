@@ -1,11 +1,3 @@
-=begin
-  Camaleon CMS is a content management system
-  Copyright (C) 2015 by Owen Peredo Diaz
-  Email: owenperedo@gmail.com
-  This program is free software: you can redistribute it and/or modify   it under the terms of the GNU Affero General Public License as  published by the Free Software Foundation, either version 3 of the  License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the  GNU Affero General Public License (GPLv3) for more details.
-=end
 module CamaleonCms::Metas extend ActiveSupport::Concern
   included do
     # options and metas auto save support
@@ -88,7 +80,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   def set_options(h = {}, meta_key = "_default")
     if h.present?
       data = options(meta_key)
-      (h.is_a?(ActionController::Parameters) ? h.to_h: h).to_sym.each do |key, value|
+      PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
       end
       set_meta(meta_key, data)

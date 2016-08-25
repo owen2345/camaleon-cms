@@ -28,7 +28,7 @@
 * Add the gem in your Gemfile
 
   ```
-  gem "camaleon_cms",  '>=2.2.1' # Stable versions 2.1.2.0, 2.1.1.4, 2.1.1, 2.1.0
+  gem "camaleon_cms",  '>=2.3.3' # Stable versions 2.2.1, 2.1.1, 2.1.0
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # current development version
   ```
 * Only Rails 5 support
@@ -145,7 +145,7 @@ If you need support, need some extra functionality or need plugins, please conta
 Owen Peredo Diaz
 
 ## License
-http://camaleon.tuzitio.com/license.html/
+http://camaleon.tuzitio.com/license.html
 
 ## Coming soon
 * Documentation and Videos

@@ -1,11 +1,3 @@
-=begin
-  Camaleon CMS is a content management system
-  Copyright (C) 2015 by Owen Peredo Diaz
-  Email: owenperedo@gmail.com
-  This program is free software: you can redistribute it and/or modify   it under the terms of the GNU Affero General Public License as  published by the Free Software Foundation, either version 3 of the  License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the  GNU Affero General Public License (GPLv3) for more details.
-=end
 class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   alias_attribute :site_id, :parent_id
   default_scope { where(taxonomy: :post_type) }
@@ -165,7 +157,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   # assign default roles for this post type
   # define default settings for this post type
   def set_default_site_user_roles
-    self.set_multiple_options({has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_keywords: true, not_deleted: false, has_layout: false, default_layout: ""}.merge((data_options||{}).to_sym))
+    self.set_multiple_options({has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_keywords: true, not_deleted: false, has_layout: false, default_layout: ""}.merge(PluginRoutes.fixActionParameter(data_options||{}).to_sym))
     self.site.set_default_user_roles(self)
     default_category
   end
