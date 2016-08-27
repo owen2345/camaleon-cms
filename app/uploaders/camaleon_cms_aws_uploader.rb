@@ -73,9 +73,9 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
   # return: (AWS Bucket object)
   def bucket
     @bucket ||= lambda{
-      config = Aws.config.update({ region: @current_site.get_option("filesystem_region", 'us-west-2'), credentials: Aws::Credentials.new(@current_site.get_option("filesystem_s3_access_key"), @current_site.get_option("filesystem_s3_secret_key")) })
+      config = Aws.config.update({ region: @aws_settings[:region] || @current_site.get_option("filesystem_region", 'us-west-2'), credentials: Aws::Credentials.new(@aws_settings[:access_key] || @current_site.get_option("filesystem_s3_access_key"), @aws_settings[:secret_key] || @current_site.get_option("filesystem_s3_secret_key")) })
       s3 = Aws::S3::Resource.new
-      bucket = s3.bucket(@current_site.get_option("filesystem_s3_bucket_name"))
+      bucket = s3.bucket(@aws_settings[:bucket] || @current_site.get_option("filesystem_s3_bucket_name"))
     }.call
   end
 end

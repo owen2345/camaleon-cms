@@ -1,10 +1,12 @@
 class CamaleonCmsUploader
   attr_accessor :thumb
-  # root_folder, current_site, service = 'Local', thumb
+  # root_folder= '/var/www/my_public_foler/', current_site= CamaSite.first.decorate, thumb = {w: 100, h: 75},
+  # aws_settings: {region, access_key, secret_key, bucket}
   def initialize(args = {})
     @current_site = args[:current_site]
     t_w, t_h = @current_site.get_option('filesystem_thumb_size', '100x100').split('x')
     @thumb = args[:thumb] || {w: t_w, h: t_h}
+    @aws_settings = args[:aws_settings] || {}
     @args = args
     after_initialize
   end
