@@ -244,7 +244,7 @@ module CamaleonCms::UploaderHelper
   def cama_uploader
     @cama_uploader ||= lambda{
       thumb = current_site.get_option('filesystem_thumb_size', '100x100').split('x')
-      args={ server: current_site.get_option("filesystem_type", "local").downcase, thumb: {w: thumb[0], h: thumb[1]}, aws_settings: {region: current_site.get_option("filesystem_region", 'us-west-2'), access_key: current_site.get_option("filesystem_s3_access_key"), secret_key: current_site.get_option("filesystem_s3_secret_key"), bucket: current_site.get_option("filesystem_s3_bucket_name")}}; hooks_run("on_uploader", args)
+      args={ server: current_site.get_option("filesystem_type", "local").downcase, thumb: {w: thumb[0], h: thumb[1]}, aws_settings: {region: current_site.get_option("filesystem_region", 'us-west-2'), access_key: current_site.get_option("filesystem_s3_access_key"), secret_key: current_site.get_option("filesystem_s3_secret_key"), bucket: current_site.get_option("filesystem_s3_bucket_name"), cloud_front: current_site.get_option("filesystem_s3_cloudfront")}}; hooks_run("on_uploader", args)
       case args[:server]
         when 's3' || 'aws'
           CamaleonCmsAwsUploader.new({current_site: current_site, thumb: args[:thumb], aws_settings: args[:aws_settings]})
