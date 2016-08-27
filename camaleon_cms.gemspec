@@ -39,4 +39,7 @@ Gem::Specification.new do |s|
 
   # MEDIA MANAGER
   s.add_dependency 'aws-sdk', '~> 2'
+  
+  s.add_development_dependency 'rspec', '>= 2', '< 4'
+  s.add_development_dependency 'capybara'
 end
