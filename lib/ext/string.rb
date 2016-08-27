@@ -9,11 +9,6 @@ class String
     ActionController::Base.helpers.strip_tags(self)
   end
 
-  def is_email
-    return false if self.blank?
-    return /^[a-zA-Z][\w\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\w\.-]*[a-zA-Z0-9]\.[a-zA-Z][a-zA-Z\.]*[a-zA-Z]$/.match(self).present?
-  end
-
   def is_float?
     self.to_f.to_s == self.to_s
   end
@@ -46,42 +41,6 @@ class String
     end
   end
 
-  def split_bar
-    self.split(',').map{|us_id| us_id.gsub('__','')}.uniq
-  end
-
-  def include_bar?(uid)
-    self.include?("__#{uid}__")
-  end
-
-  # slice string respect to correct word for read more
-  def slice_read_more(quantity = 100, start_from = 0)
-    return self if self.length <= quantity
-    tmp = self.slice(start_from, self.length)
-    if tmp.slice(quantity) == " " || tmp.index(" ").nil?
-      return tmp.slice(0, quantity)
-    end
-    quantity += tmp.slice(quantity, tmp.length).index(" ").nil? ? tmp.length : tmp.slice(quantity, tmp.length).index(" ")
-    tmp.slice(0, quantity)
-  end
-
-  # slice string respect to correct word for read more
-  def truncate_text(string, quantity = 100, quantity_before_text = 20)
-    string = string.gsub("+", "").gsub("*", "").gsub("-", "").downcase
-    self.strip_tags
-    return self if self.length <= quantity
-    start_from = self.downcase.index("#{string}")
-    start_from = self.index(/#{string.split(" ").join("|")}/i) unless start_from.present?
-    start_from -= quantity_before_text  if start_from.present? && start_from > 0
-    start_from = 0 if start_from.nil? || start_from < 0
-    tmp = self.slice(start_from, self.length)
-    if tmp.slice(quantity) == " " || tmp.index(" ").nil?
-      return tmp.slice(0, quantity)
-    end
-    quantity += tmp.slice(quantity, tmp.length).to_s.index(" ").nil? ? tmp.length : tmp.slice(quantity, tmp.length).to_s.index(" ")
-    tmp.slice(0, quantity)
-  end
-
   # parse string into slug format
   def slug
     #strip the string
@@ -103,18 +62,6 @@ class String
     #strip off leading/trailing underscore
     ret.gsub! /\A[_\.]+|[_\.]+\z/,""
     ret
-  end
-
-  # from a string path, this function get the filename
-  def get_file_name
-    self.split("/").last.split(".").delete_last.join(".")
-  end
-
-  def hex_to_binary
-    temp = gsub("\s", "");
-    ret = []
-    (0...temp.size()/2).each{|index| ret[index] = [temp[index*2, 2]].pack("H2")}
-    return ret
   end
 
   # parse string into domain
@@ -164,7 +111,7 @@ class String
   #     if this is empty, this will return the image version for thumb of the image, sample: 'http://localhost/my_image.png'.cama_parse_image_version('') => http://localhost/thumb/my_image.png
   #     if this is present, this will return the image version generated, sample: , sample: 'http://localhost/my_image.png'.cama_parse_image_version('200x200') => http://localhost/thumb/my_image_200x200.png
   #   default: default image if post image does not exist
-  def cama_parse_image_version(version_name: '')
+  def cama_parse_image_version(version_name = '')
     res = File.join(File.dirname(self), 'thumb', "#{File.basename(self).parameterize}#{File.extname(self)}")
     res = res.cama_add_postfix_file_name("_#{version_name}") if version_name.present?
     res
