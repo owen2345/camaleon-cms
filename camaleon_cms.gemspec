@@ -34,6 +34,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'breadcrumbs_on_rails'
   s.add_dependency 'font-awesome-rails'
   s.add_dependency 'tinymce-rails', '~> 4.3'
+  s.add_dependency 'jquery-rails'
+  s.add_dependency 'coffee-rails'
+  s.add_dependency 'sass-rails'
 
   s.add_dependency 'cama_contact_form', '~> 0.0.11'
 
