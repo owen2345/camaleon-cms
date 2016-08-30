@@ -1,3 +1,6 @@
+# Configuration was inspired by:
+# https://www.viget.com/articles/rails-engine-testing-with-rspec-capybara-and-factorygirl
+
 ENV['RAILS_ENV'] ||= 'test'
 
 CAMALEON_CMS_ROOT = Pathname.new(__FILE__).join('../..')
