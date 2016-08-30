@@ -141,6 +141,11 @@ module CamaleonCms::SessionHelper
   private
   # calculate the current user for API
   def cama_calc_api_current_user
+    if !respond_to?(:doorkeeper_token)
+      # hack, this method should be called from a context which has
+      # doorkeeper_token defined
+      return nil
+    end
     current_site.users_include_admins.find_by_id(doorkeeper_token.resource_owner_id).try(:decorate) if doorkeeper_token
   end
 end
