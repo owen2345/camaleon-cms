@@ -123,18 +123,10 @@ class CamaleonCms::User < ActiveRecord::Base
   # reassign all comments of this user to first admin
   # if doesn't exist any other administrator, this will cancel the user destroy
   def reassign_posts
-    sites = CamaleonCms::Site.all
-    sites.each do |site|
-      u = site.users.admin_scope.where.not(id: self.id).first
-      unless u.present?
-        errors.add(:base, "The site \"#{site.name}\" must have at least one administrator")
-        return false
-      end
-    end
-
-    sites.each do |site|
-      u = site.users.admin_scope.where.not(id: self.id).first
-      self.posts(site).each do |p|
+    all_posts.each do |p|
+      s = p.post_type.site
+      u = s.users.admin_scope.where.not(id: self.id).first
+      if u.present?
         p.update_column(:user_id, u.id)
         p.comments.where(user_id: self.id).each do |c|
           c.update_column(:user_id, u.id)
