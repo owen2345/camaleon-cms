@@ -11,6 +11,9 @@ require 'breadcrumbs_on_rails'
 require 'aws-sdk'
 require 'font-awesome-rails'
 require 'tinymce-rails'
+require 'jquery-rails'
+require 'coffee-rails'
+require 'sass-rails'
 require 'cama_contact_form'
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
