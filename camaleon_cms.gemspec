@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", "public/**/*"]
-  s.test_files = Dir["test/**/*"]
+  s.test_files = Dir["spec/**/*"]
 
   s.add_dependency 'bcrypt'
   s.add_dependency 'cancancan', '~> 1.10'
@@ -41,5 +41,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'aws-sdk', '~> 2'
   
   s.add_development_dependency 'rspec', '>= 2', '< 4'
+  s.add_development_dependency 'rspec-rails'
   s.add_development_dependency 'capybara'
+  s.add_development_dependency 'sqlite3'
+  s.add_development_dependency 'byebug'
 end
