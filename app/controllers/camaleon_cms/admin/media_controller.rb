@@ -31,6 +31,9 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # render media for modal content
   def ajax
+    if current_site.get_option('file_actions_in_modals') == 'yes'
+      @show_file_actions = true
+    end
     @tree = cama_uploader.search(params[:search]) if params[:search].present?
     if params[:partial].present?
       render partial: "files_list", locals: { files: @tree[:files], folders: @tree[:folders] }
