@@ -178,3 +178,14 @@ RSpec.configure do |config|
   end
 
 end
+
+# Windows less than 1000px wide produce broken rendering on some pages:
+# https://github.com/owen2345/camaleon-cms/issues/481
+# Workaround: maximize the window in capybara:
+# https://makandracards.com/makandra/9773-how-to-start-selenium-browser-maximized-or-with-custom-window-size
+# http://stackoverflow.com/questions/18390071/change-default-capybara-browser-window-size
+RSpec.configure do |config|
+  config.before(:each, js: true) do
+    Capybara.page.driver.browser.manage.window.maximize
+  end
+end
