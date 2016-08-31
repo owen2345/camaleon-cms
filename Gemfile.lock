@@ -88,6 +88,7 @@ GEM
       execjs
     coffee-script-source (1.10.0)
     concurrent-ruby (1.0.2)
+    database_cleaner (1.5.3)
     diff-lcs (1.2.5)
     draper (2.1.0)
       actionpack (>= 3.0)
@@ -215,6 +216,7 @@ DEPENDENCIES
   byebug
   camaleon_cms!
   capybara
+  database_cleaner
   rspec (>= 2, < 4)
   rspec-rails
   selenium-webdriver

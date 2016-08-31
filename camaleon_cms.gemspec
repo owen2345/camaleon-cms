@@ -49,4 +49,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'selenium-webdriver'
   s.add_development_dependency 'sqlite3'
   s.add_development_dependency 'byebug'
+  s.add_development_dependency 'database_cleaner'
 end
