@@ -5,7 +5,8 @@ class PostTableIntoUtf8 < ActiveRecord::Migration
       add_column CamaleonCms::User.table_name, :username, :integer rescue nil
       add_column CamaleonCms::User.table_name, :role, :string, default: 'client', index: true rescue nil
       add_column CamaleonCms::User.table_name, :parent_id, :integer rescue nil
-      add_column CamaleonCms::User.table_name, :site_id, :integer, index: true rescue nil
+      add_column CamaleonCms::User.table_name, :site_id, :integer, index: true, default: -1 rescue nil
+      add_column CamaleonCms::User.table_name, :auth_token, :string rescue nil
     else
       create_table CamaleonCms::User.table_name do |t|
         t.string   "username", index: true
