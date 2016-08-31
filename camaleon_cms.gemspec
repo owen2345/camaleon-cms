@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", "public/**/*"]
-  s.test_files = Dir["test/**/*"]
+  s.test_files = Dir["spec/**/*"]
 
   s.add_dependency 'bcrypt'
   s.add_dependency 'cancancan', '~> 1.10'
@@ -34,6 +34,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'breadcrumbs_on_rails'
   s.add_dependency 'font-awesome-rails'
   s.add_dependency 'tinymce-rails', '~> 4.3'
+  s.add_dependency 'jquery-rails'
+  s.add_dependency 'coffee-rails'
+  s.add_dependency 'sass-rails'
 
   s.add_dependency 'cama_contact_form', '~> 0.0.11'
 
@@ -41,5 +44,13 @@ Gem::Specification.new do |s|
   s.add_dependency 'aws-sdk', '~> 2'
   
   s.add_development_dependency 'rspec', '>= 2', '< 4'
+  s.add_development_dependency 'rspec-rails'
+  s.add_development_dependency 'rspec-instafail'
   s.add_development_dependency 'capybara'
+  s.add_development_dependency 'selenium-webdriver'
+  s.add_development_dependency 'pg'
+  s.add_development_dependency 'byebug'
+  s.add_development_dependency 'database_cleaner'
+  s.add_development_dependency 'pry-rescue'
+  s.add_development_dependency 'pry-stack_explorer'
 end

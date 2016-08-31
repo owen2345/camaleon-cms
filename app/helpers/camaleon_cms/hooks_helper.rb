@@ -31,12 +31,18 @@ module CamaleonCms::HooksHelper
     plugin["hooks"][hook_key].each do |hook|
       next if @_hooks_skip.present? && @_hooks_skip.include?(hook)
       begin
-        send(hook, params) unless params.nil?
-        send(hook) if params.nil?
+        if params.nil?
+          send(hook)
+        else
+          send(hook, params)
+        end
       rescue
         plugin_load_helpers(plugin)
-        send(hook, params) unless params.nil?
-        send(hook) if params.nil?
+        if params.nil?
+          send(hook)
+        else
+          send(hook, params)
+        end
       end
     end
   end

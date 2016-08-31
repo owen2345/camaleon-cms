@@ -104,7 +104,7 @@ end
 
 # create a new post type for first site
 def create_test_post_type(args = {})
-  get_current_test_site.post_types.create({name: 'Test', slug: 'test', description: 'this is a test', data_options: {}}.merge(args))
+  get_current_test_site.post_types.create!({name: 'Test', slug: 'test', description: 'this is a test', data_options: {}}.merge(args))
 end
 
 # create a test site
