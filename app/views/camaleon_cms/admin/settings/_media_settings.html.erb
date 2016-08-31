@@ -7,4 +7,8 @@
         <label for=""><%= t('camaleon_cms.admin.settings.filesystem_thumb_size', default: 'Thumbnail dimension [100x100]') %></label><br>
         <%= text_field :options, :filesystem_thumb_size, :class => "form-control", :value => @site.get_option('filesystem_thumb_size', '100x100'), placeholder: '100x100' %>
     </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.file_actions_in_modals', default: 'Show File Actions in Modals') %></label><br>
+        <%= check_box :options, :file_actions_in_modals, {checked: @site.get_option('file_actions_in_modals') == 'yes'}, 'yes', 'no' %>
+    </div>
 </div>
