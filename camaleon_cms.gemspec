@@ -45,8 +45,12 @@ Gem::Specification.new do |s|
   
   s.add_development_dependency 'rspec', '>= 2', '< 4'
   s.add_development_dependency 'rspec-rails'
+  s.add_development_dependency 'rspec-instafail'
   s.add_development_dependency 'capybara'
   s.add_development_dependency 'selenium-webdriver'
-  s.add_development_dependency 'sqlite3'
+  s.add_development_dependency 'pg'
   s.add_development_dependency 'byebug'
+  s.add_development_dependency 'database_cleaner'
+  s.add_development_dependency 'pry-rescue'
+  s.add_development_dependency 'pry-stack_explorer'
 end
