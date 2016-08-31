@@ -180,6 +180,8 @@ GEM
     rspec-expectations (3.5.0)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.5.0)
+    rspec-instafail (1.0.0)
+      rspec
     rspec-mocks (3.5.0)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.5.0)
@@ -241,6 +243,7 @@ DEPENDENCIES
   pry-rescue
   pry-stack_explorer
   rspec (>= 2, < 4)
+  rspec-instafail
   rspec-rails
   rspec_junit_formatter
   selenium-webdriver
