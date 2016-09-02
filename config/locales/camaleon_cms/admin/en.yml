@@ -175,6 +175,10 @@ en:
         external: "Upload From URL"
       menus:
         link_url: 'Link URL'
+        target: 'Target'
+        targets:
+          blank: 'Blank'
+          parent: 'Parent'
         message:
           created: 'The nav menu has been created.'
           deleted: 'The nav menu has been delete.'

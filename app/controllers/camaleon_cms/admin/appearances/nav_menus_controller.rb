@@ -53,7 +53,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
 
   def save_custom_settings
     @nav_menu_item = current_site.nav_menu_items.find(params[:id])
-    @nav_menu_item.set_field_values(params[:field_options])
+    @nav_menu_item.set_field_values(params.require(:field_options).permit!)
     render nothing: true
   end
 
@@ -66,8 +66,8 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
   def update_menu_item
     @nav_menu = current_site.nav_menus.find(params[:nav_menu_id])
     item = current_site.nav_menu_items.find(params[:id])
-    item.update_menu_item({label: params[:external_label], link: params[:external_url]})
-    item.set_options(params[:options]) if params[:options].present?
+    item.update_menu_item(parse_external_menu(params))
+    item.set_options(params.require(:options).permit!) if params[:options].present?
     render partial: 'menu_items', locals: {items: [item], nav_menu: @nav_menu}
   end
 
@@ -94,8 +94,8 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
     items = []
     @nav_menu = current_site.nav_menus.find(params[:nav_menu_id])
     if params[:external].present?
-      item = @nav_menu.append_menu_item({label: params[:external][:external_label], link: params[:external][:external_url], type: "external"})
-      item.set_options(params[:external][:options]) if params[:external][:options].present?
+      item = @nav_menu.append_menu_item(parse_external_menu(params[:external]))
+      item.set_options(params[:external].require(:options).permit!) if params[:external][:options].present?
       items << item
     end
 
@@ -146,5 +146,10 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
 
   def check_menu_permission
     authorize! :manage, :menu
+  end
+
+  # return params to be saved for external menu
+  def parse_external_menu(_params)
+    {label: _params[:external_label], link: _params[:external_url], type: "external", target: _params[:target]}
   end
 end
