@@ -187,7 +187,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
 
   # check if current user can manage sites
   def manage_sites?
-    self.main_site? && h.current_user.admin?
+    self.main_site? && h.cama_current_user.admin?
   end
 
   # return the text status of current site

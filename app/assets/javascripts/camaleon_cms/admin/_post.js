@@ -242,7 +242,7 @@ function init_post(obj) {
             if ($(this).valid()) $form.data("submitted", 1);
         });
         window.onbeforeunload = function () {
-            if ($form.data("submitted"))
+            if ($form.data("submitted") || $('#form-post').length == 0)
                 return;
             if ($form.data("hash") != get_hash_form()) {
                 return "You sure to leave the page without saving changes?";
