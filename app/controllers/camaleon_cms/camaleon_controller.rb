@@ -28,6 +28,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
   layout Proc.new { |controller| controller.request.xhr? ? false : 'default' }
+  alias_method :current_user, :cama_current_user
 
   # show page error
   def render_error(status = 404, exception = nil, message = "")

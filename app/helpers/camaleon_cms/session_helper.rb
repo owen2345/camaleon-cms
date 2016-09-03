@@ -119,8 +119,6 @@ module CamaleonCms::SessionHelper
     end
   end
 
-  alias_method :current_user, :cama_current_user
-
   # check if a visitor was logged in
   # if the user was not logged in, then redirect to login url
   def cama_authenticate(redirect_uri = nil)
