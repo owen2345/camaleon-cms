@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   # frontend camaleon cms
   scope PluginRoutes.system_info["relative_url_root"], as: "cama" do
     scope "(:locale)", locale: /#{PluginRoutes.all_locales}/, :defaults => {  } do
-      root 'camaleon_cms/frontend#index'
+      root 'camaleon_cms/frontend#index', as: 'root'
 
       controller "camaleon_cms/frontend" do
         PluginRoutes.all_locales.split("|").each do |_l|

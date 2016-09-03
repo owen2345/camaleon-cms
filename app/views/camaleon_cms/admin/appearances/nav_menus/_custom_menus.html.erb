@@ -20,11 +20,17 @@ r = {custom_menus: {}, menu: @nav_menu}; hooks_run("nav_menu_custom", r) %>
             <div class="tab-pane active class_type">
                 <ul class="">
                     <% r[:custom_menus].each do |k, item| %>
-                        <li>
-                            <label class="class_slug">
-                                <input type="checkbox" value="<%= item[:link] %>" data-label="<%= item[:title] %>"> <%= item[:title] %>
-                            </label>
-                        </li>
+                        <% if item[:link].present? %>
+                            <li>
+                                <label class="class_slug">
+                                    <input type="checkbox" value="<%= item[:link] %>" data-label="<%= item[:title] %>"> <%= item[:title] %>
+                                </label>
+                            </li>
+                        <% else %>
+                            <li>
+                                <h4><%= item[:title] %></h4>
+                            </li>
+                        <% end %>
                     <% end %>
                 </ul>
             </div>

@@ -13,7 +13,7 @@
 
     <div class="row">
         <%= form_for @user, as: "user", url:{action: @user.new_record? ? :create : :update, id: @user.id}, html:{class: 'validate-user  form-horizontal cama_ajax_request', id: "user_form"} do |f| %>
-            <div class="col-md-3 col-sm-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @user} %>
@@ -69,7 +69,7 @@
                 </div>
             </div>
 
-            <div class="col-md-6 col-sm-8">
+            <div class="col-md-6">
                 <div class="panel panel-default">
                     <div class="panel-body form-group-separated">
                         <div class="form-group">

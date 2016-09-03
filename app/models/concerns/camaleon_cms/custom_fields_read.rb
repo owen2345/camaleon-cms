@@ -53,8 +53,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # return collections CustomFieldGroup
   # site: site object
   def get_user_field_groups(site)
-    class_name = self.class.to_s.gsub("Decorator","")
-    site.custom_field_groups.where(object_class: class_name)
+    site.custom_field_groups.where(object_class: self.class.to_s.parseCamaClass)
   end
 
 

@@ -3,6 +3,7 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
   alias_attribute :label, :name
   alias_attribute :url, :description
   alias_attribute :kind, :slug
+  alias_attribute :target, :status
   # attr_accessible :label, :url, :kind
   default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
   has_many :metas, ->{ where(object_class: 'NavMenuItem')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
@@ -31,13 +32,13 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
   # same values of NavMenu#append_menu_item
   # return item created
   def append_menu_item(value)
-    children.create({name: value[:label], url: value[:link], kind: value[:type]})
+    children.create({name: value[:label], url: value[:link], kind: value[:type], target: value[:target]})
   end
 
   # update current menu
-  # value: same as append_menu_item (label, link)
+  # value: same as append_menu_item (label, link, target)
   def update_menu_item(value)
-    self.update({name: value[:label], url: value[:link]})
+    self.update({name: value[:label], url: value[:link], target: value[:target]})
   end
 
   # overwrite skip uniq slug validation
@@ -48,6 +49,7 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
     self.parent.update_column('count', self.parent.children.size) if self.parent.present?
     self.parent_item.update_column('count', self.parent_item.children.size) if self.parent_item.present?
     self.update_column(:term_group, main_menu.parent_id)
+    self.update_column(:term_order, CamaleonCms::NavMenuItem.where(parent_id: self.parent_id).count) # update position
   end
 
   # fast access from site to menu items

@@ -8,12 +8,12 @@ class CamaleonCms::NavMenu < CamaleonCms::TermTaxonomy
   # add menu item for current menu
   # value: (Hash) is a hash object that contains label, type, link
   #   options for type: post | category | post_type | post_tag | external
-  # sample: {label: "my label", type: "external", link: "http://camaleon.tuzitio.com"}
+  # sample: {label: "my label", type: "external", link: "http://camaleon.tuzitio.com", target: '_blank'}
   # sample: {label: "my label", type: "post", link: 10}
   # sample: {label: "my label", type: "category", link: 12}
   # return item created
   def append_menu_item (value)
-    item = children.create!({name: value[:label], url: value[:link], kind: value[:type]})
+    item = children.create!({name: value[:label], url: value[:link], kind: value[:type], target: value[:target]})
     item
   end
 

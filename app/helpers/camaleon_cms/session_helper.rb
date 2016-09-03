@@ -119,8 +119,6 @@ module CamaleonCms::SessionHelper
     end
   end
 
-  alias_method :current_user, :cama_current_user
-
   # check if a visitor was logged in
   # if the user was not logged in, then redirect to login url
   def cama_authenticate(redirect_uri = nil)
@@ -141,7 +139,9 @@ module CamaleonCms::SessionHelper
   private
   # calculate the current user for API
   def cama_calc_api_current_user
-    if !respond_to?(:doorkeeper_token)
+    begin
+      doorkeeper_token
+    rescue NameError
       # hack, this method should be called from a context which has
       # doorkeeper_token defined
       return nil

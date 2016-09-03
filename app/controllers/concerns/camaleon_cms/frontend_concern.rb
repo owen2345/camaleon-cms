@@ -28,7 +28,7 @@ module CamaleonCms::FrontendConcern extend ActiveSupport::Concern
   # save comment from a post
   def save_comment
     @post = current_site.posts.find_by_id(params[:post_id]).decorate
-    user = current_user
+    user = cama_current_user
     comment_data = {}
     if !user.present? && current_site.get_option('permit_anonimos_comment', false)
       user = current_site.get_anonymous_user

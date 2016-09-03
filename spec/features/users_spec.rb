@@ -13,12 +13,13 @@ describe "the Users", js: true do
     end
     expect(page).to have_content("Create User")
     within '#user_form' do
-      fill_in "meta[first_name]", with: 'Test'
-      fill_in "meta[last_name]", with: 'Test Last name'
-      fill_in "meta[slogan]", with: 'My slogannn'
+      fill_in "user[first_name]", with: 'Test'
+      fill_in "user[last_name]", with: 'Test Last name'
+      fill_in "meta[slogan]", with: 'My slogan'
       fill_in "user[username]", with: 'tester'
       fill_in "user[email]", with: 'tester@gmail.com'
       fill_in "user[password]", with: 'tester'
+      fill_in "user[password_confirmation]", with: 'tester'
       find(".user-form-left").click_button "Create"
     end
     expect(page).to have_css('.alert-success')
@@ -36,10 +37,10 @@ describe "the Users", js: true do
       all(".btn-default")[1].click
     end
     within '#user_form' do
-      fill_in "meta[first_name]", with: 'Test updated'
-      fill_in "meta[last_name]", with: 'Test Last name udpated'
-      fill_in "meta[slogan]", with: 'My slogannn updated'
-      fill_in "user[username]", with: 'tester'
+      fill_in "user[first_name]", with: 'Test updated'
+      fill_in "user[last_name]", with: 'Test Last name udpated'
+      fill_in "meta[slogan]", with: 'My slogan updated'
+      fill_in "user[username]", with: 'tester-updated'
       fill_in "user[email]", with: 'tester_updated@gmail.com'
       find(".user-form-left").click_button "Update"
     end
@@ -58,7 +59,6 @@ describe "the Users", js: true do
     end
     wait_for_ajax
     within '#profie-form-ajax-password' do
-      fill_in 'password[password_old]', with: "tester"
       fill_in 'password[password]', with: "tester_new"
       fill_in 'password[password_confirmation]', with: "tester_new"
       click_button "Proccess"
