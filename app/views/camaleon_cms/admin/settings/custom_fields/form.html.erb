@@ -61,7 +61,7 @@
                                     <option value="<%= value %>" data-help="<%= t('camaleon_cms.admin.settings.tooltip.add_custom_field_users') %>"><%= t('camaleon_cms.admin.sidebar.users') %></option>
                                     <% value = "Site,#{current_site.id}" %>
                                     <option value="<%= value %>" data-help="<%= t('camaleon_cms.admin.settings.tooltip.add_custom_field_sites') %>"><%= t('camaleon_cms.admin.sidebar.site_settings') %></option>
-                                    <% @_extra_models_for_fields.each do |model| %>
+                                    <% f_args={models: @_extra_models_for_fields || []}; hooks_run('custom_field_custom_models', f_args); f_args[:models].each do |model| %>
                                         <% value = "#{model.name},#{current_site.id}" %>
                                         <option value="<%= value %>" data-help=""><%= model.name %></option><%= model.name %>
                                     <% end %>

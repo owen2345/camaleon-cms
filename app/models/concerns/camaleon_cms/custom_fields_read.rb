@@ -111,8 +111,8 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     self.field_values.to_a.uniq.each do |field_value|
       custom_field = field_value.custom_fields
       values = custom_field.values.where(objectid: self.id).pluck(:value)
-      fields[field_value.custom_field_slug] = custom_field.options[:multiple].to_s.to_bool ? values : values.first unless include_options
-      fields[field_value.custom_field_slug] = {values: custom_field.options[:multiple].to_s.to_bool ? values : values.first, options: custom_field.options, id: custom_field.id} if include_options
+      fields[field_value.custom_field_slug] = custom_field.cama_options[:multiple].to_s.to_bool ? values : values.first unless include_options
+      fields[field_value.custom_field_slug] = {values: custom_field.cama_options[:multiple].to_s.to_bool ? values : values.first, options: custom_field.cama_options, id: custom_field.id} if include_options
     end
     fields.to_sym
   end
@@ -126,7 +126,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
       custom_field = field_value.custom_fields
       # if custom_field.options[:show_frontend].to_s.to_bool
       values = custom_field.values.where(objectid: self.id).pluck(:value)
-      fields[field_value.custom_field_slug] = custom_field.attributes.merge(options: custom_field.options, values: custom_field.options[:multiple].to_s.to_bool ? values : values.first)
+      fields[field_value.custom_field_slug] = custom_field.attributes.merge(options: custom_field.cama_options, values: custom_field.cama_options[:multiple].to_s.to_bool ? values : values.first)
       # end
     end
     fields.to_sym
