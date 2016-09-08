@@ -236,7 +236,9 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   def set_field_value(key, value, args = {})
     args = {order: 0, group_number: 0, field_id: nil, clear: true}.merge(args)
     args[:field_id] = get_field_object(key).id rescue nil unless args[:field_id].present?
-    return false unless args[:field_id].present?
+    unless args[:field_id].present?
+      raise ArgumentError, "There is no custom field configured for #{key}"
+    end
     self.field_values.where({custom_field_slug: key, group_number: args[:group_number]}).delete_all if args[:clear]
     v = {custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value), term_order: args[:order], group_number: args[:group_number]}
     if value.is_a?(Array)
