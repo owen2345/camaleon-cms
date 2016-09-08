@@ -175,7 +175,13 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
 
   # return field object for current model
   def get_field_object(slug)
-    CamaleonCms::CustomField.where(parent_id: get_field_groups.pluck(:id), slug: slug).first || CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups({include_parent: true})).first
+    CamaleonCms::CustomField.where(
+      slug: slug,
+      parent_id: get_field_groups.pluck(:id),
+    ).first || CamaleonCms::CustomField.where(
+      slug: slug,
+      parent_id: get_field_groups({include_parent: true})
+    ).first
   end
 
   # save all fields sent from browser (reservated for browser request)
