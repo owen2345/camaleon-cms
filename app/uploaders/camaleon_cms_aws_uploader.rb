@@ -23,7 +23,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
   def file_parse(s3_file)
     key = s3_file.is_a?(String) ? s3_file : s3_file.key
     key = "/#{key}" unless key.starts_with?('/')
-    is_dir = File.extname(key) == ''
+    is_dir = s3_file.is_a?(String) || File.extname(key) == ''
     res = {
         "name" => File.basename(key),
         "key" => key,

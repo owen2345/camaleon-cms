@@ -111,8 +111,8 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     self.field_values.to_a.uniq.each do |field_value|
       custom_field = field_value.custom_fields
       values = custom_field.values.where(objectid: self.id).pluck(:value)
-      fields[field_value.custom_field_slug] = custom_field.options[:multiple].to_s.to_bool ? values : values.first unless include_options
-      fields[field_value.custom_field_slug] = {values: custom_field.options[:multiple].to_s.to_bool ? values : values.first, options: custom_field.options, id: custom_field.id} if include_options
+      fields[field_value.custom_field_slug] = custom_field.cama_options[:multiple].to_s.to_bool ? values : values.first unless include_options
+      fields[field_value.custom_field_slug] = {values: custom_field.cama_options[:multiple].to_s.to_bool ? values : values.first, options: custom_field.cama_options, id: custom_field.id} if include_options
     end
     fields.to_sym
   end
@@ -126,7 +126,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
       custom_field = field_value.custom_fields
       # if custom_field.options[:show_frontend].to_s.to_bool
       values = custom_field.values.where(objectid: self.id).pluck(:value)
-      fields[field_value.custom_field_slug] = custom_field.attributes.merge(options: custom_field.options, values: custom_field.options[:multiple].to_s.to_bool ? values : values.first)
+      fields[field_value.custom_field_slug] = custom_field.attributes.merge(options: custom_field.cama_options, values: custom_field.cama_options[:multiple].to_s.to_bool ? values : values.first)
       # end
     end
     fields.to_sym
@@ -175,7 +175,13 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
 
   # return field object for current model
   def get_field_object(slug)
-    CamaleonCms::CustomField.where(parent_id: get_field_groups.pluck(:id), slug: slug).first || CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups({include_parent: true})).first
+    CamaleonCms::CustomField.where(
+      slug: slug,
+      parent_id: get_field_groups.pluck(:id),
+    ).first || CamaleonCms::CustomField.where(
+      slug: slug,
+      parent_id: get_field_groups({include_parent: true})
+    ).first
   end
 
   # save all fields sent from browser (reservated for browser request)
@@ -230,7 +236,9 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   def set_field_value(key, value, args = {})
     args = {order: 0, group_number: 0, field_id: nil, clear: true}.merge(args)
     args[:field_id] = get_field_object(key).id rescue nil unless args[:field_id].present?
-    return false unless args[:field_id].present?
+    unless args[:field_id].present?
+      raise ArgumentError, "There is no custom field configured for #{key}"
+    end
     self.field_values.where({custom_field_slug: key, group_number: args[:group_number]}).delete_all if args[:clear]
     v = {custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value), term_order: args[:order], group_number: args[:group_number]}
     if value.is_a?(Array)

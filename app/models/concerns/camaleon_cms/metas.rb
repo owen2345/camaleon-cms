@@ -42,6 +42,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   def options(meta_key = "_default")
     get_meta(meta_key, {})
   end
+  alias_method :cama_options, :options
 
   # add configuration for current object
   # key: attribute name
@@ -50,7 +51,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # sample: mymodel.set_custom_option("my_settings", "color", "red")
   def set_option(key, value = nil, meta_key = "_default")
     return if key.nil?
-    data = options(meta_key)
+    data = cama_options(meta_key)
     data[key] = fix_meta_var(value)
     set_meta(meta_key, data)
     value
@@ -62,14 +63,14 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # return default if option value == ""
   # return value for attribute
   def get_option(key = nil, default = nil, meta_key = "_default")
-    values = options(meta_key)
+    values = cama_options(meta_key)
     key = key.to_sym
     values.has_key?(key) && values[key] != "" ? values[key] : default
   end
 
   # delete attribute from configuration
   def delete_option(key, meta_key = "_default")
-    values = options(meta_key)
+    values = cama_options(meta_key)
     key = key.to_sym
     values.delete(key) if values.has_key?(key)
     set_meta(meta_key, values)
@@ -79,7 +80,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # h: {ket1: "sdsds", ff: "fdfdfdfd"}
   def set_options(h = {}, meta_key = "_default")
     if h.present?
-      data = options(meta_key)
+      data = cama_options(meta_key)
       PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
       end

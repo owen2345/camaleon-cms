@@ -32,7 +32,7 @@ module CamaleonCms::ThemeHelper
   def theme_asset_url(asset, theme_name = nil)
     p = theme_asset_path(asset, theme_name)
     begin
-      asset_url(p)
+      ActionController::Base.helpers.asset_url(p)
     rescue NoMethodError => e
       p
     end

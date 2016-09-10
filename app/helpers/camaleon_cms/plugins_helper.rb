@@ -117,7 +117,7 @@ module CamaleonCms::PluginsHelper
     key = plugin_key || self_plugin_key(1)
     p = PluginRoutes.plugin_info(key)["gem_mode"] ? "plugins/#{key}/#{asset}" : "plugins/#{key}/assets/#{asset}"
     begin
-      asset_url(p)
+      ActionController::Base.helpers.asset_url(p)
     rescue NoMethodError => e
       p
     end
