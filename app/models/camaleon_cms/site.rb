@@ -126,7 +126,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   # list all users of current site
   def users
     if PluginRoutes.system_info["users_share_sites"]
-      CamaleonCms::User.where(site_id: -1)
+      CamaleonCms::User.all
     else
       CamaleonCms::User.where(site_id: self.id)
     end
