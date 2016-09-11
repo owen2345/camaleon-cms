@@ -24,7 +24,6 @@ class CamaleonCms::User < ActiveRecord::Base
   before_create { generate_token(:auth_token) }
   before_save :before_saved
   before_create :before_saved
-  after_create :set_all_sites
   before_destroy :reassign_posts
   # relations
 
