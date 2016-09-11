@@ -31,7 +31,6 @@ class CamaleonCms::User < ActiveRecord::Base
   has_many :metas, ->{ where(object_class: 'User')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   has_many :user_relationships, class_name: "CamaleonCms::UserRelationship", foreign_key: :user_id, dependent: :destroy#,  inverse_of: :user
   has_many :term_taxonomies, foreign_key: :term_taxonomy_id, class_name: "CamaleonCms::TermTaxonomy", through: :user_relationships, :source => :term_taxonomies
-  has_many :sites, foreign_key: :term_taxonomy_id, class_name: "CamaleonCms::Site", through: :user_relationships, :source => :term_taxonomies
   has_many :all_posts, class_name: "CamaleonCms::Post"
 
   #scopes
@@ -69,10 +68,20 @@ class CamaleonCms::User < ActiveRecord::Base
     @_user_role ||= site.user_roles.where(slug: self.role).first
   end
 
+  # assign a new site for current user
   def assign_site(site)
-    self.user_relationships.where(term_taxonomy_id: site.id).first_or_create
+    self.update_column(:site_id, site.id)
   end
 
+  def sites
+    if PluginRoutes.system_info["users_share_sites"]
+      CamaleonCms::Site.all
+    else
+      CamaleonCms::Site.where(id: self.site_id)
+    end
+  end
+
+  # DEPRECATED, please use user.the_role
   def roleText
     User::ROLE[self.role]
   end
@@ -105,18 +114,13 @@ class CamaleonCms::User < ActiveRecord::Base
   end
 
   private
-  def create_profile
-    self.build_profile if self.profile.nil?
-  end
-
   def before_saved
     self.role = PluginRoutes.system_info["default_user_role"] if self.role.blank?
   end
 
+  # deprecated
   def set_all_sites
-    CamaleonCms::Site.all.each do |site|
-      self.assign_site(site)
-    end
+    return
   end
 
   # reassign all posts of this user to first admin

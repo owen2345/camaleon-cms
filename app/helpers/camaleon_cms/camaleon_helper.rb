@@ -74,4 +74,9 @@ module CamaleonCms::CamaleonHelper
     @_cama_timer = Time.current
   end
 
+  # return normal translation with default value with translation of english
+  def cama_t(key, args = {})
+    args[:default] = I18n.t(key, args.dup.merge(locale: :en)) unless args[:default].present?
+    I18n.t(key, args)
+  end
 end

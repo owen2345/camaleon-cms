@@ -107,6 +107,10 @@ en:
           email: 'Email'
           file: 'File'
           image: 'Image'
+          image_dimension: 'Dimension'
+          image_dimension_descr: 'Crop the image with indicated dimension (widthxheight), sample: 400x300 <br>Possible values: 400x300 | 400x | x300 | ?400x?500 | ?1400x (? => maximum, empty => auto)'
+          image_versions: 'Versions'
+          image_versions_descr: "Create addtional multiple versions of the image uploaded, sample: 300x300,505x350 ==> Will create two extra images with these dimensions"
           numeric: 'Numeric'
           phone: 'Phone'
           users: 'Users'

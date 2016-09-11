@@ -101,6 +101,18 @@
                         </label>
                         <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_image_presentation')}", 'right') %>
                     </div>
+                    <div class="picture_settings" style="margin-left: 30px">
+                        <div class="form-group">
+                            <label><%= cama_t('camaleon_cms.admin.custom_field.fields.image_dimension') %></label>
+                            <%= raw cama_html_tooltip("#{cama_t('camaleon_cms.admin.custom_field.fields.image_dimension_descr')}", 'right') %>
+                            <%= text_field_tag 'meta[posts_image_dimension]', @post_type.get_option('posts_image_dimension'), class: 'form-control' %>
+                        </div>
+                        <div class="form-group">
+                            <label><%= cama_t('camaleon_cms.admin.custom_field.fields.image_versions') %></label>
+                            <%= raw cama_html_tooltip("#{cama_t('camaleon_cms.admin.custom_field.fields.image_versions_descr')}", 'right') %>
+                            <%= text_field_tag 'meta[posts_thumb_versions]', @post_type.get_option('posts_thumb_versions'), class: 'form-control' %>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <input name="meta[has_keywords]" type="hidden" value="false"/>
                         <label class="check0"><input name="meta[has_keywords]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_keywords', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_keywords') %></label>
@@ -141,15 +153,6 @@
     </div>
 <% end %>
 <script>
-    jQuery(function($){
-        var form = $("#post_type_form");
-        form.find('.unput_upload').input_upload();
-        form.find("[name='meta[has_parent_structure]']").change(function(){ // permit hierarchy route only for post types enabled "Manage page hierarchy"
-            var item = form.find("#meta_contents_route_format_hierarchy_post");
-            item.parent().siblings().find("input").prop("disabled", $(this).is(":checked"));
-            if($(this).is(":checked")) item.prop("checked", true).prop("disabled", false);
-            else item.prop("disabled", true)
-        }).trigger("change");
-    });
+    jQuery(function($){ cama_init_posttype_form(); });
 </script>
 
