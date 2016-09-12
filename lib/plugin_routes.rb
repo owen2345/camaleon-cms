@@ -221,6 +221,12 @@ class PluginRoutes
     end
   end
 
+  # check if db migrate already done
+  def self.db_installed?
+    @@is_db_installed ||= (CamaleonCms::Site.order(id: :asc).all.to_a rescue nil)
+    @@is_db_installed != nil
+  end
+
   # return all locales for all sites joined by |
   def self.all_locales
     r = cache_variable("site_all_locales"); return r unless r.nil?
