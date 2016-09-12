@@ -10,7 +10,7 @@
   "db_prefix": "", // prefix name for database tables
   "relative_url_root": "", // URL prefix, for example to get http://localhost:3000/blog/, this should be "blog"
   "admin_path_name": "admin", // URL prefix for admin panel, for example to get http://localhost:3000/sekret/, this should be "sekret"
-
+  "user_model": "", // class name for users (Permit to use custom logins by custom user models like devise)
   "media_slug_folder": false // permit to use site slug for upload media folder instead of site-id
 }
 
