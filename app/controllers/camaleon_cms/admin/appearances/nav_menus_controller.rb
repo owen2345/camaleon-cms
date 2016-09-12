@@ -145,7 +145,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
   helper_method :parse_menu_item
 
   def check_menu_permission
-    authorize! :manage, :menu
+    authorize! :manage, :nav_menu
   end
 
   # return params to be saved for external menu
