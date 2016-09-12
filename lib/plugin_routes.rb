@@ -223,8 +223,7 @@ class PluginRoutes
 
   # check if db migrate already done
   def self.db_installed?
-    @@is_db_installed ||= (CamaleonCms::Site.order(id: :asc).all.to_a rescue nil)
-    @@is_db_installed != nil
+    @@is_db_installed ||= ActiveRecord::Base.connection.table_exists?(CamaleonCms::Site.table_name)
   end
 
   # return all locales for all sites joined by |
