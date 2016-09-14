@@ -163,27 +163,7 @@ http://camaleon.tuzitio.com/license.html
 Visit the web site for more information: http://camaleon.tuzitio.com/
 
 ## Version History
-* 2.1.1.4 (April 8)
-  -   Language by sessions
-  -   Improved Multi language Tab Translations
-  -   Fixed/Improved send emails to use sidekiq or similars
-  -   Tinymce improved
-  -   Added media search
-  -   Post types direct url: http://localhost/my-posttype.html instead of http://localhost/group/id-my-posttype-slug.html
-  -   Admin menu editor -> add custom fields support
-  -   Added plugin for subscriptions/newsletters: https://github.com/owen2345/cama_subscriber
-* Version 2.0
-  -   Support to integrate into existent Ruby in Rails 4 projects
-  -   Moved all files into separated folder to avoid overwritten problems, such as: models, controllers, helpers, ... and also you can define the prefix for your datatables
-  -   Added support to define the prefix url for your the CMS, like: http://localhost.com/blog/
-  -   Improved SQL performance and Javascript performance for admin panel
-  -   Added native support for AWS S3 to manage cloud files
-  -   Added control to define layouts and templates by admin panel
-  -   Rebuilt Media Manager and removed elfinder library
-  -   Added support of multiples permalinks, I.E. you can define the permalink structure for each of content type
-  -   Added PT-br language
-
-See more here: http://camaleon.tuzitio.com/version-history.html
+http://camaleon.tuzitio.com/version-history.html
 
 ## For Testing with Rspec (In progress creating new test and rebuilding current tests)
   - Add this gem into your Gemfile
