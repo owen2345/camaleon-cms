@@ -96,6 +96,16 @@
                         <label class="check0"><input name="meta[has_featured]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_featured', false) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.permit_is_featured', default: 'Permit Featured Articles') %></label>
                     </div>
                     <div class="form-group">
+                        <input name="meta[has_keywords]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_keywords]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_keywords', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_keywords') %></label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_keywords')}", 'right') %>
+                    </div>
+                    <div class="form-group">
+                        <input name="meta[has_parent_structure]" type="hidden" value="false"/>
+                        <label class="check0"><input name="meta[has_parent_structure]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.manage_hierarchy? %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_parent_structure', default: 'Manage page hierarchy') %></label>
+                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_to_support_parent_structure', default: "Permit to posts indicate the parent page")}", 'right') %>
+                    </div>
+                    <div class="form-group">
                         <input name="meta[has_picture]" type="hidden" value="false"/>
                         <label class="check0"><input name="meta[has_picture]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_picture', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_picture') %>
                         </label>
@@ -112,16 +122,11 @@
                             <%= raw cama_html_tooltip("#{cama_t('camaleon_cms.admin.custom_field.fields.image_versions_descr')}", 'right') %>
                             <%= text_field_tag 'meta[posts_thumb_versions]', @post_type.get_option('posts_thumb_versions'), class: 'form-control' %>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <input name="meta[has_keywords]" type="hidden" value="false"/>
-                        <label class="check0"><input name="meta[has_keywords]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_keywords', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_keywords') %></label>
-                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_keywords')}", 'right') %>
-                    </div>
-                    <div class="form-group">
-                        <input name="meta[has_parent_structure]" type="hidden" value="false"/>
-                        <label class="check0"><input name="meta[has_parent_structure]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.manage_hierarchy? %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_parent_structure', default: 'Manage page hierarchy') %></label>
-                        <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_to_support_parent_structure', default: "Permit to posts indicate the parent page")}", 'right') %>
+                        <div class="form-group">
+                            <label><%= cama_t('camaleon_cms.admin.custom_field.fields.image_thumb') %></label>
+                            <%= raw cama_html_tooltip("#{cama_t('camaleon_cms.admin.custom_field.fields.image_thumb_descr', d: current_site.get_option('filesystem_thumb_size', '100x100'))}", 'right') %>
+                            <%= text_field_tag 'meta[posts_thumb_size]', @post_type.get_option('posts_thumb_size'), class: 'form-control' %>
+                        </div>
                     </div>
                 </div>
                 <div role="tabpanel" class="tab-pane" id="post_type_setting_front">

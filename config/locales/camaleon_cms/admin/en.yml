@@ -111,6 +111,8 @@ en:
           image_dimension_descr: 'Crop the image with indicated dimension (widthxheight), sample: 400x300 <br>Possible values: 400x300 | 400x | x300 | ?400x?500 | ?1400x (? => maximum, empty => auto)'
           image_versions: 'Versions'
           image_versions_descr: "Create addtional multiple versions of the image uploaded, sample: 300x300,505x350 ==> Will create two extra images with these dimensions"
+          image_thumb: 'Thumbnail'
+          image_thumb_descr: "Define the dimension for the thumbnail, sample: 100x100. Default: %{d}"
           numeric: 'Numeric'
           phone: 'Phone'
           users: 'Users'
