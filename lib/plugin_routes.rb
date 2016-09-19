@@ -1,6 +1,7 @@
 require 'json'
 class PluginRoutes
   @@_vars = []
+  @@_after_reload = []
   # load plugin routes if it is enabled
   def self.load(env = "admin")
     plugins = all_enabled_plugins
@@ -114,6 +115,12 @@ class PluginRoutes
     @@all_sites = nil
     @@_vars.each { |v| class_variable_set("@@cache_#{v}", nil) }
     Rails.application.reload_routes!
+    @@_after_reload.uniq.each{|r| eval(r) }
+  end
+
+  # permit to add extra actions for reload routes
+  def self.add_after_reload_routes(command)
+    @@_after_reload << command
   end
 
   # return all enabled plugins []
