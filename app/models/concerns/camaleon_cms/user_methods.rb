@@ -12,11 +12,7 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
 
-    validates :username, :presence => true
-    validates :email, :presence => true, :format => { :with => /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i } #, :unless => Proc.new { |a| a.auth_social.present? }
     validates_with CamaleonCms::UniqValidatorUser
-
-    has_secure_password #validations: :auth_social.nil?
 
     before_create { generate_token(:auth_token) }
     before_save :before_saved
@@ -42,10 +38,6 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
   # return all posts of this user on site
   def posts(site)
     site.posts.where(user_id: self.id)
-  end
-
-  def _id
-    "#{self.role.upcase}-#{self.id}"
   end
 
   def fullname

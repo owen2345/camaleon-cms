@@ -6,5 +6,8 @@ unless PluginRoutes.static_system_info['user_model'].present?
     # attr_accessible :is_valid_email
 
     default_scope {order("#{CamaleonCms::User.table_name}.role ASC")}
+    validates :username, :presence => true
+    validates :email, :presence => true, :format => { :with => /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i } #, :unless => Proc.new { |a| a.auth_social.present? }
+    has_secure_password #validations: :auth_social.nil?
   end
 end
