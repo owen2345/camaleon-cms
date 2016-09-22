@@ -49,3 +49,5 @@
 // post
 //= require ./_jquery.tagsinput.min
 //= require ./_post
+
+//= require ./_posttype

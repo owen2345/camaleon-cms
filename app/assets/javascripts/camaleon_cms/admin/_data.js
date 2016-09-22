@@ -1,4 +1,3 @@
-// generate default settings for tinymce editor
 function cama_get_tinymce_settings(settings){
     if(!settings) settings = {};
     var def = {
@@ -63,4 +62,3 @@ function cama_get_tinymce_settings(settings){
     for(var ff in tinymce_global_settings["settings"]) tinymce_global_settings["settings"][ff](settings, def);
     return $.extend({}, def, settings);
 }
-

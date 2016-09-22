@@ -26,11 +26,13 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   end
 
   def update
+    r={user: @user}; hooks_run('user_update', r)
     if @user.update(params.require(:user).permit!)
       @user.set_metas(params[:meta]) if params[:meta].present?
       @user.set_field_values(params[:field_options])
       r = {user: @user, message: t('camaleon_cms.admin.users.message.updated'), params: params}; hooks_run('user_after_edited', r)
       flash[:notice] = r[:message]
+      r={user: @user}; hooks_run('user_updated', r)
       if cama_current_user.id == @user.id
         redirect_to action: :profile_edit
       else
@@ -65,6 +67,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   def create
     user_data = params.require(:user).permit!
     @user = current_site.users.new(user_data)
+    r={user: @user}; hooks_run('user_create', r)
     if @user.save
       @user.set_metas(params[:meta]) if params[:meta].present?
       @user.set_field_values(params[:field_options])

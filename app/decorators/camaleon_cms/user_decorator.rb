@@ -49,6 +49,10 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
     h.current_site.posts.where(user_id: object.id)
   end
 
+  def self.object_class_name
+    'CamaleonCms::User'
+  end
+
   private
 
   def avatar_exists?

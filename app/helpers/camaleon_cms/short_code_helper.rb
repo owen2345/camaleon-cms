@@ -141,7 +141,7 @@ module CamaleonCms::ShortCodeHelper
     if @_shortcodes_template[code].class.name == "Proc"
       res = @_shortcodes_template[code].call(_shortcode_parse_attr(attrs), args)
     else
-      res = render :file => template, :locals => {attributes: _shortcode_parse_attr(attrs), args: args}
+      res = render :file => template, :locals => {attributes: _shortcode_parse_attr(attrs), args: args}, formats: [:html]
     end
     res
   end

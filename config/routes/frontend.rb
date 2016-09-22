@@ -54,7 +54,7 @@ Rails.application.routes.draw do
         end
 
         # posts
-        constraints(format: /html|rss/) do
+        constraints(format: /html|rss|json/) do
           get ':parent_title/*slug(.:format)' => :post, as: :hierarchy_post, constraints:{ parent_title: /(?!(#{PluginRoutes.all_locales}))[\w\-]+/, slug: /[a-zA-Z0-9_=\s\-\/]+/ }
           get ":slug(.:format)" => :post, :as => :post, constraints: { slug: /[a-zA-Z0-9_=\s\-]+/}
         end

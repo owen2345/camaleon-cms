@@ -1,4 +1,5 @@
 class CamaleonCms::Admin::Appearances::ThemesController < CamaleonCms::AdminController
+  before_action :check_theme_permission
   # list themes or update a theme status
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.appearance")
   def index
@@ -19,5 +20,10 @@ class CamaleonCms::Admin::Appearances::ThemesController < CamaleonCms::AdminCont
 
   def preview
     render layout: false
+  end
+
+  private
+  def check_theme_permission
+    authorize! :manage, :themes
   end
 end
