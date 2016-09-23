@@ -8,7 +8,7 @@ module CamaleonCms::EmailHelper
   # attachs: array of files to be attached to the email
   # layout_name: path of the template to render
   # template_name: template name to render in template_path
-  def send_email(email, subject='Tiene una notificacion', content='', from=nil, attachs=[], template_name = nil, layout_name = nil, extra_data = {})
+  def send_email(email, subject='Notification', content='', from=nil, attachs=[], template_name = nil, layout_name = nil, extra_data = {})
     args = {attachs: attachs, extra_data: extra_data}
     args[:template_name] = template_name if template_name.present?
     args[:layout_name] = layout_name if layout_name.present?
