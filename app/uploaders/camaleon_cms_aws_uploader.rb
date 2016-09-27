@@ -19,6 +19,17 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     objects
   end
 
+  def objects(prefix = '/')
+    if @aws_settings["inner_folder"].present?
+      prefix = "#{@aws_settings["inner_folder"]}/#{prefix}".gsub('//', '/')
+      prefix = prefix[0..-2] if prefix.end_with?('/')
+    end
+
+    prefix = "/#{prefix}" unless prefix.starts_with?('/')
+    db = @current_site.get_meta(cache_key, nil) || browser_files
+    db[prefix.gsub('//', '/')] || {files: {}, folders: {}}
+  end
+
   # parse an AWS file into custom file_object
   def file_parse(s3_file)
     key = s3_file.is_a?(String) ? s3_file : s3_file.key
@@ -51,6 +62,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
   #   - is_thumb: true => if this file is a thumbnail of an uploaded file
   def add_file(uploaded_io_or_file_path, key, args = {})
     args, res = {same_name: false, is_thumb: false}.merge(args), nil
+    key = "#{@aws_settings["inner_folder"]}/#{key}" if @aws_settings["inner_folder"].present? && !args[:is_thumb]
     key = search_new_key(key) unless args[:same_name]
     s3_file = bucket.object(key.split('/').clean_empty.join('/'))
     s3_file.upload_file(uploaded_io_or_file_path.is_a?(String) ? uploaded_io_or_file_path : uploaded_io_or_file_path.path, acl: 'public-read')
@@ -60,6 +72,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
 
   # add new folder to AWS with :key
   def add_folder(key)
+    key = "#{@aws_settings["inner_folder"]}/#{key}" if @aws_settings["inner_folder"].present?
     s3_file = bucket.object(key.split('/').clean_empty.join('/') << '/')
     s3_file.put(body: nil)
     cache_item(file_parse(s3_file))
@@ -68,12 +81,14 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
 
   # delete a folder in AWS with :key
   def delete_folder(key)
+    key = "#{@aws_settings["inner_folder"]}/#{key}" if @aws_settings["inner_folder"].present?
     bucket.objects(prefix: key.split('/').clean_empty.join('/') << '/').delete
     reload
   end
 
   # delete a file in AWS with :key
   def delete_file(key)
+    key = "#{@aws_settings["inner_folder"]}/#{key}" if @aws_settings["inner_folder"].present?
     bucket.object(key.split('/').clean_empty.join('/')).delete rescue ''
     reload
   end
