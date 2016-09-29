@@ -1,4 +1,6 @@
 module CamaleonCms::HooksHelper
+  include CamaleonCms::PluginsHelper
+  
   # execute hooks for plugin_key with action name hook_key
   # non public method
   # plugin: plugin configuration (config.json)
