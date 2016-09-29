@@ -53,6 +53,8 @@ RSpec.configure do |config|
   # assertions if you prefer.
   config.include Rails.application.routes.url_helpers if defined? Rails
   config.expect_with :rspec do |expectations|
+    expectations.syntax = :should
+    
     # This option will default to `true` in RSpec 4. It makes the `description`
     # and `failure_message` of custom matchers include text for helper methods
     # defined using `chain`, e.g.:
