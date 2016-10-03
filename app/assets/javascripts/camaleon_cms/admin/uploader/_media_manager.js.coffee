@@ -255,7 +255,7 @@ $ ->
     )
 
 
-# jquery library for modal updaloder
+# jquery library for modal uploader
 $ ->
   # sample: $.fn.upload_filemanager({title: "My title", formats: "image,video", dimension: "30x30", versions: '100x100,200x200', thumb_size: '100x100', selected: function(file){ alert(file["name"]) }})
   # file structure: {"name":"422.html","size":1547, "url":"http://localhost:3000/media/1/422.html", "format":"doc","type":"text/html"}

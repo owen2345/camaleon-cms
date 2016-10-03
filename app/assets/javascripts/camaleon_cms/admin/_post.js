@@ -282,7 +282,7 @@ function init_post(obj) {
     }
 }
 
-// thumbnail updloader
+// thumbnail uploader
 function upload_feature_image(data) {
     $.fn.upload_filemanager($.extend({
         formats: "image",
