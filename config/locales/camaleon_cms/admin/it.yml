@@ -334,7 +334,7 @@ it:
         filesystem_cdn: 'CDN url'
         filesystem_thumb_size: 'Dimensione minuature [100x100]'
         filesystem_max_file_size: 'Dimensione massima dei file [MB]'
-        aws: 'Salva file in AWS3'
+        aws: 'Salva file in AWS S3'
         information_basic: 'Informazioni principali'
         theme_setting: "Impostazioni tema"
         input_only_date: 'Inserisci solo la data'

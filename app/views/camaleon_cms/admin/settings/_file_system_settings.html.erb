@@ -1,6 +1,6 @@
 <div id="tab-filesystem_settings" class="<%= 'active' if 'filesystem' == params[:tab] %> tab-pane ">
     <div class="form-group">
-        <%= label_tag t('camaleon_cms.admin.settings.aws', default: "Save Files in AWS3") %><br>
+        <%= label_tag t('camaleon_cms.admin.settings.aws', default: "Save Files in AWS S3") %><br>
         <%= check_box :options, :filesystem_type, {checked: @site.get_option("filesystem_type") == "s3"}, "s3", "local" %>
     </div>
     <div class="toggleable">
