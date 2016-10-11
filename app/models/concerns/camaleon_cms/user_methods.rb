@@ -15,8 +15,7 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     validates_with CamaleonCms::UniqValidatorUser
 
     before_create { generate_token(:auth_token) }
-    before_save :cama_before_save
-    before_create :cama_before_save
+    before_validation :cama_before_validation
     before_destroy :reassign_posts
     # relations
 
@@ -107,7 +106,7 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
   end
 
   private
-  def cama_before_save
+  def cama_before_validation
     self.role = PluginRoutes.system_info["default_user_role"] if self.role.blank?
     if self.email
       self.email = self.email.downcase
