@@ -2,8 +2,15 @@ class CamaleonCms::UniqValidatorUser < ActiveModel::Validator
   def validate(record)
     users = CamaleonCms::User.all
     users = CamaleonCms::User.where(site_id: record.site_id) unless PluginRoutes.system_info["users_share_sites"]
-    record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_username')}" if users.where(username: record.username).where.not(id: record.id).size > 0
-    record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_email')}" if users.where(email: record.email).where.not(id: record.id).size > 0
+    if record.persisted?
+      users = users.where.not(id: record.id)
+    end
+    if users.by_username(record.username).size > 0
+      record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_username')}"
+    end
+    if users.by_email(record.email).size > 0
+      record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_email')}"
+    end
   end
 end
 
@@ -32,6 +39,16 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     #vars
     STATUS = {0 => 'Active', 1=>'Not Active'}
     ROLE = { 'admin'=>'Administrator', 'client' => 'Client'}
+  end
+  
+  class_methods do
+    def by_email(email)
+      where(['lower(email) = ?', email.downcase])
+    end
+    
+    def by_username(username)
+      where(['lower(username) = ?', username.downcase])
+    end
   end
 
   # return all posts of this user on site
