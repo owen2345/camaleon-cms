@@ -2,7 +2,7 @@ class CamaleonCms::UniqValidatorUser < ActiveModel::Validator
   def validate(record)
     users = CamaleonCms::User.all
     users = CamaleonCms::User.where(site_id: record.site_id) unless PluginRoutes.system_info["users_share_sites"]
-    if users.where(username: record.username).where.not(id: record.id).size > 0
+    if users.by_username(record.username).where.not(id: record.id).size > 0
       record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_username')}"
     end
     if users.where(email: record.email).where.not(id: record.id).size > 0
