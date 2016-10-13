@@ -5,7 +5,7 @@ class CamaleonCms::UniqValidatorUser < ActiveModel::Validator
     if users.by_username(record.username).where.not(id: record.id).size > 0
       record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_username')}"
     end
-    if users.where(email: record.email).where.not(id: record.id).size > 0
+    if users.by_email(record.email).where.not(id: record.id).size > 0
       record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_email')}"
     end
   end
@@ -39,6 +39,10 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
   end
   
   class_methods do
+    def by_email(email)
+      where(['lower(email) = ?', email.downcase])
+    end
+    
     def by_username(username)
       where(['lower(username) = ?', username.downcase])
     end
