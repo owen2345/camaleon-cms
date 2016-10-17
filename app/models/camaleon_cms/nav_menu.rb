@@ -15,7 +15,7 @@ class CamaleonCms::NavMenu < CamaleonCms::TermTaxonomy
   # value: (Hash) is a hash object that contains label, type, link
   #   options for type: post | category | post_type | post_tag | external
   # sample: {label: "my label", type: "external", link: "http://camaleon.tuzitio.com",
-  #	  target: '_blank'}
+  #   target: '_blank'}
   # sample: {label: "my label", type: "post", link: 10}
   # sample: {label: "my label", type: "category", link: 12}
   # return item created
