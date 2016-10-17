@@ -30,7 +30,7 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
 
   # check if this menu have children
   def have_children?
-    children.count != 0
+    children.any?
   end
 
   # add sub menu for a menu item
