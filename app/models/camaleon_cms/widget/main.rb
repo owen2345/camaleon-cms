@@ -18,21 +18,21 @@ class CamaleonCms::Widget::Main < CamaleonCms::TermTaxonomy
   before_save :check_excerpt
 
   def is_simple?
-    status == "simple"
+    status == 'simple'
   end
 
   def excerpt=(value)
     @excerpt = value
   end
   def excerpt
-    get_option("excerpt")
+    get_option('excerpt')
   end
 
   def renderer=(value)
     @renderer = value
   end
   def renderer
-    get_option("renderer")
+    get_option('renderer')
   end
 
   def short_code
