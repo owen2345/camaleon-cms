@@ -1,7 +1,7 @@
 class CamaleonCms::PostDefault < ActiveRecord::Base
   include CamaleonCms::Metas
   include CamaleonCms::CustomFieldsRead
-  
+
   self.table_name = "#{PluginRoutes.static_system_info["db_prefix"]}posts"
 
   # attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, 
