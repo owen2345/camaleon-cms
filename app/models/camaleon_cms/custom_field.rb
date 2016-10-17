@@ -30,6 +30,6 @@ class CamaleonCms::CustomField < ActiveRecord::Base
 
   def before_validating
     slug = name if slug.blank?
-    slug = slug.to_s.parameterize
+    slug.to_s.parameterize
   end
 end
