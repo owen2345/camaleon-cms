@@ -1,5 +1,6 @@
 window["cama_init_media"] = (media_panel) ->
   media_info = media_panel.find(".media_file_info")
+  media_files_panel = media_panel.find(".media_browser_list")
   media_info_tab_info = media_panel.find(".media_file_info_col .nav-tabs .link_media_info")
   media_link_tab_upload = media_panel.find(".media_file_info_col .nav-tabs .link_media_upload")
 
@@ -66,6 +67,11 @@ window["cama_init_media"] = (media_panel) ->
     show_file($(this))
     return false
   )
+
+  media_files_panel.scroll(->
+    if media_files_panel.attr('data-next-page') && $(this).scrollTop() + $(this).outerHeight() == $(this)[0].scrollHeight
+      media_panel.trigger('navigate_to', {paginate: true, custom_params: {page: media_files_panel.attr('data-next-page')}})
+  )
   # end visualize item
 
   ########## file uploader
@@ -131,37 +137,39 @@ window["cama_init_media"] = (media_panel) ->
       media_panel.attr("data-folder", data["folder"])
     folder = media_panel.attr("data-folder")
     media_panel.trigger("update_breadcrumb")
-    media_info.html("")
-    media_link_tab_upload.click()
+    req_params = cama_media_get_custom_params({partial: true, folder: folder})
+    if data["paginate"]
+      req_params = media_panel.data('last_req_params') || req_params
+    else
+      media_info.html("")
+      media_link_tab_upload.click()
 
+    media_panel.data('last_req_params', $.extend({}, req_params, data['custom_params'] || {}))
     showLoading()
-    $.get(media_panel.attr("data-url"), cama_media_get_custom_params({partial: true, folder: folder}), (res)->
-      media_panel.find(".media_browser_list").html(res)
+    $.getJSON(media_panel.attr("data-url"), media_panel.data('last_req_params'), (res)->
+      if data["paginate"]
+        last_folder = media_files_panel.children('.folder_item:first')
+        if last_folder.length ==1 then last_folder.before(res.html) else  media_files_panel.append(res.html)
+      else
+        media_files_panel.html(res.html)
+      media_files_panel.attr('data-next-page', res.next_page)
       hideLoading()
     )
   ).bind("add_file", (e,  data)-> # add html item in the list
     item = $(data["item"])
-    media_panel.find(".media_browser_list").prepend(item)
+    media_files_panel.prepend(item)
     if data["selected"] == true || data["selected"] == undefined
       item.click()
   )
 
   # search file
   media_panel.find('#cama_search_form').submit ->
-    showLoading()
-    $.get(media_panel.attr("data-url"), cama_media_get_custom_params({search: $(this).find('input:text').val(), partial: true}), (res)->
-      media_panel.find(".media_browser_list").html(res)
-      hideLoading()
-    )
+    media_panel.trigger('navigate_to', {custom_params: {search: $(this).find('input:text').val()}})
     return false
 
   # reload current directory
-  media_panel.find('.cam_media_reload').click (e)->
-    showLoading()
-    $.get(media_panel.attr("data-url"), cama_media_get_custom_params({partial: true, cama_media_reload: $(this).attr('data-action')}), (res)->
-      media_panel.find(".media_browser_list").html(res)
-      hideLoading()
-    )
+  media_panel.find('.cam_media_reload').click (e, data)->
+    media_panel.trigger('navigate_to', {custom_params:{cama_media_reload: $(this).attr('data-action')}})
     e.preventDefault()
 
   # element actions
@@ -181,7 +189,7 @@ window["cama_init_media"] = (media_panel) ->
           hideLoading()
           modal.modal("hide")
           if res.search("folder_item") >= 0 # success upload
-            media_panel.find(".media_browser_list").append(res)
+            media_files_panel.append(res)
           else
             $.fn.alert({type: 'error', content: res, title: "Error"})
         )
