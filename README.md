@@ -36,6 +36,7 @@
   Add in your Gemfile
   ```
   gem 'activemodel-serializers-xml', git: 'https://github.com/rails/activemodel-serializers-xml'
+  gem 'draper', github: 'audionerd/draper', branch: 'rails5'
   ```
   Create a file "lib/rails/test_unit/sub_test_task.rb" in your project (draper patch)
   ```
