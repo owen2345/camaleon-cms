@@ -12,7 +12,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
   def browser_files
     objects = {}
     objects['/'] = {files: {}, folders: {}}
-    bucket.objects.each do |file|
+    bucket.objects(@aws_settings["inner_folder"].present? ? {prefix: @aws_settings["inner_folder"]} : nil).each do |file|
       cache_item(file_parse(file), objects)
     end
     @current_site.set_meta(cache_key, objects)
