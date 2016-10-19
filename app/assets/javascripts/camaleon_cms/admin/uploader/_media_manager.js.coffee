@@ -148,8 +148,8 @@ window["cama_init_media"] = (media_panel) ->
     showLoading()
     $.getJSON(media_panel.attr("data-url"), media_panel.data('last_req_params'), (res)->
       if data["paginate"]
-        last_folder = media_files_panel.children('.folder_item:first')
-        if last_folder.length ==1 then last_folder.before(res.html) else  media_files_panel.append(res.html)
+        last_folder = media_files_panel.children('.folder_item:last')
+        if last_folder.length ==1 then last_folder.after(res.html) else  media_files_panel.append(res.html)
       else
         media_files_panel.html(res.html)
       media_files_panel.attr('data-next-page', res.next_page)

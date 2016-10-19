@@ -7,6 +7,10 @@ module CamaleonCms::SessionHelper
     c[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && CamaleonCms::Site.count > 1
     c[:expires] = 1.month.from_now if remember_me
 
+    # fix to overwrite a cookie
+    cookies.delete(:auth_token, domain: :all)
+    cookies.delete(:auth_token)
+
     user.update({last_login_at: Time.zone.now})
     cookies[:auth_token] = c
 
