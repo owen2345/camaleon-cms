@@ -1,4 +1,4 @@
-<% (files rescue {file['name'] => file}).each do |k, file| next if @media_formats.present? && !@media_formats.include?(file["format"]) && !@media_formats.include?(file["url"].split('.').last) %>
+<% files.each do |file| next if @media_formats.present? && !@media_formats.include?(file["format"]) && !@media_formats.include?(file["url"].split('.').last) %>
     <% file['url'] = download_private_file_cama_admin_media_url(file: file[:url]) if params[:private].present? %>
     <div class="media_item file_item <%= file["format"] %>_format" data-key="<%= file["name"] %>">
         <div class="thumb">

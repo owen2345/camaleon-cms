@@ -1,3 +1,4 @@
+require 'will_paginate/array'
 class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   skip_before_action :admin_logged_actions, except: [:index, :download_private_file], raise: false
   skip_before_action :verify_authenticity_token, only: :upload, raise: false
@@ -7,6 +8,8 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   def index
     authorize! :manage, :media
     @show_file_actions = true
+    @files = @tree[:files].map{|k,v|v}.paginate(page: params[:page], per_page: 100)
+    @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
   end
 
@@ -35,10 +38,13 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
       @show_file_actions = true
     end
     @tree = cama_uploader.search(params[:search]) if params[:search].present?
+    @files = @tree[:files].map{|k,v|v}.paginate(page: params[:page], per_page: 100)
+    @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
     if params[:partial].present?
-      render partial: "files_list", locals: { files: @tree[:files], folders: @tree[:folders] }
+      render json: {next_page: @next_page, html: render_to_string(partial: "files_list", locals: { files: @files, folders: params[:page].present? ? [] : @tree[:folders] })}
+    else
+      render "index", layout: false unless params[:partial].present?
     end
-    render "index", layout: false unless params[:partial].present?
   end
 
   # do background actions in fog
@@ -74,7 +80,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
       f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats], versions: params[:versions], thumb_size: params[:thumb_size]}.merge(settings))
     end
 
-    render(partial: "render_file_item", locals:{ file: f }) unless f[:error].present?
+    render(partial: "render_file_item", locals:{ files: [f] }) unless f[:error].present?
     render inline: f[:error] if f[:error].present?
   end
 

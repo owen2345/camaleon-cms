@@ -20,7 +20,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
     data_user = user_permit_data
     cipher = Gibberish::AES::CBC.new(cama_get_session_id)
     data_user[:password] = cipher.decrypt(data_user[:password]) rescue nil
-    @user = current_site.users.find_by_username(data_user[:username])
+    @user = current_site.users.by_username(data_user[:username]).first
     captcha_validate = captcha_verify_if_under_attack("login")
     r = {user: @user, params: params, password: data_user[:password], captcha_validate: captcha_validate, stop_process: false}; hooks_run("user_before_login", r)
     return if r[:stop_process] # permit to redirect for data completion

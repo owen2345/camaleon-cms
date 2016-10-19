@@ -7,6 +7,10 @@ module CamaleonCms::SessionHelper
     c[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && CamaleonCms::Site.count > 1
     c[:expires] = 1.month.from_now if remember_me
 
+    # fix to overwrite a cookie
+    cookies.delete(:auth_token, domain: :all)
+    cookies.delete(:auth_token)
+
     user.update({last_login_at: Time.zone.now})
     cookies[:auth_token] = c
 
@@ -24,7 +28,7 @@ module CamaleonCms::SessionHelper
   # login a user using username and password
   # return boolean: true => authenticated, false => authentication failed
   def login_user_with_password(username, password)
-    @user = current_site.users.find_by_username(username)
+    @user = current_site.users.by_username(username).first
     r = {user: @user, params: params, password: password, captcha_validate: true}; hooks_run('user_before_login', r)
     @user && @user.authenticate(password)
   end
@@ -108,13 +112,13 @@ module CamaleonCms::SessionHelper
     return @cama_current_user if defined?(@cama_current_user)
     # api current user...
     @cama_current_user = cama_calc_api_current_user
-    return @cama_current_user unless @cama_current_user.nil?
+    return @cama_current_user if @cama_current_user
 
     return nil unless cookies[:auth_token].present?
     c = cookies[:auth_token].split("&")
     return nil unless c.size == 3
 
-    if c[1] == request.user_agent && request.ip == c[2]
+    if c[1] == request.user_agent.to_s && request.ip == c[2]
       @cama_current_user = current_site.users_include_admins.find_by_auth_token(c[0]).try(:decorate)
     end
   end
