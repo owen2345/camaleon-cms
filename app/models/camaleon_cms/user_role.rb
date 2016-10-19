@@ -1,21 +1,20 @@
 class CamaleonCms::UserRole < CamaleonCms::TermTaxonomy
   default_scope { where(taxonomy: :user_roles) }
-
-  has_many :metas, -> { where(object_class: 'UserRole') }, class_name: 'CamaleonCms::Meta',
-    foreign_key: :objectid, dependent: :destroy
-  belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id
+  has_many :metas, ->{ where(object_class: 'UserRole')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
 
   def roles_post_type
-    get_meta("_post_type")
+    self.get_meta("_post_type")
   end
 
   def roles_manager
-    get_meta("_manager")
+    self.get_meta("_manager")
   end
 
   def editable?
-    term_group.nil?
+      term_group.nil?
   end
+
 
   ROLES = {
       post_type: [

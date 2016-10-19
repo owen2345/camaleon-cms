@@ -3,19 +3,16 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
     # options and metas auto save support
     attr_accessor :data_options
     attr_accessor :data_metas
-
     after_create  :save_metas_options, unless: :save_metas_options_skip
     before_update :fix_save_metas_options_no_changed
 
-    has_many :metas, ->(object){ where(object_class: object.class.to_s.gsub("Decorator","")
-      .gsub("CamaleonCms::", "")) }, class_name: 'CamaleonCms::Meta', foreign_key: :objectid,
-      dependent: :delete_all
+    has_many :metas, ->(object){ where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::", "")) }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
   end
 
   # Add meta with value or Update meta with key: key
   # return true or false
   def set_meta(key, value)
-    metas.where(key: key).update_or_create({ value: fix_meta_value(value) })
+    metas.where(key: key).update_or_create({value: fix_meta_value(value)})
     cama_set_cache("meta_#{key}", value)
   end
 
@@ -96,7 +93,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   # sample: set_metas({name: 'Owen', email: 'owenperedo@gmail.com'})
   def set_metas(data_metas)
     (data_metas.nil? ? {} : data_metas).each do |key, value|
-      set_meta(key, value)
+      self.set_meta(key, value)
     end
   end
 
@@ -110,10 +107,8 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
     save_metas_options #unless self.changed?
   end
 
-  # save all settings for this post type received in data_options and data_metas 
-  #  attribute (options and metas)
-  # sample: Site.first.post_types.create({name: "owen", slug: "my_post_type", 
-  #  data_options: { has_category: true, default_layout: "my_layout" }})
+  # save all settings for this post type received in data_options and data_metas attribute (options and metas)
+  # sample: Site.first.post_types.create({name: "owen", slug: "my_post_type", data_options: { has_category: true, default_layout: "my_layout" }})
   def save_metas_options
     set_multiple_options(data_options)
     if data_metas.present?
@@ -124,7 +119,6 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   end
 
   private
-
   # fix to parse value
   def fix_meta_value(value)
     if (value.is_a?(Array) || value.is_a?(Hash) || value.is_a?(ActionController::Parameters))
