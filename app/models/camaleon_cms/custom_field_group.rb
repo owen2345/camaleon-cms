@@ -130,7 +130,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
       end
       (options[:default_values] || [options[:default_value]] || []).each do |value|
         owner.field_values.create!(custom_field_id: field.id, custom_field_slug: field.slug,
-          value: fix_meta_value(value)}) if owner.present?
+          value: fix_meta_value(value)) if owner.present?
       end
     end
   end
