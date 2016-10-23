@@ -10,9 +10,10 @@ class CamaleonCms::Ability
     elsif user.client?
       can :read, :all
     else
-      #conditions:
-      @roles_manager ||= (user.get_role(current_site).get_meta("_manager_#{current_site.id.to_s}", {}) || {})
-      @roles_post_type ||= (user.get_role(current_site).get_meta("_post_type_#{current_site.id.to_s}", {}) || {})
+      # conditions:
+      current_user_role = user.get_role(current_site)
+      @roles_manager ||= current_user_role.get_meta("_manager_#{current_site.id}", {}) || {}
+      @roles_post_type ||= current_user_role.get_meta("_post_type_#{current_site.id}", {}) || {}
 
       ids_publish = @roles_post_type[:publish] || []
       ids_edit = @roles_post_type[:edit] || []
@@ -49,26 +50,25 @@ class CamaleonCms::Ability
       can :update, CamaleonCms::Post do |post|
         pt_id = post.post_type.id
         r = false
-        r ||= (ids_edit).to_i.include?(pt_id) && post.user_id == user.id rescue false
-        r ||= (ids_edit_publish).to_i.include?(pt_id) && post.published? rescue false
-        r ||= (ids_edit_other).to_i.include?(pt_id) && post.user_id != user.id rescue false
+        r ||= ids_edit.to_i.include?(pt_id) && post.user_id == user.id rescue false
+        r ||= ids_edit_publish.to_i.include?(pt_id) && post.published? rescue false
+        r ||= ids_edit_other.to_i.include?(pt_id) && post.user_id != user.id rescue false
         r
       end
 
       can :destroy, CamaleonCms::Post do |post|
         pt_id = post.post_type.id
         r = false
-        r ||= (ids_delete).to_i.include?(pt_id) && post.user_id == user.id rescue false
-        r ||= (ids_delete_publish).to_i.include?(pt_id) && post.published? rescue false
-        r ||= (ids_delete_other).to_i.include?(pt_id) && post.user_id != user.id rescue false
+        r ||= ids_delete.to_i.include?(pt_id) && post.user_id == user.id rescue false
+        r ||= ids_delete_publish.to_i.include?(pt_id) && post.published? rescue false
+        r ||= ids_delete_other.to_i.include?(pt_id) && post.user_id != user.id rescue false
         r
       end
 
-
-      #others
+      # others
       can :manage, :media     if @roles_manager[:media] rescue false
       can :manage, :comments  if @roles_manager[:comments] rescue false
-      #can :manage, :forms     if @roles_manager[:forms] rescue false
+      # can :manage, :forms     if @roles_manager[:forms] rescue false
       can :manage, :themes    if @roles_manager[:themes] rescue false
       can :manage, :widgets   if @roles_manager[:widgets] rescue false
       can :manage, :nav_menu  if @roles_manager[:nav_menu] rescue false
@@ -81,18 +81,17 @@ class CamaleonCms::Ability
     end
   end
 
-  #overwrite can method to support decorator class names
+  # overwrite can method to support decorator class names
   def can?(action, subject, *extra_args)
     if subject.is_a?(Draper::Decorator)
       super(action,subject.model,*extra_args)
     else
-      super(action,subject,*extra_args)
+      super(action, subject, *extra_args)
     end
   end
 
-  #overwrite cannot method to support decorator class names
+  # overwrite cannot method to support decorator class names
   def cannot?(*args)
     !can?(*args)
   end
-
 end
