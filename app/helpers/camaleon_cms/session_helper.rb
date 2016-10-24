@@ -70,7 +70,7 @@ module CamaleonCms::SessionHelper
   # after switched, this will be redirected to redirect_url or admin dashboard
   def session_switch_user(user, redirect_url = nil)
     if cama_sign_in?
-      cookies[:parent_auth_token] = cookies[:auth_token]
+      session[:parent_auth_token] = cookies[:auth_token]
       login_user(user, false, redirect_url)
     end
   end
@@ -78,9 +78,9 @@ module CamaleonCms::SessionHelper
   # switch current session into parent session called by session_switch_user
   # after returned into parent session, this will be redirected to redirect_url or admin dashboard
   def session_back_to_parent(redirect_url = nil)
-    if cama_sign_in? && cookies[:parent_auth_token].present?
-      cookies[:auth_token] = cookies[:parent_auth_token]
-      cookies.delete(:parent_auth_token)
+    if cama_sign_in? && session[:parent_auth_token].present?
+      cookies[:auth_token] = session[:parent_auth_token]
+      session.delete(:parent_auth_token)
       redirect_to (redirect_url || cama_admin_dashboard_path), notice: "Welcome back!"
     end
   end
