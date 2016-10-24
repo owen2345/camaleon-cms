@@ -1,7 +1,7 @@
 class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   before_action :validate_role, except: [:profile, :profile_edit]
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.users"), :cama_admin_users_url
-  before_action :set_user, only: ['show', 'edit', 'update', 'destroy']
+  before_action :set_user, only: [:show, :edit, :update, :destroy, :impersonate]
 
   def index
     add_breadcrumb I18n.t("camaleon_cms.admin.users.list_users")
@@ -85,6 +85,11 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
       r={user: @user}; hooks_run('user_destroyed', r)
     end
     redirect_to action: :index
+  end
+
+  def impersonate
+    authorize! :impersonate, @user
+    session_switch_user(@user, cama_admin_dashboard_path)
   end
 
   private

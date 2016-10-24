@@ -551,6 +551,7 @@ en:
         message:
           updated: 'Theme updated'
       users:
+        impersonate: 'Impersonate'
         all_users: 'All Users'
         add_user: 'Add User'
         add_user_role: 'Add User Role'

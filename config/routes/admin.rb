@@ -41,6 +41,7 @@ Rails.application.routes.draw do
         match 'profile/edit' => "users#profile_edit", via: [:get, :post, :patch]
         resources :users, controller: 'users' do
           patch 'updated_ajax'
+          get :impersonate, on: :member
         end
 
         resources :user_roles, controller: 'user_roles' do

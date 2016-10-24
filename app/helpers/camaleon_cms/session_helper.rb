@@ -80,6 +80,7 @@ module CamaleonCms::SessionHelper
   def session_back_to_parent(redirect_url = nil)
     if cama_sign_in? && cookies[:parent_auth_token].present?
       cookies[:auth_token] = cookies[:parent_auth_token]
+      cookies.delete(:parent_auth_token)
       redirect_to (redirect_url || cama_admin_dashboard_path), notice: "Welcome back!"
     end
   end

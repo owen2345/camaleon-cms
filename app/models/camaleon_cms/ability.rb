@@ -64,6 +64,14 @@ class CamaleonCms::Ability
         r
       end
 
+      # support for custom abilities for each posttype
+      # sample: http://camaleon.tuzitio.com/documentation/category/40756-uncategorized/custom-models.html
+      @roles_post_type.each do |k , v|
+        next if ['edit', 'edit_other', 'edit_publish', 'publish', 'manage_categories'].include?(k.to_s)
+        can k.to_sym, CamaleonCms::PostType do |pt|
+          v.include?(pt.id.to_s) rescue false
+        end
+      end
 
       #others
       can :manage, :media     if @roles_manager[:media] rescue false
@@ -78,6 +86,9 @@ class CamaleonCms::Ability
       @roles_manager.try(:each) do |rol_manage_key, val_role|
         can :manage, rol_manage_key.to_sym if val_role.to_s.cama_true? rescue false
       end
+    end
+    cannot :impersonate, CamaleonCms::User do |u|
+      u.id == user.id
     end
   end
 
