@@ -57,7 +57,7 @@ module CamaleonCms::UploaderHelper
       return res
     end
     # save file
-    key = File.join(settings[:folder], settings[:filename]).to_s.gsub(/(\/){2,}/, "/")
+    key = File.join(settings[:folder], settings[:filename]).to_s.cama_fix_slash
     res = cama_uploader.add_file(uploaded_io, key, {same_name: settings[:same_name]})
     {} if settings[:temporal_time] > 0 # temporal file upload (always put as local for temporal files) (TODO: use delayjob)
 

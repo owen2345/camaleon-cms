@@ -56,7 +56,7 @@ class CamaleonCmsUploader
 
     s = prefix.split('/').clean_empty
     return file_parsed if s.last == 'thumb'
-    s.each_with_index{|_s, i| k = "/#{File.join(s.slice(0, i), _s)}"; cache_item(file_parse(k), objects_db) unless objects_db[k].present? } unless ['/', '', '.'].include?(prefix)
+    s.each_with_index{|_s, i| k = "/#{File.join(s.slice(0, i), _s)}".cama_fix_slash; cache_item(file_parse(k), objects_db) unless objects_db[k].present? } unless ['/', '', '.'].include?(prefix)
 
     objects_db[prefix] = {files: {}, folders: {}} if objects_db[prefix].nil?
     if file_parsed['format'] == 'folder'

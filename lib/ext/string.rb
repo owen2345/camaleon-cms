@@ -87,6 +87,11 @@ class String
     res
   end
 
+  # remove double or more secuencial slashes, like: '/a//b/c/d///abs'.cama_fix_slash => /a/b/c/d/abs
+  def cama_fix_slash
+    self.gsub(/(\/){2,}/, "/")
+  end
+
   def cama_fix_filename
     "#{File.basename(self, File.extname(self)).downcase.gsub(" ", "-").parameterize}#{File.extname(self)}"
   end
