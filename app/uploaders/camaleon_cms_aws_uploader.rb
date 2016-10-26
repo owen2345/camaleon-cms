@@ -49,10 +49,8 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
         'dimension' => ''
     }.with_indifferent_access
     res["thumb"] = version_path(res['url']) if res['format'] == 'image' && File.extname(res['name']).downcase != '.gif'
-    if res['format'] == 'image'
-      # TODO: Recover image dimension (suggestion: save dimesion as metadata)
-    end
-    res
+    # if res['format'] == 'image' # TODO: Recover image dimension (suggestion: save dimesion as metadata)
+    @aws_settings[:aws_file_read_settings].call(res, s3_file)
   end
 
   # add a file object or file path into AWS server
@@ -65,7 +63,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     key = "#{@aws_settings["inner_folder"]}/#{key}" if @aws_settings["inner_folder"].present? && !args[:is_thumb]
     key = search_new_key(key) unless args[:same_name]
     s3_file = bucket.object(key.split('/').clean_empty.join('/'))
-    s3_file.upload_file(uploaded_io_or_file_path.is_a?(String) ? uploaded_io_or_file_path : uploaded_io_or_file_path.path, acl: 'public-read')
+    s3_file.upload_file(uploaded_io_or_file_path.is_a?(String) ? uploaded_io_or_file_path : uploaded_io_or_file_path.path, @aws_settings[:aws_file_upload_settings].call({acl: 'public-read'}))
     res = cache_item(file_parse(s3_file)) unless args[:is_thumb]
     res
   end
