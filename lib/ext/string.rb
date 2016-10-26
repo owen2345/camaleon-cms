@@ -87,6 +87,10 @@ class String
     res
   end
 
+  def cama_fix_filename
+    "#{File.basename(self, File.extname(self)).downcase.gsub(" ", "-").parameterize}#{File.extname(self)}"
+  end
+
   # return cleaned model class name
   # remove decorate
   # remove Cama prefix
