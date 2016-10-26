@@ -13,7 +13,8 @@ describe "the Custom Fields", js: true do
     within '#cama_custom_field_form' do
       fill_in "custom_field_group_name", with: 'Test name'
       fill_in "custom_field_group_description", with: 'Test name description'
-      find('#select_assign_group').find("option[value='PostType_Post,2']").click
+      page.execute_script('$("#select_assign_group").val("PostType_Post,2")')
+
       all('#content-items-default a').each do |link|
         link.click
       end
@@ -40,7 +41,7 @@ describe "the Custom Fields", js: true do
     within '#admin_content' do
       all("table .btn-danger").last.click
     end
-    page.driver.browser.switch_to.alert.accept
+    confirm_dialog
     expect(page).to have_css('.alert-success')
   end
 

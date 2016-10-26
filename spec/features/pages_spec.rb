@@ -5,6 +5,8 @@ describe "the signin process", js: true do
   it "create new page" do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/post_type/7/posts/new"
+    wait(5)
+    screenshot_and_save_page
     within("#form-post") do
       fill_in 'post_title', :with => 'Test Title'
       page.execute_script('$("#form-post .required").val("test required value")')

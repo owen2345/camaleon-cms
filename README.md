@@ -153,6 +153,18 @@ http://camaleon.tuzitio.com/license.html
 * Create/Update Manuals
 * TDD (rspec)
 
+## Testing
+* Init DB
+```
+RAILS_ENV=test bundle exec rake app:db:migrate
+RAILS_ENV=test bundle exec rake app:db:test:prepare
+```
+* Configure/Install Poltergaist and change your phanthomjs path in spec/spec_helper.rb
+
+* Run testing
+```
+rspec
+```
 
 ## Contributing
 * Fork it.

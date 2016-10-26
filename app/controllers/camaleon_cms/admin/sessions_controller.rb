@@ -48,7 +48,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
   end
 
   def logout
-    if cookies[:parent_auth_token].present?
+    if session[:parent_auth_token].present? && cama_sign_in?
       session_back_to_parent(cama_admin_dashboard_path)
     else
       cama_logout_user

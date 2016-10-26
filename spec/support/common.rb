@@ -4,8 +4,9 @@ require 'rails_helper'
 # do login for admin panel and also verify if the site was created
 # if site is not created, then create a new site
 def login_success
-  if !CamaleonCms::Site.any? && !defined?($install_called)
-    it "Verify Install Camaleon" do
+  if !CamaleonCms::Site.any?  && !defined?($install_called)
+    $install_called = true
+    it "Verify Install Camaleon", js: true do
       visit "#{cama_root_relative_path}/admin/installers"
       within("#new_site") do
         fill_in 'site_name', :with => 'Test Site'
@@ -16,7 +17,6 @@ def login_success
 
       admin_sign_in(true)
     end
-    $install_called = true
   else
     it "signs me in" do
       admin_sign_in
@@ -26,16 +26,17 @@ end
 
 # sign in for admin panel
 # skip: true => close the skip button for intro
-def admin_sign_in(close = false, user = "admin", pass = "admin")
-  visit "#{cama_root_relative_path}/admin/login"
+def admin_sign_in(close = false, user = "admin", pass = "admin123")
+  visit "#{cama_root_relative_path}/admin/logout"
+  screenshot_and_save_page
   within("#login_user") do
-    fill_in 'user_username', :with => user
-    fill_in 'user_password', :with => pass
+    fill_in 'user[username]', :with => user
+    fill_in 'user[password]', :with => pass
   end
   click_button 'Log In'
   expect(page).to have_content 'Welcome'
-
-  click_link "Skip" if close
+  wait(5)
+  page.execute_script("$('#introjs_skipbutton').click()")
 end
 
 def cama_root_relative_path
@@ -79,8 +80,10 @@ end
 
 # fix for: SQLite3::BusyException: database is locked: commit transaction
 def fix_db
-  # ActiveRecord::Base.connection.execute("END;")
-  # ActiveRecord::Base.connection.execute("BEGIN TRANSACTION;")
+  if ActiveRecord::Base.connection.adapter_name.downcase.include?('sqlite')
+    ActiveRecord::Base.connection.execute("END;")
+    ActiveRecord::Base.connection.execute("BEGIN TRANSACTION;")
+  end
 end
 
 def pages_test
@@ -110,4 +113,17 @@ end
 # create a test site
 def create_test_site(args = {})
   Cama::Site.create({slug: 'test', name: 'Test Site'}.merge(args))
+end
+
+def confirm_dialog
+  if page.driver.class.to_s == 'Capybara::Selenium::Driver'
+    page.driver.browser.switch_to.alert.accept
+  elsif page.driver.class.to_s == 'Capybara::Poltergeist::Driver'
+
+  elsif page.driver.class.to_s == 'Capybara::Webkit::Driver'
+    sleep 1 # prevent test from failing by waiting for popup
+    page.driver.browser.accept_js_confirms
+  else
+    raise "Unsupported driver"
+  end
 end

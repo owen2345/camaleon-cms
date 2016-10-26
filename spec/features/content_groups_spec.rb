@@ -38,7 +38,7 @@ describe "the Content Groups", js: true do
     within '#admin_content' do
       all("table .btn-danger").last.click
     end
-    page.driver.browser.switch_to.alert.accept
+    confirm_dialog
     expect(page).to have_css('.alert-success')
   end
 

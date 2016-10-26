@@ -15,7 +15,7 @@ describe "the Menus", js: true do
     within '#tab_plugins_active' do
       all(".btn-default")[0].click
     end
-    page.driver.browser.switch_to.alert.accept
+    confirm_dialog
     expect(page).to have_css('.alert-success')
 
     # install plugin
@@ -23,7 +23,7 @@ describe "the Menus", js: true do
     within '#tab_plugins_disabled' do
       all(".btn-default")[0].click
     end
-    page.driver.browser.switch_to.alert.accept
+    confirm_dialog
     expect(page).to have_css('.alert-success')
   end
 end

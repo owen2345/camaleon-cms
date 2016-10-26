@@ -33,18 +33,24 @@ require 'database_cleaner'
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
-#Capybara.javascript_driver = :webkit
+require 'capybara/rspec'
+require 'capybara-screenshot/rspec'
+# Capybara.javascript_driver = :webkit
 
-# require 'capybara/poltergeist'
-# Capybara.javascript_driver = :poltergeist
+# define screenshot errors name
+Capybara::Screenshot.register_filename_prefix_formatter(:rspec) do |example|
+  "screenshot_#{example.description.gsub(' ', '-').gsub(/^.*\/spec\//,'')}"
+end
 
-# require 'capybara/poltergeist'
-# Capybara.register_driver :poltergeist_debug do |app|
-#   Capybara::Poltergeist::Driver.new(app, :inspector => true)
-# end
-#
-# # Capybara.javascript_driver = :poltergeist
-# Capybara.javascript_driver = :poltergeist_debug
+#****** configuration to test using poltergaist *****#
+require 'capybara/poltergeist'
+# Note: you need phantomjs 1.9.x which can be downloaded from here: https://code.google.com/archive/p/phantomjs/downloads
+if File.exist?(File.join(CAMALEON_CMS_ROOT, 'spec', 'bin', 'phantomjs'))
+  Capybara.register_driver :poltergeist do |app|
+    Capybara::Poltergeist::Driver.new(app, :phantomjs => File.join(CAMALEON_CMS_ROOT, 'spec', 'bin', 'phantomjs').to_s)
+  end
+end
+Capybara.javascript_driver = :poltergeist
 
 
 RSpec.configure do |config|
@@ -188,6 +194,7 @@ end
 # http://stackoverflow.com/questions/18390071/change-default-capybara-browser-window-size
 RSpec.configure do |config|
   config.before(:each, js: true) do
-    Capybara.page.driver.browser.manage.window.maximize
+    Capybara.page.driver.browser.manage.window.maximize rescue nil
+    page.driver.allow_url("fonts.googleapis.com") rescue nil
   end
 end

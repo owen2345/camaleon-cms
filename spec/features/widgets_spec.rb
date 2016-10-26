@@ -10,6 +10,7 @@ describe "the Themes", js: true do
       first('#new_widget_link').click
       wait_for_ajax
     end
+    screenshot_and_save_page
     within '#widget_form' do
       fill_in "widget_main_name", with: "test widget"
       fill_in "widget_main_slug", with: "test-widget"
@@ -43,7 +44,8 @@ describe "the Themes", js: true do
     within "#view_widget_list" do
       first('.del_link').click
     end
-    page.driver.browser.switch_to.alert.accept
+    screenshot_and_save_page
+    confirm_dialog
     expect(page).to have_css('.alert-success')
   end
 

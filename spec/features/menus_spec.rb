@@ -15,8 +15,12 @@ describe "the Menus", js: true do
       wait_for_ajax
 
       # custom links
-      all(".panel-collapse").last.click
-      wait(3)
+      wait(10)
+      # screenshot_and_save_page
+      page.execute_script('$("#menu_items .panel-collapse:last").click()')
+      page.execute_script('$("#menu_items").css({background: "red"});')
+      wait(10)
+      screenshot_and_save_page
       within ".form-custom-link" do
         fill_in "external_label", with: "name link"
         fill_in "external_url", with: "http://mytest.com"
@@ -28,7 +32,7 @@ describe "the Menus", js: true do
     within '#menus_list' do
       all('.delete_menu_item').each do |btn|
         btn.click
-        page.driver.browser.switch_to.alert.accept
+        confirm_dialog
         wait_for_ajax
       end
     end
@@ -39,7 +43,7 @@ describe "the Menus", js: true do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/appearances/nav_menus"
     page.execute_script('$("#switch_nav_menu_form .btn-danger").click()')
-    page.driver.browser.switch_to.alert.accept
+    confirm_dialog
     expect(page).to have_css('.alert-success')
   end
 

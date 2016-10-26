@@ -34,7 +34,7 @@ describe "the Media", js: true do
 
     # delete uploaded file
     page.execute_script("$('#cama_media_gallery .file_item[data-key=\"slider_camaleon.jpg\"] .del_item').click()")
-    page.driver.browser.switch_to.alert.accept
+    confirm_dialog
     wait_for_ajax
 
     # back to root
@@ -43,7 +43,7 @@ describe "the Media", js: true do
 
     # delete folder
     page.execute_script("$('#cama_media_gallery .folder_item[data-key=\"test_folder_created_by_testing\"] .del_folder').click()")
-    page.driver.browser.switch_to.alert.accept
+    confirm_dialog
     wait_for_ajax
 
   end

@@ -1,7 +1,8 @@
 require "rails_helper"
 describe "the Users", js: true do
   login_success
-
+  uname = "testerr_#{Time.current.to_i}"
+  uemail = "testerr_#{Time.current.to_i}@gmail.com"
   it "Users list" do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/users"
@@ -16,18 +17,19 @@ describe "the Users", js: true do
       fill_in "user[first_name]", with: 'Test'
       fill_in "user[last_name]", with: 'Test Last name'
       fill_in "meta[slogan]", with: 'My slogan'
-      fill_in "user[username]", with: 'tester'
-      fill_in "user[email]", with: 'tester@gmail.com'
-      fill_in "user[password]", with: 'tester'
-      fill_in "user[password_confirmation]", with: 'tester'
+      fill_in "user[username]", with: uname
+      fill_in "user[email]", with: uemail
+      fill_in "user[password]", with: 'tester123'
+      fill_in "user[password_confirmation]", with: 'tester123'
       find(".user-form-left").click_button "Create"
     end
+    screenshot_and_save_page
     expect(page).to have_css('.alert-success')
     expect(page).to have_content("tester")
   end
 
   it "Users login new user" do
-    admin_sign_in(false, "tester", "tester")
+    admin_sign_in(false, uname, "tester123")
   end
 
   it "Users Edit" do
@@ -73,7 +75,7 @@ describe "the Users", js: true do
     within '#admin_content' do
       all(".btn-danger")[1].click
     end
-    page.driver.browser.switch_to.alert.accept
+    confirm_dialog
     expect(page).to have_css('.alert-success')
   end
 end
