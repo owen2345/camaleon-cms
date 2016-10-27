@@ -1,43 +1,40 @@
-<% if flash[:notice].present? || flash[:info].present? || flash[:error].present? || flash[:alert].present? %>
+<% msgs = defined?(key) ? (flash[key.to_s] || {}).with_indifferent_access : flash %>
+<% if msgs[:notice].present? || msgs[:info].present? || msgs[:error].present? || msgs[:alert].present? %>
     <div class="cama_flash_messages">
-        <% if flash[:info].present? %>
+        <% if msgs[:info].present? %>
             <div class="flash_messages">
               <div class="alert alert-info">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <%= raw(flash[:info]) %>
+                <%= raw(msgs[:info]) %>
               </div>
             </div>
-            <% flash[:info] = nil %>
         <% end %>
 
-        <% if flash[:notice].present? %>
+        <% if msgs[:notice].present? %>
             <div class="flash_messages">
               <div class="alert alert-success">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <%= raw(flash[:notice]) %>
+                <%= raw(msgs[:notice]) %>
               </div>
             </div>
-            <% flash[:notice] = nil %>
         <% end %>
 
-        <% if flash[:error].present? %>
+        <% if msgs[:error].present? %>
             <div class="flash_messages">
               <div class="alert alert-danger">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <%= raw(flash[:error]) %>
+                <%= raw(msgs[:error]) %>
               </div>
             </div>
-            <% flash[:error] = nil %>
         <% end %>
 
-        <% if flash[:alert].present? %>
+        <% if msgs[:alert].present? %>
             <div class="flash_messages">
               <div class="alert alert-warning">
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <%= raw(flash[:alert]) %>
+                <%= raw(msgs[:alert]) %>
               </div>
             </div>
-            <% flash[:alert] = nil %>
         <% end %>
     </div>
 <% end %>

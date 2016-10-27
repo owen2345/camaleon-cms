@@ -38,7 +38,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'coffee-rails'
   s.add_dependency 'sass-rails'
 
-  s.add_dependency 'cama_contact_form', '~> 0.0.11'
+  s.add_dependency 'cama_contact_form', '~> 0.0.13'
 
   # MEDIA MANAGER
   s.add_dependency 'aws-sdk', '~> 2'
