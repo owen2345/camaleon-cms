@@ -113,7 +113,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
 
   # return main site
   def self.main_site
-    @main_site ||= CamaleonCms::Site.reorder(id: :ASC).first
+    @main_site ||= CamaleonCms::Site.reorder(id: :asc).first
   end
 
   # check if this site is the main site
