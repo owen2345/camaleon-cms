@@ -45,3 +45,11 @@ ru:
     tag: tag
     search: search
     profile: profile
+
+zh-CN:
+  routes:
+    group: 群组
+    category: 分类
+    tag: 标签
+    search: 搜索
+    profile: 资料

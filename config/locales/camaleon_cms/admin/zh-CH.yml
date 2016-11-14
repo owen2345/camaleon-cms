@@ -1,0 +1,674 @@
+zh-CN:
+  camaleon_cms:
+    see_intro: "参见介绍"
+    welcome_message: "欢迎来到Camaleon CMS"
+    page_not_exist: "<h1>此页面不存在 :(...</h1><h5>您访问的页面不存在.</h5>"
+    page_error_500: "<h1>ooops...</h1><h5>内部服务器500错误。 请联系管理员。</h5>"
+    admin:
+      request_error_message: "发生错误,请联系管理员。"
+      authorization_error: "你没有授权。"
+      header:
+        member_since: "成员开始日期： %{time}"
+      button:
+        activity: '活动'
+        add_new_field: '添加字段'
+        add_option: '添加选项'
+        add_menu: '添加菜单'
+        add_widget: '添加插件'
+        accept: '接受'
+        add_folder: '添加文件夹'
+        actived: '激活的'
+        activate_plugin: '激活插件'
+        back: '返回'
+        change_photo: '修改照片'
+        change_password: '修改密码'
+        create_menu: '创建菜单'
+        create: '创建'
+        cancel: '取消'
+        chat: '聊天'
+        close: '关闭'
+        delete: '删除'
+        disable_plugin: '禁用插件'
+        enter: '输入'
+        edit: '编辑'
+        new: '新建'
+        following: '关注'
+        log_in: '登录'
+        move_trash: '移到废纸篓'
+        no: '否'
+        none: '无'
+        not_actived: '非激活'
+        publish: '发布'
+        preview: '预览'
+        proccess: '处理'
+        recover: '恢复'
+        restore: '恢复'
+        restore_selections: '恢复选择'
+        delete_complete: "完全删除"
+        select: '选择'
+        select_all: '全选'
+        select_file: '选择文件'
+        select_none: '选择为空'
+        sign_up: '注册'
+        submit: '提交'
+        settings: '设置'
+        sortable: '排序'
+        update: '更新'
+        update_menu: '更新菜单'
+        upload_audio: '上传音频'
+        upload_file: '上传文件'
+        upload_image: '上传图片'
+        upload_icon: '上传图标'
+        upload_video: '上传视频'
+        drag_drop: '拖拽文件到此处'
+        view_draft: '预览草稿'
+        view_page: '查看页面'
+        yes: '是'
+        out_yes: '是'
+        out_not: '否'
+        domain: "域名"
+        search: "搜索"
+
+      comments:
+        new_msg: "此内容的新评论"
+        comments_list_post: '列表评论'
+        responses: '回复'
+        message:
+          approved: '批准'
+          change_status: '该评论状态已经被修改 '
+          created: '评论已经被创建.'
+          destroy: '回复经被删除.'
+          destroy_comments: '评论已经被删除.'
+          deleted: '回复经被删除.'
+          error: '没发现该评论'
+          pending: '处理中'
+          responses: '回复已经被创建.'
+          spam: '垃圾'
+          there_no_comments: '此处无评论.'
+          updated: '评论已经被更新.'
+
+        tooltip:
+          approved_comment: '有效评论'
+          comment_pending: '待处理评论'
+          comment_spam: '垃圾评论'
+          reply_comment: '回复评论'
+          delete_comment: '删除评论'
+      custom_field:
+        message:
+          custom_group_error: '自定义字段组出错'
+          custom_created: '自定义字段已经被创建.'
+          custom_updated: '自定义字段已经被更新.'
+        fields:
+          text_box: '文本框'
+          text_area: '文本区域'
+          select: '选择框'
+          colorpicker: '色彩选择器'
+          date: '日期'
+          email: '邮箱'
+          file: '文件'
+          image: '图像'
+          image_dimension: '尺寸'
+          image_dimension_descr: '裁剪具有指定尺寸（widthxheight）的图像，示例： 400x300 <br>可能的值: 400x300 | 400x | x300 | ?400x?500 | ?1400x (? => maximum, empty => auto)'
+          image_versions: '版本'
+          image_versions_descr: "创建上传图片的附加多个版本，示例：300x300,505x350 ==>将创建两个具有这些尺寸的额外图片"
+          image_thumb: '缩略图'
+          image_thumb_descr: "定义缩略图的尺寸，示例：100x100。 默认值：％{d}"
+          numeric: '数字'
+          phone: '号码'
+          users: '用户'
+          posts: '文章'
+          select_eval: '选择评估'
+          field_attrs: '字段属性'
+          website: '网站'
+          multiple_choice: '单选按钮'
+
+
+      login:
+        already_have_account: '已有账号?'
+        authentication: '身份验证'
+        captcha: '验证码'
+        create_account: '创建账号'
+        login: '登录'
+        forgot_your_password_int: '忘记密码?'
+        message:
+          success: '欢迎登录!!!'
+          fail: '用户名或密码不正确'
+          forgot_url_incorrect: '链接错误'
+          forgot_expired: '重置链接已过期。'
+          hello: '您好'
+          reset_password_succes: '重置密码成功!'
+          reset_password_error: '重置密码失败'
+          reset_url: '重置链接'
+          subject_email: '重置您的访问'
+          send_mail_succes: '发送重置信息成功.'
+          send_mail_error: '系统中无该账户信息.'
+          invalid_caption: '验证码错误'
+          email_not_validated: '邮箱未被激活.'
+          confirm_email_token_incorrect: '激活链接错误'
+          confirm_email_token_expired: '激活链接已过去'
+          confirm_email_success: '账户成功激活!'
+        personal_info: '个人信息'
+        please_login: '请登录'
+        reset_password: '重置密码'
+        reCaptcha: '刷新验证码'
+        send_email: '验证邮件'
+        reset_password_html: '<strong>验证邮件</strong>, 重置密码'
+        welcome: '欢迎使用'
+        welcome_login_html: '<strong>欢迎使用</strong>, 请登录'
+        do_not_have_account_yet: "还没有账户?"
+        msg_registration_html: '<strong>注册</strong>, 请填写以下表单'
+        username: "用户名"
+        password: "密码"
+        password_confirm: "密码不匹配"
+        first_name: "姓"
+        last_name: "名"
+        email: "邮箱"
+        remember_me: "下次自动登录"
+        confirm:
+          text: "请点击这个链接确认您的帐户"
+          subject: "确认你的账户"
+      logout:
+        log: '登'
+        out: '出'
+        logout: '登出'
+        logout_html: '登 <strong>出</strong>?'
+        message:
+          closed: '会话关闭'
+      media:
+        media_manager: '媒体管理'
+        home: "主页"
+        info: "信息"
+        external: "上传从URL"
+      menus:
+        link_url: '链接网址'
+        target: '目标'
+        targets:
+          blank: '空白'
+          parent: '父级'
+        message:
+          created: '导航菜单已经被创建.'
+          deleted: '导航菜单已经被删除'
+          error_menu: '错误菜单'
+        name_link: '名字链接'
+        name_menu: '名字菜单'
+        external_link: '外部链接'
+        or: '或'
+        create_new: '新建导航菜单'
+        select: '选择导航菜单'
+        select_edit: '选择要编辑的导航菜单:'
+      message:
+        are_you_sure_you_want_log_out_int: '确定注销当前登录?'
+        are_you_sure_to_import: "确定导入?"
+        data_found_list: '没有数据列表中找到'
+        delete: '确定删除该记录?'
+        delete_item: '真的要删除吗?'
+        edit_menu: '选中您要操作的地方。点击铅笔的图标编辑条目,单击图标的形式x删除条目.'
+        add_menus: '从左列添加菜单项.'
+        press_no_continue_work_press_yes_logout: '如果不需要继续操作,请按登出按钮.'
+        updated_success: '更新成功'
+        remove_items_submenu: '真的删除此项目及其子菜单项？'
+        you_must_upload_image: '必须上传图片格式'
+        you_must_upload_video: '必须上传视频'
+        so_their_data_has_not_been_saved: '数据还未保存'
+        no_response_fields: '无响应字段'
+        quick_info: '关于用户介绍的字段'
+        was_inactivated: '已禁用.'
+        was_activated: '已激活.'
+        was_upgraded: '已更新.'
+        can_not_be_removed: '不能被删除.'
+        was_removed: '被移除.'
+        processing: '处理中...'
+        change_photo: '使用下面的形式上传文件。只允许图像文件。'
+        change_password: '修改你的密码先输入旧密码,然后输入新密码和重复新密码.'
+        you_must_upload_json_file: '你必须上传一个json文件'
+        import_process: '导入中'
+        unauthorized: "拒绝访问"
+        welcome: '欢迎来到你的网站管理员面板.'
+        no_templates_defined: '没有定义模板'
+        avatar_updated: '更新头像'
+        form_error: '表单错误'
+      page_title:
+        page_title: '页面标题'
+        create: '创建'
+        details: '详情'
+        edit: '编辑'
+        add: '添加'
+        list: '列表'
+        list_of: '的列表'
+        new_site: '新建站点'
+        edit_site: '编辑站点'
+        update: '更新'
+      post:
+        add_tag: '添加标签'
+        clone: '复制'
+        clone_content: '复制内容'
+        label_required: '必填标签'
+        placeholder_required: '必填占位符'
+        message:
+          created: '%{post_type} 已经被创建.'
+          updated: '%{post_type} 已经被更新.'
+          deleted: '%{post_type} 已经被删除.'
+          error: '错误 %{post_type}'
+          error_post_type: '错误 %{post_type}'
+          trash: ' %{post_type} 被移动到垃圾箱.'
+          requires_different_slug: '需要不同的 slug'
+          restore: ' %{post_type} 被恢复.'
+          draft: '保存草稿成功'
+          recover: '恢复...'
+        permalink: '固定链接'
+      post_type:
+        all: '全部类目'
+        add: '添加'
+        add_category: '添加类别'
+        add_post_type: '添加文章类型'
+        add_new: '添加新闻'
+        add_post_tag: '添加文章标签'
+        categories: '种类'
+        category: '种类'
+        configuration: '配置'
+        other_configuration: '自定义配置'
+        comments: '评论'
+        draft: '草稿'
+        edit_post_type: '编辑文章类型'
+        edit_category: '编辑种类'
+        enter_password: '输入密码'
+        featured_image: '有特色的图片'
+        keywords: '关键字'
+        default_layout: '默认布局'
+        default_template: '默认模板'
+        icon: '图标'
+        message:
+          error: '错误类'
+          error_term: '错误项'
+          created: '已保存'
+          updated: '已更新'
+          deleted: '已删除'
+          no_created_html: '<br> %{taxonomy} 未发现'
+        pending: '等待'
+        permit_comments: '允许评论?'
+        post_types: '文章类型'
+        posts: '文章'
+        post_tags: '文章标签'
+        published: '发表'
+        published_date: '发表时间'
+        save_draft: '保存草稿'
+        save_pending: '保存到待处理'
+        summary: '总结'
+        tags: '标签'
+        template: '模板'
+        layout: '布局'
+        trash: '回收站'
+        tooltip:
+          permission_asing_categories: '选择种类权限'
+          permission_add_tags: '添加标签权限'
+          permission_add_content: '允许添加内容'
+          permission_add_content_summary: '允许添加内容总结'
+          permission_reviews: '启用该选项以指示是否可以注释帖子内容'
+          permission_add_image_presentation: '允许编辑图片'
+          permission_manage_template: '允许选择模板。 （template：将用于呈现内容的文件）'
+          permission_manage_layout: '允许选择字段在内容中布局。 （布局：文件包装器将在其中呈现模板）'
+          permission_add_keywords: '允许添加子关键字（SEO）'
+          default_layout: '选择默认布局'
+          default_template: '选择默认模板'
+        upload_image: '上传图片'
+        view_comments: '查看评论'
+      plugins:
+        active_plugins: '激活的插件'
+        disabled_plugins: '禁用插件'
+        all_plugins: '全部插件'
+        status_false: '禁用'
+        status_true: '激活'
+        type_contents: '种类内容'
+        upgrade_to: "升级到"
+      settings:
+        activate_create_account: '激活该账户'
+        activate_login_social_networks: '允许登录'
+        add_field_group: '添加字段组'
+        admin_language: '管理员语言'
+        allow_user_registration: '允许用户注册?'
+        available_fields: '可用字段'
+        available_languages: '可用语言'
+        categories_in: '类别中'
+        configuration_site: '配置站点'
+        current_languages: '当前语言'
+        details_custom_field_group: '自定义字段组详情'
+        details_site: '站点详情'
+        edit_custom_field_group: '编辑自定义字段组'
+        field: '字段'
+        fields: '字段'
+        information_basic: '基础信息'
+        theme_setting: "主题设置"
+        input_only_date: '只输入日期'
+        input_date_time: '只输入时间'
+        languages_configuration: '语言配置'
+        list_custom_fields_group: '自定义字段组列表'
+        list_sites: '站点列表'
+        login_twitter: 'Twitter'
+        login_facebook: 'Facebook'
+        login_google: 'Google+'
+        email_enabled: "使用以下配置发送邮件"
+        email_server: "邮件服务器"
+        email_port: "邮件服务器端口"
+        email_domain: "邮件服务器域名"
+        email_username: "邮箱名"
+        email_pass: "邮箱密码"
+        email_from: "发件人"
+        email_cc: "抄送"
+        twitter_card: "Twitter 卡片"
+        author: "作者名"
+        seo_setting: "SEO 设置"
+        email_settings: "邮件设置 (SMTP)"
+        filesystem_type: "文件系统"
+        filesystem_s3_access_key: "AWS S3 Access Key"
+        filesystem_s3_secret_key: "AWS S3 Secret Key"
+        filesystem_s3_bucket_name: "AWS S3 Bucket name"
+        filesystem_s3_endpoint: "AWS S3 Bucket endpoint"
+        send_test_email: '发送测试邮件'
+        filesystem_region: "AWS S3 Region"
+        filesystem_cdn: "CDN url"
+        security:
+          captcha_user_register: "支持用户注册验证码?"
+          need_validate_email: "需要验证邮箱?"
+        message:
+          language_updated: '您配置的语言已经被保存.'
+          site_updated: '站点已经被更新.'
+        new_custom_field_group: '新建自定义字段组'
+        options_select: '选项选择'
+        option_title: '选项标题'
+        others: '其他'
+        please_separated_commas: '请用逗号分隔'
+        comment_status: '注册后允许评论?'
+        list_per_page_front: '待上市的产品的前端列表'
+        list_per_page_admin: '待上市的产品的后端列表'
+        permission_register_users: '允许用户注册'
+        permission_login_twitter: '允许使用 Titter 登录'
+        permission_login_facebook: '允许使用 Facebook 登录'
+        permission_login_google: '允许使用 Google+ 登录'
+        posts_in: '文章'
+        settings: '设置'
+        tooltip:
+          add_custom_field_posts: '在文章中添加自定义字段'
+          add_custom_field_categories: '在种类中添加自定义字段'
+          add_custom_field_users: '用户中添加自定义字段 '
+          add_custom_field_sites: '在站点中添加自定义字段'
+          add_custom_field_themes: '在主题中添加自定义字段'
+          add_custom_field_widget: '在窗口小部件中添加自定义字段 '
+        untitled: '无标题'
+        where_display_group: '显示此组的位置'
+      sidebar:
+        appearance: '展示'
+        comments: '评论'
+        content: '内容'
+        contents: '内容'
+        content_groups: '组内容'
+        custom_fields: '自定义字段'
+        dashboard: '主页'
+        general_site: '通用站点'
+        information: '信息'
+        shortcodes: "Shortcodes"
+        media: '媒体'
+        menus: '菜单'
+        navigation: '导航'
+        plugins: '插件'
+        post_type: '文章类型'
+        settings: '设置'
+        site_settings: '站点设置'
+        sites: '站点'
+        themes: '主题'
+        users: '账户'
+        widget: '插件'
+        widgets: '插件'
+        main_navigation: "主导航"
+        languages: "语言设置"
+      sidebar_top:
+        admin_panel: '管理员. 面板'
+        visit: '访问'
+      sites:
+        add_site: '添加站点'
+        message:
+          error: '未发现站点'
+          created: '站点已经被创建.'
+          updated: '站点已经被更新.'
+          deleted: '正确删除'
+          enter_key_domain: '输入关键字或站点名称'
+          enter_key_domain_empty: '输入关键字（site2）或 域（mydomain.com）或者子域名.'
+      signin:
+        message:
+          enter_username_password: '你必须输入用户名和密码'
+          combination_username_password_invalid: '用户名或密码错误.'
+          success_user: '登录成功'
+      table:
+        actions: '操作'
+        attribute: '字段'
+        author: '作者'
+        basic: '基础'
+        categories: '分类'
+        updated_at: "更新于"
+        comments: '评论'
+        count: '统计'
+        date_published: '发布日期'
+        default: '默认'
+        default_thumbnail: '默认缩略图'
+        default_value: '默认值'
+        description: '描述'
+        dimensions: '尺寸'
+        display_objects: '显示内容'
+        draft: '草稿'
+        email: '邮件'
+        e_mail: '邮箱'
+        email_address: '添加邮箱订阅'
+        error: '错误'
+        errors: '错误'
+        excerpt: '摘抄'
+        facebook: '反馈'
+        favicon: 'Favicon'
+        screenshot: "截图"
+        first_names: '姓'
+        group_name: '组名'
+        google_plus: 'Google plus'
+        hide: '隐藏'
+        home_page: '主页'
+        has_keywords: '有关键字'
+        manage_keywords: '管理关键字'
+        id: 'ID'
+        images: '图像'
+        import: '导入'
+        instagram: 'Instagram'
+        keywords: '关键字（用逗号分隔输入）'
+        kind: '分类'
+        last_login: '最后登录'
+        last_names: '最后名称'
+        last_visit: '最后访问'
+        link: '链接'
+        linkedin: '领英'
+        login: '登录'
+        logo: '商标'
+        manage_category: '管理种类'
+        manage_content: '管理内容'
+        manage_picture: '管理图片'
+        manage_summary: '管理 总结'
+        manage_tags: '管理标签'
+        manage_template: '管理模板'
+        manage_layout: '管理布局'
+        modified: '已修改'
+        multiple_field_int: '多字段?'
+        required_field_int: '必填字段?'
+        translate_field_int: '翻译字段?'
+        show_in_frontend: '在前端显示（只发布内容）'
+        name: '名称'
+        new_password: '新密码'
+        no_default: '无默认'
+        old_password: '旧密码'
+        options: '选项'
+        settings: '设置'
+        options_field: '选项字段'
+        parent: '父级'
+        password: '密码'
+        password_confirmation: '确认密码'
+        password_protection: '密码保护'
+        permit_comments_default: '允许评论(默认)'
+        post: '文章'
+        post_type: '文章类型'
+        pending: '处理中'
+        private: '私有'
+        public: '公开'
+        qty: '数量'
+        quick_info: '快速上手'
+        registration: '注册'
+        repeat_new: '重复新的'
+        role: '权限'
+        slogan: '标语'
+        slug: 'Slug'
+        short_code: '短码'
+        site_name: '站点名称'
+        size: '大小'
+        social: '社交'
+        skype: 'Skype'
+        status: '状态'
+        owner: '网页所有者'
+        tags: '标签'
+        text: '文本'
+        title: '标题'
+        total: '总共'
+        trash: '垃圾箱'
+        twitter: 'Twitter'
+        username: '用户名'
+        value: '值'
+        version: '版本'
+        visibility: '可见'
+        page_404: '404 页面'
+        youtube: 'Youtube'
+        more_actions: '更多操作'
+        more_actions_info: '更多操作...'
+        shorcodes: "短码"
+      themes:
+        footer_copyright: '页脚版权'
+        theme_select: '选择主题'
+        title: '主题 %{theme} 设置 '
+        analytics_code: '分析代码'
+        social_share: '社交分享'
+
+        message:
+          updated: '主题1️⃣更新'
+      users:
+        impersonate: '模仿'
+        all_users: '全部用户'
+        add_user: '添加用户'
+        add_user_role: '添加用户角色'
+        avatar: '头像'
+        create_user: '创建用户'
+        edit_profile: '编辑 资料'
+        list_users: '用户列表'
+        list_user_roles: '用户角色'
+        message:
+         error: '未发现用户.'
+         error_captcha: 'Oh! 验证码错误!'
+         created: '用户已经被创建.'
+         updated: '用户已经被更新.'
+         deleted: '用户已经被删除'
+         incorrect_old_password: '旧密码不正确'
+         rol_error: '未发现组用户.'
+         rol_created: '用户r角色已经被创建.'
+         rol_updated: '用户r角色已经被更新.'
+         rol_deleted: '用户r角色已经被删除'
+         requires_different_name: '需要不同的名字'
+         requires_different_username: '需要不同的用户名'
+         requires_different_email: '需要不同的邮箱'
+         created_pending_validate_email: "用户已经被创建, 请进入邮箱确认"
+        new_photo: '新建照片'
+        others_permissions: '其他权限'
+        profile: '资料'
+        slogan: '标语'
+        type_contents: '内容的类型'
+        user_roles: '用户权限'
+        roles_values:
+          comments: '评论'
+          forms: '表单'
+          media: '媒体'
+          publish: '发布'
+          themes: '主题'
+          html_create_or_edit: '创建<br>或编辑'
+          html_edit_other: '编辑 <br> 其他'
+          html_edit_publish: '编辑 <br> 发表的'
+          html_delete_other: '删除 <br> 其他'
+          html_delete_publish: '删除 <br> 发表的'
+          html_read_private: '查看 <br> 私有'
+          html_manage_categories: '管理 <br> 种类'
+          html_manage_tags: '管理 <br> 标签'
+        tool_tip:
+          comments: '评论部分'
+          delete: '删除权限. '
+          forms: '表单部分'
+          media: '媒体资源部分'
+          publish: '开启该权限,允许创建,编辑, 或公开'
+          themes: '主题部分'
+          widgets: '插件部分'
+          menus: '菜单部分'
+          plugins: '插件部分'
+          users: '创建,编辑,删除用户'
+          settings: '设置选项'
+          create_or_edit: '允许创建和编辑您的帖子（帖子不会发布）'
+          edit_other: '允许您编辑其他用户的帖子（帖子不会发布）'
+          edit_publish: '编辑已发布的帖子'
+          delete_other: '需要删除其他用户编辑其他帖子的权限'
+          delete_publish: '允许删除，删除其他，以启用此权限'
+          read_private: '允许您查看私人讯息'
+          manage_categories: '创建，编辑和删除类别的权限'
+          manage_tags: '创建，编辑和删除帖子标签的权限'
+      validate:
+        required: '必填.'
+        remote: '请修正此字段。'
+        email: '请填写正确的邮件地址.'
+        url: '请填写正确的链接.'
+        date: '请填写正确的日期.'
+        dateiso: '请填写正确的日期 ( ISO ).'
+        number: '请填写正确的数字.'
+        digits: '请只输入数字.'
+        creditcard: '请填写正确的信用卡号码.'
+        equalto: '请输入相同的值'
+        maxlength: '不能超出{0} 字符.'
+        minlength: '不能低于{0} 字符.'
+        rangelength: '请输入字符在 {0} 到 {1} 之间.'
+        range: '请输入值在{0} 到 {1}.'
+        max: '请输入值小于或等于{0}.'
+        min: '请输入大于或等于{0}的值.'
+      widgets:
+        create_widget: '创建插件'
+        create_sidebar: '创建侧边栏'
+        complex_widgets: '复杂插件'
+        simple_widgets: '简单插件'
+        message:
+          created: '插件已经被创建.'
+          updated: '插件已经被更新.'
+          deleted: '插件已经被删除'
+          error_created: '插件创建失败'
+          error_updated: '插件更新失败'
+          not_registered_widgets: '插件未注册'
+        assign:
+          updated: " 插件允许更新"
+          error_updated: " 插件不允许更新"
+        sidebar:
+          created: "侧边栏已创建."
+          updated: "侧边栏已更新."
+          error_created: '侧边栏创建失败'
+          error_updated: '侧边栏更新失败'
+          error_deleted: "侧边栏已删除."
+      intro:
+        profile: "在这个地方，您可以看到您的个人资料选项."
+        content: "此块包含您网站的所有内容组。 每个内容可以具有在 设置 => 内容组"
+        #dashboard: "In this section you can see "
+        media: "此部分管理您的所有公共媒体文件。"
+        comments: "此部分管理您的内容的所有评论."
+        appearance: "管理所有与公共接口相关的信息."
+        themes: "在本部分中，您可以选择首选主题（公共接口）."
+        widgets: "此模块允许您管理窗口小部件并将代码粘贴到任何内容中。"
+        menus: "<img style=\"max-width: 100%;\" src=\"%{image}\" /> 此模块允许您在多个级别控制公共接口的菜单."
+        plugins: "在本部分中，您可以查看所有插件（自定义应用程序扩展您的网站功能）."
+        users: "允许您管理网站的所有用户。 您还可以管理用户的角色。"
+        settings: "在此部分中，您可以找到所有站点配置。"
+        gral_site: "这是一个部分，您可以在其中配置网站和当前主题的所有设置"
+        sites: "此模块允许您管理您的子网站，即您可以创建无限的网站这样（这是只有主要网站可见）。 检查 /config/system.json 以自定义设置."
+        custom_fields: "此部分允许您轻松地扩展您的内容，主题，...通过自定义字段."
+        post_type: "在此模块中，您可以管理内容组，而无需编程任何内容."
+        languages: "此模块允许您管理您的网站的所有语言。 您还可以配置管理面板的语言."
+        shortcodes: "在此部分中，您可以看到要在您的内容中使用的所有可用短代码."
