@@ -22,7 +22,7 @@ module CamaleonCms::Metas extend ActiveSupport::Concern
   def get_meta(key, default = nil)
     key_str = key.is_a?(Symbol) ? key.to_s : key
     cama_fetch_cache("meta_#{key_str}") do
-      option = metas.where(key: key_str).first
+      option = metas.loaded? ? metas.select{|m| m.key == key }.first : metas.where(key: key_str).first
       res = ''
       if option.present?
         value = JSON.parse(option.value) rescue option.value

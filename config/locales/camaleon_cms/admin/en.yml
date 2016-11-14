@@ -179,6 +179,9 @@ en:
         home: "Home"
         info: "Information"
         external: "Upload From URL"
+        folder_name: 'Folder Name'
+        reload: 'Reload'
+        clear_cache: 'Clear Cache'
       menus:
         link_url: 'Link URL'
         target: 'Target'

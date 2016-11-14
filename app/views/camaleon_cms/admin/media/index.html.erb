@@ -9,17 +9,17 @@
               </div>
               <div class="col-md-4">
                   <%= form_tag '#', id: 'cama_search_form', class: 'input-group' do %>
-                      <input placeholder="Folder name.." class="form-control required" name="folder">
+                      <input placeholder="<%= cama_t('camaleon_cms.admin.media.folder_name') %>.." class="form-control required" name="folder">
                           <div class="input-group-btn">
                               <button type="submit" class="btn btn-default"><i class="fa fa-search"></i> <%= t('camaleon_cms.common.search', default: 'Search') %></button>
                               <div class="btn-group" role="group">
                                   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cogs"></i> <span class="caret"></span></button>
                                   <ul class="dropdown-menu pull-right">
-                                      <li><a href="#" class="cam_media_reload" data-action="reload"><i class="fa fa-refresh"></i> <%= t('camaleon_cms.common.reload', default: 'Reload') %></a></li>
+                                      <li><a href="#" class="cam_media_reload" data-action="reload"><i class="fa fa-refresh"></i> <%= cama_t('camaleon_cms.admin.media.reload') %></a></li>
                                       <% if @show_file_actions %>
-                                          <li><a href="#" class="add_folder"> <i class="fa fa-plus"></i> <%= t("camaleon_cms.admin.button.add_folder") %></a></li>
+                                          <li><a href="#" class="add_folder"> <i class="fa fa-plus"></i> <%= cama_t("camaleon_cms.admin.button.add_folder") %></a></li>
                                       <% end %>
-                                      <li><a href="#" class="cam_media_reload" data-action="clear_cache"><i class="fa fa-recycle"></i> <%= t('camaleon_cms.common.clear_cache', default: 'Clear Cache') %></a></li>
+                                      <li><a href="#" class="cam_media_reload" data-action="clear_cache"><i class="fa fa-recycle"></i> <%= cama_t('camaleon_cms.admin.media.clear_cache') %></a></li>
                                   </ul>
                               </div>
                           </div>

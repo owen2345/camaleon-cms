@@ -179,6 +179,9 @@ zh-CN:
         home: "主页"
         info: "信息"
         external: "上传从URL"
+        folder_name: '文件夾名稱'
+        reload: '重新加載'
+        clear_cache: '清除緩存'
       menus:
         link_url: '链接网址'
         target: '目标'

@@ -71,7 +71,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # get custom field values
   # _key: custom field key
   def get_field_values(_key, group_number = 0)
-    self.field_values.where(custom_field_slug: _key, group_number: group_number).pluck(:value)
+    field_values.loaded? ? field_values.select{|f| f.custom_field_slug == key && f.group_number == group_number}.map{|f| f.value } : field_values.where(custom_field_slug: _key, group_number: group_number).pluck(:value)
   end
   alias_method :get_fields, :get_field_values
 

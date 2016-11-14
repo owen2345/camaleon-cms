@@ -237,6 +237,6 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # sample: my_post_type.set_option('cama_post_decorator_class', 'ProductDecorator')
     # Sample: https://github.com/owen2345/camaleon-ecommerce/tree/master/app/decorators/
   def decorator_class
-    (self.post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator') rescue 'CamaleonCms::PostDecorator').constantize
+    (post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator') rescue 'CamaleonCms::PostDecorator').constantize
   end
 end

@@ -173,6 +173,8 @@ it:
         media_manager: 'Media Manager'
         home: "Home"
         info: 'Info'
+        folder_name: 'Nome della cartella'
+        external: 'Esterno'
       menus:
         menus: 'Menù'
         link_url: 'Link URL'
