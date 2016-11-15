@@ -17,7 +17,7 @@ module CamaleonCms::HtmlHelper
     @_cama_assets_libraries[key][:js] += assets[:js] if assets[:js].present?
   end
 
-  # enable to load admin or registered libraries (colorpicker, datepicker, form_builder, tinymce, form_ajax, cropper)
+  # enable to load admin or registered libraries (colorpicker, datepicker, tinymce, form_ajax, cropper)
   # sample: add_asset_library("datepicker", "colorpicker")
   # This will add this assets library in the admin head or in a custom place by calling: cama_draw_custom_assets()
   def cama_load_libraries(*keys)
@@ -117,9 +117,8 @@ module CamaleonCms::HtmlHelper
     libs[:datepicker] = {js: []}
     libs[:datetimepicker] = {js: [], css: []}
     libs[:tinymce] = {js: ['camaleon_cms/admin/tinymce/tinymce.min', "camaleon_cms/admin/tinymce/plugins/filemanager/plugin.min"], css: ["camaleon_cms/admin/tinymce/skins/lightgray/content.min"]}
-    libs[:form_builder] = {css:['camaleon_cms/admin/form-builder/formbuilder'],js: ['camaleon_cms/admin/form-builder/vendor', 'camaleon_cms/admin/form-builder/formbuilder' ]}
     libs[:form_ajax] = {js: ['camaleon_cms/admin/form/jquery.form']}
-    libs[:cropper] = {js: ['camaleon_cms/admin/form/cropper.min'], css: ['camaleon_cms/admin/cropper/cropper.min']}
+    libs[:cropper] = {} # loaded by default
     libs[:post] = {js: ["camaleon_cms/admin/jquery.tagsinput.min", 'camaleon_cms/admin/post'], css: ["camaleon_cms/admin/jquery.tagsinput"]}
     libs[:multiselect] = {js: ['camaleon_cms/admin/bootstrap-select.js']}
     libs[:validate] = {js: ['camaleon_cms/admin/jquery.validate']}

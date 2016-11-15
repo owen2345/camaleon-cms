@@ -46,6 +46,8 @@ en:
           insert: "Insert"
           url: "URL"
           root: "root"
+          replace_image: 'Replace Image'
+          save_new_image: 'Save New Image'
 
 zh-CN:
   camaleon_cms:
@@ -78,6 +80,8 @@ zh-CN:
           upload_image: '上傳圖片'
           confirm_del: "您確定要刪除此項目嗎？"
           media_title: '媒體上傳器'
+          replace_image: '替換圖像'
+          save_new_image: '保存新圖像'
 
         button:
           edit: "編輯"
@@ -137,6 +141,8 @@ pt-BR:
           insert: "Inserir"
           url: "URL"
           root: "raiz"
+          replace_image: 'Substituir imagem'
+          save_new_image: 'Salvar Nova Imagem'
 es:
   camaleon_cms:
     admin:
@@ -185,6 +191,8 @@ es:
           insert: "Insertar"
           url: "URL"
           root: "Raiz"
+          replace_image: 'Reemplazar Imagen'
+          save_new_image: 'Guardar Nueva Imagen'
 
 it:
   camaleon_cms:

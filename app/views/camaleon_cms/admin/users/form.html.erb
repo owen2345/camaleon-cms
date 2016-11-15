@@ -22,11 +22,12 @@
                         <p><%= @user.new_record? ? "" : @user.get_meta("slogan") %></p>
                         <div class="text-center" id="user_image">
                             <img src="<%= @user.new_record? || !@user.get_meta("avatar") ? asset_path("camaleon_cms/admin/img/no_image.jpg") : @user.get_meta("avatar") %>" class="img-thumbnail input_upload"/>
+                            <input type="hidden" name="meta[avatar]" id="user_meta_avatar" value="<%= @user.get_meta("avatar") %>">
                         </div>
                     </div>
                     <div class="panel-body user-form-left form-group-separated">
                         <div class="">
-                            <a href="#" class="btn btn-primary btn-block btn-rounded" data-toggle="modal" data-target="#modal_change_photo"><%= t('camaleon_cms.admin.button.change_photo')%></a>
+                            <a href="#" class="btn btn-primary btn-block btn-rounded btn_change_photo"><%= t('camaleon_cms.admin.button.change_photo')%></a>
                         </div>
                         <div class="">
                             <label class="control-label">#<%= t('camaleon_cms.admin.table.id')%></label>
@@ -130,32 +131,6 @@
 
 
 <!-- MODALS -->
-<div class="modal animated fadeIn" id="modal_change_photo" tabindex="-1" role="dialog" aria-labelledby="smallModalHead" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only"><%= t('camaleon_cms.admin.button.close') %></span></button>
-                <h4 class="modal-title" id="smallModalHead"><%= t('camaleon_cms.admin.button.change_photo') %></h4>
-            </div>
-            <%= form_tag crop_cama_admin_media_path({saved_avatar: @user.id}), id: 'cp_crop', class: 'modal-body', style: 'min-height: 200px; max-height: 400px; overflow: auto;' do %>
-                <input type="hidden" name="cp_img_path" id="cp_img_path"/>
-                <input type="hidden" name="ic_x" id="ic_x"/>
-                <input type="hidden" name="ic_y" id="ic_y"/>
-                <input type="hidden" name="ic_w" id="ic_w"/>
-                <input type="hidden" name="ic_h" id="ic_h"/>
-                <input type="hidden" name="ic_resize" id="ic_resize"/>
-                <div id="cp_target"></div>
-            <% end %>
-
-            <div class="modal-footer">
-                <a id="cp_photo" class="pull-left btn btn-link" href="#"><%= t('camaleon_cms.admin.users.new_photo') %></a>
-                <button type="button" class="btn btn-success" disabled="" id="cp_accept"><%= t('camaleon_cms.admin.button.accept') %></button>
-                <button type="button" class="btn btn-default" data-dismiss="modal"><%= t('camaleon_cms.admin.button.close') %></button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="modal animated fadeIn" id="modal_change_password" tabindex="-1" role="dialog" aria-labelledby="smallModalHead" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -180,8 +155,7 @@
         </div>
     </div>
 </div>
+<script type="application/javascript">
+    jQuery(function ($) { init_profile_form(); });
+</script>
 <!-- EOF MODALS -->
-
-
-<% add_asset_library('cropper') %>
-<%= javascript_include_tag "camaleon_cms/admin/user_profile" %>

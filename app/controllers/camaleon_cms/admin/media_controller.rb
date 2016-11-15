@@ -63,10 +63,13 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
         cama_uploader.delete_file(params[:folder].gsub("//", "/"))
         render inline: ""
       when 'crop_url'
-        r = cama_tmp_upload(params[:url], formats: params[:formats])
+        r = cama_tmp_upload(params[:url], formats: params[:formats], name: params[:name])
         unless r[:error].present?
           params[:file_upload] = r[:file_path]
-          upload({remove_source: true})
+          sett = {remove_source: true}
+          sett[:same_name] = true if params[:same_name].present?
+          sett[:name] = params[:name] if params[:name].present?
+          upload(sett)
         else
           render inline: r[:error]
         end
@@ -79,7 +82,6 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     if params[:file_upload].present?
       f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats], versions: params[:versions], thumb_size: params[:thumb_size]}.merge(settings))
     end
-
     render(partial: "render_file_item", locals:{ files: [f] }) unless f[:error].present?
     render inline: f[:error] if f[:error].present?
   end

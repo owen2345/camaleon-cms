@@ -22,10 +22,13 @@
             <%= file["name"] %>
         </div>
         <textarea class="hidden data_value"><%= raw file.to_json %></textarea>
-        <% if @show_file_actions %>
-            <div class="actions">
+        <div class="actions">
+            <% if file['format'] == 'image' && File.extname(file['name']).downcase != '.gif' %>
+                <a href="#" class="edit_item btn btn-primary btn-xs" <%= 'data-permit-overwrite="true"' if @show_file_actions %>><i class="fa fa-pencil"></i></a>
+            <% end %>
+            <% if @show_file_actions %>
                 <a href="#" class="del_item btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>
-            </div>
-        <% end %>
+            <% end %>
+        </div>
     </div>
 <% end %>

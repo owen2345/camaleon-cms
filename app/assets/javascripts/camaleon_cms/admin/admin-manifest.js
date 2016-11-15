@@ -34,8 +34,10 @@
 //= require ./introjs/_intro.min
 
 
+// uploader
 //= require ./_modal
 //= require ./uploader/uploader_manifest
+//= require ./form/cropper.min
 
 //= require ./tageditor/_jquery.caret.min
 //= require ./tageditor/_jquery.tag-editor
@@ -51,3 +53,6 @@
 //= require ./_post
 
 //= require ./_posttype
+
+// others
+//= require ./_user_profile

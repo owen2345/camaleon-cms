@@ -180,8 +180,10 @@ en:
         info: "Information"
         external: "Upload From URL"
         folder_name: 'Folder Name'
+        folder_file_name: 'Folder or File Name'
         reload: 'Reload'
         clear_cache: 'Clear Cache'
+        name_required: 'File name is required'
       menus:
         link_url: 'Link URL'
         target: 'Target'

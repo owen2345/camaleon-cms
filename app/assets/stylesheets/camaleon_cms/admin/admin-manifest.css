@@ -20,6 +20,7 @@
  *= require ./tageditor/_jquery.tag-editor
 
  *= require ./uploader/_uploadfile
+ *= require ./cropper/cropper.min
  *= require ./_bootstrap-select
 
  // post

@@ -5,10 +5,15 @@ window["cama_init_media"] = (media_panel) ->
   media_link_tab_upload = media_panel.find(".media_file_info_col .nav-tabs .link_media_upload")
 
   ################ visualize item
-  show_file = (item) ->
-    item.addClass('selected').siblings().removeClass('selected')
+  # return the data of this file
+  file_data = (item)->
     data = item.data('eval-data') || eval("("+item.find(".data_value").val()+")")
     item.data('eval-data', data)
+    return data
+
+  show_file = (item) ->
+    item.addClass('selected').siblings().removeClass('selected')
+    data = file_data(item)
     media_info_tab_info.click()
     tpl =
       "<div class='p_thumb'></div>" +
@@ -156,10 +161,13 @@ window["cama_init_media"] = (media_panel) ->
       hideLoading()
     )
   ).bind("add_file", (e,  data)-> # add html item in the list
-    item = $(data["item"])
-    media_files_panel.prepend(item)
+    item = $(data["item"]).hide()
+    last_folder = media_files_panel.children('.folder_item:last')
+    if last_folder.length ==1 then last_folder.after(item) else media_files_panel.prepend(item)
     if data["selected"] == true || data["selected"] == undefined
       item.click()
+    media_files_panel.scrollTop(0)
+    item.fadeIn(1500)
   )
 
   # search file
@@ -215,6 +223,77 @@ window["cama_init_media"] = (media_panel) ->
     ).error(->
       $.fn.alert({type: 'error', content: I18n("msg.internal_error"), title: I18n("button.error")})
     )
+    return false
+  )
+
+  # edit image
+  media_panel.on('click', '.edit_item', ->
+    link = $(this)
+    item = link.closest(".media_item")
+    data = file_data(item)
+    cropper = null
+
+    edit_callback = (modal)->
+      save_image = (name, same_name)->
+        $.fn.upload_url({url: cropper.cropper('getCroppedCanvas').toDataURL('image/jpeg'), name: name, same_name: same_name, callback: (res)->
+          modal.modal('hide')
+        })
+
+      # add buttons
+      for icon, cmd of {arrows: "('setDragMode', 'move')", crop: "('setDragMode', 'crop')", 'search-plus': "('zoom', 0.1)", 'search-minus': "('zoom', -0.1)", 'arrow-left': "('move', -10, 0)", 'arrow-right': "('move', 10, 0)", 'arrow-up': "('move', 0, -10)", 'arrow-down': "('move', 0, 10)", 'rotate-left': "('rotate', -45)", 'rotate-right': "('rotate', 45)", 'arrows-h': "('scaleX', -1)", 'arrows-v': "('scaleY', -1)", refresh: "('reset')"}
+        btn = $('<button type="button" class="btn btn-default" data-cmd="'+cmd+'"><i class="fa fa-'+icon+'"></i></button>')
+        modal.find('.editor_controls').append(btn)
+        btn.click(->
+          btn = $(this)
+          cmd = btn.data('cmd')
+          if cmd == "('scaleY', -1)" || cmd == "('scaleX', -1)"
+            btn.data('cmd', cmd.replace('-1', '1'))
+          else if cmd == "('scaleY', 1)" || cmd == "('scaleX', 1)"
+            btn.data('cmd', cmd.replace('1', '-1'))
+          eval('cropper.cropper'+cmd)
+        )
+
+      # save editted image
+      save_btn = $('<button type="button" class="btn btn-default"><i class="fa fa-save"></i> '+I18n('button.save', 'Save Image')+'</button>').click(->
+        save_buttons = (modal2)->
+          modal2.find('img.preview').attr('src', cropper.cropper('getCroppedCanvas').toDataURL('image/jpeg'))
+          modal2.find('.save_btn').click(->
+            save_image(data['name'], true)
+            modal2.modal('hide')
+            item.remove()
+          )
+          modal2.find('form').validate({submitHandler: ->
+            save_image(modal2.find('.file_name').val()+'.'+data['name'].split('.').pop())
+            modal2.modal('hide')
+            return false
+          })
+        open_modal({zindex: 999992, id: 'media_preview_editted_image', content: '<div class="text-center" style="overflow: auto;"><img class="preview"></div><br><div class="row"><div class="col-md-4">'+(if link.attr('data-permit-overwrite') then '<button class="btn save_btn btn-default">'+I18n('button.replace_image')+'</button>' else '')+'</div><div class="col-md-8"><form class="input-group"><input type="text" class="form-control file_name required" name="file_name"><div class="input-group-btn"><button class="btn btn-primary" type="submit">'+I18n('button.save_new_image')+'</button></div></form></div></div>', callback: save_buttons})
+      )
+      modal.find('.editor_controls').append(save_btn)
+
+      # show cropper image
+      showLoading()
+      modal.find('img.editable').load(->
+        setTimeout(->
+          label = modal.find('.label_dimension')
+          cropper_data = { modal: true, crop: (e)->
+            label.html(Math.round(e.width) + " x "+Math.round(e.height))
+          }
+
+          if media_panel.attr("data-dimension") && false # TODO: control dimensions
+            dim = media_panel.attr("data-dimension").split('x')
+            if dim[0]
+              cropper_data['minCropBoxWidth'] = dim[0].match(/\d+/)[0]
+            if dim[1]
+              cropper_data['minCropBoxHeight'] = dim[1].match(/\d+/)[0]
+
+            if dim[0] && dim[0].search(/\?/) == -1 && dim[1] && dim[1].search(/\?/) == -1
+              cropper_data['cropBoxResizable'] = false
+          cropper = modal.find('img.editable').cropper(cropper_data)
+          hideLoading()
+        , 300)
+      )
+    open_modal({zindex: 999991, id: 'media_panel_editor_image', title: 'Edit Image - ' + data['name'], content: '<div><div class="editable_wrapper"><img style="max-width: 100%;" class="editable" id="media_editable_image" src="'+data['url']+'"></div><div class="editor_controls btn-group"></div><span class="label label-default pull-right label_dimension"></span></div>', callback: edit_callback, modal_size: 'modal-lg'})
     return false
   )
 
