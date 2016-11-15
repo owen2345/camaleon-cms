@@ -57,6 +57,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
 
   validates_with CamaleonCms::PostUniqValidator
   attr_accessor :show_title_with_parent
+  before_create :fix_post_order, if: lambda{|p| !p.post_order.present? || p.post_order == 0 }
 
   # return all parents for current page hierarchy ordered bottom to top
   def parents
@@ -238,5 +239,11 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
     # Sample: https://github.com/owen2345/camaleon-ecommerce/tree/master/app/decorators/
   def decorator_class
     (post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator') rescue 'CamaleonCms::PostDecorator').constantize
+  end
+
+  private
+  # calculate a post order when it is empty
+  def fix_post_order
+    self.post_order = (post_type.posts.count) + 1
   end
 end
