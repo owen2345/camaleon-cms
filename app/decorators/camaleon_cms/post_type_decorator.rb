@@ -28,7 +28,7 @@ class CamaleonCms::PostTypeDecorator < CamaleonCms::TermTaxonomyDecorator
 
   # return edit url for this post type
   def the_edit_url
-    h.edit_cama_admin_settings_post_type_url(object.id)
+    cama_url_helpers.edit_cama_admin_settings_post_type_url(object.id)
   end
 
   # return the admin list url for this post type

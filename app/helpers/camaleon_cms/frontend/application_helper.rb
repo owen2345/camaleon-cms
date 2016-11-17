@@ -28,6 +28,10 @@ module CamaleonCms::Frontend::ApplicationHelper
       options[:locale] = nil if options[:locale].present? && current_site.get_languages.first.to_s == options[:locale].to_s
     end
     options.delete(:format) if PluginRoutes.system_info["skip_format_url"].present?
-    send(url_to.gsub('-', '_'), *(args << options))
+    if url_to.start_with?('url_for')
+      send(url_to.gsub('-', '_'), *(args << options))
+    else
+      Rails.application.routes.url_helpers.send(url_to.gsub('-', '_'), *(args << options))
+    end
   end
 end

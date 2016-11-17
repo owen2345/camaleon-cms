@@ -57,13 +57,13 @@ class CamaleonCms::TermTaxonomyDecorator < CamaleonCms::ApplicationDecorator
     link = ""
     case object.class.name
       when "CamaleonCms::PostType"
-        link = h.edit_cama_admin_settings_post_type_url(object)
+        link = cama_url_helpers.edit_cama_admin_settings_post_type_url(object)
       when "CamaleonCms::Category"
-        link = h.edit_cama_admin_post_type_category_url(object.post_type.id, object)
+        link = cama_url_helpers.edit_cama_admin_post_type_category_url(object.post_type.id, object)
       when "CamaleonCms::PostTag"
-        link = h.edit_cama_admin_post_type_post_tag_url(object.post_type.id, object)
+        link = cama_url_helpers.edit_cama_admin_post_type_post_tag_url(object.post_type.id, object)
       when "CamaleonCms::Site"
-        link = h.cama_admin_settings_site_url
+        link = cama_url_helpers.cama_admin_settings_site_url
     end
     link
   end

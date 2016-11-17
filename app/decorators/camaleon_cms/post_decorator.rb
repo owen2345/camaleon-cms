@@ -124,7 +124,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
 
   # return edit url for this post
   def the_edit_url
-    h.edit_cama_admin_post_type_post_url(object.post_type.id, object)
+    cama_url_helpers.edit_cama_admin_post_type_post_url(object.post_type.id, object)
   end
 
   # create the html link with edit link

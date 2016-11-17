@@ -6,7 +6,7 @@ class CamaleonCms::ThemeDecorator < CamaleonCms::TermTaxonomyDecorator
   end
 
   def the_settings_url
-    h.cama_admin_settings_theme_url
+    cama_url_helpers.cama_admin_settings_theme_url
   end
 
   def the_settings_link

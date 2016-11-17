@@ -41,7 +41,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
 
   # return the url for the profile in the admin module
   def the_admin_profile_url
-    h.cama_admin_profile_url(object.id)
+    cama_url_helpers.cama_admin_profile_url(object.id)
   end
 
   # return all contents created by this user in current site
