@@ -221,7 +221,7 @@ module CamaleonCms::UploaderHelper
       saved =  true
     elsif uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://"))
       return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io, args[:formats])
-      uploaded_io = Rails.public_path.join(uploaded_io.sub(current_site.the_url, '')).to_s if uploaded_io.include?(current_site.the_url) && Rails.env != 'production' # local file
+      uploaded_io = Rails.public_path.join(uploaded_io.sub(current_site.the_url(locale: false), '')).to_s if uploaded_io.include?(current_site.the_url(locale: false)) # local file
       _tmp_name = uploaded_io.split("/").last.split('?').first; args[:name] = args[:name] || _tmp_name
       uploaded_io = open(uploaded_io)
     end

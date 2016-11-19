@@ -39,8 +39,9 @@ window["cama_init_media"] = (media_panel) ->
         if media_panel.attr("data-dimension") # verify dimensions
           btn = media_info.find(".p_footer .insert_btn")
           btn.prop('disabled', true)
-          _ww = parseInt(media_panel.attr("data-dimension").split("x")[0])
-          _hh = parseInt(media_panel.attr("data-dimension").split("x")[1])
+          _ww = parseInt(media_panel.attr("data-dimension").split("x")[0]) || ww
+          _hh = parseInt(media_panel.attr("data-dimension").split("x")[1]) || hh
+          media_info.find('.cdimension').append("<span style='color: black;'> ==> "+media_panel.attr("data-dimension")+"</span>")
           if _ww == ww && _hh == hh
             btn.prop('disabled', false)
           else
@@ -232,6 +233,7 @@ window["cama_init_media"] = (media_panel) ->
     item = link.closest(".media_item")
     data = file_data(item)
     cropper = null
+    cropper_data = null
 
     edit_callback = (modal)->
       save_image = (name, same_name)->
@@ -251,6 +253,8 @@ window["cama_init_media"] = (media_panel) ->
           else if cmd == "('scaleY', 1)" || cmd == "('scaleX', 1)"
             btn.data('cmd', cmd.replace('1', '-1'))
           eval('cropper.cropper'+cmd)
+          if cmd == "('reset')"
+            cropper.cropper('setData', cropper_data['data'])
         )
 
       # save editted image
@@ -276,19 +280,40 @@ window["cama_init_media"] = (media_panel) ->
       modal.find('img.editable').load(->
         setTimeout(->
           label = modal.find('.label_dimension')
-          cropper_data = { modal: true, crop: (e)->
-            label.html(Math.round(e.width) + " x "+Math.round(e.height))
+          cropper_data = {data: {}, minContainerHeight: 450, modal: true, crop: (e)->
+            dim = cropper_data['data']['dim']
+            r = false
+            if dim && dim[0].search(/\?/) > -1 && parseFloat(dim[0].match(/\d+/)[0]) < e.width # max width
+              cropper.cropper('setData', {width: parseFloat(dim[0].match(/\d+/)[0])})
+              r = true
+
+            if dim && dim[1].search(/\?/) > -1 && parseFloat(dim[1].match(/\d+/)[0]) < e.height # max height
+              cropper.cropper('setData', {height: parseFloat(dim[1].match(/\d+/)[0])})
+              r = true
+
+            if dim && dim[0] && dim[0].search(/\?/) == -1 && e.width != parseFloat(dim[0]) # same width
+              cropper.cropper('setData', {width: parseFloat(dim[0])})
+              r = true
+
+            if dim && dim[1] && dim[1].search(/\?/) == -1 && e.height != parseFloat(dim[1]) # same width
+              cropper.cropper('setData', {height: parseFloat(dim[1])})
+              r = true
+
+            unless r
+              label.html(Math.round(e.width) + " x "+Math.round(e.height))
           }
 
-          if media_panel.attr("data-dimension") && false # TODO: control dimensions
+          if media_panel.attr("data-dimension") # TODO: control dimensions
             dim = media_panel.attr("data-dimension").split('x')
+            cropper_data['data']['dim'] = dim
             if dim[0]
-              cropper_data['minCropBoxWidth'] = dim[0].match(/\d+/)[0]
+              cropper_data['data']['width'] = parseFloat(dim[0].match(/\d+/)[0])
             if dim[1]
-              cropper_data['minCropBoxHeight'] = dim[1].match(/\d+/)[0]
-
+              cropper_data['data']['height'] = parseFloat(dim[1].match(/\d+/)[0])
             if dim[0] && dim[0].search(/\?/) == -1 && dim[1] && dim[1].search(/\?/) == -1
               cropper_data['cropBoxResizable'] = false
+              cropper_data['zoomable'] = false
+
           cropper = modal.find('img.editable').cropper(cropper_data)
           hideLoading()
         , 300)
