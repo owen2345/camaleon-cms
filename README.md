@@ -10,6 +10,13 @@
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/owen2345/Camaleon-CMS-Sample)
 # CAMALEON CMS V2
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
+  
+# Sponsor
+
+[ButterCMS](https://buttercms.com/?utm_source=github&utm_medium=sponsorship-link&utm_campaign=camaleon) is an API-based CMS and blogging platform built for developers:
+
+[![Foo](https://dl.dropboxusercontent.com/u/598519/buttercms-banners/b-on-y.png)](https://buttercms.com/?utm_source=github&utm_medium=sponsorship-banner&utm_campaign=camaleon)
+
 
 # Requirements
 * Rails 4.1+
