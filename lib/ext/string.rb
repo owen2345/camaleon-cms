@@ -116,13 +116,23 @@ class String
   end
 
   # Parse the url to get the image version
-  #   version_name: (String) version name,
+  #   version_name: (String, default empty) version name,
   #     if this is empty, this will return the image version for thumb of the image, sample: 'http://localhost/my_image.png'.cama_parse_image_version('') => http://localhost/thumb/my_image.png
   #     if this is present, this will return the image version generated, sample: , sample: 'http://localhost/my_image.png'.cama_parse_image_version('200x200') => http://localhost/thumb/my_image_200x200.png
-  #   default: default image if post image does not exist
-  def cama_parse_image_version(version_name = '')
+  #   check_url: (boolean, default false) if true the image version will be verified, i.e. if the url exist will return version url, if not will return current url
+  def cama_parse_image_version(version_name = '', check_url = false)
     res = File.join(File.dirname(self), 'thumb', "#{File.basename(self).parameterize}#{File.extname(self)}")
     res = res.cama_add_postfix_file_name("_#{version_name}") if version_name.present?
+    return self if check_url && !res.cama_url_exist?
     res
+  end
+
+  # check if the url exist
+  # sample: "https://mydomain.com/myimg.png".cama_url_exist?
+  # return (Boolean) true if the url exist
+  def cama_url_exist?
+    Net::HTTP.get_response(URI.parse(self)).is_a?(Net::HTTPSuccess)
+  rescue
+    false
   end
 end
