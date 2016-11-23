@@ -236,6 +236,8 @@ div.mce-fullscreen{
 
 //************** custom loading style
 #cama_custom_loading{
+  position: relative;
+  z-index: 999999;
   .back_spinner{
     position: fixed;
     z-index: 99998;
