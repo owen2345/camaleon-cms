@@ -22,7 +22,7 @@ module CamaleonCms::FrontendConcern extend ActiveSupport::Concern
   def rss
     r = {layout: false, render: "rss"}
     hooks_run("on_render_rss", r)
-    render r[:render], layout: r[:layout]
+    render r[:render], layout: r[:layout], formats: [:rss]
   end
 
   # save comment from a post
