@@ -6,11 +6,11 @@
       <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @post_tag} %>
         <div class="form-group">
           <%= f.label t('camaleon_cms.admin.table.name') %><br>
-          <%= f.text_field :name, :class => "form-control required" %>
+          <%= f.text_field :name, :class => "form-control required translatable" %>
         </div>
         <div class="form-group">
             <%= f.label t('camaleon_cms.admin.table.slug') %><br>
-            <%= f.text_field :slug, :class => "form-control slug", "data-parent" => "post_tag_name" %>
+            <%= f.text_field :slug, :class => "form-control no_translate required slug", "data-parent" => "post_tag_name" %>
         </div>
 
         <div class="form-group">
@@ -24,4 +24,3 @@
       <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit')%></button>
     </div>
 <% end %>
-

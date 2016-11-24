@@ -243,6 +243,12 @@ class PluginRoutes
     cache_variable("site_all_locales", res.uniq.join("|"))
   end
 
+  # return all translations for all languages, sample: ['Sample', 'Ejemplo', '....']
+  def self.all_translations(key, *args)
+    args = args.extract_options!
+    all_locales.split('|').map{|_l| I18n.t(args.merge({locale: _l})) }
+  end
+
   # return all locales for translated routes
   def self.all_locales_for_routes
     r = cache_variable("all_locales_for_routes"); return r unless r.nil?

@@ -58,7 +58,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   def the_url(*args)
     args = args.extract_options!
     args[:locale] = get_locale unless args.include?(:locale)
-    args[:format] = "html"
+    args[:format] = args[:format] || "html"
     args[:slug] = the_slug(args[:locale])
     p = args.delete(:as_path).present? ? "path" : "url"
     l = _calc_locale(args[:locale])

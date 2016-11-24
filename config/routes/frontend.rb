@@ -23,6 +23,7 @@ Rails.application.routes.draw do
 
           get "#{I18n.t("routes.tag", default: "tag", locale: _l)}/:post_tag_id-:title" => :post_tag, as: "post_tag_#{_l}", constraints: {post_tag_id: /[0-9]+/}
           get "#{I18n.t("routes.tag", default: "tag", locale: _l)}/:post_tag_id-:title/:slug" => :post, as: "post_of_tag_#{_l}", constraints: {post_tag_id: /[0-9]+/}
+          get "#{I18n.t("routes.tag", default: "tag", locale: _l)}/:post_tag_slug" => :post_tag, as: "post_tag_simple_#{_l}", constraints: {post_tag_slug: /[a-zA-Z0-9_=\s\-\/]+/}
 
           get "#{I18n.t("routes.profile", default: "profile", locale: _l)}/:user_id-:user_name" => :profile, constraints: {user_id: /[0-9]+/}, as: "profile_#{_l}"
           get "#{I18n.t("routes.search", default: "search", locale: _l)}" => :search, as: "search_#{_l}"

@@ -8,7 +8,7 @@ class CamaleonCms::PostTypeDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:post_type_id] = the_id
     args[:post_type_slug] = I18n.t("routes.post_types.#{the_slug}", default: the_slug)
     args[:locale] = get_locale unless args.include?(:locale)
-    args[:format] = "html"
+    args[:format] = args[:format] || "html"
     as_path = args.delete(:as_path)
     h.cama_url_to_fixed("cama_post_type_#{self.id}_#{as_path.present? ? "path" : "url"}", args)
   end
@@ -21,7 +21,7 @@ class CamaleonCms::PostTypeDecorator < CamaleonCms::TermTaxonomyDecorator
     args[:title] = the_title.parameterize
     args[:title] = the_slug unless args[:title].present?
     args[:locale] = get_locale unless args.include?(:locale)
-    args[:format] = "html"
+    args[:format] = args[:format] || "html"
     as_path = args.delete(:as_path)
     h.cama_url_to_fixed("cama_post_type#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
   end
