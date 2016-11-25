@@ -6,7 +6,7 @@ class Plugins::FrontCache::AdminController < CamaleonCms::Apps::PluginsAdminCont
   end
 
   def save_settings
-    current_site.set_meta("front_cache_elements", {paths: (params[:cache][:paths].delete_if{|a| !a.present?  } ||[]),
+    current_site.set_meta("front_cache_elements", {paths: ((params[:cache][:paths] || []).delete_if{|a| !a.present?  } ||[]),
                                                    posts: (params[:cache][:posts]||[]),
                                                    post_types: (params[:cache][:post_type]||[]),
                                                    skip_posts: (params[:cache][:skip_posts]||[]),
