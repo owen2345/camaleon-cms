@@ -9,7 +9,7 @@ describe "the signin process", js: true do
       fill_in 'post_title', :with => 'Test Title'
       page.execute_script('$("#form-post .tinymce_textarea").tinymce().setContent("Pants are pretty sweet.")')
       page.execute_script('$("#form-post input[name=\'categories[]\']:first").prop("checked", true)')
-      wait(20)
+      wait(2)
       fill_in 'post_summary', :with => 'test summary'
       fill_in 'post_keywords', :with => 'test keywords'
       page.execute_script("$('#form-post input[name=\"tags\"]').val('owen,dota')")

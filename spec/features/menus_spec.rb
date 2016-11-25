@@ -15,11 +15,11 @@ describe "the Menus", js: true do
       wait_for_ajax
 
       # custom links
-      wait(10)
+      wait(2)
       # screenshot_and_save_page
       page.execute_script('$("#menu_items .panel-collapse:last").click()')
       page.execute_script('$("#menu_items").css({background: "red"});')
-      wait(10)
+      wait(2)
       screenshot_and_save_page
       within ".form-custom-link" do
         fill_in "external_label", with: "name link"

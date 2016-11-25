@@ -33,16 +33,11 @@
 
         <div class="form-group">
             <label><%= t('plugin.front_cache.pages') %></label>
-            <%= select_tag("cache[posts]", options_from_collection_for_select(current_site.posts.public_posts.decorate, "id", "the_title", @caches[:posts]), "class"=> "form-control select", multiple: true, "data-live-search" => "true") %>
-        </div>
-
-        <div class="form-group">
-            <label><%= t('plugin.front_cache.skip_cache_pages') %></label>
-            <%= select_tag("cache[skip_posts]", options_from_collection_for_select(current_site.posts.public_posts.decorate, "id", "the_title", @caches[:skip_posts]), "class"=> "form-control select", multiple: true, "data-live-search" => "true") %>
+            <%= select_tag("cache[posts]", option_groups_from_collection_for_select(current_site.the_post_types.decorate, :the_posts, :the_title, :id, lambda{|o| o.decorate.the_title }, @caches[:posts]), "class"=> "form-control select", multiple: true, "data-live-search" => "true") %>
         </div>
 
         <div class="form-group" id="custom_paths">
-            <label><%= t('plugin.front_cache.custom_url_paths') %>: <span title="Enter paths like /contact <br>  or /my_section?p=a&...">[?]</span></label>
+            <label><%= t('plugin.front_cache.custom_url_paths') %>: <%= raw cama_html_tooltip(cama_t('plugin.front_cache.custom_url_samples'), 'right') %></label>
             <div id="paths">
                 <% @caches[:paths].each do |c| %>
                     <div class="input-group">
@@ -55,6 +50,11 @@
             <div style="padding: 10px 0 0">
                 <a id="btn-add-path" href="#" class="btn btn-warning btn-sm"> <i class="fa fa-plus"></i> <%= t('plugin.front_cache.button.add_new_path') %></a>
             </div>
+        </div>
+
+        <div class="form-group">
+            <label><%= t('plugin.front_cache.skip_cache_pages') %></label>
+            <%= select_tag("cache[skip_posts]", option_groups_from_collection_for_select(current_site.the_post_types.decorate, :the_posts, 'the_title', "id", lambda{|o| o.decorate.the_title }, @caches[:skip_posts]), "class"=> "form-control select", multiple: true, "data-live-search" => "true") %>
         </div>
 
         <!--<div class="form-group">-->

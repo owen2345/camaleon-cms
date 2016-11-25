@@ -166,6 +166,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       @comments = @post.the_comments
       @categories = @post.the_categories
       @post.increment_visits!
+      # todo: can_visit? if not redirect home page
       home_page = @_site_options[:home_page] rescue nil
       if lookup_context.template_exists?("page_#{@post.id}")
         r_file = "page_#{@post.id}"
@@ -227,7 +228,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     lookup_context.prefixes.delete_if{|t| t =~ /themes\/(.*)\/views/i || t == "camaleon_cms/default_theme" || t == "themes/#{current_site.id}/views" }
 
     lookup_context.prefixes.append("themes/#{current_site.id}/views") if Dir.exist?(Rails.root.join('app', 'apps', 'themes', current_site.id.to_s).to_s)
-    lookup_context.prefixes.append("themes/#{current_theme.slug}/views")
+    lookup_context.prefixes.append("themes/#{current_site.get_theme_slug}/views")
     lookup_context.prefixes.append("camaleon_cms/default_theme")
 
     lookup_context.prefixes = lookup_context.prefixes.uniq

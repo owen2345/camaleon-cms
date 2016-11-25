@@ -15,7 +15,7 @@ module CamaleonCms::HooksHelper
   # hook_key: hook key
   # params: params for hook
   def hooks_run(hook_key, params = nil)
-    PluginRoutes.enabled_apps(current_site, current_theme.slug).each do |plugin|
+    PluginRoutes.enabled_apps(current_site).each do |plugin|
       _do_hook(plugin, hook_key, params)
     end
   end

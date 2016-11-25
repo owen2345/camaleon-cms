@@ -46,6 +46,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
 
   scope :visible_frontend, -> {where(status: 'published')}
   scope :public_posts, -> {visible_frontend.where(visibility: ['public', ""]) } #public posts (not passwords, not privates)
+  scope :private_posts, -> {where(visibility: 'private') } #public posts (not passwords, not privates)
 
   scope :trash, -> {where(status: 'trash')}
   scope :no_trash, -> {where.not(status: 'trash')}
@@ -54,6 +55,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   scope :drafts, -> {where(status: 'draft')}
   scope :pendings, -> {where(status: 'pending')}
   scope :latest, -> {reorder(created_at: :desc)}
+  scope :featured, -> {where(is_feature: true)}
 
   validates_with CamaleonCms::PostUniqValidator
   attr_accessor :show_title_with_parent
