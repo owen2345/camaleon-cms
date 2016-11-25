@@ -6,6 +6,8 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     @aws_akey = @aws_settings[:access_key] || @current_site.get_option("filesystem_s3_access_key")
     @aws_asecret = @aws_settings[:secret_key] || @current_site.get_option("filesystem_s3_secret_key")
     @aws_bucket = @aws_settings[:bucket] || @current_site.get_option("filesystem_s3_bucket_name")
+    @aws_settings[:aws_file_upload_settings] ||= lambda{|settings| settings }
+    @aws_settings[:aws_file_read_settings] ||= lambda{|data, s3_file| data }
   end
 
   # recover all files from AWS and parse it to save into DB as cache
