@@ -5,7 +5,7 @@ en:
       button:
         add_new_path: 'Add new path'
       custom_url_paths: 'Custom url paths'
-      custom_url_samples: 'Enter paths/urls like /contact or /my_section?p=a&... or http://static.mydomain.com/(.*) or /static-pages/(.*) or /test-([0-9]+)\?owen=true&var2=([a-z]+)'
+      custom_url_samples: 'Enter paths/urls like /contact or /my_section?p=a&... or /static-pages/(.*) or /test-([0-9]+)/?\?owen=true&var2=([a-z]+) or http://static.mydomain.com/(.*)'
       clean_cache: 'Clean cache'
       title: 'Frontend cache pages'
       home_page: 'Home Page'

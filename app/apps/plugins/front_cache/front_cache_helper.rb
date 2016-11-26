@@ -12,6 +12,7 @@ module Plugins::FrontCache::FrontCacheHelper
     cache_key = request.fullpath.parameterize
     if !flash.keys.present? && front_cache_exist?(cache_key) # recover cache file
       Rails.logger.info "============================================== readed cache: #{front_cache_plugin_get_path(cache_key)}"
+      response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE'
       args = {data: front_cache_get(cache_key).gsub("{{form_authenticity_token}}", form_authenticity_token)}; hooks_run('front_cache_reading_cache', args)
       render text: args[:data]
       return
@@ -19,9 +20,9 @@ module Plugins::FrontCache::FrontCacheHelper
 
     @caches = current_site.get_meta("front_cache_elements")
     @_plugin_do_cache = false
-    if @caches[:paths].include?(request.original_url) || front_cache_plugin_match_path_patterns?(request.original_url) || (params[:action] == "index" && @caches[:home].present?) # cache paths and home page
+    if @caches[:paths].include?(request.original_url) || @caches[:paths].include?(request.path_info) || front_cache_plugin_match_path_patterns?(request.original_url, request.path_info) || (params[:action] == 'index' && params[:controller] == 'camaleon_cms/frontend' && @caches[:home].present?) # cache paths and home page
       @_plugin_do_cache = true
-    elsif params[:action] == "post" && !params[:draft_id].present?
+    elsif params[:action] == "post" && params[:controller] == 'camaleon_cms/frontend' && !params[:draft_id].present?
       begin
         post = current_site.the_posts.find_by_slug(params[:slug]).decorate
         if post.can_visit? && post.visibility != "private"
@@ -35,6 +36,7 @@ module Plugins::FrontCache::FrontCacheHelper
       rescue # skip post not found
       end
     end
+    response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE' if @_plugin_do_cache
   end
 
 
@@ -121,9 +123,7 @@ module Plugins::FrontCache::FrontCacheHelper
 
   end
 
-  def front_cache_plugin_match_path_patterns?(key)
-    @caches[:paths].any? do |path_pattern|
-      key =~ Regexp.new(path_pattern) || request.path_info =~ Regexp.new(path_pattern)
-    end
+  def front_cache_plugin_match_path_patterns?(key, key2)
+    @caches[:paths].any?{|path_pattern| key =~ Regexp.new(path_pattern) || key2 =~ Regexp.new(path_pattern) }
   end
 end
