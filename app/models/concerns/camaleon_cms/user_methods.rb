@@ -43,11 +43,11 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
   
   class_methods do
     def by_email(email)
-      where(['lower(email) = ?', email.downcase])
+      where(['lower(email) = ?', email.to_s.downcase])
     end
     
     def by_username(username)
-      where(['lower(username) = ?', username.downcase])
+      where(['lower(username) = ?', username.to_s.downcase])
     end
   end
 

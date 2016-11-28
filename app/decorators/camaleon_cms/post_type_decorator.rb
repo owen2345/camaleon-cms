@@ -28,7 +28,8 @@ class CamaleonCms::PostTypeDecorator < CamaleonCms::TermTaxonomyDecorator
 
   # return edit url for this post type
   def the_edit_url
-    cama_url_helpers.edit_cama_admin_settings_post_type_url(object.id)
+    args = h.cama_current_site_host_port({})
+    h.edit_cama_admin_settings_post_type_url(object.id, args)
   end
 
   # return the admin list url for this post type

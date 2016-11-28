@@ -1,5 +1,6 @@
 class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   # attrs: [name, description, slug]
+  attr_accessor :site_domain
   include CamaleonCms::SiteDefaultSettings
   default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
   has_many :metas, -> { where(object_class: 'Site') }, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
@@ -190,6 +191,13 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
       user = self.users.create({email: 'anonymous_user@local.com', username: 'anonymous', password: pass, password_confirmation: pass, first_name: 'Anonymous'})
     end
     user
+  end
+
+  # return the domain for current site
+  # sample: mysite.com | sample.mysite.com
+  # also, you can define custom domain for this site by: my_site.site_domain = 'my_site.com' # used for sites with different domains to call from console or task
+  def get_domain
+    @site_domain || (main_site? ? slug : (slug.include?(".") ? slug : "#{slug}.#{Cama::Site.main_site.slug}"))
   end
 
   private

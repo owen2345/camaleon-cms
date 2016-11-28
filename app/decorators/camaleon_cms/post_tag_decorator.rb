@@ -24,7 +24,8 @@ class CamaleonCms::PostTagDecorator < CamaleonCms::TermTaxonomyDecorator
 
   # return edit url for this post
   def the_edit_url
-    cama_url_helpers.edit_cama_admin_post_type_post_tag_url(object.post_type.id, object)
+    args = h.cama_current_site_host_port({})
+    h.edit_cama_admin_post_type_post_tag_url(object.post_type.id, object, args)
   end
 
   # return the post type of this post tag

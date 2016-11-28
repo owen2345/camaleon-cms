@@ -54,18 +54,19 @@ class CamaleonCms::TermTaxonomyDecorator < CamaleonCms::ApplicationDecorator
 
   # return edit url for current taxonomy: PostType, PostTag, Category
   def the_edit_url
-    link = ""
+    args = h.cama_current_site_host_port({})
     case object.class.name
       when "CamaleonCms::PostType"
-        link = cama_url_helpers.edit_cama_admin_settings_post_type_url(object)
+        h.edit_cama_admin_settings_post_type_url(object, args)
       when "CamaleonCms::Category"
-        link = cama_url_helpers.edit_cama_admin_post_type_category_url(object.post_type.id, object)
+        h.edit_cama_admin_post_type_category_url(object.post_type.id, object, args)
       when "CamaleonCms::PostTag"
-        link = cama_url_helpers.edit_cama_admin_post_type_post_tag_url(object.post_type.id, object)
+        h.edit_cama_admin_post_type_post_tag_url(object.post_type.id, object, args)
       when "CamaleonCms::Site"
-        link = cama_url_helpers.cama_admin_settings_site_url
+        h.cama_admin_settings_site_url(args)
+      else
+        ""
     end
-    link
   end
 
   # create the html link with edit link

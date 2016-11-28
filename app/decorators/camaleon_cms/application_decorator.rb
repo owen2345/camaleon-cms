@@ -51,10 +51,4 @@ class CamaleonCms::ApplicationDecorator < Draper::Decorator
     _l = (_l || @_deco_locale || (h.cama_get_i18n_frontend rescue false) || I18n.locale).to_s
     "_#{_l}"
   end
-
-
-  # return url helpers to be used by decorators
-  def cama_url_helpers
-    Rails.application.routes.url_helpers
-  end
 end

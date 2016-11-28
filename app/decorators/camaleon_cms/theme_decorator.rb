@@ -6,7 +6,8 @@ class CamaleonCms::ThemeDecorator < CamaleonCms::TermTaxonomyDecorator
   end
 
   def the_settings_url
-    cama_url_helpers.cama_admin_settings_theme_url
+    args = h.cama_current_site_host_port({})
+    h.cama_admin_settings_theme_url(args)
   end
 
   def the_settings_link

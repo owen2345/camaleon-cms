@@ -144,23 +144,17 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   end
 
   # return root url for this site
+  # args = {skip_relative_url_root: true/false(default), as_path: true/false(default)}
   def the_url(*args)
     args = args.extract_options!
-    unless args[:as_path]
-      args[:host] = object.main_site? ? object.slug : (object.slug.include?(".") ? object.slug : "#{object.slug}.#{Cama::Site.main_site.slug}")
-      args[:port] = (args[:host].split(":")[1] rescue nil)
-      args[:host] = args[:host].split(":").first
-    end
+    args[:site] = self
+    h.cama_current_site_host_port(args) unless args[:as_path]
     args[:locale] = @_deco_locale unless args.include?(:locale)
     postfix = 'url'
     postfix = 'path' if args.delete(:as_path)
     skip_relative_url_root = args.delete(:skip_relative_url_root)
-    res = begin
-      h.cama_url_to_fixed("cama_root_#{postfix}", args)
-    rescue # undefined method `host' for nil:NilClass (called from rake:tasks)
-      parms = args.except(:host, :port, :locale, :as_path)
-      "http://#{args[:host]}#{":#{args[:port]}" if args[:port].present?}#{"/#{PluginRoutes.static_system_info['relative_url_root']}" if PluginRoutes.static_system_info['relative_url_root'].present?}#{"/#{args[:locale]}" if args[:locale].present?}/#{"?#{parms.to_param}" if parms.present?}"
-    end
+    h.cama_current_site_host_port(args) unless args.keys.include?(:host)
+    res = h.cama_url_to_fixed("cama_root_#{postfix}", args)
     res = res.sub("/#{PluginRoutes.static_system_info['relative_url_root']}", '') if skip_relative_url_root && PluginRoutes.static_system_info['relative_url_root'].present?
     res
   end

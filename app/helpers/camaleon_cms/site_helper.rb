@@ -13,7 +13,7 @@ module CamaleonCms::SiteHelper
     end
     r = {site: site, request: request};
     cama_current_site_helper(r) rescue nil
-    puts "============================ Please define the $current_site = CamaleonCms::Site.first.decorate " unless r[:site].present?
+    puts '*********** Please define your current site: $current_site = CamaleonCms::Site.first.decorate or map your domains: http://camaleon.tuzitio.com/documentation/category/139779-examples/how.html' if !r[:site].present?
     @current_site = r[:site]
   end
 
@@ -86,5 +86,18 @@ module CamaleonCms::SiteHelper
     theme_model = current_site.get_theme(key)
     hook_run(theme, "on_inactive", theme_model) if theme_model.present?
     # theme_model.destroy
+  end
+
+  # add host + port to args of the current site visited (only if the request is coming from console or tasks i.e. not web browser)
+  # args: Hash
+  # sample: {} will return {host: 'localhost', port: 3000}
+  def cama_current_site_host_port(args)
+    args[:host], args[:port] = current_site.try(:get_domain).to_s.split(':') if cama_is_test_request?
+    args
+  end
+
+  # check if the request created by draper or request is not defined
+  def cama_is_test_request?
+    (request && defined?(ActionController::TestRequest) && request.is_a?(ActionController::TestRequest)) || !request
   end
 end
