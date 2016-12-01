@@ -13,7 +13,7 @@ module CamaleonCms::SiteHelper
     end
     r = {site: site, request: request};
     cama_current_site_helper(r) rescue nil
-    puts '*********** Please define your current site: $current_site = CamaleonCms::Site.first.decorate or map your domains: http://camaleon.tuzitio.com/documentation/category/139779-examples/how.html' if !r[:site].present?
+    Rails.logger.error 'Camaleon CMS - Please define your current site: $current_site = CamaleonCms::Site.first.decorate or map your domains: http://camaleon.tuzitio.com/documentation/category/139779-examples/how.html' if !r[:site].present?
     @current_site = r[:site]
   end
 

@@ -107,7 +107,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
           caption = "Fields for <b>#{object_class}</b>"
       end
     rescue => e
-      Rails.logger.debug "----------#{e.message}----#{self.attributes}"
+      Rails.logger.debug "Camaleon CMS - Menu Item Error: #{e.message} ==> Attrs: #{self.attributes}"
     end
     caption
   end

@@ -11,7 +11,7 @@ module Plugins::FrontCache::FrontCacheHelper
 
     cache_key = request.fullpath.parameterize
     if !flash.keys.present? && front_cache_exist?(cache_key) # recover cache file
-      Rails.logger.info "============================================== readed cache: #{front_cache_plugin_get_path(cache_key)}"
+      Rails.logger.info "Camaleon CMS - readed cache: #{front_cache_plugin_get_path(cache_key)}"
       response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE'
       args = {data: front_cache_get(cache_key).gsub("{{form_authenticity_token}}", form_authenticity_token)}; hooks_run('front_cache_reading_cache', args)
       render text: args[:data]
@@ -48,7 +48,7 @@ module Plugins::FrontCache::FrontCacheHelper
                         .gsub(/name="authenticity_token" value="(.*?)"/, 'name="authenticity_token" value="{{form_authenticity_token}}"')}
       hooks_run('front_cache_writing_cache', args)
       front_cache_plugin_cache_create(cache_key, args[:data])
-      Rails.logger.info "============================================== cache saved as: #{front_cache_plugin_get_path(cache_key)}"
+      Rails.logger.info "Camaleon CMS - cache saved as: #{front_cache_plugin_get_path(cache_key)}"
     end
   end
 

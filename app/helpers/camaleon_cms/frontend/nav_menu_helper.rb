@@ -204,7 +204,7 @@ module CamaleonCms::Frontend::NavMenuHelper
           r = _args[:parsed_menu]
       end
     rescue => e
-      puts "-------------------------- menu item error: #{e.message}"
+      Rails.logger.error "Camaleon CMS - Menu Item Not Found => Skipped menu for: #{e.message} (#{nav_menu_item})"
     end
 
     if r != false

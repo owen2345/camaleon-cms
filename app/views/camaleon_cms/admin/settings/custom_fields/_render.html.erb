@@ -33,7 +33,7 @@
                                 <%= begin
                                         render(field.get_option('render') || (cama_custom_field_elements[field.get_option('field_key').to_sym][:render] rescue nil) || "camaleon_cms/admin/settings/custom_fields/fields/#{field.options[:field_key]}", field: field, values: nil, is_disabled: is_disabled, default_use: default_use, field_name: field_name)
                                     rescue => e
-                                      Rails.logger.debug "======== ERROR: Custom field template was not found => #{e.message}"
+                                      Rails.logger.error "Camaleon CMS - Render Custom Fields Error: Custom field template was not found => #{e.message}"
                                     end %>
                             </div>
                         </div>

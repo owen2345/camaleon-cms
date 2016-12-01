@@ -138,7 +138,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
           false
       end
     rescue => e
-      puts "@@@@@@@@@@@@@@@@@@@@@@@@@ Skipped menu for: #{e.message} (#{nav_menu_item})"
+      Rails.logger.error "Camaleon CMS - Menu Item Not Found => Skipped menu for: #{e.message} (#{nav_menu_item})"
       false
     end
   end

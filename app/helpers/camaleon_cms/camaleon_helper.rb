@@ -68,6 +68,7 @@ module CamaleonCms::CamaleonHelper
     cache
   end
 
+  # =Deprecated
   def cama_draw_timer
     @_cama_timer ||= Time.current
     puts "***************************************** timer: #{((Time.current - @_cama_timer) * 24 * 60 * 60).to_i}  (#{caller.first})"
