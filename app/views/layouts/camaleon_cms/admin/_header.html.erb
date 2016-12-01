@@ -16,7 +16,7 @@
         <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">
                 <%= r = {html: ""}; hooks_run("admin_notifications", r); raw(r[:html]); %>
-                <li><a target="_blank" href="<%= current_site.the_url %>"><i class="fa fa-eye"></i> <%= t("camaleon_cms.common.visit") %></a></li>
+                <li><a target="_blank" href="<%= current_site.the_url(locale: false) %>"><i class="fa fa-eye"></i> <%= t("camaleon_cms.common.visit") %></a></li>
                 <li class="dropdown user user-menu">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-intro2='<%= t("camaleon_cms.admin.intro.profile") %>' data-position='left'>
                         <img src="<%= cama_current_user.the_avatar %>" class="user-image" alt="User Image">

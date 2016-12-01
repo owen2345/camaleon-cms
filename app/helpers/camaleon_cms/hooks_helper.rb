@@ -38,6 +38,7 @@ module CamaleonCms::HooksHelper
         else
           send(hook, params)
         end
+        Rails.logger.debug "Camaleon CMS - Hook \"#{hook_key}\" executed from dependency #{plugin['key'] rescue ''}"
       rescue
         plugin_load_helpers(plugin)
         if params.nil?

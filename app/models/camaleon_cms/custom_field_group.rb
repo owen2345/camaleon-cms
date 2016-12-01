@@ -107,7 +107,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
           caption = "Fields for <b>#{object_class}</b>"
       end
     rescue => e
-      Rails.logger.info "----------#{e.message}----#{self.attributes}"
+      Rails.logger.debug "----------#{e.message}----#{self.attributes}"
     end
     caption
   end

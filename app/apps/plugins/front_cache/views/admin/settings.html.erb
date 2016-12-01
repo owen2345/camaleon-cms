@@ -1,7 +1,6 @@
 <script>
     jQuery(function($){
         var form = $("#cache_front_form");
-//        form.find(".select").selectpicker();
         form.find("#btn-add-path").click(function(){
             var a = '<div class="input-group"> <input name="cache[paths][]" type="text" class="form-control" value=""> <span class="input-group-addon border_trans"><i class="round_icon fa fa-times text-danger del_path "></i></span> </div>';
             form.find("#paths").append(a);

@@ -29,7 +29,7 @@ module CamaleonCms::PluginsHelper
   # return model of the plugin
   def plugin_install(plugin_key)
     if PluginRoutes.plugin_info(plugin_key).nil?
-      Rails.logger.info "=========== Plugin not found: #{plugin_key}"
+      Rails.logger.debug "=========== Plugin not found: #{plugin_key}"
     else
       plugin_model = current_site.plugins.where(slug: plugin_key).first_or_create!
       plugin_model.installed_version= plugin_model.settings["version"]
@@ -133,7 +133,7 @@ module CamaleonCms::PluginsHelper
           include h.constantize
         end
       rescue => e
-        Rails.logger.info "---------------------------app loading error for #{h}: #{e.message}. Please check the plugins and themes presence"
+        Rails.logger.debug "---------------------------app loading error for #{h}: #{e.message}. Please check the plugins and themes presence"
       end
     end
   end
