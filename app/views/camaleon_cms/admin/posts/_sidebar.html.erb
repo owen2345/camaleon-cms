@@ -120,7 +120,7 @@
     <% if @post.manage_picture?(@post_type) %>
         <div class="panel panel-default panel-lite">
             <div class="panel-heading">
-                <h3 class="panel-title"><%= t(@post_type.get_option('posts_feature_image_label', 'camaleon_cms.admin.post_type.featured_image'), default: @post_type.get_option('posts_feature_image_label_default', 'Featured Image'))%> <%= "(#{@post_type.get_option('posts_image_dimension')})" if @post_type.get_option('posts_image_dimension').present? %></h3>
+                <h3 class="panel-title"><%= t(@post_type.get_option('posts_feature_image_label', 'camaleon_cms.admin.post_type.featured_image'), default: @post_type.get_option('posts_feature_image_label_default', 'Featured Image'))%> <%= "(#{@post_type.get_option('posts_image_dimension')})" if @post_type.get_option('posts_image_dimension').present? %> <%= '<em class="text-danger">*</em>'.html_safe if @post.is_required_picture? %></h3>
                 <ul class="panel-controls">
                     <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
                 </ul>
@@ -137,10 +137,11 @@
                                 <strong><%= (params[:meta][:thumb] || @post.get_meta("thumb")).split("/").last rescue "" %></strong>
                             </div>
                         </a>
-                        <input name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>"/>
+                        <input data-error-place='#feature-image ~ .validation-errors:first' class="<%= 'required' if @post.is_required_picture? %>" name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>"/>
                     </div>
                     <!-- posts_thumb_versions ==> '200x200,400x450', posts_thumb_size ==> '100x100', posts_image_dimension ==> '1200x1200'-->
                     <a href="#" class="btn btn-default" onclick="upload_feature_image({versions: '<%= @post_type.get_option('posts_thumb_versions') %>', thumb_size: '<%= @post_type.get_option('posts_thumb_size') %>', dimension: '<%= @post_type.get_option('posts_image_dimension') %>' }); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image', default: 'Upload Image')%></a>
+                    <div class="validation-errors"></div>
                 </div>
             </div>
         </div>

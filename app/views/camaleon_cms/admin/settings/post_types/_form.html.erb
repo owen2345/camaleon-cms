@@ -107,7 +107,8 @@
                     </div>
                     <div class="form-group">
                         <input name="meta[has_picture]" type="hidden" value="false"/>
-                        <label class="check0"><input name="meta[has_picture]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_picture', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_picture') %>
+                        <label class="check0">
+                            <input name="meta[has_picture]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_picture', true) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_picture') %>
                         </label>
                         <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_add_image_presentation')}", 'right') %>
                     </div>
@@ -126,6 +127,10 @@
                             <label><%= cama_t('camaleon_cms.admin.custom_field.fields.image_thumb') %></label>
                             <%= raw cama_html_tooltip("#{cama_t('camaleon_cms.admin.custom_field.fields.image_thumb_descr', d: current_site.get_option('filesystem_thumb_size', '100x100'))}", 'right') %>
                             <%= text_field_tag 'meta[posts_thumb_size]', @post_type.get_option('posts_thumb_size'), class: 'form-control' %>
+                        </div>
+                        <div class="form-group">
+                            <input name="meta[is_required_picture]" type="hidden" value="false"/>
+                            <label class="check0"><%= check_box_tag 'meta[is_required_picture]', true, @post_type.get_option('is_required_picture', false) %> <%= cama_t('camaleon_cms.admin.custom_field.fields.required_image_thumb') %></label>
                         </div>
                     </div>
                 </div>

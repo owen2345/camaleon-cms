@@ -111,42 +111,42 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # check if current post can manage content
   # return boolean
   def manage_content?(posttype = nil)
-    get_option('has_content', (posttype || self.post_type).get_option('has_content', true))
+    get_option('has_content', (posttype || post_type).get_option('has_content', true))
   end
 
   # return boolean
   def manage_layout?(posttype = nil)
-    get_option('has_layout', (posttype || self.post_type).get_option('has_layout', false))
+    get_option('has_layout', (posttype || post_type).get_option('has_layout', false))
   end
 
   # check if current post can manage template
   # return boolean
   def manage_template?(posttype = nil)
-    get_option('has_template', (posttype || self.post_type).get_option('has_template', true))
+    get_option('has_template', (posttype || post_type).get_option('has_template', true))
   end
 
   # check if current post can manage summary
   # return boolean
   def manage_summary?(posttype = nil)
-    get_option('has_summary', (posttype || self.post_type).get_option('has_summary', true))
+    get_option('has_summary', (posttype || post_type).get_option('has_summary', true))
   end
 
   # check if current post can manage keywords
   # return boolean
   def manage_keywords?(posttype = nil)
-    get_option('has_keywords', (posttype || self.post_type).get_option('has_keywords', true))
+    get_option('has_keywords', (posttype || post_type).get_option('has_keywords', true))
   end
 
   # check if current post can manage picture
   # return boolean
   def manage_picture?(posttype = nil)
-    get_option('has_picture', (posttype || self.post_type).get_option('has_picture', true))
+    get_option('has_picture', (posttype || post_type).get_option('has_picture', true))
   end
 
   # check if current post can manage comments
   # return boolean
   def manage_comments?(posttype = nil)
-    get_option('has_comments', (posttype || self.post_type).get_option('has_comments', false))
+    get_option('has_comments', (posttype || post_type).get_option('has_comments', false))
   end
 
   # check if the post can be commented
@@ -154,6 +154,11 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # return Boolean (true/false)
   def can_commented?
     manage_comments? && get_meta('has_comments').to_s == "1"
+  end
+
+  # check if is required picture for current post
+  def is_required_picture?
+    post_type.get_option('is_required_picture', false)
   end
 
   # define post configuration for current post

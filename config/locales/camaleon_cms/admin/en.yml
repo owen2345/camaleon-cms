@@ -112,6 +112,7 @@ en:
           image_versions: 'Versions'
           image_versions_descr: "Create addtional multiple versions of the image uploaded, sample: 300x300,505x350 ==> Will create two extra images with these dimensions"
           image_thumb: 'Thumbnail'
+          required_image_thumb: 'Is Required Thumbnail?'
           image_thumb_descr: "Define the dimension for the thumbnail, sample: 100x100. Default: %{d}"
           numeric: 'Numeric'
           phone: 'Phone'
