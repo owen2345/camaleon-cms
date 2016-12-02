@@ -148,6 +148,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   def the_url(*args)
     args = args.extract_options!
     args[:site] = self
+    args[:host], args[:port] = object.get_domain.to_s.split(':') if !args[:as_path] && (h.current_site rescue false) != self # fix for different site of current visited site
     h.cama_current_site_host_port(args) unless args[:as_path]
     args[:locale] = @_deco_locale unless args.include?(:locale)
     postfix = 'url'
