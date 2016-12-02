@@ -134,13 +134,15 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     r = {post: @post, post_type: @post_type, flag: true}
     hooks_run("destroy_post", r)
     if r[:flag]
-      @post.destroy
-      hooks_run("destroy_post", {post: @post, post_type: @post_type})
-      flash[:notice] = t('camaleon_cms.admin.post.message.deleted', post_type: @post_type.decorate.the_title)
-    else
-      # flash[:error] = t('camaleon_cms.admin.post.message.deleted')
+      if @post.destroy
+        hooks_run("destroyed_post", {post: @post, post_type: @post_type})
+        flash[:notice] = t('camaleon_cms.admin.post.message.deleted', post_type: @post_type.decorate.the_title)
+        return redirect_to action: :index, s: params[:s]
+      else
+        flash[:error] = @post.errors.full_messages.join(', ')
+      end
     end
-    redirect_to action: :index, s: params[:s]
+    redirect_to (:back || url_for(action: :index, s: params[:s]))
   end
 
   # ajax options
