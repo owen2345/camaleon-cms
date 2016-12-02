@@ -15,12 +15,15 @@ class CamaleonCms::Admin::SettingsController < CamaleonCms::AdminController
 
   def site_saved
     @site = current_site
+    cache_slug = @site.slug
     if @site.update(params.require(:site).permit!)
       @site.set_options(params[:options]) if params[:options].present?
       @site.set_metas(params[:metas]) if params[:metas].present?
       @site.set_field_values(params[:field_options])
       flash[:notice] = t('camaleon_cms.admin.settings.message.site_updated')
-      redirect_to action: :site
+      args = {action: :site}
+      args[:host], args[:port] = @site.get_domain.to_s.split(':') if cache_slug != @site.slug
+      redirect_to(args)
     else
       render 'site'
     end
