@@ -30,6 +30,9 @@
                         <li class="<%= "active" if params[:kind] == "tag" %>">
                             <a href="<%= cama_admin_search_path(q: params[:q], kind: "tag") %>"><%= t("camaleon_cms.admin.table.tags") %></a>
                         </li>
+                        <li class="<%= "active" if params[:kind] == "post_type" %>">
+                            <a href="<%= cama_admin_search_path(q: params[:q], kind: "post_type") %>"><%= t("camaleon_cms.admin.table.post_type") %></a>
+                        </li>
                     </ul>
                     <div class="tab-content">
                         <div role="tabpanel" class="tab-pane active w_table_requests">
