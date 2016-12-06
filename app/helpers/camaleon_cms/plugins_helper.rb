@@ -37,11 +37,11 @@ module CamaleonCms::PluginsHelper
       plugin_model.installed_version= plugin_model.settings["version"]
       return plugin_model if plugin_model.active?
       plugin_model.active
-      hooks_run("plugin_after_install", {plugin: plugin_model})
-      hooks_run("plugin_#{plugin_key}_after_install", {plugin: plugin_model})
       PluginRoutes.reload
       # plugins_initialize(self)
       hook_run(plugin_model.settings, "on_active", plugin_model)
+      hooks_run("plugin_after_install", {plugin: plugin_model})
+      hooks_run("plugin_#{plugin_key}_after_install", {plugin: plugin_model})
       plugin_model
     end
   end
@@ -53,11 +53,11 @@ module CamaleonCms::PluginsHelper
     plugin_model = current_site.plugins.where(slug: plugin_key).first_or_create!
     return plugin_model unless plugin_model.active?
     plugin_model.inactive
-    hooks_run("plugin_after_uninstall", {plugin: plugin_model})
-    hooks_run("plugin_#{plugin_key}_after_uninstall", {plugin: plugin_model})
     PluginRoutes.reload
     # plugins_initialize(self)
     hook_run(plugin_model.settings, "on_inactive", plugin_model)
+    hooks_run("plugin_after_uninstall", {plugin: plugin_model})
+    hooks_run("plugin_#{plugin_key}_after_uninstall", {plugin: plugin_model})
     plugin_model
   end
 
