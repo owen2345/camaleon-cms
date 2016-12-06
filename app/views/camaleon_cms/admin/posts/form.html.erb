@@ -41,12 +41,6 @@
                             <textarea name="meta[summary]" id="post_summary" class="form-control translatable" cols="30" rows="5"><%= @post.get_meta("summary", "") %></textarea>
                         </div>
                     <% end %>
-                    <% if @post.manage_keywords?(@post_type) %>
-                        <div class="form-group">
-                            <label for="post_keywords"><%= t('camaleon_cms.admin.table.keywords') %></label><br>
-                            <input name="options[keywords]" id="post_keywords" class="form-control translatable" value="<%= params[:options].try(:keywords) || @post.get_option("keywords") %>"/>
-                        </div>
-                    <% end %>
                     <%= _hook_args = {html: "", f: f, post: @post, post_type: @post_type}; hooks_run("post_form_custom_html", _hook_args); raw(_hook_args[:html]); %>
                 </div>
             </div>

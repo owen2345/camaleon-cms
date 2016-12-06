@@ -43,6 +43,11 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
     options[:has_tags]
   end
 
+  # check if this post type permit to manage seo attrs in posts
+  def manage_seo?
+    get_option('has_seo', get_option('has_keywords', true))
+  end
+
   # assign settings for this post type
   # default values: {
   #   has_category: false,
@@ -52,7 +57,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   #   has_comments: false,
   #   has_picture: true,
   #   has_template: true,
-  #   has_keywords: true,
+  #   has_seo: true,
   #   not_deleted: false,
   #   has_layout: false,
   #   default_layout: '',
@@ -101,7 +106,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   #   settings: Hash of post settings, sample => settings:
   #     {has_content: false, has_summary: true, default_layout: 'my_layout', default_template: 'my_template' } (optional, see more in post.set_setting(...))
   #   data_metas: {template: "", layout: ""}
-  # sample: my_posttype.add_post(title: "My Title", post_order: 5, content: 'lorem_ipsum', settings: {default_template: "home/counters", has_content: false, has_keywords: false, skip_fields: ["sub_tite", 'banner']}, fields: {pattern: true, bg: 'http://www.reallusion.com/de/images/3dx5/whatsnew/3dx5_features_banner_bg_02.jpg'})
+  # sample: my_posttype.add_post(title: "My Title", post_order: 5, content: 'lorem_ipsum', settings: {default_template: "home/counters", has_content: false, has_seo: false, skip_fields: ["sub_tite", 'banner']}, fields: {pattern: true, bg: 'http://www.reallusion.com/de/images/3dx5/whatsnew/3dx5_features_banner_bg_02.jpg'})
   #   More samples here: https://gist.github.com/owen2345/eba9691585ed78ad6f7b52e9591357bf
   # return created post if it was created, else return errors
   def add_post(args)
@@ -157,7 +162,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   # assign default roles for this post type
   # define default settings for this post type
   def set_default_site_user_roles
-    self.set_multiple_options({has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_keywords: true, not_deleted: false, has_layout: false, default_layout: ""}.merge(PluginRoutes.fixActionParameter(data_options||{}).to_sym))
+    self.set_multiple_options({has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false, has_picture: true, has_template: true, has_seo: true, not_deleted: false, has_layout: false, default_layout: ""}.merge(PluginRoutes.fixActionParameter(data_options||{}).to_sym))
     self.site.set_default_user_roles(self)
     default_category
   end

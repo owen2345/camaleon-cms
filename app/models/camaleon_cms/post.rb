@@ -131,12 +131,6 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
     get_option('has_summary', (posttype || post_type).get_option('has_summary', true))
   end
 
-  # check if current post can manage keywords
-  # return boolean
-  def manage_keywords?(posttype = nil)
-    get_option('has_keywords', (posttype || post_type).get_option('has_keywords', true))
-  end
-
   # check if current post can manage picture
   # return boolean
   def manage_picture?(posttype = nil)
@@ -165,7 +159,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # possible key values (String):
   #   has_content, boolean (default true)
   #   has_summary, boolean (default true)
-  #   has_keywords, boolean (default true)
+  #   has_seo, boolean (default true)
   #   has_picture, boolean (default true)
   #   has_template, boolean (default false)
   #   has_comments, boolean (default false)
@@ -197,6 +191,14 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   def set_summary(summary)
     set_meta("summary", summary)
   end
+
+  # check if current post permit manage seo attrs
+  # has_keywords: used until next version (deprecated to use has_seo)
+  # return boolean
+  def manage_seo?(posttype = nil)
+    get_option('has_seo', get_option('has_keywords', false)) || (posttype || post_type).manage_seo?
+  end
+  alias_method :manage_keywords?, :manage_seo? # method name deprecated to use manage_seo?
 
   # save the thumbnail url for current post
   # thumb_url: String url

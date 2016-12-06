@@ -243,6 +243,7 @@ es:
           recover: 'Recuperando...'
         permalink: 'Enlace Permanente'
       post_type:
+        route_format: 'Formato de Rutas para Contenidos'
         all: 'Todos'
         add: 'Añadir'
         add_category: 'Añadir Categoría'
@@ -453,7 +454,6 @@ es:
         first_names: 'Nombres'
         group_name: 'Nombre de Grupo'
         google_plus: 'Google plus'
-        has_keywords: 'Tiene Palabras Clave'
         hide: 'Ocultar'
         home_page: 'Página Principal'
         id: 'ID'
@@ -472,6 +472,7 @@ es:
         manage_category: 'Gestionar categoría'
         manage_content: 'Gestionar el contenido'
         manage_picture: 'Gestionar Imagen'
+        manage_seo: 'Gestionar Imagen'
         manage_summary: 'Gestionar Resumen'
         manage_tags: 'Gestionar Etiquetas'
         manage_template: 'Gestionar Plantillas'

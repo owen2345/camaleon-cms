@@ -15,6 +15,7 @@ require 'jquery-rails'
 require 'coffee-rails'
 require 'sass-rails'
 require 'cama_contact_form'
+require 'cama_meta_tag'
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s
