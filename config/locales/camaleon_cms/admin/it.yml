@@ -1,7 +1,5 @@
 it:
-  updated_at: 'Aggiornato il'
   camaleon_cms:
-    updated_at: 'Aggiornato il'
     welcome_message: "Benvenuto su Camaleon CMS"
     admin:
       button:

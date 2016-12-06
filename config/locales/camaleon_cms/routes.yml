@@ -40,11 +40,11 @@ it:
 
 ru:
   routes:
-    group: group
-    category: category
-    tag: tag
-    search: search
-    profile: profile
+    group: группа
+    category: категория
+    tag: тег
+    search: поиск
+    profile: профиль
 
 zh-CN:
   routes:
