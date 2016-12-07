@@ -2,6 +2,10 @@ module CamaleonCms::SessionHelper
   # log in the user in to system
   # user: User model
   # remember_me: true/false (remember session permanently)
+  # redirect_url (default nil): after initialized the session, this will be redirected to
+  #   "redirect_url" if defined
+  #   it doesn't redirect if redirect_url === false
+  #   return to previous page if defined the cookie['return_to'] or login url received extra param: return_to=http://mysite.com
   def login_user(user, remember_me = false, redirect_url = nil)
     c = {value: [user.auth_token, request.user_agent, request.ip], expires: 24.hours.from_now}
     c[:domain] = :all if PluginRoutes.system_info["users_share_sites"].present? && CamaleonCms::Site.count > 1
@@ -16,6 +20,7 @@ module CamaleonCms::SessionHelper
 
     # user redirection
     flash[:notice] = t('camaleon_cms.admin.login.message.success', locale: current_site.get_admin_language)
+    return if redirect_url === false
     if redirect_url.present?
       redirect_to redirect_url
     elsif (return_to = cookies.delete(:return_to)).present?

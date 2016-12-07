@@ -28,12 +28,14 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       #Email validation if is necessary
       if @user.is_valid_email? || !current_site.need_validate_email?
         cama_captcha_reset_attack("login")
-        r={user: @user, redirect_to: nil}; hooks_run('after_login', r)
+        r={user: @user, redirect_to: params[:format] == 'json' ? false : nil}; hooks_run('after_login', r)
         login_user(@user, params[:remember_me].present?, r[:redirect_to])
+        render(json: flash.to_hash) if params[:format] == 'json'
+        return
       else
         flash[:error] = t('camaleon_cms.admin.login.message.email_not_validated')
         @user = current_site.users.new(data_user)
-        login
+        login if params[:format] != 'json'
       end
     else
       cama_captcha_increment_attack("login")
@@ -43,8 +45,9 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
         flash[:error] = t('camaleon_cms.admin.login.message.invalid_caption')
       end
       @user = current_site.users.new(data_user)
-      login
+      login if params[:format] != 'json'
     end
+    render(json: flash.to_hash) if params[:format] == 'json'
   end
 
   def logout
