@@ -1,4 +1,4 @@
-json.extract! post_type, :created_at, :updated_at, :term_order
+json.extract! post_type, :id
 json.title post_type.the_title
 json.description post_type.the_excerpt
 json.url post_type.the_url

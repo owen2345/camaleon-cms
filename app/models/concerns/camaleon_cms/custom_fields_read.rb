@@ -95,8 +95,9 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     field_values.where(custom_field_slug: field_keys).order(group_number: :asc).group_by(&:group_number).each do |group_number, group_fields|
       group = {}
       field_keys.each do |field_key|
-        group[field_key] = []
-        group_fields.each{ |field| group[field_key] << field.value if field_key == field.custom_field_slug }
+        _tmp = []
+        group_fields.each{ |field| _tmp << field.value if field_key == field.custom_field_slug }
+        group[field_key] = _tmp if _tmp.present?
       end
       res << group
     end
