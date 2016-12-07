@@ -95,7 +95,7 @@ module CamaleonCms::UploaderHelper
   #   return "/var/www/my_image_1.jpg" => if "/var/www/my_image.jpg" exist
   #   return "/var/www/my_image.jpg" => if "/var/www/my_image.jpg" doesn't exist
   def uploader_verify_name(file_path)
-    dir, filename = File.dirname(file_path), File.basename(file_path)
+    dir, filename = File.dirname(file_path), File.basename(file_path).to_s.cama_fix_filename
     files = Dir.entries(dir)
     if files.include?(filename)
       i, _filename = 1, filename

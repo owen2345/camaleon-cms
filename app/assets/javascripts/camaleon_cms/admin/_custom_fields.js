@@ -72,7 +72,7 @@ function cama_build_custom_field(panel, field_data, values){
         if (field_data.kind == 'checkbox') {
             field.find('input')[0].checked = value;
         } else if (value) {
-            field.find('.input-value').val(value);
+            field.find('.input-value').val(value).trigger('change', {field_rendered: true});
         }
         $sortable.append(field);
         if(callback) eval(callback + "(field, value);");
@@ -232,10 +232,17 @@ function load_upload_image_field($input) {
         versions: $input.attr("data-versions") || '',
         thumb_size: $input.attr("data-thumb_size") || '',
         selected: function (file, response) {
-            $input.val(file.url);
+            $input.val(file.url).trigger('change');
         }
     });
 }
+
+// permit to show preview image of image custom fields
+function cama_custom_field_image_changed(field){
+    if(field.val()) field.closest('.input-group').append('<span class="input-group-addon custom_field_image_preview"><a href="'+field.val()+'" target="_blank"><img src="'+field.val()+'" style="width: 50px; height: 20px;"></a></span>')
+    else field.closest('.input-group').find('.custom_field_image_preview').remove();
+}
+
 function load_upload_video_field(thiss) {
     var $input = $(thiss).prev();
     $.fn.upload_filemanager({

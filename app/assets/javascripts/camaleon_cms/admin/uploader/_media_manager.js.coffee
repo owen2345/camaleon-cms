@@ -47,7 +47,9 @@ window["cama_init_media"] = (media_panel) ->
           else
             media_info.find(".cdimension").css("color", 'red')
             cut = $("<button class='btn btn-info pull-right'><i class='fa fa-crop'></i> "+I18n("button.crop_image")+"</button>").click(->
-              $.fn.upload_url({url: data["url"]})
+              crop_name = data["name"].split('.')
+              crop_name[crop_name.length-2] += '_' + media_panel.attr("data-dimension")
+              $.fn.upload_url({url: data["url"], name: crop_name.join('.')})
             )
             btn.after(cut)
 
