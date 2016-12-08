@@ -55,7 +55,6 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   scope :drafts, -> {where(status: 'draft')}
   scope :pendings, -> {where(status: 'pending')}
   scope :latest, -> {reorder(created_at: :desc)}
-  scope :featured, -> {where(is_feature: true)}
 
   validates_with CamaleonCms::PostUniqValidator
   attr_accessor :show_title_with_parent
