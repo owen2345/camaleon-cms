@@ -8,7 +8,7 @@
     <div class="row">
         <% _tpl = lookup_context.template_exists?("post_types/#{@post_type.the_slug}/post_list_item", nil, true) ? "post_types/#{@post_type.the_slug}/post_list_item" : 'partials/post_list_item' %>
         <% @posts.each_with_index do |post, index| %>
-            <%= raw "<div class='clearfix'></div>" if index%3 == 0 && index > 0 %>
+            <%#= raw "<div class='clearfix'></div>" if index%3 == 0 && index > 0 %>
             <%= render partial: _tpl, locals: {post: post.decorate} %>
         <% end %>
     </div>
