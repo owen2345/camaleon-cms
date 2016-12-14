@@ -81,8 +81,9 @@ class String
     res = self
     values.each do |k, v|
       v = v.join(',') if v.is_a?(Array)
-      res = res.gsub("[#{k}]", v) if format_code == '['
-      res = res.gsub("{#{k}}", v) if format_code == '{'
+      res = res.gsub("[#{k}]", v.to_s) if format_code == '['
+      res = res.gsub("{#{k}}", v.to_s) if format_code == '{'
+      res = res.gsub("%{#{k}}", v.to_s) if format_code == '%{'
     end
     res
   end

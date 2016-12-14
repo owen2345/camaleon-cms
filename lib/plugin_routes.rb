@@ -106,7 +106,7 @@ class PluginRoutes
     end
     # convert action parameter into hash
     def fixActionParameter(h)
-      (h.is_a?(ActionController::Parameters) ? (h.to_h rescue h.to_hash) : h)
+      (h.is_a?(ActionController::Parameters) ? (h.permit!.to_h rescue h.to_hash) : h)
     end
   end
 
