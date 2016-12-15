@@ -11,8 +11,11 @@ describe "the signin process", js: true do
       fill_in 'post_title', :with => 'Test Title'
       page.execute_script('$("#form-post .required").val("test required value")')
       page.execute_script('$("#form-post .tinymce_textarea").tinymce().setContent("Pants are pretty sweet.")')
-
-      fill_in 'post_keywords', :with => 'test keywords'
+      page.execute_script('$("#form-post #options_keywords").closest(".panel").find("a.panel-collapse").click()')
+      fill_in 'options[seo_title]', :with => 'SEO Title'
+      fill_in 'options[keywords]', :with => 'Test keywords changed'
+      fill_in 'options[seo_description]', :with => 'Test SEO Description'
+      fill_in 'options[seo_author]', :with => 'Test SEO Author'
     end
     click_button 'Create'
     expect(page).to have_css('.alert-success')
@@ -24,7 +27,6 @@ describe "the signin process", js: true do
     within("#form-post") do
       fill_in 'post_title', :with => 'Test Title changed'
       page.execute_script('$("#form-post .tinymce_textarea").tinymce().setContent("Pants are pretty sweet. chaged")')
-      fill_in 'post_keywords', :with => 'test keywords changed'
     end
     click_button 'Update'
     expect(page).to have_css('.alert-success')
