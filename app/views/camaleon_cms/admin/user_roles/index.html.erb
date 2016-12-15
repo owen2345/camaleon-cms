@@ -23,11 +23,11 @@
             </tr>
             </thead>
             <tbody>
-            <% @user_roles.each do |f| %>
+            <% @user_roles.decorate.each do |f| %>
                 <tr>
                   <td><%= f.id %></td>
-                  <td><%= f.name %></td>
-                  <td><%= f.description %></td>
+                  <td><%= f.the_title %></td>
+                  <td><%= f.the_content %></td>
                   <td>
                     <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
                     <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },

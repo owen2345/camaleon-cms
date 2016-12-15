@@ -65,7 +65,7 @@ class CamaleonCms::Admin::UserRolesController < CamaleonCms::AdminController
 
   def set_user_roles
     begin
-      @user_role = current_site.user_roles.find(params[:id])
+      @user_role = current_site.user_roles.find(params[:id]).decorate
     rescue
       flash[:error] = t('camaleon_cms.admin.users.message.rol_error')
       redirect_to action: :index

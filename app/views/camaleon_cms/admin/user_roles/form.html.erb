@@ -1,7 +1,7 @@
 <div class="page-title">
   <h2>
     <span class="fa fa-users"></span>
-    <%= t('camaleon_cms.admin.page_title.edit') + " " + @user_role.name.translate if !@user_role.new_record? %>
+    <%= t('camaleon_cms.admin.page_title.edit') + " " + @user_role.the_title if !@user_role.new_record? %>
     <%= t('camaleon_cms.admin.users.create_user') if  @user_role.new_record? %>
   </h2>
 </div>
