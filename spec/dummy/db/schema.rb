@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160609121449) do
+ActiveRecord::Schema.define(version: 20161215202255) do
 
   create_table "comments", force: :cascade do |t|
     t.string   "author"
@@ -146,16 +146,6 @@ ActiveRecord::Schema.define(version: 20160609121449) do
   add_index "term_taxonomy", ["taxonomy"], name: "index_term_taxonomy_on_taxonomy"
   add_index "term_taxonomy", ["term_order"], name: "index_term_taxonomy_on_term_order"
   add_index "term_taxonomy", ["user_id"], name: "index_term_taxonomy_on_user_id"
-
-  create_table "user_relationships", force: :cascade do |t|
-    t.integer "term_order"
-    t.integer "active",           default: 1
-    t.integer "term_taxonomy_id"
-    t.integer "user_id"
-  end
-
-  add_index "user_relationships", ["term_taxonomy_id"], name: "index_user_relationships_on_term_taxonomy_id"
-  add_index "user_relationships", ["user_id"], name: "index_user_relationships_on_user_id"
 
   create_table "users", force: :cascade do |t|
     t.string   "username"
