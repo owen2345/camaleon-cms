@@ -77,14 +77,14 @@ en:
           approved: 'Approved'
           change_status: 'The response status has been changed to '
           created: 'The comment has been created.'
-          destroy: 'The answers has been removed.'
-          destroy_comments: 'The comments has been removed.'
+          destroy: 'The answers have been removed.'
+          destroy_comments: 'The comments have been removed.'
           deleted: 'The answers has been removed.'
           error: 'Not found comment'
           pending: 'Pending'
           responses: 'The reply has been created.'
           spam: 'Spam'
-          there_no_comments: 'There is no comments.'
+          there_no_comments: 'There are no comments.'
           updated: 'The comment has been updated.'
 
         tooltip:
