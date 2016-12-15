@@ -1,4 +1,15 @@
 <div class="group-input-fields-content input-group">
-  <input onchange="cama_custom_field_image_changed($(this))" data-dimension="<%= field.options[:dimension] %>" data-versions="<%= field.options[:versions] %>" data-thumb_size="<%= field.options[:thumb_size] %>" type="url" name="<%= field_name %>[<%= field.slug %>][values][]" class="data-error-place-parent form-control input-value <%= "required" if field.options[:required].to_s.to_bool %>" />
-  <span class="input-group-addon btn_upload" onclick="load_upload_image_field($(this).prev());"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.button.upload_image')%> <%= "(#{field.get_option('dimension')})" if field.get_option('dimension').present? %></span>
+    <input
+        onfocus="<%= '$(this).blur().next(\'.btn_upload\').click();' if field.options[:dimension].present? || field.options[:versions].present? || field.options[:thumb_size].present? %>"
+        onchange="cama_custom_field_image_changed($(this))"
+        data-dimension="<%= field.options[:dimension] %>"
+        data-versions="<%= field.options[:versions] %>"
+        data-thumb_size="<%= field.options[:thumb_size] %>"
+        type="url"
+        name="<%= field_name %>[<%= field.slug %>][values][]"
+        class="data-error-place-parent form-control input-value <%= "required" if field.options[:required].to_s.to_bool %>" />
+    <span class="input-group-addon btn_upload" onclick="load_upload_image_field($(this).prev());">
+      <i class="fa fa-upload"></i>
+      <%= t('camaleon_cms.admin.button.upload_image')%> <%= "(#{field.get_option('dimension')})" if field.get_option('dimension').present? %>
+    </span>
 </div>
