@@ -27,8 +27,6 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     # relations
 
     has_many :metas, ->{ where(object_class: 'User')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-    has_many :user_relationships, class_name: "CamaleonCms::UserRelationship", foreign_key: :user_id, dependent: :destroy#,  inverse_of: :user
-    has_many :term_taxonomies, foreign_key: :term_taxonomy_id, class_name: "CamaleonCms::TermTaxonomy", through: :user_relationships, :source => :term_taxonomies
     has_many :all_posts, class_name: "CamaleonCms::Post"
 
     #scopes
@@ -84,11 +82,6 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     else
       CamaleonCms::Site.where(id: self.site_id)
     end
-  end
-
-  # DEPRECATED, please use user.the_role
-  def roleText
-    User::ROLE[self.role]
   end
 
   def created

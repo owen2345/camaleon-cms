@@ -54,7 +54,7 @@
                         <div class="">
                             <%= f.label "#{t('camaleon_cms.admin.table.role')}", class: "control-label" %>
                             <div class="">
-                                <%= f.select :role,current_site.user_roles.reorder(:name).all.map{|role| [role.name, role.slug]}, {}, {:class => "form-control required"}%>
+                                <%= f.select :role,current_site.user_roles.reorder(:name).all.map{|role| [role.name.translate, role.slug]}, {}, {:class => "form-control required"}%>
                             </div>
                         </div>
                         <hr>

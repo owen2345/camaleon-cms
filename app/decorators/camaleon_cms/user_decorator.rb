@@ -14,7 +14,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
 
   # return the role title of this user for current site
   def the_role
-    object.get_role(h.current_site).name.titleize
+    object.get_role(h.current_site).name.translate(get_locale).to_s
   end
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg

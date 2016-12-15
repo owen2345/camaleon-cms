@@ -37,9 +37,11 @@ class CamaleonCms::Admin::UserRolesController < CamaleonCms::AdminController
   end
 
   def update
-    if @user_role.editable? && @user_role.update(params.require(:user_role).permit!)
-      @user_role.set_meta("_post_type_#{current_site.id.to_s}", defined?(params[:rol_values][:post_type]) ? params[:rol_values][:post_type] : {})
-      @user_role.set_meta("_manager_#{current_site.id.to_s}", defined?(params[:rol_values][:post_type]) ? params[:rol_values][:manager] : {})
+    if @user_role.update(params.require(:user_role).permit!)
+      if @user_role.editable?
+        @user_role.set_meta("_post_type_#{current_site.id.to_s}", defined?(params[:rol_values][:post_type]) ? params[:rol_values][:post_type] : {})
+        @user_role.set_meta("_manager_#{current_site.id.to_s}", defined?(params[:rol_values][:post_type]) ? params[:rol_values][:manager] : {})
+      end
       flash[:notice] = t('camaleon_cms.admin.users.message.rol_updated')
       redirect_to action: :edit, id: @user_role.id
     else
@@ -48,8 +50,11 @@ class CamaleonCms::Admin::UserRolesController < CamaleonCms::AdminController
   end
 
   def destroy
-    @user_role.destroy
-    flash[:notice] = t('camaleon_cms.admin.users.message.rol_deleted')
+    if @user_role.editable? && @user_role.destroy
+      flash[:notice] = t('camaleon_cms.admin.users.message.rol_deleted')
+    else
+      flash[:error] = t('camaleon_cms.admin.users.message.role_can_not_be_deleted', default: 'This role can not be deleted')
+    end
     redirect_to action: :index
   end
 

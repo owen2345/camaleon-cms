@@ -131,9 +131,9 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   end
 
   # return the role_id of current visitor for this site
-  # if the visitor was not logged in, then return -1
+  # if the visitor was not logged in, then return public
   def visitor_role
-    h.signin? ? h.cama_current_user.get_role(object).slug : "-1"
+    h.signin? ? h.cama_current_user.role : 'public'
   end
 
   # check if plugin_key is already installed for this site

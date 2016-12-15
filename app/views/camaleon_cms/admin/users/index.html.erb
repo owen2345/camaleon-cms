@@ -32,8 +32,8 @@
                   <td><%= f.id %></td>
                   <td><%= f.username %></td>
                   <td><%= f.email %></td>
-                  <td><%= f.role %></td>
-                  <td><%= f.last_login_at.strftime("%Y-%m-%d %H:%M:%S") if f.last_login_at.present? %></td>
+                  <td><%= f.the_role %></td>
+                  <td><%= l(f.last_login_at, format: :long) if f.last_login_at.present? %></td>
                   <td>
                     <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
                     <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
