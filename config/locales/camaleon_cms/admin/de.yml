@@ -71,7 +71,7 @@ de:
 
       comments:
         new_msg: 'Neuer Kommentar für diesen Inhalt'
-        comments_list_post: 'Kommentare als Liste anzeigen'
+        comments_list_post: 'Liste der Kommentare'
         responses: 'Antworten'
         message:
           approved: 'Freigegeben'
@@ -205,7 +205,7 @@ de:
       message:
         are_you_sure_you_want_log_out_int: 'Willst du dich wirklich ausloggen?'
         are_you_sure_to_import: 'Bist du sicher, dass du importieren willst?'
-        data_found_list: 'In der Liste wurden keine Daten gefunden'
+        data_found_list: 'Keine Daten vorhanden'
         delete: 'Bist du sicher, dass du dieses Element entfernen willst?'
         delete_item: 'Willst du wirklich dieses Element löschen?'
         edit_menu: 'Sortiere die Menüelemente nach deinem Geschmack. Klicke auf den Stift um das Element zu bearbeiten. Klick auf das X um das Element zu löschen.'
@@ -345,7 +345,7 @@ de:
         field: 'Feld'
         fields: 'Felder'
         information_basic: 'Basisinformationen'
-        theme_setting: 'Theme-Einstellungen'
+        theme_setting: 'Themes'
         input_only_date: 'Eingabe (nur Datum)'
         input_date_time: 'Eingabe (Datum und Uhrzeit)'
         languages_configuration: 'Spracheinstellung'
@@ -411,7 +411,7 @@ de:
         content_groups: 'Inhaltsgruppen'
         custom_fields: 'Selbsterstellte Felder'
         dashboard: 'Dashboard'
-        general_site: 'General Site'
+        general_site: 'Allgemein'
         information: 'Information'
         languages: 'Sprachen'
         shortcodes: 'Shortcodes'
@@ -427,7 +427,7 @@ de:
         users: 'Benutzer'
         widget: 'Widget'
         widgets: 'Widgets'
-        main_navigation: 'HAUPTNAVIGATION'
+        main_navigation: 'HAUPTMENÜ'
       sidebar_top:
         admin_panel: 'Admin. Panel'
         visit: 'Ansehen'
@@ -522,7 +522,7 @@ de:
         qty: 'Menge'
         quick_info: 'Schnellinfo'
         registration: 'Registrierung'
-        repeat_new: 'Repeat New' #TODO
+        repeat_new: 'Passwort wiederholen'
         role: 'Rolle'
         slogan: 'Slogan'
         slug: 'Slug'
@@ -558,14 +558,14 @@ de:
         message:
           updated: 'Theme aktualisiert'
       users:
-        impersonate: 'Impersonate' #TODO
+        impersonate: 'Als dieser Nutzer agieren'
         all_users: 'Alle Benutzer'
         add_user: 'Benutzer hinzufügen'
         add_user_role: 'Benutzerrolle hinzufügen'
         avatar: 'Avatar'
         create_user: 'Benutzer erstellen'
         edit_profile: 'Profil bearbeiten'
-        list_users: 'Benutzer anzeigen'
+        list_users: 'List der Benutzer'
         list_user_roles: 'Benutzerrollen'
         message:
           error: 'Benutzer nicht gefunden.'
@@ -661,20 +661,20 @@ de:
           error_updated: 'Fehler beim Aktualisieren der Sidebar.'
           error_deleted: 'Fehler beim Löschen der Sidebar.'
       intro:
-        profile: 'Hier kannst du die Einstellungen für dein Profil sehen'
-        content: 'Dierser Block enthält alle Inhaltsgruppen deiner Seite. Jeder Inhalt kann auf verschiedene Weise konfiguriert werden. Siehe Einstellungen => Inhaltsgruppen'
+        profile: 'Hier kannst du Einstellungen für dein Profil vornehmen.'
+        content: 'Dieser Block enthält die Inhaltsgruppen deiner Seite. Jeder Inhalt kann auf verschiedene Weise konfiguriert werden. Siehe Einstellungen => Inhaltsgruppen'
         #dashboard: 'In this section you can see '
         media: 'In diesem Bereich werden alle öffentlichen Medien (Dateien) verwaltet.'
-        comments: 'In diesem Bereich werden alle Kommentare deiner Inhalte verwaltet.'
+        comments: 'Hier verwaltest du alle Kommentare zu deinen Inhalten.'
         appearance: 'Hier findest du die Einstellungen für das äußere Erscheinungsbild (Public Interface).'
         themes: 'Hier kannst du dein bevorzugtes Theme einstellen (Public Interface).'
-        widgets: 'Dieses Modul lässt dich deine Widget verwalten und den Code überall einfügen.'
-        menus: '<img style="max-width: 100%;" src="%{image}" /> Dieses Menü erlaubt dir die Kontroller der Menǘs für das Public Interface.'
-        plugins: 'In diesem Bereich kannst du alle Plugins sehen (Zusätzliche Anwendungen, die die Funktionalität der Seite erweitern).'
+        widgets: 'Dieses Modul lässt dich deine Widgets verwalten und den Code überall einfügen.'
+        menus: '<img style="max-width: 100%;" src="%{image}" /> Hier konfigurierst du deine Menüs für das Public Interface.'
+        plugins: 'Hier findest du Einstellungen zu den Plugins (Zusätzliche Anwendungen, die die Funktionalität der Seite erweitern).'
         users: 'Dies ist die Benutzerverwaltung. Hier lassen sich auch die Rollen der Benutzer konfigurieren.'
         settings: 'Hier findest du jegliche Einstellungen bezüglich der Seite.'
         gral_site: 'Hier lassen sich alle Einstellungen der Seite und der Themes vornehmen.'
-        sites: 'Dieses Modul lässt dich deine Unterseiten verwalten. So kannst du z.B. unendliche viele Seiten erstellen. Siehe /config/system.json um die Einstellungen zu ändern.'
+        sites: 'Dieses Modul lässt dich deine Unterseiten verwalten. Du kannst unendliche viele Seiten erstellen.'
         custom_fields: 'Hier findest du die Einstellungen für selbsterstellte Felder.'
         post_type: 'In diesem Modul kannst du deine Inhaltsgruppen verwalten ohne programmieren zu müssen.'
         languages: 'Hier findest du die Spracheinstellungen der Seite. Hier kannst du auch die Sprache des Adminbereichs einstellen.'
