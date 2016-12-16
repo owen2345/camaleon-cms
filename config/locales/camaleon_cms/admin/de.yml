@@ -321,11 +321,11 @@ de:
         upload_image: 'Bild hochladen'
         view_comments: 'Kommentare ansehen'
       plugins:
-        active_plugins: 'Plugins aktivieren'
-        disabled_plugins: 'Plugins deaktivieren'
+        active_plugins: 'Aktiv'
+        disabled_plugins: 'Inaktiv'
         all_plugins: 'Alle Plugins'
         status_false: 'Inaktiv'
-        status_true: 'Activ'
+        status_true: 'Aktiv'
         type_contents: 'Type Contents'
         upgrade_to: 'Upgraden auf'
       settings:
