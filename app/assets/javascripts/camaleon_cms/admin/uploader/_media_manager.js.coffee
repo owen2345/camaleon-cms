@@ -238,6 +238,8 @@ window["cama_init_media"] = (media_panel) ->
     cropper_data = null
 
     edit_callback = (modal)->
+      field_width = modal.find('.export_image .with_image')
+      field_height = modal.find('.export_image .height_image')
       save_image = (name, same_name)->
         $.fn.upload_url({url: cropper.cropper('getCroppedCanvas').toDataURL('image/jpeg'), name: name, same_name: same_name, callback: (res)->
           modal.modal('hide')
@@ -260,9 +262,9 @@ window["cama_init_media"] = (media_panel) ->
         )
 
       # save editted image
-      save_btn = $('<button type="button" class="btn btn-default"><i class="fa fa-save"></i> '+I18n('button.save', 'Save Image')+'</button>').click(->
+      save_btn = modal.find('.export_image .save_image').click(->
         save_buttons = (modal2)->
-          modal2.find('img.preview').attr('src', cropper.cropper('getCroppedCanvas').toDataURL('image/jpeg'))
+          modal2.find('img.preview').attr('src', cropper.cropper('getCroppedCanvas', { width: field_width.val(), height: field_height.val() }).toDataURL('image/jpeg'))
           modal2.find('.save_btn').click(->
             save_image(data['name'], true)
             modal2.modal('hide')
@@ -273,9 +275,15 @@ window["cama_init_media"] = (media_panel) ->
             modal2.modal('hide')
             return false
           })
-        open_modal({zindex: 999992, id: 'media_preview_editted_image', content: '<div class="text-center" style="overflow: auto;"><img class="preview"></div><br><div class="row"><div class="col-md-4">'+(if link.attr('data-permit-overwrite') then '<button class="btn save_btn btn-default">'+I18n('button.replace_image')+'</button>' else '')+'</div><div class="col-md-8"><form class="input-group"><input type="text" class="form-control file_name required" name="file_name"><div class="input-group-btn"><button class="btn btn-primary" type="submit">'+I18n('button.save_new_image')+'</button></div></form></div></div>', callback: save_buttons})
+        open_modal({zindex: 999992, modal_size: 'modal-lg', id: 'media_preview_editted_image', content: '<div class="text-center" style="overflow: auto;"><img class="preview"></div><br><div class="row"><div class="col-md-4">'+(if link.attr('data-permit-overwrite') then '<button class="btn save_btn btn-default">'+I18n('button.replace_image')+'</button>' else '')+'</div><div class="col-md-8"><form class="input-group"><input type="text" class="form-control file_name required" name="file_name"><div class="input-group-btn"><button class="btn btn-primary" type="submit">'+I18n('button.save_new_image')+'</button></div></form></div></div>', callback: save_buttons})
       )
-      modal.find('.editor_controls').append(save_btn)
+
+      # custom sizes auto calculate aspect ratio
+      field_width.change(->
+        unless field_width.attr("readonly")
+          croper_area = modal.find('.cropper-crop-box')
+          field_height.val(parseInt((parseInt($(this).val()) / croper_area.width())*croper_area.height()))
+      )
 
       # show cropper image
       showLoading()
@@ -283,26 +291,11 @@ window["cama_init_media"] = (media_panel) ->
         setTimeout(->
           label = modal.find('.label_dimension')
           cropper_data = {data: {}, minContainerHeight: 450, modal: true, crop: (e)->
-            dim = cropper_data['data']['dim']
-            r = false
-            if dim && dim[0].search(/\?/) > -1 && parseFloat(dim[0].match(/\d+/)[0]) < e.width # max width
-              cropper.cropper('setData', {width: parseFloat(dim[0].match(/\d+/)[0])})
-              r = true
-
-            if dim && dim[1].search(/\?/) > -1 && parseFloat(dim[1].match(/\d+/)[0]) < e.height # max height
-              cropper.cropper('setData', {height: parseFloat(dim[1].match(/\d+/)[0])})
-              r = true
-
-            if dim && dim[0] && dim[0].search(/\?/) == -1 && e.width != parseFloat(dim[0]) # same width
-              cropper.cropper('setData', {width: parseFloat(dim[0])})
-              r = true
-
-            if dim && dim[1] && dim[1].search(/\?/) == -1 && e.height != parseFloat(dim[1]) # same width
-              cropper.cropper('setData', {height: parseFloat(dim[1])})
-              r = true
-
-            unless r
-              label.html(Math.round(e.width) + " x "+Math.round(e.height))
+            label.html(Math.round(e.width) + " x "+Math.round(e.height))
+            unless field_width.attr("readonly")
+              field_width.val(Math.round(e.width))
+            unless field_height.attr("readonly")
+              field_height.val(Math.round(e.height))
           , built: ()->
             if modal.find('.cropper-canvas img').attr('crossorigin')
               modal.find('.modal-body').html('<div class="alert alert-danger">'+I18n('msg.cors_error', 'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', {url_img: data['url'], url_blog: 'http://blog.celingest.com/en/2014/10/02/tutorial-using-cors-with-cloudfront-and-s3/'})+'</div>')
@@ -310,20 +303,50 @@ window["cama_init_media"] = (media_panel) ->
 
           if media_panel.attr("data-dimension") # TODO: control dimensions
             dim = media_panel.attr("data-dimension").split('x')
-            cropper_data['data']['dim'] = dim
             if dim[0]
               cropper_data['data']['width'] = parseFloat(dim[0].match(/\d+/)[0])
+              field_width.val(cropper_data['data']['width'])
+              if dim[0].search(/\?/) > -1
+                field_width.attr('min', cropper_data['data']['width'])
+              else
+                field_width.prop('readonly', true)
             if dim[1]
               cropper_data['data']['height'] = parseFloat(dim[1].match(/\d+/)[0])
+              field_height.val(cropper_data['data']['height'])
+              if dim[1].search(/\?/) > -1
+                field_height.attr('min', cropper_data['data']['height'])
+              else
+                field_height.prop('readonly', true)
             if dim[0] && dim[0].search(/\?/) == -1 && dim[1] && dim[1].search(/\?/) == -1
               cropper_data['cropBoxResizable'] = false
-              cropper_data['zoomable'] = false
 
           cropper = modal.find('img.editable').cropper(cropper_data)
           hideLoading()
         , 300)
       )
-    open_modal({zindex: 999991, id: 'media_panel_editor_image', title: 'Edit Image - ' + data['name'], content: '<div><div class="editable_wrapper"><img style="max-width: 100%;" class="editable" id="media_editable_image" src="'+data['url']+'"></div><div class="editor_controls btn-group"></div><span class="label label-default pull-right label_dimension"></span></div>', callback: edit_callback, modal_size: 'modal-lg'})
+    open_modal({
+      zindex: 999991,
+      id: 'media_panel_editor_image',
+      title: 'Edit Image - ' + data['name'],
+      content: '<div>' +
+                '<div class="editable_wrapper">' +
+                  '<img style="max-width: 100%;" class="editable" id="media_editable_image" src="'+data['url']+'">' +
+                '</div>' +
+                '<div class="row" style="margin-top: 5px;">' +
+                  '<div class="col-md-8">' +
+                    '<div class="editor_controls btn-group"></div>' +
+                  '</div>' +
+                  '<div class="col-md-4">' +
+                    '<div class="input-group export_image"> ' +
+                      '<input class="form-control with_image" placeholder="Width"><span class="input-group-addon">x</span>' +
+                      '<input class="form-control height_image" placeholder="Height"> ' +
+                      '<span class="input-group-btn"><button class="btn btn-primary save_image" type="button"><i class="fa fa-save"></i> '+I18n('button.save', 'Save Image')+'</button> </span> ' +
+                    '</div>' +
+                  '</div>' +
+                '</div>' +
+                '<!--span class="label label-default pull-right label_dimension"></span-->' +
+              '</div>',
+      callback: edit_callback, modal_size: 'modal-lg'})
     return false
   )
 
