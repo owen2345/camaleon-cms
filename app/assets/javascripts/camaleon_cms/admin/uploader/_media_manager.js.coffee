@@ -241,7 +241,7 @@ window["cama_init_media"] = (media_panel) ->
       field_width = modal.find('.export_image .with_image')
       field_height = modal.find('.export_image .height_image')
       save_image = (name, same_name)->
-        $.fn.upload_url({url: cropper.cropper('getCroppedCanvas').toDataURL('image/jpeg'), name: name, same_name: same_name, callback: (res)->
+        $.fn.upload_url({url: cropper.cropper('getCroppedCanvas', { width: field_width.val(), height: field_height.val() }).toDataURL('image/jpeg'), name: name, same_name: same_name, callback: (res)->
           modal.modal('hide')
         })
 
