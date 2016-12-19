@@ -18,10 +18,14 @@ class CamaleonCmsUploader
   # return all files structure, within folder prefix
   # return json like:
   # {files: {'file_name': {'name'=> 'a.jpg', key: '/test/a.jpg', url: '', url: '', size: '', format: '', thumb: 'thumb_url', type: '', created_at: '', dimension: '120x120'}}, folders: {'folder name' => {name: 'folder name', key: '/folder name', ...}}}
-  def objects(prefix = '/')
+  # sort: (String, default 'created_at'), accept for: created_at | name | size | type | format
+  def objects(prefix = '/', sort = 'created_at')
     prefix = "/#{prefix}" unless prefix.starts_with?('/')
     db = @current_site.get_meta(cache_key, nil) || browser_files
-    db[prefix.gsub('//', '/')] || {files: {}, folders: {}}
+    res = db[prefix.gsub('//', '/')] || {files: {}, folders: {}}
+    res[:files] = res[:files].sort_by{|k, v| v[sort] }.reverse
+    res[:folders] = res[:folders].sort_by{|k, v| v['name'] }.reverse
+    res
   end
 
   # clean cached of files structure saved into DB

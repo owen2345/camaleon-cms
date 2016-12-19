@@ -21,15 +21,12 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     objects
   end
 
-  def objects(prefix = '/')
+  def objects(prefix = '/', sort = 'created_at')
     if @aws_settings["inner_folder"].present?
       prefix = "#{@aws_settings["inner_folder"]}/#{prefix}".gsub('//', '/')
       prefix = prefix[0..-2] if prefix.end_with?('/')
     end
-
-    prefix = "/#{prefix}" unless prefix.starts_with?('/')
-    db = @current_site.get_meta(cache_key, nil) || browser_files
-    db[prefix.gsub('//', '/')] || {files: {}, folders: {}}
+    super(prefix, sort)
   end
 
   # parse an AWS file into custom file_object

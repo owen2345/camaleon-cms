@@ -111,7 +111,7 @@
                     </div>
                     <div class="panel-body padding-0">
                         <% fields =  @field_group.new_record? ? [] : @field_group.fields %>
-                        <ul id="sortable-fields" class="clear">
+                        <ul id="sortable-fields" class="clear list-unstyled">
                             <% fields.each do |field| @item_value = field; @item_options_value = field.options; @key = field.options[:field_key] %>
                                 <li class="item">
                                     <%= render "get_items" %>
