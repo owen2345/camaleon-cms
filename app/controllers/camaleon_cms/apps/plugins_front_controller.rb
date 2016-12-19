@@ -8,7 +8,7 @@ class CamaleonCms::Apps::PluginsFrontController < CamaleonCms::FrontendControlle
     @plugin = current_site.plugins.where(slug: plugin_name).first_or_create
     unless @plugin.active?
       flash[:error] = t("camaleon_cms.plugin_not_installed", default: "This plugin is not installed, please contact to the administrator.")
-      params[:format] == 'json' ? render(json: flash.to_hash) : (redirect_to cama_root_url)
+      params[:format] == 'json' ? render(json: flash.discard.to_hash) : (redirect_to cama_root_url)
       return
     end
     if !@plugin.settings["gem_mode"].present?

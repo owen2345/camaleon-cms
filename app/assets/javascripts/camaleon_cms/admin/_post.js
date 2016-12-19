@@ -198,7 +198,7 @@ function cama_init_post(obj) {
                 return;
             }
             if ($(window).scrollTop() >= fixed_offset_top + 10) {
-                fixed_position.css({position: "fixed", width: "279px", top: 0, "z-index": 4});
+                fixed_position.css({position: "fixed", width: panel_scroll.width()+'px', top: 0, "z-index": 4});
                 panel_scroll.css("padding-top", fixed_position.height() + 20)
             } else {
                 fixed_position.css({position: "", width: "auto"});

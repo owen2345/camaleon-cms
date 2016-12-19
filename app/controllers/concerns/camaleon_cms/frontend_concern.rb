@@ -56,6 +56,6 @@ module CamaleonCms::FrontendConcern extend ActiveSupport::Concern
     else
       flash[:error] = t('camaleon_cms.admin.message.unauthorized')
     end
-    params[:format] == 'json' ? render(json: flash.to_hash) : redirect_to(:back)
+    params[:format] == 'json' ? render(json: flash.discard.to_hash) : redirect_to(:back)
   end
 end
