@@ -23,8 +23,8 @@ class CamaleonCmsUploader
     prefix = "/#{prefix}" unless prefix.starts_with?('/')
     db = @current_site.get_meta(cache_key, nil) || browser_files
     res = db[prefix.gsub('//', '/')] || {files: {}, folders: {}}
-    res[:files] = res[:files].sort_by{|k, v| v[sort] }.reverse
-    res[:folders] = res[:folders].sort_by{|k, v| v['name'] }.reverse
+    res[:files] = res[:files].sort_by{|k, v| v[sort] }.reverse.to_h
+    res[:folders] = res[:folders].sort_by{|k, v| v['name'] }.reverse.to_h
     res
   end
 
@@ -66,6 +66,8 @@ class CamaleonCmsUploader
     if file_parsed['format'] == 'folder'
       objects_db[prefix][:folders][file_parsed['name']] = file_parsed
     else
+      puts "^^^^^^^^^^^^^^^^: #{objects_db[prefix][:files].inspect}"
+      puts "%%%%%%%%%%%%%: #{file_parsed.inspect}"
       objects_db[prefix][:files][file_parsed['name']] = file_parsed
     end
     @current_site.set_meta(cache_key, objects_db) if _objects_db.nil?
