@@ -1,5 +1,5 @@
 // build custom field groups with values recovered from DB received in field_values
-function build_custom_field_group(field_values, group_id, fields_data, is_repeat){
+function build_custom_field_group(field_values, group_id, fields_data, is_repeat, field_name_group){
     if(field_values.length == 0) field_values = [{}];
     var group_panel = $('#custom_field_group_'+group_id);
     var group_panel_body = group_panel.find(' > .panel-body');
@@ -9,7 +9,7 @@ function build_custom_field_group(field_values, group_id, fields_data, is_repeat
 
     function add_group(values){
         var clone = group_clone.clone();
-        clone.find('input, textarea, select').not('.code_style').each(function(){ $(this).attr('name', $(this).attr('name').replace('field_options', 'field_options['+field_group_counter+']')) });
+        clone.find('input, textarea, select').not('.code_style').each(function(){ $(this).attr('name', $(this).attr('name').replace(field_name_group, field_name_group+'['+field_group_counter+']')) });
         group_panel_body.append(clone);
         group_panel.trigger('update_custom_group_number');
         for(var k in fields_data){
