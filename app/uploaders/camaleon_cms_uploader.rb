@@ -66,8 +66,6 @@ class CamaleonCmsUploader
     if file_parsed['format'] == 'folder'
       objects_db[prefix][:folders][file_parsed['name']] = file_parsed
     else
-      puts "^^^^^^^^^^^^^^^^: #{objects_db[prefix][:files].inspect}"
-      puts "%%%%%%%%%%%%%: #{file_parsed.inspect}"
       objects_db[prefix][:files][file_parsed['name']] = file_parsed
     end
     @current_site.set_meta(cache_key, objects_db) if _objects_db.nil?
