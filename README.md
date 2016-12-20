@@ -39,7 +39,7 @@
 * Add the gem in your Gemfile
 
   ```
-  gem "camaleon_cms",  '>= 2.4.0' # Stable versions 2.3.6, 2.2.1, 2.1.1, 2.1.0
+  gem "camaleon_cms",  '>= 2.4.1' # Stable versions 2.3.6, 2.2.1, 2.1.1, 2.1.0
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # current development version
   ```
 * Only Rails 5 support
@@ -92,7 +92,7 @@ http://camaleon.tuzitio.com/store/plugins
 ## Camaleon CMS is FREE and Open source
 It was released on July, 2015 and tested previously with more than 20 projects by 6 months and on august 22, 2015 was published as a gem.
 
-![](http://camaleon.tuzitio.com/media/132/multi-language.png)
+![](screenshot.png)
 
 ## With Camaleon you can do:
 * Multiples sites in the same installation
