@@ -32,6 +32,10 @@ window["cama_init_media"] = (media_panel) ->
     media_info.html(tpl)
     media_info.find(".p_thumb").html(item.find(".thumb").html())
     if data["format"] == "image"
+      if item.find('.edit_item') # add button to edit image
+        edit_img = $('<button type="button" class="pull-right btn btn-default" title="Edit"><i class="fa fa-pencil"></i></button>').click ->
+          item.find('.edit_item').trigger('click')
+      media_info.find('.p_footer').append(edit_img)
       draw_image = ->
         ww = parseInt(data['dimension'].split("x")[0])
         hh = parseInt(data['dimension'].split("x")[1])
@@ -46,7 +50,7 @@ window["cama_init_media"] = (media_panel) ->
             btn.prop('disabled', false)
           else
             media_info.find(".cdimension").css("color", 'red')
-            cut = $("<button class='btn btn-info pull-right'><i class='fa fa-crop'></i> "+I18n("button.crop_image")+"</button>").click(->
+            cut = $("<button class='btn btn-info pull-right'><i class='fa fa-crop'></i> "+I18n("button.auto_crop")+"</button>").click(->
               crop_name = data["name"].split('.')
               crop_name[crop_name.length-2] += '_' + media_panel.attr("data-dimension")
               $.fn.upload_url({url: data["url"], name: crop_name.join('.')})
@@ -89,7 +93,9 @@ window["cama_init_media"] = (media_panel) ->
   ########## file uploader
   p_upload = media_panel.find(".cama_media_fileuploader")
   customFileData = ->
-    return cama_media_get_custom_params()
+    r = cama_media_get_custom_params()
+    r['skip_auto_crop'] = true
+    return r
 
   p_upload.uploadFile({
     url: p_upload.attr("data-url"),
@@ -269,7 +275,9 @@ window["cama_init_media"] = (media_panel) ->
         )
 
       # save editted image
-      save_btn = modal.find('.export_image .save_image').click(->
+      save_btn = modal.find('.export_image').submit(->
+        unless $(this).valid()
+          return false
         save_buttons = (modal2)->
           modal2.find('img.preview').attr('src', cropper.cropper('getCroppedCanvas', { width: field_width.val(), height: field_height.val() }).toDataURL('image/jpeg'))
           modal2.find('.save_btn').click(->
@@ -282,8 +290,9 @@ window["cama_init_media"] = (media_panel) ->
             modal2.modal('hide')
             return false
           })
-        open_modal({zindex: 999992, modal_size: 'modal-lg', id: 'media_preview_editted_image', content: '<div class="text-center" style="overflow: auto;"><img class="preview"></div><br><div class="row"><div class="col-md-4">'+(if link.attr('data-permit-overwrite') then '<button class="btn save_btn btn-default">'+I18n('button.replace_image')+'</button>' else '')+'</div><div class="col-md-8"><form class="input-group"><input type="text" class="form-control file_name required" name="file_name"><div class="input-group-btn"><button class="btn btn-primary" type="submit">'+I18n('button.save_new_image')+'</button></div></form></div></div>', callback: save_buttons})
-      )
+        open_modal({zindex: 999992, modal_size: 'modal-lg', id: 'media_preview_editted_image', content: '<div class="text-center" style="overflow: auto;"><img class="preview"></div><br><div class="row"><div class="col-md-4"><button class="btn save_btn btn-default">'+I18n('button.replace_image')+'</button></div><div class="col-md-8"><form class="input-group"><input type="text" class="form-control file_name required" name="file_name"><div class="input-group-btn"><button class="btn btn-primary" type="submit">'+I18n('button.save_new_image')+'</button></div></form></div></div>', callback: save_buttons})
+        return false
+      ).validate()
 
       # custom sizes auto calculate aspect ratio
       field_width.change(->
@@ -334,7 +343,7 @@ window["cama_init_media"] = (media_panel) ->
     open_modal({
       zindex: 999991,
       id: 'media_panel_editor_image',
-      title: 'Edit Image - ' + data['name'],
+      title: I18n('button.edit_image', 'Edit Image')+' - ' + data['name'] + (if media_panel.attr("data-dimension") then " <small><i>("+media_panel.attr("data-dimension")+")</i></small>" else ''),
       content: '<div>' +
                 '<div class="editable_wrapper">' +
                   '<img style="max-width: 100%;" class="editable" id="media_editable_image" src="'+data['url']+'">' +
@@ -344,11 +353,11 @@ window["cama_init_media"] = (media_panel) ->
                     '<div class="editor_controls btn-group"></div>' +
                   '</div>' +
                   '<div class="col-md-4">' +
-                    '<div class="input-group export_image"> ' +
-                      '<input class="form-control with_image" placeholder="Width"><span class="input-group-addon">x</span>' +
-                      '<input class="form-control height_image" placeholder="Height"> ' +
-                      '<span class="input-group-btn"><button class="btn btn-primary save_image" type="button"><i class="fa fa-save"></i> '+I18n('button.save', 'Save Image')+'</button> </span> ' +
-                    '</div>' +
+                    '<form class="export_image"> ' +
+                      '<div class="input-group"><input class="form-control with_image data-error-place-parent required number" placeholder="Width"><span class="input-group-addon">x</span>' +
+                      '<input class="form-control height_image data-error-place-parent required number" placeholder="Height"> ' +
+                      '<span class="input-group-btn"><button class="btn btn-primary save_image" type="submit"><i class="fa fa-save"></i> '+I18n('button.save', 'Save Image')+'</button> </span> </div>' +
+                    '</form>' +
                   '</div>' +
                 '</div>' +
                 '<!--span class="label label-default pull-right label_dimension"></span-->' +
@@ -361,7 +370,7 @@ window["cama_init_media"] = (media_panel) ->
   media_panel.find("#cama_media_external").submit( ->
     unless $(this).valid()
       return false
-    $.fn.upload_url({url: $(this).find("input").val(), callback: ->
+    $.fn.upload_url({url: $(this).find("input").val(), skip_auto_crop: true, callback: ->
       media_panel.find("#cama_media_external")[0].reset();
     })
     return false
