@@ -145,7 +145,7 @@ module CamaleonCms::ShortCodeHelper
   # Return: (String) reg expression string
   def cama_reg_shortcode(codes = nil)
     # "(\\[(#{codes || (@_shortcodes || []).join("|")})(\s|\\]){0}(.*?)\\])" # doesn't support for similar names, like: [media] and [media_gallery]
-    "(\\[(#{codes || (@_shortcodes || []).join("|")})((\s)((?!]).)*|)\\])"
+    "(\\[(#{codes || (@_shortcodes || []).join("|")})((\s)((?!\\]).)*|)\\])"
   end
 
   # determine the content to replace instead the shortcode
