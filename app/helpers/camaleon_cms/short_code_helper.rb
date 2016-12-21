@@ -125,16 +125,17 @@ module CamaleonCms::ShortCodeHelper
   private
   # helper to replace shortcodes adding support for closed shortcodes, sample: [title]my title[/title]
   def _cama_replace_shortcode(content, item, args = {}, template = nil)
-    shortcode, code, space, attrs = item
+    shortcode, code, attrs = item
     close_code = "[/#{code}]"
     if content.include?(close_code)
       shortcode_bk = shortcode
-      shortcode = content[content.index(shortcode)..(content.index(close_code) + close_code.size - 1)]
+      tmp_content = content[content.index(shortcode)..-1]
+      shortcode =  tmp_content[0..(tmp_content.index(close_code) + close_code.size - 1)]
       args[:shortcode_content] = shortcode.sub(shortcode_bk, '').sub(close_code, '')
     end
     args[:shortcode] = shortcode
     args[:code] = code
-    content = content.sub(shortcode, _eval_shortcode(code, attrs, args, template))
+    content.sub(shortcode, _eval_shortcode(code, attrs, args, template))
   end
 
   # create the regexpression for shortcodes
@@ -143,7 +144,8 @@ module CamaleonCms::ShortCodeHelper
   # if empty, codes will be replaced with all registered shortcodes
   # Return: (String) reg expression string
   def cama_reg_shortcode(codes = nil)
-    "(\\[(#{codes || (@_shortcodes || []).join("|")})(\s|\\]){0}(.*?)\\])"
+    # "(\\[(#{codes || (@_shortcodes || []).join("|")})(\s|\\]){0}(.*?)\\])" # doesn't support for similar names, like: [media] and [media_gallery]
+    "(\\[(#{codes || (@_shortcodes || []).join("|")})((\s)((?!]).)*|)\\])"
   end
 
   # determine the content to replace instead the shortcode
