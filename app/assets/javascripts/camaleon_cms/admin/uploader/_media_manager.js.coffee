@@ -323,14 +323,14 @@ window["cama_init_media"] = (media_panel) ->
               cropper_data['data']['width'] = parseFloat(dim[0].match(/\d+/)[0])
               field_width.val(cropper_data['data']['width'])
               if dim[0].search(/\?/) > -1
-                field_width.attr('min', cropper_data['data']['width'])
+                field_width.attr('max', cropper_data['data']['width'])
               else
                 field_width.prop('readonly', true)
             if dim[1]
               cropper_data['data']['height'] = parseFloat(dim[1].match(/\d+/)[0])
               field_height.val(cropper_data['data']['height'])
               if dim[1].search(/\?/) > -1
-                field_height.attr('min', cropper_data['data']['height'])
+                field_height.attr('max', cropper_data['data']['height'])
               else
                 field_height.prop('readonly', true)
             if dim[0] && dim[0].search(/\?/) == -1 && dim[1] && dim[1].search(/\?/) == -1
