@@ -40,7 +40,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   has_many :drafts, ->{where(status: 'draft')}, class_name: "CamaleonCms::Post", foreign_key: :post_parent, dependent: :destroy
   has_many :children, class_name: "CamaleonCms::Post", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
 
-  belongs_to :owner, class_name: CamaleonCms::User.name, foreign_key: :user_id
+  belongs_to :owner, class_name: PluginRoutes.static_system_info['user_model'].presence || 'CamaleonCms::User', foreign_key: :user_id
   belongs_to :parent, class_name: "CamaleonCms::Post", foreign_key: :post_parent
   belongs_to :post_type, class_name: "CamaleonCms::PostType", foreign_key: :taxonomy_id, inverse_of: :posts
 
