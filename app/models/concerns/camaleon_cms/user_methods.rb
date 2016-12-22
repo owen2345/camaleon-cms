@@ -1,31 +1,17 @@
-class CamaleonCms::UniqValidatorUser < ActiveModel::Validator
-  def validate(record)
-    users = CamaleonCms::User.all
-    users = CamaleonCms::User.where(site_id: record.site_id) unless PluginRoutes.system_info["users_share_sites"]
-    if record.persisted?
-      users = users.where.not(id: record.id)
-    end
-    if users.by_username(record.username).size > 0
-      record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_username')}"
-    end
-    if users.by_email(record.email).size > 0
-      record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_email')}"
-    end
-  end
-end
-
 module CamaleonCms::UserMethods extend ActiveSupport::Concern
   included do
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
 
-    validates_with CamaleonCms::UniqValidatorUser
+    validates_uniqueness_of :username, scope: [:site_id], case_sensitive: false, message: I18n.t('camaleon_cms.admin.users.message.requires_different_username')
+    validates_uniqueness_of :email, scope: [:site_id], case_sensitive: false, message: I18n.t('camaleon_cms.admin.users.message.requires_different_email')
 
-    before_create { generate_token(:auth_token) }
+    # callbacks
     before_validation :cama_before_validation
     before_destroy :reassign_posts
-    # relations
+    before_create { generate_token(:auth_token) }
 
+    # relations
     has_many :metas, ->{ where(object_class: 'User')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
     has_many :all_posts, class_name: "CamaleonCms::Post"
 
@@ -37,6 +23,10 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     #vars
     STATUS = {0 => 'Active', 1=>'Not Active'}
     ROLE = { 'admin'=>'Administrator', 'client' => 'Client'}
+
+    def self.decorator_class
+      'CamaleonCms::UserDecorator'.constantize
+    end
   end
 
   # return all posts of this user on site
@@ -100,17 +90,13 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     self.confirm_email_sent_at = Time.zone.now
     save!
   end
-
-  def decorator_class
-    'CamaleonCms::UserDecorator'.constantize
-  end
+    # end auth
 
   private
   def cama_before_validation
     self.role = PluginRoutes.system_info["default_user_role"] if self.role.blank?
-    if self.email
-      self.email = self.email.downcase
-    end
+    self.email = self.email.downcase if self.email.present?
+    self.username = self.username.downcase if self.username.present?
   end
 
   # deprecated
