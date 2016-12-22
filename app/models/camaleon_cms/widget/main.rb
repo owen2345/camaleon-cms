@@ -9,7 +9,7 @@ class CamaleonCms::Widget::Main < CamaleonCms::TermTaxonomy
   # renderer: string (path to the template for render this widget)
 
   has_many :metas, ->{ where(object_class: 'Widget::Main')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-  belongs_to :owner, class_name: "CamaleonCms::User", foreign_key: :user_id
+  belongs_to :owner, class_name: CamaleonCms::User.name, foreign_key: :user_id
   belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
 
   has_many :assigned, class_name: "CamaleonCms::Widget::Assigned", foreign_key: :visibility, dependent: :destroy
