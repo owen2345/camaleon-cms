@@ -19,4 +19,11 @@ module Plugins::PluginClass::MainHelper
   # plugin: plugin model
   def pluginKey_on_upgrade(plugin)
   end
+
+  # hook listener to add settings link below the title of current plugin (if it is installed)
+  # args: {plugin (Hash), links (Array)}
+  # permit to add unlimmited of links...
+  def pluginKey_on_plugin_options(args)
+    args[:links] << link_to('Settings', admin_plugins_pluginKey_settings_path)
+  end
 end

@@ -6,12 +6,9 @@
     "Plugins::PluginClass::MainHelper"
   ],
   "hooks": {
-    "on_active": [
-      "pluginKey_on_active"
-    ],
-    "on_inactive": [
-      "pluginKey_on_inactive"
-    ]
+    "on_active": ["pluginKey_on_active"],
+    "on_inactive": ["pluginKey_on_inactive"],
+    "plugin_options": ["pluginKey_on_plugin_options"]
     //here you can add all your hooks (read documentation)
   }
 }
