@@ -18,7 +18,7 @@ r = {custom_menus: {}, menu: @nav_menu}; hooks_run("nav_menu_custom", r) %>
         </div>
         <div class="panel-body">
             <div class="tab-pane active class_type">
-                <ul class="">
+                <ul class="list-unstyled">
                     <% r[:custom_menus].each do |k, item| %>
                         <% if item[:link].present? %>
                             <li>
