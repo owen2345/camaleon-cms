@@ -38,16 +38,6 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     STATUS = {0 => 'Active', 1=>'Not Active'}
     ROLE = { 'admin'=>'Administrator', 'client' => 'Client'}
   end
-  
-  class_methods do
-    def by_email(email)
-      where(['lower(email) = ?', email.to_s.downcase])
-    end
-    
-    def by_username(username)
-      where(['lower(username) = ?', username.to_s.downcase])
-    end
-  end
 
   # return all posts of this user on site
   def posts(site)
