@@ -58,7 +58,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     lookup_context.prefixes.prepend("themes/#{theme.slug}") if theme.settings["gem_mode"]
     lookup_context.prefixes.prepend("themes/#{theme.slug}/views") unless theme.settings["gem_mode"]
     lookup_context.use_camaleon_partial_prefixes = true
-    (data[:files] || data[:attachments] || []).each{ |attach|
+    ((data[:files] || []) + (data[:attachments] || [])).each{ |attach|
       if File.exist?(attach) && !File.directory?(attach)
         attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read }
       else
