@@ -3,8 +3,8 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
 
-    validates_uniqueness_of :username, scope: [:site_id], case_sensitive: false, message: I18n.t('camaleon_cms.admin.users.message.requires_different_username')
-    validates_uniqueness_of :email, scope: [:site_id], case_sensitive: false, message: I18n.t('camaleon_cms.admin.users.message.requires_different_email')
+    validates_uniqueness_of :username, scope: [:site_id], case_sensitive: false, message: I18n.t('camaleon_cms.admin.users.message.requires_different_username', default: 'Requires different username')
+    validates_uniqueness_of :email, scope: [:site_id], case_sensitive: false, message: I18n.t('camaleon_cms.admin.users.message.requires_different_email', default: 'Requires different email')
 
     # callbacks
     before_validation :cama_before_validation
