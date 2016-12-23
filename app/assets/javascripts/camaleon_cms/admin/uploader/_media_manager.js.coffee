@@ -334,7 +334,7 @@ window["cama_init_media"] = (media_panel) ->
               else
                 field_height.prop('readonly', true)
             if dim[0] && dim[0].search(/\?/) == -1 && dim[1] && dim[1].search(/\?/) == -1
-              cropper_data['cropBoxResizable'] = false
+              cropper_data['aspectRatio'] = cropper_data['data']['width']/cropper_data['data']['height']
 
           cropper = modal.find('img.editable').cropper(cropper_data)
           hideLoading()

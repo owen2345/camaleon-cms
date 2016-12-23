@@ -33,11 +33,8 @@
 //= require ./_actions
 //= require ./introjs/_intro.min
 
-
 // uploader
-//= require ./_modal
 //= require ./uploader/uploader_manifest
-//= require ./form/cropper.min
 
 //= require ./tageditor/_jquery.caret.min
 //= require ./tageditor/_jquery.tag-editor
