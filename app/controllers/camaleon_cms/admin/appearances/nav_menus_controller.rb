@@ -102,7 +102,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
 
     if params[:custom_items].present? # custom menu items
       params[:custom_items].each do |index, item|
-        item = @nav_menu.append_menu_item({label: item['label'], link: item['url'], type: 'external'})
+        item = @nav_menu.append_menu_item({label: item['label'], link: item['url'], type: item['kind'] || 'external'})
         items << item
       end
     end

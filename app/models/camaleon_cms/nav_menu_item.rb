@@ -43,6 +43,7 @@ class CamaleonCms::NavMenuItem < CamaleonCms::TermTaxonomy
 
   # overwrite skip uniq slug validation
   def skip_slug_validation?; true end
+  def before_validating; end
 
   private
   def update_count
