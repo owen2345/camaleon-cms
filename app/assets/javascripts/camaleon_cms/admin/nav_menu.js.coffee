@@ -48,7 +48,7 @@ $ ->
     flag =false
     $(this).closest('.panel').find('input:checkbox:checked').each(->
       flag = true
-      data['custom_items'].push({url: $(this).val(), label: $(this).attr('data-label')})
+      data['custom_items'].push({url: $(this).val(), kind: $(this).attr('data-kind'), label: $(this).attr('data-label')})
     ).prop('checked', false)
 
     unless flag

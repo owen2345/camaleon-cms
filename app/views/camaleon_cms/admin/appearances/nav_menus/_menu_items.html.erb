@@ -1,7 +1,7 @@
 <% custom_fields = nav_menu.get_field_groups.any? %>
 <ol class="dd-list">
     <% items.each do |item|
-      item_data = parse_menu_item(item)
+      item_data = cama_parse_menu_item(item, true)
       next  unless item_data.present?
     %>
         <li class="dd-item" data-id="<%= item.id %>">
