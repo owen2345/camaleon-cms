@@ -18,10 +18,10 @@ Rails.application.routes.draw do
         get ":label/:category_id-:title" => :category, as: "category", constraints: {category_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.category', default: 'category').join('|')})/}
         get ":label_cat/:category_id-:title/:slug" => :post, as: "post_of_category", constraints: {category_id: /[0-9]+/, label_cat: /(#{PluginRoutes.all_translations('routes.category', default: 'category').join('|')})/}
         get ":post_type_title/:label_cat/:category_id-:title/:slug" => :post, as: "post_of_category_post_type", constraints:{ post_type_title: /(?!(#{PluginRoutes.all_locales}))[\w\.\-]+/, category_id: /[0-9]+/, label_cat: /(#{PluginRoutes.all_translations('routes.category', default: 'category').join('|')})/ }
-        get ":label/:post_tag_slug" => :post_tag, as: "post_tag_simple", constraints: {post_tag_slug: /[a-zA-Z0-9_=\s\-\/]+/, label: /(#{PluginRoutes.all_translations('routes.tag', default: 'tag').join('|')})/}
         get ":label/:post_tag_id-:title" => :post_tag, as: "post_tag", constraints: {post_tag_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.tag', default: 'tag').join('|')})/}
         get ":label/:post_tag_id-:title/:slug" => :post, as: "post_of_tag", constraints: {post_tag_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.tag', default: 'tag').join('|')})/}
-        get ":label/:user_id-:user_name" => :profile, as: :profile, constraints: {user_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.profile', default: 'profile').join('|')})/}
+        get ":label/:post_tag_slug" => :post_tag, as: "post_tag_simple", constraints: {post_tag_slug: /[a-zA-Z0-9_=\s\-\/]+/, label: /(#{PluginRoutes.all_translations('routes.tag', default: 'tag').join('|')})/}
+        get ":label/:user_id-:user_name" => :profile, as: :profile, defaults:{label: 'profile'}, constraints: {user_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.profile', default: 'profile').join('|')})/}
         get ":label" => :search, as: :search, defaults:{label: 'search'}, constraints: {label: /(#{PluginRoutes.all_translations('routes.search', default: 'search').join('|')})/}
 
         get ':post_type_title/:slug' => :post, as: :post_of_posttype, constraints:{ post_type_title: /(?!(#{PluginRoutes.all_locales}))[\w\.\-]+/ }
