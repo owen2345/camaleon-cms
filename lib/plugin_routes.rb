@@ -246,7 +246,7 @@ class PluginRoutes
   # return all translations for all languages, sample: ['Sample', 'Ejemplo', '....']
   def self.all_translations(key, *args)
     args = args.extract_options!
-    all_locales.split('|').map{|_l| I18n.t(args.merge({locale: _l})) }
+    all_locales.split('|').map{|_l| I18n.t(args.merge({locale: _l})) }.uniq
   end
 
   # return all locales for translated routes

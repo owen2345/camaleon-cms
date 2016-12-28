@@ -30,6 +30,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
   # return front url for this user
   def the_url(*args)
     args = args.extract_options!
+    args[:label] = I18n.t("routes.profile", default: "profile")
     args[:user_id] = the_id
     args[:user_name] = the_name.parameterize
     args[:user_name] = the_username unless args[:user_name].present?

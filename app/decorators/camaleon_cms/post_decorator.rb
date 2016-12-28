@@ -67,47 +67,41 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     p_url_format = "hierarchy_post" if ptype.manage_hierarchy?
     case p_url_format
       when "post_of_post_type"
+        args[:label] = I18n.t('routes.group', default: 'group')
         args[:post_type_id] = ptype.id
-        args[:title] = ptype.the_title(args[:locale]).parameterize
-        args[:title] = ptype.the_slug unless args[:title].present?
+        args[:title] = ptype.the_title(args[:locale]).parameterize.presence || ptype.the_slug
       when "post_of_category"
         if ptype.manage_categories?
           cat = object.categories.first.decorate rescue ptype.default_category.decorate
+          args[:label_cat] = I18n.t("routes.category", default: "category")
           args[:category_id] = cat.id
           args[:title] = cat.the_title(args[:locale]).parameterize
           args[:title] = cat.the_slug unless args[:title].present?
         else
           p_url_format = "post"
-          l = ""
         end
       when "post_of_posttype"
-        args[:post_type_title] = ptype.the_title(args[:locale]).parameterize
-        args[:post_type_title] = ptype.the_slug unless args[:post_type_title].present?
-        l = ""
+        args[:post_type_title] = ptype.the_title(args[:locale]).parameterize.presence || ptype.the_slug
       when "post_of_category_post_type"
         if ptype.manage_categories?
           cat = object.categories.first.decorate rescue ptype.default_category.decorate
-          args[:post_type_title] = ptype.the_title(args[:locale]).parameterize
-          args[:post_type_title] = ptype.the_slug unless args[:post_type_title].present?
+          args[:label_cat] = I18n.t("routes.category", default: "category")
+          args[:post_type_title] = ptype.the_title(args[:locale]).parameterize.presence || ptype.the_slug
           args[:category_id] = cat.id
           args[:title] = cat.the_title(args[:locale]).parameterize
           args[:title] = cat.the_slug unless args[:title].present?
         else
           p_url_format = "post"
-          l = ""
         end
       when 'hierarchy_post'
-        l = ""
         if object.post_parent.present?
           slugs = ([args[:slug]]+object.parents.map{|parent| parent.decorate.the_slug(args[:locale]) }).reverse
           args[:slug], args[:parent_title] = slugs.slice(1..-1).join("/"), slugs.first
         else
           p_url_format = "post"
         end
-      else
-        l = ""
     end
-    h.cama_url_to_fixed("cama_#{p_url_format}#{l}_#{p}", args)
+    h.cama_url_to_fixed("cama_#{p_url_format}_#{p}", args)
   end
 
   # return a hash of frontend urls for this post

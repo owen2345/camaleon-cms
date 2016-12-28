@@ -5,12 +5,12 @@ class CamaleonCms::CategoryDecorator < CamaleonCms::TermTaxonomyDecorator
   def the_url(*args)
     args = args.extract_options!
     args[:category_id] = the_id
-    args[:title] = the_title.parameterize || the_slug
-    args[:title] = the_slug unless args[:title].present?
+    args[:label] = I18n.t("routes.category", default: "category")
+    args[:title] = the_title.parameterize.presence || the_slug
     args[:locale] = @_deco_locale unless args.include?(:locale)
     args[:format] = args[:format] || "html"
     as_path = args.delete(:as_path)
-    h.cama_url_to_fixed("cama_category#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("cama_category_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return edit url for this category
