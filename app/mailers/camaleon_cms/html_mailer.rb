@@ -62,7 +62,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
       if File.exist?(attach) && !File.directory?(attach)
         attachments["#{File.basename(attach)}"] = File.open(attach, 'rb') { |f| f.read }
       else
-        Rails.logger.error "Camaleon CMS - File attached in the email doesn't exist: #{attach}"
+        Rails.logger.error "Camaleon CMS - File attached in the email doesn't exist: #{attach}".cama_log_style(:red)
       end
     }
 

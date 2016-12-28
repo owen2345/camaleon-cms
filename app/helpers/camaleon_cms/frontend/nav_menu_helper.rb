@@ -222,7 +222,7 @@ module CamaleonCms::Frontend::NavMenuHelper
           result = hook_args[:parsed_menu]
       end
     rescue => e
-      Rails.logger.error "Camaleon CMS - Menu Item Not Found => Skipped menu for: #{e.message} (#{nav_menu_item})"
+      Rails.logger.error "Camaleon CMS - Menu Item Not Found => Skipped menu for: #{e.message} (#{nav_menu_item.inspect})".cama_log_style(:red)
     end
 
     # permit to customize data, like: current, title, ... of parsed menu item or skip menu item by assigning false into :parsed_menu
