@@ -1,12 +1,12 @@
 jQuery(function($){
     var panel = $("#panel-post-visibility");
     var link_edit = panel.find(".edit-visibility").click(function(){
-        panel.find(".panel-options").removeClass("hidden").show();
+        panel.find(".panel-options").removeClass("hidden").show().find('input[name="post_private_groups[]"]:first').addClass('required data-error-place-parent');
         link_edit.hide();
         return false;
     });
     panel.find(".lnk_hide").click(function(){
-        panel.find(".panel-options").hide();
+        panel.find(".panel-options").hide().find('input[name="post_private_groups[]"]:first').removeClass('required');
         link_edit.show();
         return false;
     });

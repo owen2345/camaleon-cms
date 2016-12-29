@@ -140,7 +140,7 @@ function cama_init_post(obj) {
                 var $btn = $(this);
                 var $btn_edit = $('<a href="#" class="btn btn-default btn-xs btn-edit">' + I18n("button.accept") + '</a> &nbsp; <a href="#"  class="btn-cancel">' + I18n("button.cancel") + '</a>');
                 var $label = $link.find('.sl-url');
-                var $input = $("<input type='text' />");
+                var $input = $("<input type='text' />").keyup(function(e){ if(e.keyCode == 13){ $btn_edit.filter('.btn-edit').click(); return false; } });
                 $label.hide().after($input);
                 $btn.hide().after($btn_edit);
                 $input.val($label.text());
