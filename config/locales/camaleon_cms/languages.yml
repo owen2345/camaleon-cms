@@ -1,4 +1,17 @@
 # encoding: utf-8
+de:
+  languages:
+    es: "Spanisch"
+    en: "Englisch"
+    fr: "Französisch"
+    zh-CN: "Chinesisch"
+    de: "Deutsch"
+    pt: "Portugiesisch (Portugal)"
+    pt-BR: "Portugiesisch (Brasilien)"
+    it: "Italienisch"
+    ru: "Russisch"
+    nl: "Niederländisch"
+
 en:
   languages:
     es: "Spanish"

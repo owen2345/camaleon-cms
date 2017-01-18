@@ -1,3 +1,11 @@
+de:
+  routes:
+    group: Gruppe
+    category: Kategorie
+    tag: Tag
+    search: Suche
+    profile: Profil
+
 es:
   routes:
     group: grupo
