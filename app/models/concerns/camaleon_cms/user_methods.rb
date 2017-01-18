@@ -1,34 +1,18 @@
-class CamaleonCms::UniqValidatorUser < ActiveModel::Validator
-  def validate(record)
-    users = CamaleonCms::User.all
-    users = CamaleonCms::User.where(site_id: record.site_id) unless PluginRoutes.system_info["users_share_sites"]
-    if record.persisted?
-      users = users.where.not(id: record.id)
-    end
-    if users.by_username(record.username).size > 0
-      record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_username')}"
-    end
-    if users.by_email(record.email).size > 0
-      record.errors[:base] << "#{I18n.t('camaleon_cms.admin.users.message.requires_different_email')}"
-    end
-  end
-end
-
 module CamaleonCms::UserMethods extend ActiveSupport::Concern
   included do
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
 
-    validates_with CamaleonCms::UniqValidatorUser
+    validates_uniqueness_of :username, scope: [:site_id], case_sensitive: false, message: I18n.t('camaleon_cms.admin.users.message.requires_different_username', default: 'Requires different username')
+    validates_uniqueness_of :email, scope: [:site_id], case_sensitive: false, message: I18n.t('camaleon_cms.admin.users.message.requires_different_email', default: 'Requires different email')
 
-    before_create { generate_token(:auth_token) }
+    # callbacks
     before_validation :cama_before_validation
     before_destroy :reassign_posts
-    # relations
+    before_create { generate_token(:auth_token) }
 
+    # relations
     has_many :metas, ->{ where(object_class: 'User')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-    has_many :user_relationships, class_name: "CamaleonCms::UserRelationship", foreign_key: :user_id, dependent: :destroy#,  inverse_of: :user
-    has_many :term_taxonomies, foreign_key: :term_taxonomy_id, class_name: "CamaleonCms::TermTaxonomy", through: :user_relationships, :source => :term_taxonomies
     has_many :all_posts, class_name: "CamaleonCms::Post"
 
     #scopes
@@ -39,15 +23,9 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     #vars
     STATUS = {0 => 'Active', 1=>'Not Active'}
     ROLE = { 'admin'=>'Administrator', 'client' => 'Client'}
-  end
-  
-  class_methods do
-    def by_email(email)
-      where(['lower(email) = ?', email.to_s.downcase])
-    end
-    
-    def by_username(username)
-      where(['lower(username) = ?', username.to_s.downcase])
+
+    def self.decorator_class
+      'CamaleonCms::UserDecorator'.constantize
     end
   end
 
@@ -86,11 +64,6 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     end
   end
 
-  # DEPRECATED, please use user.the_role
-  def roleText
-    User::ROLE[self.role]
-  end
-
   def created
     self.created_at.strftime('%d/%m/%Y %H:%M')
   end
@@ -117,17 +90,13 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     self.confirm_email_sent_at = Time.zone.now
     save!
   end
-
-  def decorator_class
-    'CamaleonCms::UserDecorator'.constantize
-  end
+    # end auth
 
   private
   def cama_before_validation
     self.role = PluginRoutes.system_info["default_user_role"] if self.role.blank?
-    if self.email
-      self.email = self.email.downcase
-    end
+    self.email = self.email.downcase if self.email.present?
+    self.username = self.username.downcase if self.username.present?
   end
 
   # deprecated

@@ -193,6 +193,8 @@ es:
           root: "Raiz"
           replace_image: 'Reemplazar Imagen'
           save_new_image: 'Guardar Nueva Imagen'
+          auto_crop: 'Recorte Automático'
+          edit_image: 'Editar Imagen'
 
 it:
   camaleon_cms:

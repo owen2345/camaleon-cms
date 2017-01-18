@@ -110,7 +110,7 @@ module CamaleonCms::SessionHelper
   # return the role for current user
   # if not logged in, then return 'public'
   def cama_current_role
-    (cama_sign_in?) ? cama_current_user.role : 'public'
+    current_site.visitor_role
   end
 
   # return current user logged in

@@ -9,17 +9,13 @@
 // if default_val is empty, will be returned the last key titleized
 // data: (hash) replacement values in the value, sample: {title: 'my title'}
 var I18n = function(key, default_val, data){
-    try {
-        var res = eval("I18n_data." + key);
-        if (!res) res = default_val ? default_val : ("" + key.split(".").pop()).titleize();
-    }catch(e){
-        var res = (""+key.split(".").pop()).titleize();
-    }
+    var res = '';
+    try { res = eval("I18n_data." + key); }catch(e){}
+    if (!res) res = default_val ? default_val : ("" + key.split(".").pop()).titleize();
 
     // replacements
     data = data || {}
     for(key in data){
-        console.log(key, data[key])
         res = res.replace("%{"+key+"}", data[key])
     }
     return res;

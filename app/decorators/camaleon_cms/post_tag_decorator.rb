@@ -4,22 +4,24 @@ class CamaleonCms::PostTagDecorator < CamaleonCms::TermTaxonomyDecorator
   # return the public url for this post tag, sample: # return basic in this format: http://localhost:3000/tag/31-mytag-title.html
   def the_url(*args)
     args = args.extract_options!
+    args[:label] = I18n.t('routes.tag', default: 'tag')
     args[:post_tag_id] = the_id
     args[:title] = the_title.parameterize.presence || the_slug
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = args[:format] || "html"
     as_path = args.delete(:as_path)
-    h.cama_url_to_fixed("cama_post_tag#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("cama_post_tag_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return basic url in this format: http://localhost:3000/tag/mytag.html
   def the_basic_url(*args)
     args = args.extract_options!
+    args[:label] = I18n.t('routes.tag', default: 'tag')
     args[:post_tag_slug] = the_slug
     args[:locale] = get_locale unless args.include?(:locale)
     args[:format] = args[:format] || "html"
     as_path = args.delete(:as_path)
-    h.cama_url_to_fixed("cama_post_tag_simple#{_calc_locale(args[:locale])}_#{as_path.present? ? "path" : "url"}", args)
+    h.cama_url_to_fixed("cama_post_tag_simple_#{as_path.present? ? "path" : "url"}", args)
   end
 
   # return edit url for this post

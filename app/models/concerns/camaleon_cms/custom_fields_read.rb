@@ -123,7 +123,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # deprecated f attribute
   def get_fields_object(f=true)
     fields = {}
-    self.field_values.to_a.uniq.each do |field_value|
+    self.field_values.eager_load(:custom_fields).to_a.uniq.each do |field_value|
       custom_field = field_value.custom_fields
       # if custom_field.options[:show_frontend].to_s.to_bool
       values = custom_field.values.where(objectid: self.id).pluck(:value)

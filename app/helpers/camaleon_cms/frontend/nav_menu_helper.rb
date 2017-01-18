@@ -65,7 +65,7 @@ module CamaleonCms::Frontend::NavMenuHelper
     index = 0
     nav_menu.eager_load(:metas).each do |nav_menu_item|
       _args = args.dup
-      data_nav_item = _get_link_nav_menu(nav_menu_item)
+      data_nav_item = cama_parse_menu_item(nav_menu_item)
       next if data_nav_item == false
       _is_current = data_nav_item[:current] || site_current_path == data_nav_item[:link] || site_current_path == data_nav_item[:link].sub(".html", "")
       has_children = nav_menu_item.have_children? && (args[:levels] == -1 || (args[:levels] != -1 && level <= args[:levels]))
@@ -111,7 +111,7 @@ module CamaleonCms::Frontend::NavMenuHelper
   def cama_menu_parse_items(items, max_levels=-1, internal_level=0)
     res, is_current_parent, levels = [], false, [0]
     items.reorder(:term_order).each_with_index do |nav_menu_item, index|
-      data_nav_item = _get_link_nav_menu(nav_menu_item)
+      data_nav_item = cama_parse_menu_item(nav_menu_item)
       next if data_nav_item == false
       _is_current = data_nav_item[:current] || site_current_path == data_nav_item[:link] || site_current_path == data_nav_item[:link].sub(".html", "")
       has_children = nav_menu_item.have_children?
@@ -174,48 +174,63 @@ module CamaleonCms::Frontend::NavMenuHelper
   end
 
 
-  private
-  def _get_link_nav_menu(nav_menu_item)
-    type_menu, r = nav_menu_item.kind, false
+  def cama_parse_menu_item(nav_menu_item, is_from_backend = false)
+    type_menu, result = nav_menu_item.kind, false
     begin
       case type_menu
         when 'post'
           post = CamaleonCms::Post.find(nav_menu_item.url).decorate
-          r = {link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu, current: @cama_visited_post.present? && @cama_visited_post.id == post.id} if post.can_visit?
+          if is_from_backend || post.can_visit?
+            result = {link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu, url_edit: post.the_edit_url}
+            result[:current] = @cama_visited_post.present? && @cama_visited_post.id == post.id unless is_from_backend
+          end
         when 'category'
           category = CamaleonCms::Category.find(nav_menu_item.url).decorate
-          r = {link: category.the_url(as_path: true), name: category.the_title, type_menu: type_menu, current: @cama_visited_category.present? && @cama_visited_category.id == category.id}
+          result = {link: category.the_url(as_path: true), name: category.the_title, url_edit: category.the_edit_url}
+          result[:current] = @cama_visited_category.present? && @cama_visited_category.id == category.id unless is_from_backend
         when 'post_tag'
           post_tag = CamaleonCms::PostTag.find(nav_menu_item.url).decorate
-          r = {link: post_tag.the_url(as_path: true), name: post_tag.the_title, type_menu: type_menu, current: @cama_visited_tag.present? && @cama_visited_tag.id == post_tag.id}
+          result = {link: post_tag.the_url(as_path: true), name: post_tag.the_title, url_edit: post_tag.the_edit_url}
+          result[:current] = @cama_visited_tag.present? && @cama_visited_tag.id == post_tag.id unless is_from_backend
         when 'post_type'
           post_type = CamaleonCms::PostType.find(nav_menu_item.url).decorate
-          r = {link: post_type.the_url(as_path: true), name: post_type.the_title, type_menu: type_menu, current: @cama_visited_post_type.present? && @cama_visited_post_type.id == post_type.id}
+          result = {link: post_type.the_url(as_path: true), name: post_type.the_title, url_edit: post_type.the_edit_url}
+          result[:current] = @cama_visited_post_type.present? && @cama_visited_post_type.id == post_type.id unless is_from_backend
         when 'external'
-          r = {link: nav_menu_item.url.to_s.translate, name: nav_menu_item.name.to_s.translate, type_menu: type_menu, current: false}
-          r[:link] = cama_root_path if r[:link] == "root_url"
-          r[:link] = site_current_path if site_current_path == "#{current_site.the_path}#{r[:link]}"
-          r[:current] = r[:link] == site_current_url || r[:link] == site_current_path
-
+          result = {link: nav_menu_item.url.to_s.translate, name: nav_menu_item.name.to_s.translate, current: false}
           # permit to customize or mark as current menu
           # _args: (HASH) {menu_item: Model Menu Item, parsed_menu: Parsed Menu }
-          #   Sample parsed_menu: {link: "url of the link", name: "Text of the menu", type_menu: 'external', current: Boolean (true => is current menu, false => not current menu item)}
-          _args = {menu_item: nav_menu_item, parsed_menu: r};  hooks_run("on_external_menu", _args)
-          r = _args[:parsed_menu]
+          #   Sample parsed_menu: {link: "url of the link", name: "Text of the menu", current: Boolean (true => is current menu, false => not current menu item)}
+          unless is_from_backend
+            result[:link] = cama_root_path if result[:link] == "root_url"
+            result[:link] = site_current_path if site_current_path == "#{current_site.the_path}#{result[:link]}"
+            result[:current] = result[:link] == site_current_url || result[:link] == site_current_path
+            _args = {menu_item: nav_menu_item, parsed_menu: result}; hooks_run("on_external_menu", _args)
+            result = _args[:parsed_menu]
+          end
+        else
+          # permit to build custom menu items registered as Custom Menu by hook "nav_menu_custom"
+          # sample: def my_parse_custom_menu_item_listener(args);
+          #   if args[:menu_item].kind == 'MyModelClass'
+          #     my_model = MyModelClass.find(args[:menu_item].url)
+          #     res = {name: my_model.name, url_edit: my_model_edit_url(id: my_model.id), link: my_model_public_url(id: my_model.id)}
+          #     res[:current] = site_current_path == my_model_public_url(id: my_model.id) unless args[:is_from_backend]
+          #     args[:parsed_menu] = res
+          #   end
+          # end
+          hook_args={menu_item: nav_menu_item, parsed_menu: false, is_from_backend: is_from_backend}; hooks_run('parse_custom_menu_item', hook_args)
+          result = hook_args[:parsed_menu]
       end
     rescue => e
-      Rails.logger.error "Camaleon CMS - Menu Item Not Found => Skipped menu for: #{e.message} (#{nav_menu_item})"
+      Rails.logger.error "Camaleon CMS - Menu Item Not Found => Skipped menu for: #{e.message} (#{nav_menu_item.inspect})".cama_log_style(:red)
     end
 
-    if r != false
-      # permit to mark as a current menu custom paths
-      # sample: @cama_current_menu_path = '/my_section'
-      # sample2: @cama_current_menu_path = ['/my_section', '/mi_seccion'] # multi language support
-      r[:current] = true if @cama_current_menu_path.present? && !r[:current] && (@cama_current_menu_path.is_a?(String) ? @cama_current_menu_path == r[:link] : @cama_current_menu_path.include?(r[:link]))
+    # permit to customize data, like: current, title, ... of parsed menu item or skip menu item by assigning false into :parsed_menu
+    unless is_from_backend
+      _args = {menu_item: nav_menu_item, parsed_menu: result};  hooks_run("on_render_front_menu_item", _args)
+      _args[:parsed_menu]
+    else
+      result
     end
-
-    # permit to customize data of parsed menu item or skip menu item by assigning false into :parsed_menu
-    _args = {menu_item: nav_menu_item, parsed_menu: r};  hooks_run("on_render_front_menu_item", _args)
-    _args[:parsed_menu]
   end
 end

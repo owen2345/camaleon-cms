@@ -13,7 +13,7 @@
             </tr>
             </thead>
             <tbody>
-            <% plugins.each do |plugin| status = enabled_plugins.include?(plugin); r = {links: ["Version: #{plugin["version"]}"]}; %>
+            <% plugins.each do |plugin| status = enabled_plugins.include?(plugin); r = {links: ["Version: #{plugin["version"]}"], plugin: plugin}; %>
                 <tr>
                     <td>
                         <b><%= plugin["title"] %></b>

@@ -74,7 +74,11 @@ module CamaleonCms
       scope :admin, as: 'admin', path: PluginRoutes.system_info['admin_path_name'] do
         namespace 'plugins' do
           namespace '#{get_plugin_name}' do
-            get 'index' => 'admin#index'
+            controller :admin do
+              get :index
+              get :settings
+              post :save_settings
+            end
           end
         end
       end

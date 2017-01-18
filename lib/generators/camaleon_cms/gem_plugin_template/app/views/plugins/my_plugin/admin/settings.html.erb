@@ -1,0 +1,21 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4>My Plugin Settings</h4>
+    </div>
+    <div class="panel-body">
+        <%= form_tag(url_for(action: :save_settings), class: 'validate') do %>
+            <div class="form-group">
+                <label>My Option Setting</label>
+                <%= text_field_tag 'options[my_setting]', @plugin.get_option('my_setting'), class: 'form-control required' %>
+            </div>
+            <div class="form-group">
+                <label>My Meta Setting</label>
+                <%= text_field_tag 'metas[my_setting]', @plugin.get_meta('my_setting'), class: 'form-control required' %>
+            </div>
+            <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @plugin, field_groups: @plugin.get_field_groups} %>
+            <div class="form-group text-right">
+                <%= submit_tag 'Save Settings', class: 'btn btn-primary' %>
+            </div>
+        <% end %>
+    </div>
+</div>

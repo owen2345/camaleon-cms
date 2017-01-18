@@ -14,7 +14,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
 
   # return the role title of this user for current site
   def the_role
-    object.get_role(h.current_site).name.titleize
+    object.get_role(h.current_site).try(:decorate).try(:the_title) || ''
   end
 
   # return the avatar for this user, default: assets/admin/img/no_image.jpg
@@ -30,6 +30,7 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
   # return front url for this user
   def the_url(*args)
     args = args.extract_options!
+    args[:label] = I18n.t("routes.profile", default: "profile")
     args[:user_id] = the_id
     args[:user_name] = the_name.parameterize
     args[:user_name] = the_username unless args[:user_name].present?

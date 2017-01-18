@@ -19,8 +19,7 @@
  *= require ./introjs/_introjs.min
  *= require ./tageditor/_jquery.tag-editor
 
- *= require ./uploader/_uploadfile
- *= require ./cropper/cropper.min
+ *= require ./uploader/uploader_manifest
  *= require ./_bootstrap-select
 
  // post

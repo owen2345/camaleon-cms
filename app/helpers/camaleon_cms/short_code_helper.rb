@@ -10,11 +10,15 @@ module CamaleonCms::ShortCodeHelper
                 Sample: [widget widget_key]")
 
     shortcode_add("load_libraries",
-                  lambda{|attrs, args| cama_load_libraries(*attrs["data"].to_s.split(",")); return ""; },
+                  lambda{|attrs, args|
+                    return args[:shortcode] unless attrs.present?
+                    cama_load_libraries(*attrs["data"].to_s.split(",")); return "";
+                  },
                   "Permit to load libraries on demand, sample: [load_libraries data='datepicker,tinymce']")
 
     shortcode_add("asset",
                   lambda{|attrs, args|
+                    return args[:shortcode] unless attrs.present?
                     url = attrs["as_path"].present? ? ActionController::Base.helpers.asset_url(attrs["file"]) : ActionController::Base.helpers.asset_url(attrs["file"])
                     if attrs["image"].present?
                       ActionController::Base.helpers.image_tag(attrs["file"], class: attrs["class"], style: attrs["style"])
@@ -32,7 +36,7 @@ module CamaleonCms::ShortCodeHelper
 
     shortcode_add("data",
                   lambda{|attrs, args|
-                    cama_shortcode_data(attrs, args) rescue ""
+                    attrs.present? ? (cama_shortcode_data(attrs, args) rescue "") : args[:shortcode]
                   },
                   "Permit to generate specific data of a post.
                   Attributes:
@@ -96,8 +100,7 @@ module CamaleonCms::ShortCodeHelper
   def do_shortcode(content, args = {})
     args = {owner: args} unless args.is_a?(Hash)
     content.scan(/#{cama_reg_shortcode}/) do |item|
-      shortcode, code, space, attrs = item
-      content = content.sub(shortcode, _eval_shortcode(code, attrs, args))
+      content = _cama_replace_shortcode(content, item, args)
     end
     content
   end
@@ -118,20 +121,35 @@ module CamaleonCms::ShortCodeHelper
   # render_shortcode("asda dasdasdas[owen a='1'] [bbb] sdasdas dasd as das[owen a=213]", "owen", lambda{|attrs, args| puts attrs; return "my test"; })
   def render_shortcode(text, key, template = nil)
     text.scan(/#{cama_reg_shortcode(key)}/).each do |item|
-      shortcode, code, space, attrs = item
-      text = text.sub(shortcode, _eval_shortcode(code, attrs, {}, template))
+      text = _cama_replace_shortcode(text, item, {}, template)
     end
     text
   end
 
   private
+  # helper to replace shortcodes adding support for closed shortcodes, sample: [title]my title[/title]
+  def _cama_replace_shortcode(content, item, args = {}, template = nil)
+    shortcode, code, attrs = item
+    close_code = "[/#{code}]"
+    if content.include?(close_code)
+      shortcode_bk = shortcode
+      tmp_content = content[content.index(shortcode)..-1]
+      shortcode =  tmp_content[0..(tmp_content.index(close_code) + close_code.size - 1)]
+      args[:shortcode_content] = shortcode.sub(shortcode_bk, '').sub(close_code, '')
+    end
+    args[:shortcode] = shortcode
+    args[:code] = code
+    content.sub(shortcode, _eval_shortcode(code, attrs, args, template))
+  end
+
   # create the regexpression for shortcodes
   # codes: (String) shortcode keys separated by |
   # sample: load_libraries|asset
   # if empty, codes will be replaced with all registered shortcodes
   # Return: (String) reg expression string
   def cama_reg_shortcode(codes = nil)
-    "(\\[(#{codes || (@_shortcodes || []).join("|")})(\s|\\]){0}(.*?)\\])"
+    # "(\\[(#{codes || (@_shortcodes || []).join("|")})(\s|\\]){0}(.*?)\\])" # doesn't support for similar names, like: [media] and [media_gallery]
+    "(\\[(#{codes || (@_shortcodes || []).join("|")})((\s)((?!\\]).)*|)\\])"
   end
 
   # determine the content to replace instead the shortcode

@@ -13,24 +13,17 @@ Rails.application.routes.draw do
       root 'camaleon_cms/frontend#index', as: 'root'
 
       controller "camaleon_cms/frontend" do
-        PluginRoutes.all_locales.split("|").each do |_l|
-          get "#{I18n.t("routes.group", default: "group", locale: _l)}/:post_type_id-:title" => :post_type, as: "post_type_#{_l}", constraints: {post_type_id: /[0-9]+/}
-          get "#{I18n.t("routes.group", default: "group", locale: _l)}/:post_type_id-:title/:slug" => :post, as: "post_of_post_type_#{_l}", constraints: {post_type_id: /[0-9]+/}
+        get ":label/:post_type_id-:title" => :post_type, as: "post_type", constraints: {post_type_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.group', default: 'group').join('|')})/}
+        get ":label/:post_type_id-:title/:slug" => :post, as: "post_of_post_type", constraints: {post_type_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.group', default: 'group').join('|')})/}
+        get ":label/:category_id-:title" => :category, as: "category", constraints: {category_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.category', default: 'category').join('|')})/}
+        get ":label_cat/:category_id-:title/:slug" => :post, as: "post_of_category", constraints: {category_id: /[0-9]+/, label_cat: /(#{PluginRoutes.all_translations('routes.category', default: 'category').join('|')})/}
+        get ":post_type_title/:label_cat/:category_id-:title/:slug" => :post, as: "post_of_category_post_type", constraints:{ post_type_title: /(?!(#{PluginRoutes.all_locales}))[\w\.\-]+/, category_id: /[0-9]+/, label_cat: /(#{PluginRoutes.all_translations('routes.category', default: 'category').join('|')})/ }
+        get ":label/:post_tag_id-:title" => :post_tag, as: "post_tag", constraints: {post_tag_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.tag', default: 'tag').join('|')})/}
+        get ":label/:post_tag_id-:title/:slug" => :post, as: "post_of_tag", constraints: {post_tag_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.tag', default: 'tag').join('|')})/}
+        get ":label/:post_tag_slug" => :post_tag, as: "post_tag_simple", constraints: {post_tag_slug: /[a-zA-Z0-9_=\s\-\/]+/, label: /(#{PluginRoutes.all_translations('routes.tag', default: 'tag').join('|')})/}
+        get ":label/:user_id-:user_name" => :profile, as: :profile, defaults:{label: 'profile'}, constraints: {user_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.profile', default: 'profile').join('|')})/}
+        get ":label" => :search, as: :search, defaults:{label: 'search'}, constraints: {label: /(#{PluginRoutes.all_translations('routes.search', default: 'search').join('|')})/}
 
-          get "#{I18n.t("routes.category", default: "category", locale: _l)}/:category_id-:title" => :category, as: "category_#{_l}", constraints: {category_id: /[0-9]+/}
-          get "#{I18n.t("routes.category", default: "category", locale: _l)}/:category_id-:title/:slug" => :post, as: "post_of_category_#{_l}", constraints: {category_id: /[0-9]+/}
-          get ":post_type_title/#{I18n.t("routes.category", default: "category", locale: _l)}/:category_id-:title/:slug" => :post, as: "post_of_category_post_type_#{_l}", constraints:{ post_type_title: /(?!(#{PluginRoutes.all_locales}))[\w\.\-]+/, category_id: /[0-9]+/ }
-
-          get "#{I18n.t("routes.tag", default: "tag", locale: _l)}/:post_tag_id-:title" => :post_tag, as: "post_tag_#{_l}", constraints: {post_tag_id: /[0-9]+/}
-          get "#{I18n.t("routes.tag", default: "tag", locale: _l)}/:post_tag_id-:title/:slug" => :post, as: "post_of_tag_#{_l}", constraints: {post_tag_id: /[0-9]+/}
-          get "#{I18n.t("routes.tag", default: "tag", locale: _l)}/:post_tag_slug" => :post_tag, as: "post_tag_simple_#{_l}", constraints: {post_tag_slug: /[a-zA-Z0-9_=\s\-\/]+/}
-
-          get "#{I18n.t("routes.profile", default: "profile", locale: _l)}/:user_id-:user_name" => :profile, constraints: {user_id: /[0-9]+/}, as: "profile_#{_l}"
-          get "#{I18n.t("routes.search", default: "search", locale: _l)}" => :search, as: "search_#{_l}"
-        end
-
-        get "profile/:user_id-:user_name" => :profile, as: :profile, constraints: {user_id: /[0-9]+/}
-        get 'search' => :search, as: :search
         get ':post_type_title/:slug' => :post, as: :post_of_posttype, constraints:{ post_type_title: /(?!(#{PluginRoutes.all_locales}))[\w\.\-]+/ }
 
         post 'save_comment/:post_id' => :save_comment, as: :save_comment

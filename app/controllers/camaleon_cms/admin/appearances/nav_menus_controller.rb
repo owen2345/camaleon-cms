@@ -1,4 +1,5 @@
 class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminController
+  include CamaleonCms::Frontend::NavMenuHelper
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.appearance")
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.menus")
   before_action :check_menu_permission
@@ -101,7 +102,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
 
     if params[:custom_items].present? # custom menu items
       params[:custom_items].each do |index, item|
-        item = @nav_menu.append_menu_item({label: item['label'], link: item['url'], type: 'external'})
+        item = @nav_menu.append_menu_item({label: item['label'], link: item['url'], type: item['kind'] || 'external'})
         items << item
       end
     end
@@ -116,34 +117,6 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
   end
 
   private
-  def parse_menu_item(nav_menu_item)
-    begin
-      case nav_menu_item.kind
-        when 'post'
-          post = CamaleonCms::Post.find(nav_menu_item.url).decorate
-          return false unless post.status == 'published'
-          {name: post.the_title(locale: @frontend_locale), url_edit: post.the_edit_url }
-        when 'category'
-          category = CamaleonCms::Category.find(nav_menu_item.url).decorate
-          {name: category.the_title, url_edit: category.the_edit_url}
-        when 'post_tag'
-          post_tag = CamaleonCms::PostTag.find(nav_menu_item.url).decorate
-          {name: post_tag.the_title, url_edit: post_tag.the_edit_url}
-        when 'post_type'
-          post_type = CamaleonCms::PostType.find(nav_menu_item.url).decorate
-          {name: post_type.the_title, url_edit: post_type.the_edit_url}
-        when 'external'
-          {name: nav_menu_item.name.to_s}
-        else
-          false
-      end
-    rescue => e
-      Rails.logger.error "Camaleon CMS - Menu Item Not Found => Skipped menu for: #{e.message} (#{nav_menu_item})"
-      false
-    end
-  end
-  helper_method :parse_menu_item
-
   def check_menu_permission
     authorize! :manage, :nav_menu
   end

@@ -78,6 +78,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # upload files from media uploader
   def upload(settings = {})
+    params[:dimension] = nil if params[:skip_auto_crop].present?
     f = {error: "File not found."}
     if params[:file_upload].present?
       f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats], versions: params[:versions], thumb_size: params[:thumb_size]}.merge(settings))

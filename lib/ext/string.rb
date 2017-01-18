@@ -136,4 +136,11 @@ class String
   rescue
     false
   end
+
+  # Colorized Ruby output
+  # color: (:red, :green, :blue, :pink, :light_blue, :yellow)
+  def cama_log_style(color = :red)
+    colors = {red: 31, green: 32, blue: 34, pink: 35, light_blue: 36, yellow: 33}
+    "\e[#{colors[color]}m#{self}\e[0m"
+  end
 end
