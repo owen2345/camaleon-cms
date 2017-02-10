@@ -7,7 +7,7 @@ Rails.application.config.to_prepare do
       include CamaleonCms::UserMethods
     end
   end
-  Cama::User = CamaleonCms::User
+  Cama::User = CamaleonCms::User unless defined? Cama::User
 end
 Cama::Site = CamaleonCms::Site
 Cama::Post = CamaleonCms::Post
