@@ -14,6 +14,7 @@ jQuery(function($){
      * @param default_language => not important (deprecated)
      * @returns {$.fn.Translatable}
      * @constructor
+     * select tag fix: save translated value in data-value
      */
     var TRANSLATOR_counter = 1;
     $.fn.Translatable = function(languages, default_language){
@@ -28,7 +29,7 @@ jQuery(function($){
         get_translations = function(text, language){
             var translations_per_locale = {};
             var res = "";
-            if(text.trim().search("<!--") != 0 || !text){ // not translated string
+            if(!text || text.trim().search("<!--") != 0){ // not translated string
                 for(var i in languages){
                     translations_per_locale[languages[i]] = text;
                 }
@@ -63,7 +64,7 @@ jQuery(function($){
 
         self.each(function(){
             var ele = $(this);
-            var tabs_title = [], tabs_content = [], translations = get_translations(ele.val()), inputs = {};
+            var tabs_title = [], tabs_content = [], translations = get_translations(ele.is('select') ? ele.data('value') : ele.val()), inputs = {};
             var class_group = ele.parent().hasClass("form-group") ? "" : "form-group";
             // decoding languages
             for(var ii in languages){
@@ -91,6 +92,15 @@ jQuery(function($){
             var tabs = $('<div class="trans_panel" role="tabpanel"><ul class="nav nav-tabs" role="tablist"></ul><div class="tab-content"></div></div>');
             tabs.find(".nav-tabs").append(tabs_title.reverse());
             tabs.find(".tab-content").append(tabs_content);
+            
+            // unknown fields (fix for select fields)
+            if(ele.is('select')){
+                var rep_field = $('<input type="hidden">').attr({class: ele.attr('class'), name: ele.attr('name')})
+                ele.replaceWith(rep_field);
+                ele = rep_field;
+                tabs_content[0].find('.translate-item').trigger('change');
+            }
+            
             ele.addClass("translated-item").hide().after(tabs);
             //ele.data("tabs_content", tabs_content);
             ele.data("translation_inputs", inputs);
