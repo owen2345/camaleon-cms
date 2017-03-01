@@ -69,13 +69,13 @@ function cama_build_custom_field(panel, field_data, values){
             field.find('.btn').addClass('disabled').unbind().click(function(){ return false; });
         }
 
-        if (field_data.kind == 'checkbox') {
+        if (field_data.kind == 'checkbox'){
             field.find('input')[0].checked = value;
-        } else if (value) {
-            field.find('.input-value').val(value).trigger('change', {field_rendered: true});
+        }else if(value){
+            field.find('.input-value').val(value).trigger('change', {field_rendered: true}).data('value', value);
         }
         $sortable.append(field);
-        if(callback) eval(callback + "(field, value);");
+        if(callback) window[callback](field, value);
         field_counter ++;
     }
     if(field_data.kind != 'checkbox' && values.length <= 0) {
@@ -194,6 +194,20 @@ function custom_field_text_box($field) {
         if ($field.find('input').hasClass('is_translate')) {
             $field.find('input').addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
         }
+    }
+}
+function custom_field_url_callback($field) {
+    if ($field) {
+        if ($field.find('input').hasClass('is_translate')) {
+            $field.find('input').addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
+        }
+    }
+}
+function custom_field_select_callback($field, val) {
+    if ($field) {
+        var sel = $field.find('select.input-value');
+        if (!val) sel.data('value', sel.val()); // fix for select translator
+        if(sel.hasClass('is_translate')) sel.addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
     }
 }
 

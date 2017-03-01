@@ -31,7 +31,8 @@ module CamaleonCms::Admin::CustomFieldsHelper
         label: t('camaleon_cms.admin.custom_field.fields.select'),
         options: {
             required: true,
-            multiple: false,
+            multiple: true,
+            translate: true,
             multiple_options: {
                 label: t('camaleon_cms.admin.settings.options_select'),
                 default: 'radio'
@@ -232,6 +233,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
         options: {
             required: true,
             multiple: true,
+            translate: true,
             default_value: '',
             show_frontend: true
         }

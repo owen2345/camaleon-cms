@@ -36,7 +36,7 @@ module CamaleonCms::ShortCodeHelper
 
     shortcode_add("data",
                   lambda{|attrs, args|
-                    attrs.present? ? (cama_shortcode_data(attrs, args) rescue "") : args[:shortcode]
+                    attrs.present? ? (cama_shortcode_data(attrs, args)) : args[:shortcode]
                   },
                   "Permit to generate specific data of a post.
                   Attributes:
@@ -181,13 +181,13 @@ module CamaleonCms::ShortCodeHelper
 
   # execute shortcode data
   def cama_shortcode_data(attrs, args)
-    res = ""
-    object = attrs["object"].downcase || "post"
+    res = args[:shortcode]
+    object = (attrs["object"].presence || "post").downcase
     attr = attrs["attr"] || "title"
-    if (args[:owner].present? && object == args[:owner].class.name.parseCamaClass.downcase) || !attrs["object"].present?
-      model = args[:owner]
+    if attrs['id'].present? || attrs['key'].present?
+      model = cama_shortcode_model_parser(object, attrs)
     else
-      model = cama_shortcode_model_parser(object, attrs) || args[:owner]
+      model = args[:owner]
     end
     return res unless model.present?
     
@@ -229,17 +229,14 @@ module CamaleonCms::ShortCodeHelper
           end
         else
           case object
-            when 'site'
-              case attr
-                when "title"
-                when "title"
-              end
             when 'post'
               case attr
+                when "content"
+                  res = model.try(:the_content)
                 when "author_name"
-                  res = model.the_author.the_name rescue ''
+                  res = model.try(:the_author).try(:the_name)
                 when "author_url"
-                  res = model.the_author.the_name rescue ''
+                  res = model.try(:the_author).try(:the_name)
               end
           end
       end
