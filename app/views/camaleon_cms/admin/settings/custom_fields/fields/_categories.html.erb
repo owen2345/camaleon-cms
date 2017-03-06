@@ -1,0 +1,11 @@
+<div class="group-input-fields-content" data-callback-render="">
+  <select name="<%= field_name %>[<%= field.slug %>][values][]" class="form-control input-value <%= 'is_translate' if field.options[:translate].to_s.to_bool %> <%= "required" if field.options[:required].to_s.to_bool %>" >
+    <% current_site.the_post_types.decorate.each do |ptype| %>
+      <optgroup label="<%= ptype.the_title %>">
+        <% cama_category_get_options_html(ptype.full_categories).each do |cat|  %>
+          <option value="<%= cat[1] %>"><%= cat[0] %></option>
+        <% end %>
+      </optgroup>
+    <% end %>
+  </select>
+</div>

@@ -274,6 +274,25 @@ module CamaleonCms::Admin::CustomFieldsHelper
             }
         ]
     }
+
+    items[:post_types] = {
+        key: 'post_types',
+        label: t('camaleon_cms.admin.post_type.post_types'),
+        options: {
+            required: true,
+            multiple: true
+        }
+    }
+
+    items[:categories] = {
+        key: 'categories',
+        label: t('camaleon_cms.admin.table.categories'),
+        options: {
+            required: true,
+            multiple: true
+        }
+    }
+    
     # evaluate the content of command value on listing
     # sample command: options_from_collection_for_select(current_site.the_posts("commerce").decorate, :id, :the_title)
     items[:select_eval] = {

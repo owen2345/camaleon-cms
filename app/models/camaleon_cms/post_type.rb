@@ -76,8 +76,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
 
   # select full_categories for the post type, include all children categories
   def full_categories
-    s = self.site
-    CamaleonCms::Category.where("term_group = ? or status in (?)", s.id, s.post_types.pluck(:id).to_s)
+    CamaleonCms::Category.where(site_id: site_id, post_type_id: id)
   end
 
   # return default category for this post type

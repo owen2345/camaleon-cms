@@ -1,0 +1,7 @@
+<div class="group-input-fields-content" data-callback-render="">
+  <select name="<%= field_name %>[<%= field.slug %>][values][]" class="form-control input-value <%= 'is_translate' if field.options[:translate].to_s.to_bool %> <%= "required" if field.options[:required].to_s.to_bool %>" >
+    <% current_site.the_post_types.decorate.each do |ptype|  %>
+        <option value="<%= ptype.id %>"><%= ptype.the_title %></option>
+    <% end %>
+  </select>
+</div>

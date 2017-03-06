@@ -35,7 +35,7 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
 
   #select full_categories for the site, include all children categories
   def full_categories
-    CamaleonCms::Category.where({term_group: self.id})
+    CamaleonCms::Category.where({site_id: self.id})
   end
 
   # all post_tags for this site
