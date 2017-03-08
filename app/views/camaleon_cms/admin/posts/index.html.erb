@@ -54,7 +54,7 @@
                             <%= title %>
                         <% end %>
                     </td>
-                    <%= content_tag :td, link_to(f.parent.decorate.the_title, {action: :edit, id: f.post_parent}, class: "cama_ajax_request") if @lists_tab == "draft" && f.post_parent.present? %>
+                    <%= content_tag :td, f.post_parent.present? ? link_to(f.parent.decorate.the_title, {action: :edit, id: f.post_parent}, class: "cama_ajax_request") : '' if @lists_tab == "draft" %>
                     <td><%= link_to raw(f.the_status), {action: :index, s: f.status}, class: "cama_ajax_request" %>  </td>
                     <td><%= f.author.fullname %></td>
                     <% if @post_type.manage_categories? %>
