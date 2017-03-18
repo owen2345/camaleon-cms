@@ -213,7 +213,9 @@ window["cama_init_media"] = (media_panel) ->
           hideLoading()
           modal.modal("hide")
           if res.search("folder_item") >= 0 # success upload
+            res = $(res)
             media_files_panel.append(res)
+            res.click()
           else
             $.fn.alert({type: 'error', content: res, title: "Error"})
         )
