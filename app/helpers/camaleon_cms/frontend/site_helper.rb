@@ -50,6 +50,11 @@ module CamaleonCms::Frontend::SiteHelper
   def is_category?
     @cama_visited_category.present?
   end
+  
+  # check if visited page is user profile (frontend)
+  def is_profile?
+    @cama_visited_profile == true
+  end
 
   #**************** end section is a? ****************#
 
