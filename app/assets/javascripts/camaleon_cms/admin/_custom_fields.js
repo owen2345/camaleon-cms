@@ -117,7 +117,7 @@ function custom_field_colorpicker($field) {
 }
 function custom_field_colorpicker_val($field, value) {
     if ($field) {
-        $field.find(".my-colorpicker").attr('data-color', value).colorpicker();
+        $field.find(".my-colorpicker").attr('data-color', value || '').colorpicker();
     }
 }
 function custom_field_checkbox_val($field, values) {
