@@ -27,7 +27,7 @@
             </tr>
             </thead>
             <tbody>
-            <% @users.each do |f| %>
+            <% @users.decorate.each do |f| %>
                 <tr>
                   <td><%= f.id %></td>
                   <td><%= f.username %></td>

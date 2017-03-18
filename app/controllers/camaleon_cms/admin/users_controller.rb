@@ -5,7 +5,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
 
   def index
     add_breadcrumb I18n.t("camaleon_cms.admin.users.list_users")
-    @users = current_site.users.paginate(:page => params[:page], :per_page => current_site.admin_per_page).decorate
+    @users = current_site.users.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
 
   def profile
