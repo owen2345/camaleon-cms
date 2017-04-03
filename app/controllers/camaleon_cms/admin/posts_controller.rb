@@ -184,7 +184,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   def get_post_data(is_create = false)
     post_data = params.require(:post).permit!
     post_data[:user_id] = cama_current_user.id if is_create
-    post_data[:status] == 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
+    post_data[:status] = 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
     post_data[:data_tags] = params[:tags].to_s
     post_data[:data_categories] = params[:categories] || []
     post_data
