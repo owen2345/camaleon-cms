@@ -177,7 +177,7 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   def the_admin_url
     host = object.main_site? ? object.slug : (object.slug.include?(".") ? object.slug : "#{object.slug}.#{Cama::Site.main_site.slug}")
     port = (host.split(":")[1] rescue nil)
-    h.cama_url_to_fixed("cama_admin_dashboard_url", host: host, port: port, locale: false)
+    h.cama_url_to_fixed("cama_admin_dashboard_url", host: host, port: port, locale: nil)
   end
 
   # check if current user can manage sites
