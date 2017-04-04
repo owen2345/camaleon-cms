@@ -45,7 +45,7 @@ module CamaleonCms::ShortCodeHelper
                     key: (String) Post slug
                     field: (String) Custom field key, you can add render_field='true' to render field as html element, also you can add index=2 to indicate the value in position 2 for multitple values
                     attrs: (String) attribute name
-                            post: title | created_at | excerpt | url | link | thumb | updated_at | author_name | author_url
+                            post: title | created_at | excerpt | url | link | thumb | updated_at | author_name | author_url | content
                             posttype: title | created_at | excerpt | url | link | thumb | updated_at
                             category: title | created_at | excerpt | url | link | thumb | updated_at
                             posttag: title | created_at | excerpt | url | link | thumb | updated_at
