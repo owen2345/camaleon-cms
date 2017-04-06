@@ -368,6 +368,11 @@ class PluginRoutes
   rescue
     Gem.available?(name)
   end
+  
+  # return the default url options for Camaleon CMS
+  def self.default_url_options
+    {host: (CamaleonCms::Site.main_site.slug rescue "")}
+  end
 end
 
 #********* fix missing helper method for breadcrumb on rails gem **********#
