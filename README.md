@@ -44,15 +44,9 @@
   ```
 * Only Rails 5 support
   
-  Add in your Gemfile
+  Add in your Gemfile draper for Rails 5
   ```
-  gem 'activemodel-serializers-xml', git: 'https://github.com/rails/activemodel-serializers-xml'
-  gem 'draper', github: 'audionerd/draper', branch: 'rails5'
-  ```
-  Create a file "lib/rails/test_unit/sub_test_task.rb" in your project (draper patch)
-  ```
-  class Rails::SubTestTask < Rake::TestTask
-  end
+  gem 'draper', github: 'drapergem/draper'
   ```
   
 * Install required Gem and dependencies
@@ -80,7 +74,7 @@
 
 # Camaleon CMS (It adapts to your needs)
 
-Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 and Ruby 1.9.3+. This CMS is an alternative to wordpress for Ruby on Rails developers to manage advanced contents easily.
+Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4+ and Ruby 1.9.3+. This CMS is an alternative to wordpress for Ruby on Rails developers to manage advanced contents easily.
 Camaleon CMS is a flexible manager where you can build your custom content structure without coding anything by custom fields and custom contents type.
 
 To download or publish themes go to themes store:
@@ -101,7 +95,7 @@ It was released on July, 2015 and tested previously with more than 20 projects b
 * Extend or customize the functionalities by plugins
 * Manage your content visualization by themes
 * Advanced User roles
-* Integrate into existent rails 4 projects
+* Integrate into existent rails 4+ projects
 * Other features:
   - Shortcodes
   - Widgets

@@ -1,4 +1,4 @@
-class InstallMigratedSeoPlugin < ActiveRecord::Migration
+class InstallMigratedSeoPlugin < CamaManager.migration_class
   # install seo plugin without calling hooks (seo logic moved to separated plugin)
   def change
     CamaleonCms::Site.all.each do |s|

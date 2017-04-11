@@ -1,4 +1,4 @@
-class ImproveMenusStructure < ActiveRecord::Migration
+class ImproveMenusStructure < CamaManager.migration_class
   def change
     CamaleonCms::NavMenuItem.all.each do |menu|
       menu.update_columns({description: menu.get_option('object_id'), slug: menu.get_option('type')})

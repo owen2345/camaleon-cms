@@ -373,7 +373,12 @@ class PluginRoutes
   def self.default_url_options
     {host: (CamaleonCms::Site.main_site.slug rescue "")}
   end
+  
+  def self.migration_class
+    isRails4? ? ActiveRecord::Migration : ActiveRecord::Migration[4.2]
+  end
 end
+CamaManager = PluginRoutes
 
 #********* fix missing helper method for breadcrumb on rails gem **********#
 if PluginRoutes.isRails5?

@@ -1,4 +1,4 @@
-class MoveFirstNameOfUsers < ActiveRecord::Migration
+class MoveFirstNameOfUsers < CamaManager.migration_class
   def change
     add_column CamaleonCms::User.table_name, :first_name, :string unless column_exists?(CamaleonCms::User.table_name, :first_name)
     add_column CamaleonCms::User.table_name, :last_name, :string unless column_exists?(CamaleonCms::User.table_name, :last_name)

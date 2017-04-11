@@ -1,4 +1,4 @@
-class PostTableIntoUtf8 < ActiveRecord::Migration
+class PostTableIntoUtf8 < CamaManager.migration_class
   def change
     if table_exists? CamaleonCms::User.table_name
       add_column(CamaleonCms::User.table_name, :email, :string) unless column_exists?(CamaleonCms::User.table_name, :email)

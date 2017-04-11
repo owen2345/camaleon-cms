@@ -1,5 +1,5 @@
 # change post structure to optimize query speed
-class RenameColumnPosts < ActiveRecord::Migration
+class RenameColumnPosts < CamaManager.migration_class
   def change
     remove_column "#{PluginRoutes.static_system_info["db_prefix"]}posts", :comment_count
     add_column "#{PluginRoutes.static_system_info["db_prefix"]}posts", :post_order, :integer, default: 0
