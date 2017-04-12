@@ -23,7 +23,7 @@ class CamaleonCms::TermTaxonomy < ActiveRecord::Base
 
   # relations
   has_many :term_relationships, :class_name => "CamaleonCms::TermRelationship", :foreign_key => :term_taxonomy_id, dependent: :destroy
-  has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
+  # has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
   belongs_to :parent, class_name: "CamaleonCms::TermTaxonomy", foreign_key: :parent_id
   belongs_to :owner, class_name: PluginRoutes.static_system_info['user_model'].presence || 'CamaleonCms::User', foreign_key: :user_id
 
