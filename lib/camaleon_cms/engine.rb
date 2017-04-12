@@ -12,7 +12,7 @@ require 'font-awesome-rails'
 require 'tinymce-rails'
 require 'jquery-rails'
 require 'coffee-rails'
-# require 'sass-rails'
+require 'sass-rails'
 require 'cama_contact_form'
 require 'cama_meta_tag'
 

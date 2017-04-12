@@ -13,6 +13,7 @@ Rails.application.routes.draw do
       root 'camaleon_cms/frontend#index', as: 'root'
 
       controller "camaleon_cms/frontend" do
+        get :index
         get ":label/:post_type_id-:title" => :post_type, as: "post_type", constraints: {post_type_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.group', default: 'group').join('|')})/}
         get ":label/:post_type_id-:title/:slug" => :post, as: "post_of_post_type", constraints: {post_type_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.group', default: 'group').join('|')})/}
         get ":label/:category_id-:title" => :category, as: "category", constraints: {category_id: /[0-9]+/, label: /(#{PluginRoutes.all_translations('routes.category', default: 'category').join('|')})/}

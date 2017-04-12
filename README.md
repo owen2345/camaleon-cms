@@ -39,7 +39,7 @@
 * Add the gem in your Gemfile
 
   ```
-  gem "camaleon_cms",  '>= 2.4.3.3' # Stable versions 2.3.6, 2.2.1, 2.1.1, 2.1.0
+  gem "camaleon_cms",  '>= 2.4.3.4' # Stable versions 2.3.6, 2.2.1, 2.1.1, 2.1.0
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # current development version
   ```
 * Only Rails 5 support
@@ -51,6 +51,10 @@
   In your Gemfile, change sass-rails into (Camaleon doesn't support for sprockets >= 4 which is included in sass-rails >= 6)
   ```
   gem 'sass-rails', '~> 5.0'
+  ```
+  Add this configuration to your config/application.rb
+  ```
+  config.active_record.belongs_to_required_by_default = false
   ```
   
 * Install required Gem and dependencies
