@@ -32,15 +32,15 @@
                 <th><%= t('camaleon_cms.admin.table.status') %></th>
                 <th><%= t('camaleon_cms.admin.table.author') %></th>
                 <% if @post_type.manage_categories? %>
-                    <th><%= t('camaleon_cms.admin.table.categories') %></th>
+                    <th><%= t('camaleon_cms.admin.table.categories', default: 'Categories') %></th>
                 <% end %>
                 <% if @post_type.manage_tags? %>
-                    <th><%= t('camaleon_cms.admin.table.tags') %></th>
+                    <th><%= t('camaleon_cms.admin.table.tags', default: 'Tags') %></th>
                 <% end %>
                 <% extra_column = {post_type: @post_type, content: "", from_body: false};  hooks_run("list_post_extra_columns", extra_column) %>
                 <%= raw extra_column[:content] %>
-                <th><%= t("updated_at") %></th>
-                <th style="width: 98px; text-align: right"><%= t('camaleon_cms.admin.table.actions') %></th>
+                <th><%= t("camaleon_cms.admin.table.updated_at", default: 'Updated at') %></th>
+                <th style="width: 98px; text-align: right"><%= t('camaleon_cms.admin.table.actions', default: 'Actions') %></th>
             </tr>
             </thead>
             <tbody>
