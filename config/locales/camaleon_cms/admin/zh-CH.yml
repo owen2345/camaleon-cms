@@ -113,6 +113,7 @@ zh-CN:
           image_versions_descr: "创建上传图片的附加多个版本，示例：300x300,505x350 ==>将创建两个具有这些尺寸的额外图片"
           image_thumb: '缩略图'
           image_thumb_descr: "定义缩略图的尺寸，示例：100x100。 默认值：％{d}"
+          required_image_thumb: '必须有缩略图？'
           numeric: '数字'
           phone: '号码'
           users: '用户'
@@ -247,6 +248,7 @@ zh-CN:
         clone_content: '复制内容'
         label_required: '必填标签'
         placeholder_required: '必填占位符'
+        is_featured: '推荐文章'
         message:
           created: '%{post_type} 已经被创建.'
           updated: '%{post_type} 已经被更新.'
@@ -281,6 +283,7 @@ zh-CN:
         default_layout: '默认布局'
         default_template: '默认模板'
         icon: '图标'
+        icons_url_desc: '请输入这个网址里面的任意图标名称: '
         message:
           error: '错误类'
           error_term: '错误项'
@@ -303,6 +306,7 @@ zh-CN:
         layout: '布局'
         trash: '回收站'
         tooltip:
+          permission_to_support_parent_structure: '允许文章显示父页面'
           permission_asing_categories: '选择种类权限'
           permission_add_tags: '添加标签权限'
           permission_add_content: '允许添加内容'
@@ -448,6 +452,8 @@ zh-CN:
         basic: '基础'
         categories: '分类'
         updated_at: "更新于"
+        permit_is_featured: '允许推荐文章'
+        manage_parent_structure: '管理页面层级'
         comments: '评论'
         count: '统计'
         date_published: '发布日期'
