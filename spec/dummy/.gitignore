@@ -1,3 +1,4 @@
 /log/*.log
 /db/*.sqlite3
 /tmp/cache
+/tmp/capybara
