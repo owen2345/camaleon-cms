@@ -35,7 +35,7 @@ def admin_sign_in(close = false, user = "admin", pass = "admin123")
   end
   click_button 'Log In'
   expect(page).to have_content 'Welcome'
-  wait(1)
+  wait(2)
   page.execute_script("$('#introjs_skipbutton').click()")
 end
 

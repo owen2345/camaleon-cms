@@ -24,6 +24,7 @@ describe "the signin process", js: true do
   it "create edit page" do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/post_type/7/posts/#{get_content_attr("page", "id", "last")}/edit"
+    wait(2)
     within("#form-post") do
       fill_in 'post_title', :with => 'Test Title changed'
       page.execute_script('$("#form-post .tinymce_textarea").tinymce().setContent("Pants are pretty sweet. chaged")')
