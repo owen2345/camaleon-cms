@@ -36,8 +36,15 @@
                   <td><%= l(f.last_login_at, format: :long) if f.last_login_at.present? %></td>
                   <td>
                     <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
-                    <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
+                    <% if current_user.id == f.id %>
+                        <%= link_to 'javascript:;', class: 'btn btn-danger btn-xs cama_ajax_request', disabled: true,
+                                title: t('camaleon_cms.admin.users.message.user_can_not_delete_own_account', default: 'User can not delete own account') do %>
+                            <i class="fa fa-times"></i>
+                        <% end %>
+                    <% else %>
+                        <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
                                 method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" %>
+                    <% end %>
                     <%= link_to raw('<i class="fa fa-retweet"></i>'), {action: :impersonate, id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{cama_t('camaleon_cms.admin.users.impersonate')}" if can? :impersonate, f %>
                   </td>
                 </tr>

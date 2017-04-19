@@ -27,7 +27,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
 
   def update
     r={user: @user}; hooks_run('user_update', r)
-    if @user.update(params.require(:user).permit!)
+    if @user.update(user_params)
       @user.set_metas(params[:meta]) if params[:meta].present?
       @user.set_field_values(params[:field_options])
       r = {user: @user, message: t('camaleon_cms.admin.users.message.updated'), params: params}; hooks_run('user_after_edited', r)
@@ -80,7 +80,9 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   end
 
   def destroy
-    if @user.destroy
+    if current_user.id == @user.id
+      flash[:error] = t('camaleon_cms.admin.users.message.user_can_not_delete_own_account', default: 'User can not delete own account')
+    elsif @user.destroy
       flash[:notice] = t('camaleon_cms.admin.users.message.deleted')
       r={user: @user}; hooks_run('user_destroyed', r)
     end
@@ -99,7 +101,16 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   end
 
   def user_id_param
-    user_params = params[:id] || params[:user_id]
+    params[:id] || params[:user_id]
+  end
+
+  def user_params
+    parameters = params.require(:user)
+    if current_user.role_grantor?(@user)
+      parameters.permit(:username, :email, :role, :first_name, :last_name)
+    else
+      parameters.permit(:username, :email, :first_name, :last_name)
+    end
   end
 
   def set_user

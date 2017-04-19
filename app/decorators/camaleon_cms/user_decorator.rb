@@ -51,6 +51,10 @@ class CamaleonCms::UserDecorator < CamaleonCms::ApplicationDecorator
     h.current_site.posts.where(user_id: object.id)
   end
 
+  def role_grantor?(other_user)
+    h.can?(:manage, :users) && id != other_user.id
+  end
+
   def self.object_class_name
     'CamaleonCms::User'
   end
