@@ -238,7 +238,7 @@ zh-CN:
         edit: '编辑'
         add: '添加'
         list: '列表'
-        list_of: '的列表'
+        list_of: '%{post_type}的列表'
         new_site: '新建站点'
         edit_site: '编辑站点'
         update: '更新'

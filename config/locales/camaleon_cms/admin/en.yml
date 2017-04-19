@@ -240,7 +240,7 @@ en:
         edit: 'Edit'
         add: 'Add'
         list: 'List'
-        list_of: 'List of'
+        list_of: 'List of %{post_type}'
         new_site: 'New Site'
         edit_site: 'Edit Site'
         update: 'Update'
