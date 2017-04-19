@@ -221,7 +221,7 @@ nl:
         edit: 'Bewerk'
         add: 'Toevoegen'
         list: 'Lijst'
-        list_of: 'Lijst van'
+        list_of: 'Lijst van %{post_type}'
         new_site: 'Nieuwe site'
         edit_site: 'Site sewerken'
         update: 'Bijwerken'

@@ -30,7 +30,7 @@ module CamaleonCms::Admin::ApplicationHelper
           #{will_paginate(items, will_paginate_options) rescue '' }
         </div>
         <div class='col-md-6 text-right total-items'>
-          <strong>Total: #{items.total_entries rescue items.count} </strong>
+          <strong>#{I18n.t('camaleon_cms.admin.table.total', default: 'Total')}: #{items.total_entries rescue items.count} </strong>
         </div>
     </div>"
   end
