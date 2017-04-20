@@ -172,7 +172,7 @@ http://camaleon.tuzitio.com/license.html
 RAILS_ENV=test bundle exec rake app:db:migrate
 RAILS_ENV=test bundle exec rake app:db:test:prepare
 ```
-* Configure/Install Poltergaist and change your phanthomjs path in spec/spec_helper.rb
+* Configure/Install Poltergeist and change your phanthomjs path in spec/spec_helper.rb
 
 * Run testing
 ```

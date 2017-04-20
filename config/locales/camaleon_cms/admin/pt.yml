@@ -216,7 +216,7 @@ pt:
         edit: 'Editar'
         add: 'Adicionar'
         list: 'Listar'
-        list_of: 'Lista de'
+        list_of: 'Lista de %{post_type}'
         new_site: 'Novo Site'
         edit_site: 'Editar Site'
         update: 'Atualizar'

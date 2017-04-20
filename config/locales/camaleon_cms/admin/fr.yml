@@ -224,7 +224,7 @@ fr:
         edit: 'Editer'
         add: 'Ajouter'
         list: 'Liste'
-        list_of: 'Liste de'
+        list_of: 'Liste de %{post_type}'
         new_site: 'Nouveau site'
         edit_site: 'Editer site'
         update: 'Mettre à jour'

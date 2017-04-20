@@ -221,7 +221,7 @@ ru:
         edit: 'Редактировать'
         add: 'Добавить'
         list: 'Список'
-        list_of: 'Список '
+        list_of: 'Список %{post_type}'
         new_site: 'Новый сайт'
         edit_site: 'Редактировать сайт'
         update: 'Обновить'

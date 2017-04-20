@@ -35,9 +35,10 @@ module CamaleonCms
 
     initializer :append_migrations do |app|
       engine_dir = File.expand_path("../../../", __FILE__)
-      app.config.i18n.load_path += Dir[File.join($camaleon_engine_dir, 'config', 'locales', '**', '*.{rb,yml}')]
+      translation_files = Dir[File.join($camaleon_engine_dir, 'config', 'locales', '**', '*.{rb,yml}')]
+      PluginRoutes.all_apps.each { |info| translation_files += Dir[File.join(info['path'], 'config', 'locales', '*.{rb,yml}')] }
       app.config.i18n.enforce_available_locales = false
-      PluginRoutes.all_apps.each{ |info| app.config.i18n.load_path += Dir[File.join(info["path"], "config", "locales", '*.{rb,yml}')] }
+      app.config.i18n.load_path.unshift(*translation_files)
 
       # assets
       app.config.assets.paths << Rails.root.join("app", "apps")

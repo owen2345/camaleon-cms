@@ -1,4 +1,6 @@
 class CamaleonCms::UserRole < CamaleonCms::TermTaxonomy
+  after_destroy :set_users_as_cilent
+
   default_scope { where(taxonomy: :user_roles) }
   has_many :metas, ->{ where(object_class: 'UserRole')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
   belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
@@ -127,4 +129,10 @@ class CamaleonCms::UserRole < CamaleonCms::TermTaxonomy
           }
       ]
   }
+
+  private
+
+  def set_users_as_cilent
+    site.users.where(role: slug).update_all(role: 'client')
+  end
 end

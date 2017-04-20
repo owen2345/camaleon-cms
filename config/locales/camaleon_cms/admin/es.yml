@@ -219,7 +219,7 @@ es:
         edit: 'Editar'
         add: 'Añadir'
         list: 'Lista'
-        list_of: 'Lista de'
+        list_of: 'Lista de %{post_type}'
         new_site: 'Nuevo sitio'
         edit_site: 'Editar Sitio'
         update: 'Actualizar'

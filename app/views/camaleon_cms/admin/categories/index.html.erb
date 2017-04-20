@@ -12,7 +12,7 @@
       <div class="panel panel-default">
         <div class="panel-heading ui-draggable-handle">
             <h4>
-                <span class="fa fa-folder"></span> <%= "#{@post_type.decorate.the_title.pluralize} / " if @post_type.present? %> <%= t('camaleon_cms.admin.post_type.category').to_s.titleize.pluralize %>
+                <span class="fa fa-folder"></span> <%= "#{@post_type.decorate.the_title} / " if @post_type.present? %> <%= t('camaleon_cms.admin.post_type.categories', default: 'Categories') %>
             </h4>
         </div>
         <div class="panel-body">
