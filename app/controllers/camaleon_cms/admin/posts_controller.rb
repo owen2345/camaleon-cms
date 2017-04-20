@@ -116,6 +116,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     # @post.children.destroy_all unless @post.draft? TODO: why delete children?
     @post.update_column('status', 'trash')
     @post.update_extra_data
+    hooks_run("trashed_post", {post: @post, post_type: @post_type})
     flash[:notice] = t('camaleon_cms.admin.post.message.trash', post_type: @post_type.decorate.the_title)
     redirect_to action: :index, s: params[:s]
   end
@@ -125,6 +126,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     authorize! :update, @post
     @post.update_column('status', @post.options[:status_default] || 'pending')
     @post.update_extra_data
+    hooks_run("restored_post", {post: @post, post_type: @post_type})
     flash[:notice] = t('camaleon_cms.admin.post.message.restore', post_type: @post_type.decorate.the_title)
     redirect_to action: :index, s: params[:s]
   end
