@@ -30,8 +30,14 @@
                   <td><%= f.the_content %></td>
                   <td>
                     <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
-                    <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
-                                method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" %>
+                    <% if f.editable? %>
+                        <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
+                                method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs cama_ajax_request", title: t('camaleon_cms.admin.button.delete') %>
+                    <% else %>
+                        <%= link_to 'javascript:;', disabled: true, class: 'btn btn-danger btn-xs cama_ajax_request', title: t('camaleon_cms.admin.users.message.role_can_not_be_deleted', default: 'This role can not be deleted') do %>
+                            <i class="fa fa-times"></i>
+                        <% end %>
+                    <% end %>
                   </td>
                 </tr>
             <% end %>
