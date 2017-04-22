@@ -367,12 +367,18 @@ zh-CN:
         seo_setting: "SEO 设置"
         email_settings: "邮件设置 (SMTP)"
         filesystem_type: "文件系统"
+        media_settings: "媒体设置"
+        filesystem_settings: "文件系统设置"
         filesystem_s3_access_key: "AWS S3 Access Key"
         filesystem_s3_secret_key: "AWS S3 Secret Key"
         filesystem_s3_bucket_name: "AWS S3 Bucket name"
         filesystem_s3_endpoint: "AWS S3 Bucket endpoint"
+        filesystem_max_file_size: "最大接受文件[MB]"
+        filesystem_thumb_size: "缩略图尺寸[100x100]"
+        file_actions_in_modals: "在 modal 里显示所有文件"
+        aws: '将文件保存到 AWS S3'
         send_test_email: '发送测试邮件'
-        filesystem_region: "AWS S3 Region"
+        filesystem_region: "AWS S3 区域"
         filesystem_cdn: "CDN url"
         security:
           captcha_user_register: "支持用户注册验证码?"
