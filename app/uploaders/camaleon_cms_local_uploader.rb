@@ -82,12 +82,14 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
   end
 
   def delete_folder(key)
-    FileUtils.rm_rf(File.join(@root_folder, key))
+    file = File.join(@root_folder, key)
+    FileUtils.rm(file) if File.exist? file
     reload
   end
 
   def delete_file(key)
-    FileUtils.rm(File.join(@root_folder, key))
+    file = File.join(@root_folder, key)
+    FileUtils.rm(file) if File.exist? file
     reload
   end
 
