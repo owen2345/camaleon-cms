@@ -80,4 +80,9 @@ module CamaleonCms::CamaleonHelper
     args[:default] = I18n.t(key, args.dup.merge(locale: :en)) unless args[:default].present?
     I18n.t(key, args)
   end
+  
+  # function that converts string into plural format
+  def cama_pluralize_text(text)
+    text.try(:pluralize)
+  end
 end
