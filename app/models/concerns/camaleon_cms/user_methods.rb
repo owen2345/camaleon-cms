@@ -9,11 +9,13 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     # callbacks
     before_validation :cama_before_validation
     before_destroy :reassign_posts
+    after_destroy :reassign_comments
     before_create { generate_token(:auth_token) }
 
     # relations
     has_many :metas, ->{ where(object_class: 'User')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
     has_many :all_posts, class_name: "CamaleonCms::Post"
+    has_many :all_comments, class_name: "CamaleonCms::PostComment"
 
     #scopes
     scope :admin_scope, -> { where(:role => 'admin') }
@@ -117,6 +119,14 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
           c.update_column(:user_id, u.id)
         end
       end
+    end
+  end
+
+  def reassign_comments
+    all_comments.includes(post: {post_type: :site}).each do |comment|
+      site = comment.post.post_type.site
+      user = site.get_anonymous_user
+      comment.update_column(:user_id, user.id)
     end
   end
 end
