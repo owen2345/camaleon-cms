@@ -31,14 +31,14 @@ module CamaleonCms::FrontendConcern extend ActiveSupport::Concern
     @post = current_site.posts.find_by_id(params[:post_id]).decorate
     user = cama_current_user
     comment_data = {}
-    if !user.present? && current_site.get_option('permit_anonimos_comment', false)
+    if user.present?
+      comment_data[:author] = user.fullname
+      comment_data[:author_email] = user.email
+    elsif current_site.get_option('permit_anonimos_comment', false)
       user = current_site.get_anonymous_user
       comment_data[:is_anonymous] = true
       comment_data[:author] = params[:post_comment][:name]
       comment_data[:author_email] = params[:post_comment][:email]
-    else
-      comment_data[:author] = user.fullname
-      comment_data[:author_email] = user.email
     end
 
     if @post.can_commented? && user.present?
