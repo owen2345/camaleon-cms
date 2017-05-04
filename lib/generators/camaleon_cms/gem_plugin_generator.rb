@@ -9,10 +9,11 @@ module CamaleonCms
 
       def create_initializer_file
         plugin_dir = Rails.root.join("apps", "plugins", get_plugin_name).to_s
+        plugin_dir_path = "apps/plugins/#{get_plugin_name}"
         if behavior == :revoke
           FileUtils.rm_r(plugin_dir)
           append_to_file Rails.root.join("Gemfile") do
-            "\n\ngem '#{get_plugin_name}', path:  '#{plugin_dir}/'"
+            "\n\ngem '#{get_plugin_name}', path:  '#{plugin_dir_path}'"
           end
         else
           plugin_app = File.join($camaleon_engine_dir, "lib", "generators", "camaleon_cms", "gem_plugin_#{get_plugin_name}")
@@ -92,7 +93,7 @@ module CamaleonCms
           end
 
           append_to_file Rails.root.join("Gemfile") do
-            "\n\ngem '#{get_plugin_name}', path:  '#{plugin_dir}/'"
+            "\n\ngem '#{get_plugin_name}', path:  '#{plugin_dir_path}'"
           end
 
           # destroy non used files
