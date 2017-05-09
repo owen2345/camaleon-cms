@@ -10,6 +10,11 @@
   padding: 5px 5px 5px 15px
 }
 
+.ajax-file-upload-filename {
+  overflow: auto;
+  max-width: 100%;
+}
+
 .ajax-file-upload-filesize {
 width: 50px;
 height: auto;
@@ -20,7 +25,7 @@ vertical-align:middle;
 .ajax-file-upload-progress {
 margin: 5px 10px 5px 0px;
 position: relative;
-width: 250px;
+width: 98%;
 border: 1px solid #ddd;
 padding: 1px;
 border-radius: 3px;
@@ -219,6 +224,13 @@ margin: 5px 10px 5px 0px;
         }
         i{
           font-size: 120px;
+        }
+      }
+      .p_label {
+        span {
+          overflow: auto;
+          max-width: 100%;
+          display: inline-block;
         }
       }
       .p_footer{
