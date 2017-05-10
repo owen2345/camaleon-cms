@@ -2,3 +2,5 @@
 /db/*.sqlite3
 /tmp/cache
 /tmp/capybara
+/public/media
+/public/tmp
