@@ -94,7 +94,15 @@ class String
   end
 
   def cama_fix_filename
-    "#{File.basename(self, File.extname(self)).downcase.gsub(" ", "-").parameterize}#{File.extname(self)}"
+    # Sanitize the filename, to prevent hacking
+    # https://github.com/carrierwaveuploader/carrierwave/blob/6a1445e0daef29a5d4f799a016359b62d82dbc24/lib/carrierwave/sanitized_file.rb#L322
+    sanitize_regexp = /[^[:word:]\.\-\+]/
+    name = self.tr("\\", "/") # work-around for IE
+    name = File.basename(name)
+    name = name.gsub(sanitize_regexp, "_")
+    name = "_#{name}" if name =~ /\A\.+\z/
+    name = "unnamed" if name.size == 0
+    name.mb_chars.to_s
   end
 
   # return cleaned model class name
