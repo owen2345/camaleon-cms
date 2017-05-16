@@ -42,7 +42,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:radio] = {
         key: 'radio',
-        label: 'Radio',
+        label: t('camaleon_cms.admin.custom_field.fields.radio', default: 'Radio'),
         options: {
             required: true,
             multiple: false,
@@ -57,7 +57,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
 
     items[:checkbox] = {
         key: 'checkbox',
-        label: 'Checkbox',
+        label: t('camaleon_cms.admin.custom_field.fields.checkbox', default: 'Checkbox'),
         options: {
             required: true,
             multiple: false,
@@ -67,7 +67,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:checkboxes] = {
         key: 'checkboxes',
-        label: 'Checkboxes',
+        label: t('camaleon_cms.admin.custom_field.fields.checkboxes', default: 'Checkboxes'),
         options: {
             required: false,
             multiple: false,
@@ -80,7 +80,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:audio] = {
         key: 'audio',
-        label: 'Audio',
+        label: t('camaleon_cms.admin.custom_field.fields.audio', default: 'Audio'),
         options: {
             required: true,
             multiple: true,
@@ -147,7 +147,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:editor] = {
         key: 'editor',
-        label: 'Editor',
+        label: t('camaleon_cms.admin.custom_field.fields.editor', default: 'Editor'),
         options: {
             required: false,
             multiple: true,
@@ -229,7 +229,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:url] = {
         key: 'url',
-        label: 'URL',
+        label: t('camaleon_cms.admin.custom_field.fields.url', default: 'URL'),
         options: {
             required: true,
             multiple: true,
@@ -240,7 +240,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:video] = {
         key: 'video',
-        label: 'Video',
+        label: t('camaleon_cms.admin.custom_field.fields.video', default: 'Video'),
         options: {
             required: true,
             multiple: true,
@@ -292,7 +292,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
             multiple: true
         }
     }
-    
+
     # evaluate the content of command value on listing
     # sample command: options_from_collection_for_select(current_site.the_posts("commerce").decorate, :id, :the_title)
     items[:select_eval] = {
