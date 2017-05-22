@@ -9,7 +9,7 @@ module CamaleonCms::Admin::MenusHelper
       pt = pt.decorate
       items_i = []
       items_i << {icon: "list", title: "#{t('camaleon_cms.admin.post_type.all')}", url: cama_admin_post_type_posts_path(pt.id)} if can? :posts, pt
-      items_i << {icon: "plus", title: "#{t('camaleon_cms.admin.post_type.add_new')}  ", url: new_cama_admin_post_type_post_path(pt.id)} if can? :create_post, pt
+      items_i << {icon: "plus", title: "#{t('camaleon_cms.admin.post_type.add_new', type_title: pt.the_title)}", url: new_cama_admin_post_type_post_path(pt.id)} if can? :create_post, pt
       if pt.manage_categories?
         items_i << {icon: "folder-open", title: t('camaleon_cms.admin.post_type.categories'), url: cama_admin_post_type_categories_path(pt.id)} if can? :categories, pt
       end

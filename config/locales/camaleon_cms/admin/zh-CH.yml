@@ -276,7 +276,7 @@ zh-CN:
         add: '添加'
         add_category: '添加类别'
         add_post_type: '添加文章类型'
-        add_new: '添加新闻'
+        add_new: '添加%{type_title}'
         add_post_tag: '添加文章标签'
         categories: '种类'
         category: '种类'
