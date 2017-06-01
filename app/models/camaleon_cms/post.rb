@@ -4,7 +4,10 @@ class CamaleonCms::PostUniqValidator < ActiveModel::Validator
       slug_array = record.slug.to_s.translations_array
       ptype = record.post_type
       if ptype.present? # only for posts that belongs to a post type model
-        posts = ptype.site.posts.where("(#{slug_array.map {|s| "#{CamaleonCms::Post.table_name}.slug LIKE '%-->#{s}<!--%'"}.join(" OR ")} ) OR #{CamaleonCms::Post.table_name}.slug = ?",  record.slug).where("#{CamaleonCms::Post.table_name}.status != 'draft'").where.not(id: record.id)
+        posts = ptype.site.posts
+                    .where("(#{slug_array.map {|s| "#{CamaleonCms::Post.table_name}.slug LIKE '%-->#{s}<!--%'"}.join(" OR ")} ) OR #{CamaleonCms::Post.table_name}.slug = ?",  record.slug)
+                    .where("#{CamaleonCms::Post.table_name}.status != 'draft' AND #{CamaleonCms::Post.table_name}.status != 'draft_child'")
+                    .where.not(id: record.id)
         if posts.size > 0
           if slug_array.size > 1
             record.errors[:base] << "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}: #{posts.pluck(:slug).map{|slug| record.slug.to_s.translations.map{|lng, r_slug| "#{r_slug} (#{lng})" if slug.translations_array.include?(r_slug) }.join(",") }.join(",").split(",").uniq.clean_empty.join(", ")} "
