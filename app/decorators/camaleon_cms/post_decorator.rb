@@ -227,7 +227,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   # return all related posts of current post
   def the_related_posts
     ptype = self.the_post_type
-    ptype.the_posts.joins(:categories).where("#{CamaleonCms::TermRelationship.table_name}" => {term_taxonomy_id: the_categories.pluck(:id)})
+    ptype.the_posts.joins(:categories).where("#{CamaleonCms::TermRelationship.table_name}" => {term_taxonomy_id: the_categories.pluck(:id)}).distinct
   end
 
   # fix for "Using Draper::Decorator without inferred source class"
