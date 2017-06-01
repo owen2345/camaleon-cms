@@ -35,14 +35,15 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     @lists_tab = params[:s]
     add_breadcrumb I18n.t("camaleon_cms.admin.post_type.#{params[:s]}") if params[:s].present?
     case params[:s]
-      when "published", "pending", "draft", "trash"
-        @posts = @posts.where(status:  params[:s])
-
+      when "published", "pending", "trash"
+        @posts = @posts.send(params[:s])
+      when "draft"
+        @posts = @posts.drafts
       when "all"
         @posts = @posts.no_trash
     end
 
-    @btns = {published: "#{t('camaleon_cms.admin.post_type.published')} (#{posts_all.where(status: "published").size})", all: "#{t('camaleon_cms.admin.post_type.all')} (#{posts_all.no_trash.size})", pending: "#{t('camaleon_cms.admin.post_type.pending')} (#{posts_all.where(status: "pending").size})", draft: "#{t('camaleon_cms.admin.post_type.draft')} (#{posts_all.where(status: "draft").size})", trash: "#{t('camaleon_cms.admin.post_type.trash')} (#{posts_all.where(status: "trash").size})"}
+    @btns = {published: "#{t('camaleon_cms.admin.post_type.published')} (#{posts_all.published.size})", all: "#{t('camaleon_cms.admin.post_type.all')} (#{posts_all.no_trash.size})", pending: "#{t('camaleon_cms.admin.post_type.pending')} (#{posts_all.pending.size})", draft: "#{t('camaleon_cms.admin.post_type.draft')} (#{posts_all.drafts.size})", trash: "#{t('camaleon_cms.admin.post_type.trash')} (#{posts_all.trash.size})"}
     r = {posts: @posts, post_type: @post_type, btns: @btns, all_posts: posts_all, render: 'index', per_page: per_page }
     hooks_run("list_post", r)
     per_page = 9999999 if @post_type.manage_hierarchy?
@@ -91,13 +92,24 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   end
 
   def update
-    @post = @post.parent if @post.draft? && @post.parent.present?
-    authorize! :update, @post
-    @post.drafts.destroy_all
     post_data = get_post_data
+    delete_drafts = false
+    if @post.draft_child? && @post.parent.present?
+      # This is a draft (as a child of the original post)
+      original_parent = @post.parent.parent
+      post_data[:post_parent] = original_parent.present? ? original_parent.id : nil
+      @post = @post.parent
+      delete_drafts = true
+    elsif @post.draft?
+      # This is a normal draft (post whose status was set to 'draft')
+      @post.status = 'published' if post_data[:status].blank?
+    end
+    authorize! :update, @post
     r = {post: @post, post_type: @post_type}; hooks_run("update_post", r)
     @post = r[:post]
     if @post.update(post_data)
+      # delete drafts only on successful update operation
+      @post.drafts.destroy_all if delete_drafts
       @post.set_metas(params[:meta])
       @post.set_field_values(params[:field_options])
       @post.set_options(params[:options])

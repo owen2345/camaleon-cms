@@ -48,7 +48,7 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
     post_data = params.require(:post).permit!
     post_data.delete(:created_at) unless params[:post][:created_at].present?
     post_data.delete(:updated_at) unless params[:post][:updated_at].present?
-    post_data[:status] = 'draft'
+    post_data[:status] = 'draft_child'
     post_data[:post_parent] = params[:post_id]
     post_data[:user_id] = cama_current_user.id unless post_data[:user_id].present?
     post_data[:data_tags] = params[:tags].to_s
