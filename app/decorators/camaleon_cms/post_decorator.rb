@@ -150,7 +150,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
       when "published"
         color = "info"
         status = I18n.t('camaleon_cms.admin.post_type.published', default: 'Published')
-      when "draft"
+      when "draft", "draft_child"
         color = "warning"
         status = I18n.t('camaleon_cms.admin.table.draft', default: 'Draft')
       when "trash"

@@ -1,6 +1,6 @@
 class CamaleonCms::PostUniqValidator < ActiveModel::Validator
   def validate(record)
-    if record.status != 'draft'
+    unless record.draft?
       slug_array = record.slug.to_s.translations_array
       ptype = record.post_type
       if ptype.present? # only for posts that belongs to a post type model
@@ -37,7 +37,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   has_many :categories, class_name: "CamaleonCms::Category", through: :term_relationships, :source => :term_taxonomies
   has_many :post_tags, class_name: "CamaleonCms::PostTag", through: :term_relationships, :source => :term_taxonomies
   has_many :comments, class_name: "CamaleonCms::PostComment", foreign_key: :post_id, dependent: :destroy
-  has_many :drafts, ->{where(status: 'draft')}, class_name: "CamaleonCms::Post", foreign_key: :post_parent, dependent: :destroy
+  has_many :drafts, ->{where(status: 'draft_child')}, class_name: "CamaleonCms::Post", foreign_key: :post_parent, dependent: :destroy
   has_many :children, class_name: "CamaleonCms::Post", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
 
   belongs_to :owner, class_name: PluginRoutes.static_system_info['user_model'].presence || 'CamaleonCms::User', foreign_key: :user_id
@@ -52,8 +52,8 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   scope :no_trash, -> {where.not(status: 'trash')}
   scope :published, -> {where(status: 'published')}
   scope :root_posts, -> {where(post_parent: [nil, ''])}
-  scope :drafts, -> {where(status: 'draft')}
-  scope :pendings, -> {where(status: 'pending')}
+  scope :drafts, -> {where(status: %w(draft draft_child))}
+  scope :pending, -> {where(status: 'pending')}
   scope :latest, -> {reorder(created_at: :desc)}
 
   validates_with CamaleonCms::PostUniqValidator
@@ -99,7 +99,11 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
 
   # check if this is in draft status
   def draft?
-    status == 'draft'
+    status == 'draft' || status == 'draft_child'
+  end
+
+  def draft_child?
+    status == 'draft_child'
   end
 
   # check if this is in trash status
