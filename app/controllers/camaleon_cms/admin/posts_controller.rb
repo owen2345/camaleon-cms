@@ -93,11 +93,13 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
 
   def update
     post_data = get_post_data
+    delete_drafts = false
     if @post.draft_child? && @post.parent.present?
       # This is a draft (as a child of the original post)
       original_parent = @post.parent.parent
       post_data[:post_parent] = original_parent.present? ? original_parent.id : nil
       @post = @post.parent
+      delete_drafts = true
     elsif @post.draft?
       # This is a normal draft (post whose status was set to 'draft')
       @post.status = 'published' if post_data[:status].blank?
@@ -106,7 +108,8 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     r = {post: @post, post_type: @post_type}; hooks_run("update_post", r)
     @post = r[:post]
     if @post.update(post_data)
-      @post.drafts.destroy_all
+      # delete drafts only on successful update operation
+      @post.drafts.destroy_all if delete_drafts
       @post.set_metas(params[:meta])
       @post.set_field_values(params[:field_options])
       @post.set_options(params[:options])
