@@ -46,15 +46,15 @@
   
   Add in your Gemfile draper for Rails 5
   ```
-  gem 'draper', github: 'drapergem/draper'
+  gem 'draper', '~> 3'
   ```
-  In your Gemfile, change sass-rails into (Camaleon doesn't support for sprockets >= 4 which is included in sass-rails >= 6)
+  Be careful with sass-rails, recommended v5 (Camaleon doesn't support for sprockets >= 4 which is included in sass-rails 6)
   ```
   gem 'sass-rails', '~> 5.0'
   ```
-  Add this configuration to your config/application.rb
+  Update bundle
   ```
-  config.active_record.belongs_to_required_by_default = false
+  bundle update
   ```
   
 * Install required Gem and dependencies

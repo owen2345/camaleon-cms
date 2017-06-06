@@ -1,17 +1,15 @@
-<script>var kk = "<%= cama_get_session_id %>";</script>
-<%= javascript_include_tag "camaleon_cms/admin/login_manifest" %>
 <div class="login-body">
     <h3 class="login-box-msg"><%= raw t('camaleon_cms.admin.login.welcome_login_html', default: 'Please Login') %>  </h3>
     <%= render "camaleon_cms/flash_messages" %>
-    <%= form_for(@user, as: "user", :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  }, :url => cama_admin_login_path ) do |f| %>
+    <%= form_for(@user, as: "user", :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal cama_form_validate"  }, :url => cama_admin_login_path ) do |f| %>
         <div class="form-group">
             <div class="col-md-12">
-                <%= f.text_field :username, :class => "form-control", :placeholder => t("camaleon_cms.admin.login.username", default: 'Username') %>
+                <%= f.text_field :username, :class => "form-control required", autofocus: true, :placeholder => t("camaleon_cms.admin.login.username", default: 'Username') %>
             </div>
         </div>
         <div class="form-group">
             <div class="col-md-12">
-                <%= f.password_field :password, :class => "form-control", :placeholder => t("camaleon_cms.admin.login.password", default: 'Password') %>
+                <%= f.password_field :password, :class => "form-control required", :placeholder => t("camaleon_cms.admin.login.password", default: 'Password') %>
             </div>
         </div>
         <div class="form-group">

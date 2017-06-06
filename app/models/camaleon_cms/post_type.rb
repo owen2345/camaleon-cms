@@ -184,6 +184,6 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
 
   # check if slug was changed
   def check_refresh_routes
-    refresh_routes if self.slug_changed?
+    refresh_routes if cama_attr_changed?(:slug)
   end
 end

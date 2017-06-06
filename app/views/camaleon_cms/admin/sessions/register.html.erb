@@ -3,7 +3,7 @@
     <%= render "camaleon_cms/flash_messages" %>
 
     <h3 class="login-title"><%= raw t('camaleon_cms.admin.login.msg_registration_html') %></h3>
-    <%= form_for(@user, as: "user", :url => cama_admin_register_path, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal"  } ) do |f| %>
+    <%= form_for(@user, as: "user", :url => cama_admin_register_path, :html => { method: "post", role: "form", id:"login_user", class: "form-horizontal cama_form_validate"  } ) do |f| %>
         <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @user} %>
         <h4><%= t('camaleon_cms.admin.login.personal_info') %></h4>
         <div class="form-group">
