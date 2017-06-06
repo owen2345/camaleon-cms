@@ -26,7 +26,7 @@ class CamaleonCms::ApplicationDecorator < Draper::Decorator
 
   # return updated at date formatted
   def the_updated_at(format = :long)
-    h.l(object.created_at, format: format.to_sym)
+    h.l(object.updated_at, format: format.to_sym)
   end
 
   # draw breadcrumb for this model

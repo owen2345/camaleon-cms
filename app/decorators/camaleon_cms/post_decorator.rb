@@ -150,7 +150,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
       when "published"
         color = "info"
         status = I18n.t('camaleon_cms.admin.post_type.published', default: 'Published')
-      when "draft"
+      when "draft", "draft_child"
         color = "warning"
         status = I18n.t('camaleon_cms.admin.table.draft', default: 'Draft')
       when "trash"
@@ -227,7 +227,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   # return all related posts of current post
   def the_related_posts
     ptype = self.the_post_type
-    ptype.the_posts.joins(:categories).where("#{CamaleonCms::TermRelationship.table_name}" => {term_taxonomy_id: the_categories.pluck(:id)})
+    ptype.the_posts.joins(:categories).where("#{CamaleonCms::TermRelationship.table_name}" => {term_taxonomy_id: the_categories.pluck(:id)}).distinct
   end
 
   # fix for "Using Draper::Decorator without inferred source class"

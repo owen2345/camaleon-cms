@@ -43,7 +43,7 @@
                         <option class="" value="published" <%= (@post[:status] == "published") ? "selected": "" %> ><%= t('camaleon_cms.admin.post_type.published')%></option>
                     <% end  %>
                     <option value="pending" <%= (@post[:status] == "pending") ? "selected": "" %>><%= t('camaleon_cms.admin.table.pending')%></option>
-                    <option value="draft" <%= (@post[:status] == "draft") ? "selected": "" %>><%= t('camaleon_cms.admin.table.draft')%></option>
+                    <option value="draft" <%= (@post[:status] == "draft" || @post[:status] == "draft_child") ? "selected": "" %>><%= t('camaleon_cms.admin.table.draft')%></option>
                 </select>
             </div>
             <!-- templates -->

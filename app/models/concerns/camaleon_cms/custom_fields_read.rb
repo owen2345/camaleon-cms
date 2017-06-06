@@ -193,13 +193,15 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # }
   def set_field_values(datas = {})
     if datas.present?
-      self.field_values.delete_all
-      datas.each do |index, fields_data|
-        fields_data.each do |field_key, values|
-          if values[:values].present?
-            order_value = -1
-            ((values[:values].is_a?(Hash) || values[:values].is_a?(ActionController::Parameters)) ? values[:values].values : values[:values]).each do |value|
-              item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: field_key, value: fix_meta_value(value), term_order: order_value += 1, group_number: values[:group_number] || 0})
+      ActiveRecord::Base.transaction do 
+        self.field_values.delete_all
+        datas.each do |index, fields_data|
+          fields_data.each do |field_key, values|
+            if values[:values].present?
+              order_value = -1
+              ((values[:values].is_a?(Hash) || values[:values].is_a?(ActionController::Parameters)) ? values[:values].values : values[:values]).each do |value|
+                item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: field_key, value: fix_meta_value(value), term_order: order_value += 1, group_number: values[:group_number] || 0})
+              end
             end
           end
         end
