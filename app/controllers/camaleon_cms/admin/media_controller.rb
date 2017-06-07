@@ -19,7 +19,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     crop_path = cama_crop_image(path_image, params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
     res = upload_file(crop_path, {remove_source: true})
     CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', res["url"]) if params[:saved_avatar].present? # save current crop image as avatar
-    render text: res["url"]
+    render html: res["url"].html_safe
   end
 
   # download private files
