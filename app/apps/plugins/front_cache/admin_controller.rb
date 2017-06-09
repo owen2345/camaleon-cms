@@ -20,7 +20,11 @@ class Plugins::FrontCache::AdminController < CamaleonCms::Apps::PluginsAdminCont
   def clean_cache
     flash[:notice] = "#{t('plugin.front_cache.message.cache_destroyed')}"
     front_cache_clean()
-    redirect_to :back
+    if Rails.version.to_s[0].to_i < 5
+      redirect_to :back
+    else
+      redirect_back(fallback_location: '/admin/plugins')
+    end
   end
 
 end

@@ -14,7 +14,7 @@ module Plugins::FrontCache::FrontCacheHelper
       Rails.logger.info "Camaleon CMS - readed cache: #{front_cache_plugin_get_path(cache_key)}"
       response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE'
       args = {data: front_cache_get(cache_key).gsub("{{form_authenticity_token}}", form_authenticity_token)}; hooks_run('front_cache_reading_cache', args)
-      render text: args[:data]
+      render html: args[:data].html_safe
       return
     end
 
