@@ -61,6 +61,12 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     args, res = {same_name: false, is_thumb: false}.merge(args), nil
     key = "#{@aws_settings["inner_folder"]}/#{key}" if @aws_settings["inner_folder"].present? && !args[:is_thumb]
     key = search_new_key(key) unless args[:same_name]
+    
+    if @instance # private hook to upload files by different way, add file data into result_data
+      _args={result_data: nil, file: uploaded_io_or_file_path, key: key, args: args, klass: self}; @instance.hooks_run('uploader_aws_before_upload', _args)
+      return _args[:result_data] if _args[:result_data].present?
+    end
+    
     s3_file = bucket.object(key.split('/').clean_empty.join('/'))
     s3_file.upload_file(uploaded_io_or_file_path.is_a?(String) ? uploaded_io_or_file_path : uploaded_io_or_file_path.path, @aws_settings[:aws_file_upload_settings].call({acl: 'public-read'}))
     res = cache_item(file_parse(s3_file)) unless args[:is_thumb]

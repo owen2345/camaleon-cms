@@ -264,14 +264,17 @@ module CamaleonCms::UploaderHelper
           cloud_front: current_site.get_option("filesystem_s3_cloudfront"),
           aws_file_upload_settings: lambda{|settings| settings }, # permit to add your custom attributes for file_upload http://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Object.html#upload_file-instance_method
           aws_file_read_settings: lambda{|data, s3_file| data } # permit to read custom attributes from aws file and add to file parsed object
-        }
+        },
+        custom_uploader: nil # posibility to use custom file uploader
       }
       hooks_run("on_uploader", args)
+      return args[:custom_uploader] if args[:custom_uploader].present?
+      
       case args[:server]
         when 's3', 'aws'
-          CamaleonCmsAwsUploader.new({current_site: current_site, thumb: args[:thumb], aws_settings: args[:aws_settings]})
+          CamaleonCmsAwsUploader.new({current_site: current_site, thumb: args[:thumb], aws_settings: args[:aws_settings]}, self)
         else
-          CamaleonCmsLocalUploader.new({current_site: current_site, thumb: args[:thumb]})
+          CamaleonCmsLocalUploader.new({current_site: current_site, thumb: args[:thumb]}, self)
       end
     }.call
   end

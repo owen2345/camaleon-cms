@@ -2,12 +2,13 @@ class CamaleonCmsUploader
   attr_accessor :thumb
   # root_folder= '/var/www/my_public_foler/', current_site= CamaSite.first.decorate, thumb = {w: 100, h: 75},
   # aws_settings: {region, access_key, secret_key, bucket}
-  def initialize(args = {})
+  def initialize(args = {}, instance = nil)
     @current_site = args[:current_site]
     t_w, t_h = @current_site.get_option('filesystem_thumb_size', '100x100').split('x')
     @thumb = args[:thumb] || {w: t_w, h: t_h}
     @aws_settings = args[:aws_settings] || {}
     @args = args
+    @instance = instance
     after_initialize
   end
 
@@ -20,9 +21,18 @@ class CamaleonCmsUploader
   # {files: {'file_name': {'name'=> 'a.jpg', key: '/test/a.jpg', url: '', url: '', size: '', format: '', thumb: 'thumb_url', type: '', created_at: '', dimension: '120x120'}}, folders: {'folder name' => {name: 'folder name', key: '/folder name', ...}}}
   # sort: (String, default 'created_at'), accept for: created_at | name | size | type | format
   def objects(prefix = '/', sort = 'created_at')
+    prefix = prefix.cama_fix_slash
     prefix = "/#{prefix}" unless prefix.starts_with?('/')
     db = @current_site.get_meta(cache_key, nil) || browser_files
-    res = db[prefix.gsub('//', '/')] || {files: {}, folders: {}}
+    res = db[prefix] || {files: {}, folders: {}}
+    
+    # Private hook to recover custom files to include in current list where data can be modified to add custom{files, folders}
+    # Note: this hooks doesn't have access to public vars like params. requests, ...
+    if @instance
+      args={data: res, prefix: prefix}; @instance.hooks_run('uploader_list_objects', args)
+      res = args[:data]
+    end
+    
     res[:files] = res[:files].sort_by{|k, v| v[sort] }.reverse.to_h
     res[:folders] = res[:folders].sort_by{|k, v| v['name'] }.reverse.to_h
     res
@@ -54,8 +64,9 @@ class CamaleonCmsUploader
   # save file_parsed as a cache into DB
   # file_parsed: (HASH) File parsed object
   # objects_db: HASH Object where to add the current object (optional)
-  def cache_item(file_parsed, _objects_db = nil)
-    objects_db = _objects_db || @current_site.get_meta(cache_key, {}) || {}
+  def cache_item(file_parsed, _objects_db = nil, custom_cache_key = nil)
+    _cache_key = custom_cache_key || cache_key
+    objects_db = _objects_db || @current_site.get_meta(_cache_key, {}) || {}
     prefix = File.dirname(file_parsed['key'])
 
     s = prefix.split('/').clean_empty
@@ -68,7 +79,7 @@ class CamaleonCmsUploader
     else
       objects_db[prefix][:files][file_parsed['name']] = file_parsed
     end
-    @current_site.set_meta(cache_key, objects_db) if _objects_db.nil?
+    @current_site.set_meta(_cache_key, objects_db) if _objects_db.nil?
     file_parsed
   end
 
