@@ -8,8 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <%= stylesheet_link_tag "camaleon_cms/admin/admin-manifest", media: "all" %>
     <script>
-        var root_url = '<%= cama_root_url %>';
-        var root_admin_url = '<%= cama_admin_url %>';
+        var root_url = '<%= cama_root_url(locale: nil) %>';
+        var root_admin_url = '<%= cama_admin_url(locale: nil) %>';
         var NO_IMAGE_URL = '<%= asset_url("camaleon_cms/image-not-found.png") %>';
         var CURRENT_LOCALE = '<%= current_locale %>';
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;

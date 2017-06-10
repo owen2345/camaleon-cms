@@ -86,7 +86,7 @@ ActiveRecord::Base.class_eval do
   
   # check if an attribute was changed
   def cama_attr_changed?(attr_name)
-    if PluginRoutes.isRails5?
+    if self.methods.include?(:saved_change_to_attribute?)
       self.saved_change_to_attribute?(attr_name.to_sym)
     else
       self.send("#{attr_name}_changed?")
