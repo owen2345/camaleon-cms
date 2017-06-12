@@ -210,7 +210,7 @@ class PluginRoutes
   end
 
   def self.cache_variable(var_name, value=nil)
-    @@_vars.push(var_name).uniq
+    @@_vars.push(var_name).uniq!
     #if Rails.env != "development" # disable cache plugin routes for develoment mode
       cache = class_variable_get("@@cache_#{var_name}") rescue nil
       return cache if value.nil?
