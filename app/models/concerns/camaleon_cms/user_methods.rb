@@ -14,7 +14,7 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
 
     # relations
     has_many :metas, ->{ where(object_class: 'User')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
-    has_many :all_posts, class_name: "CamaleonCms::Post"
+    has_many :all_posts, class_name: "CamaleonCms::Post", foreign_key: :user_id
     has_many :all_comments, class_name: "CamaleonCms::PostComment"
 
     #scopes
