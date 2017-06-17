@@ -42,7 +42,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   # render contents from post type
   def post_type
     begin
-      @post_type = current_site.post_types.find(params[:post_type_id]).decorate
+      @post_type = current_site.post_types.find_by_slug(params[:post_type_slug]).decorate
     rescue
       return page_not_found
     end
