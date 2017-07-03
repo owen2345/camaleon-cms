@@ -2,15 +2,15 @@ module Plugins::FrontCache::FrontCacheHelper
 
   # save as cache all pages configured on settings of this plugin for public users
   def front_cache_front_before_load
-    if current_site.get_option("refresh_cache") # clear cache every restart server
-      front_cache_clean
+    if current_site.get_option("refresh_cache") # clear cache every restart server unless option checked in settings
+      front_cache_clean unless current_site.get_meta("front_cache_elements")[:preserve_cache_on_restart]
       current_site.set_option("refresh_cache", false)
     end
 
     return if signin? || Rails.env == "development" || Rails.env == "test" || !request.get? # avoid cache if current visitor is logged in or development environment
 
     cache_key = request.fullpath.parameterize
-    if !flash.keys.present? && front_cache_exist?(cache_key) # recover cache file
+    if !flash.keys.present? && front_cache_exist?(cache_key) # recover cache item
       Rails.logger.info "Camaleon CMS - readed cache: #{front_cache_plugin_get_path(cache_key)}"
       response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE'
       args = {data: front_cache_get(cache_key).gsub("{{form_authenticity_token}}", form_authenticity_token)}; hooks_run('front_cache_reading_cache', args)
@@ -87,38 +87,32 @@ module Plugins::FrontCache::FrontCacheHelper
     end
   end
 
-  # clear all frontend cache files
+  # clear all frontend cache items
   def front_cache_clean
-    FileUtils.rm_rf(front_cache_plugin_get_path) # clear site pages cache
+    Rails.cache.clear
   end
 
   private
 
   def front_cache_exist?(key)
-    File.exist?(front_cache_plugin_get_path(key))
+    !(Rails.cache.read(key).nil?)
   end
 
   def front_cache_get(key)
-    File.read(front_cache_plugin_get_path(key))
-  end
-
-  def front_cache_destroy(key)
-    FileUtils.rm_f(front_cache_plugin_get_path(key)) # clear site pages cache
+    Rails.cache.read(key)
   end
 
   def front_cache_plugin_cache_create(key, content)
-    FileUtils.mkdir_p(front_cache_plugin_get_path) unless Dir.exist?(front_cache_plugin_get_path)
-    File.open(front_cache_plugin_get_path(key), 'wb'){ |fo| fo.write(content) }
-    content
+    Rails.cache.write(front_cache_plugin_get_path(key), content)
   end
 
   # return the physical path of cache directory
   # key: (string, optional) the key of the cached page
   def front_cache_plugin_get_path(key = nil)
     unless key.nil?
-      Rails.root.join("tmp", "cache", "pages", current_site.id.to_s, "#{key}.html").to_s
+      "pages/#{current_site.id.to_s}/#{key}"
     else
-      Rails.root.join("tmp", "cache", "pages", current_site.id.to_s).to_s
+      "pages/#{current_site.id.to_s}"
     end
 
   end
