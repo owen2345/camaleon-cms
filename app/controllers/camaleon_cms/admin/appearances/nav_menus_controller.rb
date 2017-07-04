@@ -55,7 +55,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
   def save_custom_settings
     @nav_menu_item = current_site.nav_menu_items.find(params[:id])
     @nav_menu_item.set_field_values(params.require(:field_options).permit!)
-    render nothing: true
+    head :ok
   end
 
   # render edit external menu item
@@ -75,7 +75,7 @@ class CamaleonCms::Admin::Appearances::NavMenusController < CamaleonCms::AdminCo
   def delete_menu_item
     # @nav_menu = current_site.nav_menus.find(params[:nav_menu_id])
     current_site.nav_menu_items.find(params[:id]).destroy
-    render nothing: true
+    head :ok
   end
 
   # update the reorder of items

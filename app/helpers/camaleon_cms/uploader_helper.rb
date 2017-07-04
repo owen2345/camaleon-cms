@@ -228,7 +228,7 @@ module CamaleonCms::UploaderHelper
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
     return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(_tmp_name || uploaded_io.path, args[:formats])
     return {error: "#{ct("file_size_exceeded", default: "File size exceeded")} (#{number_to_human_size(args[:maximum])})"} if args[:maximum].present? && args[:maximum] < (uploaded_io.size rescue File.size(uploaded_io))
-    name = args[:name] || uploaded_io.path.split("/").last; name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
+    name = args[:name] || uploaded_io.try(:original_filename) || uploaded_io.path.split("/").last; name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
     path ||= uploader_verify_name(File.join(tmp_path, name))
     File.open(path, "wb"){|f| f.write(uploaded_io.read) } unless saved
     path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
@@ -264,14 +264,17 @@ module CamaleonCms::UploaderHelper
           cloud_front: current_site.get_option("filesystem_s3_cloudfront"),
           aws_file_upload_settings: lambda{|settings| settings }, # permit to add your custom attributes for file_upload http://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Object.html#upload_file-instance_method
           aws_file_read_settings: lambda{|data, s3_file| data } # permit to read custom attributes from aws file and add to file parsed object
-        }
+        },
+        custom_uploader: nil # posibility to use custom file uploader
       }
       hooks_run("on_uploader", args)
+      return args[:custom_uploader] if args[:custom_uploader].present?
+      
       case args[:server]
         when 's3', 'aws'
-          CamaleonCmsAwsUploader.new({current_site: current_site, thumb: args[:thumb], aws_settings: args[:aws_settings]})
+          CamaleonCmsAwsUploader.new({current_site: current_site, thumb: args[:thumb], aws_settings: args[:aws_settings]}, self)
         else
-          CamaleonCmsLocalUploader.new({current_site: current_site, thumb: args[:thumb]})
+          CamaleonCmsLocalUploader.new({current_site: current_site, thumb: args[:thumb]}, self)
       end
     }.call
   end

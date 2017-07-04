@@ -1,3 +1,4 @@
+require 'will_paginate/array'
 class CamaleonCms::Admin::CommentsController < CamaleonCms::AdminController
   include CamaleonCms::CommentHelper
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.comments"), :cama_admin_comments_url

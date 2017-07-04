@@ -5,8 +5,7 @@
 
 //***************customization*****************/
 // jquery custom validations and default values
-(function ($) {
-
+jQuery(function(){
     // file formats
     $.file_formats = {
         jpg: "image",
@@ -120,4 +119,5 @@
     jQuery.validator.addClassRules({
         file_format: {file_format: true}
     });
-})(jQuery);
+    $('form.cama_form_validate').validate();
+});

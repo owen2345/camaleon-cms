@@ -21,6 +21,11 @@
     <div class="panel-body">
         <div class="alert alert-info"><%= t('plugin.front_cache.message.please_checkpost_need_cache') %></div>
         <div class="form-group">
+            <label>Preserve cache on restart</label><br>
+            <%= check_box_tag("cache[preserve_cache_on_restart]", 1, @caches[:preserve_cache_on_restart]) %>
+        </div>
+
+        <div class="form-group">
             <label><%= t('plugin.front_cache.home_page') %></label><br>
             <%= check_box_tag("cache[home]", 1, @caches[:home]) %>
         </div>

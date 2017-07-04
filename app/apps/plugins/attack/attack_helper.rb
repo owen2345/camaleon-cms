@@ -40,7 +40,7 @@ module Plugins::Attack::AttackHelper
   def attack_app_before_load()
     cache_ban = Rails.cache.read(cama_get_session_id)
     if cache_ban.present? # render banned message if it was banned
-      render text: cache_ban, layout: false
+      render html: cache_ban.html_safe, layout: false
       return
     end
 
@@ -67,7 +67,7 @@ module Plugins::Attack::AttackHelper
       if r.count > config[:post][:max].to_i
         Rails.cache.write(cama_get_session_id, config[:msg], expires_in: config[:ban].to_i.minutes)
         # send an email to administrator with request info (ip, browser, if logged then send user info
-        render text: config[:msg]
+        render html: config[:msg].html_safe
         return
       end
 
@@ -76,7 +76,7 @@ module Plugins::Attack::AttackHelper
       r = q.where(created_at: config[:get][:sec].to_i.seconds.ago..Time.now)
       if r.count > config[:get][:max].to_i
         Rails.cache.write(cama_get_session_id, config[:msg], expires_in: config[:ban].to_i.minutes)
-        render text: config[:msg]
+        render html: config[:msg].html_safe
         return
       end
     end

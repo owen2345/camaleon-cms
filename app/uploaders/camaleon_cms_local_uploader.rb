@@ -63,6 +63,12 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
   def add_file(uploaded_io_or_file_path, key, args = {})
     args, res = {same_name: false, is_thumb: false}.merge(args), nil
     key = search_new_key(key) unless args[:same_name]
+    
+    if @instance # private hook to upload files by different way, add file data into result_data
+      _args={result_data: nil, file: uploaded_io_or_file_path, key: key, args: args, klass: self}; @instance.hooks_run('uploader_local_before_upload', _args)
+      return _args[:result_data] if _args[:result_data].present?
+    end
+    
     add_folder(File.dirname(key)) if File.dirname(key).present?
     upload_io = uploaded_io_or_file_path.is_a?(String) ? File.open(uploaded_io_or_file_path) : uploaded_io_or_file_path
     File.open(File.join(@root_folder, key), 'wb'){|file|       file.write(upload_io.read) }
