@@ -120,7 +120,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
 
   # auto save the default field values
   def auto_save_default_values(field, options)
-    options = options.with_indifferent_access
+    # options = options.with_indifferent_access
     class_name = object_class.split("_").first
     if %w(Post Category Plugin Theme).include?(class_name) && objectid && (options[:default_value].present? || options[:default_values].present?)
       if class_name == 'Theme'
