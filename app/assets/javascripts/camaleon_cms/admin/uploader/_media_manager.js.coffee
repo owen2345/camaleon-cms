@@ -100,6 +100,8 @@ window["cama_init_media"] = (media_panel) ->
   p_upload.uploadFile({
     url: p_upload.attr("data-url"),
     fileName: "file_upload",
+    sequential: true,
+    sequentialCount: 1,
     uploadButtonClass: "btn btn-primary btn-block",
     dragDropStr: '<span style="display: block;"><b>'+p_upload.attr('data-dragDropStr')+'</b></span>',
     uploadStr: p_upload.attr('data-uploadStr'),
