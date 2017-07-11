@@ -59,7 +59,8 @@ module Plugins::FrontCache::FrontCacheHelper
         post_types: [current_site.post_types.where(slug: "page").first.id],
         skip_posts: [],
         home: true,
-        cache_login: true}) unless current_site.get_meta("front_cache_elements", nil).present?
+        cache_login: true,
+        cache_counter: 0}) unless current_site.get_meta("front_cache_elements", nil).present?
   end
 
   # on uninstall plugin
@@ -89,7 +90,15 @@ module Plugins::FrontCache::FrontCacheHelper
 
   # clear all frontend cache items
   def front_cache_clean
-    Rails.cache.clear
+    @caches = current_site.get_meta("front_cache_elements")
+    if @caches[:invalidate_only]
+      @caches[:cache_counter] += 1
+      current_site.set_meta("front_cache_elements", @caches)
+    else
+      Rails.cache.clear
+      @caches[:cache_counter] = 0
+      current_site.set_meta("front_cache_elements", @caches)
+    end
   end
 
   private
@@ -110,9 +119,9 @@ module Plugins::FrontCache::FrontCacheHelper
   # key: (string, optional) the key of the cached page
   def front_cache_plugin_get_path(key = nil)
     unless key.nil?
-      "pages/#{current_site.id.to_s}/#{key}"
+      "pages/#{@caches[:cache_counter]}/#{current_site.id.to_s}/#{key}"
     else
-      "pages/#{current_site.id.to_s}"
+      "pages/#{@caches[:cache_counter]}/#{current_site.id.to_s}"
     end
 
   end

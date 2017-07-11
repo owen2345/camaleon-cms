@@ -12,6 +12,8 @@ en:
       pages: 'Pages'
       pages_of: 'Pages of'
       skip_cache_pages: 'Skip Cache Pages'
+      preserve_cache_on_restart: 'Preserve cache on restart'
+      invalidate_only: 'Invalidate the cache instead of deleting it. (Recommended only if you use custom caching in your views. Not recommended when using FileStore, which is the Rails default cache)'
       message:
         please_checkpost_need_cache: 'Please check all posts or post types you need to cache.'
         enabled_cache_inner_content_logged_users: 'Enable cache for inner content for logged users'
@@ -31,6 +33,8 @@ es:
       pages: 'Página'
       pages_of: 'Página de'
       skip_cache_pages: 'Saltar página del Caché'
+      preserve_cache_on_restart: 'Preservar caché al reiniciar'
+      invalidate_only: 'Invalide el caché en lugar de eliminarlo. (Recomendado sólo si utiliza el almacenamiento en caché personalizado en sus vistas No se recomienda cuando se utiliza FileStore, que es la caché predeterminada de Rails)'
       message:
         please_checkpost_need_cache: 'Por favor, compruebe todos los mensajes o los tipos de correos que necesita para almacenar en caché.'
         enabled_cache_inner_content_logged_users: 'Habilitar caché de contenido interno para usuarios registrados'
@@ -51,6 +55,8 @@ nl:
       pages: "Pagina's"
       pages_of: "Inhoud van"
       skip_cache_pages: 'Cache overslaan'
+      preserve_cache_on_restart: 'Bewaar cache bij herstarten'
+      invalidate_only: 'De cache ongeldig maken, in plaats van het te verwijderen. (Alleen aanbevolen als u aangepaste caching gebruikt in uw weergaven. Niet aanbevolen bij het gebruik van FileStore, wat is de standaard cache van de Rails)'
       message:
         please_checkpost_need_cache: "Kijk alle berichten of inhoud type's na die je wil cachen."
         enabled_cache_inner_content_logged_users: 'Activeer cache voor gelogde gebruikers'
@@ -70,6 +76,8 @@ pt-BR:
       pages: 'Páginas'
       pages_of: 'Páginas de'
       skip_cache_pages: 'Saltar Cache de Páginas'
+      preserve_cache_on_restart: 'Preserve o cache no reinício'
+      invalidate_only: 'Invalide o cache em vez de excluí-lo. (Recomendado apenas se você usar cache personalizado em suas visualizações. Não recomendado quando usar FileStore, que é o cache padrão do Rails)'
       message:
         please_checkpost_need_cache: 'Por favor verifique todas as publicações ou o tipo do publicação que precisa colocar em cache.'
         enabled_cache_inner_content_logged_users: 'Permitir cache para conteúdo interno de utilizadores ligados'
@@ -89,6 +97,8 @@ pt-BR:
       pages: 'Páginas'
       pages_of: 'Páginas de'
       skip_cache_pages: 'Pular Cache de Páginas'
+      preserve_cache_on_restart: 'Preserve o cache no reinício'
+      invalidate_only: 'Invalide o cache em vez de excluí-lo. (Recomendado apenas se você usar cache personalizado em suas visualizações. Não recomendado quando usar FileStore, que é o cache padrão do Rails)'
       message:
         please_checkpost_need_cache: 'Por favor cheque todos os posts ou o tipo do post que você precisa cachear.'
         enabled_cache_inner_content_logged_users: 'Permitir cache para conteúdo interno de usuários logados'
@@ -108,6 +118,8 @@ it:
       pages: 'Pagine'
       pages_of: 'Pagine di'
       skip_cache_pages: 'Pagine da non cachare'
+      preserve_cache_on_restart: 'Conserva la cache al riavvio'
+      invalidate_only: 'Invalidate la cache invece di cancellarla. (Consigliato solo se si utilizza la cache personalizzata nelle tue viste. Non è consigliata quando si utilizza FileStore, che è la cache predefinita Rails)'
       message:
         please_checkpost_need_cache: 'Per favore, verifica tutti i tipi di messaggi o e-mail che è necessario memorizzare nella cache.'
         enabled_cache_inner_content_logged_users: 'Attiva il contenuto della cache interna per gli utenti registrati'
@@ -127,10 +139,11 @@ zh-CN:
       pages: '页面'
       pages_of: '页'
       skip_cache_pages: '跳过缓存页面'
+      preserve_cache_on_restart: '重新启动时保存缓存'
+      invalidate_only: '使缓存无效，而不是删除它。 （仅当您在视图中使用自定义缓存时才推荐使用FileStore时，建议不要使用Rails默认缓存）'
       message:
         please_checkpost_need_cache: '请检查您需要缓存位内容.'
         enabled_cache_inner_content_logged_users: '为已登录的用户启用内部内容的缓存'
         settings_saved: '设置已保存!'
         cache_destroyed: '缓存已清楚!'
       settings: '设置'
-
