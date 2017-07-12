@@ -10,6 +10,7 @@ module Plugins::FrontCache::FrontCacheHelper
     return if signin? || Rails.env == "development" || Rails.env == "test" || !request.get? # avoid cache if current visitor is logged in or development environment
 
     cache_key = request.fullpath.parameterize
+    @caches = current_site.get_meta("front_cache_elements")
     if !flash.keys.present? && front_cache_exist?(cache_key) # recover cache item
       Rails.logger.info "Camaleon CMS - readed cache: #{front_cache_plugin_get_path(cache_key)}"
       response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE'
@@ -18,7 +19,6 @@ module Plugins::FrontCache::FrontCacheHelper
       return
     end
 
-    @caches = current_site.get_meta("front_cache_elements")
     @_plugin_do_cache = false
     if @caches[:paths].include?(request.original_url) || @caches[:paths].include?(request.path_info) || front_cache_plugin_match_path_patterns?(request.original_url, request.path_info) || (params[:action] == 'index' && params[:controller] == 'camaleon_cms/frontend' && @caches[:home].present?) # cache paths and home page
       @_plugin_do_cache = true
@@ -59,7 +59,8 @@ module Plugins::FrontCache::FrontCacheHelper
         post_types: [current_site.post_types.where(slug: "page").first.id],
         skip_posts: [],
         home: true,
-        cache_login: true}) unless current_site.get_meta("front_cache_elements", nil).present?
+        cache_login: true,
+        cache_counter: 0}) unless current_site.get_meta("front_cache_elements", nil).present?
   end
 
   # on uninstall plugin
@@ -89,17 +90,25 @@ module Plugins::FrontCache::FrontCacheHelper
 
   # clear all frontend cache items
   def front_cache_clean
-    Rails.cache.clear
+    @caches = current_site.get_meta("front_cache_elements")
+    if @caches[:invalidate_only]
+      @caches[:cache_counter] += 1
+      current_site.set_meta("front_cache_elements", @caches)
+    else
+      Rails.cache.clear
+      @caches[:cache_counter] = 0
+      current_site.set_meta("front_cache_elements", @caches)
+    end
   end
 
   private
 
   def front_cache_exist?(key)
-    !(Rails.cache.read(key).nil?)
+    !(Rails.cache.read(front_cache_plugin_get_path(key)).nil?)
   end
 
   def front_cache_get(key)
-    Rails.cache.read(key)
+    Rails.cache.read(front_cache_plugin_get_path(key))
   end
 
   def front_cache_plugin_cache_create(key, content)
@@ -110,9 +119,9 @@ module Plugins::FrontCache::FrontCacheHelper
   # key: (string, optional) the key of the cached page
   def front_cache_plugin_get_path(key = nil)
     unless key.nil?
-      "pages/#{current_site.id.to_s}/#{key}"
+      "pages/#{@caches[:cache_counter]}/#{current_site.id.to_s}/#{key}"
     else
-      "pages/#{current_site.id.to_s}"
+      "pages/#{@caches[:cache_counter]}/#{current_site.id.to_s}"
     end
 
   end
