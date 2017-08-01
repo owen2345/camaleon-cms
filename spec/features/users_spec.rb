@@ -63,7 +63,7 @@ describe "the Users", js: true do
     within '#profie-form-ajax-password' do
       fill_in 'password[password]', with: "tester_new"
       fill_in 'password[password_confirmation]', with: "tester_new"
-      click_button "Proccess"
+      click_button "Process"
     end
     wait_for_ajax
     expect(page).to have_css('.alert-success')

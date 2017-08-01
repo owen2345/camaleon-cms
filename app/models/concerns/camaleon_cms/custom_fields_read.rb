@@ -45,7 +45,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
           CamaleonCms::CustomFieldGroup.where(object_class: "PostType_#{args[:kind]}", objectid:  self.id )
         end
       else # 'Plugin' or other classes
-        self.custom_field_groups
+        self.field_groups
     end
   end
 
