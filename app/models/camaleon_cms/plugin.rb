@@ -5,8 +5,7 @@ class CamaleonCms::Plugin < CamaleonCms::TermTaxonomy
   #   name => plugin name
 
   attr_accessor :error
-
-  has_many :metas, -> { where(object_class: 'Plugin') }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  cama_define_common_relationships('Plugin')
   belongs_to :site, class_name: "CamaleonCms::Site", foreign_key: :parent_id
 
   default_scope { where(taxonomy: :plugin) }

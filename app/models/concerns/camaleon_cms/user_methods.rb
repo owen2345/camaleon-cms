@@ -13,7 +13,7 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     before_create { generate_token(:auth_token) }
 
     # relations
-    has_many :metas, ->{ where(object_class: 'User')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+    cama_define_common_relationships('User')
     has_many :all_posts, class_name: "CamaleonCms::Post", foreign_key: :user_id
     has_many :all_comments, class_name: "CamaleonCms::PostComment"
 

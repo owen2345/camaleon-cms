@@ -29,7 +29,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   include CamaleonCms::CategoriesTagsForPosts
   alias_attribute :post_type_id, :taxonomy_id
   default_scope ->{ where(post_class: "Post").order(post_order: :asc, created_at: :desc) }
-  has_many :metas, ->{ where(object_class: 'Post')}, :class_name => "CamaleonCms::Meta", foreign_key: :objectid, dependent: :delete_all
+  cama_define_common_relationships('Post')
 
   # DEPRECATED
   has_many :post_relationships, class_name: "CamaleonCms::PostRelationship", foreign_key: :objectid, dependent: :destroy,  inverse_of: :posts

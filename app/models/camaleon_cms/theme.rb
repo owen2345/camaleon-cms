@@ -1,7 +1,7 @@
 class CamaleonCms::Theme < CamaleonCms::TermTaxonomy
   # attrs:
   #   slug => plugin key
-  has_many :metas, -> { where(object_class: 'Theme') }, class_name: "CamaleonCms::Meta", foreign_key: :objectid, dependent: :destroy
+  cama_define_common_relationships('Theme')
   belongs_to :site, class_name: "CamaleonCms::Site", foreign_key: :parent_id
 
   default_scope { where(taxonomy: :theme) }

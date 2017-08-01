@@ -1,11 +1,11 @@
 module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   included do
     before_destroy :_destroy_custom_field_groups
+    # DEPRECATED, INSTEAD USE: custom_fields
     has_many :fields, ->(object){ where(:object_class => object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))} , :class_name => "CamaleonCms::CustomField" ,foreign_key: :objectid
+    # DEPRECATED, INSTEAD USE: custom_field_values
     has_many :field_values, ->(object){where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::",""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
-    has_many :custom_field_values, ->(object){ where(object_class: object.class.to_s.gsub("Decorator","").gsub("CamaleonCms::", ""))}, :class_name => "CamaleonCms::CustomFieldsRelationship", foreign_key: :objectid, dependent: :delete_all
-
-    # valid only for simple groups and not for complex like: posts, post, ... where the group is for individual or children groups
+    # DEPRECATED, INSTEAD USE: custom_field_groups
     has_many :field_groups, ->(object){where(object_class: object.class.to_s.parseCamaClass)}, :class_name => "CamaleonCms::CustomFieldGroup", foreign_key: :objectid
   end
 
@@ -35,17 +35,17 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
       when 'Post'
         CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
       when 'NavMenuItem'
-        self.main_menu.field_groups
+        self.main_menu.custom_field_groups
       when 'PostType'
         if args[:kind] == "all"
           CamaleonCms::CustomFieldGroup.where(object_class: ["PostType_Post", "PostType_Post", "PostType_PostTag", "PostType"], objectid:  self.id )
         elsif args[:kind] == "post_type"
-          self.field_groups
+          self.custom_field_groups
         else
           CamaleonCms::CustomFieldGroup.where(object_class: "PostType_#{args[:kind]}", objectid:  self.id )
         end
       else # 'Plugin' or other classes
-        self.field_groups
+        self.custom_field_groups
     end
   end
 
