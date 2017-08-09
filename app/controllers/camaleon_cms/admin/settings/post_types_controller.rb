@@ -18,6 +18,8 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
 
   def update
     if @post_type.update(@data_term)
+      custom_fields_data = params.require(:field_options).permit!
+      @post_type.set_field_values(custom_fields_data)
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
       redirect_to action: :index
     else
