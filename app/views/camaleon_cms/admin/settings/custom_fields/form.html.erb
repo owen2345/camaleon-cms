@@ -34,6 +34,13 @@
                             <%= f.label t('camaleon_cms.admin.settings.where_display_group') %><br>
                             <select id="select_assign_group" name="custom_field_group[assign_group]" class="form-control required">
                                 <option value="">&nbsp;</option>
+
+                                <optgroup label="<%= t('camaleon_cms.admin.settings.in_post_type_settings_of', default: 'In Post Type settings of') %>">
+                                  <% current_site.post_types.each do |pt| pt = pt.decorate; value = "PostType,#{pt.id}" %>
+                                      <option value="<%= value %>"><%= pt.the_title %></option>
+                                  <% end  %>
+                                </optgroup>
+
                                 <optgroup label="<%= t('camaleon_cms.admin.settings.posts_in') %>">
                                     <% current_site.post_types.each do |pt| pt = pt.decorate; value = "PostType_Post,#{pt.id}" %>
                                         <option value="<%= value %>" data-help="<%= "#{t('camaleon_cms.admin.settings.tooltip.add_custom_field_posts')}"+ pt.the_title %>"><%= pt.the_title %></option>

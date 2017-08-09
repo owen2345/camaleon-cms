@@ -393,6 +393,7 @@ de:
         permission_login_facebook: 'Login via Facebook erlauben?'
         permission_login_google: 'Login via Google+ erlauben?'
         posts_in: 'Posts in'
+        in_post_type_settings_of: 'In den Post Type Einstellungen von'
         settings: 'Einstellungen'
         tooltip:
           add_custom_field_posts: 'Füge selbsterstelltes Feld hinzu in Posts von '

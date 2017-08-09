@@ -393,6 +393,7 @@ en:
         permission_login_facebook: 'Permission to Login with Facebook'
         permission_login_google: 'Permission to Login with Google+'
         posts_in: 'Posts in'
+        in_post_type_settings_of: 'In Post Type settings of'
         settings: 'Settings'
         tooltip:
           add_custom_field_posts: 'Add Custom Field in Posts of '
