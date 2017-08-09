@@ -149,7 +149,7 @@
                     </div>
                 </div>
                 <% if groups.present? %>
-                    <div id="post_type_setting_custom">
+                    <div role="tabpanel" class="tab-pane" id="post_type_setting_custom">
                         <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @post_type, field_groups: groups} %>
                     </div>
                 <% end %>
