@@ -11,7 +11,7 @@ describe "the Content Groups", js: true do
       fill_in 'post_type_name', :with => 'Test cat'
       fill_in 'post_type_slug', :with => 'test-content'
       fill_in 'post_type_description', :with => 'test-content descri'
-      check("Manage Category")
+      check("Manage Multiple Categories")
       click_button 'Submit'
     end
     expect(page).to have_css('.alert-success')
@@ -24,7 +24,7 @@ describe "the Content Groups", js: true do
       all("table .btn-default").last.click
     end
     within("#post_type_form") do
-      expect(page).to have_checked_field("Manage Category")
+      expect(page).to have_checked_field("Manage Multiple Categories")
       fill_in 'post_type_name', :with => 'Test cat updated'
       fill_in 'post_type_slug', :with => 'test-content'
       click_button 'Submit'
