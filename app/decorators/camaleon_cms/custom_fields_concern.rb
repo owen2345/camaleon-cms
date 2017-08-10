@@ -43,6 +43,12 @@ module CamaleonCms::CustomFieldsConcern
     res
   end
 
+  # the same function as get_fields_grouped(..) but this returns translated and shortcodes evaluated
+  def the_field_grouped(field_key, is_json_format = false, is_multiple = false)
+    the_fields_grouped([field_key], is_json_format).map{|v| is_multiple ? v.values.first : v.values.try(:first).try(:first) }
+    # the_fields_grouped([field_key], is_json_format).map{|v| is_multiple ? v.values.first : v.values.first }
+  end
+
   # return custom field contents with key field_key (only for type attributes)
   # translated and short codes evaluated like the content
   # this is for multiple values
