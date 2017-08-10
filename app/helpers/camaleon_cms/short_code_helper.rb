@@ -194,7 +194,7 @@ module CamaleonCms::ShortCodeHelper
     if attrs["field"].present? # model custom fields
       field = model.get_field_object(attrs["field"])
       if attrs["render_field"].present?
-        return render :partial => "custom_fields/#{field.options["field_key"]}", :locals => {object: model, field: field, field_key: attrs["field"], attibutes: attrs}
+        return render_to_string(template: "custom_fields/#{field.options["field_key"]}", layout: false, :locals => {object: model, field: field, field_key: attrs["field"], attibutes: attrs}) 
       else
         if attrs["index"]
           res = model.the_fields(attrs["field"])[attrs["index"].to_i-1] rescue ""
