@@ -64,8 +64,10 @@
 
                     <div class="form-group">
                         <input name="meta[has_category]" type="hidden" value="false"/>
-                        <label class="check0"><input name="meta[has_category]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_category', false) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_category') %></label>
+                        <label class="check0"><input name="meta[has_category]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_category', false) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_category', default: 'Manage Multiple Categories') %></label>
                         <%= raw cama_html_tooltip("#{t('camaleon_cms.admin.post_type.tooltip.permission_asing_categories')}", 'right') %>
+                        <input name="meta[has_single_category]" type="hidden" value="false"/>
+                        <label style="float: right;"><input name="meta[has_single_category]" type="checkbox" class="icheckbox0" value="true" <%= 'checked' if @post_type.get_option('has_single_category', false) %>/>&nbsp;   <%= t('camaleon_cms.admin.table.manage_single_category', default: 'Manage Single Category') %></label>
                     </div>
                     <div class="form-group">
                         <input name="meta[has_tags]" type="hidden" value="false"/>

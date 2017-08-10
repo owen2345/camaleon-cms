@@ -260,7 +260,7 @@ function cama_init_post(obj) {
             });
         }, on_close: function(modal){
             var panel_cats = $form.find("#post_right_bar .list-categories");
-            $.get($form.find("#post_add_new_category").data('reload-url'), {categories: panel_cats.find("input:checkbox:checked").map(function(i, el){ return $(this).val(); }).get()}, function(res){ panel_cats.html(res); });
+            $.get($form.find("#post_add_new_category").data('reload-url'), {categories: panel_cats.find("input[name='categories[]']:checked").map(function(i, el){ return $(this).val(); }).get()}, function(res){ panel_cats.html(res); });
         }});
         /*********** end *************/
     }

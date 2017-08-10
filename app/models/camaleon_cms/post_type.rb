@@ -24,7 +24,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
 
   # check if current post type manage categories
   def manage_categories?
-    options[:has_category]
+    options[:has_category] || options[:has_single_category]
   end
 
   # hide or show this post type on admin -> contents -> menu

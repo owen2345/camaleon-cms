@@ -19,3 +19,9 @@ window['cama_init_posttype_form'] = ->
     else
       items.prop("disabled", true)
   ).trigger("change")
+  
+  # toggle single and multiple categories checkbox
+  cat_checks = form.find('input:checkbox[name="meta[has_category]"], input:checkbox[name="meta[has_single_category]"]')
+  cat_checks.change(->
+    cat_checks.not(this).prop("checked", false) if $(this).is(':checked')
+  ).filter(':checked').trigger('change')

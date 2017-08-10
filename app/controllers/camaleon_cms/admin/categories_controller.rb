@@ -44,7 +44,7 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
 
   # return html category list used to reload categories list in post editor form
   def list
-    render inline: post_type_html_inputs(@post_type, "categories", "categories" , "checkbox" , params[:categories] || [], "categorychecklist", true )
+    render inline: post_type_html_inputs(@post_type, "categories", "categories" , @post_type.get_option('has_single_category', false) ? 'radio' : "checkbox" , params[:categories] || [], "categorychecklist", true )
   end
 
   def destroy

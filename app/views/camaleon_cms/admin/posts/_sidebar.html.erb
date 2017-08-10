@@ -96,7 +96,7 @@
             </div>
             <div class="panel-body ">
                 <div class="form-group list-categories">
-                    <%= raw post_type_html_inputs(@post_type, "categories", "categories" , "checkbox" ,params[:categories] || (@post.new_record? ? [] : @post.categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")), "categorychecklist", true )%>
+                    <%= raw post_type_html_inputs(@post_type, "categories", "categories" , @post_type.get_option('has_single_category', false) ? 'radio' : "checkbox" ,params[:categories] || (@post.new_record? ? [] : @post.categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")), "categorychecklist", true )%>
                 </div>
             </div>
         </div>
