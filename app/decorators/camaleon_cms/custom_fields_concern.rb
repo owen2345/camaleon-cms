@@ -27,12 +27,16 @@ module CamaleonCms::CustomFieldsConcern
   end
 
   # the same function as get_fields_grouped(..) but this returns translated and shortcodes evaluated
-  def the_fields_grouped(field_keys)
+  def the_fields_grouped(field_keys, is_json_format = false)
     res = []
     object.get_fields_grouped(field_keys).each do |_group|
       group = {}.with_indifferent_access
       _group.keys.each do |k|
-        group[k] = _group[k].map{|v| h.do_shortcode(v.to_s.translate(@_deco_locale), object) }
+        if is_json_format
+          group[k] = _group[k].map{|v| parse_html_json(v) }
+        else
+          group[k] = _group[k].map{|v| h.do_shortcode(v.to_s.translate(@_deco_locale), object) }
+        end
       end
       res << group
     end
@@ -45,11 +49,7 @@ module CamaleonCms::CustomFieldsConcern
   def the_json_fields(field_key)
     r = []
     object.get_fields(field_key).each do |text|
-      _r = JSON.parse(text || '{}').with_indifferent_access
-      _r.keys.each do |k|
-        _r[k] = h.do_shortcode(_r[k].to_s.translate(@_deco_locale), object)
-      end
-      r << _r
+      r << parse_html_json(text)
     end
     r
   end
@@ -59,11 +59,16 @@ module CamaleonCms::CustomFieldsConcern
   # translated and short codes evaluated like the content
   # default_val: default value returned when this field was not registered
   def the_json_field(field_key, default_val = '')
-    r = JSON.parse(object.get_field(field_key, default_val) || '{}').with_indifferent_access
+    parse_html_json(object.get_field(field_key, default_val))
+  end
+  alias_method :the_attribute_field, :the_json_field
+  
+  private
+  def parse_html_json(json)
+    r = JSON.parse(json || '{}').with_indifferent_access
     r.keys.each do |k|
       r[k] = h.do_shortcode(r[k].to_s.translate(@_deco_locale), object)
     end
     r
   end
-  alias_method :the_attribute_field, :the_json_field
 end
