@@ -148,6 +148,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
 
   def before_hook_session
     session[:cama_current_language] = params[:cama_set_language].to_sym if params[:cama_set_language].present?
+    session[:cama_current_language] = nil if current_site.get_languages.exclude?(session[:cama_current_language])
     I18n.locale = params[:locale] || session[:cama_current_language] || current_site.get_languages.first
     hooks_run("session_before_load")
   end

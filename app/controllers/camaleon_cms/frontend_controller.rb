@@ -215,6 +215,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
 
     @_site_options = current_site.options
     session[:cama_current_language] = params[:cama_set_language].to_sym if params[:cama_set_language].present?
+    session[:cama_current_language] = nil if current_site.get_languages.exclude?(session[:cama_current_language])
     I18n.locale = params[:locale] || session[:cama_current_language] || current_site.get_languages.first
     return page_not_found unless current_site.get_languages.include?(I18n.locale.to_sym) # verify if this locale is available for this site
 
