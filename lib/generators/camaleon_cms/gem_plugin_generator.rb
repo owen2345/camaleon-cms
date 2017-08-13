@@ -91,9 +91,11 @@ module CamaleonCms
     end
   end"
           end
-
-          append_to_file Rails.root.join("Gemfile") do
-            "\n\ngem '#{get_plugin_name}', path:  '#{plugin_dir_path}'"
+          
+          if PluginRoutes.isRails4?
+            append_to_file Rails.root.join("Gemfile") do
+              "\n\ngem '#{get_plugin_name}', path:  '#{plugin_dir_path}'"
+            end
           end
 
           # destroy non used files
