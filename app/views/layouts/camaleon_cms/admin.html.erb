@@ -16,6 +16,7 @@
         var tinymce_global_settings = {language_url: "<%= asset_path("camaleon_cms/admin/tinymce/langs/#{current_locale}.js") %>", custom_css: [], custom_toolbar: [], post_render: [], init: [], setups: [], settings: []};
         var I18n_data = <%= I18n.backend.respond_to?(:translations) ? I18n.backend.send(:translations)[current_locale.to_sym][:camaleon_cms][:admin][:js].to_json.html_safe : !!(I18n.backend.backends[1] && I18n.backend.backends[1].backends[1]) ? I18n.backend.backends[1].backends[1].send(:translations)[current_locale.to_sym][:camaleon_cms][:admin][:js].to_json.html_safe : "{}" rescue "{}" %>
     </script>
+    <%= render file: Rails.root.join('..', '..', 'spec/support/custom_admin') if Rails.env.test? %>
     <%= javascript_include_tag "camaleon_cms/admin/admin-manifest" %>
 
     <%= javascript_include_tag "camaleon_cms/admin/jquery_validate/#{current_locale}.js" if current_locale != 'en' %>
@@ -27,7 +28,6 @@
         <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-    <%= render file: Rails.root.join('..', '..', 'spec/support/custom_admin') if Rails.env.test? %>
 </head>
 <body class="hold-transition skin-blue sidebar-mini" data-intro="<%= current_site.get_option("save_intro") %>">
     <%= yield :before_content if content_for? :before_content %>

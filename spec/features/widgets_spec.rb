@@ -1,5 +1,5 @@
 require "rails_helper"
-describe "the Themes", js: true do
+describe "the Widgets", js: true do
   login_success
 
   it "Widgets list" do
