@@ -29,7 +29,9 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
       params[:q] = (params[:q] || '').downcase
       posts_all = posts_all.where("LOWER(#{CamaleonCms::Post.table_name}.title) LIKE ?", "%#{params[:q]}%")
     end
-
+    
+    posts_all = posts_all.where(user_id: current_user) if cannot?(:edit_other, @post_type) # filter only own contents 
+    
     @posts = posts_all
     params[:s] = 'published' unless params[:s].present?
     @lists_tab = params[:s]
