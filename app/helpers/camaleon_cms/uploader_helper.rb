@@ -74,6 +74,8 @@ module CamaleonCms::UploaderHelper
     cama_uploader_generate_thumbnail(uploaded_io.path, res['key'], settings[:thumb_size]) if settings[:generate_thumb] && res['thumb'].present?
 
     FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
+
+    hooks_run('after_upload', settings)
     res
   end
 
