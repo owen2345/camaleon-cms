@@ -96,7 +96,7 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
   def delete_file(key)
     file = File.join(@root_folder, key)
     FileUtils.rm(file) if File.exist? file
-    hooks_run('after_delete', key)
+    @instance.hooks_run('after_delete', key)
     
     reload
   end

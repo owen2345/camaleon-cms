@@ -93,7 +93,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
   def delete_file(key)
     key = "#{@aws_settings["inner_folder"]}/#{key}" if @aws_settings["inner_folder"].present?
     bucket.object(key.split('/').clean_empty.join('/')).delete rescue ''
-    hooks_run('after_delete', key)
+    @instance.hooks_run('after_delete', key)
     
     reload
   end
