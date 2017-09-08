@@ -100,7 +100,14 @@ class CamaleonCms::CamaleonController < ApplicationController
       # inactive page control
       if current_site.is_inactive?
         p = current_site.posts.find(current_site.get_option('page_inactive')).decorate
-        redirect_to(p.the_url) if params != {"controller"=>"camaleon_cms/frontend", "action"=>"post", "slug"=>p.the_slug}
+        if request.original_url.to_s.match /\A#{current_site.the_url}admin(\/|\z)/
+          if cama_current_user.present?
+            cama_logout_user
+            flash[:error] = ('Site is Inactive')
+          end
+        else
+          redirect_to(p.the_url) unless params == {"controller"=>"camaleon_cms/frontend", "action"=>"post", "slug"=>p.the_slug}
+        end
       end
 
       # maintenance page and IP's control
