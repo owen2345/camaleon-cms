@@ -2,7 +2,7 @@ module CamaleonCms::Admin::BreadcrumbHelper
   # draw the title for the admin admin panel according the breadcrumb
   def cama_admin_title_draw
     res = [t("camaleon_cms.admin.sidebar_top.admin_panel")]
-    @breadcrumbs.reverse.slice(0, 2).reverse.each{|b| res << b.is_a?(Hash) ? b[:name] : b.name }
+    @breadcrumbs.reverse.slice(0, 2).reverse.each{|b| res << (b.is_a?(Hash) ? b[:name] : b.name) }
     res.join(" &raquo; ")
   end
 
