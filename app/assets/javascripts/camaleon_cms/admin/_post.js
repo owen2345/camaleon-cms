@@ -56,7 +56,7 @@ function cama_init_post(obj) {
     window["post_editor_draft_intrval"] = setInterval(function () { if($form.length == 0){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 1 * 60 * 1000);
     window.save_draft = App_post.save_draft_ajax;
 
-    if($form.find(".title-post" + class_translate).size() == 0) class_translate = '';
+    if($form.find(".title-post" + class_translate).length == 0) class_translate = '';
     $form.find(".title-post" + class_translate).each(function () {
         var $this = $(this);
         if (!$this.hasClass('sluged')) {

@@ -44,7 +44,7 @@ function slugFunc(v, sep){
 			} else {
 				$target.filter(':not(.slugify-locked)').text(slug);
 			}
-            if(settings.change && $target.filter(':not(.slugify-locked)').size() > 0){
+            if(settings.change && $target.filter(':not(.slugify-locked)').length > 0){
                 settings.change(slug);
             }
 		};

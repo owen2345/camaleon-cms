@@ -133,7 +133,7 @@
 
                         $('#add_btn<%= @index %>').click(function(){
                             add_option_default({
-                                value: $sortable.children('li').size() + 1
+                                value: $sortable.children('li').length + 1
                             });
                             return false;
                         });

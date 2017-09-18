@@ -61,7 +61,7 @@ function open_modal(settings){
     settings = $.extend({}, def, settings);
     if(settings.id){
         var hidden_modal = $("#"+settings.id);
-        if(hidden_modal.size()){ hidden_modal.modal('show'); return hidden_modal; }
+        if(hidden_modal.length){ hidden_modal.modal('show'); return hidden_modal; }
     }
     var modal = $('<div id="'+settings.id+'" class="modal fade modal-'+settings.type+'">'+
         '<div class="modal-dialog '+settings.modal_size+'">'+

@@ -108,7 +108,7 @@ window["cama_init_media"] = (media_panel) ->
     dynamicFormData: customFileData,
     onSuccess: ((files,res_upload,xhr,pd)->
       if res_upload.search("media_item") >= 0 # success upload
-        media_panel.trigger("add_file", {item: res_upload, selected: $(pd.statusbar).siblings().not('.error_file_upload').size() == 0})
+        media_panel.trigger("add_file", {item: res_upload, selected: $(pd.statusbar).siblings().not('.error_file_upload').length == 0})
         $(pd.statusbar).remove();
       else
         $(pd.statusbar).find(".ajax-file-upload-progress").html("<span style='color: red;'>"+res_upload+"</span>");
