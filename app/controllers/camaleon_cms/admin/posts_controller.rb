@@ -158,7 +158,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
         flash[:error] = @post.errors.full_messages.join(', ')
       end
     end
-    redirect_to (:back || url_for(action: :index, s: params[:s]))
+    redirect_to(request.referer || url_for(action: :index, s: params[:s]))
   end
 
   # ajax options

@@ -57,6 +57,6 @@ module CamaleonCms::FrontendConcern extend ActiveSupport::Concern
     else
       flash[:comment_submit][:error] = t('camaleon_cms.admin.message.unauthorized')
     end
-    params[:format] == 'json' ? render(json: flash.discard(:comment_submit).to_hash) : redirect_to(:back)
+    params[:format] == 'json' ? render(json: flash.discard(:comment_submit).to_hash) : redirect_to(request.referer || @post.the_url(as_path: true))
   end
 end
