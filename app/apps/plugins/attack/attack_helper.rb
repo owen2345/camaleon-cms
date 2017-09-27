@@ -13,7 +13,7 @@ module Plugins::Attack::AttackHelper
   def attack_on_active(plugin)
     current_site.set_meta("attack_config", {get: {sec: 20, max: 10},
                                             post: {sec: 20, max: 5},
-                                            msg: "#{t('plugin.attack.form.request_limit_exceeded')}",
+                                            msg: "#{I18n.t('plugin.attack.form.request_limit_exceeded')}",
                                             ban: 5,
                                             cleared: Time.now
                                           })
