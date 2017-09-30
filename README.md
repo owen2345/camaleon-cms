@@ -62,16 +62,21 @@
   ```
   bundle install
   ```
-* Install the CMS (before this, you can change defaut configuration in config/system.json)
+* Camaleon CMS Installation
 
   ```
   rails generate camaleon_cms:install
   ```
+  In config/system.json you can customize your cms settings. [Here.](config/system.json) you can see the full settings.
+* (Optional) If you want to manage CMS migrations manually, change config/system.json -> auto_include_migrations=false and generate it with: 
+  ```
+  rake camaleon_cms:generate_migrations
+  ```
 * Create database structure
-
   ```
   rake db:migrate
   ```
+  
 * Start your server
 
   ```
