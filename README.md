@@ -67,7 +67,7 @@
   ```
   rails generate camaleon_cms:install
   ```
-  In config/system.json you can customize your cms settings. [Here.](config/system.json) you can see the full settings.
+  In config/system.json you can customize your cms settings. [Here](config/system.json) you can see the full settings.
 * (Optional) If you want to manage CMS migrations manually, change config/system.json -> auto_include_migrations=false and generate it with: 
   ```
   rake camaleon_cms:generate_migrations
