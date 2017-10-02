@@ -159,7 +159,7 @@ If you need support, need some extra functionality or need plugins, please conta
 * Site: http://camaleon.tuzitio.com/
 * Email: owenperedo@gmail.com
 * Skype: owen-2345
-* Slack: camaleoncms.slack.com
+* Guitter: https://gitter.im/camaleoncms/Lobby
 
 
 ## Author

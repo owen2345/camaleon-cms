@@ -5,11 +5,13 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
 
   def index
     @post_tags = @post_type.post_tags
+    args = {post_type: @post_type}; hooks_run("before_list_post_tags", args)
     @post_tags = @post_tags.paginate(:page => params[:page], :per_page => current_site.admin_per_page)
   end
 
   # render post tag view
   def show
+    args = {post_tag: @post_tag, post_type: @post_type}; hooks_run("before_show_post_tag", args)
   end
 
   # render post tag edit form
@@ -19,9 +21,11 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
 
   # save changes of a post tag
   def update
+    args = {post_tag: @post_tag, post_type: @post_type}; hooks_run("before_update_post_tag", args)
     if @post_tag.update(params.require(:post_tag).permit!)
       @post_tag.set_options(params[:meta]) if params[:meta].present?
       @post_tag.set_field_values(params[:field_options])
+      hooks_run("after_update_post_tag", args)
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
       redirect_to action: :index
     else
@@ -32,9 +36,11 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
   # render post tag create form
   def create
     @post_tag = @post_type.post_tags.new(params.require(:post_tag).permit!)
+    args = {post_tag: @post_tag, post_type: @post_type}; hooks_run("before_create_post_tag", args)
     if @post_tag.save
       @post_tag.set_options(params[:meta]) if params[:meta].present?
       @post_tag.set_field_values(params[:field_options])
+      hooks_run("after_create_post_tag", args)
       flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
       redirect_to action: :index
     else
@@ -44,6 +50,7 @@ class CamaleonCms::Admin::PostTagsController < CamaleonCms::AdminController
 
   # destroy a post tag
   def destroy
+    args = {post_tag: @post_tag, post_type: @post_type}; hooks_run("before_destroy_post_tag", args)
     flash[:notice] = t('camaleon_cms.admin.post_type.message.deleted') if @post_tag.destroy
     redirect_to action: :index
   end
