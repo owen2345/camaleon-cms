@@ -41,22 +41,10 @@
   ```
   gem "camaleon_cms",  '>= 2.4.3.10' # Stable versions 2.4.3.6, 2.4.3.5, 2.4.3.2, 2.3.6, 2.2.1, 2.1.1, 2.1.0
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # current development version
+  # gem 'draper', '~> 3' # only for Rails 5
+  # verify (gem 'sass-rails', '~> 5.0') only for Rails 5
   ```
-* Only Rails 5 support
-  
-  Add in your Gemfile draper for Rails 5
-  ```
-  gem 'draper', '~> 3'
-  ```
-  Be careful with sass-rails, recommended v5 (Camaleon doesn't support for sprockets >= 4 which is included in sass-rails 6)
-  ```
-  gem 'sass-rails', '~> 5.0'
-  ```
-  Update bundle
-  ```
-  bundle update
-  ```
-  
+
 * Install required Gem and dependencies
 
   ```
@@ -67,13 +55,11 @@
   ```
   rails generate camaleon_cms:install
   ```
-  In config/system.json you can customize your cms settings. [Here](config/system.json) you can see the full settings.
-* (Optional) If you want to manage CMS migrations manually, change config/system.json -> auto_include_migrations=false and generate it with: 
-  ```
-  rake camaleon_cms:generate_migrations
-  ```
+* (Optional) Before continue you can configure your cms settings in (my_app/config/system.json), [here](config/system.json) you can see the full settings.  
 * Create database structure
   ```
+  rake camaleon_cms:generate_migrations
+  # before run migrations you can customize copied migration files
   rake db:migrate
   ```
   
