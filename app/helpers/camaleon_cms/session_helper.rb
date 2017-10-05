@@ -33,7 +33,7 @@ module CamaleonCms::SessionHelper
   # login a user using username and password
   # return boolean: true => authenticated, false => authentication failed
   def login_user_with_password(username, password)
-    @user = current_site.users.by_username(username).first
+    @user = current_site.users.find_by_username(username)
     r = {user: @user, params: params, password: password, captcha_validate: true}; hooks_run('user_before_login', r)
     @user && @user.authenticate(password)
   end
