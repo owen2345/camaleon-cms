@@ -11,7 +11,7 @@ module CamaleonCms
         copy_file "plugin_routes.rb", "lib/plugin_routes.rb"
         Dir.mkdir Rails.root.join("app", "apps").to_s unless Dir.exist?(Rails.root.join("app", "apps").to_s)
         directory("apps", "app/apps")
-        directory('../../../../app/apps/themes', 'app/apps/themes')
+        directory( File.join($camaleon_engine_dir, 'app/apps/themes').to_s, 'app/apps/themes')
         append_to_file 'Gemfile' do
           "\n\n#################### Camaleon CMS include all gems for plugins and themes #################### \nrequire './lib/plugin_routes' \ninstance_eval(PluginRoutes.draw_gems)"
         end

@@ -2,7 +2,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   before_action :init_frontent
   include CamaleonCms::FrontendConcern
   include CamaleonCms::Frontend::ApplicationHelper
-  layout Proc.new { |controller| args = {layout: (params[:cama_ajax_request].present? ? "cama_ajax" : 'index'), controller: controller}; hooks_run("front_default_layout", args); args[:layout] }
+  layout Proc.new { |controller| args = {layout: (params[:cama_ajax_request].present? ? "cama_ajax" : PluginRoutes.static_system_info['default_layout']), controller: controller}; hooks_run("front_default_layout", args); args[:layout] }
   before_action :before_hooks
   after_action :after_hooks
   # rescue_from ActiveRecord::RecordNotFound, with: :page_not_found

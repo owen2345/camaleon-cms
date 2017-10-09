@@ -12,7 +12,8 @@
   "admin_path_name": "admin", // URL prefix for admin panel, for example to get http://localhost:3000/sekret/, this should be "sekret"
   "user_model": "", // class name for users (Permit to use custom logins by custom user models like devise)
   "media_slug_folder": false, // permit to use site slug for upload media folder instead of site-id
-  "auto_include_migrations": true // permit to auto include all migrations of camaleon cms and its related plugins, if false you can generate manually with: rake camaleon_cms:generate_migrations
+  "auto_include_migrations": true, // permit to auto include all migrations of camaleon cms and its related plugins, if false you can generate manually with: rake camaleon_cms:generate_migrations
+  "default_layout": "index" // define default layout name for camaleon frontend
 }
 
 // Note: after any change in this file, you need to restart your server to apply changes.
