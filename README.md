@@ -145,6 +145,7 @@ If you need support, need some extra functionality or need plugins, please conta
 * Site: http://camaleon.tuzitio.com/
 * Email: owenperedo@gmail.com
 * Skype: owen-2345
+* Stack Overflow: Use "camaleon" as tag to ask questions related to this CMS (don't forget to include cms version + rails version).  
 * Guitter: https://gitter.im/camaleoncms/Lobby
 
 
