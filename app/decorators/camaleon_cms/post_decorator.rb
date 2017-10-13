@@ -212,6 +212,21 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   def the_post_type
     object.post_type.decorate
   end
+  
+  # looks for the next post item related to parent element based on post_order attribute
+  # @param _parent: parent decorated model, like: (PostType *default), Category, PostTag, Site
+  # @samples: my_post.the_next_post(), my_post.the_next_post(@category), my_post.the_next_post(current_site)
+  def the_next_post(_parent = nil)
+    puts "next for: #{object.slug}"
+    (_parent.presence || the_post_type).the_posts.where("#{CamaleonCms::Post.table_name}.post_order > :position OR (#{CamaleonCms::Post.table_name}.post_order = :position and #{CamaleonCms::Post.table_name}.created_at > :created_at)", {position: object.post_order, created_at: object.created_at}).where.not(id: object.id).take.try(:decorate)
+  end
+
+  # looks for the next post item related to parent element based on post_order attribute
+  # @param _parent: parent decorated model, like: (PostType *default), Category, PostTag, Site
+  # @samples: my_post.the_prev_post(), my_post.the_prev_post(@category), my_post.the_prev_post(current_site)
+  def the_prev_post(_parent = nil)
+    (_parent.presence || the_post_type).the_posts.where("#{CamaleonCms::Post.table_name}.post_order < :position OR (#{CamaleonCms::Post.table_name}.post_order = :position and #{CamaleonCms::Post.table_name}.created_at < :created_at)", {position: object.post_order, created_at: object.created_at}).where.not(id: object.id).reorder(post_order: :asc, created_at: :asc).last.try(:decorate)
+  end
 
   # return the title with hierarchy prefixed
   # sample: title paren 1 - title parent 2 -.. -...

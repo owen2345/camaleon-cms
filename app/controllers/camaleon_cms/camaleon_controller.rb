@@ -125,8 +125,10 @@ class CamaleonCms::CamaleonController < ApplicationController
       end
     end
   end
-
-  def current_user
-    cama_current_user
+  
+  unless ApplicationController.method_defined?(:current_user)
+    def current_user
+      cama_current_user
+    end
   end
 end

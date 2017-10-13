@@ -80,7 +80,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   end
 
   def destroy
-    if current_user.id == @user.id
+    if cama_current_user.id == @user.id
       flash[:error] = t('camaleon_cms.admin.users.message.user_can_not_delete_own_account', default: 'User can not delete own account')
     elsif @user.destroy
       flash[:notice] = t('camaleon_cms.admin.users.message.deleted')
@@ -106,7 +106,7 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
 
   def user_params
     parameters = params.require(:user)
-    if current_user.role_grantor?(@user)
+    if cama_current_user.role_grantor?(@user)
       parameters.permit(:username, :email, :role, :first_name, :last_name)
     else
       parameters.permit(:username, :email, :first_name, :last_name)

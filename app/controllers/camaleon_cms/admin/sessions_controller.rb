@@ -18,7 +18,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
 
   def login_post
     data_user = user_permit_data
-    @user = current_site.users.by_username(data_user[:username]).first
+    @user = current_site.users.find_by_username(data_user[:username])
     captcha_validate = captcha_verify_if_under_attack("login")
     r = {user: @user, params: params, password: data_user[:password], captcha_validate: captcha_validate, stop_process: false}; hooks_run("user_before_login", r)
     return if r[:stop_process] # permit to redirect for data completion

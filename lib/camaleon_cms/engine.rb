@@ -23,6 +23,9 @@ require 'draper' if PluginRoutes.isRails4?
 
 module CamaleonCms
   class Engine < ::Rails::Engine
+    config.generators do |g|
+      g.test_framework :rspec
+    end
     config.before_initialize do |app|
       app.config.active_record.belongs_to_required_by_default = false if PluginRoutes.isRails5?
       if app.respond_to?(:console)

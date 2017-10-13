@@ -11,7 +11,7 @@ class CamaleonCms::Ability
       can :read, :all
     else
       # conditions:
-      current_user_role = user.get_role(current_site)
+      current_user_role = user.get_role(current_site) || current_site.user_roles.new
       @roles_manager ||= current_user_role.get_meta("_manager_#{current_site.id}", {}) || {}
       @roles_post_type ||= current_user_role.get_meta("_post_type_#{current_site.id}", {}) || {}
 

@@ -50,6 +50,7 @@ module Plugins::Attack::AttackHelper
 
   private
   def attack_check_request
+    return unless current_site
     config = current_site.get_meta("attack_config")
     q = current_site.attack.where(browser_key: cama_get_session_id, path: attack_request_key)
     return unless config.present?

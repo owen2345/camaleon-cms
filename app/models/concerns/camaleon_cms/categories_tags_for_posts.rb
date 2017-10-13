@@ -43,12 +43,12 @@ module CamaleonCms::CategoriesTagsForPosts extend ActiveSupport::Concern
   def update_tags(tags)
     rescue_extra_data
     tags = tags.split(",").strip
-    post_tags = self.post_type.post_tags
-    post_tags = post_tags.where("cama_term_taxonomy.name not in (?)", tags) if tags.present?
-    self.term_relationships.where("term_taxonomy_id in (?)", post_tags.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")).destroy_all
+    post_tags = post_type.post_tags
+    post_tags = post_tags.where.not(name: tags) if tags.present?
+    term_relationships.where("term_taxonomy_id in (?)", post_tags.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")).destroy_all
     tags.each do |f|
-      post_tag = self.post_type.post_tags.where({name: f}).first_or_create(slug: f.parameterize)
-      self.term_relationships.where({term_taxonomy_id: post_tag.id}).first_or_create
+      post_tag = post_type.post_tags.where({name: f}).first_or_create(slug: f.parameterize)
+      term_relationships.where({term_taxonomy_id: post_tag.id}).first_or_create
     end
     update_counters("tags")
   end

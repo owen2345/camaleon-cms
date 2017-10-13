@@ -4,6 +4,7 @@
   "users_share_sites": true, //(boolean) true: permit to share users between sites, false: All users are assigned for a unique site. (Only changed before installation)
   "db_prefix": "cama_", // prefix name for database tables
   "relative_url_root": "", // URL prefix, for example to get http://localhost:3000/blog/, this should be "blog"
+  "auto_include_migrations": false, // permit to avoid auto include of all migrations of camaleon cms and its related plugins
   "hooks": {}
 }
 

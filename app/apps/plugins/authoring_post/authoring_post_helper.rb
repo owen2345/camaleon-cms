@@ -40,7 +40,7 @@ module Plugins::AuthoringPost::AuthoringPostHelper
   end
 
   def plugin_authoring_authors_list(post)
-    author_id = post.new_record? ? current_user.id : post.author.id
+    author_id = post.new_record? ? cama_current_user.id : post.author.id
     ret = ''
     current_site.users.where('role <> ?', 'client').order(:username).each do |user|
       ret += "<option value='#{user.id}' #{user.id.eql?(author_id) ? 'selected' : ''}>#{user.username.titleize}#{user.fullname.eql?(user.username.titleize) ? '' : ' (' +  user.fullname + ')' }</option>"

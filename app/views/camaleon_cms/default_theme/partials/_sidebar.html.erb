@@ -64,13 +64,3 @@
         </div>
     <% end %>
 <% end %>
-
-<!-- custom fields -->
-<% if post.render_fields.present? && !defined?(skip_fields) %>
-    <div class="panel panel-default">
-        <div class="panel-heading"><%= ct("extra_attributes", default: 'Extra Attributes') %></div>
-        <div class="panel-body">
-            <%= raw post.render_fields %>
-        </div>
-    </div>
-<% end %>
