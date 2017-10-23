@@ -44,7 +44,7 @@ module CamaleonCms::CategoriesTagsForPosts extend ActiveSupport::Concern
     rescue_extra_data
     tags = tags.split(",").strip
     post_tags = post_type.post_tags
-    post_tags = post_tags = post_tags.where("cama_term_taxonomy.name not in (?)", tags) if tags.present?
+    post_tags = post_tags.where.not(name: tags) if tags.present?
     term_relationships.where("term_taxonomy_id in (?)", post_tags.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")).destroy_all
     tags.each do |f|
       post_tag = post_type.post_tags.where({name: f}).first_or_create(slug: f.parameterize)
