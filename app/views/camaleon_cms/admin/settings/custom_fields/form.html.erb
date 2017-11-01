@@ -64,7 +64,7 @@
                                 </optgroup>
 
                                 <optgroup label="<%= t('camaleon_cms.admin.settings.others') %>">
-                                    <% value = "#{PluginRoutes.static_system_info['user_model'] || 'User'},#{current_site.id}" %>
+                                    <% value = "#{PluginRoutes.static_system_info['user_model'].presence || 'User'},#{current_site.id}" %>
                                     <option value="<%= value %>" data-help="<%= t('camaleon_cms.admin.settings.tooltip.add_custom_field_users') %>"><%= t('camaleon_cms.admin.sidebar.users') %></option>
                                     <% value = "Site,#{current_site.id}" %>
                                     <option value="<%= value %>" data-help="<%= t('camaleon_cms.admin.settings.tooltip.add_custom_field_sites') %>"><%= t('camaleon_cms.admin.sidebar.site_settings') %></option>
