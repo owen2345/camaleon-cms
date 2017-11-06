@@ -39,7 +39,7 @@
 * Add the gem in your Gemfile (Stable versions 2.4.4.5, 2.4.3.10, 2.3.6, 2.2.1, 2.1.1)
 
   ```
-  gem "camaleon_cms",  '>= 2.4.4.6'
+  gem "camaleon_cms",  '>= 2.4.4.7'
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # current development version
   # gem 'draper', '~> 3' # only for Rails 5
   # verify (gem 'sass-rails', '~> 5.0') only for Rails 5
