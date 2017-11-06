@@ -23,7 +23,7 @@
         </div>
         <textarea class="hidden data_value"><%= raw file.to_json %></textarea>
         <div class="actions">
-            <% if file['format'] == 'image' && File.extname(file['name']).downcase != '.gif' && cama_current_user.can_edit_file?(file) %>
+            <% if file['format'] == 'image' && File.extname(file['name']).downcase != '.gif' %>
               <% args = {res: true, file: file}; hooks_run('file_manager_edit_file', args) %>  
               <% if args[:res] %>
                 <a href="#" class="edit_item btn btn-primary btn-xs" <%= 'data-permit-overwrite="true"' if @show_file_actions %>><i class="fa fa-pencil"></i></a>
