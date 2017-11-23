@@ -1,5 +1,6 @@
 uk:
   camaleon_cms:
+    see_intro: "Дивитися інтро"
     welcome_message: "Ласкаво просимо в Camaleon CMS"
     page_not_exist: "<h1> ой ... </ h1> <h5> Сторінка, яку ви шукаєте, не існує. </ h5>"
     page_error_500: "<h1> ой ... </ h1> <h5> Помилка 500 Внутрішня помилка сервера. Будь ласка, зв'яжіться з адміністратором. </ h5>"
@@ -386,8 +387,8 @@ uk:
         appearance: 'Зовнішній вигляд'
         comments: 'Коментарі'
         content: 'Зміст'
-        contents: 'Змісті'
-        content_groups: 'Групи змісті'
+        contents: 'Змісти'
+        content_groups: 'Групи змісту'
         custom_fields: 'Користувальницькі поля'
         dashboard: 'Панель управління'
         general_site: 'Головний сайт'
