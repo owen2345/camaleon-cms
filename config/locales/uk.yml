@@ -1,0 +1,257 @@
+uk:
+  date:
+    abbr_day_names:
+    - Нд
+    - Пн
+    - Вт
+    - Ср
+    - Чт
+    - Пт
+    - Сб
+    abbr_month_names:
+    -
+    - січ.
+    - лют.
+    - бер.
+    - квіт.
+    - трав.
+    - черв.
+    - лип.
+    - серп.
+    - вер.
+    - жовт.
+    - лист.
+    - груд.
+    day_names:
+    - неділя
+    - понеділок
+    - вівторок
+    - среда
+    - четвер
+    - п'ятниця
+    - субота
+    formats:
+      default: ! '%d.%m.%Y'
+      long: ! '%d %B %Y'
+      short: ! '%d %b'
+    month_names:
+    -
+    - січня
+    - лютого
+    - березня
+    - квітня
+    - травня
+    - червня
+    - липня
+    - серпня
+    - вересня
+    - жовтня
+    - листопада
+    - грудня
+    order:
+    - :day
+    - :month
+    - :year
+  datetime:
+    distance_in_words:
+      about_x_hours:
+        few: близько %{count} годин
+        many: близько %{count} годин
+        one: близько %{count} години
+        other: близько %{count} годин
+      about_x_months:
+        few: близько %{count} місяців
+        many: близько %{count} місяців
+        one: близько %{count} місяця
+        other: близько %{count} місяця
+      about_x_years:
+        few: близько %{count} років
+        many: близько %{count} років
+        one: близько %{count} року
+        other: близько %{count} року
+      almost_x_years:
+        one: майже 1 рік
+        few: майже %{count} роки
+        many: майже %{count} років
+        other: майже %{count} рік
+      half_a_minute: менше хвилини
+      less_than_x_minutes:
+        few: менше %{count} хвилин
+        many: менше %{count} хвилин
+        one: менше %{count} хвилини
+        other: менше %{count} хвилини
+      less_than_x_seconds:
+        few: менше %{count} секунд
+        many: менше %{count} секунд
+        one: менше %{count} секунди
+        other: менше %{count} секунди
+      over_x_years:
+        few: більше %{count} років
+        many: більше %{count} років
+        one: більше %{count} року
+        other: більше %{count} року
+      x_days:
+        few: ! '%{count} дні'
+        many: ! '%{count} днів'
+        one: ! '%{count} день'
+        other: ! '%{count} дня'
+      x_minutes:
+        few: ! '%{count} хвилини'
+        many: ! '%{count} хвилин'
+        one: ! '%{count} хвилина'
+        other: ! '%{count} хвилини'
+      x_months:
+        few: ! '%{count} місяці'
+        many: ! '%{count} місяців'
+        one: ! '%{count} місяц'
+        other: ! '%{count} місяців'
+      x_seconds:
+        few: ! '%{count} секунди'
+        many: ! '%{count} секунд'
+        one: ! '%{count} секунда'
+        other: ! '%{count} секунди'
+    prompts:
+      day: День
+      hour: Година
+      minute: Хвилина
+      month: Місяць
+      second: Секунд
+      year: Рік
+  errors: &errors
+    format: ! '%{attribute} %{message}'
+    messages:
+      accepted: потрібно підтвердити
+      blank: не може бути порожнім
+      confirmation: не збігається з підтвердженням
+      empty: не може бути порожнім
+      equal_to: може мати лише значення, рівне %{count}
+      even: може мати лише непарне значення
+      exclusion: має зарезервоване значення
+      greater_than: може мати значення більше %{count}
+      greater_than_or_equal_to: може мати значення більше або рівне %{count}
+      inclusion: має непередбачене значення
+      invalid: має невірне значення
+      less_than: може мати значення менше ніж %{count}
+      less_than_or_equal_to: може мати значення менше або рівне %{count}
+      not_a_number: не є числом
+      not_an_integer: не є цілим числом
+      odd: може мати лише парне значення
+      record_invalid: ! 'Виникли помилки: %{errors}'
+      taken: вже існує
+      too_long:
+        few: занадто великої довжини (не може бути більше ніж %{count} символи)
+        many: занадто великої довжини (не може бути більше ніж %{count} символів)
+        one: занадто великої довжини (не може бути більше ніж %{count} символ)
+        other: занадто великої довжини (не може бути більше ніж %{count} символи)
+      too_short:
+        few: недостатньої довжини (не може бути менше %{count} символів)
+        many: недостатньої довжини (не може бути менше %{count} символів)
+        one: недостатньої довжини (не може бути менше %{count} символу)
+        other: недостатньої довжини (не може бути менше %{count} символу)
+      wrong_length:
+        few: невірної довжини (може бути довжиною рівною %{count} символам)
+        many: невірної довжини (може бути довжиною рівною %{count} символам)
+        one: невірної довжини (може бути довжиною рівною %{count} символу)
+        other: невірної довжини (може бути довжиною рівною %{count} символу)
+    template:
+      body: ! 'Проблеми виникли з наступними полями:'
+      header:
+        few: ! '%{model}: не вдалось зберегти через %{count} помилок'
+        many: ! '%{model}: не вдалось зберегти через %{count} помилок'
+        one: ! '%{model}: не вдалось зберегти через %{count} помилоку'
+        other: ! '%{model}: не вдалось зберегти через %{count} помилок'
+  helpers:
+    select:
+      prompt: ! 'Виберіть:'
+    submit:
+      create: Створити %{model}
+      submit: Зберегти %{model}
+      update: Зберегти %{model}
+  number:
+    currency:
+      format:
+        delimiter: ! ' '
+        format: ! '%n %u'
+        precision: 2
+        separator: ','
+        significant: false
+        strip_insignificant_zeros: false
+        unit: грн.
+    format:
+      delimiter: ! ' '
+      precision: 3
+      separator: ','
+      significant: false
+      strip_insignificant_zeros: false
+    human:
+      decimal_units:
+        format: ! '%n %u'
+        units:
+          billion:
+            few: мільярди
+            many: мільярдів
+            one: мільярд
+            other: мільярдів
+          million:
+            few: мільйони
+            many: мільйонів
+            one: мільйон
+            other: мільйонів
+          quadrillion:
+            few: квадрильйони
+            many: квадрильйонів
+            one: квадрильйон
+            other: квадрильйонів
+          thousand:
+            few: тисячі
+            many: тисяч
+            one: тисяча
+            other: тисяч
+          trillion:
+            few: трильйони
+            many: трильйонів
+            one: трильйон
+            other: трильйонів
+          unit: ''
+      format:
+        delimiter: ''
+        precision: 1
+        significant: false
+        strip_insignificant_zeros: false
+      storage_units:
+        format: ! '%n %u'
+        units:
+          byte:
+            few: байти
+            many: байтів
+            one: байт
+            other: байтів
+          gb: ГБ
+          kb: КБ
+          mb: МБ
+          tb: ТБ
+    percentage:
+      format:
+        delimiter: ''
+    precision:
+      format:
+        delimiter: ''
+  support:
+    array:
+      last_word_connector: ! ' і '
+      two_words_connector: ! ' і '
+      words_connector: ! ', '
+  time:
+    am: ранку
+    formats:
+      default: ! '%a, %d %b %Y, %H:%M:%S %z'
+      long: ! '%d %B %Y, %H:%M'
+      short: ! '%d %b, %H:%M'
+    pm: вечора
+  # remove these aliases after 'activemodel' and 'activerecord' namespaces are removed from Rails repository
+  activemodel:
+    errors:
+      <<: *errors
+  activerecord:
+    errors:
+      <<: *errors

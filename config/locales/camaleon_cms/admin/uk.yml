@@ -1,0 +1,670 @@
+uk:
+  camaleon_cms:
+    see_intro: "Дивитися інтро"
+    welcome_message: "Ласкаво просимо в Camaleon CMS"
+    page_not_exist: "<h1> ой ... </ h1> <h5> Сторінка, яку ви шукаєте, не існує. </ h5>"
+    page_error_500: "<h1> ой ... </ h1> <h5> Помилка 500 Внутрішня помилка сервера. Будь ласка, зв'яжіться з адміністратором. </ h5>"
+    admin:
+      request_error_message: "Сталася помилка, будь ласка, зв'яжіться з адміністратором."
+      authorization_error: "У вас немає прав для цього розділу."
+      header:
+        member_since: "Учасник з %{time}"
+      button:
+        activity: 'Активність'
+        add_new_field: 'Додати нове поле'
+        add_option: 'Додати опцію'
+        add_menu: 'Додати в меню'
+        add_widget: 'Додати віджет'
+        accept: 'Прийняти'
+        add_folder: 'Додати папку'
+        actived: 'Активоване'
+        activate_plugin: 'Активізувати плагін'
+        back: 'Назад'
+        change_photo: 'Змінити фотографію'
+        change_password: 'Змінити пароль'
+        create_menu: 'Створити меню'
+        create: 'Створити'
+        cancel: 'Скасувати'
+        chat: 'Чат'
+        close: 'Закрити'
+        delete: 'Видалити'
+        disable_plugin: 'Вимкнути плагін'
+        enter: 'Увійти'
+        edit: 'Редагувати'
+        new: 'Новий'
+        following: 'Слідкує'
+        log_in: 'Увійти'
+        move_trash: 'Перемістити в смітник'
+        no: 'Ні'
+        none: 'Ніщо'
+        not_actived: 'Не активований'
+        publish: 'Опублікувати'
+        preview: 'Попередній перегляд'
+        proccess: 'Обробити'
+        recover: 'Відновити'
+        restore: 'Відновити'
+        restore_selections: 'Відновити відмічені'
+        delete_complete: "Видалити повністю"
+        select: 'Вибрати'
+        select_all: 'Вибрати все'
+        select_file: 'Виберіть файл'
+        select_none: 'Нічого не вибірати'
+        sign_up: 'Зареєструватися'
+        submit: 'Відправити'
+        settings: 'Налаштування'
+        sortable: 'Сортований'
+        update: 'Оновити'
+        update_menu: 'Оновити меню'
+        upload_audio: 'Завантажити Аудіо'
+        upload_file: 'Завантажити файл'
+        upload_image: 'Завантажити зображення'
+        upload_icon: 'Завантажити Іконку'
+        upload_video: 'Завантажити відео'
+        view_draft: 'Подивитися ескіз'
+        view_page: 'Перегляд сторінки'
+        yes: 'Так'
+        out_yes: 'Так'
+        out_not: "Ні"
+        domain: "Домен"
+        search: "Пошук"
+
+      comments:
+        new_msg: "Новий коментар для цього поста"
+        comments_list_post: 'Показати список коментарів для поста'
+        responses: 'Відповіді'
+        message:
+          approved: 'Схвалено'
+          change_status: 'Статус відповіді був змінений на'
+          created: 'Коментар був створений.'
+          destroy: 'Відповіді були видалені.'
+          destroy_comments: 'Коментарі були видалені.'
+          deleted: 'Відповіді були видалені.'
+          error: 'Комментраій не найден'
+          pending: 'Розглядається'
+          responses: 'Відповідь була створена.'
+          spam: 'Спам'
+          there_no_comments: 'Немає коментарів.'
+          updated: 'Коментар був оновлений.'
+
+        tooltip:
+          approved_comment: 'Підтвердити коментар'
+          comment_pending: 'Коментар на перегляд'
+          comment_spam: 'Спам'
+          reply_comment: 'Відповісти на коментар'
+          delete_comment: 'Видалити коментар'
+      custom_field:
+        message:
+          custom_group_error: 'Помилка групи полів, що настроюються'
+          custom_created: 'Група полів, що настроюються була створена.'
+          custom_updated: 'Група полів, що настроюються була оновлена.'
+        fields:
+          text_box: 'Текстове Поле'
+          text_area: 'Многострокове Поле'
+          select: 'Список'
+          colorpicker: 'Колір Picker'
+          date: 'Дата'
+          email: 'Ел. адреса '
+          file: 'Файл'
+          image: 'Зображення'
+          image_dimension: 'Розміри зображення'
+          image_dimension_descr: 'Обрізати зображення за вказаним розміром (ширина і висота), вибірка: 400x300 <br> Можливі значення: 400x300 | 400x | x300 | ? 400x? 500 | 1400x (? => Max, empty => auto)'
+          image_versions: 'Версії'
+          image_versions_descr: "Створення додаткових кількох версій завантаженого зображення, наприклад: 300x300, 505x350 ==> Створить два додаткові зображення з цими параметрами"
+          image_thumb: 'Мініатюра'
+          required_image_thumb: "Мініатюра обов'язкова?"
+          image_thumb_descr: "Define the dimension for the thumbnail, sample: 100x100. Default: %{d}"
+          numeric: 'Числове'
+          phone: 'Телефон'
+          users: 'Користувачі'
+          posts: 'Пости'
+          select_eval: 'Список Eval'
+          field_attrs: 'Атрибути полів'
+          website: 'Вебсайт'
+          multiple_choice: 'Перемикачі Radio'
+
+
+      login:
+        already_have_account: 'Вже є аккаунт?'
+        authentication: 'Автентифікація'
+        captcha: 'Captcha'
+        create_account: 'Завести аккаунт'
+        login: 'Вхід'
+        forgot_your_password_int: 'Я забув пароль'
+        message:
+          success: 'Ласкаво просимо !!!'
+          fail: "Неправильне ім'я користувача або пароль"
+          forgot_url_incorrect: 'Неправильний URL'
+          forgot_expired: 'Скидання закінчилось.'
+          hello: 'Привіт'
+          reset_password_succes: 'Скидання пароля пройшло успішно!'
+          reset_password_error: 'Неправильний пароль'
+          reset_url: 'Скидання URL'
+          subject_email: 'Скинути доступ'
+          send_mail_succes: 'Надіслати на ел. адреса про успішне скиданні доступу. '
+          send_mail_error: 'Адреса електронної пошти не знайдено.'
+          invalid_caption: 'Невірна captcha'
+          email_not_validated: 'E-mail не був підтверджений.'
+          confirm_email_token_incorrect: 'Невірний URL'
+          confirm_email_token_expired: 'Підтвердити адресу електронної пошти URL закінчився термін'
+          confirm_email_success: 'Ел. пошта підтверджена. '
+        personal_info: 'Персональна інформація'
+        please_login: 'Будь ласка, увійдіть'
+        reset_password: 'Скидання пароля'
+        reCaptcha: 'reCaptcha'
+        send_email: 'Електронна пошта'
+        reset_password_html: '<strong> Електронна пошта </ strong>, скидання пароля'
+        welcome: 'Ласкаво просимо'
+        welcome_login_html: '<strong> Ласкаво просимо </ strong>, Будь ласка, увійдіть'
+        do_not_have_account_yet: "Ще немає облікового запису?"
+        msg_registration_html: '<strong> Реєстрація </ strong>, заповніть форму'
+        username: "Ім'я користувача"
+        password: "Пароль"
+        password_confirm: "Підтвердження пароля"
+        first_name: "Ім'я"
+        last_name: "Прізвище"
+        email: "Ел. пошта"
+        remember_me: "Запам'ятати"
+        confirm:
+          text: "Будь ласка, підтвердіть свій аккаунт, натиснувши на це посилання"
+          subject: "Підтвердіть свій аккаунт"
+      logout:
+        log: 'Вхід'
+        out: 'Вихід'
+        logout: 'Вихід'
+        logout_html: 'Хочете <strong> вийти </ strong>?'
+        message:
+          closed: 'Сесія закрита'
+      media:
+        media_manager: 'Медійній Менеджер'
+        home: "Додому"
+        info: "Інформація"
+      menus:
+        link_url: 'URL посилання'
+        message:
+          created: 'меню було створено.'
+          deleted: 'меню було створено.'
+          error_menu: 'Помилка Меню'
+        name_link: 'Назва посилання'
+        name_menu: 'Назва меню'
+        external_link: 'Зовнішнє посилання'
+        or: 'або'
+        create_new: 'створити нове меню'
+        select: 'Виберіть Меню'
+        select_edit: 'Виберіть меню, яке потрібно відредагувати:'
+      message:
+        are_you_sure_you_want_log_out_int: 'Ви дійсно хочете вийти?'
+        are_you_sure_to_import: "Ви впевнені, що хочете імпортувати?"
+        data_found_list: 'Інформація відсутня в списку'
+        delete: 'Ви дійсно хочете видалити цей елемент?'
+        delete_item: 'Дійсно хочете видалити цей елемент?'
+        edit_menu: 'Помістіть кожен елемент в потрібному порядку. Натисніть на іконку олівця для редагування і натисніть на іконку у вигляді х, щоб видалити елемент. '
+        add_menus: 'Додати пункти меню в ліву колоку.'
+        press_no_continue_work_press_yes_logout: 'Натисніть Ні, якщо ви хочете, щоб продовжити роботу. Натисніть Так, щоб вийти поточного користувача. '
+        updated_success: 'Успішно Оновлене'
+        remove_items_submenu: 'Дійсно видалити цей елемент і його під елементи меню?'
+        you_must_upload_image: 'Ви повинні завантажити зображення'
+        you_must_upload_video: 'Ви повинні завантажити відео'
+        so_their_data_has_not_been_saved: 'так що їх дані не були збережені'
+        no_response_fields: 'Нема полів для відповіді'
+        quick_info: 'Коротка інформація цього користувача'
+        was_inactivated: 'був деактивований.'
+        was_activated: 'був активований.'
+        was_upgraded: 'був оновлений.'
+        can_not_be_removed: 'не може бути видалений.'
+        was_removed: 'був видалений.'
+        processing: 'Обробка ...'
+        change_photo: 'Використовуйте форму, щоб завантажити файл. Тільки файли зображень. '
+        change_password: 'Щоб змінити пароль, введіть старий пароль, а потім ввести новий пароль і повторіть новий пароль.'
+        you_must_upload_json_file: 'Ви повинні завантажити файл у форматі JSON'
+        import_process: 'Імпорт в процесі'
+        unauthorized: "Доступ закритий"
+        welcome: 'Ласкаво просимо в адмін панель вашого сайту.'
+        no_templates_defined: 'Шаблони не визначені'
+        avatar_updated: 'Аватар Оновлений'
+        form_error: 'Помилка форми'
+      page_title:
+        page_title: 'Заголовок сторінки'
+        create: 'Створити'
+        details: 'Деталі'
+        edit: 'Редагувати'
+        add: 'Додати'
+        list: 'Список'
+        list_of: 'Список %{post_type}'
+        new_site: 'Новий сайт'
+        edit_site: 'Редагувати сайт'
+        update: 'Оновити'
+      post:
+        add_tag: 'Додати тег'
+        clone: 'Клонувати'
+        clone_content: 'Клонувати контент'
+        label_required: 'Необхідна мітка'
+        placeholder_required: 'Небхідний заповнювач'
+        message:
+          created: '%{post_type} був створений.'
+          updated: '%{post_type} був оновлений.'
+          deleted: '%{post_type} був видалений.'
+          error: 'Помилка %{post_type}'
+          error_post_type: 'Помилка %{post_type}'
+          trash: '%{post_type} був переміщений в смітник.'
+          requires_different_slug: 'Вимагає інший slug'
+          restore: '%{post_type} був відновлений.'
+          draft: 'Ескіз був успішно збережений.'
+          recover: 'Відновлення ...'
+        permalink: 'Постійне посилання'
+      post_type:
+        route_format: 'Зміст Формат маршруту'
+        all: 'Всі елементи'
+        add: 'Додати'
+        add_category: 'Додати категорію'
+        add_post_type: 'Додати тип поста'
+        add_new: 'Додати нове'
+        add_post_tag: 'Додати тег поста'
+        categories: 'Категорії'
+        category: 'Категорія'
+        configuration: 'Конфігурація'
+        other_configuration: 'Користувальницькі конфігурації'
+        comments: 'Коментарі'
+        draft: 'Ескіз'
+        edit_post_type: 'Редагувати тип поста'
+        edit_category: 'Редагувати Категорію'
+        enter_password: 'Введіть пароль'
+        featured_image: 'Популярне зображення'
+        keywords: 'Ключові слова'
+        default_layout: 'Макет за замовчуванням'
+        default_template: 'Шаблон за замовчуванням'
+        icon: 'Іконка'
+        message:
+          error: 'Помилка класу'
+          error_term: 'Помилка терміна класу'
+          created: 'Збережено'
+          updated: 'Додано'
+          deleted: 'Вилучено'
+          no_created_html: '<br> Не вдалося знайти %{taxonomy}'
+        pending: 'Розглядається'
+        permit_comments: 'Дозволити коментарі?'
+        post_types: 'Типи постів'
+        posts: 'Пости'
+        post_tags: 'Теги поста'
+        published: 'Опублікований'
+        published_date: 'Дата публікації'
+        save_draft: 'Зберегти ескіз'
+        save_pending: 'Зберегти розглядання'
+        summary: 'Резюме'
+        tags: 'Теги'
+        template: 'Шаблон'
+        layout: 'Макет'
+        trash: 'Смітник'
+        tooltip:
+          permission_asing_categories: 'Дозвіл на керування змістом поста за категоріями'
+          permission_add_tags: 'Увімкніть поле для введення ключових слів в зміст поста'
+          permission_add_content: 'Включити редактор для введення контенту в пості'
+          permission_add_content_summary: 'Включити поле для введення анотації в пості'
+          permission_reviews: 'Включити опцію, щоб вказати, якщо вміст поста може бути прокоментований'
+          permission_add_image_presentation: 'Включити редактор для завантаження ескізу в зміст поста'
+          permission_manage_template: 'Включити поле для вибору шаблону за змістом. (Шаблон: файл, який буде використовуватися для відображення змісту) '
+          permission_manage_layout: 'Включити поле для вибору макета в зміст. (Макет: обгортка файлу, в якому буде відмалювали шаблон) '
+          permission_add_keywords: 'Включити поле для введення ключових слів для поста (SEO)'
+          default_layout: 'Виберіть макет за замовчуванням для всіх змістів постів даного типу'
+          default_template: 'Виберіть шаблон за замовчуванням для всіх змістів постів даного типу'
+        upload_image: 'Завантажити зображення'
+        view_comments: 'Подивитися Коментарі'
+      plugins:
+        active_plugins: 'Активні плагіни'
+        disabled_plugins: 'Виключені плагіни'
+        all_plugins: 'Усі плагіни'
+        status_false: 'Неактивні'
+        status_true: 'Активні'
+        type_contents: 'Типи змістів'
+        upgrade_to: "Оновити до"
+      settings:
+        activate_create_account: 'Активувати Створення аккаунта'
+        activate_login_social_networks: 'Активізувати вхід через соціальні мережі'
+        add_field_group: 'Додати групу полів'
+        admin_language: 'Мова адмінки'
+        allow_user_registration: 'Дозволити реєстрацію користувачів'
+        available_fields: 'Доступні поля'
+        available_languages: 'Доступні мови'
+        categories_in: 'Категорій в'
+        configuration_site: 'Конфігурація сайту'
+        current_languages: 'Поточні мови'
+        details_custom_field_group: 'Деталі групи користувальницьких полів'
+        details_site: 'Інформація про сайт'
+        edit_custom_field_group: 'Редагувати групу призначених для користувача полів'
+        field: 'Поле'
+        fields: 'Поля'
+        information_basic: 'Основна інформація'
+        theme_setting: "Налаштування теми"
+        input_only_date: 'Введіть тільки дату'
+        input_date_time: 'Введіть дату і час'
+        languages_configuration: 'Конфігурація мов'
+        list_custom_fields_group: 'Список груп ползовательскіх полів'
+        list_sites: 'Список сайтів'
+        login_twitter: 'Twitter'
+        login_facebook: 'Facebook'
+        login_google: 'Google+'
+        email_enabled: "Використовувати ці настройки для відправки листів"
+        email_server: "Сервер ел. пошти"
+        email_port: "Порт ел. пошти"
+        email_domain: "Домен ел. пошти"
+        email_username: "Ім'я користувача"
+        email_pass: "Пароль користувача"
+        email_from: "Email From"
+        email_cc: "Email CC"
+        twitter_card: "Twitter Card"
+        author: "Ім'я автора"
+        seo_setting: "Налаштування Seo"
+        email_settings: "Налаштування Email (SMTP)"
+        filesystem_type: "Тип файлової системи"
+        filesystem_s3_access_key: "AWS S3 Access Key"
+        filesystem_s3_secret_key: "AWS S3 Secret Key"
+        filesystem_s3_bucket_name: "AWS S3 Bucket name"
+        filesystem_s3_endpoint: "AWS S3 Bucket endpoint"
+        filesystem_region: "AWS S3 Region"
+        filesystem_cdn: "CDN url"
+        security:
+          captcha_user_register: "Включити капчу на реєстрацію користувача?"
+          need_validate_email: "Необхідність перевірки електронної пошти?"
+        message:
+          language_updated: 'Конфігурація мов завершена.'
+          site_updated: 'Сайт був оновлений.'
+        new_custom_field_group: 'Нова група призначених для користувача полів'
+        options_select: 'Варіанти вибору'
+        option_title: 'Назва варіанту'
+        others: 'Інші'
+        please_separated_commas: 'Будь ласка через коми'
+        comment_status: 'Реєструвати коментарі як затверджених?'
+        list_per_page_front: 'Кількість елементів будуть показані на фронтенді'
+        list_per_page_admin: 'Кількість елементів будуть показані на бекенд'
+        permission_register_users: 'Дозвіл на реєстрацію користувачів'
+        permission_login_twitter: 'Дозвіл входу за допомогою Twitter'
+        permission_login_facebook: 'Дозвіл входу за допомогою Facebook'
+        permission_login_google: 'Дозвіл входу за допомогою Google+'
+        posts_in: 'Пости в'
+        settings: 'Налаштування'
+        tooltip:
+          add_custom_field_posts: 'Додати призначене для користувача поле в пости'
+          add_custom_field_categories: 'Додати призначене для користувача поле в категорії'
+          add_custom_field_users: 'Додати призначене для користувача поле в користувачів'
+          add_custom_field_sites: 'Додати призначене для користувача поле в Сайт'
+          add_custom_field_themes: 'Додати призначене для користувача поле в Тему'
+          add_custom_field_widget: 'Додати призначене для користувача поле в Віджет'
+        untitled: 'Без назви'
+        where_display_group: 'Де відобразити цю групу'
+      sidebar:
+        appearance: 'Зовнішній вигляд'
+        comments: 'Коментарі'
+        content: 'Зміст'
+        contents: 'Змісти'
+        content_groups: 'Групи змісту'
+        custom_fields: 'Користувальницькі поля'
+        dashboard: 'Панель управління'
+        general_site: 'Головний сайт'
+        information: 'Інформація'
+        languages: 'Мови'
+        shortcodes: "Shortcodes"
+        media: 'Медіа'
+        menus: 'Меню'
+        navigation: 'Навігація'
+        plugins: 'Модулі'
+        post_type: 'Тип поста'
+        settings: 'Налаштування'
+        site_settings: 'Налаштування сайту'
+        sites: 'Сайти'
+        themes: 'Теми'
+        users: 'Користувачі'
+        widget: 'Віджет'
+        widgets: 'Віджети'
+        main_navigation: "Головна Навігація"
+      sidebar_top:
+        admin_panel: 'Адмін. панель '
+        visit: 'Відвідати'
+      sites:
+        add_site: 'Додати сайт'
+        message:
+          error: 'Сайт не найден'
+          created: 'Сайт був створений.'
+          updated: 'Сайт був оновлений.'
+          deleted: 'Правильно видалено'
+          enter_key_domain: 'Введіть ключове слово або домен'
+          enter_key_domain_empty: 'Введіть ключове слово (site2) або домен (my_domain.com). Ключове слово буде вашим піддоменом. '
+      signin:
+        message:
+          enter_username_password: "Ви повинні ввести ім'я користувача і / або пароль"
+          combination_username_password_invalid: 'Поєднання імені користувача / пароля недійсне.'
+          success_user: 'Вдало користувач'
+      table:
+        actions: 'Дії'
+        attribute: 'Атрибут'
+        author: 'Автор'
+        basic: 'Основний'
+        categories: 'Категорії'
+        updated_at: "Оновлене"
+        comments: 'Коментарі'
+        count: 'Кількість'
+        date_published: 'Дата публікації'
+        default: 'По замовчуванням'
+        default_thumbnail: 'Маленький малюнок за замовчуванням'
+        default_value: 'Значення за замовчуванням'
+        description: 'Опис'
+        dimensions: 'Розміри'
+        display_objects: "Показати об'єкти"
+        draft: 'Ескіз'
+        email: 'Ел. пошта '
+        e_mail: 'Ел. пошта '
+        email_address: 'Адреса електронної пошти'
+        error: 'Помилка'
+        errors: 'помилки'
+        excerpt: 'Витримка'
+        facebook: 'Facebook'
+        favicon: 'Favicon'
+        screenshot: "Screenshot"
+        first_names: "Ім'я"
+        group_name: "Ім'я групи"
+        google_plus: 'Google plus'
+        hide: 'Сховати'
+        home_page: 'Домашня сторінка'
+        id: 'ID'
+        images: 'Зображення'
+        import: 'Імпортувати'
+        instagram: 'Instagram'
+        keywords: 'Ключові слова (вводите через кому)'
+        kind: 'Різновид'
+        last_login: 'Останній Вхід'
+        last_names: 'Прізвище'
+        last_visit: 'Останнє відвідування'
+        link: 'Посилання'
+        linkedin: 'Linkedin'
+        login: 'Вхід'
+        logo: 'Логотип'
+        manage_category: 'Управління Категорією'
+        manage_content: 'Управління Змістом'
+        manage_parent_structure: 'Управління ієрархією сторінок'
+        manage_picture: 'Управління Зображенням'
+        manage_seo: 'Управління SEO'
+        manage_single_category: 'Управління однією категорією'
+        manage_summary: 'Управління Описом'
+        manage_tags: 'Управління тегами'
+        manage_template: 'Управління Шаблоном'
+        manage_layout: 'Управління Прототипом'
+        modified: 'Змінено'
+        multiple_field_int: 'Кілька полів?'
+        required_field_int: "Обов'язкове поле?"
+        translate_field_int: 'Провести поле?'
+        show_in_frontend: 'Показати в фронтендів (тільки зміст поста)'
+        name: "Ім'я"
+        new_password: 'Новий пароль'
+        no_default: 'Ні За замовчуванням'
+        old_password: 'Старий пароль'
+        options: 'Опції'
+        settings: 'Налаштування'
+        options_field: 'Опції поле'
+        parent: 'Родич'
+        password: 'Пароль'
+        password_confirmation: 'Підтвердження пароля'
+        password_protection: 'Захист пароля'
+        permit_comments_default: 'Дозволити коментарі (за замовчуванням)'
+        permit_is_featured: 'Дозволити відібрані статті'
+        post: 'Пост'
+        post_type: 'Тип поста'
+        pending: 'Розглядається'
+        private: 'Закритий'
+        public: 'Відкритий'
+        qty: 'Кількість'
+        quick_info: 'Коротка інформація'
+        registration: 'Реєстрація'
+        repeat_new: 'Повторити новий'
+        role: 'Роль'
+        slogan: 'Слоган'
+        slug: 'Slug'
+        short_code: 'Короткий код'
+        site_name: 'Назва Сайту'
+        size: 'Розмір'
+        social: 'Соціальна мережа'
+        skype: 'Skype'
+        status: 'Статус'
+        owner: 'Власник сторінки'
+        tags: 'Теги'
+        text: 'Текст'
+        title: 'Заголовок'
+        total: 'Всього'
+        trash: 'Кошик'
+        twitter: 'Twitter'
+        username: "Ім'я користувача"
+        value: 'Значення'
+        version: 'Версія'
+        visibility: 'Видимість'
+        page_404: 'Сторінка 404'
+        youtube: 'Youtube'
+        more_actions: 'Більше дії'
+        more_actions_info: 'Більше дії ...'
+        shorcodes: "Shortcodes"
+      themes:
+        footer_copyright: 'Footer Copyright'
+        theme_select: 'Вибрати тему'
+        title: 'Налаштування теми %{theme}'
+        analytics_code: 'Код аналітики'
+        social_share: 'Social share'
+
+        message:
+          updated: 'Тема'
+      users:
+        all_users: 'Всі користувачі'
+        add_user: 'Додати користувача'
+        add_user_role: 'Додати роль користувача'
+        avatar: 'Аватар'
+        create_user: 'Створити користувача'
+        edit_profile: 'Редагувати профіль'
+        list_users: 'Список користувачів'
+        list_user_roles: 'Ролі користувачів'
+        message:
+         error: 'Користувач не знайдений.'
+         error_captcha: 'Ой! Це помилка капчи! '
+         created: 'Користувач був створений.'
+         updated: 'Користувач був оновлений.'
+         deleted: 'Користувач був видалений.'
+         incorrect_old_password: 'Неправильний старий пароль'
+         rol_error: 'Група користувачів не знайдено.'
+         rol_created: 'Роль користувача була створена.'
+         rol_updated: 'Роль користувача був оновлений.'
+         rol_deleted: 'Роль користувача була видалена.'
+         requires_different_name: "Потрібно інше ім'я"
+         requires_different_username: "Потрібно інше ім'я користувача"
+         requires_different_email: 'Потрібні інші ел. пошта '
+         created_pending_validate_email: "Користувач був створений, будь ласка, підтвердіть вашу електронну пошту"
+        new_photo: 'Нова фотографія'
+        others_permissions: 'Інші роздільності'
+        profile: 'Профіль'
+        slogan: 'Слоган'
+        type_contents: 'Тип Контенту'
+        user_roles: 'Ролі користувачів'
+        roles_values:
+          comments: 'Коментарі'
+          forms: 'Форми'
+          media: 'Медіа'
+          publish: 'Опублікувати'
+          themes: 'Теми'
+          html_create_or_edit: 'Створити <br> або Редагувати'
+          html_edit_other: 'Редагувати <br> Інші'
+          html_edit_publish: 'Редагувати <br> Опублікувати'
+          html_delete_other: 'Видалити <br> Інші'
+          html_delete_publish: 'Видалити <br> Опублікувати'
+          html_read_private: 'Читати <br> Приватний'
+          html_manage_categories: 'Управління <br> Категоріями'
+          html_manage_tags: 'Управління <br> тегами'
+        tool_tip:
+          comments: 'Дозволяється коментування даного розділу'
+          delete: 'Вам потрібен дозвіл на Створення або Редагування, щоб ви могли видаляти ваші пости.'
+          forms: 'Дозволяється Форми розділу'
+          media: 'Permission to the midsection'
+          publish: 'Вам потрібен дозвіл на Створення, редагування, Редагування інших або Опублікувати щоб включити цей дозвіл'
+          themes: 'Дозвіл тим на розділ'
+          widgets: 'Дозвіл віджетів на розділ'
+          menus: 'Дозвіл на розділ Меню'
+          plugins: 'Дозвіл на розділ Плагінів'
+          users: 'Дозвіл на створення, редагування і видалення користувачів'
+          settings: 'Дозвіл на розділ Налаштування'
+          create_or_edit: 'Це дозволяє створювати і редагувати ваші пости (пост не публікується)'
+          edit_other: 'Це дозволяє редагувати пости інших користувачів (пост не публікується)'
+          edit_publish: 'Це дозволяє редагувати опублікований пост'
+          delete_other: 'Вам потрібен дозвіл на видалення та редагування постів інших користувачів.'
+          delete_publish: 'Вам потрібен дозвіл Видалити або Видаляти інших, щоб включити цей дозвіл'
+          read_private: 'Дозволяє переглядати приватні повідомлення'
+          manage_categories: 'Дозвіл на створення, редагування і видалення категорії'
+          manage_tags: 'Дозвіл на створення, редагування і видалення тегів постів'
+      validate:
+        required: 'Це поле є обов`язковим для заповнення.'
+        remote: 'Будь ласка, виправте це поле.'
+        email: 'Будь ласка, введіть правильну адресу електронної пошти.'
+        url: 'Будь ласка, введіть правильний URL.'
+        date: 'Будь ласка, введіть правильну дату.'
+        dateiso: 'Будь ласка, введіть правильну дату (ISO).'
+        number: 'Будь ласка, введіть правильне число.'
+        digits: 'Будь ласка, вводите тільки цифри.'
+        creditcard: 'Будь ласка, введіть правильний номер кредитної картки.'
+        equalto: 'Будь ласка, введіть те ж значення знову.'
+        maxlength: 'Будь ласка, введіть не більше {0} символів.'
+        minlength: 'Будь ласка, введіть принаймні {0} символів.'
+        rangelength: 'Будь ласка, введіть значення з розміром між {0} і {1} символів.'
+        range: 'Будь ласка, введіть значення між {0} і {1}.'
+        max: 'Будь ласка, введіть значення менше або рівне {0}.'
+        min: 'Будь ласка, введіть значення, яка дорівнює або перевищує {0}.'
+      widgets:
+        create_widget: 'Створити Віджет'
+        create_sidebar: 'Створити бічну панель'
+        complex_widgets: 'Комплексні Віджети'
+        simple_widgets: 'Прості Віджети'
+        message:
+          created: 'Віджет був створений.'
+          updated: 'Віджет був оновлений.'
+          deleted: 'Віджет був видалений.'
+          error_created: 'Віджет не створений.'
+          error_updated: 'Віджет без оновлення.'
+          not_registered_widgets: 'Ні зареєстрованих віджетів'
+        assign:
+          updated: "Прив'язка віджета оновлено"
+          error_updated: "Прив'язка віджета без оновлення"
+        sidebar:
+          created: "Створити бічну панель."
+          updated: "Оновити бічну панель."
+          error_created: "Бічна панель не створена."
+          error_updated: "Бічна панель не оновлена."
+          error_deleted: "Бічна панель видалена."
+      intro:
+        profile: "Тут ви можете побачити налаштування вашого профілю."
+        content: "Цей блок містить всі групи контенту вашого сайту. Кожен контент може мати різну структуру, яких можна налаштувати в Налаштування => Група контентів"
+        #dashboard: "In this section you can see"
+        media: "В цьому розділі, ви можете управляти доступними медіа файлами"
+        comments: "У цьому розділі ви можете керувати всіма коментарями ваших контентів"
+        appearance: "Керувати всією інформацією, пов`язаною з Public Interface"
+        themes: "У цьому розділі ви можете вибрати потрібну тему (Public Interface)"
+        widgets: "Цей модуль дозволяє вам керувати вашими віджетами і вставляти код на будь-який контент."
+        menus: "<img style=\"max-width: 100%;\"src=\"%{image}\"/> Цей модуль дозволяє вам керувати вашими меню для Public Interface на різних рівнях."
+        plugins: "У цьому розділі ви можете побачити всі плагіни (призначені для користувача програми, щоб розширити функціональність вашого сайту)."
+        users: "Дає змогу керувати всіма користувачами сайту. А також, ви можете управляти ролями користувачів."
+        settings: "У цьому розділі ви можете знайти все конфігурації сайту"
+        gral_site: "У цьому розділі ви можете налаштувати всі параметри вашого сайту і поточну тему"
+        sites: "Цей модуль дозволяє вам керувати під сайтами (мабуть тільки для головного сайту). Перевірте /config/system.json щоб налаштувати параметри."
+        custom_fields: "Цей розділ дозволяє вам розширювати ваші контент і теми, додаючи нові поля."
+        post_type: "Цей модуль дозволяє вам керувати вашими групами контентів без програмування."
+        languages: "Цей модуль дозволяє вам керувати всіма мовами для вашого сайту. Також ви можете налаштувати мову для вашого адмін-панелі."
+        shortcodes: "У цьому розділі ви можете побачити всі доступні shortcodes для використання в ваших контенту."
