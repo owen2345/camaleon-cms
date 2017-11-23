@@ -46,6 +46,14 @@ it:
     search: ricerca
     profile: profilo
 
+uk:
+  routes:
+    group: група
+    category: категорія
+    tag: тег
+    search: пошук
+    profile: профіль
+
 ru:
   routes:
     group: группа

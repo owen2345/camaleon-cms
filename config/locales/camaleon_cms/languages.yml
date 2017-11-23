@@ -9,6 +9,7 @@ de:
     pt: "Portugiesisch (Portugal)"
     pt-BR: "Portugiesisch (Brasilien)"
     it: "Italienisch"
+    uk: "Ukrainische"
     ru: "Russisch"
     nl: "Niederländisch"
 
@@ -22,6 +23,7 @@ en:
     pt: "Português (Portugal)"
     pt-BR: "Português (Brazil)"
     it: "Italian"
+    uk: "Ukrainian"
     ru: "Russian"
     nl: "Dutch"
 
@@ -35,6 +37,7 @@ es:
     pt: "Portugues (Portugal)"
     pt-BR: "Portugues (Brasil)"
     it: "Italiano"
+    uk: "Ucraniano"
     ru: "Russian"
     nl: "Holandés"
 
@@ -48,8 +51,23 @@ it:
     pt: "Portoghese (Portogallo)"
     pt-BR: "Portoghese (Brasile)"
     it: "Italiano"
+    uk: "Ucraina"
     ru: "Russian"
     nl: "Olandese"
+
+uk:
+  languages:
+    es: "Іспанська"
+    en: "Англійська"
+    fr: "Французька"
+    zh-CN: "Китайська"
+    de: "Німецька"
+    pt: "Португальська (Португалія)"
+    pt-BR: "Португальська (Бразилія)"
+    it: "Італійська"
+    uk: "Українська"
+    ru: "Російська"
+    nl: "Голландська"
 
 ru:
   languages:
@@ -61,6 +79,7 @@ ru:
     pt: "Португальский (Португалия)"
     pt-BR: "Португальский (Бразилия)"
     it: "Итальянский"
+    uk: "Украинский"
     ru: "Русский"
     nl: "Голландский"
 
@@ -74,6 +93,7 @@ nl:
     pt: "Portugees (Portugal)"
     pt-BR: "Portugees (Brazilië)"
     it: "Italiaans"
+    uk: "Oekraïense"
     ru: "Russisch"
     nl: "Nederlands"
 
@@ -87,6 +107,7 @@ pt:
     pt: "Português (Portugal)"
     pt-BR: "Português (Brasil)"
     it: "Italiano"
+    uk: "Ucraniano"
     ru: "Russo"
     nl: "Holandês"
 
@@ -100,6 +121,7 @@ pt-BR:
     pt: "Português (Portugal)"
     pt-BR: "Português (Brasil)"
     it: "Italiano"
+    uk: "Ucraniano"
     ru: "Russo"
     nl: "Holandês"
 
@@ -113,6 +135,7 @@ zh-CN:
     pt: "葡萄牙"
     pt-BR: "巴西"
     it: "意大利语"
+    uk: "乌克兰语"
     ru: "俄语"
     nl: "荷兰语"
 

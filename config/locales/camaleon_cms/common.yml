@@ -326,6 +326,71 @@ nl:
   will_paginate:
     previous_label: 'Vorige'
     next_label: 'Volgende'
+
+uk:
+  camaleon_cms:
+    common:
+      read_more: "Читати далі"
+      submit: "Відправити"
+      send: "Відправити"
+      login: "Вхід"
+      logout: "Вихід"
+      confirm: "Ви підтверджуєте?"
+      register: "Зареєструватися"
+      proceted_article: 'Захищена стаття'
+
+      comment_msg: "Вам нужно войти чтобы оставить комментарий"
+      comment: "Коментар"
+      comments: "Коментарі"
+      message: "Повідомлення"
+      leave_comment: "Залишити коментар"
+      comment_new: "Новий коментар"
+      comment_saved: "Ваш коментар був збережений"
+      comment_error: "Сталася помилка при збереженні коментаря"
+      comment_reply: "Відповісти"
+      edit: "Редагувати"
+
+      recent_posts: "Недавні пости"
+
+
+      search_msg: "Результати пошуку для:"
+      search_not_found: "Пошук не дав результатів"
+      category_list: "Список категорій"
+      post_tag_list: "Список тегів"
+      sub_category_list: "Список підкатегорій"
+      content_list: "Список вмісту: %s"
+      visit: "Відвідати"
+      no_contents_found: "Вміст не знайдений"
+      no_results_found: "Результатів не знайдено"
+
+      author: "Автор"
+      site: "Сайт"
+      categories: "Категоріі"
+      next: "Наступний"
+      prev: "Попередній"
+      current: "Поточний"
+      search: "Пошук"
+      file_format_error: "Формат файла заборонений"
+      file_size_exceeded: "Розмір файлу перевищений"
+
+      notice: "Новини"
+      share: "Поділитися"
+      share_facebook: "Поділитися у Facebook"
+      share_twitter: "Поділитися у Twitter"
+      share_google_plus: "Поділитися у Google Plus"
+      back_top: "Повернутись до початку"
+      total_followers_social: "Всього послідовників в соціальних мережах"
+      latest_articles: "Останні статті"
+      photo_gallery: "Фотогалерея"
+      home_galleries: "Перейти на головну галерею"
+      addition: "Доповнення"
+      view_all_news: "Переглянути всі новини"
+      extra_attributes: "Додаткові атрибуты"
+
+  will_paginate:
+    previous_label: 'Попередній'
+    next_label: 'Наступний'
+
 ru:
   camaleon_cms:
     common:
