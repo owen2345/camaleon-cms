@@ -106,6 +106,13 @@ uk:
           email: 'Ел. адреса '
           file: 'Файл'
           image: 'Зображення'
+          image_dimension: 'Розміри зображення'
+          image_dimension_descr: 'Обрізати зображення за вказаним розміром (ширина і висота), вибірка: 400x300 <br> Можливі значення: 400x300 | 400x | x300 | ? 400x? 500 | 1400x (? => Max, empty => auto)'
+          image_versions: 'Версії'
+          image_versions_descr: "Створення додаткових кількох версій завантаженого зображення, наприклад: 300x300, 505x350 ==> Створить два додаткові зображення з цими параметрами"
+          image_thumb: 'Мініатюра'
+          required_image_thumb: "Мініатюра обов'язкова?"
+          image_thumb_descr: "Define the dimension for the thumbnail, sample: 100x100. Default: %{d}"
           numeric: 'Числове'
           phone: 'Телефон'
           users: 'Користувачі'
@@ -470,10 +477,12 @@ uk:
         login: 'Вхід'
         logo: 'Логотип'
         manage_category: 'Управління Категорією'
-        manage_content: 'Управління Контентента'
-        manage_picture: 'Управління Зображення'
-        manage_seo: 'Управління SEO?'
-        manage_summary: 'Управління Описи'
+        manage_content: 'Управління Змістом'
+        manage_parent_structure: 'Управління ієрархією сторінок'
+        manage_picture: 'Управління Зображенням'
+        manage_seo: 'Управління SEO'
+        manage_single_category: 'Управління однією категорією'
+        manage_summary: 'Управління Описом'
         manage_tags: 'Управління тегами'
         manage_template: 'Управління Шаблоном'
         manage_layout: 'Управління Прототипом'
@@ -494,6 +503,7 @@ uk:
         password_confirmation: 'Підтвердження пароля'
         password_protection: 'Захист пароля'
         permit_comments_default: 'Дозволити коментарі (за замовчуванням)'
+        permit_is_featured: 'Дозволити відібрані статті'
         post: 'Пост'
         post_type: 'Тип поста'
         pending: 'Розглядається'
@@ -645,7 +655,7 @@ uk:
         #dashboard: "In this section you can see"
         media: "В цьому розділі, ви можете управляти доступними медіа файлами"
         comments: "У цьому розділі ви можете керувати всіма коментарями ваших контентів"
-        appearance: "Керувати всією інформацією, пов'язаною з Public Interface"
+        appearance: "Керувати всією інформацією, пов`язаною з Public Interface"
         themes: "У цьому розділі ви можете вибрати потрібну тему (Public Interface)"
         widgets: "Цей модуль дозволяє вам керувати вашими віджетами і вставляти код на будь-який контент."
         menus: "<img style=\"max-width: 100%;\"src=\"%{image}\"/> Цей модуль дозволяє вам керувати вашими меню для Public Interface на різних рівнях."
