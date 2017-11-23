@@ -3,8 +3,8 @@
   "hooks": { }, // system hooks
   "skip_format_url": true, // enable or disable .html extension in the urls.
   "default_plugins": ["front_cache", "cama_contact_form", "attack", "cama_meta_tag"], // Default plugins installed for each new site
-  "available_languages": ["es", "en", "fr", "de", "it", "pt-BR", "nl", "zh-CN", "ru"], // Available languages for frontend panel, here all locales: https://github.com/svenfuchs/rails-i18n
-  "admin_available_languages": ["en", "es", "it", "de", "pt-BR" , "nl", "fr", "zh-CN", "ru"], //Available languages for the admin panel
+  "available_languages": ["es", "en", "fr", "de", "it", "pt-BR", "nl", "zh-CN", "ru", "uk"], // Available languages for frontend panel, here all locales: https://github.com/svenfuchs/rails-i18n
+  "admin_available_languages": ["en", "es", "it", "de", "pt-BR" , "nl", "fr", "zh-CN", "ru", "uk"], //Available languages for the admin panel
   "default_user_role": "client", // default user role for all new users
   "users_share_sites": true, //(boolean) true: permit to share users between sites, false: All users are assigned for an unique site.
   "db_prefix": "", // prefix name for database tables
