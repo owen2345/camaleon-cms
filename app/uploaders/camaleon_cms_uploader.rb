@@ -112,7 +112,7 @@ class CamaleonCmsUploader
     format.downcase.gsub(' ', '').split(',').each do |f|
       res << case f
                 when 'image', 'images'
-                  "jpg,jpeg,png,gif,bmp,ico"
+                  "jpg,jpeg,png,gif,bmp,ico,svg"
                 when 'video', 'videos'
                   "flv,webm,wmv,avi,swf,mp4,mov,mpg"
                 when 'audio'
