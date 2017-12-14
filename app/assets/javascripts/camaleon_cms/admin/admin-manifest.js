@@ -7,49 +7,49 @@
 // It's not advisable to add code directly here, but if you do, it'll appear at the bottom of the
 // compiled file.
 //
-// Read Sprockets README (https://github.com/sstephenson/sprockets#sprockets-directives) for details
+// Read Sprockets README (https://github.com/rails/sprockets) for details
 // about supported directives.
 //
 //= require jquery
-//= require ./_data
+//= require camaleon_cms/admin/_data
 //= require camaleon_cms/bootstrap.min
-//= require ./_jquery-ui.min
-//= require ./_underscore
-//= require ./jquery.validate
+//= require camaleon_cms/admin/_jquery-ui.min
+//= require camaleon_cms/admin/_underscore
+//= require camaleon_cms/admin/jquery.validate
 
 // date picker
-//= require ./momentjs/_moment
-//= require ./_bootstrap-datepicker
+//= require camaleon_cms/admin/momentjs/_moment
+//= require camaleon_cms/admin/_bootstrap-datepicker
 
 //= require jquery_ujs
-//= require ./_bootstrap-select
+//= require camaleon_cms/admin/_bootstrap-select
 
-//= require ./_jquery.slugify
-//= require ./_translator
-//= require ./_i18n
-//= require ./_custom_fields
+//= require camaleon_cms/admin/_jquery.slugify
+//= require camaleon_cms/admin/_translator
+//= require camaleon_cms/admin/_i18n
+//= require camaleon_cms/admin/_custom_fields
 
-//= require ./_libraries
-//= require ./_actions
-//= require ./introjs/_intro.min
+//= require camaleon_cms/admin/_libraries
+//= require camaleon_cms/admin/_actions
+//= require camaleon_cms/admin/introjs/_intro.min
 
 // uploader
-//= require ./uploader/uploader_manifest
+//= require camaleon_cms/admin/uploader/uploader_manifest
 
-//= require ./tageditor/_jquery.caret.min
-//= require ./tageditor/_jquery.tag-editor
+//= require camaleon_cms/admin/tageditor/_jquery.caret.min
+//= require camaleon_cms/admin/tageditor/_jquery.tag-editor
 
-//= require ./lte/app
+//= require camaleon_cms/admin/lte/app
 
 // tinymce
 //= require tinymce-jquery
-//= require ./tinymce/plugins/filemanager/plugin.min
+//= require camaleon_cms/admin/tinymce/plugins/filemanager/plugin.min
 
 // post
-//= require ./_jquery.tagsinput.min
-//= require ./_post
+//= require camaleon_cms/admin/_jquery.tagsinput.min
+//= require camaleon_cms/admin/_post
 
-//= require ./_posttype
+//= require camaleon_cms/admin/_posttype
 
 // others
-//= require ./_user_profile
+//= require camaleon_cms/admin/_user_profile
