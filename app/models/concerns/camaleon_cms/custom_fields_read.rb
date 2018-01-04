@@ -71,7 +71,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # get custom field values
   # _key: custom field key
   def get_field_values(_key, group_number = 0)
-    field_values.loaded? ? field_values.select{|f| f.custom_field_slug == key && f.group_number == group_number}.map{|f| f.value } : field_values.where(custom_field_slug: _key, group_number: group_number).pluck(:value)
+    custom_field_values.loaded? ? custom_field_values.select{|f| f.custom_field_slug == _key && f.group_number == group_number}.map{|f| f.value } : custom_field_values.where(custom_field_slug: _key, group_number: group_number).pluck(:value)
   end
   alias_method :get_fields, :get_field_values
 
@@ -92,7 +92,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   #   puts res[0]['my_slug1'].first ==> "val 1"
   def get_fields_grouped(field_keys)
     res = []
-    field_values.where(custom_field_slug: field_keys).order(group_number: :asc).group_by(&:group_number).each do |group_number, group_fields|
+    custom_field_values.where(custom_field_slug: field_keys).order(group_number: :asc).group_by(&:group_number).each do |group_number, group_fields|
       group = {}
       field_keys.each do |field_key|
         _tmp = []
@@ -109,7 +109,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # {key1: {values: "single value", options: {a:1, b: 4}}, key2: {values: [multiple, values], options: {a=1, b=2} }} if include_options = true
   def get_field_values_hash(include_options = false)
     fields = {}
-    self.field_values.to_a.uniq.each do |field_value|
+    self.custom_field_values.to_a.uniq.each do |field_value|
       custom_field = field_value.custom_fields
       values = custom_field.values.where(objectid: self.id).pluck(:value)
       fields[field_value.custom_field_slug] = custom_field.cama_options[:multiple].to_s.to_bool ? values : values.first unless include_options
@@ -123,7 +123,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # deprecated f attribute
   def get_fields_object(f=true)
     fields = {}
-    self.field_values.eager_load(:custom_fields).to_a.uniq.each do |field_value|
+    self.custom_field_values.eager_load(:custom_fields).to_a.uniq.each do |field_value|
       custom_field = field_value.custom_fields
       # if custom_field.options[:show_frontend].to_s.to_bool
       values = custom_field.values.where(objectid: self.id).pluck(:value)
@@ -194,13 +194,13 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   def set_field_values(datas = {})
     if datas.present?
       ActiveRecord::Base.transaction do 
-        self.field_values.delete_all
+        self.custom_field_values.delete_all
         datas.each do |index, fields_data|
           fields_data.each do |field_key, values|
             if values[:values].present?
               order_value = -1
               ((values[:values].is_a?(Hash) || values[:values].is_a?(ActionController::Parameters)) ? values[:values].values : values[:values]).each do |value|
-                item = self.field_values.create!({custom_field_id: values[:id], custom_field_slug: field_key, value: fix_meta_value(value), term_order: order_value += 1, group_number: values[:group_number] || 0})
+                item = self.custom_field_values.create!({custom_field_id: values[:id], custom_field_slug: field_key, value: fix_meta_value(value), term_order: order_value += 1, group_number: values[:group_number] || 0})
               end
             end
           end
@@ -212,7 +212,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # update new value for field with slug _key
   # Sample: my_posy.update_field_value('sub_title', 'Test Sub Title')
   def update_field_value(_key, value = nil, group_number = 0)
-    self.field_values.where(custom_field_slug: _key, group_number: group_number).first.update_column('value', value) rescue nil
+    self.custom_field_values.where(custom_field_slug: _key, group_number: group_number).first.update_column('value', value) rescue nil
   end
 
   # Set custom field values for current model
@@ -242,14 +242,14 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     unless args[:field_id].present?
       raise ArgumentError, "There is no custom field configured for #{key}"
     end
-    self.field_values.where({custom_field_slug: key, group_number: args[:group_number]}).delete_all if args[:clear]
+    self.custom_field_values.where({custom_field_slug: key, group_number: args[:group_number]}).delete_all if args[:clear]
     v = {custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value), term_order: args[:order], group_number: args[:group_number]}
     if value.is_a?(Array)
       value.each do |val|
-        self.field_values.create!(v.merge({value: fix_meta_value(val)}))
+        self.custom_field_values.create!(v.merge({value: fix_meta_value(val)}))
       end
     else
-      self.field_values.create!(v)
+      self.custom_field_values.create!(v)
     end
   end
 

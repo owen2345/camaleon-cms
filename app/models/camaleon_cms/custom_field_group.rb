@@ -128,7 +128,7 @@ class CamaleonCms::CustomFieldGroup < CamaleonCms::CustomField
         owner = "CamaleonCms::#{class_name}".constantize.find(objectid) rescue "CamaleonCms::#{class_name}".constantize.find_by(slug: objectid) # owner model
       end
       (options[:default_values] || [options[:default_value]] || []).each do |value|
-        owner.field_values.create!(custom_field_id: field.id, custom_field_slug: field.slug,
+        owner.custom_field_values.create!(custom_field_id: field.id, custom_field_slug: field.slug,
           value: fix_meta_value(value)) if owner.present?
       end
     end
