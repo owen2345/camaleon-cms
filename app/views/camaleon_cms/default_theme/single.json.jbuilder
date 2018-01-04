@@ -6,7 +6,7 @@ json.urls @post.the_urls
 
 json.partial! partial: 'partials/cama_comments_entry', locals:{ post: @post }
 
-json.fields @post.the_fields_grouped(@post.field_values.pluck(:custom_field_slug))
+json.fields @post.the_fields_grouped(@post.custom_field_values.pluck(:custom_field_slug))
 
 json.categories @post.categories.decorate do |category|
   json.partial! partial: 'partials/cama_category_entry', locals:{ category: category }
