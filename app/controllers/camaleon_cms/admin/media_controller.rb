@@ -63,7 +63,8 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
         cama_uploader.delete_file(params[:folder].gsub("//", "/"))
         render inline: ""
       when 'crop_url'
-        r = cama_tmp_upload(params[:url], formats: params[:formats], name: params[:name])
+        params[:url] = (params[:url].start_with?('http') ? '' : current_site.the_url(locale: nil)) + params[:url]
+        r = cama_tmp_upload( params[:url], formats: params[:formats], name: params[:name])
         unless r[:error].present?
           params[:file_upload] = r[:file_path]
           sett = {remove_source: true}

@@ -210,7 +210,7 @@ module CamaleonCms::UploaderHelper
   #   dimension: 20x30
   # return: {file_path, error}
   def cama_tmp_upload(uploaded_io, args = {})
-    tmp_path = args[:path] || Rails.public_path.join("tmp", current_site.id.to_s)
+    tmp_path = args[:path] || File.join(Rails.public_path, "tmp", current_site.id.to_s).to_s
     FileUtils.mkdir_p(tmp_path) unless Dir.exist?(tmp_path)
     saved = false
     if uploaded_io.is_a?(String) && (uploaded_io.start_with?("data:")) # create tmp file using base64 format
@@ -223,7 +223,7 @@ module CamaleonCms::UploaderHelper
       saved =  true
     elsif uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://"))
       return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io, args[:formats])
-      uploaded_io = Rails.public_path.join(uploaded_io.sub(current_site.the_url(locale: nil), '')).to_s if uploaded_io.include?(current_site.the_url(locale: nil)) # local file
+      uploaded_io = File.join(Rails.public_path, uploaded_io.sub(current_site.the_url(locale: nil), '')).to_s if uploaded_io.include?(current_site.the_url(locale: nil)) # local file
       _tmp_name = uploaded_io.split("/").last.split('?').first; args[:name] = args[:name] || _tmp_name
       uploaded_io = open(uploaded_io)
     end
