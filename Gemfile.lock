@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    camaleon_cms (2.4.4.4)
+    camaleon_cms (2.4.5)
       aws-sdk (~> 2)
       bcrypt
       breadcrumbs_on_rails
@@ -66,13 +66,13 @@ GEM
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
     arel (8.0.0)
-    aws-sdk (2.10.59)
-      aws-sdk-resources (= 2.10.59)
-    aws-sdk-core (2.10.59)
+    aws-sdk (2.10.66)
+      aws-sdk-resources (= 2.10.66)
+    aws-sdk-core (2.10.66)
       aws-sigv4 (~> 1.0)
       jmespath (~> 1.0)
-    aws-sdk-resources (2.10.59)
-      aws-sdk-core (= 2.10.59)
+    aws-sdk-resources (2.10.66)
+      aws-sdk-core (= 2.10.66)
     aws-sigv4 (1.0.2)
     bcrypt (3.1.11)
     binding_of_caller (0.7.2)
@@ -241,7 +241,7 @@ GEM
     thor (0.20.0)
     thread_safe (0.3.6)
     tilt (2.0.8)
-    tinymce-rails (4.6.7)
+    tinymce-rails (4.7.1)
       railties (>= 3.1.1)
     tzinfo (1.2.3)
       thread_safe (~> 0.1)

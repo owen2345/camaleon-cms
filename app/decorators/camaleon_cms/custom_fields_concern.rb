@@ -27,7 +27,7 @@ module CamaleonCms::CustomFieldsConcern
   end
 
   # the same function as get_fields_grouped(..) but this returns translated and shortcodes evaluated
-  def the_fields_grouped(field_keys, is_json_format = false)
+  def the_fields_grouped(field_keys, is_json_format = false, single_value = false)
     res = []
     object.get_fields_grouped(field_keys).each do |_group|
       group = {}.with_indifferent_access
@@ -37,6 +37,7 @@ module CamaleonCms::CustomFieldsConcern
         else
           group[k] = _group[k].map{|v| h.do_shortcode(v.to_s.translate(@_deco_locale), object) }
         end
+        group[k] = group[k].first if single_value
       end
       res << group
     end
