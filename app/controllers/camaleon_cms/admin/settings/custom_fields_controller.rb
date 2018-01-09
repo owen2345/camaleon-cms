@@ -82,7 +82,7 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
 
   # return boolean: true if all fields were saved successfully
   def _save_fields(group)
-    errors_saved, all_fields = group.add_fields(params.require(:fields).permit!, params.require(:field_options).permit!)
+    errors_saved, all_fields = group.add_fields(params[:fields] ? params.require(:fields).permit! : {}, params[:field_options] ? params.require(:field_options).permit! : {})
     group.set_option('caption', @caption)
     if errors_saved.present?
       flash[:error] = "<b>#{t('camaleon_cms.errors_found_msg', default: 'Several errors were found, please check.')}</b><br>#{errors_saved.map{|field| "#{field.name}: " + "#{field.errors.messages.map{|k,v| "#{k.to_s.titleize}: #{v.join('|')}"}.join(', ')}" }.join('<br>')}"
