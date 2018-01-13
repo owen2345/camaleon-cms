@@ -1,4 +1,4 @@
-<% @post_tag = CamaleonCms::PostTag.new if @post_tag.nil? %>
+<% @post_tag = CamaleonCms::PostTag.new(parent_id: params[:post_type_id]) if @post_tag.nil? %>
 <%= form_for @post_tag, as: "post_tag", url:{action: @post_tag.new_record? ? :create : :update} , html:{class: 'validate-post-tag cama_ajax_request'} do |f| %>
     <%= f.hidden_field :parent_id  %>
     <%= f.hidden_field :taxonomy %>
