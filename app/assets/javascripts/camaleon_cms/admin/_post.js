@@ -111,7 +111,7 @@ function cama_init_post(obj) {
             $input_slug.slugify($this, {
                     change: function (slug) {
                         if (slug == "") {
-                            # generate 5-length random character slug when slugify result is empty
+                            // generate 5-length random character slug when slugify result is empty
                             slug = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
                         }
                         slug_tmp = slug;
