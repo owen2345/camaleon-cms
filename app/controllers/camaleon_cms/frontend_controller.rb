@@ -133,7 +133,12 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   def draft_render
     post_draft = current_site.posts.drafts.find(params[:draft_id])
     @object = post_draft
-    if can?(:update, post_draft)
+
+    # let a hook override the ability for certain roles see drafts
+    args = { permitted: false }
+    hooks_run("on_render_draft_permitted", args)
+    
+    if args[:permitted] || can?(:update, post_draft)
       render_post(post_draft)
     else
       page_not_found
