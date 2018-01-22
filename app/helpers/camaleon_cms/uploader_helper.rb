@@ -281,6 +281,16 @@ module CamaleonCms::UploaderHelper
     }.call
   end
 
+  def slugify(val)
+    val.to_s.downcase.strip.gsub(' ', '-').gsub(/[^\w-]/, '')
+  end
+
+  def slugify_folder(val)
+    splitted_folder = val.split('/')
+    splitted_folder[-1] = slugify(splitted_folder.last)
+    splitted_folder.join('/')
+  end
+
   private
   # helper for resize and crop method
   def cama_crop_offsets_by_gravity(gravity, original_dimensions, cropped_dimensions)

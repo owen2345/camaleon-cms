@@ -55,6 +55,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     params[:folder] = params[:folder].gsub("//", "/") if params[:folder].present?
     case params[:media_action]
       when "new_folder"
+        params[:folder] = slugify_folder(params[:folder])
         render partial: "render_folder_item", locals: { fname: params[:folder].split("/").last, folder: cama_uploader.add_folder(params[:folder])}
       when "del_folder"
         cama_uploader.delete_folder(params[:folder])
