@@ -32,6 +32,10 @@ function cama_get_tinymce_settings(settings){
                 tinymce.triggerSave();
                 $('textarea#'+editor.id).trigger('change');
             });
+            
+            editor.on('PostProcess', function (ed) {
+                ed.content = ed.content.replace(/(<p><\/p>)/gi,'<br />');
+            });
 
             editor.addMenuItem('append_line', {
                 text: 'New line at the end',
