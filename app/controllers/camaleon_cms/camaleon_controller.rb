@@ -26,7 +26,9 @@ class CamaleonCms::CamaleonController < ApplicationController
   after_action :cama_after_actions, except: [:render_error, :captcha]
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
-  protect_from_forgery with: :exception
+  # Skip forgery check on .js files located in /assets/ to avoid CORS errors
+  # caused by requests for non-existent files.
+  protect_from_forgery with: :exception, unless: -> { request.fullpath.match? /\A\/assets\/.*\.js\z/ }
   layout Proc.new { |controller| controller.request.xhr? ? false : 'default' }
   helper_method :current_user
 
@@ -125,7 +127,7 @@ class CamaleonCms::CamaleonController < ApplicationController
       end
     end
   end
-  
+
   unless ApplicationController.method_defined?(:current_user)
     def current_user
       cama_current_user
