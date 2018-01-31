@@ -9,6 +9,14 @@ window["cama_init_media"] = (media_panel) ->
   file_data = (item)->
     data = item.data('eval-data') || eval("("+item.find(".data_value").val()+")")
     item.data('eval-data', data)
+    
+    # changes from database structure
+    if data['dimension'] == undefined
+      data['dimension'] = ''
+      data["format"] = data['file_type']
+      data["size"] = data['file_size']
+      data['key'] = data['folder_path'] + data['name']
+      data['type'] = ''
     return data
 
   show_file = (item) ->

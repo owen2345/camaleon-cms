@@ -19,59 +19,63 @@ module CamaleonCms::UploaderHelper
   # sample: upload_file(params[:my_file], {formats: "images", folder: "temporal"})
   # sample: upload_file(params[:my_file], {formats: "jpg,png,gif,mp3,mp4", temporal_time: 10.minutes, maximum: 10.megabytes})
   def upload_file(uploaded_io, settings = {})
-    cached_name = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.original_filename : nil
-    return {error: "File is empty", file: nil, size: nil} unless uploaded_io.present?
-    if uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://")) # download url file
+    normalized_name = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? CamaleonCmsUploader.slugify_file(uploaded_io.original_filename) : nil
+
+    return { error: 'File is empty', file: nil, size: nil } unless uploaded_io.present?
+
+    if uploaded_io.is_a?(String) && uploaded_io.start_with?('http://', 'https://') # download url file
       tmp = cama_tmp_upload(uploaded_io)
       return tmp if tmp[:error].present?
       settings[:remove_source] = true
       uploaded_io = tmp[:file_path]
     end
+
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
     uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension])) if settings[:dimension].present? # resize file into specific dimensions
 
     settings = settings.to_sym
     settings[:uploaded_io] = uploaded_io
     settings = {
-        folder: "",
-        maximum: current_site.get_option('filesystem_max_size', 100).to_f.megabytes,
-        formats: "*",
-        generate_thumb: true,
-        temporal_time: 0,
-        filename: ((cached_name || uploaded_io.original_filename) rescue uploaded_io.path.split("/").last).cama_fix_filename,
-        file_size: File.size(uploaded_io.to_io),
-        remove_source: false,
-        same_name: false,
-        versions: '',
-        thumb_size: nil
+      folder: "",
+      maximum: current_site.get_option('filesystem_max_size', 100).to_f.megabytes,
+      formats: "*",
+      generate_thumb: true,
+      temporal_time: 0,
+      filename: ((normalized_name || uploaded_io.original_filename) rescue uploaded_io.path.split("/").last).cama_fix_filename,
+      file_size: File.size(uploaded_io.to_io),
+      remove_source: false,
+      same_name: false,
+      versions: '',
+      thumb_size: nil
     }.merge(settings)
-    hooks_run("before_upload", settings)
-    res = {error: nil}
+    hooks_run('before_upload', settings)
+    res = { error: nil }
 
     # formats validations
-    return {error: "#{ct("file_format_error")} (#{settings[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io.path, settings[:formats])
+    return { error: "#{ct('file_format_error')} (#{settings[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io.path, settings[:formats])
 
     # file size validations
     if settings[:maximum] < settings[:file_size]
       res[:error] = "#{ct("file_size_exceeded", default: "File size exceeded")} (#{number_to_human_size(settings[:maximum])})"
       return res
     end
+
     # save file
     key = File.join(settings[:folder], settings[:filename]).to_s.cama_fix_slash
-    res = cama_uploader.add_file(settings[:uploaded_io], key, {same_name: settings[:same_name]})
-    {} if settings[:temporal_time] > 0 # temporal file upload (always put as local for temporal files) (TODO: use delayjob)
+    res = cama_uploader.add_file(uploaded_io, key, same_name: settings[:same_name], file_size: settings[:file_size])
+    {} if settings[:temporal_time].positive? # temporal file upload (always put as local for temporal files) (TODO: use delayjob)
 
     # generate image versions
-    if res['format'] == 'image'
-      settings[:versions].to_s.gsub(' ', '').split(',').each do |v|
-        version_path = cama_resize_upload(settings[:uploaded_io].path, v, {replace: false})
-        cama_uploader.add_file(version_path, cama_uploader.version_path(res['key'], v), is_thumb: true, same_name: true)
+    if res['format'] == 'image' || res[:file_type] == 'image'
+      settings[:versions].to_s.delete(' ').split(',').each do |v|
+        version_path = cama_resize_upload(uploaded_io.path, v, { replace: false })
+        cama_uploader.add_file(version_path, cama_uploader.version_path(key, v), is_thumb: true, same_name: true)
         FileUtils.rm_f(version_path)
       end
     end
 
     # generate thumb
-    cama_uploader_generate_thumbnail(uploaded_io.path, res['key'], settings[:thumb_size]) if settings[:generate_thumb] && res['thumb'].present?
+    cama_uploader_generate_thumbnail(uploaded_io.path, key, settings[:thumb_size]) if settings[:generate_thumb]
 
     FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
 
@@ -213,7 +217,7 @@ module CamaleonCms::UploaderHelper
     tmp_path = args[:path] || File.join(Rails.public_path, "tmp", current_site.id.to_s).to_s
     FileUtils.mkdir_p(tmp_path) unless Dir.exist?(tmp_path)
     saved = false
-    if uploaded_io.is_a?(String) && (uploaded_io.start_with?("data:")) # create tmp file using base64 format
+    if uploaded_io.is_a?(String) && uploaded_io.start_with?("data:") # create tmp file using base64 format
       _tmp_name = args[:name]
       return {error: "#{cama_t("camaleon_cms.admin.media.name_required")}"} unless params[:name].present?
       return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(_tmp_name, args[:formats])
@@ -281,17 +285,12 @@ module CamaleonCms::UploaderHelper
     }.call
   end
 
-  def slugify(val)
-    val.to_s.downcase.strip.gsub(' ', '-').gsub(/[^\w-]/, '')
-  end
-
-  def slugify_folder(val)
-    splitted_folder = val.split('/')
-    splitted_folder[-1] = slugify(splitted_folder.last)
-    splitted_folder.join('/')
+  def thumbnail(url)
+    CamaleonCmsUploader.thumbnail(url)
   end
 
   private
+
   # helper for resize and crop method
   def cama_crop_offsets_by_gravity(gravity, original_dimensions, cropped_dimensions)
     original_width, original_height = original_dimensions

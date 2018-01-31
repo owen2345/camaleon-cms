@@ -1,20 +1,5 @@
 class CamaleonCmsLocalUploader < CamaleonCmsUploader
   PRIVATE_DIRECTORY = 'private'
-  def browser_files(prefix = '/', objects = {})
-    objects[prefix] = {files: {}, folders: {}}
-    path = File.join(@root_folder, prefix)
-    Dir.entries(path).each do |f_name|
-      next if f_name == '..' || f_name == '.' || f_name == 'thumb'
-      f_path = File.join(path, f_name)
-      key = parse_key(f_path)
-      obj = get_file(key) || file_parse(key)
-      cache_item(obj, objects)
-      browser_files(File.join(prefix, obj['name']), objects) if obj['format'] == 'folder'
-    end
-    @current_site.set_meta(cache_key, objects) if prefix == '/'
-    objects
-  end
-
   # return the full file path for private file with key
   # sample: 'my_file.pdf' ==> /var/www/my_app/private/my_file.pdf
   def self.private_file_path(key, current_site)
@@ -35,76 +20,102 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     FileUtils.mkdir_p(@root_folder) unless Dir.exist?(@root_folder)
   end
 
-  def file_parse(key)
-    file_path = File.join(@root_folder, key)
-    url_path, is_dir = file_path.sub(Rails.root.join('public').to_s, ''), File.directory?(file_path)
-    res = {
-        "name" => File.basename(file_path),
-        "key" => parse_key(file_path),
-        "url" => is_dir ? '' : (is_private_uploader? ? url_path.sub("#{@root_folder}/", '') : File.join(@current_site.decorate.the_url(as_path: true, locale: false, skip_relative_url_root: true), url_path)),
-        "is_folder" => is_dir,
-        "size" => is_dir ? 0 : File.size(file_path).round(2),
-        "format" => is_dir ? 'folder' : self.class.get_file_format(file_path),
-        "deleteUrl" => '',
-        "thumb" => '',
-        'type' => (MIME::Types.type_for(file_path).first.content_type rescue ""),
-        'created_at' => File.mtime(file_path),
-        'dimension' => ''
-    }.with_indifferent_access
-    res["thumb"] = version_path(res['url']) if res['format'] == 'image' && File.extname(file_path).downcase != '.gif'
-    if res['format'] == 'image'
-      im = MiniMagick::Image.open(file_path)
-      res['dimension'] = "#{im[:width]}x#{im[:height]}"
-    end
-    res
-  end
-
   #
   def add_file(uploaded_io_or_file_path, key, args = {})
-    args, res = {same_name: false, is_thumb: false}.merge(args), nil
-    key = search_new_key(key) unless args[:same_name]
-    
-    if @instance # private hook to upload files by different way, add file data into result_data
-      _args={result_data: nil, file: uploaded_io_or_file_path, key: key, args: args, klass: self}; @instance.hooks_run('uploader_local_before_upload', _args)
-      return _args[:result_data] if _args[:result_data].present?
-    end
-    
-    add_folder(File.dirname(key)) if File.dirname(key).present?
+    args = { same_name: false, is_thumb: false }.merge(args)
+
+    # add folder if not exists
+    add_folder(File.dirname(key), args[:is_thumb]) if File.dirname(key).present?
+
+    # upload file to the right place
     upload_io = uploaded_io_or_file_path.is_a?(String) ? File.open(uploaded_io_or_file_path) : uploaded_io_or_file_path
-    File.open(File.join(@root_folder, key), 'wb'){|file|       file.write(upload_io.read) }
-    res = cache_item(file_parse(key)) unless args[:is_thumb]
-    res
+    File.open(File.join(@root_folder, key), 'wb') { |file| file.write(upload_io.read) }
+
+    # interrupt process if thumbnail
+    return {} if args[:is_thumb]
+
+    # in case there is an alternative custom uploader
+    @instance.hooks_run('uploader_local_before_upload', file: uploaded_io_or_file_path, key: key, args: args)
+
+    # Create DB record or override
+    media_file = CamaleonCms::Media.find_or_create_by(
+      site_id: @current_site.id,
+      name: key.split('/').last,
+      folder_path: CamaleonCmsUploader.folder_path(key)
+    ) do |f|
+
+      f.file_size = args[:file_size]
+      f.file_type = CamaleonCmsUploader.get_file_format(key)
+      f.url = "/media/#{@current_site.id}" + key # being local, the files path can be relative
+    end
+
+    # Possible media error validations like duplications
+    return media_file.errors.messages unless media_file.valid?
+
+    media_file
   end
 
-  def add_folder(key)
-    d, is_new_folder = File.join(@root_folder, key).to_s, false
-    unless Dir.exist?(d)
-      FileUtils.mkdir_p(d)
-      is_new_folder = true if File.basename(d) != 'thumb'
-    end
-    f = file_parse(key)
-    cache_item(f) if is_new_folder
-    f
+  def add_folder(key, is_thumb = false)
+    dir = File.join(@root_folder, key).to_s
+    FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
+
+    return if is_thumb || key == '/'
+
+    media_folder = CamaleonCms::Media.find_or_create_by(
+      site_id: @current_site.id,
+      name: key.split('/').last,
+      folder_path: CamaleonCmsUploader.folder_path(key),
+      is_folder: true
+    )
+
+    media_folder
   end
 
   def delete_folder(key)
-    folder = File.join(@root_folder, key)
-    FileUtils.rm_rf(folder) if Dir.exist? folder
-    reload
+    main_folder = CamaleonCms::Media.find_by(
+      site_id: @current_site.id,
+      name: key.split('/').last,
+      folder_path: CamaleonCmsUploader.folder_path(key),
+      is_folder: true
+    )
+
+    files = CamaleonCms::Media.where(site_id: @current_site.id, folder_path: key)
+    inner_folders_files = CamaleonCms::Media.where(site_id: @current_site.id)
+                                            .where('folder_path like ?', key + '/%')
+
+    if main_folder.present?
+      # destroy from DB
+      main_folder.destroy
+      files.destroy_all
+      inner_folders_files.destroy_all
+
+      # destroy in filesystem
+      folder = File.join(@root_folder, key)
+      FileUtils.rm_rf(folder) if Dir.exist? folder
+    end
+
+    @instance.hooks_run('after_delete_folder', key)
   end
 
   def delete_file(key)
+    media_file = CamaleonCms::Media.find_by(
+      site_id: @current_site.id,
+      name: key.split('/').last,
+      folder_path: CamaleonCmsUploader.folder_path(key)
+    )
+
+    # destroy from db
+    media_file.destroy if media_file.present?
+
+    # destroy in filesystem
     file = File.join(@root_folder, key)
     FileUtils.rm(file) if File.exist? file
-    @instance.hooks_run('after_delete', key)
-    
-    reload
-  end
 
-  # convert a real file path into file key
-  def parse_key(file_path)
-    r = file_path.sub(@root_folder, '')
-    r = "/#{r}" unless r.starts_with?('/')
-    r
+    # destroy thumbnail also from filesystem
+    key = CamaleonCmsUploader.thumbnail(key)
+    file = File.join(@root_folder, key)
+    FileUtils.rm(file) if File.exist? file
+
+    @instance.hooks_run('after_delete_file', key)
   end
 end

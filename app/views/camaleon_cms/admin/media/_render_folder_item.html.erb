@@ -1,10 +1,10 @@
-<% (folders rescue {fname => folder}).each do |fname, folder| %>
-    <div class="media_item folder_item" data-key="<%= fname %>">
+<% (folders rescue folder).each do |folder| %>
+    <div class="media_item folder_item" data-key="<%= folder.name %>">
         <div class="thumb">
             <i class="fa fa-folder"></i>
         </div>
         <div class="label_thumb">
-            <%= fname %>
+            <%= folder.name %>
         </div>
         <% if @show_file_actions %>
             <div class="actions">

@@ -7,9 +7,9 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   # render media section
   def index
     authorize! :manage, :media
-    @show_file_actions = true
-    @files = @tree[:files].map{|k,v|v}.paginate(page: params[:page], per_page: 100)
-    @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
+
+    load_explorer('/')
+
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
   end
 
@@ -34,41 +34,44 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # render media for modal content
   def ajax
-    if current_site.get_option('file_actions_in_modals') == 'yes'
-      @show_file_actions = true
-    end
-    @tree = cama_uploader.search(params[:search]) if params[:search].present?
-    @files = @tree[:files].map{|k,v|v}.paginate(page: params[:page], per_page: 100)
-    @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
+    folder_path = params[:folder].blank? ? '/' : params[:folder]
+
+    load_explorer(folder_path, params[:search])
+
     if params[:partial].present?
-      render json: {next_page: @next_page, html: render_to_string(partial: "files_list", locals: { files: @files, folders: params[:page].present? ? [] : @tree[:folders] })}
+      render json: { next_page: @next_page, html: render_to_string(partial: 'files_list', locals: { files: @files, folders: @folders })}
     else
-      render "index", layout: false unless params[:partial].present?
+      render 'index', layout: false
     end
   end
 
   # do background actions in fog
   def actions
-    if params[:media_action] != 'crop_url'
-      authorize! :manage, :media
-    end
-    params[:folder] = params[:folder].gsub("//", "/") if params[:folder].present?
+    authorize! :manage, :media if params[:media_action] != 'crop_url'
+
+    params[:folder] = params[:folder].gsub('//', '/') if params[:folder].present?
+
     case params[:media_action]
-      when "new_folder"
-        params[:folder] = slugify_folder(params[:folder])
-        render partial: "render_folder_item", locals: { fname: params[:folder].split("/").last, folder: cama_uploader.add_folder(params[:folder])}
-      when "del_folder"
+      when 'new_folder'
+        params[:folder] = CamaleonCmsUploader.slugify_folder(params[:folder])
+        render partial: 'render_folder_item', 
+          locals: { folders: [cama_uploader.add_folder(params[:folder])] }
+
+      when 'del_folder'
         cama_uploader.delete_folder(params[:folder])
-        render inline: ""
-      when "del_file"
-        cama_uploader.delete_file(params[:folder].gsub("//", "/"))
-        render inline: ""
+        render inline: ''
+
+      when 'del_file'
+        cama_uploader.delete_file(params[:folder].gsub('//', '/'))
+        render inline: ''
+
       when 'crop_url'
         params[:url] = (params[:url].start_with?('http') ? '' : current_site.the_url(locale: nil)) + params[:url]
-        r = cama_tmp_upload( params[:url], formats: params[:formats], name: params[:name])
-        unless r[:error].present?
+        r = cama_tmp_upload(params[:url], formats: params[:formats], name: params[:name])
+
+        if r[:error].blank?
           params[:file_upload] = r[:file_path]
-          sett = {remove_source: true}
+          sett = { remove_source: true }
           sett[:same_name] = true if params[:same_name].present?
           sett[:name] = params[:name] if params[:name].present?
           upload(sett)
@@ -81,22 +84,47 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   # upload files from media uploader
   def upload(settings = {})
     params[:dimension] = nil if params[:skip_auto_crop].present?
-    f = {error: "File not found."}
+    f = { error: "File not found." }
+
     if params[:file_upload].present?
-      f = upload_file(params[:file_upload], {folder: params[:folder], dimension: params['dimension'], formats: params[:formats], versions: params[:versions], thumb_size: params[:thumb_size]}.merge(settings))
+      f = upload_file(
+        params[:file_upload], { 
+          folder: params[:folder], 
+          dimension: params['dimension'], 
+          formats: params[:formats], 
+          versions: params[:versions], 
+          thumb_size: params[:thumb_size] 
+        }.merge(settings))
     end
-    render(partial: "render_file_item", locals:{ files: [f] }) unless f[:error].present?
-    render inline: f[:error] if f[:error].present?
+
+    if f[:error].present?
+      render inline: f[:error]
+    else
+      render(partial: 'render_file_item', locals: { files: [f] })
+    end
+  end
+
+  def load_explorer(folder, search = '')
+    @show_file_actions = true
+    @folders = []
+
+    # paging not implemented
+    # .paginate(page: page, per_page: 100)
+
+    @files = CamaleonCms::Media.where(is_folder: false).search(search, folder)
+
+    # search only targets files so
+    return if search.present?
+
+    @folders = CamaleonCms::Media.where(folder_path: folder, is_folder: true)
   end
 
   private
+
   # init basic media variables
   def init_media_vars
     @cama_uploader = CamaleonCmsLocalUploader.new({current_site: current_site, private: true}) if params[:private].present?
-    cama_uploader.clear_cache if params[:cama_media_reload].present? && params[:cama_media_reload] == 'clear_cache'
     @media_formats = (params[:media_formats] || "").sub("media", ",video,audio").sub("all", "").split(",")
-    @tree = cama_uploader.objects(@folder = params[:folder] || "/")
     @show_file_actions ||= params[:actions].to_s == 'true'
   end
-
 end
