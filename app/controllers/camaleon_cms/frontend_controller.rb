@@ -137,7 +137,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     # let a hook override the ability for certain roles see drafts
     args = { permitted: false }
     hooks_run("on_render_draft_permitted", args)
-    
+
     if args[:permitted] || can?(:update, post_draft)
       render_post(post_draft)
     else
@@ -202,12 +202,38 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     if @_site_options[:error_404].present? # render a custom error page
       page_404 = current_site.posts.find(@_site_options[:error_404]) rescue ""
       if page_404.present?
-        page_404 = page_404.decorate
-        redirect_to page_404.the_url
+        render_custom_page_not_found(page_404)
         return
       end
     end
     render_error(404)
+  end
+
+  def render_custom_page_not_found(page_404, status = 404)
+    home_page = @_site_options[:home_page] rescue nil
+    if lookup_context.template_exists?("page_#{page_404.id}")
+      r_file = "page_#{page_404.id}"
+    elsif page_404.get_template(page_404.post_type).present? && lookup_context.template_exists?(page_404.get_template(page_404.post_type))
+      r_file = page_404.get_template(page_404.post_type)
+    elsif home_page.present? && page_404.id.to_s == home_page
+      r_file = "index"
+    elsif lookup_context.template_exists?("post_types/#{page_404.post_type.the_slug}/single")
+      r_file = "post_types/#{page_404.post_type.the_slug}/single"
+    elsif lookup_context.template_exists?("#{page_404.post_type.slug}")
+      r_file = "#{page_404.post_type.slug}"
+    else
+      r_file = "single"
+    end
+
+    layout_ = nil
+    meta_layout = page_404.get_layout(page_404.post_type)
+    layout_ = meta_layout if meta_layout.present? && lookup_context.template_exists?("layouts/#{meta_layout}")
+
+    @post = page_404
+    @post_type = page_404.post_type
+
+    r = { post: @post, post_type: @post_type, layout: layout_, render: r_file }
+    render r[:render], (!r[:layout].nil? ? {layout: r[:layout], status: status} : {status: status})
   end
 
   # define frontend locale
