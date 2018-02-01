@@ -28,7 +28,7 @@ class CamaleonCms::CamaleonController < ApplicationController
   # For APIs, you may want to use :null_session instead.
   # Skip forgery check on .js files located in /assets/ to avoid CORS errors
   # caused by requests for non-existent files.
-  protect_from_forgery with: :exception, unless: -> { request.fullpath.match? /\A\/assets\/.*\.js\z/ }
+  protect_from_forgery with: :exception, unless: -> { request.fullpath.match(/\A\/assets\/.*\.js\z/) }
   layout Proc.new { |controller| controller.request.xhr? ? false : 'default' }
   helper_method :current_user
 
