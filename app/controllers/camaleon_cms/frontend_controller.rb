@@ -128,6 +128,11 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     render r[:render], (!r[:layout].nil? ? {layout: r[:layout]} : {})
   end
 
+  # render page not found
+  def render_page_not_found
+    page_not_found
+  end
+
   private
   # render a post from draft
   def draft_render
