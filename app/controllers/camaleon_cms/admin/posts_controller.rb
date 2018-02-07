@@ -35,7 +35,6 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     @posts = posts_all
     params[:s] = 'published' unless params[:s].present?
     @lists_tab = params[:s]
-    add_breadcrumb I18n.t("camaleon_cms.admin.post_type.#{params[:s]}") if params[:s].present?
     case params[:s]
       when "published", "pending", "trash"
         @posts = @posts.send(params[:s])
@@ -49,6 +48,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     per_page = 9999999 if @post_type.manage_hierarchy?
     r = {posts: @posts, post_type: @post_type, btns: @btns, all_posts: posts_all, render: 'index', per_page: per_page }
     hooks_run("list_post", r)
+    add_breadcrumb "#{@btns[params[:s].to_sym]}" if params[:s].present?
     @posts = r[:posts].paginate(:page => params[:page], :per_page => r[:per_page])
     render r[:render]
   end

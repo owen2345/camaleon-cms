@@ -16,7 +16,7 @@ class CamaleonCms::Theme < CamaleonCms::TermTaxonomy
 
   # return the path to the settings file for current theme
   def settings_file
-    File.join(self.settings["path"], "views/admin/settings.html.erb").to_s
+    File.join(self.settings["path"], "views/admin/settings").to_s
   end
 
   private
