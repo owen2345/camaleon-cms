@@ -58,13 +58,13 @@ module CamaleonCms::UploaderHelper
     end
     # save file
     key = File.join(settings[:folder], settings[:filename]).to_s.cama_fix_slash
-    res = cama_uploader.add_file(uploaded_io, key, {same_name: settings[:same_name]})
+    res = cama_uploader.add_file(settings[:uploaded_io], key, {same_name: settings[:same_name]})
     {} if settings[:temporal_time] > 0 # temporal file upload (always put as local for temporal files) (TODO: use delayjob)
 
     # generate image versions
     if res['format'] == 'image'
       settings[:versions].to_s.gsub(' ', '').split(',').each do |v|
-        version_path = cama_resize_upload(uploaded_io.path, v, {replace: false})
+        version_path = cama_resize_upload(settings[:uploaded_io].path, v, {replace: false})
         cama_uploader.add_file(version_path, cama_uploader.version_path(res['key'], v), is_thumb: true, same_name: true)
         FileUtils.rm_f(version_path)
       end
@@ -271,7 +271,7 @@ module CamaleonCms::UploaderHelper
       }
       hooks_run("on_uploader", args)
       return args[:custom_uploader] if args[:custom_uploader].present?
-      
+
       case args[:server]
         when 's3', 'aws'
           CamaleonCmsAwsUploader.new({current_site: current_site, thumb: args[:thumb], aws_settings: args[:aws_settings]}, self)
