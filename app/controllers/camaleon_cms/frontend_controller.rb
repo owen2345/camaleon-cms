@@ -279,6 +279,6 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
 
   def post_path_exist?
     request_url = request.url.split("?").first
-    @post.the_urls.map{|url| url.last}.include?(request_url)
+    @post.the_urls.map{|url| url.last}.include?(request_url) || params[:draft_id].present?
   end
 end
