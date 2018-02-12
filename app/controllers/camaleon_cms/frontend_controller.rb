@@ -170,6 +170,8 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       end
     else
       @post = @post.decorate
+      return page_not_found unless post_path_exist?
+
       @object = @post
       @cama_visited_post = @post
       @post_type = @post.the_post_type
@@ -273,5 +275,10 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     rescue
       options
     end
+  end
+
+  def post_path_exist?
+    request_url = request.url.split("?").first
+    @post.the_urls.map{|url| url.last}.include?(request_url)
   end
 end
