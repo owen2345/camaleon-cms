@@ -79,6 +79,7 @@ module CamaleonCms::UploaderHelper
 
     FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
 
+    settings[:record] = res
     hooks_run('after_upload', settings)
     res
   end
