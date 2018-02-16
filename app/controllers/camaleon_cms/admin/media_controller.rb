@@ -108,15 +108,21 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     @show_file_actions = true
     @folders = []
 
-    # paging not implemented
-    # .paginate(page: page, per_page: 100)
+    # pagination only for files?
+    items_per_page = 50
+    page = (params[:page] || 1).to_i
 
-    @files = CamaleonCms::Media.where(is_folder: false).search(search, folder)
+    @files = CamaleonCms::Media.where(is_folder: false)
+                               .search(search, folder)
+                               .paginate(page: page, per_page: items_per_page)
 
-    # search only targets files so
-    return if search.present?
+    # next page available depending on results
+    @next_page = @files.count > items_per_page * page ? page + 1 : nil
 
-    @folders = CamaleonCms::Media.where(folder_path: folder, is_folder: true)
+    # all folders load first time
+    unless search.present? || page > 1
+      @folders = CamaleonCms::Media.where(folder_path: folder, is_folder: true)
+    end
   end
 
   private
