@@ -112,8 +112,8 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     FileUtils.rm(file) if File.exist? file
 
     # destroy thumbnail also from filesystem
-    key = CamaleonCmsUploader.thumbnail(key)
-    file = File.join(@root_folder, key)
+    thumb_key = CamaleonCmsUploader.thumbnail(key)
+    file = File.join(@root_folder, thumb_key)
     FileUtils.rm(file) if File.exist? file
 
     @instance.hooks_run('after_delete_file', key)

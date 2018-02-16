@@ -94,8 +94,8 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     bucket.object(key.split('/').clean_empty.join('/')).delete rescue ''
 
     # remove also thumb from s3
-    key = CamaleonCmsUploader.thumbnail(key)
-    bucket.object(key.split('/').clean_empty.join('/')).delete rescue ''
+    thumb_key = CamaleonCmsUploader.thumbnail(key)
+    bucket.object(thumb_key.split('/').clean_empty.join('/')).delete rescue ''
 
     @instance.hooks_run('after_delete_file', key)
   end
