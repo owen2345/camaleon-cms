@@ -25,15 +25,21 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     return {} if args[:is_thumb]
 
     # Create DB record or override
+    filename = key.split('/').last
     media_file = CamaleonCms::Media.find_or_create_by(
       site_id: @current_site.id,
-      name: key.split('/').last,
+      name: filename,
       folder_path: CamaleonCmsUploader.folder_path(key)
     ) do |f|
-
       f.file_size = args[:file_size]
       f.file_type = CamaleonCmsUploader.get_file_format(key)
       f.url = s3_file.public_url
+    end
+
+    # Change name if changed case sensitivity
+    if media_file[:name] != filename
+      media_file.name = filename
+      media_file.save
     end
 
     # Possible media error validations like duplications
@@ -48,7 +54,12 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
       site_id: @current_site.id,
       name: key.split('/').last,
       folder_path: CamaleonCmsUploader.folder_path(key),
-      is_folder: true)
+      is_folder: true
+    ) do |f|
+      # add name and folder again because of change in case sensitivity
+      f.name = key.split('/').last
+      f.folder_path = CamaleonCmsUploader.folder_path(key)
+    end
 
     media_folder
   end
