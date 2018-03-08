@@ -12,78 +12,6 @@ class CamaleonCmsUploader
     after_initialize
   end
 
-  def after_initialize
-
-  end
-
-  # return all files structure, within folder prefix
-  # return json like:
-  # {files: {'file_name': {'name'=> 'a.jpg', key: '/test/a.jpg', url: '', url: '', size: '', format: '', thumb: 'thumb_url', type: '', created_at: '', dimension: '120x120'}}, folders: {'folder name' => {name: 'folder name', key: '/folder name', ...}}}
-  # sort: (String, default 'created_at'), accept for: created_at | name | size | type | format
-  def objects(prefix = '/', sort = 'created_at')
-    prefix = prefix.cama_fix_slash
-    prefix = "/#{prefix}" unless prefix.starts_with?('/')
-    db = @current_site.get_meta(cache_key, nil) || browser_files
-    res = db[prefix] || {files: {}, folders: {}}
-    
-    # Private hook to recover custom files to include in current list where data can be modified to add custom{files, folders}
-    # Note: this hooks doesn't have access to public vars like params. requests, ...
-    if @instance
-      args={data: res, prefix: prefix}; @instance.hooks_run('uploader_list_objects', args)
-      res = args[:data]
-    end
-    
-    res[:files] = res[:files].sort_by{|k, v| v[sort] }.reverse.to_h
-    res[:folders] = res[:folders].sort_by{|k, v| v['name'] }.reverse.to_h
-    res
-  end
-
-  # clean cached of files structure saved into DB
-  def clear_cache
-    @current_site.set_meta(cache_key, nil)
-  end
-
-  # search for folders or files that includes search_text in their names
-  def search(search_text)
-    res = {files: {}, folders: {}}
-    (@current_site.get_meta(cache_key, nil) || browser_files).each do |folder_key, object|
-      res[:folders][folder_key] = get_file(folder_key) if !['', '/'].include?(folder_key) && folder_key.split('/').last.include?(search_text)
-      object[:files].each do |file_key, obj|
-        res[:files][file_key] = obj if file_key.include?(search_text)
-      end
-      res
-    end
-    res
-  end
-
-  # reload cache files structure
-  def reload
-    browser_files
-  end
-
-  # save file_parsed as a cache into DB
-  # file_parsed: (HASH) File parsed object
-  # objects_db: HASH Object where to add the current object (optional)
-  def cache_item(file_parsed, _objects_db = nil, custom_cache_key = nil)
-    _cache_key = custom_cache_key || cache_key
-    objects_db = _objects_db || @current_site.get_meta(_cache_key, {}) || {}
-    prefix = File.dirname(file_parsed['key'])
-
-    s = prefix.split('/').clean_empty
-    return file_parsed if s.last == 'thumb'
-    s.each_with_index{|_s, i| k = "/#{File.join(s.slice(0, i), _s)}".cama_fix_slash; cache_item(file_parse(k), objects_db) unless objects_db[k].present? } unless ['/', '', '.'].include?(prefix)
-
-    objects_db[prefix] = {files: {}, folders: {}} if objects_db[prefix].nil?
-    if file_parsed['format'] == 'folder'
-      objects_db[prefix][:folders][file_parsed['name']] = file_parsed
-    else
-      objects_db[prefix][:files][file_parsed['name']] = file_parsed
-    end
-    @current_site.set_meta(_cache_key, objects_db) if _objects_db.nil?
-    file_parsed
-  end
-
-
   # convert current string path into file version_path, sample:
   # version_path('/media/1/screen.png') into /media/1/thumb/screen-png.png (thumbs)
   # Sample: version_path('/media/1/screen.png', '200x200') ==> /media/1/thumb/screen-png_200x200.png (image versions)
@@ -128,45 +56,61 @@ class CamaleonCmsUploader
     res.join(',')
   end
 
+  def self.folder_path(key)
+    split_folder = key.split('/').reject(&:empty?)
+    split_folder.pop
+    '/' + split_folder.join('/')
+  end
+
+  # leaves only a-z 0-9 - _ characters
+  def self.slugify(val)
+    val.to_s.downcase.strip.gsub(' ', '-').gsub(/[^\w-]/, '')
+  end
+
+  # leaves only a-z 0-9 - _ . characters
+  def self.slugify_file(val)
+    val.to_s.downcase.strip.gsub(' ', '-').gsub(/[^\w.-]/, '')
+  end
+
+  # certify that user doesn't create strange folder names
+  def self.slugify_folder(val)
+    splitted_folder = val.split('/')
+    splitted_folder[-1] = slugify(splitted_folder.last)
+    splitted_folder.join('/')
+  end
+
+  def self.thumbnail(url)
+    # replace extension
+    splitted = url.split('.')
+    extension = "-#{splitted.last}.#{splitted.last}"
+    splitted.pop
+    splitted[splitted.length-1] = splitted[splitted.length - 1] + extension
+    result = splitted.join('.')
+
+    # add thumb folder to structure
+    splitted = result.split('/')
+    splitted.insert(splitted.count-1, 'thumb') # add thumb
+    splitted[splitted.count-1] = splitted[splitted.count-1].downcase # convert to downcase
+    splitted.join('/')
+  end
+
   # verify permitted formats (return boolean true | false)
   # true: if format is accepted
   # false: if format is not accepted
   # sample: validate_file_format('/var/www/myfile.xls', 'image,audio,docx,xls') => return true if the file extension is in formats
   def self.validate_file_format(key, valid_formats = "*")
-    return true if valid_formats == "*" || !valid_formats.present?
-    valid_formats = valid_formats.gsub(' ', '').downcase.split(',') + get_file_format_extensions(valid_formats).split(',')
+    return true if valid_formats == "*" || valid_formats.blank?
+    valid_formats = valid_formats.delete(' ').downcase.split(',') + get_file_format_extensions(valid_formats).split(',')
     valid_formats.include?(File.extname(key).sub(".", "").split('?').first.try(:downcase))
   end
 
 
-  # verify if this file name already exist
-  # if the file is already exist, return a new name for this file
-  # sample: search_new_key("my_file/file.txt")
-  def search_new_key(key)
-    _key = key
-    if get_file(key).present?
-      (1..999).each do |i|
-        _key = key.cama_add_postfix_file_name("_#{i}")
-        break unless get_file(_key).present?
-      end
-    end
-    _key
-  end
-
-  # check if file with :key exist and return parsed_file, else return nil
-  def get_file(key, use_cache = true)
-    if use_cache
-      db = (@current_site.get_meta(cache_key) || {})[File.dirname(key)] || {}
-    else
-      db = objects(File.dirname(key)) unless use_cache
-    end
-    (db[:files][File.basename(key)] || db[:folders][File.basename(key)]) rescue nil
-  end
-
   private
+
   def cache_key
     "cama_media_cache#{'_private' if is_private_uploader?}"
   end
-  def is_private_uploader?() end
+
+  def is_private_uploader?; end
 
 end

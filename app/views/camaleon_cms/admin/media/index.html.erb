@@ -19,7 +19,7 @@
                                       <% if @show_file_actions %>
                                           <li><a href="#" class="add_folder"> <i class="fa fa-plus"></i> <%= cama_t("camaleon_cms.admin.button.add_folder") %></a></li>
                                       <% end %>
-                                      <li><a href="#" class="cam_media_reload" data-action="clear_cache"><i class="fa fa-recycle"></i> <%= cama_t('camaleon_cms.admin.media.clear_cache') %></a></li>
+                                      <!-- <li><a href="#" class="cam_media_reload" data-action="clear_cache"><i class="fa fa-recycle"></i> <%= cama_t('camaleon_cms.admin.media.clear_cache') %></a></li> -->
                                   </ul>
                               </div>
                           </div>
@@ -32,7 +32,7 @@
     <div class="panel-body">
       <div class="row" style="margin-bottom: 16px">
         <div class="col-md-9 media_browser_list" data-next-page="<%= @next_page %>">
-          <%= render "files_list", files: @files, folders: @tree[:folders] %>
+          <%= render "files_list", files: @files, folders: @folders %>
         </div>
 
         <div class="col-md-3 media_file_info_col">

@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Owen Peredo Diaz"]
   s.email       = ["owenperedo@gmail.com"]
   s.homepage    = "http://camaleon.tuzitio.com"
-  s.summary     = "Camaleon is a cms for Ruby on Rails 4 as an alternative to wordpress."
+  s.summary     = "Camaleon is a cms for Ruby on Rails 4+ as an alternative to wordpress."
   s.description = "Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4 as an alternative to Wordpress."
   s.license     = "MIT"
 
