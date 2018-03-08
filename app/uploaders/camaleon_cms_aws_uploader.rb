@@ -33,7 +33,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     ) do |f|
       f.file_size = args[:file_size]
       f.file_type = CamaleonCmsUploader.get_file_format(key)
-      f.url = s3_file.public_url
+      f.url = @cloudfront.present? ? @cloudfront + '/' + s3_file.key : s3_file.public_url
     end
 
     # Change name if changed case sensitivity
