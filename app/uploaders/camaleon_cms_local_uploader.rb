@@ -44,7 +44,7 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
         'dimension' => ''
     }.with_indifferent_access
     res['key'] = File.join(res['folder_path'], res['name'])
-    res["thumb"] = version_path(res['url']) if res['file_type'] == 'image' && File.extname(file_path).downcase != '.gif'
+    res["thumb"] = (is_private_uploader? ? '/admin/media/download_private_file?file=' + version_path(key).slice(1..-1) : version_path(res['url'])) if res['file_type'] == 'image' && File.extname(file_path).downcase != '.gif'
     if res['file_type'] == 'image'
       im = MiniMagick::Image.open(file_path)
       res['dimension'] = "#{im[:width]}x#{im[:height]}"

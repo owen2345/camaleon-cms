@@ -20,7 +20,7 @@ window["cama_init_media"] = (media_panel) ->
         "<div class='p_label'><b>"+I18n("button.name")+": </b><br> <span>"+data["name"]+"</span></div>" +
         "<div class='p_body'>" +
         "<div style='overflow: auto;'><b>"+I18n("button.url")+":</b><br> <a target='_blank' href='"+data["url"]+"'>"+data["url"]+"</a></div>" +
-        "<div><b>"+I18n("button.size")+":</b> <span>"+cama_humanFileSize(data["file_size"])+"</span></div>" +
+        "<div><b>"+I18n("button.size")+":</b> <span>"+cama_humanFileSize(parseFloat(data["file_size"]))+"</span></div>" +
         "</div>"
 
     if window["callback_media_uploader"]
