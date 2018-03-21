@@ -12,10 +12,16 @@ class CamaleonCms::CustomFieldsRelationship < ActiveRecord::Base
   validates :custom_field_id, presence: true # error on clone model
 
   after_save :set_parent_slug
+  after_save :update_model_owner # TODO: convert this model into polymorphic
 
   private
 
   def set_parent_slug
     # self.update_column('custom_field_slug', self.custom_fields.slug)
+  end
+  
+  # touch owner model
+  def update_model_owner
+    "CamaleonCms::#{object_class}".constantize.find(objectid).touch rescue nil # owner model
   end
 end
