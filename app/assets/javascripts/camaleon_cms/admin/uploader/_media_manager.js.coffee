@@ -20,18 +20,18 @@ window["cama_init_media"] = (media_panel) ->
         "<div class='p_label'><b>"+I18n("button.name")+": </b><br> <span>"+data["name"]+"</span></div>" +
         "<div class='p_body'>" +
         "<div style='overflow: auto;'><b>"+I18n("button.url")+":</b><br> <a target='_blank' href='"+data["url"]+"'>"+data["url"]+"</a></div>" +
-        "<div><b>"+I18n("button.size")+":</b> <span>"+cama_humanFileSize(data["size"])+"</span></div>" +
+        "<div><b>"+I18n("button.size")+":</b> <span>"+cama_humanFileSize(data["file_size"])+"</span></div>" +
         "</div>"
 
     if window["callback_media_uploader"]
-      if !media_panel.attr("data-formats") || (media_panel.attr("data-formats")  && ($.inArray(data["format"], media_panel.attr("data-formats").split(",")) >= 0 || $.inArray(data["url"].split(".").pop().toLowerCase(), media_panel.attr("data-formats").split(",")) >= 0))
+      if !media_panel.attr("data-formats") || (media_panel.attr("data-formats")  && ($.inArray(data["file_type"], media_panel.attr("data-formats").split(",")) >= 0 || $.inArray(data["url"].split(".").pop().toLowerCase(), media_panel.attr("data-formats").split(",")) >= 0))
         tpl += "<div class='p_footer'>" +
           "<button class='btn btn-primary insert_btn'>"+I18n("button.insert")+"</button>" +
           "</div>"
 
     media_info.html(tpl)
     media_info.find(".p_thumb").html(item.find(".thumb").html())
-    if data["format"] == "image"
+    if data["file_type"] == "image"
       if item.find('.edit_item') # add button to edit image
         edit_img = $('<button type="button" class="pull-right btn btn-default" title="Edit"><i class="fa fa-pencil"></i></button>').click ->
           item.find('.edit_item').trigger('click')
@@ -351,7 +351,7 @@ window["cama_init_media"] = (media_panel) ->
       title: I18n('button.edit_image', 'Edit Image')+' - ' + data['name'] + (if media_panel.attr("data-dimension") then " <small><i>("+media_panel.attr("data-dimension")+")</i></small>" else ''),
       content: '<div>' +
                 '<div class="editable_wrapper">' +
-                  '<img style="max-width: 100%;" class="editable" id="media_editable_image" src="'+data['url']+'">' +
+                  '<img style="max-width: 100%;" class="editable" id="media_editable_image" crossorigin src="'+data['url']+'">' +
                 '</div>' +
                 '<div class="row" style="margin-top: 5px;">' +
                   '<div class="col-md-8">' +

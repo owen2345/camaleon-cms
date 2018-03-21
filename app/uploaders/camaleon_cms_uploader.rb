@@ -16,44 +16,28 @@ class CamaleonCmsUploader
 
   end
 
-  # return all files structure, within folder prefix
-  # return json like:
-  # {files: {'file_name': {'name'=> 'a.jpg', key: '/test/a.jpg', url: '', url: '', size: '', format: '', thumb: 'thumb_url', type: '', created_at: '', dimension: '120x120'}}, folders: {'folder name' => {name: 'folder name', key: '/folder name', ...}}}
-  # sort: (String, default 'created_at'), accept for: created_at | name | size | type | format
+  # load media files from a specific folder path
   def objects(prefix = '/', sort = 'created_at')
-    prefix = prefix.cama_fix_slash
-    prefix = "/#{prefix}" unless prefix.starts_with?('/')
-    db = @current_site.get_meta(cache_key, nil) || browser_files
-    res = db[prefix] || {files: {}, folders: {}}
-    
+    prefix = prefix.cama_fix_media_key
+    browser_files unless get_media_collection.any?
+    res = ['/', ''].include?(prefix) ? get_media_collection.where(folder_path: '/') : get_media_collection.find_by_key(prefix).take.try(:items)
     # Private hook to recover custom files to include in current list where data can be modified to add custom{files, folders}
     # Note: this hooks doesn't have access to public vars like params. requests, ...
     if @instance
       args={data: res, prefix: prefix}; @instance.hooks_run('uploader_list_objects', args)
       res = args[:data]
     end
-    
-    res[:files] = res[:files].sort_by{|k, v| v[sort] }.reverse.to_h
-    res[:folders] = res[:folders].sort_by{|k, v| v['name'] }.reverse.to_h
     res
   end
 
   # clean cached of files structure saved into DB
   def clear_cache
-    @current_site.set_meta(cache_key, nil)
+    get_media_collection.destroy_all
   end
 
   # search for folders or files that includes search_text in their names
   def search(search_text)
-    res = {files: {}, folders: {}}
-    (@current_site.get_meta(cache_key, nil) || browser_files).each do |folder_key, object|
-      res[:folders][folder_key] = get_file(folder_key) if !['', '/'].include?(folder_key) && folder_key.split('/').last.include?(search_text)
-      object[:files].each do |file_key, obj|
-        res[:files][file_key] = obj if file_key.include?(search_text)
-      end
-      res
-    end
-    res
+    get_media_collection.search(search_text)
   end
 
   # reload cache files structure
@@ -65,22 +49,16 @@ class CamaleonCmsUploader
   # file_parsed: (HASH) File parsed object
   # objects_db: HASH Object where to add the current object (optional)
   def cache_item(file_parsed, _objects_db = nil, custom_cache_key = nil)
-    _cache_key = custom_cache_key || cache_key
-    objects_db = _objects_db || @current_site.get_meta(_cache_key, {}) || {}
-    prefix = File.dirname(file_parsed['key'])
-
-    s = prefix.split('/').clean_empty
-    return file_parsed if s.last == 'thumb'
-    s.each_with_index{|_s, i| k = "/#{File.join(s.slice(0, i), _s)}".cama_fix_slash; cache_item(file_parse(k), objects_db) unless objects_db[k].present? } unless ['/', '', '.'].include?(prefix)
-
-    objects_db[prefix] = {files: {}, folders: {}} if objects_db[prefix].nil?
-    if file_parsed['format'] == 'folder'
-      objects_db[prefix][:folders][file_parsed['name']] = file_parsed
-    else
-      objects_db[prefix][:files][file_parsed['name']] = file_parsed
+    unless get_media_collection.where(name: file_parsed['name'], folder_path: file_parsed['folder_path']).any?
+      a = get_media_collection.new(file_parsed.except('key'))
+      a.save!
     end
-    @current_site.set_meta(_cache_key, objects_db) if _objects_db.nil?
     file_parsed
+  end
+  
+  # return the media collection for current situation
+  def get_media_collection
+    is_private_uploader? ? @current_site.public_media : @current_site.private_media
   end
 
 
@@ -144,10 +122,10 @@ class CamaleonCmsUploader
   # sample: search_new_key("my_file/file.txt")
   def search_new_key(key)
     _key = key
-    if get_file(key).present?
+    if get_media_collection.find_by_key(key).any?
       (1..999).each do |i|
         _key = key.cama_add_postfix_file_name("_#{i}")
-        break unless get_file(_key).present?
+        break unless get_media_collection.find_by_key(_key).any?
       end
     end
     _key
@@ -155,12 +133,7 @@ class CamaleonCmsUploader
 
   # check if file with :key exist and return parsed_file, else return nil
   def get_file(key, use_cache = true)
-    if use_cache
-      db = (@current_site.get_meta(cache_key) || {})[File.dirname(key)] || {}
-    else
-      db = objects(File.dirname(key)) unless use_cache
-    end
-    (db[:files][File.basename(key)] || db[:folders][File.basename(key)]) rescue nil
+    # deprecated
   end
 
   private
@@ -168,5 +141,4 @@ class CamaleonCmsUploader
     "cama_media_cache#{'_private' if is_private_uploader?}"
   end
   def is_private_uploader?() end
-
 end

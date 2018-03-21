@@ -16,6 +16,8 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   has_many :posts, through: :post_types, :source => :posts
   has_many :plugins, :class_name => "CamaleonCms::Plugin", foreign_key: :parent_id, dependent: :destroy
   has_many :themes, :class_name => "CamaleonCms::Theme", foreign_key: :parent_id, dependent: :destroy
+  has_many :public_media, ->{ where(is_public: true) }, class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
+  has_many :private_media, ->{ where(is_public: false) }, class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
 
   after_create :default_settings
   after_create :set_default_user_roles

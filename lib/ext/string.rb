@@ -93,6 +93,14 @@ class String
     self.gsub(/(\/){2,}/, "/")
   end
 
+  # fix file media keys: avoid duplicated slashes and force to start with slash
+  def cama_fix_media_key
+    res = self.gsub('../', '/').gsub('./', '/').gsub(/(\/){2,}/, "/")
+    res = "/#{res}" unless res.start_with?('/')
+    res = res.slice(0...-1) if res.end_with?('/') && res.length > 1
+    res
+  end
+
   def cama_fix_filename
     # Sanitize the filename, to prevent hacking
     # https://github.com/carrierwaveuploader/carrierwave/blob/6a1445e0daef29a5d4f799a016359b62d82dbc24/lib/carrierwave/sanitized_file.rb#L322

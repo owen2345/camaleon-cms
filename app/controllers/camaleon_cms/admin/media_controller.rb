@@ -8,7 +8,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   def index
     authorize! :manage, :media
     @show_file_actions = true
-    @files = @tree[:files].map{|k,v|v}.paginate(page: params[:page], per_page: 100)
+    @files = @tree.paginate(page: params[:page], per_page: 100)
     @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
   end
@@ -38,10 +38,10 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
       @show_file_actions = true
     end
     @tree = cama_uploader.search(params[:search]) if params[:search].present?
-    @files = @tree[:files].map{|k,v|v}.paginate(page: params[:page], per_page: 100)
+    @files = @tree.paginate(page: params[:page], per_page: 100)
     @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
     if params[:partial].present?
-      render json: {next_page: @next_page, html: render_to_string(partial: "files_list", locals: { files: @files, folders: params[:page].present? ? [] : @tree[:folders] })}
+      render json: {next_page: @next_page, html: render_to_string(partial: "render_file_item", locals: { files: @files })}
     else
       render "index", layout: false unless params[:partial].present?
     end
@@ -56,7 +56,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
     case params[:media_action]
       when "new_folder"
         params[:folder] = slugify_folder(params[:folder])
-        render partial: "render_folder_item", locals: { fname: params[:folder].split("/").last, folder: cama_uploader.add_folder(params[:folder])}
+        render partial: "render_file_item", locals: {files: [cama_uploader.add_folder(params[:folder])]}
       when "del_folder"
         cama_uploader.delete_folder(params[:folder])
         render inline: ""
@@ -64,7 +64,9 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
         cama_uploader.delete_file(params[:folder].gsub("//", "/"))
         render inline: ""
       when 'crop_url'
-        params[:url] = (params[:url].start_with?('http') ? '' : current_site.the_url(locale: nil)) + params[:url]
+        unless params[:url].start_with?('data:')
+          params[:url] = (params[:url].start_with?('http') ? '' : current_site.the_url(locale: nil)) + params[:url]
+        end
         r = cama_tmp_upload( params[:url], formats: params[:formats], name: params[:name])
         unless r[:error].present?
           params[:file_upload] = r[:file_path]
@@ -93,7 +95,8 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   # init basic media variables
   def init_media_vars
     @cama_uploader = CamaleonCmsLocalUploader.new({current_site: current_site, private: true}) if params[:private].present?
-    cama_uploader.clear_cache if params[:cama_media_reload].present? && params[:cama_media_reload] == 'clear_cache'
+    cama_uploader.clear_cache if params[:cama_media_reload] == 'clear_cache'
+    cama_uploader.reload if params[:cama_media_reload] == 'reload'
     @media_formats = (params[:media_formats] || "").sub("media", ",video,audio").sub("all", "").split(",")
     @tree = cama_uploader.objects(@folder = params[:folder] || "/")
     @show_file_actions ||= params[:actions].to_s == 'true'
