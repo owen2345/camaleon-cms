@@ -87,7 +87,7 @@ module CamaleonCms::UploaderHelper
     w, h = thumb_size.split('x') if thumb_size.present?
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
     path_thumb = cama_resize_and_crop(uploaded_io.path, w, h)
-    thumb = cama_uploader.add_file(path_thumb, cama_uploader.version_path(key), is_thumb: true, same_name: true)
+    thumb = cama_uploader.add_file(path_thumb, cama_uploader.version_path(key).sub('.svg', '.jpg'), is_thumb: true, same_name: true)
     FileUtils.rm_f(path_thumb)
     thumb
   end
@@ -151,6 +151,7 @@ module CamaleonCms::UploaderHelper
   end
 
   # resize and crop a file
+  # SVGs are converted to JPEGs for editing
   # Params:
   #   file: (String) File path
   #   w: (Integer) width
@@ -164,12 +165,17 @@ module CamaleonCms::UploaderHelper
   def cama_resize_and_crop(file, w, h, settings = {})
     settings = {gravity: :north_east, overwrite: true, output_name: ""}.merge(settings)
     img = MiniMagick::Image.open(file)
+    if file.end_with? '.svg'
+      img.format 'jpg'
+      file.sub! '.svg', '.jpg'
+      settings[:output_name]&.sub! 'svg', 'jpg'
+    end
     w = img[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : img[:width] if w.present? && w.to_s.include?('?')
     h = img[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : img[:height] if h.present? && h.to_s.include?('?')
     w_original, h_original = [img[:width].to_f, img[:height].to_f]
     w = w.to_i if w.present?
     h = h.to_i if h.present?
-    
+
     # check proportions
     if w_original * h < h_original * w
       op_resize = "#{w.to_i}x"
@@ -181,20 +187,20 @@ module CamaleonCms::UploaderHelper
       h_result = h
     end
 
-    w_offset, h_offset = cama_crop_offsets_by_gravity(settings[:gravity], [w_result, h_result], [ w, h])
-    data = {img: img, w: w, h: h, w_offset: w_offset, h_offset: h_offset, op_resize: op_resize, settings: settings}; hooks_run("before_resize_crop", data)
-    data[:img].combine_options do |i|
-      i.resize(data[:op_resize])
+    w_offset, h_offset = cama_crop_offsets_by_gravity(settings[:gravity], [w_result, h_result], [w, h])
+    img.combine_options do |i|
+      i.resize(op_resize)
       i.gravity(settings[:gravity])
-      i.crop "#{data[:w].to_i}x#{data[:h].to_i}+#{data[:w_offset]}+#{data[:h_offset]}!"
+      i.crop "#{w.to_i}x#{h.to_i}+#{w_offset}+#{h_offset}!"
     end
 
-    data[:img].write(file) if settings[:overwrite]
-    unless settings[:overwrite]
+    if settings[:overwrite]
+      img.write(file.sub '.svg', '.jpg')
+    else
       if settings[:output_name].present?
-        data[:img].write(file = File.join(File.dirname(file), settings[:output_name]).to_s)
+        img.write(file = File.join(File.dirname(file), settings[:output_name]).to_s)
       else
-        data[:img].write(file = uploader_verify_name(File.join(File.dirname(file), "crop_#{File.basename(file)}")))
+        img.write(file = uploader_verify_name(File.join(File.dirname(file), "crop_#{File.basename(file.sub '.svg', '.jpg')}")))
       end
     end
     file
