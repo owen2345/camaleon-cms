@@ -1,5 +1,5 @@
 require "rails_helper"
-
+include Rails.application.routes.url_helpers
 RSpec.describe "PostTypeDecorator", :type => :routing do
   it "group url" do
     post_type = create_test_post_type(slug: 'test-post-type')

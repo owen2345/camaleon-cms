@@ -42,7 +42,7 @@ describe "the Menus", js: true do
   it "Menus Create and Delete" do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/appearances/nav_menus"
-    page.execute_script('$("#switch_nav_menu_form .btn-danger").click()')
+    page.execute_script('jQuery("#switch_nav_menu_form .btn-danger").click()')
     confirm_dialog
     expect(page).to have_css('.alert-success')
   end

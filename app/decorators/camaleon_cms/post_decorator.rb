@@ -217,7 +217,6 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   # @param _parent: parent decorated model, like: (PostType *default), Category, PostTag, Site
   # @samples: my_post.the_next_post(), my_post.the_next_post(@category), my_post.the_next_post(current_site)
   def the_next_post(_parent = nil)
-    puts "next for: #{object.slug}"
     (_parent.presence || the_post_type).the_posts.where("#{CamaleonCms::Post.table_name}.post_order > :position OR (#{CamaleonCms::Post.table_name}.post_order = :position and #{CamaleonCms::Post.table_name}.created_at > :created_at)", {position: object.post_order, created_at: object.created_at}).where.not(id: object.id).take.try(:decorate)
   end
 

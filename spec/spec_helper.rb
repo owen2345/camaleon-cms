@@ -44,14 +44,12 @@ end
 
 #****** configuration to test using poltergeist *****#
 require 'capybara/poltergeist'
-# Note: you need phantomjs 1.9.x which can be downloaded from here: https://code.google.com/archive/p/phantomjs/downloads
-if File.exist?(File.join(CAMALEON_CMS_ROOT, 'spec', 'bin', 'phantomjs'))
-  Capybara.register_driver :poltergeist do |app|
-    Capybara::Poltergeist::Driver.new(app, :phantomjs => File.join(CAMALEON_CMS_ROOT, 'spec', 'bin', 'phantomjs').to_s)
-  end
+# Check here if you have problems with phantomjs: https://github.com/teampoltergeist/poltergeist
+# Don't forget bundle update to use last stable poltergaist gem
+Capybara.register_driver :poltergeist do |app|
+  Capybara::Poltergeist::Driver.new(app, :inspector => true, timeout: 1.minute)
 end
 Capybara.javascript_driver = :poltergeist
-
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

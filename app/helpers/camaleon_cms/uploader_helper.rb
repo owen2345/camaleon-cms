@@ -188,19 +188,20 @@ module CamaleonCms::UploaderHelper
     end
 
     w_offset, h_offset = cama_crop_offsets_by_gravity(settings[:gravity], [w_result, h_result], [w, h])
-    img.combine_options do |i|
-      i.resize(op_resize)
+    data = {img: img, w: w, h: h, w_offset: w_offset, h_offset: h_offset, op_resize: op_resize, settings: settings}; hooks_run("before_resize_crop", data)
+    data[:img].combine_options do |i|
+      i.resize(data[:op_resize])
       i.gravity(settings[:gravity])
-      i.crop "#{w.to_i}x#{h.to_i}+#{w_offset}+#{h_offset}!"
+      i.crop "#{data[:w].to_i}x#{data[:h].to_i}+#{data[:w_offset]}+#{data[:h_offset]}!"
     end
 
     if settings[:overwrite]
-      img.write(file.sub '.svg', '.jpg')
+      data[:img].write(file.sub '.svg', '.jpg')
     else
       if settings[:output_name].present?
-        img.write(file = File.join(File.dirname(file), settings[:output_name]).to_s)
+        data[:img].write(file = File.join(File.dirname(file), settings[:output_name]).to_s)
       else
-        img.write(file = uploader_verify_name(File.join(File.dirname(file), "crop_#{File.basename(file.sub '.svg', '.jpg')}")))
+        data[:img].write(file = uploader_verify_name(File.join(File.dirname(file), "crop_#{File.basename(file.sub '.svg', '.jpg')}")))
       end
     end
     file
