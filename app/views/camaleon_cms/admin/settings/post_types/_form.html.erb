@@ -24,7 +24,7 @@
         <div class="form-group">
             <label><%= t('camaleon_cms.admin.post_type.icon', default: 'Icon') %></label>
             <%= text_field_tag "meta[icon]", @post_type.get_option("icon", ''), class: 'form-control', placeholder: 'dashboard' %>
-            <small><%= t('camaleon_cms.admin.post_type.icons_url_desc', default: 'Please enter any icon name from here: ') %> https://fortawesome.github.io/Font-Awesome/icons/</small>
+            <small><%= t('camaleon_cms.admin.post_type.icons_url_desc', default: 'Please enter any icon name from here: ') %> https://fontawesome.com/v4.7.0/icons/</small>
         </div>
         <%= args={html: '', post_type: @post_type}; hooks_run('post_type_settings_form', args); raw(args[:html]) %>
         <hr/>
