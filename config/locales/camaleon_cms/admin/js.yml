@@ -332,13 +332,64 @@ de:
           replace_image: 'Bild ersetzen'
           save_new_image: 'Neues Bild speichern'
 
+ru:
+  camaleon_cms:
+    admin:
+      js:
+        msg:
+          approved: 'Утверждено'
+          draft: 'Черновик сохранен'
+          updated_success: 'Успішно оновлено'
+          edit_menu: 'Разместите каждый элемент в порядке, который вы предпочитаете. Нажмите на значок карандаша, чтобы отредактировать элемент и нажмите значок в форме х, чтобы удалить элемент.'
+          delete_item: 'Удалить этот элемент?'
+          remove_items_submenu: 'Удалить элемент и его подменю?'
+          you_must_upload_image: 'Необходимо загрузить изображение'
+          you_must_upload_video: 'Необходимо загрузить видео'
+          no_response_fields: 'Нет ответа'
+          you_must_upload_json_file: 'Необходимо загрузить файл в формате json'
+          no_templates_defined: 'Шаблон не выбран'
+          avatar_updated: 'Аватар обновлен'
+          form_error: 'Ошибка формы'
+          option_title: 'Название опции'
+          permalink: 'Постоянная ссылка'
+          recover: 'Восстановление...'
+          type_contents: 'Тип контента'
+          confirm_del: "Вы уверены, что хотите удалить этот элемент?"
+          media_title: 'Медиа загрузка'
+          pending: 'Ожидание'
+          preview: 'Предпросмотр'
+          spam: 'Спам'
+          view_page: 'Посмотреть страницу'
+          view_draft: 'Посмотреть черновик'
+          processing: 'Обработка...'
+          upload_image: 'Загрузить'
+
+        button:
+          edit: "Редактировать"
+          accept: "Принять"
+          cancel: "Отменить"
+          delete: "Удалить"
+          clone: "Копировать"
+          add_tag: 'Добавить тэг'
+          close: 'Закрыть'
+          settings: 'Настройки'
+          save: "Сохранить"
+          submit: "Сохранить"
+          name: "Имя"
+          size: "Размер"
+          insert: "Вставить"
+          url: "URL"
+          root: "корень"
+          replace_image: 'Изменить изображение'
+          save_new_image: 'Сохранить новое изображение'
+
 uk:
   camaleon_cms:
     admin:
       js:
         msg:
           approved: 'Затверджено'
-          draft: 'Ескіз збережена'
+          draft: 'Ескіз збережено'
           updated_success: 'Успішно оновлено'
           edit_menu: 'Розмістіть кожен елемент у порядку, якому ви віддаєте перевагу. Натисніть на значок олівця, щоб відредагувати елемент і натисніть значок у формі х, щоб видалити елемент.'
           delete_item: 'Дійсно хочете видалити цей елемент?'
@@ -353,10 +404,10 @@ uk:
           option_title: 'Назва опції'
           permalink: 'Постійне посилання'
           recover: 'Відновлення...'
-          type_contents: 'Тиа вмісту'
+          type_contents: 'Тип вмісту'
           confirm_del: "Ви впевнені, що чочете видалити цей елемент?"
           media_title: 'Медіа-завантажувач'
-          pending: 'Очікує '
+          pending: 'Очікує'
           preview: 'Перегляд'
           spam: 'Спам'
           view_page: 'Переглянути сторінку'
