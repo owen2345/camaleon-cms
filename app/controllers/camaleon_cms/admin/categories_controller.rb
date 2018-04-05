@@ -32,9 +32,12 @@ class CamaleonCms::Admin::CategoriesController < CamaleonCms::AdminController
 
   def create
     @category = @post_type.categories.new(params.require(:category).permit!)
+    hooks_run("create_category", {category: @category, post_type: @post_type})
+
     if @category.save
       @category.set_options(params[:meta])
       @category.set_field_values(params[:field_options])
+      hooks_run("created_category", {category: @category, post_type: @post_type})
       flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
       redirect_to action: :index
     else
