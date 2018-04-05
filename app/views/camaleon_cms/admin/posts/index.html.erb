@@ -5,6 +5,7 @@
                 <h4 class="pull-left">
                     <%= t('camaleon_cms.admin.page_title.list_of', post_type: @post_type.the_title) %>
                     <b>(slug = <%= @post_type.the_slug %>)</b> <%= link_to("<i class='fa fa-eye'></i> #{t("camaleon_cms.common.visit")}".html_safe, @post_type.the_url, class: 'btn btn-xs', target: '_blank') %>
+                    <%= link_to raw("<i class='fa fa-pencil'></i> #{t('camaleon_cms.admin.post_type.edit_post_type')}"), edit_cama_admin_settings_post_type_path(@post_type.id), class: "btn btn-xs cama_ajax_request" if can? :manage, :settings %>
                 </h4>
                 <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.post_type.add')} #{@post_type.the_title}"), {action: :new}, class: "btn btn-primary pull-right cama_ajax_request" if can? :create_post, @post_type %>
             </div>
