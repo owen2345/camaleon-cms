@@ -19,6 +19,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
   def update
     if @post_type.update(@data_term)
       @post_type.set_field_values(params.require(:field_options).permit!) if params[:field_options].present?
+      hooks_run("updated_post_type", {post_type: @post_type})
       flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
       redirect_to action: :index
     else
@@ -30,6 +31,7 @@ class CamaleonCms::Admin::Settings::PostTypesController < CamaleonCms::Admin::Se
     @post_type = current_site.post_types.new(@data_term)
     if @post_type.save
       @post_type.set_field_values(params.require(:field_options).permit!) if params[:field_options].present?
+      hooks_run("created_post_type", {post_type: @post_type})
       flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
       redirect_to action: :index
     else
