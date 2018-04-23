@@ -31,7 +31,7 @@
             <%
                def _item_html(item, pos = 0) item = item.decorate
                     %>
-                    <tr data-id="<%= item.id %>">
+                    <tr data-id="<%= item.id %>" data-parent="<%= item.parent_id %>">
                       <td><%= raw('—' * pos) %> <%= item.the_title %></td>
                       <td><%= item.the_content %></td>
                       <td><%= item.the_slug %></td>
