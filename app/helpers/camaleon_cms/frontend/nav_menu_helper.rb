@@ -79,6 +79,7 @@ module CamaleonCms::Frontend::NavMenuHelper
         item_container_attrs: '',
         index: index
       }
+      hook_args = {menu_item_args: r, menu_item_data: data_nav_item}; hooks_run('draw_menu_item', hook_args)
       args[:callback_item].call(r)
       _args = r[:settings]
 
