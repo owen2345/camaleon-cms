@@ -62,7 +62,7 @@ module CamaleonCms::UploaderHelper
     {} if settings[:temporal_time] > 0 # temporal file upload (always put as local for temporal files) (TODO: use delayjob)
 
     # generate image versions
-    if res['format'] == 'image'
+    if res['file_type'] == 'image'
       settings[:versions].to_s.gsub(' ', '').split(',').each do |v|
         version_path = cama_resize_upload(settings[:uploaded_io].path, v, {replace: false})
         cama_uploader.add_file(version_path, cama_uploader.version_path(res['key'], v), is_thumb: true, same_name: true)
