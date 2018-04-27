@@ -168,7 +168,7 @@ module CamaleonCms::UploaderHelper
     if file.end_with? '.svg'
       img.format 'jpg'
       file.sub! '.svg', '.jpg'
-      settings[:output_name]&.sub! 'svg', 'jpg'
+      settings[:output_name].sub!('.svg', '.jpg') if settings[:output_name]
     end
     w = img[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : img[:width] if w.present? && w.to_s.include?('?')
     h = img[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : img[:height] if h.present? && h.to_s.include?('?')
