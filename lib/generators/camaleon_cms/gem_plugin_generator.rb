@@ -59,39 +59,41 @@ module CamaleonCms
 
 
           directory(plugin_app, plugin_dir)
-          gsub_file File.join(plugin_dir, "config", "routes.rb"), "end" do
-            "
-    scope PluginRoutes.system_info[\"relative_url_root\"] do
-      scope '(:locale)', locale: /\#{PluginRoutes.all_locales}/, :defaults => {  } do
-        # frontend
-        namespace :plugins do
-          namespace '#{get_plugin_name}' do
-            get 'index' => 'front#index'
-          end
+          gsub_file File.join(plugin_dir, "config", "routes.rb"), /.+/ do
+"require 'plugin_routes'
+require 'camaleon_cms/engine'
+Rails.application.routes.draw do
+  scope PluginRoutes.system_info[\"relative_url_root\"] do
+    scope '(:locale)', locale: /\#{PluginRoutes.all_locales}/, :defaults => {  } do
+      # frontend
+      namespace :plugins do
+        namespace '#{get_plugin_name}' do
+          get 'index' => 'front#index'
         end
       end
-
-      #Admin Panel
-      scope :admin, as: 'admin', path: PluginRoutes.system_info['admin_path_name'] do
-        namespace 'plugins' do
-          namespace '#{get_plugin_name}' do
-            controller :admin do
-              get :index
-              get :settings
-              post :save_settings
-            end
-          end
-        end
-      end
-
-      # main routes
-      #scope '#{get_plugin_name}', module: 'plugins/#{get_plugin_name}/', as: '#{get_plugin_name}' do
-      #  Here my routes for main routes
-      #end
     end
-  end"
+
+    #Admin Panel
+    scope :admin, as: 'admin', path: PluginRoutes.system_info['admin_path_name'] do
+      namespace 'plugins' do
+        namespace '#{get_plugin_name}' do
+          controller :admin do
+            get :index
+            get :settings
+            post :save_settings
           end
-          
+        end
+      end
+    end
+
+    # main routes
+    #scope '#{get_plugin_name}', module: 'plugins/#{get_plugin_name}/', as: '#{get_plugin_name}' do
+    #  Here my routes for main routes
+    #end
+  end
+end"
+          end
+
           if PluginRoutes.isRails4?
             append_to_file Rails.root.join("Gemfile") do
               "\n\ngem '#{get_plugin_name}', path:  '#{plugin_dir_path}'"
@@ -107,6 +109,8 @@ module CamaleonCms
           # remove TODO text from gem
           gemspec_file = File.join(plugin_dir, "#{get_plugin_name}.gemspec")
           t = File.read(gemspec_file).gsub("TODO", "")
+          # add Camaleon as plugin dependency
+          t.sub!(/s\.add_dependency "rails".*\n/, "s.add_dependency \"camaleon_cms\", \"~> 2.0\"\n")
           File.open(gemspec_file, "w"){|f| f << t }
         end
       end
