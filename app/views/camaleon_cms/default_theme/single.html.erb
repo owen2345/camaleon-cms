@@ -21,7 +21,7 @@
                         <%= raw @post.the_content %>
                     </div>
                 </article>
-                <%= render partial: 'partials/comments', locals: {post: @post} if @post.can_commented? %>
+                <%= render partial: 'partials/comments', locals: {post: @post} %>
             </div>
             <div class="col-md-3 single-sidebar">
                 <%= render partial: 'partials/sidebar', locals: {post: @post} %>

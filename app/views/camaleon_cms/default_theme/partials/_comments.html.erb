@@ -1,31 +1,45 @@
-<section class="comment-list">
-    <% if post.the_comments.count > 0 %>
-        <div class="row">
+<% if post.the_comments.any? || post.can_commented? %>
+    <section class="comment-list">
+      <% if post.the_comments.any? %>
+          <div class="row">
             <div class="col-md-12">
-                <h2 class="page-header"><%= ct('comments', default: 'Comments')%></h2>
-                <section class="comment-list">
-                    <%= render partial: "partials/#{defined?(style2) ? 'comments_list2' : 'comments_list'}", locals: { comments: post.the_comments, children: "" } %>
-                </section>
+              <h2 class="page-header"><%= ct('comments', default: 'Comments') %></h2>
+              <section class="comment-list">
+                <%= render partial: "partials/#{defined?(style2) ? 'comments_list2' : 'comments_list'}", locals: {comments: post.the_comments, children: ""} %>
+              </section>
             </div>
-        </div>
-    <% end %>
+          </div>
+      <% end %>
 
-    <div class="row comment_form_panel">
-        <div class="col-md-12 col-sm-12">
-            <h3><%= ct('comment_new', default: 'New Comment')%></h3>
-            <% if signin? %>
-                <%= form_for post, url:{action: :save_comment, post_id: post.id}, html: {method: "post", class: "form-comment"} do |f|%>
-                    <%= render partial: "camaleon_cms/flash_messages", locals:{ flash: (flash[:comment_submit] || {}).with_indifferent_access } %>
-                    <div class="form-group">
-                        <textarea id="textarea_comments" name="post_comment[content]" class="form-control counted" placeholder="<%= ct('comment', default: 'Here your comment')%>"></textarea>
-                    </div>
-                    <div class="form-group text-right">
-                        <button type="submit" class="btn btn-info"><%= ct('comment', default: 'Comment')%></button>
-                    </div>
-                <% end %>
-            <% else %>
-                <div class="panel-login-comment"><%= ct('comment_msg', default: 'You must be logged in to post a comment')%>  <a class="link-login-comment" href="<%= cama_admin_path %>"><%= ct('login', default: 'Login')%></a></div>
-            <% end %>
-        </div>
-    </div>
-</section>
+      <% if post.can_commented? %>
+          <div class="row comment_form_panel">
+            <div class="col-md-12 col-sm-12">
+              <h3><%= ct('comment_new', default: 'New Comment') %></h3>
+              <% if signin? || current_site.get_option('permit_anonimos_comment', false) %>
+                  <%= form_for post, url: {action: :save_comment, post_id: post.id}, html: {method: "post", class: "form-comment"} do |f| %>
+                      <%= render partial: "camaleon_cms/flash_messages", locals: {flash: (flash[:comment_submit] || {}).with_indifferent_access} %>
+                      <% unless signin? %>
+                          <div class="form-group">
+                            <%= text_field_tag 'post_comment[name]', '', class: 'form-control required', placeholder: t('.anonymous_name', default: 'Name') %>
+                          </div>
+                          <div class="form-group">
+                            <%= email_field_tag 'post_comment[email]', '', class: 'form-control required', placeholder: t('.anonymous_email', default: 'Email') %>
+                          </div>
+                      <% end %>
+                      <div class="form-group">
+                        <textarea id="textarea_comments" name="post_comment[content]" class="form-control counted" placeholder="<%= ct('comment', default: 'Here your comment') %>"></textarea>
+                      </div>
+                      <div class="form-group text-right">
+                        <button type="submit" class="btn btn-info"><%= ct('comment', default: 'Comment') %></button>
+                      </div>
+                  <% end %>
+              <% else %>
+                  <div class="panel-login-comment"><%= ct('comment_msg', default: 'You must be logged in to post a comment') %>
+                    <a class="link-login-comment" href="<%= cama_admin_path %>"><%= ct('login', default: 'Login') %></a>
+                  </div>
+              <% end %>
+            </div>
+          </div>
+      <% end %>
+    </section>
+<% end %>
