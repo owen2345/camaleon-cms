@@ -133,7 +133,7 @@ module CamaleonCms::UploaderHelper
   def cama_crop_image(file_path, w=nil, h=nil, w_offset = 0, h_offset = 0, resize = false , replace = true)
     force = ""
     force = "!" if w.present? && h.present? && !w.include?("?") && !h.include?("?")
-    image = MiniMagick::Image.open(file_path)
+    image = MiniMagick::Image.open(file_path).auto_orient
     w = image[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : image[:width] if w.present? && w.to_s.include?('?')
     h = image[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : image[:height] if h.present? && h.to_s.include?('?')
     image.combine_options do |i|
@@ -164,7 +164,7 @@ module CamaleonCms::UploaderHelper
   # sample: cama_resize_and_crop(my_file, 200, 200, {gravity: :north_east, overwrite: false})
   def cama_resize_and_crop(file, w, h, settings = {})
     settings = {gravity: :north_east, overwrite: true, output_name: ""}.merge(settings)
-    img = MiniMagick::Image.open(file)
+    img = MiniMagick::Image.open(file).auto_orient
     if file.end_with? '.svg'
       img.format 'jpg'
       file.sub! '.svg', '.jpg'
