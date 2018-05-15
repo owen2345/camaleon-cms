@@ -112,7 +112,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       user_data = user_permit_data
       result = cama_register_user(user_data, params[:meta])
       if result[:result] == false && result[:type] == :captcha_error
-        @user.errors[:captcha] = t('camaleon_cms.admin.users.message.error_captcha')
+        @user.errors.add(:captcha, t('camaleon_cms.admin.users.message.error_captcha'))
         render 'register'
       elsif result[:result]
         flash[:notice] = result[:message]

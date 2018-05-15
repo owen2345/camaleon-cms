@@ -1,6 +1,6 @@
 require "rails_helper"
 describe "the Users", js: true do
-  login_success
+  init_site
   uname = "testerr_#{Time.current.to_i}"
   uemail = "testerr_#{Time.current.to_i}@gmail.com"
   it "Users list" do
@@ -29,7 +29,7 @@ describe "the Users", js: true do
   end
 
   it "Users login new user" do
-    admin_sign_in(false, uname, "tester123")
+    admin_sign_in(uname, "tester123")
   end
 
   it "Users Edit" do

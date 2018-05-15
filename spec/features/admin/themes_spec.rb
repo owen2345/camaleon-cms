@@ -1,6 +1,6 @@
 require "rails_helper"
 describe "the Themes", js: true do
-  login_success
+  init_site
 
   it "Themes list" do
     admin_sign_in

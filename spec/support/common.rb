@@ -3,32 +3,17 @@ require 'rails_helper'
 
 # do login for admin panel and also verify if the site was created
 # if site is not created, then create a new site
-def login_success
-  if !CamaleonCms::Site.any?  && !defined?($install_called)
-    $install_called = true
-    it "Verify Install Camaleon", js: true do
-      visit "#{cama_root_relative_path}/admin/installers"
-      within("#new_site") do
-        fill_in 'site_name', :with => 'Test Site'
-        select "Default Theme", from: "theme"
-      end
-      click_button 'Submit'
-      expect(page).to have_content 'successfully'
-
-      admin_sign_in(true)
-    end
-  else
-    it "signs me in" do
-      admin_sign_in
-    end
+def init_site
+  before(:each) do
+    @site = create(:site).decorate
+    @post = @site.the_post('sample-post').decorate
   end
 end
 
 # sign in for admin panel
 # skip: true => close the skip button for intro
-def admin_sign_in(close = false, user = "admin", pass = "admin123")
+def admin_sign_in(user = "admin", pass = "admin123")
   visit "#{cama_root_relative_path}/admin/logout"
-  screenshot_and_save_page
   within("#login_user") do
     fill_in 'user[username]', :with => user
     fill_in 'user[password]', :with => pass
@@ -73,6 +58,7 @@ end
 
 # return the id of the first post
 def get_tag_attr(attr = "id", pos = "first")
+  puts "----------------#{Cama::Site.first.decorate.the_tags.to_a.inspect}"
   res = Cama::Site.first.decorate.the_tags.decorate.send(pos).send(attr)
   fix_db
   res
@@ -80,10 +66,10 @@ end
 
 # fix for: SQLite3::BusyException: database is locked: commit transaction
 def fix_db
-  if ActiveRecord::Base.connection.adapter_name.downcase.include?('sqlite')
-    ActiveRecord::Base.connection.execute("END;")
-    ActiveRecord::Base.connection.execute("BEGIN TRANSACTION;")
-  end
+  # if ActiveRecord::Base.connection.adapter_name.downcase.include?('sqlite')
+  #   ActiveRecord::Base.connection.execute("END;")
+  #   ActiveRecord::Base.connection.execute("BEGIN TRANSACTION;")
+  # end
 end
 
 def pages_test

@@ -1,6 +1,6 @@
 require "rails_helper"
 describe "the Custom Fields", js: true do
-  login_success
+  init_site
 
   it "Custom fields list" do
     admin_sign_in

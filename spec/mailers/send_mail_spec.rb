@@ -1,8 +1,10 @@
 require 'rails_helper'
 
 describe "CamaleonCms::HtmlMailer" do
+  before(:each) do
+    @site = create(:site).decorate
+  end
   describe 'empty content' do
-    before(:each){get_current_test_site()}
     let(:mail) { CamaleonCms::HtmlMailer.sender('test@gmail.com', "test") }
 
     it 'renders the subject' do
@@ -23,9 +25,7 @@ describe "CamaleonCms::HtmlMailer" do
   end
 
   describe 'custom content' do
-    before(:each){get_current_test_site()}
     let(:mail) { CamaleonCms::HtmlMailer.sender('test@gmail.com', "test", content: 'custom content', cc_to: ['a@gmail.com', 'b@gmail.com']) }
-
     it 'renders the sender email' do
       expect(mail.cc).to eql(['a@gmail.com', 'b@gmail.com'])
     end

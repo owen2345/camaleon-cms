@@ -1,6 +1,6 @@
 require "rails_helper"
 describe "the Menus", js: true do
-  login_success
+  init_site
 
   it "Menus list" do
     admin_sign_in

@@ -1,6 +1,6 @@
 require "rails_helper"
 describe "the Shortcodes", js: true do
-  login_success
+  init_site
 
   it "Shortcodes list" do
     admin_sign_in

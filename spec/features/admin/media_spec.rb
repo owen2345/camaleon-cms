@@ -1,6 +1,6 @@
 require "rails_helper"
 describe "the Media", js: true do
-  login_success
+  init_site
 
   it "list media" do
     admin_sign_in

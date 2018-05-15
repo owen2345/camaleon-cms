@@ -1,6 +1,6 @@
 require "rails_helper"
 describe "the signin process", js: true do
-  login_success
+  init_site
 
   it "create new post" do
     admin_sign_in
@@ -20,7 +20,7 @@ describe "the signin process", js: true do
 
   it "create edit post" do
     admin_sign_in
-    visit "#{cama_root_relative_path}/admin/post_type/2/posts/#{get_content_attr("post", "id", "last")}/edit"
+    visit "#{cama_root_relative_path}/admin/post_type/2/posts/#{@post.id}/edit"
     wait(2)
     within("#form-post") do
       fill_in 'post_title', :with => 'Test Title changed'
@@ -29,8 +29,9 @@ describe "the signin process", js: true do
     end
     click_button 'Update'
     expect(page).to have_css('.alert-success')
+    
     # visit page in frontend
-    visit "#{get_content_attr("post", "the_path", "last")}"
+    visit @post.the_url(as_path: true)
     expect(page).to have_content("Test Title changed")
   end
 end

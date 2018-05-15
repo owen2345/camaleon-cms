@@ -1,27 +1,34 @@
 require "rails_helper"
+
+# create a new site
+def create_site
+  visit "#{cama_root_relative_path}/admin/settings/sites"
+  expect(page).to have_content("List Sites")
+
+  # create user role
+  within '#admin_content' do
+    click_link "Add Site"
+  end
+  expect(page).to have_css("#new_site")
+  within '#new_site' do
+    fill_in "site_slug", with: 'owen'
+    fill_in "site_name", with: 'Owen sub site'
+    click_button "Submit"
+  end
+end
+
 describe "the Sites", js: true do
-  login_success
+  init_site
 
   it "Sites list" do
     admin_sign_in
-    visit "#{cama_root_relative_path}/admin/settings/sites"
-    expect(page).to have_content("List Sites")
-
-    # create user role
-    within '#admin_content' do
-      click_link "Add Site"
-    end
-    expect(page).to have_css("#new_site")
-    within '#new_site' do
-      fill_in "site_slug", with: 'owen'
-      fill_in "site_name", with: 'Owen sub site'
-      click_button "Submit"
-    end
+    create_site
     expect(page).to have_css('.alert-success')
   end
 
   it "Site Edit" do
     admin_sign_in
+    create_site
     visit "#{cama_root_relative_path}/admin/settings/sites"
     within '#admin_content' do
       all(".btn-default").last.click
@@ -35,6 +42,7 @@ describe "the Sites", js: true do
 
   it "Site destroy" do
     admin_sign_in
+    create_site
     visit "#{cama_root_relative_path}/admin/settings/sites"
     within '#admin_content' do
       all(".btn-danger").last.click

@@ -1,6 +1,6 @@
 require "rails_helper"
 describe "the Site Settings", js: true do
-  login_success
+  init_site
 
   it "Settings Form" do
     admin_sign_in

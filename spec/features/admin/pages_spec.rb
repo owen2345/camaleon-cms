@@ -1,6 +1,6 @@
 require "rails_helper"
 describe "the signin process", js: true do
-  login_success
+  init_site
 
   it "create new page" do
     admin_sign_in
