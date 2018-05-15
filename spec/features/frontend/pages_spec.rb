@@ -77,14 +77,10 @@ describe "Post frontend", js: true do
     end
 
     it 'post not enabled for comments' do
+      @post.set_meta('has_comments', '0')
       admin_sign_in
       visit @post.the_url(as_path: true)
-      expect(page).to have_text('New Comment')
-      within("#form-comment") do
-        fill_in 'post_comment_content', :with => 'Sample comment'
-      end
-      click_button 'Comment'
-      expect(page).not_to have_text('The comment has been created')
+      expect(page).not_to have_text('New Comment')
     end
   end
 end
