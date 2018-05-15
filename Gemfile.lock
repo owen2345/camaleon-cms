@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    camaleon_cms (2.4.5.6)
+    camaleon_cms (2.4.5.7)
       aws-sdk (~> 2)
       bcrypt
       breadcrumbs_on_rails
