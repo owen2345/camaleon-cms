@@ -21,7 +21,7 @@ module CamaleonCms::UploaderHelper
   def upload_file(uploaded_io, settings = {})
     cached_name = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.original_filename : nil
     return {error: "File is empty", file: nil, size: nil} unless uploaded_io.present?
-    if uploaded_io.is_a?(String) && (uploaded_io.start_with?("http://") || uploaded_io.start_with?("https://")) # download url file
+    if uploaded_io.is_a?(String) && uploaded_io.match(/^https?:\/\//).present? # download url file
       tmp = cama_tmp_upload(uploaded_io)
       return tmp if tmp[:error].present?
       settings[:remove_source] = true
@@ -133,20 +133,21 @@ module CamaleonCms::UploaderHelper
   def cama_crop_image(file_path, w=nil, h=nil, w_offset = 0, h_offset = 0, resize = false , replace = true)
     force = ""
     force = "!" if w.present? && h.present? && !w.include?("?") && !h.include?("?")
-    image = MiniMagick::Image.open(file_path)
-    w = image[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : image[:width] if w.present? && w.to_s.include?('?')
-    h = image[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : image[:height] if h.present? && h.to_s.include?('?')
-    image.combine_options do |i|
-      i.resize("#{w if w.present?}x#{h if h.present?}#{force}") if resize
-      i.crop "#{w if w.present?}x#{h if h.present?}+#{w_offset}+#{h_offset}#{force}" unless resize
+    img = MiniMagick::Image.open(file_path)
+    w = img[:width].to_f > w.sub('?', '').to_i ? w.sub('?', "") : img[:width] if w.present? && w.to_s.include?('?')
+    h = img[:height].to_f > h.sub('?', '').to_i ? h.sub('?', "") : img[:height] if h.present? && h.to_s.include?('?')
+    data = {img: img, w: w, h: h, w_offset: w_offset, h_offset: h_offset, resize: resize, replace: replace}; hooks_run("before_crop_image", data)
+    data[:img].combine_options do |i|
+      i.resize("#{w if w.present?}x#{h if h.present?}#{force}") if data[:resize]
+      i.crop "#{w if w.present?}x#{h if h.present?}+#{w_offset}+#{h_offset}#{force}" unless data[:resize]
     end
 
     res = file_path
-    unless replace
+    unless data[:replace]
       ext = File.extname(file_path)
       res = file_path.gsub(ext, "_crop#{ext}")
     end
-    image.write res
+    data[:img].write res
     res
   end
 
