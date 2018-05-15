@@ -2,6 +2,7 @@ require 'json'
 class PluginRoutes
   @@_vars = []
   @@_after_reload = []
+  @@anonymous_hooks = {}
   # load plugin routes if it is enabled
   def self.load(env = "admin")
     plugins = all_enabled_plugins
@@ -107,6 +108,32 @@ class PluginRoutes
     # convert action parameter into hash
     def fixActionParameter(h)
       (h.is_a?(ActionController::Parameters) ? (h.permit!.to_h rescue h.to_hash) : h)
+    end
+    
+    # add a new anonymous hook
+    # sample: PluginRoutes.add_anonymous_hook('before_admin', lambda{|params| puts params })
+    # @param hook_key [String], key of hook
+    # @param hook_id [String], identifier for the anonymous hook
+    # @param callback [Lambda], anonymous function to be called when the hook was called
+    # @return nil
+    def add_anonymous_hook(hook_key, callback, hook_id = '')
+      @@anonymous_hooks[hook_key] ||= []
+      @@anonymous_hooks[hook_key] << {id: hook_id, callback: callback}
+    end
+
+    # return all registered anonymous hooks for hook_key
+    # @param hook_key [String] name of the hook
+    # @return [Array] array of hooks for hook_key
+    def get_anonymous_hooks(hook_key)
+      (@@anonymous_hooks[hook_key.to_s] || []).map{|item| item[:callback] }
+    end
+    
+    # return all registered anonymous hooks for hook_key
+    # @param hook_key [String] name of the hook
+    # @param hook_id [String] identifier of the anonymous hooks
+    # @return [Array] array of hooks for hook_key
+    def remove_anonymous_hook(hook_key, hook_id)
+      (@@anonymous_hooks[hook_key.to_s] || []).delete_if{|item| item[:id] == hook_id }
     end
   end
 

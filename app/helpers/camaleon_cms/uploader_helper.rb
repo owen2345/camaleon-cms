@@ -1,5 +1,6 @@
 module CamaleonCms::UploaderHelper
   include ActionView::Helpers::NumberHelper
+  include CamaleonCms::CamaleonHelper
   # upload a file into server
   # settings:
   #   folder: Directory where the file will be saved (default: "")
@@ -71,9 +72,8 @@ module CamaleonCms::UploaderHelper
     end
 
     # generate thumb
-    cama_uploader_generate_thumbnail(uploaded_io.path, res['key'], settings[:thumb_size]) if settings[:generate_thumb] && res['thumb'].present?
-
-    FileUtils.rm_f(uploaded_io.path) if settings[:remove_source]
+    cama_uploader_generate_thumbnail(uploaded_io.path, res['key'], settings[:thumb_size], settings[:remove_source]) if settings[:generate_thumb] && res['thumb'].present?
+    FileUtils.rm_f(uploaded_io.path) if File.exist?(uploaded_io.path) if settings[:remove_source]
 
     hooks_run('after_upload', settings)
     res
@@ -82,13 +82,13 @@ module CamaleonCms::UploaderHelper
   # generate thumbnail of a existent image
   # key: key of the current file
   # the thumbnail will be saved in my_images/my_img.png => my_images/thumb/my_img.png
-  def cama_uploader_generate_thumbnail(uploaded_io, key, thumb_size = nil)
+  def cama_uploader_generate_thumbnail(uploaded_io, key, thumb_size = nil, remove_source = false)
     w, h = cama_uploader.thumb[:w], cama_uploader.thumb[:h]
     w, h = thumb_size.split('x') if thumb_size.present?
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
     path_thumb = cama_resize_and_crop(uploaded_io.path, w, h)
     thumb = cama_uploader.add_file(path_thumb, cama_uploader.version_path(key).sub('.svg', '.jpg'), is_thumb: true, same_name: true)
-    FileUtils.rm_f(path_thumb)
+    FileUtils.rm_f(path_thumb) if remove_source
     thumb
   end
 

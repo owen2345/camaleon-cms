@@ -18,8 +18,13 @@ module CamaleonCms::HooksHelper
     PluginRoutes.enabled_apps(current_site).each do |plugin|
       _do_hook(plugin, hook_key, params)
     end
-  end
 
+    # call all anonymous hooks
+    PluginRoutes.get_anonymous_hooks(hook_key).each do |_hook|
+      _hook.call(params)
+    end
+  end
+  
   # skip hook function with name: hook_function_name
   def hook_skip(hook_function_name)
     @_hooks_skip << hook_function_name
