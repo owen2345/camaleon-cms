@@ -166,6 +166,7 @@ module CamaleonCms::Frontend::NavMenuHelper
   # label => label of the link
   # url: url for the link
   def breadcrumb_add(label, url = "", prepend = false)
+    @_front_breadcrumb ||= []
     if prepend
       @_front_breadcrumb = @_front_breadcrumb.unshift([label, url])
     else
