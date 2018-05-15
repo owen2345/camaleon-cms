@@ -31,6 +31,7 @@ module CamaleonCms::FrontendConcern extend ActiveSupport::Concern
     @post = current_site.posts.find_by_id(params[:post_id]).decorate
     user = cama_current_user
     comment_data = {}
+    flash[:comment_submit][:error] = t('.comments_not_enabled', default: 'This post can not be commented') if !@post.can_commented?
     if user.present?
       comment_data[:author] = user.fullname
       comment_data[:author_email] = user.email
@@ -39,23 +40,26 @@ module CamaleonCms::FrontendConcern extend ActiveSupport::Concern
       comment_data[:is_anonymous] = true
       comment_data[:author] = params[:post_comment][:name]
       comment_data[:author_email] = params[:post_comment][:email]
+      flash[:comment_submit][:error] = t('camaleon_cms.admin.users.message.error_captcha', default: 'Invalid captcha value') if current_site.is_enable_captcha_for_comments? && !cama_captcha_verified?
     end
 
-    if @post.can_commented? && user.present?
-      comment_data[:user_id] = user.id
-      comment_data[:author_url] = params[:post_comment][:url] || ""
-      comment_data[:author_IP] = request.remote_ip.to_s
-      comment_data[:approved] = current_site.front_comment_status
-      comment_data[:agent] = request.user_agent.force_encoding("ISO-8859-1").encode("UTF-8")
-      comment_data[:content] = params[:post_comment][:content]
-      @comment = params[:post_comment][:parent_id].present? ? @post.comments.find_by_id(params[:post_comment][:parent_id]).children.new(comment_data) :  @post.comments.main.new(comment_data)
-      if @comment.save
-        flash[:comment_submit][:notice] = t('camaleon_cms.admin.comments.message.created')
+    unless flash[:comment_submit][:error] 
+      if user.present?
+        comment_data[:user_id] = user.id
+        comment_data[:author_url] = params[:post_comment][:url] || ""
+        comment_data[:author_IP] = request.remote_ip.to_s
+        comment_data[:approved] = current_site.front_comment_status
+        comment_data[:agent] = request.user_agent.force_encoding("ISO-8859-1").encode("UTF-8")
+        comment_data[:content] = params[:post_comment][:content]
+        @comment = params[:post_comment][:parent_id].present? ? @post.comments.find_by_id(params[:post_comment][:parent_id]).children.new(comment_data) :  @post.comments.main.new(comment_data)
+        if @comment.save
+          flash[:comment_submit][:notice] = t('camaleon_cms.admin.comments.message.created')
+        else
+          flash[:comment_submit][:error] = "#{t('camaleon_cms.common.comment_error', default: 'An error was occurred on save comment')}:<br> #{@comment.errors.full_messages.join(', ')}"
+        end
       else
-        flash[:comment_submit][:error] = "#{t('camaleon_cms.common.comment_error', default: 'An error was occurred on save comment')}:<br> #{@comment.errors.full_messages.join(', ')}"
+        flash[:comment_submit][:error] = t('camaleon_cms.admin.message.unauthorized')
       end
-    else
-      flash[:comment_submit][:error] = t('camaleon_cms.admin.message.unauthorized')
     end
     params[:format] == 'json' ? render(json: flash.discard(:comment_submit).to_hash) : redirect_to(request.referer || @post.the_url(as_path: true))
   end

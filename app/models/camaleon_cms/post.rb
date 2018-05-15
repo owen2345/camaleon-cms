@@ -152,6 +152,7 @@ class CamaleonCms::Post < CamaleonCms::PostDefault
   # check if the post can be commented
   # sample: @post.can_commented?
   # return Boolean (true/false)
+  # to enable comments for current post, use this: post.set_meta('has_comments', '1'). Note: Parent PostType should be enabled for comments too: post_type.set_option('has_comments', true)
   def can_commented?
     manage_comments? && get_meta('has_comments').to_s == "1"
   end

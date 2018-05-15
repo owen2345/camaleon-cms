@@ -109,6 +109,11 @@ class CamaleonCms::Site < CamaleonCms::TermTaxonomy
   def security_user_register_captcha_enabled?
     get_option('security_captcha_user_register', false) == true
   end
+  
+  # check if current site permit capctha for anonymous comments
+  def is_enable_captcha_for_comments?
+    get_option('enable_captcha_for_comments', false)
+  end
 
   def need_validate_email?
     get_option('need_validate_email', false) == true

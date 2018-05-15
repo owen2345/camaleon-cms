@@ -11,4 +11,4 @@
         <%= raw @post.the_content %>
     </div><!-- .entry-content -->
 </article><!-- #post -->
-<%= render partial: 'partials/comments', locals: {post: @post} if @post.can_commented? %>
+<%= render partial: 'partials/comments', locals: {post: @post} %>

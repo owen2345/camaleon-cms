@@ -34,7 +34,7 @@ module CamaleonCms::CaptchaHelper
 
   # verify captcha value
   def cama_captcha_verified?
-    (session[:cama_captcha] || []).include?((params[:cama_captcha] || params[:captcha]).to_s.upcase) || Rails.env == "test"
+    (session[:cama_captcha] || []).include?((params[:cama_captcha] || params[:captcha]).to_s.upcase)
   end
 
   #************************* captcha in attack helpers ***************************#

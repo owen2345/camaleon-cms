@@ -49,8 +49,12 @@
         <%= check_box :options, :permit_create_account, {checked: @site.get_option('permit_create_account', false), class: "icheckbox0"}, "true", "" %>
     </div>
     <div class="form-group">
-        <label for=""><%= t('camaleon_cms.admin.settings.security.captcha_user_register') %></label><br>
+        <label for=""><%= t('camaleon_cms.admin.settings.security.captcha_user_register', default: 'Enable captcha on user registration?') %></label><br>
         <%= check_box :options, :security_captcha_user_register, {checked: @site.security_user_register_captcha_enabled?, class: "icheckbox0"}, "true", "" %>
+    </div>
+    <div class="form-group">
+        <label for=""><%= t('camaleon_cms.admin.settings.enable_captcha_for_comments', default: 'Enable captcha for anonymous comments?') %></label><br>
+        <%= check_box :options, :enable_captcha_for_comments, {checked: @site.is_enable_captcha_for_comments?, class: "icheckbox0"}, "true", "" %>
     </div>
     <div class="form-group">
         <label for=""><%= t('camaleon_cms.admin.settings.security.need_validate_email') %></label><br>

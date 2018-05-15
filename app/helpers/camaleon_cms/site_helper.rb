@@ -11,7 +11,7 @@ module CamaleonCms::SiteHelper
       host << request.subdomain if request.subdomain.present?
       site = CamaleonCms::Site.where(slug: host).first.decorate rescue nil
     end
-    r = {site: site, request: request};
+    r = {site: site, request: (request rescue nil)};
     cama_current_site_helper(r) rescue nil
     Rails.logger.error 'Camaleon CMS - Please define your current site: $current_site = CamaleonCms::Site.first.decorate or map your domains: http://camaleon.tuzitio.com/documentation/category/139779-examples/how.html'.cama_log_style(:red) if !r[:site].present?
     @current_site = r[:site]
