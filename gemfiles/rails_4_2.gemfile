@@ -1,7 +1,9 @@
 source 'https://rubygems.org'
 
-gemspec
+gemspec path: '..'
 
+gem 'rails', '~> 4.2.0'
+gem 'rake', '< 12.3'
 gem 'rspec_junit_formatter'
 gem 'capybara-webkit'
 # gem 'selenium-webdriver'
@@ -11,7 +13,7 @@ gem 'factory_bot'
 gem 'faker'
 gem 'database_cleaner'
 # gem 'poltergeist'
-gem 'draper', '~> 3'
+gem 'draper'
 gem 'transactional_capybara'
 gem 'rack_session_access'
 group :development, :test do

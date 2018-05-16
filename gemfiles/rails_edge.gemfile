@@ -1,7 +1,8 @@
 source 'https://rubygems.org'
 
-gemspec
+gemspec path: '..'
 
+gem 'rails', git: 'https://github.com/rails/rails.git'
 gem 'rspec_junit_formatter'
 gem 'capybara-webkit'
 # gem 'selenium-webdriver'

@@ -1,13 +1,41 @@
 language: ruby
-rvm:
-  - 2.3
-  
+cache: bundler
+bundler_args: '-j4'
+
+matrix:
+  allow_failures:
+    - gemfile: gemfiles/rails_edge.gemfile
+    - rvm: 2.6
+  include:
+    # - rvm: 1.9
+    #   gemfile: rails_4_1.gemfile
+    # - rvm: 1.9
+    #   gemfile: rails_4_2.gemfile
+    - rvm: 2.2
+      gemfile: gemfiles/rails_4_1.gemfile
+    - rvm: 2.2
+      gemfile: gemfiles/rails_4_2.gemfile
+    - rvm: 2.2
+      gemfile: gemfiles/rails_5_0.gemfile
+    - rvm: 2.2
+      gemfile: gemfiles/rails_5_1.gemfile
+    - rvm: 2.2
+      gemfile: gemfiles/rails_5_2.gemfile
+    - rvm: 2.4
+      gemfile: gemfiles/rails_edge.gemfile
+    - rvm: 2.5
+      gemfile: gemfiles/rails_edge.gemfile
+    - rvm: 2.6
+      gemfile: gemfiles/rails_edge.gemfile
+  fast_finish: true
+
 script:
-  - bundle exec rails db:migrate RAILS_ENV=test
-  - bundle exec rspec  
-  
+  - bundle update rails
+  - bundle exec rake db:migrate RAILS_ENV=test
+  - bundle exec rspec
+
 before_install:
   - "echo 'gem: --no-document' > ~/.gemrc"
   - "echo '--colour' > ~/.rspec"
   - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start  
+  - sh -e /etc/init.d/xvfb start
