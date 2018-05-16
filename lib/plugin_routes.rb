@@ -135,6 +135,11 @@ class PluginRoutes
     def remove_anonymous_hook(hook_key, hook_id)
       (@@anonymous_hooks[hook_key.to_s] || []).delete_if{|item| item[:id] == hook_id }
     end
+    
+    # return the class name for user model
+    def get_user_class_name
+      static_system_info['user_model'].presence || 'CamaleonCms::User'
+    end
   end
 
   # reload routes

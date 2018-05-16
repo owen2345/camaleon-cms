@@ -10,7 +10,7 @@ class CamaleonCms::PostType < CamaleonCms::TermTaxonomy
   has_many :posts_draft, class_name: "CamaleonCms::Post", foreign_key: :taxonomy_id, dependent: :destroy, source: :drafts, inverse_of: :post_type
   has_many :field_group_taxonomy, -> {where("object_class LIKE ?","PostType_%")}, :class_name => "CamaleonCms::CustomField", foreign_key: :objectid, dependent: :destroy
 
-  belongs_to :owner, class_name: PluginRoutes.static_system_info['user_model'].presence || 'CamaleonCms::User', foreign_key: :user_id
+  belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id
   belongs_to :site, :class_name => "CamaleonCms::Site", foreign_key: :parent_id
 
   scope :visible_menu, -> {where(term_group: nil)}

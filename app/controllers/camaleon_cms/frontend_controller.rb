@@ -162,21 +162,21 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       @post = post_or_slug_or_id
     end
 
-    unless @post.present?
+    @post = @post.try(:decorate)
+    if !@post.present? || !@post.can_visit?
       if params[:format] == 'html' || !params[:format].present?
         page_not_found()
       else
         head 404
       end
     else
-      @post = @post.decorate
       @object = @post
       @cama_visited_post = @post
       @post_type = @post.the_post_type
       @comments = @post.the_comments
       @categories = @post.the_categories
       @post.increment_visits!
-      # todo: can_visit? if not redirect home page
+      
       home_page = @_site_options[:home_page] rescue nil
       if lookup_context.template_exists?("page_#{@post.id}")
         r_file = "page_#{@post.id}"

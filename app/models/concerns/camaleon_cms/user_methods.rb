@@ -15,7 +15,8 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     # relations
     cama_define_common_relationships('User')
     has_many :all_posts, class_name: "CamaleonCms::Post", foreign_key: :user_id
-    has_many :all_comments, class_name: "CamaleonCms::PostComment"
+    has_many :all_comments, class_name: 'CamaleonCms::PostComment'
+    belongs_to :site, class_name: 'CamaleonCms::Site'
 
     #scopes
     scope :admin_scope, -> { where(:role => 'admin') }

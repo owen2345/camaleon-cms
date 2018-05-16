@@ -1,4 +1,5 @@
 module CamaleonCms::PluginsHelper
+  include CamaleonCms::SiteHelper
   # load all plugins + theme installed for current site
   # METHOD IGNORED (is a partial solution to avoid load helpers and cache it for all sites)
   # this method try to load helpers for each request without caching

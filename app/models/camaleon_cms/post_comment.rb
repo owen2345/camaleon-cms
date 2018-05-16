@@ -11,7 +11,7 @@ class CamaleonCms::PostComment < ActiveRecord::Base
   has_many :children, class_name: "CamaleonCms::PostComment", foreign_key: :comment_parent, dependent: :destroy
   belongs_to :post, class_name: "CamaleonCms::Post", foreign_key: :post_id
   belongs_to :parent, class_name: "CamaleonCms::PostComment", foreign_key: :comment_parent
-  belongs_to :user, class_name: PluginRoutes.static_system_info['user_model'].presence || 'CamaleonCms::User', foreign_key: :user_id
+  belongs_to :user, class_name: CamaManager.get_user_class_name, foreign_key: :user_id
 
   default_scope {order("#{CamaleonCms::PostComment.table_name}.created_at DESC")}
 
