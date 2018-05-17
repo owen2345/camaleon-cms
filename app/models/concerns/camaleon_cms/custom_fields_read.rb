@@ -33,7 +33,19 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
       when 'Category','PostTag'
         self.post_type.get_field_groups(class_name)
       when 'Post'
-        CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
+        if self.term_relationships.size.zero? && args[:cat_ids].nil?
+          CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)", self.id || -1, class_name, self.post_type.id, "PostType_#{class_name}")
+        else
+          cat_ids = self.categories.map(&:id)
+          cat_ids += args[:cat_ids] unless args[:cat_ids].nil?
+          cat_ids += CamaleonCms::Category.find(cat_ids).map {|category| _category_parents_ids(category)}.flatten.uniq
+          CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = ?) OR
+                                               (objectid = ? AND object_class = ?) OR
+                                               (objectid IN (?) AND object_class = ?)",
+                                              self.id || -1, class_name,
+                                              self.post_type.id, "PostType_#{class_name}",
+                                              cat_ids, "Category_#{class_name}")
+        end
       when 'NavMenuItem'
         self.main_menu.custom_field_groups
       when 'PostType'
@@ -283,6 +295,16 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
         self
       else
         self.site
+    end
+  end
+
+  def _category_parents_ids(category)
+    @parents ||= []
+    if category.parent.nil?
+      return @parents
+    else
+      @parents << category.parent.id
+      _category_parents_ids(category.parent)
     end
   end
 end

@@ -236,6 +236,20 @@ function cama_init_post(obj) {
             return false;
         });
 
+        $form.on("change", ".list-categories input", function () {
+          showLoading();
+          $.get(
+            $form.find("#post_add_new_category").data('fields-reload-url'), {
+              categories: $form.find("#post_right_bar .list-categories input[name='categories[]']:checked").map(function(i, el){ return $(this).val(); }).get(),
+              post_id: post_id
+            },
+            function (res) {
+              $form.find('.c-field-group').remove();
+              $form.find('.panel .panel-default').after(res);
+              hideLoading();
+            });
+        });
+
         // sidebar toggle
         //$("#admin_content #post_right_bar-toggle").on("click", function () {
         //    $("#post_right_bar").is(":visible") ? $("#post_right_bar").hide() : $("#post_right_bar").show();
