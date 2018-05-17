@@ -1,0 +1,18 @@
+source 'https://rubygems.org'
+
+gemspec path: '..'
+
+gem 'rails', '~> 5.2.0'
+gem 'rspec_junit_formatter'
+gem 'capybara-webkit'
+gem 'capybara-screenshot'
+gem 'puma'
+gem 'factory_bot'
+gem 'faker'
+gem 'database_cleaner'
+gem 'draper', '~> 3'
+gem 'transactional_capybara'
+gem 'rack_session_access'
+group :development, :test do
+  gem 'rspec-rails'
+end

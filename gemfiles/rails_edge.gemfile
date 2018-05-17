@@ -1,0 +1,27 @@
+source 'https://rubygems.org'
+
+gemspec path: '..'
+
+gem 'rails', github: 'rails/rails'
+gem 'actionpack', github: 'rails/rails'
+gem 'activemodel', github: 'rails/rails'
+gem 'activesupport', github: 'rails/rails'
+gem 'railties', github: 'rails/rails'
+gem 'rspec_junit_formatter'
+gem 'capybara-webkit'
+gem 'capybara-screenshot'
+gem 'puma'
+gem 'factory_bot'
+gem 'faker'
+gem 'database_cleaner'
+gem 'draper', '~> 3', github: 'brian-kephart/draper', branch: 'rails_6'
+gem 'transactional_capybara'
+gem 'rack_session_access'
+group :development, :test do
+  gem 'rspec', github: 'rspec/rspec'
+  gem 'rspec-core', github: 'rspec/rspec-core'
+  gem 'rspec-expectations', github: 'rspec/rspec-expectations'
+  gem 'rspec-mocks', github: 'rspec/rspec-mocks'
+  gem 'rspec-rails', github: 'rspec/rspec-rails'
+  gem 'rspec-support', github: 'rspec/rspec-support'
+end
