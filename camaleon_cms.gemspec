@@ -14,9 +14,9 @@ Gem::Specification.new do |s|
   s.description = "Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4+ as an alternative to Wordpress."
   s.license     = "MIT"
 
-  s.required_ruby_version = '>= 1.9.3'
-  s.requirements << 'rails >= 4.1'
-  s.requirements << 'ruby >= 1.9.3'
+  s.required_ruby_version = '>= 2.2'
+  s.requirements << 'rails >= 4.2'
+  s.requirements << 'ruby >= 2.2'
   s.requirements << 'imagemagick'
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
@@ -24,12 +24,10 @@ Gem::Specification.new do |s|
   s.test_files = Dir["spec/**/*"]
 
   s.add_dependency 'bcrypt'
-  # s.add_dependency 'json', '>= 2.0.0'
   s.add_dependency 'cancancan', '~> 2.0'
-  s.add_dependency 'draper', '>=1.3'
+  s.add_dependency 'draper', '>= 1.3'
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
-  # s.add_dependency 'mobu'
   s.add_dependency 'will_paginate'
   s.add_dependency 'will_paginate-bootstrap'
   s.add_dependency 'breadcrumbs_on_rails'
@@ -50,10 +48,10 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec-rails'
   s.add_development_dependency 'rspec-instafail'
   s.add_development_dependency 'capybara'
-  # s.add_development_dependency 'selenium-webdriver'
   s.add_development_dependency 'sqlite3'
   s.add_development_dependency 'byebug'
   s.add_development_dependency 'database_cleaner'
   s.add_development_dependency 'pry-rescue'
   s.add_development_dependency 'pry-stack_explorer'
+  s.add_development_dependency 'rubocop'
 end

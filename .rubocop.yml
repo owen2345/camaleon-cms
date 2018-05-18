@@ -1,0 +1,3 @@
+AllCops:
+  DisabledByDefault: true
+  TargetRubyVersion: 2.2
