@@ -1,5 +1,5 @@
-![](https://img.shields.io/badge/Rails-4%2B-green.svg)
-![](https://img.shields.io/badge/Ruby-1.9%2B-green.svg)
+![](https://img.shields.io/badge/Rails-4.2%2B-green.svg)
+![](https://img.shields.io/badge/Ruby-2.2%2B-green.svg)
 ![](https://img.shields.io/badge/SQLITE-100%25-green.svg)
 ![](https://img.shields.io/badge/Mysql-100%25-green.svg)
 ![](https://img.shields.io/badge/Postgres-100%25-green.svg)
@@ -21,13 +21,13 @@
 [ButterCMS](https://buttercms.com/?utm_source=github&utm_medium=sponsorship-link&utm_campaign=camaleon) is an API-based CMS and blogging platform built for developers.
 
 # Requirements
-* Rails 4.1+
+* Rails 4.2+
 * MySQL 5+ or SQlite or PostgreSQL
-* Ruby 1.9+
+* Ruby 2.2+
 * Imagemagick
 
 # Installation
-* Install Ruby on Rails 4.1+
+* Install Ruby on Rails 4.2+
   [Visit here.](http://railsapps.github.io/installing-rails.html)
 * Create your rails project
 
@@ -71,7 +71,7 @@
 
 # Camaleon CMS (It adapts to your needs)
 
-Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4+ and Ruby 1.9+. This CMS is an alternative to Wordpress for Ruby on Rails developers to manage advanced contents easily.
+Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails 4.2+ and Ruby 2.2+. This CMS is an alternative to Wordpress for Ruby on Rails developers to manage advanced contents easily.
 Camaleon CMS is a flexible manager where you can build your custom content structure without coding anything by custom fields and custom contents type.
 
 To download or publish themes go to themes store:
