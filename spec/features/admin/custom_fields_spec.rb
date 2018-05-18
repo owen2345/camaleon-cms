@@ -15,6 +15,7 @@ describe "the Custom Fields", js: true do
       fill_in "custom_field_group_description", with: 'Test name description'
       page.execute_script('$("#select_assign_group").val("PostType_Post,2")')
 
+      wait 2
       all('#content-items-default a').each do |link|
         link.click
       end
