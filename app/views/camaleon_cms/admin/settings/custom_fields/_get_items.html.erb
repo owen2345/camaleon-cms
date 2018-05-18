@@ -155,7 +155,7 @@
         <% if @field_config[:options].key?(:default_value) %>
             <div class="form-group input-group-sm">
               <label><%= t('camaleon_cms.admin.table.default_value')%></label>
-            <%= text_field(:field_options, 'default_value', index: @index, value: @item_options_value[:default_value] || @field_config[:options][:default_value], class: 'form-control') %>
+            <%= text_field(:field_options, 'default_value', index: @index, value: @item_options_value[:default_value] || @field_config[:options][:default_value], class: "form-control #{'translatable' if @field_config[:options][:translate]}") %>
             </div>
         <% end %>
 
