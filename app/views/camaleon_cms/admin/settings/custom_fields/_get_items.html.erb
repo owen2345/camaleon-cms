@@ -4,10 +4,11 @@
    @item_id = @item_value[:id] || ''
    @index = "#{@item_id}_#{Time.now.to_i}_#{rand(999...99999)}"
    @field_config = cama_custom_field_elements[@key.to_sym]
+   @panel_id = "panel-field#{@index}"
    colors = ['primary','success','warning','colorful','info','danger']
    unless @field_config.nil?
 %>
-    <div id="panel-field<%= @index %>" class="panel panel-default panel-<%= colors.sample %> panel-item <%= 'panel-toggled' if @item_options_value[:panel_hidden].to_s.to_bool  %>">
+    <div id="<%= @panel_id %>" class="panel panel-default panel-<%= colors.sample %> panel-item <%= 'panel-toggled' if @item_options_value[:panel_hidden].to_s.to_bool  %>">
       <div class="panel-heading">
         <h3 class="panel-title"><span class="span-title"><%= @item_value[:name]? @item_value[:name] : "#{t('camaleon_cms.admin.settings.untitled')}
         #{@field_config[:label]}" %>
@@ -177,3 +178,8 @@
       </div>
     </div>
 <% end %>
+<script>
+  jQuery(function () {
+    $('#<%= @panel_id %>').find('.translatable').Translatable();
+  })
+</script>
