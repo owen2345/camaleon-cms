@@ -63,6 +63,20 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
     render json: json
   end
 
+  def list
+    p = params.permit(:post_type, :post_id, :categories => [])
+    args = {}
+    if p[:post_id].present?
+      post = @current_site.the_post(p[:post_id].to_i)
+      post.update_categories(p[:categories])
+    else
+      post = CamaleonCms::Post.new
+      post.taxonomy_id = p[:post_type].to_i
+      args[:cat_ids] = p[:categories]
+    end
+    render partial: 'camaleon_cms/admin/settings/custom_fields/render', :locals => {record: post, field_groups: post.get_field_groups(args), show_shortcode: true}
+  end
+
   private
 
   def set_post_data

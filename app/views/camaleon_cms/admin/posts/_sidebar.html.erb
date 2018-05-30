@@ -90,7 +90,12 @@
             <div class="panel-heading">
                 <h3 class="panel-title"><%= t('camaleon_cms.admin.post_type.categories')%> <em class="text-danger">*</em></h3>
                 <ul class="panel-controls">
-                    <li><a id="post_add_new_category" data-reload-url="<%= list_cama_admin_post_type_categories_path(@post_type.id) %>" href="<%= cama_admin_post_type_categories_path(@post_type.id, cama_body_class: true) %>" title="<%= t("camaleon_cms.admin.post.create_category", default: 'Create New Category') %>" class="panel-add-category"><span class="fa fa-plus"></span></a></li>
+                    <li><a id="post_add_new_category"
+                           data-reload-url="<%= list_cama_admin_post_type_categories_path(@post_type.id) %>"
+                           data-fields-reload-url="<%= list_cama_admin_settings_custom_fields_path(post_type: @post_type.id) %>"
+                           href="<%= cama_admin_post_type_categories_path(@post_type.id, cama_body_class: true) %>"
+                           title="<%= t("camaleon_cms.admin.post.create_category", default: 'Create New Category') %>"
+                           class="panel-add-category"><span class="fa fa-plus"></span></a></li>
                     <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
                 </ul>
             </div>

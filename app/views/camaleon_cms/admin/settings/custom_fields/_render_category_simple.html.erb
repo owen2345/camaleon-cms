@@ -1,0 +1,25 @@
+<%
+def _render_category_option_html(item, pos = 0)
+  category = item.decorate
+  value = "Category_Post,#{category.id}" %>
+  <option value="<%= value %>" data-help="<%= "#{t('camaleon_cms.admin.settings.tooltip.add_custom_field_posts')}"+ category.the_title %>"><%=  "#{('—' * pos)} #{category.the_title}" %></option>
+<% end
+
+   def _render_categories(categories, _level = 0)
+     categories.each do |term|
+       _render_category_option_html(term, _level)
+        children = term.children
+       _render_categories(children, _level + 1) if children.size > 0
+     end
+   end
+%>
+
+
+  <select id="select_category_simple" name="custom_field_group[assign_group]" class="form-control required" style="display: none" disabled>
+    <% current_site.post_types.each do |pt| pt = pt.decorate
+        next unless pt.manage_categories?   %>
+        <optgroup label="<%= pt.the_title %>">
+          <% _render_categories(pt.categories) %>
+        </optgroup>
+    <% end %>
+  </select>
