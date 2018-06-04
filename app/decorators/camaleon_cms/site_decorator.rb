@@ -112,17 +112,18 @@ class CamaleonCms::SiteDecorator < CamaleonCms::TermTaxonomyDecorator
   # draw languages configured for this site
   # list_class: (String) Custom css classes for ul list
   # current_page: (boolean) true: link with translation to current url, false: link with translation to root url
-  def draw_languages(list_class = "language_list list-inline pull-right", current_page = false, current_class = "current_l")
+  # block permit to render custom link label, default: flag icon
+  def draw_languages(list_class = "language_list list-inline pull-right", current_page = false, current_class = "current_l", &block)
     lan = object.get_languages
     return  if  lan.size < 2
     res = ["<ul class='#{list_class}'>"]
     lan.each do |lang|
       path = lang.to_s+'.png'
-      img = "<img src='#{h.asset_path("camaleon_cms/language/#{path}")}'/>"
-      res << "<li class='#{ current_class if I18n.locale.to_s == lang.to_s}'> <a href='#{h.cama_url_to_fixed(current_page ? "url_for" : "cama_root_url", {locale: lang, cama_set_language: lang})}'>#{img}</a> </li>"
+      label = (block ? h.capture(lang, I18n.locale.to_s == lang.to_s, &block) : "<img src='#{h.asset_path("camaleon_cms/language/#{path}")}'/>")
+      res << "<li class='#{ current_class if I18n.locale.to_s == lang.to_s}'> <a href='#{h.cama_url_to_fixed(current_page ? "url_for" : "cama_root_url", {locale: lang, cama_set_language: lang})}'>#{label}</a> </li>"
     end
     res << "</ul>"
-    res.join("")
+    res.join("").html_safe
   end
 
   # return Array of frontend languages configured for this site
