@@ -5,6 +5,11 @@ window["cama_init_media"] = (media_panel) ->
   media_link_tab_upload = media_panel.find(".media_file_info_col .nav-tabs .link_media_upload")
 
   ################ visualize item
+  # loading last opened folder on current page
+  media_panel.ready ->
+    f = $('body').data('last-folder')
+    media_panel.trigger('navigate_to', {folder: f})
+
   # return the data of this file
   file_data = (item)->
     data = item.data('eval-data') || eval("("+item.find(".data_value").val()+")")
@@ -128,7 +133,9 @@ window["cama_init_media"] = (media_panel) ->
     f = media_panel.attr("data-folder")+"/"+$(this).attr("data-key")
     if $(this).attr("data-key").search('/') >= 0
       f = $(this).attr("data-key")
-    media_panel.trigger("navigate_to", {folder: f.replace(/\/{2,}/g, '/')})
+    f = f.replace(/\/{2,}/g, '/')
+    media_panel.trigger("navigate_to", {folder: f})
+    $('body').attr('data-last-folder', f) # remembers last opened folder on current page
   )
   media_panel.bind("update_breadcrumb", ->
     folder = media_panel.attr("data-folder").replace("//", "/")
