@@ -42,7 +42,7 @@ class CamaleonCms::Media < ActiveRecord::Base
     _p = []
     folder_path.split('/').each do |f_name|
       _path = ('/'+_p.join('/')).cama_fix_media_key
-      coll.only_folder.where(name: f_name, folder_path: _path).first_or_create!() if "#{_path}/#{f_name}".cama_fix_media_key != '/'
+      coll.only_folder.where(name: f_name, folder_path: _path).first_or_create() if "#{_path}/#{f_name}".cama_fix_media_key != '/'
       _p.push(f_name)
     end
   end
