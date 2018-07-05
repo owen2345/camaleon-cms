@@ -27,6 +27,7 @@ function cama_get_tinymce_settings(settings){
                 }
             });
         },
+        fix_list_elements: true,
         setup: function (editor) {
             editor.on('blur', function () {
                 tinymce.triggerSave();
