@@ -3195,8 +3195,8 @@ table.text-center th {
   margin-bottom: 25px;
   font-weight: 300;
   img{
-    max-width: 100%;
-    max-height: 200px;
+    width: 150px;
+    height: 150px;
   }
 }
 .login-logo a,
@@ -3209,8 +3209,8 @@ table.text-center th {
 }
 .login-box,
 .register-box {
-  margin-top: 7%;
-  margin-bottom: 7%;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 @media (max-width: 768px) {
   .login-box,

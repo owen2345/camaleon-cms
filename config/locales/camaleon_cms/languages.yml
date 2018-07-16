@@ -1,6 +1,7 @@
 # encoding: utf-8
 de:
   languages:
+    ar: "Arabisch"
     es: "Spanisch"
     en: "Englisch"
     fr: "Französisch"
@@ -15,6 +16,7 @@ de:
 
 en:
   languages:
+    ar: "Arabic"
     es: "Spanish"
     en: "English"
     fr: "French"
@@ -29,6 +31,7 @@ en:
 
 es:
   languages:
+    ar: "Árabe"
     es: "Español"
     en: "Inglés"
     fr: "Francés"
@@ -43,6 +46,7 @@ es:
 
 it:
   languages:
+    ar: "Arabo"
     es: "Spagnolo"
     en: "Inglese"
     fr: "Francese"
@@ -57,6 +61,7 @@ it:
 
 uk:
   languages:
+    ar: "арабська"
     es: "Іспанська"
     en: "Англійська"
     fr: "Французька"
@@ -71,6 +76,7 @@ uk:
 
 ru:
   languages:
+    ar: "арабский"
     es: "Испанский"
     en: "Английский"
     fr: "Французский"
@@ -85,6 +91,7 @@ ru:
 
 nl:
   languages:
+    ar: "Arabisch"
     es: "Spaans"
     en: "Engels"
     fr: "Frans"
@@ -99,6 +106,7 @@ nl:
 
 pt:
   languages:
+    ar: "Árabe"
     es: "Espanhol"
     en: "Inglês"
     fr: "Francês"
@@ -113,6 +121,7 @@ pt:
 
 pt-BR:
   languages:
+    ar: "Árabe"
     es: "Espanhol"
     en: "Inglês"
     fr: "Francês"
@@ -126,7 +135,8 @@ pt-BR:
     nl: "Holandês"
 
 zh-CN:
-  languages: 
+  languages:
+    ar: "阿拉伯语"
     es: "西班牙语"
     en: "英语"
     fr: "法语"
