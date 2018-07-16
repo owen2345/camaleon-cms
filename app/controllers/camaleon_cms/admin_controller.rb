@@ -40,6 +40,7 @@ class CamaleonCms::AdminController < CamaleonCms::CamaleonController
   # receive params[:kind]: define de type of the results type (content|category|tag) => default content
   # if this is receive a param[:ajax], then will render only results view
   def search
+    add_breadcrumb I18n.t("camaleon_cms.admin.button.search")
     params[:kind] = "content" unless params[:kind].present?
     params[:q] = (params[:q] || '').downcase
     case params[:kind]
