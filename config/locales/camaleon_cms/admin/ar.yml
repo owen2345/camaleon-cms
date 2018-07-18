@@ -1,0 +1,683 @@
+ar:
+  camaleon_cms:
+    see_intro: "See intro"
+    welcome_message: "مرحبا بك في لوحة التحكم"
+    page_not_exist: "<h1>ooops...</h1><h5>الصفحة التي تبحث عنها غير موجودة.</h5>"
+    page_error_500: "<h1>ooops...</h1><h5>خطا 500 خطا داخلي في الملقم. الرجاء الاتصال بالمسؤول.</h5>"
+    admin:
+      request_error_message: "حدث خطا ، الرجاء الاتصال بالمسؤول."
+      authorization_error: "ليس لديك تخويل لهذا القسم."
+      header:
+        member_since: "Member since %{time}"
+      button:
+        activity: 'النشاط'
+        add_new_field: 'أضافه حقل جديد'
+        add_option: 'خيار أضافه'
+        add_option: 'خيار أضافه'
+        add_menu: 'Add to Menu'
+        add_widget: 'Add Widget'
+        accept: 'Accept'
+        add_folder: 'Add Folder'
+        actived: 'Activated'
+        activate_plugin: 'Activate Plugin'
+        back: 'Back'
+        change_photo: 'Change Photo'
+        change_password: 'Change Password'
+        create_menu: 'Create Menu'
+        create: 'Create'
+        cancel: 'Cancel'
+        chat: 'Chat'
+        close: 'Close'
+        delete: 'Delete'
+        disable_plugin: 'Disable Plugin'
+        enter: 'Enter'
+        edit: 'Edit'
+        new: 'New'
+        following: 'Following'
+        log_in: 'Log In'
+        move_trash: 'Move to trash'
+        no: 'No'
+        none: 'None'
+        not_actived: 'Not Active'
+        publish: 'Publish'
+        preview: 'Preview'
+        proccess: 'Process'
+        recover: 'Recover'
+        restore: 'Restore'
+        restore_selections: 'Restore Selections'
+        delete_complete: "Delete completely"
+        select: 'Select'
+        select_all: 'Select All'
+        select_file: 'Select File'
+        select_none: 'Select None'
+        sign_up: 'Sign Up'
+        submit: 'Submit'
+        settings: 'Settings'
+        sortable: 'Sortable'
+        update: 'Update'
+        update_menu: 'Update Menu'
+        upload_audio: 'Upload Audio'
+        upload_file: 'Upload File'
+        upload_image: 'Upload Image'
+        upload_icon: 'Upload Icon'
+        upload_video: 'Upload Video'
+        drag_drop: 'Drag & drop files'
+        view_draft: 'View Draft'
+        view_page: 'View Page'
+        yes: 'Yes'
+        out_yes: 'Yes'
+        out_not: 'No'
+        domain: "Domain"
+        search: "Search"
+
+      comments:
+        new_msg: "New comment for this Content"
+        comments_list_post: 'List Comments Post'
+        responses: 'Responses'
+        message:
+          approved: 'Approved'
+          change_status: 'The response status has been changed to '
+          created: 'The comment has been created.'
+          destroy: 'The answers have been removed.'
+          destroy_comments: 'The comments have been removed.'
+          deleted: 'The answers has been removed.'
+          error: 'Not found comment'
+          pending: 'Pending'
+          responses: 'The reply has been created.'
+          spam: 'Spam'
+          there_no_comments: 'There are no comments.'
+          updated: 'The comment has been updated.'
+
+        tooltip:
+          approved_comment: 'Approve Comment'
+          comment_pending: 'Comment To Pending'
+          comment_spam: 'Comment To Spam'
+          reply_comment: 'Reply Comment'
+          delete_comment: 'Delete Comment'
+      custom_field:
+        message:
+          custom_group_error: 'Error custom field group'
+          custom_created: 'The custom field group has been created.'
+          custom_updated: 'The custom field group has been updated.'
+        fields:
+          text_box: 'Text Box'
+          text_area: 'Text Area'
+          select: 'Select'
+          colorpicker: 'Colorpicker'
+          date: 'Date'
+          email: 'Email'
+          file: 'File'
+          image: 'Image'
+          image_dimension: 'Dimension'
+          image_dimension_descr: 'Crop the image with indicated dimension (widthxheight), sample: 400x300 <br>Possible values: 400x300 | 400x | x300 | ?400x?500 | ?1400x (? => maximum, empty => auto)'
+          image_versions: 'Versions'
+          image_versions_descr: "Create addtional multiple versions of the image uploaded, sample: 300x300,505x350 ==> Will create two extra images with these dimensions"
+          image_thumb: 'Thumbnail'
+          required_image_thumb: 'Is Required Thumbnail?'
+          image_thumb_descr: "Define the dimension for the thumbnail, sample: 100x100. Default: %{d}"
+          numeric: 'Numeric'
+          phone: 'Phone'
+          users: 'Users'
+          posts: 'Posts'
+          select_eval: 'Select Eval'
+          field_attrs: 'Field Attributes'
+          website: 'Website'
+          multiple_choice: 'Radio Button'
+
+
+      login:
+        already_have_account: 'Already have account?'
+        authentication: 'Authentication'
+        captcha: 'Captcha'
+        create_account: 'Create an account'
+        login: 'Login'
+        forgot_your_password_int: 'Forgot your password?'
+        message:
+          success: 'Welcome!!!'
+          fail: 'Username or Password incorrect'
+          forgot_url_incorrect: 'URL incorrect'
+          forgot_expired: 'Reset expired.'
+          hello: 'Hello'
+          reset_password_succes: 'Reset password success!'
+          reset_password_error: 'Password incorrect'
+          reset_url: 'Reset URL'
+          subject_email: 'Reset your access'
+          send_mail_succes: 'Send email reset success.'
+          send_mail_error: 'Not found email address.'
+          invalid_caption: 'Invalid captcha'
+          email_not_validated: 'Email has not been validated.'
+          confirm_email_token_incorrect: 'URL incorrect'
+          confirm_email_token_expired: 'Confirm email URL expired'
+          confirm_email_success: 'Confirm email success!'
+        personal_info: 'Personal info'
+        please_login: 'Please login'
+        reset_password: 'reset password'
+        reCaptcha: 'reCaptcha'
+        send_email: 'Send email'
+        reset_password_html: '<strong>Send email</strong>, reset password'
+        welcome: 'Welcome'
+        welcome_login_html: '<strong>Welcome</strong>, Please login'
+        do_not_have_account_yet: "Do not have an account yet?"
+        msg_registration_html: '<strong>Registration</strong>, use form below'
+        username: "Username"
+        password: "Password"
+        password_confirm: "Password confirmation"
+        first_name: "First Name"
+        last_name: "Last Name"
+        email: "Email"
+        remember_me: "Remember Me"
+        confirm:
+          text: "Please confirm your account by clicking this link"
+          subject: "Confirm your account"
+      logout:
+        log: 'Log'
+        out: 'Out'
+        logout: 'Logout'
+        logout_html: 'Log <strong>Out</strong>?'
+        message:
+          closed: 'Session Closed'
+      media:
+        media_manager: 'Media Manager'
+        home: "Home"
+        info: "Information"
+        external: "Upload From URL"
+        folder_name: 'Folder Name'
+        folder_file_name: 'Folder or File Name'
+        reload: 'Reload'
+        clear_cache: 'Clear Cache'
+        name_required: 'File name is required'
+      menus:
+        link_url: 'Link URL'
+        target: 'Target'
+        targets:
+          blank: 'Blank'
+          parent: 'Parent'
+        message:
+          created: 'The nav menu has been created.'
+          deleted: 'The nav menu has been delete.'
+          error_menu: 'Error Menu'
+        name_link: 'Name Link'
+        name_menu: 'Name Menu'
+        external_link: 'External Link'
+        or: 'or'
+        create_new: 'create a new menu'
+        select: 'Select Menu'
+        select_edit: 'Select the menu you want to edit:'
+      message:
+        are_you_sure_you_want_log_out_int: 'Are you sure you want to log out?'
+        are_you_sure_to_import: "Are you sure you want to import?"
+        data_found_list: 'No data found in the list'
+        delete: 'Are you sure to delete this item?'
+        delete_item: 'Really want to delete this item?'
+        edit_menu: 'Place each item in the order you prefer. Click on the icon of a pencil to edit the item and click the icon in the form of x to delete the item.'
+        add_menus: 'Add menu items from the left column.'
+        press_no_continue_work_press_yes_logout: 'Press No if you want to continue work. Press Yes to logout current user.'
+        updated_success: 'Updated Successfully'
+        remove_items_submenu: 'Really remove this item and its sub menu items?'
+        you_must_upload_image: 'You must upload an image'
+        you_must_upload_video: 'You must upload an video'
+        so_their_data_has_not_been_saved: 'So their data has not been saved'
+        no_response_fields: 'No response fields '
+        quick_info: 'Some quick info about this user'
+        was_inactivated: 'was inactivated.'
+        was_activated: 'was activated.'
+        was_upgraded: 'was updated.'
+        can_not_be_removed: 'can not be removed.'
+        was_removed: 'was removed.'
+        processing: 'Procesando...'
+        change_photo: 'Use form below to upload file. Only image files.'
+        change_password: 'To change your password enter your old password first, then enter the new password and repeat the new password.'
+        you_must_upload_json_file: 'You must upload an json file'
+        import_process: 'Import in process'
+        unauthorized: "Access denied"
+        welcome: 'مرحبا بكم في لوحه مشرف موقعك.'
+        no_templates_defined: 'No templates defined'
+        avatar_updated: 'Updated Avatar'
+        form_error: 'Form Error'
+      page_title:
+        page_title: 'Page Title'
+        create: 'Create'
+        details: 'Details'
+        edit: 'Edit'
+        add: 'Add'
+        list: 'List'
+        list_of: 'List of %{post_type}'
+        new_site: 'New Site'
+        edit_site: 'Edit Site'
+        update: 'Update'
+      post:
+        add_tag: 'Add a Tag'
+        clone: 'Clone'
+        clone_content: 'Clone content'
+        label_required: 'Required Label'
+        placeholder_required: 'Required Placeholder'
+        message:
+          created: 'The %{post_type} has been created.'
+          updated: 'The %{post_type} has been updated.'
+          deleted: 'The %{post_type} has been removed.'
+          error: 'Error %{post_type}'
+          error_post_type: 'Error %{post_type}'
+          trash: 'The %{post_type} was moved to the trash.'
+          requires_different_slug: 'Requires different slug'
+          restore: 'The %{post_type} was restored.'
+          draft: 'Saved draft success'
+          recover: 'Recover...'
+        permalink: 'Permalink'
+      post_type:
+        route_format: 'Contents Route Format'
+        icons_url_desc: 'Please enter any icon name from here: '
+        all: 'All Items'
+        add: 'Add'
+        add_category: 'Add Category'
+        add_post_type: 'Add Post Type'
+        add_new: 'Add New'
+        add_post_tag: 'Add Post Tag'
+        categories: 'Categories'
+        category: 'Category'
+        configuration: 'Configuration'
+        other_configuration: 'Custom Configurations'
+        comments: 'Comments'
+        draft: 'Draft'
+        edit_post_type: 'Edit Post Type'
+        edit_category: 'Edit Category'
+        enter_password: 'Enter the password'
+        featured_image: 'Featured Image'
+        keywords: 'Keywords'
+        default_layout: 'Default Layout'
+        default_template: 'Default Template'
+        icon: 'Icon'
+        message:
+          error: 'Error class'
+          error_term: 'Error term class'
+          created: 'Saved'
+          updated: 'Updated'
+          deleted: 'Deleted'
+          no_created_html: '<br> No %{taxonomy} found'
+        pending: 'Pending'
+        permit_comments: 'Allow Comments?'
+        post_types: 'Post Types'
+        posts: 'Posts'
+        post_tags: 'Post Tags'
+        published: 'Published'
+        published_date: 'Published Date'
+        save_draft: 'Save Draft'
+        save_pending: 'Save Pending'
+        summary: 'Summary'
+        tags: 'Tags'
+        template: 'Template'
+        layout: 'Layout'
+        trash: 'Trash'
+        tooltip:
+          permission_asing_categories: 'Permit to manage your post contents by categories'
+          permission_add_tags: 'Enable the field to enter tags in post content'
+          permission_add_content: 'Enable the editor to enter the post content'
+          permission_add_content_summary: 'Enable the field to enter the post summary'
+          permission_reviews: 'Enable the option to indicate if post contents can be commented'
+          permission_add_image_presentation: 'Enable the editor to upload thumbnail in post contents'
+          permission_manage_template: 'Enable the field to select template in contents. (template: file that will be used to render a content)'
+          permission_manage_layout: 'Enable the field to select layout in contents. (Layout: File wrapper in which will be rendered the template)'
+          permission_add_keywords: 'Enable the field to enter the post keywords (SEO)'
+          default_layout: 'Select the default layout for all contents of this post type'
+          default_template: 'Select the default template for all contents of this post type'
+        upload_image: 'Upload Image'
+        view_comments: 'View Comments'
+      plugins:
+        active_plugins: 'Active Plugins'
+        disabled_plugins: 'Disabled Plugins'
+        all_plugins: 'All Plugins'
+        status_false: 'Inactive'
+        status_true: 'Active'
+        type_contents: 'Type Contents'
+        upgrade_to: "Upgrade to"
+      settings:
+        activate_create_account: 'Activate Create Account'
+        activate_login_social_networks: 'Activate Login Social Networks'
+        add_field_group: 'Add Field Group'
+        admin_language: 'Admin language'
+        allow_user_registration: 'Allow user registration?'
+        available_fields: 'Available fields'
+        available_languages: 'Available languages'
+        categories_in: 'Categories in'
+        configuration_site: 'Configuration Site'
+        current_languages: 'Current Languages'
+        details_custom_field_group: 'Details Custom Field Group'
+        details_site: 'Details Site'
+        edit_custom_field_group: 'Edit Custom Field Group'
+        field: 'Field'
+        fields: 'Fields'
+        information_basic: 'Basic Information'
+        theme_setting: "Theme settings"
+        input_only_date: 'Input only the date'
+        input_date_time: 'Input date and time'
+        languages_configuration: 'Languages configuration'
+        list_custom_fields_group: 'List  Custom Fields Group'
+        list_sites: 'List Sites'
+        login_twitter: 'Twitter'
+        login_facebook: 'Facebook'
+        login_google: 'Google+'
+        email_enabled: "Use these settings to send emails"
+        email_server: "Email Server"
+        email_port: "Email Port"
+        email_domain: "Email Domain"
+        email_username: "User Name"
+        email_pass: "User Password"
+        email_from: "Email From"
+        email_cc: "Email CC"
+        twitter_card: "Twitter Card"
+        author: "Author Name"
+        seo_setting: "Seo Settings"
+        email_settings: "Email Settings (SMTP)"
+        filesystem_type: "Filesystem type"
+        filesystem_s3_access_key: "AWS S3 Access Key"
+        filesystem_s3_secret_key: "AWS S3 Secret Key"
+        filesystem_s3_bucket_name: "AWS S3 Bucket name"
+        filesystem_s3_endpoint: "AWS S3 Bucket endpoint"
+        send_test_email: 'Send Test Email'
+        filesystem_region: "AWS S3 Region"
+        filesystem_cdn: "CDN url"
+        security:
+          captcha_user_register: "Enable captcha on user registration?"
+          need_validate_email: "Need validate email?"
+        message:
+          language_updated: 'Your languages was configured.'
+          site_updated: 'The site has been updated.'
+        new_custom_field_group: 'New Custom Field Group'
+        options_select: 'Options select'
+        option_title: 'Option Title'
+        others: 'Others'
+        please_separated_commas: 'Please separated by commas'
+        comment_status: 'Register comments as approved?'
+        list_per_page_front: 'Quantity of items to be listed on frontend'
+        list_per_page_admin: 'Quantity of items to be listed on backend'
+        permission_register_users: 'Permission to Register Users'
+        permission_login_twitter: 'Permission to Login with Twitter'
+        permission_login_facebook: 'Permission to Login with Facebook'
+        permission_login_google: 'Permission to Login with Google+'
+        posts_in: 'Posts in'
+        in_post_type_settings_of: 'In Post Type settings of'
+        settings: 'Settings'
+        tooltip:
+          add_custom_field_posts: 'Add Custom Field in Posts of '
+          add_custom_field_categories: 'Add Custom Field in Categories of '
+          add_custom_field_users: 'Add Custom Field in Users '
+          add_custom_field_sites: 'Add Custom Field in Site '
+          add_custom_field_themes: 'Add Custom Field in Theme '
+          add_custom_field_widget: 'Add Custom Field in Widget '
+        untitled: 'Untitled'
+        where_display_group: 'Where to display this group'
+      sidebar:
+        appearance: 'Appearance'
+        comments: 'Comments'
+        content: 'Content'
+        contents: 'Contents'
+        content_groups: 'Content Groups'
+        custom_fields: 'Custom Fields'
+        dashboard: 'Dashboard'
+        general_site: 'General Site'
+        information: 'Information'
+        languages: 'Languages'
+        shortcodes: "Shortcodes"
+        media: 'Media'
+        menus: 'Menus'
+        navigation: 'Navigation'
+        plugins: 'Plugins'
+        post_type: 'Post Type'
+        settings: 'Settings'
+        site_settings: 'Site settings'
+        sites: 'Sites'
+        themes: 'Themes'
+        users: 'Users'
+        widget: 'Widget'
+        widgets: 'Widgets'
+        main_navigation: "MAIN NAVIGATION"
+      sidebar_top:
+        admin_panel: 'Admin. Panel'
+        visit: 'Visit'
+      sites:
+        add_site: 'Add Site'
+        message:
+          error: 'Not found site'
+          created: 'The site has been created.'
+          updated: 'The site has been updated.'
+          deleted: 'Correct Deleted'
+          enter_key_domain: 'Enter a key or a domain'
+          enter_key_domain_empty: 'Enter a key (site2) or a domain (my_domain.com). Key will be the name of your subdomain.'
+      signin:
+        message:
+          enter_username_password: 'You must enter a username and/or password'
+          combination_username_password_invalid: 'Combination of username/password invalid.'
+          success_user: 'Success User'
+      table:
+        actions: 'Actions'
+        attribute: 'Attribute'
+        author: 'Author'
+        basic: 'Basic'
+        categories: 'Categories'
+        updated_at: "Updated at"
+        comments: 'Comments'
+        count: 'Count'
+        date_published: 'Date Published'
+        default: 'Default'
+        default_thumbnail: 'Default Thumbnail'
+        default_value: 'Default Value'
+        description: 'Description'
+        dimensions: 'Dimensions'
+        display_objects: 'Display Objects'
+        draft: 'Draft'
+        email: 'Email'
+        e_mail: 'E-mail'
+        email_address: 'Email Address'
+        error: 'Error'
+        errors: 'Errors'
+        excerpt: 'Excerpt'
+        facebook: 'Facebook'
+        favicon: 'Favicon'
+        screenshot: "Screenshot"
+        first_names: 'First Name'
+        group_name: 'Group Name'
+        google_plus: 'Google plus'
+        hide: 'Hide'
+        home_page: 'Home Page'
+        id: 'ID'
+        images: 'Images'
+        import: 'Import'
+        instagram: 'Instagram'
+        keywords: 'Keywords (enter separated by commas)'
+        kind: 'Kind'
+        last_login: 'Last login'
+        last_names: 'Last Name'
+        last_visit: 'Last visit'
+        link: 'Link'
+        linkedin: 'Linkedin'
+        login: 'Login'
+        logo: 'Logo'
+        manage_category: 'Manage Multiple Categories'
+        manage_content: 'Manage Content'
+        manage_picture: 'Manage Picture'
+        manage_seo: 'Manage Seo'
+        manage_summary: 'Manage Summary'
+        manage_tags: 'Manage Tags'
+        manage_template: 'Manage Template'
+        manage_layout: 'Manage Layout'
+        modified: 'Modified'
+        multiple_field_int: 'Multiple field?'
+        required_field_int: 'Required field?'
+        translate_field_int: 'Translate field?'
+        show_in_frontend: 'Show in Frontend (Only post contents)'
+        name: 'Name'
+        new_password: 'New Password'
+        no_default: 'No Default'
+        old_password: 'Old Password'
+        options: 'Options'
+        settings: 'Settings'
+        options_field: 'Options Field'
+        parent: 'Parent'
+        password: 'Password'
+        password_confirmation: 'Password Confirmation'
+        password_protection: 'Password protection'
+        permit_comments_default: 'Allow Comments (default)'
+        post: 'Post'
+        post_type: 'Post Type'
+        pending: 'Pending'
+        private: 'Private'
+        public: 'Public'
+        qty: 'Quantity'
+        quick_info: 'Quick Info'
+        registration: 'Registration'
+        repeat_new: 'Repeat New'
+        role: 'Role'
+        slogan: 'Slogan'
+        slug: 'Slug'
+        short_code: 'Short Code'
+        site_name: 'Site Name'
+        size: 'Size'
+        social: 'Social'
+        skype: 'Skype'
+        status: 'Status'
+        owner: 'Page Owner'
+        tags: 'Tags'
+        text: 'Text'
+        title: 'Title'
+        total: 'Total'
+        trash: 'Trash'
+        twitter: 'Twitter'
+        username: 'Username'
+        value: 'Value'
+        version: 'Version'
+        visibility: 'Visibility'
+        page_404: '404 Page'
+        youtube: 'Youtube'
+        more_actions: 'More actions'
+        more_actions_info: 'More actions...'
+        shorcodes: "Shortcodes"
+      themes:
+        footer_copyright: 'Footer Copyright'
+        theme_select: 'Select Theme'
+        title: 'Theme %{theme} Settings '
+        analytics_code: 'Analytics Code'
+        social_share: 'Social share'
+
+        message:
+          updated: 'Theme updated'
+      users:
+        impersonate: 'Impersonate'
+        all_users: 'All Users'
+        add_user: 'Add User'
+        add_user_role: 'Add User Role'
+        avatar: 'Avatar'
+        create_user: 'Create User'
+        edit_profile: 'Edit Profile'
+        list_users: 'List Users'
+        list_user_roles: 'User Roles'
+        message:
+         error: 'Not found user.'
+         error_captcha: 'Oh! Its error with CAPTCHA!'
+         created: 'The user has been created.'
+         updated: 'The user has been updated.'
+         deleted: 'The user has been deleted.'
+         incorrect_old_password: 'Incorrect old password'
+         rol_error: 'Not found group user.'
+         rol_created: 'The user role has been created.'
+         rol_updated: 'The user role has been updated.'
+         rol_deleted: 'The user role has been deleted.'
+         requires_different_name: 'Requires different name'
+         requires_different_username: 'Requires different username'
+         requires_different_email: 'Requires different email'
+         created_pending_validate_email: "The user has been created, please confirm your email"
+        new_photo: 'New Photo'
+        others_permissions: 'Others permissions'
+        profile: 'Profile'
+        slogan: 'Slogan'
+        type_contents: 'Type of Contents'
+        user_roles: 'User Roles'
+        roles_values:
+          comments: 'Comments'
+          forms: 'Forms'
+          media: 'Media'
+          publish: 'Publish'
+          themes: 'Themes'
+          html_create_or_edit: 'Create<br>or  Edit'
+          html_edit_other: 'Edit <br> Other'
+          html_edit_publish: 'Edit <br> Publish'
+          html_delete_other: 'Delete <br> Other'
+          html_delete_publish: 'Delete <br> Publish'
+          html_read_private: 'Read <br> Private'
+          html_manage_categories: 'Manage <br> Categories'
+          html_manage_tags: 'Manage <br> Tags'
+        tool_tip:
+          comments: 'Allowing the comments section'
+          delete: 'You need permission to Create or Edit to delete posts of your property. '
+          forms: 'Allowing Forms section'
+          media: 'Permission to the midsection'
+          publish: 'You need permits Create or Edit, Edit Other, Edit, Publish, to enable this permission'
+          themes: 'Themes permission to section'
+          widgets: 'Widgets permission to section'
+          menus: 'Permission to the Menu section'
+          plugins: 'Permission to the Plugins section'
+          users: 'Permission to create, edit, delete Users'
+          settings: 'Permission to section Settings'
+          create_or_edit: 'It lets you create and edit your posts (the post is not published)'
+          edit_other: 'It allows you to edit the post of other users (the post is not published)'
+          edit_publish: 'It allows you to edit the post published'
+          delete_other: 'You need permission to remove edit other posts by other users'
+          delete_publish: 'You need permits Delete, Delete Other, to enable this permission'
+          read_private: 'Allows you to view private posts'
+          manage_categories: 'Permission to create, edit and delete categories'
+          manage_tags: 'Permission to create, edit and delete post tags'
+      validate:
+        required: 'This field is required.'
+        remote: 'Please fix this field.'
+        email: 'Please enter a valid email address.'
+        url: 'Please enter a valid URL.'
+        date: 'Please enter a valid date.'
+        dateiso: 'Please enter a valid date ( ISO ).'
+        number: 'Please enter a valid number.'
+        digits: 'Please enter only digits.'
+        creditcard: 'Please enter a valid credit card number.'
+        equalto: 'Please enter the same value again.'
+        maxlength: 'Please enter no more than {0} characters.'
+        minlength: 'Please enter at least {0} characters.'
+        rangelength: 'Please enter a value between {0} and {1} characters long.'
+        range: 'Please enter a value between {0} and {1}.'
+        max: 'Please enter a value less than or equal to {0}.'
+        min: 'Please enter a value greater than or equal to {0}.'
+      widgets:
+        create_widget: 'Create Widget'
+        create_sidebar: 'Create Sidebar'
+        complex_widgets: 'Complex Widgets'
+        simple_widgets: 'Simple Widgets'
+        message:
+          created: 'The widget has been created.'
+          updated: 'The widget has been updated.'
+          deleted: 'The widget has been delete.'
+          error_created: 'Not Created Widget.'
+          error_updated: 'Not Updated Widget.'
+          not_registered_widgets: 'There are no registered widgets'
+        assign:
+          updated: "Widget assign updated"
+          error_updated: "Widget assign not updated"
+        sidebar:
+          created: "Sidebar Create."
+          updated: "Sidebar Update."
+          error_created: "No created sidebar."
+          error_updated: "No Update sidebar."
+          error_deleted: "Sidebar deleted."
+      intro:
+        profile: "In this place you can see your profile options."
+        content: "This block contains all content groups of your site. Each content can have different structure configured in settings => Content Groups"
+        #dashboard: "In this section you can see "
+        media: "This section manages all your public media files."
+        comments: "This section manages all the comments of your contents."
+        appearance: "Manage all the information related to Public Interface."
+        themes: "In this section you can choose your preferred theme (Public Interface)."
+        widgets: "This module permits you to manage your widgets and paste the code in any content."
+        menus: "<img style=\"max-width: 100%;\" src=\"%{image}\" /> This module permits you to control your menus for Public Interface in multiple levels."
+        plugins: "In this section you can see all plugins (custom applications to extend your site functionality)."
+        users: "Permits you to manage all users of the site. Also you can manage the roles for the users."
+        settings: "In this section you can find all site configurations."
+        gral_site: "This is a section where you can configure all settings of the site and current theme"
+        sites: "This module permits you to manage your sub sites, i.e. you can create unlimited sites like this (This is visible only for main site). Check /config/system.json to customize settings."
+        custom_fields: "This section permits you to extend easily your contents, themes,... by custom fields."
+        post_type: "In this module you can manage your content groups without programing anything."
+        languages: "This module permits you to manage all languages for your site. Also you can configure the language for your admin panel."
+        shortcodes: "In this section you can see all available shortcodes to use in your contents."
