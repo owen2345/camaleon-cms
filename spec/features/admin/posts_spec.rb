@@ -18,6 +18,7 @@ describe "the signin process", js: true do
     expect(page).to have_css('.alert-success')
   end
 
+  
   it "create edit post" do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/post_type/2/posts/#{@post.id}/edit"
