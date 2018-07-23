@@ -1,4 +1,6 @@
 class CamaleonCmsUploader
+  PRIVATE_DIRECTORY = 'private'
+  
   attr_accessor :thumb
   # root_folder= '/var/www/my_public_foler/', current_site= CamaSite.first.decorate, thumb = {w: 100, h: 75},
   # aws_settings: {region, access_key, secret_key, bucket}
@@ -55,7 +57,7 @@ class CamaleonCmsUploader
     end
     file_parsed
   end
-  
+
   # return the media collection for current situation
   def get_media_collection
     is_private_uploader? ? @current_site.public_media : @current_site.private_media
@@ -136,9 +138,27 @@ class CamaleonCmsUploader
     # deprecated
   end
 
+  def enable_private_mode!
+    @args[:private] = true
+
+    setup_private_folder
+  end
+
+  def disable_private_mode!
+    @args[:private] = false
+  end
+
+  def file_exists?(file_name)
+    File.exist?(file_name)
+  end
+
   private
   def cache_key
     "cama_media_cache#{'_private' if is_private_uploader?}"
   end
-  def is_private_uploader?() end
+
+  # check if this uploader is private mode
+  def is_private_uploader?
+    @args[:private]
+  end
 end

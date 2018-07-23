@@ -1,5 +1,4 @@
 class CamaleonCmsAwsUploader < CamaleonCmsUploader
-
   def after_initialize
     @cloudfront = @aws_settings[:cloud_front] || @current_site.get_option("filesystem_s3_cloudfront")
     @aws_region = @aws_settings[:region] || @current_site.get_option("filesystem_region", 'us-west-2')
@@ -8,6 +7,14 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     @aws_bucket = @aws_settings[:bucket] || @current_site.get_option("filesystem_s3_bucket_name")
     @aws_settings[:aws_file_upload_settings] ||= lambda{|settings| settings }
     @aws_settings[:aws_file_read_settings] ||= lambda{|data, s3_file| data }
+  end
+
+  def setup_private_folder
+    if is_private_uploader?
+      add_folder(PRIVATE_DIRECTORY)
+
+      @aws_settings["inner_folder"] = "#{@aws_settings["inner_folder"]}/#{PRIVATE_DIRECTORY}"
+    end
   end
 
   # recover all files from AWS and parse it to save into DB as cache
@@ -27,21 +34,38 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     super(prefix, sort)
   end
 
+  def fetch_file(file_name)
+    bucket.object(file_name).download_file(file_name) unless file_exists?(file_name)
+
+    if file_exists?(file_name)
+      file_name
+    else
+      raise ActionController::RoutingError, 'File not found'
+    end
+  end
+
   # parse an AWS file into custom file_object
   def file_parse(s3_file)
     key = s3_file.is_a?(String) ? s3_file : s3_file.key
     key = key.cama_fix_media_key
     is_dir = s3_file.is_a?(String) || File.extname(key) == ''
+
+    if is_private_uploader?
+      url = is_dir ? '' : File.basename(key)
+    else
+      url = is_dir ? '' : (@cloudfront.present? ? File.join(@cloudfront, key) : s3_file.public_url)
+    end
+
     res = {
-        "name" => File.basename(key),
-        "folder_path" => File.dirname(key),
-        "url" => is_dir ? '' : (@cloudfront.present? ? File.join(@cloudfront, key) : s3_file.public_url),
-        "is_folder" => is_dir,
-        "file_size" => is_dir ? 0 : s3_file.size.round(2),
-        "thumb" => '',
-        'file_type' => is_dir ? '' : self.class.get_file_format(key),
-        'created_at' => is_dir ? '' : s3_file.last_modified,
-        'dimension' => ''
+      "name" => File.basename(key),
+      "folder_path" => File.dirname(key),
+      "url" => url,
+      "is_folder" => is_dir,
+      "file_size" => is_dir ? 0 : s3_file.size.round(2),
+      "thumb" => '',
+      'file_type' => is_dir ? '' : self.class.get_file_format(key),
+      'created_at' => is_dir ? '' : s3_file.last_modified,
+      'dimension' => ''
     }.with_indifferent_access
     res["thumb"] = version_path(res['url']).sub('.svg', '.jpg') if res['file_type'] == 'image' && File.extname(res['name']).downcase != '.gif'
     res['key'] = File.join(res['folder_path'], res['name'])
