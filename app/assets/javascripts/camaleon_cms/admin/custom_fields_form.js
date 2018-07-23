@@ -1,5 +1,7 @@
 // add actions to assign custom fields to any model selected
 jQuery(function($){
+
+
   var panel = $("#cama_custom_field_form");
   var group_class_name = panel.attr("data-group_class_name");
   var $content_fields = $( "#sortable-fields", panel);

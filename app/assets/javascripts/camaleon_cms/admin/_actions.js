@@ -1,4 +1,5 @@
 jQuery(document).on("ready page:changed", function(){
+
     // initialize all validations for forms
     init_form_validations();
     setTimeout(page_actions, 1000);

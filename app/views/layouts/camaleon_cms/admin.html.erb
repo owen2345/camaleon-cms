@@ -6,8 +6,10 @@
     <title><%= raw cama_admin_title_draw %></title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <%= stylesheet_link_tag "camaleon_cms/admin/admin-manifest", media: "all" %>
-    <script>
+
+  <%= stylesheet_link_tag "camaleon_cms/admin/admin-manifest", media: "all" %>
+
+  <script>
         var root_url = '<%= cama_root_url(locale: nil) %>';
         var root_admin_url = '<%= cama_admin_url(locale: nil) %>';
         var NO_IMAGE_URL = '<%= asset_url("camaleon_cms/image-not-found.png") %>';
@@ -15,11 +17,15 @@
         var ADMIN_TRANSLATIONS = <%= raw current_site.get_languages.to_json %>;
         var tinymce_global_settings = {language_url: "<%= asset_path("camaleon_cms/admin/tinymce/langs/#{current_locale}.js") %>", custom_css: [], custom_toolbar: [], post_render: [], init: [], setups: [], settings: []};
         var I18n_data = <%= I18n.backend.respond_to?(:translations) ? I18n.backend.send(:translations)[current_locale.to_sym][:camaleon_cms][:admin][:js].to_json.html_safe : !!(I18n.backend.backends[1] && I18n.backend.backends[1].backends[1]) ? I18n.backend.backends[1].backends[1].send(:translations)[current_locale.to_sym][:camaleon_cms][:admin][:js].to_json.html_safe : "{}" rescue "{}" %>
-    </script>
+
+
+
+  </script>
     <%= javascript_include_tag "camaleon_cms/admin/admin-manifest" %>
 
     <%= javascript_include_tag "camaleon_cms/admin/jquery_validate/#{current_locale}.js" if current_locale != 'en' %>
     <%= javascript_include_tag "camaleon_cms/admin/momentjs/#{current_locale}.js" if current_locale != 'en' %>
+
 
     <%= raw the_head({}, false) %>
     <%= yield :head if content_for? :head %>
