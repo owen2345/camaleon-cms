@@ -2,7 +2,7 @@ class CamaleonCms::Media < ActiveRecord::Base
   self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}media"
   belongs_to :site, class_name: 'CamaleonCms::Site'
   validates :name, uniqueness: {
-    scope: [:site_id, :is_folder, :folder_path],
+    scope: [:site_id, :is_folder, :folder_path, :is_public],
     message: 'Duplicates not allowed'
   }
   scope :only_folder, ->{ where(is_folder: true) }
@@ -18,7 +18,7 @@ class CamaleonCms::Media < ActiveRecord::Base
       where('name like ?', "%#{search_expression}%")
     end
   end
-  
+
   # search file or folder by key
   def self.find_by_key(key)
     key = key.cama_fix_media_key
@@ -28,13 +28,13 @@ class CamaleonCms::Media < ActiveRecord::Base
       where(folder_path: File.dirname(key), name: File.basename(key))
     end
   end
-  
+
   # return all items of current folder
   def items
     coll = is_public ? site.public_media : site.private_media
     coll.where(folder_path: "#{folder_path}/#{name}".cama_fix_media_key)
   end
-  
+
   private
   # recover folder or file format
   def create_parent_folders
@@ -46,7 +46,7 @@ class CamaleonCms::Media < ActiveRecord::Base
       _p.push(f_name)
     end
   end
-  
+
   # return all children items
   def delete_folder_items
     items.destroy_all if is_folder
