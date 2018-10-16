@@ -29,7 +29,8 @@
                     <td><%= plugin["version"] %></td>
                     <td><%= t("camaleon_cms.admin.plugins.status_#{status}") %></td>
                     <td>
-                        <%= link_to raw("<i class='fa fa-#{status ? "check-square" : "square"}'></i>"), {action: :toggle, id: plugin["key"], status: status }, class: "btn btn-default btn-xs", title: "#{status ? t('camaleon_cms.admin.button.disable_plugin') : t('camaleon_cms.admin.button.activate_plugin') }", data: { confirm: "#{"#{status ? t('camaleon_cms.admin.button.disable_plugin') : t('camaleon_cms.admin.button.activate_plugin') }"}?" } %>
+                        <% msg = "#{status ? t('camaleon_cms.admin.button.disable_plugin') : t('camaleon_cms.admin.button.activate_plugin') }" %>
+                        <%= link_to msg, {action: :toggle, id: plugin["key"], status: status }, class: "btn btn-#{status ? 'danger' : 'primary'} btn-xs", data: { confirm: msg } %>
                         <%= link_to("<i class='fa fa-arrow-circle-o-up'></i>".html_safe, cama_admin_plugin_upgrade_path(plugin["key"]), class: "btn btn-info btn-xs", title: "#{t("camaleon_cms.admin.plugins.upgrade_to")} #{plugin["version"]}") if status && current_site.get_plugin(plugin["key"]).old_version? %>
                     </td>
                 </tr>
