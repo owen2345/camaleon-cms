@@ -12,9 +12,9 @@ require "capybara/rspec"
 require 'database_cleaner'
 require "rack_session_access/capybara"
 
-
 require 'capybara/rspec'
 require 'capybara-screenshot/rspec'
+
 Capybara.javascript_driver = :webkit
 
 # define screenshot errors name

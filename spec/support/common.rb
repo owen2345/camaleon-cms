@@ -113,7 +113,7 @@ def confirm_dialog
 
   elsif page.driver.class.to_s == 'Capybara::Webkit::Driver'
     sleep 1 # prevent test from failing by waiting for popup
-    page.driver.browser.accept_js_confirms
+    page.session.accept_confirm
   else
     raise "Unsupported driver"
   end
