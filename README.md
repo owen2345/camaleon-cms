@@ -11,10 +11,6 @@
 
 [Demonstration](http://camaleon.tuzitio.com/plugins/demo_manage/)
 
-## Sponsor
-
-[ButterCMS](https://buttercms.com/?utm_source=github&utm_medium=sponsorship-link&utm_campaign=camaleon) is an API-based CMS and blogging platform built for developers.
-
 ## About
 
 Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails that adapts to your needs. This CMS is an alternative to Wordpress for Ruby on Rails developers to manage advanced content easier.
