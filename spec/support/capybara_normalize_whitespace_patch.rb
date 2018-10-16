@@ -1,3 +1,5 @@
+### https://github.com/thoughtbot/capybara-webkit/issues/1065#issuecomment-411116972
+
 module Capybara
   module Helpers
     class << self

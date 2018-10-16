@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :post, class: CamaleonCms::Post do
-    title { Faker::Name.title }
+    title { Faker::Job.title }
     sequence(:slug) { |n| "post#{n}" }
     content { Faker::Lorem.sentence }
     published_at { Time.current }
