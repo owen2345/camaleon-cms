@@ -27,9 +27,13 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
 
     if params[:q].present?
       params[:q] = (params[:q] || '').downcase
-      posts_all = posts_all.where("LOWER(#{CamaleonCms::Post.table_name}.title) LIKE ?", "%#{params[:q]}%")
+      posts_all = posts_all.where(
+        "LOWER(#{CamaleonCms::Post.table_name}.title) LIKE ? OR LOWER(#{CamaleonCms::Post.table_name}.slug LIKE ?)", 
+        "%#{params[:q]}%", 
+        "%#{params[:q]}%"
+      )  
     end
-    
+
     posts_all = posts_all.where(user_id: cama_current_user) if cannot?(:edit_other, @post_type) # filter only own contents 
     
     @posts = posts_all
