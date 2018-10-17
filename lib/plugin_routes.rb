@@ -235,12 +235,6 @@ class PluginRoutes
     PluginRoutes.reload
   end
 
-  # destroy theme
-  def self.destroy_theme(theme_key)
-    FileUtils.rm_r(Rails.root.join("app", "apps", "themes", theme_key)) rescue ""
-    PluginRoutes.reload
-  end
-
   def self.cache_variable(var_name, value=nil)
     @@_vars.push(var_name).uniq!
     #if Rails.env != "development" # disable cache plugin routes for develoment mode

@@ -8,9 +8,10 @@ module CamaleonCms
       desc "This generator create basic theme structure"
 
       def create_initializer_file
+        theme_folder = Rails.root.join('app', 'apps', 'themes', get_theme_name)
         if behavior == :revoke
-          if PluginRoutes.theme_info(get_theme_name).present?
-            PluginRoutes.destroy_theme(get_theme_name)
+          if Dir.exist?(theme_folder)
+            FileUtils.rm_rf(theme_folder)
             puts "Theme destroyed successfully"
           else
             puts "This theme doesn't exist"
@@ -18,31 +19,25 @@ module CamaleonCms
 
         else
 
-          if PluginRoutes.all_themes.include?(PluginRoutes.theme_info(get_theme_name))
+          if Dir.exist?(theme_folder)
             puts "This theme already exist"
           else
 
-            # helpers + controllers
-            plugin_app = File.join($camaleon_engine_dir, "lib", "generators", "camaleon_cms", "theme_template", "app_#{get_theme_name}")
-            plugin_folder = File.join(plugin_app, "apps", "themes", get_theme_name)
-
-            FileUtils.rm_r(plugin_app) if Dir.exist?(plugin_app)
+            theme_folder = Rails.root.join('app', 'apps', 'themes', get_theme_name)
+            return puts ("There is already a theme with the same name in: #{theme_folder}") if Dir.exist?(theme_folder)
 
             # tmp copy
-            FileUtils.cp_r(File.join($camaleon_engine_dir, "lib", "generators", "camaleon_cms", "theme_template", "app"), plugin_app)
-            FileUtils.mv(File.join(plugin_app, "apps", "themes", "my_theme"), plugin_folder) rescue nil
+            FileUtils.mkdir_p(theme_folder)
+            FileUtils.copy_entry(File.join($camaleon_engine_dir, "lib", "generators", "camaleon_cms", 'theme_template'), theme_folder)
 
             # configuration
-            t = fix_text(File.read(File.join(plugin_folder, "config", "config.json")))
-            File.open(File.join(plugin_folder, "config", "config.json"), "w"){|f| f << t }
+            t = fix_text(File.read(File.join(theme_folder, "config", "config.json")))
+            File.open(File.join(theme_folder, "config", "config.json"), "w"){|f| f << t }
 
             # helper
-            t = fix_text(File.read(File.join(plugin_folder, "main_helper.rb")))
-            File.open(File.join(plugin_folder, "main_helper.rb"), "w"){|f|  f << t }
-
-
-            directory("app_#{get_theme_name}", Rails.root.join("app"))
-            FileUtils.rm_r(plugin_app)
+            t = fix_text(File.read(File.join(theme_folder, "main_helper.rb")))
+            File.open(File.join(theme_folder, "main_helper.rb"), "w"){|f|  f << t }
+            puts "Theme successfully created in: #{theme_folder}"
           end
         end
       end
