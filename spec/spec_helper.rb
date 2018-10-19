@@ -12,25 +12,42 @@ require "capybara/rspec"
 require 'database_cleaner'
 require "rack_session_access/capybara"
 
-
 require 'capybara/rspec'
 require 'capybara-screenshot/rspec'
-Capybara.javascript_driver = :webkit
+
+if defined?(Capybara::Webkit)
+  Capybara::Webkit.configure do |config|
+    # Enable debug mode. Prints a log of everything the driver is doing.
+    config.debug = false
+
+    # Allow pages to make requests to any URL without issuing a warning.
+    config.allow_unknown_urls
+
+    # Don't raise errors when SSL certificates can't be validated
+    config.ignore_ssl_errors
+
+    # Don't load images
+    config.skip_image_loading
+
+    # Raise JavaScript errors as exceptions
+    # config.raise_javascript_errors = true
+  end
+
+  Capybara.javascript_driver = :webkit
+elsif defined?(Capybara::Poltergeist)
+  Capybara.register_driver :poltergeist do |app|
+    Capybara::Poltergeist::Driver.new(app, :inspector => true, timeout: 1.minute)
+  end
+  Capybara.javascript_driver = :poltergeist
+else
+  Capybara.javascript_driver = :selenium
+end
 
 # define screenshot errors name
 Capybara::Screenshot.register_filename_prefix_formatter(:rspec) do |example|
   "screenshot_#{example.description.gsub(' ', '-').gsub(/^.*\/spec\//,'')}"
 end
 
-# See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
-#****** configuration to test using poltergeist *****#
-# require 'capybara/poltergeist'
-# Check here if you have problems with phantomjs: https://github.com/teampoltergeist/poltergeist
-# Don't forget bundle update to use last stable poltergaist gem
-# Capybara.register_driver :poltergeist do |app|
-#   Capybara::Poltergeist::Driver.new(app, :inspector => true, timeout: 1.minute)
-# end
-# Capybara.javascript_driver = :poltergeist
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
@@ -152,21 +169,4 @@ RSpec.configure do |config|
   # config.before :type => :decorator do
   #   ApplicationController.new.view_context
   # end
-end
-
-Capybara::Webkit.configure do |config|
-  # Enable debug mode. Prints a log of everything the driver is doing.
-  config.debug = false
-
-  # Allow pages to make requests to any URL without issuing a warning.
-  config.allow_unknown_urls
-
-  # Don't raise errors when SSL certificates can't be validated
-  config.ignore_ssl_errors
-
-  # Don't load images
-  config.skip_image_loading
-
-  # Raise JavaScript errors as exceptions
-  # config.raise_javascript_errors = true
 end

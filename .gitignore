@@ -1,3 +1,12 @@
 /.idea
 /.byebug_history
-/.Gemfile.lock
+Gemfile.lock
+**/.DS_Store
+.DS_Store
+*~
+.~*
+spec/dummy/**/*.png
+spec/dummy/**/*.jpg
+spec/dummy/**/*.sqlite3-journal
+spec/dummy/**/*.sqlite3.db
+spec/dummy/**/*.sqlite3

@@ -93,7 +93,7 @@ class PluginRoutes
       settings["key"] = "system"
       settings["path"] = ''
       settings["kind"] = "system"
-      settings["hooks"]["on_notification"] = (settings["hooks"]["on_notification"] || []) + ["admin_system_notifications"]
+      settings["hooks"]["on_notification"] ||= []
       cache_variable("statis_system_info", settings)
     end
     alias_method :system_info, :static_system_info
@@ -232,12 +232,6 @@ class PluginRoutes
   # destroy plugin
   def self.destroy_plugin(plugin_key)
     FileUtils.rm_r(Rails.root.join("app", "apps", "plugins", plugin_key)) rescue ""
-    PluginRoutes.reload
-  end
-
-  # destroy theme
-  def self.destroy_theme(theme_key)
-    FileUtils.rm_r(Rails.root.join("app", "apps", "themes", theme_key)) rescue ""
     PluginRoutes.reload
   end
 

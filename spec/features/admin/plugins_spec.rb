@@ -13,7 +13,7 @@ describe "the Menus", js: true do
 
     # uninstall plugin
     within '#tab_plugins_active' do
-      all(".btn-default")[0].click
+      all(".btn-danger")[0].click
     end
     confirm_dialog
     expect(page).to have_css('.alert-success')
@@ -21,7 +21,7 @@ describe "the Menus", js: true do
     # install plugin
     page.execute_script('$("#table-plugins-list .nav-tabs li").eq(1).find("a").click()')
     within '#tab_plugins_disabled' do
-      all(".btn-default")[0].click
+      all(".btn-primary")[0].click
     end
     confirm_dialog
     expect(page).to have_css('.alert-success')

@@ -101,9 +101,7 @@ GEM
     capybara-screenshot (1.0.21)
       capybara (>= 1.0, < 4)
       launchy
-    capybara-webkit (1.15.0)
-      capybara (>= 2.3, < 4.0)
-      json
+    cliver (0.3.2)
     coderay (1.1.2)
     coffee-rails (4.2.2)
       coffee-script (>= 2.2.0)
@@ -167,6 +165,10 @@ GEM
     parallel (1.12.1)
     parser (2.5.1.2)
       ast (~> 2.4.0)
+    poltergeist (1.18.1)
+      capybara (>= 2.1, < 4)
+      cliver (~> 0.3.1)
+      websocket-driver (>= 0.2.0)
     powerpack (0.1.2)
     pry (0.11.3)
       coderay (~> 1.1.0)
@@ -298,11 +300,11 @@ DEPENDENCIES
   camaleon_cms!
   capybara
   capybara-screenshot
-  capybara-webkit
   database_cleaner
   draper (~> 3)
   factory_bot
   faker
+  poltergeist
   pry-rescue
   pry-stack_explorer
   puma

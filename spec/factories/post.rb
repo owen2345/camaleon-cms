@@ -1,23 +1,23 @@
 FactoryBot.define do
   factory :post, class: CamaleonCms::Post do
-    title Faker::Name.title
+    title { Faker::Job.title }
     sequence(:slug) { |n| "post#{n}" }
-    content Faker::Lorem.sentence
+    content { Faker::Lorem.sentence }
     published_at { Time.current }
 
     transient do
-      site nil
+      site { nil }
     end
     
     post_type { association :post_type, site: site || create(:site) }
     owner { association :user, site: site }
     
     factory :pending_post do
-      status 'pending'
+      status { 'pending' }
     end
 
     factory :draft_post do
-      status 'draft'
+      status { 'draft' }
     end
     
     factory :children_post do
@@ -25,17 +25,17 @@ FactoryBot.define do
     end
     
     factory :private_post do
-      visibility 'private'
+      visibility { 'private' }
       visibility_value { owner.role }
     end
     
     factory :password_post do
-      visibility 'password'
-      visibility_value '12345'
+      visibility { 'password' }
+      visibility_value { '12345' }
     end
 
     factory :featured_post do
-      is_feature true
+      is_feature { true }
     end
 
     # data_options {} # all attrs in Post#set_setting()
