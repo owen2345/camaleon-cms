@@ -28,8 +28,6 @@ def cama_root_relative_path
   "#{PluginRoutes.system_info["relative_url_root"]}" if PluginRoutes.system_info["relative_url_root"].present?
 end
 
-# open file manager modal and upload a new file
-# TODO
 def file_select
   attach_file("Select files to upload", "/Users/owen/Pictures/luna\ miel/DSC00116.JPG ")
 end
@@ -109,10 +107,9 @@ end
 def confirm_dialog
   if page.driver.class.to_s == 'Capybara::Selenium::Driver'
     page.driver.browser.switch_to.alert.accept
-  elsif page.driver.class.to_s == 'Capybara::Poltergeist::Driver'
-
   elsif page.driver.class.to_s == 'Capybara::Webkit::Driver'
     sleep 1 # prevent test from failing by waiting for popup
+
     silence_warnings do
       page.driver.accept_js_confirms!
     end

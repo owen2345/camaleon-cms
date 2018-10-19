@@ -92,6 +92,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   end
 
   private
+
   # init basic media variables
   def init_media_vars
     # @cama_uploader = CamaleonCmsLocalUploader.new({current_site: current_site, private: true})

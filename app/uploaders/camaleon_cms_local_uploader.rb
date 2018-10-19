@@ -1,6 +1,8 @@
 class CamaleonCmsLocalUploader < CamaleonCmsUploader
   def after_initialize
     @root_folder = @args[:root_folder] || @current_site.upload_directory
+
+    FileUtils.mkdir_p(@root_folder)
   end
 
   def setup_private_folder
@@ -11,11 +13,16 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
 
   def browser_files(prefix = '/', objects = {})
     path = File.join(@root_folder, prefix)
+
     Dir.entries(path).each do |f_name|
       next if f_name == '..' || f_name == '.' || f_name == 'thumb'
+
       obj = file_parse(File.join(path, f_name).sub(@root_folder, '').cama_fix_media_key)
       cache_item(obj)
-      browser_files(File.join(prefix, obj['name'])) if obj['is_folder']
+
+      if obj['is_folder']
+        browser_files(File.join(prefix, obj['name']))
+      end
     end
   end
 

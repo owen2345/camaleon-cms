@@ -3,7 +3,6 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'capybara-webkit' ### preferred, use this one before submitting PR
-#gem 'poltergeist', require: 'capybara/poltergeist' ### use this if you cant install the qt-webkit requirement for capybara-webkit
 #gem 'selenium-webdriver' ### another alternative
 
 gem 'capybara-screenshot'

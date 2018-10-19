@@ -34,11 +34,6 @@ if defined?(Capybara::Webkit)
   end
 
   Capybara.javascript_driver = :webkit
-elsif defined?(Capybara::Poltergeist)
-  Capybara.register_driver :poltergeist do |app|
-    Capybara::Poltergeist::Driver.new(app, :inspector => true, timeout: 1.minute)
-  end
-  Capybara.javascript_driver = :poltergeist
 else
   Capybara.javascript_driver = :selenium
 end

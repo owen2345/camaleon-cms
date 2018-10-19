@@ -11,7 +11,7 @@
 
 [Demonstration](http://camaleon.tuzitio.com/plugins/demo_manage/)
 
-## Camaleon CMS is FREE and Open source
+## About
 
 Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails that adapts to your needs. This CMS is an alternative to Wordpress for Ruby on Rails developers to manage advanced content easier.
 
@@ -26,25 +26,23 @@ http://camaleon.tuzitio.com/store/plugins
 ![](screenshot.png)
 
 ## With Camaleon you can do:
+* Integrate into existing Rails projects
 * Multiples sites in the same installation
 * Multi-language sites
 * Design and create the architecture of your project without programming by dynamic contents and fields
-* Extend or customize the functionalities by plugins
-* Manage your content visualization by themes
-* Advanced User roles
-* Integrate into existent Rails projects
-* Other features:
-  - Shortcodes
-  - Widgets
-  - Drag and Drop / Sortable / Multi level menus
-  - Templates/Layouts for pages
-  - Easy migration from Wordpress
+* Extend or customize the functionality using plugins
+* Manage your content visualization using themes
+* Easier administration. Camaleon CMS permits you to adapt the CMS to all your needs and not you adapt to the CMS. You can create your custom architecture with any custom attributes that you need for all content types.
 
 ## Some features
-* Integrate into existent Ruby on Rails Projects
-* Easy administration
-  Camaleon CMS permits you to adapt the CMS to all your needs and not you adapt to the CMS.
-I.E. you can create your custom architecture with all attributes that you need for each kind of content.
+* Camaleon CMS is FREE and Open source
+* Shortcodes
+* Widgets
+* Drag and Drop / Sortable / Multi level menus
+* Templates/Layouts for pages
+* Advanced User roles
+* File Uploads with built in Local and Amazon S3 support
+* Easy migration from Wordpress
 * Security
   - Remote code execution
   - SQL injections
