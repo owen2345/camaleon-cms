@@ -11,7 +11,7 @@
 
 [Demonstration](http://camaleon.tuzitio.com/plugins/demo_manage/)
 
-## About
+## Camaleon CMS is FREE and Open source
 
 Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails that adapts to your needs. This CMS is an alternative to Wordpress for Ruby on Rails developers to manage advanced content easier.
 
@@ -132,11 +132,11 @@ I.E. you can create your custom architecture with all attributes that you need f
 ## Support
 If you have problems, please enter an issue [here.](https://github.com/owen2345/camaleon-cms/issues)
 If you need support, need some extra functionality or need plugins, please contact us on:
-* Site: http://camaleon.tuzitio.com/
+* Gitter: https://gitter.im/camaleoncms/Lobby
 * Email: owenperedo@gmail.com
 * Skype: owen-2345
 * Stack Overflow: Use "camaleon" as tag to ask questions related to this CMS (don't forget to include cms version + rails version).
-* Gitter: https://gitter.im/camaleoncms/Lobby
+* Site: http://camaleon.tuzitio.com/
 
 ## Author
 Owen Peredo Diaz
@@ -150,9 +150,7 @@ http://camaleon.tuzitio.com/license.html
 RAILS_ENV=test bundle exec rake app:db:migrate
 RAILS_ENV=test bundle exec rake app:db:test:prepare
 ```
-* Configure/Install Poltergeist and change your phanthomjs path in spec/spec_helper.rb
-
-* Run testing
+* Run tests
 ```
 bundle exec rspec
 ```
@@ -164,10 +162,10 @@ bundle exec rspec
 * Push to the branch (git push origin my_feature_branch)
 * Create a pull request from your branch into master (Please be sure to provide enough detail for us to understand what this change is doing)
 
-## Camaleon CMS is FREE and Open source
-It was released on July, 2015 and tested previously with more than 20 projects by 6 months and on August 22, 2015 was published as a gem.
-
 ## Version History
-Previous stable version (v1.x): https://github.com/owen2345/camaleon-cms/tree/version_1x
 
 http://camaleon.tuzitio.com/version-history.html
+
+Previous stable version (v1.x): https://github.com/owen2345/camaleon-cms/tree/version_1x
+
+Camaleon CMS was originally released in July 2015 and tested previously with more than 20 projects by 6 months and on August 22, 2015 was published as a gem.
