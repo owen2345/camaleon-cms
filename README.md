@@ -64,16 +64,45 @@ I.E. you can create your custom architecture with all attributes that you need f
   - Seo for social media
   - All generated content is compatible with HTML5 and Bootstrap 3
 
-## Camaleon CMS has many useful plugins such as:
-* E-commerce
-* Contact Forms
-* Email Subscriptions
-* SEO
-* Content Cache
-* Translation Management
-* Web Attack Control
-* Import / Export
-* and many more in the Plugin store: http://camaleon.tuzitio.com/store/plugins
+## Camaleon CMS has many useful Plugins such as:
+* Content Cache (Included By Default)
+* Web Attack Control (Included By Default)
+* Post Visibility (Included By Default)
+* Contact Forms (Included By Default) - https://github.com/owen2345/cama_contact_form
+* SEO (Included By Default) - https://github.com/owen2345/camaleon-cms-seo
+* E-commerce - https://github.com/owen2345/camaleon-ecommerce
+* Language / Translation Editor - https://github.com/owen2345/camaleon-cms-language-editor
+* Subscriber (Email Subscriptions) - https://github.com/owen2345/cama_subscriber
+* Stripe Donation - https://github.com/owen2345/cama-stripe-donation
+* Star Rating - https://github.com/aspirewit/camaleon_cms_rating
+* Post Order - https://github.com/owen2345/camaleon-post-order-plugin
+* Post Created At - https://github.com/owen2345/camaleon_post_created_at
+* Post Clone - https://github.com/owen2345/camaleon-post-clone
+* Sitemap Customizer - https://github.com/brian-kephart/camaleon_sitemap_customizer
+* Image Optimizer - https://github.com/brian-kephart/camaleon_image_optimizer
+* Import / Export - https://github.com/owen2345/camaleon_export_import
+* Lightbox - https://github.com/owen2345/CamaImageLightbox
+* Autocomplete - https://github.com/gaelfokou/cama_autocomplete
+* Permissions for External Menus - https://github.com/owen2345/cama_external_menu
+* TinyMCE Template Integration - https://github.com/owen2345/Camaleon-Tinymce-Templates
+* Download Manager - https://github.com/max2320/camaleon-download
+* OAuth - https://github.com/owen2345/camaleon_oauth
+* Visual Editor - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/camaleon_editor
+* Spree Commerce Integration - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/camaleon-spree
+* Admin AJAX - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/admin_ajax
+* **See here for a complete Gemfile**: https://github.com/owen2345/camaleon-cms/blob/master/doc/example_gemfile.rb
+
+## Camaleon CMS has many useful frontend Themes such as:
+* Default Theme (Built in)
+* Clean Theme (Built in)
+* Wordpress Theme (Built in)
+* eCommerce - https://github.com/owen2345/cama-ecommerce-theme
+* eFashion - http://camaleon.tuzitio.com/store/themes/eFashion (Github: https://github.com/mazharoddin/camaleon-cms-efashion)
+* Shoppy - http://camaleon.tuzitio.com/store/themes/shoppy (Github: https://github.com/mazharoddin/camaleon-cms-shoppy)
+* CV - Paid Theme ($) - http://camaleon.tuzitio.com/store/themes/cv
+* Camaleon Site - Paid Them ($) - http://camaleon.tuzitio.com/store/themes/camaleon_cms
+* Sky - Paid Theme ($) - http://camaleon.tuzitio.com/store/themes/sky
+
 
 ## Requirements
 * Rails 4.2 or 5+
