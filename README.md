@@ -26,25 +26,23 @@ http://camaleon.tuzitio.com/store/plugins
 ![](screenshot.png)
 
 ## With Camaleon you can do:
+* Integrate into existing Rails projects
 * Multiples sites in the same installation
 * Multi-language sites
 * Design and create the architecture of your project without programming by dynamic contents and fields
-* Extend or customize the functionalities by plugins
-* Manage your content visualization by themes
-* Advanced User roles
-* Integrate into existent Rails projects
-* Other features:
-  - Shortcodes
-  - Widgets
-  - Drag and Drop / Sortable / Multi level menus
-  - Templates/Layouts for pages
-  - Easy migration from Wordpress
+* Extend or customize the functionality using plugins
+* Manage your content visualization using themes
+* Easier administration. Camaleon CMS permits you to adapt the CMS to all your needs and not you adapt to the CMS. You can create your custom architecture with any custom attributes that you need for all content types.
 
 ## Some features
-* Integrate into existent Ruby on Rails Projects
-* Easy administration
-  Camaleon CMS permits you to adapt the CMS to all your needs and not you adapt to the CMS.
-I.E. you can create your custom architecture with all attributes that you need for each kind of content.
+* Camaleon CMS is FREE and Open source
+* Shortcodes
+* Widgets
+* Drag and Drop / Sortable / Multi level menus
+* Templates/Layouts for pages
+* Advanced User roles
+* File Uploads with built in Local and Amazon S3 support
+* Easy migration from Wordpress
 * Security
   - Remote code execution
   - SQL injections
@@ -132,11 +130,11 @@ I.E. you can create your custom architecture with all attributes that you need f
 ## Support
 If you have problems, please enter an issue [here.](https://github.com/owen2345/camaleon-cms/issues)
 If you need support, need some extra functionality or need plugins, please contact us on:
-* Site: http://camaleon.tuzitio.com/
+* Gitter: https://gitter.im/camaleoncms/Lobby
 * Email: owenperedo@gmail.com
 * Skype: owen-2345
 * Stack Overflow: Use "camaleon" as tag to ask questions related to this CMS (don't forget to include cms version + rails version).
-* Gitter: https://gitter.im/camaleoncms/Lobby
+* Site: http://camaleon.tuzitio.com/
 
 ## Author
 Owen Peredo Diaz
@@ -150,9 +148,7 @@ http://camaleon.tuzitio.com/license.html
 RAILS_ENV=test bundle exec rake app:db:migrate
 RAILS_ENV=test bundle exec rake app:db:test:prepare
 ```
-* Configure/Install Poltergeist and change your phanthomjs path in spec/spec_helper.rb
-
-* Run testing
+* Run tests
 ```
 bundle exec rspec
 ```
@@ -164,10 +160,10 @@ bundle exec rspec
 * Push to the branch (git push origin my_feature_branch)
 * Create a pull request from your branch into master (Please be sure to provide enough detail for us to understand what this change is doing)
 
-## Camaleon CMS is FREE and Open source
-It was released on July, 2015 and tested previously with more than 20 projects by 6 months and on August 22, 2015 was published as a gem.
-
 ## Version History
-Previous stable version (v1.x): https://github.com/owen2345/camaleon-cms/tree/version_1x
 
 http://camaleon.tuzitio.com/version-history.html
+
+Previous stable version (v1.x): https://github.com/owen2345/camaleon-cms/tree/version_1x
+
+Camaleon CMS was originally released in July 2015 and tested previously with more than 20 projects by 6 months and on August 22, 2015 was published as a gem.

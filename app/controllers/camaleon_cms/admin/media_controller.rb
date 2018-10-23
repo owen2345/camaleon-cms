@@ -24,12 +24,12 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
 
   # download private files
   def download_private_file
-    f_path = CamaleonCmsLocalUploader::private_file_path(params[:file], current_site)
-    if File.exist?(f_path)
-      send_file f_path, disposition: 'inline'
-    else
-      raise ActionController::RoutingError, 'File not found'
-    end
+    cama_uploader.enable_private_mode!
+
+    file = cama_uploader.fetch_file("private/#{params[:file]}")
+
+    send_file file, disposition: 'inline'
+
   end
 
   # render media for modal content
@@ -92,9 +92,13 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   end
 
   private
+
   # init basic media variables
   def init_media_vars
-    @cama_uploader = CamaleonCmsLocalUploader.new({current_site: current_site, private: true}) if params[:private].present?
+    # @cama_uploader = CamaleonCmsLocalUploader.new({current_site: current_site, private: true})
+
+    cama_uploader.enable_private_mode! if params[:private].present?
+
     cama_uploader.clear_cache if params[:cama_media_reload] == 'clear_cache'
     cama_uploader.reload if params[:cama_media_reload] == 'reload'
     @media_formats = (params[:media_formats] || "").sub("media", ",video,audio").sub("all", "").split(",")

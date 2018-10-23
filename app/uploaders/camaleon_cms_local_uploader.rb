@@ -1,33 +1,37 @@
 class CamaleonCmsLocalUploader < CamaleonCmsUploader
-  PRIVATE_DIRECTORY = 'private'
+  def after_initialize
+    @root_folder = @args[:root_folder] || @current_site.upload_directory
+
+    FileUtils.mkdir_p(@root_folder)
+  end
+
+  def setup_private_folder
+    @root_folder = Rails.root.join(self.class::PRIVATE_DIRECTORY).to_s
+
+    FileUtils.mkdir_p(@root_folder) unless Dir.exist?(@root_folder)
+  end
+
   def browser_files(prefix = '/', objects = {})
     path = File.join(@root_folder, prefix)
+
     Dir.entries(path).each do |f_name|
       next if f_name == '..' || f_name == '.' || f_name == 'thumb'
+
       obj = file_parse(File.join(path, f_name).sub(@root_folder, '').cama_fix_media_key)
       cache_item(obj)
-      browser_files(File.join(prefix, obj['name'])) if obj['is_folder']
+
+      if obj['is_folder']
+        browser_files(File.join(prefix, obj['name']))
+      end
     end
   end
 
-  # return the full file path for private file with key
-  # sample: 'my_file.pdf' ==> /var/www/my_app/private/my_file.pdf
-  def self.private_file_path(key, current_site)
-    Rails.root.join(self::PRIVATE_DIRECTORY, current_site.id.to_s, key.gsub(/(\/){2,}/, "/")).to_s
-  end
-
-  # check if this uploader is private mode
-  def is_private_uploader?
-    @args[:private]
-  end
-
-  def after_initialize
-    if is_private_uploader?
-      @root_folder = Rails.root.join(self.class::PRIVATE_DIRECTORY, @current_site.id.to_s).to_s
+  def fetch_file(file_name)
+    if file_exists?(file_name)
+      file_name
     else
-      @root_folder = @args[:root_folder] || @current_site.upload_directory
+      raise ActionController::RoutingError, 'File not found'
     end
-    FileUtils.mkdir_p(@root_folder) unless Dir.exist?(@root_folder)
   end
 
   def file_parse(key)
