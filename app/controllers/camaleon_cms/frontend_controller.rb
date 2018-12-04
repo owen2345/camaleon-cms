@@ -144,7 +144,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     hooks_run("on_render_draft_permitted", args)
 
     if args[:permitted] || can?(:update, post_draft)
-      render_post(post_draft)
+      render_post(post_draft, false, nil, true)
     else
       page_not_found
     end
@@ -153,7 +153,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
   # render a post
   # post_or_slug_or_id: slug_post | id post | post object
   # from_url: true/false => true (true, permit eval hooks "on_render_post")
-  def render_post(post_or_slug_or_id, from_url = false, status = nil)
+  def render_post(post_or_slug_or_id, from_url = false, status = nil, force_visit = false)
     if post_or_slug_or_id.is_a?(String) # slug
       @post = current_site.the_posts.find_by_slug(post_or_slug_or_id)
     elsif post_or_slug_or_id.is_a?(Integer) # id
@@ -163,7 +163,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     end
 
     @post = @post.try(:decorate)
-    if !@post.present? || !@post.can_visit?
+    if !@post.present? || !(force_visit || @post.can_visit?)
       if params[:format] == 'html' || !params[:format].present?
         page_not_found()
       else
