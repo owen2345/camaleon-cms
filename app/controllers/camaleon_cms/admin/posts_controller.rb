@@ -28,7 +28,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     if params[:q].present?
       params[:q] = (params[:q] || '').downcase
       posts_all = posts_all.where(
-        "LOWER(#{CamaleonCms::Post.table_name}.title) LIKE ? OR LOWER(#{CamaleonCms::Post.table_name}.slug LIKE ?)", 
+        "LOWER(#{CamaleonCms::Post.table_name}.title) LIKE ? OR LOWER(#{CamaleonCms::Post.table_name}.slug) LIKE ?",
         "%#{params[:q]}%", 
         "%#{params[:q]}%"
       )  
