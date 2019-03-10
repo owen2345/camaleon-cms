@@ -30,9 +30,9 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     if @current_site.get_option("mailer_enabled") == 1
       mail_data[:delivery_method] = :smtp
       mail_data[:delivery_method_options] = {
-        user_name: @current_site.get_option("email_username"),
-        password: @current_site.get_option("email_pass"),
-        address: @current_site.get_option("email_server"),
+        user_name: RailsEnvCredentials.credentials.aws[:ses][:username],
+        password: RailsEnvCredentials.credentials.aws[:ses][:password],
+        address: RailsEnvCredentials.credentials.aws[:ses][:server],
         port: @current_site.get_option("email_port"),
         domain: (@current_site.the_url.to_s.parse_domain rescue "localhost"),
         authentication: "plain",
