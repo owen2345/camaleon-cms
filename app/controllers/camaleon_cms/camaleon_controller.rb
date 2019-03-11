@@ -37,7 +37,10 @@ class CamaleonCms::CamaleonController < ApplicationController
     Rails.logger.debug "Camaleon CMS - 404 url: #{request.original_url rescue nil} ==> message: #{exception.message if exception.present?} ==> #{params[:error_msg]} ==> #{caller.inspect}"
     @message = "#{message} #{params[:error_msg] || (exception.present? ? "#{exception.message}<br><br>#{caller.inspect}" : "")}"
     @message = "" if Rails.env == "production"
-    render "camaleon_cms/#{status}", :status => status
+    respond_to do |format|
+      format.html { render "camaleon_cms/#{status}", :status => status }
+      format.any { head status }
+    end
   end
 
   # generate captcha image

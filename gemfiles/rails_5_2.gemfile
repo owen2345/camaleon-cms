@@ -3,6 +3,7 @@ source 'https://rubygems.org'
 gemspec path: '..'
 
 gem 'rails', '~> 5.2.0'
+gem 'sqlite3', '< 1.4' # Rails < 6 is incompatible with sqlite3 1.4
 gem 'rspec_junit_formatter'
 gem 'capybara-webkit'
 gem 'capybara-screenshot'
