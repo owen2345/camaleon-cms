@@ -42,6 +42,17 @@ module CamaleonCms::Admin::MenusHelper
       admin_menu_add_menu("users", {icon: "users", title: t('camaleon_cms.admin.sidebar.users'), url: "", items: items, datas: "data-intro='#{t("camaleon_cms.admin.intro.users")}' data-position='right' data-wait='500'"})
     end
 
+    if can? :manage, :forms
+      items = []
+      
+      items << {icon: "copy", title: 'Materials Management Forms', url: materials_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Nutrition & Food Forms', url: nutritions_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Pharmacy Form', url: pharmacy_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Change of Product Form', url: product_change_cama_admin_forms_path}
+      admin_menu_add_menu("list", {icon: "list", title: t('camaleon_cms.admin.sidebar.forms'), url: "", items: items})
+    end
+
+
     items = []
     if can? :manage, :settings
       items << {icon: "desktop", title: t('camaleon_cms.admin.sidebar.general_site'), url: cama_admin_settings_site_path, datas: "data-intro='#{t("camaleon_cms.admin.intro.gral_site")}' data-position='right'"}

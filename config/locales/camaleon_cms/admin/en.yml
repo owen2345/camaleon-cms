@@ -429,6 +429,8 @@ en:
         widget: 'Widget'
         widgets: 'Widgets'
         main_navigation: "MAIN NAVIGATION"
+        forms: 'Forms'
+        all_forms: 'All Forms'
       sidebar_top:
         admin_panel: 'Admin. Panel'
         visit: 'Visit'

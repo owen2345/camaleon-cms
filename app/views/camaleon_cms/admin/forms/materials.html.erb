@@ -1,0 +1,44 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="row">
+            <div class="col-md-12">
+                <h4 class="pull-left" style="width: 100%;">
+                    <%= 'Forms' %>
+                    <div class='pull-right'>
+                        <%= link_to 'Download All',download_form_path(form: 'materials'), class: ' btn btn-primary' %>
+                        <%= link_to 'Download New',download_form_path(form: 'materials', only: 'new'), class: ' btn btn-success' %>
+                    </div>
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="panel-body">
+        
+        <table class="table table-responsive table-hover table-striped" id="posts-table-list">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Submitted At</th>
+                <th>Submitted By Name</th>
+                <th>Submitted By Email</th>
+                <th>Download</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            <% @posts.each do |post| %>
+                <tr style="color: <%=post.exported ? '' : 'green';%>">
+                    <td><%= post.id %></td>
+                    <td><%= post.created_at %></td>
+                    <td><%= post.submitted_by_name %></td>
+                    <td><%= post.submitted_by_email %></td>
+                    <td><%= link_to 'Download',download_form_path(form: 'materials', id: post.id) %></td>
+                   
+                </tr>
+            <% end %>
+            </tbody>
+        </table>
+        <%= content_tag("div", raw(t('camaleon_cms.admin.message.data_found_list')), class: "alert alert-warning") if @posts.empty? %>
+        <%= raw cama_do_pagination(@posts) %>
+    </div>
+</div>

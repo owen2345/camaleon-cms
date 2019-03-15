@@ -4,17 +4,15 @@
 
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title"><%= t('camaleon_cms.admin.sidebar.dashboard') %></h3>
+          <h3 class="panel-title">Forms</h3>
         </div>
         <div class="panel-body" style="min-height: 350px">
-            <h2>Welcome to HealthPRO Admin Panel!</h2>
+            <h2> Donwload Forms: </h2> 
+            <h3><%= link_to 'Materials Management Forms',download_form_path(form: 'materials') %></h3>
+            <h3><%= link_to 'Nutritions & Food Forms',download_form_path(form: 'nutritions') %></h3>
+            <h3><%= link_to 'Pharmacy - Change of Product Form',download_form_path(form: 'pharmacy') %></h3>
             <% r = {content: ""}; hooks_run("on_notification", r); %>
             <div id="dashboard_notifications">
-                <%= raw r[:content] %>
-            </div>
-
-            <% r = {content: ""}; hooks_run("on_dashboard", r); %>
-            <div id="dashboard_items">
                 <%= raw r[:content] %>
             </div>
         </div>

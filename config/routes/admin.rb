@@ -44,6 +44,13 @@ Rails.application.routes.draw do
           get :impersonate, on: :member
         end
 
+        resources :forms, controller: 'forms' do 
+          get 'materials', on: :collection
+          get 'nutritions', on: :collection
+          get 'pharmacy', on: :collection
+          get 'product_change', on: :collection
+        end
+
         resources :user_roles, controller: 'user_roles' do
         end
 
