@@ -1,6 +1,9 @@
 language: ruby
 bundler_args: '-j4'
 
+addons:
+  chrome: stable
+
 matrix:
   allow_failures:
     - gemfile: gemfiles/rails_edge.gemfile
