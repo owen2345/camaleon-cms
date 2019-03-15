@@ -14,6 +14,8 @@ matrix:
       gemfile: gemfiles/rails_5_1.gemfile
     - rvm: 2.5
       gemfile: gemfiles/rails_5_2.gemfile
+    - rvm: 2.6
+      gemfile: gemfiles/rails_6_0.gemfile
     - rvm: ruby-head
       gemfile: gemfiles/rails_edge.gemfile
   fast_finish: true
