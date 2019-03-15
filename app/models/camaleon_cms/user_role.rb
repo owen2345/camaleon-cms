@@ -126,6 +126,11 @@ class CamaleonCms::UserRole < CamaleonCms::TermTaxonomy
               key: 'theme_settings',
               label: "#{I18n.t('camaleon_cms.admin.settings.theme_setting', default: 'Theme Settings')}",
               description: "#{I18n.t('camaleon_cms.admin.users.tool_tip.themes')}"
+          },
+          {
+              key: 'forms',
+              label: "Forms",
+              description: "Permission to see form requests."
           }
       ]
   }
