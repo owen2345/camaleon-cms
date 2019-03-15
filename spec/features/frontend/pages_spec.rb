@@ -7,7 +7,7 @@ describe "Post frontend", js: true do
     visit @post.the_url(as_path: true)
     expect(page).to have_text(@post.the_title)
   end
-  
+
   describe 'comments' do
 
     describe 'anonymous' do
@@ -33,7 +33,7 @@ describe "Post frontend", js: true do
         @site.set_option('enable_captcha_for_comments', true) # enable anonymous captcha
         Capybara.using_session("test session") do
           visit cama_captcha_path(len: 4, t: Time.current.to_i)
-          captcha = page.get_rack_session['cama_captcha']
+          captcha = page.get_rack_session['cama_captcha'].first
           visit @post.the_url(as_path: true)
           expect(page).to have_text('New Comment')
           within("#form-comment") do
@@ -81,36 +81,36 @@ describe "Post frontend", js: true do
       expect(page).not_to have_text('New Comment')
     end
   end
-  
+
   describe 'post visibility' do
     before(:each) do
       current_site(@site)
       plugin_install('visibility_post')
     end
-    
+
     it 'public post' do
       custom_post = create(:post, site: @site).decorate
       visit custom_post.the_url(as_path: true)
-      expect(page).to have_http_status(:success)
+      expect(page).not_to have_text('does not exist')
     end
 
     it 'public future post with login' do
       custom_post = create(:post, site: @site, published_at: 1.day.from_now).decorate
       admin_sign_in(custom_post.owner.username, '12345678')
       visit custom_post.the_url(as_path: true)
-      expect(page).to have_http_status(:not_found)
+      expect(page).to have_text('does not exist')
     end
 
     it 'public future post without login' do
       custom_post = create(:post, site: @site, published_at: 1.day.from_now).decorate
       visit custom_post.the_url(as_path: true)
-      expect(page).to have_http_status(:not_found)
+      expect(page).to have_text('does not exist')
     end
 
     it 'private post without login ' do
       custom_post = create(:private_post, site: @site).decorate
       visit custom_post.the_url(as_path: true)
-      expect(page).to have_http_status(:not_found)
+      expect(page).to have_text('does not exist')
     end
 
     it 'private post with login' do
@@ -118,7 +118,7 @@ describe "Post frontend", js: true do
       custom_post = create(:private_post, site: @site, owner: user).decorate
       admin_sign_in(user.username, '12345678')
       visit custom_post.the_url(as_path: true)
-      expect(page).to have_http_status(:success)
+      expect(page).not_to have_text('does not exist')
     end
 
     it 'password post without password ' do
@@ -130,7 +130,7 @@ describe "Post frontend", js: true do
     it 'password post with password ' do
       custom_post = create(:password_post, site: @site).decorate
       visit custom_post.the_url(as_path: true, post_password: custom_post.visibility_value)
-      expect(page).to have_http_status(:success)
+      expect(page).not_to have_text('does not exist')
     end
   end
 end

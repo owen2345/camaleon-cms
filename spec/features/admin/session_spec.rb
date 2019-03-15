@@ -80,7 +80,7 @@ describe "the signin process", js: true do
       @site.set_option('security_captcha_user_register', true) # enable captcha security for user registration
       Capybara.using_session("test session") do
         visit cama_captcha_path(len: 4, t: Time.current.to_i)
-        captcha = page.get_rack_session['cama_captcha']
+        captcha = page.get_rack_session['cama_captcha'].first
         visit "#{cama_root_relative_path}/admin/register"
         within("#login_user") do
           fill_in 'user[first_name]', :with => 'Name'
@@ -95,8 +95,8 @@ describe "the signin process", js: true do
         expect(page).to have_css('.alert-success')
       end
     end
-    
+
   end
 
-  
+
 end

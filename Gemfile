@@ -2,8 +2,8 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'capybara-webkit' ### preferred, use this one before submitting PR
-#gem 'selenium-webdriver' ### another alternative
+gem 'selenium-webdriver'
+gem 'chromedriver-helper'
 
 gem 'capybara-screenshot'
 
