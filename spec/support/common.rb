@@ -64,10 +64,10 @@ end
 
 # fix for: SQLite3::BusyException: database is locked: commit transaction
 def fix_db
-  # if ActiveRecord::Base.connection.adapter_name.downcase.include?('sqlite')
-  #   ActiveRecord::Base.connection.execute("END;")
-  #   ActiveRecord::Base.connection.execute("BEGIN TRANSACTION;")
-  # end
+  if ActiveRecord::Base.connection.adapter_name.downcase.include?('sqlite')
+    ActiveRecord::Base.connection.execute("END;") rescue SQLite3::SQLException
+    # ActiveRecord::Base.connection.execute("BEGIN TRANSACTION;")
+  end
 end
 
 def pages_test

@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'transactional_capybara/rspec'
 
 RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
