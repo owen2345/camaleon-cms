@@ -176,7 +176,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       @comments = @post.the_comments
       @categories = @post.the_categories
       @post.increment_visits!
-      
+
       home_page = @_site_options[:home_page] rescue nil
       if lookup_context.template_exists?("page_#{@post.id}")
         r_file = "page_#{@post.id}"
@@ -197,9 +197,9 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
       layout_ = meta_layout if meta_layout.present? && lookup_context.template_exists?("layouts/#{meta_layout}")
       r = {post: @post, post_type: @post_type, layout: layout_, render: r_file}
       hooks_run("on_render_post", r) if from_url
-      
+
       if status.present?
-        render r[:render], (!r[:layout].nil? ? {layout: r[:layout], status: status} : {status: status})  
+        render r[:render], (!r[:layout].nil? ? {layout: r[:layout], status: status} : {status: status})
       else
         render r[:render], (!r[:layout].nil? ? {layout: r[:layout]} : {})
       end
@@ -209,7 +209,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
 
   # render error page
   def page_not_found()
-    if @_site_options[:error_404].present? # render a custom error page
+    if @_site_options[:error_404].present? && request.format.html? # render a custom error page
       page_404 = current_site.posts.find(@_site_options[:error_404]) rescue ""
       if page_404.present?
         render_post(page_404, false, :not_found)

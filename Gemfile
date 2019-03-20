@@ -17,3 +17,4 @@ gem 'database_cleaner'
 gem 'draper', '~> 3'
 gem 'transactional_capybara'
 gem 'rack_session_access'
+gem 'sqlite3', '< 1.4' # Rails < 6 is incompatible with sqlite3 1.4

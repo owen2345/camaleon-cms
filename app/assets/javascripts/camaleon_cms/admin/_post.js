@@ -236,6 +236,7 @@ function cama_init_post(obj) {
             return false;
         });
 
+        /* Disabled until fix to reload only category fields and not all
         $form.on("change", ".list-categories input", function () {
           showLoading();
           $.get(
@@ -249,6 +250,7 @@ function cama_init_post(obj) {
               hideLoading();
             });
         });
+        */
 
         // sidebar toggle
         //$("#admin_content #post_right_bar-toggle").on("click", function () {

@@ -72,7 +72,7 @@ module CamaleonCms::Frontend::SeoHelper
     if l.size > 1
       l.each do |lang|
         s[:alternate] << {
-          href: current_site.the_url(locale: lang),
+          href: options[:object].present? ? options[:object].the_url(locale: lang) : current_site.the_url(locale: lang),
           hreflang: lang
         }
       end
