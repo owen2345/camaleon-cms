@@ -15,6 +15,10 @@ class CamaleonCms::Admin::FormsController < CamaleonCms::AdminController
     @posts = PharmacyForm.order(created_at: :desc)
   end
 
+  def media_inquiry 
+    @posts = MediaInquiryForm.order(created_at: :desc)
+  end
+
   def product_change 
     @posts = ProductChangeForm.order(created_at: :desc).with_attached_images
   end
