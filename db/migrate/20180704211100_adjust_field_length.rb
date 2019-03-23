@@ -3,7 +3,7 @@ class AdjustFieldLength < CamaManager.migration_class
     change_column "#{PluginRoutes.static_system_info["db_prefix"]}posts", :title, :text
     remove_index "#{PluginRoutes.static_system_info["db_prefix"]}posts", :slug
     change_column "#{PluginRoutes.static_system_info["db_prefix"]}posts", :slug, :text
-    add_index "#{PluginRoutes.static_system_info["db_prefix"]}posts", :slug, length: 1000
+    add_index "#{PluginRoutes.static_system_info["db_prefix"]}posts", :slug, length: 500
     change_column "#{PluginRoutes.static_system_info["db_prefix"]}term_taxonomy", :name, :text
   end
 end
