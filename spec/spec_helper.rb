@@ -11,8 +11,6 @@ require 'rspec/rails'
 require "capybara/rspec"
 require 'database_cleaner'
 require "rack_session_access/capybara"
-
-require 'capybara/rspec'
 require 'capybara-screenshot/rspec'
 
 if defined?(Capybara::Webkit)
@@ -35,7 +33,7 @@ if defined?(Capybara::Webkit)
 
   Capybara.javascript_driver = :webkit
 else
-  Capybara.javascript_driver = :selenium
+  Capybara.javascript_driver = :selenium_chrome_headless
 end
 
 # define screenshot errors name

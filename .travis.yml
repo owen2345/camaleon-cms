@@ -1,6 +1,9 @@
 language: ruby
 bundler_args: '-j4'
 
+addons:
+  chrome: stable
+
 matrix:
   allow_failures:
     - gemfile: gemfiles/rails_edge.gemfile
@@ -14,12 +17,13 @@ matrix:
       gemfile: gemfiles/rails_5_1.gemfile
     - rvm: 2.5
       gemfile: gemfiles/rails_5_2.gemfile
+    - rvm: 2.6
+      gemfile: gemfiles/rails_6_0.gemfile
     - rvm: ruby-head
       gemfile: gemfiles/rails_edge.gemfile
   fast_finish: true
 
 script:
-  - gem pristine --all # workaround for bug in Bundler 1.16.x / RubyGems 2.7.x
   - bundle update rails
   - bundle exec rubocop
   - bundle exec rake db:migrate RAILS_ENV=test
