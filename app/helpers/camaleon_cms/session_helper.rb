@@ -124,9 +124,7 @@ module CamaleonCms::SessionHelper
     c = cookies[:auth_token].split("&")
     return nil unless c.size == 3
 
-    if c[1] == request.user_agent.to_s && request.ip == c[2]
-      @cama_current_user = current_site.users_include_admins.find_by_auth_token(c[0]).try(:decorate)
-    end
+    @cama_current_user = current_site.users_include_admins.find_by_auth_token(c[0]).try(:decorate)
   end
 
   # check if a visitor was logged in
