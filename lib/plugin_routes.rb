@@ -105,11 +105,16 @@ class PluginRoutes
     def isRails5?
       Rails.version.to_s[0].to_i == 5
     end
+
+    def isRails6?
+      Rails.version.to_s[0].to_i == 6
+    end
+
     # convert action parameter into hash
     def fixActionParameter(h)
       (h.is_a?(ActionController::Parameters) ? (h.permit!.to_h rescue h.to_hash) : h)
     end
-    
+
     # add a new anonymous hook
     # sample: PluginRoutes.add_anonymous_hook('before_admin', lambda{|params| puts params })
     # @param hook_key [String], key of hook
@@ -127,7 +132,7 @@ class PluginRoutes
     def get_anonymous_hooks(hook_key)
       (@@anonymous_hooks[hook_key.to_s] || []).map{|item| item[:callback] }
     end
-    
+
     # return all registered anonymous hooks for hook_key
     # @param hook_key [String] name of the hook
     # @param hook_id [String] identifier of the anonymous hooks
@@ -135,7 +140,7 @@ class PluginRoutes
     def remove_anonymous_hook(hook_key, hook_id)
       (@@anonymous_hooks[hook_key.to_s] || []).delete_if{|item| item[:id] == hook_id }
     end
-    
+
     # return the class name for user model
     def get_user_class_name
       static_system_info['user_model'].presence || 'CamaleonCms::User'
@@ -394,12 +399,12 @@ class PluginRoutes
   rescue
     Gem.available?(name)
   end
-  
+
   # return the default url options for Camaleon CMS
   def self.default_url_options
     {host: (CamaleonCms::Site.main_site.slug rescue "")}
   end
-  
+
   def self.migration_class
     isRails4? ? ActiveRecord::Migration : ActiveRecord::Migration[4.2]
   end
