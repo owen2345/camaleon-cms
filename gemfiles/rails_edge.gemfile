@@ -14,6 +14,7 @@ gem 'faker'
 gem 'database_cleaner'
 gem 'draper', '~> 3'
 gem 'rack_session_access'
+gem 'cancancan', '~> 3.0'
 group :development, :test do
   gem 'rspec-rails'
 end
