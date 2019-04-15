@@ -324,9 +324,8 @@ window["cama_init_media"] = (media_panel) ->
             unless field_height.attr("readonly")
               field_height.val(Math.round(e.height))
           , built: ()->
-            $.get(data['url']).error(->
-              modal.find('.modal-body').html('<div class="alert alert-danger">'+I18n('msg.cors_error', 'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', {url_img: data['url'], url_blog: 'http://blog.celingest.com/en/2014/10/02/tutorial-using-cors-with-cloudfront-and-s3/'})+'</div>')
-            )
+            url = data['url'].replace(/^https:\/\//i, 'http://')
+            $.get(url)
           }
 
           if media_panel.attr("data-dimension") # TODO: control dimensions
@@ -358,7 +357,7 @@ window["cama_init_media"] = (media_panel) ->
       title: I18n('button.edit_image', 'Edit Image')+' - ' + data['name'] + (if media_panel.attr("data-dimension") then " <small><i>("+media_panel.attr("data-dimension")+")</i></small>" else ''),
       content: '<div>' +
                 '<div class="editable_wrapper">' +
-                  '<img style="max-width: 100%;" class="editable" id="media_editable_image" crossorigin src="'+data['url']+'">' +
+                  '<img style="max-width: 100%;" class="editable" id="media_editable_image" crossorigin src="'+data['url'].replace(/^https:\/\//i, 'http://')+'">' +
                 '</div>' +
                 '<div class="row" style="margin-top: 5px;">' +
                   '<div class="col-md-8">' +
