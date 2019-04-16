@@ -1,3 +1,3 @@
 module CamaleonCms
-  VERSION = '2.4.6.0'
+  VERSION = '2.4.6.1'
 end

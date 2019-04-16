@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.4.6.1](https://github.com/owen2345/camaleon-cms/tree/2.4.6.0) (2019-04-16)
+- Fixed s3 nil error
+
 ## [2.4.6.0](https://github.com/owen2345/camaleon-cms/tree/2.4.6.0) (2019-04-05)
 [Full Changelog](https://github.com/owen2345/camaleon-cms/compare/2.4.5.14...2.4.6.0)
 
