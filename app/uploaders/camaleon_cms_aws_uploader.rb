@@ -19,7 +19,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
 
   # recover all files from AWS and parse it to save into DB as cache
   def browser_files
-    bucket.objects(@aws_settings["inner_folder"].present? ? {prefix: @aws_settings["inner_folder"]} : nil).each do |file|
+    bucket.objects({ prefix: @aws_settings["inner_folder"].presence || nil }).each do |file|
       next if File.dirname(file.key).split('/').pop == 'thumb'
       cache_item(file_parse(file))
     end
