@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'selenium-webdriver'
-gem 'chromedriver-helper'
+gem 'webdrivers'
 
 gem 'capybara-screenshot'
 
