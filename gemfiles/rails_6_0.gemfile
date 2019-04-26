@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gemspec path: '..'
 
-gem 'rails', '~> 6.0.0beta3'
+gem 'rails', '~> 6.0.0rc1'
 gem 'sqlite3'
 gem 'rspec_junit_formatter'
 gem 'selenium-webdriver'
