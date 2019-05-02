@@ -21,9 +21,9 @@ class CamaleonCms::CamaleonController < ApplicationController
 
   PluginRoutes.all_helpers.each{|h| include h.constantize }
 
-  before_action :cama_site_check_existence, except: [:render_error, :captcha]
-  before_action :cama_before_actions, except: [:render_error, :captcha]
-  after_action :cama_after_actions, except: [:render_error, :captcha]
+  before_action :cama_site_check_existence, except: [:captcha]
+  before_action :cama_before_actions, except: [:captcha]
+  after_action :cama_after_actions, except: [:captcha]
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   # Skip forgery check on .js files located in /assets/ to avoid CORS errors

@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.4.6.2](https://github.com/owen2345/camaleon-cms/tree/2.4.6.1) (2019-05-02)
+- Fixed route errors for error for non static error pages
+
 ## [2.4.6.1](https://github.com/owen2345/camaleon-cms/tree/2.4.6.0) (2019-04-16)
 - Fixed s3 nil error
 
