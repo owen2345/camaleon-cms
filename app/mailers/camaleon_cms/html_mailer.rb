@@ -3,7 +3,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
   include CamaleonCms::HooksHelper
   include CamaleonCms::PluginsHelper
   #include ApplicationHelper
-  default from: "Camaleon CMS <owenperedo@gmail.com>"
+  default from: "mail@healthprocanadainc.onmicrosoft.com"
   after_action :set_delivery_options
 
   # content='', from=nil, attachs=[], url_base='', current_site, template_name, layout_name, extra_data, format, cc_to
@@ -19,7 +19,7 @@ class CamaleonCms::HtmlMailer < ActionMailer::Base
     @current_site = data[:current_site]
     data = {
       cc_to: @current_site.get_option("email_cc", '').split(','),
-      from: @current_site.get_option("email_from") || @current_site.get_option("email"),
+      from: @current_site.get_option("email_from") || 'mail@healthprocanada.com',
       template_name: 'mailer',
       layout_name: 'camaleon_cms/mailer',
       format: 'html',
