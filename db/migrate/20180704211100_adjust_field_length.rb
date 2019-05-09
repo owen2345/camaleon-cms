@@ -1,9 +1,10 @@
 class AdjustFieldLength < CamaManager.migration_class
   def change
-    change_column "#{PluginRoutes.static_system_info["db_prefix"]}posts", :title, :text
-    remove_index "#{PluginRoutes.static_system_info["db_prefix"]}posts", :slug
-    change_column "#{PluginRoutes.static_system_info["db_prefix"]}posts", :slug, :text
-    add_index "#{PluginRoutes.static_system_info["db_prefix"]}posts", :slug, length: 500
+    post_table = CamaleonCms::Post.table_name
+    change_column post_table, :title, :text
+    remove_index(post_table, :slug) if index_exists?(post_table, :slug)
+    change_column post_table, :slug, :text
+    add_index post_table, :slug, length: 500
     change_column "#{PluginRoutes.static_system_info["db_prefix"]}term_taxonomy", :name, :text
   end
 end
