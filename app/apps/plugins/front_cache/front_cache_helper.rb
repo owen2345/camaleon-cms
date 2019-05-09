@@ -9,7 +9,7 @@ module Plugins::FrontCache::FrontCacheHelper
 
     return if signin? || Rails.env == "development" || Rails.env == "test" || !request.get? # avoid cache if current visitor is logged in or development environment
 
-    cache_key = request.fullpath.parameterize
+    cache_key = front_cache_plugin_cache_key
     @caches = current_site.get_meta("front_cache_elements")
     if !flash.keys.present? && front_cache_exist?(cache_key) # recover cache item
       Rails.logger.info "Camaleon CMS - readed cache: #{front_cache_plugin_get_path(cache_key)}"
@@ -41,7 +41,7 @@ module Plugins::FrontCache::FrontCacheHelper
 
 
   def front_cache_front_after_load
-    cache_key = request.fullpath.parameterize
+    cache_key = front_cache_plugin_cache_key
     if @_plugin_do_cache && !flash.keys.present?
       args = {data: response.body
                         .gsub(/csrf-token" content="(.*?)"/, 'csrf-token" content="{{form_authenticity_token}}"')
@@ -128,5 +128,10 @@ module Plugins::FrontCache::FrontCacheHelper
 
   def front_cache_plugin_match_path_patterns?(key, key2)
     @caches[:paths].any?{|path_pattern| key =~ Regexp.new(path_pattern) || key2 =~ Regexp.new(path_pattern) }
+  end
+
+  def front_cache_plugin_cache_key
+    uri = [request.protocol + request.host_with_port, request.fullpath].join('/')
+    uri.parameterize
   end
 end
