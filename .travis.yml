@@ -4,6 +4,9 @@ bundler_args: '-j4'
 addons:
   chrome: stable
 
+services:
+  - xvfb
+
 matrix:
   allow_failures:
     - gemfile: gemfiles/rails_edge.gemfile
@@ -33,4 +36,3 @@ before_install:
   - "echo 'gem: --no-document' > ~/.gemrc"
   - "echo '--colour' > ~/.rspec"
   - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
