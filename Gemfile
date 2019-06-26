@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gemspec
-
+gem 'rails', '6.0.0rc1'
 gem 'selenium-webdriver'
 gem 'webdrivers'
 
@@ -14,4 +14,4 @@ gem 'factory_bot'
 gem 'faker'
 gem 'draper', '~> 3'
 gem 'rack_session_access'
-gem 'sqlite3', '< 1.4' # Rails < 6 is incompatible with sqlite3 1.4
+gem 'sqlite3'
