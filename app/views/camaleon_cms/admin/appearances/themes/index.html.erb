@@ -20,32 +20,35 @@
                             <% next if theme[:domain].present? && !(theme[:domain].split(",").include?(current_site.the_slug) || theme[:domain].split(",").include?(dom)) %>
                             <%= raw "<div class='clearfix'></div>" if index%3==0 && index > 1 %>
                             <div class="col-md-4">
-                                <div class="panel panel-default">
+                                <div class="panel panel-default theme-card">
                                     <div class="panel-body panel-body-image">
-                                        <div class="theme-image text-center">
-                                            <img class="img-responsive" style="width: 100%; height: 180px;" src="<%= asset_path(theme_asset_path(theme[:thumb].to_s, theme[:key])) %>" alt="<%= theme[:name] %>">
+                                        <% image_url = asset_path(theme_asset_path(theme[:thumb].to_s, theme[:key])) %>
+                                        <div class="theme-image text-center" style=" background-image: url(<%= image_url %>);" >
                                         </div>
-                                        <a href="#" class="panel-body-inform">
-                                            <span class="fa fa-desktop"></span>
-                                        </a>
                                     </div>
-                                    <div class="panel-body" style="min-height: 120px;">
-                                        <h3><%= theme[:name] %></h3>
+                                    <div class="panel-body theme-description">
+                                        <h3></h3>
                                         <div><%= raw theme[:description] %></div>
                                     </div>
                                     <div class="panel-footer text-muted text-right">
-                                        <% if current_theme.slug == theme[:key] && params[:set].nil? %>
-                                            <% r = {links: []}; hook_run(theme, "theme_options", r) %>
-                                            <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), admin_plugins_export_content_settings_path(file: ["app", "apps", 'themes', theme[:key], 'data.json'].join("/"))) if current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
-                                            <% r[:links] << link_to('Settings', cama_admin_settings_theme_path, class: "btn btn-primary") if File.exist?(current_theme.settings_file) %>
+                                        <span class="theme-name">
+                                            <%= theme[:name] %>
+                                        </span>
+                                        <div class="theme-actions">
+                                            <% if current_theme.slug == theme[:key] && params[:set].nil? %>
+                                                <% r = {links: []}; hook_run(theme, "theme_options", r) %>
+                                                <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), admin_plugins_export_content_settings_path(file: ["app", "apps", 'themes', theme[:key], 'data.json'].join("/"))) if current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
+                                                <% r[:links] << link_to('Settings', cama_admin_settings_theme_path, class: "btn btn-primary") if File.exist?(current_theme.settings_file) %>
 
-                                            <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), "#", {'onclick' => "alert('You need to install import/export plugin to import sample data.'); return false;"}) if !current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
-                                            <%= raw r[:links].join(" | ") %>
-                                            <span class="btn btn-success"><%= t('camaleon_cms.admin.button.actived').upcase %></span>
-                                        <% else %>
-                                            <a href="<%= current_site.the_url(ccc_theme_preview: theme[:key])%>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>
-                                            <a href="<%= cama_admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary"><%= t('camaleon_cms.admin.button.select')%></a>
-                                        <% end %>
+                                                <% r[:links] << link_to(raw('&nbsp;&nbsp;Import Data (data.json)&nbsp;'), "#", {'onclick' => "alert('You need to install import/export plugin to import sample data.'); return false;"}) if !current_site.plugin_installed?('export_content') && File.exist?(File.join(theme["path"], "data.json")) %>
+                                                <%= raw r[:links].join(" | ") %>
+                                                <span class="btn btn-success"><%= t('camaleon_cms.admin.button.actived').upcase %></span>
+                                            <% else %>
+                                                <a href="<%= current_site.the_url(ccc_theme_preview: theme[:key])%>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>
+                                                <a href="<%= cama_admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary"><%= t('camaleon_cms.admin.button.select')%></a>
+                                            <% end %>
+                                        </div>
+                                        
                                     </div>
                                 </div>
                             </div>

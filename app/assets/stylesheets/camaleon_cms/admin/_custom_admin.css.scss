@@ -290,3 +290,70 @@ label.error, span.error{
   color: #a94442;
   font-size: 11px;
 }
+
+
+//************** Appearance
+
+// themes: index page
+.theme-card {
+  border: 1px 
+  solid #ddd; 
+  border-radius: 0;
+  position: relative;
+
+  .panel-body-image {
+    padding: 0;
+
+    .theme-image {
+      width: 100%; 
+      height: 260px;
+      background-size: cover;
+    }
+
+    &:hover {
+      & + .theme-description {
+        display: block;
+      }
+    }
+  }
+
+  .theme-description {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 260px;
+    background: #1e282bcc;
+    color: #fff;
+    font-size: 1.8rem;
+    padding: 30px;
+    display: none;
+
+    &:hover {
+      display: block;
+    }
+  }
+
+  .panel-footer {
+    background-color: #fafafa; 
+    border: 0; 
+    border-radius: 0; 
+    box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  
+
+    .theme-name {
+      font-size: 1.6rem;
+      width: 50%;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .theme-actions {
+      .btn {
+        font-size: 1.1rem;
+      }
+    }
+  }
+}
