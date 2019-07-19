@@ -88,7 +88,7 @@ http://camaleon.tuzitio.com/store/plugins
 * Visual Editor - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/camaleon_editor
 * Spree Commerce Integration - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/camaleon-spree
 * Admin AJAX - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/admin_ajax
-* **See here for a complete Gemfile**: https://github.com/owen2345/camaleon-cms/blob/master/doc/example_gemfile.rb
+* **See here for a complete Gemfile**: https://github.com/owen2345/camaleon-cms/blob/master/docs/example_gemfile.rb
 
 ## Camaleon CMS has many useful frontend Themes such as:
 * Default Theme (Built in)
