@@ -1,5 +1,10 @@
 # Change Log
 
+## [2.4.6.4](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2019-08-05)
+- Fixed posts slug index length
+- Added support for rails 6
+- Improved themes list UI
+
 ## [2.4.6.4](https://github.com/owen2345/camaleon-cms/tree/2.4.6.1) (2019-05-02)
 - Updated aws-sdk dependency to include only s3 needed dependency available in aws-sdk v3+
 
