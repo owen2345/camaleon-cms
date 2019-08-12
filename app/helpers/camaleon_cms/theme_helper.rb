@@ -71,7 +71,7 @@ module CamaleonCms::ThemeHelper
       f.split(k).last.split("/").first
     end
   end
-  
+
   # returns file system path to theme asset
   # theme_name: theme name, if nil, then will use current theme
   # asset: asset file name, if asset is present return full path to this asset
@@ -82,5 +82,14 @@ module CamaleonCms::ThemeHelper
       theme_path = theme.settings['path']
     end
     "#{theme_path}/assets/#{asset}"
+  end
+
+  # Returns a default message if no pages exist
+  def theme_home_page
+    current_site.the_post(current_theme.get_field("home_page")) ||
+      current_site.the_posts("page").first ||
+      CamaleonCms::Post.new(title: 'Hello World!',
+                          content: 'Please add a page.',
+                           status: 'published')
   end
 end
