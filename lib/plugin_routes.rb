@@ -402,7 +402,9 @@ class PluginRoutes
 
   # return the default url options for Camaleon CMS
   def self.default_url_options
-    {host: (CamaleonCms::Site.main_site.slug rescue "")}
+    options = { host: (CamaleonCms::Site.main_site.slug rescue "") }
+    options.merge!({ protocol: 'https' }) if Rails.application.config.force_ssl
+    options
   end
 
   def self.migration_class
