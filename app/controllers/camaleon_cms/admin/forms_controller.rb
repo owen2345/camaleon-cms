@@ -23,4 +23,8 @@ class CamaleonCms::Admin::FormsController < CamaleonCms::AdminController
     @posts = ProductChangeForm.order(created_at: :desc).with_attached_images
   end
 
+  def contact_form
+    @posts = ContactForm.order(created_at: :desc)
+  end
+
 end
