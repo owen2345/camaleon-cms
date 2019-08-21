@@ -21,6 +21,9 @@
                     <th>Email</th>
                     <th>Subject</th>
                     <th>Message</th>
+                    <th>Download CSV</th>
+                    <th>Download PDF</th>
+                    <th>Delete</th>
                 </tr>
             </thead>
             <tbody>
@@ -31,7 +34,8 @@
                     <td><%= post.email %></td>
                     <td><%= post.subject %></td>
                     <td><%= post.message %></td>
-                    <td><%= link_to 'Download',download_form_path(form: 'contact', id: post.id) %></td>
+                    <td><%= link_to 'CSV',download_form_path(form: 'contact', id: post.id) %></td>
+                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf), target: '_blank' %></td>
                     <td>
                         <%= link_to delete_contact_form_path(id: post.id), method: :delete, data: {confirm: "Are you sure?"} do %> 
                            <i class="fa fa-times"></i>
