@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h4 class="pull-left" style="width: 100%;">
-                    <%= 'Forms' %>
+                    <%= 'Contact Form' %>
                     <div class='pull-right'>
                         <%= link_to 'Download All',download_form_path(form: 'contact'), class: ' btn btn-primary' %>
                         <%= link_to 'Download New',download_form_path(form: 'contact', only: 'new'), class: ' btn btn-success' %>
@@ -35,9 +35,9 @@
                     <td><%= post.subject %></td>
                     <td><%= post.message %></td>
                     <td><%= link_to 'CSV',download_form_path(form: 'contact', id: post.id) %></td>
-                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf), target: '_blank' %></td>
+                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'Contact Form'), target: '_blank' %></td>
                     <td>
-                        <%= link_to delete_contact_form_path(id: post.id), method: :delete, data: {confirm: "Are you sure?"} do %> 
+                        <%= link_to delete_contact_form_path(id: post.id, form: 'Contact Form'), method: :delete, data: {confirm: "Are you sure?"} do %> 
                            <i class="fa fa-times"></i>
                         <%end%>    
                     </td>

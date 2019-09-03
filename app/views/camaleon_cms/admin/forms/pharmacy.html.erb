@@ -21,7 +21,9 @@
                 <th>Submitted At</th>
                 <th>Submitted By Name</th>
                 <th>Submitted By Email</th>
-                <th>Download</th>
+                <th>Download CSV</th>
+                <th>Download PDF</th>
+                <th>Delete</th>
                 
             </tr>
             </thead>
@@ -33,7 +35,12 @@
                     <td><%= post.submitted_by %></td>
                     <td><%= post.contact_email %></td>
                     <td><%= link_to 'Download',download_form_path(form: 'pharmacy', id: post.id) %></td>
-                   
+                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'Pharmacy Form'), target: '_blank' %></td>
+                    <td>
+                        <%= link_to delete_contact_form_path(id: post.id, form: 'Pharmacy Form'), method: :delete, data: {confirm: "Are you sure?"} do %> 
+                           <i class="fa fa-times"></i>
+                        <%end%>    
+                    </td>
                 </tr>
             <% end %>
             </tbody>
