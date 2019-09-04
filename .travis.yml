@@ -22,7 +22,7 @@ matrix:
       gemfile: gemfiles/rails_5_2.gemfile
     - rvm: 2.6
       gemfile: gemfiles/rails_6_0.gemfile
-      env: RAILS_RAKE=TRUE
+      env: DISABLE_DATABASE_ENVIRONMENT_CHECK=TRUE
     - rvm: ruby-head
       gemfile: gemfiles/rails_edge.gemfile
   fast_finish: true
@@ -31,7 +31,6 @@ script:
   - bundle update rails
   - bundle exec rubocop
   - bundle exec rake db:migrate RAILS_ENV=test
-  - bundle exec rails db:migrate RAILS_ENV=test
   - bundle exec rspec
 
 before_install:
