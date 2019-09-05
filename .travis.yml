@@ -22,6 +22,7 @@ matrix:
       gemfile: gemfiles/rails_5_2.gemfile
     - rvm: 2.6
       gemfile: gemfiles/rails_6_0.gemfile
+      env: DISABLE_DATABASE_ENVIRONMENT_CHECK=TRUE
     - rvm: ruby-head
       gemfile: gemfiles/rails_edge.gemfile
   fast_finish: true
