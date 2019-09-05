@@ -1,5 +1,10 @@
 # Change Log
 
+## [2.4.6.7](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2019-08-05)
+- Fixed rails 6 bundle install error
+- Added https to default uri options
+- Use default page if no other pages exist
+
 ## [2.4.6.4](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2019-08-05)
 - Fixed posts slug index length
 - Added support for rails 6
