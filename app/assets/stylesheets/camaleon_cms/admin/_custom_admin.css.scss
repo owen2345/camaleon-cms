@@ -262,6 +262,52 @@ div.mce-fullscreen{
 
 
 
+// Tiny MCE - Floating DropDownList (with Overflow)
+.mce-floatpanel {
+  &.mce-menu {
+    &.mce-fixed {
+      max-height: 300px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    box-shadow: none;
+    border: none;
+    .mce-container-body.mce-stack-layout {
+      background: #fff;
+      border: 1px solid #e2e4e7;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+.overlapped {
+  .mce-floatpanel {
+    &.mce-menu {
+      &.mce-fixed {
+        position: absolute; // Fixes 
+      }
+    }
+  }
+}
+body:not(.overlapped) {
+  .mce-edit-component-panel {
+    width: 100% !important;
+    height: 100% !important;
+    top: 0 !important;
+    left: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    text-align: center !important;
+    background: transparent !important;
+    position: fixed !important;
+  
+    .mce-reset {
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #222d32;
+    }
+  }
+}
+
+
 .mce-formitem {
   .mce-tinymce {
     width: 99% !important;
@@ -690,6 +736,7 @@ $bg-billboard: #222B5A;
 .type-selector {
   .mce-container.mce-floatpanel.mce-menu.mce-fixed {
     overflow: visible;
+    padding: 0;
   
     .mce-stack-layout {
       display: flex;
