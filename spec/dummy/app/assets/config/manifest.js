@@ -1,9 +1,4 @@
 //= link_tree ../images
-//= link_tree ../../../../../app/assets
 //= link_tree ../javascripts
 //= link_tree ../stylesheets
-//= link camaleon_cms/admin/nav_menu.js
-//= link plugins/cama_contact_form/admin_editor.js
-//= link_tree ../../../../../app/apps/themes/default/assets
-//= link_tree ../../../../../app/apps/themes/camaleon_first/assets
-//= link_tree ../../../../../app/apps/themes/new/assets
+//= link camaleon-cms.js
