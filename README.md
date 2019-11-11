@@ -131,15 +131,6 @@ http://camaleon.tuzitio.com/store/plugins
   bundle install
   ```
 
-* If using Rails 6, add the following line to config/application.rb
-
-  ```ruby
-  # Additional lines shown for context
-  class Application < Rails::Application
-    config.autoloader = :classic # This is the line to add
-  end
-  ```
-
 * Camaleon CMS Installation
 
   ```bash
