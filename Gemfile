@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gemspec
-gem 'rails', '6.0.0rc1'
+gem 'rails', '6.0.0'
 gem 'selenium-webdriver'
 gem 'webdrivers'
 

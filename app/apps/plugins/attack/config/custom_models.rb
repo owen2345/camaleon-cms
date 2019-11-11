@@ -4,3 +4,5 @@ Rails.application.config.to_prepare do
     has_many :attack, class_name: "Plugins::Attack::Models::Attack"
   end
 end
+
+class Plugins::Attack::Config::CustomModels; end
