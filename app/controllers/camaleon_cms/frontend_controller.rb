@@ -243,8 +243,7 @@ class CamaleonCms::FrontendController < CamaleonCms::CamaleonController
     lookup_context.prefixes.delete_if{|t| t =~ /themes\/(.*)\/views/i || t == "camaleon_cms/default_theme" || t == "themes/#{current_site.id}/views" }
 
     lookup_context.prefixes.append("themes/#{current_site.id}/views") if Dir.exist?(Rails.root.join('app', 'apps', 'themes', current_site.id.to_s).to_s)
-    lookup_context.prefixes.append("themes/#{current_theme.name}/views")
-    lookup_context.prefixes.append("themes/#{current_theme.name}/views/layouts")
+    lookup_context.prefixes.append("themes/#{current_theme.slug}/views")
     lookup_context.prefixes.append("camaleon_cms/default_theme")
 
     lookup_context.prefixes = lookup_context.prefixes.uniq
