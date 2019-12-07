@@ -2,9 +2,6 @@
 //= link_tree ../images
 //= link_tree ../javascripts
 //= link_tree ../stylesheets
-//= link_tree ../../apps/themes/default/assets
-//= link_tree ../../apps/themes/camaleon_first/assets
-//= link_tree ../../apps/themes/new/assets
 //= link_tree ../../apps/plugins/visibility_post/assets/js
 //= link plugins/cama_contact_form/admin_editor.js
 //= link camaleon_cms/admin/nav_menu.js

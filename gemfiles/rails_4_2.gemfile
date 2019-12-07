@@ -13,3 +13,4 @@ gem 'factory_bot'
 gem 'faker'
 gem 'draper'
 gem 'rack_session_access'
+gem 'sprockets', '< 4' # Sprockets 4 requires Ruby version >= 2.5

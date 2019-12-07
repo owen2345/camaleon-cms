@@ -12,7 +12,7 @@ matrix:
     - gemfile: gemfiles/rails_edge.gemfile
     - rvm: ruby-head
   include:
-    - rvm: 2.2
+    - rvm: 2.3
       gemfile: gemfiles/rails_4_2.gemfile
     - rvm: 2.3
       gemfile: gemfiles/rails_5_0.gemfile
