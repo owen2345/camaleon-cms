@@ -123,6 +123,9 @@ http://camaleon.tuzitio.com/store/plugins
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # latest development version
 
   # gem 'draper', '~> 3' # for Rails 5+
+  
+  # For Ruby version < 2.5 
+  # gem 'sprockets', '< 4' # Sprockets 4 requires Ruby version >= 2.5 
   ```
 
 * Install required Gem and dependencies
