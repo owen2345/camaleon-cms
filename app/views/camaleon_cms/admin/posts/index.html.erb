@@ -29,6 +29,9 @@
             <thead>
             <tr>
                 <th><%= t('camaleon_cms.admin.table.id') %></th>
+                <% if @post_type.get_option('has_featured', false) %>
+                    <th><%= t('camaleon_cms.admin.table.featured') %></th>
+                <% end %>
                 <th><%= t('camaleon_cms.admin.table.title') %></th>
                 <%= content_tag :th, t('camaleon_cms.admin.table.owner') if @lists_tab == "draft" %>
                 <th><%= t('camaleon_cms.admin.table.status') %></th>
@@ -49,6 +52,13 @@
             <% (@post_type.manage_hierarchy? ? cama_hierarchy_post_list(@posts.eager_load(:categories, :post_tags).decorate.to_a) : @posts.eager_load(:categories, :post_tags).decorate).each do |f| title = f.the_hierarchy_title %>
                 <tr data-id="<%= f.id %>" class="<%= "sortable" if can? :update, f %>">
                     <td><%= f.id %></td>
+                    <% if @post_type.get_option('has_featured', false) %>
+                        <td align="center">
+                            <% if f.is_feature? %>
+                                <i class="fa fa-star"></i>
+                            <% end %>
+                        </td>
+                    <% end %>
                     <td>
                         <% if !f.trash? && (can? :update, f) %>
                             <%= link_to title, {action: :edit, id: f.id}, class: "cama_ajax_request" %>

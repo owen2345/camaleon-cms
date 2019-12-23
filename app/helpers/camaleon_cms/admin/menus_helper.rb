@@ -47,9 +47,10 @@ module CamaleonCms::Admin::MenusHelper
       
       items << {icon: "copy", title: 'Materials Management Forms', url: materials_cama_admin_forms_path}
       items << {icon: "copy", title: 'Nutrition & Food Forms', url: nutritions_cama_admin_forms_path}
-      items << {icon: "copy", title: 'Pharmacy Form', url: pharmacy_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Pharmacy Product Concerns', url: pharmacy_cama_admin_forms_path}
       items << {icon: "copy", title: 'Change of Product Form', url: product_change_cama_admin_forms_path}
       items << {icon: "copy", title: 'Media Inquiry', url: media_inquiry_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Contact Form', url: contact_form_cama_admin_forms_path}
       admin_menu_add_menu("list", {icon: "list", title: t('camaleon_cms.admin.sidebar.forms'), url: "", items: items})
     end
 

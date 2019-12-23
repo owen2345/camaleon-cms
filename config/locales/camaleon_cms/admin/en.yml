@@ -473,6 +473,7 @@ en:
         excerpt: 'Excerpt'
         facebook: 'Facebook'
         favicon: 'Favicon'
+        featured: 'Feat.'
         screenshot: "Screenshot"
         first_names: 'First Name'
         group_name: 'Group Name'
@@ -533,6 +534,7 @@ en:
         site_name: 'Site Name'
         size: 'Size'
         social: 'Social'
+        post_order: 'Post Order'
         skype: 'Skype'
         status: 'Status'
         owner: 'Page Owner'

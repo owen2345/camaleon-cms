@@ -52,8 +52,10 @@ class CamaleonCmsUploader
   # objects_db: HASH Object where to add the current object (optional)
   def cache_item(file_parsed, _objects_db = nil, custom_cache_key = nil)
     unless get_media_collection.where(name: file_parsed['name'], folder_path: file_parsed['folder_path']).any?
-      a = get_media_collection.new(file_parsed.except('key'))
-      a.save!
+      # if file_parsed['url'].present?
+        a = get_media_collection.new(file_parsed.except('key'))
+        a.save!
+      # end
     end
     file_parsed
   end

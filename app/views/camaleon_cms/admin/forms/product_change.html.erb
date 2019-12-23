@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h4 class="pull-left" style="width: 100%;">
-                    <%= 'Forms' %>
+                    <%= 'Product Change Forms' %>
                     <div class='pull-right'>
                         <%= link_to 'Download All',download_form_path(form: 'product_change'), class: ' btn btn-primary' %>
                         <%= link_to 'Download New',download_form_path(form: 'product_change', only: 'new'), class: ' btn btn-success' %>
@@ -22,7 +22,9 @@
                 <th>Submitted By Name</th>
                 <th>Submitted By Email</th>
                 <th>Images</th>
-                <th>Download</th>
+                <th>Download CSV</th>
+                <th>Download PDF</th>
+                <th>Delete</th>
                 
             </tr>
             </thead>
@@ -38,8 +40,13 @@
                             <%= image_tag image, width: 100 %>
                         <%end%>
                     </td>
-                    <td><%= link_to 'Download',download_form_path(form: 'product_change', id: post.id) %></td>
-                   
+                    <td><%= link_to 'CSV',download_form_path(form: 'product_change', id: post.id) %></td>
+                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'Product Change'), target: '_blank' %></td>
+                    <td>
+                        <%= link_to delete_contact_form_path(id: post.id, form: 'Product Change'), method: :delete, data: {confirm: "Are you sure?"} do %> 
+                           <i class="fa fa-times"></i>
+                        <%end%>    
+                    </td>
                 </tr>
             <% end %>
             </tbody>

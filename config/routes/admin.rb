@@ -50,6 +50,7 @@ Rails.application.routes.draw do
           get 'pharmacy', on: :collection
           get 'product_change', on: :collection
           get 'media_inquiry', on: :collection
+          get 'contact_form', on: :collection
         end
 
         resources :user_roles, controller: 'user_roles' do

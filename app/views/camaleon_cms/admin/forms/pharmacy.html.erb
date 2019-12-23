@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h4 class="pull-left" style="width: 100%;">
-                    <%= 'Forms' %>
+                    <%= 'Pharmacy Product Concern Forms' %>
                     <div class='pull-right'>
                         <%= link_to 'Download All',download_form_path(form: 'pharmacy'), class: ' btn btn-primary' %>
                         <%= link_to 'Download New',download_form_path(form: 'pharmacy', only: 'new'), class: ' btn btn-success' %>
@@ -21,7 +21,9 @@
                 <th>Submitted At</th>
                 <th>Submitted By Name</th>
                 <th>Submitted By Email</th>
-                <th>Download</th>
+                <th>Download CSV</th>
+                <th>Download PDF</th>
+                <th>Delete</th>
                 
             </tr>
             </thead>
@@ -32,8 +34,13 @@
                     <td><%= post.created_at %></td>
                     <td><%= post.submitted_by %></td>
                     <td><%= post.contact_email %></td>
-                    <td><%= link_to 'Download',download_form_path(form: 'pharmacy', id: post.id) %></td>
-                   
+                    <td><%= link_to 'CSV',download_form_path(form: 'pharmacy', id: post.id) %></td>
+                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'Pharmacy Form'), target: '_blank' %></td>
+                    <td>
+                        <%= link_to delete_contact_form_path(id: post.id, form: 'Pharmacy Form'), method: :delete, data: {confirm: "Are you sure?"} do %> 
+                           <i class="fa fa-times"></i>
+                        <%end%>    
+                    </td>
                 </tr>
             <% end %>
             </tbody>

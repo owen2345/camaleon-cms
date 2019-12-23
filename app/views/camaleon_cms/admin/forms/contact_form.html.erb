@@ -3,44 +3,45 @@
         <div class="row">
             <div class="col-md-12">
                 <h4 class="pull-left" style="width: 100%;">
-                    <%= 'Media Inquiry Forms' %>
+                    <%= 'Contact Form' %>
                     <div class='pull-right'>
-                        <%= link_to 'Download All',download_form_path(form: 'media_inquiry'), class: ' btn btn-primary' %>
-                        <%= link_to 'Download New',download_form_path(form: 'media_inquiry', only: 'new'), class: ' btn btn-success' %>
+                        <%= link_to 'Download All',download_form_path(form: 'contact'), class: ' btn btn-primary' %>
+                        <%= link_to 'Download New',download_form_path(form: 'contact', only: 'new'), class: ' btn btn-success' %>
                     </div>
                 </h4>
             </div>
         </div>
     </div>
     <div class="panel-body">
-        
         <table class="table table-responsive table-hover table-striped" id="posts-table-list">
             <thead>
-            <tr>
-                <th>ID</th>
-                <th>Submitted At</th>
-                <th>Submitted By Name</th>
-                <th>Submitted By Email</th>
-                <th>Download CSV</th>
-                <th>Download PDF</th>
-                <th>Delete</th>
-                
-            </tr>
+                <tr>
+                    <th>Submitted At</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Subject</th>
+                    <th>Message</th>
+                    <th>Download CSV</th>
+                    <th>Download PDF</th>
+                    <th>Delete</th>
+                </tr>
             </thead>
             <tbody>
             <% @posts.each do |post| %>
                 <tr style="color: <%=post.exported ? '' : 'green';%>">
-                    <td><%= post.id %></td>
                     <td><%= post.created_at %></td>
                     <td><%= post.name %></td>
                     <td><%= post.email %></td>
-                    <td><%= link_to 'CSV',download_form_path(form: 'media_inquiry', id: post.id) %></td>
-                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'Media Inquiry'), target: '_blank' %></td>
+                    <td><%= post.subject %></td>
+                    <td><%= post.message %></td>
+                    <td><%= link_to 'CSV',download_form_path(form: 'contact', id: post.id) %></td>
+                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'Contact Form'), target: '_blank' %></td>
                     <td>
-                        <%= link_to delete_contact_form_path(id: post.id, form: 'Media Inquiry'), method: :delete, data: {confirm: "Are you sure?"} do %> 
+                        <%= link_to delete_contact_form_path(id: post.id, form: 'Contact Form'), method: :delete, data: {confirm: "Are you sure?"} do %> 
                            <i class="fa fa-times"></i>
                         <%end%>    
                     </td>
+                    
                    
                 </tr>
             <% end %>
