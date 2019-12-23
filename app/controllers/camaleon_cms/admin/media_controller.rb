@@ -8,7 +8,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   def index
     authorize! :manage, :media
     @show_file_actions = true
-    @files = @tree.paginate(page: params[:page], per_page: 100)
+    @files = @tree.reorder(is_folder: :desc, name: :asc).paginate(page: params[:page], per_page: 100)
     @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
     add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.media")
   end
@@ -38,7 +38,7 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
       @show_file_actions = true
     end
     @tree = cama_uploader.search(params[:search]) if params[:search].present?
-    @files = @tree.paginate(page: params[:page], per_page: 100)
+    @files = @tree.reorder(is_folder: :desc, name: :asc).paginate(page: params[:page], per_page: 100)
     @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
     if params[:partial].present?
       render json: {next_page: @next_page, html: render_to_string(partial: "render_file_item", locals: { files: @files })}
