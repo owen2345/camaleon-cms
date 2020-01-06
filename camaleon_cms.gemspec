@@ -34,7 +34,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'mini_magick'
   s.add_dependency 'non-digest-assets', '~> 2.0'
   s.add_dependency 'sass-rails'
-  s.add_dependency 'tinymce-rails', '< 5'
+  s.add_dependency 'tinymce-rails', '~> 5.1', '>= 5.1.4.1'
   s.add_dependency 'will_paginate'
   s.add_dependency 'will_paginate-bootstrap'
 
