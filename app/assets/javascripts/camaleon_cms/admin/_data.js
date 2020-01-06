@@ -38,12 +38,12 @@ function cama_get_tinymce_settings(settings){
                 ed.content = ed.content.replace(/(<p><\/p>)/gi,'<br />');
             });
 
-            editor.addMenuItem('append_line', {
+            editor.ui.registry.addMenuItem('append_line', {
                 text: 'New line at the end',
                 context: 'insert',
                 onclick: function () { editor.dom.add(editor.getBody(), 'p', {}, '-New line-');  }
             });
-            editor.addMenuItem('add_line', {
+            editor.ui.registry.addMenuItem('add_line', {
                 text: 'New line',
                 context: 'insert',
                 onclick: function () { editor.insertContent('<p>-New line-</p>');  }
