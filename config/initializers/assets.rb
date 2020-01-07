@@ -11,8 +11,8 @@ Rails.application.config.assets.precompile += %w( camaleon_cms/* )
 
 # This will precompile any assets, not just JavaScript (.js, .coffee, .swf, .css, .scss)
 
-sprokects_3 = !defined?(Sprockets::BabelProcessor)
-if sprokects_3
+sprokects_4_or_newer = defined?(Sprockets::BabelProcessor)
+unless sprokects_4_or_newer
   Rails.application.config.assets.precompile << Proc.new { |path|
     res = false
     if File.dirname(path).start_with?('plugins/') || File.dirname(path).start_with?('themes/')
