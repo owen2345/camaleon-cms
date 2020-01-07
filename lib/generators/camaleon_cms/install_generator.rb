@@ -13,8 +13,8 @@ module CamaleonCms
         directory("apps", "app/apps")
         directory( File.join($camaleon_engine_dir, 'app/apps/themes').to_s, 'app/apps/themes')
 
-        sprokects_3 = !defined?(Sprockets::BabelProcessor)
-        unless sprokects_3
+        sprokects_4_or_newer = defined?(Sprockets::BabelProcessor)
+        if sprokects_4_or_newer
           assets_config_dir = Rails.root.join('app', 'assets', 'config')
           FileUtils.makedirs(assets_config_dir)
           assets_config_file = assets_config_dir.join('manifest.js')
