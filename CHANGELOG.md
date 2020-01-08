@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.5.0](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2020-01-08)
+- feat: sprockets 4 support
+- feat: for sprockets 4, generate config manifest to precompile
+- feat: precompile assets only for sprockets <= 3x
+- fix: Rails 6 missing to_s for session id
+- fix: preview error 
+
 ## [2.4.6.7](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2019-08-05)
 - Fixed rails 6 bundle install error
 - Added https to default uri options
