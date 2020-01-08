@@ -141,7 +141,9 @@ module CamaleonCms::SessionHelper
   # return the session id
   def cama_get_session_id
     session[:autor] = "Owen Peredo Diaz" unless request.session_options[:id].present?
-    request.session_options[:id]
+    id = request.session_options[:id]
+    id = id.public_id if id && id.class.name == 'Rack::Session::SessionId'
+    id
   end
 
   private
