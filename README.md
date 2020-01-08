@@ -118,7 +118,7 @@ http://camaleon.tuzitio.com/store/plugins
 * Add the gem in your Gemfile
 
   ```ruby
-  gem "camaleon_cms",  '>= 2.4.6' # (Current stable versions are 2.4.4.5, 2.4.3.10, 2.3.6, 2.2.1, 2.1.1)
+  gem "camaleon_cms",  '>= 2.4.6' # (Current stable versions are 2.5.0, 2.4.4.5, 2.4.3.10, 2.3.6, 2.2.1)
   # OR
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # latest development version
 
