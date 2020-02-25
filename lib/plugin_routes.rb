@@ -428,7 +428,7 @@ if PluginRoutes.isRails5?
       included do |base|
         extend          ClassMethods
         helper          HelperMethods if respond_to? :helper
-        helper_method   :add_breadcrumb, :breadcrumbs  if respond_to? :helper_method
+        helper_method   :add_breadcrumb_on_rails, :add_breadcrumb, :breadcrumbs_on_rails, :breadcrumbs  if respond_to? :helper_method
 
         unless base.respond_to?(:before_action)
           base.alias_method :before_action, :before_filter
