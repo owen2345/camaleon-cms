@@ -412,28 +412,3 @@ class PluginRoutes
   end
 end
 CamaManager = PluginRoutes
-
-#********* fix missing helper method for breadcrumb on rails gem **********#
-if PluginRoutes.isRails5?
-  module BreadcrumbsOnRails
-    module ActionController extend ActiveSupport::Concern
-      def self.included(base = nil, &block)
-        if base.nil?
-          @_included_block = block
-        else
-          super
-        end
-      end
-
-      included do |base|
-        extend          ClassMethods
-        helper          HelperMethods if respond_to? :helper
-        helper_method   :add_breadcrumb_on_rails, :add_breadcrumb, :breadcrumbs_on_rails, :breadcrumbs  if respond_to? :helper_method
-
-        unless base.respond_to?(:before_action)
-          base.alias_method :before_action, :before_filter
-        end
-      end
-    end
-  end
-end
