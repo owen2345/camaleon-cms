@@ -17,6 +17,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
     h.hooks_run("post_the_excerpt", r)
     r[:content]
   end
+  alias_method :the_summary, :the_excerpt
 
   # return the content of this post
   def the_content
