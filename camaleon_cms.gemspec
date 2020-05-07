@@ -53,5 +53,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'database_cleaner'
   s.add_development_dependency 'pry-rescue'
   s.add_development_dependency 'pry-stack_explorer'
-  s.add_development_dependency 'rubocop'
+  s.add_development_dependency 'rubocop', '< 0.82' # 0.82 removed support for Ruby 2.3
 end
