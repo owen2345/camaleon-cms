@@ -234,7 +234,7 @@ module CamaleonCms::UploaderHelper
       return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io, args[:formats])
       uploaded_io = File.join(Rails.public_path, uploaded_io.sub(current_site.the_url(locale: nil), '')).to_s if uploaded_io.include?(current_site.the_url(locale: nil)) # local file
       _tmp_name = uploaded_io.split("/").last.split('?').first; args[:name] = args[:name] || _tmp_name
-      uploaded_io = open(uploaded_io)
+      uploaded_io = URI(uploaded_io).open
     end
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
     return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(_tmp_name || uploaded_io.path, args[:formats])
