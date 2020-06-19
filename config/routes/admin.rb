@@ -141,7 +141,7 @@ Rails.application.routes.draw do
   scope PluginRoutes.system_info["relative_url_root"] do
     scope module: "camaleon_cms", as: "cama" do
       namespace :admin, path: PluginRoutes.system_info["admin_path_name"] do
-        get "*path" => 'admin#render_error', defaults: {error_msg: "Invalid route"}
+        get "*path" => :render_error, defaults: {error_msg: "Invalid route"}
       end
     end
   end
