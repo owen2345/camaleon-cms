@@ -1,5 +1,14 @@
 # Change Log
 
+## [2.5.3](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2020-07-02)
+- Russian locale additions and fixes
+- Fix deprecation warnings present in Ruby 2.7 and Rails 6.0
+- Fix admin error path
+- Process shortcodes when evaluating widgets
+- Add canonical option to seo
+- Theme template include i18n
+- Upgrade Bootstrap from 3.3.4 to 3.4.1
+
 ## [2.5.0](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2020-01-08)
 - feat: sprockets 4 support
 - feat: for sprockets 4, generate config manifest to precompile
