@@ -1,7 +1,8 @@
 source 'https://rubygems.org'
 
 gemspec
-gem 'rails', '6.0.0'
+gem 'rails', '~> 6.0.0'
+gem 'sassc', '!= 2.3.0' # this version segfaults
 gem 'selenium-webdriver'
 gem 'webdrivers'
 
