@@ -460,6 +460,8 @@ uk:
 ru:
   camaleon_cms:
     common:
+      profile: "Данные пользователя"
+      dashboard: "Панель управления"
       read_more: "Прочитать больше"
       submit: "Отправить"
       send: "Отправить"
@@ -480,17 +482,17 @@ ru:
       comment_reply: "Ответить"
       edit: "Редактировать"
 
-      recent_posts: "Недавние Посты"
+      recent_posts: "Недавние публикации"
 
 
       search_msg: "Результаты поиска для:"
-      search_not_found: "Search items were not found to list"
+      search_not_found: "Не найдено объектов поиска для отображения"
       category_list: "Список категорий"
-      post_tag_list: "Список тегов"
+      post_tag_list: "Список меток"
       sub_category_list: "Список подкатегорий"
-      content_list: "Список контентов: %s"
+      content_list: "Список содержимого: %s"
       visit: "Посетить"
-      no_contents_found: "Контенты не найдены"
+      no_contents_found: "Содержимого не найдено"
       no_results_found: "Результатов не найдено"
 
       author: "Автор"
@@ -500,8 +502,8 @@ ru:
       prev: "Предыдущий"
       current: "Текущий"
       search: "Поиск"
-      file_format_error: "Формат файла запрещен"
-      file_size_exceeded: "Превышен допустимый размер файла"
+      file_format_error: "Ошибка формата файла"
+      file_size_exceeded: "Превышение допустимого размера файла"
 
       notice: "Новости "
       share: "Поделиться"
@@ -768,7 +770,7 @@ zh-CN:
       notice: "新闻"
       share: "分享"
       share_facebook: "分享到 Facebook"
-      share_twitter: "分享到 Twitter"      
+      share_twitter: "分享到 Twitter"
       share_google_plus: "分享到 Google Plus"
       back_top: "返回顶部"
       total_followers_social: "社交网络上的关注者总数"
