@@ -240,7 +240,7 @@ module CamaleonCms::UploaderHelper
     return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(_tmp_name || uploaded_io.path, args[:formats])
     return {error: "#{ct("file_size_exceeded", default: "File size exceeded")} (#{number_to_human_size(args[:maximum])})"} if args[:maximum].present? && args[:maximum] < (uploaded_io.size rescue File.size(uploaded_io))
     name = args[:name] || uploaded_io&.original_filename || uploaded_io.path.split("/").last
-    name = "#{File.basename(name, File.extname(name)).tr(' :', '_')}#{File.extname(name)}"
+    name = "#{File.basename(name, File.extname(name)).parameterize}#{File.extname(name)}"
     path ||= uploader_verify_name(File.join(tmp_path, name))
     File.open(path, "wb"){|f| f.write(uploaded_io.read) } unless saved
     path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
