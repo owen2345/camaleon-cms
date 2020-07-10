@@ -160,7 +160,7 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
   # return: CustomFieldGroup object
   # kind: argument only for PostType model: (Post | Category | PostTag), default => Post. If kind = "" this will add group for all post_types
   def add_custom_field_group(values, kind = "Post")
-    values = values.with_indifferent_access
+    values = values.to_h.with_indifferent_access
     group = get_field_groups(kind).where(slug: values[:slug]).first
     unless group.present?
       site = _cama_get_field_site
