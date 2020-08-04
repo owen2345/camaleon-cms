@@ -1,0 +1,1 @@
+NonDigestAssets.whitelist += [/glyphicons*/]
