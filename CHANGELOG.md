@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.5.3.1](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2020-08-04)
+- Use non-digest-assets gem for using 3rd party assets (fix missing not found glyphicon fonts)
+
 ## [2.5.3](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2020-07-02)
 - Russian locale additions and fixes
 - Fix deprecation warnings present in Ruby 2.7 and Rails 6.0
