@@ -1,0 +1,66 @@
+# encoding: utf-8
+es:
+  camaleon_cms:
+    common:
+      read_more: "Leer Más"
+      submit: "Ingresar"
+      send: "Enviar"
+      login: "Ingresar"
+      logout: "Salir"
+      confirm: "Estas seguro?"
+      register: "Registrarse"
+      reload: 'Recargar'
+      clear_cache: 'Limpiar Caché'
+
+      comment_msg: "Tu debes estar logeado para comentar"
+      comment: "Comentario"
+      leave_comment: "Dejar un comentario"
+      comments: "Comentarios"
+      message: "Mensaje"
+      comment_new: "Nuevo Comentario"
+      comment_saved: "Su comentario se a guardado"
+      comment_error: "Ocurrió un error al enviar su comentario"
+      comment_reply: "Respuesta"
+      edit: "Editar"
+
+      recent_posts: "Artículos Recientes"
+
+
+      search_msg: "Resultados de búsqueda para: "
+      search_not_found: "Elementos de busqueda no se encontraron para listar"
+      category_list: "Lista de Categorías"
+      post_tag_list: "Lista de Etiquetas"
+      sub_category_list: "Lista de Sub Categorías"
+      content_list: "Lista de contenidos: %s"
+      visit: "Visitar"
+      no_contents_found: "No se encontraron contenidos"
+      no_results_found: "No se encontraron resultados"
+
+      author: "Autor"
+      site: "Sitio"
+      categories: "Categorías"
+      next: "Siguiente"
+      prev: "Anterior"
+      current: "Actual"
+      search: "Buscar"
+      file_format_error: "Formato de archivo no permitido"
+      file_size_exceeded: "Tamaño excedido"
+
+      notice: "Noticias de "
+      share: "Comparte en"
+      share_facebook: "Compartir en Facebook"
+      share_twitter: "Compartir en Twitter"
+      share_google_plus: "Compartir en Google Plus"
+      back_top: "Volver arriba"
+      total_followers_social: "Total de seguidores en redes sociales"
+      latest_articles: "Ultimos Articulos"
+      related_articles: 'Artículos Relacionados'
+      photo_gallery: "Galerías de fotos"
+      home_galleries: "Ir a la portada de galerias"
+      addition: "Ademas"
+      view_all_news: "Ver todas las noticias"
+      extra_attributes: "Otros Atributos"
+
+  will_paginate:
+    previous_label: 'Anterior'
+    next_label: 'Siguiente'

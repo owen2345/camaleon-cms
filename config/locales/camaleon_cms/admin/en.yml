@@ -1,3 +1,4 @@
+# encoding: utf-8
 en:
   camaleon_cms:
     captcha_placeholder: Please enter the text from the image
@@ -731,58 +732,6 @@ en:
         post_type: "In this module you can manage your content groups without programing anything."
         languages: "This module permits you to manage all languages for your site. Also you can configure the language for your admin panel."
         shortcodes: "In this section you can see all available shortcodes to use in your contents."
-      js:
-        msg:
-          save_new_image: Save New Image
-          draft: Saved draft success
-          updated_success: Updated Successfully
-          edit_menu: Place each item in the order you prefer. Click on the icon of a pencil to edit the item and click the icon in the form of x to delete the item.
-          delete_item: 'Really want to delete this item?'
-          remove_items_submenu: 'Really remove this item and its sub menu items?'
-          you_must_upload_image: You must upload an image
-          you_must_upload_video: You must upload an video
-          no_response_fields: No response fields
-          you_must_upload_json_file: You must upload an json file
-          no_templates_defined: No templates defined
-          avatar_updated: Updated Avatar
-          form_error: Form Error
-          option_title: Option Title
-          permalink: Permalink
-          pending: Pending
-          preview: Preview
-          spam: Spam
-          view_page: View Page
-          view_draft: View Draft
-          recover: Recovering...
-          processing: Processing...
-          type_contents: Type Contents
-          upload_image: Upload Image
-          confirm_del: 'Are you sure to delete this item?'
-          media_title: Media Uploader
-          label_required: Label Required
-          placeholder_required: Placeholder Required
-          replace_image: Replace Image
-          approved: Approved
-        button:
-          edit_image: Edit Image
-          accept: Accept
-          cancel: Cancel
-          delete: Delete
-          clone: Clone
-          close: Close
-          add_tag: Add Tag
-          settings: Settings
-          save: Save
-          submit: Submit
-          name: Name
-          size: Size
-          insert: Insert
-          url: URL
-          root: root
-          replace_image: Replace Image
-          save_new_image: Save New Image
-          auto_crop: Auto Crop
-          edit: Edit
 
     models:
       site:

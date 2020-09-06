@@ -1,0 +1,42 @@
+# encoding: utf-8
+nl:
+  camaleon_cms:
+    admin:
+      js:
+        msg:
+          approved: 'Goedgekeurd'
+          draft: 'Concept succesvol opgeslagen'
+          updated_success: 'Succesvol bijgewerkt'
+          edit_menu: 'Plaatst elk item in de gewenste volgorde. Klik op het icoontje van een potlood om het item te bewerken en klik op het icoon in de vorm van x om het item te verwijderen.'
+          delete_item: 'Wil je dit item echt verwijderen?'
+          remove_items_submenu: 'Wilt je dit item en alle submenu-items echt verwijden?'
+          you_must_upload_image: 'Je moet een afbeelding te uploaden'
+          you_must_upload_video: 'Je moet een video te uploaden'
+          no_response_fields: 'Geen reactie velden '
+          you_must_upload_json_file: 'Je moet een JSON bestand uploaden'
+          no_templates_defined: 'Geen sjablonen ingesteld'
+          avatar_updated: 'Avatar bijgewerkt'
+          form_error: 'Formulier fout'
+          option_title: 'Optie titel'
+          permalink: 'Permalink'
+          recover: 'Herstelts...'
+          type_contents: 'Type Inhoud'
+          confirm_del: "Wil je dit item echt verwijderen?"
+          media_title: 'Media Uploader'
+
+        button:
+          edit: "Bewerk"
+          accept: "Accepteer"
+          cancel: "Annuleer"
+          delete: "Verwijder"
+          clone: "Kopiëren"
+          add_tag: 'Tag toevoegen'
+          close: 'Sluiten'
+          settings: 'Instellingen'
+          save: "Opslaan"
+          submit: "Verstuur"
+          name: "Naam"
+          size: "Grootte"
+          insert: "Invoegen"
+          url: "URL"
+          root: "root"

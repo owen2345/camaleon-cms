@@ -1,0 +1,51 @@
+# encoding: utf-8
+de:
+  camaleon_cms:
+    admin:
+      js:
+        msg:
+          approved: 'Freigegeben'
+          draft: 'Entwurft erfolgreich gespeichert'
+          updated_success: 'Erfolgreich aktualisiert'
+          edit_menu: 'Sortiere die Menüelemente nach deinem Geschmack. Klicke auf den Stift um das Element zu bearbeiten. Klick auf das X um das Element zu löschen.'
+          delete_item: 'Willst du dieses Item wirklich löschen?'
+          remove_items_submenu: 'Willst du dieses Item mit all seinen Sub-Menü-Items löschen?'
+          you_must_upload_image: 'Du musst ein Bild hochladen'
+          you_must_upload_video: 'Du musst ein Video hochladen'
+          no_response_fields: 'Keine Antwortfelder '
+          you_must_upload_json_file: 'Du musst eine JSON-Datei hochladen'
+          no_templates_defined: 'Keine Templates definiert'
+          avatar_updated: 'Avatar aktualisiert'
+          form_error: 'Formularfehler'
+          option_title: 'Option Titel'
+          permalink: 'Permalink'
+          recover: 'Stelle wieder her...'
+          type_contents: 'Type Contents'
+          confirm_del: "Bist du sicher, dass dieses Item gelöscht werden soll?"
+          media_title: 'Media Uploader'
+          pending: 'Nicht freigegeben'
+          preview: 'Vorschau'
+          spam: 'Spam'
+          view_page: 'Seite ansehen'
+          view_draft: 'Entwurf ansehen'
+          processing: 'Bearbeite...'
+          upload_image: 'Bilder hochladen'
+
+        button:
+          edit: "Bearbeiten"
+          accept: "Akzeptieren"
+          cancel: "Abbrechen"
+          delete: "Löschen"
+          clone: "Klonen"
+          add_tag: 'Tag hinzufügen'
+          close: 'Schließen'
+          settings: 'Einstellungen'
+          save: "Speichern"
+          submit: "Absenden"
+          name: "Name"
+          size: "Größe"
+          insert: "Einfügen"
+          url: "URL"
+          root: "Hauptverzeichnis"
+          replace_image: 'Bild ersetzen'
+          save_new_image: 'Neues Bild speichern'

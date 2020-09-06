@@ -1,0 +1,63 @@
+# encoding: utf-8
+it:
+  camaleon_cms:
+    common:
+      read_more: "Leggi tutto"
+      submit: "Conferma"
+      send: "Invia"
+      login: "Login"
+      logout: "Logout"
+      confirm: "Confermi?"
+      register: "Registrazione"
+
+      comment_msg: "Devi essere loggato per poter commentare"
+      comment: "Commento"
+      comments: "Commenti"
+      message: "Messaggio"
+      leave_comment: "Lascia un commento"
+      comment_new: "Nuovo Commento"
+      comment_saved: "Il tuo commento è stato salvato"
+      comment_error: "C'è stato un errore durante il salvataggio del commento"
+      comment_reply: "Rispondi"
+      edit: "Modifica"
+
+      recent_posts: "Articoli recenti"
+
+
+      search_msg: "Risultati della ricerca per:"
+      search_not_found: "Nessun risultato trovato"
+      category_list: "Lista categorie"
+      post_tag_list: "Lista tag"
+      sub_category_list: "Lista sottocategorie"
+      content_list: "Lista Contenuti: %s"
+      visit: "Visita"
+      no_contents_found: "Nessun contenuto trovato"
+      no_results_found: "Nessun risultato trovato"
+
+      author: "Autore"
+      site: "Sito"
+      categories: "Categorie"
+      next: "Successivo"
+      prev: "Precedente"
+      current: "Corrente"
+      search: "Cerca"
+      file_format_error: "Formato file non accettato"
+      file_size_exceeded: "File troppo grande"
+
+      notice: "News"
+      share: "Condividi su"
+      share_facebook: "Condividi su Facebook"
+      share_twitter: "Condividi su Twitter"
+      share_google_plus: "Condividi su Google Plus"
+      back_top: "Torna su"
+      total_followers_social: "Follower totali sui social network"
+      latest_articles: "Ultimi articoli"
+      photo_gallery: "Galleria foto"
+      home_galleries: "Vai alla home delle gallerie"
+      addition: "Aggiungi"
+      view_all_news: "Vedi tutte le news"
+      extra_attributes: "Attributi extra"
+
+  will_paginate:
+    previous_label: 'Precedente'
+    next_label: 'Successivo'

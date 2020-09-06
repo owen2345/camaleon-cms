@@ -1,0 +1,66 @@
+# encoding: utf-8
+de:
+  camaleon_cms:
+    common:
+      profile: "Profil"
+      dashboard: "Dashboard"
+      read_more: "Mehr lesen"
+      submit: "Absenden"
+      send: "Senden"
+      login: "Login"
+      logout: "Logout"
+      confirm: "Bist du sicher?"
+      register: "Registrieren"
+      proceted_article: 'Geschützter Artikel'
+
+      comment_msg: "Du musst eingeloggt sein, um kommentieren zu können"
+      comment: "Kommentar"
+      comments: "Kommentare"
+      message: "Nachricht"
+      leave_comment: "Schreibe einen Kommentar"
+      comment_new: "Neuer Kommentar"
+      comment_saved: "Dein Kommentar wurde gespeichert"
+      comment_error: "Es gab einen Fehler beim Speichern des Kommentars"
+      comment_reply: "Antworten"
+      edit: "Bearbeiten"
+
+      recent_posts: "Neuste Posts"
+
+
+      search_msg: "Suchergebnisse für:"
+      search_not_found: "Die Suche ergab keine Treffer"
+      category_list: "Kategorieliste"
+      post_tag_list: "Tag-Liste"
+      sub_category_list: "Unterkategorieliste"
+      content_list: "Content-Liste: %s"
+      visit: "Besuchen"
+      no_contents_found: "Keine Inhalte gefunden"
+      no_results_found: "Keine Ergebnisse"
+
+      author: "Autor"
+      site: "Seite"
+      categories: "Kategorien"
+      next: "Nächste"
+      prev: "Vorherige"
+      current: "Aktuell"
+      search: "Suche"
+      file_format_error: "Dateiformat nicht erlaubt"
+      file_size_exceeded: "Dateigröße überschritten"
+
+      notice: "Nachrichten "
+      share: "Teilen auf"
+      share_facebook: "Teilen auf Facebook"
+      share_twitter: "Teilen auf Twitter"
+      share_google_plus: "Teilen auf Google Plus"
+      back_top: "Zum Anfang"
+      total_followers_social: "Follower in Sozialen Netzwerken"
+      latest_articles: "Neuste Artikel"
+      photo_gallery: "Fotogallerie"
+      home_galleries: "Zur Galleriestartseite"
+      addition: "Addition"
+      view_all_news: "All Neuigkeiten sehen"
+      extra_attributes: "Extra-Attribute"
+
+  will_paginate:
+    previous_label: 'Vorherige'
+    next_label: 'Nächste'

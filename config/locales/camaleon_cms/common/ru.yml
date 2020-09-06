@@ -1,0 +1,66 @@
+# encoding: utf-8
+ru:
+  camaleon_cms:
+    common:
+      profile: "Данные пользователя"
+      dashboard: "Панель управления"
+      read_more: "Прочитать больше"
+      submit: "Отправить"
+      send: "Отправить"
+      login: "Вход"
+      logout: "Выход"
+      confirm: "Вы подтверждаете?"
+      register: "Зарегистрироваться"
+      proceted_article: 'Защищенная статья'
+
+      comment_msg: "Вам нужно войти чтобы оставить комментарий"
+      comment: "Комментарий"
+      comments: "Комментарии"
+      message: "Сообщение"
+      leave_comment: "Оставить комментарий"
+      comment_new: "Новый комментарий"
+      comment_saved: "Ваш комментарий был сохранен"
+      comment_error: "Произошла ошибка при сохранении комментария"
+      comment_reply: "Ответить"
+      edit: "Редактировать"
+
+      recent_posts: "Недавние публикации"
+
+
+      search_msg: "Результаты поиска для:"
+      search_not_found: "Не найдено объектов поиска для отображения"
+      category_list: "Список категорий"
+      post_tag_list: "Список меток"
+      sub_category_list: "Список подкатегорий"
+      content_list: "Список содержимого: %s"
+      visit: "Посетить"
+      no_contents_found: "Содержимого не найдено"
+      no_results_found: "Результатов не найдено"
+
+      author: "Автор"
+      site: "Сайт"
+      categories: "Категории"
+      next: "Следующий"
+      prev: "Предыдущий"
+      current: "Текущий"
+      search: "Поиск"
+      file_format_error: "Ошибка формата файла"
+      file_size_exceeded: "Превышение допустимого размера файла"
+
+      notice: "Новости "
+      share: "Поделиться"
+      share_facebook: "Поделиться Facebook"
+      share_twitter: "Поделиться Twitter"
+      share_google_plus: "Поделиться Google Plus"
+      back_top: "Вернуться к началу"
+      total_followers_social: "Всего последователей в социальных сетях"
+      latest_articles: "Последние статьи"
+      photo_gallery: "Фотогалерея"
+      home_galleries: "Перейти на главную галерею"
+      addition: "Дополнение"
+      view_all_news: "Смотреть все новости"
+      extra_attributes: "Дополнительные атрибуты"
+
+  will_paginate:
+    previous_label: 'Предыдущий'
+    next_label: 'Следующий'
