@@ -138,6 +138,7 @@ en:
   camaleon_cms:
     common:
       profile: "Profile"
+      related_articles: "Related Articles"
       dashboard: "Dashboard"
       read_more: "Read More"
       submit: "Submit"
@@ -146,7 +147,7 @@ en:
       logout: "Logout"
       confirm: "Are you sure?"
       register: "Register"
-      proceted_article: 'Protected article'
+      proceted_article: "Protected article"
 
       comment_msg: "You must be logged in to post a comment"
       comment: "Comment"
@@ -195,6 +196,8 @@ en:
       addition: "Addition"
       view_all_news: "View all news"
       extra_attributes: "Extra Attributes"
+      reload: "Reload"
+      clear_cache: "Clear Cache"
 
   will_paginate:
     previous_label: 'Previous'
