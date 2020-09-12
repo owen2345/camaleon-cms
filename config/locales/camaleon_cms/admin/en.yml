@@ -361,7 +361,7 @@ en:
         upgrade_to: "Upgrade to"
       settings:
         activate_create_account: 'Activate Create Account'
-        file_actions_in_modals: File Actions in Modals
+        file_actions_in_modals: Show File Actions in Modals
         activate_login_social_networks: 'Activate Login Social Networks'
         add_field_group: 'Add Field Group'
         admin_language: 'Admin language'
@@ -394,6 +394,7 @@ en:
         email_pass: "User Password"
         email_from: "Email From"
         email_cc: "Email CC"
+        post_tags_in: Post Tags In
         twitter_card: "Twitter Card"
         author: "Author Name"
         seo_setting: "Seo Settings"
@@ -447,6 +448,7 @@ en:
           add_custom_field_categories: 'Add Custom Field in Categories of '
           add_custom_field_users: 'Add Custom Field in Users '
           add_custom_field_sites: 'Add Custom Field in Site '
+          add_custom_field_tags: 'Add Custom Field in Post Tags of '
           add_custom_field_themes: 'Add Custom Field in Theme '
           add_custom_field_widget: 'Add Custom Field in Widget '
         untitled: 'Untitled'
