@@ -1,0 +1,8 @@
+# encoding: utf-8
+md:
+  routes:
+    group: grupul
+    category: categoria
+    tag: marcaj
+    search: căutare
+    profile: profil
