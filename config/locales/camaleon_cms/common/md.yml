@@ -1,0 +1,60 @@
+md:
+  camaleon_cms:
+    common:
+      profile: Profil
+      dashboard: Panel de bord
+      read_more: Citește mai departe
+      submit: Depune
+      send: Expediază
+      login: Întrare
+      logout: Ieșire
+      confirm: 'Sunteți sigur?'
+      register: Înregistrare
+      proceted_article: Articol protejat
+
+      comment_msg: Pentru a publica un comentariu, trebuie să intrați
+      comment: Comentariu
+      comments: Comentarii
+      message: Messaj
+      leave_comment: Lăsați un comentariu
+      comment_new: Comentariu nou
+      comment_saved: Comentariul d-voastră a fost păstrat
+      comment_error: La păstrarea comentariului a avut loc o eroare
+      comment_reply: Răspuns
+      edit: Redactare
+
+      recent_posts: Publicări recente
+
+      search_msg: 'Caută rezultate pentru:'
+      search_not_found: Nu au fost găsite elemente căutate pentru enumerare
+      category_list: Listă categorii
+      post_tag_list: Lista marcajelor
+      sub_category_list: Listă subcategorii
+      content_list: "Listă conținut: %s"
+      visit: Vizitare
+      no_contents_found: Nici un conținut găsit
+      no_results_found: Nici un rezultat găsit
+
+      author: Autor
+      site: Site
+      categories: Categorii
+      next: Următor
+      prev: Precedent
+      current: Curent
+      search: Căutare
+      file_format_error: Formatul fișierului greșit
+      file_size_exceeded: Depașirea dimensiunii fișierului
+
+      notice: 'Știri '
+      share: Distribuie pe
+      share_facebook: Distribuie pe Facebook
+      share_twitter: Distribuie pe Twitter
+      share_google_plus: Distribuie pe Google Plus
+      back_top: Înapoi sus
+      total_followers_social: Total adepți în rețele de socializare
+      latest_articles: Ultimile articole
+      photo_gallery: Galerie photo
+      home_galleries: Gazda galeriilor
+      addition: Adăugire
+      view_all_news: Vezi toate știrile
+      extra_attributes: Atribute suplimentare
