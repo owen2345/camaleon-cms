@@ -1,0 +1,51 @@
+# encoding: utf-8
+uk:
+  camaleon_cms:
+    admin:
+      js:
+        msg:
+          approved: 'Затверджено'
+          draft: 'Ескіз збережено'
+          updated_success: 'Успішно оновлено'
+          edit_menu: 'Розмістіть кожен елемент у порядку, якому ви віддаєте перевагу. Натисніть на значок олівця, щоб відредагувати елемент і натисніть значок у формі х, щоб видалити елемент.'
+          delete_item: 'Дійсно хочете видалити цей елемент?'
+          remove_items_submenu: 'Дійсно видалити цей елемент та його підменю?'
+          you_must_upload_image: 'Вам потрібно завантажити зображення'
+          you_must_upload_video: 'Вам потрібно завантажити відео'
+          no_response_fields: 'Немає відповіді '
+          you_must_upload_json_file: 'Вам потрібно завантажити файл у форматі json'
+          no_templates_defined: 'Не визначено шаблонів'
+          avatar_updated: 'Аватар оновлено'
+          form_error: 'Помилка форми'
+          option_title: 'Назва опції'
+          permalink: 'Постійне посилання'
+          recover: 'Відновлення...'
+          type_contents: 'Тип вмісту'
+          confirm_del: "Ви впевнені, що чочете видалити цей елемент?"
+          media_title: 'Медіа-завантажувач'
+          pending: 'Очікує'
+          preview: 'Перегляд'
+          spam: 'Спам'
+          view_page: 'Переглянути сторінку'
+          view_draft: 'Переглянути ескіз'
+          processing: 'Обробка...'
+          upload_image: 'Завантажити'
+
+        button:
+          edit: "Редагувати"
+          accept: "Прийняти"
+          cancel: "Скасувати"
+          delete: "Видалити"
+          clone: "Клонувати"
+          add_tag: 'Додати тег'
+          close: 'Закрити'
+          settings: 'Налаштування'
+          save: "Зберегти"
+          submit: "Відправити"
+          name: "Імʼя"
+          size: "Розмір"
+          insert: "Вставити"
+          url: "URL"
+          root: "корінь"
+          replace_image: 'Замінити зображення'
+          save_new_image: 'Зберегти нове зображення'

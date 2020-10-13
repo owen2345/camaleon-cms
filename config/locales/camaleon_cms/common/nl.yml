@@ -1,0 +1,64 @@
+# encoding: utf-8
+nl:
+  camaleon_cms:
+    common:
+      read_more: "Lees meer"
+      submit: "Verstuur"
+      send: "Verstuur"
+      login: "Login"
+      logout: "Uitloggen"
+      confirm: "Weet je het zeker?"
+      register: "Registreer"
+      proceted_article: 'Beveiligd artikel'
+
+      comment_msg: "Je moet inglogd zijn om een reactie te plaatsen"
+      comment: "Reactie"
+      comments: "Reacties"
+      message: "Message"
+      leave_comment: "Laat een reactie achter"
+      comment_new: "Nieuwe Reactie"
+      comment_saved: "Je reactie is opgeslagen"
+      comment_error: "Er heeft zich een fout voorgedaan bij het opslaan van je reactie"
+      comment_reply: "Antwoord"
+      edit: "Bewerk"
+
+      recent_posts: "Recente Berichten"
+
+
+      search_msg: "Zoekresultaten voor:"
+      search_not_found: "Er zijn geen zoekresultaten gevonden"
+      category_list: "categorieën Overzicht"
+      post_tag_list: "Tag Overzicht"
+      sub_category_list: "subcategorieën Overzicht"
+      content_list: "Inhoud Overzicht: %s"
+      visit: "Bezoek"
+      no_contents_found: "Geen inhoud gevonden"
+      no_results_found: "Geen resultaten gevonden"
+
+      author: "Auteur"
+      site: "Site"
+      categories: "Categorieën"
+      next: "Volgende"
+      prev: "Vorige"
+      current: "Huidig"
+      search: "Zoeken"
+      file_format_error: "Bestandstype niet toegstaan"
+      file_size_exceeded: "Bestandsgroote overschreden"
+
+      notice: "Nieuws "
+      share: "Delen op"
+      share_facebook: "Deel op Facebook"
+      share_twitter: "Deel op Twitter"
+      share_google_plus: "Deel op Google+"
+      back_top: "Terug naar boven"
+      total_followers_social: "Totaal aantal volgers op sociale media"
+      latest_articles: "Laatste Berichten"
+      photo_gallery: "Fotogallerij"
+      home_galleries: "Naar hetfotogallerijen overzicht"
+      addition: "Toevoeging"
+      view_all_news: "Al het nieuws bekijken"
+      extra_attributes: "Extra Attributen"
+
+  will_paginate:
+    previous_label: 'Vorige'
+    next_label: 'Volgende'

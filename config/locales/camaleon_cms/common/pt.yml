@@ -1,0 +1,65 @@
+# encoding: utf-8
+pt:
+  camaleon_cms:
+    common:
+      profile: "Perfil"
+      dashboard: "Página Inicial"
+      read_more: "Ler Mais"
+      submit: "Submeter"
+      send: "Enviar"
+      login: "Login"
+      logout: "Sair"
+      confirm: "Tem certeza?"
+      register: "Registar"
+      proceted_article: 'Artigo Protegido'
+
+      comment_msg: "Deverá fazer login para poder comentar"
+      comment: "Comentário"
+      comments: "Comentários"
+      message: "Mensagem"
+      leave_comment: "Deixar um comentário"
+      comment_new: "Novo comentário"
+      comment_saved: "Seu comentário foi salvo"
+      comment_error: "Ocorreu um erro ao tentar gravar o comentário"
+      comment_reply: "Responder"
+      edit: "Editar"
+
+      recent_posts: "Publicações Recentes"
+
+      search_msg: "Procurar Resultados para:"
+      search_not_found: "A busca não encontrou nenhum resultado"
+      category_list: "Listagem de Categorias"
+      post_tag_list: "Lista de Tags"
+      sub_category_list: "Lista de Sub Categorias"
+      content_list: "Lista de Conteúdo: %s"
+      visit: "Visitar"
+      no_contents_found: "Nenhum conteúdo encontrado"
+      no_results_found: "Nenhum resultado encontrado"
+
+      author: "Autor"
+      site: "Sítio"
+      categories: "Categorias"
+      next: "Próximo"
+      prev: "Anterior"
+      current: "Atual"
+      search: "Procurar"
+      file_format_error: "Formato de arquivo não permitido"
+      file_size_exceeded: "Tamanho do arquivo excedeu o limite"
+
+      notice: "Novidades "
+      share: "Partilhar em"
+      share_facebook: "Partilhar no Facebook"
+      share_twitter: "Partilhar no Twitter"
+      share_google_plus: "Partilhar no Google Plus"
+      back_top: "Voltar para o topo"
+      total_followers_social: "Total de seguidores nas redes sociais"
+      latest_articles: "Últimos Artigos"
+      photo_gallery: "Galeria de Fotos"
+      home_galleries: "Ir para a página principal das Categorias"
+      addition: "Adição"
+      view_all_news: "Ver todas as notícias"
+      extra_attributes: "Atributos Extra"
+
+  will_paginate:
+    previous_label: 'Anterior'
+    next_label: 'Seguinte'

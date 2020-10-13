@@ -1,16 +1,20 @@
+# encoding: utf-8
 en:
   camaleon_cms:
+    captcha_placeholder: Please enter the text from the image
     see_intro: "See intro"
     welcome_message: "Welcome to Camaleon CMS"
     page_not_exist: "<h1>ooops...</h1><h5>The page you're looking for does not exist.</h5>"
     page_error_500: "<h1>ooops...</h1><h5>Error 500 Internal Server Error. Please contact to the administrator.</h5>"
+    errors_found_msg: Several errors were found, please check.
     admin:
-      request_error_message: "An error occurred, please contact to the administrator."
+      request_error_message: "An error occurred, please contact the administrator."
       authorization_error: "You don't have authorization for this section."
       header:
         member_since: "Member since %{time}"
       button:
         activity: 'Activity'
+        add_new_group: Add New Group
         add_new_field: 'Add new field'
         add_option: 'Add option'
         add_menu: 'Add to Menu'
@@ -86,7 +90,6 @@ en:
           spam: 'Spam'
           there_no_comments: 'There are no comments.'
           updated: 'The comment has been updated.'
-
         tooltip:
           approved_comment: 'Approve Comment'
           comment_pending: 'Comment To Pending'
@@ -94,12 +97,14 @@ en:
           reply_comment: 'Reply Comment'
           delete_comment: 'Delete Comment'
       custom_field:
+        custom_group_support_multiple: Support multiple groups
         message:
           custom_group_error: 'Error custom field group'
           custom_created: 'The custom field group has been created.'
           custom_updated: 'The custom field group has been updated.'
         fields:
           text_box: 'Text Box'
+          private_file: Private File
           text_area: 'Text Area'
           select: 'Select'
           colorpicker: 'Colorpicker'
@@ -122,8 +127,30 @@ en:
           field_attrs: 'Field Attributes'
           website: 'Website'
           multiple_choice: 'Radio Button'
-
-
+          video: Video
+          audio: Audio
+          editor: Editor
+          radio: Radio
+          checkbox: Check Box
+          checkboxes: Check Boxes
+          url: URL
+      appearances:
+        nav_menus:
+          menu_items:
+            edit_menu_item: Edit Menu Item
+            edit_custom_settings: Edit Custom Settings
+          update:
+            updated_menu: The menu was updated
+          create:
+            created_menu: The menu was created
+          destroy:
+            deleted_menu: The menu was deleted
+          menu_options:
+            edit_menu: Edit Menu
+            delete_menu: Delete Menu
+            create_menu: Create Menu
+          external_menu:
+            root_alert_info: 'You can use <b> root_url </b> as initial url'
       login:
         already_have_account: 'Already have account?'
         authentication: 'Authentication'
@@ -186,6 +213,7 @@ en:
         clear_cache: 'Clear Cache'
         name_required: 'File name is required'
       menus:
+        menus: Menus
         link_url: 'Link URL'
         target: 'Target'
         targets:
@@ -233,6 +261,7 @@ en:
         no_templates_defined: 'No templates defined'
         avatar_updated: 'Updated Avatar'
         form_error: 'Form Error'
+        was_removed.: was removed
       page_title:
         page_title: 'Page Title'
         create: 'Create'
@@ -248,6 +277,7 @@ en:
         add_tag: 'Add a Tag'
         clone: 'Clone'
         clone_content: 'Clone content'
+        is_featured: 'Is Featured?'
         label_required: 'Required Label'
         placeholder_required: 'Required Placeholder'
         message:
@@ -308,6 +338,7 @@ en:
         trash: 'Trash'
         tooltip:
           permission_asing_categories: 'Permit to manage your post contents by categories'
+          permission_to_support_parent_structure: Permission to Support Parent Structure
           permission_add_tags: 'Enable the field to enter tags in post content'
           permission_add_content: 'Enable the editor to enter the post content'
           permission_add_content_summary: 'Enable the field to enter the post summary'
@@ -330,6 +361,7 @@ en:
         upgrade_to: "Upgrade to"
       settings:
         activate_create_account: 'Activate Create Account'
+        file_actions_in_modals: Show File Actions in Modals
         activate_login_social_networks: 'Activate Login Social Networks'
         add_field_group: 'Add Field Group'
         admin_language: 'Admin language'
@@ -349,7 +381,7 @@ en:
         input_only_date: 'Input only the date'
         input_date_time: 'Input date and time'
         languages_configuration: 'Languages configuration'
-        list_custom_fields_group: 'List  Custom Fields Group'
+        list_custom_fields_group: List Custom Fields Group
         list_sites: 'List Sites'
         login_twitter: 'Twitter'
         login_facebook: 'Facebook'
@@ -362,6 +394,7 @@ en:
         email_pass: "User Password"
         email_from: "Email From"
         email_cc: "Email CC"
+        post_tags_in: Post Tags In
         twitter_card: "Twitter Card"
         author: "Author Name"
         seo_setting: "Seo Settings"
@@ -380,6 +413,9 @@ en:
         message:
           language_updated: 'Your languages was configured.'
           site_updated: 'The site has been updated.'
+        comment_anonymous: Allow anonymous comments
+        aws: 'Save Files in AWS S3'
+        filesystem_settings: Filesystem Settings
         new_custom_field_group: 'New Custom Field Group'
         options_select: 'Options select'
         option_title: 'Option Title'
@@ -395,11 +431,24 @@ en:
         posts_in: 'Posts in'
         in_post_type_settings_of: 'In Post Type settings of'
         settings: 'Settings'
+        media_settings: Multimedia Settings
+        filesystem_max_file_size: 'Max. Upload Size [MB]'
+        filesystem_thumb_size: 'Thumbnail size [100x100]'
+        filesystem_s3_cloudfront: Cloudfront URL
+        custom_fields_show_shortcodes: 'Show shortcodes for custom fields?'
+        enable_captcha_for_comments: 'Activate captcha in public comments?'
+        configuration_settings:
+          maintenance_page: Page to show in maintenance mode
+          inactive_page: Page to display for inactive site
+          status: Site Status
+          default_page: Default page
+          maintenance_ips: Maintenance IPs (Separated by commas)
         tooltip:
           add_custom_field_posts: 'Add Custom Field in Posts of '
           add_custom_field_categories: 'Add Custom Field in Categories of '
           add_custom_field_users: 'Add Custom Field in Users '
           add_custom_field_sites: 'Add Custom Field in Site '
+          add_custom_field_tags: 'Add Custom Field in Post Tags of '
           add_custom_field_themes: 'Add Custom Field in Theme '
           add_custom_field_widget: 'Add Custom Field in Widget '
         untitled: 'Untitled'
@@ -549,6 +598,9 @@ en:
         more_actions: 'More actions'
         more_actions_info: 'More actions...'
         shorcodes: "Shortcodes"
+        manage_parent_structure: Manage Parent Structure
+        manage_single_category: Manage a single category
+        permit_is_featured: Allow Featured Articles
       themes:
         footer_copyright: 'Footer Copyright'
         theme_select: 'Select Theme'
@@ -568,21 +620,24 @@ en:
         edit_profile: 'Edit Profile'
         list_users: 'List Users'
         list_user_roles: 'User Roles'
+        post_types: Post Types
         message:
-         error: 'Not found user.'
-         error_captcha: 'Oh! Its error with CAPTCHA!'
-         created: 'The user has been created.'
-         updated: 'The user has been updated.'
-         deleted: 'The user has been deleted.'
-         incorrect_old_password: 'Incorrect old password'
-         rol_error: 'Not found group user.'
-         rol_created: 'The user role has been created.'
-         rol_updated: 'The user role has been updated.'
-         rol_deleted: 'The user role has been deleted.'
-         requires_different_name: 'Requires different name'
-         requires_different_username: 'Requires different username'
-         requires_different_email: 'Requires different email'
-         created_pending_validate_email: "The user has been created, please confirm your email"
+          error: 'Not found user.'
+          error_captcha: 'Oh! Its error with CAPTCHA!'
+          created: 'The user has been created.'
+          updated: 'The user has been updated.'
+          deleted: 'The user has been deleted.'
+          incorrect_old_password: 'Incorrect old password'
+          rol_error: 'Not found group user.'
+          rol_created: 'The user role has been created.'
+          rol_updated: 'The user role has been updated.'
+          rol_deleted: 'The user role has been deleted.'
+          requires_different_name: 'Requires different name'
+          requires_different_username: 'Requires different username'
+          requires_different_email: 'Requires different email'
+          created_pending_validate_email: "The user has been created, please confirm your email"
+          role_can_not_be_deleted: Role can not be deleted
+          user_can_not_delete_own_account: You cannot delete your own account
         new_photo: 'New Photo'
         others_permissions: 'Others permissions'
         profile: 'Profile'
@@ -595,7 +650,7 @@ en:
           media: 'Media'
           publish: 'Publish'
           themes: 'Themes'
-          html_create_or_edit: 'Create<br>or  Edit'
+          html_create_or_edit: 'Create<br>or Edit'
           html_edit_other: 'Edit <br> Other'
           html_edit_publish: 'Edit <br> Publish'
           html_delete_other: 'Delete <br> Other'
@@ -664,7 +719,6 @@ en:
       intro:
         profile: "In this place you can see your profile options."
         content: "This block contains all content groups of your site. Each content can have different structure configured in settings => Content Groups"
-        #dashboard: "In this section you can see "
         media: "This section manages all your public media files."
         comments: "This section manages all the comments of your contents."
         appearance: "Manage all the information related to Public Interface."
@@ -680,3 +734,10 @@ en:
         post_type: "In this module you can manage your content groups without programing anything."
         languages: "This module permits you to manage all languages for your site. Also you can configure the language for your admin panel."
         shortcodes: "In this section you can see all available shortcodes to use in your contents."
+
+    models:
+      site:
+        status_options:
+          active: Active
+          inactive: Inactive
+          maintenance: In maintenance

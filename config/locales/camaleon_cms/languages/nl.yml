@@ -1,0 +1,15 @@
+# encoding: utf-8
+nl:
+  languages:
+    ar: "Arabisch"
+    es: "Spaans"
+    en: "Engels"
+    fr: "Frans"
+    zh-CN: "Chinees"
+    de: "Duits"
+    pt: "Portugees (Portugal)"
+    pt-BR: "Portugees (Brazilië)"
+    it: "Italiaans"
+    uk: "Oekraïense"
+    ru: "Russisch"
+    nl: "Nederlands"

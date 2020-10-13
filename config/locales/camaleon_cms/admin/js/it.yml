@@ -1,0 +1,44 @@
+# encoding: utf-8
+it:
+  camaleon_cms:
+    admin:
+      js:
+        msg:
+          approved: 'Approvato'
+          draft: 'Bozza salvata'
+          label_required: "ergoineroinregfoin"
+          placeholder_required: "rofmfvopfrmpvo"
+          updated_success: 'Aggiornato'
+          edit_menu: "Posiziona ogni elemento nell'ordine preferito. Clicca sull'icona della matita per modificarlo e sulla x per cancellarlo"
+          delete_item: 'Vuoi davvero eliminare questo oggetto?'
+          remove_items_submenu: 'Vuoi rimuovere questo oggetto e i suoi sotto menù?'
+          you_must_upload_image: "Devi caricare un'immagine"
+          you_must_upload_video: 'Devi caricare un video'
+          no_response_fields: 'Nessuna replica'
+          you_must_upload_json_file: 'Devi caricare un file JSON'
+          no_templates_defined: 'Nessun template definito'
+          avatar_updated: 'Aggiorna Avatar'
+          form_error: 'Errore nel form'
+          option_title: 'Opzioni titolo'
+          permalink: 'Permalink'
+          pending: 'In attesa'
+          preview: 'Anteprima'
+          spam: 'Spam'
+          view_page: 'Vedi pagina'
+          view_draft: 'Vedi Bozza'
+          recover: 'Ripristino...'
+          processing: 'Caricamento...'
+          type_contents: 'Type Contents'
+          upload_image: 'Carica Immagine'
+          confirm_del: "Sei sicuro di voler eliminare l'articolo?"
+        button:
+          edit: "Edit"
+          accept: "Accept"
+          cancel: "Cancel"
+          delete: "Delete"
+          clone: "Duplicare"
+          add_tag: 'Aggiungi Tag'
+          close: 'Chiudi'
+          settings: 'Impostazioni'
+          save: "Salvare"
+          submit: "Presentare"
