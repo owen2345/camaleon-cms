@@ -1,18 +1,23 @@
 unless PluginRoutes.static_system_info['user_model'].present?
-  class CamaleonCms::User < ActiveRecord::Base
-    include CamaleonCms::UserMethods
-    self.table_name = PluginRoutes.static_system_info["cama_users_db_table"] || "#{PluginRoutes.static_system_info["db_prefix"]}users"
-    default_scope {order(role: :asc)}
-    validates :username, :presence => true
-    validates :email, :presence => true, :format => { :with => /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i } #, :unless => Proc.new { |a| a.auth_social.present? }
-    has_secure_password
+  module CamaleonCms
+    class User < ActiveRecord::Base
+      include CamaleonCms::UserMethods
 
-    def self.find_by_email(email)
-      where(['lower(email) = ?', email.to_s.downcase]).take
-    end
+      self.table_name = PluginRoutes.static_system_info['cama_users_db_table'] || "#{PluginRoutes.static_system_info['db_prefix']}users"
 
-    def self.find_by_username(username)
-      where(['lower(username) = ?', username.to_s.downcase]).take
+      default_scope { order(role: :asc) }
+
+      validates :username, presence: true
+      validates :email, presence: true, format: { with: /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i } #, :unless => Proc.new { |a| a.auth_social.present? }
+      has_secure_password
+
+      def self.find_by_email(email)
+        where(['lower(email) = ?', email.to_s.downcase]).take
+      end
+
+      def self.find_by_username(username)
+        where(['lower(username) = ?', username.to_s.downcase]).take
+      end
     end
   end
 end
