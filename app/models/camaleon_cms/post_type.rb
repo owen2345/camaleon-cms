@@ -8,7 +8,7 @@ module CamaleonCms
     has_many :posts, foreign_key: :taxonomy_id, dependent: :destroy, inverse_of: :post_type
     has_many :comments, through: :posts
     has_many :posts_through_categories, foreign_key: :objectid, through: :term_relationships, source: :object
-    has_many :posts_draft, class_name: 'CamaleonCms::Post', foreign_key: :taxonomy_id, dependent: :destroy, source: :drafts, inverse_of: :post_type
+    has_many :posts_draft, class_name: 'CamaleonCms::Post', foreign_key: :taxonomy_id, dependent: :destroy, inverse_of: :post_type
     has_many :field_group_taxonomy, -> {where('object_class LIKE ?', 'PostType_%')}, class_name: 'CamaleonCms::CustomField', foreign_key: :objectid, dependent: :destroy
 
     belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id
