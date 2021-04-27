@@ -1,0 +1,66 @@
+# encoding: utf-8
+fr:
+  camaleon_cms:
+    common:
+      profile: "Profil"
+      dashboard: "Tableau de bord"
+      read_more: "En savoir plus"
+      submit: "Soumettre"
+      send: "Envoyer"
+      login: "Connexion"
+      logout: "Déconnexion"
+      confirm: "Êtes-vous sûr?"
+      register: "Enregistrer"
+      proceted_article: 'Article protégé'
+
+      comment_msg: "Vous devez être connecté pour publier un commentaire"
+      comment: "Commentaire"
+      comments: "Commentaires"
+      message: "Message"
+      leave_comment: "Laisser un commentaire"
+      comment_new: "Nouveau commentaire"
+      comment_saved: "Votre commentaire est enregistré"
+      comment_error: "Une erreur est survenue lors de l'enregistrement du commentaire"
+      comment_reply: "Répondre"
+      edit: "Editer"
+
+      recent_posts: "Posts récents"
+
+
+      search_msg: "Chercher des résultats pour:"
+      search_not_found: "Aucun résultat ne correspond aux critères de recherche."
+      category_list: "Liste des catégories"
+      post_tag_list: "Liste des tags"
+      sub_category_list: "Liste des sous-catégories"
+      content_list: "Liste de contenu : %s"
+      visit: "Visite"
+      no_contents_found: "Aucun contenu trouvé"
+      no_results_found: "Aucun résultat trouvé"
+
+      author: "Auteur"
+      site: "Site"
+      categories: "Catégories"
+      next: "Suivant"
+      prev: "Précédent"
+      current: "Courant"
+      search: "Rechercher"
+      file_format_error: "Format de fichier invalide"
+      file_size_exceeded: "Taille du fichier excessive"
+
+      notice: "Nouvelles "
+      share: "Partager sur"
+      share_facebook: "Partage sur Facebook"
+      share_twitter: "Partager sur Twitter"
+      share_google_plus: "Partager sur Google Plus"
+      back_top: "Retour en haut"
+      total_followers_social: "Total de followers sur les réseaux sociaux"
+      latest_articles: "Derniers articles"
+      photo_gallery: "Galerie photo"
+      home_galleries: "Aller à l'accueil des galeries"
+      addition: "Addition"
+      view_all_news: "Voir toutes les nouvelles"
+      extra_attributes: "Attributs extras"
+
+  will_paginate:
+    previous_label: 'Précédent'
+    next_label: 'Suivant'

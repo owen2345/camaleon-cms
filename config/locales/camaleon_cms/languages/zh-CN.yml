@@ -1,0 +1,16 @@
+# encoding: utf-8
+zh-CN:
+  languages:
+    ar: "阿拉伯语"
+    es: "西班牙语"
+    en: "英语"
+    fr: "法语"
+    zh-CN: "中文"
+    de: "德语"
+    md: "摩尔达维亚人"
+    pt: "葡萄牙"
+    pt-BR: "巴西"
+    it: "意大利语"
+    uk: "乌克兰语"
+    ru: "俄语"
+    nl: "荷兰语"

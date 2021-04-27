@@ -6,6 +6,6 @@
     <% if (r = widget.renderer).present? %>
         <%= render partial: r, locals: {attributes: attributes } %>
     <% else %>
-        <%= raw widget[:description].translate %>
+        <%= raw do_shortcode(widget[:description].translate) %>
     <% end %>
 <% end  %>

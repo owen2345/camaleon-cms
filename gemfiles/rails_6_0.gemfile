@@ -1,0 +1,16 @@
+source 'https://rubygems.org'
+
+gemspec path: '..'
+
+gem 'rails', '~> 6.0.0'
+gem 'sqlite3'
+gem 'rspec_junit_formatter'
+gem 'selenium-webdriver'
+gem 'webdrivers'
+gem 'capybara-screenshot'
+gem 'puma'
+gem 'factory_bot'
+gem 'faker'
+gem 'draper', '~> 3'
+gem 'rack_session_access'
+gem 'cancancan', '~> 3.0'

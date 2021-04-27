@@ -1,0 +1,207 @@
+md:
+  date:
+    abbr_day_names:
+      - Dum
+      - Lun
+      - Mar
+      - Mie
+      - Joi
+      - Vin
+      - Sâm
+    abbr_month_names:
+      -
+      - Ian
+      - Feb
+      - Mar
+      - Apr
+      - Mai
+      - Iun
+      - Iul
+      - Aug
+      - Sep
+      - Oct
+      - Noi
+      - Dec
+    day_names:
+      - Duminică
+      - Luni
+      - Marţi
+      - Miercuri
+      - Joi
+      - Vineri
+      - Sâmbătă
+    formats:
+      default: "%d-%m-%Y"
+      long: "%B %d, %Y"
+      short: "%b %d"
+    month_names:
+      -
+      - Ianuarie
+      - Februarie
+      - Martie
+      - Aprilie
+      - Mai
+      - Iunie
+      - Iulie
+      - August
+      - Septembrie
+      - Octombrie
+      - Noiembrie
+      - Decembrie
+    order:
+      - :day
+      - :month
+      - :year
+  datetime:
+    distance_in_words:
+      about_x_hours:
+        one: aproximativ 1 oră
+        other: aproximativ %{count} ore
+      about_x_months:
+        one: aproximativ 1 lună
+        other: aproximativ %{count} luni
+      about_x_years:
+        one: aproximativ 1 an
+        other: aproximativ %{count} ani
+      almost_x_years:
+        one: aproape 1 an
+        other: aproape %{count} ani
+      half_a_minute: jumătate de minută
+      less_than_x_minutes:
+        one: mai puţin de o minută
+        other: mai puţin de %{count} minute
+      less_than_x_seconds:
+        one: mai puţin de 1 secundă
+        other: mai puţin de %{count} secunde
+      over_x_years:
+        one: mai mult de 1 an
+        other: mai mult de %{count} ani
+      x_days:
+        one: 1 zi
+        other: "%{count} zile"
+      x_minutes:
+        one: 1 minută
+        other: "%{count} minutes"
+      x_months:
+        one: 1 lună
+        other: "%{count} months"
+      x_seconds:
+        one: 1 secundă
+        other: "%{count} seconds"
+    prompts:
+      day: Ziua
+      hour: Ora
+      minute: Minuta
+      month: Luna
+      second: Secunde
+      year: Anul
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      accepted: trebuie acceptat
+      blank: nu poate fi pustiu
+      present: trebuie să fie necompletat
+      confirmation: nu se potrivește %{attribute}
+      empty: nu poate fi deşert
+      equal_to: trebuie să fie egal cu %{count}
+      even: trebuie să fie par
+      exclusion: este rezervat
+      greater_than: trebuie să fie mai mare decât %{count}
+      greater_than_or_equal_to: trebuie să fie mai mare sau egal cu %{count}
+      inclusion: nu este inclus în listă
+      invalid: nu este valid
+      less_than: trebuie să fie mai mic decât %{count}
+      less_than_or_equal_to: trebuie să fie mai mic sau egal cu %{count}
+      not_a_number: nu este un număr
+      not_an_integer: trebuie să fie un număr întreg
+      odd: trebuie să fie impar
+      record_invalid: 'Validarea a eşuat: %{errors}'
+      restrict_dependent_destroy:
+        one: Înregistrarea nu poate fi ștearsă deoarece există una %{record} dependentă
+        many: Înregistrarea nu poate fi ștearsă deoarece există %{record} dependente
+      taken: a fost deja luat
+      too_long:
+        one: este prea lung (maximum 1 caracter)
+        other: este prea lung (maximum este %{count} caractere)
+      too_short:
+        one: este prea scurt (minimum 1 caracter)
+        other: este prea scurt (minimum este %{count} caractere)
+      wrong_length:
+        one: are lungime greșită (ar trebui să fie 1 caracter)
+        other: este lungimea greșită (ar trebui să fie %{count} caractere)
+      other_than: trebuie să fie altul decât %{count}
+    template:
+      body: 'Au apărut probleme cu următoarele câmpuri:'
+      header:
+        one: 1 eroare a intervenit la salvarea acestui %{model}
+        other: "%{count} errori au intervenit la păstrarea acestui %{model}"
+  helpers:
+    select:
+      prompt: Alegeți, vă rog
+    submit:
+      create: Creare %{model}
+      submit: Păstrare %{model}
+      update: Actualizare %{model}
+  number:
+    currency:
+      format:
+        delimiter: ","
+        format: "%n %u"
+        precision: 2
+        separator: ","
+        significant: false
+        strip_insignificant_zeros: false
+        unit: "MDL"
+    format:
+      delimiter: ","
+      precision: 3
+      separator: "."
+      significant: false
+      strip_insignificant_zeros: false
+    human:
+      decimal_units:
+        format: "%n %u"
+        units:
+          billion: Miliard
+          million: Milion
+          quadrillion: Cvadrilion
+          thousand: Mie
+          trillion: Trilion
+          unit: ''
+      format:
+        delimiter: ''
+        precision: 3
+        significant: true
+        strip_insignificant_zeros: true
+      storage_units:
+        format: "%n %u"
+        units:
+          byte:
+            one: Byte
+            other: Byte-uri
+          gb: GB
+          kb: KB
+          mb: MB
+          tb: TB
+    percentage:
+      format:
+        delimiter: ''
+        format: "%n%"
+    precision:
+      format:
+        delimiter: ''
+  support:
+    array:
+      last_word_connector: ", și "
+      two_words_connector: " și "
+      words_connector: ", "
+  recaptcha:
+    errors:
+      incorrect-captcha-sol: 'Vai! reCAPTCHA rezolvat greșit!'
+  time:
+    am: dimineața
+    formats:
+      default: "%a, %d %b %Y %H:%M:%S %z"
+      long: "%B %d, %Y %H:%M"
+      short: "%d %b %H:%M"
+    pm: seara

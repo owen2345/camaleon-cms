@@ -234,12 +234,13 @@ module CamaleonCms::UploaderHelper
       return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(uploaded_io, args[:formats])
       uploaded_io = File.join(Rails.public_path, uploaded_io.sub(current_site.the_url(locale: nil), '')).to_s if uploaded_io.include?(current_site.the_url(locale: nil)) # local file
       _tmp_name = uploaded_io.split("/").last.split('?').first; args[:name] = args[:name] || _tmp_name
-      uploaded_io = open(uploaded_io)
+      uploaded_io = URI(uploaded_io).open
     end
     uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
     return {error: "#{ct("file_format_error")} (#{args[:formats]})"} unless cama_uploader.class.validate_file_format(_tmp_name || uploaded_io.path, args[:formats])
     return {error: "#{ct("file_size_exceeded", default: "File size exceeded")} (#{number_to_human_size(args[:maximum])})"} if args[:maximum].present? && args[:maximum] < (uploaded_io.size rescue File.size(uploaded_io))
-    name = args[:name] || uploaded_io.try(:original_filename) || uploaded_io.path.split("/").last; name = "#{File.basename(name, File.extname(name)).underscore}#{File.extname(name)}"
+    name = args[:name] || uploaded_io&.original_filename || uploaded_io.path.split("/").last
+    name = "#{File.basename(name, File.extname(name)).parameterize}#{File.extname(name)}"
     path ||= uploader_verify_name(File.join(tmp_path, name))
     File.open(path, "wb"){|f| f.write(uploaded_io.read) } unless saved
     path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?

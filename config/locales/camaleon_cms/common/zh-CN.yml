@@ -1,0 +1,66 @@
+# encoding: utf-8
+zh-CN:
+  camaleon_cms:
+    common:
+      profile: "简介"
+      dashboard: "主页"
+      read_more: "更多"
+      submit: "提交"
+      send: "发送"
+      login: "登录"
+      logout: "注销"
+      confirm: "是否确定?"
+      register: "注册"
+      proceted_article: '受保护的文章'
+
+      comment_msg: "您必须登录才能发表评论"
+      comment: "评论"
+      comments: "评论"
+      message: "消息"
+      leave_comment: "发表评论"
+      comment_new: "新评论"
+      comment_saved: "评论已经保存"
+      comment_error: "保存评论时发生错误"
+      comment_reply: "回复"
+      edit: "编辑"
+
+      recent_posts: "最近发布内容"
+
+
+      search_msg: "搜索结果:"
+      search_not_found: "找不到列表中的搜索项"
+      category_list: "分类列表"
+      post_tag_list: "标签列表"
+      sub_category_list: "子分类列表"
+      content_list: "内容列表: %s"
+      visit: "访问"
+      no_contents_found: "未找到内容"
+      no_results_found: "未找到结果"
+
+      author: "作者"
+      site: "站点"
+      categories: "分类"
+      next: "向下"
+      prev: "向上"
+      current: "当前"
+      search: "搜索"
+      file_format_error: "文件格式不允许"
+      file_size_exceeded: "超过文件大小"
+
+      notice: "新闻"
+      share: "分享"
+      share_facebook: "分享到 Facebook"
+      share_twitter: "分享到 Twitter"
+      share_google_plus: "分享到 Google Plus"
+      back_top: "返回顶部"
+      total_followers_social: "社交网络上的关注者总数"
+      latest_articles: "最新文章"
+      photo_gallery: "照片库"
+      home_galleries: "返回图片库"
+      addition: "添加"
+      view_all_news: "查看所有新闻"
+      extra_attributes: "额外属性"
+
+  will_paginate:
+    previous_label: '上一页'
+    next_label: '下一页'

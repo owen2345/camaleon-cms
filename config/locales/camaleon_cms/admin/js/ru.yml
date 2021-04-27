@@ -1,0 +1,51 @@
+# encoding: utf-8
+ru:
+  camaleon_cms:
+    admin:
+      js:
+        msg:
+          approved: 'Утверждено'
+          draft: 'Черновик сохранен'
+          updated_success: 'Успішно оновлено'
+          edit_menu: 'Разместите каждый элемент в порядке, который вы предпочитаете. Нажмите на значок карандаша, чтобы отредактировать элемент и нажмите значок в форме х, чтобы удалить элемент.'
+          delete_item: 'Удалить этот элемент?'
+          remove_items_submenu: 'Удалить элемент и его подменю?'
+          you_must_upload_image: 'Необходимо загрузить изображение'
+          you_must_upload_video: 'Необходимо загрузить видео'
+          no_response_fields: 'Нет ответа'
+          you_must_upload_json_file: 'Необходимо загрузить файл в формате json'
+          no_templates_defined: 'Шаблон не выбран'
+          avatar_updated: 'Аватар обновлен'
+          form_error: 'Ошибка формы'
+          option_title: 'Название опции'
+          permalink: 'Постоянная ссылка'
+          recover: 'Восстановление...'
+          type_contents: 'Тип контента'
+          confirm_del: "Вы уверены, что хотите удалить этот элемент?"
+          media_title: 'Медиа загрузка'
+          pending: 'Ожидание'
+          preview: 'Предпросмотр'
+          spam: 'Спам'
+          view_page: 'Посмотреть страницу'
+          view_draft: 'Посмотреть черновик'
+          processing: 'Обработка...'
+          upload_image: 'Загрузить'
+
+        button:
+          edit: "Редактировать"
+          accept: "Принять"
+          cancel: "Отменить"
+          delete: "Удалить"
+          clone: "Копировать"
+          add_tag: 'Добавить тэг'
+          close: 'Закрыть'
+          settings: 'Настройки'
+          save: "Сохранить"
+          submit: "Сохранить"
+          name: "Имя"
+          size: "Размер"
+          insert: "Вставить"
+          url: "URL"
+          root: "корень"
+          replace_image: 'Изменить изображение'
+          save_new_image: 'Сохранить новое изображение'

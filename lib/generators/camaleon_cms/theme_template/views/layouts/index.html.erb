@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <!-- META SECTION -->
     <title><%= current_site.the_title %></title>
@@ -12,6 +13,7 @@
     <%= javascript_include_tag theme_asset_path("js/main.js") %>
     <%= raw the_head %>
 </head>
+
 <body>
 
     <!-- container -->
@@ -31,22 +33,22 @@
 
                 <ul class="nav navbar-nav navbar-right">
                     <% if signin?  %>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#"><img src="<%= cama_current_user.decorate.the_avatar %>" style="max-width: 24px; border-radius: 50%" alt=""/> <%= cama_current_user.username %></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="<%= cama_admin_dashboard_path %>">Dashboard</a></li>
-                                <li><a href="<%= cama_admin_profile_path %>">Profile</a></li>
-                                <li><a href="<%= cama_admin_logout_path %>">Logout</a></li>
-                            </ul>
-                        </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#"><img src="<%= cama_current_user.decorate.the_avatar %>" style="max-width: 24px; border-radius: 50%" alt="" /> <%= cama_current_user.username %></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="<%= cama_admin_dashboard_path %>"><%= I18n.t('camaleon_cms.common.dashboard') %></a></li>
+                            <li><a href="<%= cama_admin_profile_path %>"><%= I18n.t('camaleon_cms.common.profile') %></a></li>
+                            <li><a href="<%= cama_admin_logout_path %>"><%= I18n.t('camaleon_cms.common.logout') %></a></li>
+                        </ul>
+                    </li>
                     <% else %>
-                        <li class="dropdown">
-                            <a id="login-user" class="dropdown-toggle" data-toggle="dropdown" href="#">Login / Register</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="<%= cama_admin_login_path %>">Login</a></li>
-                                <li><a href="<%= cama_admin_register_path %>">Register</a></li>
-                            </ul>
-                        </li>
+                    <li class="dropdown">
+                        <a id="login-user" class="dropdown-toggle" data-toggle="dropdown" href="#"><%= I18n.t('camaleon_cms.common.login') %> / <%= I18n.t('camaleon_cms.common.register') %></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="<%= cama_admin_login_path %>"><%= I18n.t('camaleon_cms.common.login') %></a></li>
+                            <li><a href="<%= cama_admin_register_path %>"><%= I18n.t('camaleon_cms.common.register') %></a></li>
+                        </ul>
+                    </li>
                     <% end %>
                 </ul>
                 <%= raw current_site.draw_languages("language list-inline pull-right", true) %>
@@ -66,4 +68,5 @@
     </div>
     <!-- ./container -->
 </body>
+
 </html>

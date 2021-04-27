@@ -65,7 +65,8 @@ module CamaleonCms::Frontend::SeoHelper
       },
       alternate: [
         { type: 'application/rss+xml', href: cama_rss_url }
-      ]
+      ],
+      canonical: current_site.get_option('seo_canonical')
     }.merge(options.except(:object))
 
     l = current_site.get_languages

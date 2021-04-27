@@ -1,38 +1,7 @@
 require 'spec_helper'
-require 'transactional_capybara/rspec'
 
-# spec/support/factory_bot.rb
 RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
-end
-
-# RSpec without Rails
-RSpec.configure do |config|
-  config.include FactoryBot::Syntax::Methods
-
-  config.before(:suite) do
-    FactoryBot.find_definitions
-  end
-end
-
-# rspec cleaner
-RSpec.configure do |config|
-
-  config.before(:suite) do
-    DatabaseCleaner.strategy = :transaction
-    DatabaseCleaner.clean_with(:truncation)
-  end
-
-  config.around(:each) do |example|
-    DatabaseCleaner.cleaning do
-      example.run
-    end
-  end
-
-end
-
-# capyobara cleaner
-RSpec.configure do |config|
 
   config.use_transactional_fixtures = false
 
@@ -49,6 +18,8 @@ RSpec.configure do |config|
         uncommitted transaction data setup over the spec's database connection.
       MSG
     end
+    FactoryBot.find_definitions
+    DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
 
@@ -76,5 +47,4 @@ RSpec.configure do |config|
   config.append_after(:each) do
     DatabaseCleaner.clean
   end
-
 end

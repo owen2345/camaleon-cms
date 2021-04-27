@@ -7,7 +7,7 @@ require 'mini_magick'
 require 'will_paginate'
 require 'will_paginate-bootstrap'
 require 'breadcrumbs_on_rails'
-require 'aws-sdk'
+require 'aws-sdk-s3'
 require 'font-awesome-rails'
 require 'tinymce-rails'
 require 'jquery-rails'
@@ -27,7 +27,7 @@ module CamaleonCms
       g.test_framework :rspec
     end
     config.before_initialize do |app|
-      app.config.active_record.belongs_to_required_by_default = false if PluginRoutes.isRails5?
+      app.config.active_record.belongs_to_required_by_default = false if PluginRoutes.isRails5? || PluginRoutes.isRails6?
       if app.respond_to?(:console)
         app.console do
           # puts "******** Camaleon CMS: ********"
@@ -60,7 +60,7 @@ module CamaleonCms
       # Dir[File.join(engine_dir, "config", "routes", "*.rb")].each{|r| app.routes_reloader.paths.unshift(r) }
 
       # extra configuration for plugins
-      app.config.eager_load_paths += %W(#{app.config.root}/app/apps/**/)
+      app.config.eager_load_paths += %W(#{app.config.root}/app/apps/)
       if PluginRoutes.static_system_info['auto_include_migrations']
         PluginRoutes.all_plugins.each{ |plugin|
           app.config.paths["db/migrate"] << File.join(plugin["path"], "migrate") if Dir.exist?(File.join(plugin["path"], "migrate"));

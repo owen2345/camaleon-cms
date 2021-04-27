@@ -65,7 +65,7 @@ class CamaleonCms::Admin::SessionsController < CamaleonCms::CamaleonController
       @user = current_site.users.where(password_reset_token: params[:h]).first
       if @user.nil?
         flash[:error] = t('camaleon_cms.admin.login.message.forgot_url_incorrect')
-        redirect_to cama_forgot_path
+        redirect_to cama_admin_forgot_path
         return
       elsif @user.password_reset_sent_at < 2.hours.ago
         flash[:error] = t('camaleon_cms.admin.login.message.forgot_expired')

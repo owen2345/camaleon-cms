@@ -1,0 +1,53 @@
+# encoding: utf-8
+es:
+  camaleon_cms:
+    admin:
+      js:
+        msg:
+          approved: 'Aprovado'
+          draft: 'Borrador guardado  con éxito'
+          updated_success: 'Actualizado correctamente'
+          edit_menu: 'Coloque cada elemento en el orden que prefiera. Haga clic en el icono de un lápiz para editar el elemento y haga clic en el icono en forma de x para eliminar el elemento.'
+          delete_item: 'Realmente quiere eliminar este elemento?'
+          remove_items_submenu: 'Realmente eliminar este elemento y sus elementos de menú secundario?'
+          you_must_upload_image: 'Usted debe cargar una imagen'
+          you_must_upload_video: 'Usted debe subir un vídeo'
+          no_response_fields: 'No hay campos de respuesta '
+          you_must_upload_json_file: 'Usted debe cargar un archivo json'
+          no_templates_defined: 'No hay plantillas definidas'
+          avatar_updated: 'Fotografía Actualizada'
+          form_error: 'Error Formulario'
+          option_title: 'Opción Título'
+          permalink: 'Enlace Permanente'
+          pending: 'Pendiente'
+          preview: 'Vista Previa'
+          spam: 'No deseado'
+          view_page: 'Ver Página'
+          view_draft: 'Ver Borrador'
+          recover: 'Recuperando...'
+          processing: 'Procesando...'
+          type_contents: 'Tipo de Contenidos'
+          upload_image: 'Subir Imagen'
+          confirm_del: "Esta seguro de eliminar este item?"
+          media_title: 'Archivos'
+
+        button:
+          edit: "Edit"
+          accept: "Accept"
+          cancel: "Cancel"
+          delete: "Delete"
+          clone: "Duplicar"
+          close: 'Cerrar'
+          add_tag: 'Agregar Etiqueta'
+          settings: 'Configuración'
+          save: "Guardar"
+          submit: "Ingresar"
+          name: "Nombre"
+          size: "Tamaño"
+          insert: "Insertar"
+          url: "URL"
+          root: "Raiz"
+          replace_image: 'Reemplazar Imagen'
+          save_new_image: 'Guardar Nueva Imagen'
+          auto_crop: 'Recorte Automático'
+          edit_image: 'Editar Imagen'
