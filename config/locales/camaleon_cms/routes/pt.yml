@@ -1,0 +1,8 @@
+# encoding: utf-8
+pt:
+  routes:
+    group: grupo
+    category: categoria
+    tag: etiqueta
+    search: buscar
+    profile: perfil

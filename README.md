@@ -88,7 +88,7 @@ http://camaleon.tuzitio.com/store/plugins
 * Visual Editor - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/camaleon_editor
 * Spree Commerce Integration - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/camaleon-spree
 * Admin AJAX - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/admin_ajax
-* **See here for a complete Gemfile**: https://github.com/owen2345/camaleon-cms/blob/master/doc/example_gemfile.rb
+* **See here for a complete Gemfile**: https://github.com/owen2345/camaleon-cms/blob/master/docs/example_gemfile.rb
 
 ## Camaleon CMS has many useful frontend Themes such as:
 * Default Theme (Built in)
@@ -112,32 +112,37 @@ http://camaleon.tuzitio.com/store/plugins
 * Install Ruby on Rails
 * Create your rails project
 
-  ```
+  ```bash
   rails new my_project
   ```
-* Add the gem in your Gemfile 
+* Add the gem in your Gemfile
 
-  ```
-  gem "camaleon_cms",  '>= 2.4.5' # (Current stable versions are 2.4.4.5, 2.4.3.10, 2.3.6, 2.2.1, 2.1.1)
+  ```ruby
+  gem "camaleon_cms",  '>= 2.4.6.1' # (Current stable versions are 2.5.0, 2.4.4.5, 2.4.3.10, 2.3.6, 2.2.1)
   # OR
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # latest development version
 
   # gem 'draper', '~> 3' # for Rails 5+
+  # gem 'draper', github: 'drapergem/draper' # ruby 3.x
+  
+  # For Ruby version < 2.5 
+  # gem 'sprockets', '< 4' # Sprockets 4 requires Ruby version >= 2.5 
   ```
 
 * Install required Gem and dependencies
 
-  ```
+  ```bash
   bundle install
   ```
+
 * Camaleon CMS Installation
 
-  ```
+  ```bash
   rails generate camaleon_cms:install
   ```
 * (Optional) Before continue you can configure your CMS settings in (my_app/config/system.json), [here](config/system.json) you can see the full settings.
 * Create database structure
-  ```
+  ```bash
   rake camaleon_cms:generate_migrations
   # before running migrations you can customize copied migration files
   rake db:migrate
@@ -145,7 +150,7 @@ http://camaleon.tuzitio.com/store/plugins
 
 * Start your server
 
-  ```
+  ```bash
   rails server
   ```
 
@@ -173,12 +178,12 @@ http://camaleon.tuzitio.com/license.html
 
 ## Testing
 * Init DB
-```
+```bash
 RAILS_ENV=test bundle exec rake app:db:migrate
 RAILS_ENV=test bundle exec rake app:db:test:prepare
 ```
 * Run tests
-```
+```bash
 bundle exec rspec
 ```
 

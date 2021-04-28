@@ -79,7 +79,7 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
   def generate_token(column)
     begin
       self[column] = SecureRandom.urlsafe_base64
-    end while CamaleonCms::User.exists?(column => self[column])
+    end while CamaleonCms::User.unscoped.exists?(column => self[column])
   end
 
   def send_password_reset

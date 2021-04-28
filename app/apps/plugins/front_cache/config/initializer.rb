@@ -3,3 +3,5 @@ if(CamaleonCms::Site.any? rescue false)
     site.set_option("refresh_cache", true)
   end
 end
+
+class Plugins::FrontCache::Config::Initializer; end

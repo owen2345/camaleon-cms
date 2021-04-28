@@ -21,11 +21,6 @@ module CamaleonCms::Frontend::SiteHelper
     @cama_visited_post.present?
   end
 
-  # check if current section visited is for post
-  def is_profile?
-    @cama_visited_profile.present?
-  end
-
   # check if current section visited is for ajax
   def is_ajax?
     @cama_visited_ajax.present?
@@ -50,7 +45,7 @@ module CamaleonCms::Frontend::SiteHelper
   def is_category?
     @cama_visited_category.present?
   end
-  
+
   # check if visited page is user profile (frontend)
   def is_profile?
     @cama_visited_profile == true

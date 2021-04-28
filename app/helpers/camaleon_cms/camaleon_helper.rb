@@ -33,7 +33,7 @@ module CamaleonCms::CamaleonHelper
     r = {flag: false, key: key, translation: "", locale: language.to_sym}
     hooks_run("on_translation", r)
     return r[:translation] if r[:flag]
-    I18n.translate("camaleon_cms.common.#{key}", args)
+    I18n.translate("camaleon_cms.common.#{key}", **args)
   end
 
   # check if current request was for admin panel
@@ -77,10 +77,10 @@ module CamaleonCms::CamaleonHelper
 
   # return normal translation with default value with translation of english
   def cama_t(key, args = {})
-    args[:default] = I18n.t(key, args.dup.merge(locale: :en)) unless args[:default].present?
-    I18n.t(key, args)
+    args[:default] = I18n.t(key, **args.dup.merge(locale: :en)) unless args[:default].present?
+    I18n.t(key, **args)
   end
-  
+
   # function that converts string into plural format
   def cama_pluralize_text(text)
     text.try(:pluralize)

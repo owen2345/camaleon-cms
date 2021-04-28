@@ -105,11 +105,16 @@ class PluginRoutes
     def isRails5?
       Rails.version.to_s[0].to_i == 5
     end
+
+    def isRails6?
+      Rails.version.to_s[0].to_i == 6
+    end
+
     # convert action parameter into hash
     def fixActionParameter(h)
       (h.is_a?(ActionController::Parameters) ? (h.permit!.to_h rescue h.to_hash) : h)
     end
-    
+
     # add a new anonymous hook
     # sample: PluginRoutes.add_anonymous_hook('before_admin', lambda{|params| puts params })
     # @param hook_key [String], key of hook
@@ -127,7 +132,7 @@ class PluginRoutes
     def get_anonymous_hooks(hook_key)
       (@@anonymous_hooks[hook_key.to_s] || []).map{|item| item[:callback] }
     end
-    
+
     # return all registered anonymous hooks for hook_key
     # @param hook_key [String] name of the hook
     # @param hook_id [String] identifier of the anonymous hooks
@@ -135,7 +140,7 @@ class PluginRoutes
     def remove_anonymous_hook(hook_key, hook_id)
       (@@anonymous_hooks[hook_key.to_s] || []).delete_if{|item| item[:id] == hook_id }
     end
-    
+
     # return the class name for user model
     def get_user_class_name
       static_system_info['user_model'].presence || 'CamaleonCms::User'
@@ -272,7 +277,7 @@ class PluginRoutes
   # return all translations for all languages, sample: ['Sample', 'Ejemplo', '....']
   def self.all_translations(key, *args)
     args = args.extract_options!
-    all_locales.split('|').map{|_l| I18n.t(key, args.merge({locale: _l})) }.uniq
+    all_locales.split('|').map{|_l| I18n.t(key, **args.merge({locale: _l})) }.uniq
   end
 
   # return all locales for translated routes
@@ -394,39 +399,16 @@ class PluginRoutes
   rescue
     Gem.available?(name)
   end
-  
+
   # return the default url options for Camaleon CMS
   def self.default_url_options
-    {host: (CamaleonCms::Site.main_site.slug rescue "")}
+    options = { host: (CamaleonCms::Site.main_site.slug rescue "") }
+    options.merge!({ protocol: 'https' }) if Rails.application.config.force_ssl
+    options
   end
-  
+
   def self.migration_class
     isRails4? ? ActiveRecord::Migration : ActiveRecord::Migration[4.2]
   end
 end
 CamaManager = PluginRoutes
-
-#********* fix missing helper method for breadcrumb on rails gem **********#
-if PluginRoutes.isRails5?
-  module BreadcrumbsOnRails
-    module ActionController extend ActiveSupport::Concern
-      def self.included(base = nil, &block)
-        if base.nil?
-          @_included_block = block
-        else
-          super
-        end
-      end
-
-      included do |base|
-        extend          ClassMethods
-        helper          HelperMethods if respond_to? :helper
-        helper_method   :add_breadcrumb, :breadcrumbs  if respond_to? :helper_method
-
-        unless base.respond_to?(:before_action)
-          base.alias_method :before_action, :before_filter
-        end
-      end
-    end
-  end
-end

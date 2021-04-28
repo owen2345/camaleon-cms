@@ -1,0 +1,44 @@
+# encoding: utf-8
+pt-BR:
+  camaleon_cms:
+    admin:
+      js:
+        msg:
+          approved: 'Aprovado'
+          draft: 'Rascunho salvo com sucesso'
+          updated_success: 'Atualizado com sucesso'
+          edit_menu: 'Posicione cada item na ordem de sua preferência. Clique no ícone do lápis para editar o item e clique no formato de X para deletar o item.'
+          delete_item: 'Realmente deseja deletar esse item?'
+          remove_items_submenu: 'Realmente deseja remover esse item e seus sub menu items?'
+          you_must_upload_image: 'Você deve fazer o upload de uma image'
+          you_must_upload_video: 'Você deve fazer o upload de um vídeo'
+          no_response_fields: 'Não há campos de resposta '
+          you_must_upload_json_file: 'Você deve fazer o upload de um JSON'
+          no_templates_defined: 'Não há templates definidos'
+          avatar_updated: 'Avatar Atualizado'
+          form_error: 'Erro no Form'
+          option_title: 'Título de Opção'
+          permalink: 'Link Permanente'
+          recover: 'Recuperando...'
+          type_contents: 'Conteúdo de Tipo'
+          confirm_del: "Tem certeza que deseja deletar esse item?"
+          media_title: 'Uploader de Mídia'
+
+        button:
+          edit: "Editar"
+          accept: "Aceitar"
+          cancel: "Cancelar"
+          delete: "Deletar"
+          clone: "Clonar"
+          add_tag: 'Adicionar Tag'
+          close: 'Fechar'
+          settings: 'Configurações'
+          save: "Salvar"
+          submit: "Submeter"
+          name: "Nome"
+          size: "Tamanho"
+          insert: "Inserir"
+          url: "URL"
+          root: "raiz"
+          replace_image: 'Substituir imagem'
+          save_new_image: 'Salvar Nova Imagem'

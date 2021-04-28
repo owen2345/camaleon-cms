@@ -24,24 +24,25 @@ Gem::Specification.new do |s|
   s.test_files = Dir["spec/**/*"]
 
   s.add_dependency 'bcrypt'
-  s.add_dependency 'cancancan', '~> 2.0'
+  s.add_dependency 'cancancan', '>= 2.0', '< 4'
   s.add_dependency 'draper', '>= 1.3'
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
+  s.add_dependency 'non-digest-assets'
   s.add_dependency 'will_paginate'
   s.add_dependency 'will_paginate-bootstrap'
   s.add_dependency 'breadcrumbs_on_rails'
   s.add_dependency 'font-awesome-rails'
-  s.add_dependency 'tinymce-rails', '~> 4.3'
+  s.add_dependency 'tinymce-rails', '< 5'
   s.add_dependency 'jquery-rails'
   s.add_dependency 'coffee-rails'
-  s.add_dependency 'sass-rails', '<= 5.0.7'
+  s.add_dependency 'sass-rails'
 
-  s.add_dependency 'cama_contact_form', '~> 0.0.16'
+  s.add_dependency 'cama_contact_form', '>= 0.0.28'
   s.add_dependency 'cama_meta_tag'
 
   # MEDIA MANAGER
-  s.add_dependency 'aws-sdk', '>= 2'
+  s.add_dependency 'aws-sdk-s3', '~> 1'
 
   # development dependencies
   s.add_development_dependency 'rspec', '>= 2', '< 4'
@@ -53,5 +54,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'database_cleaner'
   s.add_development_dependency 'pry-rescue'
   s.add_development_dependency 'pry-stack_explorer'
-  s.add_development_dependency 'rubocop'
+  s.add_development_dependency 'rubocop', '< 0.82' # 0.82 removed support for Ruby 2.3
 end

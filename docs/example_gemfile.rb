@@ -6,7 +6,7 @@ gem 'camaleon_cms', git: 'https://github.com/owen2345/camaleon-cms'
 gem 'draper', '>= 3'# required for Rails 5+
 
 ### already dependency of main framework, only here to use latest git source
-gem 'cama_contact_form', git: 'https://github.com/owen2345/cama_contact_form' 
+gem 'cama_contact_form', git: 'https://github.com/owen2345/cama_contact_form'
 gem 'cama_meta_tag', git: 'https://github.com/owen2345/camaleon-cms-seo'
 ### dependency end
 
@@ -30,4 +30,6 @@ gem 'camaleon_image_optimizer', git: 'https://github.com/brian-kephart/camaleon_
 # gem 'camaleon_oauth', git: 'https://github.com/owen2345/camaleon_oauth'
 # gem 'camaleon_download', git: 'https://github.com/max2320/camaleon-download'
 
-require './lib/plugin_routes'; instance_eval(PluginRoutes.draw_gems) ### Camaleon CMS include all gems for plugins and themes
+### Camaleon CMS include all gems for plugins and themes
+require_relative './lib/plugin_routes'
+instance_eval(PluginRoutes.draw_gems)

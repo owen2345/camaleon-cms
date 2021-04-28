@@ -1,0 +1,16 @@
+# encoding: utf-8
+pt:
+  languages:
+    ar: "Árabe"
+    es: "Espanhol"
+    en: "Inglês"
+    fr: "Francês"
+    zh-CN: "Chinês"
+    de: "Alemão"
+    md: Moldavo
+    pt: "Português (Portugal)"
+    pt-BR: "Português (Brasil)"
+    it: "Italiano"
+    uk: "Ucraniano"
+    ru: "Russo"
+    nl: "Holandês"

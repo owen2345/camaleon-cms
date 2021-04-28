@@ -3,7 +3,7 @@
     <div class="container" >
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2">
-                <% home_page = (current_site.the_post(current_theme.get_field("home_page")) || current_site.the_posts("page").first).decorate %>
+                <% home_page = theme_home_page.decorate %>
                 <h1><%= home_page.the_title %></h1>
                 <div><%= raw home_page.the_content %></div>
             </div><!-- /col-lg-8 -->
