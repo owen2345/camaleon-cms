@@ -376,6 +376,7 @@ zh-CN:
         email_cc: "抄送"
         twitter_card: "Twitter 卡片"
         author: "作者名"
+        seo_canonical: Canonical URL
         seo_setting: "SEO 设置"
         email_settings: "邮件设置 (SMTP)"
         filesystem_type: "文件系统"

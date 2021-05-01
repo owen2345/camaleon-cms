@@ -366,6 +366,7 @@ ar:
         email_cc: "Email CC"
         twitter_card: "Twitter Card"
         author: "Author Name"
+        seo_canonical: Canonical URL
         seo_setting: "Seo Settings"
         email_settings: "Email Settings (SMTP)"
         filesystem_type: "Filesystem type"

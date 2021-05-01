@@ -357,6 +357,7 @@ it:
         email_cc: "Email CC"
         twitter_card: "Twitter Card"
         author: "Mittente"
+        seo_canonical: "URL canonico della pagina"
         seo_setting: "Impostazioni Seo"
         email_settings: "Impostazioni email (SMTP)"
 

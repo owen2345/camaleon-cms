@@ -8,6 +8,10 @@
         <%= text_area :options, :keywords, :class => "form-control translatable", :value => @site.get_option("keywords") %>
     </div>
     <div class="form-group">
+      <label for=""><%= t('camaleon_cms.admin.settings.seo_canonical') %></label><br>
+      <%= text_field :options, :seo_canonical, class: "form-control translatable", value: @site.get_option(:seo_canonical) %>
+    </div>
+    <div class="form-group">
         <label for=""><%= t('camaleon_cms.admin.settings.author') %></label><br>
         <%= text_field :options, :seo_author, :class => "form-control", :value => @site.get_option("seo_author") %>
     </div>
