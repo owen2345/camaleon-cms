@@ -342,6 +342,7 @@ pt-BR:
         email_cc: "Cópia"
         twitter_card: "Twitter Card"
         author: "Nome do autor"
+        seo_canonical: "URL canônico da página"
         seo_setting: "Configurações SEO"
         email_settings: "Configurações de Email (SMTP)"
         filesystem_type: "Tipo de sistema de arquivos"

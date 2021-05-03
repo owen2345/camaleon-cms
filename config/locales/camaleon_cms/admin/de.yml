@@ -365,6 +365,7 @@ de:
         email_cc: 'Email-CC'
         twitter_card: 'Twitter Card'
         author: 'Name des Autors'
+        seo_canonical: "Kanonische URL der Seite"
         seo_setting: 'SEO-Einstellungen'
         email_settings: 'Email-Einstellungen (SMTP)'
         filesystem_type: 'Typ des Dateisystems'
