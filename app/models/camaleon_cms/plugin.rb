@@ -7,7 +7,7 @@ module CamaleonCms
 
     attr_accessor :error
     cama_define_common_relationships('Plugin')
-    belongs_to :site, foreign_key: :parent_id
+    belongs_to :site, foreign_key: :parent_id, required: false
 
     default_scope { where(taxonomy: :plugin) }
     scope :active, -> { where(term_group: 1) }

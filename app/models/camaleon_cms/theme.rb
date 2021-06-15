@@ -3,7 +3,7 @@ module CamaleonCms
     # attrs:
     #   slug => plugin key
     cama_define_common_relationships('Theme')
-    belongs_to :site, class_name: "CamaleonCms::Site", foreign_key: :parent_id
+    belongs_to :site, class_name: "CamaleonCms::Site", foreign_key: :parent_id, required: false
 
     default_scope { where(taxonomy: :theme) }
 
