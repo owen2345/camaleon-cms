@@ -18,9 +18,9 @@ module CamaleonCms
     has_many :drafts, ->{where(status: 'draft_child')}, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, dependent: :destroy
     has_many :children, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, dependent: :destroy, primary_key: :id
 
-    belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id
-    belongs_to :parent, class_name: 'CamaleonCms::Post', foreign_key: :post_parent
-    belongs_to :post_type, foreign_key: :taxonomy_id, inverse_of: :posts
+    belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, required: false
+    belongs_to :parent, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, required: false
+    belongs_to :post_type, foreign_key: :taxonomy_id, inverse_of: :posts, required: false
 
     scope :visible_frontend, -> {where(status: 'published')}
     scope :public_posts, -> {visible_frontend.where(visibility: ['public', '']) } #public posts (not passwords, not privates)
