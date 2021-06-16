@@ -27,7 +27,6 @@ module CamaleonCms
       g.test_framework :rspec
     end
     config.before_initialize do |app|
-      app.config.active_record.belongs_to_required_by_default = false if PluginRoutes.isRails5? || PluginRoutes.isRails6?
       if app.respond_to?(:console)
         app.console do
           # puts "******** Camaleon CMS: ********"

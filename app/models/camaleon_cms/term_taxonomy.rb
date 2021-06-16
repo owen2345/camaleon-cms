@@ -19,8 +19,8 @@ module CamaleonCms
     # relations
     has_many :term_relationships, class_name: "CamaleonCms::TermRelationship", foreign_key: :term_taxonomy_id, dependent: :destroy
     # has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
-    belongs_to :parent, class_name: "CamaleonCms::TermTaxonomy", foreign_key: :parent_id
-    belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id
+    belongs_to :parent, class_name: "CamaleonCms::TermTaxonomy", foreign_key: :parent_id, required: false
+    belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, required: false
 
     # return all children taxonomy
     # sample: sub categories of a category

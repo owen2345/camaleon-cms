@@ -7,7 +7,7 @@ module CamaleonCms
     default_scope { order("#{CamaleonCms::CustomFieldsRelationship.table_name}.term_order ASC") }
 
     # relations
-    belongs_to :custom_field
+    belongs_to :custom_field, required: false
 
     # validates :objectid, :custom_field_id, presence: true
     validates :custom_field_id, presence: true # error on clone model

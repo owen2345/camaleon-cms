@@ -5,8 +5,8 @@ class CamaleonCms::PostRelationship < ActiveRecord::Base
   # attr_accessible :objectid, :term_taxonomy_id, :term_order
   default_scope ->{ order(term_order: :asc) }
 
-  belongs_to :post_type, :class_name => "CamaleonCms::PostType", foreign_key: :term_taxonomy_id, inverse_of: :post_relationships
-  belongs_to :post, ->{ order("#{CamaleonCms::Post.table_name}.id DESC") }, foreign_key: :objectid, inverse_of: :post_relationships, dependent: :destroy
+  belongs_to :post_type, :class_name => "CamaleonCms::PostType", foreign_key: :term_taxonomy_id, inverse_of: :post_relationships, required: false
+  belongs_to :post, ->{ order("#{CamaleonCms::Post.table_name}.id DESC") }, foreign_key: :objectid, inverse_of: :post_relationships, dependent: :destroy, required: false
 
   # callbacks
   after_create :update_count

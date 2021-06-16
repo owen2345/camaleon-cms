@@ -4,7 +4,7 @@ module CamaleonCms
 
     default_scope { where(taxonomy: :user_roles) }
     cama_define_common_relationships('UserRole')
-    belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id
+    belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, required: false
 
     def roles_post_type
       self.get_meta('_post_type')
