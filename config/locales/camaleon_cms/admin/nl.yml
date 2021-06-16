@@ -345,6 +345,7 @@ nl:
         email_cc: "E-mail CC"
         twitter_card: "Twitter kaart"
         author: "Naam auteur"
+        seo_canonical: "De canonieke URL van de pagina"
         seo_setting: "SEO instellingen"
         email_settings: "E-mail instellingen (SMTP)"
         filesystem_type: "Type bestandsysteem"

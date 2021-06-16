@@ -353,6 +353,7 @@ uk:
         email_cc: "Email CC"
         twitter_card: "Twitter Card"
         author: "Ім'я автора"
+        seo_canonical: "Канонічний адресу URL сторінки"
         seo_setting: "Налаштування Seo"
         email_settings: "Налаштування Email (SMTP)"
         filesystem_type: "Тип файлової системи"

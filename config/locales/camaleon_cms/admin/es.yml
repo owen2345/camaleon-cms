@@ -336,6 +336,7 @@ es:
         email_cc: "Correo copia"
         twitter_card: "Etiqueta Twitter"
         author: "Nombre de Autor"
+        seo_canonical: "URL canónica de la página"
         seo_setting: "Posicionamiento Web."
         email_settings: "Configuración de Correo (SMTP)"
         media_settings: "Configuración de Multimedia"

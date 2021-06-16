@@ -356,6 +356,7 @@ ru:
         email_cc: "Email CC"
         twitter_card: "Twitter Card"
         author: "Имя автора"
+        seo_canonical: "Канонический адрес (URL) страницы"
         seo_setting: "Настройки Seo"
         email_settings: "Настройки Email (SMTP)"
         filesystem_type: "Тип файловой системы"
