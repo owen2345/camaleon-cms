@@ -181,7 +181,9 @@ module CamaleonCms::Admin::MenusHelper
   end
 
   def _admin_menu_draw(items)
+    puts items.inspect
     res = []
+    items.sort!(&:title)
     res  << "<ul class='treeview-menu'>"
     items = items.sort_by { |item| item[:title] }
     items.each_with_index do |item, index|
