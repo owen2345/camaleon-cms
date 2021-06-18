@@ -54,6 +54,9 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     hooks_run("list_post", r)
     add_breadcrumb "#{@btns[params[:s].to_sym]}" if params[:s].present?
     @posts = r[:posts].paginate(:page => params[:page], :per_page => r[:per_page])
+
+    # Return latest posts for news
+    @posts = @posts.latest if params[:post_type_id] == '23'
     render r[:render]
   end
 
