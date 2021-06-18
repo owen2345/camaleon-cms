@@ -183,6 +183,7 @@ module CamaleonCms::Admin::MenusHelper
   def _admin_menu_draw(items)
     res = []
     res  << "<ul class='treeview-menu'>"
+    items = items.sort_by { |item| item[:title] }
     items.each_with_index do |item, index|
       res  << "<li class='#{"xn-openable" if item.has_key?(:items)} item_#{index + 1} #{'active' if is_active_menu(item[:key])}' #{item[:datas]}>
                 <a href='#{item[:url]}'><i class='fa fa-#{item[:icon]}'></i> #{item[:title]} #{'<i class="fa fa-angle-left pull-right"></i>' if item.has_key?(:items) }</a>
