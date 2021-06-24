@@ -311,6 +311,7 @@ en:
         edit_category: 'Edit Category'
         enter_password: 'Enter the password'
         featured_image: 'Featured Image'
+        featured_image_description: 'Featured image Description'
         keywords: 'Keywords'
         default_layout: 'Default Layout'
         default_template: 'Default Template'

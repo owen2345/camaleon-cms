@@ -258,6 +258,7 @@ pt-BR:
         edit_category: 'Editar categoria'
         enter_password: 'Entre com a senha'
         featured_image: 'Imagem destacada'
+        featured_image_description: 'Descrição da imagem em destaque'
         keywords: 'Palavras-chave'
         default_layout: 'Layout Padrão'
         default_template: 'Template Padrão'

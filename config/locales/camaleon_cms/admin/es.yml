@@ -260,6 +260,7 @@ es:
         edit_category: 'Editar Categoría'
         enter_password: 'Introduzca la contraseña'
         featured_image: 'Foto Principal'
+        featured_image_description: 'Descripción de la imagen destacada'
         keywords: 'Palabras Clave'
         message:
           error: 'Error clase'

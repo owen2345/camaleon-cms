@@ -270,6 +270,7 @@ uk:
         edit_category: 'Редагувати Категорію'
         enter_password: 'Введіть пароль'
         featured_image: 'Популярне зображення'
+        featured_image_description: 'Опис обраного зображення'
         keywords: 'Ключові слова'
         default_layout: 'Макет за замовчуванням'
         default_template: 'Шаблон за замовчуванням'

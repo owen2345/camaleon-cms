@@ -282,6 +282,7 @@ de:
         edit_category: 'Kategorie bearbeiten'
         enter_password: 'Passwort eingeben'
         featured_image: 'Hauptbild'
+        featured_image_description: 'Beschreibung des vorgestellten Bildes'
         keywords: 'Schlüsselwörter'
         default_layout: 'Standard Layout'
         default_template: 'Standard Template'
