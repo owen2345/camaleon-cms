@@ -265,6 +265,7 @@ fr:
         edit_category: 'Editer la catégorie'
         enter_password: 'Entrer le mot de passe'
         featured_image: 'Image en avant'
+        featured_image: 'Description image en avant'
         keywords: 'Mots-clé'
         default_layout: 'Layout par défaut'
         default_template: 'Template par défaut'

@@ -289,6 +289,7 @@ zh-CN:
         edit_category: '编辑种类'
         enter_password: '输入密码'
         featured_image: '有特色的图片'
+        featured_image_description: '特色图片说明'
         keywords: '关键字'
         default_layout: '默认布局'
         default_template: '默认模板'

@@ -273,6 +273,7 @@ ru:
         edit_category: 'Редактировать Категорию'
         enter_password: 'Введите пароль'
         featured_image: 'Популярное изображение'
+        featured_image_description: 'Описание избранного изображения'
         keywords: 'Ключевые слова'
         default_layout: ' Макет по умолчанию'
         default_template: 'Шаблон по умолчанию'

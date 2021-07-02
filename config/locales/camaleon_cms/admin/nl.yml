@@ -262,6 +262,7 @@ nl:
         edit_category: 'Bewerk Categorie'
         enter_password: 'Voer het wachtwoord in'
         featured_image: 'Uitgelichte afbeelding'
+        featured_image_description: 'Beschrijving van de voorgrondafbeelding'
         keywords: 'Sleutelwoorden'
         default_layout: 'Standaard layout'
         default_template: 'Standaard sjabloon'
