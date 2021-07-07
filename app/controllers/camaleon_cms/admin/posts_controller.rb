@@ -56,7 +56,7 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     @posts = r[:posts].paginate(:page => params[:page], :per_page => r[:per_page])
 
     # Return latest posts for news
-    @posts = @posts.latest if params[:post_type_id] == '23'
+    @posts = @posts.latest if %w[19 23 41 72].include?(params[:post_type_id])
     render r[:render]
   end
 
