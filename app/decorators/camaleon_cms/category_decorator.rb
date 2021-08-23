@@ -47,8 +47,9 @@ class CamaleonCms::CategoryDecorator < CamaleonCms::TermTaxonomyDecorator
   # return thumbnail for this post type
   # default: if thumbnail is not present, will render default
   def the_thumb_url(default = nil)
+    current_site = Cama::Site.main_site.decorate
     th = object.get_option("thumb")
-    th.present? ? th : (default || h.asset_path("camaleon_cms/category-icon.png"))
+    th.present? ? th : (default || current_site.get_option("screenshot", current_site.the_logo) || h.asset_path("camaleon_cms/category-icon.png"))
   end
 
   # return the post type of this post tag
