@@ -30,7 +30,7 @@ class CamaleonCms::PostDecorator < CamaleonCms::ApplicationDecorator
   # if default is empty, post_type default thumb will be returned
   def the_thumb_url(default = nil)
     th = object.get_meta("thumb")
-    th.present? ? th : (default || object.post_type.get_option('default_thumb', nil) || h.asset_url("camaleon_cms/image-not-found.png"))
+    th.present? ? th : (default || object.post_type.get_option('default_thumb', nil) || current_site.get_option("screenshot", current_site.the_logo) || h.asset_url("camaleon_cms/image-not-found.png"))
   end
   alias_method :the_image_url, :the_thumb_url
 
