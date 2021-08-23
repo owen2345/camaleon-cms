@@ -82,6 +82,6 @@ class CamaleonCms::PostTypeDecorator < CamaleonCms::TermTaxonomyDecorator
   # default: if thumbnail is not present, will render default
   def the_thumb_url(default = nil)
     th = object.get_option("thumb", object.get_option("default_thumb"))
-    th.present? ? th : (default || h.asset_url("camaleon_cms/image-not-found.png"))
+    th.present? ? th : (default ||  current_site.get_option("screenshot", current_site.the_logo) || h.asset_url("camaleon_cms/image-not-found.png"))
   end
 end
