@@ -103,9 +103,9 @@ http://camaleon.tuzitio.com/store/plugins
 
 
 ## Requirements
-* Rails 4.2 or 5+
+* Rails 5+
 * PostgreSQL, MySQL 5+ or SQlite
-* Ruby 2.2+
+* Ruby 2.6+
 * Imagemagick
 
 ## Installation
@@ -122,8 +122,7 @@ http://camaleon.tuzitio.com/store/plugins
   # OR
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # latest development version
 
-  # gem 'draper', '~> 3' # for Rails 5+
-  # gem 'draper', '~> 4.0.2' # ruby 3.x
+  # gem 'draper', '~> 4.0.2'
 
   # For Ruby version < 2.5
   # gem 'sprockets', '< 4' # Sprockets 4 requires Ruby version >= 2.5
