@@ -14,10 +14,6 @@ matrix:
   include:
     # Non-current versions in their support period
     - rvm: 2.6
-      gemfile: gemfiles/rails_5_0.gemfile
-    - rvm: 2.6
-      gemfile: gemfiles/rails_5_1.gemfile
-    - rvm: 2.6
       gemfile: gemfiles/rails_5_2.gemfile
     - rvm: 2.7
       gemfile: gemfiles/rails_6_0.gemfile
