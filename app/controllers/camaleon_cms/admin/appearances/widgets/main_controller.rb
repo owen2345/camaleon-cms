@@ -5,7 +5,7 @@ class CamaleonCms::Admin::Appearances::Widgets::MainController < CamaleonCms::Ad
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.widgets")
 
   def index
-    @widgets = current_site.widgets
+    @widgets = current_site.widgets.order :name
   end
 
   def new
