@@ -6,7 +6,7 @@
             </div>
             <div class="media-body">
                 <h4 class="media-heading"><%= link_to(user.the_name, user.the_url) %> <small class="pull-right"><%= comment.decorate.the_created_at %></small></h4>
-                <div><%= raw comment.content %></div>
+                <div><%= comment.content %></div>
                 <% comment.children.approveds.each do |answer| user2 = answer.comment_user.decorate %>
                     <div class="media">
                         <div class="media-left">
