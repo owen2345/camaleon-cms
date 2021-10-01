@@ -11,6 +11,8 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     before_destroy :reassign_posts
     after_destroy :reassign_comments
     before_create { generate_token(:auth_token) }
+    # invaliidate sessions when changing password
+    before_update { generate_token :auth_token if will_save_change_to_password_digest? }
 
     # relations
     cama_define_common_relationships('User')
