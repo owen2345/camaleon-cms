@@ -5,8 +5,8 @@
                 <h4 class="pull-left" style="width: 100%;">
                     <%= 'New Suppliers Forms' %>
                     <div class='pull-right'>
-                        <%= link_to 'Download All',download_form_path(form: 'new_members'), class: ' btn btn-primary' %>
-                        <%= link_to 'Download New',download_form_path(form: 'new_members', only: 'new'), class: ' btn btn-success' %>
+                        <%= link_to 'Download All',download_form_path(form: 'new_member'), class: ' btn btn-primary' %>
+                        <%= link_to 'Download New',download_form_path(form: 'new_member', only: 'new'), class: ' btn btn-success' %>
                     </div>
                 </h4>
             </div>
@@ -34,7 +34,7 @@
                     <td><%= post.created_at %></td>
                     <td><%= post.first_name %> <%= post.last_name %></td>
                     <td><%= post.email %></td>
-                    <td><%= link_to 'CSV',download_form_path(form: 'new_members', id: post.id) %></td>
+                    <td><%= link_to 'CSV',download_form_path(form: 'new_member', id: post.id) %></td>
                     <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'New Members'), target: '_blank' %></td>
                     <td>
                         <%= link_to delete_contact_form_path(id: post.id, form: 'New Members'), method: :delete, data: {confirm: "Are you sure?"} do %> 
