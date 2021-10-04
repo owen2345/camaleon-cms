@@ -31,4 +31,8 @@ class CamaleonCms::Admin::FormsController < CamaleonCms::AdminController
     @posts = NewSuppliersForm.order(created_at: :desc)
   end
 
+  def new_members 
+    @posts = NewMemberForm.order(created_at: :desc)
+  end
+
 end

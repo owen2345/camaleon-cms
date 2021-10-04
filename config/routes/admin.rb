@@ -52,6 +52,7 @@ Rails.application.routes.draw do
           get 'media_inquiry', on: :collection
           get 'new_suppliers', on: :collection
           get 'contact_form', on: :collection
+          get 'new_members', on: :collection
         end
 
         resources :user_roles, controller: 'user_roles' do

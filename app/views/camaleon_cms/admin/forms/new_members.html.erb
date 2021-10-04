@@ -1,0 +1,52 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="row">
+            <div class="col-md-12">
+                <h4 class="pull-left" style="width: 100%;">
+                    <%= 'New Suppliers Forms' %>
+                    <div class='pull-right'>
+                        <%= link_to 'Download All',download_form_path(form: 'new_members'), class: ' btn btn-primary' %>
+                        <%= link_to 'Download New',download_form_path(form: 'new_members', only: 'new'), class: ' btn btn-success' %>
+                    </div>
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="panel-body">
+        
+        <table class="table table-responsive table-hover table-striped" id="posts-table-list">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Submitted At</th>
+                <th>Submitted By Name</th>
+                <th>Submitted By Email</th>
+                <th>Download CSV</th>
+                <th>Download PDF</th>
+                <th>Delete</th>
+                
+            </tr>
+            </thead>
+            <tbody>
+            <% @posts.each do |post| %>
+                <tr>
+                    <td><%= post.id %></td>
+                    <td><%= post.created_at %></td>
+                    <td><%= post.first_name %> <%= post.last_name %></td>
+                    <td><%= post.email %></td>
+                    <td><%= link_to 'CSV',download_form_path(form: 'new_members', id: post.id) %></td>
+                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'New Members'), target: '_blank' %></td>
+                    <td>
+                        <%= link_to delete_contact_form_path(id: post.id, form: 'New Members'), method: :delete, data: {confirm: "Are you sure?"} do %> 
+                           <i class="fa fa-times"></i>
+                        <%end%>    
+                    </td>
+                   
+                </tr>
+            <% end %>
+            </tbody>
+        </table>
+        <%= content_tag("div", raw(t('camaleon_cms.admin.message.data_found_list')), class: "alert alert-warning") if @posts.empty? %>
+        <%= raw cama_do_pagination(@posts) %>
+    </div>
+</div>
