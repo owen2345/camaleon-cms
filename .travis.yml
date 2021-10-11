@@ -12,22 +12,34 @@ matrix:
     - gemfile: gemfiles/rails_edge.gemfile
     - rvm: ruby-head
   include:
-    - rvm: 2.3
-      gemfile: gemfiles/rails_4_2.gemfile
-    - rvm: 2.4
-      gemfile: gemfiles/rails_5_0.gemfile
-    - rvm: 2.5
-      gemfile: gemfiles/rails_5_1.gemfile
+    # Non-current versions in their support period
     - rvm: 2.6
       gemfile: gemfiles/rails_5_2.gemfile
     - rvm: 2.7
       gemfile: gemfiles/rails_6_0.gemfile
       env: DISABLE_DATABASE_ENVIRONMENT_CHECK=TRUE
+
+    # Current versions
     - rvm: 3.0
       gemfile: gemfiles/rails_6_1.gemfile
       env: DISABLE_DATABASE_ENVIRONMENT_CHECK=TRUE
+
+    ### Unreleased versions ###
+
+    # Latest Ruby, unreleased Rails
+    - rvm: 3.0
+      gemfile: gemfiles/rails_edge.gemfile
+      env: DISABLE_DATABASE_ENVIRONMENT_CHECK=TRUE
+
+    # Unreleased Ruby, latest Rails
+    - rvm: ruby-head
+      gemfile: gemfiles/rails_6_1.gemfile
+      env: DISABLE_DATABASE_ENVIRONMENT_CHECK=TRUE
+
+    # Unreleased Ruby and Rails
     - rvm: ruby-head
       gemfile: gemfiles/rails_edge.gemfile
+      env: DISABLE_DATABASE_ENVIRONMENT_CHECK=TRUE
   fast_finish: true
 
 script:

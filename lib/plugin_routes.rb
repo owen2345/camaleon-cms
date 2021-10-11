@@ -98,18 +98,6 @@ class PluginRoutes
     end
     alias_method :system_info, :static_system_info
 
-    def isRails4?
-      Rails.version.to_s[0].to_i == 4
-    end
-
-    def isRails5?
-      Rails.version.to_s[0].to_i == 5
-    end
-
-    def isRails6?
-      Rails.version.to_s[0].to_i == 6
-    end
-
     # convert action parameter into hash
     def fixActionParameter(h)
       (h.is_a?(ActionController::Parameters) ? (h.permit!.to_h rescue h.to_hash) : h)
@@ -408,7 +396,7 @@ class PluginRoutes
   end
 
   def self.migration_class
-    isRails4? ? ActiveRecord::Migration : ActiveRecord::Migration[4.2]
+    ActiveRecord::Migration[4.2]
   end
 end
 CamaManager = PluginRoutes
