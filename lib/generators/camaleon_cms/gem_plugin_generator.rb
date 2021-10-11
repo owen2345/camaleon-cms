@@ -94,6 +94,12 @@ Rails.application.routes.draw do
 end"
           end
 
+          if PluginRoutes.isRails4?
+            append_to_file Rails.root.join("Gemfile") do
+              "\n\ngem '#{get_plugin_name}', path:  '#{plugin_dir_path}'"
+            end
+          end
+
           # destroy non used files
           FileUtils.rm_r(plugin_app)
           FileUtils.rm_r(File.join(plugin_dir, "app", "assets", "images", get_plugin_name))
