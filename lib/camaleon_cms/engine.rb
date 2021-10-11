@@ -19,7 +19,7 @@ require 'cama_meta_tag'
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s
 Dir[File.join($camaleon_engine_dir, "lib", "ext", "**", "*.rb")].each{ |f| require f }
-require 'draper'
+require 'draper' if PluginRoutes.isRails4?
 
 module CamaleonCms
   class Engine < ::Rails::Engine

@@ -14,9 +14,9 @@ Gem::Specification.new do |s|
   s.description = "Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails as an alternative to Wordpress."
   s.license     = "MIT"
 
-  s.required_ruby_version = '>= 2.6'
-  s.requirements << 'rails >= 5.2'
-  s.requirements << 'ruby >= 2.6'
+  s.required_ruby_version = '>= 2.2'
+  s.requirements << 'rails >= 4.2'
+  s.requirements << 'ruby >= 2.2'
   s.requirements << 'imagemagick'
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'bcrypt'
   s.add_dependency 'cancancan', '>= 2.0', '< 4'
-  s.add_dependency 'draper', '>= 4.0.2'
+  s.add_dependency 'draper', '>= 1.3'
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
   s.add_dependency 'non-digest-assets', '~> 2.0'
@@ -54,5 +54,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'database_cleaner'
   s.add_development_dependency 'pry-rescue'
   s.add_development_dependency 'pry-stack_explorer'
-  s.add_development_dependency 'rubocop'
+  s.add_development_dependency 'rubocop', '< 0.82' # 0.82 removed support for Ruby 2.3
 end
