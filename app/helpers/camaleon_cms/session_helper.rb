@@ -120,11 +120,21 @@ module CamaleonCms::SessionHelper
     @cama_current_user = cama_calc_api_current_user
     return @cama_current_user if @cama_current_user
 
-    return nil unless cookies[:auth_token].present?
-    c = cookies[:auth_token].split("&")
-    return nil unless c.size == 3
+    return nil unless cookie_auth_token_complete?
 
-    @cama_current_user = current_site.users_include_admins.find_by_auth_token(c[0]).try(:decorate)
+    @cama_current_user = current_site.users_include_admins.find_by_auth_token(user_auth_token_from_cookie).try(:decorate)
+  end
+
+  def cookie_auth_token_complete?
+    cookie_split_auth_token&.size == 3
+  end
+
+  def cookie_split_auth_token
+    cookies[:auth_token]&.split("&")
+  end
+
+  def user_auth_token_from_cookie
+    cookie_split_auth_token.first
   end
 
   # check if a visitor was logged in

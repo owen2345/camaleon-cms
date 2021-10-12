@@ -46,7 +46,22 @@ class CamaleonCms::Admin::UsersController < CamaleonCms::AdminController
   # update som ajax requests from profile or user form
   def updated_ajax
     @user = current_site.users.find(params[:user_id])
-    render inline: @user.update(params.require(:password).permit!) ? "" : @user.errors.full_messages.join(', ')
+    update_session = current_user_is?(@user)
+    @user.update(params.require(:password).permit!)
+    render inline: @user.errors.full_messages.join(', ')
+    # keep user logged in when changing their own password
+    update_auth_token_in_cookie @user.auth_token if update_session && @user.saved_change_to_password_digest?
+  end
+
+  def update_auth_token_in_cookie(token)
+    return unless cookie_auth_token_complete?
+    current_token = cookie_split_auth_token
+    updated_token = [token, *current_token[1..-1]]
+    cookies[:auth_token] = updated_token.join("&")
+  end
+
+  def current_user_is?(user)
+    user_auth_token_from_cookie == user.auth_token rescue false
   end
 
   def edit
