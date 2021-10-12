@@ -11,7 +11,7 @@
                     <strong class="<%= (children.present?)? "pull-right" : "" %>"><%= user.the_name %></strong> <small class="text-muted <%= (children.present?)? "" : "pull-right" %>"><%= comment.decorate.the_created_at %></small>
                 </div>
                 <div class="panel-body">
-                    <%= raw comment.content %>
+                    <%= comment.content %>
                 </div><!-- /panel-body -->
             </div><!-- /panel panel-default -->
         </div><!-- /col-sm-5 -->

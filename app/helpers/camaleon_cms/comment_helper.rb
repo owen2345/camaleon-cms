@@ -25,7 +25,7 @@ module CamaleonCms::CommentHelper
                  </div>
                  <div class='media-body'>
                     <h4 class='media-heading'>#{author.the_name} <small>#{comment.the_created_at}</small> <span class='label label-#{labels[comment.approved]} pull-right'>#{t("camaleon_cms.admin.comments.message.#{comment.approved}")}</span></h4>
-                    <div class='comment_content'>#{comment.content}</div>
+                    <div class='comment_content'>#{sanitize comment.content}</div>
                     <div class='comment_actions'>
                         <div class='pull-left'>
                             <a href='#{cama_admin_post_comment_answer_path(@post.id, comment.id)}' data-comment-id='#{comment.id}' title='#{t('camaleon_cms.admin.comments.tooltip.reply_comment')}' class='btn btn-info reply btn-xs ajax_modal'><span class='fa fa-mail-reply'></span></a>
