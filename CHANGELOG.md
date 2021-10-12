@@ -1,7 +1,13 @@
 # Change Log
 
+## [2.6.0.1](https://github.com/owen2345/camaleon-cms/tree/2.6.0.1) (2021-10-12)
+- Fix comment injection vulnerability
+- Fix DoS vulnerability when uploading empty SVG
+- Log out user when admin changes their password
+- Disallow uploading from local URLs to prevent SSRF
+
 ## [2.6.0](https://github.com/owen2345/camaleon-cms/tree/2.6.0) (2021-01-27)
-- Add Moldavian language 
+- Add Moldavian language
 - Separate locales in files per folders/namespaces
 - Add unfilled strings to English locale
 - Rails 6.1 support
@@ -23,7 +29,7 @@
 - feat: for sprockets 4, generate config manifest to precompile
 - feat: precompile assets only for sprockets <= 3x
 - fix: Rails 6 missing to_s for session id
-- fix: preview error 
+- fix: preview error
 
 ## [2.4.6.7](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2019-08-05)
 - Fixed rails 6 bundle install error
