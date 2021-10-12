@@ -4,6 +4,15 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
   skip_before_action :verify_authenticity_token, only: :upload, raise: false
   before_action :init_media_vars, except: :download_private_file
 
+  LOCALHOST_DOMAIN_MATCHER = %r{
+    localhost|
+    127\.0\.0\.1|
+    0\.0\.0\.0|
+    0x7f\.0x0\.0x0\.0x1| # hex encoding
+    0177\.0\.0\.01| # octal encoding
+    2130706433 # dword encoding
+  }x
+
   # render media section
   def index
     authorize! :manage, :media
@@ -67,7 +76,11 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
         unless params[:url].start_with?('data:')
           params[:url] = (params[:url].start_with?('http') ? '' : current_site.the_url(locale: nil)) + params[:url]
         end
-        r = cama_tmp_upload( params[:url], formats: params[:formats], name: params[:name])
+        r = if local_url?(params[:url])
+              { error: t("camaleon_cms.admin.media.local_upload_denied") }
+            else
+              cama_tmp_upload( params[:url], formats: params[:formats], name: params[:name])
+            end
         unless r[:error].present?
           params[:file_upload] = r[:file_path]
           sett = {remove_source: true}
@@ -78,6 +91,10 @@ class CamaleonCms::Admin::MediaController < CamaleonCms::AdminController
           render inline: r[:error]
         end
     end
+  end
+
+  def local_url?(url)
+    url.try :match?, LOCALHOST_DOMAIN_MATCHER
   end
 
   # upload files from media uploader

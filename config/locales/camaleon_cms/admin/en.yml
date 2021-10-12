@@ -212,6 +212,7 @@ en:
         reload: 'Reload'
         clear_cache: 'Clear Cache'
         name_required: 'File name is required'
+        local_upload_denied: 'Cannot upload from localhost'
       menus:
         menus: Menus
         link_url: 'Link URL'
