@@ -1,0 +1,57 @@
+name: Test upcoming versions
+on: [push, pull_request]
+
+jobs:
+  # Latest Ruby, unreleased Rails
+  ruby_3_0_rails_edge:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_edge.gemfile
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Ruby and install gems
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          ruby-version: 3.0
+
+      - name: Run linters
+        run: bundle exec rubocop
+
+      - name: Migrate DB
+        run: bundle exec rake app:db:migrate
+
+      - name: Prepare DB
+        run: bundle exec rake app:db:test:prepare
+
+      - name: Run tests
+        run: bundle exec rspec
+
+  # Unreleased Ruby, latest Rails
+  ruby_head_rails_6_1:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_6_1.gemfile
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Ruby and install gems
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          ruby-version: head
+
+      - name: Run linters
+        run: bundle exec rubocop
+
+      - name: Migrate DB
+        run: bundle exec rake app:db:migrate
+
+      - name: Prepare DB
+        run: bundle exec rake app:db:test:prepare
+
+      - name: Run tests
+        run: bundle exec rspec
