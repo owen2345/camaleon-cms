@@ -2,7 +2,7 @@
 
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
 
-[![Build Status](https://travis-ci.org/owen2345/camaleon-cms.svg?branch=master)](https://travis-ci.org/owen2345/camaleon-cms)
+![Build Status](https://github.com/owen2345/camaleon-cms/actions/workflows/current_support.yml/badge.svg)
 ![](https://img.shields.io/badge/Support-Immediate-green.svg)
 
 [Website](http://camaleon.tuzitio.com/)
