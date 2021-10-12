@@ -52,7 +52,7 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     if res['file_type'] == 'image'
       res["thumb"].sub! '.svg', '.jpg'
       im = MiniMagick::Image.open(file_path)
-      res['dimension'] = "#{im[:width]}x#{im[:height]}"
+      res['dimension'] = "#{im[:width]}x#{im[:height]}" rescue "0x0" # Malformed SVGs raise an exception here.
     end
     res
   end
