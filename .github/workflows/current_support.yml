@@ -1,8 +1,11 @@
 name: Test supported versions
 on: [push, pull_request]
 
+# There should be a job for every supported version of Ruby/Rails, but not
+# every possible combination. Usually each year's new Ruby and Rails are tested
+# together. Any deviation from that pattern should be marked.
+
 jobs:
-  # oldest supported versions
   ruby_2_6_rails_5_2:
     runs-on: ubuntu-latest
     env:
@@ -68,6 +71,33 @@ jobs:
         with:
           bundler-cache: true
           ruby-version: 3.0
+
+      - name: Run linters
+        run: bundle exec rubocop
+
+      - name: Migrate DB
+        run: bundle exec rake app:db:migrate
+
+      - name: Prepare DB
+        run: bundle exec rake app:db:test:prepare
+
+      - name: Run tests
+        run: bundle exec rspec
+
+  # included by request. https://github.com/owen2345/camaleon-cms/pull/1003#issuecomment-940798515
+  ruby_2_7_rails_6_1:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_6_1.gemfile
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Ruby and install gems
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          ruby-version: 2.7
 
       - name: Run linters
         run: bundle exec rubocop
