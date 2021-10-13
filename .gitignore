@@ -11,3 +11,4 @@ spec/dummy/**/*.sqlite3-journal
 spec/dummy/**/*.sqlite3.db
 spec/dummy/**/*.sqlite3
 spec/support/fixtures/rails_tmp.png
+*.gem
