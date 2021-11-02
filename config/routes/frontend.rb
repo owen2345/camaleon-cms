@@ -73,10 +73,17 @@ Rails.application.routes.draw do
         controller "camaleon_cms/frontend" do
           PluginRoutes.get_sites.each do |s|
             s.post_types.pluck(:slug, :id).each do |pt_slug, pt_id|
-              get ':post_type_slug' => :post_type, as: "post_type_#{pt_id}", post_type_id: pt_id, constraints: ->(request) {
-                multilingual_segment = PluginRoutes.all_translations("routes.post_types.#{pt_slug}", default: pt_slug)
-                request.params[:post_type_slug].in?(multilingual_segment)
-              }
+              if pt_id == 23
+                get '/article/:post_type_slug' => :post_type, as: "post_type_#{pt_id}", post_type_id: pt_id, constraints: ->(request) {
+                  multilingual_segment = PluginRoutes.all_translations("routes.post_types.#{pt_slug}", default: pt_slug)
+                  request.params[:post_type_slug].in?(multilingual_segment)
+                }
+              else
+                get ':post_type_slug' => :post_type, as: "post_type_#{pt_id}", post_type_id: pt_id, constraints: ->(request) {
+                  multilingual_segment = PluginRoutes.all_translations("routes.post_types.#{pt_slug}", default: pt_slug)
+                  request.params[:post_type_slug].in?(multilingual_segment)
+                }
+              end
             end
           end
         end
