@@ -2,11 +2,20 @@ name: Test upcoming versions
 on: [push, pull_request]
 
 jobs:
-  # Latest Ruby, unreleased Rails
-  ruby_3_0_rails_edge:
+  spec:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ruby: 3.0
+            gemfile: rails_edge
+          - ruby: 3.1.0-preview1
+            gemfile: rails_7_0
+          - ruby: head
+            gemfile: rails_7_0
     env:
-      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_edge.gemfile
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -15,10 +24,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-          ruby-version: 3.0
-
-      - name: Run linters
-        run: bundle exec rubocop
+          ruby-version: ${{ matrix.ruby }}
 
       - name: Migrate DB
         run: bundle exec rake app:db:migrate
@@ -26,60 +32,5 @@ jobs:
       - name: Prepare DB
         run: bundle exec rake app:db:test:prepare
 
-      - name: Run tests
-        run: bundle exec rspec
-
-  # Unreleased Ruby, latest Rails
-  ruby_head_rails_6_1:
-    runs-on: ubuntu-latest
-    env:
-      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_6_1.gemfile
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Ruby and install gems
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-          ruby-version: head
-
-      - name: Run linters
-        run: bundle exec rubocop
-
-      - name: Migrate DB
-        run: bundle exec rake app:db:migrate
-
-      - name: Prepare DB
-        run: bundle exec rake app:db:test:prepare
-
-      - name: Run tests
-        run: bundle exec rspec
-
-  # TODO: Move this job to current support once Github Actions supports Ruby 3.1.0-preview1.
-  # TODO: Update this job to Ruby 3.1 stable and Rails 7.0 stable when they are released.
-  ruby_3_1_rails_6_1:
-    runs-on: ubuntu-latest
-    env:
-      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_6_1.gemfile
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Ruby and install gems
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-          ruby-version: 3.1.0-preview1
-
-      - name: Run linters
-        run: bundle exec rubocop
-
-      - name: Migrate DB
-        run: bundle exec rake app:db:migrate
-
-      - name: Prepare DB
-        run: bundle exec rake app:db:test:prepare
-
-      - name: Run tests
+      - name: Run spec
         run: bundle exec rspec
