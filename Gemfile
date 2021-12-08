@@ -1,7 +1,8 @@
 source 'https://rubygems.org'
 
 gemspec
-gem 'rails', '~> 6.1.0'
+gem 'rails', '~> 7.0.0.rc1'
+gem 'non-digest-assets', github: 'mvz/non-digest-assets'
 gem 'sassc', '!= 2.3.0' # this version segfaults
 gem 'selenium-webdriver'
 gem 'webdrivers'

@@ -1,6 +1,6 @@
 module CamaleonCms::HooksHelper
   include CamaleonCms::PluginsHelper
-  
+
   # execute hooks for plugin_key with action name hook_key
   # non public method
   # plugin: plugin configuration (config.json)
@@ -24,7 +24,7 @@ module CamaleonCms::HooksHelper
       _hook.call(params)
     end
   end
-  
+
   # skip hook function with name: hook_function_name
   def hook_skip(hook_function_name)
     @_hooks_skip << hook_function_name
