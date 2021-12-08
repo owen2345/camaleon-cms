@@ -2,7 +2,7 @@
 
 ![](http://camaleon.tuzitio.com/media/132/logo2.png)
 
-![Build Status](https://github.com/owen2345/camaleon-cms/actions/workflows/current_support.yml/badge.svg)
+[![Test supported versions](https://github.com/owen2345/camaleon-cms/actions/workflows/current_support.yml/badge.svg)](https://github.com/owen2345/camaleon-cms/actions/workflows/current_support.yml)
 ![](https://img.shields.io/badge/Support-Immediate-green.svg)
 
 [Website](http://camaleon.tuzitio.com/)
@@ -78,6 +78,7 @@ http://camaleon.tuzitio.com/store/plugins
 * Post Clone - https://github.com/owen2345/camaleon-post-clone
 * Sitemap Customizer - https://github.com/brian-kephart/camaleon_sitemap_customizer
 * Image Optimizer - https://github.com/brian-kephart/camaleon_image_optimizer
+* Image/iFrame Lazy Loader - https://github.com/brian-kephart/camaleon_lazy_loader
 * Import / Export - https://github.com/owen2345/camaleon_export_import
 * Lightbox - https://github.com/owen2345/CamaImageLightbox
 * Autocomplete - https://github.com/gaelfokou/cama_autocomplete
@@ -118,7 +119,7 @@ http://camaleon.tuzitio.com/store/plugins
 * Add the gem in your Gemfile
 
   ```ruby
-  gem "camaleon_cms",  '>= 2.4.6.1' # (Current stable versions are 2.5.0, 2.4.4.5, 2.4.3.10, 2.3.6, 2.2.1)
+  gem "camaleon_cms"
   # OR
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # latest development version
   ```
