@@ -1,5 +1,11 @@
 # Change Log
 
+## [2.6.1](https://github.com/owen2345/camaleon-cms/tree/2.6.1) (2021-12-7)
+- Ruby 3.1 support
+- Rails 7.0 support
+- Require Ruby 2.6+
+- Require Rails 5.2+
+
 ## [2.6.0.1](https://github.com/owen2345/camaleon-cms/tree/2.6.0.1) (2021-10-12)
 - Fix comment injection vulnerability
 - Fix DoS vulnerability when uploading empty SVG
