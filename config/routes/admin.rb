@@ -53,6 +53,13 @@ Rails.application.routes.draw do
           get 'new_suppliers', on: :collection
           get 'contact_form', on: :collection
           get 'new_members', on: :collection
+          get 'tech_support', on: :collection
+          get 'marketing', on: :collection
+          get 'financing', on: :collection
+          get 'member_support_materials', on: :collection
+          get 'member_support_pharmacy', on: :collection
+          get 'contract_support_materials', on: :collection
+          get 'contract_support_pharmacy', on: :collection
         end
 
         resources :user_roles, controller: 'user_roles' do

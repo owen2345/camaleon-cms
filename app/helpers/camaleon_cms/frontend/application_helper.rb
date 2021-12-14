@@ -29,11 +29,6 @@ module CamaleonCms::Frontend::ApplicationHelper
       options[:locale] = nil if options[:locale].present? && _current_site && _current_site.get_languages.first.to_s == options[:locale].to_s
     end
 
-    # puts(url_to)
-    # if options[:post_type_id] == 23
-    #   return p == "path" ? cama_article_path(post_type_slug: args[:slug]) : cama_article_url(post_type_slug: args[:slug])
-    # end
-
     options.delete(:format) if PluginRoutes.system_info["skip_format_url"].present?
     cama_current_site_host_port(options) unless options.keys.include?(:host)
     send(url_to.gsub('-', '_'), *(args << options))

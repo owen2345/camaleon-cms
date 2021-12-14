@@ -53,9 +53,15 @@ module CamaleonCms::Admin::MenusHelper
       items << {icon: "copy", title: 'New Suppliers', url: new_suppliers_cama_admin_forms_path}
       items << {icon: "copy", title: 'Contact Form', url: contact_form_cama_admin_forms_path}
       items << {icon: "copy", title: 'New Members', url: new_members_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Tech Support', url: tech_support_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Marketing', url: marketing_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Financing', url: financing_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Member Support Materials', url: member_support_materials_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Member Support Pharmacy', url: member_support_pharmacy_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Contract Support Materials', url: contract_support_materials_cama_admin_forms_path}
+      items << {icon: "copy", title: 'Contract Support Pharmacy', url: contract_support_pharmacy_cama_admin_forms_path}
       admin_menu_add_menu("list", {icon: "list", title: t('camaleon_cms.admin.sidebar.forms'), url: "", items: items})
     end
-
 
     items = []
     if can? :manage, :settings

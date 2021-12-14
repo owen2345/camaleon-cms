@@ -35,9 +35,9 @@
                     <td><%= post.submitted_by %></td>
                     <td><%= post.contact_email %></td>
                     <td><%= link_to 'CSV',download_form_path(form: 'nutritions', id: post.id) %></td>
-                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'Nutritions Form'), target: '_blank' %></td>
+                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'Nutritions'), target: '_blank' %></td>
                     <td>
-                        <%= link_to delete_contact_form_path(id: post.id, form: 'Nutritions Form'), method: :delete, data: {confirm: "Are you sure?"} do %> 
+                        <%= link_to delete_contact_form_path(id: post.id, form: 'Nutritions'), method: :delete, data: {confirm: "Are you sure?"} do %> 
                            <i class="fa fa-times"></i>
                         <%end%>    
                     </td>

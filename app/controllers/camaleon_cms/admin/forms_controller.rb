@@ -35,4 +35,31 @@ class CamaleonCms::Admin::FormsController < CamaleonCms::AdminController
     @posts = NewMemberForm.order(created_at: :desc)
   end
 
+  def tech_support 
+    @posts = TechSupportForm.order(created_at: :desc)
+  end
+
+  def marketing
+    @posts = MarketingForm.order(created_at: :desc)
+  end
+
+  def financing
+    @posts = FinancingForm.order(created_at: :desc)
+  end
+  
+  def member_support_materials
+    @posts = MemberSupportMaterialsForm.order(created_at: :desc)
+  end
+
+  def member_support_pharmacy
+    @posts = MemberSupportPharmacyForm.order(created_at: :desc)
+  end
+
+  def contract_support_materials
+    @posts = ContractSupportMaterialsForm.order(created_at: :desc)
+  end
+
+  def contract_support_pharmacy
+    @posts = ContractSupportPharmacyForm.order(created_at: :desc)
+  end
 end

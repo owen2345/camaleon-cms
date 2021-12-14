@@ -3,10 +3,10 @@
         <div class="row">
             <div class="col-md-12">
                 <h4 class="pull-left" style="width: 100%;">
-                    <%= 'Product Change Forms' %>
+                    <%= 'Tech Support Forms' %>
                     <div class='pull-right'>
-                        <%= link_to 'Download All',download_form_path(form: 'product_change'), class: ' btn btn-primary' %>
-                        <%= link_to 'Download New',download_form_path(form: 'product_change', only: 'new'), class: ' btn btn-success' %>
+                        <%= link_to 'Download All',download_form_path(form: 'tech_support'), class: ' btn btn-primary' %>
+                        <%= link_to 'Download New',download_form_path(form: 'tech_support', only: 'new'), class: ' btn btn-success' %>
                     </div>
                 </h4>
             </div>
@@ -21,7 +21,6 @@
                 <th>Submitted At</th>
                 <th>Submitted By Name</th>
                 <th>Submitted By Email</th>
-                <th>Images</th>
                 <th>Download CSV</th>
                 <th>Download PDF</th>
                 <th>Delete</th>
@@ -30,23 +29,19 @@
             </thead>
             <tbody>
             <% @posts.each do |post| %>
-                <tr style="color: <%=post.exported ? '' : 'green';%>">
+                <tr>
                     <td><%= post.id %></td>
                     <td><%= post.created_at %></td>
-                    <td><%= post.contact_name %></td>
-                    <td><%= post.contact_email %></td>
+                    <td><%= post.first_name %> <%= post.last_name %></td>
+                    <td><%= post.email %></td>
+                    <td><%= link_to 'CSV',download_form_path(form: 'tech_support', id: post.id) %></td>
+                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'TechSupport'), target: '_blank' %></td>
                     <td>
-                        <% post.images.each do |image|%>
-                            <%= image_tag image, width: 100 %>
-                        <%end%>
-                    </td>
-                    <td><%= link_to 'CSV',download_form_path(form: 'product_change', id: post.id) %></td>
-                    <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'ProductChange'), target: '_blank' %></td>
-                    <td>
-                        <%= link_to delete_contact_form_path(id: post.id, form: 'ProductChange'), method: :delete, data: {confirm: "Are you sure?"} do %> 
+                        <%= link_to delete_contact_form_path(id: post.id, form: 'TechSupport'), method: :delete, data: {confirm: "Are you sure?"} do %> 
                            <i class="fa fa-times"></i>
                         <%end%>    
                     </td>
+                   
                 </tr>
             <% end %>
             </tbody>
