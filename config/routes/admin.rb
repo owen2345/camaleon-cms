@@ -50,7 +50,8 @@ Rails.application.routes.draw do
           get 'pharmacy', on: :collection
           get 'product_change', on: :collection
           get 'media_inquiry', on: :collection
-          get 'new_suppliers', on: :collection
+          get 'new_suppliers_materials', on: :collection
+          get 'new_suppliers_pharmacy', on: :collection
           get 'contact_form', on: :collection
           get 'new_members', on: :collection
           get 'tech_support', on: :collection
