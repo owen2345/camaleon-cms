@@ -27,8 +27,12 @@ class CamaleonCms::Admin::FormsController < CamaleonCms::AdminController
     @posts = ContactForm.order(created_at: :desc)
   end
 
-  def new_suppliers 
-    @posts = NewSuppliersForm.order(created_at: :desc)
+  def new_suppliers_pharmacy
+    @posts = NewSuppliersPharmacyForm.order(created_at: :desc)
+  end
+
+  def new_suppliers_materials
+    @posts = NewSuppliersMaterialsForm.order(created_at: :desc)
   end
 
   def new_members 

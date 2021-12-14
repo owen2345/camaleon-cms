@@ -50,7 +50,8 @@ module CamaleonCms::Admin::MenusHelper
       items << {icon: "copy", title: 'Pharmacy Product Concerns', url: pharmacy_cama_admin_forms_path}
       items << {icon: "copy", title: 'Change of Product Form', url: product_change_cama_admin_forms_path}
       items << {icon: "copy", title: 'Media Inquiry', url: media_inquiry_cama_admin_forms_path}
-      items << {icon: "copy", title: 'New Suppliers', url: new_suppliers_cama_admin_forms_path}
+      items << {icon: "copy", title: 'New Suppliers Materials', url: new_suppliers_materials_cama_admin_forms_path}
+      items << {icon: "copy", title: 'New Suppliers Pharmacy', url: new_suppliers_pharmacy_cama_admin_forms_path}
       items << {icon: "copy", title: 'Contact Form', url: contact_form_cama_admin_forms_path}
       items << {icon: "copy", title: 'New Members', url: new_members_cama_admin_forms_path}
       items << {icon: "copy", title: 'Tech Support', url: tech_support_cama_admin_forms_path}
