@@ -8,10 +8,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ruby: 3.0
+          - ruby: 3.1
             gemfile: rails_edge
-          - ruby: 3.1.0-preview1
-            gemfile: rails_7_0
           - ruby: head
             gemfile: rails_7_0
     env:
