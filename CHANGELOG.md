@@ -1,5 +1,10 @@
 # Change Log
 
+## [2.6.2](https://github.com/owen2345/camaleon-cms/tree/2.6.1) (2022-02-21)
+- Fix TinyMCE icons
+- Update welcome post
+- Make sure built-in theme assets get compiled
+
 ## [2.6.1](https://github.com/owen2345/camaleon-cms/tree/2.6.1) (2021-12-7)
 - Ruby 3.1 support
 - Rails 7.0 support
