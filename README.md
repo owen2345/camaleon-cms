@@ -153,8 +153,8 @@ http://camaleon.tuzitio.com/store/plugins
 
 ## Sample App / Demonstration
 * [Camaleon Server (current version)](http://camaleon.tuzitio.com/plugins/demo_manage/)
-* [Sample App](https://github.com/owen2345/Camaleon-CMS-Sample)
-* [Deploy Sample App in Heroku](https://heroku.com/deploy?template=https://github.com/owen2345/Camaleon-CMS-Sample)
+* [Sample App](https://github.com/brian-kephart/Camaleon-CMS-Sample)
+* [Deploy Sample App in Heroku](https://heroku.com/deploy?template=https://github.com/brian-kephart/Camaleon-CMS-Sample)
 
 ## Support
 If you have problems, please enter an issue [here.](https://github.com/owen2345/camaleon-cms/issues)
