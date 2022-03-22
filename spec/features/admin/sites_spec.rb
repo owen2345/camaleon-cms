@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
-# create a new site
 def create_site
   visit "#{cama_root_relative_path}/admin/settings/sites"
   expect(page).to have_content("List Sites")
