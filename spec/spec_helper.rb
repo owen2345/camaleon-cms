@@ -33,7 +33,13 @@ if defined?(Capybara::Webkit)
 
   Capybara.javascript_driver = :webkit
 else
+  # Next 2 are Chrome drivers
+  # Capybara.javascript_driver = :selenium_chrome
   Capybara.javascript_driver = :selenium_chrome_headless
+
+  # Next 2 are FireFox drivers
+  # Capybara.javascript_driver = :selenium
+  # Capybara.javascript_driver = :selenium_headless
 end
 
 # define screenshot errors name
