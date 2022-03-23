@@ -21,6 +21,9 @@
                 <th>Submitted At</th>
                 <th>Submitted By Name</th>
                 <th>Submitted By Email</th>
+                <th>Organization</th>
+                <th>Message</th>
+                <th>Accept contact</th>
                 <th>Download CSV</th>
                 <th>Download PDF</th>
                 <th>Delete</th>
@@ -34,6 +37,9 @@
                     <td><%= post.created_at %></td>
                     <td><%= post.full_name %></td>
                     <td><%= post.email %></td>
+                    <td><%= post.organization %></td>
+                    <td><%= post.message %></td>
+                    <td><%= post.communication %></td>
                     <td><%= link_to 'CSV',download_form_path(form: 'health_without_harm_pledge', id: post.id) %></td>
                     <td><%= link_to 'PDF', download_form_pdf_path(id: post.id, format: :pdf, form: 'HealthWithoutHarmPledge'), target: '_blank' %></td>
                     <td>
