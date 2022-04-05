@@ -1,6 +1,6 @@
 # Change Log
 
-## [2.6.2](https://github.com/owen2345/camaleon-cms/tree/2.6.3) (2022-03-11)
+## [2.6.3](https://github.com/owen2345/camaleon-cms/tree/2.6.3) (2022-03-11)
 - Move glyphicons to correct folder
 
 ## [2.6.2](https://github.com/owen2345/camaleon-cms/tree/2.6.2) (2022-02-21)
