@@ -154,7 +154,7 @@
                 </div>
                 <div class="form-group" style="width:100%">
                     <label><%= t(@post_type.get_option('posts_feature_image_description_label', 'camaleon_cms.admin.post_type.featured_image_description'), default: @post_type.get_option('posts_feature_image_description_label_default', 'Featured Image Description'))%></label>
-                    <input class="full-width <%= 'required' if @post.is_required_picture? || params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>" name="meta[thumb_alt]" type="text" value="<%= params[:meta][:thumb_alt] rescue false || @post.get_meta("thumb_alt", "") %>"/>                        
+                    <input class="full-width <%= 'required' if (@post.is_required_picture? || params[:meta][:thumb] rescue false || @post.get_meta("thumb", "").present?) %>" name="meta[thumb_alt]" type="text" value="<%= params[:meta][:thumb_alt] rescue false || @post.get_meta("thumb_alt", "") %>"/>                        
                 </div>
             </div>
         </div>
