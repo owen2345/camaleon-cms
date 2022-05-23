@@ -39,3 +39,6 @@ module Dummy
     config.active_record.legacy_connection_handling = false if Rails.version.to_f >= 6.1 && Rails.version.to_f < 7.1
   end
 end
+
+Oj.default_options = { mode: :custom, cache_keys: true, cache_str: 5 }
+Oj.optimize_rails
