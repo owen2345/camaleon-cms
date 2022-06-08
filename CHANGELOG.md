@@ -1,5 +1,11 @@
 # Change Log
 
+## [2.6.4](https://github.com/owen2345/camaleon-cms/tree/2.6.4) (2022-06-08)
+- Reformat JSON comments for OJ compatibility
+- Use OJ in testing
+- Test for asset existence when running spec
+- Fix some typos
+
 ## [2.6.3](https://github.com/owen2345/camaleon-cms/tree/2.6.3) (2022-03-11)
 - Move glyphicons to correct folder
 
