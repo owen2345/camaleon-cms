@@ -41,15 +41,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'cama_contact_form', '>= 0.0.28'
   s.add_dependency 'cama_meta_tag'
 
-  # TODO:
-  # These gems were moved from default gems to bundled gems in Ruby 3.1.
-  # They are dependencies of the Mail gem, which as of version 2.7.1 has
-  # not been updated to explicitly require them. Once that gem is updated,
-  # these can be removed from the gemspec. https://github.com/mikel/mail/issues/1461
-  s.add_dependency 'net-smtp'
-  s.add_dependency 'net-pop'
-  s.add_dependency 'net-imap'
-
   # MEDIA MANAGER
   s.add_dependency 'aws-sdk-s3', '~> 1'
 

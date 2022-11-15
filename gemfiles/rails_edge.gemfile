@@ -14,4 +14,3 @@ gem 'factory_bot'
 gem 'faker'
 gem 'rack_session_access'
 gem 'cancancan', '~> 3.0'
-gem 'non-digest-assets', github: 'mvz/non-digest-assets' # released version 2.0.0 will not install on Rails 7

@@ -1,5 +1,8 @@
 # Change Log
 
+## Unreleased
+- Remove temporary dependencies
+
 ## [2.6.4](https://github.com/owen2345/camaleon-cms/tree/2.6.4) (2022-06-08)
 - Reformat JSON comments for OJ compatibility
 - Use OJ in testing
