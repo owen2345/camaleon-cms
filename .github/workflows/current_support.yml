@@ -8,7 +8,7 @@ jobs:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_6_1.gemfile
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Ruby and install gems
         uses: ruby/setup-ruby@v1
@@ -24,26 +24,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [2.6, 2.7, "3.0"]
-        gemfile: [rails_5_2, rails_6_0, rails_6_1, rails_7_0]
-        exclude:
-          # Rails 7.0 requires Ruby 2.7+
-          - ruby: 2.6
-            gemfile: rails_7_0
-          # Rails < 6 is not compatible with Ruby 3+
-          - ruby: 3.0
-            gemfile: rails_5_2
-          - ruby: 3.1
-            gemfile: rails_5_2
+        ruby: [2.7, "3.0"]
+        gemfile: [rails_6_0, rails_6_1, rails_7_0]
         include:
           # Rails < 7.0.1 is not compatible with Ruby 3.1+
           - ruby: 3.1
+            gemfile: rails_7_0
+          - ruby: 3.2
             gemfile: rails_7_0
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Ruby and install gems
         uses: ruby/setup-ruby@v1

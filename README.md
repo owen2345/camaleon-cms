@@ -99,14 +99,14 @@ http://camaleon.tuzitio.com/store/plugins
 * eFashion - http://camaleon.tuzitio.com/store/themes/eFashion (Github: https://github.com/mazharoddin/camaleon-cms-efashion)
 * Shoppy - http://camaleon.tuzitio.com/store/themes/shoppy (Github: https://github.com/mazharoddin/camaleon-cms-shoppy)
 * CV - Paid Theme ($) - http://camaleon.tuzitio.com/store/themes/cv
-* Camaleon Site - Paid Them ($) - http://camaleon.tuzitio.com/store/themes/camaleon_cms
+* Camaleon Site - Paid Theme ($) - http://camaleon.tuzitio.com/store/themes/camaleon_cms
 * Sky - Paid Theme ($) - http://camaleon.tuzitio.com/store/themes/sky
 
 
 ## Requirements
-* Rails 5.2+
+* Rails 6.0+
 * PostgreSQL, MySQL 5+ or SQlite
-* Ruby 2.6+
+* Ruby 2.7+
 * Imagemagick
 
 ## Installation
