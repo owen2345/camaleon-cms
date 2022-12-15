@@ -315,7 +315,7 @@ class PluginRoutes
     res = get_gem_themes
     entries = [".", ".."]
     res.each{|theme| entries << theme["key"] }
-    (Dir["#{apps_dir}/themes/*"] + Dir["#{camaleon_gem.gem_dir}/app/apps/themes/*"]).each do |path|
+    (Dir["#{apps_dir}/themes/*"]).each do |path|
       entry = path.split("/").last
       config = File.join(path, "config", "config.json")
       next if entries.include?(entry) || !File.directory?(path) || !File.exist?(config)
