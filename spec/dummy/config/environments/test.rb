@@ -15,7 +15,7 @@ Rails.application.configure do
   config.log_level = :debug
 
   # Configure static file server for tests with Cache-Control for performance.
-  config.serve_static_files   = true
+  config.public_file_server.enabled = true
   config.static_cache_control = 'public, max-age=3600'
 
   # Show full error reports and disable caching.

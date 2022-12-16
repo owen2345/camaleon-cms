@@ -1,12 +1,18 @@
 # include ApplicationHelper
-require 'rails_helper'
 
 # do login for admin panel and also verify if the site was created
 # if site is not created, then create a new site
 def init_site
   before(:each) do
+    CamaleonCms::Site.delete_all
     @site = create(:site).decorate
     @post = @site.the_post('sample-post').decorate
+  end
+
+  after(:each) do
+    @site = nil
+    @post = nil
+    Cama::Site.instance_variable_set(:@main_site, nil)
   end
 end
 
@@ -43,7 +49,7 @@ end
 # return the id of the first post
 def get_content_attr(post_type = "post", attr = "id", pos = "first")
   res = Cama::Site.first.decorate.the_post_type(post_type).decorate.the_posts.send(pos).decorate.send(attr)
-  fix_db
+  # fix_db
   res
 end
 
@@ -84,24 +90,16 @@ def pages_test
   the_tags.decorate.send(pos).send(attr)
 end
 
-# return the current for testing case
-def get_current_test_site
-  Cama::Site.first || create_test_site
-end
-
 # create a new post type for first site
 def create_test_post_type(args = {})
-  get_current_test_site.post_types.create!({name: 'Test', slug: 'test', description: 'this is a test', data_options: {}}.merge(args))
+  @site.post_types.create!(
+    {name: 'Test', slug: 'test', description: 'this is a test', data_options: {}}.merge!(args)
+  )
 end
 
 # create a new post for post type
 def create_test_post(post_type, args = {})
   post_type.posts.create!({title: 'Test post', slug: 'test', content: 'this is a test', data_options: {}}.merge(args))
-end
-
-# create a test site
-def create_test_site(args = {})
-  Cama::Site.create({slug: 'test', name: 'Test Site'}.merge(args))
 end
 
 def confirm_dialog

@@ -13,6 +13,6 @@ gem 'capybara-screenshot'
 gem 'rspec_junit_formatter'
 
 gem 'puma'
-gem 'factory_bot'
+gem 'factory_bot_rails'
 gem 'faker'
 gem 'rack_session_access'
