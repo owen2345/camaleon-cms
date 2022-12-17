@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "eslint": "^8.0.1",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^15.0.0",
+    "eslint-plugin-promise": "^6.0.0"
+  },
+  "name": "camaleon-cms",
+  "version": "2.6.6",
+  "description": "Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails",
+  "main": "index.js",
+  "repository": "https://github.com/owen2345/camaleon-cms",
+  "author": "owen2345 <owenperedo@gmail.com>",
+  "license": "MIT"
+}

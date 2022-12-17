@@ -9,7 +9,7 @@ Rails.application.config.tinymce.install = :copy
 Rails.application.config.assets.precompile += %w[camaleon_cms/*]
 # Rails.application.config.assets.precompile += %w( themes/*/assets/* )
 
-# This will precompile any assets, not just JavaScript (.js, .coffee, .swf, .css, .scss)
+# This will precompile any assets, not just JavaScript (.js, .swf, .css, .scss)
 
 sprockets_3 = !Sprockets.const_defined?(:BabelProcessor)
 if sprockets_3
