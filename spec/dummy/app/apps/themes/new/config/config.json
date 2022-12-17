@@ -1,0 +1,26 @@
+{
+  "name" : "Clean Theme",
+  "description" : "Clean and basic theme (folder = new)",
+  "thumb" : "images/image.png",
+  "settings":[
+    {"label": "Settings", "action_name": "settings"}
+  ],
+
+  "helpers": [
+    "Themes::New::CustomHelper"
+  ],
+  "hooks": {
+    "on_destroy": [
+      "theme_custom_on_destroy_theme"
+    ],
+    "on_active": [
+      "theme_custom_on_install_theme"
+    ],
+    "on_inactive": [
+      "theme_custom_on_uninstall_theme"
+    ],
+    "on_theme_settings": [
+      "theme_custom_settings"
+    ]
+  }
+}

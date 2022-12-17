@@ -1,0 +1,50 @@
+<% if post.has_thumb? %>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <%= raw post.the_link_thumb({}, {class: "img-responsive img-rounded col-md-12 col-lg-12"}) %>
+        </div>
+    </div>
+<%  end %>
+
+<% categories = post.the_categories.decorate %>
+<% if categories.present? %>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            Categories
+        </div>
+        <div class="panel-body">
+            <ul>
+                <% categories.each do |cat| %>
+                    <li><a href="<%= cat.the_url %>"><%= cat.the_title %></a></li>
+                <% end %>
+            </ul>
+        </div>
+    </div>
+<% end %>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        Latest Posts
+    </div>
+    <div class="panel-body">
+        <ul>
+            <% current_site.the_contents(@post_type.slug).order(created_at: :desc).limit(7).decorate.each do |p| %>
+                <li><a href="<%= p.the_url %>"><%= p.the_title %></a></li>
+            <% end %>
+        </ul>
+    </div>
+</div>
+
+<% tags = post.the_tags.decorate %>
+<% if tags.present? %>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            TAGS
+        </div>
+        <div class="panel-body">
+            <% tags.each do |post_tag| %>
+                <a class="btn btn-default btn-xs" href="<%= post_tag.the_url %>"><%= post_tag.the_title %></a>
+            <% end %>
+        </div>
+    </div>
+<% end %>

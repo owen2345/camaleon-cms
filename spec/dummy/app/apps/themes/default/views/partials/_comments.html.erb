@@ -1,0 +1,40 @@
+<section id="comments" class="comments-area">
+  <% if post.the_comments.count > 0 %>
+      <h2 class="comments-title"><%= post.the_comments.count %> <%= ct('comments', default: 'Comments') %>
+        "<span><%= post.the_title %></span>"</h2>
+      <section class="comment-list">
+        <%= render partial: "partials/comments_list", locals: {comments: post.the_comments, children: ""} %>
+      </section>
+  <% end %>
+  <% if post.can_commented? %>
+    <div id="respond" class="comment-respond">
+      <h3><%= ct('comment_new', default: 'New Comment') %></h3>
+      <% if signin? || current_site.get_option('permit_anonimos_comment', false) %>
+          <%= form_for post, url: {action: :save_comment, post_id: post.id}, html: {method: "post", class: "form-comment comment-form", id: 'form-comment'} do |f| %>
+              <%= render partial: "camaleon_cms/flash_messages", locals: {flash: (flash[:comment_submit] || {}).with_indifferent_access} %>
+              <% unless signin? %>
+                  <div class="form-group">
+                    <%= text_field_tag 'post_comment[name]', '', class: 'form-control required', placeholder: t('.anonymous_name', default: 'Name') %>
+                  </div>
+                  <div class="form-group">
+                    <%= email_field_tag 'post_comment[email]', '', class: 'form-control required', placeholder: t('.anonymous_email', default: 'Email') %>
+                  </div>
+                  <% if current_site.is_enable_captcha_for_comments? %>
+                      <%= content_tag :div, raw(cama_captcha_tag), class: 'form-group' %>
+                  <% end %>
+              <% end %>
+              <div class="form-group">
+                <%= text_area_tag 'post_comment[content]', '', class: 'form-control required counted', placeholder: ct('comment', default: 'Here your comment') %>
+              </div>
+              <div class="form-group text-right">
+                <button type="submit" class="btn btn-info"><%= ct('comment', default: 'Comment') %></button>
+              </div>
+          <% end %>
+      <% else %>
+          <div class="panel-login-comment"><%= ct('comment_msg', default: 'You must be logged in to post a comment') %>
+            <a class="link-login-comment" href="<%= cama_admin_path %>"><%= ct('login', default: 'Login') %></a>
+          </div>
+      <% end %>
+    </div>
+  <% end %>
+</section>

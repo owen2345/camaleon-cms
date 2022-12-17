@@ -1,0 +1,16 @@
+<article id="category-view" class="category_<%= @category.slug %>">
+    <div class="panel panel-primary post_list no-line">
+        <div class="panel-body">
+            <div class="row">
+                <% @posts.each_with_index do |post, index| %>
+                    <%= raw "<div class='clearfix'></div>" if index%3 == 0 && index > 0 %>
+                    <%= render partial: 'partials/post_list_item', locals: {post: post.decorate} %>
+                <% end %>
+            </div>
+            <%= content_tag("div", raw(ct('no_contents_found', default: 'No contents found')), class: "alert alert-warning") if @posts.empty? %>
+            <%= raw cama_do_pagination(@posts) %>
+        </div>
+    </div>
+</article>
+
+

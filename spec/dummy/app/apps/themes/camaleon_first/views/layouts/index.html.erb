@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- META SECTION -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- END META SECTION -->
+
+    <%= stylesheet_link_tag theme_asset_path("css/main.css") %>
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat%3A400%2C700&ver=4.2.2">
+    <%= javascript_include_tag theme_asset_path("js/main.js") %>
+
+    <%= raw the_head %>
+
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body class="<%= is_home? ? "home-page" : "inner-page" %>">
+    <header>
+        <nav role="navigation">
+            <div class="navbar navbar-inverse navbar-static-top">
+                <div class="container">
+                    <div style="position: absolute; top: 0;"><%= raw current_site.draw_languages("language-list list-inline", true) %></div>
+                    <!-- .navbar-toggle is used as the toggle for collapsed navbar content -->
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="<%= current_site.the_url %>" title="<%= current_site.the_title %>" rel="homepage"><b><%= current_site.the_title %></b></a>
+                    </div>
+                    <div class="navbar-collapse collapse navbar-responsive-collapse">
+                        <%= raw draw_menu({container_id: "menu-menu-1", container_class: "nav navbar-nav navbar-right"}) %>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header><!-- end of header -->
+
+
+    <div id="wrapper" class="clearfix">
+        <div class="home-wrap clearfix">
+            <% if is_home? %>
+                <%= yield %>
+            <% else %>
+                <div id="ww">
+                    <div class="container"><%= yield %></div>
+                </div>
+            <% end %>
+        </div><!-- END home-wrap -->
+    </div><!-- end of wrapper-->
+
+
+
+
+    <!-- +++++ Footer Section +++++ -->
+    <footer id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div id="text-2" class="widget-wrapper widget_text">
+                        <%= raw current_theme.the_field("footer_left") %>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div id="text-3" class="widget-wrapper widget_text">
+                        <%= raw current_theme.the_field("footer_center") %>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div id="text-4" class="widget-wrapper widget_text">
+                        <%= raw current_theme.the_field("footer_right") %>
+                    </div>
+                </div>
+            </div><!-- /row -->
+        </div><!-- /container -->
+    </footer><!-- end #footer -->
+
+</body>
+</html>

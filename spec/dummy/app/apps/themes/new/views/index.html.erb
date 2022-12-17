@@ -1,0 +1,71 @@
+<section class="section-white" id="home-view">
+    <div class="container">
+
+        <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+            <!-- Indicators -->
+            <ol class="carousel-indicators">
+                <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
+                <li data-target="#carousel-example-generic" data-slide-to="1"></li>
+                <li data-target="#carousel-example-generic" data-slide-to="2"></li>
+            </ol>
+
+            <!-- Wrapper for slides -->
+            <div class="carousel-inner">
+                <div class="item active">
+                    <img src="http://placehold.it/800x400" alt="...">
+                    <div class="carousel-caption">
+                        <h2>Heading</h2>
+                    </div>
+                </div>
+                <div class="item">
+                    <img src="http://placehold.it/800x400" alt="...">
+                    <div class="carousel-caption">
+                        <h2>Heading</h2>
+                    </div>
+                </div>
+                <div class="item">
+                    <img src="http://placehold.it/800x400" alt="...">
+                    <div class="carousel-caption">
+                        <h2>Heading</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
+                <span class="fa fa-angle-left"></span>
+            </a>
+            <a class="right carousel-control" href="#carousel-example-generic" data-slide="next">
+                <span class="fa fa-angle-right"></span>
+            </a>
+        </div>
+
+
+
+        <div class="panel panel-primary no-line contents">
+            <div class="panel-heading"> Content </div>
+            <div class="panel-body">
+
+                <div class="row">
+                    <% current_site.the_post_types.decorate.each_with_index do |ptype, index| %>
+                        <%= raw "<div class='clearfix'></div>" if index%3 == 0 && index > 0 %>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="thumbnail">
+                                <a href="<%= ptype.the_url %>">
+                                    <img src="<%= ptype.the_thumb_url %>" alt="" style="height: 200px; width: 100%; display: block;">
+                                </a>
+                                <div class="caption">
+                                    <h4 id="thumbnail-label"><a href="<%= ptype.the_url %>"><%= ptype.the_title %></a></h4><hr>
+                                    <p><%= raw ptype.the_excerpt %></p>
+                                    <%= ptype.the_edit_link %>
+                                </div>
+                            </div>
+                        </div>
+                    <% end %>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>

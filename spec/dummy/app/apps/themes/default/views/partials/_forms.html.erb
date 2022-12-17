@@ -1,0 +1,19 @@
+<% @form =  current_site.forms.find_by_id(id) %>
+<% options = @form.options[:fields]
+   settings = @form.get_meta("_settings")
+%>
+
+<div class="text-column">
+    <%= form_for @form, url:{action: :save_form}, html: {method: "post", class: "railscf-form", multipart: true} do |f| %>
+
+        <%= hidden_field_tag "id", @form.id %>
+        <%= hidden_field_tag "post_id", post_id %>
+
+        <div class="row">
+            <%= render :partial =>  "camaleon_cms/flash_messages", locals: @validation  %>
+        </div>
+        <%= raw form_element_object(@form.id, options, post_id) %>
+
+        <button class="submit_btn" type="submit"><%= settings[:railscf_form_button][:name_button]%></button>
+    <% end %>
+</div>

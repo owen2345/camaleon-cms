@@ -1,0 +1,34 @@
+<article>
+    <header class="entry-header">
+        <div class="entry-thumbnail">
+            <%= raw post.the_link_thumb() if post.has_thumb?%>
+        </div>
+        <h1 class="entry-title">
+            <a rel="bookmark" href="<%= post.the_url %>"><%= post.the_title %></a>
+        </h1>
+        <div class="entry-meta">
+                <span class="date">
+                    <a rel="bookmark" title="Enlace permanente a <%= post.the_title %>" href="<%= post.the_url %>">
+                        <time datetime="" class="entry-date"><%= post.the_created_at %></time>
+                    </a>
+                </span>
+                <span class="categories-links">
+                    <%= raw get_taxonomy(post.the_categories.decorate, 'category tag') %>
+                </span>
+                <span class="tags-links">
+                    <%= raw get_taxonomy(post.the_tags.decorate, 'tag') %>
+                </span>
+        </div><!-- .entry-meta -->
+    </header><!-- .entry-header -->
+    <div class="entry-content">
+        <%= raw post.the_content %>
+    </div><!-- .entry-content -->
+    <% if post.the_comments.count > 0 %>
+        <footer class="entry-meta">
+            <div class="comments-link">
+                <a href="<%= post.the_url %>">Ver los comentarios</a>
+            </div><!-- .comments-link -->
+
+        </footer><!-- .entry-meta -->
+    <% end %>
+</article>
