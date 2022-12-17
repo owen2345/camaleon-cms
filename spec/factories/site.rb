@@ -4,7 +4,7 @@ include CamaleonCms::SiteHelper
 include CamaleonCms::HooksHelper
 
 FactoryBot.define do
-  factory :site, class: CamaleonCms::Site do
+  factory :site, class: 'CamaleonCms::Site' do
     name { Faker::Name.unique.name }
     slug do
       current_session = Capybara.current_session

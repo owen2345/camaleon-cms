@@ -9,44 +9,21 @@ ActiveRecord::Migrator.migrations_paths << File.expand_path('../../db/migrate', 
 
 require 'rspec/rails'
 require "capybara/rspec"
-require 'database_cleaner'
 require "rack_session_access/capybara"
 require 'capybara-screenshot/rspec'
 
-if defined?(Capybara::Webkit)
-  Capybara::Webkit.configure do |config|
-    # Enable debug mode. Prints a log of everything the driver is doing.
-    config.debug = false
+# Next 2 are Chrome drivers
+# Capybara.javascript_driver = :selenium_chrome
+Capybara.javascript_driver = :selenium_chrome_headless
 
-    # Allow pages to make requests to any URL without issuing a warning.
-    config.allow_unknown_urls
-
-    # Don't raise errors when SSL certificates can't be validated
-    config.ignore_ssl_errors
-
-    # Don't load images
-    config.skip_image_loading
-
-    # Raise JavaScript errors as exceptions
-    # config.raise_javascript_errors = true
-  end
-
-  Capybara.javascript_driver = :webkit
-else
-  # Next 2 are Chrome drivers
-  # Capybara.javascript_driver = :selenium_chrome
-  Capybara.javascript_driver = :selenium_chrome_headless
-
-  # Next 2 are FireFox drivers
-  # Capybara.javascript_driver = :selenium
-  # Capybara.javascript_driver = :selenium_headless
-end
+# Next 2 are FireFox drivers
+# Capybara.javascript_driver = :selenium
+# Capybara.javascript_driver = :selenium_headless
 
 # define screenshot errors name
 Capybara::Screenshot.register_filename_prefix_formatter(:rspec) do |example|
   "screenshot_#{example.description.gsub(' ', '-').gsub(/^.*\/spec\//,'')}"
 end
-
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
@@ -151,7 +128,7 @@ RSpec.configure do |config|
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
   # instead of true.
-  config.use_transactional_fixtures = false
+  config.use_transactional_fixtures = true
 
   # RSpec Rails can automatically mix in different behaviours to your tests
   # based on their file location, for example enabling you to call `get` and
