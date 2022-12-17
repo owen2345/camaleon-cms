@@ -3,7 +3,6 @@ require 'bcrypt'
 require 'cancancan'
 require 'meta-tags'
 require 'mini_magick'
-# require 'mobu'
 require 'will_paginate'
 require 'will_paginate-bootstrap'
 require 'breadcrumbs_on_rails'
@@ -15,6 +14,15 @@ require 'coffee-rails'
 require 'sass-rails'
 require 'cama_contact_form'
 require 'cama_meta_tag'
+
+# `factory_bot_rails` gem can be added to test, development and/or other environments in the main app, containing the
+# `camaleon_cms` gem.
+# So, being unknown, whether it is defined or not, we're trying requiring the gem, using `rescue` in case of failures.
+begin
+  require 'factory_bot_rails'
+rescue LoadError
+  # do nothing
+end
 
 $camaleon_engine_dir = File.expand_path("../../../", __FILE__)
 require File.join($camaleon_engine_dir, "lib", "plugin_routes").to_s
@@ -79,5 +87,8 @@ module CamaleonCms
         end
       end
     end
+
+    config.factory_bot.definition_file_paths +=
+      [File.expand_path('../../../spec/factories', __FILE__)] if defined?(FactoryBotRails)
   end
 end

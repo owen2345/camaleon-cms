@@ -14,9 +14,9 @@ Gem::Specification.new do |s|
   s.description = "Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails as an alternative to Wordpress."
   s.license     = "MIT"
 
-  s.required_ruby_version = '>= 2.6'
-  s.requirements << 'rails >= 5.2'
-  s.requirements << 'ruby >= 2.6'
+  s.required_ruby_version = '>= 2.7'
+  s.requirements << 'rails >= 6.0'
+  s.requirements << 'ruby >= 2.7'
   s.requirements << 'imagemagick'
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
@@ -41,26 +41,16 @@ Gem::Specification.new do |s|
   s.add_dependency 'cama_contact_form', '>= 0.0.28'
   s.add_dependency 'cama_meta_tag'
 
-  # TODO:
-  # These gems were moved from default gems to bundled gems in Ruby 3.1.
-  # They are dependencies of the Mail gem, which as of version 2.7.1 has
-  # not been updated to explicitly require them. Once that gem is updated,
-  # these can be removed from the gemspec. https://github.com/mikel/mail/issues/1461
-  s.add_dependency 'net-smtp'
-  s.add_dependency 'net-pop'
-  s.add_dependency 'net-imap'
-
   # MEDIA MANAGER
   s.add_dependency 'aws-sdk-s3', '~> 1'
 
   # development dependencies
-  s.add_development_dependency 'rspec', '>= 2', '< 4'
+  s.add_development_dependency 'rspec'
   s.add_development_dependency 'rspec-rails'
   s.add_development_dependency 'rspec-instafail'
   s.add_development_dependency 'capybara'
   s.add_development_dependency 'sqlite3'
   s.add_development_dependency 'byebug'
-  s.add_development_dependency 'database_cleaner'
   s.add_development_dependency 'pry-rescue'
   s.add_development_dependency 'pry-stack_explorer'
   s.add_development_dependency 'rubocop'

@@ -3,11 +3,13 @@
 require 'rails_helper'
 
 describe 'the signin process', js: true do
+  let(:post_type_id) { @site.post_types.where(slug: :post).pick(:id) }
+
   init_site
 
   it 'create new post' do
     admin_sign_in
-    visit "#{cama_root_relative_path}/admin/post_type/2/posts/new"
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/new"
     wait(2)
 
     within('#form-post') do
@@ -25,7 +27,7 @@ describe 'the signin process', js: true do
 
   it 'create edit post' do
     admin_sign_in
-    visit "#{cama_root_relative_path}/admin/post_type/2/posts/#{@post.id}/edit"
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{@post.id}/edit"
     wait(2)
 
     within('#form-post') do
@@ -45,7 +47,7 @@ describe 'the signin process', js: true do
     it 'correctly fetches the assets' do
       plugin_install('visibility_post')
       admin_sign_in
-      visit "#{cama_root_relative_path}/admin/post_type/2/posts/new"
+      visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/new"
       wait(2)
 
       within('#form-post') do
