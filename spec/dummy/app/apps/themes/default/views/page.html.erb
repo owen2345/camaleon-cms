@@ -1,0 +1,14 @@
+<article id="post" >
+    <header class="entry-header">
+        <% if @post.has_thumb? %>
+            <div class="entry-thumbnail">
+                <%= raw @post.the_thumb %>
+            </div>
+        <% end %>
+        <h1 class="entry-title"><%= @post.the_title %></h1>
+    </header><!-- .entry-header -->
+    <div class="entry-content">
+        <%= raw @post.the_content %>
+    </div><!-- .entry-content -->
+</article><!-- #post -->
+<%= render partial: 'partials/comments', locals: {post: @post} if @post.can_commented? %>

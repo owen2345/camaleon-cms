@@ -1,0 +1,175 @@
+/************ logo ***************/
+#logo{
+  padding: 5px;
+  > img{
+    width: 220px;
+    height: 50px;
+  }
+}
+
+/************ nav-var multi level *************/
+.navbar-nav,
+.navbar-right{
+  .dropdown:hover > ul{
+    display: block;
+  }
+  .dropdown-menu{
+    min-width: 100%;
+  }
+  ul ul {
+    left: 100%;
+    top: -8px;
+  }
+
+  ul{
+    border-radius: 0;
+    .caret{
+      border-bottom: 4px solid transparent;
+      border-top: 4px solid transparent;
+      border-left: 4px solid;
+    }
+  }
+}
+
+/************fixed menu************/
+body{
+
+}
+
+
+.post-view{
+  overflow: auto;
+}
+
+/*******comments list********/
+.comment-list{
+  .image{
+    float: left;
+    width: 40px;
+  }
+  .text{
+    margin-left: 50px;
+    position: relative;
+  }
+  .image_children{
+    float: right !important;
+  }
+  .text_children{
+    margin-left: 0px;
+    margin-right: 50px;
+  }
+  .thumbnail {
+    padding:0px;
+    min-height: 40px;
+    text-align: center;
+    > img{
+      display: inline-block;
+      max-height: 50px;
+    }
+  }
+  .panel {
+    position:relative;
+  }
+  .panel-heading:after,.panel-heading:before{
+    position:absolute;
+    top:11px;left:-16px;
+    right:100%;
+    width:0;
+    height:0;
+    display:block;
+    content:" ";
+    border-color:transparent;
+    border-style:solid solid outset;
+    pointer-events:none;
+  }
+  .panel-heading:after{
+    border-width:7px;
+    border-right-color:#f7f7f7;
+    margin-top:1px;
+    margin-left:2px;
+  }
+  .panel-heading:before{
+    border-right-color:#ddd;
+    border-width:8px;
+  }
+  .answer > *{
+
+    .panel-heading:after,.panel-heading:before{ left: auto; right: -16px; }
+    .panel-heading:after{
+      border-left-color:#f7f7f7;
+      border-right-color:transparent;
+      border-width: 8px;
+      margin-top: 0;
+    }
+    .panel-heading:before{
+      border-left-color:#ddd;
+      border-right-color:transparent;
+      right: -17px;
+    }
+  }
+}
+
+/************home view************/
+#home-view{
+  .contents{
+    .thumbnail{
+      min-height: 350px;
+    }
+  }
+}
+
+.post_list{
+  .post-list-item{
+    hr{ margin-top: 0; }
+  }
+}
+
+/*********no lines panel*********/
+.panel.no-line{
+  margin-top: 20px;
+  border: none;
+  box-shadow: none;
+  .panel-body{ padding:10px 0;}
+}
+
+/************categories carousel***********/
+.categories-carousel{
+  margin-bottom: 0;
+  padding: 0 40px 0px 40px;
+  /* The controlsy */
+  .carousel-control {
+    left: -12px;
+    height: 40px;
+    width: 40px;
+    background: none repeat scroll 0 0 #222222;
+    border: 4px solid #FFFFFF;
+    border-radius: 23px 23px 23px 23px;
+    top: 30%;
+  }
+  .carousel-control.right {
+    right: -12px;
+    left: auto;
+  }
+  /* The indicators */
+  .carousel-indicators {
+    right: 50%;
+    top: auto;
+    bottom: -10px;
+    margin-right: -19px;
+  }
+  /* The colour of the indicators */
+  .carousel-indicators li {
+    background: #cecece;
+  }
+  .carousel-indicators .active {
+    background: #428bca;
+  }
+  .thumbnail{
+    margin-bottom: 0;
+  }
+}
+
+/************ languages **********************/
+.language{
+  margin: 10px 0 0 0;
+}

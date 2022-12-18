@@ -1,0 +1,16 @@
+<div class="container-fluid">
+    <%= render partial: 'partials/breadcrumb', locals: {breadcrumb: @post.the_breadcrumb} %>
+    <div class="row">
+        <div class="col-md-12 post-view">
+            <article class="post-content">
+                <h1><%= @post.the_title %></h1>
+                <div class="author">
+                    <time datetime=""><%= @post.the_created_at %></time>
+                </div>
+                <div class="item-content">
+                    <%= raw @post.the_content %>
+                </div>
+            </article>
+        </div>
+    </div>
+</div>

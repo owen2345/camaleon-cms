@@ -1,0 +1,19 @@
+{
+  "name" : "Wordpress theme",
+  "description" : "This is a wordpress theme rebuilt with Camaleon cms (folder = default)",
+  "thumb" : "images/image.png",
+  "settings":[
+    {"label": "Settings", "action_name": "settings"}
+  ],
+
+  "helpers": [
+    "Themes::Default::DefaultHelper"
+  ],
+  "hooks": {
+    "on_theme_settings": [
+      "theme_default_settings"
+    ],
+    "on_active": ["theme_default_on_install"]
+    //"on_inactive": ["camaleon_first_on_uninstall_theme"]
+  }
+}

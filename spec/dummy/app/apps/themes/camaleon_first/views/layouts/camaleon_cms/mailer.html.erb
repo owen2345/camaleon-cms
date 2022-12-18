@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <table style="width: 100%">
+        <tr>
+            <td style="text-align: center; background-color: #1ABC9C; padding: 10px;"><%= image_tag @current_site.the_logo %></td>
+        </tr>
+        <tr>
+            <td>
+                <%= yield %>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center;"><a href="<%= @url_base %>" style="color: #ffffff;">Visit Site</a></td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- META SECTION -->
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+    <meta content="IE=edge" http-equiv="X-UA-Compatible" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <!-- END META SECTION -->
+    <%#= javascript_include_tag theme_asset_path("js/main.js") %>
+    <%= stylesheet_link_tag theme_asset_path("css/main.css") %>
+    <%= stylesheet_link_tag theme_asset_path("genericons/genericons.css") %>
+    <%= javascript_include_tag theme_asset_path("js/main.js") %>
+    <%= raw the_head %>
+</head>
+<body>
+    <div id="page" class="hfeed site">
+        <!-- header -->
+        <header id="masthead" class="site-header" role="banner">
+            <a class="home-link" href="<%= current_site.the_url %>" title="<%= current_site.the_title %>" rel="home">
+                <h1 class="site-title"><%= current_site.the_title %></h1>
+                <h2 class="site-description"><%= current_site.the_content %></h2>
+            </a>
+
+            <div id="navbar" class="navbar">
+                <nav id="site-navigation" class="navigation main-navigation" role="navigation">
+                    <div class="menu-menu-1-container" style="float: left;">
+                        <%= raw get_nav_menu('main_menu', 'nav navbar-nav nav-menu') %>
+                    </div>
+
+                    <div style="">
+                        <%= render partial: 'partials/search_form' %>
+                        <ul class="nav navbar-nav nav-menu" style="float: right;">
+                            <% if signin?  %>
+                                <li class="dropdown">
+                                    <a class="dropdown-toggle" href="#"><img src="<%= cama_current_user.decorate.the_avatar %>" style="max-width: 24px; border-radius: 50%" alt=""/> <%= cama_current_user.username %></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="<%= cama_admin_dashboard_path %>"><%= I18n.t('camaleon_cms.common.dashboard') %></a></li>
+                                        <li><a href="<%= cama_admin_profile_path %>"><%= I18n.t('camaleon_cms.common.profile') %></a></li>
+                                        <li><a href="<%= cama_admin_logout_path %>"><%= I18n.t('camaleon_cms.common.logout') %></a></li>
+                                    </ul>
+                                </li>
+                            <% else %>
+
+                                <li class="dropdown">
+                                    <a id="login-user" class="dropdown-toggle" href="#">Login / Register</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="<%= cama_admin_login_path %>"><%= I18n.t('camaleon_cms.common.login') %></a></li>
+                                        <li><a href="<%= cama_admin_register_path %>"><%= I18n.t('camaleon_cms.common.register') %></a></li>
+                                    </ul>
+                                </li>
+                            <% end %>
+                        </ul>
+                        <%= raw current_site.draw_languages("language list-inline pull-right", true) %>
+                    </div>
+
+                </nav><!-- #site-navigation -->
+            </div><!-- #navbar -->
+        </header><!-- #masthead -->
+        <!-- ./header -->
+
+        <div id="main" class="site-main">
+            <div id="primary" class="content-area">
+                <div id="content" class="site-content" role="main">
+                    <%= yield %>
+                </div><!-- #content -->
+            </div><!-- #primary -->
+
+        </div>
+
+        <!-- footer -->
+        <footer id="colophon" class="site-footer" role="contentinfo">
+            <div role="complementary" class="sidebar-container" id="secondary">
+
+            </div>
+            <div class="site-info">
+                <%= raw current_theme.the_field("footer") %>
+            </div><!-- .site-info -->
+        </footer><!-- #colophon -->
+        <!-- ./footer -->
+    </div>
+</body>
+</html>
+
+

@@ -1,0 +1,28 @@
+<!-- +++++ Welcome Section +++++ -->
+<div id="ww">
+    <div class="container" >
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2">
+                <% home_page = theme_home_page.decorate %>
+                <h1><%= home_page.the_title %></h1>
+                <div><%= raw home_page.the_content %></div>
+            </div><!-- /col-lg-8 -->
+        </div><!-- /row -->
+    </div> <!-- /container -->
+</div><!-- /ww -->
+
+<!-- +++++ Projects Section +++++ -->
+<div class="container pt">
+    <h3><%= ct("latest_articles", default: 'Latest Articles') %></h3>
+    <div class="row mt centered latest_articles">
+        <% current_site.the_posts(current_theme.get_field("recent_post_type")).latest.limit(current_theme.get_field("home_qty")).decorate.each do |post| %>
+            <!-- PORTFOLIO ITEM -->
+            <div class="col-lg-4">
+                <a class="zoom green" href="<%= post.the_url %>" title="<%= post.the_title %>" >
+                    <img width="400" height="300" src="<%= post.the_thumb_url("http://gentsthemes.com/demo/stanleywp/wp-content/uploads/sites/5/2014/01/port03.jpg") %>" class="attachment-post-thumbnail wp-post-image" alt="post image" />    </a>
+
+                <p><%= post.the_title %></p>
+            </div> <!-- /col -->
+        <% end %>
+    </div><!-- /row -->
+</div><!-- /container -->

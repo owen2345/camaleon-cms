@@ -4,6 +4,4 @@
 //= link_tree ../../apps/plugins/visibility_post/assets/js
 //= link plugins/cama_contact_form/admin_editor.js
 //= link camaleon_cms/admin/nav_menu.js
-//= link_tree ../../apps/themes/camaleon_first/assets
-//= link_tree ../../apps/themes/default/assets
-//= link_tree ../../apps/themes/new/assets
+

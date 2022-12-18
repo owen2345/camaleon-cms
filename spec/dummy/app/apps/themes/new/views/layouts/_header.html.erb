@@ -1,0 +1,38 @@
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <a id="logo" class="navbar-brand" href="<%= current_site.the_url %>"><%= image_tag current_site.the_logo, class: "img-responsive" %></a>
+            <button data-target="#navbar-main" data-toggle="collapse" type="button" class="navbar-toggle">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+        <div id="navbar-main" class="navbar-collapse collapse">
+            <%= raw get_nav_menu('main_menu', 'nav navbar-nav ') %>
+
+            <ul class="nav navbar-nav navbar-right">
+                <% if signin?  %>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" href="#"><img src="<%= cama_current_user.decorate.the_avatar %>" style="max-width: 24px; border-radius: 50%" alt=""/> <%= cama_current_user.username %></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="<%= cama_admin_dashboard_path %>">Dashboard</a></li>
+                            <li><a href="<%= cama_admin_profile_path %>">Profile</a></li>
+                            <li><a href="<%= cama_admin_logout_path %>">Logout</a></li>
+                        </ul>
+                    </li>
+                <% else %>
+
+                    <li class="dropdown">
+                        <a id="login-user" class="dropdown-toggle" href="#">Login / Register</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="<%= cama_admin_login_path %>">Login</a></li>
+                            <li><a href="<%= cama_admin_register_path %>">Register</a></li>
+                        </ul>
+                    </li>
+                <% end %>
+            </ul>
+            <%= raw current_site.draw_languages("language list-inline pull-right", true) %>
+        </div>
+    </div>
+</div>
