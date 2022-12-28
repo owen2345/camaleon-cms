@@ -11,8 +11,8 @@ module.exports = {
     ecmaVersion: 6
   },
   ignorePatterns: [
-    'app/apps/themes/camaleon_first/assets/js/magnific.min.js',
-    'app/apps/themes/camaleon_first/assets/js/modernizr.custom.js',
+    '**/magnific.min.js',
+    '**/modernizr.custom.js',
     'app/assets/javascripts/camaleon_cms/bootstrap.*',
     'app/assets/javascripts/camaleon_cms/admin/_bootstrap*',
     'app/assets/javascripts/camaleon_cms/admin/bootstrap*',
