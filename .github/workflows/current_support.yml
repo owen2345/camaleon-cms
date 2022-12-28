@@ -2,7 +2,7 @@ name: Test supported versions
 on: [push, pull_request]
 
 jobs:
-  lint:
+  rubocop:
     runs-on: ubuntu-latest
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_6_1.gemfile
@@ -16,9 +16,16 @@ jobs:
           bundler-cache: true
           ruby-version: 3.1
 
-      - name: Run linters
+      - name: Run Rubocop
         run: bundle exec rubocop
-
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install JS modules
+        run: yarn
+      - name: Run ESLint
+        run: yarn eslint . --ext .js,.jsx,.ts,.tsx
   spec:
     runs-on: ubuntu-latest
     strategy:
