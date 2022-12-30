@@ -34,11 +34,13 @@ module.exports = {
     curly: ['error', 'multi-or-nest']
   },
   globals: {
+    ADMIN_TRANSLATIONS: true,
     I18n: true,
     init_form_validations: true,
     open_modal: true,
     hideLoading: true,
     showLoading: true,
-    root_admin_url: true
+    root_admin_url: true,
+    tinymce: true
   }
 }
