@@ -1,94 +1,98 @@
+/* eslint-env jquery */
 // add actions to assign custom fields to any model selected
-jQuery(function($){
-  var panel = $("#cama_custom_field_form");
-  var group_class_name = panel.attr("data-group_class_name");
-  var $content_fields = $( "#sortable-fields", panel);
-  $content_fields.sortable({
-    handle: ".panel-sortable"
-  });
-  var slugger_count = $content_fields.children().length;
-  cama_custom_field_set_slug();
+jQuery(function($) {
+  const panel = $('#cama_custom_field_form')
+  const groupClassName = panel.attr('data-group_class_name')
+  const $contentFields = $('#sortable-fields', panel)
+  $contentFields.sortable({
+    handle: '.panel-sortable'
+  })
+  let sluggerCount = $contentFields.children().length
+  camaCustomFieldSetSlug()
 
-  $("#content-items-default > a", panel).click(function(){
-    var href = $(this).attr('href');
-    showLoading();
-    $.post(href, function(html){
-      hideLoading();
-      var li = $('<li class="item">' + html + '</li>');
-      $content_fields.append(li);
-      cama_custom_field_set_slug(li);
-      var title_field = li.find("input.text-title");
-      title_field.val(title_field.val() + '-' + (slugger_count ++));
-      title_field.trigger("keyup");
-      $('[data-toggle="tooltip"], a[title!=""]', $content_fields).tooltip();
-    });
-    return false;
-  });
+  $('#content-items-default > a', panel).click(function() {
+    const href = $(this).attr('href')
+    showLoading()
+    $.post(href, function(html) {
+      hideLoading()
+      const li = $('<li class="item">' + html + '</li>')
+      $contentFields.append(li)
+      camaCustomFieldSetSlug(li)
+      const titleField = li.find('input.text-title')
+      titleField.val(titleField.val() + '-' + (sluggerCount++))
+      titleField.trigger('keyup')
+      $('[data-toggle="tooltip"], a[title!=""]', $contentFields).tooltip()
+    })
+    return false
+  })
 
-  panel.on("click", ".panel-delete", function(){
-    var parent = $(this).parents(".item:first");
-    if(confirm(I18n("msg.delete_item"))){
+  panel.on('click', '.panel-delete', function() {
+    const parent = $(this).parents('.item:first')
+    if (confirm(I18n('msg.delete_item')))
       parent.remove()
-    }
-    return false;
-  });
 
-  $('#select_assign_group', panel).change(function(){
-    var option = $(this).find('option:checked');
-    _change_additional_select(option);
-    var txt_help = option.data('help');
-    if(txt_help) txt_help = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txt_help + ' </div>';
-    $('#select_assign_group_help', panel).html(txt_help);
-    $('#select_assign_group_caption', panel).val(option.parent('optgroup').attr("label") + ' ' + option.text());
-  }).val(_search_group_class_name(group_class_name)).trigger('change');
+    return false
+  })
 
-  $('#select_post_simple', panel).change(function(){
-    var option = $(this).find('option:checked');
-    var txt_help = option.data('help');
-    if(txt_help) txt_help = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txt_help + ' </div>';
-    $('#select_assign_group_help', panel).html(txt_help);
-    $('#select_assign_group_caption', panel).val(option.parent('optgroup').attr("label") + ': ' + option.text());
-  }).val(group_class_name).trigger('change');
+  $('#select_assign_group', panel).change(function() {
+    const option = $(this).find('option:checked')
+    _changeAdditionalSelect(option)
+    let txtHelp = option.data('help')
+    if (txtHelp) txtHelp = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txtHelp + ' </div>'
+    $('#select_assign_group_help', panel).html(txtHelp)
+    $('#select_assign_group_caption', panel).val(option.parent('optgroup').attr('label') + ' ' + option.text())
+  }).val(_searchGroupClassName(groupClassName)).trigger('change')
 
-  $('#select_category_simple', panel).change(function(){
-    var option = $(this).find('option:checked');
-    var txt_help = option.data('help');
-    if(txt_help) txt_help = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txt_help + ' </div>';
-    $('#select_assign_group_help', panel).html(txt_help);
-    $('#select_assign_group_caption', panel).val(option.parent('optgroup').attr("label") + ': ' + option.text());
-  }).val(group_class_name).trigger('change');
+  $('#select_post_simple', panel).change(function() {
+    const option = $(this).find('option:checked')
+    let txtHelp = option.data('help')
+    if (txtHelp) txtHelp = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txtHelp + ' </div>'
+    $('#select_assign_group_help', panel).html(txtHelp)
+    $('#select_assign_group_caption', panel).val(option.parent('optgroup').attr('label') + ': ' + option.text())
+  }).val(groupClassName).trigger('change')
 
-  function _change_additional_select(option){
-    var option_value = option.attr('value'),
-      additional_options = ['_post_simple', '_category_simple'];
+  $('#select_category_simple', panel).change(function() {
+    const option = $(this).find('option:checked')
+    let txtHelp = option.data('help')
+    if (txtHelp) txtHelp = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txtHelp + ' </div>'
+    $('#select_assign_group_help', panel).html(txtHelp)
+    $('#select_assign_group_caption', panel).val(option.parent('optgroup').attr('label') + ': ' + option.text())
+  }).val(groupClassName).trigger('change')
 
-    for (key in additional_options) {
-      if (option_value === additional_options[key]){
-        $('#select'+additional_options[key], panel).show().removeAttr('disabled');
-      }else{
-        $('#select'+additional_options[key], panel).hide().attr('disabled','disabled');
-      }
-    }
+  function _changeAdditionalSelect(option) {
+    const optionValue = option.attr('value')
+    const additionalOptions = ['_post_simple', '_category_simple']
+
+    additionalOptions.forEach(function(key) {
+      if (optionValue === additionalOptions[key])
+        $('#select' + additionalOptions[key], panel).show().removeAttr('disabled')
+      else
+        $('#select' + additionalOptions[key], panel).hide().attr('disabled', 'disabled')
+    })
   }
 
-  function _search_group_class_name(group_class_name) {
-    if (group_class_name.search("Post,") == 0) group_class_name = '_post_simple';
-    if (group_class_name.search("Category_Post,") == 0) group_class_name = '_category_simple';
-    return group_class_name;
+  function _searchGroupClassName(groupClassName) {
+    /* eslint-disable-next-line eqeqeq */
+    if (groupClassName.search('Post,') == 0)
+      groupClassName = '_post_simple'
+    /* eslint-disable-next-line eqeqeq */
+    if (groupClassName.search('Category_Post,') == 0)
+      groupClassName = '_category_simple'
+
+    return groupClassName
   }
 
-  function cama_custom_field_set_slug(_panel){
-    $('.text-slug:not(.runned)', _panel || panel).each(function(){
-      var $parent = $(this).parents('.panel-item');
-      var $label = $parent.find('.span-title');
+  function camaCustomFieldSetSlug(_panel) {
+    $('.text-slug:not(.runned)', _panel || panel).each(function() {
+      const $parent = $(this).parents('.panel-item')
+      const $label = $parent.find('.span-title')
       $(this).slugify($parent.find('.text-title'), {
-          slugFunc: function(str, originalFunc) {
-            $label.html(str);
-            return originalFunc(str);
-          }
+        slugFunc: function(str, originalFunc) {
+          $label.html(str)
+          return originalFunc(str)
         }
-      );
+      })
       $(this).addClass('runned')
-    });
+    })
   }
-});
+})
