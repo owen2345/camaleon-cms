@@ -35,7 +35,8 @@ module.exports = {
   },
   globals: {
     ADMIN_TRANSLATIONS: true,
-    cama_get_tinymce_settings: true,
+    CamaGetTinymceSettings: true,
+    CURRENT_LOCALE: true,
     define: true,
     I18n: true,
     InitFormValidations: true,
@@ -45,6 +46,7 @@ module.exports = {
     root_admin_url: true,
     showLoading: true,
     slugFunc: true,
-    tinymce: true
+    tinymce: true,
+    tinymce_global_settings: true
   }
 }
