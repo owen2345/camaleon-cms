@@ -323,7 +323,7 @@ window.cama_init_media = function(mediaPanel) {
         return false
       })
     }
-    open_modal({ title: 'New Folder', content, callback, zindex: 9999999 })
+    OpenModal({ title: 'New Folder', content, callback, zindex: 9999999 })
     return false
   })
 
@@ -435,7 +435,7 @@ window.cama_init_media = function(mediaPanel) {
             }
           })
         }
-        open_modal(
+        OpenModal(
           {
             zindex: 999992,
             modal_size: 'modal-lg',
@@ -514,7 +514,7 @@ window.cama_init_media = function(mediaPanel) {
       }
       , 300))
     }
-    open_modal({
+    OpenModal({
       zindex: 999991,
       id: 'media_panel_editor_image',
       title: I18n('button.edit_image', 'Edit Image') + ' - ' + data.name + (mediaPanel.attr('data-dimension') ? ' <small><i>(' + mediaPanel.attr('data-dimension') + ')</i></small>' : ''),
@@ -614,7 +614,7 @@ $.fn.upload_filemanager = function(args) {
   if (args.thumb_size === 'null')
     args.thumb_size = ''
 
-  return open_modal({
+  return OpenModal({
     title: args.title || I18n('msg.media_title'),
     id: 'cama_modal_file_uploader',
     modal_size: 'modal-lg',
