@@ -89,7 +89,7 @@ $(function() {
   // edit external menu items
   listPanel.on('click', '.item_external', function() {
     const link = $(this)
-    open_modal({
+    OpenModal({
       title: link.attr('data-original-title') || link.attr('title'),
       url: link.attr('href'),
       mode: 'ajax',
@@ -147,7 +147,7 @@ $(function() {
   // custom fields
   return listPanel.on('click', '.custom_settings_link', function() {
     const link = $(this)
-    open_modal({
+    OpenModal({
       title: link.attr('data-original-title') || link.attr('title'),
       url: link.attr('href'),
       mode: 'ajax',
