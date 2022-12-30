@@ -95,7 +95,7 @@ $(function() {
       mode: 'ajax',
       callback(modal) {
         const form = modal.find('form')
-        init_form_validations(form)
+        InitFormValidations(form)
         return form.submit(function() {
           if (!form.valid())
             return false
@@ -132,7 +132,7 @@ $(function() {
     callback(modal) {
       const form = modal.find('form')
 
-      return setTimeout(() => init_form_validations(form), 1000)
+      return setTimeout(() => InitFormValidations(form), 1000)
     }
   })
 
@@ -153,7 +153,7 @@ $(function() {
       mode: 'ajax',
       callback(modal) {
         const form = modal.find('form')
-        init_form_validations(form)
+        InitFormValidations(form)
         return form.submit(function() {
           if (!form.valid())
             return false
