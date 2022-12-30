@@ -153,7 +153,7 @@ function custom_field_editor($field) {
             var inputs = textarea.data("translation_inputs");
             if (inputs) { // multiples languages
                 for (var lang in inputs) {
-                    tinymce.init(cama_get_tinymce_settings({
+                    tinymce.init(CamaGetTinymceSettings({
                         selector: '#' + inputs[lang].attr("id"),
                         height: 120
                     }));
@@ -161,7 +161,7 @@ function custom_field_editor($field) {
                 return;
             }
         }
-        tinymce.init(cama_get_tinymce_settings({
+        tinymce.init(CamaGetTinymceSettings({
             selector: '#' + id,
             height: 120
         }));
