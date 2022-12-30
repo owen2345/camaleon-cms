@@ -36,8 +36,9 @@ module.exports = {
   globals: {
     ADMIN_TRANSLATIONS: true,
     cama_get_tinymce_settings: true,
+    define: true,
     I18n: true,
-    init_form_validations: true,
+    InitFormValidations: true,
     hideLoading: true,
     ModalFixMultiple: true,
     OpenModal: true,
