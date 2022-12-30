@@ -77,7 +77,7 @@
     <script type="text/javascript">
         jQuery(function($){
             setTimeout(function(){
-                cama_init_post({
+                CamaInitPost({
                     post_id: '<%= @post.draft? ? (@post.parent.present? ? @post.parent.id : nil) : @post.id %>',
                     post_draft_id: '<%= @post.id if @post.draft? %>',
                     post_status: '<%= @post.status %>',
