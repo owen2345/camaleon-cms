@@ -1,4 +1,4 @@
-<div class="group-input-fields-content cama_skip_cf_rename_multiple" data-callback-render="custom_field_checkboxs_val">
+<div class="group-input-fields-content cama_skip_cf_rename_multiple" data-callback-render="CustomFieldCheckboxesVal">
     <% field.options[:multiple_options].each do |option|  %>
         <div class="checkbox"><label><input type="checkbox" value="<%= option[:value] %>" name="<%= field_name %>[<%= field.slug %>][values][]" <%= 'checked' if default_use && option[:default].present? %> > <%= option[:title] %></label></div>
     <% end %>

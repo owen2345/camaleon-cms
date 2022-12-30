@@ -40,7 +40,7 @@
                         </div>
                     <% end %>
                 </div>
-                <script> jQuery(function(){ build_custom_field_group(<%= raw(params[:field_options].present? ? (r = []; params[:field_options].each{|k, v| val = {}; v.each{|kk, vv| val["#{kk}"] = (vv['values'].values rescue vv['values']); }; r << val }; r.to_json) : record.get_fields_grouped(fields.pluck(:slug).uniq).to_json) %>, '<%= group.id %>', <%= raw group_field_data.to_json %>, <%= group.is_repeat %>, '<%= field_name %>'); }); </script>
+                <script> jQuery(function(){ BuildCustomFieldGroup(<%= raw(params[:field_options].present? ? (r = []; params[:field_options].each{|k, v| val = {}; v.each{|kk, vv| val["#{kk}"] = (vv['values'].values rescue vv['values']); }; r << val }; r.to_json) : record.get_fields_grouped(fields.pluck(:slug).uniq).to_json) %>, '<%= group.id %>', <%= raw group_field_data.to_json %>, <%= group.is_repeat %>, '<%= field_name %>'); }); </script>
             </div>
         </div>
         <% if group.is_repeat %>
