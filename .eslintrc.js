@@ -41,6 +41,7 @@ module.exports = {
     I18n: true,
     InitFormValidations: true,
     hideLoading: true,
+    introJs: true,
     ModalFixMultiple: true,
     OpenModal: true,
     root_admin_url: true,
