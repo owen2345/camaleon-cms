@@ -29,7 +29,16 @@ module.exports = {
     'app/assets/javascripts/camaleon_cms/admin/uploader/_jquery.*'
   ],
   rules: {
+    'no-eval': ['error', { allowIndirect: true }],
     'space-before-function-paren': ['error', 'never'],
     curly: ['error', 'multi-or-nest']
+  },
+  globals: {
+    I18n: true,
+    init_form_validations: true,
+    open_modal: true,
+    hideLoading: true,
+    showLoading: true,
+    root_admin_url: true
   }
 }
