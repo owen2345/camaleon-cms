@@ -81,7 +81,7 @@ Object.size = function(obj) {
 
 // this is a fix for multiples modals when a modal was closed (reactivate scroll for next modal)
 // fix for boostrap multiple modals problem
-function modal_fix_multiple(){
+function ModalFixMultiple(){
     var activeModal = $('.modal.in:last', 'body').data('bs.modal');
     if (activeModal) {
         activeModal.$body.addClass('modal-open');
