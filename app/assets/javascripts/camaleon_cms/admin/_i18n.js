@@ -8,25 +8,29 @@
 // default_val: (String) this value is returned if there is no exist translation for key
 // if default_val is empty, will be returned the last key titleized
 // data: (hash) replacement values in the value, sample: {title: 'my title'}
-var I18n = function(key, default_val, data){
-    var res = '';
-    try { res = eval("I18n_data." + key); }catch(e){}
-    if (!res) res = default_val ? default_val : ("" + key.split(".").pop()).titleize();
+// eslint-disable-next-line no-unused-vars
+const I18n = function(key, defaultVal, data) {
+  let res = ''
+  const evaluate = eval
 
-    // replacements
-    data = data || {}
-    for(key in data){
-        res = res.replace("%{"+key+"}", data[key])
-    }
-    return res;
+  try { res = evaluate('I18n_data.' + key) } catch (e) {}
+  if (!res) res = defaultVal || ('' + key.split('.').pop()).titleize()
+
+  // replacements
+  data = data || {}
+  for (key in data)
+    res = res.replace('%{' + key + '}', data[key])
+
+  return res
 }
 
 // helper to convert not found translations key into titleized string
+// eslint-disable-next-line no-extend-native
 String.prototype.titleize = function() {
-    var words = this.replace(/_/g, " ").split(' ')
-    var array = []
-    for (var i=0; i<words.length; ++i) {
-        array.push(words[i].charAt(0).toUpperCase() + words[i].toLowerCase().slice(1))
-    }
-    return array.join(' ')
+  const words = this.replace(/_/g, ' ').split(' ')
+  const array = []
+  for (let i = 0; i < words.length; ++i)
+    array.push(words[i].charAt(0).toUpperCase() + words[i].toLowerCase().slice(1))
+
+  return array.join(' ')
 }
