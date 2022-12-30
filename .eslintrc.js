@@ -35,12 +35,14 @@ module.exports = {
   },
   globals: {
     ADMIN_TRANSLATIONS: true,
+    cama_get_tinymce_settings: true,
     I18n: true,
     init_form_validations: true,
-    open_modal: true,
     hideLoading: true,
-    showLoading: true,
+    open_modal: true,
     root_admin_url: true,
+    showLoading: true,
+    slugFunc: true,
     tinymce: true
   }
 }
