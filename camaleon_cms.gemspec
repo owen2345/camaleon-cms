@@ -14,9 +14,9 @@ Gem::Specification.new do |s|
   s.description = "Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails as an alternative to Wordpress."
   s.license     = "MIT"
 
-  s.required_ruby_version = '>= 2.7'
+  s.required_ruby_version = '>= 2.5'
   s.requirements << 'rails >= 6.0'
-  s.requirements << 'ruby >= 2.7'
+  s.requirements << 'ruby >= 2.5'
   s.requirements << 'imagemagick'
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
