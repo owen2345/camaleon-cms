@@ -3,6 +3,7 @@ module CamaleonCms
     include CamaleonCms::CategoriesTagsForPosts
 
     alias_attribute :post_type_id, :taxonomy_id
+    alias_attribute :parent_id, :post_parent
     default_scope ->{ where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
     cama_define_common_relationships('Post')
 

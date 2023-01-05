@@ -4,7 +4,7 @@ module CamaleonCms::Admin::PostTypeHelper
   #taxonomy -> (categories || post_tags)
   def post_type_html_inputs(post_type, taxonomy="categories", name ="categories", type="checkbox", values=[], class_cat="categorychecklist" , required = false)
     categories = post_type.send(taxonomy)
-    categories = categories.eager_load(:children, :post_type_parent, :parent) if taxonomy == "categories" || taxonomy == "children"
+    categories = categories.eager_load(:children, :post_type, :parent) if taxonomy == "categories" || taxonomy == "children"
     post_type_taxonomy_html_(categories,taxonomy, name, type, values, class_cat, required)
   end
 

@@ -52,7 +52,7 @@ module CamaleonCms
 
     # all main categories for this site
     def categories
-      CamaleonCms::Category.includes(:post_type_parent).where(post_type_parent: post_types.pluck(:id))
+      CamaleonCms::Category.includes(:post_type).where(post_type: post_types.pluck(:id))
     end
 
     # return all languages configured by the admin

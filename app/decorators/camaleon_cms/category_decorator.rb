@@ -39,7 +39,7 @@ class CamaleonCms::CategoryDecorator < CamaleonCms::TermTaxonomyDecorator
     if _parent.present?
       _parent.decorate.generate_breadcrumb(add_post_type, true)
     else
-      object.post_type_parent.decorate.generate_breadcrumb(add_post_type, true)
+      object.post_type.decorate.generate_breadcrumb(add_post_type, true)
     end
     h.breadcrumb_add(self.the_title, is_parent ? self.the_url : nil)
   end
