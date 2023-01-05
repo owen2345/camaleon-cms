@@ -6,7 +6,6 @@ module CamaleonCms
     default_scope { where(taxonomy: :category) }
     scope :no_empty, -> { where('count > 0') } # return all categories that contains at least one post
     scope :empty, -> { where(count: [0, nil]) } # return all categories that does not contain any post
-    # scope :parents, -> { where("term_taxonomy.parent_id IS NULL") }
 
     cama_define_common_relationships('Category')
 
@@ -22,6 +21,12 @@ module CamaleonCms
     # return the post type of this category
     def post_type
       parent ? path.first.post_type : super
+    end
+
+    def path
+      cama_fetch_cache('path') do
+        (parent&.path || []) + [self]
+      end
     end
 
     private
