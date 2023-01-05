@@ -235,6 +235,16 @@ module CamaleonCms
       (post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator') rescue 'CamaleonCms::PostDecorator').constantize
     end
 
+    def get_field_groups
+      CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = 'Post') OR
+                                             (objectid = ? AND object_class = 'PostType_Post')",
+                                          self.id || -1, self.post_type_id)
+    end
+
+    def add_custom_field_group(values)
+      custom_field_groups.create!(values)
+    end
+
     private
     # calculate a post order when it is empty
     def fix_post_order
