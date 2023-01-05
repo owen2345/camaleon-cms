@@ -27,14 +27,6 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     end
   end
 
-  # get custom field groups for current user
-  # return collections CustomFieldGroup
-  # site: site object
-  def get_user_field_groups(site)
-    site.custom_field_groups.where(object_class: self.class.to_s.parseCamaClass)
-  end
-
-
   # get custom field value
   # _key: custom field key
   # if value is not present, then return default
