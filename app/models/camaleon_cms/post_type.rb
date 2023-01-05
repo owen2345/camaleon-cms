@@ -154,6 +154,21 @@ module CamaleonCms
       get_option('has_parent_structure', false)
     end
 
+    # @param kind (Post|Category|PostTag|all|self)
+    # Sample: mypost_type.get_field_groups(kind: 'Post') => return custom field groups for posts
+    # Sample: mypost_type.get_field_groups(kind: 'Category') => return custom field groups for categories
+    # Sample: mypost_type.get_field_groups(kind: 'PostTag') => return custom field groups for post-tags
+    def get_field_groups(kind: 'Post')
+      if kind == 'all'
+        field_types = %w[PostType_Post PostType_Category PostType_PostTag PostType]
+        CamaleonCms::CustomFieldGroup.where(object_class: field_types, objectid:  self.id )
+      elsif %w[post_type self].include?(kind)
+        self.custom_field_groups
+      else
+        CamaleonCms::CustomFieldGroup.where(object_class: "PostType_#{args[:kind]}", objectid:  self.id )
+      end
+    end
+
     private
     # skip save_metas_options callback after save changes (inherit from taxonomy) to call from here manually
     def save_metas_options_skip
