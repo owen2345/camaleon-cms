@@ -1,40 +1,34 @@
-## BUILDING
-##   (from project root directory)
-##   $ docker build -t owen2345-camaleon-cms .
-##
-## RUNNING
-##   $ docker run -p 3000:3000 owen2345-camaleon-cms
-##
-## CONNECTING
-##   Lookup the IP of your active docker host using:
-##     $ docker-machine ip $(docker-machine active)
-##   Connect to the container at DOCKER_IP:3000
-##     replacing DOCKER_IP for the IP of your active docker host
+FROM ruby:3.1-slim as builder
+RUN apt-get update && apt-get install curl gnupg build-essential libpq-dev -y
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt-get update -qq
+RUN apt install yarn -y
+RUN apt-get install imagemagick -y
 
-FROM gcr.io/stacksmith-images/ubuntu-buildpack:14.04-r07
-
-MAINTAINER Bitnami <containers@bitnami.com>
-
-ENV STACKSMITH_STACK_ID="ujruqvm" \
-    STACKSMITH_STACK_NAME="owen2345/camaleon-cms" \
-    STACKSMITH_STACK_PRIVATE="1"
-
-RUN bitnami-pkg install ruby-2.3.1-1 --checksum a81395976c85e8b7c8da3c1db6385d0e909bd05d9a3c1527f8fa36b8eb093d84
-
-ENV PATH=/opt/bitnami/ruby/bin:$PATH
-
-## STACKSMITH-END: Modifications below this line will be unchanged when regenerating
-
-# Ruby on Rails template
-ENV RAILS_ENV=development
-
-COPY Gemfile* /app/
+RUN mkdir /app
 WORKDIR /app
 
-RUN bundle install --without production
-
-COPY . /app
-
+# Default port and web server command
 EXPOSE 3000
+CMD ["bundle exec rspec"]
 
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "3000"]
+##################################### (Development)
+# install google chrome
+RUN apt-get install wget -y
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+RUN apt-get -y update
+RUN apt-get install -y google-chrome-stable
+
+# install chromedriver
+RUN apt-get install -yqq unzip
+RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip
+RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
+
+#COPY package.json yarn.lock /app/
+#RUN yarn install
+COPY Gemfile* camaleon_cms.gemspec /app/
+COPY lib/camaleon_cms/version.rb /app/lib/camaleon_cms/
+RUN bundle install --jobs 20 --retry 5
+COPY . /app
