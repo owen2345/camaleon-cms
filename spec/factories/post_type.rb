@@ -4,6 +4,6 @@ FactoryBot.define do
     sequence(:slug) { |n| "posttyp#{n}" }
     description { Faker::Lorem.sentence }
     data_options {}
-    site
+    site { Cama::Site.first || build(:site) }
   end
 end

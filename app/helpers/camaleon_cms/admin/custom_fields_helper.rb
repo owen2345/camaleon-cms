@@ -1,11 +1,11 @@
 #encoding: utf-8
 module CamaleonCms::Admin::CustomFieldsHelper
-  def cama_custom_field_elements
-    return @_cama_custom_field_elements if @_cama_custom_field_elements.present?
+
+  def cama_custom_field_settings
     items = {}
     items[:text_box] = {
         key: 'text_box',
-        label: t('camaleon_cms.admin.custom_field.fields.text_box'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.text_box'),
         options: {
             required: true,
             multiple: true,
@@ -17,7 +17,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
 
     items[:text_area] = {
         key: 'text_area',
-        label: t('camaleon_cms.admin.custom_field.fields.text_area'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.text_area'),
         options: {
             required: true,
             multiple: true,
@@ -28,13 +28,13 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:select] = {
         key: 'select',
-        label: t('camaleon_cms.admin.custom_field.fields.select'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.select'),
         options: {
             required: true,
             multiple: true,
             translate: true,
             multiple_options: {
-                label: t('camaleon_cms.admin.settings.options_select'),
+                label: I18n.t('camaleon_cms.admin.settings.options_select'),
                 default: 'radio'
             },
             show_frontend: true
@@ -42,12 +42,12 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:radio] = {
         key: 'radio',
-        label: t('camaleon_cms.admin.custom_field.fields.radio', default: 'Radio'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.radio', default: 'Radio'),
         options: {
             required: true,
             multiple: false,
             multiple_options: {
-                label: t('camaleon_cms.admin.settings.options_select'),
+                label: I18n.t('camaleon_cms.admin.settings.options_select'),
                 default: 'radio',
                 use_not_default: true
             },
@@ -57,7 +57,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
 
     items[:checkbox] = {
         key: 'checkbox',
-        label: t('camaleon_cms.admin.custom_field.fields.checkbox', default: 'Checkbox'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.checkbox', default: 'Checkbox'),
         options: {
             required: true,
             multiple: false,
@@ -67,7 +67,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:checkboxes] = {
         key: 'checkboxes',
-        label: t('camaleon_cms.admin.custom_field.fields.checkboxes', default: 'Checkboxes'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.checkboxes', default: 'Checkboxes'),
         options: {
             required: false,
             multiple: false,
@@ -80,7 +80,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:audio] = {
         key: 'audio',
-        label: t('camaleon_cms.admin.custom_field.fields.audio', default: 'Audio'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.audio', default: 'Audio'),
         options: {
             required: true,
             multiple: true,
@@ -90,7 +90,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:colorpicker] = {
         key: 'colorpicker',
-        label: t('camaleon_cms.admin.custom_field.fields.colorpicker'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.colorpicker'),
         extra_fields:[
             {
                 type: 'select',
@@ -121,7 +121,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:date] = {
         key: 'date',
-        label: t('camaleon_cms.admin.custom_field.fields.date'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.date'),
         extra_fields:[
             {
                 type: 'radio',
@@ -129,11 +129,11 @@ module CamaleonCms::Admin::CustomFieldsHelper
                 values: [
                     {
                         value: '0',
-                        label: t('camaleon_cms.admin.settings.input_only_date')
+                        label: I18n.t('camaleon_cms.admin.settings.input_only_date')
                     },
                     {
                         value: '1',
-                        label: t('camaleon_cms.admin.settings.input_date_time')
+                        label: I18n.t('camaleon_cms.admin.settings.input_date_time')
                     }
                 ]
             }
@@ -147,7 +147,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:editor] = {
         key: 'editor',
-        label: t('camaleon_cms.admin.custom_field.fields.editor', default: 'Editor'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.editor', default: 'Editor'),
         options: {
             required: false,
             multiple: true,
@@ -158,7 +158,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:email] = {
         key: 'email',
-        label: t('camaleon_cms.admin.custom_field.fields.email'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.email'),
         options: {
             required: true,
             multiple: true,
@@ -168,7 +168,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:file] = {
         key: 'file',
-        label: t('camaleon_cms.admin.custom_field.fields.file'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.file'),
         options: {
             required: true,
             multiple: true,
@@ -185,7 +185,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:image] = {
         key: 'image',
-        label: t('camaleon_cms.admin.custom_field.fields.image'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.image'),
         options: {
             required: true,
             multiple: true,
@@ -196,20 +196,20 @@ module CamaleonCms::Admin::CustomFieldsHelper
             {
                 type: 'text_box',
                 key: 'dimension',
-                label: cama_t('camaleon_cms.admin.custom_field.fields.image_dimension'),
-                description: cama_t('camaleon_cms.admin.custom_field.fields.image_dimension_descr'),
+                label: I18n.t('camaleon_cms.admin.custom_field.fields.image_dimension'),
+                description: I18n.t('camaleon_cms.admin.custom_field.fields.image_dimension_descr'),
             },
             {
                 type: 'text_box',
                 key: 'versions',
-                label: cama_t('camaleon_cms.admin.custom_field.fields.image_versions'),
-                description: cama_t('camaleon_cms.admin.custom_field.fields.image_versions_descr')
+                label: I18n.t('camaleon_cms.admin.custom_field.fields.image_versions'),
+                description: I18n.t('camaleon_cms.admin.custom_field.fields.image_versions_descr')
             }
         ]
     }
     items[:numeric] = {
         key: 'numeric',
-        label: t('camaleon_cms.admin.custom_field.fields.numeric'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.numeric'),
         options: {
             required: true,
             multiple: true,
@@ -219,7 +219,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:phone] = {
         key: 'phone',
-        label: t('camaleon_cms.admin.custom_field.fields.phone'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.phone'),
         options: {
             required: true,
             multiple: true,
@@ -229,7 +229,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:url] = {
         key: 'url',
-        label: t('camaleon_cms.admin.custom_field.fields.url', default: 'URL'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.url', default: 'URL'),
         options: {
             required: true,
             multiple: true,
@@ -240,7 +240,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:video] = {
         key: 'video',
-        label: t('camaleon_cms.admin.custom_field.fields.video', default: 'Video'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.video', default: 'Video'),
         options: {
             required: true,
             multiple: true,
@@ -250,7 +250,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:users] = {
         key: 'users',
-        label: t('camaleon_cms.admin.custom_field.fields.users'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.users'),
         options: {
             required: true,
             multiple: true,
@@ -259,7 +259,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:posts] = {
         key: 'posts',
-        label: t('camaleon_cms.admin.custom_field.fields.posts'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.posts'),
         options: {
             required: true,
             multiple: true,
@@ -277,7 +277,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
 
     items[:post_types] = {
         key: 'post_types',
-        label: t('camaleon_cms.admin.post_type.post_types'),
+        label: I18n.t('camaleon_cms.admin.post_type.post_types'),
         options: {
             required: true,
             multiple: true
@@ -286,7 +286,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
 
     items[:categories] = {
         key: 'categories',
-        label: t('camaleon_cms.admin.table.categories'),
+        label: I18n.t('camaleon_cms.admin.table.categories'),
         options: {
             required: true,
             multiple: true
@@ -297,7 +297,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     # sample command: options_from_collection_for_select(current_site.the_posts("commerce").decorate, :id, :the_title)
     items[:select_eval] = {
         key: 'select_eval',
-        label: t('camaleon_cms.admin.custom_field.fields.select_eval'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.select_eval'),
         options: {
             required: true,
             multiple: false,
@@ -314,7 +314,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:field_attrs] = {
         key: 'field_attrs',
-        label: t('camaleon_cms.admin.custom_field.fields.field_attrs'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.field_attrs'),
         options: {
             required: false,
             multiple: true,
@@ -324,7 +324,7 @@ module CamaleonCms::Admin::CustomFieldsHelper
     }
     items[:private_file] = {
         key: 'private_file',
-        label: t('camaleon_cms.admin.custom_field.fields.private_file', default: 'Private File'),
+        label: I18n.t('camaleon_cms.admin.custom_field.fields.private_file', default: 'Private File'),
         options: {
             required: true,
             multiple: true,
@@ -338,7 +338,14 @@ module CamaleonCms::Admin::CustomFieldsHelper
             }
         ]
     }
-    r = {fields: items}; hooks_run("extra_custom_fields", r)
+    items
+  end
+  module_function :cama_custom_field_settings
+
+  def cama_custom_field_elements
+    return @_cama_custom_field_elements if @_cama_custom_field_elements.present?
+
+    r = {fields: cama_custom_field_settings}; hooks_run("extra_custom_fields", r)
     @_cama_custom_field_elements = r[:fields]
   end
 

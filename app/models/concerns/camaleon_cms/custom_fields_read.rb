@@ -105,33 +105,28 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
 
 
   # add a custom field group for current model
-  # values:
+  # @param data (Hash)
     # name: name for the group
     # slug: key for group (if slug = _default => this will never show title and description)
     # description: description for the group (optional)
     # is_repeat: (boolean, optional -> default false) indicate if group support multiple format (repeated values)
-  # Model supported: PostType, Category, Post, Posttag, Widget, Plugin, Theme, User and Custom models pre configured
-  # Note 1: If you need add fields for all post's or all categories, then you need to add the fields into the
-  #     post_type.add_custom_field_group(values, kind = "Post")
-  #     post_type.add_custom_field_group(values, kind = "Category")
-  # Note 2: If you need add fields for only the Post_type, you have to use options or metas
-  # return: CustomFieldGroup object
-  # kind: argument only for PostType model: (Post | Category | PostTag), default => Post. If kind = "" this will add group for all post_types
-  def add_custom_field_group(values, kind = "Post")
-    get_field_groups(kind: kind).create!(values)
+  def add_custom_field_group(data)
+    get_field_groups.create!(data.merge(record: self))
   end
   alias_method :add_field_group, :add_custom_field_group
+
+  def default_custom_field_group
+    get_field_groups.where(slug: '_default').first ||
+      add_custom_field_group(name: "Default Field Group", slug: "_default")
+  end
 
   # Add custom fields for a default group:
   # This will create a new group with slug=_default if it doesn't exist yet
   # more details in add_manual_field(item, options) from custom field groups
-  # kind: argument only for PostType model: (Post | Category | PostTag), default => Post
-  def add_custom_field_to_default_group(item, options, kind = "Post")
-    g = get_field_groups(kind: kind).where(slug: "_default").first
-    g = add_custom_field_group({name: "Default Field Group", slug: "_default"}, kind) unless g.present?
-    g.add_manual_field(item, options)
+  def add_field(data, settings)
+    default_custom_field_group.add_manual_field(data, settings)
   end
-  alias_method :add_field, :add_custom_field_to_default_group
+  alias_method :add_custom_field_to_default_group, :add_field
 
   # return field object for current model
   def get_field_object(slug)
@@ -226,17 +221,6 @@ module CamaleonCms::CustomFieldsRead extend ActiveSupport::Concern
     elsif ["NavMenuItem"].include?(class_name) # menu items doesn't include field groups
     else
       get_field_groups().destroy_all if get_field_groups.present?
-    end
-  end
-  # return the Site Model owner of current model
-  def _cama_get_field_site
-    case self.class.to_s.parseCamaClass
-      when 'Category','Post','PostTag'
-        self.post_type.site
-      when 'Site'
-        self
-      else
-        self.site
     end
   end
 end

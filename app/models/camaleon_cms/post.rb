@@ -6,6 +6,7 @@ module CamaleonCms
     alias_attribute :parent_id, :post_parent
     default_scope ->{ where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
     cama_define_common_relationships('Post')
+    delegate :site, to: :post_type
 
     # DEPRECATED
     has_many :post_relationships, class_name: "CamaleonCms::PostRelationship", foreign_key: :objectid, dependent: :destroy, inverse_of: :post
@@ -242,7 +243,7 @@ module CamaleonCms
     end
 
     def add_custom_field_group(values)
-      custom_field_groups.create!(values)
+      custom_field_groups.create!(values.merge(record: self))
     end
 
     private

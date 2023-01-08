@@ -1,8 +1,10 @@
+# TODO: refactor to use polymorphism, improve associations and refactor methods
 module CamaleonCms
   class CustomFieldGroup < CamaleonCms::CustomField
     self.primary_key = :id
     # attrs required: name, slug, description
     alias_attribute :site_id, :parent_id
+    attr_accessor :record
 
     default_scope { where.not(object_class: '_fields')
       .reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC") }
@@ -15,6 +17,7 @@ module CamaleonCms
     validates_uniqueness_of :slug, scope: [:object_class, :objectid, :parent_id]
 
     before_validation :before_validating
+    before_validation :retrieve_site_id, unless: :site_id
 
     # add fields to group
     # item:
@@ -132,6 +135,11 @@ module CamaleonCms
             value: fix_meta_value(value)) if owner.present?
         end
       end
+    end
+
+    def retrieve_site_id
+      site_owner = record.class.to_s.parseCamaClass == 'Site' ? record : record.site
+      self.site_id ||= site_owner.try(:id)
     end
   end
 end
