@@ -3,7 +3,7 @@ version: '3'
 services:
   test:
     build: .
-    command: sh -c 'bundle exec rspec'
+    command: sh -c 'bundle exec rake app:db:migrate && bundle exec rake app:db:test:prepare && bundle exec rspec'
     volumes:
       - .:/app/
       - bundler_gems:/usr/local/bundle/
