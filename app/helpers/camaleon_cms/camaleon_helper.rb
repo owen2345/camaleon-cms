@@ -77,9 +77,11 @@ module CamaleonCms::CamaleonHelper
 
   # return normal translation with default value with translation of english
   def cama_t(key, args = {})
+    key = "camaleon_cms.#{key}" unless key.start_with?('camaleon_cms.')
     args[:default] = I18n.t(key, **args.dup.merge(locale: :en)) unless args[:default].present?
     I18n.t(key, **args)
   end
+  module_function :cama_t
 
   # function that converts string into plural format
   def cama_pluralize_text(text)

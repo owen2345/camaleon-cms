@@ -25,7 +25,6 @@ module Themes::New::CustomHelper
   end
 
   def theme_custom_on_uninstall_theme(theme)
-    theme.get_field_groups().destroy_all
     theme.destroy
   end
 end
