@@ -9,16 +9,30 @@ function build_custom_field_group(field_values, group_id, fields_data, is_repeat
 
     function add_group(values){
         var clone = group_clone.clone();
-        clone.find('input, textarea, select').not('.code_style').each(function(){ $(this).attr('name', $(this).attr('name').replace(field_name_group, field_name_group+'['+field_group_counter+']')) });
         group_panel_body.append(clone);
-        group_panel.trigger('update_custom_group_number');
         for(var k in fields_data){
             cama_build_custom_field(clone.find('.content-field-'+fields_data[k].id), fields_data[k], values[k]);
         }
-        if(field_group_counter == 0) clone.children('.header-field-grouped').find('.del').remove();
-        field_group_counter ++;
+        clone.children('.header-field-grouped').find('.del').remove();
+        clone.bind('update_fields_name', function(ev, groupNo) {
+            var group = $(this);
+            var oldNo = group.attr('data-group-no');
+            var groupNo = groupNo == undefined ? oldNo : groupNo;
+            var newName = field_name_group+'['+groupNo+']';
+            var fields = group.find('input, textarea, select').not('.code_style');
+            fields.each(function(){
+                var oldName = $(this).attr('data-input-renamed') ? `${field_name_group}[${oldNo}]` : field_name_group;
+                $(this).attr('data-input-renamed', true).attr('name', $(this).attr('name').replace(oldName, newName));
+            });
+            group.attr('data-group-no', groupNo);
+        });
+        clone.trigger('update_fields_name', [field_group_counter += 1]);
         return false;
     }
+
+    group_panel.bind('update_custom_group_number', function(){
+        $(this).find('.custom_sortable_grouped').each(function(index){ $(this).trigger('update_fields_name', [index]); });
+    });
 
     if(is_repeat){
         group_panel_body.sortable({ handle: ".move.fa-arrows", items: ' > .custom_sortable_grouped',
@@ -34,13 +48,12 @@ function build_custom_field_group(field_values, group_id, fields_data, is_repeat
                 });
             }});
         group_panel.find('.btn.duplicate_cutom_group').click(add_group);
-        group_panel_body.on('click', '.header-field-grouped .del', function(){ if(confirm(I18n("msg.delete_item"))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function(){ $(this).remove(); group_panel.trigger('update_custom_group_number'); }); return false; });
+        group_panel_body.on('click', '.header-field-grouped .del', function(){ if(confirm(I18n("msg.delete_item"))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function(){ $(this).remove(); }); return false; });
         group_panel_body.on('click', '.header-field-grouped .toggleable', function(){
             if($(this).hasClass('fa-angle-down')) $(this).removeClass('fa-angle-down').addClass('fa-angle-up').closest('.header-field-grouped').next().slideUp();
             else $(this).removeClass('fa-angle-up').addClass('fa-angle-down').closest('.header-field-grouped').next().slideDown();
             return false;
         });
-        group_panel.bind('update_custom_group_number', function(){ $(this).find('.custom_sortable_grouped').each(function(index){ $(this).find('input.cama_custom_group_number').val(index); }); });
         $.each(field_values, function(field_val, key){ add_group(this); });
     }else{
         add_group(field_values[0]);
@@ -59,7 +72,6 @@ function cama_build_custom_field(panel, field_data, values){
         var field = $field.clone(true);
         if(field_data.multiple) {
             field.prepend(field_actions);
-            if(field_counter == 0) field.children('.actions').find('.fa-times').remove();
         }
         if(!$field.find('.group-input-fields-content').hasClass('cama_skip_cf_rename_multiple')) {
             field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) });
@@ -75,6 +87,7 @@ function cama_build_custom_field(panel, field_data, values){
             field.find('.input-value').val(value).trigger('change', {field_rendered: true}).data('value', value);
         }
         $sortable.append(field);
+        panel.closest('.custom_sortable_grouped').trigger('update_fields_name');
         if(callback) window[callback](field, value);
         field_counter ++;
     }
