@@ -16,32 +16,39 @@
 //************** Main content
 #admin_content {
   min-height: 400px;
+
   .panel {
-    &.panel-toggled > .panel-body {
+    &.panel-toggled>.panel-body {
       display: none;
     }
+
     .panel-heading {
       //overflow: hidden;
       position: relative;
+
       .panel-controls {
         float: right;
         list-style: outside none none;
         position: absolute;
         right: 26px;
         top: 5px;
+
         li {
           float: left;
+
           a {
             @include link_round();
           }
         }
       }
-      > .btn{
+
+      >.btn {
         position: absolute;
         right: 26px;
         top: 14px;
       }
     }
+
     .panel-footer {
       overflow: hidden;
     }
@@ -53,16 +60,21 @@
     font-size: 12px;
     vertical-align: middle;
   }
+
   // reset label inputs
   label {
-    input[type="radio"], input[type="checkbox"] {
+
+    input[type="radio"],
+    input[type="checkbox"] {
       margin-right: 4px;
     }
   }
+
   // category lists
   .categorychecklist {
     padding-left: 10px;
     list-style: none;
+
     ul {
       padding-left: 25px;
       list-style: none;
@@ -73,6 +85,7 @@
     .sl-slug-edit {
       margin-top: 4px;
     }
+
     .gallery-item-remove {
       position: absolute;
       margin-top: -22px;
@@ -84,12 +97,14 @@
     .inner {
       padding-top: 30px;
     }
+
     a {
       position: absolute;
       top: 4px;
       right: 5px;
       @include link_round(25);
       background: rgba(250, 250, 250, 0.4);
+
       &.edit_link {
         left: 5px;
         right: auto;
@@ -102,49 +117,57 @@
     padding: 0;
     margin: 0;
     white-space: nowrap;
-    & > * {
+
+    &>* {
       background-color: #fafafa;
       border: 1px solid #ddd;
       color: #777;
       padding: 6px 12px;
       margin: 0 -2px;
     }
+
     em {
       background-color: #337ab7;
       border-color: #337ab7;
       color: #fff;
       cursor: default;
     }
+
     span {
       cursor: not-allowed;
     }
   }
+
   form {
-    .form-group > .trans_panel{
+    .form-group>.trans_panel {
       margin-top: -25px;
     }
   }
 }
 
 //************** sidebar left
-#sidebar-menu{
+#sidebar-menu {
   z-index: 2;
 }
 
 //************** reset modals
-.modal, #admin_content {
+.modal,
+#admin_content {
   .btn_upload {
     cursor: pointer;
   }
+
   .input-append.date .input-group-addon {
     padding: 7px 0;
     width: 30px;
   }
-  .input-group.color{
+
+  .input-group.color {
     .input-group-addon {
       background-color: #ccc;
     }
-    .over_field + span{
+
+    .over_field+span {
       padding: 5px;
       position: absolute;
       right: 0;
@@ -158,10 +181,12 @@
     .nav-tabs .has-error {
       color: #a94442;
     }
+
     .tab-pane .has-error {
       border: 1px solid #a94442;
     }
   }
+
   .trans_panel {
     //fix for multilanguage tabs
     //margin-top: -25px;
@@ -170,28 +195,35 @@
   // custom fields render in forms
   .item-custom-field {
     margin-bottom: 15px;
-    > label {
+
+    >label {
       display: block;
-      .shortcode_field input{
+
+      .shortcode_field input {
         min-width: 250px;
       }
     }
-    .actions{
+
+    .actions {
       overflow: hidden;
       width: 67px;
       float: left;
+
       .fa {
         @include link_round;
       }
-      & + .group-input-fields-content {
+
+      &+.group-input-fields-content {
         margin-left: 75px;
       }
     }
   }
-  .custom_sortable_grouped .header-field-grouped{
+
+  .custom_sortable_grouped .header-field-grouped {
     padding: 5px;
     margin-bottom: 3px;
-    .fa{
+
+    .fa {
       @include link_round;
       display: inline-block;
       float: none;
@@ -200,23 +232,21 @@
 }
 
 //************** Main Header && intro js custom
-#main-header{
+#main-header {
   z-index: 4;
-  &.introjs-fixParent{
+
+  &.introjs-fixParent {
     width: 100%;
+
     .navbar {
       width: 100%;
     }
   }
+
   .logo img {
     max-width: 100%;
     max-height: 100%;
   }
-}
-
-//************** fix tinymce fullscreen
-div.mce-fullscreen{
-  z-index: 10;
 }
 
 #tab-information {
@@ -232,10 +262,11 @@ div.mce-fullscreen{
 }
 
 //************** custom loading style
-#cama_custom_loading{
+#cama_custom_loading {
   position: relative;
   z-index: 999999;
-  .back_spinner{
+
+  .back_spinner {
     position: fixed;
     z-index: 99998;
     width: 100%;
@@ -244,7 +275,8 @@ div.mce-fullscreen{
     background-color: #2D95BF;
     background-color: rgba(60, 141, 188, 0.2);
   }
-  .loader_spinner{
+
+  .loader_spinner {
     z-index: 99999;
     position: fixed;
     left: 50%;
@@ -259,7 +291,7 @@ div.mce-fullscreen{
 }
 
 // copy paste code style
-input.code_style{
+input.code_style {
   background-color: #f9f2f4;
   border-radius: 4px;
   color: #c7254e;
@@ -270,23 +302,28 @@ input.code_style{
 }
 
 // fix tab content padding
-.tab-content > .tab-pane{
+.tab-content>.tab-pane {
   padding-top: 5px;
 }
-.content-upload-plugin{
+
+.content-upload-plugin {
   min-height: 45px;
   position: relative;
-  .rm-file{
+
+  .rm-file {
     position: absolute;
     top: 100%;
     margin-top: -22px;
   }
-  img{
+
+  img {
     max-height: 100px;
     max-width: 200px;
   }
 }
-label.error, span.error{
+
+label.error,
+span.error {
   color: #a94442;
   font-size: 11px;
 }
@@ -296,8 +333,7 @@ label.error, span.error{
 
 // themes: index page
 .theme-card {
-  border: 1px 
-  solid #ddd; 
+  border: 1px solid #ddd;
   border-radius: 0;
   position: relative;
 
@@ -305,13 +341,13 @@ label.error, span.error{
     padding: 0;
 
     .theme-image {
-      width: 100%; 
+      width: 100%;
       height: 260px;
       background-size: cover;
     }
 
     &:hover {
-      & + .theme-description {
+      &+.theme-description {
         display: block;
       }
     }
@@ -334,14 +370,14 @@ label.error, span.error{
   }
 
   .panel-footer {
-    background-color: #fafafa; 
-    border: 0; 
-    border-radius: 0; 
-    box-shadow: inset 0 1px 0 rgba(0,0,0,.1);
+    background-color: #fafafa;
+    border: 0;
+    border-radius: 0;
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, .1);
     display: flex;
     justify-content: space-between;
     align-items: center;
-  
+
 
     .theme-name {
       font-size: 1.6rem;

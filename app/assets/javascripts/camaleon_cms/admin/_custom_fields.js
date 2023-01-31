@@ -18,7 +18,7 @@ function BuildCustomFieldGroup(fieldValues, groupId, fieldsData, isRepeat, field
       .find('input, textarea, select')
       .not('.code_style')
       .each(
-        function() {
+        function () {
           $(this).attr(
             'name', $(this).attr('name').replace(fieldNameGroup, fieldNameGroup + '[' + fieldGroupCounter + ']')
           )
@@ -38,27 +38,27 @@ function BuildCustomFieldGroup(fieldValues, groupId, fieldsData, isRepeat, field
     groupPanelBody.sortable({
       handle: '.move.fa-arrows',
       items: ' > .custom_sortable_grouped',
-      update: function() { groupPanel.trigger('update_custom_group_number') },
-      start: function(e, ui) { // fix tinymce
-        $(ui.item).find('.mce-panel').each(function() {
+      update: function () { groupPanel.trigger('update_custom_group_number') },
+      start: function (e, ui) { // fix tinymce
+        $(ui.item).find('.mce-panel').each(function () {
           tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'))
         })
       },
-      stop: function(e, ui) { // fix tinymce
-        $(ui.item).find('.cama_restore_editor').each(function() {
+      stop: function (e, ui) { // fix tinymce
+        $(ui.item).find('.cama_restore_editor').each(function () {
           tinymce.execCommand('mceAddEditor', true, $(this).attr('id'))
         })
       }
     })
     groupPanel.find('.btn.duplicate_cutom_group').click(AddGroup)
-    groupPanelBody.on('click', '.header-field-grouped .del', function() { if (confirm(I18n('msg.delete_item'))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function() { $(this).remove(); groupPanel.trigger('update_custom_group_number') }); return false })
-    groupPanelBody.on('click', '.header-field-grouped .toggleable', function() {
+    groupPanelBody.on('click', '.header-field-grouped .del', function () { if (confirm(I18n('msg.delete_item'))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function () { $(this).remove(); groupPanel.trigger('update_custom_group_number') }); return false })
+    groupPanelBody.on('click', '.header-field-grouped .toggleable', function () {
       if ($(this).hasClass('fa-angle-down')) $(this).removeClass('fa-angle-down').addClass('fa-angle-up').closest('.header-field-grouped').next().slideUp()
       else $(this).removeClass('fa-angle-up').addClass('fa-angle-down').closest('.header-field-grouped').next().slideDown()
       return false
     })
-    groupPanel.bind('update_custom_group_number', function() { $(this).find('.custom_sortable_grouped').each(function(index) { $(this).find('input.cama_custom_group_number').val(index) }) })
-    $.each(fieldValues, function(fieldVal, key) { AddGroup(this) })
+    groupPanel.bind('update_custom_group_number', function () { $(this).find('.custom_sortable_grouped').each(function (index) { $(this).find('input.cama_custom_group_number').val(index) }) })
+    $.each(fieldValues, function (fieldVal, key) { AddGroup(this) })
   } else
     AddGroup(fieldValues[0])
 }
@@ -70,7 +70,7 @@ function CamaBuildCustomField(panel, fieldData, values) {
 
   panel.html(
     "<div class='cama_w_custom_fields'></div>" +
-      (fieldData.multiple ? "<div class='field_multiple_btn'> <a href='#' class='btn btn-warning btn-xs'> <i class='fa fa-plus'></i> " + panel.attr('data-add_field_title') + '</a></div>' : '')
+    (fieldData.multiple ? "<div class='field_multiple_btn'> <a href='#' class='btn btn-warning btn-xs'> <i class='fa fa-plus'></i> " + panel.attr('data-add_field_title') + '</a></div>' : '')
   )
 
   const fieldActions = '<div class="actions"><i style="cursor: move" class="fa fa-arrows"></i> <i style="cursor: pointer" class="fa fa-times text-danger"></i></div>'
@@ -85,11 +85,11 @@ function CamaBuildCustomField(panel, fieldData, values) {
         field.children('.actions').find('.fa-times').remove()
     }
     if (!$field.find('.group-input-fields-content').hasClass('cama_skip_cf_rename_multiple'))
-      field.find('input, textarea, select').each(function() { $(this).attr('name', $(this).attr('name').replace('[]', '[' + fieldCounter + ']')) })
+      field.find('input, textarea, select').each(function () { $(this).attr('name', $(this).attr('name').replace('[]', '[' + fieldCounter + ']')) })
 
     if (fieldData.disabled) {
-      field.find('input, textarea, select').prop('readonly', true).filter('select').click(function() { return false }).focus(function() { $(this).blur() })
-      field.find('.btn').addClass('disabled').unbind().click(function() { return false })
+      field.find('input, textarea, select').prop('readonly', true).filter('select').click(function () { return false }).focus(function () { $(this).blur() })
+      field.find('.btn').addClass('disabled').unbind().click(function () { return false })
     }
 
     if (fieldData.kind === 'checkbox')
@@ -111,25 +111,25 @@ function CamaBuildCustomField(panel, fieldData, values) {
     if (fieldData.kind === 'checkbox')
       AddField(values[0])
     else {
-      $.each(values, function(i, value) {
+      $.each(values, function (i, value) {
         AddField(value)
       })
     }
   } else AddField(values)
 
   if (fieldData.multiple) { // sortable actions
-    panel.find('.field_multiple_btn .btn').click(function() { AddField(fieldData.default_value); return false })
-    panel.delegate('.actions .fa-times', 'click', function() { if (confirm(I18n('msg.delete_item'))) $(this).closest('.editor-custom-fields').remove(); return false })
+    panel.find('.field_multiple_btn .btn').click(function () { AddField(fieldData.default_value); return false })
+    panel.delegate('.actions .fa-times', 'click', function () { if (confirm(I18n('msg.delete_item'))) $(this).closest('.editor-custom-fields').remove(); return false })
     $sortable.sortable({
       handle: '.fa-arrows',
       items: ' > .editor-custom-fields',
-      start: function(e, ui) { // fix tinymce
-        $(ui.item).find('.mce-panel').each(function() {
+      start: function (e, ui) { // fix tinymce
+        $(ui.item).find('.mce-panel').each(function () {
           tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'))
         })
       },
-      stop: function(e, ui) { // fix tinymce
-        $(ui.item).find('.cama_restore_editor').each(function() {
+      stop: function (e, ui) { // fix tinymce
+        $(ui.item).find('.cama_restore_editor').each(function () {
           tinymce.execCommand('mceAddEditor', true, $(this).attr('id'))
         })
       }
@@ -159,7 +159,7 @@ function CustomFieldCheckboxVal($field, values) {
 // eslint-disable-next-line no-unused-vars
 function CustomFieldCheckboxesVal($field, values) {
   if ($field) {
-    const selector = values.map(function(value) {
+    const selector = values.map(function (value) {
       return "input[value='" + value + "']"
     }).join(',')
     $field.find(selector).prop('checked', true)
@@ -255,7 +255,7 @@ function LoadUploadAudioField(thiss) {
 
   $.fn.upload_filemanager({
     formats: 'audio',
-    selected: function(file, response) {
+    selected: function (file, response) {
       $input.val(file.url)
     }
   })
@@ -267,7 +267,7 @@ function LoadUploadFileField(thiss) {
 
   $.fn.upload_filemanager({
     formats: $input.data('formats') ? $input.data('formats') : '',
-    selected: function(file, response) {
+    selected: function (file, response) {
       $input.val(file.url)
     }
   })
@@ -279,7 +279,7 @@ function LoadUploadPrivateFileField(thiss) {
 
   $.fn.upload_filemanager({
     formats: $input.data('formats') ? $input.data('formats') : '',
-    selected: function(file, response) {
+    selected: function (file, response) {
       $input.val(file.url.split('?file=')[1].replace(/%2/g, '/'))
     },
     private: true
@@ -293,7 +293,7 @@ function LoadUploadImageField($input) {
     dimension: $input.attr('data-dimension') || '',
     versions: $input.attr('data-versions') || '',
     thumb_size: $input.attr('data-thumb_size') || '',
-    selected: function(file, response) {
+    selected: function (file, response) {
       $input.val(file.url).trigger('change')
     }
   })
@@ -326,7 +326,7 @@ function LoadUploadVideoField(thiss) {
   const $input = $(thiss).prev()
   $.fn.upload_filemanager({
     formats: 'video',
-    selected: function(file, response) {
+    selected: function (file, response) {
       $input.val(file.url)
     }
   })
