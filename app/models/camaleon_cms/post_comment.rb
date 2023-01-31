@@ -9,13 +9,12 @@ module CamaleonCms
     #default_scope order('comments.created_at ASC')
     #approved: approved | pending | spam
 
-    cama_define_common_relationships('PostComment')
     has_many :children, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, dependent: :destroy
     belongs_to :post, required: false
     belongs_to :parent, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, required: false
     belongs_to :user, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, required: false
 
-    default_scope {order("#{CamaleonCms::PostComment.table_name}.created_at DESC")}
+    default_scope { order(created_at: :desc) }
 
     scope :main, -> { where(comment_parent: nil) }
     scope :comment_parent, -> { where(comment_parent: 'is not null') }

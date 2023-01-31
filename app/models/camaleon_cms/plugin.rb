@@ -1,19 +1,17 @@
 module CamaleonCms
   class Plugin < CamaleonCms::TermTaxonomy
+    include CamaleonCms::CustomFields
     # attrs:
     #   term_group => status active (1, nil)
     #   slug => plugin key
     #   name => plugin name
 
     attr_accessor :error
-    cama_define_common_relationships('Plugin')
     belongs_to :site, foreign_key: :parent_id, required: false
 
-    default_scope { where(taxonomy: :plugin) }
     scope :active, -> { where(term_group: 1) }
 
     before_validation :set_default
-    before_destroy :destroy_custom_fields
 
     # active the plugin
     def active
@@ -69,10 +67,6 @@ module CamaleonCms
     private
     def set_default
       self.name = slug unless name.present?
-    end
-
-    def destroy_custom_fields
-      self.get_field_groups.destroy_all
     end
   end
 end

@@ -4,15 +4,10 @@ module CamaleonCms
 
     alias_attribute :post_type_id, :taxonomy_id
     alias_attribute :parent_id, :post_parent
-    default_scope ->{ where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
-    cama_define_common_relationships('Post')
     delegate :site, to: :post_type
 
-    # DEPRECATED
-    has_many :post_relationships, class_name: "CamaleonCms::PostRelationship", foreign_key: :objectid, dependent: :destroy, inverse_of: :post
-    has_many :post_types, class_name: "CamaleonCms::PostType", through: :post_relationships, source: :post_type
-    # END DEPRECATED
-
+    # todo: remove to use record_type=CamaleonCms::PostDefault
+    # todo: remove to use record_type=CamaleonCms::TermTaxonomy
     has_many :term_relationships, foreign_key: :objectid, dependent: :destroy,  inverse_of: :object
     has_many :categories, class_name: "CamaleonCms::Category", through: :term_relationships, source: :term_taxonomy
     has_many :post_tags, class_name: "CamaleonCms::PostTag", through: :term_relationships, source: :term_taxonomy
@@ -24,6 +19,11 @@ module CamaleonCms
     belongs_to :parent, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, required: false
     belongs_to :post_type, foreign_key: :taxonomy_id, inverse_of: :posts, required: false
 
+    has_many :self_field_groups, as: :record, dependent: :destroy, class_name: 'FieldGroup', inverse_of: :record
+    has_many :self_fields, through: :field_groups, as: :record, class_name: 'Field'
+    has_many :field_values, as: :record, dependent: :destroy, inverse_of: :record
+
+    scope :recent, -> { order(post_order: :asc, created_at: :desc) }
     scope :visible_frontend, -> {where(status: 'published')}
     scope :public_posts, -> {visible_frontend.where(visibility: ['public', '']) } #public posts (not passwords, not privates)
     scope :private_posts, -> {where(visibility: 'private') } #public posts (not passwords, not privates)
@@ -39,6 +39,16 @@ module CamaleonCms
     validates_with CamaleonCms::PostUniqValidator
     attr_accessor :show_title_with_parent
     before_create :fix_post_order, if: lambda{|p| !p.post_order.present? || p.post_order == 0 }
+
+    # TODO: improve query that supports rails 5
+    #   (Note: field_groups.or(post_type.post_field_groups) not generating the expected conditions)
+    def field_groups
+      FieldGroup.union_scope(self_field_groups, post_type.post_field_groups)
+    end
+
+    def fields
+      Field.joins(:field_group).merge(field_groups)
+    end
 
     # return all parents for current page hierarchy ordered bottom to top
     def parents
@@ -236,14 +246,15 @@ module CamaleonCms
       (post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator') rescue 'CamaleonCms::PostDecorator').constantize
     end
 
-    def get_field_groups
-      CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = 'Post') OR
-                                             (objectid = ? AND object_class = 'PostType_Post')",
-                                          self.id || -1, self.post_type_id)
+    # INFO: backward compatibility reasons (Deprecated)
+    def add_custom_field_group(data, kind = nil)
+      self_field_groups.create!(data)
     end
 
-    def add_custom_field_group(values)
-      custom_field_groups.create!(values.merge(record: self))
+    # INFO: backward compatibility reasons (Deprecated)
+    def default_custom_field_group(kind = nil)
+      self_field_groups.where(slug: '_default').first ||
+        add_custom_field_group(name: 'Default Field Group', slug: '_default')
     end
 
     private

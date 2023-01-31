@@ -1,10 +1,8 @@
 module CamaleonCms
   class UserRole < CamaleonCms::TermTaxonomy
     after_destroy :set_users_as_cilent
-
-    default_scope { where(taxonomy: :user_roles) }
-    cama_define_common_relationships('UserRole')
     belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, required: false
+    has_many :field_values, as: :record, dependent: :destroy, inverse_of: :record
 
     def roles_post_type
       self.get_meta('_post_type')

@@ -1,7 +1,6 @@
 module CamaleonCms::UserMethods extend ActiveSupport::Concern
   included do
     include CamaleonCms::Metas
-    include CamaleonCms::CustomFieldsRead
 
     validates_uniqueness_of :username, scope: [:site_id], case_sensitive: false, message: I18n.t('camaleon_cms.admin.users.message.requires_different_username', default: 'Requires different username')
     validates_uniqueness_of :email, scope: [:site_id], case_sensitive: false, message: I18n.t('camaleon_cms.admin.users.message.requires_different_email', default: 'Requires different email')
@@ -15,10 +14,10 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     before_update { generate_token :auth_token if will_save_change_to_password_digest? }
 
     # relations
-    cama_define_common_relationships('User')
     has_many :all_posts, class_name: "CamaleonCms::Post", foreign_key: :user_id
     has_many :all_comments, class_name: 'CamaleonCms::PostComment'
     belongs_to :site, class_name: 'CamaleonCms::Site', optional: true
+    has_many :field_values, as: :record, dependent: :destroy, inverse_of: :record
 
     #scopes
     scope :admin_scope, -> { where(:role => 'admin') }
@@ -96,10 +95,6 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
     save!
   end
     # end auth
-
-  def get_field_groups(site)
-    site.custom_field_groups.where(object_class: self.class.to_s.parseCamaClass)
-  end
 
   private
   def cama_before_validation

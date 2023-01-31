@@ -1,14 +1,11 @@
 module CamaleonCms
   class Theme < CamaleonCms::TermTaxonomy
+    include CamaleonCms::CustomFields
+
     # attrs:
     #   slug => plugin key
-    cama_define_common_relationships('Theme')
     belongs_to :site, class_name: "CamaleonCms::Site", foreign_key: :parent_id, required: false
-
-    default_scope { where(taxonomy: :theme) }
-
     before_validation :fix_name
-    before_destroy :destroy_custom_fields
 
     # return theme settings configured in config.json
     def settings
@@ -23,10 +20,6 @@ module CamaleonCms
     private
     def fix_name
       self.name = slug if name.blank?
-    end
-
-    def destroy_custom_fields
-      get_field_groups.destroy_all
     end
   end
 end

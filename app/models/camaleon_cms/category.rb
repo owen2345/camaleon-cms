@@ -3,11 +3,8 @@ module CamaleonCms
     alias_attribute :site_id, :term_group
     alias_attribute :post_type_id, :status
 
-    default_scope { where(taxonomy: :category) }
     scope :no_empty, -> { where('count > 0') } # return all categories that contains at least one post
     scope :empty, -> { where(count: [0, nil]) } # return all categories that does not contain any post
-
-    cama_define_common_relationships('Category')
 
     has_many :posts, foreign_key: :objectid, through: :term_relationships, source: :object
     has_many :children, class_name: 'CamaleonCms::Category', foreign_key: :parent_id, dependent: :destroy
@@ -15,8 +12,12 @@ module CamaleonCms
     belongs_to :post_type, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id, inverse_of: :categories, required: false
     belongs_to :site, required: false
 
+    has_many :values, as: :record, class_name: 'FieldValue', dependent: :destroy
+    delegate :field_groups, :fields, to: :post_type, prefix: :category
+
     before_save :set_site
     before_destroy :set_posts_in_default_category
+
 
     # return the post type of this category
     def post_type

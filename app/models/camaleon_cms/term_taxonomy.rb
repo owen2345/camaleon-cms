@@ -13,8 +13,8 @@ module CamaleonCms
     before_destroy :destroy_dependencies
 
     # validates
-    validates :name, :taxonomy, presence: true
-    validates_with CamaleonCms::UniqValidator
+    validates :name, :slug, presence: true
+    validates :slug, uniqueness: { scope: :parent_id, message: "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}" }
 
     # relations
     has_many :term_relationships, class_name: "CamaleonCms::TermRelationship", foreign_key: :term_taxonomy_id, dependent: :destroy
