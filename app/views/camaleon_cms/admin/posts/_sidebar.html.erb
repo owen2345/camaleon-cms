@@ -18,12 +18,11 @@
                 <div class="col-md-6">
                     <% if @post.draft?  %>
                         <a class="btn btn-default btn-xs pull-right" href="#" data-type="pending" onclick="$('#form-post').submit(); return false;" style="<%= 'display: none' unless @post.pending? %>" ><%= t('camaleon_cms.admin.post_type.save_pending')%> </a>
-                        <a class="btn btn-default btn-xs pull-right" href="#" data-type="draft" onclick="App_post.save_draft(); return false;" style="<%= 'display: none' unless @post.draft? %>" ><%= t('camaleon_cms.admin.post_type.save_draft')%></a>
+                        <a class="btn btn-default btn-xs pull-right" href="#" data-type="draft" onclick="AppPost.save_draft(); return false;" style="<%= 'display: none' unless @post.draft? %>" ><%= t('camaleon_cms.admin.post_type.save_draft')%></a>
                     <% else  %>
-                        <a class="btn btn-default btn-xs pull-right" href="#" onclick="App_post.save_draft(); return false;" ><%= t('camaleon_cms.admin.post_type.save_draft')%></a>
+                        <a class="btn btn-default btn-xs pull-right" href="#" onclick="AppPost.save_draft(); return false;" ><%= t('camaleon_cms.admin.post_type.save_draft')%></a>
                     <% end  %>
                 </div>
-
             </div>
         </div>
     </div>
@@ -145,7 +144,7 @@
                         <input data-error-place='#feature-image ~ .validation-errors:first' class="<%= 'required' if @post.is_required_picture? %>" name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>"/>
                     </div>
                     <!-- posts_thumb_versions ==> '200x200,400x450', posts_thumb_size ==> '100x100', posts_image_dimension ==> '1200x1200'-->
-                    <a href="#" class="btn btn-default" onclick="cama_upload_feature_image({versions: '<%= @post_type.get_option('posts_thumb_versions') %>', thumb_size: '<%= @post_type.get_option('posts_thumb_size') %>', dimension: '<%= @post_type.get_option('posts_image_dimension') %>' }); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image', default: 'Upload Image')%></a>
+                    <a href="#" class="btn btn-default" onclick="CamaUploadFeatureImage({versions: '<%= @post_type.get_option('posts_thumb_versions') %>', thumb_size: '<%= @post_type.get_option('posts_thumb_size') %>', dimension: '<%= @post_type.get_option('posts_image_dimension') %>' }); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image', default: 'Upload Image')%></a>
                     <div class="validation-errors"></div>
                 </div>
             </div>
