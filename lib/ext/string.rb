@@ -29,7 +29,7 @@ class String
     self == 'true' || self == '1'
   end
 
-  def to_var
+  def cama_to_var
     if is_float?
       self.to_f
     elsif is_number?
