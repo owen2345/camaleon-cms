@@ -14,9 +14,9 @@ Gem::Specification.new do |s|
   s.description = "Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails as an alternative to Wordpress."
   s.license     = "MIT"
 
-  s.required_ruby_version = '>= 2.7'
+  s.required_ruby_version = '>= 2.5'
   s.requirements << 'rails >= 6.0'
-  s.requirements << 'ruby >= 2.7'
+  s.requirements << 'ruby >= 2.5'
   s.requirements << 'imagemagick'
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
@@ -26,9 +26,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'bcrypt'
   s.add_dependency 'cancancan', '>= 2.0', '< 4'
   s.add_dependency 'draper', '>= 4.0.2'
+  s.add_dependency 'memoist'
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
-  s.add_dependency 'non-digest-assets', '~> 2.0'
   s.add_dependency 'will_paginate'
   s.add_dependency 'will_paginate-bootstrap'
   s.add_dependency 'breadcrumbs_on_rails'

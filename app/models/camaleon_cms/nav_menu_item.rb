@@ -7,12 +7,12 @@ module CamaleonCms
     alias_attribute :target, :status
     # attr_accessible :label, :url, :kind
     #
-    default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
 
-    cama_define_common_relationships('NavMenuItem')
     belongs_to :parent, class_name: "CamaleonCms::NavMenu", inverse_of: :children, required: false
     belongs_to :parent_item, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, inverse_of: :children, required: false
     has_many :children, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent_item
+    has_many :field_values, as: :record, dependent: :destroy
+    delegate :field_groups, :fields, to: :main_menu
 
     before_create :set_parent_site
     after_create :update_count

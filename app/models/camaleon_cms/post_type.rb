@@ -1,15 +1,26 @@
 module CamaleonCms
   class PostType < CamaleonCms::TermTaxonomy
+    include CamaleonCms::CustomFields
     alias_attribute :site_id, :parent_id
-    default_scope { where(taxonomy: :post_type) }
-    cama_define_common_relationships('PostType')
-    has_many :categories, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type_parent
+
+    has_many :categories, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type
     has_many :post_tags, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type
     has_many :posts, foreign_key: :taxonomy_id, dependent: :destroy, inverse_of: :post_type
     has_many :comments, through: :posts
     has_many :posts_through_categories, foreign_key: :objectid, through: :term_relationships, source: :object
     has_many :posts_draft, class_name: 'CamaleonCms::Post', foreign_key: :taxonomy_id, dependent: :destroy, inverse_of: :post_type
     has_many :field_group_taxonomy, -> {where('object_class LIKE ?', 'PostType_%')}, class_name: 'CamaleonCms::CustomField', foreign_key: :objectid, dependent: :destroy
+
+    has_many :field_groups, as: :record, dependent: :destroy
+    has_many :fields, through: :field_groups, as: :record
+    has_many :self_field_groups, -> { where(kind: nil) }, as: :record, inverse_of: :record, class_name: 'FieldGroup'
+    has_many :self_fields, through: :self_field_groups, as: :record, class_name: 'Field'
+    has_many :category_field_groups, -> { where(kind: 'Category') }, as: :record, class_name: 'FieldGroup'
+    has_many :postag_field_groups, -> { where(kind: 'PostTag') }, as: :record, class_name: 'FieldGroup'
+    has_many :post_field_groups, -> { where(kind: 'Post') }, as: :record, class_name: 'FieldGroup'
+    has_many :category_fields, through: :category_field_groups, as: :record, class_name: 'Field', source: :fields
+    has_many :postag_fields, through: :postag_field_groups, as: :record, class_name: 'Field', source: :fields
+    has_many :post_fields, through: :post_field_groups, as: :record, class_name: 'Field', source: :fields
 
     belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, required: false
     belongs_to :site, foreign_key: :parent_id, required: false
@@ -125,7 +136,7 @@ module CamaleonCms
         p.set_position(_order_position) if _order_position.present?
         p.set_summary(_summary) if _summary.present?
         p.set_thumb(_thumb) if _thumb.present?
-        _fields.each{ |k, v| p.save_field_value(k, v) } if _fields.present?
+        p.set_field_values(_fields) if _fields
         p.decorate
       else
         p.errors
@@ -155,10 +166,6 @@ module CamaleonCms
     end
 
     private
-    # skip save_metas_options callback after save changes (inherit from taxonomy) to call from here manually
-    def save_metas_options_skip
-      true
-    end
 
     # assign default roles for this post type
     # define default settings for this post type

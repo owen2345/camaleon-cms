@@ -1,20 +1,17 @@
 module CamaleonCms
   class Site < CamaleonCms::TermTaxonomy
     include CamaleonCms::SiteDefaultSettings
+    include CamaleonCms::CustomFields
 
     # attrs: [name, description, slug]
     attr_accessor :site_domain
 
-    default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
-
-    cama_define_common_relationships('Site')
     has_many :post_types, class_name: "CamaleonCms::PostType", foreign_key: :parent_id, dependent: :destroy
     has_many :nav_menus, class_name: "CamaleonCms::NavMenu", foreign_key: :parent_id, dependent: :destroy, inverse_of: :site
     has_many :nav_menu_items, class_name: "CamaleonCms::NavMenuItem", foreign_key: :term_group
     has_many :widgets, class_name: "CamaleonCms::Widget::Main", foreign_key: :parent_id, dependent: :destroy
     has_many :sidebars, class_name: "CamaleonCms::Widget::Sidebar", foreign_key: :parent_id, dependent: :destroy
     has_many :user_roles_rel, class_name: "CamaleonCms::UserRole", foreign_key: :parent_id, dependent: :destroy
-    has_many :custom_field_groups, class_name: "CamaleonCms::CustomFieldGroup", foreign_key: :parent_id, dependent: :destroy
     has_many :term_taxonomies, class_name: "CamaleonCms::TermTaxonomy", foreign_key: :parent_id
 
     has_many :posts, through: :post_types, source: :posts
@@ -22,6 +19,14 @@ module CamaleonCms
     has_many :themes, class_name: "CamaleonCms::Theme", foreign_key: :parent_id, dependent: :destroy
     has_many :public_media, ->{ where(is_public: true) }, class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
     has_many :private_media, ->{ where(is_public: false) }, class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
+
+    has_many :field_groups
+    has_many :fields, through: :field_groups, as: :record
+    has_many :self_field_groups, -> { where(kind: nil) }, as: :record, inverse_of: :record, dependent: :destroy
+    has_many :user_field_groups, -> { where(kind: 'User') }, class_name: 'FieldGroup', as: :record, dependent: :destroy, inverse_of: :record
+    has_many :user_fields, through: :user_field_groups, class_name: 'Field', as: :record, dependent: :destroy
+    has_many :role_field_groups, -> { where(kind: 'UserRole') }, class_name: 'FieldGroup', as: :record, dependent: :destroy, inverse_of: :record
+    has_many :role_fields, through: :role_field_groups, class_name: 'Field', as: :record
 
     after_create :default_settings
     after_create :set_default_user_roles
@@ -52,7 +57,7 @@ module CamaleonCms
 
     # all main categories for this site
     def categories
-      CamaleonCms::Category.includes(:post_type_parent).where(post_type_parent: post_types.pluck(:id))
+      CamaleonCms::Category.includes(:post_type).where(post_type: post_types.pluck(:id))
     end
 
     # return all languages configured by the admin
@@ -88,7 +93,7 @@ module CamaleonCms
 
     # return plugin model with slug plugin_slug
     def get_plugin(plugin_slug)
-      plugins.where(slug: plugin_slug).first_or_create!
+      plugins.where(slug: plugin_slug).take
     end
 
     # assign user to this site

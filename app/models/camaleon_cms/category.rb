@@ -3,31 +3,30 @@ module CamaleonCms
     alias_attribute :site_id, :term_group
     alias_attribute :post_type_id, :status
 
-    default_scope { where(taxonomy: :category) }
     scope :no_empty, -> { where('count > 0') } # return all categories that contains at least one post
     scope :empty, -> { where(count: [0, nil]) } # return all categories that does not contain any post
-    # scope :parents, -> { where("term_taxonomy.parent_id IS NULL") }
-
-    cama_define_common_relationships('Category')
 
     has_many :posts, foreign_key: :objectid, through: :term_relationships, source: :object
     has_many :children, class_name: 'CamaleonCms::Category', foreign_key: :parent_id, dependent: :destroy
     belongs_to :parent, class_name: 'CamaleonCms::Category', foreign_key: :parent_id, required: false
-    belongs_to :post_type_parent, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id, inverse_of: :categories, required: false
+    belongs_to :post_type, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id, inverse_of: :categories, required: false
     belongs_to :site, required: false
+
+    has_many :values, as: :record, class_name: 'FieldValue', dependent: :destroy
+    delegate :field_groups, :fields, to: :post_type, prefix: :category
 
     before_save :set_site
     before_destroy :set_posts_in_default_category
 
+
     # return the post type of this category
     def post_type
-      cama_fetch_cache('post_type') do
-        ctg = self
-        begin
-          pt = ctg.post_type_parent
-          ctg = ctg.parent
-        end while ctg
-        pt
+      parent ? path.first.post_type : super
+    end
+
+    def path
+      cama_fetch_cache('path') do
+        (parent&.path || []) + [self]
       end
     end
 

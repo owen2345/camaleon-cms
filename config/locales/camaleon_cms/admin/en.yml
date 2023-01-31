@@ -445,6 +445,17 @@ en:
           status: Site Status
           default_page: Default page
           maintenance_ips: Maintenance IPs (Separated by commas)
+        field_groups:
+          type_labels:
+            categories: 'Fields for Categories under PostType '
+            posts: 'Fields for Posts under PostType '
+            tags: 'Fields for PostTags under PostType '
+            site: 'Fields for Current Site '
+            users: 'Fields for Users '
+            common: 'Fields for '
+            user_roles: 'Fields for UserRoles '
+            single_post: 'Fields for single post'
+
         tooltip:
           add_custom_field_posts: 'Add Custom Field in Posts of '
           add_custom_field_categories: 'Add Custom Field in Categories of '

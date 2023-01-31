@@ -22,6 +22,7 @@
       </div>
       <div class="panel-body">
         <%= hidden_field(:fields, :id, index: @index, value: @item_id) %>
+        <%= check_box(:fields, :_destroy, index: @index, value: false, class: 'destroy_check hidden') if @item_id.present? %>
         <%= hidden_field(:field_options, :field_key, index: @index, value: @key) %>
         <%= hidden_field(:field_options, :label_eval, index: @index, value: @item_options_value[:label_eval].to_s.cama_true? ? 'true' : '') %>
         <%= hidden_field(:field_options, :panel_hidden, index: @index, value: @item_options_value[:panel_hidden], class: 'input-panel-hidden') %>

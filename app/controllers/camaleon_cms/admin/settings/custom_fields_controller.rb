@@ -1,10 +1,9 @@
 class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin::SettingsController
   add_breadcrumb I18n.t("camaleon_cms.admin.sidebar.custom_fields"), :cama_admin_settings_custom_fields_path
   before_action :set_custom_field_group, only: [:show,:edit,:update,:destroy]
-  before_action :set_post_data, only: [:create, :update]
 
   def index
-    @field_groups = current_site.custom_field_groups.visible_group.eager_load(:site)
+    @field_groups = current_site.field_groups
     @field_groups = @field_groups.where(object_class: params[:c]) if params[:c].present?
     @field_groups = @field_groups.where(objectid: params[:id]) if params[:id].present?
     @field_groups = @field_groups.paginate(page: params[:page], per_page: current_site.admin_per_page)
@@ -24,25 +23,29 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   end
 
   def update
-    if @field_group.update(@post_data) && _save_fields(@field_group)
+    if @field_group.update(group_params)
+      flash[:notice] = t('camaleon_cms.admin.custom_field.message.custom_updated')
       redirect_to action: :edit, id: @field_group.id
     else
+      flash[:error] = "<b>#{cama_t('errors_found_msg')}</b><br>#{@field_group.errors.full_messages.join(', ')}"
       render 'form'
     end
   end
 
   def new
     add_breadcrumb I18n.t("camaleon_cms.admin.button.new")
-    @field_group ||= current_site.custom_field_groups.new
+    @field_group ||= current_site.field_groups.new
     render 'form'
   end
 
   # create a new custom field group
   def create
-    @field_group = current_site.custom_field_groups.new(@post_data)
-    if @field_group.save && _save_fields(@field_group)
+    @field_group = current_site.field_groups.new(group_params)
+    if @field_group.save
+      flash[:notice] = t('camaleon_cms.admin.custom_field.message.custom_updated')
       redirect_to action: :edit, id: @field_group.id
     else
+      flash[:error] = "<b>#{cama_t('errors_found_msg')}</b><br>#{@field_group.errors.full_messages.join(', ')}"
       new
     end
   end
@@ -57,7 +60,7 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
   # reorder custom fields group
   def reorder
     params[:values].to_a.each_with_index do |value, index|
-      current_site.custom_field_groups.find(value).update_column('field_order', index)
+      current_site.field_groups.find(value).update_column(:position, index)
     end
     json = { size: params[:values].size }
     render json: json
@@ -79,30 +82,21 @@ class CamaleonCms::Admin::Settings::CustomFieldsController < CamaleonCms::Admin:
 
   private
 
-  def set_post_data
-    @post_data = params.require(:custom_field_group).permit!
-    @post_data[:object_class], @post_data[:objectid] = @post_data.delete(:assign_group).split(',')
-    @caption = @post_data.delete(:caption)
+  def group_params
+    data = params.require(:custom_field_group).permit(:name, :is_repeat, :description)
+    data[:record_type], data[:record_id], data[:kind]  = params[:custom_field_group][:assign_group].split(',')
+    data[:fields_attributes] = params[:fields].permit!.to_h.map.with_index do |(key, data), index|
+      data.slice(:id, :name, :slug, :description).merge(settings: params[:field_options][key].permit!, position: index)
+    end
+    data
   end
 
   def set_custom_field_group
     begin
-      @field_group = current_site.custom_field_groups.find(params[:id])
+      @field_group = current_site.field_groups.find(params[:id])
     rescue
       flash[:error] = t('camaleon_cms.admin.custom_field.message.custom_group_error')
       redirect_to cama_admin_path
     end
-  end
-
-  # return boolean: true if all fields were saved successfully
-  def _save_fields(group)
-    errors_saved, all_fields = group.add_fields(params[:fields] ? params.require(:fields).permit! : {}, params[:field_options] ? params.require(:field_options).permit! : {})
-    group.set_option('caption', @caption)
-    if errors_saved.present?
-      flash[:error] = "<b>#{t('camaleon_cms.errors_found_msg', default: 'Several errors were found, please check.')}</b><br>#{errors_saved.map{|field| "#{field.name}: " + "#{field.errors.messages.map{|k,v| "#{k.to_s.titleize}: #{v.join('|')}"}.join(', ')}" }.join('<br>')}"
-    else
-      flash[:notice] = t('camaleon_cms.admin.custom_field.message.custom_updated')
-    end
-    true
   end
 end

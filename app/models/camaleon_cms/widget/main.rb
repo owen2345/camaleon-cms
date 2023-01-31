@@ -1,7 +1,6 @@
 module CamaleonCms
   module Widget
     class Main < CamaleonCms::TermTaxonomy
-      default_scope { where(taxonomy: :widget) }
       # attr_accessible :excerpt, :renderer
       # name: "title"
       # description: "content for this"
@@ -10,7 +9,6 @@ module CamaleonCms
       # excerpt: string for message
       # renderer: string (path to the template for render this widget)
 
-      has_many :metas, ->{ where(object_class: 'Widget::Main')}, class_name: 'CamaleonCms::Meta', foreign_key: :objectid, dependent: :destroy
       belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id
       belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id
 

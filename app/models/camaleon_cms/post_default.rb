@@ -7,13 +7,11 @@ module CamaleonCms
 
     # attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order, :is_feature
     attr_accessor :draft_id
-    # attr_accessible :data_options
-    # attr_accessible :data_metas
     cattr_accessor :current_user
     cattr_accessor :current_site
 
     has_many :term_relationships, foreign_key: :objectid, dependent: :destroy, primary_key: :id
-    has_many :children, ->{ where(post_class: "PostDefault") }, class_name: "CamaleonCms::PostDefault", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
+    has_many :children, class_name: "CamaleonCms::PostDefault", foreign_key: :post_parent, dependent: :destroy, primary_key: :id
     scope :featured, ->{ where(is_feature: true) }
 
     validates :title, :slug, presence: true
@@ -26,11 +24,7 @@ module CamaleonCms
 
     # find a content by slug (support multi language)
     def self.find_by_slug(slug)
-      #if current_site.present? && current_site.get_meta("languages_site", []).count <= 1
-      #  res = self.where(slug: slug)
-      #else
       res = self.where("#{CamaleonCms::Post.table_name}.slug = ? OR #{CamaleonCms::Post.table_name}.slug LIKE ? ", slug, "%-->#{slug}<!--%")
-      #end
       res.reorder("").first
     end
 
@@ -53,14 +47,8 @@ module CamaleonCms
       CamaleonCms::NavMenuItem.where(url: id, kind: 'post')
     end
 
-    # Set the meta, field values and the post keywords here
-    def set_params(meta, custom_fields, options)
-      self.set_metas(meta)
-      self.set_field_values(custom_fields)
-      self.set_options(options)
-    end
-
     private
+
     def before_validating
       #self.slug = self.title if self.slug.blank?
       #self.slug = self.slug.to_s.parameterize

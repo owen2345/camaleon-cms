@@ -1,5 +1,5 @@
 <% default_use = record.new_record?; field_name = (defined?(fields_name) ? fields_name : "field_options").to_sym; obj_class = record.class.name.parseCamaClass.downcase %>
-<% field_groups.each do |group| fields = group.fields.where.not(slug: record.get_option("skip_fields", [])).eager_load(:metas); next if fields.size == 0; group_field_data = {} %>
+<% field_groups.ordered.each do |group| fields = group.fields.ordered.exclude_keys(record.get_option("skip_fields", [])).eager_load(:metas); next if fields.count == 0; group_field_data = {} %>
     <div class="panel panel-default panel-lite c-field-group" id="custom_field_group_<%= group.id %>">
         <div class="panel-heading <%= 'hidden' if defined?(skip_panel) || group.slug == "_default" %>">
             <h3 class="panel-title"><%= group.name %></h3>
@@ -15,9 +15,9 @@
                     </div>
                 <% end %>
                 <div class="fields_container">
-                    <% fields.decorate.each do |field| is_disabled = field.options[:disabled].present? || field.options[:readonly].present?; group_field_data[field.slug] = {default_value: field.options[:default_value], is_disabled: is_disabled, id: field.id, multiple: field.options[:multiple].to_s.to_bool && !is_disabled, kind: field.get_option('field_key')} %>
+                    <% fields.each do |field| is_disabled = field.options[:disabled].present? || field.options[:readonly].present?; group_field_data[field.slug] = {default_value: field.options[:default_value], is_disabled: is_disabled, id: field.id, multiple: field.options[:multiple].to_s.to_bool && !is_disabled, kind: field.get_option('field_key')} %>
                         <div class="item-custom-field c-field-<%= field.options[:field_key] %>" data-field-key="<%= field.slug %>">
-                            <input name="<%= field_name %>[<%= field.slug %>][id]" type="hidden" value="<%= field.id %>"/>
+                            <input name="<%= field_name %>[<%= field.slug %>][field_id]" type="hidden" value="<%= field.id %>"/>
                             <input name="<%= field_name %>[<%= field.slug %>][group_number]" class="cama_custom_group_number" type="hidden" value="0"/>
                             <label>
                                 <%= field.options[:label_eval].present? ? eval(field.name) : field.name %>

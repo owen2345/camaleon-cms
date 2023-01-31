@@ -49,6 +49,7 @@ module CamaleonCms
       PluginRoutes.all_apps.each { |info| translation_files += Dir[File.join(info['path'], 'config', 'locales', '*.{rb,yml}')] }
       app.config.i18n.enforce_available_locales = false
       app.config.i18n.load_path.unshift(*translation_files)
+      app.config.eager_load_paths += %W(#{app.config.root}/app/services/)
 
       # assets
       app.config.assets.paths << Rails.root.join("app", "apps")
