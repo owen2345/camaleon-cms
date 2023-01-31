@@ -40,7 +40,7 @@ describe 'the Site Settings SideBar options', js: true do
       expect(webfont_icon_fetch_status('fa fa-cog', 'fontawesome-webfont', 'woff2')).to be(200)
 
       within '#theme_settings_form' do
-        within '.mce-edit-area' do
+        within '.tox-edit-area' do
           within_frame do
             editor = page.find_by_id('tinymce')
             expect(editor.text).to eql('Copyright © 2015 - Camaleon CMS. All rights reservated.')
@@ -51,7 +51,7 @@ describe 'the Site Settings SideBar options', js: true do
         click_button 'Submit'
       end
 
-      within '.mce-edit-area' do
+      within '.tox-edit-area' do
         within_frame do
           editor = page.find_by_id('tinymce')
           expect(editor.text).to eql("Copyright © 2015 - Camaleon CMS. All rights reservated.#{added_text}")
