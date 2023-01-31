@@ -24,7 +24,7 @@ function build_custom_field_group(field_values, group_id, fields_data, is_repeat
         group_panel_body.sortable({ handle: ".move.fa-arrows", items: ' > .custom_sortable_grouped',
             update: function(){ group_panel.trigger('update_custom_group_number'); },
             start: function (e, ui) { // fix tinymce
-                $(ui.item).find('.mce-panel').each(function () {
+                $(ui.item).find('.tox-tinymce').each(function () {
                     tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
                 });
             },
@@ -97,7 +97,7 @@ function cama_build_custom_field(panel, field_data, values){
         panel.delegate('.actions .fa-times', "click", function () { if(confirm(I18n("msg.delete_item"))) $(this).closest('.editor-custom-fields').remove(); return false; });
         $sortable.sortable({ handle: ".fa-arrows", items: ' > .editor-custom-fields',
             start: function (e, ui) { // fix tinymce
-                $(ui.item).find('.mce-panel').each(function () {
+                $(ui.item).find('.tox-tinymce').each(function () {
                     tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
                 });
             },
