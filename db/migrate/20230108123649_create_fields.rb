@@ -8,7 +8,6 @@ class CreateFields < CamaManager.migration_class
       t.string :slug, index: true, null: false, unique: true
       t.integer :position, default: 0
       t.belongs_to :field_group, foreign_key: { to_table: CamaleonCms::FieldGroup.table_name }
-      t.references :record, polymorphic: true
 
       t.timestamps
     end

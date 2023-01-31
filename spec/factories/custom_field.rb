@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
 FactoryBot.define do
-  factory :custom_field, class: CamaleonCms::CustomField do
-    object_class { '_fields' }
+  factory :custom_field, class: CamaleonCms::Field do
     name { Faker::Job.title }
     sequence(:slug) { |i| "field-#{i}" }
-    custom_field_group
-    field_order { 1 }
-    is_repeat { false }
+    field_group { create(:custom_field_group) }
+    position { 1 }
     transient do
+      is_repeat { false }
       field_kind { 'text_box' }
     end
     settings {
