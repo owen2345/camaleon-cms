@@ -32,7 +32,7 @@
                   <td><%= f.slug %></td>
                   <td><%= f.name %></td>
                   <td><%= f.description %></td>
-                  <td><%= link_to(raw(f.get_caption), {action: :index, c: f.object_class, id: f.objectid}) %></td>
+                  <td><%= f.get_caption %></td>
                   <td>
                     <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
                     <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
