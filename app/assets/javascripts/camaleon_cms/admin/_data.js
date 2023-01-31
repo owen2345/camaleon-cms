@@ -54,17 +54,10 @@ function CamaGetTinymceSettings(settings) {
       // eval all extra setups
       for (const ff in tinymce_global_settings.setups) tinymce_global_settings.setups[ff](editor)
 
-      editor.on('postRender', function (e) {
-        editor.settings.onPostRender(editor)
-        // eval all extra setups
-        for (const ff in tinymce_global_settings.post_render) tinymce_global_settings.post_render[ff](editor)
-      })
-
       editor.on('init', function (e) {
         for (const ff in tinymce_global_settings.init) tinymce_global_settings.init[ff](editor)
       })
-    },
-    onPostRender: function (editor) { }
+    }
   }
   for (const ff in tinymce_global_settings.settings) tinymce_global_settings.settings[ff](settings, def)
   return $.extend({}, def, settings)
