@@ -8,18 +8,18 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
   def index
     authorize! :posts, @post_type
     per_page = current_site.admin_per_page
-    posts_all = @post_type.posts.eager_load(:parent, :post_type)
+    posts_all = @post_type.posts.eager_load(:parent, :post_type).recent
     if params[:taxonomy].present? && params[:taxonomy_id].present?
       if params[:taxonomy] == "category"
         cat_owner = current_site.full_categories.find(params[:taxonomy_id]).decorate
-        posts_all = cat_owner.posts
+        posts_all = cat_owner.posts.recent
         add_breadcrumb t("camaleon_cms.admin.post_type.category"), @post_type.the_admin_url("category")
         add_breadcrumb cat_owner.the_title, cat_owner.the_edit_url
       end
 
       if params[:taxonomy] == "post_tag"
         tag_owner = current_site.post_tags.find(params[:taxonomy_id]).decorate
-        posts_all = tag_owner.posts
+        posts_all = tag_owner.posts.recent
         add_breadcrumb t("camaleon_cms.admin.post_type.tags"), @post_type.the_admin_url("tag")
         add_breadcrumb tag_owner.the_title, tag_owner.the_edit_url
       end
@@ -77,9 +77,6 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     r = {post: @post, post_type: @post_type}; hooks_run("create_post", r)
     @post = r[:post]
     if @post.save
-      @post.set_metas(params[:meta])
-      @post.set_field_values(params[:field_options])
-      @post.set_options(params[:options])
       flash[:notice] = t('camaleon_cms.admin.post.message.created', post_type: @post_type.decorate.the_title)
       r = {post: @post, post_type: @post_type}; hooks_run("created_post", r)
       redirect_to action: :edit, id: @post.id
@@ -116,9 +113,6 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     if @post.update(post_data)
       # delete drafts only on successful update operation
       @post.drafts.destroy_all if delete_drafts
-      @post.set_metas(params[:meta])
-      @post.set_field_values(params[:field_options])
-      @post.set_options(params[:options])
       hooks_run("updated_post", {post: @post, post_type: @post_type})
       flash[:notice] = t('camaleon_cms.admin.post.message.updated', post_type: @post_type.decorate.the_title)
       redirect_to action: :edit, id: @post.id
@@ -207,6 +201,9 @@ class CamaleonCms::Admin::PostsController < CamaleonCms::AdminController
     post_data[:status] = 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
     post_data[:data_tags] = params[:tags].to_s
     post_data[:data_categories] = params[:categories] || []
+    post_data[:data_field_values] = params[:field_options]&.permit! || []
+    post_data[:data_options] = params[:options]&.permit! || {}
+    post_data[:data_metas] = params[:meta]&.permit! || {}
     post_data
   end
 end

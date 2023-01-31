@@ -16,7 +16,6 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
     @post_draft = @post_type.posts.new(@post_data) unless @post_draft.present?
     r = {post: @post_draft, post_type: @post_type}; hooks_run("create_post_draft", r)
     if @post_draft.save(:validate => false)
-      @post_draft.set_params(params[:meta], params[:field_options], @post_data[:keywords])
       msg = {draft: {id: @post_draft.id}, _drafts_path: cama_admin_post_type_draft_path(@post_type.id, @post_draft)}
       r = {post: @post_draft, post_type: @post_type}; hooks_run("created_post_draft", r)
     else
@@ -31,7 +30,6 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
     @post_draft.attributes = @post_data
     r = {post: @post_draft, post_type: @post_type}; hooks_run("update_post_draft", r)
     if @post_draft.save(validate: false)
-      @post_draft.set_params(params[:meta], params[:field_options], params[:options])
       hooks_run("updated_post_draft", {post: @post_draft, post_type: @post_type})
       msg = {draft: {id: @post_draft.id}}
     else
@@ -53,6 +51,9 @@ class CamaleonCms::Admin::Posts::DraftsController < CamaleonCms::Admin::PostsCon
     post_data[:user_id] = cama_current_user.id unless post_data[:user_id].present?
     post_data[:data_tags] = params[:tags].to_s
     post_data[:data_categories] = params[:categories] || []
+    post_data[:data_field_values] = params[:field_options]&.permit! || []
+    post_data[:data_options] = params[:options]&.permit! || {}
+    post_data[:data_metas] = params[:meta]&.permit! || {}
     @post_data = post_data
   end
 end
