@@ -88,11 +88,11 @@ function CamaInitPost(obj) {
       }
 
       const $link = $('<div class="sl-slug-edit">' +
-                '<strong>' + I18n('msg.permalink') + ':&nbsp;</strong><span class="sl-link"></span> <span> &nbsp;&nbsp;</span>' +
-                '<a href="#" class="btn btn-default btn-xs btn-edit">' + I18n('button.edit') + '</a> &nbsp;&nbsp; ' +
-                '<a href="#" class="btn btn-info btn-xs btn-preview" target="_blank">' + I18n('msg.preview') + '</a> &nbsp;&nbsp; ' +
-                '<a href="#" class="btn btn-success btn-xs btn-view" style="display: none" target="_blank">' + I18n('msg.view_page') + '</a>' +
-                '</div>').hide()
+        '<strong>' + I18n('msg.permalink') + ':&nbsp;</strong><span class="sl-link"></span> <span> &nbsp;&nbsp;</span>' +
+        '<a href="#" class="btn btn-default btn-xs btn-edit">' + I18n('button.edit') + '</a> &nbsp;&nbsp; ' +
+        '<a href="#" class="btn btn-info btn-xs btn-preview" target="_blank">' + I18n('msg.preview') + '</a> &nbsp;&nbsp; ' +
+        '<a href="#" class="btn btn-success btn-xs btn-view" style="display: none" target="_blank">' + I18n('msg.view_page') + '</a>' +
+        '</div>').hide()
       $this.addClass('sluged')
       $this.after($link)
 
@@ -203,7 +203,7 @@ function CamaInitPost(obj) {
     }
   })
 
-  try { $('.tinymce_textarea:not(.translated-item)', $form).tinymce().destroy() } catch (e) {}
+  try { $('.tinymce_textarea:not(.translated-item)', $form).tinymce().destroy() } catch (e) { }
   tinymce.init(CamaGetTinymceSettings({
     selector: '.tinymce_textarea:not(.translated-item)',
     height: '480px',
@@ -326,7 +326,6 @@ function CamaInitPost(obj) {
 
   function GetHashForm() {
     tinymce.editors.forEach(function(editor) {
-      editor = tinymce.editors[editor]
       $('#' + editor.id).val(tinymce.get(editor.id).getContent()).trigger('change')
     })
 
