@@ -70,7 +70,7 @@ function CamaBuildCustomField(panel, fieldData, values) {
 
   panel.html(
     "<div class='cama_w_custom_fields'></div>" +
-      (fieldData.multiple ? "<div class='field_multiple_btn'> <a href='#' class='btn btn-warning btn-xs'> <i class='fa fa-plus'></i> " + panel.attr('data-add_field_title') + '</a></div>' : '')
+    (fieldData.multiple ? "<div class='field_multiple_btn'> <a href='#' class='btn btn-warning btn-xs'> <i class='fa fa-plus'></i> " + panel.attr('data-add_field_title') + '</a></div>' : '')
   )
 
   const fieldActions = '<div class="actions"><i style="cursor: move" class="fa fa-arrows"></i> <i style="cursor: pointer" class="fa fa-times text-danger"></i></div>'

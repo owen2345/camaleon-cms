@@ -40,12 +40,12 @@ function CamaGetTinymceSettings(settings) {
         ed.content = ed.content.replace(/(<p><\/p>)/gi, '<br />')
       })
 
-      editor.addMenuItem('append_line', {
+      editor.ui.registry.addMenuItem('append_line', {
         text: 'New line at the end',
         context: 'insert',
         onclick: function() { editor.dom.add(editor.getBody(), 'p', {}, '-New line-') }
       })
-      editor.addMenuItem('add_line', {
+      editor.ui.registry.addMenuItem('add_line', {
         text: 'New line',
         context: 'insert',
         onclick: function() { editor.insertContent('<p>-New line-</p>') }
@@ -54,17 +54,10 @@ function CamaGetTinymceSettings(settings) {
       // eval all extra setups
       for (const ff in tinymce_global_settings.setups) tinymce_global_settings.setups[ff](editor)
 
-      editor.on('postRender', function(e) {
-        editor.settings.onPostRender(editor)
-        // eval all extra setups
-        for (const ff in tinymce_global_settings.post_render) tinymce_global_settings.post_render[ff](editor)
-      })
-
       editor.on('init', function(e) {
         for (const ff in tinymce_global_settings.init) tinymce_global_settings.init[ff](editor)
       })
-    },
-    onPostRender: function(editor) {}
+    }
   }
   for (const ff in tinymce_global_settings.settings) tinymce_global_settings.settings[ff](settings, def)
   return $.extend({}, def, settings)
