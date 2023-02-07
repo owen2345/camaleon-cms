@@ -1,6 +1,6 @@
 /log/*.log
 /db/*.sqlite3
-/tmp/cache
-/tmp/capybara
+/tmp/**/*
 /public/media
 /public/tmp
+/public/assets
