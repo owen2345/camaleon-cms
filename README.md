@@ -123,13 +123,6 @@ http://camaleon.tuzitio.com/store/plugins
   # OR
   # gem "camaleon_cms", github: 'owen2345/camaleon-cms' # latest development version
   ```
-  
-* Add initializer `config/initializers/sprockets_fix.rb` to fix "Bug Segmentation fault" (Only Ruby 3+ - [sprokets issue](https://github.com/rails/sprockets/issues/633#issuecomment-774762509))
-```ruby
-  Rails.application.config.assets.configure do |env|
-    env.export_concurrent = false
-  end
-```
 
 
 * Install required Gem and dependencies

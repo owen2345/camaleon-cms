@@ -1,3 +1,4 @@
+# see spec/dummy/.gitignore for ignored files relating to the dummy app.
 /.idea
 /.byebug_history
 Gemfile.lock
