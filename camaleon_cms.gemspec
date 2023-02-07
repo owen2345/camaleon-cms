@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'font-awesome-rails'
   s.add_dependency 'tinymce-rails', '~> 5.1', '>= 5.1.4.1'
   s.add_dependency 'jquery-rails'
-  s.add_dependency 'sass-rails'
+  s.add_dependency 'dartsass-sprockets'
 
   s.add_dependency 'cama_contact_form', '~> 0.1.0'
   s.add_dependency 'cama_meta_tag'

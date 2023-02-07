@@ -10,7 +10,7 @@ require 'aws-sdk-s3'
 require 'font-awesome-rails'
 require 'tinymce-rails'
 require 'jquery-rails'
-require 'sass-rails'
+require 'dartsass-sprockets'
 require 'cama_contact_form'
 require 'cama_meta_tag'
 
