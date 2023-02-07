@@ -1,11 +1,12 @@
 # Change Log
 
 ## Unreleased
+- Replace sass-rails with dartsass-sprockets
+- Upgrade to TinyMCE v5
 - Remove temporary dependencies
 - Add Ruby 3.2 to CI
 - Require Rails 6+
 - Require Ruby 2.7+
-- Upgrade to TinyMCE v5
 
 ## [2.6.4](https://github.com/owen2345/camaleon-cms/tree/2.6.4) (2022-06-08)
 - Reformat JSON comments for OJ compatibility
