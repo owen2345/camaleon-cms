@@ -4,7 +4,6 @@ gemspec
 gem 'rails', '~> 7.0.0.rc1'
 gem 'non-digest-assets'
 gem 'oj'
-gem 'sassc', '!= 2.3.0' # this version segfaults
 gem 'selenium-webdriver'
 gem 'webdrivers'
 
