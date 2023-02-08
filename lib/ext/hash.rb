@@ -1,8 +1,8 @@
 class Hash
   # convert hash to string like class="class val" name='name val'
-  def to_attr_format(split = " ")
+  def to_attr_format(split = ' ')
     res = []
-    self.each do |key, value|
+    each do |key, value|
       res << "#{key} = \"#{value.to_s.gsub('"', '\"')}\""
     end
     res.join(split)
@@ -11,18 +11,16 @@ class Hash
   # convert hash to attributes for url_path
   def to_attr_url_format
     res = []
-    self.each do |key, value|
+    each do |key, value|
       res << ":#{key} => \"#{value.to_s.gsub('"', '\"')}\""
     end
-    res.join ","
+    res.join ','
   end
 
   # used for hash of objects
-  def find_by(val, attr = "id")
-    self.each do |key, p|
-      if p[attr].to_s == val.to_s
-        return p
-      end
+  def find_by(val, attr = 'id')
+    each do |_key, p|
+      return p if p[attr].to_s == val.to_s
     end
     nil
   end
@@ -32,10 +30,19 @@ class Hash
   end
 
   private
-  def symbolize(obj)
-    return obj.inject({}){|memo,(k,v)| memo[k.to_sym] =  symbolize(v); memo} if obj.is_a? Hash
-    return obj.inject([]){|memo,v    | memo           << symbolize(v); memo} if obj.is_a? Array
-    return obj
-  end
 
+  def symbolize(obj)
+    if obj.is_a? Hash
+      return obj.each_with_object({}) do |(k, v), memo|
+               memo[k.to_sym] = symbolize(v)
+             end
+    end
+    if obj.is_a? Array
+      return obj.each_with_object([]) do |v, memo|
+               memo << symbolize(v)
+             end
+    end
+
+    obj
+  end
 end

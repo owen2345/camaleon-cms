@@ -4,20 +4,21 @@ module Mobu
     extend ActiveSupport::Concern
 
     private
+
     def check_mobile_site
       case params.delete(:prefer)
-        when "f"
-          session[:prefer_full_site] = 1
-        when "m"
-          session.delete :prefer_full_site
+      when 'f'
+        session[:prefer_full_site] = 1
+      when 'm'
+        session.delete :prefer_full_site
       end
 
       if mobile_request?
         # prepend_view_path mobile_views_path
-        lookup_context.prefixes.prepend("mobile") if !lookup_context.prefixes.include?("mobile")
+        lookup_context.prefixes.prepend('mobile') unless lookup_context.prefixes.include?('mobile')
       elsif tablet_request?
         # prepend_view_path tablet_views_path
-        lookup_context.prefixes.prepend("tablet") if !lookup_context.prefixes.include?("tablet")
+        lookup_context.prefixes.prepend('tablet') unless lookup_context.prefixes.include?('tablet')
       end
     end
   end

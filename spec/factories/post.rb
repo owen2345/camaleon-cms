@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :post, class: CamaleonCms::Post do
+  factory :post, class: 'CamaleonCms::Post' do
     title { Faker::Job.title }
     sequence(:slug) { |n| "post#{n}" }
     content { Faker::Lorem.sentence }
@@ -8,10 +8,10 @@ FactoryBot.define do
     transient do
       site { nil }
     end
-    
+
     post_type { association :post_type, site: site || create(:site) }
     owner { association :user, site: site }
-    
+
     factory :pending_post do
       status { 'pending' }
     end
@@ -19,16 +19,16 @@ FactoryBot.define do
     factory :draft_post do
       status { 'draft' }
     end
-    
+
     factory :children_post do
       parent { post }
     end
-    
+
     factory :private_post do
       visibility { 'private' }
       visibility_value { owner.role }
     end
-    
+
     factory :password_post do
       visibility { 'password' }
       visibility_value { '12345' }

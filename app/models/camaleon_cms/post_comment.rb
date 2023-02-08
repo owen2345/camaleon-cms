@@ -6,8 +6,8 @@ module CamaleonCms
     # attr_accessible :user_id, :post_id, :content, :author, :author_email, :author_url, :author_IP, :approved, :agent, :agent, :typee, :comment_parent, :is_anonymous
     attr_accessor :is_anonymous
 
-    #default_scope order('comments.created_at ASC')
-    #approved: approved | pending | spam
+    # default_scope order('comments.created_at ASC')
+    # approved: approved | pending | spam
 
     cama_define_common_relationships('PostComment')
     has_many :children, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, dependent: :destroy
@@ -15,14 +15,14 @@ module CamaleonCms
     belongs_to :parent, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, required: false
     belongs_to :user, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, required: false
 
-    default_scope {order("#{CamaleonCms::PostComment.table_name}.created_at DESC")}
+    default_scope { order("#{CamaleonCms::PostComment.table_name}.created_at DESC") }
 
     scope :main, -> { where(comment_parent: nil) }
     scope :comment_parent, -> { where(comment_parent: 'is not null') }
     scope :approveds, -> { where(approved: 'approved') }
 
     validates :content, presence: true
-    validates_presence_of :author, :author_email, if: Proc.new { |c| c.is_anonymous.present? }
+    validates_presence_of :author, :author_email, if: proc { |c| c.is_anonymous.present? }
     after_create :update_counter
     after_destroy :update_counter
 
@@ -33,7 +33,7 @@ module CamaleonCms
 
     # check if this comments is already approved
     def is_approved?
-      self.approved == 'approved'
+      approved == 'approved'
     end
 
     private

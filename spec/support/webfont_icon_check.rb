@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # require 'rails_helper'
 
 def webfont_icon_fetch_status(icon_class, filnam_distinct_part, filnam_extension)
@@ -29,9 +27,9 @@ def webfont_icon_fetch_status(icon_class, filnam_distinct_part, filnam_extension
                            .chomp('")')
 
   page.execute_script(<<~JS)
-          let xhr = new XMLHttpRequest();
-          xhr.open('GET', '#{url_str}', false);
-          xhr.send();
-          return xhr.status;
+    let xhr = new XMLHttpRequest();
+    xhr.open('GET', '#{url_str}', false);
+    xhr.send();
+    return xhr.status;
   JS
 end

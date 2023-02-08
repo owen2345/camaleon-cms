@@ -3,40 +3,47 @@ module CamaleonCms
     include CamaleonCms::CategoriesTagsForPosts
 
     alias_attribute :post_type_id, :taxonomy_id
-    default_scope ->{ where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
+    default_scope -> { where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
     cama_define_common_relationships('Post')
 
     # DEPRECATED
-    has_many :post_relationships, class_name: "CamaleonCms::PostRelationship", foreign_key: :objectid, dependent: :destroy, inverse_of: :post
-    has_many :post_types, class_name: "CamaleonCms::PostType", through: :post_relationships, source: :post_type
+    has_many :post_relationships, class_name: 'CamaleonCms::PostRelationship', foreign_key: :objectid,
+                                  dependent: :destroy, inverse_of: :post
+    has_many :post_types, class_name: 'CamaleonCms::PostType', through: :post_relationships, source: :post_type
     # END DEPRECATED
 
-    has_many :term_relationships, foreign_key: :objectid, dependent: :destroy,  inverse_of: :object
-    has_many :categories, class_name: "CamaleonCms::Category", through: :term_relationships, source: :term_taxonomy
-    has_many :post_tags, class_name: "CamaleonCms::PostTag", through: :term_relationships, source: :term_taxonomy
+    has_many :term_relationships, foreign_key: :objectid, dependent: :destroy, inverse_of: :object
+    has_many :categories, class_name: 'CamaleonCms::Category', through: :term_relationships, source: :term_taxonomy
+    has_many :post_tags, class_name: 'CamaleonCms::PostTag', through: :term_relationships, source: :term_taxonomy
     has_many :comments, class_name: 'CamaleonCms::PostComment', foreign_key: :post_id, dependent: :destroy
-    has_many :drafts, ->{where(status: 'draft_child')}, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, dependent: :destroy
-    has_many :children, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, dependent: :destroy, primary_key: :id
+    has_many :drafts, lambda {
+                        where(status: 'draft_child')
+                      }, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, dependent: :destroy
+    has_many :children, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, dependent: :destroy,
+                        primary_key: :id
 
     belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, required: false
     belongs_to :parent, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, required: false
     belongs_to :post_type, foreign_key: :taxonomy_id, inverse_of: :posts, required: false
 
-    scope :visible_frontend, -> {where(status: 'published')}
-    scope :public_posts, -> {visible_frontend.where(visibility: ['public', '']) } #public posts (not passwords, not privates)
-    scope :private_posts, -> {where(visibility: 'private') } #public posts (not passwords, not privates)
+    scope :visible_frontend, -> { where(status: 'published') }
+    scope :public_posts, lambda {
+                           visible_frontend.where(visibility: ['public', ''])
+                         } # public posts (not passwords, not privates)
+    scope :private_posts, -> { where(visibility: 'private') } # public posts (not passwords, not privates)
 
-    scope :trash, -> {where(status: 'trash')}
-    scope :no_trash, -> {where.not(status: 'trash')}
-    scope :published, -> {where(status: 'published')}
-    scope :root_posts, -> {where(post_parent: [nil, ''])}
-    scope :drafts, -> {where(status: %w(draft draft_child))}
-    scope :pending, -> {where(status: 'pending')}
-    scope :latest, -> {reorder(created_at: :desc)}
+    scope :trash, -> { where(status: 'trash') }
+    scope :no_trash, -> { where.not(status: 'trash') }
+    scope :published, -> { where(status: 'published') }
+    scope :root_posts, -> { where(post_parent: [nil, '']) }
+    scope :drafts, -> { where(status: %w[draft draft_child]) }
+    scope :pending, -> { where(status: 'pending') }
+    scope :latest, -> { reorder(created_at: :desc) }
 
     validates_with CamaleonCms::PostUniqValidator
     attr_accessor :show_title_with_parent
-    before_create :fix_post_order, if: lambda{|p| !p.post_order.present? || p.post_order == 0 }
+
+    before_create :fix_post_order, if: ->(p) { !p.post_order.present? || p.post_order.zero? }
 
     # return all parents for current page hierarchy ordered bottom to top
     def parents
@@ -53,9 +60,9 @@ module CamaleonCms
 
     # return all children elements for current post (page hierarchy)
     def full_children
-      cama_fetch_cache("full_children_#{self.id}") do
+      cama_fetch_cache("full_children_#{id}") do
         res = children.to_a
-        res.each{|c|  res += c.full_children }
+        res.each { |c| res += c.full_children }
         res
       end
     end
@@ -165,7 +172,7 @@ module CamaleonCms
     # new_order_position: (Integer) position number
     # return nil
     def set_position(new_order_position)
-      self.update_column('post_order', new_order_position)
+      update_column('post_order', new_order_position)
     end
 
     # save the summary for current post
@@ -180,7 +187,7 @@ module CamaleonCms
     def manage_seo?(posttype = nil)
       get_option('has_seo', get_option('has_keywords', false)) || (posttype || post_type).manage_seo?
     end
-    alias_method :manage_keywords?, :manage_seo? # method name deprecated to use manage_seo?
+    alias manage_keywords? manage_seo? # method name deprecated to use manage_seo?
 
     # save the thumbnail url for current post
     # thumb_url: String url
@@ -208,12 +215,13 @@ module CamaleonCms
     def get_template(posttype = nil)
       return get_option('default_template') unless manage_template?(posttype)
 
-      get_meta('template', get_option('default_template') || (posttype || post_type).get_option('default_template', nil))
+      get_meta('template',
+               get_option('default_template') || (posttype || post_type).get_option('default_template', nil))
     end
 
     # increment the counter of visitors
     def increment_visits!
-      set_meta('visits', total_visits+1)
+      set_meta('visits', total_visits + 1)
     end
 
     # return the quantity of visits for this post
@@ -229,12 +237,17 @@ module CamaleonCms
 
     # manage the custom decorators for posts
     # sample: my_post_type.set_option('cama_post_decorator_class', 'ProductDecorator')
-      # Sample: https://github.com/owen2345/camaleon-ecommerce/tree/master/app/decorators/
+    # Sample: https://github.com/owen2345/camaleon-ecommerce/tree/master/app/decorators/
     def decorator_class
-      (post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator') rescue 'CamaleonCms::PostDecorator').constantize
+      begin
+        post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator')
+      rescue StandardError
+        'CamaleonCms::PostDecorator'
+      end.constantize
     end
 
     private
+
     # calculate a post order when it is empty
     def fix_post_order
       last_post = post_type.posts.where.not(id: nil).last

@@ -11,72 +11,91 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     FileUtils.mkdir_p(@root_folder) unless Dir.exist?(@root_folder)
   end
 
-  def browser_files(prefix = '/', objects = {})
+  def browser_files(prefix = '/', _objects = {})
     path = File.join(@root_folder, prefix)
 
     Dir.entries(path).each do |f_name|
-      next if f_name == '..' || f_name == '.' || f_name == 'thumb'
+      next if ['..', '.', 'thumb'].include?(f_name)
 
       obj = file_parse(File.join(path, f_name).sub(@root_folder, '').cama_fix_media_key)
       cache_item(obj)
 
-      if obj['is_folder']
-        browser_files(File.join(prefix, obj['name']))
-      end
+      browser_files(File.join(prefix, obj['name'])) if obj['is_folder']
     end
   end
 
   def fetch_file(file_name)
-    if file_exists?(file_name)
-      file_name
-    else
-      raise ActionController::RoutingError, 'File not found'
-    end
+    raise ActionController::RoutingError, 'File not found' unless file_exists?(file_name)
+
+    file_name
   end
 
   def file_parse(key)
     file_path = File.join(@root_folder, key)
-    url_path, is_dir = file_path.sub(Rails.root.join('public').to_s, ''), File.directory?(file_path)
+    url_path = file_path.sub(Rails.root.join('public').to_s, '')
+    is_dir = File.directory?(file_path)
     res = {
-        "name" => File.basename(key),
-        "folder_path" => File.dirname(key),
-        "url" => is_dir ? '' : (is_private_uploader? ? url_path.sub("#{@root_folder}/", '') : File.join(@current_site.decorate.the_url(as_path: true, locale: false, skip_relative_url_root: true), url_path)),
-        "is_folder" => is_dir,
-        "file_size" => is_dir ? 0 : File.size(file_path).round(2),
-        "thumb" => '',
-        'file_type' => self.class.get_file_format(file_path),
-        'dimension' => ''
+      'name' => File.basename(key),
+      'folder_path' => File.dirname(key),
+      'url' => if is_dir
+                 ''
+               else
+                 (if is_private_uploader?
+                    url_path.sub("#{@root_folder}/",
+                                 '')
+                  else
+                    File.join(
+                      @current_site.decorate.the_url(as_path: true, locale: false,
+                                                     skip_relative_url_root: true), url_path
+                    )
+                  end)
+               end,
+      'is_folder' => is_dir,
+      'file_size' => is_dir ? 0 : File.size(file_path).round(2),
+      'thumb' => '',
+      'file_type' => self.class.get_file_format(file_path),
+      'dimension' => ''
     }.with_indifferent_access
     res['key'] = File.join(res['folder_path'], res['name'])
-    res["thumb"] = (is_private_uploader? ? '/admin/media/download_private_file?file=' + version_path(key).slice(1..-1) : version_path(res['url'])) if res['file_type'] == 'image' && File.extname(file_path).downcase != '.gif'
+    if res['file_type'] == 'image' && File.extname(file_path).downcase != '.gif'
+      res['thumb'] =
+        (is_private_uploader? ? "/admin/media/download_private_file?file=#{version_path(key).slice(1..-1)}" : version_path(res['url']))
+    end
     if res['file_type'] == 'image'
-      res["thumb"].sub! '.svg', '.jpg'
+      res['thumb'].sub! '.svg', '.jpg'
       im = MiniMagick::Image.open(file_path)
-      res['dimension'] = "#{im[:width]}x#{im[:height]}" rescue "0x0" # Malformed SVGs raise an exception here.
+      res['dimension'] = begin
+        "#{im[:width]}x#{im[:height]}"
+      rescue StandardError
+        '0x0'
+      end
     end
     res
   end
 
   # save a file into local folder
   def add_file(uploaded_io_or_file_path, key, args = {})
-    args, res = {same_name: false, is_thumb: false}.merge(args), nil
+    args = { same_name: false, is_thumb: false }.merge(args)
+    res = nil
     key = search_new_key(key) unless args[:same_name]
 
     if @instance # private hook to upload files by different way, add file data into result_data
-      _args={result_data: nil, file: uploaded_io_or_file_path, key: key, args: args, klass: self}; @instance.hooks_run('uploader_local_before_upload', _args)
+      _args = { result_data: nil, file: uploaded_io_or_file_path, key: key, args: args, klass: self }
+      @instance.hooks_run('uploader_local_before_upload', _args)
       return _args[:result_data] if _args[:result_data].present?
     end
 
     add_folder(File.dirname(key)) if File.dirname(key).present?
     upload_io = uploaded_io_or_file_path.is_a?(String) ? File.open(uploaded_io_or_file_path) : uploaded_io_or_file_path
-    File.open(File.join(@root_folder, key), 'wb'){|file|       file.write(upload_io.read) }
+    File.open(File.join(@root_folder, key), 'wb') { |file| file.write(upload_io.read) }
     res = cache_item(file_parse(key)) unless args[:is_thumb]
     res
   end
 
   # create a new folder into local directory
   def add_folder(key)
-    d, is_new_folder = File.join(@root_folder, key).to_s, false
+    d = File.join(@root_folder, key).to_s
+    is_new_folder = false
     unless Dir.exist?(d)
       FileUtils.mkdir_p(d)
       is_new_folder = true if File.basename(d) != 'thumb'

@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require 'rails_helper'
 
 # add a new comment for a post
@@ -22,21 +20,20 @@ describe 'the Comments', js: true do
     expect(page).to have_css('.alert-success')
   end
 
-
   it 'list comments post' do
     admin_sign_in
     add_new_comment
     visit "#{cama_root_relative_path}/admin/comments"
     within('#admin_content') do
       # verify post presence
-      expect(page).to have_content("#{get_content_attr('post', 'the_title', 'last')}")
+      expect(page).to have_content(get_content_attr('post', 'the_title', 'last').to_s)
 
       # access to list of comments
       first('.btn-default').click
       expect(page).to have_css('#comments_answer_list')
 
       # approve || disapprove comment
-      (first('.pending')).click
+      first('.pending').click
       expect(page).to have_css('.alert-success')
     end
 

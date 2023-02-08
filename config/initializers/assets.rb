@@ -13,16 +13,20 @@ Rails.application.config.assets.precompile += %w[camaleon_cms/*]
 
 sprockets_3 = !Sprockets.const_defined?(:BabelProcessor)
 if sprockets_3
-  Rails.application.config.assets.precompile << Proc.new do |path|
+  Rails.application.config.assets.precompile << proc do |path|
     res = false
     dirname = File.dirname(path)
     if dirname.start_with?('plugins/') || dirname.start_with?('themes/')
       name = File.basename(path)
-      content_type = MIME::Types.type_for(name).first.content_type rescue ""
+      content_type = begin
+        MIME::Types.type_for(name).first.content_type
+      rescue StandardError
+        ''
+      end
       if (path =~ /\.(css|js|svg|ttf|woff|eot|swf|pdf|png|jpg|gif)\z/ ||
-        content_type.scan(/(javascript|image\/|audio|video|font)/).any?) &&
-        !name.start_with?("_") && !path.include?('/views/')
-          res = true
+        content_type.scan(%r{(javascript|image/|audio|video|font)}).any?) &&
+         !name.start_with?('_') && !path.include?('/views/')
+        res = true
       end
     end
     res
