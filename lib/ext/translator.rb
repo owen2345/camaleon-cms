@@ -34,10 +34,9 @@ class String
   # sample: {es: "hola mundo", en: "Hello World"}
   def translations
     @translations ||= split_locales
-    @translations
   end
 
-  # return aray of translations for this string
+  # return array of translations for this string
   # sample: ["hola mundo", "Hello World"]
   def translations_array
     r = translations.map { |_key, value| value }
