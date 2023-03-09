@@ -66,10 +66,10 @@ module CamaleonCms
           render partial: 'render_file_item', locals: { files: [cama_uploader.add_folder(params[:folder])] }
         when 'del_folder'
           cama_uploader.delete_folder(params[:folder])
-          render inline: ''
+          render plain: ''
         when 'del_file'
           cama_uploader.delete_file(params[:folder].gsub('//', '/'))
-          render inline: ''
+          render plain: ''
         when 'crop_url'
           unless params[:url].start_with?('data:')
             params[:url] = (params[:url].start_with?('http') ? '' : current_site.the_url(locale: nil)) + params[:url]
@@ -80,7 +80,7 @@ module CamaleonCms
                 cama_tmp_upload(params[:url], formats: params[:formats], name: params[:name])
               end
           if r[:error].present?
-            render inline: r[:error]
+            render plain: r[:error]
           else
             params[:file_upload] = r[:file_path]
             sett = { remove_source: true }
@@ -104,8 +104,12 @@ module CamaleonCms
                           { folder: params[:folder], dimension: params['dimension'], formats: params[:formats], versions: params[:versions],
                             thumb_size: params[:thumb_size] }.merge(settings))
         end
-        render(partial: 'render_file_item', locals: { files: [f] }) unless f[:error].present?
-        render inline: f[:error] if f[:error].present?
+
+        if f[:error].present?
+          render plain: f[:error]
+        else
+          render partial: 'render_file_item', locals: { files: [f] }
+        end
       end
 
       private

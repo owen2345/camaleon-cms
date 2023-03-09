@@ -30,7 +30,7 @@ module CamaleonCms
       when 'save_intro_post'
         current_site.set_option('save_intro_post', true)
       end
-      render inline: ''
+      render plain: ''
     end
 
     # render admin dashboard

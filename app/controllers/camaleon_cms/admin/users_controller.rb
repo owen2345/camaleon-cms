@@ -48,7 +48,7 @@ module CamaleonCms
         end
       end
 
-      # update som ajax requests from profile or user form
+      # update some ajax requests from profile or user form
       def updated_ajax
         @user = current_site.users.find(params[:user_id])
         update_session = current_user_is?(@user)

@@ -26,7 +26,7 @@ module CamaleonCms
 
           def destroy
             @assigned.destroy
-            render inline: ''
+            render plain: ''
           end
 
           private

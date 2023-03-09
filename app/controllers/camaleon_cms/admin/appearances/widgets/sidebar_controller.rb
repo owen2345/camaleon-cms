@@ -40,7 +40,7 @@ module CamaleonCms
                 current_site.sidebars.find(params[:sidebar_id]).assigned.find(assigned_id).update(item_order: index)
               end
             end
-            render inline: ''
+            render plain: ''
           end
 
           def destroy
