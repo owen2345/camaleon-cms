@@ -1,3 +1,49 @@
+inherit_from: .rubocop_todo.yml
+
+require: rubocop-rspec
+
 AllCops:
-  DisabledByDefault: true
+  Exclude:
+    - db/**/*
+    - spec/dummy/db/**/*
+    - /**/vendor/**/* # Exclude downloaded gem code in CI
+  NewCops: disable
+  SuggestExtensions: false
   TargetRubyVersion: 2.7
+
+Lint/MissingSuper:
+  Enabled: false
+
+Metrics/AbcSize:
+  Exclude:
+    - spec/**/*
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+
+Metrics/MethodLength:
+  Exclude:
+    - spec/**/*
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/FilePath:
+  Enabled: false
+
+RSpec/InstanceVariable:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/MixinUsage:
+  Exclude:
+    - spec/**/*

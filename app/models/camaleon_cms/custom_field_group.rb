@@ -4,15 +4,17 @@ module CamaleonCms
     # attrs required: name, slug, description
     alias_attribute :site_id, :parent_id
 
-    default_scope { where.not(object_class: '_fields')
-      .reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC") }
+    default_scope do
+      where.not(object_class: '_fields')
+           .reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC")
+    end
 
     has_many :metas, -> { where(object_class: 'CustomFieldGroup') }, foreign_key: :objectid, dependent: :destroy
     has_many :fields, -> { where(object_class: '_fields') }, class_name: 'CamaleonCms::CustomField',
-      foreign_key: :parent_id, dependent: :destroy
+                                                             foreign_key: :parent_id, dependent: :destroy
     belongs_to :site, foreign_key: :parent_id, required: false
 
-    validates_uniqueness_of :slug, scope: [:object_class, :objectid, :parent_id]
+    validates_uniqueness_of :slug, scope: %i[object_class objectid parent_id]
 
     before_validation :before_validating
 
@@ -42,7 +44,7 @@ module CamaleonCms
       end
       field_item
     end
-    alias_method :add_field, :add_manual_field
+    alias add_field add_manual_field
 
     # return a field with slug = slug from current group
     def get_field(slug)
@@ -60,11 +62,11 @@ module CamaleonCms
         items.each do |i, item|
           item[:field_order] = order_index
           options = item_options[i] || {}
-          if item[:id].present? && (field_item = self.fields.find_by(id: item[:id])).present?
+          if item[:id].present? && (field_item = fields.find_by(id: item[:id])).present?
             saved = field_item.update(item)
             cache_fields << field_item
           else
-            field_item = self.fields.new(item)
+            field_item = fields.new(item)
             cache_fields << field_item
             saved = field_item.save
             auto_save_default_values(field_item, options) if saved
@@ -84,30 +86,34 @@ module CamaleonCms
       caption = ''
       begin
         case object_class
-          when 'PostType_Post'
-            caption = "Fields for Contents in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
-          when 'PostType_Category'
-            caption = "Fields for Categories in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
-          when 'PostType_PostTag'
-            caption = "Fields for Post tags in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
-          when 'Widget::Main'
-            caption = "Fields for Widget <b>(#{CamaleonCms::Widget::Main.find(objectid).name.translate})</b>"
-          when 'Theme'
-            caption = "Field settings for Theme <b>(#{site.themes.find(objectid).name rescue objectid})</b>"
-          when 'NavMenu'
-            caption = "Field settings for Menus <b>(#{CamaleonCms::NavMenu.find(objectid).name})</b>"
-          when 'Site'
-            caption = 'Field settings the site'
-          when 'PostType'
-            caption = 'Fields for all <b>Post_Types</b>'
-          when 'Post'
-            p = CamaleonCms::Post.find(objectid).decorate
-            caption = "Fields for content <b>(#{p.the_title})</b>"
-          else # 'Plugin' or other class
-            caption = "Fields for <b>#{object_class}</b>"
+        when 'PostType_Post'
+          caption = "Fields for Contents in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
+        when 'PostType_Category'
+          caption = "Fields for Categories in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
+        when 'PostType_PostTag'
+          caption = "Fields for Post tags in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
+        when 'Widget::Main'
+          caption = "Fields for Widget <b>(#{CamaleonCms::Widget::Main.find(objectid).name.translate})</b>"
+        when 'Theme'
+          caption = "Field settings for Theme <b>(#{begin
+            site.themes.find(objectid).name
+          rescue StandardError
+            objectid
+          end})</b>"
+        when 'NavMenu'
+          caption = "Field settings for Menus <b>(#{CamaleonCms::NavMenu.find(objectid).name})</b>"
+        when 'Site'
+          caption = 'Field settings the site'
+        when 'PostType'
+          caption = 'Fields for all <b>Post_Types</b>'
+        when 'Post'
+          p = CamaleonCms::Post.find(objectid).decorate
+          caption = "Fields for content <b>(#{p.the_title})</b>"
+        else # 'Plugin' or other class
+          caption = "Fields for <b>#{object_class}</b>"
         end
-      rescue => e
-        Rails.logger.debug "Camaleon CMS - Menu Item Error: #{e.message} ==> Attrs: #{self.attributes}"
+      rescue StandardError => e
+        Rails.logger.debug "Camaleon CMS - Menu Item Error: #{e.message} ==> Attrs: #{attributes}"
       end
       caption
     end
@@ -120,16 +126,23 @@ module CamaleonCms
 
     # auto save the default field values
     def auto_save_default_values(field, options)
-      class_name = object_class.split("_").first
-      if %w(Post Category Plugin Theme).include?(class_name) && objectid && (options[:default_value].present? || options[:default_values].present?)
-        if class_name == 'Theme'
-          owner = "CamaleonCms::#{class_name}".constantize.find(objectid) # owner model
-        else
-          owner = "CamaleonCms::#{class_name}".constantize.find(objectid) rescue "CamaleonCms::#{class_name}".constantize.find_by(slug: objectid) # owner model
-        end
-        (options[:default_values] || [options[:default_value]] || []).each do |value|
+      class_name = object_class.split('_').first
+      return unless %w[Post Category Plugin
+                       Theme].include?(class_name) && objectid && (options[:default_value].present? || options[:default_values].present?)
+
+      owner = if class_name == 'Theme'
+                "CamaleonCms::#{class_name}".constantize.find(objectid) # owner model
+              else
+                begin
+                  "CamaleonCms::#{class_name}".constantize.find(objectid)
+                rescue StandardError
+                  "CamaleonCms::#{class_name}".constantize.find_by(slug: objectid)
+                end
+              end
+      (options[:default_values] || [options[:default_value]] || []).each do |value|
+        if owner.present?
           owner.custom_field_values.create!(custom_field_id: field.id, custom_field_slug: field.slug,
-            value: fix_meta_value(value)) if owner.present?
+                                            value: fix_meta_value(value))
         end
       end
     end

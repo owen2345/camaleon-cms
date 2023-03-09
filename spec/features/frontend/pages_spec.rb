@@ -1,6 +1,6 @@
 require 'rails_helper'
 include CamaleonCms::PluginsHelper
-describe "Post frontend", js: true do
+describe 'Post frontend', js: true do
   init_site
 
   it 'visit post' do
@@ -9,9 +9,8 @@ describe "Post frontend", js: true do
   end
 
   describe 'comments' do
-
     describe 'anonymous' do
-      before(:each) do
+      before do
         @post.set_meta('has_comments', '1') # enable comments for this post
         @site.set_option('permit_anonimos_comment', true) # enable anonymous comment
       end
@@ -20,10 +19,10 @@ describe "Post frontend", js: true do
         visit @post.the_url(as_path: true)
         expect(page).to have_text('New Comment')
 
-        within("#form-comment") do
-          fill_in 'post_comment_name', :with => 'Owen'
-          fill_in 'post_comment_email', :with => 'owenperedo@gmail.com'
-          fill_in 'post_comment_content', :with => 'Sample comment'
+        within('#form-comment') do
+          fill_in 'post_comment_name', with: 'Owen'
+          fill_in 'post_comment_email', with: 'owenperedo@gmail.com'
+          fill_in 'post_comment_content', with: 'Sample comment'
         end
         click_button 'Comment'
         expect(page).to have_text('The comment has been created')
@@ -31,16 +30,16 @@ describe "Post frontend", js: true do
 
       it 'anonymous comment valid captcha' do
         @site.set_option('enable_captcha_for_comments', true) # enable anonymous captcha
-        Capybara.using_session("test session") do
+        Capybara.using_session('test session') do
           visit cama_captcha_path(len: 4, t: Time.current.to_i)
           captcha = page.get_rack_session['cama_captcha'].first
           visit @post.the_url(as_path: true)
           expect(page).to have_text('New Comment')
-          within("#form-comment") do
-            fill_in 'post_comment_name', :with => 'Owen'
-            fill_in 'post_comment_email', :with => 'owenperedo@gmail.com'
-            fill_in 'post_comment_content', :with => 'Sample comment'
-            fill_in 'captcha', :with => captcha
+          within('#form-comment') do
+            fill_in 'post_comment_name', with: 'Owen'
+            fill_in 'post_comment_email', with: 'owenperedo@gmail.com'
+            fill_in 'post_comment_content', with: 'Sample comment'
+            fill_in 'captcha', with: captcha
           end
           click_button 'Comment'
           expect(page).to have_text('The comment has been created')
@@ -52,10 +51,10 @@ describe "Post frontend", js: true do
         visit @post.the_url(as_path: true)
         expect(page).to have_text('New Comment')
 
-        within("#form-comment") do
-          fill_in 'post_comment_name', :with => 'Owen'
-          fill_in 'post_comment_email', :with => 'owenperedo@gmail.com'
-          fill_in 'post_comment_content', :with => 'Sample comment'
+        within('#form-comment') do
+          fill_in 'post_comment_name', with: 'Owen'
+          fill_in 'post_comment_email', with: 'owenperedo@gmail.com'
+          fill_in 'post_comment_content', with: 'Sample comment'
         end
         click_button 'Comment'
         expect(page).not_to have_text('The comment has been created')
@@ -67,8 +66,8 @@ describe "Post frontend", js: true do
       admin_sign_in
       visit @post.the_url(as_path: true)
       expect(page).to have_text('New Comment')
-      within("#form-comment") do
-        fill_in 'post_comment_content', :with => 'Sample comment'
+      within('#form-comment') do
+        fill_in 'post_comment_content', with: 'Sample comment'
       end
       click_button 'Comment'
       expect(page).to have_text('The comment has been created')
@@ -83,7 +82,7 @@ describe "Post frontend", js: true do
   end
 
   describe 'post visibility' do
-    before(:each) do
+    before do
       current_site(@site)
       plugin_install('visibility_post')
     end

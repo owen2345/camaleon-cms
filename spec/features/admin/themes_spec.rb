@@ -1,12 +1,12 @@
-require "rails_helper"
-describe "the Themes", js: true do
+require 'rails_helper'
+describe 'the Themes', js: true do
   init_site
 
-  it "Themes list" do
+  it 'Themes list' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/appearances/themes"
     expect(page).to have_css('#themes_page')
-    within "#themes_page" do
+    within '#themes_page' do
       first('.preview_link').click
     end
     # wait_for_ajax
@@ -14,5 +14,4 @@ describe "the Themes", js: true do
     #   page.should have_selector 'body'
     # end
   end
-
 end

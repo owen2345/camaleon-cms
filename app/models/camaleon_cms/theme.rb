@@ -3,7 +3,7 @@ module CamaleonCms
     # attrs:
     #   slug => plugin key
     cama_define_common_relationships('Theme')
-    belongs_to :site, class_name: "CamaleonCms::Site", foreign_key: :parent_id, required: false
+    belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, required: false
 
     default_scope { where(taxonomy: :theme) }
 
@@ -17,10 +17,11 @@ module CamaleonCms
 
     # return the path to the settings file for current theme
     def settings_file
-      File.join(self.settings["path"], "views/admin/settings").to_s
+      File.join(settings['path'], 'views/admin/settings').to_s
     end
 
     private
+
     def fix_name
       self.name = slug if name.blank?
     end

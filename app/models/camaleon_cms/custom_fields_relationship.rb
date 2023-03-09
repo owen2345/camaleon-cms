@@ -23,7 +23,9 @@ module CamaleonCms
 
     # touch owner model
     def update_model_owner
-      "CamaleonCms::#{object_class}".constantize.find(objectid).touch rescue nil # owner model
+      "CamaleonCms::#{object_class}".constantize.find(objectid).touch
+    rescue StandardError
+      nil
     end
   end
 end

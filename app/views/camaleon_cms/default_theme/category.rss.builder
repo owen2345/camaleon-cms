@@ -1,5 +1,5 @@
-xml.instruct! :xml, :version => "1.0"
-xml.rss :version => "2.0" do
+xml.instruct! :xml, version: '1.0'
+xml.rss version: '2.0' do
   xml.channel do
     xml.title @category.the_title
     xml.description @category.the_excerpt
@@ -7,8 +7,7 @@ xml.rss :version => "2.0" do
     xml.guid @category.the_id
     xml.items @posts.size
 
-
-    for post in @posts.decorate
+    @posts.decorate.each do |post|
       xml.item do
         xml.title post.the_title
         xml.description post.the_excerpt

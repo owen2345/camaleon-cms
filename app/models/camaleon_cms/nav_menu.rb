@@ -4,7 +4,8 @@ module CamaleonCms
     alias_attribute :site_id, :parent_id
 
     cama_define_common_relationships('NavMenu')
-    has_many :children, class_name: "CamaleonCms::NavMenuItem", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent
+    has_many :children, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :parent_id, dependent: :destroy,
+                        inverse_of: :parent
     belongs_to :site, foreign_key: :parent_id, inverse_of: :nav_menus, required: false
 
     # add menu item for current menu
@@ -14,9 +15,8 @@ module CamaleonCms
     # sample: {label: "my label", type: "post", link: 10}
     # sample: {label: "my label", type: "category", link: 12}
     # return item created
-    def append_menu_item (value)
-      item = children.create!({name: value[:label], url: value[:link], kind: value[:type], target: value[:target]})
-      item
+    def append_menu_item(value)
+      children.create!({ name: value[:label], url: value[:link], kind: value[:type], target: value[:target] })
     end
 
     # skip uniq slug validation
@@ -25,8 +25,8 @@ module CamaleonCms
     end
 
     private
+
     # overwrite termtaxonomy method
-    def destroy_dependencies
-    end
+    def destroy_dependencies; end
   end
 end

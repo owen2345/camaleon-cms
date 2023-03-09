@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require 'rails_helper'
 
 describe 'the Custom Fields', js: true do
@@ -21,9 +19,7 @@ describe 'the Custom Fields', js: true do
       page.execute_script(script_string)
 
       wait 2
-      all('#content-items-default a').each do |link|
-        link.click
-      end
+      all('#content-items-default a').each(&:click)
       wait_for_ajax
       first('button[type="submit"]').click
     end

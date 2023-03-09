@@ -7,7 +7,7 @@ FactoryBot.define do
     password { '12345678' }
     password_confirmation { '12345678' }
     site
-    
+
     factory :user_admin do
       role { 'admin' }
     end

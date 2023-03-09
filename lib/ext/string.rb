@@ -1,8 +1,9 @@
 class String
   def to_bool
     return true if self == true || self =~ (/(true|t|yes|y|1)$/i)
-    return false if self == false || self.blank? || self =~ (/(false|f|no|n|0)$/i)
-    raise ArgumentError.new("invalid value for Boolean: \"#{self}\"")
+    return false if self == false || blank? || self =~ (/(false|f|no|n|0)$/i)
+
+    raise ArgumentError, "invalid value for Boolean: \"#{self}\""
   end
 
   def strip_tags
@@ -10,11 +11,11 @@ class String
   end
 
   def is_float?
-    self.to_f.to_s == self.to_s
+    to_f.to_s == to_s
   end
 
   def is_number?
-    self.to_f.to_s == self.to_s || self.to_i.to_s == self.to_s
+    to_f.to_s == to_s || to_i.to_s == to_s
   end
 
   def is_bool?
@@ -31,11 +32,11 @@ class String
 
   def to_var
     if is_float?
-      self.to_f
+      to_f
     elsif is_number?
-      self.to_i
+      to_i
     elsif is_bool?
-      self.to_bool
+      to_bool
     else
       self
     end
@@ -43,24 +44,24 @@ class String
 
   # parse string into slug format
   def slug
-    #strip the string
-    ret = self.strip
+    # strip the string
+    ret = strip
 
-    #blow away apostrophes
-    ret.gsub! /['`]/,""
+    # blow away apostrophes
+    ret.gsub!(/['`]/, '')
 
     # @ --> at, and & --> and
-    ret.gsub! /\s*@\s*/, " at "
-    ret.gsub! /\s*&\s*/, " and "
+    ret.gsub!(/\s*@\s*/, ' at ')
+    ret.gsub!(/\s*&\s*/, ' and ')
 
-    #replace all non alphanumeric, underscore or periods with underscore
-    ret.gsub! /\s*[^A-Za-z0-9\.\-]\s*/, '_'
+    # replace all non alphanumeric, underscore or periods with underscore
+    ret.gsub!(/\s*[^A-Za-z0-9.-]\s*/, '_')
 
-    #convert double underscores to single
-    ret.gsub! /_+/,"_"
+    # convert double underscores to single
+    ret.gsub!(/_+/, '_')
 
-    #strip off leading/trailing underscore
-    ret.gsub! /\A[_\.]+|[_\.]+\z/,""
+    # strip off leading/trailing underscore
+    ret.gsub!(/\A[_.]+|[_.]+\z/, '')
     ret
   end
 
@@ -71,7 +72,7 @@ class String
     uri = URI.parse(url)
     uri = URI.parse("http://#{url}") if uri.scheme.nil?
     host = (uri.host || self).downcase
-    h = host.start_with?('www.') ? host[4..-1] : host
+    h = host.start_with?('www.') ? host[4..] : host
     "#{h}#{":#{uri.port}" unless [80, 443].include?(uri.port)}"
   end
 
@@ -90,12 +91,12 @@ class String
 
   # remove double or more secuencial slashes, like: '/a//b/c/d///abs'.cama_fix_slash => /a/b/c/d/abs
   def cama_fix_slash
-    self.gsub(/(\/){2,}/, "/")
+    gsub(%r{(/){2,}}, '/')
   end
 
   # fix file media keys: avoid duplicated slashes and force to start with slash
   def cama_fix_media_key
-    res = self.gsub('../', '/').gsub('./', '/').gsub(/(\/){2,}/, "/")
+    res = gsub('../', '/').gsub('./', '/').gsub(%r{(/){2,}}, '/')
     res = "/#{res}" unless res.start_with?('/')
     res = res.slice(0...-1) if res.end_with?('/') && res.length > 1
     res
@@ -104,12 +105,12 @@ class String
   def cama_fix_filename
     # Sanitize the filename, to prevent hacking
     # https://github.com/carrierwaveuploader/carrierwave/blob/6a1445e0daef29a5d4f799a016359b62d82dbc24/lib/carrierwave/sanitized_file.rb#L322
-    sanitize_regexp = /[^[:word:]\.\-\+]/
-    name = self.tr("\\", "/") # work-around for IE
+    sanitize_regexp = /[^[:word:].\-+]/
+    name = tr('\\', '/') # work-around for IE
     name = File.basename(name)
-    name = name.gsub(sanitize_regexp, "_")
+    name = name.gsub(sanitize_regexp, '_')
     name = "_#{name}" if name =~ /\A\.+\z/
-    name = "unnamed" if name.size == 0
+    name = 'unnamed' if name.empty?
     name.mb_chars.to_s
   end
 
@@ -117,7 +118,7 @@ class String
   # remove decorate
   # remove Cama prefix
   def parseCamaClass
-    self.gsub("Decorator","").gsub("CamaleonCms::","")
+    gsub('Decorator', '').gsub('CamaleonCms::', '')
   end
 
   # convert url into custom url with postfix,
@@ -141,6 +142,7 @@ class String
     res = File.join(File.dirname(self), 'thumb', "#{File.basename(self).parameterize}#{File.extname(self)}")
     res = res.cama_add_postfix_file_name("_#{version_name}") if version_name.present?
     return self if check_url && !res.cama_url_exist?
+
     res
   end
 
@@ -149,14 +151,14 @@ class String
   # return (Boolean) true if the url exist
   def cama_url_exist?
     Net::HTTP.get_response(URI.parse(self)).is_a?(Net::HTTPSuccess)
-  rescue
+  rescue StandardError
     false
   end
 
   # Colorized Ruby output
   # color: (:red, :green, :blue, :pink, :light_blue, :yellow)
   def cama_log_style(color = :red)
-    colors = {red: 31, green: 32, blue: 34, pink: 35, light_blue: 36, yellow: 33}
+    colors = { red: 31, green: 32, blue: 34, pink: 35, light_blue: 36, yellow: 33 }
     "\e[#{colors[color]}m#{self}\e[0m"
   end
 end

@@ -1,14 +1,14 @@
-require "rails_helper"
-describe "the Menus", js: true do
+require 'rails_helper'
+describe 'the Menus', js: true do
   init_site
 
-  it "Menus list" do
+  it 'Menus list' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/appearances/nav_menus"
     expect(page).to have_css('#menu_content')
-    within "#menu_items" do
+    within '#menu_items' do
       # post menus
-      check("Sample Post")
+      check('Sample Post')
       page.execute_script('$("#acc-post input").prop("checked", true)')
       page.execute_script('$("#acc-post").prev().find("input").prop("checked", true)')
       page.execute_script('$("#acc-post .add_links_to_menu").click()')
@@ -21,10 +21,10 @@ describe "the Menus", js: true do
       page.execute_script('$("#menu_items").css({background: "red"});')
       wait(2)
       screenshot_and_save_page
-      within ".form-custom-link" do
-        fill_in "external_label", with: "name link"
-        fill_in "external_url", with: "http://mytest.com"
-        find("#add_external_link").click
+      within '.form-custom-link' do
+        fill_in 'external_label', with: 'name link'
+        fill_in 'external_url', with: 'http://mytest.com'
+        find('#add_external_link').click
         wait_for_ajax
       end
     end
@@ -36,15 +36,13 @@ describe "the Menus", js: true do
         wait_for_ajax
       end
     end
-
   end
 
-  it "Menus Create and Delete" do
+  it 'Menus Create and Delete' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/appearances/nav_menus"
     page.execute_script('jQuery("#switch_nav_menu_form .btn-danger").click()')
     confirm_dialog
     expect(page).to have_css('.alert-success')
   end
-
 end

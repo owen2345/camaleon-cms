@@ -22,9 +22,9 @@ def wait_for_hidden_modal(key = nil)
 end
 
 def hidden_modal?(key = nil)
-  page.evaluate_script("jQuery('#{key || "#ow_inline_modal"}').is(':visible')") == false
+  page.evaluate_script("jQuery('#{key || '#ow_inline_modal'}').is(':visible')") == false
 end
 
 def visible_modal?(key = nil)
-  page.evaluate_script("jQuery('#{key || "#ow_inline_modal"}').is(':visible')") == true
+  page.evaluate_script("jQuery('#{key || '#ow_inline_modal'}').is(':visible')") == true
 end

@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
-  scope PluginRoutes.system_info["relative_url_root"] do
-    scope module: "camaleon_cms", as: "cama" do
-      namespace :admin, path: PluginRoutes.system_info["admin_path_name"] do
+  scope PluginRoutes.system_info['relative_url_root'] do
+    scope module: 'camaleon_cms', as: 'cama' do
+      namespace :admin, path: PluginRoutes.system_info['admin_path_name'] do
         get '/' => :dashboard
         get 'dashboard'
         get 'ajax'
@@ -9,10 +9,10 @@ Rails.application.routes.draw do
         get 'login' => 'sessions#login'
         post 'login' => 'sessions#login_post'
         get 'logout' => 'sessions#logout'
-        match 'forgot' => 'sessions#forgot', via: [:get, :post, :patch]
-        match 'confirm_email' => 'sessions#confirm_email', via: [:get, :post, :path]
-        match 'register' => 'sessions#register', via: [:get, :post, :patch]
-        match 'api/:method', action: :api, via: [:get, :post], as: :api
+        match 'forgot' => 'sessions#forgot', via: %i[get post patch]
+        match 'confirm_email' => 'sessions#confirm_email', via: %i[get post path]
+        match 'register' => 'sessions#register', via: %i[get post patch]
+        match 'api/:method', action: :api, via: %i[get post], as: :api
 
         resources :post_type, as: :post_type do
           resources :posts, controller: 'posts' do
@@ -20,7 +20,7 @@ Rails.application.routes.draw do
             get :trash
             get :restore
             collection do
-              match 'ajax', via: [:get, :post, :patch]
+              match 'ajax', via: %i[get post patch]
             end
           end
 
@@ -34,11 +34,11 @@ Rails.application.routes.draw do
         end
 
         scope 'post_type/:post_type_id/:taxonomy/:taxonomy_id', as: :post_type_taxonomy do
-          get "posts" => 'posts#index'
+          get 'posts' => 'posts#index'
         end
 
-        get 'profile' => "users#profile"
-        match 'profile/edit' => "users#profile_edit", via: [:get, :post, :patch]
+        get 'profile' => 'users#profile'
+        match 'profile/edit' => 'users#profile_edit', via: %i[get post patch]
         resources :users, controller: 'users' do
           patch 'updated_ajax'
           get :impersonate, on: :member
@@ -52,43 +52,42 @@ Rails.application.routes.draw do
           resources :custom_fields do
             collection do
               post 'get_items/:key', action: :get_items, as: :get_items
-              post "reorder"
-              get "list"
+              post 'reorder'
+              get 'list'
             end
           end
           get 'site'
           get 'test_email'
           get 'theme'
           post 'save_theme'
-          get "languages"
-          get "shortcodes"
-          post "languages" => :save_languages
+          get 'languages'
+          get 'shortcodes'
+          post 'languages' => :save_languages
           patch 'site_saved'
 
           resources :sites
         end
 
-        get "comments" => "comments#list"
+        get 'comments' => 'comments#list'
         resources :posts, only: [] do
           resources :comments, controller: 'comments' do
-            get "answer"
-            post "save_answer"
-            get "toggle_status"
+            get 'answer'
+            post 'save_answer'
+            get 'toggle_status'
           end
         end
 
         namespace :appearances do
-
-          match 'widgets', via: [:get, :delete]
-          match 'widgets_save', via: [:post, :patch]
-          match 'widget_delete', via: [:get, :patch]
+          match 'widgets', via: %i[get delete]
+          match 'widgets_save', via: %i[post patch]
+          match 'widget_delete', via: %i[get patch]
           get 'render_form'
 
           resources :themes, only: [:index] do
             collection do
-              get "preview"
+              get 'preview'
               # match "settings", via: [:get, :post, :patch]
-              match "load_data", via: [:get, :post, :patch]
+              match 'load_data', via: %i[get post patch]
             end
           end
           resources :nav_menus, except: :show do
@@ -108,40 +107,40 @@ Rails.application.routes.draw do
           namespace :widgets do
             resources :main, except: [:show]
             resources :sidebar, except: [:show] do
-              post "reorder"
-              resources :assign, except: [:index, :show]
+              post 'reorder'
+              resources :assign, except: %i[index show]
             end
           end
         end
 
-        resources :plugins, only: [:index, :destroy] do
-          get "toggle", on: :collection
-          get "upgrade"
+        resources :plugins, only: %i[index destroy] do
+          get 'toggle', on: :collection
+          get 'upgrade'
         end
 
         # installer
         resources :installers, only: [:index] do
-          post "save", on: :collection
-          get "welcome", on: :collection
+          post 'save', on: :collection
+          get 'welcome', on: :collection
         end
 
         resources :media, only: [:index] do
           match 'crop', via: :all, on: :collection
-          get "ajax", on: :collection
-          get "download_private_file", on: :collection
-          post "upload", on: :collection
-          post "actions", on: :collection
+          get 'ajax', on: :collection
+          get 'download_private_file', on: :collection
+          post 'upload', on: :collection
+          post 'actions', on: :collection
         end
       end
     end
-    eval(PluginRoutes.load("admin"))
+    eval(PluginRoutes.load('admin'))
   end
 
   # fix to catch route not found error
-  scope PluginRoutes.system_info["relative_url_root"] do
-    scope module: "camaleon_cms", as: "cama" do
-      namespace :admin, path: PluginRoutes.system_info["admin_path_name"] do
-        get "*path" => :render_error, defaults: {error_msg: "Invalid route"}
+  scope PluginRoutes.system_info['relative_url_root'] do
+    scope module: 'camaleon_cms', as: 'cama' do
+      namespace :admin, path: PluginRoutes.system_info['admin_path_name'] do
+        get '*path' => :render_error, defaults: { error_msg: 'Invalid route' }
       end
     end
   end

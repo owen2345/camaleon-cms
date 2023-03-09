@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', ">= 5.2"
+gem 'rails', '>= 5.2'
 
 gem 'camaleon_cms', git: 'https://github.com/owen2345/camaleon-cms'
 
