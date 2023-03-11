@@ -8,9 +8,10 @@ FactoryBot.define do
     transient do
       site { nil }
     end
-    
-    post_type { association :post_type, site: site || create(:site) }
-    owner { association :user, site: site }
+
+    post_type { site ? build(:post_type, site: site) : build(:post_type) }
+    owner { site ? build(:user, site: site) : build(:user) }
+    categories { [] }
     
     factory :pending_post do
       status { 'pending' }

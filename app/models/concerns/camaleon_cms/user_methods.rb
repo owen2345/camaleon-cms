@@ -97,6 +97,10 @@ module CamaleonCms::UserMethods extend ActiveSupport::Concern
   end
     # end auth
 
+  def get_field_groups(site)
+    site.custom_field_groups.where(object_class: self.class.to_s.parseCamaClass)
+  end
+
   private
   def cama_before_validation
     self.role = PluginRoutes.system_info["default_user_role"] if self.role.blank?

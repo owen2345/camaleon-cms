@@ -3,7 +3,7 @@ module CamaleonCms
     alias_attribute :site_id, :parent_id
     default_scope { where(taxonomy: :post_type) }
     cama_define_common_relationships('PostType')
-    has_many :categories, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type_parent
+    has_many :categories, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type
     has_many :post_tags, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type
     has_many :posts, foreign_key: :taxonomy_id, dependent: :destroy, inverse_of: :post_type
     has_many :comments, through: :posts
@@ -152,6 +152,38 @@ module CamaleonCms
     # verify if this post_type support for page hierarchy (parents)
     def manage_hierarchy?
       get_option('has_parent_structure', false)
+    end
+
+    # @param kind (Post|Category|PostTag|self|all)
+    # Sample: mypost_type.get_field_groups('Post') => return custom field groups for posts
+    # Sample: mypost_type.get_field_groups('Category') => return custom field groups for categories
+    # Sample: mypost_type.get_field_groups('PostTag') => return custom field groups for post-tags
+    def get_field_groups(kind = 'Post')
+      kind = kind[:kind] if kind.is_a?(Hash)
+      if kind == 'all'
+        field_types = %w[PostType_Post PostType_Category PostType_PostTag PostType]
+        CamaleonCms::CustomFieldGroup.where(object_class: field_types, objectid:  self.id )
+      elsif %w[post_type self].include?(kind)
+        self.custom_field_groups
+      else
+        CamaleonCms::CustomFieldGroup.where(object_class: "PostType_#{kind}", objectid:  self.id)
+      end
+    end
+
+    # @param kind (see #get_field_groups)
+    def add_custom_field_group(data, kind = "Post")
+      get_field_groups(kind).create!(data.merge(record: self))
+    end
+
+    # @param kind (see #get_field_groups)
+    def default_custom_field_group(kind = 'Post')
+      data = { name: 'Default Field Group', slug: '_default' }
+      get_field_groups(kind).where(slug: data[:slug]).first || add_custom_field_group(data, kind)
+    end
+
+    # @param kind (see #get_field_groups)
+    def add_field(data, settings, kind = 'Post')
+      default_custom_field_group(kind).add_manual_field(data, settings)
     end
 
     private

@@ -6,7 +6,7 @@ FactoryBot.define do
     username { Faker::Internet.unique.user_name }
     password { '12345678' }
     password_confirmation { '12345678' }
-    site
+    site { Cama::Site.first || build(:site) }
     
     factory :user_admin do
       role { 'admin' }

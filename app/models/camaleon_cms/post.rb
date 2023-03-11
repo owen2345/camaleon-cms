@@ -3,8 +3,10 @@ module CamaleonCms
     include CamaleonCms::CategoriesTagsForPosts
 
     alias_attribute :post_type_id, :taxonomy_id
+    alias_attribute :parent_id, :post_parent
     default_scope ->{ where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
     cama_define_common_relationships('Post')
+    delegate :site, to: :post_type
 
     # DEPRECATED
     has_many :post_relationships, class_name: "CamaleonCms::PostRelationship", foreign_key: :objectid, dependent: :destroy, inverse_of: :post
@@ -232,6 +234,16 @@ module CamaleonCms
       # Sample: https://github.com/owen2345/camaleon-ecommerce/tree/master/app/decorators/
     def decorator_class
       (post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator') rescue 'CamaleonCms::PostDecorator').constantize
+    end
+
+    def get_field_groups
+      CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = 'Post') OR
+                                             (objectid = ? AND object_class = 'PostType_Post')",
+                                          self.id || -1, self.post_type_id)
+    end
+
+    def add_custom_field_group(values)
+      custom_field_groups.create!(values.merge(record: self))
     end
 
     private

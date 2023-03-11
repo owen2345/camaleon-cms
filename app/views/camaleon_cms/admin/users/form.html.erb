@@ -95,7 +95,7 @@
                                 <textarea name="meta[slogan]" class="form-control"><%= @user.get_meta("slogan") %></textarea>
                             </div>
                         </div>
-                        <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @user, field_groups: @user.get_user_field_groups(current_site) } %>
+                        <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @user, field_groups: @user.get_field_groups(current_site) } %>
                     </div>
                     <div class="panel-footer">
                         <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back')%></a>
