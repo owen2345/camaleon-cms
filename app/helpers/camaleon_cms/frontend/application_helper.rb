@@ -25,7 +25,7 @@ module CamaleonCms
         if request.present?
           if options[:locale] == false
             options.delete(:locale)
-          elsif options[:locale].blank? && _current_site&.get_languages&.size > 1
+          elsif options[:locale].blank? && _current_site&.get_languages&.size&.>(1)
             options[:locale] = I18n.locale
           end
           if options[:locale].present? && _current_site&.get_languages&.first&.to_s == options[:locale].to_s
