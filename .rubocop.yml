@@ -38,6 +38,10 @@ RSpec/InstanceVariable:
 RSpec/MultipleExpectations:
   Enabled: false
 
+RSpec/NestedGroups:
+  Enabled: true
+  Max: 5
+
 Style/Documentation:
   Enabled: false
 

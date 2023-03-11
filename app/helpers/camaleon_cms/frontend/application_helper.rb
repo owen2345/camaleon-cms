@@ -23,20 +23,20 @@ module CamaleonCms
         options = args.extract_options!
         _current_site = options.delete(:site) || current_site
         if request.present?
-          if options.include?(:locale) && options[:locale] == false
+          if options[:locale] == false
             options.delete(:locale)
-          elsif !options[:locale].present? && _current_site && _current_site.get_languages.size > 1
+          elsif options[:locale].blank? && _current_site&.get_languages&.size&.>(1)
             options[:locale] = I18n.locale
           end
-          if options[:locale].present? && _current_site && _current_site.get_languages.first.to_s == options[:locale].to_s
+          if options[:locale].present? && _current_site&.get_languages&.first&.to_s == options[:locale].to_s
             options[:locale] =
               nil
           end
         end
 
         options.delete(:format) if PluginRoutes.system_info['skip_format_url'].present?
-        cama_current_site_host_port(options) unless options.keys.include?(:host)
-        send(url_to.gsub('-', '_'), *(args << options))
+        cama_current_site_host_port(options) unless options.key?(:host)
+        send(url_to.tr('-', '_'), *(args << options))
       end
     end
   end

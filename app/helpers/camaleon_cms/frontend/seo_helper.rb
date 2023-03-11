@@ -9,31 +9,46 @@ module CamaleonCms
                   {}
                 elsif is_page?
                   { image: @cama_visited_post.the_thumb_url,
-                    title: "#{current_site.the_title} | #{@cama_visited_post.the_title}", description: @cama_visited_post.the_excerpt, keywords: @cama_visited_post.the_keywords, object: @cama_visited_post }
+                    title: "#{current_site.the_title} | #{@cama_visited_post.the_title}",
+                    description: @cama_visited_post.the_excerpt,
+                    keywords: @cama_visited_post.the_keywords,
+                    object: @cama_visited_post }
                 elsif is_ajax?
                   {}
                 elsif is_search?
                   { title: "#{current_site.the_title} | #{ct('search_title', default: 'Search')}" }
                 elsif is_post_type?
                   { image: @cama_visited_post_type.the_thumb_url,
-                    title: "#{current_site.the_title} | #{@cama_visited_post_type.the_title}", description: @cama_visited_post_type.the_excerpt, keywords: @cama_visited_post_type.the_keywords, object: @cama_visited_post_type }
+                    title: "#{current_site.the_title} | #{@cama_visited_post_type.the_title}",
+                    description: @cama_visited_post_type.the_excerpt,
+                    keywords: @cama_visited_post_type.the_keywords,
+                    object: @cama_visited_post_type }
                 elsif is_post_tag?
                   { title: "#{current_site.the_title} | #{@cama_visited_tag.the_title}",
-                    description: @cama_visited_tag.the_excerpt, keywords: @cama_visited_tag.the_keywords, object: @cama_visited_tag }
+                    description: @cama_visited_tag.the_excerpt,
+                    keywords: @cama_visited_tag.the_keywords,
+                    object: @cama_visited_tag }
                 elsif is_category?
                   { image: @cama_visited_category.the_thumb_url,
-                    title: "#{current_site.the_title} | #{@cama_visited_category.the_title}", description: @cama_visited_category.the_excerpt, keywords: @cama_visited_category.the_keywords, object: @cama_visited_category }
+                    title: "#{current_site.the_title} | #{@cama_visited_category.the_title}",
+                    description: @cama_visited_category.the_excerpt,
+                    keywords: @cama_visited_category.the_keywords,
+                    object: @cama_visited_category }
                 elsif is_profile?
                   { image: @user.the_avatar, title: "#{current_site.the_title} | #{@user.the_name}",
                     description: @user.the_slogan, object: @user }
                 else
                   {}
                 end
-        cama_build_seo(data2.merge(@_cama_seo_setting_values || {}).merge(data))
+        cama_build_seo(data2.merge!(@_cama_seo_setting_values || {}).merge(data))
       end
 
-      # permit to define seo attributes by code without hooks (check here for more attributes: https://github.com/kpumuk/meta-tags)
-      # @Sample: cama_seo_settings({title: "my custom title", description: "my descr", keywords: "my keywords", image: 'my img url'})
+      # permit to define seo attributes by code without hooks
+      # (check here for more attributes: https://github.com/kpumuk/meta-tags)
+      # @Sample:
+      # cama_seo_settings(
+      #   {title: "my custom title", description: "my descr", keywords: "my keywords", image: 'my img url'}
+      # )
       # This values will be shown within the_head(...)
       def cama_seo_settings(options)
         @_cama_seo_setting_values ||= {}
@@ -74,21 +89,22 @@ module CamaleonCms
           alternate: [
             { type: 'application/rss+xml', href: cama_rss_url }
           ],
-          canonical: current_site.get_option('seo_canonical')
-        }.merge(options.except(:object))
+          canonical: current_site.get_option('seo_canonical')&.translate
+        }.merge!(options.except(:object))
 
+        object_option = options[:object]
         l = current_site.get_languages
         if l.size > 1
           l.each do |lang|
             s[:alternate] << {
-              href: options[:object].present? ? options[:object].the_url(locale: lang) : current_site.the_url(locale: lang),
+              href: object_option.present? ? object_option.the_url(locale: lang) : current_site.the_url(locale: lang),
               hreflang: lang
             }
           end
         end
 
         # call all hooks for seo
-        r = { seo_data: s, object: options[:object] }
+        r = { seo_data: s, object: object_option }
         hooks_run('seo', r)
         r[:seo_data]
       end
