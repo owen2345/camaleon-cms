@@ -12,10 +12,6 @@ require 'capybara/rspec'
 require 'rack_session_access/capybara'
 require 'capybara-screenshot/rspec'
 
-# Next 2 are Chrome drivers
-# Capybara.javascript_driver = :selenium_chrome
-require 'capybara/rspec'
-
 Capybara.server_host = '0.0.0.0'
 Capybara.server_port = 3030
 
@@ -24,6 +20,9 @@ Capybara.register_driver :chrome_headless do |app|
   options = Selenium::WebDriver::Chrome::Options.new(args: args)
   Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
 end
+
+# Next 2 are Chrome drivers
+# Capybara.javascript_driver = :selenium_chrome
 Capybara.javascript_driver = :chrome_headless
 
 # Next 2 are FireFox drivers
