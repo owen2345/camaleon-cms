@@ -3,7 +3,6 @@ module CamaleonCms
     default_scope { where(taxonomy: :nav_menu).order(id: :asc) }
     alias_attribute :site_id, :parent_id
 
-    cama_define_common_relationships('NavMenu')
     has_many :children, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :parent_id, dependent: :destroy,
                         inverse_of: :parent
     belongs_to :site, foreign_key: :parent_id, inverse_of: :nav_menus, required: false

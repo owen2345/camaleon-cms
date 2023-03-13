@@ -9,7 +9,6 @@ module CamaleonCms
     #
     default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
 
-    cama_define_common_relationships('NavMenuItem')
     belongs_to :parent, class_name: 'CamaleonCms::NavMenu', inverse_of: :children, required: false
     belongs_to :parent_item, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :parent_id, inverse_of: :children,
                              required: false

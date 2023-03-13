@@ -7,7 +7,6 @@ module CamaleonCms
 
     default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
 
-    cama_define_common_relationships('Site')
     has_many :post_types, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id, dependent: :destroy
     has_many :nav_menus, class_name: 'CamaleonCms::NavMenu', foreign_key: :parent_id, dependent: :destroy,
                          inverse_of: :site

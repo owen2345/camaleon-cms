@@ -3,22 +3,6 @@
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
-  def self.cama_define_common_relationships(key)
-    has_many :metas, -> { where(object_class: key) },
-             class_name: 'CamaleonCms::Meta', foreign_key: :objectid, dependent: :destroy
-
-    has_many :custom_field_values, -> { where(object_class: key) },
-             class_name: 'CamaleonCms::CustomFieldsRelationship', foreign_key: :objectid, dependent: :delete_all
-
-    has_many :custom_fields, -> { where(object_class: key) },
-             class_name: 'CamaleonCms::CustomField', foreign_key: :objectid
-
-    # valid only for simple groups and not for complex like: posts, post, ... where the group is for individual or
-    # children groups
-    has_many :custom_field_groups, -> { where(object_class: key) },
-             class_name: 'CamaleonCms::CustomFieldGroup', foreign_key: :objectid
-  end
-
   # save cache value for this key
   def cama_set_cache(key, val)
     @cama_cache_vars ||= {}
