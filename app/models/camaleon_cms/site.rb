@@ -22,18 +22,17 @@ module CamaleonCms
     has_many :posts, through: :post_types, source: :posts
     has_many :plugins, class_name: 'CamaleonCms::Plugin', foreign_key: :parent_id, dependent: :destroy
     has_many :themes, class_name: 'CamaleonCms::Theme', foreign_key: :parent_id, dependent: :destroy
-    has_many :public_media, lambda {
-                              where(is_public: true)
-                            }, class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
-    has_many :private_media, lambda {
-                               where(is_public: false)
-                             }, class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
+    has_many :public_media, -> { where(is_public: true) },
+             class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
+    has_many :private_media, -> { where(is_public: false) },
+             class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
 
     after_create :default_settings
     after_create :set_default_user_roles
-    after_save :update_routes
+    after_save :refresh_routes, if: proc { |obj| obj.saved_change_to_attribute?(:slug) }
+
     before_destroy :destroy_site
-    after_destroy :reload_routes
+    after_destroy :refresh_routes
 
     validates_uniqueness_of :slug, scope: :taxonomy
 
@@ -235,7 +234,7 @@ module CamaleonCms
     # destroy all things before site destroy
     def destroy_site
       CamaleonCms::User.where(site_id: id).destroy_all unless PluginRoutes.system_info['users_share_sites']
-      FileUtils.rm_rf(File.join(Rails.public_path, "/media/#{upload_directory_name}").to_s) # destroy current media directory
+      FileUtils.rm_rf(File.join(Rails.public_path, "/media/#{upload_directory_name}")) # destroy current media directory
       users.destroy_all unless PluginRoutes.system_info['users_share_sites'] # destroy all users assigned fot this site
     end
 
@@ -247,11 +246,7 @@ module CamaleonCms
 
     # update all routes of the system
     # reload system routes for this site
-    def update_routes
-      PluginRoutes.reload if cama_attr_changed?(:slug)
-    end
-
-    def reload_routes
+    def refresh_routes
       PluginRoutes.reload
     end
 

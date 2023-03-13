@@ -57,11 +57,4 @@ class ApplicationRecord < ActiveRecord::Base
   def cama_build_cache_key(key)
     _key = "cama_cache_#{self.class.name}_#{id}_#{key}"
   end
-
-  # check if an attribute was changed
-  def cama_attr_changed?(attr_name)
-    return saved_change_to_attribute?(attr_name.to_sym) if methods.include?(:saved_change_to_attribute?)
-
-    send("#{attr_name}_changed?")
-  end
 end
