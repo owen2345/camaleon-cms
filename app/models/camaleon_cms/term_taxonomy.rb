@@ -1,5 +1,5 @@
 module CamaleonCms
-  class TermTaxonomy < ActiveRecord::Base
+  class TermTaxonomy < ApplicationRecord
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
 

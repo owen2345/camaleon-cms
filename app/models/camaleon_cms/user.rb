@@ -1,6 +1,6 @@
 unless PluginRoutes.static_system_info['user_model'].present?
   module CamaleonCms
-    class User < ActiveRecord::Base
+    class User < ApplicationRecord
       include CamaleonCms::UserMethods
 
       self.table_name = PluginRoutes.static_system_info['cama_users_db_table'] || "#{PluginRoutes.static_system_info['db_prefix']}users"

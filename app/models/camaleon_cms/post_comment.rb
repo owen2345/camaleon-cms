@@ -1,5 +1,5 @@
 module CamaleonCms
-  class PostComment < ActiveRecord::Base
+  class PostComment < ApplicationRecord
     include CamaleonCms::Metas
 
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}comments"

@@ -1,5 +1,5 @@
 module CamaleonCms
-  class PostDefault < ActiveRecord::Base
+  class PostDefault < ApplicationRecord
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
 
