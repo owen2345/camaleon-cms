@@ -1,5 +1,5 @@
 module CamaleonCms
-  class PostComment < ApplicationRecord
+  class PostComment < CamaleonRecord
     include CamaleonCms::Metas
     include CommonRelationships
 

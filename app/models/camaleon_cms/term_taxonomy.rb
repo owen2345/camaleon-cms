@@ -1,5 +1,5 @@
 module CamaleonCms
-  class TermTaxonomy < ApplicationRecord
+  class TermTaxonomy < CamaleonRecord
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
     include CommonRelationships

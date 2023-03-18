@@ -1,5 +1,5 @@
 module CamaleonCms
-  class CustomFieldsRelationship < ApplicationRecord
+  class CustomFieldsRelationship < CamaleonRecord
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}custom_fields_relationships"
 
     # attr_accessible :objectid, :custom_field_id, :term_order, :value, :object_class,

@@ -1,4 +1,4 @@
-# class Plugins::PluginClass::PluginClass < ApplicationRecord
+# class Plugins::PluginClass::PluginClass < CamaleonRecord
 # belongs_to :site, class_name: "CamleonCms::Site"
 
 # here create your models normally

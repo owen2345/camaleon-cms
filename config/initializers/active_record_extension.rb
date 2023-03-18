@@ -20,8 +20,6 @@ module ActiveRecordExtras
   end
 end
 
-ActiveRecord::Base.include ActiveRecordExtras::Relation
-
 ActiveRecord::Associations::CollectionProxy.class_eval do
   # order a collection by custom fields
   # Arguments:

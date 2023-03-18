@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-class ApplicationRecord < ActiveRecord::Base
+class CamaleonRecord < ActiveRecord::Base
+  include ActiveRecordExtras::Relation
+
   self.abstract_class = true
 
   # save cache value for this key

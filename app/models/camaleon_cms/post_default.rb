@@ -1,5 +1,5 @@
 module CamaleonCms
-  class PostDefault < ApplicationRecord
+  class PostDefault < CamaleonRecord
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
     include CommonRelationships
