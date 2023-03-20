@@ -1,4 +1,4 @@
-<div class="group-input-fields-content" data-callback-render="CustomFieldSelectCallback">
+<div class="group-input-fields-content" data-callback-render="custom_field_select_callback">
   <select name="<%= field_name %>[<%= field.slug %>][values][]" class="form-control input-value <%= 'is_translate' if field.options[:translate].to_s.to_bool %> <%= "required" if field.options[:required].to_s.to_bool %>" >
     <% field.options[:multiple_options].each do |option|  %>
         <option value="<%= option[:value] %>" <%= 'selected' if option[:default].present? %>><%= option[:title] %></option>

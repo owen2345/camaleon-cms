@@ -1,7 +1,8 @@
 // build custom field groups with values recovered from DB received in field_values
 /* eslint-env jquery */
-// eslint-disable-next-line no-unused-vars
-function BuildCustomFieldGroup(fieldValues, groupId, fieldsData, isRepeat, fieldNameGroup) {
+
+// eslint-disable-next-line no-unused-vars,camelcase
+function build_custom_field_group(fieldValues, groupId, fieldsData, isRepeat, fieldNameGroup) {
   if (fieldValues.length === 0)
     fieldValues = [{}]
 
@@ -143,21 +144,21 @@ function CustomFieldColorpicker($field) {
     $field.find('.my-colorpicker').colorpicker()
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldColorpickerVal($field, value) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_colorpicker_val($field, value) {
   if ($field)
     $field.find('.my-colorpicker').attr('data-color', value || '').colorpicker()
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldCheckboxVal($field, values) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_checkbox_val($field, values) {
   if (values === 't') values = 1 // fix for values saved as true
   if ($field)
     $field.find('input[value="' + values + '"]').prop('checked', true)
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldCheckboxesVal($field, values) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_checkboxs_val($field, values) {
   if ($field) {
     const selector = values.map(function(value) {
       return "input[value='" + value + "']"
@@ -166,8 +167,8 @@ function CustomFieldCheckboxesVal($field, values) {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldDate($field) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_date($field) {
   if ($field) {
     const box = $field.find('.date-input-box')
     if (box.hasClass('is_datetimepicker'))
@@ -177,8 +178,8 @@ function CustomFieldDate($field) {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldEditor($field) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_editor($field) {
   if ($field) {
     const id = 't_' + Math.floor((Math.random() * 100000) + 1) + '_area'
     const textarea = $field.find('textarea').attr('id', id)
@@ -188,7 +189,7 @@ function CustomFieldEditor($field) {
       const inputs = textarea.data('translation_inputs')
       if (inputs) { // multiples languages
         for (const lang in inputs) {
-          tinymce.init(CamaGetTinymceSettings({
+          tinymce.init(cama_get_tinymce_settings({
             selector: '#' + inputs[lang].attr('id'),
             height: 120
           }))
@@ -196,15 +197,15 @@ function CustomFieldEditor($field) {
         return
       }
     }
-    tinymce.init(CamaGetTinymceSettings({
+    tinymce.init(cama_get_tinymce_settings({
       selector: '#' + id,
       height: 120
     }))
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldFieldAttrsVal($field, value) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_field_attrs_val($field, value) {
   if ($field) {
     value = value || '{}'
     const data = typeof (value) === 'object' ? value : $.parseJSON(value)
@@ -214,34 +215,34 @@ function CustomFieldFieldAttrsVal($field, value) {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldRadioVal($field, value) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_radio_val($field, value) {
   if ($field) {
     $field.find('input').prop('checked', false)
     $field.find("input[value='" + value + "']").prop('checked', true)
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldTextArea($field) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_text_area($field) {
   if ($field && $field.find('textarea').hasClass('is_translate'))
     $field.find('textarea').addClass('translatable').Translatable(ADMIN_TRANSLATIONS)
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldTextBox($field) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_text_box($field) {
   if ($field && $field.find('input').hasClass('is_translate'))
     $field.find('input').addClass('translatable').Translatable(ADMIN_TRANSLATIONS)
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldUrlCallback($field) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_url_callback($field) {
   if ($field && $field.find('input').hasClass('is_translate'))
     $field.find('input').addClass('translatable').Translatable(ADMIN_TRANSLATIONS)
 }
 
-// eslint-disable-next-line no-unused-vars
-function CustomFieldSelectCallback($field, val) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function custom_field_select_callback($field, val) {
   if ($field) {
     const sel = $field.find('select.input-value')
     if (!val) sel.data('value', sel.val()) // fix for select translator
@@ -249,8 +250,8 @@ function CustomFieldSelectCallback($field, val) {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
-function LoadUploadAudioField(thiss) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function load_upload_audio_field(thiss) {
   const $input = $(thiss).prev()
 
   $.fn.upload_filemanager({
@@ -261,8 +262,8 @@ function LoadUploadAudioField(thiss) {
   })
 }
 
-// eslint-disable-next-line no-unused-vars
-function LoadUploadFileField(thiss) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function load_upload_file_field(thiss) {
   const $input = $(thiss).prev()
 
   $.fn.upload_filemanager({
@@ -273,8 +274,8 @@ function LoadUploadFileField(thiss) {
   })
 }
 
-// eslint-disable-next-line no-unused-vars
-function LoadUploadPrivateFileField(thiss) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function load_upload_private_file_field(thiss) {
   const $input = $(thiss).prev()
 
   $.fn.upload_filemanager({
@@ -286,8 +287,8 @@ function LoadUploadPrivateFileField(thiss) {
   })
 }
 
-// eslint-disable-next-line no-unused-vars
-function LoadUploadImageField($input) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function load_upload_image_field($input) {
   $.fn.upload_filemanager({
     formats: 'image',
     dimension: $input.attr('data-dimension') || '',
@@ -300,8 +301,8 @@ function LoadUploadImageField($input) {
 }
 
 // permit to show preview image of image custom fields
-// eslint-disable-next-line no-unused-vars
-function CamaCustomFieldImageChanged(field) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function cama_custom_field_image_changed(field) {
   if (field.val()) {
     field.closest('.input-group')
       .append(
@@ -315,14 +316,14 @@ function CamaCustomFieldImageChanged(field) {
     field.closest('.input-group').find('.custom_field_image_preview').remove()
 }
 
-// eslint-disable-next-line no-unused-vars
-function CamaCustomFieldImageRemove(field) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function cama_custom_field_image_remove(field) {
   field.val('')
   field.closest('.input-group').find('.custom_field_image_preview').remove()
 }
 
-// eslint-disable-next-line no-unused-vars
-function LoadUploadVideoField(thiss) {
+// eslint-disable-next-line no-unused-vars,camelcase
+function load_upload_video_field(thiss) {
   const $input = $(thiss).prev()
   $.fn.upload_filemanager({
     formats: 'video',
