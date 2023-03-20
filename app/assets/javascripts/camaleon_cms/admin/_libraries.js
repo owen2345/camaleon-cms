@@ -23,8 +23,8 @@ jQuery(function() {
 // panel can be a object: $("#my_form")
 // if panel is null, then this will be replaced by body
 // args: {validate_settings}
-/* eslint-disable-next-line no-unused-vars */
-const InitFormValidations = function(form, args) {
+/* eslint-disable-next-line no-unused-vars,camelcase */
+const init_form_validations = function(form, args) {
   args = args || {};
   // slug management
   // you need to add class no_translate to avoid translations in slugs

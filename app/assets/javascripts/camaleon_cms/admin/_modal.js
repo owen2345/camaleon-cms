@@ -3,7 +3,7 @@
  * add events to links for open their content by ajax into modal
  * use: <a class='my_link' href='mylink' title='my title' data-show_footer='true'>
  * $(".my_link").ajax_modal({settings});
- * settings: check OpenModal(settings)
+ * settings: check open_modal(settings)
  */
 /* eslint-env jquery */
 jQuery(function() {
@@ -14,7 +14,7 @@ jQuery(function() {
       const def = { title: title || $(this).data('title'), mode: 'ajax', url: $(this).attr('href'), show_footer: $(this).data('show_footer') }
       if ($(this).attr('data-modal_size')) def.modal_size = $(this).attr('data-modal_size')
       const cSettings = $.extend({}, def, settings)
-      OpenModal(cSettings)
+      open_modal(cSettings)
       e.preventDefault()
     })
     return this
@@ -39,7 +39,7 @@ jQuery(function() {
       options.content = options.title
       options.title = ''
     }
-    OpenModal(options)
+    open_modal(options)
   }
 })
 
@@ -60,7 +60,8 @@ jQuery(function() {
  * on_close: function executed after modal closed
  * return modal object
  */
-function OpenModal(settings) {
+// eslint-disable-next-line camelcase
+function open_modal(settings) {
   const def = {
     title: '',
     content: null,
@@ -102,7 +103,7 @@ function OpenModal(settings) {
   modal.on('hidden.bs.modal', function(e) {
     settings.on_close(modal)
     if (!$(e.currentTarget).attr('data-skip_destroy')) $(e.currentTarget).remove()
-    ModalFixMultiple()
+    modal_fix_multiple()
   })
 
   if (settings.zindex) modal.css('z-index', settings.zindex)

@@ -1,6 +1,7 @@
 /* eslint-env jquery */
+/* eslint camelcase: ["error", {properties: "never", ignoreGlobals: true, allow: ["cama_get_tinymce_settings"]}] */
 // eslint-disable-next-line no-unused-vars
-function CamaGetTinymceSettings(settings) {
+function cama_get_tinymce_settings(settings) {
   if (!settings) settings = {}
   const def = {
     selector: '.tinymce_textarea',

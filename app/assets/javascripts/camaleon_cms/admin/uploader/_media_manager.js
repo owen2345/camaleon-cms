@@ -4,6 +4,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
  */
 
+/* eslint camelcase: ["error", {properties: "never", ignoreGlobals: true}] */
 /* eslint-env jquery */
 window.cama_init_media = function(mediaPanel) {
   const mediaInfo = mediaPanel.find('.media_file_info')
@@ -323,7 +324,7 @@ window.cama_init_media = function(mediaPanel) {
         return false
       })
     }
-    OpenModal({ title: 'New Folder', content, callback, zindex: 9999999 })
+    open_modal({ title: 'New Folder', content, callback, zindex: 9999999 })
     return false
   })
 
@@ -435,7 +436,7 @@ window.cama_init_media = function(mediaPanel) {
             }
           })
         }
-        OpenModal(
+        open_modal(
           {
             zindex: 999992,
             modal_size: 'modal-lg',
@@ -514,7 +515,7 @@ window.cama_init_media = function(mediaPanel) {
       }
       , 300))
     }
-    OpenModal({
+    open_modal({
       zindex: 999991,
       id: 'media_panel_editor_image',
       title: I18n('button.edit_image', 'Edit Image') + ' - ' + data.name + (mediaPanel.attr('data-dimension') ? ' <small><i>(' + mediaPanel.attr('data-dimension') + ')</i></small>' : ''),
@@ -614,7 +615,7 @@ $.fn.upload_filemanager = function(args) {
   if (args.thumb_size === 'null')
     args.thumb_size = ''
 
-  return OpenModal({
+  return open_modal({
     title: args.title || I18n('msg.media_title'),
     id: 'cama_modal_file_uploader',
     modal_size: 'modal-lg',
