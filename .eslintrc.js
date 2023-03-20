@@ -1,3 +1,5 @@
+/* eslint camelcase: ["error", {properties: "never", ignoreGlobals: true}] */
+
 module.exports = {
   env: {
     browser: true,
@@ -35,15 +37,15 @@ module.exports = {
   },
   globals: {
     ADMIN_TRANSLATIONS: true,
-    CamaGetTinymceSettings: true,
+    cama_get_tinymce_settings: true,
     CURRENT_LOCALE: true,
     define: true,
     I18n: true,
-    InitFormValidations: true,
+    init_form_validations: true,
     hideLoading: true,
     introJs: true,
-    ModalFixMultiple: true,
-    OpenModal: true,
+    modal_fix_multiple: true,
+    open_modal: true,
     root_admin_url: true,
     showLoading: true,
     slugFunc: true,

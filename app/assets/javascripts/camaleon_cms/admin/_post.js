@@ -1,8 +1,11 @@
 /* eslint-env jquery */
-const AppPost = {}
+/* eslint camelcase: [
+"error", {properties: "never", ignoreGlobals: true, allow: ["App_post", "cama_init_post", "cama_upload_feature_image"]}
+] */
+const App_post = {}
 let $form = null
 /* eslint-disable-next-line no-unused-vars */
-function CamaInitPost(obj) {
+function cama_init_post(obj) {
   $form = $('#form-post')
 
   /* eslint-disable-next-line eqeqeq */
@@ -21,7 +24,7 @@ function CamaInitPost(obj) {
   const _ajaxPath = obj._ajax_path
   const _postTagsPath = obj._post_tags_path
 
-  AppPost.save_draft_ajax = function(callback, calledFromInterval) {
+  App_post.save_draft_ajax = function(callback, calledFromInterval) {
     _draftInited = true
     const data = $form.serializeObject()
     data._method = postDraftId ? 'patch' : 'post'
@@ -48,8 +51,8 @@ function CamaInitPost(obj) {
     }
   }
 
-  AppPost.save_draft = function() {
-    AppPost.save_draft_ajax(function() {
+  App_post.save_draft = function() {
+    App_post.save_draft_ajax(function() {
       $form.data('submitted', 1)
       location.href = _postsPath + '?flash[notice]=' + I18n('msg.draft')
     })
@@ -62,11 +65,11 @@ function CamaInitPost(obj) {
       if ($form.length === 0)
         clearInterval(window.post_editor_draft_intrval)
       else
-        AppPost.save_draft_ajax(null, true)
+        App_post.save_draft_ajax(null, true)
     },
     60 * 1000
   )
-  window.save_draft = AppPost.save_draft_ajax
+  window.save_draft = App_post.save_draft_ajax
 
   if ($form.find('.title-post' + classTranslate).length === 0)
     classTranslate = ''
@@ -148,7 +151,7 @@ function CamaInitPost(obj) {
       $link.find('.btn-preview').click(function() { // preview button
         const link = $(this)
         showLoading()
-        AppPost.save_draft_ajax(function() {
+        App_post.save_draft_ajax(function() {
           hideLoading()
           const ar = link.attr('href').split('draft_id=')
           ar[1] = postDraftId
@@ -204,7 +207,7 @@ function CamaInitPost(obj) {
   })
 
   try { $('.tinymce_textarea:not(.translated-item)', $form).tinymce().destroy() } catch (e) { }
-  tinymce.init(CamaGetTinymceSettings({
+  tinymce.init(cama_get_tinymce_settings({
     selector: '.tinymce_textarea:not(.translated-item)',
     height: '480px',
     base_path: obj.base_path
@@ -342,7 +345,7 @@ function CamaInitPost(obj) {
 
 // thumbnail uploader
 // eslint-disable-next-line no-unused-vars
-function CamaUploadFeatureImage(data) {
+function cama_upload_feature_image(data) {
   $.fn.upload_filemanager($.extend({
     formats: 'image',
     selected: function(image) {

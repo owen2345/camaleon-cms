@@ -1,19 +1,21 @@
 /* eslint-env jquery */
 jQuery(document).on('ready page:changed', function() {
   // initialize all validations for forms
-  InitFormValidations()
+  init_form_validations()
   setTimeout(PageActions, 1000)
-  if (!$('body').attr('data-intro')) setTimeout(InitIntro, 500)
+  if (!$('body').attr('data-intro')) setTimeout(init_intro, 500)
 })
 
 // show admin intro presentation
-function InitIntro() {
+// eslint-disable-next-line camelcase
+function init_intro() {
   const finish = function() {
     $.get(root_admin_url + '/ajax', { mode: 'save_intro' })
     const layer = $('.introjs-overlay').clone()
-    const of = $('.introjs-tooltip').offset()
-    const c = $('.introjs-tooltip')
-      .clone().css($.extend({}, { 'min-width': '0', position: 'absolute', overflow: 'hidden', zIndex: 9999999 }, of))
+    const introTooptip = $('.introjs-tooltip')
+    const of = introTooptip.offset()
+    const c = introTooptip.clone()
+      .css($.extend({}, { 'min-width': '0', position: 'absolute', overflow: 'hidden', zIndex: 9999999 }, of))
 
     $('html, body').animate({ scrollTop: $('body').height() }, 0)
     setTimeout(function() {
@@ -99,8 +101,8 @@ Object.size = function(obj) {
 
 // this is a fix for multiples modals when a modal was closed (reactivate scroll for next modal)
 // fix for boostrap multiple modals problem
-// eslint-disable-next-line no-unused-vars
-function ModalFixMultiple() {
+// eslint-disable-next-line no-unused-vars,camelcase
+function modal_fix_multiple() {
   const activeModal = $('.modal.in:last', 'body').data('bs.modal')
 
   if (activeModal) {

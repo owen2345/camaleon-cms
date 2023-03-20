@@ -45,7 +45,7 @@
         $('#cama_email_send_test_email').click(function(){
             var link = $(this);
             var content = '<form><div><label for=""><%= t('camaleon_cms.admin.table.email', default: 'Email') %>: </label> <div class="input-group"><input class="form-control required email data-error-place-parent" name="email"><span class="input-group-btn"><button type="submit" class="btn btn-primary"><%= t('camaleon_cms.admin.settings.send_test_email') %></button></span></div></div></form>';
-            OpenModal({title: link.text(), content: content, callback: function(modal){
+            open_modal({title: link.text(), content: content, callback: function(modal){
                 var form = modal.find('form');
                 form.validate({submitHandler: function(){
                     showLoading();

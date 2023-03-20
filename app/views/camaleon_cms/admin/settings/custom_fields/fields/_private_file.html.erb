@@ -1,4 +1,4 @@
 <div class="group-input-fields-content input-group">
   <input onfocus="$(this).blur().next('.btn_upload').click();" type="text" data-formats="<%= field.options[:formats] || "" %>" name="<%= field_name %>[<%= field.slug %>][values][]" class="disabled form-control input-value data-error-place-parent file_format <%= "required" if field.options[:required].to_s.to_bool %>"  />
-  <span class="input-group-addon btn_upload" onclick="LoadUploadPrivateFileField(this);return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.button.upload_file') %></span>
+  <span class="input-group-addon btn_upload" onclick="load_upload_private_file_field(this);return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.button.upload_file') %></span>
 </div>

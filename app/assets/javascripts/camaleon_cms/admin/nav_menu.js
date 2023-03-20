@@ -89,13 +89,13 @@ $(function() {
   // edit external menu items
   listPanel.on('click', '.item_external', function() {
     const link = $(this)
-    OpenModal({
+    open_modal({
       title: link.attr('data-original-title') || link.attr('title'),
       url: link.attr('href'),
       mode: 'ajax',
       callback(modal) {
         const form = modal.find('form')
-        InitFormValidations(form)
+        init_form_validations(form)
         return form.submit(function() {
           if (!form.valid())
             return false
@@ -132,7 +132,7 @@ $(function() {
     callback(modal) {
       const form = modal.find('form')
 
-      return setTimeout(() => InitFormValidations(form), 1000)
+      return setTimeout(() => init_form_validations(form), 1000)
     }
   })
 
@@ -147,13 +147,13 @@ $(function() {
   // custom fields
   return listPanel.on('click', '.custom_settings_link', function() {
     const link = $(this)
-    OpenModal({
+    open_modal({
       title: link.attr('data-original-title') || link.attr('title'),
       url: link.attr('href'),
       mode: 'ajax',
       callback(modal) {
         const form = modal.find('form')
-        InitFormValidations(form)
+        init_form_validations(form)
         return form.submit(function() {
           if (!form.valid())
             return false

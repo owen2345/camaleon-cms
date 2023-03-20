@@ -1,7 +1,7 @@
 <div class="group-input-fields-content input-group">
     <input
         onfocus="<%= '$(this).blur().next(\'.btn_upload\').click();' if field.options[:dimension].present? || field.options[:versions].present? || field.options[:thumb_size].present? %>"
-        onchange="CamaCustomFieldImageChanged($(this))"
+        onchange="cama_custom_field_image_changed($(this))"
         data-dimension="<%= field.options[:dimension] %>"
         data-versions="<%= field.options[:versions] %>"
         data-thumb_size="<%= field.options[:thumb_size] %>"
@@ -12,5 +12,5 @@
       <i class="fa fa-upload"></i>
       <%= t('camaleon_cms.admin.button.upload_image')%> <%= "(#{field.get_option('dimension')})" if field.get_option('dimension').present? %>
     </span>
-    <span class="input-group-addon btn btn-primary btn-xs" onclick="CamaCustomFieldImageRemove($(this).parent().find('input'));"><i class="fa fa-times"></i></span>
+    <span class="input-group-addon btn btn-primary btn-xs" onclick="cama_custom_field_image_remove($(this).parent().find('input'));"><i class="fa fa-times"></i></span>
 </div>

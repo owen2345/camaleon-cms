@@ -1,6 +1,7 @@
 /* eslint-env jquery */
+/* eslint camelcase: ["error", {allow: ["init_profile_form"]}] */
 /* eslint-disable-next-line no-unused-vars */
-function InitProfileForm() {
+function init_profile_form() {
   const form = $('#user_form')
   form.validate()
 
