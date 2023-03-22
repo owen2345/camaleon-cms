@@ -2,7 +2,7 @@ module CamaleonCms
   class PostType < CamaleonCms::TermTaxonomy
     alias_attribute :site_id, :parent_id
     default_scope { where(taxonomy: :post_type) }
-    cama_define_common_relationships('PostType')
+
     has_many :categories, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type_parent
     has_many :post_tags, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type
     has_many :posts, foreign_key: :taxonomy_id, dependent: :destroy, inverse_of: :post_type
@@ -24,7 +24,8 @@ module CamaleonCms
     after_create :set_default_site_user_roles
     after_create :refresh_routes
     after_destroy :refresh_routes
-    after_update :check_refresh_routes
+    after_update :refresh_routes,
+                 if: proc { |obj| obj.destroyed_by_association.blank? && obj.saved_change_to_attribute?(:slug) }
     before_update :default_category
 
     # check if current post type manage categories
@@ -187,12 +188,7 @@ module CamaleonCms
 
     # reload routes to enable this post type url, like: http://localhost/my-slug
     def refresh_routes
-      PluginRoutes.reload unless destroyed_by_association.present?
-    end
-
-    # check if slug was changed
-    def check_refresh_routes
-      refresh_routes if cama_attr_changed?(:slug)
+      PluginRoutes.reload
     end
   end
 end

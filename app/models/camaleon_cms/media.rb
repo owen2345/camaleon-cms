@@ -1,5 +1,5 @@
 module CamaleonCms
-  class Media < ActiveRecord::Base
+  class Media < CamaleonRecord
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}media"
 
     belongs_to :site, required: false

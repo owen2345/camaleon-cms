@@ -1,7 +1,8 @@
 module CamaleonCms
-  class PostDefault < ActiveRecord::Base
+  class PostDefault < CamaleonRecord
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
+    include CommonRelationships
 
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}posts"
 

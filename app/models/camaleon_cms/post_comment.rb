@@ -1,6 +1,7 @@
 module CamaleonCms
-  class PostComment < ActiveRecord::Base
+  class PostComment < CamaleonRecord
     include CamaleonCms::Metas
+    include CommonRelationships
 
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}comments"
     # attr_accessible :user_id, :post_id, :content, :author, :author_email, :author_url, :author_IP, :approved, :agent, :agent, :typee, :comment_parent, :is_anonymous
@@ -9,7 +10,6 @@ module CamaleonCms
     # default_scope order('comments.created_at ASC')
     # approved: approved | pending | spam
 
-    cama_define_common_relationships('PostComment')
     has_many :children, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, dependent: :destroy
     belongs_to :post, required: false
     belongs_to :parent, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, required: false

@@ -4,6 +4,7 @@ module CamaleonCms
     included do
       include CamaleonCms::Metas
       include CamaleonCms::CustomFieldsRead
+      include CommonRelationships
 
       validates_uniqueness_of :username, scope: [:site_id], case_sensitive: false,
                                          message: I18n.t('camaleon_cms.admin.users.message.requires_different_username', default: 'Requires different username')
@@ -19,7 +20,6 @@ module CamaleonCms
       before_update { generate_token :auth_token if will_save_change_to_password_digest? }
 
       # relations
-      cama_define_common_relationships('User')
       has_many :all_posts, class_name: 'CamaleonCms::Post', foreign_key: :user_id
       has_many :all_comments, class_name: 'CamaleonCms::PostComment'
       belongs_to :site, class_name: 'CamaleonCms::Site', optional: true

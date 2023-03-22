@@ -1,5 +1,5 @@
 module CamaleonCms
-  class CustomField < ActiveRecord::Base
+  class CustomField < CamaleonRecord
     include CamaleonCms::Metas
 
     self.primary_key = :id

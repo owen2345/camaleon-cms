@@ -3,7 +3,7 @@ module CamaleonCms
     after_destroy :set_users_as_cilent
 
     default_scope { where(taxonomy: :user_roles) }
-    cama_define_common_relationships('UserRole')
+
     belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, required: false
 
     def roles_post_type

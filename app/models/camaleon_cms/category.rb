@@ -8,8 +8,6 @@ module CamaleonCms
     scope :empty, -> { where(count: [0, nil]) } # return all categories that does not contain any post
     # scope :parents, -> { where("term_taxonomy.parent_id IS NULL") }
 
-    cama_define_common_relationships('Category')
-
     has_many :posts, foreign_key: :objectid, through: :term_relationships, source: :object
     has_many :children, class_name: 'CamaleonCms::Category', foreign_key: :parent_id, dependent: :destroy
     belongs_to :parent, class_name: 'CamaleonCms::Category', foreign_key: :parent_id, required: false
