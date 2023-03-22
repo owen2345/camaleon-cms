@@ -1,6 +1,14 @@
 # Change Log
 
-## Unreleased
+## [2.7.0](https://github.com/owen2345/camaleon-cms/tree/2.7.0) (2023-03-22)
+- Change some render calls from `inline` to `plain`
+- Stop monkeypatching ActiveRecord::Base
+- Fix canonical URLs for translated sites
+- Lint Ruby using RuboCop
+- Lint JS using ESLint
+- Use cama_contact_form v. 0.1.0
+- Migrate CoffeeScript files to JS
+- Do not redundantly compile default theme assets
 - Remove temporary dependencies
 - Add Ruby 3.2 to CI
 - Require Rails 6+
@@ -38,10 +46,10 @@
 - Add unfilled strings to English locale
 - Rails 6.1 support
 
-## [2.5.3.1](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2020-08-04)
+## [2.5.3.1](https://github.com/owen2345/camaleon-cms/tree/2.5.3.1) (2020-08-04)
 - Use non-digest-assets gem for using 3rd party assets (fix missing not found glyphicon fonts)
 
-## [2.5.3](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2020-07-02)
+## [2.5.3](https://github.com/owen2345/camaleon-cms/tree/2.5.3) (2020-07-02)
 - Russian locale additions and fixes
 - Fix deprecation warnings present in Ruby 2.7 and Rails 6.0
 - Fix admin error path
@@ -50,14 +58,14 @@
 - Theme template include i18n
 - Upgrade Bootstrap from 3.3.4 to 3.4.1
 
-## [2.5.0](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2020-01-08)
+## [2.5.0](https://github.com/owen2345/camaleon-cms/tree/2.5.0) (2020-01-08)
 - feat: sprockets 4 support
 - feat: for sprockets 4, generate config manifest to precompile
 - feat: precompile assets only for sprockets <= 3x
 - fix: Rails 6 missing to_s for session id
 - fix: preview error
 
-## [2.4.6.7](https://github.com/owen2345/camaleon-cms/tree/2.4.6.6) (2019-08-05)
+## [2.4.6.7](https://github.com/owen2345/camaleon-cms/tree/2.4.6.7) (2019-08-05)
 - Fixed rails 6 bundle install error
 - Added https to default uri options
 - Use default page if no other pages exist
