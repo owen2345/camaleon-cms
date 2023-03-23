@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.7.1](https://github.com/owen2345/camaleon-cms/tree/2.7.1) (2023-03-22)
+- Fix common relationships
+
 ## [2.7.0](https://github.com/owen2345/camaleon-cms/tree/2.7.0) (2023-03-22)
 - Change some render calls from `inline` to `plain`
 - Stop monkeypatching ActiveRecord::Base
