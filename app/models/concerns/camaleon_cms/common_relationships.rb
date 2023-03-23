@@ -5,7 +5,7 @@ module CamaleonCms
     extend ActiveSupport::Concern
 
     included do
-      class_name = self.class.name.demodulize
+      class_name = name.demodulize
       has_many :metas, -> { where(object_class: class_name) },
                class_name: 'CamaleonCms::Meta', foreign_key: :objectid, dependent: :destroy
 

@@ -1,5 +1,6 @@
 module CamaleonCms
   class Site < CamaleonCms::TermTaxonomy
+    include CamaleonCms::CommonRelationships
     include CamaleonCms::SiteDefaultSettings
 
     # attrs: [name, description, slug]

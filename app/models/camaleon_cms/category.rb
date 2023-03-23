@@ -1,5 +1,7 @@
 module CamaleonCms
   class Category < CamaleonCms::TermTaxonomy
+    include CamaleonCms::CommonRelationships
+
     alias_attribute :site_id, :term_group
     alias_attribute :post_type_id, :status
 

@@ -1,5 +1,7 @@
 module CamaleonCms
   class PostTag < CamaleonCms::TermTaxonomy
+    include CamaleonCms::CommonRelationships
+
     default_scope { where(taxonomy: :post_tag) }
 
     has_many :posts, foreign_key: :objectid, through: :term_relationships, source: :object
