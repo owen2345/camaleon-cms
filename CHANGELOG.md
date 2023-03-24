@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.7.2](https://github.com/owen2345/camaleon-cms/tree/2.7.2) (2023-03-24)
+- Fix bug rendering category pages
+
 ## [2.7.1](https://github.com/owen2345/camaleon-cms/tree/2.7.1) (2023-03-22)
 - Fix common relationships
 

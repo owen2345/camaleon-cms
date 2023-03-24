@@ -29,9 +29,7 @@ module CamaleonCms
     # render category list
     def category
       begin
-        if params[:category_slug].present?
-          @category ||= current_site.the_full_categories.find_by_slug(params[:category_slug]).decorate
-        end
+        @category ||= current_site.the_full_categories.find_by_slug(params[:category_slug]).decorate if params[:category_slug].present?
         @category ||= current_site.the_full_categories.find(params[:category_id]).decorate
         @post_type = @category.the_post_type
       rescue StandardError
@@ -49,12 +47,11 @@ module CamaleonCms
         r_file = lookup_context.template_exists?("categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : 'category'
       end
 
-      unless layout_.present?
-        layout_ = lookup_context.template_exists?("layouts/post_types/#{@post_type.the_slug}/category") ? "post_types/#{@post_type.the_slug}/category" : nil
-      end
-      unless layout_.present?
-        layout_ = lookup_context.template_exists?("layouts/categories/#{@category.the_slug}") ? "categories/#{@category.the_slug}" : nil
-      end
+      layout_ = if lookup_context.template_exists?("layouts/post_types/#{@post_type.the_slug}/category")
+                  "post_types/#{@post_type.the_slug}/category"
+                elsif lookup_context.template_exists?("layouts/categories/#{@category.the_slug}")
+                  "categories/#{@category.the_slug}"
+                end
       r = { category: @category, layout: layout_, render: r_file }
       hooks_run('on_render_category', r)
       render r[:render], (!r[:layout].nil? ? { layout: r[:layout] } : {})
