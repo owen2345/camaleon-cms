@@ -1,7 +1,5 @@
 module CamaleonCms
   class PostType < CamaleonCms::TermTaxonomy
-    include CamaleonCms::CommonRelationships
-
     alias_attribute :site_id, :parent_id
     default_scope { where(taxonomy: :post_type) }
 

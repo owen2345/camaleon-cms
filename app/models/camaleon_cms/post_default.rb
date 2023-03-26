@@ -3,6 +3,14 @@ module CamaleonCms
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
 
+    def self.inherited(subclass)
+      super
+
+      subclass.class_eval do
+        include CamaleonCms::CommonRelationships
+      end
+    end
+
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}posts"
 
     # attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order, :is_feature

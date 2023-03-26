@@ -1,6 +1,7 @@
 module CamaleonCms
   module Metas
     extend ActiveSupport::Concern
+
     included do
       # options and metas auto save support
       attr_accessor :data_options
@@ -8,10 +9,6 @@ module CamaleonCms
 
       after_create  :save_metas_options, unless: :save_metas_options_skip
       before_update :fix_save_metas_options_no_changed
-
-      has_many :metas, lambda { |object|
-                         where(object_class: object.class.to_s.gsub('Decorator', '').gsub('CamaleonCms::', ''))
-                       }, class_name: 'CamaleonCms::Meta', foreign_key: :objectid, dependent: :delete_all
     end
 
     # Add meta with value or Update meta with key: key

@@ -1,7 +1,5 @@
 module CamaleonCms
   class Plugin < CamaleonCms::TermTaxonomy
-    include CamaleonCms::CommonRelationships
-
     # attrs:
     #   term_group => status active (1, nil)
     #   slug => plugin key
