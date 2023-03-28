@@ -8,7 +8,8 @@ module Plugins
           current_site.set_option('refresh_cache', false)
         end
 
-        return if signin? || Rails.env == 'development' || Rails.env == 'test' || !request.get?
+        # avoid cache if current visitor is logged in or development
+        return if signin? || Rails.env.development? || Rails.env.test? || !request.get?
 
         cache_key = front_cache_plugin_cache_key
         @caches = current_site.get_meta('front_cache_elements')
