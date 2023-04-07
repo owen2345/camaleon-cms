@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.requirements << 'imagemagick'
   # s.post_install_message = "Thank you for install Camaleon CMS."
 
-  s.files = Dir['{app,config,db,lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.md']
+  s.files = Dir['{app,config,db,lib}/**/*', 'LICENSE', 'Rakefile', 'README.md']
 
   s.add_dependency 'bcrypt'
   s.add_dependency 'breadcrumbs_on_rails'

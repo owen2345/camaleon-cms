@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.7.2](https://github.com/owen2345/camaleon-cms/tree/2.7.3) (2023-04-07)
+- Inclusion of CommonRelationships into subclasses is now performed in an inherited hook
+
 ## [2.7.2](https://github.com/owen2345/camaleon-cms/tree/2.7.2) (2023-03-24)
 - Fix bug rendering category pages
 
