@@ -3,10 +3,6 @@
 ## Unreleased
 - Replace sass-rails with dartsass-sprockets
 - Upgrade to TinyMCE v5
-- Remove temporary dependencies
-- Add Ruby 3.2 to CI
-- Require Rails 6+
-- Require Ruby 2.7+
 
 ## [2.7.5](https://github.com/owen2345/camaleon-cms/tree/2.7.5) (2023-11-22)
 - Fix the test email for non-main sites by [brian-kephart](https://github.com/brian-kephart) in [\#1050](https://github.com/owen2345/camaleon-cms/pull/1050)
@@ -38,6 +34,10 @@
 - Use cama_contact_form v. 0.1.0
 - Migrate CoffeeScript files to JS
 - Do not redundantly compile default theme assets
+- Remove temporary dependencies
+- Add Ruby 3.2 to CI
+- Require Rails 6+
+- Require Ruby 2.7+
 
 ## [2.6.4](https://github.com/owen2345/camaleon-cms/tree/2.6.4) (2022-06-08)
 - Reformat JSON comments for OJ compatibility
