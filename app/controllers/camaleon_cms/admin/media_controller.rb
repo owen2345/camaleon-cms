@@ -80,7 +80,7 @@ module CamaleonCms
                 cama_tmp_upload(params[:url], formats: params[:formats], name: params[:name])
               end
           if r[:error].present?
-            render plain: r[:error]
+            render plain: helpers.sanitize(r[:error])
           else
             params[:file_upload] = r[:file_path]
             sett = { remove_source: true }
@@ -106,7 +106,7 @@ module CamaleonCms
         end
 
         if f[:error].present?
-          render plain: f[:error]
+          render plain: helpers.sanitize(f[:error])
         else
           render partial: 'render_file_item', locals: { files: [f] }
         end
