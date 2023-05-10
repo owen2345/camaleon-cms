@@ -212,7 +212,6 @@ en:
         reload: 'Reload'
         clear_cache: 'Clear Cache'
         name_required: 'File name is required'
-        local_upload_denied: 'Cannot upload from localhost'
       menus:
         menus: Menus
         link_url: 'Link URL'
@@ -684,6 +683,16 @@ en:
         required: 'This field is required.'
         remote: 'Please fix this field.'
         email: 'Please enter a valid email address.'
+        host_invalid: 'Host cannot be resolved or invalid'
+        host_or_ip_invalid: 'Hostname or IP address invalid'
+        hostname_long: 'Host is too long (maximum is 1024 characters)'
+        html_tags: 'HTML/CSS/JS tags are not allowed'
+        no_localhost_requests: 'Requests to localhost are not allowed'
+        no_loopback_requests: 'Requests to loopback addresses are not allowed'
+        no_local_net_requests: 'Requests to the local network are not allowed'
+        no_link_local_net_requests: 'Requests to the link local network are not allowed'
+        no_shared_address_requests: 'Requests to the shared address space are not allowed'
+        no_limited_broadcast_address_requests: 'Requests to the limited broadcast address are not allowed'
         url: 'Please enter a valid URL.'
         date: 'Please enter a valid date.'
         dateiso: 'Please enter a valid date ( ISO ).'
@@ -697,6 +706,7 @@ en:
         range: 'Please enter a value between {0} and {1}.'
         max: 'Please enter a value less than or equal to {0}.'
         min: 'Please enter a value greater than or equal to {0}.'
+        username_alphanumeric: 'Username needs to start with an alphanumeric character'
       widgets:
         create_widget: 'Create Widget'
         create_sidebar: 'Create Sidebar'
