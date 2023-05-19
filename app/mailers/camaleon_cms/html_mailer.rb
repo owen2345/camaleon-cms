@@ -58,8 +58,11 @@ module CamaleonCms
       prepend_view_path(Rails.root.join(views_dir).to_s)
 
       theme = @current_site.get_theme
-      lookup_context.prefixes.prepend("themes/#{theme.slug}") if theme.settings['gem_mode']
-      lookup_context.prefixes.prepend("themes/#{theme.slug}/views") unless theme.settings['gem_mode']
+      if theme.settings && theme.settings['gem_mode']
+        lookup_context.prefixes.prepend("themes/#{theme.slug}")
+      else
+        lookup_context.prefixes.prepend("themes/#{theme.slug}/views")
+      end
       lookup_context.use_camaleon_partial_prefixes = true
       ((data[:files] || []) + (data[:attachments] || [])).each do |attach|
         if File.exist?(attach) && !File.directory?(attach)

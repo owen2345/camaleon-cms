@@ -70,7 +70,8 @@ module CamaleonCms
 
       # send email test
       def test_email
-        CamaleonCms::HtmlMailer.sender(params[:email], 'Test', { content: 'Test content' }).deliver_now
+        data = { content: 'Test content', current_site: current_site, url_base: cama_root_url }
+        CamaleonCms::HtmlMailer.sender(params[:email], 'Test', data).deliver_now
         head :ok
       rescue StandardError => e
         render inline: e.message, status: 502
