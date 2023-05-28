@@ -82,11 +82,6 @@ module CamaleonCms
         end
       end
 
-      def local_url?(url)
-        url.try :match?, LOCALHOST_DOMAIN_MATCHER
-        UserUrlValidator.validate(url)
-      end
-
       # upload files from media uploader
       def upload(settings = {})
         params[:dimension] = nil if params[:skip_auto_crop].present?
