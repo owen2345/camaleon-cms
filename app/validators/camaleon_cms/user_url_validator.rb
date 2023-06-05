@@ -30,13 +30,7 @@ require 'addressable/uri'
 
 module CamaleonCms
   class UserUrlValidator
-    LOCAL_IPS = [
-      '0.0.0.0',
-      '127.0.0.1',
-      '0x7f.0x0.0x0.0x1', # hex encoding
-      '0177.0.0.01', # octal encoding
-      '2130706433' # dword encoding
-    ].freeze
+    LOCAL_IPS = %w[0.0.0.0 ::].freeze
 
     def self.validate(...)
       new.validate(...)
@@ -51,23 +45,16 @@ module CamaleonCms
     # allow_localhost - Registers error if URL resolves to a localhost IP address and argument is false.
     # allow_local_network - Registers error if URL resolves to a link-local address and argument is false.
     # enforce_user - Registers error if URL user doesn't start with alphanumeric characters and argument is true.
-    # enforce_sanitization - Registers error if URL includes any HTML/CSS/JS tags and argument is true.
+    # enforce_sanitizing - Registers error if URL includes any HTML/CSS/JS tags and argument is true.
     #
     # Returns an array with [<uri>, <original-hostname>].
-    def validate(
-      url,
-      allow_localhost: false,
-      allow_local_network: false,
-      enforce_user: true,
-      enforce_sanitization: true
-    )
-
+    def validate(url, allow_localhost: false, allow_local_network: false, enforce_user: true, enforce_sanitizing: true)
       return invalid_url unless url.present?
 
       # Param url can be a string, URI or Addressable::URI
       return invalid_url unless (uri = parse_url(url))
 
-      validate_uri(uri: uri, enforce_sanitization: enforce_sanitization, enforce_user: enforce_user)
+      validate_uri(uri: uri, enforce_sanitizing: enforce_sanitizing, enforce_user: enforce_user)
       return @errors if @errors.any?
 
       address_info = get_address_info(uri)
@@ -84,8 +71,8 @@ module CamaleonCms
 
     private
 
-    def validate_uri(uri:, enforce_sanitization:, enforce_user:)
-      validate_html_tags(uri) if enforce_sanitization
+    def validate_uri(uri:, enforce_sanitizing:, enforce_user:)
+      validate_html_tags(uri) if enforce_sanitizing
 
       validate_user(uri.user) if enforce_user
       validate_hostname(uri.hostname)
@@ -172,7 +159,7 @@ module CamaleonCms
     end
 
     def validate_localhost(addrs_info)
-      return if (Socket.ip_address_list.map(&:ip_address).concat(LOCAL_IPS).uniq! & addrs_info.map(&:ip_address)).empty?
+      return if (Socket.ip_address_list.map(&:ip_address).concat(LOCAL_IPS) & addrs_info.map(&:ip_address)).empty?
 
       @errors << I18n.t('camaleon_cms.admin.validate.no_localhost_requests')
     end

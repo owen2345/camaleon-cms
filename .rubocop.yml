@@ -18,6 +18,9 @@ Metrics/AbcSize:
   Exclude:
     - spec/**/*
 
+RSpec/BeEql:
+  Enabled: false
+
 Metrics/BlockLength:
   Exclude:
     - spec/**/*
@@ -33,6 +36,9 @@ RSpec/FilePath:
   Enabled: false
 
 RSpec/InstanceVariable:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
   Enabled: false
 
 RSpec/MultipleExpectations:
