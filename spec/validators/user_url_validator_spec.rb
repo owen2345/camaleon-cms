@@ -208,7 +208,15 @@ RSpec.describe CamaleonCms::UserUrlValidator do
 
         it 'allows limited broadcast address 255.255.255.255 and variants' do
           limited_broadcast_address_variants.each do |variant|
-            expect(described_class.validate("https://#{variant}", **url_blocker_args)).to eql(true)
+            result = described_class.validate("https://#{variant}", **url_blocker_args)
+
+            # The padded hex version is a valid URL on Mac but not on Ubuntu.
+            if variant == '0xBaaaaaaaaaaaaaaaaffffffff' && (/darwin/ =~ RUBY_PLATFORM).nil? # not MacOS
+              expect(result).to eql([I18n.t('camaleon_cms.admin.validate.host_invalid')])
+              next
+            end
+
+            expect(result).to eql(true)
           end
         end
       end
@@ -267,11 +275,16 @@ RSpec.describe CamaleonCms::UserUrlValidator do
         end
 
         it 'blocks limited broadcast address 255.255.255.255 and variants' do
-          # Raise BlockedUrlError for invalid URLs.
-          # The padded hex version, for example, is a valid URL on Mac but not on Ubuntu.
           limited_broadcast_address_variants.each do |variant|
-            expect(described_class.validate("https://#{variant}", allow_local_network: false))
-              .to eql([I18n.t('camaleon_cms.admin.validate.no_limited_broadcast_address_requests')])
+            result = described_class.validate("https://#{variant}", allow_local_network: false)
+
+            # The padded hex version, is a valid URL on Mac but not on Ubuntu.
+            if variant == '0xBaaaaaaaaaaaaaaaaffffffff' && (/darwin/ =~ RUBY_PLATFORM).nil? # not MacOS
+              expect(result).to eql([I18n.t('camaleon_cms.admin.validate.host_invalid')])
+              next
+            end
+
+            expect(result).to eql([I18n.t('camaleon_cms.admin.validate.no_limited_broadcast_address_requests')])
           end
         end
       end
