@@ -22,11 +22,13 @@ Gem::Specification.new do |s|
 
   s.files = Dir['{app,config,db,lib}/**/*', 'LICENSE', 'Rakefile', 'README.md']
 
+  s.add_dependency 'addressable'
   s.add_dependency 'bcrypt'
   s.add_dependency 'breadcrumbs_on_rails'
   s.add_dependency 'cancancan', '>= 2.0', '< 4'
   s.add_dependency 'draper', '>= 4.0.2'
   s.add_dependency 'font-awesome-rails'
+  s.add_dependency 'ipaddress'
   s.add_dependency 'jquery-rails'
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
