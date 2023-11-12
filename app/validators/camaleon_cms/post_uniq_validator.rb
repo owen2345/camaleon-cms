@@ -8,9 +8,10 @@ module CamaleonCms
       return unless ptype.present? # only for posts that belongs to a post type model
 
       posts = ptype.site.posts
-                   .where("(#{slug_array.map do |s|
-                                "#{CamaleonCms::Post.table_name}.slug LIKE '%-->#{s}<!--%'"
-                              end.join(' OR ')} ) OR #{CamaleonCms::Post.table_name}.slug = ?", record.slug)
+                   .where(
+                     "(#{slug_array.map { |s| "#{CamaleonCms::Post.table_name}.slug LIKE '%-->#{s}<!--%'" }
+                                        .join(' OR ')} ) OR #{CamaleonCms::Post.table_name}.slug = ?", record.slug
+                   )
                    .where.not(id: record.id)
                    .where.not(status: %i[draft draft_child trash])
       if posts.size.positive?

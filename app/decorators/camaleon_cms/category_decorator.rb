@@ -29,7 +29,8 @@ module CamaleonCms
     # return a child category from this category with id (integer) or by slug (string)
     def the_category(slug_or_id)
       return object.categories.where(id: slug_or_id).first if slug_or_id.is_a?(Integer)
-      return object.categories.find_by_slug(slug_or_id) if slug_or_id.is_a?(String)
+
+      object.categories.find_by_slug(slug_or_id) if slug_or_id.is_a?(String)
     end
 
     # ---------------------

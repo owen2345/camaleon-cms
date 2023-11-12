@@ -80,7 +80,8 @@ module CamaleonCms
     # slug_or_id: string => return all main categories of the post_type with slug = slug_or_id
     def the_categories(slug_or_id = nil)
       return the_post_type(slug_or_id).the_categories if slug_or_id.present?
-      return object.categories unless slug_or_id.present?
+
+      object.categories unless slug_or_id.present?
     end
 
     # return the category object with id or slug = slug_or_id from this site
