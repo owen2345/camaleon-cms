@@ -38,7 +38,47 @@ describe 'the Menus', js: true do
     end
   end
 
-  it 'Menus Create and Delete' do
+  it 'creates and selects menus' do
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/appearances/nav_menus"
+
+    page.execute_script('jQuery("#switch_nav_menu_form .new_menu_link").click()')
+
+    within '#ow_inline_modal' do
+      fill_in 'nav_menu_name', with: 'Second menu'
+      fill_in 'nav_menu_slug', with: 'second-menu'
+      click_button 'Create Menu'
+      wait_for_ajax
+    end
+
+    within '#menu_items' do
+      select('Second menu', from: 'menu')
+
+      check('Sample Post')
+      page.execute_script('$("#acc-post input").prop("checked", true)')
+      page.execute_script('$("#acc-post").prev().find("input").prop("checked", true)')
+      page.execute_script('$("#acc-post .add_links_to_menu").click()')
+      wait_for_ajax
+
+      select('Main Menu', from: 'menu')
+      wait_for_ajax
+    end
+
+    within '#menus_list' do
+      find('.dd-item', text: 'Welcome')
+    end
+
+    within '#menu_items' do
+      select('Second menu', from: 'menu')
+      wait_for_ajax
+    end
+
+    within '#menus_list' do
+      find('.dd-item', text: 'Uncategorized')
+    end
+  end
+
+  it 'deletes menus' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/appearances/nav_menus"
     page.execute_script('jQuery("#switch_nav_menu_form .btn-danger").click()')

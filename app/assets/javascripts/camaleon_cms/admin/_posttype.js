@@ -9,18 +9,18 @@ window.cama_init_posttype_form = function() {
 
     item.parent().siblings().find('input').prop('disabled', $(this).is(':checked'))
     if ($(this).is(':checked'))
-      return item.prop('checked', true).prop('disabled', false)
+      item.prop('checked', true).prop('disabled', false)
     else
-      return item.prop('disabled', true)
+      item.prop('disabled', true)
   }).trigger('change')
 
   form.find('[name="meta[has_picture]"]').change(function() {
     const items = form.find('.picture_settings input')
 
     if ($(this).is(':checked'))
-      return items.prop('disabled', false)
+      items.prop('disabled', false)
     else
-      return items.prop('disabled', true)
+      items.prop('disabled', true)
   }).trigger('change')
 
   // toggle single and multiple categories checkbox
@@ -28,9 +28,10 @@ window.cama_init_posttype_form = function() {
     'input:checkbox[name="meta[has_category]"], input:checkbox[name="meta[has_single_category]"]'
   )
 
-  return catChecks.change(
+  catChecks.change(
     function() {
-      if ($(this).is(':checked')) return catChecks.not(this).prop('checked', false)
+      if ($(this).is(':checked'))
+        catChecks.not(this).prop('checked', false)
     }
   ).filter(':checked').trigger('change')
 }

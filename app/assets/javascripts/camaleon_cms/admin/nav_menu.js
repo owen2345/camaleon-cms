@@ -1,9 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
-
 /* eslint-env jquery */
 $(function() {
   const panel = $('#menu_content')
@@ -21,11 +15,11 @@ $(function() {
       return
 
     panel.find('#menu_reoreder_loading').show()
-    return $.post(listPanel.attr('data-reorder_url'), data, function(res) {
+    $.post(listPanel.attr('data-reorder_url'), data, function(res) {
       lastData = data
       panel.find('#menu_reoreder_loading').hide()
       if (res)
-        return alert(res)
+        alert(res)
     })
   })
 
@@ -33,13 +27,10 @@ $(function() {
   const saveMenu = function(data) {
     showLoading()
 
-    return $.post(
-      listPanel.attr('data-url'),
-      data,
-      function(res) {
-        listPanel.children('.dd-list').append($(res).children())
-        return hideLoading()
-      })
+    $.post(listPanel.attr('data-url'), data, function(res) {
+      listPanel.children('.dd-list').append($(res).children())
+      hideLoading()
+    })
   }
 
   // add menu items (non-external)
@@ -48,7 +39,7 @@ $(function() {
     let flag = false
     $(this).closest('.panel').find('input:checkbox:checked').each(function() {
       flag = true
-      return data.items.push({ id: $(this).val(), kind: $(this).closest('.class_type').attr('data-type') })
+      data.items.push({ id: $(this).val(), kind: $(this).closest('.class_type').attr('data-type') })
     }).prop('checked', false)
 
     if (!flag)
@@ -64,7 +55,7 @@ $(function() {
     let flag = false
     $(this).closest('.panel').find('input:checkbox:checked').each(function() {
       flag = true
-      return data.custom_items.push({ url: $(this).val(), kind: $(this).attr('data-kind'), label: $(this).attr('data-label') })
+      data.custom_items.push({ url: $(this).val(), kind: $(this).attr('data-kind'), label: $(this).attr('data-label') })
     }).prop('checked', false)
 
     if (!flag)
@@ -93,10 +84,10 @@ $(function() {
       title: link.attr('data-original-title') || link.attr('title'),
       url: link.attr('href'),
       mode: 'ajax',
-      callback(modal) {
+      callback: (modal) => {
         const form = modal.find('form')
         init_form_validations(form)
-        return form.submit(function() {
+        form.submit(function() {
           if (!form.valid())
             return false
 
@@ -104,7 +95,7 @@ $(function() {
           $.post(form.attr('action'), form.serialize(), function(res) {
             link.closest('li').replaceWith($(res).html())
             modal.modal('hide')
-            return hideLoading()
+            hideLoading()
           })
           return false
         })
@@ -122,39 +113,39 @@ $(function() {
     showLoading()
     $.get(link.attr('href'), function() {
       link.closest('.dd-item').remove()
-      return hideLoading()
+      hideLoading()
     })
     return false
   })
 
   // new menu
   panel.find('.new_menu_link, .edit_menu_link').ajax_modal({
-    callback(modal) {
+    callback: (modal) => {
       const form = modal.find('form')
 
-      return setTimeout(() => init_form_validations(form), 1000)
+      setTimeout(() => init_form_validations(form), 1000)
     }
   })
 
   // menus list - change dropdown
-  panel.find('#menu_items #switch_nav_menuForm select').change(function() {
+  panel.find('#menu_items #switch_nav_menu_form select').change(function() {
     if (!$(this).val())
       return
 
-    return $(this).closest('form').submit()
+    $(this).closest('form').submit()
   })
 
   // custom fields
-  return listPanel.on('click', '.custom_settings_link', function() {
+  listPanel.on('click', '.custom_settings_link', function() {
     const link = $(this)
     open_modal({
       title: link.attr('data-original-title') || link.attr('title'),
       url: link.attr('href'),
       mode: 'ajax',
-      callback(modal) {
+      callback: (modal) => {
         const form = modal.find('form')
         init_form_validations(form)
-        return form.submit(function() {
+        form.submit(function() {
           if (!form.valid())
             return false
 
@@ -164,7 +155,7 @@ $(function() {
               alert(res)
 
             modal.modal('hide')
-            return hideLoading()
+            hideLoading()
           })
           return false
         })
