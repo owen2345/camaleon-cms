@@ -131,7 +131,7 @@ module CamaleonCms
     #   puts res[0]['my_slug1'].first ==> "val 1"
     def get_fields_grouped(field_keys)
       res = []
-      custom_field_values.where(custom_field_slug: field_keys).order(group_number: :asc).group_by(&:group_number).each do |_group_number, group_fields|
+      custom_field_values.where(custom_field_slug: field_keys).order(group_number: :asc).group_by(&:group_number).each_value do |group_fields|
         group = {}
         field_keys.each do |field_key|
           _tmp = []
@@ -243,7 +243,7 @@ module CamaleonCms
 
       ActiveRecord::Base.transaction do
         custom_field_values.delete_all
-        datas.each do |_index, fields_data|
+        datas.each_value do |fields_data|
           fields_data.each do |field_key, values|
             next unless values[:values].present?
 

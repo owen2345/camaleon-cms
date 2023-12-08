@@ -19,7 +19,7 @@ class Hash
 
   # used for hash of objects
   def find_by(val, attr = 'id')
-    each do |_key, p|
+    each_value do |p|
       return p if p[attr].to_s == val.to_s
     end
     nil

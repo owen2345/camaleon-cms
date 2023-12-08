@@ -91,7 +91,7 @@ module CamaleonCms
     # return theme model with slug theme_slug for this site
     # theme_slug: (optional) if it is null, this will return current theme for this site
     def get_theme(theme_slug = nil)
-      themes.where(slug: (theme_slug || get_theme_slug), status: nil).first_or_create!
+      themes.where(slug: theme_slug || get_theme_slug, status: nil).first_or_create!
     end
 
     # return plugin model with slug plugin_slug
