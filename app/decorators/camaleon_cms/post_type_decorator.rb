@@ -70,7 +70,8 @@ module CamaleonCms
     # return a category from this post_type with id (integer) or by slug (string)
     def the_category(slug_or_id)
       return the_categories.where(id: slug_or_id).first if slug_or_id.is_a?(Integer)
-      return the_categories.find_by_slug(slug_or_id) if slug_or_id.is_a?(String)
+
+      the_categories.find_by_slug(slug_or_id) if slug_or_id.is_a?(String)
     end
 
     # return all post_tags for the post_type (active_record) filtered by permissions + hidden posts + roles + etc...
