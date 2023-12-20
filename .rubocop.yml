@@ -48,6 +48,10 @@ RSpec/NestedGroups:
   Enabled: true
   Max: 5
 
+Security/MarshalLoad:
+  Exclude:
+    - spec/**/*
+
 Style/Documentation:
   Enabled: false
 

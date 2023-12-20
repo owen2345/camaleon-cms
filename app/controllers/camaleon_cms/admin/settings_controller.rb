@@ -26,7 +26,7 @@ module CamaleonCms
           flash[:notice] = t('camaleon_cms.admin.settings.message.site_updated')
           args = { action: :site }
           args[:host], args[:port] = @site.get_domain.to_s.split(':') if cache_slug != @site.slug
-          redirect_to(args)
+          redirect_to(args, allow_other_host: true)
         else
           render 'site'
         end
