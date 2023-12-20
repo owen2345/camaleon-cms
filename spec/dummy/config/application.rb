@@ -19,6 +19,7 @@ require 'camaleon_cms'
 
 module Dummy
   class Application < Rails::Application
+    config.load_defaults Rails.version.to_f
     config.autoloader = :zeitwerk
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
