@@ -5,11 +5,11 @@ module CamaleonCms
     include CamaleonCms::MetasDecoratorMethods
 
     def marshal_dump
-      [@object]
+      @object
     end
 
-    def marshal_load(ary)
-      @object = ary.first
+    def marshal_load(obj)
+      @object = obj
     end
 
     # return the keywords for this model
