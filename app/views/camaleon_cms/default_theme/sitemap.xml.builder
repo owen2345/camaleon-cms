@@ -54,7 +54,7 @@ xml.urlset 'xmlns' => 'http://www.sitemaps.org/schemas/sitemap/0.9' do
     end
   end
 
-  @r[:custom].each do |_key, item|
+  @r[:custom].each_value do |item|
     xml.url do
       xml.loc item[:url]
       xml.lastmod item[:lastmod] || Date.today.to_s

@@ -105,7 +105,7 @@ module CamaleonCms
           end
 
           if params[:custom_items].present? # custom menu items
-            params[:custom_items].each do |_index, item|
+            params[:custom_items].each_value do |item|
               type = item['kind'].present? ? item['kind'] : 'external'
               item = @nav_menu.append_menu_item({ label: item['label'], link: item['url'], type: type })
               items << item
@@ -113,7 +113,7 @@ module CamaleonCms
           end
 
           if params[:items].present?
-            params[:items].each do |_index, item|
+            params[:items].each_value do |item|
               item = @nav_menu.append_menu_item({ label: 'auto', link: item['id'], type: item['kind'] })
               items << item
             end

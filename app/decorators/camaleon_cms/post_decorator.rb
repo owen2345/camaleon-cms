@@ -41,8 +41,8 @@ module CamaleonCms
       if th.present?
         th
       else
-        (default || object.post_type.get_option('default_thumb',
-                                                nil) || h.asset_url('camaleon_cms/image-not-found.png'))
+        default || object.post_type.get_option('default_thumb',
+                                               nil) || h.asset_url('camaleon_cms/image-not-found.png')
       end
     end
     alias the_image_url the_thumb_url

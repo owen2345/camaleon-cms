@@ -72,14 +72,14 @@ module CamaleonCms
     def cama_draw_custom_assets
       cama_html_helpers_init unless @_assets_libraries.present?
       libs = []
-      @_assets_libraries.each do |_key, assets|
+      @_assets_libraries.each_value do |assets|
         libs += assets[:css] if assets[:css].present?
       end
       stylesheets = libs.uniq
       css = stylesheet_link_tag(*stylesheets, media: 'all')
 
       libs = []
-      @_assets_libraries.each do |_key, assets|
+      @_assets_libraries.each_value do |assets|
         libs += assets[:js] if assets[:js].present?
       end
       javascripts = libs.uniq

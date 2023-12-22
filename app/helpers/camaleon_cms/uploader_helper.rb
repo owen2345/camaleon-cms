@@ -45,7 +45,7 @@ module CamaleonCms
         generate_thumb: true,
         temporal_time: 0,
         filename: begin
-          (cached_name || uploaded_io.original_filename)
+          cached_name || uploaded_io.original_filename
         rescue StandardError
           uploaded_io.path.split('/').last
         end.cama_fix_filename,

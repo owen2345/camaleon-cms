@@ -8,12 +8,10 @@ module Plugins
       end
 
       def save_settings
-        current_site.set_meta('front_cache_elements', { paths: ((params[:cache][:paths] || []).delete_if do |a|
-                                                                  !a.present?
-                                                                end || []),
-                                                        posts: (params[:cache][:posts] || []),
-                                                        post_types: (params[:cache][:post_type] || []),
-                                                        skip_posts: (params[:cache][:skip_posts] || []),
+        current_site.set_meta('front_cache_elements', { paths: (params[:cache][:paths] || []).compact_blank || [],
+                                                        posts: params[:cache][:posts] || [],
+                                                        post_types: params[:cache][:post_type] || [],
+                                                        skip_posts: params[:cache][:skip_posts] || [],
                                                         cache_login: params[:cache][:cache_login],
                                                         home: params[:cache][:home],
                                                         preserve_cache_on_restart: params[:cache][:preserve_cache_on_restart],

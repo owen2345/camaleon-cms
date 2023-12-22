@@ -9,7 +9,7 @@ AllCops:
     - /**/vendor/**/* # Exclude downloaded gem code in CI
   NewCops: disable
   SuggestExtensions: false
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.0
 
 Lint/MissingSuper:
   Enabled: false
@@ -47,6 +47,10 @@ RSpec/MultipleExpectations:
 RSpec/NestedGroups:
   Enabled: true
   Max: 5
+
+Security/MarshalLoad:
+  Exclude:
+    - spec/**/*
 
 Style/Documentation:
   Enabled: false

@@ -15,7 +15,7 @@ module CamaleonCms
                       return args[:shortcode] unless attrs.present?
 
                       cama_load_libraries(*attrs['data'].to_s.split(','))
-                      return ''
+                      ''
                     },
                     "Permit to load libraries on demand, sample: [load_libraries data='datepicker,tinymce']")
 

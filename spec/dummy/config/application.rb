@@ -19,6 +19,8 @@ require 'camaleon_cms'
 
 module Dummy
   class Application < Rails::Application
+    config.load_defaults Rails.version.to_f
+    config.active_record.belongs_to_required_by_default = false
     config.autoloader = :zeitwerk
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
@@ -34,7 +36,6 @@ module Dummy
 
     # Do not swallow errors in after_commit/after_rollback callbacks.
     # config.active_record.raise_in_transactional_callbacks = true
-    config.active_record.sqlite3.represent_boolean_as_integer = true if Rails.version.start_with? == '5.2.'
 
     config.active_record.legacy_connection_handling = false if Rails.version.to_f >= 6.1 && Rails.version.to_f < 7.1
   end

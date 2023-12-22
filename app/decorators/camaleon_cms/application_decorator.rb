@@ -4,6 +4,14 @@ module CamaleonCms
     @_deco_locale = nil
     include CamaleonCms::MetasDecoratorMethods
 
+    def marshal_dump
+      @object
+    end
+
+    def marshal_load(obj)
+      @object = obj
+    end
+
     # return the keywords for this model
     def the_keywords
       k = object.get_option('keywords', '')
