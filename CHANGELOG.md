@@ -1,5 +1,13 @@
 # Change Log
 
+## [2.7.5](https://github.com/owen2345/camaleon-cms/tree/2.7.5) (2023-11-22)
+- Fix the test email for non-main sites by @brian-kephart in #1050
+- Bump semver from 7.3.8 to 7.5.3 by @dependabot in #1057
+- UserUrlValidator for SSRF mitigation by @texpert in #1048
+- Bump word-wrap from 1.2.3 to 1.2.4 by @dependabot in #1059
+- Remove webdrivers gem, which has no support for Chrome v115 by @texpert in #1060
+- Fix JS after conversion from CoffeeScript by @texpert in #1062
+
 ## [2.7.4](https://github.com/owen2345/camaleon-cms/tree/2.7.4) (2023-04-11)
 - Sanitize error messages when rendering them directly from the controller
 
