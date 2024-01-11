@@ -12,5 +12,8 @@
   "main": "index.js",
   "repository": "https://github.com/owen2345/camaleon-cms",
   "author": "owen2345 <owenperedo@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+  }
 }

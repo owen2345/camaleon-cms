@@ -25,7 +25,7 @@ jobs:
       - name: Install JS modules
         run: yarn
       - name: Run ESLint
-        run: yarn eslint . --ext .js,.jsx,.ts,.tsx
+        run: yarn lint
   spec:
     runs-on: ubuntu-latest
     strategy:
