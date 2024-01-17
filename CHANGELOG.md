@@ -1,10 +1,14 @@
 # Change Log
 
+## Unreleased
+- Use jQuery 2.x - 2.2.4
+  - If there are `//= require jquery` clauses in the main application, replace them with `//= require jquery2` 
+
 ## [2.7.5](https://github.com/owen2345/camaleon-cms/tree/2.7.5) (2023-11-22)
 - Fix the test email for non-main sites by [brian-kephart](https://github.com/brian-kephart) in [\#1050](https://github.com/owen2345/camaleon-cms/pull/1050)
 - Bump semver from 7.3.8 to 7.5.3 by [dependabot](https://github.com/apps/dependabot) in [\#1057](https://github.com/owen2345/camaleon-cms/pull/1057)
 - UserUrlValidator for SSRF mitigation by [texpert](https://github.com/texpert) in [\#1048](https://github.com/owen2345/camaleon-cms/pull/1048)
- - Thanks [paragbagul111](https://github.com/paragbagul111) for reporting the issue
+  - Thanks [paragbagul111](https://github.com/paragbagul111) for reporting the issue
 - Bump word-wrap from 1.2.3 to 1.2.4 by [dependabot](https://github.com/apps/dependabot)  in [\#1059](https://github.com/owen2345/camaleon-cms/pull/1059)
 - Remove webdrivers gem, which has no support for Chrome v115 [texpert](https://github.com/texpert) in [\#1060](https://github.com/owen2345/camaleon-cms/pull/1060)
 - Fix JS after conversion from CoffeeScript [texpert](https://github.com/texpert) in [\#1062](https://github.com/owen2345/camaleon-cms/pull/1062)

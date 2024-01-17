@@ -10,7 +10,7 @@
 // Read Sprockets README (https://github.com/rails/sprockets) for details
 // about supported directives.
 //
-//= require jquery
+//= require jquery2
 //= require camaleon_cms/admin/_data
 //= require camaleon_cms/bootstrap.min
 //= require camaleon_cms/admin/_jquery-ui.min
