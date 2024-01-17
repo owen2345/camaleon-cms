@@ -1,3 +1,4 @@
+# see spec/dummy/.gitignore for ignored files relating to the dummy app.
 /.idea
 /.byebug_history
 Gemfile.lock
@@ -5,9 +6,6 @@ Gemfile.lock
 .DS_Store
 *~
 .~*
-spec/dummy/**/*.png
-spec/dummy/**/*.jpg
-spec/dummy/**/*.sqlite3*
 spec/support/fixtures/rails_tmp.png
 *.gem
 .tool-versions

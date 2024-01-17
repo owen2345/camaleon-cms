@@ -4,6 +4,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
  */
 
+/* eslint camelcase: ["error", {properties: "never", ignoreGlobals: true}] */
 /* eslint-env jquery */
 window.cama_init_media = function(mediaPanel) {
   const mediaInfo = mediaPanel.find('.media_file_info')
@@ -18,9 +19,11 @@ window.cama_init_media = function(mediaPanel) {
     return mediaPanel.trigger('navigate_to', { folder: f })
   })
 
+  const evaluate = eval
+
   // return the data of this file
   const fileData = function(item) {
-    const data = item.data('eval-data') || eval('(' + item.find('.data_value').val() + ')')
+    const data = item.data('eval-data') || evaluate('(' + item.find('.data_value').val() + ')')
     item.data('eval-data', data)
     return data
   }
@@ -406,13 +409,14 @@ window.cama_init_media = function(mediaPanel) {
           else if ((cmd === "('scaleY', 1)") || (cmd === "('scaleX', 1)"))
             btn.data('cmd', cmd.replace('1', '-1'))
 
-          eval('cropper.cropper' + cmd)
+          evaluate('cropper.cropper' + cmd)
           if (cmd === "('reset')")
             return cropper.cropper('setData', cropperData.data)
         })
       }
 
       // save edited image
+      /* eslint-disable-next-line no-unused-vars, camelcase */
       const save_btn = modal.find('.export_image').submit(function() {
         if (!$(this).valid())
           return false
@@ -476,7 +480,7 @@ window.cama_init_media = function(mediaPanel) {
                     '<div class="alert alert-danger">' +
                       I18n(
                         'msg.cors_error',
-                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: data.url, url_blog: 'http://blog.celingest.com/en/2014/10/02/tutorial-using-cors-with-cloudfront-and-s3/' }
+                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: data.url, url_blog: 'https://stackoverflow.com/questions/12358173/correct-s3-cloudfront-cors-configuration' }
                       ) +
                       '</div>'
                   )
@@ -556,7 +560,8 @@ window.cama_init_media = function(mediaPanel) {
 // return extra attributes for media panel
 window.cama_media_get_custom_params = function(customSettings) {
   const mediaPanel = $('#cama_media_gallery')
-  const r = eval('(' + mediaPanel.attr('data-extra-params') + ')')
+  const evaluate = eval
+  const r = evaluate('(' + mediaPanel.attr('data-extra-params') + ')')
   r.folder = mediaPanel.attr('data-folder')
   if (customSettings)
     $.extend(r, customSettings)
@@ -565,77 +570,72 @@ window.cama_media_get_custom_params = function(customSettings) {
   return r
 }
 
-$(() =>
-  // sample: $.fn.upload_url({url: 'http://camaleon.tuzitio.com/media/132/logo2.png', dimension: '120x120', versions: '200x200', folder: 'my_folder', thumb_size: '100x100'})
-  // dimension: default current dimension
-  // folder: default current folder
-  // private: (Boolean) if true => list private files
-  $.fn.upload_url = function(args) {
-    const mediaPanel = $('#cama_media_gallery')
-    const data = window.cama_media_get_custom_params({
-      media_action: 'crop_url',
-      onerror(message) {
-        return $.fn.alert({ type: 'error', content: message, title: I18n('msg.error_uploading') })
-      }
-    })
-    $.extend(data, args)
-    const onError = data.onerror
-    delete data.onerror
-    showLoading()
-    return $.post(mediaPanel.attr('data-url_actions'), data, function(resUpload) {
-      hideLoading()
-      if (resUpload.search('media_item') >= 0) { // success upload
-        mediaPanel.trigger('add_file', { item: resUpload })
-        if (data.callback)
-          return data.callback(resUpload)
-      } else
-        return $.fn.alert({ type: 'error', content: resUpload, title: I18n('button.error') })
-    }).error(() => $.fn.alert({ type: 'error', content: I18n('msg.internal_error'), title: I18n('button.error') }))
-  }
-)
+// sample: $.fn.upload_url({url: 'http://camaleon.tuzitio.com/media/132/logo2.png', dimension: '120x120', versions: '200x200', folder: 'my_folder', thumb_size: '100x100'})
+// dimension: default current dimension
+// folder: default current folder
+// private: (Boolean) if true => list private files
+$.fn.upload_url = function(args) {
+  const mediaPanel = $('#cama_media_gallery')
+  const data = window.cama_media_get_custom_params({
+    media_action: 'crop_url',
+    onerror(message) {
+      return $.fn.alert({ type: 'error', content: message, title: I18n('msg.error_uploading') })
+    }
+  })
+  $.extend(data, args)
+  delete data.onerror
+  showLoading()
+  return $.post(mediaPanel.attr('data-url_actions'), data, function(resUpload) {
+    hideLoading()
+    if (resUpload.search('media_item') >= 0) { // success upload
+      mediaPanel.trigger('add_file', { item: resUpload })
+      if (data.callback)
+        return data.callback(resUpload)
+    } else
+      return $.fn.alert({ type: 'error', content: resUpload, title: I18n('button.error') })
+  }).error(() => $.fn.alert({ type: 'error', content: I18n('msg.internal_error'), title: I18n('button.error') }))
+}
 
 // jquery library for modal uploader
-$(() =>
-  // sample: $.fn.upload_filemanager({title: "My title", formats: "image,video", dimension: "30x30", versions: '100x100,200x200', thumb_size: '100x100', selected: function(file){ alert(file["name"]) }})
-  // file structure: {"name":"422.html","size":1547, "url":"http://localhost:3000/media/1/422.html", "format":"doc","type":"text/html"}
-  // dimension: dimension: "30x30" | "x30" | dimension: "30x"
-  // private: (boolean) if true => browser private files that are not possible access by public url
-  $.fn.upload_filemanager = function(args) {
-    args = args || {}
-    if (args.formats === 'null')
-      args.formats = ''
+// sample: $.fn.upload_filemanager({title: "My title", formats: "image,video", dimension: "30x30", versions: '100x100,200x200', thumb_size: '100x100', selected: function(file){ alert(file["name"]) }})
+// file structure: {"name":"422.html","size":1547, "url":"http://localhost:3000/media/1/422.html", "format":"doc","type":"text/html"}
+// dimension: dimension: "30x30" | "x30" | dimension: "30x"
+// private: (boolean) if true => browser private files that are not possible access by public url
+$.fn.upload_filemanager = function(args) {
+  args = args || {}
+  if (args.formats === 'null')
+    args.formats = ''
 
-    if (args.dimension === 'null')
-      args.dimension = ''
+  if (args.dimension === 'null')
+    args.dimension = ''
 
-    if (args.versions === 'null')
-      args.versions = ''
+  if (args.versions === 'null')
+    args.versions = ''
 
-    if (args.thumb_size === 'null')
-      args.thumb_size = ''
+  if (args.thumb_size === 'null')
+    args.thumb_size = ''
 
-    return open_modal({
-      title: args.title || I18n('msg.media_title'),
-      id: 'cama_modal_file_uploader',
-      modal_size: 'modal-lg',
-      mode: 'ajax',
-      url: root_admin_url + '/media/ajax',
-      ajax_params: {
-        media_formats: args.formats,
-        dimension: args.dimension,
-        versions: args.versions,
-        thumb_size: args.thumb_size,
-        private: args.private
-      },
-      callback(modal) {
-        if (args.selected)
-          window.callback_media_uploader = args.selected
+  return open_modal({
+    title: args.title || I18n('msg.media_title'),
+    id: 'cama_modal_file_uploader',
+    modal_size: 'modal-lg',
+    mode: 'ajax',
+    url: root_admin_url + '/media/ajax',
+    ajax_params: {
+      media_formats: args.formats,
+      dimension: args.dimension,
+      versions: args.versions,
+      thumb_size: args.thumb_size,
+      private: args.private
+    },
+    callback(modal) {
+      if (args.selected)
+        window.callback_media_uploader = args.selected
 
-        return modal.css('z-index', args.zindex || 99999).children('.modal-dialog').css('width', '90%')
-      }
-    })
-  }
-)
+      return modal.css('z-index', args.zindex || 99999).children('.modal-dialog').css('width', '90%')
+    }
+  })
+}
 
 window.camaHumanFileSize = function(size) {
   const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']

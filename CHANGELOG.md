@@ -1,8 +1,15 @@
 # Change Log
 
 ## Unreleased
-- Use jQuery 2.x - 2.2.4
-  - If there are `//= require jquery` clauses in the main application, replace them with `//= require jquery2` 
+- Replace sass-rails with dartsass-sprockets by [brian-kephart](https://github.com/brian-kephart)
+- Upgrade to TinyMCE v5 by [brian-kephart](https://github.com/brian-kephart)
+- Add Ruby 3.2 to CI  by [brian-kephart](https://github.com/brian-kephart)
+- Require Rails 6+  by [brian-kephart](https://github.com/brian-kephart)
+- Require Ruby 2.7+  by [brian-kephart](https://github.com/brian-kephart)
+- Add ESLint to the CI by [texpert](https://github.com/texpert)
+- Configure Docker for testing the gem, by [owen2345](https://github.com/owen2345)
+- Use jQuery 2.x - 2.2.4 by [texpert](https://github.com/texpert)
+  - If there are `//= require jquery` clauses in the main application, replace them with `//= require jquery2`
 
 ## [2.7.5](https://github.com/owen2345/camaleon-cms/tree/2.7.5) (2023-11-22)
 - Fix the test email for non-main sites by [brian-kephart](https://github.com/brian-kephart) in [\#1050](https://github.com/owen2345/camaleon-cms/pull/1050)
