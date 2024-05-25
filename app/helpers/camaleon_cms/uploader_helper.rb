@@ -237,7 +237,7 @@ module CamaleonCms
     # upload tmp file
     # support for url and local path
     # sample:
-    # cama_tmp_upload('http://camaleon.tuzitio.com/media/132/logo2.png')  ==> /var/rails/my_project/public/tmp/1/logo2.png
+    # cama_tmp_upload('https://camaleon.website/media/132/logo2.png')  ==> /var/rails/my_project/public/tmp/1/logo2.png
     # cama_tmp_upload('/var/www/media/132/logo 2.png')  ==> /var/rails/my_project/public/tmp/1/logo-2.png
     # accept args:
     #   name: to indicate the name to use, sample: cama_tmp_upload('/var/www/media/132/logo 2.png', {name: 'owen.png', formats: 'images'})

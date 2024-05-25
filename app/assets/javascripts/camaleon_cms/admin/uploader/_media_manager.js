@@ -566,7 +566,7 @@ window.cama_media_get_custom_params = function(customSettings) {
 }
 
 $(() =>
-  // sample: $.fn.upload_url({url: 'http://camaleon.tuzitio.com/media/132/logo2.png', dimension: '120x120', versions: '200x200', folder: 'my_folder', thumb_size: '100x100'})
+  // sample: $.fn.upload_url({url: 'https://camaleon.website/media/132/logo2.png', dimension: '120x120', versions: '200x200', folder: 'my_folder', thumb_size: '100x100'})
   // dimension: default current dimension
   // folder: default current folder
   // private: (Boolean) if true => list private files

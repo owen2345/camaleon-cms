@@ -105,7 +105,7 @@ module CamaleonCms
         end
 
         # support for custom abilities for each posttype
-        # sample: http://camaleon.tuzitio.com/documentation/category/40756-uncategorized/custom-models.html
+        # sample: https://camaleon.website/documentation/category/40756-uncategorized/custom-models.html
         @roles_post_type.each do |k, v|
           next if %w[edit edit_other edit_publish publish manage_categories].include?(k.to_s)
 

@@ -782,7 +782,7 @@
 
 **Closed issues:**
 
-- Custom fields api link broken - http://camaleon.tuzitio.com/custom-fields-api [\#394](https://github.com/owen2345/camaleon-cms/issues/394)
+- Custom fields api link broken - https://camaleon.website/custom-fields-api [\#394](https://github.com/owen2345/camaleon-cms/issues/394)
 - Not a issue but.. Looking for documentation and camaleon website is down [\#391](https://github.com/owen2345/camaleon-cms/issues/391)
 - Cannot use asset in localhost [\#390](https://github.com/owen2345/camaleon-cms/issues/390)
 - We would like to suggest that external menu items also have visibility settings [\#389](https://github.com/owen2345/camaleon-cms/issues/389)

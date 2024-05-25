@@ -101,7 +101,7 @@ module CamaleonCms
     # add a post for current model
     #   title: title for post,    => required
     #   content: html text content, => required
-    #   thumb: image url, => default (empty). check http://camaleon.tuzitio.com/api-methods.html#section_fileuploads
+    #   thumb: image url, => default (empty). check https://camaleon.website/api-methods.html#section_fileuploads
     #   categories: [1,3,4,5],    => default (empty)
     #   tags: String comma separated, => default (empty)
     #   slug: string key for post,    => default (empty)
