@@ -2,7 +2,8 @@
 
 ## Unreleased
 - Use jQuery 2.x - 2.2.4
-  - If there are `//= require jquery` clauses in the main application, replace them with `//= require jquery2` 
+  - If there are `//= require jquery` clauses in the main application, replace them with `//= require jquery2`
+- Add Ruby 3.3 and Rails 7.2 to CI
 
 ## [2.7.5](https://github.com/owen2345/camaleon-cms/tree/2.7.5) (2023-11-22)
 - Fix the test email for non-main sites by [brian-kephart](https://github.com/brian-kephart) in [\#1050](https://github.com/owen2345/camaleon-cms/pull/1050)
