@@ -48,7 +48,7 @@ module CamaleonCms
     # ---------------------- filters
     # return all posts for this model (active_record) filtered by permissions + hidden posts + roles + etc...
     # in return object, you can add custom where's or pagination like here:
-    # http://edgeguides.rubyonrails.org/active_record_querying.html
+    # https://edgeguides.rubyonrails.org/active_record_querying.html
     def the_posts
       h.verify_front_visibility(object.posts)
     end

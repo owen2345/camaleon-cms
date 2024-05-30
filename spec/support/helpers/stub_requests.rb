@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module StubRequests
-  def stub_dns(url, ip_address:, port: 80)
+  def stub_dns(url, ip_address:, port: 443)
     url = parse_url(url)
     socket = Socket.sockaddr_in(port, ip_address)
     addr = Addrinfo.new(socket)

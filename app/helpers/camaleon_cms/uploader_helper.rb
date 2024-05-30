@@ -16,7 +16,7 @@ module CamaleonCms
     #       sample "test.png", versions: '200x200,450x450' will generate: thumb/test-png_200x200.png, test-png_450x450.png
     #   thumb_size: String (redefine the dimensions of the thumbnail, sample: '100x100' ==> only for images)
     #   temporal_time: if great than 0 seconds, then this file will expire (removed) in that time (default: 0)
-    #     To manage jobs, please check http://edgeguides.rubyonrails.org/active_job_basics.html
+    #     To manage jobs, please check https://edgeguides.rubyonrails.org/active_job_basics.html
     #     Note: if you are using temporal_time, you will need to copy the file to another directory later
     # sample: upload_file(params[:my_file], {formats: "images", folder: "temporal"})
     # sample: upload_file(params[:my_file], {formats: "jpg,png,gif,mp3,mp4", temporal_time: 10.minutes, maximum: 10.megabytes})
@@ -324,7 +324,7 @@ module CamaleonCms
             cloud_front: current_site.get_option('filesystem_s3_cloudfront'),
             aws_file_upload_settings: lambda { |settings|
                                         settings
-                                      }, # permit to add your custom attributes for file_upload http://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Object.html#upload_file-instance_method
+                                      }, # permit to add your custom attributes for file_upload https://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Object.html#upload_file-instance_method
             aws_file_read_settings: lambda { |data, _s3_file|
                                       data
                                     } # permit to read custom attributes from aws file and add to file parsed object

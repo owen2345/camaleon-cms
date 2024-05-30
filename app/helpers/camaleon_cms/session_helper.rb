@@ -6,7 +6,7 @@ module CamaleonCms
     # redirect_url (default nil): after initialized the session, this will be redirected to
     #   "redirect_url" if defined
     #   it doesn't redirect if redirect_url === false
-    #   return to previous page if defined the cookie['return_to'] or login url received extra param: return_to=http://mysite.com
+    #   return to previous page if defined the cookie['return_to'] or login url received extra param: return_to=https://mysite.com
     def login_user(user, remember_me = false, redirect_url = nil)
       c = { value: [user.auth_token, request.user_agent, request.ip], expires: 24.hours.from_now }
       c[:domain] = :all if PluginRoutes.system_info['users_share_sites'].present? && CamaleonCms::Site.count > 1

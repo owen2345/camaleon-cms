@@ -111,7 +111,7 @@ module CamaleonCms
     #   settings: Hash of post settings, sample => settings:
     #     {has_content: false, has_summary: true, default_layout: 'my_layout', default_template: 'my_template' } (optional, see more in post.set_setting(...))
     #   data_metas: {template: "", layout: ""}
-    # sample: my_posttype.add_post(title: "My Title", post_order: 5, content: 'lorem_ipsum', settings: {default_template: "home/counters", has_content: false, has_seo: false, skip_fields: ["sub_tite", 'banner']}, fields: {pattern: true, bg: 'http://www.reallusion.com/de/images/3dx5/whatsnew/3dx5_features_banner_bg_02.jpg'})
+    # sample: my_posttype.add_post(title: "My Title", post_order: 5, content: 'lorem_ipsum', settings: {default_template: "home/counters", has_content: false, has_seo: false, skip_fields: ["sub_tite", 'banner']}, fields: {pattern: true, bg: 'https://www.reallusion.com/de/images/3dx5/whatsnew/3dx5_features_banner_bg_02.jpg'})
     #   More samples here: https://gist.github.com/owen2345/eba9691585ed78ad6f7b52e9591357bf
     # return created post if it was created, else return errors
     def add_post(args)
@@ -139,12 +139,12 @@ module CamaleonCms
     # return all available route formats of this post type for content posts
     def contents_route_formats
       {
-        'post_of_post_type' => '<code>/group/:post_type_id-:title/:slug</code><br>  (Sample: http://localhost.com/group/17-services/myservice.html)',
-        'post_of_category' => '<code>/category/:category_id-:title/:slug</code><br>  (Sample: http://localhost.com/category/17-services/myservice.html)',
-        'post_of_category_post_type' => '<code>/:post_type_title/category/:category_id-:title/:slug</code><br>  (Sample: http://localhost.com/services/category/17-services/myservice.html)',
-        'post_of_posttype' => '<code>/:post_type_title/:slug</code><br>  (Sample: http://localhost.com/services/myservice.html)',
-        'post' => '<code>/:slug</code><br>  (Sample: http://localhost.com/myservice.html)',
-        'hierarchy_post' => '<code>/:parent1_slug/:parent2_slug/.../:slug</code><br>  (Sample: http://localhost.com/item-1/item-1-1/item-111.html)'
+        'post_of_post_type' => '<code>/group/:post_type_id-:title/:slug</code><br>  (Sample: https://localhost.com/group/17-services/myservice.html)',
+        'post_of_category' => '<code>/category/:category_id-:title/:slug</code><br>  (Sample: https://localhost.com/category/17-services/myservice.html)',
+        'post_of_category_post_type' => '<code>/:post_type_title/category/:category_id-:title/:slug</code><br>  (Sample: https://localhost.com/services/category/17-services/myservice.html)',
+        'post_of_posttype' => '<code>/:post_type_title/:slug</code><br>  (Sample: https://localhost.com/services/myservice.html)',
+        'post' => '<code>/:slug</code><br>  (Sample: https://localhost.com/myservice.html)',
+        'hierarchy_post' => '<code>/:parent1_slug/:parent2_slug/.../:slug</code><br>  (Sample: https://localhost.com/item-1/item-1-1/item-111.html)'
       }
     end
 

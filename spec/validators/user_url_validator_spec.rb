@@ -174,10 +174,10 @@ RSpec.describe CamaleonCms::UserUrlValidator do
         it 'does not block urls from private networks' do
           local_ips.each do |ip|
             stub_domain_resolv(fake_domain, ip) do
-              expect(described_class.validate("http://#{fake_domain}", **url_blocker_args)).to eql(true)
+              expect(described_class.validate("https://#{fake_domain}", **url_blocker_args)).to eql(true)
             end
 
-            expect(described_class.validate("http://#{ip}", **url_blocker_args)).to eql(true)
+            expect(described_class.validate("https://#{ip}", **url_blocker_args)).to eql(true)
           end
         end
 
@@ -229,11 +229,11 @@ RSpec.describe CamaleonCms::UserUrlValidator do
         it 'blocks urls from private networks' do
           local_ips.each do |ip|
             stub_domain_resolv(fake_domain, ip) do
-              expect(described_class.validate("http://#{fake_domain}", allow_local_network: false))
+              expect(described_class.validate("https://#{fake_domain}", allow_local_network: false))
                 .to include(I18n.t('camaleon_cms.admin.validate.no_local_net_requests'))
             end
 
-            expect(described_class.validate("http://#{ip}", allow_local_network: false))
+            expect(described_class.validate("https://#{ip}", allow_local_network: false))
               .to include(I18n.t('camaleon_cms.admin.validate.no_local_net_requests'))
           end
         end
@@ -241,11 +241,11 @@ RSpec.describe CamaleonCms::UserUrlValidator do
         it 'blocks urls from shared address space' do
           shared_address_space_ips.each do |ip|
             stub_domain_resolv(fake_domain, ip) do
-              expect(described_class.validate("http://#{fake_domain}", allow_local_network: false))
+              expect(described_class.validate("https://#{fake_domain}", allow_local_network: false))
                 .to include(I18n.t('camaleon_cms.admin.validate.no_shared_address_requests'))
             end
 
-            expect(described_class.validate("http://#{ip}", allow_local_network: false))
+            expect(described_class.validate("https://#{ip}", allow_local_network: false))
               .to include(I18n.t('camaleon_cms.admin.validate.no_shared_address_requests'))
           end
         end
@@ -325,10 +325,10 @@ RSpec.describe CamaleonCms::UserUrlValidator do
     end
 
     it 'blocks urls whose hostname cannot be resolved' do
-      expect(described_class.validate('http://foobar.x')).to eql([I18n.t('camaleon_cms.admin.validate.host_invalid')])
+      expect(described_class.validate('https://foobar.x')).to eql([I18n.t('camaleon_cms.admin.validate.host_invalid')])
     end
 
-    def stub_domain_resolv(domain, ip, port = 80)
+    def stub_domain_resolv(domain, ip, port = 443)
       address = instance_double(Addrinfo,
                                 ip_address: ip,
                                 ipv4_private?: true,
