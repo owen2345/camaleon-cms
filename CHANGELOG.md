@@ -4,6 +4,7 @@
 - Use jQuery 2.x - 2.2.4
   - If there are `//= require jquery` clauses in the main application, replace them with `//= require jquery2`
 - Add Ruby 3.3 and Rails 7.2 to CI
+- Replace Tuzitio links with `camaleon.website` and http with https
 
 ## [2.7.5](https://github.com/owen2345/camaleon-cms/tree/2.7.5) (2023-11-22)
 - Fix the test email for non-main sites by [brian-kephart](https://github.com/brian-kephart) in [\#1050](https://github.com/owen2345/camaleon-cms/pull/1050)
@@ -29,6 +30,7 @@
 ## [2.7.0](https://github.com/owen2345/camaleon-cms/tree/2.7.0) (2023-03-22)
 - Change some render calls from `inline` to `plain`
 - Stop monkeypatching ActiveRecord::Base
+  - Use CamaleonRecord, not ApplicationRecord, as a base class for the models
 - Fix canonical URLs for translated sites
 - Lint Ruby using RuboCop
 - Lint JS using ESLint
