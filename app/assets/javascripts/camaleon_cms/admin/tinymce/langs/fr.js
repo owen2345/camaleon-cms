@@ -121,7 +121,7 @@ tinymce.addI18n('fr_FR',{
 "Insert link": "Ins\u00e9rer un lien",
 "New window": "Nouvelle fen\u00eatre",
 "None": "n\/a",
-"The URL you entered seems to be an external link. Do you want to add the required http:\/\/ prefix?": "L'URL que vous avez entr\u00e9e semble \u00eatre un lien externe. Voulez-vous ajouter le pr\u00e9fixe http:\/\/ n\u00e9cessaire?",
+"The URL you entered seems to be an external link. Do you want to add the required https:\/\/ prefix?": "L'URL que vous avez entr\u00e9e semble \u00eatre un lien externe. Voulez-vous ajouter le pr\u00e9fixe https:\/\/ n\u00e9cessaire?",
 "Target": "Cible",
 "The URL you entered seems to be an email address. Do you want to add the required mailto: prefix?": "L'URL que vous avez entr\u00e9e semble \u00eatre une adresse e-mail. Voulez-vous ajouter le pr\u00e9fixe mailto: n\u00e9cessaire?",
 "Insert\/edit link": "Ins\u00e9rer\/modifier un lien",

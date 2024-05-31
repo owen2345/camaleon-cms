@@ -61,12 +61,12 @@ module CamaleonCms
     end
 
     # return front url for this post
-    # sample: http://localhost.com/my-page.html
+    # sample: https://localhost.com/my-page.html
     # args:
     #   locale: language (default current language)
     #   as_path: return the path instead of full url, sample: /my-page.html
     #   Also, you can pass extra attributes as params for the url, sample: page.the_url(my_param: 'value', other: "asd")
-    #     => http://localhost.com/my-page.html?my_param=value&other=asd
+    #     => https://localhost.com/my-page.html?my_param=value&other=asd
     # Return String URL
     def the_url(*args)
       args = args.extract_options!
@@ -127,7 +127,7 @@ module CamaleonCms
     end
 
     # return a hash of frontend urls for this post
-    # sample: {es: 'http://mydomain.com/es/articulo-3.html', en: 'http://mydomain.com/en/post-3.html'}
+    # sample: {es: 'https://mydomain.com/es/articulo-3.html', en: 'https://mydomain.com/en/post-3.html'}
     def the_urls(*args)
       args = args.extract_options!
       res = {}

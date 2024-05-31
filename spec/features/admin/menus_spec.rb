@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
+
 describe 'the Menus', js: true do
   init_site
 
@@ -23,7 +26,7 @@ describe 'the Menus', js: true do
       screenshot_and_save_page
       within '.form-custom-link' do
         fill_in 'external_label', with: 'name link'
-        fill_in 'external_url', with: 'http://mytest.com'
+        fill_in 'external_url', with: 'https://mytest.com'
         find('#add_external_link').click
         wait_for_ajax
       end

@@ -59,7 +59,7 @@ module CamaleonCms
       app.config.assets.paths << File.join($camaleon_engine_dir, 'app', 'assets', 'fonts')
       app.config.encoding = 'utf-8'
 
-      # add prefix url, like: http://localhost.com/blog/
+      # add prefix url, like: https://localhost.com/blog/
       # config.action_controller.relative_url_root = PluginRoutes.system_info["relative_url_root"] if PluginRoutes.system_info["relative_url_root"].present?
 
       # multiple route files

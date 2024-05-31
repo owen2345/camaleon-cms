@@ -55,14 +55,14 @@ module CamaleonCms
 
     # return main categories (first level) for the post_type (active_record) filtered by permissions
     # in return object, you can add custom where's or pagination like here:
-    # http://edgeguides.rubyonrails.org/active_record_querying.html
+    # https://edgeguides.rubyonrails.org/active_record_querying.html
     def the_categories
       object.categories
     end
 
     # return full categories (all levels) for the post_type (active_record) filtered by permissions
     # in return object, you can add custom where's or pagination like here:
-    # http://edgeguides.rubyonrails.org/active_record_querying.html
+    # https://edgeguides.rubyonrails.org/active_record_querying.html
     def the_full_categories
       object.full_categories
     end
@@ -76,7 +76,7 @@ module CamaleonCms
 
     # return all post_tags for the post_type (active_record) filtered by permissions + hidden posts + roles + etc...
     # in return object, you can add custom where's or pagination like here:
-    # http://edgeguides.rubyonrails.org/active_record_querying.html
+    # https://edgeguides.rubyonrails.org/active_record_querying.html
     def the_post_tags
       object.post_tags
     end

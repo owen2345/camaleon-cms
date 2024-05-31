@@ -66,11 +66,11 @@ class String
   end
 
   # parse string into domain
-  # http://owem.tuzitio.com into owem.tuzitio.com
+  # https://owem.camaleon.website into owem.camaleon.website
   def parse_domain
     url = self
     uri = URI.parse(url)
-    uri = URI.parse("http://#{url}") if uri.scheme.nil?
+    uri = URI.parse("https://#{url}") if uri.scheme.nil?
     host = (uri.host || self).downcase
     h = host.start_with?('www.') ? host[4..] : host
     "#{h}#{":#{uri.port}" unless [80, 443].include?(uri.port)}"

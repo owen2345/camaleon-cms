@@ -121,7 +121,7 @@ tinymce.addI18n('zh-CN',{
 "Insert link": "\u63d2\u5165\u94fe\u63a5",
 "New window": "\u5728\u65b0\u7a97\u53e3\u6253\u5f00",
 "None": "\u65e0",
-"The URL you entered seems to be an external link. Do you want to add the required http:\/\/ prefix?": "\u4f60\u6240\u586b\u5199\u7684URL\u5730\u5740\u5c5e\u4e8e\u5916\u90e8\u94fe\u63a5\uff0c\u9700\u8981\u52a0\u4e0ahttp:\/\/:\u524d\u7f00\u5417\uff1f",
+"The URL you entered seems to be an external link. Do you want to add the required https:\/\/ prefix?": "\u4f60\u6240\u586b\u5199\u7684URL\u5730\u5740\u5c5e\u4e8e\u5916\u90e8\u94fe\u63a5\uff0c\u9700\u8981\u52a0\u4e0ahttps:\/\/:\u524d\u7f00\u5417\uff1f",
 "Target": "\u6253\u5f00\u65b9\u5f0f",
 "The URL you entered seems to be an email address. Do you want to add the required mailto: prefix?": "\u4f60\u6240\u586b\u5199\u7684URL\u5730\u5740\u4e3a\u90ae\u4ef6\u5730\u5740\uff0c\u9700\u8981\u52a0\u4e0amailto:\u524d\u7f00\u5417\uff1f",
 "Insert\/edit link": "\u63d2\u5165\/\u7f16\u8f91\u94fe\u63a5",

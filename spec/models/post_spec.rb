@@ -37,7 +37,7 @@ RSpec.describe 'PostDecorator' do
     ptype = @site.post_types.last
     ptype.set_option('has_comments', true)
     data = {
-      thumb: 'http://camaleon.tuzitio.com/media/132/slider/slider-camaleon.jpg',
+      thumb: 'https://camaleon.website/media/132/slider/slider-camaleon.jpg',
       summary: 'This is summary',
       has_comments: 0
     }

@@ -476,7 +476,7 @@ window.cama_init_media = function(mediaPanel) {
                     '<div class="alert alert-danger">' +
                       I18n(
                         'msg.cors_error',
-                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: data.url, url_blog: 'http://blog.celingest.com/en/2014/10/02/tutorial-using-cors-with-cloudfront-and-s3/' }
+                        'Please verify the following: <ul><li>If the image exist: %{url_img}</li> <li>Check if cors configuration are defined well, only for external images: S3, cloudfront(if you are using cloudfront).</li></ul><br> More information about CORS: <a href="%{url_blog}" target="_blank">here.</a>', { url_img: data.url, url_blog: 'https://blog.digitalis.io/how-to-add-cors-to-s3-with-cloudfront-1be59c74abaa' }
                       ) +
                       '</div>'
                   )
@@ -566,7 +566,7 @@ window.cama_media_get_custom_params = function(customSettings) {
 }
 
 $(() =>
-  // sample: $.fn.upload_url({url: 'http://camaleon.tuzitio.com/media/132/logo2.png', dimension: '120x120', versions: '200x200', folder: 'my_folder', thumb_size: '100x100'})
+  // sample: $.fn.upload_url({url: 'https://camaleon.website/media/132/logo2.png', dimension: '120x120', versions: '200x200', folder: 'my_folder', thumb_size: '100x100'})
   // dimension: default current dimension
   // folder: default current folder
   // private: (Boolean) if true => list private files

@@ -1,15 +1,15 @@
 # CAMALEON CMS
 
-![](http://camaleon.tuzitio.com/media/132/logo2.png)
+![](https://camaleon.website/media/132/logo2.png)
 
 [![Test supported versions](https://github.com/owen2345/camaleon-cms/actions/workflows/current_support.yml/badge.svg)](https://github.com/owen2345/camaleon-cms/actions/workflows/current_support.yml)
 ![](https://img.shields.io/badge/Support-Immediate-green.svg)
 
-[Website](http://camaleon.tuzitio.com/)
+[Website](https://camaleon.website/)
 
-[Documentation](http://camaleon.tuzitio.com/docs.html)
+[Documentation](https://camaleon.website/docs.html)
 
-[Demonstration](http://camaleon.tuzitio.com/plugins/demo_manage/)
+[Demonstration](https://camaleon.website/plugins/demo_manage/)
 
 ## About
 
@@ -18,10 +18,10 @@ Camaleon CMS is a dynamic and advanced content management system based on Ruby o
 Camaleon CMS is a flexible manager where you can build your custom content structure without coding anything by custom fields and custom contents type.
 
 To download or publish themes go to Theme store:
-http://camaleon.tuzitio.com/store/themes
+https://camaleon.website/store/themes
 
 To download or publish plugins go to Plugin store:
-http://camaleon.tuzitio.com/store/plugins
+https://camaleon.website/store/plugins
 
 ![](screenshot.png)
 
@@ -86,9 +86,9 @@ http://camaleon.tuzitio.com/store/plugins
 * TinyMCE Template Integration - https://github.com/owen2345/Camaleon-Tinymce-Templates
 * Download Manager - https://github.com/max2320/camaleon-download
 * OAuth - https://github.com/owen2345/camaleon_oauth
-* Visual Editor - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/camaleon_editor
-* Spree Commerce Integration - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/camaleon-spree
-* Admin AJAX - Paid Plugin ($) - http://camaleon.tuzitio.com/store/plugins/admin_ajax
+* Visual Editor - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon_editor
+* Spree Commerce Integration - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon-spree
+* Admin AJAX - Paid Plugin ($) - https://camaleon.website/store/plugins/admin_ajax
 * **See here for a complete Gemfile**: https://github.com/owen2345/camaleon-cms/blob/master/docs/example_gemfile.rb
 
 ## Camaleon CMS has many useful frontend Themes such as:
@@ -96,11 +96,11 @@ http://camaleon.tuzitio.com/store/plugins
 * Clean Theme (Built in)
 * Wordpress Theme (Built in)
 * eCommerce - https://github.com/owen2345/cama-ecommerce-theme
-* eFashion - http://camaleon.tuzitio.com/store/themes/eFashion (Github: https://github.com/mazharoddin/camaleon-cms-efashion)
-* Shoppy - http://camaleon.tuzitio.com/store/themes/shoppy (Github: https://github.com/mazharoddin/camaleon-cms-shoppy)
-* CV - Paid Theme ($) - http://camaleon.tuzitio.com/store/themes/cv
-* Camaleon Site - Paid Theme ($) - http://camaleon.tuzitio.com/store/themes/camaleon_cms
-* Sky - Paid Theme ($) - http://camaleon.tuzitio.com/store/themes/sky
+* eFashion - https://camaleon.website/store/themes/eFashion (Github: https://github.com/mazharoddin/camaleon-cms-efashion)
+* Shoppy - https://camaleon.website/store/themes/shoppy (Github: https://github.com/mazharoddin/camaleon-cms-shoppy)
+* CV - Paid Theme ($) - https://camaleon.website/store/themes/cv
+* Camaleon Site - Paid Theme ($) - https://camaleon.website/store/themes/camaleon_cms
+* Sky - Paid Theme ($) - https://camaleon.website/store/themes/sky
 
 
 ## Requirements
@@ -160,7 +160,7 @@ http://camaleon.tuzitio.com/store/plugins
 * Go to your browser and visit http://localhost:3000/
 
 ## Sample App / Demonstration
-* [Camaleon Server (current version)](http://camaleon.tuzitio.com/plugins/demo_manage/)
+* [Camaleon Server (current version)](https://camaleon.website/plugins/demo_manage/)
 * [Sample App](https://github.com/brian-kephart/Camaleon-CMS-Sample)
 * [Deploy Sample App in Heroku](https://heroku.com/deploy?template=https://github.com/brian-kephart/Camaleon-CMS-Sample)
 
@@ -171,13 +171,13 @@ If you need support, need some extra functionality or need plugins, please conta
 * Email: owenperedo@gmail.com
 * Skype: owen-2345
 * Stack Overflow: Use "camaleon" as tag to ask questions related to this CMS (don't forget to include cms version + rails version).
-* Site: http://camaleon.tuzitio.com/
+* Site: https://camaleon.website/
 
 ## Author
 Owen Peredo Diaz
 
 ## License
-http://camaleon.tuzitio.com/license.html
+https://camaleon.website/license.html
 
 ## Testing
 * Init DB
@@ -199,7 +199,7 @@ bundle exec rspec
 
 ## Version History
 
-http://camaleon.tuzitio.com/version-history.html
+https://camaleon.website/version-history.html
 
 Previous stable version (v1.x): https://github.com/owen2345/camaleon-cms/tree/version_1x
 

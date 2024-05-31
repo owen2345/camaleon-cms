@@ -127,7 +127,7 @@ module CamaleonCms
     # asset: (String) asset name
     # plugin_key: (optional) plugin name, default (current plugin caller to this function)
     # sample:
-    #   plugin_asset_url("css/main.css") => return: http://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
+    #   plugin_asset_url("css/main.css") => return: https://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
     def plugin_asset_url(asset, plugin_key = nil)
       key = plugin_key || self_plugin_key(1)
       p = PluginRoutes.plugin_info(key)['gem_mode'] ? "plugins/#{key}/#{asset}" : "plugins/#{key}/assets/#{asset}"
