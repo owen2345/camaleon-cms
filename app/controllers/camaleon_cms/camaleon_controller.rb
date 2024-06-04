@@ -103,7 +103,13 @@ module CamaleonCms
     def cama_site_check_existence
       if !current_site.present?
         if Cama::Site.main_site.present?
-          redirect_to Cama::Site.main_site.decorate.the_url
+          url = Cama::Site.main_site.decorate.the_url
+          # TODO: Remove this condition when Rails 6.x won't be supported
+          if Rails.gem_version >= Gem::Version.new('7.0.0')
+            redirect_to url, allow_other_host: true
+          else
+            redirect_to url
+          end
         else
           redirect_to cama_admin_installers_path
         end
