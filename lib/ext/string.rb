@@ -66,7 +66,7 @@ class String
   end
 
   # parse string into domain
-  # https://owem.camaleon.website into owem.camaleon.website
+  # https://owen.camaleon.website into owen.camaleon.website
   def parse_domain
     url = self
     uri = URI.parse(url)
