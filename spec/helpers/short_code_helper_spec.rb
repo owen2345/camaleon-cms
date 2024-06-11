@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 def shortcode_tests
@@ -35,33 +37,39 @@ describe 'CamaleonCms::ShortCodeHelper' do
     end
 
     it 'With attribute' do
-      expect(helper.do_shortcode('Say [hello name="Owen"]')).to be == 'Say Hello Owen'
+      expect(helper.do_shortcode('Say [hello name="Owen"]')).to eq('Say Hello Owen')
     end
 
     it 'With attributes' do
-      expect(helper.do_shortcode('Hi [user_info name="Owen" lastname="Peredo"], Good morning')).to be == 'Hi Owen Peredo, Good morning'
+      expect(helper.do_shortcode('Hi [user_info name="Owen" lastname="Peredo"], Good morning'))
+        .to eq('Hi Owen Peredo, Good morning')
     end
   end
 
   describe 'Shortcode with Block' do
     shortcode_tests
     it 'No attributes' do
-      expect(helper.do_shortcode('Sample [title]This is title[/title].')).to include('Sample <h1>This is title</h1>.')
+      expect(helper.do_shortcode('Sample [title]This is title[/title].'))
+        .to include('Sample <h1>This is title</h1>.')
     end
 
     it 'With attribute' do
-      expect(helper.do_shortcode('Sample [sub_title style="color: red;"]This is sub title[/sub_title].')).to include('Sample <h2 style=\'color: red;\'>This is sub title</h2>.')
+      expect(helper.do_shortcode('Sample [sub_title style="color: red;"]This is sub title[/sub_title].'))
+        .to include('Sample <h2 style=\'color: red;\'>This is sub title</h2>.')
     end
 
     it 'With attributes' do
-      expect(helper.do_shortcode('Sample [sub_title2 style="color: red;" class="center"]This is sub title[/sub_title2].')).to include('Sample <h2 style=\'color: red;\' class=\'center\'>This is sub title</h2>.')
+      expect(
+        helper.do_shortcode('Sample [sub_title2 style="color: red;" class="center"]This is sub title[/sub_title2].')
+      ).to include('Sample <h2 style=\'color: red;\' class=\'center\'>This is sub title</h2>.')
     end
   end
 
   describe 'Shortcode Multiple' do
     shortcode_tests
     it 'Many Shortcodes' do
-      expect(helper.do_shortcode('[title][hello name="Owen"][/title] and [hello_world].')).to include('<h1>Hello Owen</h1> and Hello World.')
+      expect(helper.do_shortcode('[title][hello name="Owen"][/title] and [hello_world].'))
+        .to include('<h1>Hello Owen</h1> and Hello World.')
     end
   end
 end
