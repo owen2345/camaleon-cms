@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
-describe 'the signin process', js: true do
+describe 'the signin process', :js do
   init_site
 
   it 'create new category' do

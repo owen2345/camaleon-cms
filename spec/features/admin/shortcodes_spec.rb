@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
-describe 'the Shortcodes', js: true do
+
+describe 'the Shortcodes', :js do
   init_site
 
   it 'Shortcodes list' do

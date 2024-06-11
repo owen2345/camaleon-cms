@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 # create a new post tag
@@ -10,7 +12,7 @@ def create_tag
   click_button 'Submit'
 end
 
-describe 'the signin process', js: true do
+describe 'the signin process', :js do
   let(:post_type_id) { @site.post_types.where(slug: :post).pick(:id) }
 
   init_site

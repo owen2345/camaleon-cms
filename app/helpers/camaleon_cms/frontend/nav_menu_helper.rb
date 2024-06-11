@@ -23,7 +23,7 @@ module CamaleonCms
           item_class_parent: 'dropdown', # class for all menu items that contain sub items
           sub_container: 'ul', # type of container for sub items
           sub_class: 'dropdown-menu', # class for sub container
-          callback_item: ->(args) {},
+          callback_item: ->(args) {}, # rubocop:disable Lint/ShadowingOuterLocalVariable
           # callback executed for each item (args = { menu_item, link, level, settings, has_children, link_attrs = "", index}).
           #     menu_item: (Object) Menu object
           #     link: (Hash) link data: {link: '', name: ''}
@@ -48,10 +48,11 @@ module CamaleonCms
           container_append: '' # content append for menu container
         }
 
-        args = args_def.merge(args)
+        args = args_def.merge!(args)
         nav_menu = current_site.nav_menus.find_by_slug(args[:menu_slug])
-        nav_menu = current_site.nav_menus.first unless nav_menu.present?
-        html = "<#{args[:container]} class='#{args[:container_class]}' id='#{args[:container_id]}'>#{args[:container_prepend]}{__}#{args[:container_append]}</#{args[:container]}>"
+        nav_menu ||= current_site.nav_menus.first
+        html = "<#{args[:container]} class='#{args[:container_class]}' "\
+          "id='#{args[:container_id]}'>#{args[:container_prepend]}{__}#{args[:container_append]}</#{args[:container]}>"
         if nav_menu.present?
           html.sub('{__}', cama_menu_draw_items(args, nav_menu.children.reorder(:term_order)))
         else
@@ -69,10 +70,10 @@ module CamaleonCms
           data_nav_item = cama_parse_menu_item(nav_menu_item)
           next if data_nav_item == false
 
-          _is_current = data_nav_item[:current] || site_current_path == data_nav_item[:link] || site_current_path == data_nav_item[:link].sub(
-            '.html', ''
-          )
-          has_children = nav_menu_item.have_children? && (args[:levels] == -1 || (args[:levels] != -1 && level <= args[:levels]))
+          _is_current = data_nav_item[:current] || site_current_path == data_nav_item[:link] ||
+                        site_current_path == data_nav_item[:link].sub('.html', '')
+          has_children = nav_menu_item.have_children? && (args[:levels] == -1 ||
+                         (args[:levels] != -1 && level <= args[:levels]))
           r = {
             menu_item: nav_menu_item.decorate,
             link: data_nav_item,

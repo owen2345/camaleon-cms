@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 # create a new user role
@@ -17,7 +19,7 @@ def create_role
   end
 end
 
-describe 'the User Roles', js: true do
+describe 'the User Roles', :js do
   init_site
 
   it 'User Roles list' do

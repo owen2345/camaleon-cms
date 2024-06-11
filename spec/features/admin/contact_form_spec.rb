@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 # create a new form
@@ -11,7 +13,7 @@ def create_form
   end
 end
 
-describe 'the Contact Form', js: true do
+describe 'the Contact Form', :js do
   init_site
 
   it 'create new contact form' do

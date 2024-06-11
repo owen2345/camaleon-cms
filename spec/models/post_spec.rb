@@ -1,5 +1,9 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
+
 include CamaleonCms::Frontend::ApplicationHelper
+
 RSpec.describe 'PostDecorator' do
   init_site
   it 'next and previous post related to post type' do
@@ -19,11 +23,11 @@ RSpec.describe 'PostDecorator' do
     expect(post2_1.the_prev_post.slug).to eq('test2')
     expect(post2_1.the_next_post.slug).to eq('test3')
 
-    expect(post1.the_prev_post).to eq(nil)
+    expect(post1.the_prev_post).to be_nil
     expect(post1.the_next_post.slug).to eq('test2_1')
 
     expect(post4.the_prev_post.slug).to eq('test3')
-    expect(post4.the_next_post).to eq(nil)
+    expect(post4.the_next_post).to be_nil
   end
 
   it 'featured post' do

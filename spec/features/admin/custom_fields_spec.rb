@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
-describe 'the Custom Fields', js: true do
+describe 'the Custom Fields', :js do
   init_site
 
   it 'Custom fields list' do

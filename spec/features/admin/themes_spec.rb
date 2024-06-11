@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
-describe 'the Themes', js: true do
+
+describe 'the Themes', :js do
   init_site
 
   it 'Themes list' do

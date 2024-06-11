@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 # add a new comment for a post
@@ -11,7 +13,7 @@ def add_new_comment
   end
 end
 
-describe 'the Comments', js: true do
+describe 'the Comments', :js do
   init_site
 
   it 'Add Comment' do

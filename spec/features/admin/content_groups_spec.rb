@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 # create a new post type
@@ -14,7 +16,7 @@ def create_post_type
   end
 end
 
-describe 'the Content Groups', js: true do
+describe 'the Content Groups', :js do
   init_site
 
   it 'create new content group' do

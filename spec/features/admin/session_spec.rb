@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
-describe 'the signin process', js: true do
+
+describe 'the signin process', :js do
   init_site
   it 'signs me in not valid' do
     visit "#{cama_root_relative_path}/admin/login"
