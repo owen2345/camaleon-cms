@@ -3,9 +3,11 @@ module CamaleonCms
     module Appearances
       class NavMenusController < CamaleonCms::AdminController
         include CamaleonCms::Frontend::NavMenuHelper
+
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.appearance')
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.menus')
         before_action :check_menu_permission
+
         def index
           @nav_menu = if params[:id].present?
                         current_site.nav_menus.find_by_id(params[:id])
@@ -64,7 +66,10 @@ module CamaleonCms
         # render edit external menu item
         def edit_menu_item
           render '_external_menu', layout: false,
-                                   locals: { nav_menu: current_site.nav_menus.find(params[:nav_menu_id]), menu_item: current_site.nav_menu_items.find(params[:id]) }
+                                   locals: {
+                                     nav_menu: current_site.nav_menus.find(params[:nav_menu_id]),
+                                     menu_item: current_site.nav_menu_items.find(params[:id])
+                                   }
         end
 
         # update an external menu item
@@ -98,17 +103,17 @@ module CamaleonCms
         def add_items
           items = []
           @nav_menu = current_site.nav_menus.find(params[:nav_menu_id])
-          if params[:external].present?
-            item = @nav_menu.append_menu_item(parse_external_menu(params[:external]))
-            item.set_options(params[:external].require(:options).permit!) if params[:external][:options].present?
-            items << item
+          external_params = params[:external]
+          if external_params.present?
+            external_item = @nav_menu.append_menu_item(parse_external_menu(external_params))
+            external_item.set_options(external_params.require(:options).permit!) if external_params[:options].present?
+            items << external_item
           end
 
           if params[:custom_items].present? # custom menu items
-            params[:custom_items].each_value do |item|
-              type = item['kind'].present? ? item['kind'] : 'external'
-              item = @nav_menu.append_menu_item({ label: item['label'], link: item['url'], type: type })
-              items << item
+            params[:custom_items].each_value do |custom_item|
+              type = custom_item['kind'].present? ? custom_item['kind'] : 'external'
+              items << @nav_menu.append_menu_item({ label: custom_item['label'], link: custom_item['url'], type: type })
             end
           end
 
