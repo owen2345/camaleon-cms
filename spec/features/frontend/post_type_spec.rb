@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
-describe 'Posttype frontend', js: true do
+
+describe 'Posttype frontend', :js do
   before do
     @site = create(:site).decorate
     @post = @site.the_post('sample-post').decorate

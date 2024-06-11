@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 def create_site
@@ -16,7 +18,7 @@ def create_site
   end
 end
 
-describe 'the Sites', js: true do
+describe 'the Sites', :js do
   init_site
 
   it 'Sites list' do

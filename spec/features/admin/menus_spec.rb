@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe 'the Menus', js: true do
+describe 'the Menus', :js do
   init_site
 
   it 'Menus list' do
@@ -41,7 +41,7 @@ describe 'the Menus', js: true do
     end
   end
 
-  it 'creates and selects menus' do
+  it 'creates and selects menus' do # rubocop:disable RSpec/NoExpectationExample
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/appearances/nav_menus"
 

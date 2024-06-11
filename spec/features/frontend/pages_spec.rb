@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
+
 include CamaleonCms::PluginsHelper
-describe 'Post frontend', js: true do
+
+describe 'Post frontend', :js do
   init_site
 
   it 'visit post' do
@@ -106,7 +110,7 @@ describe 'Post frontend', js: true do
       expect(page).to have_text('does not exist')
     end
 
-    it 'private post without login ' do
+    it 'private post without login' do
       custom_post = create(:private_post, site: @site).decorate
       visit custom_post.the_url(as_path: true)
       expect(page).to have_text('does not exist')
@@ -120,13 +124,13 @@ describe 'Post frontend', js: true do
       expect(page).not_to have_text('does not exist')
     end
 
-    it 'password post without password ' do
+    it 'password post without password' do
       custom_post = create(:password_post, site: @site).decorate
       visit custom_post.the_url(as_path: true)
       expect(page).to have_text('Enter the password:')
     end
 
-    it 'password post with password ' do
+    it 'password post with password' do
       custom_post = create(:password_post, site: @site).decorate
       visit custom_post.the_url(as_path: true, post_password: custom_post.visibility_value)
       expect(page).not_to have_text('does not exist')

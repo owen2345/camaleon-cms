@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
-describe 'the Users', js: true do
+
+describe 'the Users', :js do
   init_site
   uname = "testerr_#{Time.current.to_i}"
   uemail = "testerr_#{Time.current.to_i}@gmail.com"
@@ -28,7 +31,7 @@ describe 'the Users', js: true do
     expect(page).to have_content('tester')
   end
 
-  it 'Users login new user' do
+  it 'Users login new user' do # rubocop:disable RSpec/NoExpectationExample
     admin_sign_in(uname, 'tester123')
   end
 
