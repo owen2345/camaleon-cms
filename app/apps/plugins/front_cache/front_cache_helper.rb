@@ -26,8 +26,8 @@ module Plugins
         if @caches[:paths].include?(request.original_url) || @caches[:paths].include?(request.path_info) || front_cache_plugin_match_path_patterns?(request.original_url, request.path_info) || (params[:action] == 'index' && params[:controller] == 'camaleon_cms/frontend' && @caches[:home].present?) # cache paths and home page
           @_plugin_do_cache = true
         elsif params[:action] == 'post' && params[:controller] == 'camaleon_cms/frontend' && !params[:draft_id].present?
-          begin
-            post = current_site.the_posts.find_by_slug(params[:slug]).decorate
+          if (post = current_site.the_posts.find_by_slug(params[:slug]))
+            post = post.decorate
             if post.can_visit? && post.visibility != 'private'
               if (@caches[:skip_posts] || []).include?(post.id.to_s)
                 @_plugin_do_cache = false
@@ -35,9 +35,9 @@ module Plugins
                 @_plugin_do_cache = true
               end
             end
-          rescue StandardError # skip post not found
           end
         end
+
         response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE' if @_plugin_do_cache
       end
 
