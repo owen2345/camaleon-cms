@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 # create a widget
@@ -14,7 +16,7 @@ def create_widget
   end
 end
 
-describe 'the Widgets', js: true do
+describe 'the Widgets', :js do
   init_site
 
   it 'Widgets list' do

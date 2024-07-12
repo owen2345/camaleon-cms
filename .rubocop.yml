@@ -32,9 +32,6 @@ Metrics/MethodLength:
 RSpec/ExampleLength:
   Enabled: false
 
-RSpec/FilePath:
-  Enabled: false
-
 RSpec/InstanceVariable:
   Enabled: false
 
@@ -47,6 +44,12 @@ RSpec/MultipleExpectations:
 RSpec/NestedGroups:
   Enabled: true
   Max: 5
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/SpecFilePathSuffix:
+  Enabled: true
 
 Security/MarshalLoad:
   Exclude:
