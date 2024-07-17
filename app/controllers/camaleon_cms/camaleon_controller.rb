@@ -51,7 +51,7 @@ module CamaleonCms
     # generate captcha image
     def captcha
       image = cama_captcha_build(params[:len])
-      send_data image.to_blob, type: image.mime_type, disposition: 'inline'
+      send_data image.to_blob, type: MiniMime.lookup_by_extension(image.type).content_type, disposition: 'inline'
     end
 
     private
