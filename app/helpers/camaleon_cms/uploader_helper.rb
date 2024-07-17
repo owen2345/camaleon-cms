@@ -72,7 +72,7 @@ module CamaleonCms
       # save file
       key = File.join(settings[:folder], settings[:filename]).to_s.cama_fix_slash
       res = cama_uploader.add_file(settings[:uploaded_io], key, { same_name: settings[:same_name] })
-      {} if (settings[:temporal_time]).positive?
+      return {} if (settings[:temporal_time]).positive?
 
       # generate image versions
       if res['file_type'] == 'image'
