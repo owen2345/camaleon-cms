@@ -158,6 +158,11 @@ class CamaleonCmsUploader
     File.exist?(file_name)
   end
 
+  def self.delete_block(&block)
+    @delete_block = block if block
+    @delete_block
+  end
+
   private
 
   def cache_key
