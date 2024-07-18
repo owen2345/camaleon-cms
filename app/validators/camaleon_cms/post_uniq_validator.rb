@@ -14,18 +14,17 @@ module CamaleonCms
                    )
                    .where.not(id: record.id)
                    .where.not(status: %i[draft draft_child trash])
-      if posts.size.positive?
-        record.errors[:base] << if slug_array.size > 1
-                                  "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}: #{posts.pluck(:slug).map do |slug|
-                                                                                                             record.slug.to_s.translations.map do |lng, r_slug|
-                                                                                                               if slug.translations_array.include?(r_slug)
-                                                                                                                 "#{r_slug} (#{lng})"
-                                                                                                               end
-                                                                                                             end.join(',')
-                                                                                                           end.join(',').split(',').uniq.clean_empty.join(', ')} "
-                                else
-                                  "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}: #{record.slug} "
-                                end
+      unless posts.empty?
+        record.errors[:base] <<
+          if slug_array.size > 1
+            "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}: #{posts.pluck(:slug).map do |slug|
+              record.slug.to_s.translations.map do |lng, r_slug|
+                "#{r_slug} (#{lng})" if slug.translations_array.include?(r_slug)
+              end.join(',')
+            end.join(',').split(',').uniq.clean_empty.join(', ')} "
+          else
+            "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}: #{record.slug} "
+          end
       end
 
       # avoid recursive page parent

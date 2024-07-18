@@ -42,7 +42,7 @@ module CamaleonCms
     validates_with CamaleonCms::PostUniqValidator
     attr_accessor :show_title_with_parent
 
-    before_create :fix_post_order, if: ->(p) { !p.post_order.present? || p.post_order.zero? }
+    before_create :fix_post_order, if: ->(p) { !p.post_order.present? || p.post_order == 0 }
 
     # return all parents for current page hierarchy ordered bottom to top
     def parents

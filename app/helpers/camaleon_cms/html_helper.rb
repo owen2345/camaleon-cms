@@ -98,7 +98,7 @@ module CamaleonCms
       terms.all.each do |term|
         options << [('—' * level) + term.name, term.id] unless @term.id == term.id
         children = term.children
-        options += cama_get_options_html_from_items(children, level + 1) if children.size.positive?
+        options += cama_get_options_html_from_items(children, level + 1) unless children.empty?
       end
       options
     end
@@ -121,18 +121,18 @@ module CamaleonCms
       libs[:datepicker] = { js: [] }
       libs[:datetimepicker] = { js: [], css: [] }
       libs[:tinymce] =
-        { js: ['camaleon_cms/admin/tinymce/tinymce.min', 'camaleon_cms/admin/tinymce/plugins/filemanager/plugin.min'],
+        { js: %w[camaleon_cms/admin/tinymce/tinymce.min camaleon_cms/admin/tinymce/plugins/filemanager/plugin.min],
           css: ['camaleon_cms/admin/tinymce/skins/lightgray/content.min'] }
       libs[:form_ajax] = { js: ['camaleon_cms/admin/form/jquery.form'] }
       libs[:cropper] = {} # loaded by default
       libs[:post] =
-        { js: ['camaleon_cms/admin/jquery.tagsinput.min', 'camaleon_cms/admin/post'],
+        { js: %w[camaleon_cms/admin/jquery.tagsinput.min camaleon_cms/admin/post],
           css: ['camaleon_cms/admin/jquery.tagsinput'] }
       libs[:multiselect] = { js: ['camaleon_cms/admin/bootstrap-select.js'] }
       libs[:validate] = { js: ['camaleon_cms/admin/jquery.validate'] }
       libs[:nav_menu] =
         { css: ['camaleon_cms/admin/nestable/jquery.nestable'],
-          js: ['camaleon_cms/admin/jquery.nestable', 'camaleon_cms/admin/nav_menu'] }
+          js: %w[camaleon_cms/admin/jquery.nestable camaleon_cms/admin/nav_menu] }
       libs[:admin_intro] =
         { js: ['camaleon_cms/admin/introjs/intro.min'], css: ['camaleon_cms/admin/introjs/introjs.min'] }
       @_cama_assets_libraries = libs

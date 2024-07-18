@@ -17,7 +17,7 @@ module CamaleonCms
           options << [('—' * level) + category.the_title, category.id]
           children = attrs[:max_level] < level ? [] : category.children
           children = [] if attrs[:until_cats].include?(category.id)
-          options += cama_category_get_options_html(children, level + 1, attrs) if children.size.positive?
+          options += cama_category_get_options_html(children, level + 1, attrs) unless children.empty?
         end
         options
       end
