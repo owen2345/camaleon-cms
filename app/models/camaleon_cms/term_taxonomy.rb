@@ -16,6 +16,19 @@ module CamaleonCms
     # attr_accessible :data_options
     # attr_accessible :data_metas
 
+    # TODO: Remove the 1st branch when support will be dropped of Rails < 7.1
+    if ::Rails::VERSION::STRING < '7.1.0'
+      before_validation(on: %i[create update]) do
+        %i[name description].each do |attr|
+          next unless new_record? || attribute_changed?(attr)
+
+          self[attr] = ActionController::Base.helpers.sanitize(__send__(attr))
+        end
+      end
+    else
+      normalizes :name, :description, with: ->(field) { ActionController::Base.helpers.sanitize(field) }
+    end
+
     # callbacks
     before_validation :before_validating
     before_destroy :destroy_dependencies

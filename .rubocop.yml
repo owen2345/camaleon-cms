@@ -29,6 +29,9 @@ Metrics/MethodLength:
   Exclude:
     - spec/**/*
 
+RSpec/AnyInstance:
+  Enabled: false
+
 RSpec/ExampleLength:
   Enabled: false
 
