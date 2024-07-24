@@ -117,7 +117,7 @@ module CamaleonCms
           index += 1
         end
 
-        if level.zero?
+        if level == 0
           html
         else
           html = "<#{args[:sub_container]} class='#{args[:sub_class]} #{if parent_current
@@ -143,7 +143,7 @@ module CamaleonCms
             '.html', ''
           )
           has_children = nav_menu_item.have_children?
-          has_children = false if max_levels.positive? && max_levels == internal_level
+          has_children = false if max_levels > 0 && max_levels == internal_level
           data_nav_item[:label] = data_nav_item[:name]
           data_nav_item[:url] = data_nav_item[:link]
           r = {
@@ -170,7 +170,7 @@ module CamaleonCms
           res << r
         end
 
-        if internal_level.zero?
+        if internal_level == 0
           res
         else
           [res, is_current_parent, levels.max]

@@ -1,7 +1,7 @@
 xml.instruct! :xml, version: '1.0'
 xml.urlset 'xmlns' => 'https://www.sitemaps.org/schemas/sitemap/0.9' do
   current_site.get_languages.each_with_index do |lang, index|
-    lang = (index.zero? ? nil : lang)
+    lang = (index == 0 ? nil : lang)
     xml.url do
       xml.loc current_site.the_url(locale: lang)
       xml.lastmod current_site.updated_at.to_date

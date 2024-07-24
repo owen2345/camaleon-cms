@@ -27,7 +27,7 @@ module CamaleonCms
       def welcome; end
 
       def installer_verification
-        redirect_to cama_root_url unless CamaleonCms::Site.count.zero?
+        redirect_to cama_root_url unless CamaleonCms::Site.count == 0
       end
     end
   end

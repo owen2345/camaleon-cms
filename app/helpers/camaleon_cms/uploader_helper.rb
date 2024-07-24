@@ -72,7 +72,6 @@ module CamaleonCms
       # save file
       key = File.join(settings[:folder], settings[:filename]).to_s.cama_fix_slash
       res = cama_uploader.add_file(settings[:uploaded_io], key, { same_name: settings[:same_name] })
-      {} if (settings[:temporal_time]).positive?
 
       # generate image versions
       if res['file_type'] == 'image'
@@ -92,6 +91,12 @@ module CamaleonCms
       FileUtils.rm_f(uploaded_io.path) if settings[:remove_source] && File.exist?(uploaded_io.path)
 
       hooks_run('after_upload', settings)
+
+      # temporal file upload (always put as local for temporal files)
+      if settings[:temporal_time] > 0
+        CamaleonCmsUploader.delete_block.call(settings, cama_uploader, key)
+      end
+
       res
     end
 

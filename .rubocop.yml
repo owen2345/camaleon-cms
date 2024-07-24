@@ -32,8 +32,15 @@ Metrics/MethodLength:
 RSpec/ExampleLength:
   Enabled: false
 
+RSpec/AnyInstance:
+  Enabled: false
+
 RSpec/InstanceVariable:
   Enabled: false
+
+RSpec/MessageSpies:
+  Enabled: true
+  EnforcedStyle: receive
 
 RSpec/MultipleMemoizedHelpers:
   Enabled: false
@@ -64,3 +71,7 @@ Style/FrozenStringLiteralComment:
 Style/MixinUsage:
   Exclude:
     - spec/**/*
+
+Style/NumericPredicate:
+  Enabled: true
+  EnforcedStyle: comparison

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe CamaleonCms::UploaderHelper do
@@ -15,6 +17,34 @@ describe CamaleonCms::UploaderHelper do
 
   it 'upload a local file max size' do
     expect(upload_file(File.open(@path), { maximum: 1.byte }).keys.include?(:error)).to be(true)
+  end
+
+  describe 'deleting temporary uploaded file' do
+    before { allow(CamaleonCmsUploader).to receive(:delete_block).and_call_original }
+
+    it 'delete the uploaded file if temporal_time option is > 0' do
+      expect(CamaleonCmsUploader).to receive(:delete_block)
+      expect_any_instance_of(CamaleonCmsLocalUploader).to receive(:delete_file)
+      expect(upload_file(File.open(@path), { temporal_time: 1 }).keys.include?(:error)).to be(false)
+    end
+
+    it "doesn't delete the uploaded file if temporal_time option is missing" do
+      expect(CamaleonCmsUploader).not_to receive(:delete_block)
+      expect_any_instance_of(CamaleonCmsLocalUploader).not_to receive(:delete_file)
+      expect(upload_file(File.open(@path)).keys.include?(:error)).to be(false)
+    end
+
+    it "doesn't delete the uploaded file if temporal_time option is 0" do
+      expect(CamaleonCmsUploader).not_to receive(:delete_block)
+      expect_any_instance_of(CamaleonCmsLocalUploader).not_to receive(:delete_file)
+      expect(upload_file(File.open(@path), { temporal_time: 0 }).keys.include?(:error)).to be(false)
+    end
+
+    it "doesn't delete the uploaded file if temporal_time option is < 0" do
+      expect(CamaleonCmsUploader).not_to receive(:delete_block)
+      expect_any_instance_of(CamaleonCmsLocalUploader).not_to receive(:delete_file)
+      expect(upload_file(File.open(@path), { temporal_time: -1 }).keys.include?(:error)).to be(false)
+    end
   end
 
   it 'upload a local file custom dimension' do

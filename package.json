@@ -12,5 +12,6 @@
   "main": "index.js",
   "repository": "https://github.com/owen2345/camaleon-cms",
   "author": "owen2345 <owenperedo@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "yarn@4.3.1+sha256.2535167e742927e1d2a1610d5004576e4e8f764d2ca5470d19536790f55cd6e2"
 }
