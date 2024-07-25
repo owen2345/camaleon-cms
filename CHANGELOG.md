@@ -8,6 +8,10 @@
 - On cama_site_check_existence, if site is unknown, use `allow_other_host: true` for redirection to main site
   - Starting from Rails 7.0 a redirection to other host will raise an exception unless the `redirect_to` method is 
     called with the `allow_other_host: true` option
+- Set sprocket-rails version to be at least 3.5.1
+- Use MiniMime for mime types, because the MiniMagick 5.0 has no Image#mime_type
+- Reimplement the temporary uploaded file removing, wrapping it in a bl…ock to make possible overriding the block in the app initializer to use an async job
+- Sanitize name and description attrs of TermTaxonomy classes to prevent XSS attacks
 
 ## [2.7.5](https://github.com/owen2345/camaleon-cms/tree/2.7.5) (2023-11-22)
 - Fix the test email for non-main sites by [brian-kephart](https://github.com/brian-kephart) in [\#1050](https://github.com/owen2345/camaleon-cms/pull/1050)
