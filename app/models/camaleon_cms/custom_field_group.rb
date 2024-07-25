@@ -6,7 +6,7 @@ module CamaleonCms
 
     default_scope do
       where("object_class != '_fields'")
-           .reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC")
+        .reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC")
     end
 
     has_many :metas, -> { where(object_class: 'CustomFieldGroup') }, foreign_key: :objectid, dependent: :destroy
