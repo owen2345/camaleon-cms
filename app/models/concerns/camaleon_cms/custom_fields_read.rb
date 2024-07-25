@@ -3,18 +3,6 @@ module CamaleonCms
     extend ActiveSupport::Concern
     included do
       before_destroy :_destroy_custom_field_groups
-      # DEPRECATED, INSTEAD USE: custom_fields
-      has_many :fields, lambda { |object|
-                          where(object_class: object.class.to_s.gsub('Decorator', '').gsub('CamaleonCms::', ''))
-                        }, class_name: 'CamaleonCms::CustomField', foreign_key: :objectid
-      # DEPRECATED, INSTEAD USE: custom_field_values
-      has_many :field_values, lambda { |object|
-                                where(object_class: object.class.to_s.gsub('Decorator', '').gsub('CamaleonCms::', ''))
-                              }, class_name: 'CamaleonCms::CustomFieldsRelationship', foreign_key: :objectid, dependent: :delete_all
-      # DEPRECATED, INSTEAD USE: custom_field_groups
-      has_many :field_groups, lambda { |object|
-                                where(object_class: object.class.to_s.parseCamaClass)
-                              }, class_name: 'CamaleonCms::CustomFieldGroup', foreign_key: :objectid
     end
 
     # get custom field groups for current object
@@ -38,7 +26,7 @@ module CamaleonCms
                { kind: args,
                  include_parent: false }
              else
-               { kind: 'Post', include_parent: false }.merge(args)
+               { kind: 'Post', include_parent: false }.merge!(args)
              end
       class_name = self.class.to_s.parseCamaClass
       case class_name
@@ -73,7 +61,7 @@ module CamaleonCms
           CamaleonCms::CustomFieldGroup.where(object_class: "PostType_#{args[:kind]}", objectid: id)
         end
       else # 'Plugin' or other classes
-        field_groups
+        custom_field_groups
       end
     end
 
@@ -196,8 +184,8 @@ module CamaleonCms
     # kind: argument only for PostType model: (Post | Category | PostTag), default => Post. If kind = "" this will add group for all post_types
     def add_custom_field_group(values, kind = 'Post')
       values = values.with_indifferent_access
-      group = get_field_groups(kind).where(slug: values[:slug]).first
-      unless group.present?
+      group = get_field_groups(kind).find_by(slug: values[:slug])
+      unless group
         site = _cama_get_field_site
         values[:parent_id] = site.id if site.present?
         group = if is_a?(CamaleonCms::Post) # harcoded for post to support custom field groups
@@ -206,6 +194,7 @@ module CamaleonCms
                   get_field_groups(kind).create!(values)
                 end
       end
+
       group
     end
     alias add_field_group add_custom_field_group
@@ -215,8 +204,8 @@ module CamaleonCms
     # more details in add_manual_field(item, options) from custom field groups
     # kind: argument only for PostType model: (Post | Category | PostTag), default => Post
     def add_custom_field_to_default_group(item, options, kind = 'Post')
-      g = get_field_groups(kind).where(slug: '_default').first
-      g = add_custom_field_group({ name: 'Default Field Group', slug: '_default' }, kind) unless g.present?
+      g = get_field_groups(kind).find_by(slug: '_default')
+      g ||= add_custom_field_group({ name: 'Default Field Group', slug: '_default' }, kind)
       g.add_manual_field(item, options)
     end
     alias add_field add_custom_field_to_default_group
@@ -260,7 +249,7 @@ module CamaleonCms
     # update new value for field with slug _key
     # Sample: my_posy.update_field_value('sub_title', 'Test Sub Title')
     def update_field_value(_key, value = nil, group_number = 0)
-      custom_field_values.where(custom_field_slug: _key, group_number: group_number).first.update_column('value', value)
+      custom_field_values.find_by(custom_field_slug: _key, group_number: group_number)&.update_column('value', value)
     rescue StandardError
       nil
     end
@@ -287,7 +276,7 @@ module CamaleonCms
     # sample: my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1})
     # sample: my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1, group_number: 1}) # add field values for fields in group 1
     def set_field_value(key, value, args = {})
-      args = { order: 0, group_number: 0, field_id: nil, clear: true }.merge(args)
+      args = { order: 0, group_number: 0, field_id: nil, clear: true }.merge!(args)
       unless args[:field_id].present?
         args[:field_id] = begin
           get_field_object(key).id
