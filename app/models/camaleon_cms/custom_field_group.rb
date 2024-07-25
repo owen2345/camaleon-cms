@@ -5,7 +5,7 @@ module CamaleonCms
     alias_attribute :site_id, :parent_id
 
     default_scope do
-      where.not(object_class: '_fields')
+      where("object_class != '_fields'")
            .reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC")
     end
 
