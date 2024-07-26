@@ -104,9 +104,9 @@ https://camaleon.website/store/plugins
 
 
 ## Requirements
-* Rails 6.0+
+* Rails 6.1+
 * PostgreSQL, MySQL 5+ or SQlite
-* Ruby 2.7+
+* Ruby 3.0+
 * Imagemagick
 
 ## Installation
