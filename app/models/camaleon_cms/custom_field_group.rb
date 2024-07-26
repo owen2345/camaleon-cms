@@ -5,8 +5,8 @@ module CamaleonCms
     alias_attribute :site_id, :parent_id
 
     default_scope do
-      where.not(object_class: '_fields')
-           .reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC")
+      where("object_class != '_fields'")
+        .reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC")
     end
 
     has_many :metas, -> { where(object_class: 'CustomFieldGroup') }, foreign_key: :objectid, dependent: :destroy

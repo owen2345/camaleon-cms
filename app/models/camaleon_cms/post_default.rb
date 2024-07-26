@@ -42,7 +42,7 @@ module CamaleonCms
       res = where("#{CamaleonCms::Post.table_name}.slug = ? OR #{CamaleonCms::Post.table_name}.slug LIKE ? ", slug,
                   "%-->#{slug}<!--%")
       # end
-      res.reorder('').first
+      res.take
     end
 
     # return the parent of a post (support for sub contents or tree of posts)
