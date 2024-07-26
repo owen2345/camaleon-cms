@@ -1,3 +1,3 @@
 module CamaleonCms
-  VERSION = '2.7.5'.freeze
+  VERSION = '2.8.0'.freeze
 end
