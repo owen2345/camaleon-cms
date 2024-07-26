@@ -2,9 +2,9 @@
 
 ## Unreleased
 - Use jQuery 2.x - 2.2.4
-  - If there are `//= require jquery` clauses in the main application, replace them with `//= require jquery2`
+  - **If there are `//= require jquery` clauses in the main application, replace them with `//= require jquery2`**
 - Add Ruby 3.3 and Rails 7.2 to CI
-- Replace Tuzitio links with `camaleon.website` and http with https
+- Replace Tuzitio links with `camaleon.website` and `http` with `https`
 - On cama_site_check_existence, if site is unknown, use `allow_other_host: true` for redirection to main site
   - Starting from Rails 7.0 a redirection to other host will raise an exception unless the `redirect_to` method is 
     called with the `allow_other_host: true` option
@@ -12,6 +12,10 @@
 - Use MiniMime for mime types, because the MiniMagick 5.0 has no Image#mime_type
 - Reimplement the temporary uploaded file removing, wrapping it in a bl…ock to make possible overriding the block in the app initializer to use an async job
 - Sanitize name and description attrs of TermTaxonomy classes to prevent XSS attacks
+- **Potentially breaking change:** Fix ActiveRecord deprecations from Rails 6.1
+  - `fields`, `field_values`, and `field_groups` associations have been removed from the CustomFieldsRead mixin module
+  - `custom_fields`, `custom_field_values`, and `custom_field_groups` associations should be used instead
+  - Beware that the CustomFieldsRead mixin is included into the TermTaxonomy base model, PostDefault model, and UserMethods mixin
 
 ## [2.7.5](https://github.com/owen2345/camaleon-cms/tree/2.7.5) (2023-11-22)
 - Fix the test email for non-main sites by [brian-kephart](https://github.com/brian-kephart) in [\#1050](https://github.com/owen2345/camaleon-cms/pull/1050)
