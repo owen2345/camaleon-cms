@@ -1,6 +1,9 @@
 # Change Log
 
 ## Unreleased
+
+
+## [2.8.0](https://github.com/owen2345/camaleon-cms/tree/2.8.0) (2024-07-26)
 - Use jQuery 2.x - 2.2.4
   - **If there are `//= require jquery` clauses in the main application, replace them with `//= require jquery2`**
 - Add Ruby 3.3 and Rails 7.2 to CI
