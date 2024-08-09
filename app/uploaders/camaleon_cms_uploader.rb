@@ -125,6 +125,12 @@ class CamaleonCmsUploader
     valid_formats.include?(File.extname(key).sub('.', '').split('?').first.try(:downcase))
   end
 
+  def self.valid_folder_path?(path)
+    return false if path.include?('..') || File.absolute_path?(path) || path.include?('://')
+
+    true
+  end
+
   # verify if this file name already exist
   # if the file is already exist, return a new name for this file
   # sample: search_new_key("my_file/file.txt")
