@@ -54,7 +54,21 @@ describe CamaleonCms::UploaderHelper do
     expect(upload_file(File.open(@path), { dimension: '50x20?' }).keys.include?(:error)).not_to eql(true)
   end
 
-  it 'upload a local file invalid format' do
+  describe 'file upload with invalid path' do
+    it 'upload a local file with invalid path of a path traversal try' do
+      expect(upload_file(File.open(@path), { folder: '../../config/initializers' }).keys.include?(:error)).to be(true)
+    end
+
+    it 'upload a local file with invalid URI-like path' do
+      expect(upload_file(File.open(@path), { folder: 'file:///config/initializers' }).keys.include?(:error)).to be(true)
+    end
+
+    it 'upload a local file with an absolute path' do
+      expect(upload_file(File.open(@path), { folder: '/tmp/config/initializers' }).keys.include?(:error)).to be(true)
+    end
+  end
+
+  it 'upload a local file with invalid format' do
     expect(upload_file(File.open(@path), { formats: 'audio' }).keys.include?(:error)).to be(true)
   end
 
