@@ -25,7 +25,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'addressable'
   s.add_dependency 'bcrypt'
   s.add_dependency 'breadcrumbs_on_rails'
+  s.add_dependency 'cama_contact_form', '~> 0.1.0'
+  s.add_dependency 'cama_meta_tag'
   s.add_dependency 'cancancan', '>= 2.0', '< 4'
+  s.add_dependency 'dartsass-sprockets'
   s.add_dependency 'draper', '>= 4.0.2'
   s.add_dependency 'font-awesome-rails'
   s.add_dependency 'ipaddress'
@@ -33,14 +36,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
   s.add_dependency 'non-digest-assets', '~> 2.0'
-  s.add_dependency 'sass-rails'
   s.add_dependency 'sprockets-rails', '>= 3.5.1'
   s.add_dependency 'tinymce-rails', '< 5'
   s.add_dependency 'will_paginate'
   s.add_dependency 'will_paginate-bootstrap'
-
-  s.add_dependency 'cama_contact_form', '~> 0.1.0'
-  s.add_dependency 'cama_meta_tag'
 
   # MEDIA MANAGER
   s.add_dependency 'aws-sdk-s3', '~> 1'

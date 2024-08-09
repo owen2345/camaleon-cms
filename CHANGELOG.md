@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Replace sass-rails with dartsass-sprockets
 
 ## [2.8.0](https://github.com/owen2345/camaleon-cms/tree/2.8.0) (2024-07-26)
 - Use jQuery 2.x - 2.2.4
