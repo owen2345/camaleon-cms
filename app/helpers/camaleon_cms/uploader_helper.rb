@@ -58,6 +58,9 @@ module CamaleonCms
       hooks_run('before_upload', settings)
       res = { error: nil }
 
+      # guard against path traversal
+      return { error: 'Invalid file path' } unless cama_uploader.class.valid_folder_path?(settings[:folder])
+
       # formats validations
       return { error: "#{ct('file_format_error')} (#{settings[:formats]})" } unless cama_uploader.class.validate_file_format(
         uploaded_io.path, settings[:formats]
