@@ -117,7 +117,7 @@ module CamaleonCms
 
       libs = {}
       libs[:colorpicker] =
-        { js: ['camaleon_cms/admin/bootstrap-colorpicker'], css: ['camaleon_cms/admin/colorpicker.css'] }
+        { js: ['camaleon_cms/admin/bootstrap-colorpicker'], scss: ['camaleon_cms/admin/colorpicker.scss'] }
       libs[:datepicker] = { js: [] }
       libs[:datetimepicker] = { js: [], css: [] }
       libs[:tinymce] =
