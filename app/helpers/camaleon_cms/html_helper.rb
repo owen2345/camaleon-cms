@@ -74,9 +74,10 @@ module CamaleonCms
       libs = []
       @_assets_libraries.each_value do |assets|
         libs += assets[:css] if assets[:css].present?
+        libs += assets[:scss] if assets[:scss].present?
       end
       stylesheets = libs.uniq
-      css = stylesheet_link_tag(*stylesheets, media: 'all')
+      css = stylesheet_link_tag(*stylesheets, extname: false, media: 'all')
 
       libs = []
       @_assets_libraries.each_value do |assets|
