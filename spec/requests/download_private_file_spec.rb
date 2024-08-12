@@ -29,7 +29,7 @@ RSpec.describe 'Media requests', type: :request do
     end
 
     context 'when file path is invalid' do
-      it 'returns an error' do
+      it 'returns invalid file path error' do
         get '/admin/media/download_private_file', params: { file: './../../../../../etc/passwd' }
 
         expect(response.body).to include('Invalid file path')
@@ -37,9 +37,10 @@ RSpec.describe 'Media requests', type: :request do
     end
 
     context 'when the file is not found' do
-      it 'returns an error' do
-        expect { get '/admin/media/download_private_file', params: { file: 'passwd' } }
-          .to raise_error(ActionController::RoutingError, 'File not found')
+      it 'returns file not found error' do
+        get '/admin/media/download_private_file', params: { file: 'passwd' }
+
+        expect(response.body).to include('File not found')
       end
     end
   end

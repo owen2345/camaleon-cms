@@ -27,9 +27,9 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
   def fetch_file(file_name)
     return { error: 'Invalid file path' } if file_name.include?('..')
 
-    raise ActionController::RoutingError, 'File not found' unless file_exists?(file_name)
+    return file_name if file_exists?(file_name)
 
-    file_name
+    { error: 'File not found' }
   end
 
   def file_parse(key)
