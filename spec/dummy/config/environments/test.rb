@@ -25,11 +25,11 @@ Rails.application.configure do
   config.assets.check_precompiled_asset = false
 
   # Raise exceptions instead of rendering exception templates.
-  if ::Rails::VERSION::STRING < '7.2.0'
-    config.action_dispatch.show_exceptions = false
-  else
-    config.action_dispatch.show_exceptions = :none
-  end
+  config.action_dispatch.show_exceptions = if ::Rails::VERSION::STRING < '7.2.0'
+                                             false
+                                           else
+                                             :none
+                                           end
 
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
