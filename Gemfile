@@ -1,9 +1,9 @@
 source 'https://rubygems.org'
 
 gemspec
-gem 'non-digest-assets'
+gem 'non-digest-assets', git: 'https://github.com/mvz/non-digest-assets'
 gem 'oj'
-gem 'rails', '~> 7.1.0'
+gem 'rails', '~> 7.2.0'
 gem 'selenium-webdriver'
 gem 'sprockets-rails', '>= 3.5.1'
 
