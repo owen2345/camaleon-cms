@@ -5,6 +5,8 @@
 - Replace sass-rails with dartsass-sprockets
   - Remove `sass` and `sass-rails` gems from the main app's Gemfile when upgrading `camaleon_cms` to this version
 - Fix colorpicker missing admin asset, adding it to `admin-manifest.css`
+- **Security fix:** Mitigate arbitrary path write in uploader (GHSL-2024-182)
+  - Thanks [Peter Stöckli](https://github.com/p-) for reporting and providing clear reproduction steps
 
 ## [2.8.0](https://github.com/owen2345/camaleon-cms/tree/2.8.0) (2024-07-26)
 - Use jQuery 2.x - 2.2.4
