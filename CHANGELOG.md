@@ -7,6 +7,7 @@
 - Fix colorpicker missing admin asset, adding it to `admin-manifest.css`
 - **Security fix:** Mitigate arbitrary path write in uploader (GHSL-2024-182)
   - Thanks [Peter Stöckli](https://github.com/p-) for reporting and providing clear reproduction steps
+- Add Rails 7.2 to stable testing on CI, point rails_edge to main branch
 
 ## [2.8.0](https://github.com/owen2345/camaleon-cms/tree/2.8.0) (2024-07-26)
 - Use jQuery 2.x - 2.2.4
