@@ -74,10 +74,9 @@ module CamaleonCms
       libs = []
       @_assets_libraries.each_value do |assets|
         libs += assets[:css] if assets[:css].present?
-        libs += assets[:scss] if assets[:scss].present?
       end
       stylesheets = libs.uniq
-      css = stylesheet_link_tag(*stylesheets, extname: false, media: 'all')
+      css = stylesheet_link_tag(*stylesheets, media: 'all')
 
       libs = []
       @_assets_libraries.each_value do |assets|
@@ -118,7 +117,7 @@ module CamaleonCms
 
       libs = {}
       libs[:colorpicker] =
-        { js: ['camaleon_cms/admin/bootstrap-colorpicker'], scss: ['camaleon_cms/admin/colorpicker.scss'] }
+        { js: ['camaleon_cms/admin/bootstrap-colorpicker'], css: ['camaleon_cms/admin/colorpicker'] }
       libs[:datepicker] = { js: [] }
       libs[:datetimepicker] = { js: [], css: [] }
       libs[:tinymce] =
