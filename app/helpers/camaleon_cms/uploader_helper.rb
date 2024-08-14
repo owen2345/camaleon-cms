@@ -10,6 +10,7 @@ module CamaleonCms
       onpropertychange onratechange onreadystatechange onreset onresize onscroll onsearch onseek onselect onshow
       onstalled onstorage onsuspend ontimeupdate ontoggle onunloadonsubmit onvolumechange onwaiting onwheel
     ].freeze
+    UNSAFE_DETECTION_REGEX = Regexp.union(UNSAFE_EXPRESSIONS + UNSAFE_EVENT_PATTERNS)
 
     include ActionView::Helpers::NumberHelper
     include CamaleonCms::CamaleonHelper
@@ -386,11 +387,11 @@ module CamaleonCms
 
       if file.respond_to?(:binmode)
         file.set_encoding(Encoding::BINARY) if file.respond_to?(:set_encoding)
-        file_content_unsafe = true if Regexp.union(UNSAFE_EXPRESSIONS + UNSAFE_EVENT_PATTERNS).match?(file.read)
+        file_content_unsafe = true if UNSAFE_DETECTION_REGEX.match?(file.read)
       else
         file.each do |line|
           downcased_line = line.downcase
-          break file_content_unsafe = true if downcased_line[Regexp.union(UNSAFE_EXPRESSIONS + UNSAFE_EVENT_PATTERNS)]
+          break file_content_unsafe = true if downcased_line[UNSAFE_DETECTION_REGEX]
         end
       end
 
