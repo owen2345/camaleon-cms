@@ -1,5 +1,16 @@
+# frozen_string_literal: true
+
 module CamaleonCms
   module UploaderHelper
+    UNSAFE_EXPRESSIONS = %w[script prompt eval url \%(css)s alert src= href= data="http redirect].freeze
+    UNSAFE_EVENT_PATTERNS = %w[
+      onabort onafter onbefore onblur oncanplay onchange onclick oncontextmenu oncopy oncuechange oncut ondblclick
+      ondrag ondrop ondurationchange onended onerror onfocus onhashchange oninvalid oninput onkey onload onmessage
+      onmouse ononline onoffline onpagehide onpageshow onpage onpaste onpause onplay onpopstate onprogress
+      onpropertychange onratechange onreadystatechange onreset onresize onscroll onsearch onseek onselect onshow
+      onstalled onstorage onsuspend ontimeupdate ontoggle onunloadonsubmit onvolumechange onwaiting onwheel
+    ].freeze
+
     include ActionView::Helpers::NumberHelper
     include CamaleonCms::CamaleonHelper
     # upload a file into server
@@ -12,8 +23,9 @@ module CamaleonCms
     #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
     #   remove_source: Boolean (delete source file after saved if this is true, default false)
     #   same_name: Boolean (save the file with the same name if defined true, else search for a non used name)
-    #   versions: (String) Create addtional multiple versions of the image uploaded, sample: '300x300,505x350' ==> Will create two extra images with these dimensions
-    #       sample "test.png", versions: '200x200,450x450' will generate: thumb/test-png_200x200.png, test-png_450x450.png
+    #   versions: (String) Create additional multiple versions of the image uploaded,
+    #     sample: '300x300,505x350' ==> Will create two extra images with these dimensions
+    #     sample "test.png", versions: '200x200,450x450' will generate: thumb/test-png_200x200.png, test-png_450x450.png
     #   thumb_size: String (redefine the dimensions of the thumbnail, sample: '100x100' ==> only for images)
     #   temporal_time: if great than 0 seconds, then this file will expire (removed) in that time (default: 0)
     #     To manage jobs, please check https://edgeguides.rubyonrails.org/active_job_basics.html
@@ -35,6 +47,8 @@ module CamaleonCms
       if settings[:dimension].present?
         uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension]))
       end
+
+      return { error: 'Files with unsafe content not allowed' } if file_content_unsafe?(uploaded_io)
 
       settings = settings.to_sym
       settings[:uploaded_io] = uploaded_io
@@ -303,10 +317,11 @@ module CamaleonCms
 
     # resize image if the format is correct
     # return resized file path
-    def cama_resize_upload(image_path, dimesion, args = {})
-      if cama_uploader.class.validate_file_format(image_path, 'image') && dimesion.present?
-        r = { file: image_path, w: dimesion.split('x')[0], h: dimesion.split('x')[1], w_offset: 0, h_offset: 0,
-              resize: !dimesion.split('x')[2] || dimesion.split('x')[2] == 'resize', replace: true, gravity: :north_east }.merge(args)
+    def cama_resize_upload(image_path, dimension, args = {})
+      if cama_uploader.class.validate_file_format(image_path, 'image') && dimension.present?
+        r = { file: image_path, w: dimension.split('x')[0], h: dimension.split('x')[1], w_offset: 0, h_offset: 0,
+              resize: !dimension.split('x')[2] || dimension.split('x')[2] == 'resize',
+              replace: true, gravity: :north_east }.merge!(args)
         hooks_run('on_uploader_resize', r)
         image_path = if r[:w].present? && r[:h].present?
                        cama_resize_and_crop(r[:file], r[:w], r[:h], { overwrite: r[:replace], gravity: r[:gravity] })
@@ -337,7 +352,7 @@ module CamaleonCms
                                       data
                                     } # permit to read custom attributes from aws file and add to file parsed object
           },
-          custom_uploader: nil # posibility to use custom file uploader
+          custom_uploader: nil # possibility to use custom file uploader
         }
         hooks_run('on_uploader', args)
         return args[:custom_uploader] if args[:custom_uploader].present?
@@ -358,12 +373,30 @@ module CamaleonCms
     end
 
     def slugify_folder(val)
-      splitted_folder = val.split('/')
-      splitted_folder[-1] = slugify(splitted_folder.last)
-      splitted_folder.join('/')
+      split_folder = val.split('/')
+      split_folder[-1] = slugify(split_folder.last)
+      split_folder.join('/')
     end
 
     private
+
+    def file_content_unsafe?(uploaded_io)
+      file = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.tempfile : uploaded_io
+      file_content_unsafe = nil
+
+      if file.respond_to?(:binmode)
+        file.set_encoding(Encoding::BINARY) if file.respond_to?(:set_encoding)
+        file_content_unsafe = true if Regexp.union(UNSAFE_EXPRESSIONS + UNSAFE_EVENT_PATTERNS).match?(file.read)
+      else
+        file.each do |line|
+          downcased_line = line.downcase
+          break file_content_unsafe = true if downcased_line[Regexp.union(UNSAFE_EXPRESSIONS + UNSAFE_EVENT_PATTERNS)]
+        end
+      end
+
+      file.rewind
+      file_content_unsafe
+    end
 
     # helper for resize and crop method
     def cama_crop_offsets_by_gravity(gravity, original_dimensions, cropped_dimensions)
