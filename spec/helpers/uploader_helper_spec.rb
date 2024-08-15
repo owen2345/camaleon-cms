@@ -74,7 +74,7 @@ describe CamaleonCms::UploaderHelper do
 
     it "doesn't allow the file upload, returning an error" do
       expect(upload_file(File.open(unsafe_file_path), { folder: '/' })[:error])
-        .to eql('Files with unsafe content not allowed')
+        .to eql('Potentially malicious content found!')
     end
   end
 

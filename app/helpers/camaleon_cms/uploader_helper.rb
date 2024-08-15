@@ -2,18 +2,20 @@
 
 module CamaleonCms
   module UploaderHelper
-    UNSAFE_EXPRESSIONS = %w[script prompt eval url \%(css)s alert src= href= data="http redirect].freeze
-    UNSAFE_EVENT_PATTERNS = %w[
-      onabort onafter onbefore onblur oncanplay onchange onclick oncontextmenu oncopy oncuechange oncut ondblclick
-      ondrag ondrop ondurationchange onended onerror onfocus onhashchange oninvalid oninput onkey onload onmessage
-      onmouse ononline onoffline onpagehide onpageshow onpage onpaste onpause onplay onpopstate onprogress
-      onpropertychange onratechange onreadystatechange onreset onresize onscroll onsearch onseek onselect onshow
-      onstalled onstorage onsuspend ontimeupdate ontoggle onunloadonsubmit onvolumechange onwaiting onwheel
+    SUSPICIOUS_PATTERNS = [
+      /<script[\s>]/i,  # Script tags
+      /on\w+\s*=/i,     # Inline event handlers like onload, onclick, etc.
+      /javascript:/i,   # JavaScript in href/src attributes
+      /<iframe[\s>]/i,  # Iframes
+      /<object[\s>]/i,  # Object tags
+      /<embed[\s>]/i,   # Embed tags
+      /<base[\s>]/i,    # Base tags (can be used to manipulate URLs)
+      /data:/i          # data: URLs (which can include scripts)
     ].freeze
-    UNSAFE_DETECTION_REGEX = Regexp.union(UNSAFE_EXPRESSIONS + UNSAFE_EVENT_PATTERNS)
 
     include ActionView::Helpers::NumberHelper
     include CamaleonCms::CamaleonHelper
+
     # upload a file into server
     # settings:
     #   folder: Directory where the file will be saved (default: "")
@@ -49,7 +51,7 @@ module CamaleonCms
         uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension]))
       end
 
-      return { error: 'Files with unsafe content not allowed' } if file_content_unsafe?(uploaded_io)
+      return { error: 'Potentially malicious content found!' } if file_content_unsafe?(uploaded_io)
 
       settings = settings.to_sym
       settings[:uploaded_io] = uploaded_io
@@ -385,17 +387,16 @@ module CamaleonCms
       file = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.tempfile : uploaded_io
       file_content_unsafe = nil
 
-      if file.respond_to?(:binmode)
-        file.set_encoding(Encoding::BINARY) if file.respond_to?(:set_encoding)
-        file_content_unsafe = true if UNSAFE_DETECTION_REGEX.match?(file.read)
-      else
-        file.each do |line|
-          downcased_line = line.downcase
-          break file_content_unsafe = true if downcased_line[UNSAFE_DETECTION_REGEX]
+      file.set_encoding(Encoding::BINARY) if file.respond_to?(:binmode) && file.respond_to?(:set_encoding)
+
+      file_content = file.read
+      SUSPICIOUS_PATTERNS.each do |pattern|
+        if file_content =~ pattern
+          Rails.logger.info { "Potentially malicious content found: #{pattern.inspect}" }
+          break file_content_unsafe = pattern.inspect
         end
       end
 
-      file.rewind
       file_content_unsafe
     end
 
