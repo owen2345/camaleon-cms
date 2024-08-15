@@ -71,7 +71,7 @@ module CamaleonCms
         same_name: false,
         versions: '',
         thumb_size: nil
-      }.merge(settings)
+      }.merge!(settings)
       hooks_run('before_upload', settings)
       res = { error: nil }
 
@@ -214,7 +214,7 @@ module CamaleonCms
     # Return: (String) file path where saved this cropped
     # sample: cama_resize_and_crop(my_file, 200, 200, {gravity: :north_east, overwrite: false})
     def cama_resize_and_crop(file, w, h, settings = {})
-      settings = { gravity: :north_east, overwrite: true, output_name: '' }.merge(settings)
+      settings = { gravity: :north_east, overwrite: true, output_name: +'' }.merge!(settings)
       img = MiniMagick::Image.open(file)
       if file.end_with? '.svg'
         img.format 'jpg'
