@@ -126,6 +126,8 @@ class CamaleonCmsUploader
   end
 
   def self.valid_folder_path?(path)
+    return true if path == '/'
+
     return false if path.include?('..') || File.absolute_path?(path) || path.include?('://')
 
     true

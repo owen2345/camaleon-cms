@@ -4,6 +4,7 @@ require 'rails_helper'
 
 describe CamaleonCms::UploaderHelper do
   init_site
+
   before do
     @path = "#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails_tmp.png"
     FileUtils.cp("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png", @path)
@@ -65,6 +66,15 @@ describe CamaleonCms::UploaderHelper do
 
     it 'upload a local file with an absolute path' do
       expect(upload_file(File.open(@path), { folder: '/tmp/config/initializers' }).keys.include?(:error)).to be(true)
+    end
+  end
+
+  describe 'file upload with unsafe content' do
+    let(:unsafe_file_path) { "#{CAMALEON_CMS_ROOT}/spec/support/fixtures/unsafe-test-xss.svg" }
+
+    it "doesn't allow the file upload, returning an error" do
+      expect(upload_file(File.open(unsafe_file_path), { folder: '/' })[:error])
+        .to eql('Potentially malicious content found!')
     end
   end
 
