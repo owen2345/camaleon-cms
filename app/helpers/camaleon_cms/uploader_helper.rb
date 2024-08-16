@@ -4,7 +4,7 @@ module CamaleonCms
   module UploaderHelper
     SUSPICIOUS_PATTERNS = [
       /<script[\s>]/i,  # Script tags
-      /on\w+\s*=/i,     # Inline event handlers like onload, onclick, etc.
+      /on\w{3,}\s*=/i,  # Inline event handlers like oncut, onload, onclick, etc.
       /javascript:/i,   # JavaScript in href/src attributes
       /<iframe[\s>]/i,  # Iframes
       /<object[\s>]/i,  # Object tags
