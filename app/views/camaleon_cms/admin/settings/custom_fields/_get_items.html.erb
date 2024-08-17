@@ -23,7 +23,6 @@
       <div class="panel-body">
         <%= hidden_field(:fields, :id, index: @index, value: @item_id) %>
         <%= hidden_field(:field_options, :field_key, index: @index, value: @key) %>
-        <%= hidden_field(:field_options, :label_eval, index: @index, value: @item_options_value[:label_eval].to_s.cama_true? ? 'true' : '') %>
         <%= hidden_field(:field_options, :panel_hidden, index: @index, value: @item_options_value[:panel_hidden], class: 'input-panel-hidden') %>
         <div class="form-group input-group-sm">
           <label for=""><%= t('camaleon_cms.admin.table.name') %></label><br>

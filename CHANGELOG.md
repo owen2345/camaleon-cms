@@ -12,6 +12,8 @@
   - Thanks [Peter Stöckli](https://github.com/p-) for reporting and providing clear reproduction steps
 - **Security fix:** Mitigate stored XSS through user file upload (GHSL-2024-184)
   - Thanks [Peter Stöckli](https://github.com/p-) for reporting and providing clear reproduction steps
+- **Security fix:** Mitigate remote code execution through code injection (GHSL-2024-185)
+  - Thanks [Peter Stöckli](https://github.com/p-) for reporting and providing clear reproduction steps
 - **Security fix:** Mitigate arbitrary file delete vulnerability (GHSL-2024-186)
   - Thanks [Peter Stöckli](https://github.com/p-) for reporting and providing clear reproduction steps
 - Use actions/checkout@v4 on CI to remove warning about deprecated Node JS version

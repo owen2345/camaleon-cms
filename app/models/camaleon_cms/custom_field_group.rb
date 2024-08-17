@@ -24,12 +24,9 @@ module CamaleonCms
     # -  options (textbox sample):  {"field_key":"text_box","multiple":"1","required":"1",
     #     "translate":"1"}
     #   * field_key (string) | translate (boolean) | default_value (unique value) |
-    #      default_values (array - multiple values for this field) | label_eval (boolean) |
-    #      multiple_options (array)
+    #      default_values (array - multiple values for this field) | multiple_options (array)
     #   * multiple_options (used for select, radio and checkboxes ): [{"title"=>"Option Title",
     #      "value"=>"2", "default"=>"1"}, {"title"=>"abcde", "value"=>"3"}]
-    #   * label_eval: (Boolean, default false), true => will evaluate the label and description of
-    #       current field using (eval('my_label')) to have translatable|dynamic labels
     # ****** check all options for each case in Admin::CustomFieldsHelper ****
     # SAMPLE: my_model.add_field({"name"=>"Sub Title", "slug"=>"subtitle"}, {"field_key"=>"text_box",
     #   "translate"=>true, default_value: "Get in Touch"})

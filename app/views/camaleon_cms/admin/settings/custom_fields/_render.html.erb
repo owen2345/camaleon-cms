@@ -20,14 +20,14 @@
                             <input name="<%= field_name %>[<%= field.slug %>][id]" type="hidden" value="<%= field.id %>"/>
                             <input name="<%= field_name %>[<%= field.slug %>][group_number]" class="cama_custom_group_number" type="hidden" value="0"/>
                             <label>
-                                <%= field.options[:label_eval].present? ? eval(field.name) : field.name %>
+                                <%= field.name %>
                                 <%= raw "<em class='text-danger'>*</em>" if field.options[:required].to_s.to_bool %>
                                 <% if current_site.get_option('custom_fields_show_shortcodes') && ["post", "posttype", "category", "postTag", "site", "user", "navmenu", "theme"].include?(obj_class) %>
                                     <small class="shortcode_field"><br><%= raw cama_shortcode_print("[data field='#{field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") %></small>
                                 <% end %>
                             </label>
                             <% if field.description.present? %>
-                                <p><small><%= field.options[:label_eval].present? ? eval(field.description) : field.description %></small></p>
+                                <p><small><%= field.description %></small></p>
                             <% end  %>
                             <div class="editor-custom-fields content-field-<%= field.id %>" data-add_field_title="<%= t('camaleon_cms.admin.button.add_new_field', default: 'Add new field')%>">
                                 <%= begin
