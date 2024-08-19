@@ -2,7 +2,7 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
   def after_initialize
     @root_folder = @args[:root_folder] || @current_site.upload_directory
 
-    FileUtils.mkdir_p(@root_folder)
+    FileUtils.mkdir_p(@root_folder) unless Dir.exist?(@root_folder)
   end
 
   def setup_private_folder
@@ -109,6 +109,8 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
 
   # remove an existent folder
   def delete_folder(key)
+    return { error: 'Invalid folder path' } if key.include?('..')
+
     folder = File.join(@root_folder, key)
     FileUtils.rm_rf(folder) if Dir.exist? folder
     get_media_collection.find_by_key(key).take.destroy
@@ -116,6 +118,8 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
 
   # remove an existent file
   def delete_file(key)
+    return { error: 'Invalid file path' } if key.include?('..')
+
     file = File.join(@root_folder, key)
     FileUtils.rm(file) if File.exist? file
     @instance.hooks_run('after_delete', key)

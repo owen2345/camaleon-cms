@@ -53,16 +53,15 @@ module CamaleonCms
       def actions
         authorize! :manage, :media if params[:media_action] != 'crop_url'
         params[:folder] = params[:folder].gsub('//', '/') if params[:folder].present?
+
         case params[:media_action]
         when 'new_folder'
           params[:folder] = slugify_folder(params[:folder])
-          render partial: 'render_file_item', locals: { files: [cama_uploader.add_folder(params[:folder])] }
+          return render partial: 'render_file_item', locals: { files: [cama_uploader.add_folder(params[:folder])] }
         when 'del_folder'
-          cama_uploader.delete_folder(params[:folder])
-          render plain: ''
+          r = cama_uploader.delete_folder(params[:folder])
         when 'del_file'
-          cama_uploader.delete_file(params[:folder].gsub('//', '/'))
-          render plain: ''
+          r = cama_uploader.delete_file(params[:folder].gsub('//', '/'))
         when 'crop_url'
           user_url = params[:url].to_s
           user_url = "#{current_site.the_url(locale: nil)}#{user_url}" unless user_url.start_with?('data:', 'http')
@@ -72,16 +71,18 @@ module CamaleonCms
               else
                 cama_tmp_upload(user_url, formats: params[:formats], name: params[:name])
               end
-          if r[:error].present?
-            render plain: helpers.sanitize(r[:error])
-          else
+          if r[:error].blank?
             params[:file_upload] = r[:file_path]
             sett = { remove_source: true }
             sett[:same_name] = true if params[:same_name].present?
             sett[:name] = params[:name] if params[:name].present?
-            upload(sett)
+            return upload(sett)
           end
         end
+
+        return render plain: helpers.sanitize(r[:error]) if r[:error].present?
+
+        render plain: ''
       end
 
       # upload files from media uploader

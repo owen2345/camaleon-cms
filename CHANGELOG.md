@@ -12,6 +12,8 @@
   - Thanks [Peter Stöckli](https://github.com/p-) for reporting and providing clear reproduction steps
 - **Security fix:** Mitigate stored XSS through user file upload (GHSL-2024-184)
   - Thanks [Peter Stöckli](https://github.com/p-) for reporting and providing clear reproduction steps
+- **Security fix:** Mitigate arbitrary file delete vulnerability (GHSL-2024-186)
+  - Thanks [Peter Stöckli](https://github.com/p-) for reporting and providing clear reproduction steps
 
 ## [2.8.0](https://github.com/owen2345/camaleon-cms/tree/2.8.0) (2024-07-26)
 - Use jQuery 2.x - 2.2.4
