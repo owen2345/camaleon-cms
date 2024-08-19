@@ -1,6 +1,6 @@
 class CamaleonCmsLocalUploader < CamaleonCmsUploader
   def after_initialize
-    @root_folder = @args[:root_folder] || @current_site.upload_directory
+    @root_folder = @current_site.upload_directory
 
     FileUtils.mkdir_p(@root_folder) unless Dir.exist?(@root_folder)
   end
