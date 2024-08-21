@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## [2.8.1](https://github.com/owen2345/camaleon-cms/tree/2.8.1) (2024-08-21)
+
+**This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
+
 - Replace sass-rails with dartsass-sprockets
   - Remove `sass` and `sass-rails` gems from the main app's Gemfile when upgrading `camaleon_cms` to this version
 - Fix colorpicker missing admin asset, adding it to `admin-manifest.css`
