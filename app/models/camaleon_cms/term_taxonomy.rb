@@ -29,8 +29,8 @@ module CamaleonCms
           next unless new_record? || attribute_changed?(attr)
 
           self[attr] = ActionController::Base.helpers.sanitize(
-            __send__(attr).gsub(TRANSLATION_TAG_HIDE_REGEX, TRANSLATION_TAG_HIDE_MAP)
-          ).gsub(TRANSLATION_TAG_RESTORE_REGEX, TRANSLATION_TAG_RESTORE_MAP)
+            __send__(attr)&.gsub(TRANSLATION_TAG_HIDE_REGEX, TRANSLATION_TAG_HIDE_MAP)
+          )&.gsub(TRANSLATION_TAG_RESTORE_REGEX, TRANSLATION_TAG_RESTORE_MAP)
         end
       end
     else
