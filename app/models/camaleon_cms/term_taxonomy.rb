@@ -3,6 +3,12 @@ module CamaleonCms
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
 
+    TRANSLATION_TAG_HIDE_MAP = { '<!--' => '!--', '-->' => '--!' }.freeze
+    TRANSLATION_TAG_HIDE_REGEX = Regexp.new(TRANSLATION_TAG_HIDE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
+    TRANSLATION_TAG_RESTORE_MAP = { '--!' => '-->', '!--' => '<!--' }.freeze
+    TRANSLATION_TAG_RESTORE_REGEX =
+      Regexp.new(TRANSLATION_TAG_RESTORE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
+
     def self.inherited(subclass)
       super
 
@@ -22,11 +28,16 @@ module CamaleonCms
         %i[name description].each do |attr|
           next unless new_record? || attribute_changed?(attr)
 
-          self[attr] = ActionController::Base.helpers.sanitize(__send__(attr))
+          self[attr] = ActionController::Base.helpers.sanitize(
+            __send__(attr).gsub(TRANSLATION_TAG_HIDE_REGEX, TRANSLATION_TAG_HIDE_MAP)
+          ).gsub(TRANSLATION_TAG_RESTORE_REGEX, TRANSLATION_TAG_RESTORE_MAP)
         end
       end
     else
-      normalizes :name, :description, with: ->(field) { ActionController::Base.helpers.sanitize(field) }
+      normalizes :name, :description, with: lambda { |field|
+        ActionController::Base.helpers.sanitize(field.gsub(TRANSLATION_TAG_HIDE_REGEX, TRANSLATION_TAG_HIDE_MAP))
+                              .gsub(TRANSLATION_TAG_RESTORE_REGEX, TRANSLATION_TAG_RESTORE_MAP)
+      }
     end
 
     # callbacks
