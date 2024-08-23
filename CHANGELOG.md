@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix `TermTaxonomy` attributes sanitizing to not remove translation tags
+
 ## [2.8.1](https://github.com/owen2345/camaleon-cms/tree/2.8.1) (2024-08-21)
 
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
