@@ -6,8 +6,8 @@
  *
  * @Author  Almsaeed Studio
  * @Support <http://www.almsaeedstudio.com>
- * @Email   <support@almsaeedstudio.com>
- * @version 2.3.1
+ * @Email   <abdullah@almsaeedstudio.com>
+ * @version 2.3.11
  * @license MIT <http://opensource.org/licenses/MIT>
  */
 
@@ -48,21 +48,23 @@ $.AdminLTE.options = {
   //Activate sidebar push menu
   sidebarPushMenu: true,
   //Activate sidebar slimscroll if the fixed layout is set (requires SlimScroll Plugin)
-  sidebarSlimScroll: false,
+  sidebarSlimScroll: true,
   //Enable sidebar expand on hover effect for sidebar mini
   //This option is forced to true if both the fixed layout and sidebar mini
   //are used together
   sidebarExpandOnHover: false,
   //BoxRefresh Plugin
-  enableBoxRefresh: false,
+  enableBoxRefresh: true,
   //Bootstrap.js tooltip
-  enableBSToppltip: false,
+  enableBSToppltip: true,
   BSTooltipSelector: "[data-toggle='tooltip']",
   //Enable Fast Click. Fastclick.js creates a more
   //native touch experience with touch devices. If you
   //choose to enable the plugin, make sure you load the script
   //before AdminLTE's app.js
-  enableFastclick: true,
+  enableFastclick: false,
+  //Control Sidebar Tree views
+  enableControlTreeView: true,
   //Control Sidebar Options
   enableControlSidebar: true,
   controlSidebarOptions: {
@@ -96,7 +98,7 @@ $.AdminLTE.options = {
   //Direct Chat plugin options
   directChat: {
     //Enable direct chat by default
-    enable: false,
+    enable: true,
     //The button to open and close the chat contacts pane
     contactToggleSelector: '[data-widget="chat-pane-toggle"]'
   },
@@ -160,7 +162,9 @@ $(function () {
   $.AdminLTE.layout.activate();
 
   //Enable sidebar tree view controls
-  $.AdminLTE.tree('.sidebar');
+  if (o.enableControlTreeView) {
+    $.AdminLTE.tree('.sidebar');
+  }
 
   //Enable control sidebar
   if (o.enableControlSidebar) {
@@ -184,7 +188,8 @@ $(function () {
   //Activate Bootstrap tooltip
   if (o.enableBSToppltip) {
     $('body').tooltip({
-      selector: o.BSTooltipSelector
+      selector: o.BSTooltipSelector,
+      container: 'body'
     });
   }
 
@@ -242,20 +247,24 @@ function _init() {
       var _this = this;
       _this.fix();
       _this.fixSidebar();
+      $('body, html, .wrapper').css('height', 'auto');
       $(window, ".wrapper").resize(function () {
         _this.fix();
         _this.fixSidebar();
       });
     },
     fix: function () {
+      // Remove overflow from .wrapper if layout-boxed exists
+      $(".layout-boxed > .wrapper").css('overflow', 'hidden');
       //Get window height and the wrapper height
-      var neg = $('.main-header').outerHeight() + $('.main-footer').outerHeight();
+      var footer_height = $('.main-footer').outerHeight() || 0;
+      var neg = $('.main-header').outerHeight() + footer_height;
       var window_height = $(window).height();
-      var sidebar_height = $(".sidebar").height();
+      var sidebar_height = $(".sidebar").height() || 0;
       //Set the min-height of the content and sidebar based on the
       //the height of the document.
       if ($("body").hasClass("fixed")) {
-        $(".content-wrapper, .right-side").css('min-height', window_height - $('.main-footer').outerHeight());
+        $(".content-wrapper, .right-side").css('min-height', window_height - footer_height);
       } else {
         var postSetWidth;
         if (window_height >= sidebar_height) {
@@ -291,7 +300,7 @@ function _init() {
           //Destroy if it exists
           $(".sidebar").slimScroll({destroy: true}).height("auto");
           //Add slimscroll
-          $(".sidebar").slimscroll({
+          $(".sidebar").slimScroll({
             height: ($(window).height() - $(".main-header").height()) + "px",
             color: "rgba(0,0,0,0.2)",
             size: "3px"
@@ -345,7 +354,7 @@ function _init() {
       //Enable expand on hover for sidebar mini
       if ($.AdminLTE.options.sidebarExpandOnHover
           || ($('body').hasClass('fixed')
-          && $('body').hasClass('sidebar-mini'))) {
+              && $('body').hasClass('sidebar-mini'))) {
         this.expandOnHover();
       }
     },
@@ -388,47 +397,48 @@ function _init() {
   $.AdminLTE.tree = function (menu) {
     var _this = this;
     var animationSpeed = $.AdminLTE.options.animationSpeed;
-    $(document).on('click', menu + ' li a', function (e) {
-      //Get the clicked link and the next element
-      var $this = $(this);
-      var checkElement = $this.next();
+    $(document).off('click', menu + ' li a')
+        .on('click', menu + ' li a', function (e) {
+          //Get the clicked link and the next element
+          var $this = $(this);
+          var checkElement = $this.next();
 
-      //Check if the next element is a menu and is visible
-      if ((checkElement.is('.treeview-menu')) && (checkElement.is(':visible'))) {
-        //Close the menu
-        checkElement.slideUp(animationSpeed, function () {
-          checkElement.removeClass('menu-open');
-          //Fix the layout in case the sidebar stretches over the height of the window
-          //_this.layout.fix();
-        });
-        checkElement.parent("li").removeClass("active");
-      }
-      //If the menu is not visible
-      else if ((checkElement.is('.treeview-menu')) && (!checkElement.is(':visible'))) {
-        //Get the parent menu
-        var parent = $this.parents('ul').first();
-        //Close all open menus within the parent
-        var ul = parent.find('ul:visible').slideUp(animationSpeed);
-        //Remove the menu-open class from the parent
-        ul.removeClass('menu-open');
-        //Get the parent li
-        var parent_li = $this.parent("li");
+          //Check if the next element is a menu and is visible
+          if ((checkElement.is('.treeview-menu')) && (checkElement.is(':visible')) && (!$('body').hasClass('sidebar-collapse'))) {
+            //Close the menu
+            checkElement.slideUp(animationSpeed, function () {
+              checkElement.removeClass('menu-open');
+              //Fix the layout in case the sidebar stretches over the height of the window
+              //_this.layout.fix();
+            });
+            checkElement.parent("li").removeClass("active");
+          }
+          //If the menu is not visible
+          else if ((checkElement.is('.treeview-menu')) && (!checkElement.is(':visible'))) {
+            //Get the parent menu
+            var parent = $this.parents('ul').first();
+            //Close all open menus within the parent
+            var ul = parent.find('ul:visible').slideUp(animationSpeed);
+            //Remove the menu-open class from the parent
+            ul.removeClass('menu-open');
+            //Get the parent li
+            var parent_li = $this.parent("li");
 
-        //Open the target menu and add the menu-open class
-        checkElement.slideDown(animationSpeed, function () {
-          //Add the class active to the parent li
-          checkElement.addClass('menu-open');
-          parent.find('li.active').removeClass('active');
-          parent_li.addClass('active');
-          //Fix the layout in case the sidebar stretches over the height of the window
-          _this.layout.fix();
+            //Open the target menu and add the menu-open class
+            checkElement.slideDown(animationSpeed, function () {
+              //Add the class active to the parent li
+              checkElement.addClass('menu-open');
+              parent.find('li.active').removeClass('active');
+              parent_li.addClass('active');
+              //Fix the layout in case the sidebar stretches over the height of the window
+              _this.layout.fix();
+            });
+          }
+          //if this isn't a link, prevent the page from being redirected
+          if (checkElement.is('.treeview-menu')) {
+            e.preventDefault();
+          }
         });
-      }
-      //if this isn't a link, prevent the page from being redirected
-      if (checkElement.is('.treeview-menu')) {
-        e.preventDefault();
-      }
-    });
   };
 
   /* ControlSidebar
@@ -501,9 +511,13 @@ function _init() {
       if ($("body").hasClass('layout-boxed')) {
         sidebar.css('position', 'absolute');
         sidebar.height($(".wrapper").height());
+        if (_this.hasBindedResize) {
+          return;
+        }
         $(window).resize(function () {
           _this._fix(sidebar);
         });
+        _this.hasBindedResize = true;
       } else {
         sidebar.css({
           'position': 'fixed',
@@ -672,7 +686,7 @@ function _init() {
 
 })(jQuery);
 
- /*
+/*
  * EXPLICIT BOX CONTROLS
  * -----------------------
  * This is a custom plugin to use with the component BOX. It allows you to activate
@@ -691,12 +705,12 @@ function _init() {
     $.AdminLTE.boxWidget.activate(this);
   };
 
-  $.fn.toggleBox = function(){
+  $.fn.toggleBox = function () {
     var button = $($.AdminLTE.boxWidget.selectors.collapse, this);
     $.AdminLTE.boxWidget.collapse(button);
   };
 
-  $.fn.removeBox = function(){
+  $.fn.removeBox = function () {
     var button = $($.AdminLTE.boxWidget.selectors.remove, this);
     $.AdminLTE.boxWidget.remove(button);
   };
