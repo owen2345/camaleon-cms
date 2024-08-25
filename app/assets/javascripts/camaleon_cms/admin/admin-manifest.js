@@ -14,7 +14,6 @@
 //= require camaleon_cms/admin/_data
 //= require camaleon_cms/bootstrap.min
 //= require camaleon_cms/admin/_jquery-ui.min
-//= require camaleon_cms/admin/_underscore
 //= require camaleon_cms/admin/jquery.validate
 
 // date picker

@@ -96,7 +96,6 @@ var init_form_validations = function (form, args) {
                 if(url){
                     $content_image.find('img').attr('src', url);
                     $content_image.find('a').attr('href', url);
-                    //$content_image.find('strong').html(_.last(url.split('/')));
                     $content_image.show();
                 }else{
                     $content_image.hide();
