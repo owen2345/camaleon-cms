@@ -2,7 +2,13 @@
 
 ## Unreleased
 
-- Fix `TermTaxonomy` attributes sanitizing to not remove translation tags
+## [2.8.2](https://github.com/owen2345/camaleon-cms/tree/2.8.2) (2024-08-25)
+
+- Bump AdminLTE to 2.3.11
+  - Has several CSS fixes and doesn't yet require jQuery 3.x
+- Fix `TermTaxonomy` attributes sanitizing to not remove translation tags in [\#1091] (https://github.com/owen2345/camaleon-cms/pull/1091)
+- Add bootstrap.min.css.map
+  - Works OK in the development environment if the `config.assets.debug = true` is set.
 
 ## [2.8.1](https://github.com/owen2345/camaleon-cms/tree/2.8.1) (2024-08-21)
 
