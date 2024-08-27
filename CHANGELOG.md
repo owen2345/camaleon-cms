@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Remove unused underscore.js
+
 ## [2.8.2](https://github.com/owen2345/camaleon-cms/tree/2.8.2) (2024-08-25)
 
 - Bump AdminLTE to 2.3.11
