@@ -16,7 +16,7 @@
  *= require ./_custom_admin
 
  *= require ./_bootstrap-datepicker
- *= require ./introjs/_introjs.min
+ *= require ./introjs/introjs.min
  *= require ./tageditor/_jquery.tag-editor
 
  *= require ./uploader/uploader_manifest
