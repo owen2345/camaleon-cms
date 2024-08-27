@@ -27,7 +27,6 @@ def admin_sign_in(user = 'admin', pass = 'admin123')
   click_button 'Log In'
   expect(page).to have_content 'Welcome'
   wait(2)
-  page.execute_script("$('#introjs_skipbutton').click()")
 end
 
 def cama_root_relative_path
