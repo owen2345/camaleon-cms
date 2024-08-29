@@ -22,7 +22,8 @@ function init_intro(){
         exitOnOverlayClick: false,
         showStepNumbers: false,
         showBullets: false,
-        disableInteraction: true
+        disableInteraction: true,
+        buttonClass: 'btn'
     }).oncomplete(finish).onexit(finish).onbeforechange(function(ele) {
         if($(ele).hasClass("treeview") && !$(ele).hasClass("active")) $(ele).children("a").click();
         if($(ele).is("li")){

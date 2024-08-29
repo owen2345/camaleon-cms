@@ -30,7 +30,7 @@
 
 //= require camaleon_cms/admin/_libraries
 //= require camaleon_cms/admin/_actions
-//= require camaleon_cms/admin/introjs/_intro.min
+//= require camaleon_cms/admin/introjs/intro.min
 
 // uploader
 //= require camaleon_cms/admin/uploader/uploader_manifest
