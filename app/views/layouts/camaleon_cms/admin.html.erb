@@ -18,7 +18,13 @@
     </script>
     <%= javascript_include_tag "camaleon_cms/admin/admin-manifest" %>
 
-    <%= javascript_include_tag "camaleon_cms/admin/jquery_validate/#{current_locale}.js" if current_locale != 'en' %>
+    <%= javascript_include_tag "camaleon_cms/admin/jquery_validate/messages_#{current_locale}.js" if current_locale != 'en' %>
+
+    <% jquery_validate_localized_methods = "camaleon_cms/admin/jquery_validate/methods_#{current_locale}.js"%>
+    <% jquery_validate_localized_methods_exist =
+         File.file?(Rails.root.join('app', 'assets', 'javascripts', jquery_validate_localized_methods))%>
+    <%= javascript_include_tag jquery_validate_localized_methods if jquery_validate_localized_methods_exist %>
+
     <%= javascript_include_tag "camaleon_cms/admin/momentjs/#{current_locale}.js" if current_locale != 'en' %>
 
     <%= raw the_head({}, false) %>

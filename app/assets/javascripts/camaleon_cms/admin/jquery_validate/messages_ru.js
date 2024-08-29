@@ -1,3 +1,7 @@
+/*
+ * Translated default messages for the jQuery validation plugin.
+ * Locale: RU (Russian; русский язык)
+ */
 $.extend( $.validator.messages, {
     required: "Это поле необходимо заполнить.",
     remote: "Пожалуйста, введите правильное значение.",
@@ -14,6 +18,6 @@ $.extend( $.validator.messages, {
     minlength: $.validator.format( "Пожалуйста, введите не меньше {0} символов." ),
     rangelength: $.validator.format( "Пожалуйста, введите значение длиной от {0} до {1} символов." ),
     range: $.validator.format( "Пожалуйста, введите число от {0} до {1}." ),
-    max: $.validator.format( "Пожалуйста, введите число, меньшее или равное {0}." ),
+    max: $.validator.format( "Пожалуйста, введите число, меньшее или равное {0}." ),
     min: $.validator.format( "Пожалуйста, введите число, большее или равное {0}." )
 } );
