@@ -3,6 +3,11 @@
 ## Unreleased
 
 - Remove unused underscore.js
+- Bump IntroJS to 7.2.0
+- Upgrade jquery-validate to 1.21.0
+  - Add messages for Arabic language
+  - Add `methods_ln.js` files with regexps for DE, NL, and PT languages
+  - Modify admin layout view to load the `methods_ln.js` file with a `javascript_include_tag` if the file exists
 
 ## [2.8.2](https://github.com/owen2345/camaleon-cms/tree/2.8.2) (2024-08-25)
 
