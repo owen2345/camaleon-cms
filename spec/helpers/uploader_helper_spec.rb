@@ -63,24 +63,19 @@ describe CamaleonCms::UploaderHelper do
     it "doesn't upload a local file with invalid URI-like path" do
       expect(upload_file(File.open(@path), { folder: 'file:///config/initializers' }).keys.include?(:error)).to be(true)
     end
+  end
 
-    context 'with local server' do
-      before { current_site.set_option('filesystem_type', 'local') }
+  context 'with an absolute path' do
+    let(:file) { File.join(current_site.upload_directory, '/tmp/config/initializers/rails_tmp.png') }
 
-      it "doesn't upload a local file with an absolute path" do
-        expect(upload_file(File.open(@path), { folder: '/tmp/config/initializers' }).keys.include?(:error)).to be(true)
-      end
-    end
+    after { File.delete(file) }
 
-    context 'with AWS server' do
-      before do
-        current_site.set_option('filesystem_type', 's3')
-        allow_any_instance_of(CamaleonCmsAwsUploader).to receive(:add_file).and_return({})
-      end
+    it 'uploads a local file with an absolute path into the upload directory, not into the volume root' do
+      expect(File).not_to exist(file)
 
-      it 'uploads a local file with an absolute path' do
-        expect(upload_file(File.open(@path), { folder: '/tmp/config/initializers' }).keys.include?(:error)).to be(false)
-      end
+      upload_file(File.open(@path), { folder: '/tmp/config/initializers' })
+
+      expect(File).to exist(file)
     end
   end
 
@@ -93,7 +88,7 @@ describe CamaleonCms::UploaderHelper do
     end
   end
 
-  it 'upload a local file with invalid format' do
+  it "doesn't upload a local file with invalid format" do
     expect(upload_file(File.open(@path), { formats: 'audio' }).keys.include?(:error)).to be(true)
   end
 

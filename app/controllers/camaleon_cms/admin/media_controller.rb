@@ -57,7 +57,8 @@ module CamaleonCms
         case params[:media_action]
         when 'new_folder'
           params[:folder] = slugify_folder(params[:folder])
-          return render partial: 'render_file_item', locals: { files: [cama_uploader.add_folder(params[:folder])] }
+          r = cama_uploader.add_folder(params[:folder])
+          return render partial: 'render_file_item', locals: { files: [r] } if r[:error].blank?
         when 'del_folder'
           r = cama_uploader.delete_folder(params[:folder])
         when 'del_file'
