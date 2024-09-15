@@ -125,10 +125,10 @@ class CamaleonCmsUploader
     valid_formats.include?(File.extname(key).sub('.', '').split('?').first.try(:downcase))
   end
 
-  def self.valid_folder_path?(path)
+  def valid_folder_path?(path)
     return true if path == '/'
 
-    return false if path.include?('..') || File.absolute_path?(path) || path.include?('://')
+    return false if path.include?('..') || path.include?('://')
 
     true
   end

@@ -130,4 +130,11 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
   def parse_key(file_path)
     file_path.sub(@root_folder, '').cama_fix_media_key
   end
+
+  def valid_folder_path?(path)
+    return false unless super
+    return false if File.absolute_path?(path)
+
+    true
+  end
 end
