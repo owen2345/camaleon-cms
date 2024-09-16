@@ -56,16 +56,26 @@ describe CamaleonCms::UploaderHelper do
   end
 
   describe 'file upload with invalid path' do
-    it 'upload a local file with invalid path of a path traversal try' do
+    it "doesn't upload a local file with invalid path of a path traversal try" do
       expect(upload_file(File.open(@path), { folder: '../../config/initializers' }).keys.include?(:error)).to be(true)
     end
 
-    it 'upload a local file with invalid URI-like path' do
+    it "doesn't upload a local file with invalid URI-like path" do
       expect(upload_file(File.open(@path), { folder: 'file:///config/initializers' }).keys.include?(:error)).to be(true)
     end
+  end
 
-    it 'upload a local file with an absolute path' do
-      expect(upload_file(File.open(@path), { folder: '/tmp/config/initializers' }).keys.include?(:error)).to be(true)
+  context 'with an absolute path' do
+    let(:file) { File.join(current_site.upload_directory, '/tmp/config/initializers/rails_tmp.png') }
+
+    after { File.delete(file) }
+
+    it 'uploads a local file with an absolute path into the upload directory, not into the volume root' do
+      expect(File).not_to exist(file)
+
+      upload_file(File.open(@path), { folder: '/tmp/config/initializers' })
+
+      expect(File).to exist(file)
     end
   end
 
@@ -78,7 +88,7 @@ describe CamaleonCms::UploaderHelper do
     end
   end
 
-  it 'upload a local file with invalid format' do
+  it "doesn't upload a local file with invalid format" do
     expect(upload_file(File.open(@path), { formats: 'audio' }).keys.include?(:error)).to be(true)
   end
 

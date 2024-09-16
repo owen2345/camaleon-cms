@@ -105,6 +105,8 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
 
   # add new folder to AWS with :key
   def add_folder(key)
+    return { error: 'Invalid folder path' } unless valid_folder_path?(key)
+
     key = "#{@aws_settings['inner_folder']}/#{key}" if @aws_settings['inner_folder'].present?
     key = key.cama_fix_media_key
     s3_file = bucket.object(key.slice(1..-1) << '/')

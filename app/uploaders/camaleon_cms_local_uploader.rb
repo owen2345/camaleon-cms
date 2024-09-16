@@ -25,7 +25,7 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
   end
 
   def fetch_file(file_name)
-    return { error: 'Invalid file path' } if file_name.include?('..')
+    return { error: 'Invalid file path' } unless valid_folder_path?(file_name)
 
     return file_name if file_exists?(file_name)
 
@@ -96,6 +96,8 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
 
   # create a new folder into local directory
   def add_folder(key)
+    return { error: 'Invalid folder path' } unless valid_folder_path?(key)
+
     d = File.join(@root_folder, key).to_s
     is_new_folder = false
     unless Dir.exist?(d)
