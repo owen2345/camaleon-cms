@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+# [2.8.3](https://github.com/owen2345/camaleon-cms/tree/2.8.3) (2024-09-16)
+
 - Remove unused underscore.js
 - Bump IntroJS to 7.2.0
 - Upgrade jquery-validate to 1.21.0
