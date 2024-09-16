@@ -8,6 +8,8 @@
   - Add messages for Arabic language
   - Add `methods_ln.js` files with regexps for DE, NL, and PT languages
   - Modify admin layout view to load the `methods_ln.js` file with a `javascript_include_tag` if the file exists
+- Fix uploads to AWS S3 folders
+  - Also, introduced the path traversal validation to the add_folder method, which was found unsafe
 
 ## [2.8.2](https://github.com/owen2345/camaleon-cms/tree/2.8.2) (2024-08-25)
 
