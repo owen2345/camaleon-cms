@@ -5,6 +5,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     @aws_akey = @aws_settings[:access_key] || @current_site.get_option('filesystem_s3_access_key')
     @aws_asecret = @aws_settings[:secret_key] || @current_site.get_option('filesystem_s3_secret_key')
     @aws_bucket = @aws_settings[:bucket] || @current_site.get_option('filesystem_s3_bucket_name')
+    @aws_endpoint = @aws_settings[:endpoint] || @current_site.get_option('filesystem_s3_endpoint')
     @aws_settings[:aws_file_upload_settings] ||= ->(settings) { settings }
     @aws_settings[:aws_file_read_settings] ||= ->(data, _s3_file) { data }
   end
@@ -140,8 +141,13 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
   def bucket
     @bucket ||= lambda {
       Aws.config.update({ region: @aws_region, credentials: Aws::Credentials.new(@aws_akey, @aws_asecret) })
-      s3 = Aws::S3::Resource.new
+      s3 = Aws::S3::Resource.new(resource_parameters)
       s3.bucket(@aws_bucket)
     }.call
+  end
+
+  def resource_parameters
+    return {} if @aws_endpoint.blank?
+    { endpoint: @aws_endpoint }
   end
 end
