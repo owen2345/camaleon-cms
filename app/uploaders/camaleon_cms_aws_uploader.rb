@@ -148,6 +148,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
 
   def resource_parameters
     return {} if @aws_endpoint.blank?
+
     { endpoint: @aws_endpoint }
   end
 end
