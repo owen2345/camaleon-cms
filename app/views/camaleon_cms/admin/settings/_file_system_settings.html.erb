@@ -20,10 +20,10 @@
             <%= label_tag t('camaleon_cms.admin.settings.filesystem_region', default: 'filesystem_region') %> <small>(*)</small><br>
             <%= text_field :options, :filesystem_region, :class => "form-control required", value: @site.get_option("filesystem_region"), placeholder: 'us-west-2' %>
         </div>
-        <!--<div class="form-group">
-            <%#= label_tag t('camaleon_cms.admin.settings.filesystem_s3_endpoint', default: 'filesystem_s3_endpoint') %> <small>(*)</small><br>
-            <%#= text_field :options, :filesystem_s3_endpoint, :class => "form-control required", value: @site.get_option("filesystem_s3_endpoint"), placeholder: 's3-us-west-2.amazonaws.com' %>
-        </div>-->
+        <div class="form-group">
+            <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_endpoint', default: 'filesystem_s3_endpoint') %><br>
+            <%= text_field :options, :filesystem_s3_endpoint, :class => "form-control required", value: @site.get_option("filesystem_s3_endpoint"), placeholder: 's3-us-west-2.amazonaws.com' %>
+        </div>
         <div class="form-group">
             <%= label_tag t('camaleon_cms.admin.settings.filesystem_s3_cloudfront', default: 'Cloudfront URL') %><br>
             <%= text_field :options, :filesystem_s3_cloudfront, :class => "form-control", value: @site.get_option("filesystem_s3_cloudfront"), placeholder: 'https://cloudfront_id.cloudfront.net' %>

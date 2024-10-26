@@ -26,7 +26,7 @@ module CamaleonCms
         hooks_run('user_before_login', r)
         return if r[:stop_process] # permit to redirect for data completion
 
-        if captcha_validate && @user && @user.authenticate(data_user[:password])
+        if captcha_validate && @user&.authenticate(data_user[:password])
           # Email validation if is necessary
           if @user.is_valid_email? || !current_site.need_validate_email?
             cama_captcha_reset_attack('login')
