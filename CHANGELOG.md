@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Feature:** Support custom aws endpoint
+  -  Thanks [Grayson Chen](https://github.com/graysonchen) for crafting a PR adding this feature
+
 # [2.8.3](https://github.com/owen2345/camaleon-cms/tree/2.8.3) (2024-09-16)
 
 - Remove unused underscore.js
