@@ -4,6 +4,7 @@ gemspec path: '..'
 
 gem 'cancancan', '~> 3.0'
 gem 'capybara-screenshot'
+gem 'drb'
 gem 'factory_bot_rails'
 gem 'faker'
 gem 'mutex_m'
