@@ -1,11 +1,11 @@
 source 'https://rubygems.org'
 
 gemspec
-gem 'non-digest-assets', git: 'https://github.com/mvz/non-digest-assets'
+gem 'non-digest-assets', '2.5.0'
 gem 'oj'
-gem 'rails', '~> 7.2.0'
+gem 'rails', '~> 8.0.1'
 gem 'selenium-webdriver'
-gem 'sprockets-rails', '>= 3.5.1'
+gem 'sprockets-rails', '>= 3.5.2'
 
 gem 'capybara-screenshot'
 
