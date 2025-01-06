@@ -1,3 +1,5 @@
+# frozen_string_literal: false
+
 require 'json'
 class PluginRoutes
   @@_vars = []
