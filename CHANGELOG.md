@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+# [2.9.0](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
+- Fix false positive on malicious upload check
+- Add magic comment to silence Ruby 3.4 deprecation warnings
 - **Feature:** Support custom aws endpoint
   -  Thanks [Grayson Chen](https://github.com/graysonchen) for crafting a PR adding this feature
 
@@ -50,7 +53,7 @@
 - Add Ruby 3.3 and Rails 7.2 to CI
 - Replace Tuzitio links with `camaleon.website` and `http` with `https`
 - On cama_site_check_existence, if site is unknown, use `allow_other_host: true` for redirection to main site
-  - Starting from Rails 7.0 a redirection to other host will raise an exception unless the `redirect_to` method is 
+  - Starting from Rails 7.0 a redirection to other host will raise an exception unless the `redirect_to` method is
     called with the `allow_other_host: true` option
 - Set sprocket-rails version to be at least 3.5.1
 - Use MiniMime for mime types, because the MiniMagick 5.0 has no Image#mime_type
