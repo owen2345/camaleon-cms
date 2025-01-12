@@ -179,7 +179,7 @@ module CamaleonCms
 
     # destroy all custom field groups assigned to this post type
     def destroy_field_groups
-      if !destroyed_by_association.present? && (slug == 'post' || slug == 'page')
+      if !destroyed_by_association.present? && %w[post page].include?(slug)
         errors.add(:base, 'This post type can not be deleted.')
         return false
       end

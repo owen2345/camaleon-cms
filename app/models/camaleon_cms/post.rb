@@ -83,7 +83,7 @@ module CamaleonCms
 
     # check if this is in draft status
     def draft?
-      status == 'draft' || status == 'draft_child'
+      %w[draft draft_child].include?(status)
     end
 
     def draft_child?
