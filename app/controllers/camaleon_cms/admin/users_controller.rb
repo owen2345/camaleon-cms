@@ -52,10 +52,15 @@ module CamaleonCms
       def updated_ajax
         @user = current_site.users.find(params[:user_id])
         update_session = current_user_is?(@user)
-        @user.update(params.require(:password).permit!)
-        render inline: @user.errors.full_messages.join(', ')
+        attrs = params.require(:password).permit(%i[password password_confirmation])
+        @user.update(password: attrs.require(:password), password_confirmation: attrs.require(:password_confirmation))
+
+        return render inline: @user.errors.full_messages.join(', '), status: :unprocessable_entity if @user.errors.any?
+
         # keep user logged in when changing their own password
         update_auth_token_in_cookie @user.auth_token if update_session && @user.saved_change_to_password_digest?
+      rescue ActionController::ParameterMissing => e
+        render inline: "ERROR: #{e.class.name}, #{e.message}", status: :bad_request
       end
 
       def update_auth_token_in_cookie(token)
