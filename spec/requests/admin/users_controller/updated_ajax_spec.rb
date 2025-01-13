@@ -49,10 +49,10 @@ RSpec.describe 'updated_ajax request', type: :request do
         patch "/admin/users/#{current_user.id}/updated_ajax", params: { password: { password: 'new password' } }
 
         expect(response.status).to eql(400)
-        expect(response.body).to eql(
-          'ERROR: ActionController::ParameterMissing, ' \
-            'param is missing or the value is empty or invalid: password_confirmation'
+        expect(response.body).to start_with(
+          'ERROR: ActionController::ParameterMissing, param is missing or the value is empty'
         )
+        expect(response.body).to include('password_confirmation')
         expect(current_user.reload.authenticate('secret')).to be_truthy
         expect(current_user.reload.authenticate('new password')).to be_falsey
       end
