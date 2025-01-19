@@ -3,12 +3,6 @@ module CamaleonCms
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
 
-    TRANSLATION_TAG_HIDE_MAP = { '<!--' => '!--', '-->' => '--!' }.freeze
-    TRANSLATION_TAG_HIDE_REGEX = Regexp.new(TRANSLATION_TAG_HIDE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
-    TRANSLATION_TAG_RESTORE_MAP = { '--!' => '-->', '!--' => '<!--' }.freeze
-    TRANSLATION_TAG_RESTORE_REGEX =
-      Regexp.new(TRANSLATION_TAG_RESTORE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
-
     def self.inherited(subclass)
       super
 

@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 class CamaleonRecord < ActiveRecord::Base
+  TRANSLATION_TAG_HIDE_MAP = { '<!--' => '!--', '-->' => '--!' }.freeze
+  TRANSLATION_TAG_HIDE_REGEX = Regexp.new(TRANSLATION_TAG_HIDE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
+  TRANSLATION_TAG_RESTORE_MAP = { '--!' => '-->', '!--' => '<!--' }.freeze
+  TRANSLATION_TAG_RESTORE_REGEX =
+    Regexp.new(TRANSLATION_TAG_RESTORE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
+
   include ActiveRecordExtras::Relation
 
   self.abstract_class = true
