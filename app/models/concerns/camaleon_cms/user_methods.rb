@@ -16,7 +16,7 @@ module CamaleonCms
       # TODO: Remove the 1st branch when support will be dropped of Rails < 7.1
       if ::Rails::VERSION::STRING < '7.1.0'
         before_validation(on: %i[create update]) do
-          %i[first_name last_name slogan username].each do |attr|
+          %i[first_name last_name username].each do |attr|
             next unless new_record? || attribute_changed?(attr)
 
             self[attr] = ActionController::Base.helpers.sanitize(
@@ -25,7 +25,7 @@ module CamaleonCms
           end
         end
       else
-        normalizes(*%i[first_name last_name slogan username], with: lambda { |field|
+        normalizes(*%i[first_name last_name username], with: lambda { |field|
           ActionController::Base.helpers.sanitize(
             field.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
           ).gsub(CamaleonRecord::TRANSLATION_TAG_RESTORE_REGEX, CamaleonRecord::TRANSLATION_TAG_RESTORE_MAP)
