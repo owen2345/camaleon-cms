@@ -133,7 +133,7 @@ module CamaleonCms
 
     # fix to parse value
     def fix_meta_value(value)
-      value = value.to_json if value.is_a?(Array) || value.is_a?(Hash) || value.is_a?(ActionController::Parameters)
+      value = JSON.generate(value) if value.is_a?(Array) || value.is_a?(Hash) || value.is_a?(ActionController::Parameters)
       fix_meta_var(value)
     end
 
