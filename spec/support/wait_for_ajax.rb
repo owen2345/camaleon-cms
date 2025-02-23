@@ -1,6 +1,6 @@
 # spec/support/wait_for_ajax.rb
 def wait_for_ajax
-  Timeout.timeout(5) do
+  Timeout.timeout(10) do
     loop until finished_all_ajax_requests?
   end
 end

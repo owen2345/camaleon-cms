@@ -47,6 +47,7 @@ describe 'the Menus', :js do
 
     page.execute_script('jQuery("#switch_nav_menu_form .new_menu_link").click()')
 
+    wait_for_ajax
     within '#ow_inline_modal' do
       fill_in 'nav_menu_name', with: 'Second menu'
       fill_in 'nav_menu_slug', with: 'second-menu'

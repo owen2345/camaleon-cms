@@ -13,6 +13,7 @@ describe 'the Media', :js do
       find('.add_folder').click
     end
 
+    wait_for_ajax
     within '#add_folder_form' do
       fill_in 'folder', with: 'test_folder_created_by_testing'
       find('button[type="submit"]').click
