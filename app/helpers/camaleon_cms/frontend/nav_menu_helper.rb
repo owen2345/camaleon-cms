@@ -9,7 +9,7 @@ module CamaleonCms
         draw_menu({ menu_slug: key, container_class: class_name })
       end
 
-      # draw menu as an html
+      # draw menu as html
       # default configurations is for bootstrap support
       def draw_menu(args = {})
         args_def = {
@@ -33,7 +33,7 @@ module CamaleonCms
           #     index: (Integer) Index Position of this menu
           #     link_attrs: (String) Here you can add your custom attrs for current link, sample: id='my_id' data-title='#{args[:link][:name]}'
           #     item_container_attrs: (String) Here you can add your custom attrs for link container.
-          # In settings you can change the values for this item, like after, before, ..:
+          # In settings, you can change the values for this item, like after, before, ..:
           # sample: lambda{|args| args[:settings][:after] = "<span class='caret'></span>" if args[:has_children]; args[:link_attrs] = "id='#{menu_item.id}'";  }
           # sample: lambda{|args| args[:settings][:before] = "<i class='fa fa-home'></i>" if args[:level] == 0 && args[:index] == 0;  }
           before: '', # content before link text
@@ -99,7 +99,7 @@ module CamaleonCms
           html += "<#{_args[:item_container]} #{r[:item_container_attrs]} class='#{_args[:item_class]} #{if has_children
                                                                                                            _args[:item_class_parent]
                                                                                                          end} #{if _is_current
-                                                                                                                  (_args[:item_current]).to_s
+                                                                                                                  _args[:item_current].to_s
                                                                                                                 end} #{if current_children
                                                                                                                          'current-menu-ancestor'
                                                                                                                        end}'>#{_args[:link_before]}
@@ -129,8 +129,8 @@ module CamaleonCms
 
       # filter and parse all menu items visible for current user and adding the flag for current_parent or current_item
       # max_levels: max levels to iterate
-      # return an multidimensional array with all items until level 'max_levels'
-      # internal_level: ingnore (managed by internal recursion)
+      # return a multidimensional array with all items until level 'max_levels'
+      # internal_level: ignore (managed by internal recursion)
       def cama_menu_parse_items(items, max_levels = -1, internal_level = 0)
         res = []
         is_current_parent = false
@@ -154,7 +154,7 @@ module CamaleonCms
             current_item: _is_current,
             current_parent: false,
             levels: 0
-          }.merge(data_nav_item.except(:current, :name, :link))
+          }.merge!(data_nav_item.except(:current, :name, :link))
 
           if has_children
             r[:children], _is_current_parent, r[:levels] = cama_menu_parse_items(nav_menu_item.children, max_levels,

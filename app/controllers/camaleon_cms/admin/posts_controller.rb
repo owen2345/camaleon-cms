@@ -56,7 +56,7 @@ module CamaleonCms
         r = { posts: @posts, post_type: @post_type, btns: @btns, all_posts: posts_all, render: 'index',
               per_page: per_page }
         hooks_run('list_post', r)
-        add_breadcrumb (@btns[params[:s].to_sym]).to_s if params[:s].present?
+        add_breadcrumb(@btns[params[:s].to_sym].to_s) if params[:s].present?
         @posts = r[:posts].paginate(page: params[:page], per_page: r[:per_page])
         render r[:render]
       end
