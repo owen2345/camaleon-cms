@@ -27,7 +27,7 @@ describe 'Posts workflows for Admin', :js do
     created_post = CamaleonCms::Post.last.decorate
 
     # visit page in frontend
-    visit created_post.the_url
+    visit created_post.the_url(as_path: true)
     expect(page).to have_content('Pants are pretty sweet.')
   end
 
