@@ -275,7 +275,7 @@ class PluginRoutes
 
   def self.cache_variable(var_name, value = nil)
     @@_vars.push(var_name).uniq!
-    # if Rails.env != "development" # disable cache plugin routes for develoment mode
+    # if Rails.env != "development" # disable cache plugin routes for development mode
     cache = begin
       class_variable_get("@@cache_#{var_name}")
     rescue StandardError
@@ -376,9 +376,9 @@ class PluginRoutes
     return r unless r.nil? || r == []
 
     res = get_gem_themes
-    entries = ['.', '..']
+    entries = %w[. ..]
     res.each { |theme| entries << theme['key'] }
-    (Dir["#{apps_dir}/themes/*"]).each do |path|
+    Dir["#{apps_dir}/themes/*"].each do |path|
       entry = path.split('/').last
       config = File.join(path, 'config', 'config.json')
       next if entries.include?(entry) || !File.directory?(path) || !File.exist?(config)
