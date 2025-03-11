@@ -2,6 +2,8 @@ name: Test upcoming versions
 on: [push, pull_request]
 
 jobs:
+  if: github.event_name != 'pull_request' ||
+    github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
   spec:
     runs-on: ubuntu-latest
     strategy:
