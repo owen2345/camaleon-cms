@@ -48,6 +48,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Chromedriver
+        uses: nanasess/setup-chromedriver@v2
+        with:
+          # Optional: do not specify to match Chrome's version
+          chromedriver-version: '132.0.6834.159'
+
       - name: Setup Ruby and install gems
         uses: ruby/setup-ruby@v1
         with:

@@ -47,7 +47,8 @@ end
 # Next 2 are Chrome drivers
 # Capybara.javascript_driver = :selenium_chrome
 # Capybara.javascript_driver = :selenium_chrome_headless
-Capybara.javascript_driver = :selenium_chrome_headless_132
+Capybara.javascript_driver = :selenium_chrome_132
+# Capybara.javascript_driver = :selenium_chrome_headless_132
 
 # Next 2 are FireFox drivers
 # Capybara.javascript_driver = :selenium
