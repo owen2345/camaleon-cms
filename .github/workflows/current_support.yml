@@ -52,7 +52,7 @@ jobs:
         uses: nanasess/setup-chromedriver@v2
         with:
           # Optional: do not specify to match Chrome's version
-          chromedriver-version: '132.0.6834.159'
+          chromedriver-version: '125.0.6422.141'
 
       - name: Setup Ruby and install gems
         uses: ruby/setup-ruby@v1
