@@ -3,6 +3,8 @@ module CamaleonCms
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
 
+    extend CamaleonCms::NormalizeAttrs
+
     def self.inherited(subclass)
       super
 
@@ -16,23 +18,7 @@ module CamaleonCms
     # attr_accessible :data_options
     # attr_accessible :data_metas
 
-    # TODO: Remove the 1st branch when support will be dropped of Rails < 7.1
-    if ::Rails::VERSION::STRING < '7.1.0'
-      before_validation(on: %i[create update]) do
-        %i[name description].each do |attr|
-          next unless new_record? || attribute_changed?(attr)
-
-          self[attr] = ActionController::Base.helpers.sanitize(
-            __send__(attr)&.gsub(TRANSLATION_TAG_HIDE_REGEX, TRANSLATION_TAG_HIDE_MAP)
-          )&.gsub(TRANSLATION_TAG_RESTORE_REGEX, TRANSLATION_TAG_RESTORE_MAP)
-        end
-      end
-    else
-      normalizes :name, :description, with: lambda { |field|
-        ActionController::Base.helpers.sanitize(field.gsub(TRANSLATION_TAG_HIDE_REGEX, TRANSLATION_TAG_HIDE_MAP))
-                              .gsub(TRANSLATION_TAG_RESTORE_REGEX, TRANSLATION_TAG_RESTORE_MAP)
-      }
-    end
+    normalize_attrs(:name, :description)
 
     # callbacks
     before_validation :before_validating

@@ -3,6 +3,8 @@ module CamaleonCms
     include CamaleonCms::Metas
     include CamaleonCms::CommonRelationships
 
+    extend CamaleonCms::NormalizeAttrs
+
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}comments"
     # attr_accessible :user_id, :post_id, :content, :author, :author_email, :author_url, :author_IP, :approved, :agent, :agent, :typee, :comment_parent, :is_anonymous
     attr_accessor :is_anonymous
@@ -21,23 +23,7 @@ module CamaleonCms
     scope :comment_parent, -> { where(comment_parent: 'is not null') }
     scope :approveds, -> { where(approved: 'approved') }
 
-    # TODO: Remove the 1st branch when support will be dropped of Rails < 7.1
-    if ::Rails::VERSION::STRING < '7.1.0'
-      before_validation(on: %i[create update]) do
-        %i[content].each do |attr|
-          next unless new_record? || attribute_changed?(attr)
-
-          self[attr] = ActionController::Base.helpers.sanitize(
-            __send__(attr)&.gsub(TRANSLATION_TAG_HIDE_REGEX, TRANSLATION_TAG_HIDE_MAP)
-          )&.gsub(TRANSLATION_TAG_RESTORE_REGEX, TRANSLATION_TAG_RESTORE_MAP)
-        end
-      end
-    else
-      normalizes :content, with: lambda { |field|
-        ActionController::Base.helpers.sanitize(field.gsub(TRANSLATION_TAG_HIDE_REGEX, TRANSLATION_TAG_HIDE_MAP))
-                              .gsub(TRANSLATION_TAG_RESTORE_REGEX, TRANSLATION_TAG_RESTORE_MAP)
-      }
-    end
+    normalize_attrs(:content)
 
     validates :content, presence: true
     validates_presence_of :author, :author_email, if: proc { |c| c.is_anonymous.present? }

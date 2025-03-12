@@ -6,32 +6,16 @@ module CamaleonCms
       include CamaleonCms::CustomFieldsRead
       include CamaleonCms::CommonRelationships
 
+      extend CamaleonCms::NormalizeAttrs
+
       validates_uniqueness_of :username, scope: [:site_id], case_sensitive: false,
                                          message: I18n.t('camaleon_cms.admin.users.message.requires_different_username', default: 'Requires different username')
       validates_uniqueness_of :email, scope: [:site_id], case_sensitive: false,
                                       message: I18n.t('camaleon_cms.admin.users.message.requires_different_email', default: 'Requires different email')
 
+      normalize_attrs(:first_name, :last_name, :username)
+
       # callbacks
-      #
-      # TODO: Remove the 1st branch when support will be dropped of Rails < 7.1
-      if ::Rails::VERSION::STRING < '7.1.0'
-        before_validation(on: %i[create update]) do
-          %i[first_name last_name username].each do |attr|
-            next unless new_record? || attribute_changed?(attr)
-
-            self[attr] = ActionController::Base.helpers.sanitize(
-              __send__(attr)&.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
-            )&.gsub(CamaleonRecord::TRANSLATION_TAG_RESTORE_REGEX, CamaleonRecord::TRANSLATION_TAG_RESTORE_MAP)
-          end
-        end
-      else
-        normalizes(*%i[first_name last_name username], with: lambda { |field|
-          ActionController::Base.helpers.sanitize(
-            field.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
-          ).gsub(CamaleonRecord::TRANSLATION_TAG_RESTORE_REGEX, CamaleonRecord::TRANSLATION_TAG_RESTORE_MAP)
-        })
-      end
-
       before_validation :cama_before_validation
       before_destroy :reassign_posts
       after_destroy :reassign_comments

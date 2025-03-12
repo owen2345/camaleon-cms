@@ -35,9 +35,6 @@ RSpec/AnyInstance:
 RSpec/ExampleLength:
   Enabled: false
 
-RSpec/AnyInstance:
-  Enabled: false
-
 RSpec/InstanceVariable:
   Enabled: false
 
