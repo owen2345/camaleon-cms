@@ -368,7 +368,7 @@ GEM
     sassc-embedded (1.80.4)
       sass-embedded (~> 1.80)
     securerandom (0.4.1)
-    selenium-webdriver (4.29.1)
+    selenium-webdriver (4.23.0)
       base64 (~> 0.2)
       logger (~> 1.4)
       rexml (~> 3.2, >= 3.2.5)
@@ -430,7 +430,7 @@ DEPENDENCIES
   rspec_junit_formatter
   rubocop
   rubocop-rspec
-  selenium-webdriver
+  selenium-webdriver (= 4.23.0)
   sprockets-rails (>= 3.5.2)
   sqlite3
 

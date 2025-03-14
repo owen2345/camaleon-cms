@@ -95,9 +95,7 @@ module CamaleonCms
           f.custom_field_slug == _key && f.group_number == group_number
         end.map(&:value)
       else
-        custom_field_values.where(
-          custom_field_slug: _key, group_number: group_number
-        ).pluck(:value)
+        custom_field_values.where(custom_field_slug: _key, group_number: group_number).pluck(:value)
       end
     end
     alias get_fields get_field_values
@@ -304,7 +302,9 @@ module CamaleonCms
     private
 
     def fix_meta_value(value)
-      value = value.to_json if value.is_a?(Array) || value.is_a?(Hash) || value.is_a?(ActionController::Parameters)
+      return value.to_json if value.is_a?(ActionController::Parameters)
+      return JSON.fast_generate(value) if value.is_a?(Array) || value.is_a?(Hash)
+
       value
     end
 

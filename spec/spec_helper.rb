@@ -13,9 +13,45 @@ require 'capybara/rspec'
 require 'rack_session_access/capybara'
 require 'capybara-screenshot/rspec'
 
+Capybara.register_driver :selenium_chrome125 do |app|
+  version = Capybara::Selenium::Driver.load_selenium
+  options_key = Capybara::Selenium::Driver::CAPS_VERSION.satisfied_by?(version) ? :capabilities : :options
+  browser_options = Selenium::WebDriver::Chrome::Options.new.tap do |opts|
+    # Workaround https://bugs.chromium.org/p/chromedriver/issues/detail?id=2650&q=load&sort=-id&colspec=ID%20Status%20Pri%20Owner%20Summary
+    opts.add_argument('--disable-site-isolation-trials')
+    opts.add_argument('--no-sandbox')
+    opts.add_argument("--user-data-dir=#{Rails.root.join('tmp')}")
+  end
+
+  browser_options.add_option(:browser_version, '125')
+  browser_options.add_option(:unhandled_prompt_behavior, 'ignore')
+
+  Capybara::Selenium::Driver.new(app, **{ browser: :chrome, options_key => browser_options })
+end
+
+Capybara.register_driver :selenium_chrome_headless125 do |app|
+  version = Capybara::Selenium::Driver.load_selenium
+  options_key = Capybara::Selenium::Driver::CAPS_VERSION.satisfied_by?(version) ? :capabilities : :options
+  browser_options = Selenium::WebDriver::Chrome::Options.new.tap do |opts|
+    opts.add_argument('--headless')
+    opts.add_argument('--disable-gpu') if Gem.win_platform?
+    # Workaround https://bugs.chromium.org/p/chromedriver/issues/detail?id=2650&q=load&sort=-id&colspec=ID%20Status%20Pri%20Owner%20Summary
+    opts.add_argument('--disable-site-isolation-trials')
+    opts.add_argument('--no-sandbox')
+    opts.add_argument("--user-data-dir=#{Rails.root.join('tmp')}")
+  end
+
+  browser_options.add_option(:browser_version, '125')
+  browser_options.add_option(:unhandled_prompt_behavior, 'ignore')
+
+  Capybara::Selenium::Driver.new(app, **{ :browser => :chrome, options_key => browser_options })
+end
+
 # Next 2 are Chrome drivers
 # Capybara.javascript_driver = :selenium_chrome
-Capybara.javascript_driver = :selenium_chrome_headless
+# Capybara.javascript_driver = :selenium_chrome_headless
+# Capybara.javascript_driver = :selenium_chrome125
+Capybara.javascript_driver = :selenium_chrome_headless125
 
 # Next 2 are FireFox drivers
 # Capybara.javascript_driver = :selenium

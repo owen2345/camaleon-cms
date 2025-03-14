@@ -6,17 +6,21 @@ module CamaleonCms
       include CamaleonCms::CustomFieldsRead
       include CamaleonCms::CommonRelationships
 
+      extend CamaleonCms::NormalizeAttrs
+
       validates_uniqueness_of :username, scope: [:site_id], case_sensitive: false,
                                          message: I18n.t('camaleon_cms.admin.users.message.requires_different_username', default: 'Requires different username')
       validates_uniqueness_of :email, scope: [:site_id], case_sensitive: false,
                                       message: I18n.t('camaleon_cms.admin.users.message.requires_different_email', default: 'Requires different email')
+
+      normalize_attrs(:first_name, :last_name, :username)
 
       # callbacks
       before_validation :cama_before_validation
       before_destroy :reassign_posts
       after_destroy :reassign_comments
       before_create { generate_token(:auth_token) }
-      # invaliidate sessions when changing password
+      # invalidate sessions when changing password
       before_update { generate_token :auth_token if will_save_change_to_password_digest? }
 
       # relations
@@ -117,7 +121,7 @@ module CamaleonCms
 
     # reassign all posts of this user to first admin
     # reassign all comments of this user to first admin
-    # if doesn't exist any other administrator, this will cancel the user destroy
+    # if it doesn't exist any other administrator, this will cancel the user destroy
     def reassign_posts
       all_posts.each do |p|
         s = p.post_type.site

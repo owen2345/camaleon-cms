@@ -19,8 +19,7 @@ module CamaleonCms
     end
 
     # return value of meta with key: key,
-    # if meta not exist, return default
-    # return default if meta value == ""
+    # if meta not exist, or its value == "", return default
     def get_meta(key, default = nil)
       key_str = key.is_a?(Symbol) ? key.to_s : key
       cama_fetch_cache("meta_#{key_str}") do
@@ -70,8 +69,7 @@ module CamaleonCms
 
     # return configuration for current object
     # key: attribute name
-    # default: if attribute not exist, return default
-    # return default if option value == ""
+    # default: if the attribute doesn't exist, or its value == "", return default
     # return value for attribute
     def get_option(key = nil, default = nil, meta_key = '_default')
       values = cama_options(meta_key)
@@ -133,8 +131,14 @@ module CamaleonCms
 
     # fix to parse value
     def fix_meta_value(value)
-      value = value.to_json if value.is_a?(Array) || value.is_a?(Hash) || value.is_a?(ActionController::Parameters)
-      fix_meta_var(value)
+      changed_value = if value.is_a?(ActionController::Parameters)
+                        value.to_json
+                      elsif value.is_a?(Array) || value.is_a?(Hash)
+                        JSON.fast_generate(value)
+                      else
+                        value
+                      end
+      fix_meta_var(changed_value)
     end
 
     # fix to detect type of the variable

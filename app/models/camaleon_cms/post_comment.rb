@@ -3,6 +3,8 @@ module CamaleonCms
     include CamaleonCms::Metas
     include CamaleonCms::CommonRelationships
 
+    extend CamaleonCms::NormalizeAttrs
+
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}comments"
     # attr_accessible :user_id, :post_id, :content, :author, :author_email, :author_url, :author_IP, :approved, :agent, :agent, :typee, :comment_parent, :is_anonymous
     attr_accessor :is_anonymous
@@ -20,6 +22,8 @@ module CamaleonCms
     scope :main, -> { where(comment_parent: nil) }
     scope :comment_parent, -> { where(comment_parent: 'is not null') }
     scope :approveds, -> { where(approved: 'approved') }
+
+    normalize_attrs(:content)
 
     validates :content, presence: true
     validates_presence_of :author, :author_email, if: proc { |c| c.is_anonymous.present? }
