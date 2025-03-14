@@ -241,10 +241,6 @@ GEM
     non-digest-assets (2.5.0)
       activesupport (>= 6.0, < 8.1)
       sprockets (~> 4.0)
-    oj (3.16.9)
-      bigdecimal (>= 3.0)
-      ostruct (>= 0.2)
-    ostruct (0.6.1)
     parallel (1.26.3)
     parser (3.3.7.1)
       ast (~> 2.4.1)
@@ -418,7 +414,6 @@ DEPENDENCIES
   factory_bot_rails
   faker
   non-digest-assets (= 2.5.0)
-  oj
   pry-rescue
   pry-stack_explorer
   puma
