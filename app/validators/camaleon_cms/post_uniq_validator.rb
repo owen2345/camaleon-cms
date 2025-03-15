@@ -28,10 +28,11 @@ module CamaleonCms
       end
 
       # avoid recursive page parent
-      if record.post_parent.present? && ptype.manage_hierarchy? && record.parents.cama_pluck(:id).include?(record.id)
-        record.errors[:base] << I18n.t('camaleon_cms.admin.post.message.recursive_hierarchy',
-                                       default: 'Parent Post Recursive')
-      end
+      return unless record.post_parent.present? && ptype.manage_hierarchy? &&
+                    record.parents.cama_pluck(:id).include?(record.id)
+
+      record.errors[:base] << I18n.t('camaleon_cms.admin.post.message.recursive_hierarchy',
+                                     default: 'Parent Post Recursive')
     end
   end
 end

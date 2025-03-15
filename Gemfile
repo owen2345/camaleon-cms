@@ -2,7 +2,6 @@ source 'https://rubygems.org'
 
 gemspec
 gem 'non-digest-assets', '2.5.0'
-gem 'oj'
 gem 'rails', '~> 8.0.1'
 gem 'selenium-webdriver', '4.23.0'
 gem 'sprockets-rails', '>= 3.5.2'

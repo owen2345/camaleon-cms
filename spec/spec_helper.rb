@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ENV['RAILS_ENV'] ||= 'test'
 
 require 'pathname'
@@ -57,10 +59,15 @@ Capybara.javascript_driver = :selenium_chrome_headless125
 # Capybara.javascript_driver = :selenium
 # Capybara.javascript_driver = :selenium_headless
 
+Capybara::Screenshot.register_driver(:selenium_chrome_headless125) do |driver, path|
+  driver.browser.save_screenshot(path)
+end
+
 # define screenshot errors name
 Capybara::Screenshot.register_filename_prefix_formatter(:rspec) do |example|
   "screenshot_#{example.description.gsub(' ', '-').gsub(%r{^.*/spec/}, '')}"
 end
+Capybara::Screenshot.prune_strategy = :keep_last_run
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
