@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    camaleon_cms (2.9.0)
+    camaleon_cms (2.9.1)
       addressable
       aws-sdk-s3 (~> 1)
       bcrypt
