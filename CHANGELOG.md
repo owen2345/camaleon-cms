@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+# [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
+
+**This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
+
+- **Security fix:** Mitigate a Privilege Escalation through a Mass Assignment, [fixing the `updated_ajax` action of admin 
+UsersController to permit only legit params](https://github.com/owen2345/camaleon-cms/pull/1109)
+  - Thanks Joshua Martinelle from Tenable cybersecurity company for reporting this
+- **Security fix:** 
+[Sanitize fields, comments, and metas against xss attacks](https://github.com/owen2345/camaleon-cms/pull/1113)
+  - Thanks [glno815](https://github.com/glno815) for [reporting this](https://github.com/owen2345/camaleon-cms/issues/1103)
+- Removed Gemfile.lock from .gitignore - [as recommended](https://github.com/owen2345/camaleon-cms/pull/1108)
+- Fix requiring logger, because concurrent-ruby isn't doing this anymore
+- [Avoid CI jobs duplication](https://github.com/owen2345/camaleon-cms/pull/1112)
+- Restrict Chromedriver to 124.x version and selenium-webdriver to 4.23.0 to avoid test failures
+  - Selenium isn't keeping pace with Chromes development of the Webdriver BiDi protocol, so several tests were 
+intermittently failing, and with Chromedriver 134.x it became totally unusable. Let's wait for future fixes
+
+
 # [2.9.0](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
 - Fix false positive on malicious upload check
 - Add magic comment to silence Ruby 3.4 deprecation warnings
