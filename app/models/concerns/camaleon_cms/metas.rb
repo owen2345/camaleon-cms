@@ -134,7 +134,7 @@ module CamaleonCms
       changed_value = if value.is_a?(ActionController::Parameters)
                         value.to_json
                       elsif value.is_a?(Array) || value.is_a?(Hash)
-                        JSON.fast_generate(value)
+                        JSON.generate(value)
                       else
                         value
                       end
