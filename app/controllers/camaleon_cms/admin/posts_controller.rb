@@ -41,9 +41,11 @@ module CamaleonCms
         @posts = posts_all
         params[:s] = 'published' unless params[:s].present?
         @lists_tab = params[:s]
-        case params[:s]
+        allowed_statuses = %w[published pending trash draft all]
+        status = allowed_statuses.include?(params[:s]) ? params[:s] : 'published'
+        case status
         when 'published', 'pending', 'trash'
-          @posts = @posts.send(params[:s])
+          @posts = @posts.send(status)
         when 'draft'
           @posts = @posts.drafts
         when 'all'
