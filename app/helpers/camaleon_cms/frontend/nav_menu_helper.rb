@@ -23,7 +23,7 @@ module CamaleonCms
           item_class_parent: 'dropdown', # class for all menu items that contain sub items
           sub_container: 'ul', # type of container for sub items
           sub_class: 'dropdown-menu', # class for sub container
-          callback_item: ->(args) {}, # rubocop:disable Lint/ShadowingOuterLocalVariable
+          callback_item: ->(args) {},
           # callback executed for each item (args = { menu_item, link, level, settings, has_children, link_attrs = "", index}).
           #     menu_item: (Object) Menu object
           #     link: (Hash) link data: {link: '', name: ''}
