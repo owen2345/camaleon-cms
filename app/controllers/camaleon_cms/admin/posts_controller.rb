@@ -39,7 +39,8 @@ module CamaleonCms
         posts_all = posts_all.where(user_id: cama_current_user) if cannot?(:edit_other, @post_type)
 
         @posts = posts_all
-        params[:s] = 'published' unless params[:s].present?
+        allowed_statuses = %w[published pending trash draft all]
+        params[:s] = 'published' if allowed_statuses.exclude? params[:s]
         @lists_tab = params[:s]
         case params[:s]
         when 'published', 'pending', 'trash'
