@@ -1,5 +1,7 @@
 module CamaleonCms
   class Plugin < CamaleonCms::TermTaxonomy
+    normalize_attrs(:name, :description)
+
     # attrs:
     #   term_group => status active (1, nil)
     #   slug => plugin key

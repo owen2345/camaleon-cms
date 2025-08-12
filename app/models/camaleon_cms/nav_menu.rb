@@ -1,5 +1,7 @@
 module CamaleonCms
   class NavMenu < CamaleonCms::TermTaxonomy
+    normalize_attrs(:name, :description)
+
     default_scope { where(taxonomy: :nav_menu).order(id: :asc) }
     alias_attribute :site_id, :parent_id
 

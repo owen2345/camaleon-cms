@@ -1,5 +1,7 @@
 module CamaleonCms
   class Theme < CamaleonCms::TermTaxonomy
+    normalize_attrs(:name, :description)
+
     # attrs:
     #   slug => plugin key
     belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, required: false

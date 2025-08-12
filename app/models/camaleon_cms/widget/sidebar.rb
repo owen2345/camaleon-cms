@@ -1,6 +1,8 @@
 module CamaleonCms
   module Widget
     class Sidebar < CamaleonCms::TermTaxonomy
+      normalize_attrs(:name, :description)
+
       default_scope { where(taxonomy: :sidebar) }
 
       has_many :metas, lambda {
