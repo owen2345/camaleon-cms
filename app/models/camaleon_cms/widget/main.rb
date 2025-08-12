@@ -1,7 +1,7 @@
 module CamaleonCms
   module Widget
     class Main < CamaleonCms::TermTaxonomy
-      normalize_attrs(:name, :description)
+      normalize_attrs(:name)
 
       default_scope { where(taxonomy: :widget) }
       # attr_accessible :excerpt, :renderer

@@ -587,7 +587,7 @@ es:
           media: 'Permiso a la seccion Media'
           publish: 'Necesitas tener los permisos de Crear o Editar, Editar Otros, Editar Publicar, para habilitar este permiso'
           themes: 'Permiso a la seccion Plantillas'
-          widgets: 'Permiso a la seccion Widgets'
+          widgets: 'Permitir la edición de widgets, incluido el almacenamiento de código sin desinfectar.'
           menus: 'Permiso a la seccion Menu'
           plugins: 'Permiso a la seccion Plugins'
           users: 'Permiso para crear, editar, eliminar Usuarios'
@@ -629,6 +629,7 @@ es:
           error_created: 'No se ha creado el Widget.'
           error_updated: 'No se ha actualizado el Widget.'
           not_registered_widgets: 'No existen widgets registrados'
+        warning: "Advertencia: Los widgets pueden almacenar HTML y Javascript sin desinfectar. Ingrese solo el código que comprenda y en el que confíe."
       appearances:
         nav_menus:
           menu_items:

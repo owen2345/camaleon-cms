@@ -612,7 +612,7 @@ de:
           media: 'Rechte für den Mittelbereich'
           publish: 'Du benötigst die Rechte Erstellen oder Verarbeiten, Andere Bearbeiten, Bearbeiten, Veröffentlichen, um dieses Recht zu aktivieren'
           themes: 'Recht für den Themes-Bereich'
-          widgets: 'Widgets-Recht für den Bereich'
+          widgets: 'Ermöglichen Sie die Bearbeitung von Widgets, einschließlich des Speicherns von nicht bereinigtem Code.'
           menus: 'Recht für den Menübereich'
           plugins: 'Recht für den Plugin-Bereich'
           users: 'Recht zum Erstellen, Bearbeiten und Löschen von Benutzern'
@@ -663,6 +663,7 @@ de:
           error_created: 'Fehler beim Erstellen der Sidebar.'
           error_updated: 'Fehler beim Aktualisieren der Sidebar.'
           error_deleted: 'Fehler beim Löschen der Sidebar.'
+        warning: "Warnung: Widgets können nicht bereinigtes HTML und Javascript speichern. Geben Sie nur Code ein, den Sie verstehen und dem Sie vertrauen."
       intro:
         profile: 'Hier kannst du Einstellungen für dein Profil vornehmen.'
         content: 'Dieser Block enthält die Inhaltsgruppen deiner Seite. Jeder Inhalt kann auf verschiedene Weise konfiguriert werden. Siehe Einstellungen => Inhaltsgruppen'

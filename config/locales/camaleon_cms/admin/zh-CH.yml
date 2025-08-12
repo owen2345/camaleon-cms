@@ -633,7 +633,7 @@ zh-CN:
           media: '媒体资源部分'
           publish: '开启该权限,允许创建,编辑, 或公开'
           themes: '主题部分'
-          widgets: '插件部分'
+          widgets: '允许编辑小部件，包括保存未经清理的代码。'
           menus: '菜单部分'
           plugins: '插件部分'
           users: '创建,编辑,删除用户'
@@ -684,6 +684,7 @@ zh-CN:
           error_created: '侧边栏创建失败'
           error_updated: '侧边栏更新失败'
           error_deleted: "侧边栏已删除."
+        warning: "警告：小组件可以存储未经清理的 HTML 和 Javascript。仅输入您理解和信任的代码。"
       intro:
         profile: "在这个地方，您可以看到您的个人资料选项."
         content: "此块包含您网站的所有内容组。 每个内容可以具有在 设置 => 内容组"

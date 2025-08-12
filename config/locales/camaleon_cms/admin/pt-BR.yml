@@ -581,7 +581,7 @@ pt-BR:
           media: 'Permissão para o meio'
           publish: 'Você precisa permitir Criar ou Editar, Editar Outro, Editar, Publicar , para habilitar esta permissão'
           themes: 'Permissão para a seção Temas'
-          widgets: 'Permissão para a seção Widgets'
+          widgets: 'Permitir a edição de widgets, incluindo salvar código não higienizado.'
           menus: 'Permissão para a seção Menu'
           plugins: 'Permissão para a seção Plugins'
           users: 'Permissão to criar, editar, excluir Usuários'
@@ -623,6 +623,7 @@ pt-BR:
           error_created: 'Nenhum Widget criado.'
           error_updated: 'Nenhum Widget atualizado.'
           not_registered_widgets: 'Não há widgets registrados'
+        warning: "Aviso: Os widgets podem armazenar HTML e Javascript não higienizados. Insira apenas o código que você entende e confia."
       intro:
         profile: "Neste lugar você pode ver suas opções de perfis."
         content: "Este bloco contém todo o grupo de conteúdo de seu site. Cada conteúdo pode ter uma estrutura diferente configurada em Configurações => Grupos de conteúdo"

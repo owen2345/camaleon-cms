@@ -666,7 +666,7 @@ en:
           media: 'Permission to the midsection'
           publish: 'You need permits Create or Edit, Edit Other, Edit, Publish, to enable this permission'
           themes: 'Themes permission to section'
-          widgets: 'Widgets permission to section'
+          widgets: 'Allow editing widgets, including saving unsanitized code.'
           menus: 'Permission to the Menu section'
           plugins: 'Permission to the Plugins section'
           users: 'Permission to create, edit, delete Users'
@@ -728,6 +728,7 @@ en:
           error_created: "No created sidebar."
           error_updated: "No Update sidebar."
           error_deleted: "Sidebar deleted."
+        warning: "Warning: Widgets can store unsanitized HTML and Javascript. Only enter code that you understand and trust."
       intro:
         profile: "In this place you can see your profile options."
         content: "This block contains all content groups of your site. Each content can have different structure configured in settings => Content Groups"
