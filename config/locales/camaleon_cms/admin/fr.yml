@@ -593,7 +593,7 @@ fr:
           media: 'Permission pour la section média'
           publish: 'Permissions Créer ou Editer, Editer autre, Editer, Publier, requises pour activer cette permission'
           themes: 'Permission pour la section thèmes'
-          widgets: 'Permission pour la section widgets'
+          widgets: "Autoriser la modification des widgets, y compris l'enregistrement de code non nettoyé."
           menus: 'Permission pour la section menus'
           plugins: 'Permission pour la section plugins'
           users: 'Permission de créer, éditer et supprimer des utilisateurs'
@@ -644,6 +644,7 @@ fr:
           error_created: "Sidebar non créée."
           error_updated: "Sidebar non mise à jour."
           error_deleted: "Sidebar supprimée."
+        warning: "Attention : les widgets peuvent stocker du HTML et du Javascript non nettoyés. Entrez uniquement du code que vous comprenez et auquel vous faites confiance."
       intro:
         profile: "Ici vous pouvez voir les options de votre profil."
         content: "Ce bloc contient tout les groupes de contenu de votre site. Chaque contenu peut avoir une structure différente configurable via Paramètres => Groupes de contenu"

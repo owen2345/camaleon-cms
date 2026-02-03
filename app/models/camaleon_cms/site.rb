@@ -1,5 +1,7 @@
 module CamaleonCms
   class Site < CamaleonCms::TermTaxonomy
+    normalize_attrs(:name, :description)
+
     include CamaleonCms::SiteDefaultSettings
 
     # attrs: [name, description, slug]

@@ -589,7 +589,7 @@ nl:
           media: 'Toegang tot media'
           publish: 'Je hebt de volgende rechten toevoegen en bewerken, bewerk andere, bewerk gepubliceerd nodig om dit aan te passen'
           themes: "Toegang tot thema's"
-          widgets: 'Toegang tot widgets'
+          widgets: 'Sta het bewerken van widgets toe, inclusief het opslaan van niet-opgeschoonde code.'
           menus: "Toegang tot menu's"
           plugins: 'Toegang tot plugins'
           users: 'Rechten om gebruikers aan te maken, te bewerken of te verwijderen'
@@ -640,6 +640,8 @@ nl:
           error_created: "FOUT! Sidebar is niet aangemaakt."
           error_updated: "FOUT! Sidebar is niet bijgewerkt."
           error_deleted: "Sidebar verwijderd."
+        warning: "Waarschuwing: Widgets kunnen niet-opgeschoonde HTML en Javascript opslaan. Voer alleen code in die u begrijpt en vertrouwt."
+
       intro:
         profile: "Hier kun je profiel opties bekijken."
         content: "Dit blok bevat alle inhoud types van uw site. Elk inhoud type kan in een andere structuur geconfigureerd worden in instellingen => Inhoud type's hebben"

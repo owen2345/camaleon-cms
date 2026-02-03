@@ -18,8 +18,6 @@ module CamaleonCms
     # attr_accessible :data_options
     # attr_accessible :data_metas
 
-    normalize_attrs(:name, :description)
-
     # callbacks
     before_validation :before_validating
     before_destroy :destroy_dependencies

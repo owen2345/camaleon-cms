@@ -591,7 +591,7 @@ it:
           media: 'Permesso per la midsection'
           publish: 'Devi abilitare Crea o Modifica, Modifica Altro, Modifica, Pubblica, per abilitare questi permessi'
           themes: 'Permessi per la sezione temi'
-          widgets: 'Permessi per la sezione widget'
+          widgets: 'Consenti la modifica dei widget, incluso il salvataggio di codice non disinfettato.'
           menus: 'Permessi per la sezione menù'
           plugins: 'Permessi per la sezione plugin'
           users: 'Permesso di creare, modificare e cancellare utenti'
@@ -633,3 +633,4 @@ it:
           error_created: 'Widget non creato.'
           error_updated: 'Widget non aggiornato.'
           not_registered_widgets: 'Non ci sono widget registrati'
+        warning: "Attenzione: i widget possono memorizzare HTML e Javascript non sanificati. Inserisci solo il codice che comprendi e di cui ti fidi."

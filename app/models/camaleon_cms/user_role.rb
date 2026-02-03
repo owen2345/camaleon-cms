@@ -1,5 +1,7 @@
 module CamaleonCms
   class UserRole < CamaleonCms::TermTaxonomy
+    normalize_attrs(:name, :description)
+
     after_destroy :set_users_as_cilent
 
     default_scope { where(taxonomy: :user_roles) }
