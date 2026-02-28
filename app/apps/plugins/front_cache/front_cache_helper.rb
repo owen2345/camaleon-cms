@@ -1,14 +1,14 @@
 module Plugins
   module FrontCache
     module FrontCacheHelper
-      # save as a cache all pages configured on settings of this plugin for public users
+      # cache all pages configured in this plugin's settings for public users
       def front_cache_front_before_load
         if current_site.get_option('refresh_cache') # clear cache every restart server unless option checked in settings
           front_cache_clean unless current_site.get_meta('front_cache_elements')[:preserve_cache_on_restart]
           current_site.set_option('refresh_cache', false)
         end
 
-        # avoid cache if the current visitor is logged in, or we're on development or test environment
+        # avoid cache if the current visitor is logged in, or we're in the development or test environment
         return if signin? || Rails.env.development? || Rails.env.test? || !request.get?
 
         cache_key = front_cache_plugin_cache_key
