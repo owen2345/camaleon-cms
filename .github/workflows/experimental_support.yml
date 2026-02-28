@@ -15,7 +15,7 @@ jobs:
           - ruby: 3.4
             gemfile: rails_edge
           - ruby: head
-            gemfile: rails_8_1
+            gemfile: rails_edge
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
