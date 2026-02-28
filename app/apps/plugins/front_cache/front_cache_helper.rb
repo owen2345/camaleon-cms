@@ -1,15 +1,15 @@
 module Plugins
   module FrontCache
     module FrontCacheHelper
-      # save as cache all pages configured on settings of this plugin for public users
+      # save as a cache all pages configured on settings of this plugin for public users
       def front_cache_front_before_load
         if current_site.get_option('refresh_cache') # clear cache every restart server unless option checked in settings
           front_cache_clean unless current_site.get_meta('front_cache_elements')[:preserve_cache_on_restart]
           current_site.set_option('refresh_cache', false)
         end
 
-        # avoid cache if current visitor is logged in or development
-        return if signin? || Rails.env.development? || Rails.env.test? || !request.get?
+        # avoid cache if the current visitor is logged in or development
+        return if signin? || Rails.env.local? || !request.get?
 
         cache_key = front_cache_plugin_cache_key
         @caches = current_site.get_meta('front_cache_elements')
@@ -46,8 +46,8 @@ module Plugins
         return unless @_plugin_do_cache && !flash.keys.present?
 
         args = { data: response.body
-                               .gsub(/csrf-token" content="(.*?)"/, 'csrf-token" content="{{form_authenticity_token}}"')
-                               .gsub(/name="authenticity_token" value="(.*?)"/, 'name="authenticity_token" value="{{form_authenticity_token}}"') }
+                       .gsub(/csrf-token" content="(.*?)"/, 'csrf-token" content="{{form_authenticity_token}}"')
+                       .gsub(/name="authenticity_token" value="(.*?)"/, 'name="authenticity_token" value="{{form_authenticity_token}}"') }
         hooks_run('front_cache_writing_cache', args)
         front_cache_plugin_cache_create(cache_key, args[:data])
         Rails.logger.info "Camaleon CMS - cache saved as: #{front_cache_plugin_get_path(cache_key)}"
@@ -67,12 +67,12 @@ module Plugins
       end
 
       # on uninstall plugin
-      def front_cache_on_inactive(plugin)
+      def front_cache_on_inactive(_plugin)
         # current_site.delete_meta("front_cache_elements")
       end
 
       # cache actions (for logged users)
-      def front_cache_on_render(args); end
+      def front_cache_on_render(_args); end
 
       # expire cache for a page after comment registered or updated
       def front_cache_before_load; end
