@@ -10,7 +10,7 @@ AllCops:
     - /**/vendor/**/* # Exclude downloaded gem code in CI
   NewCops: disable
   SuggestExtensions: false
-  TargetRubyVersion: 3.4
+  TargetRubyVersion: 3.2
 
 Lint/MissingSuper:
   Enabled: false
