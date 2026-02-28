@@ -111,7 +111,7 @@ class String
     name = name.gsub(sanitize_regexp, '_')
     name = "_#{name}" if name =~ /\A\.+\z/
     name = 'unnamed' if name.empty?
-    name.mb_chars.to_s
+    name
   end
 
   # return cleaned model class name
