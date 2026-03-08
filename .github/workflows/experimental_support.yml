@@ -12,8 +12,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ruby: 3.4
+          - ruby: '4.0'
             gemfile: rails_edge
+          - ruby: head
+            gemfile: rails_8_1
           - ruby: head
             gemfile: rails_edge
     env:
