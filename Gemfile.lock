@@ -453,7 +453,7 @@ DEPENDENCIES
   pry-stack_explorer
   puma
   rack_session_access
-  rails (~> 8.1)
+  rails (~> 8.1.0)
   rspec
   rspec-instafail
   rspec-rails
