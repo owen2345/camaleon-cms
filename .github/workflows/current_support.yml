@@ -9,7 +9,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     env:
-      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_6_1.gemfile
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_8_1.gemfile
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-          ruby-version: 3.1
+          ruby-version: 3.4
 
       - name: Run linters
         run: bundle exec rubocop
@@ -28,20 +28,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ["3.0", 3.1, 3.2, 3.3, 3.4]
-        gemfile: [rails_6_1, rails_7_0, rails_7_1, rails_7_2, rails_8_0]
-        exclude:
-          # Rails < 7.0.1 is not compatible with Ruby 3.1+, and Rails 7.2 requires Ruby >= 3.1
-          - ruby: 3.1
-            gemfile: rails_6_1
-          - ruby: 3.2
-            gemfile: rails_6_1
-          - ruby: 3.0
-            gemfile: rails_7_2
-          - ruby: 3.0
-            gemfile: rails_8_0
-          - ruby: 3.1
-            gemfile: rails_8_0
+        ruby: ['3.2', '3.3', '3.4', '4.0']
+        gemfile: [rails_7_1, rails_7_2, rails_8_0, rails_8_1]
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
@@ -59,7 +47,7 @@ jobs:
         with:
           bundler-cache: true
           ruby-version: ${{ matrix.ruby }}
-          rubygems: 3.5.18
+          rubygems: 3.7.2
 
       - name: Migrate DB
         run: bundle exec rake app:db:migrate

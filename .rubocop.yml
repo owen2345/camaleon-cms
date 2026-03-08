@@ -1,6 +1,7 @@
 inherit_from: .rubocop_todo.yml
 
-plugins: rubocop-rspec
+plugins:
+  - rubocop-rspec
 
 AllCops:
   Exclude:
@@ -9,7 +10,7 @@ AllCops:
     - /**/vendor/**/* # Exclude downloaded gem code in CI
   NewCops: disable
   SuggestExtensions: false
-  TargetRubyVersion: 3.0
+  TargetRubyVersion: 3.2
 
 Lint/MissingSuper:
   Enabled: false

@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.description = 'Camaleon CMS is a dynamic and advanced content management system based on Ruby on Rails as an alternative to Wordpress.'
   s.license     = 'MIT'
 
-  s.required_ruby_version = '>= 3.0'
+  s.required_ruby_version = '>= 3.0' # rubocop:disable Gemspec/RequiredRubyVersion
   s.requirements << 'rails >= 6.1'
   s.requirements << 'ruby >= 3.0'
   s.requirements << 'imagemagick'
@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'jquery-rails'
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
-  s.add_dependency 'non-digest-assets', '~> 2.0'
+  s.add_dependency 'non-digest-assets', '~> 2.6'
   s.add_dependency 'sprockets-rails', '>= 3.5.1'
   s.add_dependency 'tinymce-rails', '< 5'
   s.add_dependency 'will_paginate'
