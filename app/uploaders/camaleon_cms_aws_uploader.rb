@@ -37,6 +37,8 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
   end
 
   def fetch_file(file_name)
+    return { error: 'Invalid file path' } unless valid_folder_path?(file_name)
+
     return file_name if file_exists?(file_name)
 
     return file_name if bucket.object(file_name).download_file(file_name) && file_exists?(file_name)
@@ -84,8 +86,9 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
   #   - same_name: false => avoid to overwrite an existent file with same key and search for an available key
   #   - is_thumb: true => if this file is a thumbnail of an uploaded file
   def add_file(uploaded_io_or_file_path, key, args = {})
+    return { error: 'Invalid file path' } unless valid_folder_path?(key)
+
     args = { same_name: false, is_thumb: false }.merge(args)
-    res = nil
     key = "#{@aws_settings['inner_folder']}/#{key}" if @aws_settings['inner_folder'].present? && !args[:is_thumb]
     key = key.cama_fix_media_key
     key = search_new_key(key) unless args[:same_name]
@@ -117,6 +120,8 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
 
   # delete a folder in AWS with :key
   def delete_folder(key)
+    return { error: 'Invalid folder path' } unless valid_folder_path?(key)
+
     key = "#{@aws_settings['inner_folder']}/#{key}" if @aws_settings['inner_folder'].present?
     key = key.cama_fix_media_key
     bucket.objects(prefix: key.slice(1..-1) << '/').delete
@@ -125,6 +130,8 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
 
   # delete a file in AWS with :key
   def delete_file(key)
+    return { error: 'Invalid file path' } unless valid_folder_path?(key)
+
     key = "#{@aws_settings['inner_folder']}/#{key}" if @aws_settings['inner_folder'].present?
     key = key.cama_fix_media_key
     begin
