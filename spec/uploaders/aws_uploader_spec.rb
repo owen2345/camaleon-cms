@@ -6,9 +6,9 @@ RSpec.describe CamaleonCmsAwsUploader do
   init_site
 
   let(:current_site) { Cama::Site.first.decorate }
-  let(:hook_instance) { instance_double('UploaderHookInstance', hooks_run: nil) }
+  let(:hook_instance) { instance_double('UploaderHookInstance', hooks_run: nil) } # rubocop:disable RSpec/VerifiedDoubleReference
   let(:uploader) { described_class.new({ current_site: current_site, aws_settings: {} }, hook_instance) }
-  let(:bucket) { instance_double('Aws::S3::Bucket') }
+  let(:bucket) { instance_double(Aws::S3::Bucket) }
 
   before { allow(uploader).to receive(:bucket).and_return(bucket) }
 
@@ -68,7 +68,7 @@ RSpec.describe CamaleonCmsAwsUploader do
 
   context 'with a valid file path' do
     describe '#add_file' do
-      let(:s3_file) { instance_double('Aws::S3::Object') }
+      let(:s3_file) { instance_double(Aws::S3::Object) }
       let(:parsed_file) do
         {
           'name' => 'test.png',
@@ -101,12 +101,11 @@ RSpec.describe CamaleonCmsAwsUploader do
           )
         )
 
+        expect(bucket).to receive(:object).with('safe/test.png')
+        expect(s3_file).to receive(:upload_file).with(file_path, { acl: 'public-read' })
+
         result = uploader.add_file(file_path, 'safe/test.png')
 
-        expect(bucket).to have_received(:object).with('safe/test.png')
-        expect(s3_file).to have_received(:upload_file).with(
-          file_path, { acl: 'public-read' }
-        )
         expect(result).to eql(parsed_file)
       end
     end
