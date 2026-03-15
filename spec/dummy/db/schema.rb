@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2018_07_04_211100) do
+ActiveRecord::Schema.define(version: 2018_07_04_211100) do
   create_table "comments", force: :cascade do |t|
     t.string "agent"
     t.string "approved", default: "pending"
