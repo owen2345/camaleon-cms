@@ -145,10 +145,14 @@ module CamaleonCms
 
       # Use an exclusive end index to strip the trailing ')' without nil-coercion.
       key = value[2...-1].strip
+      # If the expression uses matching single/double quotes, unwrap the key before translation;
+      # the quoted form still only accepts simple i18n key characters: a-z, A-Z, 0-9, _, ., and -.
       quoted_key_match = key.match(/\A(['"])([a-zA-Z0-9_.-]+)\1\z/)
       key = quoted_key_match[2] if quoted_key_match
 
-      return value unless key.match?(/\A[a-zA-Z0-9_.-]+\z/)
+      # Only translate simple i18n keys, so arbitrary Ruby is never evaluated; allowed chars are
+      # a-z, A-Z, 0-9, _, ., and -.
+      return value unless key.is_a?(String) && key.match?(/\A[a-zA-Z0-9_.-]+\z/)
 
       I18n.t(key)
     end
