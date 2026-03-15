@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-RSpec.shared_context 'i18n value base matrix' do
+RSpec.shared_context 'with i18n value base matrix' do
   let(:safe_input) { 't(admin.my_text)' }
   let(:quoted_safe_input) { 't(  "admin.my_text"  )' }
   let(:expected_translation) { 'My Text' }
   let(:plain_input) { 'Regular label' }
 end
 
-RSpec.shared_context 'i18n value malformed payload matrix' do
+RSpec.shared_context 'with i18n value malformed payload matrix' do
   let(:malformed_payloads) do
     [
       "t(admin.my_text, default: 'fallback')",
@@ -19,20 +19,20 @@ RSpec.shared_context 'i18n value malformed payload matrix' do
   end
 end
 
-RSpec.shared_context 'i18n value malicious payload matrix' do
+RSpec.shared_context 'with i18n value malicious payload matrix' do
   let(:malicious_payloads) do
     [
       "t(Kernel.system('echo pwned'))",
       't(File.read("/etc/passwd"))',
-      "t(%x[echo pwned])"
+      't(%x[echo pwned])'
     ]
   end
 end
 
 RSpec.shared_examples 'i18n value translation safety' do
-  include_context 'i18n value base matrix'
-  include_context 'i18n value malformed payload matrix'
-  include_context 'i18n value malicious payload matrix'
+  include_context 'with i18n value base matrix'
+  include_context 'with i18n value malformed payload matrix'
+  include_context 'with i18n value malicious payload matrix'
 
   it 'translates safe i18n key expressions' do
     expect(render_i18n_value(safe_input)).to eq(expected_translation)
