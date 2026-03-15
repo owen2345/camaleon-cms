@@ -1,6 +1,6 @@
 class CreateMedia < CamaManager.migration_class
   def change
-    create_table "#{PluginRoutes.static_system_info["db_prefix"]}media" do |t|
+    create_table "#{PluginRoutes.static_system_info["db_prefix"]}media", if_not_exists: true do |t|
       t.references :site, index: true
       t.string :name, index: true
       t.boolean :is_folder, index: true, default: false
