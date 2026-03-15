@@ -140,7 +140,17 @@ module CamaleonCms
 
     # execute translation for value if this value is like: t(admin.my_text) ==> My Text
     def cama_print_i18n_value(value)
-      value.start_with?('t(') ? eval(value.sub('t(', 'I18n.t(')) : value
+      return value unless value.is_a?(String)
+      return value unless value.start_with?('t(') && value.end_with?(')')
+
+      # Use an exclusive end index to strip the trailing ')' without nil-coercion.
+      key = value[2...-1].strip
+      quoted_key_match = key.match(/\A(['"])([a-zA-Z0-9_.-]+)\1\z/)
+      key = quoted_key_match[2] if quoted_key_match
+
+      return value unless key.match?(/\A[a-zA-Z0-9_.-]+\z/)
+
+      I18n.t(key)
     end
   end
 end
