@@ -1,12 +1,12 @@
 class PostTableIntoUtf8 < CamaManager.migration_class
   def change
     if table_exists? CamaleonCms::User.table_name
-      add_column(CamaleonCms::User.table_name, :email, :string) unless column_exists?(CamaleonCms::User.table_name, :email)
-      add_column(CamaleonCms::User.table_name, :username, :string) unless column_exists?(CamaleonCms::User.table_name, :username)
-      add_column(CamaleonCms::User.table_name, :role, :string, default: 'client', index: true) unless column_exists?(CamaleonCms::User.table_name, :role)
-      add_column(CamaleonCms::User.table_name, :parent_id, :integer) unless column_exists?(CamaleonCms::User.table_name, :parent_id)
-      add_column(CamaleonCms::User.table_name, :site_id, :integer, index: true, default: -1) unless column_exists?(CamaleonCms::User.table_name, :site_id)
-      add_column(CamaleonCms::User.table_name, :auth_token, :string) unless column_exists?(CamaleonCms::User.table_name, :auth_token)
+      add_column(CamaleonCms::User.table_name, :email, :string, if_not_exists: true)
+      add_column(CamaleonCms::User.table_name, :username, :string, if_not_exists: true)
+      add_column(CamaleonCms::User.table_name, :role, :string, default: 'client', index: true, if_not_exists: true)
+      add_column(CamaleonCms::User.table_name, :parent_id, :integer, if_not_exists: true)
+      add_column(CamaleonCms::User.table_name, :site_id, :integer, index: true, default: -1, if_not_exists: true)
+      add_column(CamaleonCms::User.table_name, :auth_token, :string, if_not_exists: true)
     else
       create_table CamaleonCms::User.table_name do |t|
         t.string   "username", index: true
@@ -26,7 +26,7 @@ class PostTableIntoUtf8 < CamaManager.migration_class
       end
     end
 
-    create_table "#{PluginRoutes.static_system_info["db_prefix"]}term_taxonomy" do |t|
+    create_table "#{PluginRoutes.static_system_info["db_prefix"]}term_taxonomy", if_not_exists: true do |t|
       t.string   "taxonomy", index: true
       t.text     "description", limit: 1073741823
       t.integer  "parent_id", index: true
@@ -41,7 +41,7 @@ class PostTableIntoUtf8 < CamaManager.migration_class
       t.belongs_to :user, index: true#, foreign_key: true
     end
 
-    create_table "#{PluginRoutes.static_system_info["db_prefix"]}posts" do |t|
+    create_table "#{PluginRoutes.static_system_info["db_prefix"]}posts", if_not_exists: true do |t|
       t.string   "title"
       t.string   "slug", index: true
       t.text     "content",          limit: 1073741823
@@ -58,13 +58,13 @@ class PostTableIntoUtf8 < CamaManager.migration_class
       t.belongs_to :user, index: true#, foreign_key: true
     end
 
-    create_table "#{PluginRoutes.static_system_info["db_prefix"]}term_relationships" do |t|
+    create_table "#{PluginRoutes.static_system_info["db_prefix"]}term_relationships", if_not_exists: true do |t|
       t.integer "objectid", index: true
       t.integer "term_order", index: true
       t.belongs_to :term_taxonomy, index: true
     end
 
-    create_table "#{PluginRoutes.static_system_info["db_prefix"]}user_relationships" do |t|
+    create_table "#{PluginRoutes.static_system_info["db_prefix"]}user_relationships", if_not_exists: true do |t|
       t.integer "term_order"
       t.integer "active", default: 1
 
@@ -72,7 +72,7 @@ class PostTableIntoUtf8 < CamaManager.migration_class
       t.belongs_to :user, index: true
     end
 
-    create_table "#{PluginRoutes.static_system_info["db_prefix"]}comments" do |t|
+    create_table "#{PluginRoutes.static_system_info["db_prefix"]}comments", if_not_exists: true do |t|
       t.string   "author"
       t.string   "author_email"
       t.string   "author_url"
@@ -87,7 +87,7 @@ class PostTableIntoUtf8 < CamaManager.migration_class
       t.timestamps null: false
     end
 
-    create_table "#{PluginRoutes.static_system_info["db_prefix"]}custom_fields" do |t|
+    create_table "#{PluginRoutes.static_system_info["db_prefix"]}custom_fields", if_not_exists: true do |t|
       t.string  "object_class", index: true
       t.string  "name"
       t.string  "slug", index: true
@@ -100,7 +100,7 @@ class PostTableIntoUtf8 < CamaManager.migration_class
       t.string  "status"
     end
 
-    create_table "#{PluginRoutes.static_system_info["db_prefix"]}custom_fields_relationships" do |t|
+    create_table "#{PluginRoutes.static_system_info["db_prefix"]}custom_fields_relationships", if_not_exists: true do |t|
       t.integer "objectid", index: true
       t.integer "custom_field_id", index: true
       t.integer "term_order"
@@ -109,7 +109,7 @@ class PostTableIntoUtf8 < CamaManager.migration_class
       t.string  "custom_field_slug", index: true
     end
 
-    create_table "#{PluginRoutes.static_system_info["db_prefix"]}metas" do |t|
+    create_table "#{PluginRoutes.static_system_info["db_prefix"]}metas", if_not_exists: true do |t|
       t.string  "key", index: true
       t.text    "value", limit: 1073741823
       t.integer "objectid", index: true
