@@ -12,6 +12,10 @@ AllCops:
   SuggestExtensions: false
   TargetRubyVersion: 3.2
 
+Layout/MultilineMethodCallIndentation:
+  Enabled: true
+  EnforcedStyle: indented
+
 Lint/MissingSuper:
   Enabled: false
 

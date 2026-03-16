@@ -135,7 +135,7 @@ module CamaleonCms
     def get_field_values_hash(include_options = false)
       fields = {}
       custom_field_values.to_a.uniq.each do |field_value|
-        custom_field = field_value.custom_fields
+        custom_field = field_value.custom_field
         values = custom_field.values.where(objectid: id).pluck(:value)
         unless include_options
           fields[field_value.custom_field_slug] =
@@ -155,8 +155,8 @@ module CamaleonCms
     # deprecated f attribute
     def get_fields_object(_f = true)
       fields = {}
-      custom_field_values.eager_load(:custom_fields).to_a.uniq.each do |field_value|
-        custom_field = field_value.custom_fields
+      custom_field_values.eager_load(:custom_field).to_a.uniq.each do |field_value|
+        custom_field = field_value.custom_field
         # if custom_field.options[:show_frontend].to_s.to_bool
         values = custom_field.values.where(objectid: id).pluck(:value)
         fields[field_value.custom_field_slug] =
