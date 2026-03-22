@@ -123,9 +123,7 @@ module CamaleonCms
       hooks_run('after_upload', settings)
 
       # temporal file upload (always put as local for temporal files)
-      if settings[:temporal_time] > 0
-        CamaleonCmsUploader.delete_block.call(settings, cama_uploader, key)
-      end
+      CamaleonCmsUploader.delete_block.call(settings, cama_uploader, key) if settings[:temporal_time] > 0
 
       res
     end
@@ -370,12 +368,8 @@ module CamaleonCms
             secret_key: current_site.get_option('filesystem_s3_secret_key'),
             bucket: current_site.get_option('filesystem_s3_bucket_name'),
             cloud_front: current_site.get_option('filesystem_s3_cloudfront'),
-            aws_file_upload_settings: lambda { |settings|
-                                        settings
-                                      }, # permit to add your custom attributes for file_upload https://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Object.html#upload_file-instance_method
-            aws_file_read_settings: lambda { |data, _s3_file|
-                                      data
-                                    } # permit to read custom attributes from aws file and add to file parsed object
+            aws_file_upload_settings: ->(settings) { settings }, # permit to add your custom attributes for file_upload https://docs.aws.amazon.com/sdkforruby/api/Aws/S3/Object.html#upload_file-instance_method
+            aws_file_read_settings: ->(data, _s3_file) { data } # permit to read custom attributes from aws file and add to file parsed object
           },
           custom_uploader: nil # possibility to use custom file uploader
         }
@@ -420,9 +414,7 @@ module CamaleonCms
         http.request(Net::HTTP::Get.new(uri.request_uri.presence || '/'))
       end
 
-      if response.is_a?(Net::HTTPRedirection)
-        return { error: 'Redirects are not allowed for remote uploads.' }
-      end
+      return { error: 'Redirects are not allowed for remote uploads.' } if response.is_a?(Net::HTTPRedirection)
 
       return { error: "Unable to download remote file (HTTP #{response.code})." } unless response.is_a?(Net::HTTPSuccess)
 
