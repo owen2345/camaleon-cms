@@ -7,10 +7,11 @@ module CamaleonCms
       ptype = record.post_type
       return unless ptype.present? # only for posts that belongs to a post type model
 
+      post_table = CamaleonCms::Post.table_name
       posts = ptype.site.posts
                    .where(
-                     "(#{slug_array.map { |s| "#{CamaleonCms::Post.table_name}.slug LIKE '%-->#{s}<!--%'" }
-                                        .join(' OR ')} ) OR #{CamaleonCms::Post.table_name}.slug = ?", record.slug
+                     "(#{slug_array.map { |s| "#{post_table}.slug LIKE '%-->#{s}<!--%'" }
+                                        .join(' OR ')} ) OR #{post_table}.slug = ?", record.slug
                    )
                    .where.not(id: record.id)
                    .where.not(status: %i[draft draft_child trash])

@@ -45,9 +45,13 @@ module Plugins
         cache_key = front_cache_plugin_cache_key
         return unless @_plugin_do_cache && !flash.keys.present?
 
-        args = { data: response.body
-                       .gsub(/csrf-token" content="(.*?)"/, 'csrf-token" content="{{form_authenticity_token}}"')
-                       .gsub(/name="authenticity_token" value="(.*?)"/, 'name="authenticity_token" value="{{form_authenticity_token}}"') }
+        body =
+          response
+          .body.gsub(/csrf-token" content="(.*?)"/, 'csrf-token" content="{{form_authenticity_token}}"')
+          .gsub(
+            /name="authenticity_token" value="(.*?)"/, 'name="authenticity_token" value="{{form_authenticity_token}}"'
+          )
+        args = { data: body }
         hooks_run('front_cache_writing_cache', args)
         front_cache_plugin_cache_create(cache_key, args[:data])
         Rails.logger.info "Camaleon CMS - cache saved as: #{front_cache_plugin_get_path(cache_key)}"
@@ -57,13 +61,18 @@ module Plugins
       def front_cache_on_active(_plugin)
         return if current_site.get_meta('front_cache_elements', nil).present?
 
-        current_site.set_meta('front_cache_elements', { paths: [],
-                                                        posts: [],
-                                                        post_types: [current_site.post_types.where(slug: 'page').first.id],
-                                                        skip_posts: [],
-                                                        home: true,
-                                                        cache_login: true,
-                                                        cache_counter: 0 })
+        current_site.set_meta(
+          'front_cache_elements',
+          {
+            paths: [],
+            posts: [],
+            post_types: [current_site.post_types.where(slug: 'page').first.id],
+            skip_posts: [],
+            home: true,
+            cache_login: true,
+            cache_counter: 0
+          }
+        )
       end
 
       # on uninstall plugin

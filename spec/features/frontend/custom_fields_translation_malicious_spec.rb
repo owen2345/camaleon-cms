@@ -18,8 +18,7 @@ describe 'Custom field translation (malicious payloads)', :js do
                    .add_post(title: 'RCE Payload Post', slug: 'rce-payload-post', content: 'malicious content')
 
     @secure_post.add_field(
-      { 'name' => 'Secure Checkbox', 'slug' => field_slug },
-      { 'field_key' => 'checkbox', 'translate' => false }
+      { 'name' => 'Secure Checkbox', 'slug' => field_slug }, { 'field_key' => 'checkbox', 'translate' => false }
     )
     @secure_post.set_field_value(field_slug, 'checked')
   end
