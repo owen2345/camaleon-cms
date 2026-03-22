@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'net/http'
+require 'tempfile'
+
 module CamaleonCms
   module UploaderHelper
     UNSAFE_EVENT_PATTERNS = %w[
@@ -280,6 +283,7 @@ module CamaleonCms
       tmp_path = args[:path] || File.join(Rails.public_path, 'tmp', current_site.id.to_s).to_s
       FileUtils.mkdir_p(tmp_path) unless Dir.exist?(tmp_path)
       saved = false
+      downloaded_tmp_file = nil
       if uploaded_io.is_a?(String) && uploaded_io.start_with?('data:') # create tmp file using base64 format
         _tmp_name = args[:name]
         return { error: cama_t('camaleon_cms.admin.media.name_required').to_s } unless params[:name].present?
@@ -298,10 +302,19 @@ module CamaleonCms
 
         if uploaded_io.include?(current_site.the_url(locale: nil))
           uploaded_io = File.join(Rails.public_path, uploaded_io.sub(current_site.the_url(locale: nil), '')).to_s
+        else
+          remote_file = cama_download_remote_file(uploaded_io)
+          return remote_file if remote_file[:error].present?
+
+          downloaded_tmp_file = remote_file[:file]
+          uploaded_io = downloaded_tmp_file
         end
-        _tmp_name = uploaded_io.split('/').last.split('?').first
+        _tmp_name = if uploaded_io.is_a?(String)
+                      uploaded_io.split('/').last.split('?').first
+                    else
+                      uploaded_io.path.split('/').last
+                    end
         args[:name] = args[:name] || _tmp_name
-        uploaded_io = URI(uploaded_io).open
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
       return { error: "#{ct('file_format_error')} (#{args[:formats]})" } unless cama_uploader.class.validate_file_format(
@@ -323,6 +336,8 @@ module CamaleonCms
       File.open(path, 'wb') { |f| f.write(uploaded_io.read) } unless saved
       path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
       { file_path: path, error: nil }
+    ensure
+      downloaded_tmp_file&.close!
     end
 
     # resize image if the format is correct
@@ -389,6 +404,43 @@ module CamaleonCms
     end
 
     private
+
+    # Download remote files with SSRF guardrails: validate host/IP and reject redirects.
+    # NOTE: UserUrlValidator.validate is intentionally called here even though the
+    # crop_url controller path may have already validated the URL — this ensures
+    # every caller of cama_tmp_upload is protected (defense-in-depth).
+    def cama_download_remote_file(url)
+      validation_result = UserUrlValidator.validate(url)
+      return { error: validation_result.join(', ') } if validation_result.is_a?(Array)
+
+      uri = URI.parse(url)
+      response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+        http.open_timeout = 10
+        http.read_timeout = 10
+        http.request(Net::HTTP::Get.new(uri.request_uri.presence || '/'))
+      end
+
+      if response.is_a?(Net::HTTPRedirection)
+        return { error: 'Redirects are not allowed for remote uploads.' }
+      end
+
+      return { error: "Unable to download remote file (HTTP #{response.code})." } unless response.is_a?(Net::HTTPSuccess)
+
+      # Enforce the site's maximum upload size to prevent memory exhaustion from oversized responses.
+      max_bytes = current_site.get_option('filesystem_max_size', 100).to_f.megabytes
+      body = response.body
+      if body.bytesize > max_bytes
+        return { error: "Remote file too large (max #{ActiveSupport::NumberHelper.number_to_human_size(max_bytes)})." }
+      end
+
+      ext = File.extname(uri.path.to_s)
+      tempfile = Tempfile.new(['cama-upload-url', ext], binmode: true)
+      tempfile.write(body)
+      tempfile.rewind
+      { file: tempfile, error: nil }
+    rescue StandardError => e
+      { error: "Unable to download remote file: #{ERB::Util.html_escape(e.message)}" }
+    end
 
     def file_content_unsafe?(uploaded_io)
       file = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.tempfile : uploaded_io

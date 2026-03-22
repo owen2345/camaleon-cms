@@ -150,9 +150,9 @@ module CamaleonCms
       quoted_key_match = key.match(/\A(['"])([a-zA-Z0-9_.-]+)\1\z/)
       key = quoted_key_match[2] if quoted_key_match
 
-      # Only translate simple i18n keys, so arbitrary Ruby is never evaluated; allowed chars are
-      # a-z, A-Z, 0-9, _, ., and -.
-      return value unless key.is_a?(String) && key.match?(/\A[a-zA-Z0-9_.-]+\z/)
+      # Only translate simple i18n keys so arbitrary Ruby is never evaluated.
+      # Allowed chars: a-z, A-Z, 0-9, _, ., and -.
+      return value unless key.match?(/\A[a-zA-Z0-9_.-]+\z/)
 
       I18n.t(key)
     end
