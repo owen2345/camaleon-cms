@@ -20,8 +20,7 @@ RSpec.describe 'Frontend custom field translations (non-browser)', type: :reques
                    .add_post(title: 'RCE Request Post', slug: 'rce-request-post', content: 'request content')
 
     @secure_post.add_field(
-      { 'name' => 'Secure Checkbox', 'slug' => field_slug },
-      { 'field_key' => 'checkbox', 'translate' => false }
+      { 'name' => 'Secure Checkbox', 'slug' => field_slug }, { 'field_key' => 'checkbox', 'translate' => false }
     )
     @secure_post.set_field_value(field_slug, 'checked')
   end

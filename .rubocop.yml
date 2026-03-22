@@ -14,7 +14,7 @@ AllCops:
 
 Layout/MultilineMethodCallIndentation:
   Enabled: true
-  EnforcedStyle: indented
+  EnforcedStyle: aligned
 
 Lint/MissingSuper:
   Enabled: false

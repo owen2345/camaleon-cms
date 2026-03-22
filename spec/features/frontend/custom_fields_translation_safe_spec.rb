@@ -16,12 +16,12 @@ describe 'Custom field translation (safe)', :js do
       slug: post_type_slug,
       description: 'Isolated post type for i18n rendering regression checks'
     )
-    @secure_post = secure_post_type
-      .add_post(title: 'RCE Safe Translation Post', slug: 'rce-safe-translation-post', content: 'safe content')
+    @secure_post = secure_post_type.add_post(
+      title: 'RCE Safe Translation Post', slug: 'rce-safe-translation-post', content: 'safe content'
+    )
 
     @secure_post.add_field(
-      { 'name' => 'Secure Checkbox', 'slug' => field_slug },
-      { 'field_key' => 'checkbox', 'translate' => false }
+      { 'name' => 'Secure Checkbox', 'slug' => field_slug }, { 'field_key' => 'checkbox', 'translate' => false }
     )
     @secure_post.set_field_value(field_slug, 'checked')
   end
