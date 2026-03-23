@@ -5,11 +5,11 @@ namespace :camaleon_cms do
     CamaleonCms::UserRole.find_each do |role|
       key = "_manager_#{role.site_id}"
       begin
-        current = role.get_meta(key) rescue {}
+        current_role = role.get_meta(key)
         # if the role already has settings/managers, skip; otherwise add custom_fields => 1
-        if current.blank? || (!current.is_a?(Hash) || current['custom_fields'].blank?)
-          current = (current.is_a?(Hash) ? current : {}).merge('custom_fields' => 1)
-          role.set_meta(key, current)
+        if current_role.blank? || (!current_role.is_a?(Hash) || current_role['custom_fields'].blank?)
+          current_role = (current_role.is_a?(Hash) ? current_role : {}).merge!('custom_fields' => 1)
+          role.set_meta(key, current_role)
           puts "Updated role=#{role.slug} site_id=#{role.site_id}"
         else
           puts "Skipped role=#{role.slug} site_id=#{role.site_id} (already has custom_fields)"
