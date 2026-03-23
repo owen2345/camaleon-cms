@@ -158,6 +158,11 @@ module CamaleonCms
         rescue StandardError
           false
         end
+        begin
+          can :manage, :custom_fields if @roles_manager[:custom_fields]
+        rescue StandardError
+          false
+        end
         @roles_manager.try(:each) do |rol_manage_key, val_role|
           can :manage, rol_manage_key.to_sym if val_role.to_s.cama_true?
         rescue StandardError

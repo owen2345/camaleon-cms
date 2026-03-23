@@ -183,6 +183,41 @@ RAILS_ENV=test bundle exec rake app:db:test:prepare
 bundle exec rspec
 ```
 
+## Permissions (Manager roles)
+
+Camaleon CMS exposes a set of manager permissions that control access to admin surfaces. These manager permissions are defined in
+`CamaleonCms::UserRole::ROLES[:manager]` and are rendered in the User Roles form in the admin UI so site owners can toggle them per-role.
+
+- `custom_fields` — Controls who can create/update Custom Field Groups and Custom Fields (write-time permission). This is a manager-level permission
+  and should be granted only to trusted users. The permission is checked at write-time by the admin controller so that only permitted roles can
+  persist custom field definitions that may contain advanced behavior.
+
+Where enforcement happens
+- Write-time enforcement: `CamaleonCms::Admin::Settings::CustomFieldsController` uses CanCan (`authorize! :manage, :custom_fields`) to require the
+  `custom_fields` manager permission for create/update/destroy actions. This prevents users without the permission from saving Custom Field Groups
+  or fields.
+- Render-time behavior: certain field types (notably the `select_eval` field) evaluate stored data when rendering. The project maintains render-time
+  behavior for backward compatibility, but write-time restrictions are the primary control: only users with the `custom_fields` permission can create
+  or modify fields that might include executable commands. If you need a more restrictive runtime policy, consider auditing/clearing any stored
+  `select_eval` commands in the database.
+
+Backfilling existing roles
+- If you want to grant `custom_fields` to existing roles that previously relied on broader `settings` privileges, there's a one-off rake task you can run:
+
+```bash
+# run from your app root
+bundle exec rake camaleon_cms:backfill_custom_fields_permission
+```
+
+This task will iterate existing user roles and set the `_manager_<site_id>` meta to include `'custom_fields' => 1` when appropriate. The task is idempotent
+and prints progress to stdout.
+
+Security notes
+- The `custom_fields` manager permission can allow storing code-like commands (e.g., `select_eval`) 
+- Treat `custom_fields` as a high-privilege permission — grant it only to trusted administrators. If you inherit a
+  database with pre-existing `select_eval` fields, audit their contents before granting the permission widely
+
+
 ## Contributing
 * Fork it.
 * Create a branch (git checkout -b my_feature_branch)

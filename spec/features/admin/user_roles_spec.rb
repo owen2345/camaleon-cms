@@ -15,6 +15,8 @@ def create_role
     fill_in 'user_role_description', with: 'tester descr'
     check 'Comments'
     check 'Themes'
+    # ensure the new Custom Fields manager permission checkbox is present and checked
+    check 'Custom Fields'
     click_button 'Submit'
   end
 end
@@ -44,6 +46,7 @@ describe 'the User Roles', :js do
     create_role
     expect(page).to have_checked_field('Themes')
     expect(page).to have_checked_field('Comments')
+    expect(page).to have_checked_field('Custom Fields')
     within '#edit_user_role' do
       fill_in 'user_role_name', with: 'Test Role updated'
       fill_in 'user_role_slug', with: 'tester-role-updated'
