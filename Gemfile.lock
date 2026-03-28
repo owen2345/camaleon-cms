@@ -16,8 +16,10 @@ PATH
       jquery-rails
       meta-tags (~> 2.0)
       mini_magick
+      net-http
       non-digest-assets (~> 2.6)
       sprockets-rails (>= 3.5.1)
+      tempfile
       tinymce-rails (< 5)
       will_paginate
       will_paginate-bootstrap
@@ -244,6 +246,8 @@ GEM
       drb (~> 2.0)
       prism (~> 1.5)
     mutex_m (0.3.0)
+    net-http (0.9.1)
+      uri (>= 0.11.1)
     net-imap (0.6.3)
       date
       net-protocol
@@ -411,6 +415,7 @@ GEM
     sqlite3 (2.9.2-arm64-darwin)
     sqlite3 (2.9.2-x86_64-darwin)
     stringio (3.2.0)
+    tempfile (0.3.1)
     thor (1.5.0)
     tilt (2.7.0)
     timeout (0.6.1)

@@ -41,6 +41,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'will_paginate'
   s.add_dependency 'will_paginate-bootstrap'
 
+  # Standard library default gems used explicitly
+  s.add_dependency 'net-http'
+  s.add_dependency 'tempfile'
+
   # MEDIA MANAGER
   s.add_dependency 'aws-sdk-s3', '~> 1'
 

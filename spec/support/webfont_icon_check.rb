@@ -1,5 +1,3 @@
-# require 'rails_helper'
-
 def webfont_icon_fetch_status(icon_class, filnam_distinct_part, filnam_extension)
   icon_font_faces = page.execute_script(<<~JS, icon_class)
     let calendarIcon = document.getElementsByClassName(arguments[0])[0];
