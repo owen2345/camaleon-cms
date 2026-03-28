@@ -114,9 +114,60 @@ describe CamaleonCms::UploaderHelper do
     PluginRoutes.remove_anonymous_hook('before_resize_crop', 'my_custom_hook')
   end
 
-  it 'upload a external file' do
-    expect(
-      upload_file('https://upload.wikimedia.org/wikipedia/commons/1/15/Jpegvergroessert.jpg').keys.include?(:error)
-    ).not_to eql(true)
+  describe 'external URL upload safety' do
+    let(:remote_url) { 'https://example.com/file.txt' }
+
+    it 'blocks URLs rejected by UserUrlValidator before any network request' do
+      allow(CamaleonCms::UserUrlValidator).to receive(:validate).with(remote_url).and_return(['blocked'])
+      expect(Net::HTTP).not_to receive(:start)
+
+      expect(upload_file(remote_url)[:error]).to include('blocked')
+    end
+
+    it 'blocks redirect responses to avoid SSRF bypasses' do
+      redirect_response = Net::HTTPFound.new('1.1', '302', 'Found')
+      redirect_response['location'] = 'http://127.0.0.1/private'
+      http_client = instance_double(Net::HTTP, request: redirect_response)
+      allow(http_client).to receive(:open_timeout=).with(10)
+      allow(http_client).to receive(:read_timeout=).with(10)
+
+      allow(CamaleonCms::UserUrlValidator).to receive(:validate).with(remote_url).and_return(true)
+      allow(Net::HTTP).to receive(:start).and_yield(http_client)
+
+      expect(upload_file(remote_url)[:error]).to eq('Redirects are not allowed for remote uploads.')
+    end
+
+    it 'uploads external files when URL is safe and HTTP response is successful' do
+      ok_response = Net::HTTPOK.new('1.1', '200', 'OK')
+      allow(ok_response).to receive(:body).and_return('plain text body')
+      http_client = instance_double(Net::HTTP, request: ok_response)
+      allow(http_client).to receive(:open_timeout=).with(10)
+      allow(http_client).to receive(:read_timeout=).with(10)
+
+      allow(CamaleonCms::UserUrlValidator).to receive(:validate).with(remote_url).and_return(true)
+      allow(Net::HTTP).to receive(:start).and_yield(http_client)
+
+      result = upload_file(remote_url)
+      expect(result[:error]).to be_blank
+      expect(result['url']).to be_present
+    end
+
+    it 'blocks remote files that exceed the site filesystem_max_size setting' do
+      # Set the site limit to 10 bytes so we can trigger it with a small body.
+      current_site.set_option('filesystem_max_size', 0.000001) # ~1 byte in megabytes
+
+      oversized_body = 'x' * 1024
+      ok_response = Net::HTTPOK.new('1.1', '200', 'OK')
+      allow(ok_response).to receive(:body).and_return(oversized_body)
+      http_client = instance_double(Net::HTTP, request: ok_response)
+      allow(http_client).to receive(:open_timeout=).with(10)
+      allow(http_client).to receive(:read_timeout=).with(10)
+
+      allow(CamaleonCms::UserUrlValidator).to receive(:validate).with(remote_url).and_return(true)
+      allow(Net::HTTP).to receive(:start).and_yield(http_client)
+
+      result = upload_file(remote_url)
+      expect(result[:error]).to include('Remote file too large')
+    end
   end
 end
