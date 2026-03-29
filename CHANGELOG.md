@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+# [2.9.2](https://github.com/owen2345/camaleon-cms/tree/2.9.2) (2026-03-29)
+
+**This release adds critical security improvements for custom field management!**
+
+- **BREAKING CHANGE - Security fix:** Restrict `select_eval` custom field type to authorized users only
+  - The `select_eval` field type can execute arbitrary Ruby code and now requires explicit permission
+  - Users with 'admin' role automatically have full access (via `can :manage, :all`)
+  - Non-admin users must be explicitly granted `select_eval: 1` permission in their role meta
+  - Background jobs and console operations must set `CurrentRequest.user` and `CurrentRequest.site` before creating `select_eval` fields
+  - **Migration required:** See [docs/MIGRATION_SELECT_EVAL.md](docs/MIGRATION_SELECT_EVAL.md) for detailed upgrade instructions
+  - **Security documentation:** See README.md "Security: select_eval Custom Field Type" section
+  - Run `bundle exec rake camaleon_cms:backfill_select_eval_permission` to grant permission to admin roles
+- Add `select_eval` permission to User Roles UI (appears as "Select Eval" checkbox under Manager Permissions)
+- Implement `CurrentRequest` (ActiveSupport::CurrentAttributes) for thread-safe, request-scoped access to `current_user` and `current_site`
+- Add authorization checks at model layer: `CustomFieldGroup#add_field`, `CustomFieldGroup#add_fields`, and `CustomField` before_update callback
+- Memoize `Ability` instance per request to reduce database queries for authorization checks
+- Optimize site helper memoization to prevent redundant site lookups
+
 # [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
 
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
