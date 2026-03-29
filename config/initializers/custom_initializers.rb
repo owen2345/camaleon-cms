@@ -4,10 +4,10 @@ Rails.application.config.to_prepare do |_config|
     next unless ap['path'].present?
 
     f = File.join(ap['path'], 'config', 'initializer.rb')
-    eval(File.read(f)) if File.exist?(f)
+    load f if File.exist?(f)
 
     f = File.join(ap['path'], 'config', 'custom_models.rb')
-    eval(File.read(f)) if File.exist?(f)
+    load f if File.exist?(f)
   end
 
   # This block can be overridden in the app initializer to wrap the sleep and delete_file in an async job,

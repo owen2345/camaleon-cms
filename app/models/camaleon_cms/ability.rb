@@ -2,7 +2,7 @@ module CamaleonCms
   class Ability
     include CanCan::Ability
 
-    def initialize(user, current_site = nil)
+    def initialize(user, current_site = nil) # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
       # Define abilities for the passed in user here. For example:
       #
       user ||= CamaleonCms::User.new # guest user (not logged in)
@@ -155,6 +155,11 @@ module CamaleonCms
         end
         begin
           can :manage, :settings if @roles_manager[:settings]
+        rescue StandardError
+          false
+        end
+        begin
+          can :manage, :custom_fields if @roles_manager[:custom_fields]
         rescue StandardError
           false
         end

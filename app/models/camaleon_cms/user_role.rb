@@ -125,6 +125,12 @@ module CamaleonCms
           description: I18n.t('camaleon_cms.admin.users.tool_tip.settings').to_s
         },
         {
+          key: 'custom_fields',
+          label: I18n.t('camaleon_cms.admin.sidebar.custom_fields', default: 'Custom Fields').to_s,
+          description: I18n.t('camaleon_cms.admin.users.tool_tip.custom_fields',
+                              default: 'Manage custom field groups and fields, including the select_eval type.').to_s
+        },
+        {
           key: 'theme_settings',
           label: I18n.t('camaleon_cms.admin.settings.theme_setting', default: 'Theme Settings').to_s,
           description: I18n.t('camaleon_cms.admin.users.tool_tip.themes').to_s
