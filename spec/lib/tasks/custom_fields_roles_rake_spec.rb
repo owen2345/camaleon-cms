@@ -3,12 +3,16 @@
 require 'rails_helper'
 require 'rake'
 
-RSpec.describe 'camaleon_cms:backfill_custom_fields_permission' do
+RSpec.describe 'camaleon_cms:backfill_custom_fields_permission', type: :task do
   let(:task_name) { 'camaleon_cms:backfill_custom_fields_permission' }
   let(:task) { Rake::Task[task_name] }
 
-  before(:all) do
+  before(:all) do # rubocop:disable RSpec/BeforeAfterAll
     Rails.application.load_tasks unless Rake::Task.task_defined?('camaleon_cms:backfill_custom_fields_permission')
+  end
+
+  after(:all) do # rubocop:disable RSpec/BeforeAfterAll
+    Rake::Task['camaleon_cms:backfill_custom_fields_permission'].clear
   end
 
   before { task.reenable }
@@ -56,8 +60,9 @@ RSpec.describe 'camaleon_cms:backfill_custom_fields_permission' do
     healthy_key = "_manager_#{healthy_role.parent_id}"
 
     allow(CamaleonCms::UserRole).to receive(:find_each).and_yield(broken_role).and_yield(healthy_role)
-    allow(broken_role).to receive(:set_meta).with(broken_key, hash_including('custom_fields' => 1)).and_raise(StandardError,
-                                                                                                                  'forced failure')
+    allow(broken_role).to receive(:set_meta)
+      .with(broken_key, hash_including('custom_fields' => 1))
+      .and_raise(StandardError, 'forced failure')
 
     expect { task.invoke }.not_to raise_error
 
