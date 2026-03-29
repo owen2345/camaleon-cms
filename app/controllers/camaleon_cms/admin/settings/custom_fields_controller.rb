@@ -117,10 +117,6 @@ module CamaleonCms
           end
           true
         end
-
-        # NOTE: previously there was an inline defensive check_select_eval_permission_inline method here
-        # which inspected params and role meta to block 'select_eval' writes. That logic was removed
-        # in favor of the standard authorize!(:manage, :custom_fields) pattern used elsewhere in the app.
       end
     end
   end

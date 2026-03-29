@@ -202,15 +202,7 @@ Where enforcement happens
   `select_eval` commands in the database.
 
 Backfilling existing roles
-- If you want to grant `custom_fields` to existing roles that previously relied on broader `settings` privileges, there's a one-off rake task you can run:
-
-```bash
-# run from your app root
-bundle exec rake camaleon_cms:backfill_custom_fields_permission
-```
-
-This task will iterate existing user roles and set the `_manager_<site_id>` meta to include `'custom_fields' => 1` when appropriate. The task is idempotent
-and prints progress to stdout.
+- If you are upgrading an existing installation to `2.9.2`, see the [migration guide](docs/upgrading-to-2.9.2.md) for the one-off backfill task and rollout steps.
 
 Security notes
 - The `custom_fields` manager permission can allow storing code-like commands (e.g., `select_eval`) 

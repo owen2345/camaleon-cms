@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+# [2.9.2](https://github.com/owen2345/camaleon-cms/tree/2.9.2)
+
+- Add permissions for Custom Fields management in the admin area
+  - Existing installs upgrading to 2.9.2 should review the [migration guide](docs/upgrading-to-2.9.2.md)
+
 # [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
 
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
