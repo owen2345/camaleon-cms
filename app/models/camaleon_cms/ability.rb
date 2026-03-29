@@ -12,9 +12,16 @@ module CamaleonCms
         can :read, :all
       else
         # conditions:
-        current_user_role = user.get_role(current_site) || current_site.user_roles.new
-        @roles_manager ||= current_user_role.get_meta("_manager_#{current_site.id}", {}) || {}
-        @roles_post_type ||= current_user_role.get_meta("_post_type_#{current_site.id}", {}) || {}
+        # Fetch the role record fresh from the database for the current site to
+        # ensure up-to-date role meta (avoid stale cached role objects during
+        # tests or runtime meta updates).
+        current_user_role = if current_site.present?
+                              current_site.user_roles.where(slug: user.role).first
+                            else
+                              user.get_role(current_site)
+                            end || current_site.user_roles.new
+        @roles_manager = current_user_role.get_meta("_manager_#{current_site.id}", {}) || {}
+        @roles_post_type = current_user_role.get_meta("_post_type_#{current_site.id}", {}) || {}
 
         ids_publish = @roles_post_type[:publish] || []
         ids_edit = @roles_post_type[:edit] || []
@@ -160,6 +167,12 @@ module CamaleonCms
         end
         begin
           can :manage, :custom_fields if @roles_manager[:custom_fields]
+        rescue StandardError
+          false
+        end
+        begin
+          # allow managing select_eval visibility and usage when explicit flag is present
+          can :manage, :select_eval if @roles_manager[:select_eval]
         rescue StandardError
           false
         end
