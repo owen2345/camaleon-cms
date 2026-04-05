@@ -39,13 +39,12 @@ module CamaleonCms
       return unless respond_to?(:options) && options.present?
 
       # Check if field_key is being changed to select_eval
-      if options[:field_key] == 'select_eval' || options['field_key'] == 'select_eval'
-        # Allow if user has explicit permission
-        unless can?(:manage, :select_eval)
-          errors.add(:base, 'Not authorized to create or modify select_eval fields')
-          throw :abort
-        end
-      end
+      return unless options[:field_key] == 'select_eval'
+      # Allow if user has explicit permission
+      return if can?(:manage, :select_eval)
+
+      errors.add(:base, 'Not authorized to create or modify select_eval fields')
+      throw :abort
     end
   end
 end

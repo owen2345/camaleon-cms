@@ -7,8 +7,6 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.before do
     # clear CurrentRequest before each example to avoid leakage
-    if defined?(CurrentRequest)
-      CurrentRequest.reset
-    end
+    CurrentRequest.reset
   end
 end

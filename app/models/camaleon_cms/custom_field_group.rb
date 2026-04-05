@@ -36,7 +36,8 @@ module CamaleonCms
     def add_manual_field(item, options)
       # Prevent creation of dangerous field types (select_eval) unless the actor is allowed.
       if options[:field_key] == 'select_eval'
-        can?(:manage, :select_eval) || raise(CanCan::AccessDenied, 'Not authorized to create select_eval fields')
+        can?(:manage, :select_eval) ||
+          raise(CanCan::AccessDenied, 'Not authorized to create select_eval fields')
       end
 
       c = get_field(item[:slug] || item['slug'])

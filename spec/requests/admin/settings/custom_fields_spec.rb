@@ -20,7 +20,7 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       )
     end
 
-    it 'allows updating custom fields to select_eval for roles with permissions ' do
+    it 'allows updating custom fields to select_eval for roles with permissions' do
       role = current_site.user_roles.create!(name: 'CF Manager 2', slug: 'cf_manager_2')
       # grant both custom_fields manager and explicit select_eval permission
       role.set_meta("_manager_#{current_site.id}", { 'custom_fields' => 1, 'select_eval' => 1 })

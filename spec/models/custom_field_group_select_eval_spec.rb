@@ -84,16 +84,13 @@ RSpec.describe CamaleonCms::CustomFieldGroup, type: :model do
     theme = site.themes.first
     group = site.custom_field_groups.create!(name: 'G_NoContext', slug: '_g_nocontext', object_class: 'Theme', objectid: theme.id)
 
-    expect {
-      group.add_field(
-        { name: 'X', slug: 'x' }, { field_key: 'select_eval', command: 'dangerous' }
-      )
-    }.to raise_error(CanCan::AccessDenied)
+    expect { group.add_field({ name: 'X', slug: 'x' }, { field_key: 'select_eval', command: 'dangerous' }) }
+      .to raise_error(CanCan::AccessDenied)
   end
 
   it 'blocks direct field.set_options call for select_eval without permission' do
     role = site.user_roles.create!(name: 'CF Limited', slug: 'cf_limited')
-    role.set_meta("_manager_#{site.id}", { custom_fields: 1 })  # No select_eval permission
+    role.set_meta("_manager_#{site.id}", { custom_fields: 1 }) # No select_eval permission
     user = create(:user, role: role.slug, site: site)
     set_current(user: user, site: site)
 
