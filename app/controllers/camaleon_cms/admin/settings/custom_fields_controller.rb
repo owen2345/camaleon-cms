@@ -3,6 +3,7 @@ module CamaleonCms
     module Settings
       class CustomFieldsController < CamaleonCms::Admin::SettingsController
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.custom_fields'), :cama_admin_settings_custom_fields_path
+        before_action :validate_role, only: %i[create update destroy]
         before_action :set_custom_field_group, only: %i[show edit update destroy]
         before_action :set_post_data, only: %i[create update]
 
@@ -87,6 +88,10 @@ module CamaleonCms
           @post_data = params.require(:custom_field_group).permit!
           @post_data[:object_class], @post_data[:objectid] = @post_data.delete(:assign_group).split(',')
           @caption = @post_data.delete(:caption)
+        end
+
+        def validate_role
+          authorize! :manage, :custom_fields
         end
 
         def set_custom_field_group
