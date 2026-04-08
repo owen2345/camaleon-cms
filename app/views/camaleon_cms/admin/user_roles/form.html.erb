@@ -66,7 +66,7 @@
                     <% values = rol_values_manager || {}  %>
                     <% cama_get_roles_values[:manager].each do |value|  %>
                         <div class="col-md-4">
-                          <label><input type="checkbox" name="rol_values[manager][<%= value[:key] %>]" value="1" <%= "checked" if values[value[:key].to_sym].present?  %> <%= "disabled" unless @user_role.editable?  %> >&nbsp; <%= raw value[:label] %></label>
+                          <label><input type="checkbox" name="rol_values[manager][<%= value[:key] %>]" value="1" <%= "checked" if values[value[:key].to_sym].present?  %> <%= "disabled" unless @user_role.editable?  %> <%= 'data-danger-select-eval=1' if value[:key].to_s == 'select_eval' %> >&nbsp; <%= raw value[:label] %></label>
                           &nbsp;<%= raw cama_html_tooltip(value[:description], 'right') if value[:description].present? %>
                         </div>
                     <% end %>
@@ -119,20 +119,94 @@
   <!-- END PAGE CONTENT WRAPPER -->
 </div>
 
+<div class="modal fade" id="select-eval-danger-modal" tabindex="-1" role="dialog" aria-labelledby="select-eval-danger-modal-title" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="<%= t('camaleon_cms.admin.button.cancel') %>">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="select-eval-danger-modal-title"><%= t('camaleon_cms.admin.users.select_eval_modal.title') %></h4>
+      </div>
+      <div class="modal-body">
+        <p><%= t('camaleon_cms.admin.users.select_eval_modal.description') %></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-role="select-eval-cancel" data-dismiss="modal"><%= t('camaleon_cms.admin.button.cancel') %></button>
+        <button type="button" class="btn btn-danger" data-role="select-eval-confirm"><%= t('camaleon_cms.admin.button.accept') %></button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
     jQuery(function($){
+      var pendingDangerSelectEval = null
+      var pendingDangerSelectEvalConfirmed = false
+      var $allCheckboxes = $("#contents-checkbox input[type='checkbox']")
+      var $selectEvalCheckbox = $("#contents-checkbox input[data-danger-select-eval='1']")
+      var $selectEvalModal = $("#select-eval-danger-modal")
+
+      function openSelectEvalDangerModal(checkbox){
+          pendingDangerSelectEval = checkbox
+          pendingDangerSelectEvalConfirmed = false
+          checkbox.prop("checked", false)
+          $selectEvalModal.modal("show")
+      }
+
+      function shouldWarnForSelectEvalEnable(wasChecked){
+          return $selectEvalCheckbox.length && !$selectEvalCheckbox.prop("disabled") && !wasChecked
+      }
+
       $("#contents-checkbox input:checked").each(function(){$(this).attr("data-checked", 1)})
+
+      $("#contents-checkbox").on("change", "input[data-danger-select-eval='1']", function(){
+          if($(this).prop("checked")){
+              openSelectEvalDangerModal($(this))
+          }
+      })
+
+      $selectEvalModal.find("[data-role='select-eval-confirm']").on("click", function(){
+          if(pendingDangerSelectEval){
+              pendingDangerSelectEval.prop("checked", true)
+              pendingDangerSelectEvalConfirmed = true
+          }
+          $selectEvalModal.modal("hide")
+      })
+
+      $(document).on("keydown", function(event){
+          if(event.which === 27 && $selectEvalModal.hasClass("in")){
+              $selectEvalModal.modal("hide")
+          }
+      })
+
+      $selectEvalModal.on("hidden.bs.modal", function(){
+          if(pendingDangerSelectEval && !pendingDangerSelectEvalConfirmed){
+              pendingDangerSelectEval.prop("checked", false)
+          }
+          pendingDangerSelectEval = null
+          pendingDangerSelectEvalConfirmed = false
+      })
+
       $("#checked-actions a[data-type]").click(function(){
           switch ($(this).attr("data-type")){
               case 'all':
-                  $("#contents-checkbox input[type='checkbox']").prop('checked', true);
+                  var wasSelectEvalChecked = $selectEvalCheckbox.prop('checked');
+                  $allCheckboxes.prop('checked', true);
+                  if(shouldWarnForSelectEvalEnable(wasSelectEvalChecked)){
+                      openSelectEvalDangerModal($selectEvalCheckbox)
+                  }
               break;
               case 'none':
-                  $("#contents-checkbox input[type='checkbox']").prop('checked', false);
+                  $allCheckboxes.prop('checked', false);
               break;
               case 'restore':
-                  $("#contents-checkbox input[type='checkbox']").prop('checked', false);
+                  var wasSelectEvalCheckedBeforeRestore = $selectEvalCheckbox.prop('checked');
+                  $allCheckboxes.prop('checked', false);
                   $("#contents-checkbox input[data-checked]").prop('checked', true);
+                  if(shouldWarnForSelectEvalEnable(wasSelectEvalCheckedBeforeRestore) && $selectEvalCheckbox.is("[data-checked]")){
+                      openSelectEvalDangerModal($selectEvalCheckbox)
+                  }
               break;
           }
           return false;

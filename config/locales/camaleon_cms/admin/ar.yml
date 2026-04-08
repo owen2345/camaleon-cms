@@ -588,6 +588,9 @@ ar:
          created_pending_validate_email: "The user has been created, please confirm your email"
         new_photo: 'New Photo'
         other_permissions: 'Others permissions'
+        select_eval_modal:
+          title: 'صلاحية خطيرة'
+          description: 'صلاحية select_eval تسمح بتنفيذ كود ديناميكي من خيارات الحقول المخصصة. تفعيلها قد يؤدي الى تنفيذ كود عشوائي، كشف البيانات، والسيطرة الكاملة على الموقع عند تقييم محتوى غير موثوق.'
         profile: 'Profile'
         slogan: 'Slogan'
         type_contents: 'Type of Contents'

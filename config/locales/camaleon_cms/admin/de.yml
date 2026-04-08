@@ -587,6 +587,9 @@ de:
           created_pending_validate_email: 'Der Benutzer wurde erstellt, bitte bestätige deine Email.'
         new_photo: 'Neues Bild'
         other_permissions: 'Rechte Anderer'
+        select_eval_modal:
+          title: 'Gefahrliche Berechtigung'
+          description: 'Die Berechtigung select_eval erlaubt die Ausfuhrung von dynamischem Code aus Optionen benutzerdefinierter Felder. Das Aktivieren kann zu beliebiger Codeausfuhrung, Datenoffenlegung und einer vollstandigen Kompromittierung der Website fuhren, wenn nicht vertrauenswurdige Inhalte ausgewertet werden.'
         profile: 'Profil'
         slogan: 'Slogan'
         type_contents: 'Art der Inhalte'

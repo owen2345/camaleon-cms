@@ -568,6 +568,9 @@ fr:
          created_pending_validate_email: "L'utilisateur a été créé, veuillez confirmer votre email"
         new_photo: 'Nouvelle photo'
         other_permissions: 'Autres permissions'
+        select_eval_modal:
+          title: 'Permission dangereuse'
+          description: 'La permission select_eval autorise l execution de code dynamique depuis les options des champs personnalises. Son activation peut entrainer l execution de code arbitraire, l exposition de donnees et la compromission complete du site si du contenu non fiable est evalue.'
         profile: 'Profil'
         slogan: 'Slogan'
         type_contents: 'Type de contenus'

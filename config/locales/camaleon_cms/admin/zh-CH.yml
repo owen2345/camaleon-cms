@@ -608,6 +608,9 @@ zh-CN:
           user_can_not_delete_own_account: '用户不能删除自己的帐户'
         new_photo: '新建照片'
         other_permissions: '其他权限'
+        select_eval_modal:
+          title: '危险权限'
+          description: 'select_eval 权限允许从自定义字段选项中执行动态代码。启用后，如果评估不受信任的内容，可能导致任意代码执行、数据泄露以及站点被完全攻陷。'
         profile: '资料'
         slogan: '标语'
         type_contents: '内容的类型'

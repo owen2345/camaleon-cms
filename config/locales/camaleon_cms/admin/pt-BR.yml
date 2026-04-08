@@ -556,6 +556,9 @@ pt-BR:
          requires_different_email: 'Requer email diferente'
         new_photo: 'Nova foto'
         other_permissions: 'Outras permissões'
+        select_eval_modal:
+          title: 'Permissao perigosa'
+          description: 'A permissao select_eval permite executar codigo dinamico a partir das opcoes de campos personalizados. Ao habilitar, pode causar execucao arbitraria de codigo, exposicao de dados e comprometimento total do site caso conteudo nao confiavel seja avaliado.'
         profile: 'Perfil'
         slogan: 'Slogan'
         type_contents: 'TIpo de conteúdos'

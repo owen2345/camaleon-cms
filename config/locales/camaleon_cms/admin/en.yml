@@ -641,6 +641,9 @@ en:
           user_can_not_delete_own_account: You cannot delete your own account
         new_photo: 'New Photo'
         other_permissions: 'Other permissions'
+        select_eval_modal:
+          title: 'Dangerous Permission'
+          description: 'The select_eval permission allows execution of dynamic code from custom field options. Enabling it can lead to arbitrary code execution, data exposure, and full site compromise if untrusted content is evaluated.'
         profile: 'Profile'
         slogan: 'Slogan'
         type_contents: 'Type of Contents'
