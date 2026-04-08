@@ -574,7 +574,7 @@ uk:
          requires_different_email: 'Потрібні інші ел. пошта '
          created_pending_validate_email: "Користувач був створений, будь ласка, підтвердіть вашу електронну пошту"
         new_photo: 'Нова фотографія'
-        others_permissions: 'Інші роздільності'
+        other_permissions: 'Інші роздільності'
         profile: 'Профіль'
         slogan: 'Слоган'
         type_contents: 'Тип Контенту'

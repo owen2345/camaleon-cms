@@ -563,7 +563,7 @@ nl:
          requires_different_email: 'Andere e-mail verplicht'
          created_pending_validate_email: "Gebruiker is aangemaakt, bevestig uw e-mail"
         new_photo: 'Nieuwe foto'
-        others_permissions: 'Andere rechten'
+        other_permissions: 'Andere rechten'
         profile: 'Profiel'
         slogan: 'Slogan'
         type_contents: 'Type inhoud'

@@ -574,7 +574,7 @@ ru:
          requires_different_email: 'Требуется другая эл. почта'
          created_pending_validate_email: "Пользователь был создан, пожалуйста, подтвердите вашу электронную почту"
         new_photo: 'Новая фотография'
-        others_permissions: 'Другие разрешения'
+        other_permissions: 'Другие разрешения'
         profile: 'Профиль'
         slogan: 'Слоган'
         type_contents: 'Тип контента'

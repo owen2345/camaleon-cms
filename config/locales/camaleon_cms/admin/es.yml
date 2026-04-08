@@ -561,7 +561,7 @@ es:
          requires_different_email: 'Requiere diferente correo electrónico'
          created_pending_validate_email: 'El usuario ha sido creado, por favor confirma tu email'
         new_photo: 'Nueva Fotografía'
-        others_permissions: 'Otros permisos'
+        other_permissions: 'Otros permisos'
         profile: 'Perfil'
         slogan: 'Eslogan'
         type_contents: 'Tipo de Contenidos'

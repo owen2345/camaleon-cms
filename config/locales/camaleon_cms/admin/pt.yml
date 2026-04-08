@@ -553,7 +553,7 @@ pt:
          requires_different_username: 'Requer utilizador diferente'
          requires_different_email: 'Requer email diferente'
         new_photo: 'Nova foto'
-        others_permissions: 'Outras permissões'
+        other_permissions: 'Outras permissões'
         profile: 'Perfil'
         slogan: 'Slogan'
         type_contents: 'TIpo de conteúdos'

@@ -586,7 +586,7 @@ de:
           requires_different_email: 'Erfordert eine andere Email'
           created_pending_validate_email: 'Der Benutzer wurde erstellt, bitte bestätige deine Email.'
         new_photo: 'Neues Bild'
-        others_permissions: 'Rechte Anderer'
+        other_permissions: 'Rechte Anderer'
         profile: 'Profil'
         slogan: 'Slogan'
         type_contents: 'Art der Inhalte'

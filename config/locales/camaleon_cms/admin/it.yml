@@ -565,7 +565,7 @@ it:
           requires_different_username: 'Inserisci uno username diverso'
           requires_different_email: 'Inserisci una email diversa'
         new_photo: 'Nuova foto'
-        others_permissions: 'Altri permessi'
+        other_permissions: 'Altri permessi'
         profile: 'Profilo'
         slogan: 'Slogan'
         type_contents: 'Tipi di contenuti'
