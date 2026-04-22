@@ -124,3 +124,20 @@ def confirm_dialog
     raise 'Unsupported driver'
   end
 end
+
+# Temporarily replace the CamaleonCmsUploader.delete_block (without calling the
+# public setter) for the duration of the given block. This helper uses
+# instance_variable_set/get to avoid invoking the public `delete_block` method
+# which might be observed by test spies. Example:
+#
+#   with_delete_block(proc { |settings, uploader, key| uploader.delete_file(key) }) do
+#     # run code that triggers the delete_block
+#   end
+#
+def with_delete_block(temp_proc)
+  old = CamaleonCmsUploader.instance_variable_get(:@delete_block)
+  CamaleonCmsUploader.instance_variable_set(:@delete_block, temp_proc)
+  yield
+ensure
+  CamaleonCmsUploader.instance_variable_set(:@delete_block, old)
+end
