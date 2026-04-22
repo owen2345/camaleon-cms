@@ -30,7 +30,7 @@ describe CamaleonCms::UploaderHelper do
       # replace the delete_block implementation for this example to avoid sleeping
       # using the provided helper which swaps the internal @delete_block for the
       # duration of the block
-      with_delete_block(proc do |settings, cama_uploader, file_key|
+      with_delete_block(proc do |_settings, cama_uploader, file_key|
         cama_uploader.delete_file(file_key)
       end) do
         expect(CamaleonCmsUploader).to receive(:delete_block)
