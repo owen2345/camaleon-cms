@@ -565,7 +565,10 @@ it:
           requires_different_username: 'Inserisci uno username diverso'
           requires_different_email: 'Inserisci una email diversa'
         new_photo: 'Nuova foto'
-        others_permissions: 'Altri permessi'
+        other_permissions: 'Altri permessi'
+        select_eval_modal:
+          title: 'Permesso pericoloso'
+          description: 'Il permesso select_eval consente l esecuzione di codice dinamico dalle opzioni dei campi personalizzati. Se abilitato, puo causare esecuzione arbitraria di codice, esposizione dei dati e compromissione completa del sito quando viene valutato contenuto non attendibile.'
         profile: 'Profilo'
         slogan: 'Slogan'
         type_contents: 'Tipi di contenuti'

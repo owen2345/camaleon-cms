@@ -20,11 +20,12 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       )
     end
 
-    it 'allows updating custom fields for roles with permission' do
+    it 'allows updating custom fields to select_eval for roles with permissions' do
       role = current_site.user_roles.create!(name: 'CF Manager 2', slug: 'cf_manager_2')
-      role.set_meta("_manager_#{current_site.id}", { 'custom_fields' => 1 })
+      # grant both custom_fields manager and explicit select_eval permission
+      role.set_meta("_manager_#{current_site.id}", { 'custom_fields' => 1, 'select_eval' => 1 })
       user = create(:user, role: role.slug, site: current_site)
-      auth_as(user)
+      sign_in_as(user, site: current_site)
 
       patch "/admin/settings/custom_fields/#{group.id}", params: {
         id: group.id,
@@ -41,7 +42,7 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       role = current_site.user_roles.create!(name: 'Limited 2', slug: 'limited_2')
       role.set_meta("_manager_#{current_site.id}", {})
       user = create(:user, role: role.slug, site: current_site)
-      auth_as(user)
+      sign_in_as(user, site: current_site)
 
       patch "/admin/settings/custom_fields/#{group.id}", params: {
         id: group.id,
@@ -60,18 +61,14 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
     end
   end
 
-  def auth_as(user)
-    # set cookie so cama_current_user can be resolved by auth token
-    cookies[:auth_token] = "#{user.auth_token}&rspec&127.0.0.1"
-  end
-
-  context 'when user has the custom_fields manager permission' do
-    it 'allows creating a custom field group (including select_eval fields)' do
+  context 'when user has the custom_fields and select_eval permission' do
+    it 'allows creating a custom field group, including select_eval fields' do
       role = current_site.user_roles.create!(name: 'CF Manager', slug: 'cf_manager')
-      role.set_meta("_manager_#{current_site.id}", { 'custom_fields' => 1 })
+      # grant both custom_fields manager and explicit select_eval permission
+      role.set_meta("_manager_#{current_site.id}", { 'custom_fields' => 1, 'select_eval' => 1 })
 
       user = create(:user, role: role.slug, site: current_site)
-      auth_as(user)
+      sign_in_as(user, site: current_site)
 
       expect do
         post '/admin/settings/custom_fields', params: {
@@ -90,7 +87,7 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       role.set_meta("_manager_#{current_site.id}", {})
 
       user = create(:user, role: role.slug, site: current_site)
-      auth_as(user)
+      sign_in_as(user, site: current_site)
 
       expect do
         post '/admin/settings/custom_fields', params: {

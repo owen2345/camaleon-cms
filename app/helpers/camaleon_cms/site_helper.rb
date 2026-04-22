@@ -2,9 +2,21 @@ module CamaleonCms
   module SiteHelper
     # return current site or assign a site as a current site
     def current_site(site = nil)
-      @current_site = site.decorate if site.present?
-      return $current_site if defined?($current_site)
-      return @current_site if defined?(@current_site)
+      if site.present?
+        @current_site = site.decorate
+        CurrentRequest.site = @current_site
+        return @current_site
+      end
+
+      if defined?($current_site)
+        CurrentRequest.site = $current_site
+        return $current_site
+      end
+
+      if defined?(@current_site) && @current_site.present?
+        CurrentRequest.site = @current_site
+        return @current_site
+      end
 
       if PluginRoutes.get_sites.size == 1
         site = begin
@@ -35,6 +47,7 @@ module CamaleonCms
         Rails.logger.error 'Camaleon CMS - Please define your current site: $current_site = CamaleonCms::Site.first.decorate or map your domains: https://camaleon.website/documentation/category/139779-examples/how.html'.cama_log_style(:red)
       end
       @current_site = r[:site]
+      CurrentRequest.site = @current_site
     end
 
     # return current theme model for current site

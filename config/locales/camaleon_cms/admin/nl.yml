@@ -563,7 +563,10 @@ nl:
          requires_different_email: 'Andere e-mail verplicht'
          created_pending_validate_email: "Gebruiker is aangemaakt, bevestig uw e-mail"
         new_photo: 'Nieuwe foto'
-        others_permissions: 'Andere rechten'
+        other_permissions: 'Andere rechten'
+        select_eval_modal:
+          title: 'Gevaarlijke toestemming'
+          description: 'De toestemming select_eval staat het uitvoeren van dynamische code toe vanuit opties van aangepaste velden. Inschakelen kan leiden tot willekeurige code-uitvoering, blootstelling van gegevens en volledige compromittering van de site als niet-vertrouwde inhoud wordt ge-evalueerd.'
         profile: 'Profiel'
         slogan: 'Slogan'
         type_contents: 'Type inhoud'

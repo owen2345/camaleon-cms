@@ -561,7 +561,10 @@ es:
          requires_different_email: 'Requiere diferente correo electrónico'
          created_pending_validate_email: 'El usuario ha sido creado, por favor confirma tu email'
         new_photo: 'Nueva Fotografía'
-        others_permissions: 'Otros permisos'
+        other_permissions: 'Otros permisos'
+        select_eval_modal:
+          title: 'Permiso peligroso'
+          description: 'El permiso select_eval permite ejecutar codigo dinamico desde opciones de campos personalizados. Al habilitarlo, puede provocar ejecucion arbitraria de codigo, exposicion de datos y compromiso total del sitio si se evalua contenido no confiable.'
         profile: 'Perfil'
         slogan: 'Eslogan'
         type_contents: 'Tipo de Contenidos'

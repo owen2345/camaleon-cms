@@ -7,7 +7,7 @@ CAMALEON_CMS_ROOT = Pathname.new(__FILE__).join('../..')
 
 require File.expand_path('dummy/config/environment.rb', __dir__)
 
-ActiveRecord::Migrator.migrations_paths = [File.expand_path('../test/dummy/db/migrate', __dir__)]
+ActiveRecord::Migrator.migrations_paths = [File.expand_path('../spec/dummy/db/migrate', __dir__)]
 ActiveRecord::Migrator.migrations_paths << File.expand_path('../db/migrate', __dir__)
 
 require 'rspec/rails'
@@ -156,10 +156,6 @@ end
 Dir[CAMALEON_CMS_ROOT.join('spec/support/**/*.rb')].sort.each { |f| require f }
 # Rails.root refers to spec/dummy app
 Dir[Rails.root.join('spec/support/**/*.rb')].sort.each { |f| require f }
-
-# Checks for pending migrations before tests are run.
-# If you are not using ActiveRecord, you can remove this line.
-ActiveRecord::Migration.maintain_test_schema! unless ENV['DISABLE_DATABASE_ENVIRONMENT_CHECK']
 
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures

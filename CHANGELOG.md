@@ -3,9 +3,21 @@
 ## Unreleased
 
 # [2.9.2](https://github.com/owen2345/camaleon-cms/tree/2.9.2)
+**This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
 
 - Add permissions for Custom Fields management in the admin area
   - Existing installs upgrading to 2.9.2 should review the [migration guide](docs/upgrading-to-2.9.2.md)
+
+- **BREAKING CHANGE - Security fix:** Restrict `select_eval` custom field type to authorized users only
+  - The `select_eval` field type can execute arbitrary Ruby code and now requires explicit permission
+  - Added `select_eval` permission to User Roles UI (appears as "Select Eval" checkbox under Manager Permissions)
+  - Users with 'admin' role automatically have full access (via `can :manage, :all`)
+  - Non-admin users must be explicitly granted `select_eval: 1` permission in their role meta
+  - Implemented `CurrentRequest` (ActiveSupport::CurrentAttributes) for thread-safe, request-scoped access to `current_user` and `current_site`
+  - Added authorization checks at model layer: `CustomFieldGroup#add_field`, `CustomFieldGroup#add_fields`, and `CustomField` before_update callback
+  - **Migration required:** See [docs/MIGRATION_SELECT_EVAL.md](docs/MIGRATION_SELECT_EVAL.md) for detailed upgrade instructions
+  - **Security documentation:** See [Permissions & Security Guide](docs/security/permissions.md)
+  - Run `bundle exec rake camaleon_cms:backfill_select_eval_permission` to fix the permission checkbox on admin roles
 
 # [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
 
@@ -828,7 +840,7 @@ intermittently failing, and with Chromedriver 134.x it became totally unusable. 
 - Permit to change post author [\#372](https://github.com/owen2345/camaleon-cms/pull/372) ([gcrofils](https://github.com/gcrofils))
 
 ## [2.2.0](https://github.com/owen2345/camaleon-cms/tree/2.2.0) (2016-06-15)
-[Full Changelog](https://github.com/owen2345/camaleon-cms/compare/2.1.2.1...2.2.0)
+[Full Changelog](https://github.com/owen2345/camaleon-cms/compare/0.2.0...2.2.0)
 
 **Closed issues:**
 
@@ -1062,185 +1074,3 @@ intermittently failing, and with Chromedriver 134.x it became totally unusable. 
 - parse only current fog dir \#235 [\#241](https://github.com/owen2345/camaleon-cms/pull/241) ([momolog](https://github.com/momolog))
 - Adding missing namespaces [\#238](https://github.com/owen2345/camaleon-cms/pull/238) ([mmeyerAlitmetrik](https://github.com/mmeyerAlitmetrik))
 - \#134 Change how 'main\_site' is determined, and use the class method i… [\#201](https://github.com/owen2345/camaleon-cms/pull/201) ([marksiemers](https://github.com/marksiemers))
-
-## [v2.0.0](https://github.com/owen2345/camaleon-cms/tree/v2.0.0) (2015-11-11)
-[Full Changelog](https://github.com/owen2345/camaleon-cms/compare/0.2.0...v2.0.0)
-
-**Closed issues:**
-
-- Validate user registration with email [\#198](https://github.com/owen2345/camaleon-cms/issues/198)
-- custom routing system [\#188](https://github.com/owen2345/camaleon-cms/issues/188)
-- Unable to insert/edit image [\#175](https://github.com/owen2345/camaleon-cms/issues/175)
-- Custom fields querys [\#174](https://github.com/owen2345/camaleon-cms/issues/174)
-- Example don't work [\#172](https://github.com/owen2345/camaleon-cms/issues/172)
-- Theme assets not being precompiled [\#168](https://github.com/owen2345/camaleon-cms/issues/168)
-- Undefined method `generate\_breadcrumb` [\#162](https://github.com/owen2345/camaleon-cms/issues/162)
-- Custom fields not saving for navigation menus [\#156](https://github.com/owen2345/camaleon-cms/issues/156)
-- Nav Menu settings JS error [\#154](https://github.com/owen2345/camaleon-cms/issues/154)
-- 404 page error [\#152](https://github.com/owen2345/camaleon-cms/issues/152)
-- Plugin loader plugins key problem [\#151](https://github.com/owen2345/camaleon-cms/issues/151)
-- Cannot change default layout in theme. [\#150](https://github.com/owen2345/camaleon-cms/issues/150)
-- Can't insert media into post/page [\#147](https://github.com/owen2345/camaleon-cms/issues/147)
-- RSS incorrect controller action [\#145](https://github.com/owen2345/camaleon-cms/issues/145)
-- Custom fields readonly [\#144](https://github.com/owen2345/camaleon-cms/issues/144)
-- Theme assets not found after precompiling [\#137](https://github.com/owen2345/camaleon-cms/issues/137)
-- Deploy on Heroku fails: "No such file" [\#132](https://github.com/owen2345/camaleon-cms/issues/132)
-- Escaping JavaScript [\#131](https://github.com/owen2345/camaleon-cms/issues/131)
-- We're sorry something went wrong \(500\) [\#128](https://github.com/owen2345/camaleon-cms/issues/128)
-- Hooks for post types from plugins? [\#127](https://github.com/owen2345/camaleon-cms/issues/127)
-- New plugins format [\#126](https://github.com/owen2345/camaleon-cms/issues/126)
-- Can't add fields to contact form [\#124](https://github.com/owen2345/camaleon-cms/issues/124)
-- Theme field on contact form [\#123](https://github.com/owen2345/camaleon-cms/issues/123)
-- uninitialized constant CamaleonCms::VERSION [\#121](https://github.com/owen2345/camaleon-cms/issues/121)
-- Admin login page puts asterisks in password field [\#120](https://github.com/owen2345/camaleon-cms/issues/120)
-- Hooks [\#119](https://github.com/owen2345/camaleon-cms/issues/119)
-- Theming [\#117](https://github.com/owen2345/camaleon-cms/issues/117)
-- Post types [\#114](https://github.com/owen2345/camaleon-cms/issues/114)
-- Vendor asset management [\#112](https://github.com/owen2345/camaleon-cms/issues/112)
-- Implement new admin template [\#111](https://github.com/owen2345/camaleon-cms/issues/111)
-- Use "description" in config.json on plugins instead of "descr" [\#109](https://github.com/owen2345/camaleon-cms/issues/109)
-- Add Sitemap information from plugins [\#106](https://github.com/owen2345/camaleon-cms/issues/106)
-- Admin UI Helpers [\#105](https://github.com/owen2345/camaleon-cms/issues/105)
-- Menu builder customization [\#102](https://github.com/owen2345/camaleon-cms/issues/102)
-- hardcoded alt="Nature Image 1" in Featured Image \(Admin Page\) [\#97](https://github.com/owen2345/camaleon-cms/issues/97)
-- Disable captcha [\#90](https://github.com/owen2345/camaleon-cms/issues/90)
-- Plugin custom\_models append new attribute to Users [\#88](https://github.com/owen2345/camaleon-cms/issues/88)
-- Google analytics plugin [\#86](https://github.com/owen2345/camaleon-cms/issues/86)
-- AGPL vs GPL [\#85](https://github.com/owen2345/camaleon-cms/issues/85)
-- Mandrill plugin [\#84](https://github.com/owen2345/camaleon-cms/issues/84)
-- NameError in AdminController\#dashboard [\#83](https://github.com/owen2345/camaleon-cms/issues/83)
-- Changing layouts [\#82](https://github.com/owen2345/camaleon-cms/issues/82)
-- Plugin isolation [\#81](https://github.com/owen2345/camaleon-cms/issues/81)
-- Better support for migrations inside of plugins [\#80](https://github.com/owen2345/camaleon-cms/issues/80)
-- Ecommerce plugin free shipment [\#79](https://github.com/owen2345/camaleon-cms/issues/79)
-- Deploy on AWS ElasticBeanstalk [\#78](https://github.com/owen2345/camaleon-cms/issues/78)
-- Shorter asset paths [\#75](https://github.com/owen2345/camaleon-cms/issues/75)
-- Create image tag for an image in the themes folder [\#72](https://github.com/owen2345/camaleon-cms/issues/72)
-- Ecommerce plugin [\#70](https://github.com/owen2345/camaleon-cms/issues/70)
-- Bootstrap navbar in admin [\#65](https://github.com/owen2345/camaleon-cms/issues/65)
-- Bootstrap colors [\#64](https://github.com/owen2345/camaleon-cms/issues/64)
-- .html URL extension [\#63](https://github.com/owen2345/camaleon-cms/issues/63)
-- Customize frontend routes [\#62](https://github.com/owen2345/camaleon-cms/issues/62)
-- Move user profile information from left sidebar [\#60](https://github.com/owen2345/camaleon-cms/issues/60)
-- Strong Parameters [\#59](https://github.com/owen2345/camaleon-cms/issues/59)
-- Uploader integration [\#57](https://github.com/owen2345/camaleon-cms/issues/57)
-- Sass style support [\#56](https://github.com/owen2345/camaleon-cms/issues/56)
-- rails generate camaleon\_cms:install fails [\#55](https://github.com/owen2345/camaleon-cms/issues/55)
-- Sprockets::Rails::Helper::AbsoluteAssetPathError in Admin::Sessions\#login  [\#53](https://github.com/owen2345/camaleon-cms/issues/53)
-
-**Merged pull requests:**
-
-- fix lastmod date format in sitemap.xml.builder to be Google-compliant [\#200](https://github.com/owen2345/camaleon-cms/pull/200) ([Silvaire](https://github.com/Silvaire))
-- Fixes sitemap concern [\#199](https://github.com/owen2345/camaleon-cms/pull/199) ([cmckni3](https://github.com/cmckni3))
-- fix syntax api\_controller for Heroku [\#193](https://github.com/owen2345/camaleon-cms/pull/193) ([Silvaire](https://github.com/Silvaire))
-- ActiveModel::ArraySerializer error fixed [\#192](https://github.com/owen2345/camaleon-cms/pull/192) ([raulanatol](https://github.com/raulanatol))
-- Api with active\_model\_serializers [\#190](https://github.com/owen2345/camaleon-cms/pull/190) ([raulanatol](https://github.com/raulanatol))
-- RU translation [\#184](https://github.com/owen2345/camaleon-cms/pull/184) ([sanata-](https://github.com/sanata-))
-- Prepare contact\_form to use Api methods. [\#183](https://github.com/owen2345/camaleon-cms/pull/183) ([raulanatol](https://github.com/raulanatol))
-- Add theme asset file path helper [\#182](https://github.com/owen2345/camaleon-cms/pull/182) ([cmckni3](https://github.com/cmckni3))
-- Fixed indentation [\#181](https://github.com/owen2345/camaleon-cms/pull/181) ([pulkit21](https://github.com/pulkit21))
-- Removed the hardcoded text and placed in en.yml file [\#180](https://github.com/owen2345/camaleon-cms/pull/180) ([pulkit21](https://github.com/pulkit21))
-- Removed the text and placed in en.yml file [\#179](https://github.com/owen2345/camaleon-cms/pull/179) ([pulkit21](https://github.com/pulkit21))
-- Removes hardcoded "Required Login" text [\#176](https://github.com/owen2345/camaleon-cms/pull/176) ([cmckni3](https://github.com/cmckni3))
-- Swagger docs [\#173](https://github.com/owen2345/camaleon-cms/pull/173) ([raulanatol](https://github.com/raulanatol))
-- Fixes syntax errors in api controller [\#171](https://github.com/owen2345/camaleon-cms/pull/171) ([cmckni3](https://github.com/cmckni3))
-- Fixes css theme link tag in theme generator [\#170](https://github.com/owen2345/camaleon-cms/pull/170) ([cmckni3](https://github.com/cmckni3))
-- Raise error when visiting unexisting urls. [\#169](https://github.com/owen2345/camaleon-cms/pull/169) ([flaranda](https://github.com/flaranda))
-- Allow email domains up to 10 characters in the contact form plugin [\#166](https://github.com/owen2345/camaleon-cms/pull/166) ([flaranda](https://github.com/flaranda))
-- Unify current\_user - Api login bug fixed [\#165](https://github.com/owen2345/camaleon-cms/pull/165) ([raulanatol](https://github.com/raulanatol))
-- Added generic API response methods, render\_json\_error & render\_json\_ok [\#164](https://github.com/owen2345/camaleon-cms/pull/164) ([raulanatol](https://github.com/raulanatol))
-- Version number space [\#163](https://github.com/owen2345/camaleon-cms/pull/163) ([raulanatol](https://github.com/raulanatol))
-- Change nil to null [\#155](https://github.com/owen2345/camaleon-cms/pull/155) ([cmckni3](https://github.com/cmckni3))
-- Fixes sitemap controller action [\#149](https://github.com/owen2345/camaleon-cms/pull/149) ([cmckni3](https://github.com/cmckni3))
-- Fixes seo helper for alternate links [\#148](https://github.com/owen2345/camaleon-cms/pull/148) ([cmckni3](https://github.com/cmckni3))
-- Cleans up plugin routes [\#143](https://github.com/owen2345/camaleon-cms/pull/143) ([cmckni3](https://github.com/cmckni3))
-- Captcha enable/disable on user registration. [\#140](https://github.com/owen2345/camaleon-cms/pull/140) ([raulanatol](https://github.com/raulanatol))
-- New hook to more actions outside the user form [\#139](https://github.com/owen2345/camaleon-cms/pull/139) ([raulanatol](https://github.com/raulanatol))
-- Show layout selector even when there are no templates [\#138](https://github.com/owen2345/camaleon-cms/pull/138) ([cmckni3](https://github.com/cmckni3))
-- Two hooks more [\#136](https://github.com/owen2345/camaleon-cms/pull/136) ([raulanatol](https://github.com/raulanatol))
-- Page and Post api controllers added [\#135](https://github.com/owen2345/camaleon-cms/pull/135) ([raulanatol](https://github.com/raulanatol))
-- Doorkeeper integration. [\#133](https://github.com/owen2345/camaleon-cms/pull/133) ([raulanatol](https://github.com/raulanatol))
-- Decorates nav menu item inside of helper [\#130](https://github.com/owen2345/camaleon-cms/pull/130) ([cmckni3](https://github.com/cmckni3))
-- Adds ability to customize email submission template from theme [\#125](https://github.com/owen2345/camaleon-cms/pull/125) ([cmckni3](https://github.com/cmckni3))
-- Adds current version number to admin footer [\#122](https://github.com/owen2345/camaleon-cms/pull/122) ([cmckni3](https://github.com/cmckni3))
-- User update more actions hook [\#116](https://github.com/owen2345/camaleon-cms/pull/116) ([raulanatol](https://github.com/raulanatol))
-- Add form\_for f variable to user\_register\_form [\#115](https://github.com/owen2345/camaleon-cms/pull/115) ([raulanatol](https://github.com/raulanatol))
-- Update en.yml [\#110](https://github.com/owen2345/camaleon-cms/pull/110) ([cmckni3](https://github.com/cmckni3))
-- Adds eager load path [\#108](https://github.com/owen2345/camaleon-cms/pull/108) ([cmckni3](https://github.com/cmckni3))
-- Content Types -\> Post Type [\#94](https://github.com/owen2345/camaleon-cms/pull/94) ([cmckni3](https://github.com/cmckni3))
-- Adds migration documentation [\#92](https://github.com/owen2345/camaleon-cms/pull/92) ([cmckni3](https://github.com/cmckni3))
-- Updates post\_type translations [\#91](https://github.com/owen2345/camaleon-cms/pull/91) ([cmckni3](https://github.com/cmckni3))
-- Update html\_mailer.rb [\#87](https://github.com/owen2345/camaleon-cms/pull/87) ([raulanatol](https://github.com/raulanatol))
-- Updates font awesome to 4.4.0 [\#77](https://github.com/owen2345/camaleon-cms/pull/77) ([cmckni3](https://github.com/cmckni3))
-- Update jquery validate: Only alphabetical characters [\#76](https://github.com/owen2345/camaleon-cms/pull/76) ([froilanq](https://github.com/froilanq))
-- Fix missing gems [\#73](https://github.com/owen2345/camaleon-cms/pull/73) ([cmckni3](https://github.com/cmckni3))
-- Fix plugin contact\_form [\#71](https://github.com/owen2345/camaleon-cms/pull/71) ([pabloespa](https://github.com/pabloespa))
-- Fixes theme thumbnail URL [\#67](https://github.com/owen2345/camaleon-cms/pull/67) ([cmckni3](https://github.com/cmckni3))
-- Moves sidebar profile information to dropdown [\#66](https://github.com/owen2345/camaleon-cms/pull/66) ([cmckni3](https://github.com/cmckni3))
-- Fix various [\#61](https://github.com/owen2345/camaleon-cms/pull/61) ([froilanq](https://github.com/froilanq))
-- Use UTC time for theme installation time [\#58](https://github.com/owen2345/camaleon-cms/pull/58) ([cmckni3](https://github.com/cmckni3))
-- Update en.yml [\#54](https://github.com/owen2345/camaleon-cms/pull/54) ([cmckni3](https://github.com/cmckni3))
-- Fix name fields on user profile form [\#46](https://github.com/owen2345/camaleon-cms/pull/46) ([cmckni3](https://github.com/cmckni3))
-
-## [0.2.0](https://github.com/owen2345/camaleon-cms/tree/0.2.0) (2015-09-05)
-[Full Changelog](https://github.com/owen2345/camaleon-cms/compare/0.1.7...0.2.0)
-
-**Closed issues:**
-
-- Localization TinyMCE [\#51](https://github.com/owen2345/camaleon-cms/issues/51)
-- Error with theme generator [\#43](https://github.com/owen2345/camaleon-cms/issues/43)
-- re-adding footer to default theme? [\#25](https://github.com/owen2345/camaleon-cms/issues/25)
-
-**Merged pull requests:**
-
-- Don't use Gemfile.lock in Gems [\#52](https://github.com/owen2345/camaleon-cms/pull/52) ([cmckni3](https://github.com/cmckni3))
-- Custom fields tinymce language should be the current locale [\#50](https://github.com/owen2345/camaleon-cms/pull/50) ([tavaresb](https://github.com/tavaresb))
-- Don't rescue generic exception. This will hang the process [\#49](https://github.com/owen2345/camaleon-cms/pull/49) ([cmckni3](https://github.com/cmckni3))
-- Elfinder initializer cleanup [\#48](https://github.com/owen2345/camaleon-cms/pull/48) ([cmckni3](https://github.com/cmckni3))
-- Remove unnecessary SSL hack [\#47](https://github.com/owen2345/camaleon-cms/pull/47) ([cmckni3](https://github.com/cmckni3))
-- Code style [\#45](https://github.com/owen2345/camaleon-cms/pull/45) ([cmckni3](https://github.com/cmckni3))
-- Italian locale [\#44](https://github.com/owen2345/camaleon-cms/pull/44) ([mukkoo](https://github.com/mukkoo))
-
-## [0.1.7](https://github.com/owen2345/camaleon-cms/tree/0.1.7) (2015-09-01)
-**Closed issues:**
-
-- "rails generate camaleon\_cms:install"  freezes [\#42](https://github.com/owen2345/camaleon-cms/issues/42)
-- fix\_ssl.rb conflicts [\#40](https://github.com/owen2345/camaleon-cms/issues/40)
-- AssetsFilteredError clean installation using gem [\#39](https://github.com/owen2345/camaleon-cms/issues/39)
-- Can't install with the latest jruby [\#37](https://github.com/owen2345/camaleon-cms/issues/37)
-- Error - Reorder custom fields groups [\#36](https://github.com/owen2345/camaleon-cms/issues/36)
-- Feature Request: AWS s3 media upload [\#35](https://github.com/owen2345/camaleon-cms/issues/35)
-- No such file or directory @ rb\_sysopen  [\#30](https://github.com/owen2345/camaleon-cms/issues/30)
-- RTL Support [\#27](https://github.com/owen2345/camaleon-cms/issues/27)
-- undefined method `translate'  [\#26](https://github.com/owen2345/camaleon-cms/issues/26)
-- Unable to run migrations [\#24](https://github.com/owen2345/camaleon-cms/issues/24)
-- Heroku app.json [\#23](https://github.com/owen2345/camaleon-cms/issues/23)
-- Captcha Missing [\#22](https://github.com/owen2345/camaleon-cms/issues/22)
-- Gems specified as Windows only in Gemfile [\#15](https://github.com/owen2345/camaleon-cms/issues/15)
-- Commands in bin point to ruby.exe [\#14](https://github.com/owen2345/camaleon-cms/issues/14)
-- Slug suffix [\#10](https://github.com/owen2345/camaleon-cms/issues/10)
-- Layout Support [\#6](https://github.com/owen2345/camaleon-cms/issues/6)
-- Upgrade Path [\#3](https://github.com/owen2345/camaleon-cms/issues/3)
-- Does it work with PostgreSQL? [\#1](https://github.com/owen2345/camaleon-cms/issues/1)
-
-**Merged pull requests:**
-
-- Render widgets translated to the current locale [\#41](https://github.com/owen2345/camaleon-cms/pull/41) ([tavaresb](https://github.com/tavaresb))
-- Added editorconfig file [\#33](https://github.com/owen2345/camaleon-cms/pull/33) ([raulanatol](https://github.com/raulanatol))
-- \(Update\) Fix admin: left menus and breadcrum [\#31](https://github.com/owen2345/camaleon-cms/pull/31) ([froilanq](https://github.com/froilanq))
-- Fix admin: left menus and breadcrumb [\#29](https://github.com/owen2345/camaleon-cms/pull/29) ([froilanq](https://github.com/froilanq))
-- changed application controller name into camaleon controller [\#21](https://github.com/owen2345/camaleon-cms/pull/21) ([owen2345](https://github.com/owen2345))
-- Fix gemfile indentation [\#20](https://github.com/owen2345/camaleon-cms/pull/20) ([cmckni3](https://github.com/cmckni3))
-- Fixes unnecessary empty interpolation [\#19](https://github.com/owen2345/camaleon-cms/pull/19) ([cmckni3](https://github.com/cmckni3))
-- Adds rubocop [\#18](https://github.com/owen2345/camaleon-cms/pull/18) ([cmckni3](https://github.com/cmckni3))
-- Changes inactivated to deactivated [\#17](https://github.com/owen2345/camaleon-cms/pull/17) ([cmckni3](https://github.com/cmckni3))
-- Ignores system.json [\#16](https://github.com/owen2345/camaleon-cms/pull/16) ([cmckni3](https://github.com/cmckni3))
-- Database configuration samples [\#13](https://github.com/owen2345/camaleon-cms/pull/13) ([cmckni3](https://github.com/cmckni3))
-- Cleans up .gitignore [\#12](https://github.com/owen2345/camaleon-cms/pull/12) ([cmckni3](https://github.com/cmckni3))
-- Fixes .gitignore [\#11](https://github.com/owen2345/camaleon-cms/pull/11) ([cmckni3](https://github.com/cmckni3))
-- Change actived translation to Activated [\#9](https://github.com/owen2345/camaleon-cms/pull/9) ([cmckni3](https://github.com/cmckni3))
-- Remove extra plugin title in breadcrumbs [\#7](https://github.com/owen2345/camaleon-cms/pull/7) ([cmckni3](https://github.com/cmckni3))
-
-
-
-\* *This Change Log was automatically generated by [github_changelog_generator](https://github.com/skywinder/Github-Changelog-Generator)*

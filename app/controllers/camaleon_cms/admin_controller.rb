@@ -7,6 +7,7 @@ module CamaleonCms
     include CamaleonCms::Admin::ApplicationHelper
     # layout 'camaleon_cms/admin'
     before_action :cama_authenticate
+    before_action :keep_request_attrs
     before_action :admin_init_actions
     before_action :admin_logged_actions
     before_action :admin_before_hooks
@@ -81,6 +82,13 @@ module CamaleonCms
     # trigger hooks for admin panel before admin load
     def admin_before_hooks
       hooks_run('admin_before_load')
+    end
+
+    # Set cama_current_user and current_site in CurrentRequest so models can access the current context.
+    # CurrentRequest is an ActiveSupport::CurrentAttributes subclass that auto-resets per request.
+    def keep_request_attrs
+      CurrentRequest.user = cama_current_user
+      CurrentRequest.site = current_site
     end
 
     # trigger hooks for admin panel after admin load

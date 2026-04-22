@@ -30,7 +30,16 @@ module CamaleonCms
     # ****** check all options for each case in Admin::CustomFieldsHelper ****
     # SAMPLE: my_model.add_field({"name"=>"Sub Title", "slug"=>"subtitle"}, {"field_key"=>"text_box",
     #   "translate"=>true, default_value: "Get in Touch"})
+    # Adds a manual field to the group (used by admin UI)
+    # item: field attributes
+    # options: field options
     def add_manual_field(item, options)
+      # Prevent creation of dangerous field types (select_eval) unless the actor is allowed.
+      if options[:field_key] == 'select_eval'
+        can?(:manage, :select_eval) ||
+          raise(CanCan::AccessDenied, 'Not authorized to create select_eval fields')
+      end
+
       c = get_field(item[:slug] || item['slug'])
       return c if c.present?
 
@@ -50,6 +59,8 @@ module CamaleonCms
 
     # only used by form on admin panel (protected)
     # return array of failed_fields and full_fields [[failed fields], [all fields]]
+    # items: hash of field items
+    # item_options: hash of options for each item
     def add_fields(items, item_options)
       fields.where.not(id: items.to_h.map { |_k, obj| obj['id'] }.uniq).destroy_all
       cache_fields = []
@@ -57,12 +68,38 @@ module CamaleonCms
       errors_saved = []
       if items.present?
         items.each do |i, item|
+          # allow string or symbol keys for incoming params
+          id_val = item['id'] || item[:id]
+
           item[:field_order] = order_index
           options = item_options[i] || {}
-          if item[:id].present? && (field_item = fields.find_by(id: item[:id])).present?
+          if id_val.present? && (field_item = fields.find_by(id: id_val)).present?
+            # If this is an existing select_eval field (or the incoming data would
+            # make it a select_eval) ensure the current actor has explicit
+            # permission. For updates we preserve the form-like behavior by
+            # collecting an error-like non-persisted field in errors_saved and
+            # skipping the update when unauthorized.
+            existing_key = (field_item.options || {})[:field_key].to_s
+            # consider field_key coming from the per-item options (options) or the item itself
+            incoming_key = (options[:field_key] || item[:field_key]).to_s
+            if (existing_key == 'select_eval' || incoming_key == 'select_eval') && !can?(:manage, :select_eval)
+              field_item.errors.add(:base, 'Not authorized to modify select_eval field')
+              errors_saved << field_item
+              next
+            end
+
             saved = field_item.update(item)
             cache_fields << field_item
           else
+            # Check if the incoming options request creation of select_eval
+            incoming_key = (options[:field_key] || item[:field_key]).to_s
+            if incoming_key == 'select_eval' && !can?(:manage, :select_eval)
+              # Add an error-like non-persisted field to errors_saved to preserve behavior
+              field_item = fields.new(item)
+              field_item.errors.add(:base, 'Not authorized to create select_eval field')
+              errors_saved << field_item
+              next
+            end
             field_item = fields.new(item)
             cache_fields << field_item
             saved = field_item.save

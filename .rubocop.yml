@@ -5,6 +5,7 @@ plugins:
 
 AllCops:
   Exclude:
+    - bin/**/* # Exclude executable scripts
     - db/**/*
     - spec/dummy/db/**/*
     - /**/vendor/**/* # Exclude downloaded gem code in CI

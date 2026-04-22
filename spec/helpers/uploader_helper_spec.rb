@@ -24,9 +24,19 @@ describe CamaleonCms::UploaderHelper do
     before { allow(CamaleonCmsUploader).to receive(:delete_block).and_call_original }
 
     it 'delete the uploaded file if temporal_time option is > 0' do
-      expect(CamaleonCmsUploader).to receive(:delete_block)
-      expect_any_instance_of(CamaleonCmsLocalUploader).to receive(:delete_file)
-      expect(upload_file(File.open(@path), { temporal_time: 1 }).keys.include?(:error)).to be(false)
+      # ensure the site uses the local filesystem for this test so the local uploader
+      # receives the delete_file call
+      current_site.set_option('filesystem_type', 'local')
+      # replace the delete_block implementation for this example to avoid sleeping
+      # using the provided helper which swaps the internal @delete_block for the
+      # duration of the block
+      with_delete_block(proc do |_settings, cama_uploader, file_key|
+        cama_uploader.delete_file(file_key)
+      end) do
+        expect(CamaleonCmsUploader).to receive(:delete_block)
+        expect_any_instance_of(CamaleonCmsLocalUploader).to receive(:delete_file)
+        expect(upload_file(File.open(@path), { temporal_time: 1 }).keys.include?(:error)).to be(false)
+      end
     end
 
     it "doesn't delete the uploaded file if temporal_time option is missing" do
