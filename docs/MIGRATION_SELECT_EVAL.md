@@ -94,12 +94,8 @@ mysqldump your_database > backup_before_select_eval_migration_$(date +%Y%m%d).sq
 # Run from your application root
 bundle exec rake camaleon_cms:backfill_select_eval_permission
 
-# This task will:
-# - Find all admin roles (slug: 'admin', term_group: -1)
-# - Grant them select_eval permission
-# - Print progress to stdout
-# - Safe to run multiple times (idempotent)
-# Note: Only admin roles are updated by this task
+# This task does NOT grant new permissions to admins (they already have all permissions by design via `can :manage, :all`).
+# It only corrects the display of the select_eval checkbox for admin roles in the UI, so it appears enabled as expected.
 ```
 
 **Option B: Manual via Rails console (For Custom Roles)**
@@ -406,7 +402,7 @@ end
 
 ## Support
 
-- **Documentation:** [README.md Security Section](../README.md#security-select_eval-custom-field-type)
+- **Documentation:** [Permissions & Security Guide](security/permissions.md)
 - **Changelog:** [CHANGELOG.md v2.9.2](../CHANGELOG.md)
 - **Issues:** https://github.com/owen2345/camaleon-cms/issues
 - **Community:** https://camaleon.website/

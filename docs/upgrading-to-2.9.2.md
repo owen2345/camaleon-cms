@@ -6,6 +6,8 @@ Version `2.9.2` introduces a dedicated manager permission for Custom Fields admi
 
 Admin actions for Custom Field Groups and Custom Fields now require the manager-level `custom_fields` permission.
 
+For details on select_eval migration and user-context requirements, see [docs/MIGRATION_SELECT_EVAL.md](../MIGRATION_SELECT_EVAL.md).
+
 ## Who should review this guide
 
 Review these steps when upgrading an existing installation where non-superadmin roles already manage Custom Fields in the admin UI.

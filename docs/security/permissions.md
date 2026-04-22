@@ -68,9 +68,11 @@ If upgrading from a version prior to 2.9.2, you can use this rake task to ensure
 ```bash
 # Run from your application root
 bundle exec rake camaleon_cms:backfill_select_eval_permission
+# This task does NOT grant new permissions to admins (they already have all permissions by design via `can :manage, :all`).
+# It only corrects the display of the select_eval checkbox for admin roles in the UI, so it appears enabled as expected.
 ```
 
-This task grants `select_eval` permission to admin roles (slug: 'admin', term_group: -1). It's safe to run multiple times.
+This task is idempotent and safe to run multiple times.
 
 **Note:** Custom roles (e.g., 'editor', 'contributor') will need manual permission grants via Rails console or the Admin UI if they require `select_eval` access.
 
