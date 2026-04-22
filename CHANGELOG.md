@@ -19,6 +19,8 @@
   - **Security documentation:** See [Permissions & Security Guide](docs/security/permissions.md)
   - Run `bundle exec rake camaleon_cms:backfill_select_eval_permission` to fix the permission checkbox on admin roles
 
+- Add `AGENTS.md` and AI agent documentation in `docs/ai/` for agent behavior, Rails/RSpec conventions, and project guidance
+
 # [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
 
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
