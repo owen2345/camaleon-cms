@@ -37,6 +37,7 @@ module CamaleonCms
 
       # render media for modal content
       def ajax
+        authorize! :manage, :media
         @show_file_actions = true if current_site.get_option('file_actions_in_modals') == 'yes'
         @tree = cama_uploader.search(params[:search]) if params[:search].present?
         @files = @tree.paginate(page: params[:page], per_page: 100)
