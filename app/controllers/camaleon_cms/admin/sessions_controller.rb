@@ -113,7 +113,7 @@ module CamaleonCms
           params[:user][:role] = PluginRoutes.system_info['default_user_role']
           params[:user][:is_valid_email] = false if current_site.need_validate_email?
           user_data = user_permit_data
-          result = cama_register_user(user_data, params[:meta])
+          result = cama_register_user(user_data, nil)
           if result[:result] == false && result[:type] == :captcha_error
             @user.errors.add(:captcha, t('camaleon_cms.admin.users.message.error_captcha'))
             render 'register'
@@ -171,7 +171,7 @@ module CamaleonCms
       end
 
       def user_permit_data
-        params.require(:user).permit!
+        params.require(:user).permit(:first_name, :last_name, :email, :username, :password, :password_confirmation, :is_valid_email)
       end
     end
   end
