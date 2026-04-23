@@ -34,7 +34,7 @@ RSpec.describe 'Plugin Attack Settings', type: :request do
         attack: { get_sec: '5', get_max: '10', post_sec: '20', post_max: '50', ban: '1', msg: 'Test message' }
       }
 
-      expect(response).to redirect_to(/attack\/settings/)
+      expect(response).to redirect_to(%r{attack/settings})
       expect(flash[:notice]).to be_present
     end
   end

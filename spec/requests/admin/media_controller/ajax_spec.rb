@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe CamaleonCms::Admin::MediaController, 'ajax endpoint', type: :request do
+RSpec.describe CamaleonCms::Admin::MediaController, '#ajax', type: :request do
   init_site
 
   let(:current_site) { Cama::Site.first.decorate }

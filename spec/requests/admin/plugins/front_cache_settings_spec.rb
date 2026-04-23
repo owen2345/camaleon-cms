@@ -34,7 +34,7 @@ RSpec.describe 'Plugin Front Cache Settings', type: :request do
         cache: { paths: ['/test'], posts: ['1'], skip_posts: [], home: '1', cache_login: '0' }
       }
 
-      expect(response).to redirect_to(/front_cache\/settings/)
+      expect(response).to redirect_to(%r{front_cache/settings})
       expect(flash[:notice]).to be_present
     end
   end
