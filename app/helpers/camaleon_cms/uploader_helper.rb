@@ -83,21 +83,18 @@ module CamaleonCms
         thumb_size: nil
       }.merge!(settings)
       hooks_run('before_upload', settings)
-      res = { error: nil }
 
       # guard against path traversal
       return { error: 'Invalid file path' } unless cama_uploader.valid_folder_path?(settings[:folder])
 
       # formats validations
-      return { error: "#{ct('file_format_error')} (#{settings[:formats]})" } unless cama_uploader.class.validate_file_format(
-        uploaded_io.path, settings[:formats]
-      )
+      err = validate_file_format_or_error(uploaded_io.path, settings[:formats])
+      return err if err
 
       # file size validations
       if settings[:maximum] < settings[:file_size]
-        res[:error] =
-          "#{ct('file_size_exceeded', default: 'File size exceeded')} (#{number_to_human_size(settings[:maximum])})"
-        return res
+        max_size = number_to_human_size(settings[:maximum])
+        return { error: "#{ct('file_size_exceeded', default: 'File size exceeded')} (#{max_size})" }
       end
       # save file
       key = File.join(settings[:folder], settings[:filename]).to_s.cama_fix_slash
@@ -132,9 +129,8 @@ module CamaleonCms
     # key: key of the current file
     # the thumbnail will be saved in my_images/my_img.png => my_images/thumb/my_img.png
     def cama_uploader_generate_thumbnail(uploaded_io, key, thumb_size = nil, remove_source = false)
-      w = cama_uploader.thumb[:w]
-      h = cama_uploader.thumb[:h]
-      w, h = thumb_size.split('x') if thumb_size.present?
+      w = thumb_size.present? ? thumb_size.split('x')[0] : cama_uploader.thumb[:w]
+      h = thumb_size.present? ? thumb_size.split('x')[1] : cama_uploader.thumb[:h]
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
       path_thumb = cama_resize_and_crop(uploaded_io.path, w, h)
       thumb = cama_uploader.add_file(path_thumb, cama_uploader.version_path(key).sub('.svg', '.jpg'), is_thumb: true,
@@ -188,11 +184,10 @@ module CamaleonCms
     #   (false => crop the image with this dimension)
     # replace: Boolean (replace current image or create another file)
     def cama_crop_image(file_path, w = nil, h = nil, w_offset = 0, h_offset = 0, resize = false, replace = true)
-      force = ''
-      force = '!' if w.present? && h.present? && !w.include?('?') && !h.include?('?')
+      force = w.present? && h.present? && !w.include?('?') && !h.include?('?') ? '!' : ''
       img = MiniMagick::Image.open(file_path)
-      w = img[:width].to_f > w.sub('?', '').to_i ? w.sub('?', '') : img[:width] if w.present? && w.to_s.include?('?')
-      h = img[:height].to_f > h.sub('?', '').to_i ? h.sub('?', '') : img[:height] if h.present? && h.to_s.include?('?')
+      w = clamp_to_image_dimension(w, img[:width])
+      h = clamp_to_image_dimension(h, img[:height])
       data = { img: img, w: w, h: h, w_offset: w_offset, h_offset: h_offset, resize: resize, replace: replace }
       hooks_run('before_crop_image', data)
       data[:img].combine_options do |i|
@@ -200,11 +195,8 @@ module CamaleonCms
         i.crop "#{w if w.present?}x#{h if h.present?}+#{w_offset}+#{h_offset}#{force}" unless data[:resize]
       end
 
-      res = file_path
-      unless data[:replace]
-        ext = File.extname(file_path)
-        res = file_path.gsub(ext, "_crop#{ext}")
-      end
+      ext = File.extname(file_path)
+      res = data[:replace] ? file_path : file_path.gsub(ext, "_crop#{ext}")
       data[:img].write res
       res
     end
@@ -229,8 +221,8 @@ module CamaleonCms
         file.sub! '.svg', '.jpg'
         settings[:output_name]&.sub!('.svg', '.jpg')
       end
-      w = img[:width].to_f > w.sub('?', '').to_i ? w.sub('?', '') : img[:width] if w.present? && w.to_s.include?('?')
-      h = img[:height].to_f > h.sub('?', '').to_i ? h.sub('?', '') : img[:height] if h.present? && h.to_s.include?('?')
+      w = clamp_to_image_dimension(w, img[:width])
+      h = clamp_to_image_dimension(h, img[:height])
       w_original = img[:width].to_f
       h_original = img[:height].to_f
       w = w.to_i if w.present?
@@ -285,18 +277,17 @@ module CamaleonCms
       if uploaded_io.is_a?(String) && uploaded_io.start_with?('data:') # create tmp file using base64 format
         _tmp_name = args[:name]
         return { error: cama_t('camaleon_cms.admin.media.name_required').to_s } unless params[:name].present?
-        return { error: "#{ct('file_format_error')} (#{args[:formats]})" } unless cama_uploader.class.validate_file_format(
-          _tmp_name, args[:formats]
-        )
+
+        err = validate_file_format_or_error(_tmp_name, args[:formats])
+        return err if err
 
         path = uploader_verify_name(File.join(tmp_path, _tmp_name))
         File.open(path, 'wb') { |f| f.write(Base64.decode64(uploaded_io.split(';base64,').last)) }
         uploaded_io = File.open(path)
         saved = true
       elsif uploaded_io.is_a?(String) && (uploaded_io.start_with?('http://') || uploaded_io.start_with?('https://'))
-        return { error: "#{ct('file_format_error')} (#{args[:formats]})" } unless cama_uploader.class.validate_file_format(
-          uploaded_io, args[:formats]
-        )
+        err = validate_file_format_or_error(uploaded_io, args[:formats])
+        return err if err
 
         if uploaded_io.include?(current_site.the_url(locale: nil))
           uploaded_io = File.join(Rails.public_path, uploaded_io.sub(current_site.the_url(locale: nil), '')).to_s
@@ -315,17 +306,17 @@ module CamaleonCms
         args[:name] = args[:name] || _tmp_name
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
-      return { error: "#{ct('file_format_error')} (#{args[:formats]})" } unless cama_uploader.class.validate_file_format(
-        _tmp_name || uploaded_io.path, args[:formats]
-      )
+      err = validate_file_format_or_error(_tmp_name || uploaded_io.path, args[:formats])
+      return err if err
 
-      if args[:maximum].present? && args[:maximum] < begin
+      actual_size = begin
         uploaded_io.size
       rescue StandardError
         File.size(uploaded_io)
       end
-        return { error: "#{ct('file_size_exceeded',
-                              default: 'File size exceeded')} (#{number_to_human_size(args[:maximum])})" }
+      if args[:maximum].present? && args[:maximum] < actual_size
+        max_size = number_to_human_size(args[:maximum])
+        return { error: "#{ct('file_size_exceeded', default: 'File size exceeded')} (#{max_size})" }
       end
 
       name = args[:name] || uploaded_io&.original_filename || uploaded_io.path.split('/').last
@@ -342,8 +333,9 @@ module CamaleonCms
     # return resized file path
     def cama_resize_upload(image_path, dimension, args = {})
       if cama_uploader.class.validate_file_format(image_path, 'image') && dimension.present?
-        r = { file: image_path, w: dimension.split('x')[0], h: dimension.split('x')[1], w_offset: 0, h_offset: 0,
-              resize: !dimension.split('x')[2] || dimension.split('x')[2] == 'resize',
+        dim_parts = dimension.split('x')
+        r = { file: image_path, w: dim_parts[0], h: dim_parts[1], w_offset: 0, h_offset: 0,
+              resize: !dim_parts[2] || dim_parts[2] == 'resize',
               replace: true, gravity: :north_east }.merge!(args)
         hooks_run('on_uploader_resize', r)
         image_path = if r[:w].present? && r[:h].present?
@@ -376,13 +368,12 @@ module CamaleonCms
         hooks_run('on_uploader', args)
         return args[:custom_uploader] if args[:custom_uploader].present?
 
+        base_args = { current_site: current_site, thumb: args[:thumb] }
         case args[:server]
         when 's3', 'aws'
-          CamaleonCmsAwsUploader.new(
-            { current_site: current_site, thumb: args[:thumb], aws_settings: args[:aws_settings] }, self
-          )
+          CamaleonCmsAwsUploader.new(base_args.merge(aws_settings: args[:aws_settings]), self)
         else
-          CamaleonCmsLocalUploader.new({ current_site: current_site, thumb: args[:thumb] }, self)
+          CamaleonCmsLocalUploader.new(base_args, self)
         end
       }.call
     end
@@ -393,7 +384,7 @@ module CamaleonCms
 
     def slugify_folder(val)
       split_folder = val.split('/')
-      split_folder[-1] = slugify(split_folder.last)
+      split_folder[-1] = slugify(split_folder[-1])
       split_folder.join('/')
     end
 
@@ -440,7 +431,11 @@ module CamaleonCms
 
       file.set_encoding(Encoding::BINARY) if file.respond_to?(:binmode) && file.respond_to?(:set_encoding)
 
+      # Read the file for pattern scanning, then rewind so subsequent consumers
+      # (e.g. upload handlers) can read the full content. Failing to rewind
+      # resulted in 0-byte uploads when the file was a Tempfile (see report).
       file_content = file.read
+      file.rewind if file.respond_to?(:rewind)
       SUSPICIOUS_PATTERNS.each do |pattern|
         if file_content =~ pattern
           Rails.logger.info { "Potentially malicious content found: #{pattern.inspect}" }
@@ -475,6 +470,18 @@ module CamaleonCms
     # return the image name into thumb format: owewen.png into thumb/owen-png.png
     def cama_parse_for_thumb_name(file_path)
       "#{@fog_connection_hook_res[:thumb_folder_name]}/#{File.basename(file_path).parameterize}#{File.extname(file_path)}"
+    end
+
+    def clamp_to_image_dimension(value, img_size)
+      return value unless value.present? && value.to_s.include?('?')
+
+      img_size.to_f > value.sub('?', '').to_i ? value.sub('?', '') : img_size
+    end
+
+    def validate_file_format_or_error(file, formats)
+      return if cama_uploader.class.validate_file_format(file, formats)
+
+      { error: "#{ct('file_format_error')} (#{formats})" }
     end
   end
 end
