@@ -28,6 +28,11 @@
   - `/admin/plugins/attack/settings` now requires `manage :plugins` permission
   - `/admin/plugins/front_cache/settings` now requires `manage :plugins` permission
 
+- **Security fix:** Fix mass assignment vulnerability in user registration (cross-tenant account injection)
+  - Replace `permit!` with explicit whitelist of allowed params in `SessionsController#user_permit_data`
+  - Remove `params[:meta]` from user registration to prevent arbitrary meta injection
+  - Thanks Aryan Bhagat for reporting this
+
 # [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
 
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
