@@ -1,6 +1,8 @@
 module Plugins
   module Attack
     class AdminController < CamaleonCms::Apps::PluginsAdminController
+      before_action :authorize_plugin, only: [:settings, :save_settings]
+
       def settings
         @attack = current_site.get_meta('attack_config')
       end

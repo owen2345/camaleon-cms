@@ -21,6 +21,10 @@ module CamaleonCms
         lookup_context.prefixes.prepend(params[:controller].sub("plugins/#{plugin_name}",
                                                                 "plugins/#{plugin_name}/views"))
       end
+
+      def authorize_plugin
+        authorize! :manage, :plugins
+      end
     end
   end
 end
