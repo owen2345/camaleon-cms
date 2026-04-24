@@ -459,7 +459,7 @@ DEPENDENCIES
   rspec_junit_formatter
   rubocop
   rubocop-rspec
-  selenium-webdriver (= 4.23.0)
+  selenium-webdriver
   sprockets-rails (>= 3.5.2)
   sqlite3
 
