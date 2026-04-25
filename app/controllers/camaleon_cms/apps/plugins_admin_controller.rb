@@ -2,6 +2,7 @@ module CamaleonCms
   module Apps
     class PluginsAdminController < CamaleonCms::AdminController
       before_action :init_plugin
+      before_action :authorize_plugin
 
       private
 

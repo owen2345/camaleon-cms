@@ -9,6 +9,8 @@ RSpec.describe 'Plugin Attack Settings', type: :request do
 
   before do
     current_site.plugins.where(slug: 'attack').first_or_create(set_meta: { status: 'active' })
+    allow_any_instance_of(CamaleonCms::AdminController).to receive(:cama_authenticate)
+    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
   end
 
   context 'when user has plugins management permission' do

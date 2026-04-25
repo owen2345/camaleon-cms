@@ -23,15 +23,16 @@
 
 - Add `AGENTS.md` and AI agent documentation in `docs/ai/` for agent behavior, Rails/RSpec conventions, and project guidance
 
-- **Security fix:** Add authorization checks for broken access control vulnerabilities
-  - `/admin/media/ajax` now requires `manage :media` permission
-  - `/admin/plugins/attack/settings` now requires `manage :plugins` permission
-  - `/admin/plugins/front_cache/settings` now requires `manage :plugins` permission
+- **Security fix:** Centralize plugin admin authorization in `PluginsAdminController`
+  - All plugin admin routes now require `manage :plugins` permission by default (fail-closed)
+  - `/admin/plugins/*/settings` and related endpoints protected without per-controller opt-in
+  - Third-party plugins (via Ruby gems like `cama_contact_form`, `cama_meta_tag`) automatically protected when inheriting from `PluginsAdminController`
+  - Thanks, Amir Aliu and Enrik Mustafa for reporting this
 
 - **Security fix:** Fix mass assignment vulnerability in user registration (cross-tenant account injection)
   - Replace `permit!` with explicit whitelist of allowed params in `SessionsController#user_permit_data`
   - Remove `params[:meta]` from user registration to prevent arbitrary meta injection
-  - Thanks Aryan Bhagat for reporting this
+  - Thanks, Aryan Bhagat for reporting this
 
 # [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
 

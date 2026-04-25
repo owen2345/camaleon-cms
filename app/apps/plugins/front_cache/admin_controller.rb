@@ -2,7 +2,6 @@ module Plugins
   module FrontCache
     class AdminController < CamaleonCms::Apps::PluginsAdminController
       include Plugins::FrontCache::FrontCacheHelper
-      before_action :authorize_plugin, only: %i[settings save_settings clean_cache]
 
       def settings
         @caches = current_site.get_meta('front_cache_elements', { paths: [] })
