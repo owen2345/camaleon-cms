@@ -5,6 +5,10 @@
 # [2.9.2](https://github.com/owen2345/camaleon-cms/tree/2.9.2)
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
 
+- **Security fix:** Fix SQL Injection in `PostUniqValidator` (authenticated, boolean-based blind SQLi via post slug)
+  - Use parameterized queries instead of string interpolation for slug validation
+  - Thanks, SecurifySec for reporting this
+
 - Add permissions for Custom Fields management in the admin area
   - Existing installs upgrading to 2.9.2 should review the [migration guide](docs/upgrading-to-2.9.2.md)
 

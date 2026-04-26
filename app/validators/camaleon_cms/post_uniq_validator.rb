@@ -5,14 +5,25 @@ module CamaleonCms
 
       slug_array = record.slug.to_s.translations_array
       ptype = record.post_type
-      return unless ptype.present? # only for posts that belongs to a post type model
+      return unless ptype.present?
 
       post_table = CamaleonCms::Post.table_name
+
+      conditions = []
+      params = []
+
+      slug_array.each do |s|
+        conditions << "#{post_table}.slug LIKE ?"
+        params << "%-->#{s}<!--%"
+      end
+
+      conditions << "#{post_table}.slug = ?"
+      params << record.slug
+
+      where_clause = "(#{conditions.join(' OR ')})"
+
       posts = ptype.site.posts
-                   .where(
-                     "(#{slug_array.map { |s| "#{post_table}.slug LIKE '%-->#{s}<!--%'" }
-                                        .join(' OR ')} ) OR #{post_table}.slug = ?", record.slug
-                   )
+                   .where(where_clause, *params)
                    .where.not(id: record.id)
                    .where.not(status: %i[draft draft_child trash])
       unless posts.empty?
@@ -28,7 +39,6 @@ module CamaleonCms
           end
       end
 
-      # avoid recursive page parent
       return unless record.post_parent.present? && ptype.manage_hierarchy? &&
                     record.parents.cama_pluck(:id).include?(record.id)
 
