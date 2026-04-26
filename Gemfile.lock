@@ -132,9 +132,14 @@ GEM
     bigdecimal (4.1.2)
     binding_of_caller (2.0.0)
       debug_inspector (>= 1.2.0)
+    brakeman (8.0.4)
+      racc
     breadcrumbs_on_rails (4.1.0)
       railties (>= 5.0)
     builder (3.3.0)
+    bundler-audit (0.9.3)
+      bundler (>= 1.2.0)
+      thor (~> 1.0)
     byebug (13.0.0)
       reline (>= 0.6.0)
     cama_contact_form (0.1.0)
@@ -441,6 +446,8 @@ PLATFORMS
   x86_64-darwin-24
 
 DEPENDENCIES
+  brakeman
+  bundler-audit
   byebug
   camaleon_cms!
   capybara

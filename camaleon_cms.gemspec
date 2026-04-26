@@ -49,6 +49,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'aws-sdk-s3', '~> 1'
 
   # development dependencies
+  s.add_development_dependency 'brakeman'
+  s.add_development_dependency 'bundler-audit'
   s.add_development_dependency 'byebug'
   s.add_development_dependency 'capybara'
   s.add_development_dependency 'pry-rescue'
