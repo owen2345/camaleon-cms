@@ -73,7 +73,8 @@ module CamaleonCms
       end
 
       def set_category
-        @category = CamaleonCms::Category.find_by_id(params[:id])
+        @category = @post_type.categories.find_by_id(params[:id])
+        render_404 unless @category
       rescue StandardError
         flash[:error] = t('camaleon_cms.admin.post_type.message.error')
         redirect_to cama_admin_path
