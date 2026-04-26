@@ -38,6 +38,10 @@
   - Add HTML escaping to post titles when displayed in admin views (e.g., drafts list)
   - Thanks, Amir Aliu and Enrik Mustafa for reporting this
 
+- **Security fix:** Fix SQL Injection in `PostUniqValidator` (authenticated, boolean-based blind SQLi via post slug)
+  - Use parameterized queries instead of string interpolation for slug validation
+  - Thanks, Amir Aliu and Enrik Mustafa for reporting this
+
 # [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
 
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
