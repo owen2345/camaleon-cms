@@ -29,6 +29,12 @@
   - Third-party plugins (via Ruby gems like `cama_contact_form`, `cama_meta_tag`) automatically protected when inheriting from `PluginsAdminController`
   - Thanks, Amir Aliu and Enrik Mustafa for reporting this
 
+- **Security fix:** Fix Broken Access Control (CWE-862) in MediaController
+  - Add consistent authorization checks to all MediaController endpoints requiring `:manage, :media` permission
+  - Previously, only `index` and `ajax` actions checked authorization; other endpoints (`upload`, `download_private_file`, `crop`, `actions`) only checked authentication
+  - All endpoints now protected by centralized `before_action :verify_media_authorization`
+  - Thanks, Seoyoung Kang for reporting this
+
 - **Security fix:** Fix mass assignment vulnerability in user registration (cross-tenant account injection)
   - Replace `permit!` with explicit whitelist of allowed params in `SessionsController#user_permit_data`
   - Remove `params[:meta]` from user registration to prevent arbitrary meta injection
