@@ -36,6 +36,7 @@
 
 - **Security fix:** Fix Stored XSS in post title rendering
   - Add HTML escaping to post titles when displayed in admin views (e.g., drafts list)
+  - Thanks, Amir Aliu and Enrik Mustafa for reporting this
 
 # [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
 
