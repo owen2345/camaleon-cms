@@ -1,8 +1,7 @@
 # Change Log
 
-## Unreleased
+## Unreleased [2.9.2](https://github.com/owen2345/camaleon-cms/tree/2.9.2)
 
-# [2.9.2](https://github.com/owen2345/camaleon-cms/tree/2.9.2)
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
 
 - **BREAKING CHANGE** - Add permissions for Custom Fields management in the admin area
@@ -31,6 +30,11 @@
   - All endpoints now protected by centralized `before_action :verify_media_authorization`
   - Thanks, Seoyoung Kang for reporting this
 
+- **Security fix:** Fix IDOR (CWE-639) in CategoriesController
+  - Users with category management permission for one Post Type could modify/delete categories from other Post Types by manipulating request parameters
+  - Changed `set_category` to scope lookup to authorized `@post_type` instead of global lookup
+  - Thanks, Seoyoung Kang for reporting this
+
 - Fix: rewind Tempfile after scanning to avoid 0-byte uploads (regression fixed; tests added).
 
 - Add `AGENTS.md` and AI agent documentation in `docs/ai/` for agent behavior, Rails/RSpec conventions, and project guidance
@@ -53,7 +57,7 @@
   - This prevents authenticated admins from potentially executing arbitrary code via crafted error messages
   - Thanks, Amir Aliu and Enrik Mustafa for reporting this
 
-# [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
+# [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.1) (2025-03-15)
 
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
 
