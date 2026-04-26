@@ -5,7 +5,7 @@ module CamaleonCms
 
       slug_array = record.slug.to_s.translations_array
       ptype = record.post_type
-      return unless ptype.present?
+      return unless ptype.present? # only for posts that belongs to a post type model
 
       post_table = CamaleonCms::Post.table_name
 
@@ -25,7 +25,7 @@ module CamaleonCms
       posts = ptype.site.posts
                    .where(where_clause, *params)
                    .where.not(id: record.id)
-                   .where.not(status: %w[draft draft_child trash])
+                   .where.not(status: %i[draft draft_child trash])
       unless posts.empty?
         record.errors[:base] <<
           if slug_array.size > 1
@@ -39,6 +39,7 @@ module CamaleonCms
           end
       end
 
+      # avoid recursive page parent
       return unless record.post_parent.present? && ptype.manage_hierarchy? &&
                     record.parents.cama_pluck(:id).include?(record.id)
 
