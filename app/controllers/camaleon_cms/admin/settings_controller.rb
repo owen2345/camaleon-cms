@@ -74,7 +74,7 @@ module CamaleonCms
         CamaleonCms::HtmlMailer.sender(params[:email], 'Test', data).deliver_now
         head :ok
       rescue StandardError => e
-        render inline: e.message, status: 502
+        render plain: e.message, status: 502
       end
 
       private
