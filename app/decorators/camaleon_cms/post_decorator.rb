@@ -4,7 +4,7 @@ module CamaleonCms
     delegate_all
 
     def the_title(locale = nil)
-      r = { title: object.title.to_s.translate(get_locale(locale)), post: object }
+      r = { title: h.h(object.title.to_s.translate(get_locale(locale))), post: object }
       h.hooks_run('post_the_title', r)
       r[:title]
     end
