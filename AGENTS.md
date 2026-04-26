@@ -1,104 +1,70 @@
 # Camaleon CMS: Agent Entry Point
 
-## 0. MANDATORY BOOT SEQUENCE
-Before performing ANY action or proposing ANY code, you MUST:
-1. **Load Context:** Read the `must-read` files listed in [Progressive Guidance](#progressive-guidance) that are relevant to the current phase (e.g., if starting a task, load `workflows.md`; if writing code, load `testing.md`).
-2. **State Your Stack:** Explicitly acknowledge you are working with Ruby `3.4.9` and Rails `8.1.3`.
-3  **Initialize Workflow:** State which branch you are on and which PR flow from `workflows.md` you are following.
+## 0. Boot Sequence (MANDATORY)
+1. **Read these first:** `docs/ai/workflows.md`, `docs/ai/testing.md`, `docs/ai/mechanical_overrides.md`
+2. **Acknowledge stack:** Ruby `3.4.9`, Rails `8.1.3`
+3. **Create branch:** Prefix with `feature/`, `fix/`, or `security/`
 
-**DO NOT proceed to "Think Before Coding" until you have initialized your context via these files.**
+## 1. Agent Behaviour
 
-## Agent Behaviour
+### Think Before Coding
+- Don't assume. State assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them—don't pick silently.
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
-
-### 1. Think Before Coding
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-#### Security Triage Exception
-
-If the user provides a vulnerability report:
-- **HALT** all coding.
-- You must **verify legitimacy** first (see `docs/ai/workflows.md#vulnerability-triage`).
-- Do not create a branch or fix until you have demonstrated the vulnerability locally.
-
-### 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
+### Simplicity First
+- Minimum code that solves the problem. Nothing speculative.
 - No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
 
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-### 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
+### Surgical Changes
+- Touch only what you must. Clean up only your own mess.
 - Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
 
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
+### Goal-Driven Execution
+- "Fix the bug" → Write a test that reproduces it, then make it pass.
+- Verify before reporting completion.
 
-The test: Every changed line should trace directly to the user's request.
+## 2. Key Commands
 
-### 4. Goal-Driven Execution
+- **Test:** `bin/rspec` or `bin/rspec spec/path:line`
+- **Lint:** `bin/rubocop -A`
+- **Security:** `bin/brakeman --no-pager`
+- **Verify load:** `bin/rails zeitwerk:check`
 
-**Define success criteria. Loop until verified.**
+## 3. Quick Reference
 
-Transform tasks into verifiable goals:
-- "Add validation" -> "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" -> "Write a test that reproduces it, then make it pass"
-- "Refactor X" -> "Ensure tests pass before and after"
+| Path | Purpose |
+|------|---------|
+| `spec/dummy/` | Test Rails app |
+| `app/apps/plugins/` | Plugins |
+| `app/apps/themes/` | Themes |
+| `config/routes/` | Split routes |
 
-For multi-step tasks, state a brief plan:
-```
-1. [Step] -> verify: [check]
-2. [Step] -> verify: [check]
-3. [Step] -> verify: [check]
-```
+**Namespaces:** `CamaleonCms::*`, shortcuts: `Cama::Site`, `Cama::Post`
 
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+## 4. Patterns (lazy-load `docs/ai/reference.md`)
 
----
+- Decorators: `object.the_title`, `object.the_url`, `object.decorate`
+- Hooks: `hooks_run('hook_name')`
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
-When providing "Further Considerations," wait for explicit confirmation before proceeding with any next steps or implementations.
+## 5. Gotchas (lazy-load `docs/ai/reference.md`)
 
-## Progressive Guidance
-> **Rule:** You must `read` any file marked `must-read` before executing a related task.
+- Uses **Dart Sass** via `dartsass-sprockets`
+- Test DB: SQLite in `spec/dummy/db/schema.rb`
+- Migrations: runs from both `db/migrate/` AND `spec/dummy/db/migrate/`
 
-### Core Execution (Load these first)
-- [Workflow and branch/PR flow](./docs/ai/workflows.md) `must-read`
-- [Mechanical execution overrides](./docs/ai/mechanical_overrides.md) `must-read`
-- [Rails/RSpec conventions and repo rules](./docs/ai/rails-conventions.md) `must-read`
-- [Secrets handling policy](./docs/ai/secrets.md) `must-read`
-- [Code References](docs/ai/reference.md) `must-read`
-- [Testing and verification](./docs/ai/testing.md) `must-read`
+## 6. Required Context Files
 
-### Standards & Style
-- [Code Style](docs/ai/code-style.md) `must-read`
-- [Quality criteria checklist](./docs/ai/quality/criteria.md) `must-read`
-- [Quality gate and review cadence](./docs/ai/quality_gate.md) `must-read`
-- [Security Triage & PoC Templates](./docs/ai/testing.md#security-vulnerability-reproduction-poc) `must-read`
+Load per task:
+- **Testing** → `docs/ai/testing.md`
+- **Code** → `docs/ai/code-style.md`
+- **Rails patterns** → `docs/ai/rails-conventions.md`
+- **Security** → `docs/ai/secrets.md`
+- **Before PR** → `docs/ai/quality/criteria.md`
+- **Review** → `docs/ai/quality_gate.md`
 
-### Domain Knowledge (Load when relevant)
-- [Knowledge architecture and domain logging](./docs/ai/knowledge_architecture.md) `context`
-- [Decision journal workflow](./docs/ai/decision_journal.md) `context`
-- [Candidates to remove from legacy guidance](./docs/ai/deletion_candidates.md) `context`
+Load when discovering patterns or making lasting decisions:
+- **Domain knowledge** → `docs/ai/knowledge_architecture.md`
+- **Decision logging** → `docs/ai/decision_journal.md`
+
+When cleaning up docs tree:
+- **Deletion tracker** → `docs/ai/deletion_candidates.md`
