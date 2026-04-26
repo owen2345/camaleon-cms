@@ -68,7 +68,7 @@ module CamaleonCms
       #   the_content
       # end
       def the_content
-        @object.the_content.html_safe if @object.present?
+        sanitize(@object.the_content) if @object.present?
       end
 
       # select url of post

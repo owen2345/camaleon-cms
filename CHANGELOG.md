@@ -35,6 +35,11 @@
   - Changed `set_category` to scope lookup to authorized `@post_type` instead of global lookup
   - Thanks, Seoyoung Kang for reporting this
 
+- **Security fix:** Fix Stored XSS (CWE-79) in the_content helper
+  - The `the_content` helper was using `.html_safe` which bypassed Rails' XSS protection
+  - Changed to use `sanitize()` which uses Rails' allowlist approach
+  - Thanks, Pratik Karan for reporting this
+
 - Fix: rewind Tempfile after scanning to avoid 0-byte uploads (regression fixed; tests added).
 
 - Add `AGENTS.md` and AI agent documentation in `docs/ai/` for agent behavior, Rails/RSpec conventions, and project guidance
