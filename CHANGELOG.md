@@ -5,7 +5,7 @@
 # [2.9.2](https://github.com/owen2345/camaleon-cms/tree/2.9.2)
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
 
-- Add permissions for Custom Fields management in the admin area
+- **BREAKING CHANGE** - Add permissions for Custom Fields management in the admin area
   - Existing installs upgrading to 2.9.2 should review the [migration guide](docs/upgrading-to-2.9.2.md)
 
 - **BREAKING CHANGE - Security fix:** Restrict `select_eval` custom field type to authorized users only
@@ -19,21 +19,21 @@
   - **Security documentation:** See [Permissions & Security Guide](docs/security/permissions.md)
   - Run `bundle exec rake camaleon_cms:backfill_select_eval_permission` to fix the permission checkbox on admin roles
 
-- Fix: rewind Tempfile after scanning to avoid 0-byte uploads (regression fixed; tests added).
-
-- Add `AGENTS.md` and AI agent documentation in `docs/ai/` for agent behavior, Rails/RSpec conventions, and project guidance
-
-- **Security fix:** Centralize plugin admin authorization in `PluginsAdminController`
+- **BREAKING CHANGE - Security fix:** Centralize plugin admin authorization in `PluginsAdminController`
   - All plugin admin routes now require `manage :plugins` permission by default (fail-closed)
   - `/admin/plugins/*/settings` and related endpoints protected without per-controller opt-in
   - Third-party plugins (via Ruby gems like `cama_contact_form`, `cama_meta_tag`) automatically protected when inheriting from `PluginsAdminController`
   - Thanks, Amir Aliu and Enrik Mustafa for reporting this
 
-- **Security fix:** Fix Broken Access Control (CWE-862) in MediaController
+- **BREAKING CHANGE - Security fix:** Fix Broken Access Control (CWE-862) in MediaController
   - Add consistent authorization checks to all MediaController endpoints requiring `:manage, :media` permission
   - Previously, only `index` and `ajax` actions checked authorization; other endpoints (`upload`, `download_private_file`, `crop`, `actions`) only checked authentication
   - All endpoints now protected by centralized `before_action :verify_media_authorization`
   - Thanks, Seoyoung Kang for reporting this
+
+- Fix: rewind Tempfile after scanning to avoid 0-byte uploads (regression fixed; tests added).
+
+- Add `AGENTS.md` and AI agent documentation in `docs/ai/` for agent behavior, Rails/RSpec conventions, and project guidance
 
 - **Security fix:** Fix mass assignment vulnerability in user registration (cross-tenant account injection)
   - Replace `permit!` with explicit whitelist of allowed params in `SessionsController#user_permit_data`

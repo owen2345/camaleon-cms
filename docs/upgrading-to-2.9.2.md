@@ -1,6 +1,6 @@
 # Upgrading to 2.9.2
 
-Version `2.9.2` introduces two changes:
+Version `2.9.2` introduces two breaking changes:
 
 1. A dedicated manager permission for Custom Fields administration.
 2. A security fix for the MediaController requiring consistent authorization across all endpoints.
