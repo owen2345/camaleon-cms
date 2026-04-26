@@ -42,6 +42,10 @@
   - Use parameterized queries instead of string interpolation for slug validation
   - Thanks, Amir Aliu and Enrik Mustafa for reporting this
 
+- **Security fix:** Fix SSTI (Server-Side Template Injection) in test_email endpoint
+  - Replace `render inline:` with `render plain:` to prevent ERB evaluation of exception messages
+  - This prevented authenticated admins from potentially executing arbitrary code via crafted error messages
+
 # [2.9.1](https://github.com/owen2345/camaleon-cms/tree/2.9.0) (2025-01-06)
 
 **This release is fixing several security vulnerabilities! Please, upgrade ASAP!**
