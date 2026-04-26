@@ -5,10 +5,10 @@ module CamaleonCms
       skip_before_action :admin_logged_actions, except: %i[index download_private_file], raise: false
       skip_before_action :verify_authenticity_token, only: :upload, raise: false
       before_action :init_media_vars, except: :download_private_file
+      before_action :verify_media_authorization
 
       # render media section
       def index
-        authorize! :manage, :media
         @show_file_actions = true
         @files = @tree.paginate(page: params[:page], per_page: 100)
         @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
@@ -37,7 +37,6 @@ module CamaleonCms
 
       # render media for modal content
       def ajax
-        authorize! :manage, :media
         @show_file_actions = true if current_site.get_option('file_actions_in_modals') == 'yes'
         @tree = cama_uploader.search(params[:search]) if params[:search].present?
         @files = @tree.paginate(page: params[:page], per_page: 100)
@@ -52,7 +51,6 @@ module CamaleonCms
 
       # do background actions in fog
       def actions
-        authorize! :manage, :media if params[:media_action] != 'crop_url'
         params[:folder] = params[:folder].gsub('//', '/') if params[:folder].present?
 
         case params[:media_action]
@@ -105,6 +103,10 @@ module CamaleonCms
       end
 
       private
+
+      def verify_media_authorization
+        authorize! :manage, :media
+      end
 
       # init basic media variables
       def init_media_vars

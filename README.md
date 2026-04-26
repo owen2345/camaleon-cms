@@ -181,13 +181,16 @@ RAILS_ENV=test bundle exec rake app:db:test:prepare
 ```
 
 - Run the tests
+`bin/rspec`
+
   - If the `rspec` binstub is not present:
 
 ```bash
 bundle exec rspec
 ```
+
   - But better generate the binstub, patch it to always set RAILS_ENV=test, like it is done in this repo
-  - And run with `bin/rspec`
+  - And then run with `bin/rspec`
 
 ## Permissions (Manager roles)
 

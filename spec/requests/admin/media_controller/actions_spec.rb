@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe CamaleonCms::Admin::MediaController, '#ajax', type: :request do
+RSpec.describe CamaleonCms::Admin::MediaController, '#actions', type: :request do
   init_site
 
   let(:current_site) { Cama::Site.first.decorate }
@@ -17,10 +17,30 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#ajax', type: :request do
       sign_in_as(admin_user, site: current_site)
     end
 
-    it 'allows access to ajax endpoint' do
-      get '/admin/media/ajax'
+    context 'when new_folder action' do
+      it 'allows creating a new folder' do
+        post '/admin/media/actions', params: { folder: '/test_folder', media_action: 'new_folder' }
 
-      expect(response).to have_http_status(200)
+        expect(response).to have_http_status(200)
+      end
+    end
+
+    context 'when del_folder action' do
+      it 'allows deleting a folder' do
+        allow_any_instance_of(CamaleonCmsLocalUploader).to receive(:delete_folder).and_return(error: '')
+        post '/admin/media/actions', params: { folder: '/test_folder', media_action: 'del_folder' }
+
+        expect(response).to have_http_status(200)
+      end
+    end
+
+    context 'when del_file action' do
+      it 'allows deleting a file' do
+        allow_any_instance_of(CamaleonCmsLocalUploader).to receive(:delete_file).and_return(error: '')
+        post '/admin/media/actions', params: { folder: '/test_file.jpg', media_action: 'del_file' }
+
+        expect(response).to have_http_status(200)
+      end
     end
   end
 
@@ -34,8 +54,8 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#ajax', type: :request do
       sign_in_as(limited_user, site: current_site)
     end
 
-    it 'blocks access to ajax endpoint' do
-      get '/admin/media/ajax'
+    it 'blocks access and redirects' do
+      post '/admin/media/actions', params: { folder: '/test_folder', media_action: 'new_folder' }
 
       expect(response).to redirect_to(/admin/)
       expect(flash[:error]).to be_present

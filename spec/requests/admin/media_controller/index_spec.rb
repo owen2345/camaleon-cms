@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe CamaleonCms::Admin::MediaController, '#ajax', type: :request do
+RSpec.describe CamaleonCms::Admin::MediaController, '#index', type: :request do
   init_site
 
   let(:current_site) { Cama::Site.first.decorate }
@@ -17,8 +17,8 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#ajax', type: :request do
       sign_in_as(admin_user, site: current_site)
     end
 
-    it 'allows access to ajax endpoint' do
-      get '/admin/media/ajax'
+    it 'allows access to index' do
+      get '/admin/media'
 
       expect(response).to have_http_status(200)
     end
@@ -34,8 +34,8 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#ajax', type: :request do
       sign_in_as(limited_user, site: current_site)
     end
 
-    it 'blocks access to ajax endpoint' do
-      get '/admin/media/ajax'
+    it 'blocks access and redirects' do
+      get '/admin/media'
 
       expect(response).to redirect_to(/admin/)
       expect(flash[:error]).to be_present

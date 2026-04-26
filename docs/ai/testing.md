@@ -1,6 +1,6 @@
 # Testing Guide
 
-> **Important:** Always set `RAILS_ENV=test` when running specs with `bundle exec rspec` if the `rspec` binstub is not present
+> **Important:** Always run the specs with `bin/rspec`
 
 ## Running Tests
 
