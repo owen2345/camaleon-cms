@@ -25,7 +25,7 @@ module CamaleonCms
       posts = ptype.site.posts
                    .where(where_clause, *params)
                    .where.not(id: record.id)
-                   .where.not(status: %i[draft draft_child trash])
+                   .where.not(status: %w[draft draft_child trash])
       unless posts.empty?
         record.errors[:base] <<
           if slug_array.size > 1
