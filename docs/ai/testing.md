@@ -1,22 +1,22 @@
 # Testing Guide
 
-> **Important:** Always set `RAILS_ENV=test` when running specs.
+> **Important:** Always set `RAILS_ENV=test` when running specs with `bundle exec rspec` if the `rspec` binstub is not present
 
 ## Running Tests
 
 ```bash
-# All specs (ALWAYS set RAILS_ENV=test)
-RAILS_ENV=test bundle exec rspec
+# All specs
+bin/rspec
 
 # Single spec file
-RAILS_ENV=test bundle exec rspec spec/models/site_spec.rb
+bin/rspec spec/models/site_spec.rb
 
 # Specific spec by line number
-RAILS_ENV=test bundle exec rspec spec/models/site_spec.rb:12
+bin/rspec spec/models/site_spec.rb:12
 
 # Specs matching a pattern
-RAILS_ENV=test bundle exec rspec spec/models/
-RAILS_ENV=test bundle exec rspec spec/features/admin/
+bin/rspec spec/models/
+bin/rspec spec/features/admin/
 ```
 
 ## Database Setup
