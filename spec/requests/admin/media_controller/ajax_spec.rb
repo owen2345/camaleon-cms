@@ -13,7 +13,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#ajax', type: :request do
 
     before do
       admin_role.set_meta("_manager_#{current_site.id}", { 'media' => 1 })
-      allow_any_instance_of(CamaleonCms::Admin::MediaController).to receive(:verify_media_authorization).and_return(true)
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_return(true)
       sign_in_as(admin_user, site: current_site)
     end
 
@@ -30,7 +30,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#ajax', type: :request do
 
     before do
       limited_role.set_meta("_manager_#{current_site.id}", {})
-      allow_any_instance_of(CamaleonCms::Admin::MediaController).to receive(:verify_media_authorization).and_raise(CanCan::AccessDenied)
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_raise(CanCan::AccessDenied)
       sign_in_as(limited_user, site: current_site)
     end
 

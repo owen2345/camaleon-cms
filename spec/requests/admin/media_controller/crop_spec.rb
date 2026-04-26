@@ -14,10 +14,10 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
     before { admin_role.set_meta("_manager_#{current_site.id}", { 'media' => 1 }) }
 
     it 'allows access to crop endpoint (authorization check passes)' do
-      allow_any_instance_of(CamaleonCms::Admin::MediaController).to receive(:verify_media_authorization).and_return(true)
-      allow_any_instance_of(CamaleonCms::Admin::MediaController).to receive(:cama_tmp_upload).and_return(file_path: '/tmp/test.jpg')
-      allow_any_instance_of(CamaleonCms::Admin::MediaController).to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
-      allow_any_instance_of(CamaleonCms::Admin::MediaController).to receive(:upload_file).and_return('url' => '/uploads/cropped.jpg')
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_return(true)
+      allow_any_instance_of(described_class).to receive(:cama_tmp_upload).and_return(file_path: '/tmp/test.jpg')
+      allow_any_instance_of(described_class).to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
+      allow_any_instance_of(described_class).to receive(:upload_file).and_return('url' => '/uploads/cropped.jpg')
       sign_in_as(admin_user, site: current_site)
       get '/admin/media/crop'
 
@@ -32,7 +32,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
     before { limited_role.set_meta("_manager_#{current_site.id}", {}) }
 
     it 'blocks access and redirects' do
-      allow_any_instance_of(CamaleonCms::Admin::MediaController).to receive(:verify_media_authorization).and_raise(CanCan::AccessDenied)
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_raise(CanCan::AccessDenied)
       sign_in_as(limited_user, site: current_site)
       get '/admin/media/crop'
 
