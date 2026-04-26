@@ -173,15 +173,21 @@ Owen Peredo Diaz
 https://camaleon.website/license.html
 
 ## Testing
-* Init DB
+- Init DB
+
 ```bash
 RAILS_ENV=test bundle exec rake app:db:migrate
 RAILS_ENV=test bundle exec rake app:db:test:prepare
 ```
-* Run tests
+
+- Run the tests
+  - If the `rspec` binstub is not present:
+
 ```bash
 bundle exec rspec
 ```
+  - But better generate the binstub, patch it to always set RAILS_ENV=test, like it is done in this repo
+  - And run with `bin/rspec`
 
 ## Permissions (Manager roles)
 

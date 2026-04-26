@@ -9,7 +9,7 @@ Before marking any task complete, evaluate against these criteria.
 - No new RuboCop violations introduced
 
 ### Testing
-- Specs pass: `RAILS_ENV=test bundle exec rspec`
+- Specs pass: `bin/rspec`
 - New functionality has test coverage
 - Bug fixes include a test that would have caught the bug
 

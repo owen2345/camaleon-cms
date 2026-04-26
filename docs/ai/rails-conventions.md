@@ -1,8 +1,8 @@
 # Rails Conventions
 
 ## App Baseline
-- Rails version target: `8.1.2`.
-- Ruby version target: `3.4.8` (`.tool-versions`).
+- Rails version target: `8.1.3`.
+- Ruby version target: `3.4.9` (`.tool-versions`).
 - Test framework: `rspec-rails`.
 
 ## Repo Rules

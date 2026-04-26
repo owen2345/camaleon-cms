@@ -1,22 +1,22 @@
 # Testing Guide
 
-> **Important:** Always set `RAILS_ENV=test` when running specs.
+> **Important:** Always set `RAILS_ENV=test` when running specs with `bundle exec rspec` if the `rspec` binstub is not present
 
 ## Running Tests
 
 ```bash
-# All specs (ALWAYS set RAILS_ENV=test)
-RAILS_ENV=test bundle exec rspec
+# All specs
+bin/rspec
 
 # Single spec file
-RAILS_ENV=test bundle exec rspec spec/models/site_spec.rb
+bin/rspec spec/models/site_spec.rb
 
 # Specific spec by line number
-RAILS_ENV=test bundle exec rspec spec/models/site_spec.rb:12
+bin/rspec spec/models/site_spec.rb:12
 
 # Specs matching a pattern
-RAILS_ENV=test bundle exec rspec spec/models/
-RAILS_ENV=test bundle exec rspec spec/features/admin/
+bin/rspec spec/models/
+bin/rspec spec/features/admin/
 ```
 
 ## Database Setup
@@ -126,3 +126,37 @@ it_behaves_like 'i18n value translation safety', described_class
 | `type: :request` | `spec/requests/` | HTTP request tests |
 | `type: :feature` | `spec/features/` | Browser-based UI tests |
 | Default | `spec/helpers/` | Helper method tests |
+
+## Security Vulnerability Reproduction (PoC)
+Before fixing a reported vulnerability, you MUST attempt to reproduce it with a failing test. This proves the vulnerability is "Legit" and prevents regressions.
+
+### 1. Request Spec Template (for RCE, SQLi, XSS)
+Use a Request Spec to simulate the attack payload.
+```ruby
+# spec/requests/security/repro_<name>_spec.rb
+require 'rails_helper'
+
+RSpec.describe "Security Reproduction: <Brief Name>", type: :request do
+  let(:attacker_payload) { " <PAYLOAD_HERE> " } # e.g., "'); DROP TABLE users; --"
+
+  it "demonstrates the vulnerability" do
+    # 1. Execute the action with the payload
+    get "/vulnerable_path", params: { input: attacker_payload }
+
+    # 2. Assert failure (The test should FAIL if the vulnerability is present)
+    # For XSS: expect(response.body).not_to include("<script>")
+    # For SQLi: expect { subject }.not_to change { User.count }
+    # For RCE: expect(File.exist?("/tmp/rce_proof")).to be false
+  end
+end
+```
+
+### 2. Dependency Audit Check
+If the vulnerability is a gem dependency (CVE):
+- Run: `bundle exec bundle-audit check --update`
+- **Verification:** The output must explicitly list the CVE provided in the prompt. If not found, the report is likely a "False Positive" for this repo version.
+
+### 3. Static Analysis (Brakeman) Triage
+To isolate the specific file and line:
+- Run: `bin/brakeman -z --only-files path/to/file.rb`
+- **Legitimacy Rule:** If Brakeman does not flag the line with the exact error type (e.g., "High Confidence SQL Injection"), you must ask the user for clarification before proceeding.
