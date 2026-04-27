@@ -48,6 +48,15 @@ State your finding to the user. You must pick one:
 1. Create a branch following the `security/` prefix (e.g., `security/fix-sqli-in-comments`).
 2. Follow the standard "Goal-Driven Execution": **Write a failing test that reproduces the risk** (if possible) before applying the fix.
 
+### Step 4: Mandatory Test Coverage for Vulnerability Fixes
+**CRITICAL:** Fixing a vulnerability MUST include spec coverage:
+1. **Write a test that exposes the vulnerability** before applying the fix (unless reproducing is infeasible).
+2. **All code changes fixing the vulnerability must be covered by specs.** Exceptions:
+   - Pure refactoring with no behavioral change (same inputs → same outputs)
+   - Configuration-only changes with no code path modification
+3. **Do not skip tests to "get the fix out faster."** Security fixes require the same test rigor as features.
+4. **Integration/feature specs are preferred over controller specs** for vulnerability reproduction (e.g., testing that a mass-assignment guard prevents attribute injection).
+
 ## Metadata Maintenance
 If you change setup, test, or CI commands, you are **REQUIRED** to update:
 1. `AGENTS.md`
