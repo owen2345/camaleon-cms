@@ -6,7 +6,6 @@ def create_site
   visit "#{cama_root_relative_path}/admin/settings/sites"
   expect(page).to have_content('List Sites')
 
-  # create user role
   within '#admin_content' do
     click_link 'Add Site'
   end
@@ -51,34 +50,30 @@ describe 'the Sites', :js do
     confirm_dialog
     expect(page).to have_css('.alert-success')
   end
-end
 
-describe 'Sites mass assignment protection' do
-  it 'site_params only permits name, slug, description' do
-    controller = CamaleonCms::Admin::Settings::SitesController.new
-    params = ActionController::Parameters.new(
-      site: {
-        name: 'Test Site',
-        slug: 'test-slug',
-        description: 'Test description',
-        term_group: 999,
-        parent_id: 999,
-        user_id: 999
-      }
-    )
-    allow(controller).to receive(:params).and_return(params)
+  describe 'Sites mass assignment protection' do
+    it 'site_params only permits name, slug, description' do
+      controller = CamaleonCms::Admin::Settings::SitesController.new
+      params = ActionController::Parameters.new(
+        site: {
+          name: 'Test Site',
+          slug: 'test-slug',
+          description: 'Test description',
+          term_group: 999,
+          parent_id: 999,
+          user_id: 999
+        }
+      )
+      allow(controller).to receive(:params).and_return(params)
 
-    permitted = controller.send(:site_params).permit!
+      permitted = controller.send(:site_params).permit!
 
-    expect(permitted.to_h.keys).to match_array(%w[name slug description])
-    expect(permitted['term_group']).to be_nil
-    expect(permitted['parent_id']).to be_nil
-    expect(permitted['user_id']).to be_nil
+      expect(permitted.to_h.keys).to match_array(%w[name slug description])
+      expect(permitted['term_group']).to be_nil
+      expect(permitted['parent_id']).to be_nil
+      expect(permitted['user_id']).to be_nil
+    end
   end
-end
-
-describe 'SitesController redirects to safe path', :js do
-  init_site
 
   it 'redirects to safe admin path instead of site URL after main site slug change' do
     main_site = CamaleonCms::Site.first
