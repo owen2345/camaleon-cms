@@ -23,11 +23,11 @@ module CamaleonCms
 
         def update
           tmp = @site.slug
-          if @site.update(params.require(:site).permit!)
+          if @site.update(site_params)
             save_metas(@site)
             flash[:notice] = t('camaleon_cms.admin.sites.message.updated')
             if @site.id == Cama::Site.main_site.id && tmp != @site.slug
-              redirect_to @site.the_admin_url
+              redirect_to(cama_admin_path)
             else
               redirect_to action: :index
             end
@@ -43,8 +43,7 @@ module CamaleonCms
         end
 
         def create
-          site_data = params.require(:site).permit!
-          @site = CamaleonCms::Site.new(site_data)
+          @site = CamaleonCms::Site.new(site_params)
           if @site.save
             save_metas(@site)
             site_after_install(@site, @site.get_theme_slug)
@@ -83,6 +82,10 @@ module CamaleonCms
 
           flash[:error] = t('camaleon_cms.admin.sites.message.unauthorized')
           redirect_to cama_admin_path
+        end
+
+        def site_params
+          params.require(:site).permit(:name, :slug, :description)
         end
       end
     end

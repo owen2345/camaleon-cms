@@ -32,6 +32,14 @@ bin/rspec
 
 - If a checker is not configured for the task context, state that explicitly.
 
+5. **Mandatory spec coverage for code changes**
+   - **ALL code changes must be covered by specs**, except:
+     - Pure refactoring with equivalent behavior (same inputs → same outputs)
+     - Documentation-only changes
+     - Configuration changes with no code path modifications
+   - Do not submit code changes without tests. If writing tests is infeasible, state why explicitly.
+   - Security vulnerability fixes have stricter requirements: see `docs/ai/workflows.md` Step 4.
+
 ## Context Management
 
 5. **Sub-agent swarming**

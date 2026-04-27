@@ -30,6 +30,8 @@
 - **Security:** `bin/brakeman --no-pager`
 - **Verify load:** `bin/rails zeitwerk:check`
 
+**Security Fixes:** Vulnerability fixes MUST include tests that reproduce the vulnerability (unless infeasible). All code changes must be covered by specs. See `docs/ai/workflows.md` Step 4.
+
 ## 3. Quick Reference
 
 | Path | Purpose |
