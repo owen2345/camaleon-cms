@@ -37,13 +37,13 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
 
       - name: Migrate DB
-        run: bundle exec rake app:db:migrate
+        run: bin/rake app:db:migrate
 
       - name: Prepare DB
-        run: bundle exec rake app:db:test:prepare
+        run: bin/rake app:db:test:prepare
 
       - name: Install ImageMagick
         run: sudo apt-get update && sudo apt-get install -y imagemagick
 
       - name: Run spec
-        run: bundle exec rspec
+        run: bin/rspec
