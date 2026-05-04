@@ -30,8 +30,12 @@
                     <td><%= t("camaleon_cms.admin.plugins.status_#{status}") %></td>
                     <td>
                         <% msg = "#{status ? t('camaleon_cms.admin.button.disable_plugin') : t('camaleon_cms.admin.button.activate_plugin') }" %>
-                        <%= link_to msg, {action: :toggle, id: plugin["key"], status: status }, class: "btn btn-#{status ? 'danger' : 'primary'} btn-xs", data: { confirm: msg } %>
-                        <%= link_to("<i class='fa fa-arrow-circle-o-up'></i>".html_safe, cama_admin_plugin_upgrade_path(plugin["key"]), class: "btn btn-info btn-xs", title: "#{t("camaleon_cms.admin.plugins.upgrade_to")} #{plugin["version"]}") if status && current_site.get_plugin(plugin["key"]).old_version? %>
+                        <% if PluginRoutes.will_restart? %>
+                            <a href="<%= url_for(action: :toggle, id: plugin["key"], status: status) %>" class="btn btn-<%= status ? 'danger' : 'primary' %> btn-xs" data-restart-confirm="true"><%= msg %></a>
+                        <% else %>
+                            <%= link_to msg, {action: :toggle, id: plugin["key"], status: status }, class: "btn btn-#{status ? 'danger' : 'primary'} btn-xs", data: { confirm: msg } %>
+                        <% end %>
+                        <%= link_to("<i class='fa fa-arrow-circle-o-up'></i>".html_safe, cama_admin_plugin_upgrade_path(plugin["key"]), class: "btn btn-info btn-xs", title: "#{t("camaleon_cms.admin.plugins.upgrade_to")} #{plugin["version"]}", data: PluginRoutes.will_restart? ? { restart_confirm: true } : {}) if status && current_site.get_plugin(plugin["key"]).old_version? %>
                     </td>
                 </tr>
             <% end %>

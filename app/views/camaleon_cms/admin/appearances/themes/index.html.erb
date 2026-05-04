@@ -45,10 +45,14 @@
                                                 <span class="btn btn-success"><%= t('camaleon_cms.admin.button.actived').upcase %></span>
                                             <% else %>
                                                 <a href="<%= current_site.the_url(ccc_theme_preview: theme[:key])%>" title="<%= t('camaleon_cms.admin.button.preview') %>" class="btn btn-info preview_link"><%= t('camaleon_cms.admin.button.preview') %></a>
-                                                <a href="<%= cama_admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary"><%= t('camaleon_cms.admin.button.select')%></a>
+                                                <% if PluginRoutes.will_restart? %>
+                                                    <a href="<%= cama_admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary" data-restart-confirm="true"><%= t('camaleon_cms.admin.button.select')%></a>
+                                                <% else %>
+                                                    <a href="<%= cama_admin_appearances_themes_path(set: theme[:key]) %>" class="btn btn-primary" data-confirm="<%= t('camaleon_cms.admin.message.select_theme_confirm') %>"><%= t('camaleon_cms.admin.button.select')%></a>
+                                                <% end %>
                                             <% end %>
                                         </div>
-                                        
+
                                     </div>
                                 </div>
                             </div>
@@ -60,6 +64,9 @@
         </div>
     </div>
 </div>
+
+<%= render 'camaleon_cms/admin/shared/server_restart_modal' %>
+
 <script>
     jQuery(function($){
         var page = $("#themes_page");

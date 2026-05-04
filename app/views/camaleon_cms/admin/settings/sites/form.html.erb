@@ -26,10 +26,16 @@
 
             <div class="panel-footer">
               <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
-              <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+              <% if PluginRoutes.will_restart? %>
+                <button class="btn btn-primary pull-right" type="button" data-restart-submit="true"><%= t('camaleon_cms.admin.button.submit') %></button>
+              <% else %>
+                <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+              <% end %>
             </div>
           </div>
         </div>
       <% end %>
   </div>
 </div>
+
+<%= render 'camaleon_cms/admin/shared/server_restart_modal' %>

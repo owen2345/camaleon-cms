@@ -1,0 +1,22 @@
+<% if PluginRoutes.will_restart? %>
+<div class="modal fade" id="server-restart-modal" tabindex="-1" role="dialog" aria-labelledby="server-restart-modal-title" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="<%= t('camaleon_cms.admin.button.cancel') %>">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="server-restart-modal-title"><%= t('camaleon_cms.admin.message.server_restart_modal.title') %></h4>
+      </div>
+      <div class="modal-body">
+        <p><%= t('camaleon_cms.admin.message.server_restart_modal.description') %></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal"><%= t('camaleon_cms.admin.button.cancel') %></button>
+        <button type="button" class="btn btn-danger" data-role="restart-confirm"><%= t('camaleon_cms.admin.button.accept') %></button>
+      </div>
+    </div>
+  </div>
+</div>
+<%= javascript_include_tag 'camaleon_cms/admin/server_restart' %>
+<% end %>

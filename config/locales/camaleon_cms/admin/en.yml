@@ -231,6 +231,11 @@ en:
         select: 'Select Menu'
         select_edit: 'Select the menu you want to edit:'
       message:
+        server_restart_modal:
+          title: 'Server Restart Required'
+          description: 'This action will cause the web server to restart because it is running in multi-process mode. All active requests may be briefly interrupted.'
+        server_restart_warning: 'This action will restart the server.'
+        select_theme_confirm: 'Are you sure you want to activate this theme?'
         are_you_sure_you_want_log_out_int: 'Are you sure you want to log out?'
         are_you_sure_to_import: "Are you sure you want to import?"
         data_found_list: 'No data found in the list'
