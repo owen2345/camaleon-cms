@@ -57,6 +57,7 @@ module CamaleonCms
       app.config.assets.paths << Rails.root.join('app/assets/fonts')
       app.config.assets.paths << File.join($camaleon_engine_dir, 'app', 'apps')
       app.config.assets.paths << File.join($camaleon_engine_dir, 'app', 'assets', 'fonts')
+      app.config.assets.paths << File.join($camaleon_engine_dir, 'node_modules')
       app.config.encoding = 'utf-8'
 
       # add prefix url, like: https://localhost.com/blog/

@@ -549,13 +549,16 @@ a:focus {
   margin-top: -8px;
 }
 .sidebar-menu li.active > a > .fa-angle-left,
-.sidebar-menu li.active > a > .pull-right-container > .fa-angle-left {
+.sidebar-menu li.menu-open > a > .fa-angle-left,
+.sidebar-menu li.active > a > .pull-right-container > .fa-angle-left,
+.sidebar-menu li.menu-open > a > .pull-right-container > .fa-angle-left {
   -webkit-transform: rotate(-90deg);
   -ms-transform: rotate(-90deg);
   -o-transform: rotate(-90deg);
   transform: rotate(-90deg);
 }
-.sidebar-menu li.active > .treeview-menu {
+.sidebar-menu li.active > .treeview-menu,
+.sidebar-menu li.menu-open > .treeview-menu {
   display: block;
 }
 .sidebar-menu .treeview-menu {
@@ -4864,16 +4867,7 @@ table.text-center th {
 .connectedSortable {
   min-height: 100px;
 }
-.ui-helper-hidden-accessible {
-  border: 0;
-  clip: rect(0 0 0 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  width: 1px;
-}
+
 .sort-highlight {
   background: #f4f4f4;
   border: 1px dashed #ddd;

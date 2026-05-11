@@ -3,8 +3,9 @@ jQuery(function($){
   var panel = $("#cama_custom_field_form");
   var group_class_name = panel.attr("data-group_class_name");
   var $content_fields = $( "#sortable-fields", panel);
-  $content_fields.sortable({
-    handle: ".panel-sortable"
+  new Sortable(document.getElementById("sortable-fields"), {
+    handle: ".panel-sortable",
+    animation: 150
   });
   var slugger_count = $content_fields.children().length;
   cama_custom_field_set_slug();
@@ -16,11 +17,12 @@ jQuery(function($){
       hideLoading();
       var li = $('<li class="item">' + html + '</li>');
       $content_fields.append(li);
+      cama_fix_panel_icon_contrast();
       cama_custom_field_set_slug(li);
       var title_field = li.find("input.text-title");
       title_field.val(title_field.val() + '-' + (slugger_count ++));
       title_field.trigger("keyup");
-      $('[data-toggle="tooltip"], a[title!=""]', $content_fields).tooltip();
+      $('[data-toggle="tooltip"], a[title!=""]', li).tooltip();
     });
     return false;
   });
