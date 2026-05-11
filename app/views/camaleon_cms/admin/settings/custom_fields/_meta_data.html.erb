@@ -80,8 +80,9 @@
                         }
                         return false;
                     });
-                    $sortable.sortable({
-                        handle: ".fa-arrows"
+                    new Sortable($sortable[0], {
+                        handle: ".fa-arrows",
+                        animation: 150
                     });
                 }
                 $content.find('.clone-field').remove();

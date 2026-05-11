@@ -1,9 +1,11 @@
-jQuery(document).on("ready page:changed", function(){
+var onReadyOrChanged = function(){
     // initialize all validations for forms
     init_form_validations();
     setTimeout(page_actions, 1000);
     if(!$("body").attr("data-intro")) setTimeout(init_intro, 500);
-});
+};
+jQuery(onReadyOrChanged);
+jQuery(document).on("page:changed", onReadyOrChanged);
 
 // show admin intro presentation
 function init_intro(){

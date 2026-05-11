@@ -7,7 +7,7 @@
 
 (function($){
     // auto grow input (stackoverflow.com/questions/931207)
-    $.fn.tagEditorInput=function(){var t=" ",e=$(this),n=parseInt(e.css("fontSize")),i=$("<span/>").css({position:"absolute",top:-9999,left:-9999,width:"auto",fontSize:e.css("fontSize"),fontFamily:e.css("fontFamily"),fontWeight:e.css("fontWeight"),letterSpacing:e.css("letterSpacing"),whiteSpace:"nowrap"}),s=function(){if(t!==(t=e.val())){i.html(t.replace(/&/g,"&amp;").replace(/\s/g,"&nbsp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"));var s=i.width()+n;20>s&&(s=20),s!=e.width()&&e.width(s)}};return i.insertAfter(e),e.bind("keyup keydown focus",s)};
+    $.fn.tagEditorInput=function(){var t=" ",e=$(this),n=parseInt(e.css("fontSize")),i=$("<span/>").css({position:"absolute",top:-9999,left:-9999,width:"auto",fontSize:e.css("fontSize"),fontFamily:e.css("fontFamily"),fontWeight:e.css("fontWeight"),letterSpacing:e.css("letterSpacing"),whiteSpace:"nowrap"}),s=function(){if(t!==(t=e.val())){i.html(t.replace(/&/g,"&amp;").replace(/\s/g,"&nbsp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"));var s=i.width()+n;20>s&&(s=20),s!=e.width()&&e.width(s)}};return i.insertAfter(e),e.on("keyup keydown focus",s)};
 
     // plugin with val as parameter for public methods
     $.fn.tagEditor = function(options, val, blur){
@@ -54,7 +54,7 @@
                 } catch(e){ el = 0; }
                 if (el && el.hasClass('tag-editor')) {
                     var tags = [], splits = sel.toString().split(el.prev().data('options').dregex);
-                    for (i=0; i<splits.length; i++){ var tag = $.trim(splits[i]); if (tag) tags.push(tag); }
+                    for (i=0; i<splits.length; i++){ var tag = splits[i].trim(); if (tag) tags.push(tag); }
                     $('.tag-editor-tag', el).each(function(){
                         if (~$.inArray($(this).html(), tags)) $(this).closest('li').find('.tag-editor-delete').click();
                     });
@@ -89,7 +89,7 @@
             function update_globals(init){
                 var old_tags = tag_list.toString();
                 tag_list = $('.tag-editor-tag:not(.deleted)', ed).map(function(i, e) {
-                    var val = $.trim($(this).hasClass('active') ? $(this).find('input').val() : $(e).text());
+                    var val = $(this).hasClass('active') ? $(this).find('input').val().trim() : $(e).text().trim();
                     if (val) return val;
                 }).get();
                 ed.data('tags', tag_list);
@@ -100,6 +100,11 @@
             }
 
             ed.click(function(e, closest_tag){
+                // don't create new tag when clicking on delete buttons or existing tags
+                if ($(e.target).closest('.tag-editor-delete, .tag-editor-tag').length) return;
+                // if there's already an active input, focus it instead of creating a new tag
+                var activeInput = ed.find('.tag-editor-tag.active input');
+                if (activeInput.length) { activeInput.focus(); return false; }
                 var d, dist = 99999, loc;
 
                 // do not create tag when user selects tags by text selection
@@ -107,10 +112,8 @@
 
                 if (o.maxTags && ed.data('tags').length >= o.maxTags) { ed.find('input').blur(); return false; }
 
-                blur_result = true
+                // blur any active input (blur handler runs async via setTimeout)
                 $('input:focus', ed).blur();
-                if (!blur_result) return false;
-                blur_result = true
 
                 // always remove placeholder on click
                 $('.placeholder', ed).remove();
@@ -169,16 +172,45 @@
                     // guess cursor position in text input
                     var left_percent = Math.abs(($(this).offset().left - e.pageX)/$(this).width()), caret_pos = parseInt(tag.length*left_percent),
                         input = $(this).html('<input type="text" maxlength="'+o.maxLength+'" value="'+tag+'">').addClass('active').find('input');
-                        input.data('old_tag', tag).tagEditorInput().focus().caret(caret_pos);
+                        input.data('old_tag', tag).tagEditorInput();
                     if (o.autocomplete) {
                         var aco = $.extend({}, o.autocomplete);
-                        // extend user provided autocomplete select method
-                        var ac_select = 'select'  in aco ? o.autocomplete.select : '';
-                        aco.select = function(e, ui){ if (ac_select) ac_select(e, ui); setTimeout(function(){
-                            ed.trigger('click', [$('.active', ed).find('input').closest('li').next('li').find('.tag-editor-tag')]);
-                        }, 20); };
-                        input.autocomplete(aco);
+                        // Store user provided select callback
+                        var ac_select = 'select' in aco ? o.autocomplete.select : '';
+                        var awList = (typeof aco.source === 'function') ? [] : (aco.source || []);
+                        var aw = new Awesomplete(input[0], {
+                            list: awList,
+                            minChars: aco.minChars || 1,
+                            maxItems: aco.maxItems || 10
+                        });
+                        // before Awesomplete evaluates, filter out already-selected tags
+                        input[0].addEventListener('input', function() {
+                            update_globals();
+                            aw._list = awList.filter(function(item) {
+                                return tag_list.indexOf(item) === -1;
+                            });
+                        }, true);
+                        if (typeof aco.source === 'function') {
+                            input.on('input', function() {
+                                aco.source(input.val(), function(results) {
+                                    aw.list = results;
+                                    aw.evaluate();
+                                });
+                            });
+                        }
+                        input[0].addEventListener('awesomplete-selectcomplete', function(e) {
+                            if (ac_select) ac_select(e, {item: {value: e.text.value}});
+                            // confirm the selected tag immediately (simulate blur)
+                            var activeTag = $('.active', ed);
+                            activeTag.find('input').blur();
+                            setTimeout(function(){
+                                ed.trigger('click', [activeTag.next('li').find('.tag-editor-tag')]);
+                            }, 200);
+                        });
+                        input.data('awesomplete', aw);
                     }
+                    // focus after Awesomplete wraps the input (which can steal focus)
+                    input.focus().caret(caret_pos);
                 }
                 return false;
             });
@@ -188,7 +220,7 @@
                 var li = input.closest('li'), sub_tags = input.val().replace(/ +/, ' ').split(o.dregex), old_tag = input.data('old_tag');
                 var old_tags = tag_list.slice(0), exceeded = false; // copy tag_list
                 for (var i=0; i<sub_tags.length; i++) {
-                    tag = $.trim(sub_tags[i]).slice(0, o.maxLength);
+                    tag = sub_tags[i].trim().slice(0, o.maxLength);
                     if (tag) {
                         if (o.forceLowercase) tag = tag.toLowerCase();
                         tag = o.beforeTagSave(el, ed, old_tags, old_tag, tag) || tag;
@@ -207,7 +239,7 @@
 
             ed.on('blur', 'input', function(e){
                 e.stopPropagation();
-                var input = $(this), old_tag = input.data('old_tag'), tag = $.trim(input.val().replace(/ +/, ' ').replace(o.dregex, o.delimiter[0]));
+                var input = $(this), old_tag = input.data('old_tag'), tag = input.val().replace(/ +/, ' ').replace(o.dregex, o.delimiter[0]).trim();
                 if (!tag) {
                     if (old_tag && o.beforeTagDelete(el, ed, tag_list, old_tag) === false) {
                         input.val(old_tag).focus();
@@ -226,7 +258,7 @@
                     if (o.removeDuplicates)
                         $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).html() == tag) $(this).closest('li').remove(); });
                 }
-                input.parent().html(tag).removeClass('active');
+                input.closest('.tag-editor-tag').html(tag).removeClass('active');
                 if (tag != old_tag) update_globals();
                 set_placeholder();
             });
@@ -288,7 +320,7 @@
                     }
                 }
                 // del key
-                else if (e.which == 46 && (!$.trim($t.val()) || ($t.caret() == $t.val().length))) {
+                else if (e.which == 46 && (!$t.val().trim() || ($t.caret() == $t.val().length))) {
                     var next_tag = $t.closest('li').next('li').find('.tag-editor-tag');
                     if (next_tag.length) next_tag.click().find('input').caret(0);
                     else if ($t.val()) ed.click();
@@ -296,6 +328,9 @@
                 }
                 // enter key
                 else if (e.which == 13) {
+                    // let Awesomplete handle Enter if dropdown is open with a selection
+                    var aw = $t.data('awesomplete');
+                    if (aw && aw.opened && aw.selected) return;
                     ed.trigger('click', [$t.closest('li').next('li').find('.tag-editor-tag')]);
                     return false;
                 }
@@ -314,7 +349,7 @@
             var tags = o.initialTags.length ? o.initialTags : el.val().split(o.dregex);
             for (var i=0; i<tags.length; i++) {
                 if (o.maxTags && i >= o.maxTags) break;
-                var tag = $.trim(tags[i].replace(/ +/, ' '));
+                var tag = tags[i].replace(/ +/, ' ').trim();
                 if (tag) {
                     if (o.forceLowercase) tag = tag.toLowerCase();
                     tag_list.push(tag);
@@ -324,9 +359,11 @@
             update_globals(true); // true -> no onChange callback
 
             // init sortable
-            if (o.sortable && $.fn.sortable) ed.sortable({
-                distance: 5, cancel: '.tag-editor-spacer, input', helper: 'clone',
-                update: function(){ update_globals(); }
+            if (o.sortable) new Sortable(ed[0], {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                filter: '.tag-editor-spacer, input',
+                onEnd: function(){ update_globals(); }
             });
         });
     };
@@ -341,8 +378,8 @@
         removeDuplicates: true,
         clickDelete: false,
         animateDelete: 175,
-        sortable: true, // jQuery UI sortable
-        autocomplete: null, // options dict for jQuery UI autocomplete
+        sortable: true, // SortableJS draggable reorder
+        autocomplete: null, // options dict for Awesomplete autocomplete
 
         // callbacks
         onChange: function(){},
