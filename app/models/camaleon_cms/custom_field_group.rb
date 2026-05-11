@@ -8,10 +8,13 @@ module CamaleonCms
       where("object_class != '_fields'").reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC")
     end
 
-    has_many :metas, -> { where(object_class: 'CustomFieldGroup') }, foreign_key: :objectid, dependent: :destroy
+    has_many :metas, foreign_key: :objectid, dependent: :destroy, inverse_of: :owner
+
     has_many :fields, -> { where(object_class: '_fields') }, class_name: 'CamaleonCms::CustomField',
-                                                             foreign_key: :parent_id, dependent: :destroy
-    belongs_to :site, foreign_key: :parent_id, optional: true
+                                                             foreign_key: :parent_id, dependent: :destroy,
+                                                             inverse_of: :custom_field_group
+    belongs_to :site, foreign_key: :parent_id, optional: true, inverse_of: :custom_field_groups
+    belongs_to :owner, polymorphic: true, foreign_key: :objectid, foreign_type: :object_class
 
     validates :slug, uniqueness: { scope: %i[object_class objectid parent_id] }
 

@@ -1,7 +1,7 @@
 module CamaleonCms
   module Widget
     class Assigned < CamaleonCms::PostDefault
-      default_scope -> { where(post_class: name).order(:taxonomy_id) }
+      # default_scope -> { where(post_class: name).order(:taxonomy_id) }
       # post_parent: sidebar_id
       # visibility: widget_id
       # comment_count: item_order
@@ -12,11 +12,9 @@ module CamaleonCms
 
       # attr_accessible :widget_id, :sidebar_id, :item_order
 
-      has_many :metas, lambda {
-                         where(object_class: 'Widget::Assigned')
-                       }, class_name: 'CamaleonCms::Meta', foreign_key: :objectid, dependent: :destroy
-      belongs_to :sidebar, class_name: 'CamaleonCms::Widget::Sidebar', foreign_key: :post_parent
-      belongs_to :widget, class_name: 'CamaleonCms::Widget::Main', foreign_key: :visibility
+      belongs_to :sidebar, class_name: 'CamaleonCms::Widget::Sidebar', foreign_key: :post_parent, inverse_of: :assigned
+      belongs_to :widget, class_name: 'CamaleonCms::Widget::Main', foreign_key: :visibility, inverse_of: :assigned
+
       after_initialize :fix_slug2
       before_create :set_order
 

@@ -8,6 +8,9 @@ if PluginRoutes.static_system_info['user_model'].blank?
 
       default_scope { order(role: :asc) }
 
+      has_many :widgets, class_name: 'CamaleonCms::Widget::Main', foreign_key: :parent_id, dependent: :destroy,
+                         inverse_of: :owner
+
       validates :username, presence: true
       # The following might be continued wit: , :unless => Proc.new { |a| a.auth_social.present? }
       validates :email, presence: true, format: { with: /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i }

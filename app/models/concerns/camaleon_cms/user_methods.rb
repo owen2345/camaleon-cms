@@ -34,8 +34,10 @@ module CamaleonCms
       before_update { generate_token :auth_token if will_save_change_to_password_digest? }
 
       # relations
-      has_many :all_posts, class_name: 'CamaleonCms::Post', foreign_key: :user_id
-      has_many :all_comments, class_name: 'CamaleonCms::PostComment'
+      has_many :all_posts, class_name: 'CamaleonCms::Post', foreign_key: :user_id, inverse_of: :owner,
+                           dependent: :nullify
+      has_many :all_comments, class_name: 'CamaleonCms::PostComment', dependent: :nullify
+
       belongs_to :site, class_name: 'CamaleonCms::Site', optional: true
 
       # scopes

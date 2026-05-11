@@ -3,7 +3,6 @@ module CamaleonCms
     normalize_attrs(:name, :description)
 
     alias_attribute :site_id, :parent_id
-    default_scope { where(taxonomy: :post_type) }
 
     has_many :categories, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type_parent
     has_many :post_tags, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type
@@ -13,10 +12,11 @@ module CamaleonCms
     has_many :posts_draft, class_name: 'CamaleonCms::Post', foreign_key: :taxonomy_id, dependent: :destroy,
                            inverse_of: :post_type
     has_many :field_group_taxonomy, -> { where('object_class LIKE ?', 'PostType_%') },
-             class_name: 'CamaleonCms::CustomField', foreign_key: :objectid, dependent: :destroy
+             class_name: 'CamaleonCms::CustomField', foreign_key: :objectid, dependent: :destroy, inverse_of: :owner
 
-    belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, optional: true
-    belongs_to :site, foreign_key: :parent_id, optional: true
+    belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, optional: true,
+                       inverse_of: :post_type_owners
+    belongs_to :site, foreign_key: :parent_id, optional: true, inverse_of: :post_types
 
     scope :visible_menu, -> { where(term_group: nil) }
     scope :hidden_menu, -> { where(term_group: -1) }

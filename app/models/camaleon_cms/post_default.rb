@@ -11,6 +11,26 @@ module CamaleonCms
       end
     end
 
+    # Point Rails to use the post_class column for Native STI
+    self.inheritance_column = :post_class
+
+    # Controls Writing: Strip 'CamaleonCms::' when saving to DB
+    # "CamaleonCms::Widget::Assigned" -> "Widget::Assigned"
+    # "CamaleonCms::Post" -> "Post"
+    def self.sti_name
+      name.sub(/^CamaleonCms::/, '')
+    end
+
+    # Controls Reading: Prepend 'CamaleonCms::' when pulling from DB
+    # "Widget::Assigned" -> "CamaleonCms::Widget::Assigned"
+    # "Post" -> "CamaleonCms::Post"
+    def self.find_sti_class(type_name)
+      full_class_name = type_name.start_with?('CamaleonCms::') ? type_name : "CamaleonCms::#{type_name}"
+      full_class_name.constantize
+    rescue NameError
+      super
+    end
+
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}posts"
 
     # attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value,
@@ -63,7 +83,7 @@ module CamaleonCms
       CamaleonCms::NavMenuItem.where(url: id, kind: 'post')
     end
 
-    # Set the meta, field values and the post keywords here
+    # Set the meta-field values and the post keywords here
     def set_params(meta, custom_fields, options)
       set_metas(meta)
       set_field_values(custom_fields)
