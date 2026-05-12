@@ -11,7 +11,7 @@
 // about supported directives.
 //
 //= require jquery3
-//= require sortablejs/Sortable
+//= require camaleon_cms/admin/_sortable
 //= require camaleon_cms/admin/_awesomplete
 //= require camaleon_cms/admin/_data
 //= require camaleon_cms/bootstrap.min
