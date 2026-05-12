@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2018_07_04_211100) do
+ActiveRecord::Schema.define(version: 2018_07_04_211100) do
   create_table "comments", force: :cascade do |t|
     t.string "agent"
     t.string "approved", default: "pending"
@@ -196,7 +196,6 @@ end
 # - After schema load, we mark every engine migration file under `db/migrate` as applied
 #   in `schema_migrations` if it is missing.
 # - This keeps `db:migrate:status` and pending migration checks consistent after test runs.
-
 engine_migration_versions = Dir[File.expand_path('../../../db/migrate/*.rb', __dir__)].map do |path|
   File.basename(path).split('_', 2).first
 end.sort
