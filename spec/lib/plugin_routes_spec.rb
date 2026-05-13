@@ -128,4 +128,164 @@ RSpec.describe PluginRoutes do
       expect { described_class.class_variable_get(:@@cache) }.to raise_error(NameError)
     end
   end
+
+  describe '.will_restart?' do
+    it 'returns false in test environment' do
+      allow(Rails.env).to receive(:test?).and_return(true)
+      expect(described_class.will_restart?).to be false
+    end
+
+    it 'returns false when not in ruby engine' do
+      stub_const('RUBY_ENGINE', 'jruby')
+      expect(described_class.will_restart?).to be false
+    end
+  end
+
+  describe 'private server restart methods' do
+    describe '#clustered_mode?' do
+      it 'returns false by default in test environment' do
+        # In test env, clustered_mode? may return false
+        expect(described_class.send(:clustered_mode?)).to be false
+      end
+    end
+
+    describe '#find_master_pid' do
+      it 'returns ppid if no pid files exist' do
+        allow(Rails.root).to receive(:join).and_return('/fake/path')
+        allow(File).to receive(:exist?).and_return(false)
+        allow(Process).to receive(:ppid).and_return(123)
+        expect(described_class.send(:find_master_pid)).to eq(123)
+      end
+    end
+
+    describe '#trigger_server_restart_if_clustered' do
+      before do
+        described_class.remove_instance_variable(:@clustered_mode) if described_class.instance_variable_defined?(:@clustered_mode)
+      end
+
+      after do
+        described_class.remove_instance_variable(:@clustered_mode) if described_class.instance_variable_defined?(:@clustered_mode)
+      end
+
+      it 'sends SIGUSR1 to master pid for Puma in clustered mode (phased restart)' do
+        puma_mod = Module.new do
+          def self.stats; end
+        end
+        stub_const('Puma', puma_mod)
+        allow(Puma).to receive(:stats).and_return('{"workers":2}')
+        allow(Puma).to receive(:respond_to?).with(:cli_config).and_return(false)
+        allow(described_class).to receive(:find_master_pid).and_return(12_345)
+
+        expect(Process).to receive(:kill).with('SIGUSR1', 12_345)
+
+        described_class.send(:trigger_server_restart_if_clustered)
+      end
+
+      it 'sends SIGUSR2 to master pid for Puma with preload_app (hot restart)' do
+        puma_mod = Module.new do
+          def self.stats; end
+
+          def self.cli_config; end
+        end
+        stub_const('Puma', puma_mod)
+        cli_config_klass = Struct.new(:options)
+        cli_config = instance_double(cli_config_klass, options: { preload_app: true })
+        allow(Puma).to receive_messages(stats: '{"workers":2}', cli_config: cli_config)
+        allow(described_class).to receive(:find_master_pid).and_return(12_345)
+
+        expect(Process).to receive(:kill).with('SIGUSR2', 12_345)
+
+        described_class.send(:trigger_server_restart_if_clustered)
+      end
+
+      it 'does not send signal when not in clustered mode' do
+        allow(Process).to receive(:ppid).and_return(1)
+
+        expect(Process).not_to receive(:kill)
+
+        described_class.send(:trigger_server_restart_if_clustered)
+      end
+
+      it 'logs error when Process.kill fails' do
+        puma_mod = Module.new do
+          def self.stats; end
+        end
+        stub_const('Puma', puma_mod)
+        allow(Puma).to receive(:stats).and_return('{"workers":2}')
+        allow(Puma).to receive(:respond_to?).with(:cli_config).and_return(false)
+        allow(described_class).to receive(:find_master_pid).and_return(99_999)
+        allow(Process).to receive(:kill).and_raise(Errno::ESRCH, 'No such process')
+
+        expect(Rails.logger).to receive(:error).with(/Could not trigger server restart/)
+
+        described_class.send(:trigger_server_restart_if_clustered)
+      end
+    end
+  end
+
+  describe '.reload (restart scheduling)' do
+    after do
+      described_class.instance_variable_set(:@restart_pending, false)
+    end
+
+    context 'when will_restart? is true' do
+      before do
+        allow(described_class).to receive(:will_restart?).and_return(true)
+      end
+
+      it 'schedules restart via after_all_transactions_commit' do
+        # after_all_transactions_commit fires immediately when no transaction is open
+        expect(described_class).to receive(:trigger_server_restart_if_clustered).once
+
+        described_class.reload
+      end
+
+      it 'does not call reload_local on first call' do
+        allow(described_class).to receive(:trigger_server_restart_if_clustered)
+
+        expect(described_class).not_to receive(:reload_local)
+
+        described_class.reload
+      end
+
+      it 'falls back to reload_local on subsequent calls while restart is pending' do
+        # Simulate a pending restart by setting the flag
+        described_class.instance_variable_set(:@restart_pending, true)
+
+        expect(described_class).to receive(:reload_local).once
+
+        described_class.reload
+      end
+
+      it 'calls trigger_server_restart_if_clustered only once for multiple reloads in a transaction' do
+        expect(described_class).to receive(:trigger_server_restart_if_clustered).once
+        expect(described_class).to receive(:reload_local).twice
+
+        ActiveRecord::Base.transaction do
+          3.times { described_class.reload }
+        end
+      end
+
+      it 'clears restart_pending after transactions commit' do
+        allow(described_class).to receive(:trigger_server_restart_if_clustered)
+
+        ActiveRecord::Base.transaction do
+          described_class.reload
+          expect(described_class.instance_variable_get(:@restart_pending)).to be true
+        end
+
+        # After commit, the flag should be cleared
+        expect(described_class.instance_variable_get(:@restart_pending)).to be false
+      end
+    end
+
+    it 'skips nested calls via reloading guard' do
+      expect(described_class).to receive(:reload_local).once do
+        # Simulate a nested reload call (e.g. from a model callback triggered during reload)
+        described_class.reload
+      end
+
+      described_class.reload
+    end
+  end
 end

@@ -44,13 +44,15 @@ module CamaleonCms
 
         def create
           @site = CamaleonCms::Site.new(site_params)
-          if @site.save
-            save_metas(@site)
-            site_after_install(@site, @site.get_theme_slug)
-            flash[:notice] = t('camaleon_cms.admin.sites.message.created')
-            redirect_to action: :index
-          else
-            new
+          CamaleonCms::Site.transaction do
+            if @site.save
+              save_metas(@site)
+              site_after_install(@site, @site.get_theme_slug)
+              flash[:notice] = t('camaleon_cms.admin.sites.message.created')
+              redirect_to action: :index
+            else
+              new
+            end
           end
         end
 

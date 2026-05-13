@@ -2,7 +2,9 @@
 
 require 'json'
 require 'monitor'
+require 'fileutils'
 
+# rubocop:disable Metrics/ClassLength
 class PluginRoutes
   class << self
     # return plugin information
@@ -162,14 +164,43 @@ class PluginRoutes
       res
     end
 
-    # reload routes (thread-safe)
+    # reload routes (thread-safe) and trigger server restart in multi-process mode.
+    # Uses a reloading guard to prevent nested calls (e.g. reload triggers
+    # route loading which fires model callbacks that call reload again).
+    # When will_restart? is true, defers the server restart until after all
+    # transactions commit (Rails 7.2+ ActiveRecord.after_all_transactions_commit).
+    # A Mutex ensures only one restart is scheduled; subsequent calls during
+    # the pending window fall back to reload_local.
     def reload
+      return if @reloading
+
+      @reloading = true
+      begin
+        if will_restart?
+          schedule_restart_after_commit
+        else
+          reload_local
+        end
+      ensure
+        @reloading = false
+      end
+    end
+
+    # reload routes locally without server restart (for use in view helpers, model callbacks, etc.)
+    def reload_local
       reload_monitor.synchronize do
         @all_sites = nil
         cache.clear
         Rails.application.reload_routes!
         after_reload_callbacks.uniq.each(&:call)
       end
+    end
+
+    # Check if calling reload will trigger a server restart (multi-process mode)
+    def will_restart?
+      return false if Rails.env.test?
+
+      RUBY_ENGINE == 'ruby' && clustered_mode?
     end
 
     # Add a callable (Proc/Lambda) to run after routes reload; strings are not supported.
@@ -456,6 +487,75 @@ class PluginRoutes
     def cache
       @cache ||= {}
     end
+
+    def schedule_restart_after_commit
+      restart_monitor.synchronize do
+        if @restart_pending
+          # Restart already scheduled; just refresh routes locally
+          reload_local
+        else
+          @restart_pending = true
+          ActiveRecord.after_all_transactions_commit do
+            restart_monitor.synchronize do
+              @restart_pending = false
+            end
+            trigger_server_restart_if_clustered
+          end
+        end
+      end
+    end
+
+    def restart_monitor
+      @restart_monitor ||= Monitor.new
+    end
+
+    def trigger_server_restart_if_clustered
+      return unless RUBY_ENGINE == 'ruby'
+      return unless clustered_mode?
+
+      master_pid = find_master_pid
+      if defined?(Puma)
+        is_preloaded = Puma.respond_to?(:cli_config) && Puma.cli_config&.options&.fetch(:preload_app, false)
+        signal = is_preloaded ? 'SIGUSR2' : 'SIGUSR1'
+        Process.kill(signal, master_pid)
+      elsif defined?(Unicorn) || defined?(Pitchfork)
+        Process.kill('HUP', master_pid)
+      elsif defined?(PhusionPassenger)
+        FileUtils.touch(Rails.root.join('tmp', 'restart.txt'))
+      elsif defined?(Falcon)
+        Process.kill('HUP', master_pid)
+      end
+    rescue StandardError => e
+      Rails.logger.error "Could not trigger server restart: #{e.message}"
+    end
+
+    def clustered_mode?
+      return @clustered_mode if defined?(@clustered_mode)
+
+      @clustered_mode = if defined?(Puma)
+                          stats = begin
+                            JSON.parse(Puma.stats)
+                          rescue StandardError
+                            {}
+                          end
+                          stats.key?('workers') || stats.fetch('worker_status', []).present?
+                        elsif defined?(Unicorn) || defined?(Pitchfork)
+                          Process.ppid != 1 && Process.ppid != Process.pid
+                        elsif defined?(PhusionPassenger)
+                          true
+                        else
+                          Process.ppid > 1
+                        end
+    end
+
+    def find_master_pid
+      ['tmp/pids/server.pid', 'tmp/pids/puma.pid', 'tmp/pids/unicorn.pid'].each do |path|
+        full_path = Rails.root.join(path)
+        return File.read(full_path).to_i if File.exist?(full_path)
+      end
+      Process.ppid
+    end
   end
 end
+# rubocop:enable Metrics/ClassLength
 CamaManager = PluginRoutes

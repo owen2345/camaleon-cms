@@ -35,7 +35,13 @@
                         <td>
                             <%= link_to raw('<i class="fa fa-eye"></i>'), item.the_url, class: "btn btn-primary btn-xs", title: "#{t('camaleon_cms.common.visit')}", target: '_blank' %>
                             <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
-                            <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" unless item.get_option('not_deleted', false) %>
+                            <% unless item.get_option('not_deleted', false) %>
+                              <% if PluginRoutes.will_restart? %>
+                                <a href="#" data-restart-confirm="true" data-delete-url="<%= url_for(action: :destroy, id: item.id) %>" class="btn btn-danger btn-xs" title="<%= t('camaleon_cms.admin.button.delete') %>"><i class="fa fa-times"></i></a>
+                              <% else %>
+                                <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: item.id }, method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" %>
+                              <% end %>
+                            <% end %>
                         </td>
                     </tr>
                 <% end %>
@@ -53,3 +59,5 @@
 
   <!-- END PAGE CONTENT WRAPPER -->
 </div>
+
+<%= render 'camaleon_cms/admin/shared/server_restart_modal' %>

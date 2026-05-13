@@ -16,7 +16,6 @@ module CamaleonCms
           plugin = plugin_install(params[:id])
           flash[:notice] = "Plugin \"#{plugin.title}\" #{t('camaleon_cms.admin.message.was_activated')}"
         end
-        PluginRoutes.reload
         redirect_to action: :index
       end
 
@@ -24,7 +23,6 @@ module CamaleonCms
       def upgrade
         plugin = plugin_upgrade(params[:plugin_id])
         flash[:notice] = "Plugin \"#{plugin.title}\" #{t('camaleon_cms.admin.message.was_upgraded')}"
-        PluginRoutes.reload
         redirect_to action: :index
       end
 

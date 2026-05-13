@@ -12,7 +12,7 @@ module CamaleonCms
       args[:format] = args[:format] || 'html'
       as_path = args.delete(:as_path)
       route = "cama_post_type_#{id}_#{as_path.present? ? 'path' : 'url'}"
-      PluginRoutes.reload unless Rails.application.routes.url_helpers.method_defined?(route.to_sym)
+      PluginRoutes.reload_local unless Rails.application.routes.url_helpers.method_defined?(route.to_sym)
       h.cama_url_to_fixed(route, args)
     end
 
