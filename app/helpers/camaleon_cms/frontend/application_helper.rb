@@ -9,7 +9,7 @@ module CamaleonCms
       # add where conditionals to filter private/hidden/expired/drafts/unpublished
       # note: only for post records
       def verify_front_visibility(active_record)
-        active_record = active_record.visible_frontend
+        active_record = active_record.includes(:metas, :categories, post_type: :metas).visible_frontend
         r = { active_record: active_record }
         hooks_run('filter_post', r)
         r[:active_record]
