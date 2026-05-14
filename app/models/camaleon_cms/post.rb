@@ -20,8 +20,10 @@ module CamaleonCms
     has_many :children, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, dependent: :destroy,
                         primary_key: :id, inverse_of: :parent
 
-    belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, optional: true
-    belongs_to :parent, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, optional: true
+    belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, optional: true,
+                       inverse_of: :all_posts
+    belongs_to :parent, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, optional: true,
+                        inverse_of: :children
     belongs_to :post_type, foreign_key: :taxonomy_id, inverse_of: :posts, optional: true
 
     scope :visible_frontend, -> { where(status: 'published') }

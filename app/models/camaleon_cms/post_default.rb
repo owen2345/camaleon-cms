@@ -42,9 +42,11 @@ module CamaleonCms
     cattr_accessor :current_user
     cattr_accessor :current_site
 
-    has_many :term_relationships, foreign_key: :objectid, dependent: :destroy, primary_key: :id
     has_many :children, -> { where(post_class: 'PostDefault') },
-             class_name: 'CamaleonCms::PostDefault', foreign_key: :post_parent, dependent: :destroy, primary_key: :id
+             class_name: 'CamaleonCms::PostDefault', foreign_key: :post_parent, dependent: :destroy, inverse_of: :parent
+
+    belongs_to :parent, class_name: 'CamaleonCms::PostDefault', foreign_key: :post_parent, optional: true,
+                        inverse_of: :children
 
     scope :featured, -> { where(is_feature: true) }
 
@@ -67,9 +69,9 @@ module CamaleonCms
     end
 
     # return the parent of a post (support for sub contents or tree of posts)
-    def parent
-      CamaleonCms::Post.where(id: post_parent).first
-    end
+    # def parent
+    #   CamaleonCms::Post.where(id: post_parent).first
+    # end
 
     # return the author of this Content
     def author
