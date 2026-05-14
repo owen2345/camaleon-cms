@@ -74,6 +74,7 @@ module CamaleonCms
     scope :drafts, -> { where(status: %w[draft draft_child]) }
     scope :pending, -> { where(status: 'pending') }
     scope :latest, -> { reorder(created_at: :desc) }
+    scope :with_eager, -> { includes(:metas, :categories, post_type: :metas) }
 
     validates_with CamaleonCms::PostUniqValidator
     attr_accessor :show_title_with_parent
