@@ -73,7 +73,7 @@ module CamaleonCms
           cat_ids = current_site.full_categories.where(id: params[:categories]).pluck(:id)
           if p[:post_id].present? && (post = current_site.the_post(p[:post_id].to_i)).present?
             post.update_categories(cat_ids)
-            args = {}
+            args = { cat_ids: cat_ids }
           else
             post = CamaleonCms::Post.new
             post.taxonomy_id = current_site.the_post_type(p[:post_type].to_i)&.id
