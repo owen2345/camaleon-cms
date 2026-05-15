@@ -9,6 +9,8 @@ module ActionView
         if use_camaleon_partial_prefixes.present?
           if !partial && prefixes.blank? && File.exist?(name) # fix for windows ==> render file: '....'
             # puts "rendering specific file (render file: '....')"
+          elsif partial && name.match?(/\A(?:plugins|themes)\//)
+            # Full-root partial (plugins/..., themes/...) — normalize_name extracts correct prefix from the path itself
           else
             prefixes = [''] if prefixes.blank?
             prefixes = (self.prefixes + prefixes).uniq if prefixes.is_a?(Array)
@@ -21,8 +23,12 @@ module ActionView
       # fix to add camaleon prefixes on verify template exist
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
         if use_camaleon_partial_prefixes.present?
-          prefixes = [''] if prefixes.blank?
-          prefixes = (prefixes + self.prefixes).uniq if prefixes.is_a?(Array)
+          if partial && name.match?(/\A(?:plugins|themes)\//)
+            # Full-root partial (plugins/..., themes/...) — normalize_name extracts correct prefix from the path itself
+          else
+            prefixes = [''] if prefixes.blank?
+            prefixes = (prefixes + self.prefixes).uniq if prefixes.is_a?(Array)
+          end
         end
         @view_paths.exists?(*cama_args_for_lookup(name, prefixes, partial, keys, options))
       end

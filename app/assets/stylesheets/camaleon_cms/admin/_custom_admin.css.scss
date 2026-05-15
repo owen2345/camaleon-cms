@@ -3,12 +3,12 @@
   border: 1px solid #bbb;
   border-radius: 50%;
   color: #656d78;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   float: left;
   height: #{$radio}px;
-  line-height: #{$radio - 3}px;
   margin-left: 3px;
-  text-align: center;
   transition: all 200ms ease 0s;
   width: #{$radio}px;
 }
@@ -27,8 +27,9 @@
         float: right;
         list-style: outside none none;
         position: absolute;
-        right: 26px;
-        top: 5px;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
         li {
           float: left;
           a {
@@ -39,11 +40,37 @@
       > .btn{
         position: absolute;
         right: 26px;
-        top: 14px;
+        top: 50%;
+        transform: translateY(-50%);
       }
     }
     .panel-footer {
       overflow: hidden;
+    }
+
+    // Make panel-controls icons visible on colored panel backgrounds
+    &.panel-primary, &.panel-success, &.panel-warning, &.panel-info, &.panel-danger {
+      .panel-heading .panel-controls a {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.5);
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.2);
+          color: #fff;
+        }
+      }
+    }
+
+    // Light background panels: use dark icons instead of white
+    .panel-heading .panel-controls a.panel-controls-light {
+      color: #555;
+      border-color: rgba(0, 0, 0, 0.25);
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+        color: #333;
+      }
+      .fa {
+        color: #555;
+      }
     }
 
   }
@@ -199,6 +226,13 @@
   }
 }
 
+// SortableJS ghost placeholder during drag-and-drop
+.sortable-ghost {
+  opacity: 0.4;
+  background: #f4f4f4;
+  border: 1px dashed #ddd;
+}
+
 //************** Main Header && intro js custom
 #main-header{
   z-index: 4;
@@ -306,6 +340,22 @@ label.error, span.error{
 
 //************** Appearance
 
+// nav menus: selector row — select fills space, buttons right-aligned
+.cama-menu-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  select.form-control {
+    flex: 1 1 auto;
+  }
+
+  .cama-menu-actions {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
 // themes: index page
 .theme-card {
   border: 1px
@@ -367,5 +417,37 @@ label.error, span.error{
         font-size: 1.1rem;
       }
     }
+  }
+}
+
+//************** Quick Info panel (user edit)
+.quick-info {
+  dl {
+    margin: 12px 0 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  dt {
+    float: left;
+    clear: left;
+    width: auto;
+    margin: 0;
+    padding: 4px 8px 4px 0;
+    font-weight: 600;
+    color: #555;
+    font-size: 12px;
+    &:after {
+      content: ":";
+    }
+  }
+  dd {
+    margin: 0;
+    padding: 4px 0;
+    color: #333;
+    font-size: 12px;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

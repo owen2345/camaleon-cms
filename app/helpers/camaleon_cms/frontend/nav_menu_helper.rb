@@ -171,7 +171,7 @@ module CamaleonCms
         res = []
         is_current_parent = false
         levels = [0]
-        items.reorder(:term_order).each_with_index do |nav_menu_item, index|
+        items.eager_load(:metas).reorder(:term_order).each_with_index do |nav_menu_item, index|
           data_nav_item = cama_parse_menu_item(nav_menu_item)
           next if data_nav_item == false
 

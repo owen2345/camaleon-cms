@@ -31,13 +31,11 @@ window.cama_init_media = function(mediaPanel) {
     mediaInfoTabInfo.click()
     let tpl =
       "<div class='p_thumb'></div>" +
-        "<div class='p_label'><b>" + I18n('button.name') + ': </b><br> <span>' + data.name + '</span></div>' +
-        "<div class='p_body'>" +
-        "<div style='overflow: auto'><b>" +
-        I18n('button.url') + ":</b><br> <a target='_blank' href='" + data.url + "'>" + data.url + '</a></div>' +
-        '<div><b>' + I18n('button.size') + ':</b> <span>' +
-        window.camaHumanFileSize(parseFloat(data.file_size)) + '</span></div>' +
-        '</div>'
+        "<dl class='p_meta'>" +
+        "<dt>" + I18n('button.name') + "</dt><dd>" + data.name + '</dd>' +
+        "<dt>" + I18n('button.url') + "</dt><dd><a target='_blank' href='" + data.url + "'>" + data.url + '</a></dd>' +
+        '<dt>' + I18n('button.size') + "</dt><dd>" + window.camaHumanFileSize(parseFloat(data.file_size)) + '</dd>' +
+        '</dl>'
 
     if (window.callback_media_uploader) {
       if (
@@ -68,8 +66,8 @@ window.cama_init_media = function(mediaPanel) {
       const drawImage = function() {
         const ww = parseInt(data.dimension.split('x')[0])
         const hh = parseInt(data.dimension.split('x')[1])
-        mediaInfo.find('.p_body').append(
-          "<div class='cdimension'><b>" + I18n('button.dimension') + ': </b><span>' + ww + 'x' + hh + '</span></div>'
+        mediaInfo.find('.p_meta').append(
+          '<dt>' + I18n('button.dimension') + "</dt><dd>" + ww + 'x' + hh + '</dd>'
         )
 
         if (mediaPanel.attr('data-dimension')) { // verify dimensions
@@ -77,13 +75,13 @@ window.cama_init_media = function(mediaPanel) {
           btn.prop('disabled', true)
           const _ww = parseInt(mediaPanel.attr('data-dimension').split('x')[0]) || ww
           const _hh = parseInt(mediaPanel.attr('data-dimension').split('x')[1]) || hh
-          mediaInfo.find('.cdimension')
+          mediaInfo.find('.p_meta dd:last')
             .append("<span style='color: black'> ==> " + mediaPanel.attr('data-dimension') + '</span>')
 
           if ((_ww === ww) && (_hh === hh))
             return btn.prop('disabled', false)
           else {
-            mediaInfo.find('.cdimension').css('color', 'red')
+            mediaInfo.find('.p_meta dd:last').css('color', 'red')
             const cut = $("<button class='btn btn-info pull-right'><i class='fa fa-crop'></i> " +
                           I18n('button.auto_crop') + '</button>').click(function() {
               const cropName = data.name.split('.')
@@ -191,7 +189,7 @@ window.cama_init_media = function(mediaPanel) {
     mediaPanel.trigger('navigate_to', { folder: f })
     return $('body').attr('data-last-folder', f) // remembers last opened folder on current page
   })
-  mediaPanel.bind('update_breadcrumb', function() {
+  mediaPanel.on('update_breadcrumb', function() {
     let folderItems
     const folder = mediaPanel.attr('data-folder').replace('//', '/')
     const folderPrefix = []
@@ -221,7 +219,7 @@ window.cama_init_media = function(mediaPanel) {
   // # end folders
 
   // ######## folder navigation
-  mediaPanel.bind('navigate_to', function(e, data) {
+  mediaPanel.on('navigate_to', function(e, data) {
     if (data.folder)
       mediaPanel.attr('data-folder', data.folder)
 
@@ -255,7 +253,7 @@ window.cama_init_media = function(mediaPanel) {
       mediaFilesPanel.attr('data-next-page', res.next_page)
       return hideLoading()
     })
-  }).bind('add_file', function(e, data) {
+  }).on('add_file', function(e, data) {
     // add html item in the list
     const item = $(data.item).hide()
     const lastFolder = mediaFilesPanel.children('.folder_item:last')
@@ -350,7 +348,7 @@ window.cama_init_media = function(mediaPanel) {
           return mediaInfo.html('')
         }
       }
-    ).error(() => $.fn.alert({ type: 'error', content: I18n('msg.internal_error'), title: I18n('button.error') }))
+    ).fail(() => $.fn.alert({ type: 'error', content: I18n('msg.internal_error'), title: I18n('button.error') }))
     return false
   })
 
@@ -454,7 +452,7 @@ window.cama_init_media = function(mediaPanel) {
 
       // show cropper image
       showLoading()
-      return modal.find('img.editable').load(() => setTimeout(function() {
+      return modal.find('img.editable').on('load', () => setTimeout(function() {
         const label = modal.find('.label_dimension')
         cropperData = {
           data: {},
@@ -470,7 +468,7 @@ window.cama_init_media = function(mediaPanel) {
           },
           built() {
             return $.get(data.url)
-              .error(
+              .fail(
                 () => modal.find('.modal-body')
                   .html(
                     '<div class="alert alert-danger">' +
@@ -590,7 +588,7 @@ $(() =>
           return data.callback(resUpload)
       } else
         return $.fn.alert({ type: 'error', content: resUpload, title: I18n('button.error') })
-    }).error(() => $.fn.alert({ type: 'error', content: I18n('msg.internal_error'), title: I18n('button.error') }))
+    }).fail(() => $.fn.alert({ type: 'error', content: I18n('msg.internal_error'), title: I18n('button.error') }))
   }
 )
 

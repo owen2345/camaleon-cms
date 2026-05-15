@@ -74,29 +74,28 @@ jQuery(function($){
             $(this).prepend(td_new);
         });
 
-        $table.find('tbody').sortable({
-            axis: "y",
-            placeholder: "ui-state-highlight",
+        var startPos = null;
+        new Sortable($table.find('tbody')[0], {
+            animation: 150,
             handle: ".moved",
-            //items: "tr:not(.sortable)",
-            items: "tr",
-            start: function(event, ui) {
-                ui.item.startPos = ui.item.index();
+            draggable: "tr",
+            ghostClass: "sortable-ghost",
+            onSort: function(evt) {
+                if(options.on_change) options.on_change();
             },
-            stop: function( event, ui ) {
+            onStart: function(evt) {
+                startPos = evt.oldIndex;
+            },
+            onEnd: function(evt) {
                 $.post(options.url, $table.find("input" ).serialize(), function(res){
-                    if(ui.item.startPos != ui.item.index()){
-                        if(options.on_success) options.on_success({res: res, item: ui.item})
+                    if(startPos != evt.newIndex){
+                        if(options.on_success) options.on_success({res: res, item: $(evt.item)})
                     }
                 }).fail(function() {
-                    if(options.on_success) options.on_success({res: {error: 'Error Server'}, item: ui.item})
+                    if(options.on_success) options.on_success({res: {error: 'Error Server'}, item: $(evt.item)})
                 });
-            },
-            change: function(event, ui) {
-                if(options.on_change) options.on_change()
             }
         });
-        $table.find('tbody').disableSelection();
     };
 
     $('#table_custom_groups').table_order({url: '<%= reorder_cama_admin_settings_custom_fields_path %>', on_success: function(obj){

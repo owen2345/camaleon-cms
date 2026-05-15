@@ -97,7 +97,7 @@ module CamaleonCms
             item.update(parent_id: parent_id, term_order: index)
             reorder_items(_item['children'], _item['id'], false) if _item['children'].present?
           end
-          render(inline: '') if is_root
+          head :ok if is_root
         end
 
         # add items to specific nav-menu
