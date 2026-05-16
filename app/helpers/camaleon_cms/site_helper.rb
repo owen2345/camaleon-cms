@@ -3,9 +3,9 @@ module CamaleonCms
     # return current site or assign a site as a current site
     def current_site(site = nil)
       if site.present?
-        @current_site = site.decorate
-        CurrentRequest.site = @current_site
-        return @current_site
+        CurrentRequest.site = site.decorate
+        CurrentRequest.frontend_current_theme = nil
+        return CurrentRequest.site
       end
 
       if defined?($current_site)
@@ -13,10 +13,7 @@ module CamaleonCms
         return $current_site
       end
 
-      if defined?(@current_site) && @current_site.present?
-        CurrentRequest.site = @current_site
-        return @current_site
-      end
+      return CurrentRequest.site if CurrentRequest.site.present?
 
       if PluginRoutes.get_sites.size == 1
         site = begin
@@ -50,13 +47,21 @@ module CamaleonCms
             .cama_log_style(:red)
         )
       end
-      @current_site = r[:site]
-      CurrentRequest.site = @current_site
+      CurrentRequest.site = r[:site]
+      CurrentRequest.frontend_current_theme = nil
+      CurrentRequest.site
     end
 
     # return current theme model for current site
     def current_theme
-      @_current_theme ||= current_site.get_theme.decorate
+      return CurrentRequest.frontend_current_theme if CurrentRequest.frontend_current_theme.present?
+
+      theme = if instance_variable_defined?(:@_current_theme) && instance_variable_get(:@_current_theme).present?
+                instance_variable_get(:@_current_theme)
+              else
+                current_site.get_theme.decorate
+              end
+      CurrentRequest.frontend_current_theme = theme
     end
 
     # get list templates files of current theme

@@ -15,7 +15,7 @@ module CamaleonCms
       #   the_post('first-blog-post')
       # end
       def the_post(slug)
-        post = @object.the_post(slug)
+        post = camaleon_frontend_object.the_post(slug)
         process_in_block(post) { yield(post) if block_given? }
         post
       end
@@ -29,7 +29,7 @@ module CamaleonCms
       #   the_posts(limit: 10)
       # end
       def the_posts(options = {})
-        @object.posts.visible_frontend.limit(options[:limit]).decorate
+        camaleon_frontend_object.posts.visible_frontend.limit(options[:limit]).decorate
       end
 
       # select post type by just pass slug to parameter
@@ -53,7 +53,7 @@ module CamaleonCms
       #   the_comments
       # end
       def the_comments(options = {})
-        @object.comments.limit(options[:limit]).decorate if @object.present?
+        camaleon_frontend_object.comments.limit(options[:limit]).decorate if camaleon_frontend_object.present?
       end
 
       # select title of post
@@ -61,7 +61,7 @@ module CamaleonCms
       #   the_title
       # end
       def the_title
-        @object&.the_title
+        camaleon_frontend_object&.the_title
       end
 
       # select content of post
@@ -69,7 +69,7 @@ module CamaleonCms
       #   the_content
       # end
       def the_content
-        sanitize(@object.the_content) if @object.present?
+        sanitize(camaleon_frontend_object.the_content) if camaleon_frontend_object.present?
       end
 
       # select url of post
@@ -77,7 +77,7 @@ module CamaleonCms
       #   the_url
       # end
       def the_url
-        @object&.the_url
+        camaleon_frontend_object&.the_url
       end
 
       # select thumbnail of post
@@ -85,7 +85,7 @@ module CamaleonCms
       #   the_thumbnail
       # end
       def the_thumbnail
-        @object&.the_thumb_url
+        camaleon_frontend_object&.the_thumb_url
       end
 
       # select slug of post, post type ... (@object)
@@ -93,7 +93,7 @@ module CamaleonCms
       #   the_slug
       # end
       def the_slug
-        @object&.the_slug
+        camaleon_frontend_object&.the_slug
       end
 
       # select excerpt of post
@@ -101,7 +101,7 @@ module CamaleonCms
       #   the_excerpt
       # end
       def the_excerpt(chars = 200)
-        @object&.the_excerpt(chars)
+        camaleon_frontend_object&.the_excerpt(chars)
       end
 
       # select custome field from object
@@ -109,7 +109,7 @@ module CamaleonCms
       #   the_field('extra-content')
       # end
       def the_field(slug)
-        @object&.the_field(slug)
+        camaleon_frontend_object&.the_field(slug)
       end
 
       # loop through each post of post type
@@ -153,10 +153,23 @@ module CamaleonCms
       #   the_field('extra-content')
       # end
       def process_in_block(object)
-        temp_object = @object
-        @object     = object
+        temp_object = CurrentRequest.frontend_object
+        temp_object = instance_variable_get(:@object) if temp_object.nil? && instance_variable_defined?(:@object)
+        CurrentRequest.frontend_object = object
         yield
-        @object = temp_object
+      ensure
+        CurrentRequest.frontend_object = temp_object
+      end
+
+      private
+
+      def camaleon_frontend_object
+        object = CurrentRequest.frontend_object
+        return object if object.present?
+
+        return instance_variable_get(:@object) if instance_variable_defined?(:@object)
+
+        nil
       end
     end
   end

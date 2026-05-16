@@ -9,48 +9,48 @@ module CamaleonCms
       # return current url visited as path
       # http://localhost:9001/category/cat-post-2  => /category/cat-post-2
       def site_current_path
-        @_site_current_path ||= site_current_url.sub(cama_root_url(locale: nil), '/')
+        CurrentRequest.frontend_site_current_path ||= site_current_url.sub(cama_root_url(locale: nil), '/')
       end
 
       # **************** section is a? ****************#
       # check if current section visited is home page
       def is_home?
-        @cama_visited_home.present?
+        camaleon_frontend_visited_state(:frontend_visited_home, :@cama_visited_home).present?
       end
 
       # check if current section visited is for post
       def is_page?
-        @cama_visited_post.present?
+        camaleon_frontend_visited_state(:frontend_visited_post, :@cama_visited_post).present?
       end
 
       # check if current section visited is for ajax
       def is_ajax?
-        @cama_visited_ajax.present?
+        camaleon_frontend_visited_state(:frontend_visited_ajax, :@cama_visited_ajax).present?
       end
 
       # check if current section visited is for search
       def is_search?
-        @cama_visited_search.present?
+        camaleon_frontend_visited_state(:frontend_visited_search, :@cama_visited_search).present?
       end
 
       # check if current section visited is for post type
       def is_post_type?
-        @cama_visited_post_type.present?
+        camaleon_frontend_visited_state(:frontend_visited_post_type, :@cama_visited_post_type).present?
       end
 
       # check if current section visited is for post tag
       def is_post_tag?
-        @cama_visited_tag.present?
+        camaleon_frontend_visited_state(:frontend_visited_tag, :@cama_visited_tag).present?
       end
 
       # check if current section visited is for category
       def is_category?
-        @cama_visited_category.present?
+        camaleon_frontend_visited_state(:frontend_visited_category, :@cama_visited_category).present?
       end
 
       # check if visited page is user profile (frontend)
       def is_profile?
-        @cama_visited_profile == true
+        camaleon_frontend_visited_state(:frontend_visited_profile, :@cama_visited_profile) == true
       end
 
       # **************** end section is a? ****************#
@@ -71,6 +71,19 @@ module CamaleonCms
           ].compact,
           "\n"
         )
+      end
+
+      private
+
+      def camaleon_frontend_visited_state(current_request_attr, legacy_ivar)
+        value = CurrentRequest.public_send(current_request_attr)
+        return value unless value.nil?
+
+        return unless instance_variable_defined?(legacy_ivar)
+
+        value = instance_variable_get(legacy_ivar)
+        CurrentRequest.public_send("#{current_request_attr}=", value)
+        value
       end
     end
   end

@@ -150,18 +150,9 @@ Naming/VariableNumber:
 # Offense count: 160
 Rails/HelperInstanceVariable:
   Exclude:
-    - 'app/helpers/camaleon_cms/admin/custom_fields_helper.rb'
-    - 'app/helpers/camaleon_cms/admin/menus_helper.rb'
-    - 'app/helpers/camaleon_cms/admin/post_type_helper.rb'
-    - 'app/helpers/camaleon_cms/camaleon_helper.rb'
-    - 'app/helpers/camaleon_cms/comment_helper.rb'
-    - 'app/helpers/camaleon_cms/frontend/content_select_helper.rb'
     - 'app/helpers/camaleon_cms/frontend/nav_menu_helper.rb'
-    - 'app/helpers/camaleon_cms/frontend/seo_helper.rb'
-    - 'app/helpers/camaleon_cms/frontend/site_helper.rb'
     - 'app/helpers/camaleon_cms/session_helper.rb'
     - 'app/helpers/camaleon_cms/short_code_helper.rb'
-    - 'app/helpers/camaleon_cms/site_helper.rb'
 
 # Offense count: 2
 Security/Eval:
