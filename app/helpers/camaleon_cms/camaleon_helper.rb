@@ -8,7 +8,11 @@ module CamaleonCms
       return '' unless cama_current_user.admin?
 
       attrs = { target: '_blank', style: 'font-size:11px !important;cursor:pointer;' }.merge(attrs)
-      ActionController::Base.helpers.link_to("&rarr; #{title || ct('edit', default: 'Edit')}".html_safe, url, attrs)
+      link_to(
+        safe_join(['→ ', title || ct('edit', default: 'Edit')]),
+        url,
+        attrs
+      )
     end
 
     # execute controller action and return response

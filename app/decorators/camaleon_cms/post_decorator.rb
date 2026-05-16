@@ -148,7 +148,7 @@ module CamaleonCms
       return '' if h.cama_current_user.blank?
 
       attrs = { target: '_blank', style: 'font-size:11px !important;cursor:pointer;' }.merge!(attrs)
-      h.link_to("&rarr; #{title || h.ct('edit', default: 'Edit')}".html_safe, the_edit_url, attrs)
+      h.link_to(h.safe_join(['→ ', title || h.ct('edit', default: 'Edit')]), the_edit_url, attrs)
     end
 
     # show thumbnail image as html
@@ -262,10 +262,9 @@ module CamaleonCms
     def the_hierarchy_title
       return the_title if object.post_parent.blank?
 
-      res = '&#8212;' * object.parents.count
-      res << " #{the_title}"
-      res << " | #{object.parent.decorate.the_title}" if object.show_title_with_parent
-      res.html_safe
+      parts = [h.raw('&#8212;' * object.parents.count), h.sanitize(" #{the_title}")]
+      parts << h.sanitize(" | #{object.parent.decorate.the_title}") if object.show_title_with_parent
+      h.safe_join(parts)
     end
 
     # return all related posts of the current post

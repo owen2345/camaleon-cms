@@ -147,6 +147,32 @@ RSpec.describe CamaleonCms::Frontend::NavMenuHelper do
       end
     end
 
+    context 'with unsafe menu values' do
+      before do
+        @menu_item = create(
+          :nav_menu_item,
+          name: 'Embedded',
+          url: "/search?q=' onclick='alert(1)",
+          kind: 'external',
+          target: "_blank' rel='bad",
+          parent: @menu
+        )
+        allow(helper).to receive(:cama_parse_menu_item).and_return(
+          link: "/search?q=' onclick='alert(1)",
+          name: '<iframe src="https://example.test/embed"></iframe>',
+          current: false
+        )
+      end
+
+      it 'keeps trusted HTML labels while escaping attribute values' do
+        result = helper.cama_menu_draw_items(default_args, @menu.children.reorder(:term_order))
+
+        expect(result).to include('<iframe src="https://example.test/embed"></iframe>')
+        expect(result).to include("href='/search?q=&#39; onclick=&#39;alert(1)'")
+        expect(result).to include("target='_blank&#39; rel=&#39;bad'")
+      end
+    end
+
     context 'with before/after content' do
       before do
         @menu_item =

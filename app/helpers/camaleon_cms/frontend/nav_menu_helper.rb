@@ -115,7 +115,7 @@ module CamaleonCms
 
           item_attrs = []
           item_attrs << r[:item_container_attrs] if r[:item_container_attrs].present?
-          item_attrs << "class='#{item_class_str}'" if item_class_str.present?
+          item_attrs << "class='#{ERB::Util.html_escape(item_class_str)}'" if item_class_str.present?
           item_attrs_str = item_attrs.reject(&:blank?).join(' ')
 
           item_open = "<#{_args[:item_container]}"
@@ -124,18 +124,21 @@ module CamaleonCms
 
           link_attr_parts = []
           link_attr_parts << r[:link_attrs] if r[:link_attrs].present?
-          link_attr_parts << "target='#{nav_menu_item.target}'" if nav_menu_item.target.present?
-          link_attr_parts << "href='#{data_nav_item[:link]}'"
+          if nav_menu_item.target.present?
+            link_attr_parts << "target='#{ERB::Util.html_escape(nav_menu_item.target.to_s)}'"
+          end
+          link_attr_parts << "href='#{ERB::Util.html_escape(data_nav_item[:link].to_s)}'"
           link_classes = []
           link_classes << args[:link_current] if _is_current
           link_classes << _args[:link_class_parent] if has_children
           link_classes << _args[:link_class]
           link_class_str = link_classes.reject(&:blank?).join(' ')
-          link_attr_parts << "class='#{link_class_str}'" if link_class_str.present?
+          link_attr_parts << "class='#{ERB::Util.html_escape(link_class_str)}'" if link_class_str.present?
           link_attr_parts << "data-toggle='dropdown'" if has_children
           link_attrs_str = link_attr_parts.reject(&:blank?).join(' ')
 
-          link_inner = [_args[:before], data_nav_item[:name], _args[:after]].reject(&:blank?).join('')
+          # Menu labels intentionally support trusted HTML snippets (icons, buttons, embeds) configured by site admins.
+          link_inner = [_args[:before], data_nav_item[:name].to_s, _args[:after]].reject(&:blank?).join('')
           link_tag = "<a #{link_attrs_str}>#{link_inner}</a>"
 
           item_inner = [
@@ -145,7 +148,9 @@ module CamaleonCms
             html_children
           ].reject(&:blank?).join('')
           item_html = "#{item_open}#{item_inner}</#{_args[:item_container]}>"
+          # rubocop:disable Rails/OutputSafety -- User-controlled fields are escaped before this trusted menu markup is marked safe.
           items_html << item_html.html_safe
+          # rubocop:enable Rails/OutputSafety
 
           index += 1
         end

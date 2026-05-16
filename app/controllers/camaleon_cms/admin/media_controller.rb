@@ -21,7 +21,7 @@ module CamaleonCms
         crop_path = cama_crop_image(path_image, params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
         res = upload_file(crop_path, { remove_source: true })
         CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', res['url']) if params[:saved_avatar].present?
-        render html: res['url'].html_safe
+        render plain: res['url'].to_s
       end
 
       # download private files

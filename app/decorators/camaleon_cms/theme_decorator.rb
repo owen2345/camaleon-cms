@@ -11,11 +11,11 @@ module CamaleonCms
       h.cama_admin_settings_theme_url(args)
     end
 
-    def the_settings_link
+    def the_settings_link(title = nil, attrs = {})
       return '' if h.cama_current_user.blank?
 
       attrs = { target: '_blank', style: 'font-size:11px !important;cursor:pointer;' }.merge(attrs)
-      h.link_to("&rarr; #{title || h.ct('edit', default: 'Edit')}".html_safe, the_settings_url, attrs)
+      h.link_to(h.safe_join(['→ ', title || h.ct('edit', default: 'Edit')]), the_settings_url, attrs)
     end
   end
 end

@@ -72,7 +72,9 @@ module CamaleonCms
 
     # return all scripts to be executed before import the js libraries(cama_draw_custom_assets)
     def cama_draw_pre_asset_contents
+      # rubocop:disable Rails/OutputSafety -- Callers append trusted script/style fragments that must render as markup.
       (@_pre_assets_content || []).join('').html_safe
+      # rubocop:enable Rails/OutputSafety
     end
 
     # return all js libraries added [aa.js, bb,js, ..]
@@ -95,7 +97,15 @@ module CamaleonCms
 
       args = { stylesheets: stylesheets, javascripts: javascripts, js_html: js, css_html: css }
       hooks_run('draw_custom_assets', args)
-      "#{args[:css_html]}\n#{args[:js_html]}\n#{@_assets_content.join('').html_safe}"
+      # rubocop:disable Rails/OutputSafety -- Asset helper output and appended fragments are trusted framework/plugin markup.
+      trusted_fragments = [args[:css_html], args[:js_html], *@_assets_content].filter_map do |fragment|
+        next if fragment.blank?
+
+        fragment.is_a?(ActiveSupport::SafeBuffer) ? fragment : fragment.to_s.html_safe
+      end
+      # rubocop:enable Rails/OutputSafety
+
+      safe_join(trusted_fragments, "\n")
     end
 
     # create an HTML tooltip to include anywhere

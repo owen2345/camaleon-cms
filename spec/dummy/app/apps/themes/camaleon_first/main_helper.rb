@@ -11,9 +11,7 @@ module Themes
 
       # return a list of options for "Recent items from " on site settings -> theme settings
       def camaleon_first_list_select
-        res = []
-        current_site.the_post_types.decorate.each { |p| res << "<option value='#{p.the_slug}'>#{p.the_title}</option>" }
-        res.join('').html_safe
+        safe_join(current_site.the_post_types.decorate.map { |p| content_tag(:option, p.the_title, value: p.the_slug) })
       end
 
       def camaleon_first_on_install_theme(theme)

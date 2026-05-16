@@ -16,13 +16,13 @@ module CamaleonCms
 
       # taxonomies ->  (categories || post_tags)
       def post_type_list_taxonomy(taxonomies, color = 'primary')
-        taxonomies.decorate.map do |f|
+        safe_join(taxonomies.decorate.map do |f|
           link_to(
             cama_admin_post_type_taxonomy_posts_path(@post_type.id, f.taxonomy, f.id), class: 'cama_ajax_request'
           ) do
             content_tag(:span, f.the_title, class: "label label-#{color} label-form")
           end
-        end.join(' ').html_safe
+        end, ' ')
       end
 
       # sort array of posts to build post's tree
@@ -59,7 +59,7 @@ module CamaleonCms
         end
 
         content_tag(:ul, class: class_cat) do
-          categories.decorate.map do |f|
+          items = categories.decorate.map do |f|
             content_tag(:li) do
               is_checked = Array(values).map(&:to_s).include?(f.id.to_s)
               input_options = {
@@ -71,12 +71,13 @@ module CamaleonCms
                             check_box_tag("#{name}[]", f.id, is_checked, input_options)
                           end
               res = content_tag(:label, class: 'class_slug', data: { post_link_edit: f.the_edit_url }) do
-                "#{input_tag} #{f.the_title} ".html_safe
+                safe_join([input_tag, ' ', f.the_title.to_s, ' '])
               end
               res << post_type_html_inputs(f, 'children', name, type, values, 'children') if f.children.present?
               res
             end
-          end.join.html_safe
+          end
+          safe_join(items)
         end + content_tag(:div, '', id: "validation_error_list_#{name}")
       end
     end
