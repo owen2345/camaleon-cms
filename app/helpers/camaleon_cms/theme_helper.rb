@@ -1,7 +1,9 @@
 module CamaleonCms
   module ThemeHelper
     def theme_init
-      @_front_breadcrumb = []
+      breadcrumb_items = []
+      camaleon_theme_state[:front_breadcrumb] = breadcrumb_items
+      instance_variable_set(:@_front_breadcrumb, breadcrumb_items)
     end
 
     # return theme full asset path
@@ -93,6 +95,12 @@ module CamaleonCms
       current_site.the_post(current_theme.get_field('home_page')) ||
         current_site.the_posts('page').first ||
         CamaleonCms::Post.new(title: 'Hello World!', content: 'Please add a page.', status: 'published')
+    end
+
+    private
+
+    def camaleon_theme_state
+      CurrentRequest.theme_helper_state ||= {}
     end
   end
 end
