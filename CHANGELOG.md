@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **Refactor:** Replace Phase 3 admin/menu/taxonomy helper instance-variable state with CurrentRequest-backed state, [#1178](https://github.com/owen2345/camaleon-cms/pull/1178)
+  - Refactors admin menus, post type, and custom fields helpers to use request-scoped CurrentRequest state
+  - Eliminates traversal stack and registry instance variables from admin/menus, taxonomy hierarchy, and custom field helpers
+  - Removes unused `cama_requestAction` method from camaleon_helper
+  - Keeps legacy taxonomy-list compatibility for call sites that omit `post_type`
+  - Adds comprehensive helper specs for menu management, hierarchy building, and field registry lifecycle, split per helper module
+
 - **Refactor:** Replace Phase 2 frontend helper context with CurrentRequest-backed state, [#1177](https://github.com/owen2345/camaleon-cms/pull/1177)
   - Refactors frontend content, SEO, and site helpers to use request-scoped CurrentRequest state
   - Preserves frontend object/block context, current path, current theme, and visited-state fallback behavior

@@ -15,26 +15,6 @@ module CamaleonCms
       )
     end
 
-    # execute controller action and return response
-    # NON USED
-    def cama_requestAction(controller, action, params = {})
-      controller.class_eval do
-        def params=(params)
-          @params = params
-        end
-
-        def params
-          @params
-        end
-      end
-      c = controller.new
-      c.request = @_request
-      c.response = @_response
-      c.params = params
-      c.send(action)
-      c.response.body
-    end
-
     # theme common translation text
     # key: key for translation
     # args: hash of arguments for i18n.t()
@@ -59,19 +39,20 @@ module CamaleonCms
 
     # generate loop categories html sitemap links
     # this is a helper for sitemap generator to print categories, sub categories and post contents in html list format
-    def cama_sitemap_cats_generator(cats)
+    def cama_sitemap_cats_generator(cats, skip_config = {})
+      skip_config = { skip_cat_ids: [], skip_post_ids: [] } unless skip_config.is_a?(Hash)
       res = []
       cats.decorate.each do |cat|
-        next if @r[:skip_cat_ids].include?(cat.id)
+        next if skip_config[:skip_cat_ids].include?(cat.id)
 
         res_posts = []
         cat.the_posts.decorate.each do |post|
-          next if @r[:skip_post_ids].include?(post.id)
+          next if skip_config[:skip_post_ids].include?(post.id)
 
           res_posts << "<li><a href='#{post.the_url}'>#{post.the_title}</a></li>"
         end
         res << "<li><h4><a href='#{cat.the_url}'>#{cat.the_title}</a></h4><ul>#{res_posts.join('')}</ul></li>"
-        res << cama_sitemap_cats_generator(cat.the_categories)
+        res << cama_sitemap_cats_generator(cat.the_categories, skip_config)
       end
       res.join('')
     end

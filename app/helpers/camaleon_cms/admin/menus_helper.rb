@@ -12,8 +12,8 @@ module CamaleonCms
           'dashboard',
           { icon: 'dashboard', title: t('camaleon_cms.admin.sidebar.dashboard'), url: cama_admin_dashboard_path }
         )
-        items = []
 
+        items = []
         current_site.post_types.eager_load(:metas).visible_menu.find_each do |pt|
           pt = pt.decorate
           items_i = []
@@ -37,6 +37,7 @@ module CamaleonCms
             items << { icon: pt.get_option('icon', 'copy'), title: pt.the_title, url: '', items: items_i }
           end
         end
+
         if items.present?
           admin_menu_add_menu(
             'content',
@@ -196,59 +197,63 @@ module CamaleonCms
       # - items: is a recursive array of the menus without a key
       # - datas: HTML data text for this menu item
       def admin_menu_add_menu(key, menu)
-        @_admin_menus[key] = menu
+        CurrentRequest.admin_menu_items ||= {}
+        CurrentRequest.admin_menu_items[key] = menu
       end
 
       # append sub menu to menu with a key = key
       # menu: is hash like this: {icon: "dashboard", title: "My title", url: my_path, items: [sub menus]}
       def admin_menu_append_menu_item(key, menu)
-        return if @_admin_menus[key].blank?
+        CurrentRequest.admin_menu_items ||= {}
+        return if CurrentRequest.admin_menu_items[key].blank?
 
-        @_admin_menus[key][:items] = [] unless @_admin_menus[key].key?(:items)
-        @_admin_menus[key][:items] << menu
+        CurrentRequest.admin_menu_items[key][:items] = [] unless CurrentRequest.admin_menu_items[key].key?(:items)
+        CurrentRequest.admin_menu_items[key][:items] << menu
       end
 
       # prepend submenu to menu with key = key
       # menu: is hash like this: { icon: "dashboard", title: "My title", url: my_path, items: [sub menus] }
       def admin_menu_prepend_menu_item(key, menu)
-        return if @_admin_menus[key].blank?
+        CurrentRequest.admin_menu_items ||= {}
+        return if CurrentRequest.admin_menu_items[key].blank?
 
-        @_admin_menus[key][:items] = [] unless @_admin_menus[key].key?(:items)
-        @_admin_menus[key][:items] = [menu] + @_admin_menus[key][:items]
+        CurrentRequest.admin_menu_items[key][:items] = [] unless CurrentRequest.admin_menu_items[key].key?(:items)
+        CurrentRequest.admin_menu_items[key][:items] = [menu] + CurrentRequest.admin_menu_items[key][:items]
       end
 
       # add the menu before the menu with key = key_target
       # key_menu: key for menu
       # menu: is hash like this: { icon: "dashboard", title: "My title", url: my_path, items: [sub menus] }
       def admin_menu_insert_menu_before(key_target, key_menu, menu)
-        res = {}
-        @_admin_menus.each do |key, val|
-          res[key_menu] = menu if key == key_target
-          res[key] = val
+        CurrentRequest.admin_menu_items ||= {}
+        res = CurrentRequest.admin_menu_items.each_with_object({}) do |(key, val), hsh|
+          hsh[key_menu] = menu if key == key_target
+          hsh[key] = val
         end
-        @_admin_menus = res
+        CurrentRequest.admin_menu_items = res
       end
 
       # add menu after menu with key = key_target
       # key_menu: key for menu
       # menu: is hash like this: {icon: "dashboard", title: "My title", url: my_path, items: [sub menus]}
       def admin_menu_insert_menu_after(key_target, key_menu, menu)
-        res = {}
-        @_admin_menus.each do |key, val|
-          res[key] = val
-          res[key_menu] = menu if key == key_target
+        CurrentRequest.admin_menu_items ||= {}
+        res = CurrentRequest.admin_menu_items.each_with_object({}) do |(key, val), hsh|
+          hsh[key] = val
+          hsh[key_menu] = menu if key == key_target
         end
-        @_admin_menus = res
+        CurrentRequest.admin_menu_items = res
       end
 
       # draw admin menu as html
       def admin_menu_draw
-        @_tmp_menu_parents = []
-        menus = _get_url_current
+        CurrentRequest.admin_menu_items ||= {}
+        menu_parents = []
+        menus = _get_url_current(CurrentRequest.admin_menu_items, menu_parents)
         safe_join(menus.map do |menu|
           css_class = +''
           css_class << 'treeview ' if menu.key?(:items)
-          css_class << 'active' if is_active_menu(menu[:key])
+          css_class << 'active' if is_active_menu(menu[:key], menu_parents)
           css_class.strip!
           data_attrs = parse_datas(menu[:datas])
           content_tag(
@@ -264,7 +269,7 @@ module CamaleonCms
                   (content_tag(:i, nil, class: 'fa fa-angle-left pull-right') if menu.key?(:items))
                 ].compact)
               end,
-              (_admin_menu_draw(menu[:items]) if menu.key?(:items))
+              (_admin_menu_draw(menu[:items], menu_parents) if menu.key?(:items))
             ].compact)
           end
         end)
@@ -272,8 +277,8 @@ module CamaleonCms
 
       private
 
-      def _get_url_current
-        menus = @_admin_menus.map do |key, menu|
+      def _get_url_current(menus, menu_parents)
+        menus = menus.map do |key, menu|
           menu[:key] = key
           menu
         end
@@ -281,7 +286,7 @@ module CamaleonCms
         current_path_array = current_path.split('/')
         a_size = current_path_array.size
         (0..a_size).each do |i|
-          resp = _search_in_menus(menus, current_path_array[0..a_size - i].join('/'))
+          resp = _search_in_menus(menus, current_path_array[0..a_size - i].join('/'), 0, menu_parents)
           bool = resp[:bool]
           menus = resp[:menus]
           break if bool
@@ -289,11 +294,11 @@ module CamaleonCms
         menus
       end
 
-      def is_active_menu(key)
-        @_tmp_menu_parents.map { |item| item[:key] == key }.include?(true)
+      def is_active_menu(key, menu_parents)
+        menu_parents.map { |item| item[:key] == key }.include?(true)
       end
 
-      def _search_in_menus(menus, _url, parent_index = 0)
+      def _search_in_menus(menus, _url, parent_index = 0, menu_parents = [])
         bool = false
         menus.each_with_index do |menu, _index_menu|
           menu[:key] = "#{parent_index}__#{rand(999...99_999)}" if menu[:key].nil?
@@ -308,26 +313,26 @@ module CamaleonCms
             bool &&= menu_params == current_params
           end
           if menu.key?(:items)
-            resp = _search_in_menus(menu[:items], _url, parent_index + 1)
+            resp = _search_in_menus(menu[:items], _url, parent_index + 1, menu_parents)
             bool ||= resp[:bool]
             menu[:items] = resp[:menus]
           end
           if bool
-            @_tmp_menu_parents[parent_index] = { url: menu[:url], title: menu[:title], key: menu[:key] }
+            menu_parents[parent_index] = { url: menu[:url], title: menu[:title], key: menu[:key] }
             break
           end
         end
         { menus: menus, bool: bool }
       end
 
-      def _admin_menu_draw(items)
+      def _admin_menu_draw(items, menu_parents)
         return ''.html_safe if items.blank?
 
         content_tag(:ul, class: 'treeview-menu') do
           safe_join(items.each_with_index.map do |item, index|
             css_class = +"item_#{index + 1} "
             css_class << 'xn-openable ' if item.key?(:items)
-            css_class << 'active ' if is_active_menu(item[:key])
+            css_class << 'active ' if is_active_menu(item[:key], menu_parents)
             css_class.strip!
             data_attrs = parse_datas(item[:datas])
             content_tag(
@@ -344,7 +349,7 @@ module CamaleonCms
                     (content_tag(:i, nil, class: 'fa fa-angle-left pull-right') if item.key?(:items))
                   ].compact)
                 end,
-                (item.key?(:items) ? _admin_menu_draw(item[:items]) : nil)
+                (item.key?(:items) ? _admin_menu_draw(item[:items], menu_parents) : nil)
               ].compact)
             end
           end)

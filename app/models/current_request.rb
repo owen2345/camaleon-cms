@@ -16,5 +16,6 @@ class CurrentRequest < ActiveSupport::CurrentAttributes
             :frontend_object, :frontend_seo_settings, :frontend_current_theme, :frontend_site_current_path,
             :frontend_visited_home, :frontend_visited_post, :frontend_visited_ajax, :frontend_visited_search,
             :frontend_visited_post_type, :frontend_visited_tag, :frontend_visited_category,
-            :frontend_visited_profile, :frontend_user
+            :frontend_visited_profile, :frontend_user,
+            :admin_menu_items, :custom_field_elements, :extra_models_for_fields
 end
