@@ -3,6 +3,10 @@ module CamaleonCms
     class Main < CamaleonCms::TermTaxonomy
       normalize_attrs(:name)
 
+      def self.sti_name
+        'widget'
+      end
+
       # attr_accessible :excerpt, :renderer
       # name: "title"
       # description: "content for this"

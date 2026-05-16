@@ -8,7 +8,7 @@ if PluginRoutes.static_system_info['user_model'].blank?
 
       default_scope { order(role: :asc) }
 
-      has_many :widgets, class_name: 'CamaleonCms::Widget::Main', foreign_key: :parent_id, dependent: :destroy,
+      has_many :widgets, class_name: 'CamaleonCms::Widget::Main', dependent: :destroy,
                          inverse_of: :owner
 
       validates :username, presence: true

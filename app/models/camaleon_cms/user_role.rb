@@ -2,6 +2,10 @@ module CamaleonCms
   class UserRole < CamaleonCms::TermTaxonomy
     normalize_attrs(:name, :description)
 
+    def self.sti_name
+      'user_roles'
+    end
+
     after_destroy :set_users_as_cilent
 
     belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, optional: true,
