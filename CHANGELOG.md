@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Refactor:** Replace Phase 4 session/shortcode/comment helper instance-variable state, [#1179](https://github.com/owen2345/camaleon-cms/pull/1179)
+  - Refactors `session_helper`, `short_code_helper`, and `comment_helper` to avoid helper ivar state via request-scoped `CurrentRequest` and explicit context passing
+  - Preserves controller/view compatibility points used by existing admin/session/shortcode flows
+  - Removes Phase 4 helper exclusions from `Rails/HelperInstanceVariable` in `.rubocop_todo.yml`
+  - Adds helper coverage for session and comment helpers and keeps shortcode helper coverage in place
+
 - **Refactor:** Replace Phase 3 admin/menu/taxonomy helper instance-variable state with CurrentRequest-backed state, [#1178](https://github.com/owen2345/camaleon-cms/pull/1178)
   - Refactors admin menus, post type, and custom fields helpers to use request-scoped CurrentRequest state
   - Eliminates traversal stack and registry instance variables from admin/menus, taxonomy hierarchy, and custom field helpers
