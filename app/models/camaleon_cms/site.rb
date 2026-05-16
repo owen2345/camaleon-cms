@@ -7,26 +7,33 @@ module CamaleonCms
     # attrs: [name, description, slug]
     attr_accessor :site_domain
 
-    default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
+    # default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
 
-    has_many :post_types, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id, dependent: :destroy
+    has_many :post_types, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id, dependent: :destroy,
+                          inverse_of: :site
     has_many :nav_menus, class_name: 'CamaleonCms::NavMenu', foreign_key: :parent_id, dependent: :destroy,
                          inverse_of: :site
-    has_many :nav_menu_items, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :term_group
-    has_many :widgets, class_name: 'CamaleonCms::Widget::Main', foreign_key: :parent_id, dependent: :destroy
-    has_many :sidebars, class_name: 'CamaleonCms::Widget::Sidebar', foreign_key: :parent_id, dependent: :destroy
-    has_many :user_roles_rel, class_name: 'CamaleonCms::UserRole', foreign_key: :parent_id, dependent: :destroy
+    has_many :nav_menu_items, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :term_group, inverse_of: :parent,
+                              dependent: :destroy
+    has_many :widgets, class_name: 'CamaleonCms::Widget::Main', foreign_key: :parent_id, dependent: :destroy,
+                       inverse_of: :site
+    has_many :sidebars, class_name: 'CamaleonCms::Widget::Sidebar', foreign_key: :parent_id, dependent: :destroy,
+                        inverse_of: :site
+    has_many :user_roles_rel, class_name: 'CamaleonCms::UserRole', foreign_key: :parent_id, dependent: :destroy,
+                              inverse_of: :site
     has_many :custom_field_groups, class_name: 'CamaleonCms::CustomFieldGroup', foreign_key: :parent_id,
-                                   dependent: :destroy
-    has_many :term_taxonomies, class_name: 'CamaleonCms::TermTaxonomy', foreign_key: :parent_id
+                                   dependent: :destroy, inverse_of: :parent
+    has_many :term_taxonomies, class_name: 'CamaleonCms::TermTaxonomy', foreign_key: :parent_id, inverse_of: :parent,
+                               dependent: :destroy
 
     has_many :posts, through: :post_types, source: :posts
-    has_many :plugins, class_name: 'CamaleonCms::Plugin', foreign_key: :parent_id, dependent: :destroy
-    has_many :themes, class_name: 'CamaleonCms::Theme', foreign_key: :parent_id, dependent: :destroy
-    has_many :public_media, -> { where(is_public: true) },
-             class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
-    has_many :private_media, -> { where(is_public: false) },
-             class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
+    has_many :plugins, class_name: 'CamaleonCms::Plugin', foreign_key: :parent_id, dependent: :destroy,
+                       inverse_of: :site
+    has_many :themes, class_name: 'CamaleonCms::Theme', foreign_key: :parent_id, dependent: :destroy, inverse_of: :site
+    has_many :public_media, -> { where(is_public: true) }, class_name: 'CamaleonCms::Media', foreign_key: :site_id,
+                                                           dependent: :destroy, inverse_of: :site
+    has_many :private_media, -> { where(is_public: false) }, class_name: 'CamaleonCms::Media', foreign_key: :site_id,
+                                                             dependent: :destroy, inverse_of: :site
 
     after_create :default_settings
     after_create :set_default_user_roles

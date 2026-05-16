@@ -101,7 +101,9 @@ module CamaleonCms
 
     def items_sql_by_name(table_name)
       lower_name = "LOWER(#{table_name}"
-      return "#{lower_name}.title) LIKE ? OR #{lower_name}.slug) LIKE ? OR #{lower_name}.content_filtered) LIKE ?" if table_name == Cama::Post.table_name
+      if table_name == Cama::Post.table_name
+        return "#{lower_name}.title) LIKE ? OR #{lower_name}.slug) LIKE ? OR #{lower_name}.content_filtered) LIKE ?"
+      end
 
       "#{lower_name}.name) LIKE ? OR #{lower_name}.slug) LIKE ? OR #{lower_name}.description) LIKE ?"
     end

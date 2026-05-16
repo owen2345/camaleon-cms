@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Refactor:** Implement native Rails STI for term taxonomies and posts, and add polymorphic meta ownership, [#1173](https://github.com/owen2345/camaleon-cms/pull/1173)
+  - Moves `TermTaxonomy` and `PostDefault` onto native STI so subclasses resolve through Rails instead of custom taxonomy plumbing
+  - Introduces polymorphic `owner` associations for metas and custom-field records to simplify shared association setup
+  - Updates related models and specs to match the new inheritance and ownership behavior
+
 - **Style & tooling:** Add RuboCop plugin gems and fix all offenses, [#1167](https://github.com/owen2345/camaleon-cms/pull/1167)
   - Added `rubocop-performance`, `rubocop-rails`, `rubocop-capybara`, `rubocop-factory_bot`, `rubocop-rake`, `rubocop-rspec_rails` to development dependencies
   - Fixed hundreds of Layout, Style, Performance, and Rails offenses across 92 files

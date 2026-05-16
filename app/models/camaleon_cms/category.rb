@@ -5,13 +5,13 @@ module CamaleonCms
     alias_attribute :site_id, :term_group
     alias_attribute :post_type_id, :status
 
-    default_scope { where(taxonomy: :category) }
     scope :no_empty, -> { where('count > 0') } # return all categories that contains at least one post
     scope :empty, -> { where(count: [0, nil]) } # return all categories that does not contain any post
     # scope :parents, -> { where("term_taxonomy.parent_id IS NULL") }
 
     has_many :posts, foreign_key: :objectid, through: :term_relationships, source: :object
-    has_many :children, class_name: 'CamaleonCms::Category', foreign_key: :parent_id, dependent: :destroy
+    has_many :children, class_name: 'CamaleonCms::Category', foreign_key: :parent_id, dependent: :destroy,
+                        inverse_of: :parent
     belongs_to :parent, class_name: 'CamaleonCms::Category', optional: true
     belongs_to :post_type_parent, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id,
                                   inverse_of: :categories, optional: true

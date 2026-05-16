@@ -13,10 +13,13 @@ module CamaleonCms
     # default_scope order('comments.created_at ASC')
     # approved: approved | pending | spam
 
-    has_many :children, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, dependent: :destroy
+    has_many :children, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, dependent: :destroy,
+                        inverse_of: :parent
+
     belongs_to :post, optional: true
-    belongs_to :parent, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, optional: true
-    belongs_to :user, class_name: CamaManager.get_user_class_name, optional: true
+    belongs_to :parent, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, optional: true,
+                        inverse_of: :children
+    belongs_to :user, class_name: CamaManager.get_user_class_name.to_s, optional: true
 
     default_scope { order("#{CamaleonCms::PostComment.table_name}.created_at DESC") }
 

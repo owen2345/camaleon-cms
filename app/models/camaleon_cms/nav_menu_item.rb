@@ -7,9 +7,8 @@ module CamaleonCms
     alias_attribute :url, :description
     alias_attribute :kind, :slug
     alias_attribute :target, :status
+
     # attr_accessible :label, :url, :kind
-    #
-    default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
 
     belongs_to :parent, class_name: 'CamaleonCms::NavMenu', inverse_of: :children, optional: true
     belongs_to :parent_item, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :parent_id, inverse_of: :children,

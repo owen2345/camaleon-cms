@@ -19,6 +19,38 @@ module CamaleonCms
     # attr_accessible :data_options
     # attr_accessible :data_metas
 
+    self.inheritance_column = :taxonomy
+
+    def self.sti_name
+      name.demodulize.underscore
+    end
+
+    def self.polymorphic_name
+      name.demodulize
+    end
+
+    def self.find_sti_class(type_name)
+      # Handle explicit exceptions where database string doesn't match namespacing layout
+      case type_name.to_s
+      when 'widget'
+        return CamaleonCms::Widget::Main
+      when 'sidebar'
+        return CamaleonCms::Widget::Sidebar
+      end
+
+      # Standard conversion for "site" -> "CamaleonCms::Site"
+      # or "nav_menu_item" -> "CamaleonCms::NavMenuItem"
+      full_class_name = "CamaleonCms::#{type_name.camelize}"
+      full_class_name.constantize
+    rescue NameError
+      # Universal safety net: runtime scan across loaded taxonomy memory models
+      found_subclass = CamaleonCms::TermTaxonomy.descendants.find do |klass|
+        klass.sti_name == type_name.to_s
+      end
+
+      found_subclass || super
+    end
+
     # callbacks
     before_validation :before_validating
     before_destroy :destroy_dependencies
@@ -32,7 +64,8 @@ module CamaleonCms
                                   dependent: :destroy
     # has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
     belongs_to :parent, class_name: 'CamaleonCms::TermTaxonomy', optional: true
-    belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, optional: true
+    belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, optional: true,
+                       inverse_of: :term_taxonomies
 
     # return all children taxonomy
     # sample: sub categories of a category

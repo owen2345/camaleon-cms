@@ -8,6 +8,7 @@ module CamaleonCms
 
     # relations
     belongs_to :custom_field, class_name: 'CamaleonCms::CustomField', optional: true
+    belongs_to :owner, polymorphic: true, foreign_key: :objectid, foreign_type: :object_class
 
     # validates :objectid, :custom_field_id, presence: true
     validates :custom_field_id, presence: true # error on clone model

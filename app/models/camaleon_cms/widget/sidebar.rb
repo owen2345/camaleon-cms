@@ -3,13 +3,8 @@ module CamaleonCms
     class Sidebar < CamaleonCms::TermTaxonomy
       normalize_attrs(:name, :description)
 
-      default_scope { where(taxonomy: :sidebar) }
-
-      has_many :metas, lambda {
-                         where(object_class: 'Widget::Sidebar')
-                       }, class_name: 'CamaleonCms::Meta', foreign_key: :objectid, dependent: :destroy
-      has_many :assigned, foreign_key: :post_parent, dependent: :destroy
-      belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id
+      has_many :assigned, foreign_key: :post_parent, dependent: :destroy, inverse_of: :sidebar
+      belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, inverse_of: :sidebars
 
       # scopes
       scope :default_sidebar, -> { where(slug: 'default-sidebar') }

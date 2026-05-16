@@ -2,11 +2,14 @@ module CamaleonCms
   class UserRole < CamaleonCms::TermTaxonomy
     normalize_attrs(:name, :description)
 
+    def self.sti_name
+      'user_roles'
+    end
+
     after_destroy :set_users_as_cilent
 
-    default_scope { where(taxonomy: :user_roles) }
-
-    belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, optional: true
+    belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, optional: true,
+                      inverse_of: :user_roles_rel
 
     def roles_post_type
       get_meta('_post_type')

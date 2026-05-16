@@ -7,8 +7,6 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
   TRANSLATION_TAG_RESTORE_REGEX =
     Regexp.new(TRANSLATION_TAG_RESTORE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
 
-  include ActiveRecordExtras::Relation
-
   self.abstract_class = true
 
   # save cache value for this key

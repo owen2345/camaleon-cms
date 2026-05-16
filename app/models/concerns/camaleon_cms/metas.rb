@@ -14,7 +14,25 @@ module CamaleonCms
     # Add meta with value or Update meta with key: key
     # return true or false
     def set_meta(key, value)
-      metas.where(key: key).update_or_create({ value: fix_meta_value(value) })
+      fixed_value = fix_meta_value(value)
+
+      # Check if the parent object has been saved to the database yet
+      if persisted?
+        # Safe to use database-driven lookups and updates
+        meta_record = metas.find_or_create_by(key: key.to_s)
+        meta_record.update(value: fixed_value)
+      else
+        # In-Memory Fallback: Find an existing unsaved item in the array collection,
+        # or build a brand new unsaved record on the association.
+        meta_record = metas.find { |m| m.key == key.to_s }
+
+        if meta_record
+          meta_record.value = fixed_value
+        else
+          metas.build(key: key.to_s, value: fixed_value)
+        end
+      end
+
       cama_set_cache("meta_#{key}", value)
     end
 
