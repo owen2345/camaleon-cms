@@ -28,4 +28,15 @@ describe CamaleonCms::HtmlHelper do
       expect(output).not_to include('&lt;link')
     end
   end
+
+  describe 'CurrentRequest-backed helper state' do
+    it 'stores html helper state in CurrentRequest' do
+      helper.cama_html_helpers_init
+      helper.cama_load_libraries('nav_menu')
+
+      state = CurrentRequest.html_helper_state
+      expect(state).to be_present
+      expect(state[:assets_libraries]).to include(:nav_menu)
+    end
+  end
 end

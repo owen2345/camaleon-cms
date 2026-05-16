@@ -12,5 +12,5 @@
 # Note: Rails automatically resets CurrentAttributes between requests, ensuring no leakage.
 # In specs, call CurrentRequest.reset in before/after hooks to avoid cross-test pollution.
 class CurrentRequest < ActiveSupport::CurrentAttributes
-  attribute :user, :site
+  attribute :user, :site, :content_helper_state, :hooks_helper_state, :html_helper_state, :theme_helper_state
 end
