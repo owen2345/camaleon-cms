@@ -151,8 +151,6 @@ Naming/VariableNumber:
 Rails/HelperInstanceVariable:
   Exclude:
     - 'app/helpers/camaleon_cms/frontend/nav_menu_helper.rb'
-    - 'app/helpers/camaleon_cms/session_helper.rb'
-    - 'app/helpers/camaleon_cms/short_code_helper.rb'
 
 # Offense count: 2
 Security/Eval:

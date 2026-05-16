@@ -36,10 +36,11 @@ module CamaleonCms
     # login a user using username and password
     # return boolean: true => authenticated, false => authentication failed
     def login_user_with_password(username, password)
-      @user = current_site.users.find_by(username: username)
-      r = { user: @user, params: params, password: password, captcha_validate: true }
+      user = current_site.users.find_by(username: username)
+      assign_controller_user(user)
+      r = { user: user, params: params, password: password, captcha_validate: true }
       hooks_run('user_before_login', r)
-      @user&.authenticate(password)
+      user&.authenticate(password)
     end
 
     # User registration.
@@ -51,20 +52,21 @@ module CamaleonCms
     # - password
     # - password_confirmation
     def cama_register_user(user_data, meta)
-      @user = current_site.users.new(user_data)
-      r = { user: @user, params: params }
+      user = current_site.users.new(user_data)
+      assign_controller_user(user)
+      r = { user: user, params: params }
       hook_run('user_before_register', r)
 
       if current_site.security_user_register_captcha_enabled? && !cama_captcha_verified?
         { result: false, type: :captcha_error, message: t('camaleon_cms.admin.users.message.error_captcha') }
-      elsif @user.save
-        @user.set_metas(meta)
+      elsif user.save
+        user.set_metas(meta)
         message = if current_site.need_validate_email?
                     t('camaleon_cms.admin.users.message.created_pending_validate_email')
                   else
                     t('camaleon_cms.admin.users.message.created')
                   end
-        r = { user: @user, message: message, redirect_url: cama_admin_login_path }
+        r = { user: user, message: message, redirect_url: cama_admin_login_path }
         hooks_run('user_after_register', r)
         { result: true, message: r[:message], redirect_url: r[:redirect_url] }
       else
@@ -103,6 +105,7 @@ module CamaleonCms
       c_data = { value: nil, expires: 24.hours.ago }
       c_data[:domain] = :all if PluginRoutes.system_info['users_share_sites'].present? && CamaleonCms::Site.count > 1
       cookies[:auth_token] = c_data
+      CurrentRequest.user = nil
       redirect_to safe_redirect_url(params[:return_to]) || cama_admin_login_path,
                   notice: t('camaleon_cms.admin.logout.message.closed')
     end
@@ -122,16 +125,16 @@ module CamaleonCms
 
     # return the current user logged in
     def cama_current_user
-      return @cama_current_user if defined?(@cama_current_user)
+      return CurrentRequest.user if CurrentRequest.user
 
       # api current user...
-      @cama_current_user = cama_calc_api_current_user
-      return @cama_current_user if @cama_current_user
+      current_user = cama_calc_api_current_user
+      return CurrentRequest.user = current_user if current_user
 
       return nil unless cookie_auth_token_complete?
 
-      @cama_current_user = current_site.users_include_admins
-                                       .find_by(auth_token: user_auth_token_from_cookie).try(:decorate)
+      users = current_site.users_include_admins
+      CurrentRequest.user = users.find_by(auth_token: user_auth_token_from_cookie).try(:decorate)
     end
 
     def cookie_auth_token_complete?
@@ -170,6 +173,13 @@ module CamaleonCms
     end
 
     private
+
+    def assign_controller_user(user)
+      target = respond_to?(:controller) ? controller : self
+      return unless target.respond_to?(:instance_variable_set)
+
+      target.instance_variable_set(:@user, user)
+    end
 
     # validate redirect url to prevent open redirect attacks
     def safe_redirect_url(url)

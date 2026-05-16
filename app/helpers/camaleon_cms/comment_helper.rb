@@ -17,7 +17,10 @@ module CamaleonCms
 
     # render as html content all comments recursively
     # comments: collection of comments
-    def cama_comments_render_html(comments)
+    def cama_comments_render_html(comments, post_id = nil)
+      if post_id.nil? && respond_to?(:controller) && controller.respond_to?(:instance_variable_get)
+        post_id = controller.instance_variable_get(:@post)&.id
+      end
       comments.decorate.map do |comment|
         author = comment.the_author
         content_tag(:div, class: 'media') do
@@ -45,7 +48,7 @@ module CamaleonCms
                     content_tag(:div, class: 'pull-left') do
                       [
                         link_to(
-                          cama_admin_post_comment_answer_path(@post.id, comment.id),
+                          cama_admin_post_comment_answer_path(post_id, comment.id),
                           data: { comment_id: comment.id },
                           title: t('camaleon_cms.admin.comments.tooltip.reply_comment'),
                           class: 'btn btn-info reply btn-xs ajax_modal'
@@ -88,7 +91,7 @@ module CamaleonCms
                 end,
                 content_tag(:hr),
                 content_tag(:div, '', class: 'clearfix'),
-                cama_comments_render_html(comment.children)
+                cama_comments_render_html(comment.children, post_id)
               ].join.html_safe
             end
           ].join.html_safe

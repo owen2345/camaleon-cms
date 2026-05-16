@@ -2,9 +2,9 @@ module CamaleonCms
   module ShortCodeHelper
     # Internal method
     def shortcodes_init
-      @_shortcodes = []
-      @_shortcodes_template = {}
-      @_shortcodes_descr = {}
+      CurrentRequest.shortcodes = []
+      CurrentRequest.shortcodes_template = {}
+      CurrentRequest.shortcodes_descr = {}
 
       shortcode_add('widget', nil, "Renderize the widget content in this place.
                 Don't forget to create and copy the shortcode of your widgets in appearance -> widgets
@@ -80,22 +80,22 @@ module CamaleonCms
     # Also can be a function to execute that instead a render, sample: lambda{|attrs, args| return "my custom content" }
     # descr: description for shortcode
     def shortcode_add(key, template = nil, descr = '')
-      @_shortcodes << key
-      @_shortcodes_template = @_shortcodes_template.merge({ key.to_s => template }) if template.present?
-      @_shortcodes_descr[key] = descr if descr.present?
+      shortcode_keys << key
+      CurrentRequest.shortcodes_template = shortcode_templates.merge({ key.to_s => template }) if template.present?
+      shortcode_descriptions[key] = descr if descr.present?
     end
 
     # add or update shortcode template
     # key: chortcode key to add or update
     # template: template to render, if nil will render "shortcode_templates/<key>"
     def shortcode_change_template(key, template = nil)
-      @_shortcodes_template[key] = template
+      shortcode_templates[key] = template
     end
 
     # Delete the shortcode
     # key: chortcode key to delete
     def shortcode_delete(key)
-      @_shortcodes.delete(key)
+      shortcode_keys.delete(key)
     end
 
     # run all shortcodes in the content
@@ -138,6 +138,14 @@ module CamaleonCms
       text
     end
 
+    def shortcodes_list
+      shortcode_keys
+    end
+
+    def shortcodes_descriptions
+      shortcode_descriptions
+    end
+
     private
 
     # helper to replace shortcodes adding support for closed shortcodes, sample: [title]my title[/title]
@@ -163,18 +171,31 @@ module CamaleonCms
     def cama_reg_shortcode(codes = nil)
       # doesn't support for similar names, like: [media] and [media_gallery]
       # "(\\[(#{codes || (@_shortcodes || []).join("|")})(\s|\\]){0}(.*?)\\])"
-      "(\\[(#{codes || (@_shortcodes || []).join('|')})((\s)((?!\\]).)*|)\\])"
+      "(\\[(#{codes || shortcode_keys.join('|')})((\s)((?!\\]).)*|)\\])"
     end
 
     # determine the content to replace instead the shortcode
     # return string
     def _eval_shortcode(code, attrs, args = {}, template = nil)
-      template ||= @_shortcodes_template[code].presence || "camaleon_cms/shortcode_templates/#{code}"
-      if @_shortcodes_template[code].instance_of?(::Proc)
-        @_shortcodes_template[code].call(_shortcode_parse_attr(attrs), args)
+      templates = shortcode_templates
+      template ||= templates[code].presence || "camaleon_cms/shortcode_templates/#{code}"
+      if templates[code].instance_of?(::Proc)
+        templates[code].call(_shortcode_parse_attr(attrs), args)
       else
         render template: template, locals: { attributes: _shortcode_parse_attr(attrs), args: args }, formats: [:html]
       end
+    end
+
+    def shortcode_keys
+      CurrentRequest.shortcodes ||= []
+    end
+
+    def shortcode_templates
+      CurrentRequest.shortcodes_template ||= {}
+    end
+
+    def shortcode_descriptions
+      CurrentRequest.shortcodes_descr ||= {}
     end
 
     # parse the attributes of a shortcode
