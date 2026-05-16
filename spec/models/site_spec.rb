@@ -16,6 +16,7 @@ RSpec.describe CamaleonCms::Site, type: :model do
     end
 
     it 'does not leak metas from other object classes sharing the same object id' do
+      # This guards against associations that only scope by objectid and ignore object_class.
       CamaleonCms::Meta.create!(
         objectid: site.id,
         object_class: 'UserRole',
