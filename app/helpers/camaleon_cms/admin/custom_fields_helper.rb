@@ -8,25 +8,13 @@ module CamaleonCms
         items[:text_box] = {
           key: 'text_box',
           label: t('camaleon_cms.admin.custom_field.fields.text_box'),
-          options: {
-            required: true,
-            multiple: true,
-            translate: true,
-            default_value: '',
-            show_frontend: true
-          }
+          options: { required: true, multiple: true, translate: true, default_value: '', show_frontend: true }
         }
 
         items[:text_area] = {
           key: 'text_area',
           label: t('camaleon_cms.admin.custom_field.fields.text_area'),
-          options: {
-            required: true,
-            multiple: true,
-            translate: true,
-            default_value: '',
-            show_frontend: true
-          }
+          options: { required: true, multiple: true, translate: true, default_value: '', show_frontend: true }
         }
         items[:select] = {
           key: 'select',
@@ -35,10 +23,7 @@ module CamaleonCms
             required: true,
             multiple: true,
             translate: true,
-            multiple_options: {
-              label: t('camaleon_cms.admin.settings.options_select'),
-              default: 'radio'
-            },
+            multiple_options: { label: t('camaleon_cms.admin.settings.options_select'), default: 'radio' },
             show_frontend: true
           }
         }

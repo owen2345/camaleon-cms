@@ -6,8 +6,8 @@
   - Refactors admin menus, post type, and custom fields helpers to use request-scoped CurrentRequest state
   - Eliminates traversal stack and registry instance variables from admin/menus, taxonomy hierarchy, and custom field helpers
   - Removes unused `cama_requestAction` method from camaleon_helper
-  - Adds explicit parameters to helpers that previously read from instance variables
-  - Adds comprehensive helper specs for menu management, hierarchy building, and field registry lifecycle
+  - Preserves backward compatibility for taxonomy list rendering when `post_type` is omitted or unavailable
+  - Adds comprehensive helper specs for menu management, hierarchy building, and field registry lifecycle, split per helper module
 
 - **Refactor:** Replace Phase 2 frontend helper context with CurrentRequest-backed state, [#1177](https://github.com/owen2345/camaleon-cms/pull/1177)
   - Refactors frontend content, SEO, and site helpers to use request-scoped CurrentRequest state

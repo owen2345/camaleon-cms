@@ -8,13 +8,12 @@ module CamaleonCms
       include ActionView::Helpers::OutputSafetyHelper
 
       def admin_menus_add_commons
-        CurrentRequest.admin_menu_items ||= {}
         admin_menu_add_menu(
           'dashboard',
           { icon: 'dashboard', title: t('camaleon_cms.admin.sidebar.dashboard'), url: cama_admin_dashboard_path }
         )
-        items = []
 
+        items = []
         current_site.post_types.eager_load(:metas).visible_menu.find_each do |pt|
           pt = pt.decorate
           items_i = []
@@ -38,6 +37,7 @@ module CamaleonCms
             items << { icon: pt.get_option('icon', 'copy'), title: pt.the_title, url: '', items: items_i }
           end
         end
+
         if items.present?
           admin_menu_add_menu(
             'content',
@@ -226,10 +226,9 @@ module CamaleonCms
       # menu: is hash like this: { icon: "dashboard", title: "My title", url: my_path, items: [sub menus] }
       def admin_menu_insert_menu_before(key_target, key_menu, menu)
         CurrentRequest.admin_menu_items ||= {}
-        res = {}
-        CurrentRequest.admin_menu_items.each do |key, val|
-          res[key_menu] = menu if key == key_target
-          res[key] = val
+        res = CurrentRequest.admin_menu_items.each_with_object({}) do |(key, val), hsh|
+          hsh[key_menu] = menu if key == key_target
+          hsh[key] = val
         end
         CurrentRequest.admin_menu_items = res
       end
@@ -239,10 +238,9 @@ module CamaleonCms
       # menu: is hash like this: {icon: "dashboard", title: "My title", url: my_path, items: [sub menus]}
       def admin_menu_insert_menu_after(key_target, key_menu, menu)
         CurrentRequest.admin_menu_items ||= {}
-        res = {}
-        CurrentRequest.admin_menu_items.each do |key, val|
-          res[key] = val
-          res[key_menu] = menu if key == key_target
+        res = CurrentRequest.admin_menu_items.each_with_object({}) do |(key, val), hsh|
+          hsh[key] = val
+          hsh[key_menu] = menu if key == key_target
         end
         CurrentRequest.admin_menu_items = res
       end
