@@ -195,21 +195,25 @@ module CamaleonCms
       lan = object.get_languages
       return if lan.size < 2
 
-      res = ["<ul class='#{list_class}'>"]
-      lan.each do |lang|
-        path = "#{lang}.png"
-        label = (if block
-                   h.capture(lang, I18n.locale.to_s == lang.to_s,
-                             &block)
-                 else
-                   "<img src='#{h.asset_path("camaleon_cms/language/#{path}")}'/>"
-                 end)
-        res << "<li class='#{current_class if I18n.locale.to_s == lang.to_s}'> <a href='#{h.cama_url_to_fixed(
-          current_page ? 'url_for' : 'cama_root_url', { locale: lang, cama_set_language: lang }
-        )}'>#{label}</a> </li>"
+      h.content_tag(:ul, class: list_class) do
+        h.safe_join(lan.map do |lang|
+          label = if block
+                    h.capture(lang, I18n.locale.to_s == lang.to_s, &block)
+                  else
+                    h.tag.img(src: h.asset_path("camaleon_cms/language/#{lang}.png"))
+                  end
+
+          h.content_tag(:li, class: (current_class if I18n.locale.to_s == lang.to_s)) do
+            h.link_to(
+              label,
+              h.cama_url_to_fixed(
+                current_page ? 'url_for' : 'cama_root_url',
+                { locale: lang, cama_set_language: lang }
+              )
+            )
+          end
+        end)
       end
-      res << '</ul>'
-      res.join('').html_safe
     end
 
     # return Array of frontend languages configured for this site

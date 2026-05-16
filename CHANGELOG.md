@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Security fix:** Fix Rails OutputSafety sinks while preserving menu and asset rendering, [#1174](https://github.com/owen2345/camaleon-cms/pull/1174)
+  - Escapes untrusted HTML in attack responses, media crop output, edit-link labels, hierarchy titles, and select option generation
+  - Keeps trusted cached markup replay and asset injection paths explicit and narrowly suppressed
+  - Restores trusted frontend/admin menu HTML and renderable asset tags after the output-safety cleanup
+
 - **Refactor:** Implement native Rails STI for term taxonomies and posts, and add polymorphic meta ownership, [#1173](https://github.com/owen2345/camaleon-cms/pull/1173)
   - Moves `TermTaxonomy` and `PostDefault` onto native STI so subclasses resolve through Rails instead of custom taxonomy plumbing
   - Introduces polymorphic `owner` associations for metas and custom-field records to simplify shared association setup

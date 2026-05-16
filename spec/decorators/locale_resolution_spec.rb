@@ -42,7 +42,7 @@ RSpec.describe 'Decorator i18n locale resolution', type: :feature do
 
           # Verify the page head renders correct locale (via the_head method)
           # This confirms I18n.locale was set to site's frontend language, not :en
-          expect(page.html).to include("var LANGUAGE = 'es';"),
+          expect(page.html).to include('var LANGUAGE = "es";'),
                                "Expected page head to render LANGUAGE='es' (site's frontend language)"
         ensure
           I18n.locale = original_locale
@@ -97,7 +97,7 @@ RSpec.describe 'Decorator i18n locale resolution', type: :feature do
         # See: app/helpers/camaleon_cms/frontend/site_helper.rb line 63
         # This proves I18n.locale is set correctly to site's frontend language
         expected_language = site.get_languages.first.to_s
-        expect(page.html).to include("var LANGUAGE = '#{expected_language}';"),
+        expect(page.html).to include("var LANGUAGE = \"#{expected_language}\";"),
                              "Expected page head to render LANGUAGE='#{expected_language}' (site's frontend language)"
 
         # Additional verification: direct decorator test
@@ -127,7 +127,7 @@ RSpec.describe 'Decorator i18n locale resolution', type: :feature do
 
         # Verify the rendered head shows Spanish locale
         # This proves I18n.locale was set to user's chosen language
-        expect(page.html).to include("var LANGUAGE = 'es';"),
+        expect(page.html).to include('var LANGUAGE = "es";'),
                              "Expected page head to render LANGUAGE='es' after user switched to Spanish"
       ensure
         I18n.locale = original_locale

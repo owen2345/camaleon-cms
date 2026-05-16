@@ -97,7 +97,7 @@ module CamaleonCms
       return '' if h.cama_current_user.blank?
 
       attrs = { target: '_blank', style: 'font-size:11px !important;cursor:pointer;' }.merge(attrs)
-      h.link_to("&rarr; #{title || h.ct('edit', default: 'Edit')}".html_safe, the_edit_url, attrs)
+      h.link_to(h.safe_join(['→ ', title || h.ct('edit', default: 'Edit')]), the_edit_url, attrs)
     end
 
     # return the user owner of this item

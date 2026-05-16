@@ -13,4 +13,19 @@ describe CamaleonCms::HtmlHelper do
 
     it_behaves_like 'i18n value translation safety'
   end
+
+  describe '#cama_draw_custom_assets' do
+    it 'returns asset tags as renderable markup' do
+      helper.cama_html_helpers_init
+      allow(helper).to receive(:hooks_run)
+
+      helper.cama_load_libraries('nav_menu')
+      output = helper.cama_draw_custom_assets
+
+      expect(output).to include('<script')
+      expect(output).to include('<link')
+      expect(output).not_to include('&lt;script')
+      expect(output).not_to include('&lt;link')
+    end
+  end
 end

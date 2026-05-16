@@ -18,7 +18,9 @@ module Plugins
           response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE'
           args = { data: front_cache_get(cache_key).gsub('{{form_authenticity_token}}', form_authenticity_token) }
           hooks_run('front_cache_reading_cache', args)
+          # rubocop:disable Rails/OutputSafety -- This replays a trusted cached page body that was already rendered by Rails.
           render html: args[:data].html_safe
+          # rubocop:enable Rails/OutputSafety
           return
         end
 

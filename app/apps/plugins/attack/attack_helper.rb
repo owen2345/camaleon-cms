@@ -38,7 +38,7 @@ module Plugins
       def attack_app_before_load
         cache_ban = Rails.cache.read(cama_get_session_id)
         if cache_ban.present? # render banned message if it was banned
-          render html: cache_ban.html_safe, layout: false
+          render html: cache_ban.to_s, layout: false
           return
         end
 
@@ -72,7 +72,7 @@ module Plugins
           if r.count > config[:post][:max].to_i
             Rails.cache.write(cama_get_session_id, config[:msg], expires_in: config[:ban].to_i.minutes)
             # Email administrator with request info (ip, browser, if logged, then send user info
-            render html: config[:msg].html_safe
+            render html: config[:msg].to_s
             return
           end
 
@@ -81,7 +81,7 @@ module Plugins
           r = query.where(created_at: config[:get][:sec].to_i.seconds.ago..Time.zone.now)
           if r.count > config[:get][:max].to_i
             Rails.cache.write(cama_get_session_id, config[:msg], expires_in: config[:ban].to_i.minutes)
-            render html: config[:msg].html_safe
+            render html: config[:msg].to_s
             return
           end
         end

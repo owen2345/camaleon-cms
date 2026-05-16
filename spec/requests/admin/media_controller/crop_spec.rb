@@ -23,6 +23,21 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
 
       expect(response.status).not_to eq(403)
     end
+
+    it 'returns the cropped url as plain text' do
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_return(true)
+      allow_any_instance_of(described_class).to receive(:cama_tmp_upload).and_return(file_path: '/tmp/test.jpg')
+      allow_any_instance_of(described_class).to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
+      allow_any_instance_of(described_class).to receive(:upload_file).and_return(
+        'url' => '/uploads/<script>alert(1)</script>.jpg'
+      )
+      sign_in_as(admin_user, site: current_site)
+
+      get '/admin/media/crop'
+
+      expect(response.media_type).to eq('text/plain')
+      expect(response.body).to eq('/uploads/<script>alert(1)</script>.jpg')
+    end
   end
 
   context 'when user does NOT have media management permission' do

@@ -60,9 +60,17 @@ module CamaleonCms
       # seo_attrs: Custom attributes for seo in Hash format
       # show_seo: (Boolean) control to append or not the seo attributes
       def the_head(seo_attrs = {}, _show_seo = true)
-        js = "<script>var ROOT_URL = '#{cama_root_url}'; var LANGUAGE = '#{I18n.locale}'; </script>".html_safe
-        js += cama_draw_pre_asset_contents
-        "#{csrf_meta_tag || ''}\n#{display_meta_tags(cama_the_seo(seo_attrs))}\n#{js}\n#{cama_draw_custom_assets}"
+        js = javascript_tag("var ROOT_URL = #{cama_root_url.to_json}; var LANGUAGE = #{I18n.locale.to_s.to_json};")
+        safe_join(
+          [
+            csrf_meta_tag.presence,
+            display_meta_tags(cama_the_seo(seo_attrs)).presence,
+            js,
+            cama_draw_pre_asset_contents.presence,
+            cama_draw_custom_assets.presence
+          ].compact,
+          "\n"
+        )
       end
     end
   end
