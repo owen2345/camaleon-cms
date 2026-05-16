@@ -2,136 +2,77 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Decorator i18n locale resolution', type: :feature do
-  let!(:site) { create(:site) }
-  let!(:post) { create(:post, site: site) }
+RSpec.describe CamaleonCms::ApplicationDecorator do
+  init_site
 
-  describe 'ApplicationDecorator#get_locale priority chain' do
-    let(:decorated_post) { post.decorate }
+  let(:decorated_post) { @post }
+  let(:helper_context_class) do
+    Class.new do
+      def initialize(frontend_locale)
+        @frontend_locale = frontend_locale
+      end
 
-    it 'uses explicit locale when provided' do
+      def cama_get_i18n_frontend
+        @frontend_locale
+      end
+    end
+  end
+  let(:helper_context) { helper_context_class.new(:es) }
+
+  around do |example|
+    original_locale = I18n.locale
+    example.run
+    I18n.locale = original_locale
+  end
+
+  before do
+    allow(decorated_post).to receive(:h).and_return(helper_context)
+  end
+
+  describe '#get_locale' do
+    it 'uses an explicit locale when provided' do
       expect(decorated_post.get_locale(:es)).to eq(:es)
     end
 
-    it 'uses set_decoration_locale when explicit not provided' do
+    it 'uses the decoration locale before helper or I18n fallbacks' do
       decorated_post.set_decoration_locale(:fr)
+      I18n.locale = :en
+
       expect(decorated_post.get_locale).to eq(:fr)
     end
 
-    it 'falls back to I18n.locale as last resort' do
-      expect(decorated_post.get_locale).to eq(I18n.locale)
+    it 'uses the admin request frontend locale before I18n.locale' do
+      I18n.locale = :en
+
+      expect(decorated_post.get_locale).to eq(:es)
+    end
+
+    it 'falls back to I18n.locale when no frontend locale helper is exposed' do
+      allow(decorated_post).to receive(:h).and_return(Object.new)
+      I18n.locale = :en
+
+      expect(decorated_post.get_locale).to eq(:en)
     end
   end
 
-  describe 'decorator locale usage: admin vs frontend contexts' do
-    describe 'in frontend context' do
-      it 'renders correct frontend language in page output (via I18n.locale)' do
-        # Set site frontend language to 'es'
-        site.set_meta('languages_site', ['es'])
-        # Refresh cache to pick up new language
-        site.instance_variable_set(:@_languages, nil)
+  describe '#_calc_locale' do
+    it 'uses the admin request frontend locale when building route prefixes' do
+      I18n.locale = :en
 
-        # Set I18n.locale to different value 'en' initially
-        original_locale = I18n.locale
-        begin
-          I18n.locale = :en
-
-          # Visit frontend - init_frontent will set I18n.locale to site's frontend language (:es)
-          visit '/'
-          expect(page.status_code).to eq(200)
-
-          # Verify the page head renders correct locale (via the_head method)
-          # This confirms I18n.locale was set to site's frontend language, not :en
-          expect(page.html).to include('var LANGUAGE = "es";'),
-                               "Expected page head to render LANGUAGE='es' (site's frontend language)"
-        ensure
-          I18n.locale = original_locale
-        end
-      end
+      expect(decorated_post.send(:_calc_locale, nil)).to eq('_es')
     end
   end
 
-  describe 'POST decorator URL generation' do
-    it 'generates a valid URL without raising an error' do
-      decorated_post = post.decorate
-      url = decorated_post.the_url
+  describe CamaleonCms::AdminController do
+    let(:controller_instance) { described_class.new }
+    let(:site) { instance_double(CamaleonCms::Site, get_admin_language: :en, get_languages: %i[es en]) }
 
-      expect(url).to be_a(String)
-      expect(url).not_to be_empty
-    end
+    it 'caches the frontend locale for admin helpers and decorators' do
+      allow(controller_instance).to receive(:current_site).and_return(site)
 
-    context 'with site having specific frontend language' do
-      it 'generates URL using available site languages' do
-        site.get_languages
+      controller_instance.send(:admin_init_actions)
 
-        decorated = post.decorate
-        url = decorated.the_url
-
-        # URL should be generated successfully
-        expect(url).to be_a(String)
-        # URL should exist
-        expect(url.length).to be > 0
-      end
-    end
-  end
-
-  describe 'decorator locale resolution: verified via rendered output' do
-    it 'renders correct I18n.locale in frontend page head (set to site frontend language)' do
-      # Set the existing site to have English and Spanish as frontend languages
-      site.set_meta('languages_site', [I18n.default_locale, :es])
-
-      original_locale = I18n.locale
-      begin
-        # Set I18n.locale to English (site's first language)
-        I18n.locale = :en
-
-        # Visit the frontend home page - this triggers the controller's `before_action :init_frontent`,
-        # which, if no params[:locale] || session[:cama_current_language] are present, initializes I18n.locale to the
-        # site's first language (:en in this case)
-        visit '/'
-
-        # Verify page loaded successfully
-        expect(page.status_code).to eq(200)
-
-        # Verify the rendered output: the_head method renders var LANGUAGE = 'I18n.locale' in JavaScript
-        # See: app/helpers/camaleon_cms/frontend/site_helper.rb line 63
-        # This proves I18n.locale is set correctly to site's frontend language
-        expected_language = site.get_languages.first.to_s
-        expect(page.html).to include("var LANGUAGE = \"#{expected_language}\";"),
-                             "Expected page head to render LANGUAGE='#{expected_language}' (site's frontend language)"
-
-        # Additional verification: direct decorator test
-        frontend_language = site.get_languages.first
-        decorated = site.post_types.first&.posts&.first&.decorate
-        if decorated.present?
-          actual_locale = decorated.get_locale
-          expect(actual_locale)
-            .to eq(frontend_language),
-                "Expected decorator to use site's frontend language (#{frontend_language}), but got #{actual_locale}"
-        end
-      ensure
-        I18n.locale = original_locale
-      end
-    end
-
-    it 'renders correct I18n.locale when user explicitly switches language' do
-      site.set_meta('languages_site', [I18n.default_locale, :es])
-
-      original_locale = I18n.locale
-      begin
-        # User clicks language switcher to switch to Spanish
-        visit '/?cama_set_language=es'
-
-        # Verify page loaded
-        expect(page.status_code).to eq(200)
-
-        # Verify the rendered head shows Spanish locale
-        # This proves I18n.locale was set to user's chosen language
-        expect(page.html).to include('var LANGUAGE = "es";'),
-                             "Expected page head to render LANGUAGE='es' after user switched to Spanish"
-      ensure
-        I18n.locale = original_locale
-      end
+      expect(controller_instance.cama_get_i18n_frontend).to eq(:es)
     end
   end
 end

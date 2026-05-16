@@ -16,6 +16,7 @@ module CamaleonCms
              params[:cama_ajax_request].present? ? 'camaleon_cms/admin/_ajax' : 'camaleon_cms/admin'
            }
     add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.dashboard', default: 'Dashboard'), :cama_admin_path
+    helper_method :cama_get_i18n_frontend
 
     # render admin dashboard
     def index
@@ -68,6 +69,12 @@ module CamaleonCms
       @items = @items.paginate(page: params[:page], per_page: current_site.admin_per_page)
     end
 
+    # Decorators use this helper while rendering admin pages to keep public URLs in
+    # the site's frontend language instead of the admin interface language.
+    def cama_get_i18n_frontend
+      @cama_i18n_frontend
+    end
+
     private
 
     # initialize all vars and methods for admin panel
@@ -76,6 +83,9 @@ module CamaleonCms
       @_admin_menus = {}
       @_admin_breadcrumb = []
       @_extra_models_for_fields = []
+      # Cache the site's frontend language for decorators and plugins that still
+      # need to distinguish admin requests from frontend visitor requests.
+      @cama_i18n_frontend = current_site.get_languages.first
     end
 
     # trigger hooks for admin panel before admin load

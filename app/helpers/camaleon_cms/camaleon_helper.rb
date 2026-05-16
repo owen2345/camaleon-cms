@@ -48,6 +48,15 @@ module CamaleonCms
       I18n.translate("camaleon_cms.common.#{key}", **args)
     end
 
+    # Public compatibility API for plugins such as camaleon-ecommerce, which use
+    # this predicate to switch from visitor pricing/locale behavior to admin mode.
+    # This still matters while previewing frontend content from admin, for example
+    # a theme preview that renders ecommerce helpers before the request reaches the
+    # public frontend controller stack.
+    def cama_is_admin_request?
+      respond_to?(:cama_get_i18n_frontend) && cama_get_i18n_frontend.present?
+    end
+
     # generate loop categories html sitemap links
     # this is a helper for sitemap generator to print categories, sub categories and post contents in html list format
     def cama_sitemap_cats_generator(cats)
