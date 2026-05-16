@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Refactor:** Replace Phase 1 helper instance-variable state with CurrentRequest-backed state, [#1176](https://github.com/owen2345/camaleon-cms/pull/1176)
+  - Refactors content, hooks, html, and theme helpers to use request-scoped CurrentRequest state
+  - Extends CurrentRequest with helper state attributes used by these helpers
+  - Adds helper specs for content/hooks/theme state lifecycle and html helper state behavior
+
 - **Fix:** Restore admin preview locale compatibility for decorators and plugin helpers, [#1175](https://github.com/owen2345/camaleon-cms/pull/1175)
   - Restores the admin-side frontend locale compatibility path removed by #1166
   - Preserves theme previews and other admin-rendered frontend flows that rely on frontend URLs or plugin helpers such as `camaleon-ecommerce`
