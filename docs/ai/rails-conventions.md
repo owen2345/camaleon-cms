@@ -41,6 +41,9 @@ module CamaleonCms
 end
 ```
 
+- Admin pages can render frontend decorators and plugin helpers during preview flows.
+- Preserve the `cama_get_i18n_frontend` / `cama_is_admin_request?` compatibility path when changing locale behavior around admin previews, especially for theme previews that render plugins such as `camaleon-ecommerce`.
+
 ### Association Options
 
 Always specify class_name and foreign_key explicitly

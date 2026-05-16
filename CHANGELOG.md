@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Fix:** Restore admin preview locale compatibility for decorators and plugin helpers, [#1175](https://github.com/owen2345/camaleon-cms/pull/1175)
+  - Restores the admin-side frontend locale compatibility path removed by #1166
+  - Preserves theme previews and other admin-rendered frontend flows that rely on frontend URLs or plugin helpers such as `camaleon-ecommerce`
+
 - **Security fix:** Fix Rails OutputSafety sinks while preserving menu and asset rendering, [#1174](https://github.com/owen2345/camaleon-cms/pull/1174)
   - Escapes untrusted HTML in attack responses, media crop output, edit-link labels, hierarchy titles, and select option generation
   - Keeps trusted cached markup replay and asset injection paths explicit and narrowly suppressed

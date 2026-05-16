@@ -62,6 +62,9 @@ Plugins live in `app/apps/plugins/` and can:
 - Hook into lifecycle events
 - Add migrations
 
+Compatibility note:
+- `CamaleonHelper#cama_is_admin_request?` is still a public plugin API. Keep it available for admin-rendered frontend flows such as theme preview pages that call plugin helpers like `camaleon-ecommerce`, where the plugin must detect admin preview mode instead of visitor/frontend mode.
+
 ## Authorization
 
 - Roles and permissions managed via `CamaleonCms::UserRole` and CanaCanCan's `Ability` class
