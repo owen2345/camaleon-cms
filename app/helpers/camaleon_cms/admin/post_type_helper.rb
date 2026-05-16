@@ -16,7 +16,9 @@ module CamaleonCms
 
       # taxonomies ->  (categories || post_tags)
       def post_type_list_taxonomy(taxonomies, color = 'primary', post_type = nil)
-        raise ArgumentError, 'post_type parameter is required' if post_type.nil?
+        # Backward compatibility: attempt to get post_type from controller context if not provided
+        post_type ||= controller.instance_variable_get(:@post_type) if controller.respond_to?(:instance_variable_get)
+        raise ArgumentError, 'post_type parameter is required; please pass it explicitly as third argument' if post_type.nil?
 
         safe_join(taxonomies.decorate.map do |f|
           link_to(

@@ -87,10 +87,36 @@ RSpec.describe CamaleonCms::Admin::PostTypeHelper, type: :helper do
     end
   end
 
-  describe 'post_type_list_taxonomy with explicit parameter' do
+  describe 'post_type_list_taxonomy backward compatibility' do
     let(:post_type) { instance_double('PostType', id: 1) }
+    let(:category) { instance_double('Category', id: 1, the_title: 'Test Category', taxonomy: 'category') }
 
-    it 'requires post_type parameter instead of using instance variable' do
+    it 'accepts post_type parameter explicitly' do
+      taxonomies = double(decorate: [category])
+      allow(helper).to receive(:link_to).and_return('<a>link</a>')
+      allow(helper).to receive(:safe_join).and_return('<a>link</a>')
+      allow(helper).to receive(:cama_admin_post_type_taxonomy_posts_path).and_return('/path')
+      allow(helper).to receive(:content_tag).and_return('<span>label</span>')
+      
+      result = helper.post_type_list_taxonomy(taxonomies, 'primary', post_type)
+      expect(result).not_to be_nil
+    end
+
+    it 'retrieves post_type from controller instance variable as fallback (backward compatibility)' do
+      taxonomies = double(decorate: [category])
+      allow(helper).to receive(:controller).and_return(double(instance_variable_get: post_type))
+      allow(helper).to receive(:link_to).and_return('<a>link</a>')
+      allow(helper).to receive(:safe_join).and_return('<a>link</a>')
+      allow(helper).to receive(:cama_admin_post_type_taxonomy_posts_path).and_return('/path')
+      allow(helper).to receive(:content_tag).and_return('<span>label</span>')
+      
+      result = helper.post_type_list_taxonomy(taxonomies, 'primary')
+      expect(result).not_to be_nil
+    end
+
+    it 'raises error only if no post_type available from any source' do
+      allow(helper).to receive(:controller).and_return(double(instance_variable_get: nil))
+      
       expect { helper.post_type_list_taxonomy([]) }.to raise_error(ArgumentError, /required/)
     end
   end
