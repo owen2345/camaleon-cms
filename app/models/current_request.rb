@@ -12,5 +12,9 @@
 # Note: Rails automatically resets CurrentAttributes between requests, ensuring no leakage.
 # In specs, call CurrentRequest.reset in before/after hooks to avoid cross-test pollution.
 class CurrentRequest < ActiveSupport::CurrentAttributes
-  attribute :user, :site, :content_helper_state, :hooks_helper_state, :html_helper_state, :theme_helper_state
+  attribute :user, :site, :content_helper_state, :hooks_helper_state, :html_helper_state, :theme_helper_state,
+            :frontend_object, :frontend_seo_settings, :frontend_current_theme, :frontend_site_current_path,
+            :frontend_visited_home, :frontend_visited_post, :frontend_visited_ajax, :frontend_visited_search,
+            :frontend_visited_post_type, :frontend_visited_tag, :frontend_visited_category,
+            :frontend_visited_profile, :frontend_user
 end

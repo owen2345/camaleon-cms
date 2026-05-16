@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Refactor:** Replace Phase 2 frontend helper context with CurrentRequest-backed state, [#1177](https://github.com/owen2345/camaleon-cms/pull/1177)
+  - Refactors frontend content, SEO, and site helpers to use request-scoped CurrentRequest state
+  - Preserves frontend object/block context, current path, current theme, and visited-state fallback behavior
+  - Adds helper specs for the frontend application helper stack
+
 - **Refactor:** Replace Phase 1 helper instance-variable state with CurrentRequest-backed state, [#1176](https://github.com/owen2345/camaleon-cms/pull/1176)
   - Refactors content, hooks, html, and theme helpers to use request-scoped CurrentRequest state
   - Extends CurrentRequest with helper state attributes used by these helpers
