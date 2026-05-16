@@ -68,11 +68,6 @@ module CamaleonCms
       res.take
     end
 
-    # return the parent of a post (support for sub contents or tree of posts)
-    # def parent
-    #   CamaleonCms::Post.where(id: post_parent).first
-    # end
-
     # return the author of this Content
     def author
       CamaleonCms::User.find(user_id)
