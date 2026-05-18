@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Fix:** Restore theme preview rendering and bootstrap missing nav menus, [#1181](https://github.com/owen2345/camaleon-cms/pull/1181)
+  - Fixes preview theme state override: prefer `@_current_theme` ivar over cached site theme
+  - Fixes legacy template ivar support: set `@current_site` on all `current_site` paths
+  - Fixes preview hook dispatch: use preview theme slug instead of site theme slug
+  - Adds preview menu bootstrap: scans theme templates for nav_menu references and auto-creates missing menus
+  - Adds regression specs for preview rendering and data bootstrap
+  - Resolves broken preview rendering for `cv` and `e_shop` themes
+
 - **Refactor:** Replace Phase 4 session/shortcode/comment helper instance-variable state, [#1179](https://github.com/owen2345/camaleon-cms/pull/1179)
   - Refactors `session_helper`, `short_code_helper`, and `comment_helper` to avoid helper ivar state via request-scoped `CurrentRequest` and explicit context passing
   - Preserves controller/view compatibility points used by existing admin/session/shortcode flows
