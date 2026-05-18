@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Fix:** Restore theme preview rendering and bootstrap missing nav menus, [#1181](https://github.com/owen2345/camaleon-cms/pull/1181)
+- **Fix:** Phase 5 — Restore theme preview rendering and bootstrap missing nav menus, [#1181](https://github.com/owen2345/camaleon-cms/pull/1181)
   - Fixes preview theme state override: prefer `@_current_theme` ivar over cached site theme
   - Fixes legacy template ivar support: set `@current_site` on all `current_site` paths
   - Fixes preview hook dispatch: use preview theme slug instead of site theme slug
