@@ -14,7 +14,7 @@ module CamaleonCms
                                                              foreign_key: :parent_id, dependent: :destroy,
                                                              inverse_of: :custom_field_group
     belongs_to :site, foreign_key: :parent_id, optional: true, inverse_of: :custom_field_groups
-    belongs_to :owner, polymorphic: true, foreign_key: :objectid, foreign_type: :object_class
+    belongs_to :owner, polymorphic: true, foreign_key: :objectid, foreign_type: :object_class, optional: true
 
     validates :slug, uniqueness: { scope: %i[object_class objectid parent_id] }
 

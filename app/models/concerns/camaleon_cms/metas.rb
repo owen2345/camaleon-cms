@@ -91,12 +91,16 @@ module CamaleonCms
     # return value for attribute
     def get_option(key = nil, default = nil, meta_key = '_default')
       values = cama_options(meta_key)
+      return default if key.nil?
+
       key = key.to_sym
       values.key?(key) && values[key] != '' ? values[key] : default
     end
 
     # delete attribute from configuration
     def delete_option(key, meta_key = '_default')
+      return if key.nil?
+
       values = cama_options(meta_key)
       key = key.to_sym
       values.delete(key) if values.key?(key)

@@ -222,8 +222,9 @@ module CamaleonCms
       # draw the breadcrumb as html list
       def breadcrumb_draw
         res = []
-        @_front_breadcrumb.each_with_index do |item, index|
-          res << if @_front_breadcrumb.size == (index + 1) # last menu
+        breadcrumb_items = nav_menu_breadcrumb_items
+        breadcrumb_items.each_with_index do |item, index|
+          res << if breadcrumb_items.size == (index + 1) # last menu
                    "<li class='active'>#{item[0]}</li>"
                  else
                    "<li><a href='#{item[1]}'>#{item[0]}</a></li>"
@@ -236,11 +237,11 @@ module CamaleonCms
       # label => label of the link
       # url: url for the link
       def breadcrumb_add(label, url = '', prepend = false)
-        @_front_breadcrumb ||= []
+        breadcrumb_items = nav_menu_breadcrumb_items
         if prepend
-          @_front_breadcrumb.unshift([label, url])
+          breadcrumb_items.unshift([label, url])
         else
-          @_front_breadcrumb << [label, url]
+          breadcrumb_items << [label, url]
         end
       end
 
@@ -254,28 +255,34 @@ module CamaleonCms
             if is_from_backend || post.can_visit?
               result = { link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu,
                          url_edit: post.the_edit_url }
-              result[:current] = @cama_visited_post.present? && @cama_visited_post.id == post.id unless is_from_backend
+              unless is_from_backend
+                visited_post = nav_menu_visited_state(:frontend_visited_post, :@cama_visited_post)
+                result[:current] = visited_post.present? && visited_post.id == post.id
+              end
             end
           when 'category'
             category = CamaleonCms::Category.find(nav_menu_item.url).decorate
             result = { link: category.the_url(as_path: true), name: category.the_title,
                        url_edit: category.the_edit_url }
             unless is_from_backend
-              result[:current] =
-                @cama_visited_category.present? && @cama_visited_category.id == category.id
+              visited_category = nav_menu_visited_state(:frontend_visited_category, :@cama_visited_category)
+              result[:current] = visited_category.present? && visited_category.id == category.id
             end
           when 'post_tag'
             post_tag = CamaleonCms::PostTag.find(nav_menu_item.url).decorate
             result = { link: post_tag.the_url(as_path: true), name: post_tag.the_title,
                        url_edit: post_tag.the_edit_url }
-            result[:current] = @cama_visited_tag.present? && @cama_visited_tag.id == post_tag.id unless is_from_backend
+            unless is_from_backend
+              visited_tag = nav_menu_visited_state(:frontend_visited_tag, :@cama_visited_tag)
+              result[:current] = visited_tag.present? && visited_tag.id == post_tag.id
+            end
           when 'post_type'
             post_type = CamaleonCms::PostType.find(nav_menu_item.url).decorate
             result = { link: post_type.the_url(as_path: true), name: post_type.the_title,
                        url_edit: post_type.the_edit_url }
             unless is_from_backend
-              result[:current] =
-                @cama_visited_post_type.present? && @cama_visited_post_type.id == post_type.id
+              visited_post_type = nav_menu_visited_state(:frontend_visited_post_type, :@cama_visited_post_type)
+              result[:current] = visited_post_type.present? && visited_post_type.id == post_type.id
             end
           when 'external'
             result = { link: nav_menu_item.url.to_s.translate, name: nav_menu_item.name.to_s.translate, current: false }
@@ -326,6 +333,21 @@ module CamaleonCms
         _args = { menu_item: nav_menu_item, parsed_menu: result }
         hooks_run('on_render_front_menu_item', _args)
         _args[:parsed_menu]
+      end
+
+      private
+
+      def nav_menu_breadcrumb_items
+        CurrentRequest.theme_helper_state ||= {}
+        CurrentRequest.theme_helper_state[:front_breadcrumb] ||= []
+      end
+
+      def nav_menu_visited_state(current_request_attr, legacy_ivar)
+        if respond_to?(:camaleon_frontend_visited_state, true)
+          return camaleon_frontend_visited_state(current_request_attr, legacy_ivar)
+        end
+
+        CurrentRequest.public_send(current_request_attr)
       end
     end
   end

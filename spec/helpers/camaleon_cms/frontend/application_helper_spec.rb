@@ -14,6 +14,10 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
       expect(helper.site_current_path).to eq(CurrentRequest.frontend_site_current_path)
     end
 
+    it 'exposes the current site as a legacy instance variable' do
+      expect(helper.instance_variable_get(:@current_site)).to eq(site)
+    end
+
     it 'stores SEO settings in CurrentRequest' do
       helper.cama_seo_settings(title: 'Custom title')
 
@@ -52,6 +56,16 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
       theme = helper.current_theme
 
       expect(CurrentRequest.frontend_current_theme).to eq(theme)
+    end
+
+    it 'prefers the preview theme over an already cached site theme' do
+      preview_theme = instance_double(CamaleonCms::Theme, slug: 'cv')
+      cached_theme = instance_double(CamaleonCms::Theme, slug: 'camaleon_cms')
+      helper.instance_variable_set(:@_current_theme, preview_theme)
+      CurrentRequest.frontend_current_theme = cached_theme
+
+      expect(helper.current_theme).to eq(preview_theme)
+      expect(CurrentRequest.frontend_current_theme).to eq(preview_theme)
     end
   end
 end

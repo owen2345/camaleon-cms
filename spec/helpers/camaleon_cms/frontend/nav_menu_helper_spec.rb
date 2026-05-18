@@ -5,6 +5,12 @@ require 'rails_helper'
 RSpec.describe CamaleonCms::Frontend::NavMenuHelper do
   init_site
 
+  around do |example|
+    CurrentRequest.reset
+    example.run
+    CurrentRequest.reset
+  end
+
   before do
     @menu = create(:nav_menu, name: 'Main Menu', slug: 'main_menu', parent: @site)
     allow(helper).to receive_messages(site_current_path: '/', cama_root_url: '/')
@@ -226,9 +232,7 @@ RSpec.describe CamaleonCms::Frontend::NavMenuHelper do
       before do
         @menu_item = create(:nav_menu_item, name: 'Custom', url: '/custom', kind: 'external', target: '', parent: @menu)
 
-        default_args[:callback_item] = lambda { |args|
-          args[:link_attrs] = "id='custom-link' data-action='click'"
-        }
+        default_args[:callback_item] = ->(args) { args[:link_attrs] = "id='custom-link' data-action='click'" }
       end
 
       it 'includes custom link attributes' do
@@ -271,6 +275,94 @@ RSpec.describe CamaleonCms::Frontend::NavMenuHelper do
         expect(result.scan(/<li/).count).to eq(2)
         expect(result.scan(%r{</li>}).count).to eq(2)
       end
+    end
+  end
+
+  describe 'breadcrumbs' do
+    it 'adds and draws breadcrumb items with the last one marked active' do
+      helper.breadcrumb_add('Home', '/')
+      helper.breadcrumb_add('Blog', '/blog')
+
+      expect(helper.breadcrumb_draw).to eq("<li><a href='/'>Home</a></li><li class='active'>Blog</li>")
+      expect(CurrentRequest.theme_helper_state[:front_breadcrumb]).to eq([%w[Home /], %w[Blog /blog]])
+    end
+
+    it 'prepends items when requested' do
+      helper.breadcrumb_add('Blog', '/blog')
+      helper.breadcrumb_add('Home', '/', true)
+
+      expect(CurrentRequest.theme_helper_state[:front_breadcrumb]).to eq([%w[Home /], %w[Blog /blog]])
+    end
+  end
+
+  describe '#cama_parse_menu_item current state' do
+    it 'marks post menu item as current from request-scoped visited post' do
+      create(:nav_menu_item, name: 'Post', kind: 'post', url: '42', parent: @menu)
+      visited_post = double(id: 42)
+      post = double(
+        id: 42,
+        can_visit?: true,
+        the_url: '/post',
+        the_title: 'Post',
+        the_edit_url: '/admin/post/42'
+      )
+      allow(CamaleonCms::Post).to receive(:find).with('42').and_return(double(decorate: post))
+      CurrentRequest.frontend_visited_post = visited_post
+
+      result = helper.cama_parse_menu_item(@menu.children.first)
+
+      expect(result[:current]).to be(true)
+    end
+
+    it 'marks category menu item as current from request-scoped visited category' do
+      create(:nav_menu_item, name: 'Category', kind: 'category', url: '21', parent: @menu)
+      visited_category = double(id: 21)
+      category = double(
+        id: 21,
+        the_url: '/category',
+        the_title: 'Category',
+        the_edit_url: '/admin/category/21'
+      )
+      allow(CamaleonCms::Category).to receive(:find).with('21').and_return(double(decorate: category))
+      CurrentRequest.frontend_visited_category = visited_category
+
+      result = helper.cama_parse_menu_item(@menu.children.first)
+
+      expect(result[:current]).to be(true)
+    end
+
+    it 'marks post_tag menu item as current from request-scoped visited tag' do
+      create(:nav_menu_item, name: 'Tag', kind: 'post_tag', url: '31', parent: @menu)
+      visited_tag = double(id: 31)
+      post_tag = double(
+        id: 31,
+        the_url: '/tag',
+        the_title: 'Tag',
+        the_edit_url: '/admin/tag/31'
+      )
+      allow(CamaleonCms::PostTag).to receive(:find).with('31').and_return(double(decorate: post_tag))
+      CurrentRequest.frontend_visited_tag = visited_tag
+
+      result = helper.cama_parse_menu_item(@menu.children.first)
+
+      expect(result[:current]).to be(true)
+    end
+
+    it 'marks post_type menu item as current from request-scoped visited post type' do
+      create(:nav_menu_item, name: 'Post type', kind: 'post_type', url: '11', parent: @menu)
+      visited_post_type = double(id: 11)
+      post_type = double(
+        id: 11,
+        the_url: '/post-type',
+        the_title: 'Post type',
+        the_edit_url: '/admin/post-type/11'
+      )
+      allow(CamaleonCms::PostType).to receive(:find).with('11').and_return(double(decorate: post_type))
+      CurrentRequest.frontend_visited_post_type = visited_post_type
+
+      result = helper.cama_parse_menu_item(@menu.children.first)
+
+      expect(result[:current]).to be(true)
     end
   end
 end

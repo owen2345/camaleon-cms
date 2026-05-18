@@ -273,8 +273,10 @@ module CamaleonCms
     # if url hasn't a locale, then it will use default locale set on application.rb
     def init_frontent
       # preview theme initializing
-      if cama_sign_in? && params[:ccc_theme_preview].present? && can?(:manage, :themes)
+      previewing_theme = cama_sign_in? && params[:ccc_theme_preview].present? && can?(:manage, :themes)
+      if previewing_theme
         @_current_theme = current_site.themes.where(slug: params[:ccc_theme_preview]).first_or_create!.decorate
+        ensure_preview_site_defaults
       end
 
       @_site_options = current_site.options
@@ -283,26 +285,7 @@ module CamaleonCms
       I18n.locale = params[:locale] || session[:cama_current_language] || current_site.get_languages.first
       return page_not_found unless current_site.get_languages.include?(I18n.locale.to_sym)
 
-      # define render paths
-      lookup_context.prefixes.delete('frontend')
-      lookup_context.prefixes.delete('application')
-      lookup_context.prefixes.delete('camaleon_cms/frontend')
-      lookup_context.prefixes.delete('camaleon_cms/camaleon')
-      lookup_context.prefixes.delete('camaleon_cms/apps/plugins_front')
-      lookup_context.prefixes.delete('camaleon_cms/apps/themes_front')
-      lookup_context.prefixes.delete_if do |t|
-        t =~ %r{themes/(.*)/views}i || t == 'camaleon_cms/default_theme' || t == "themes/#{current_site.id}/views"
-      end
-
-      if Dir.exist?(Rails.root.join('app', 'apps', 'themes', current_site.id.to_s).to_s)
-        lookup_context.prefixes.append("themes/#{current_site.id}/views")
-      end
-
-      lookup_context.prefixes.append("themes/#{current_theme.slug}/views")
-      lookup_context.prefixes.append('camaleon_cms/default_theme')
-
-      lookup_context.prefixes = lookup_context.prefixes.uniq
-      lookup_context.use_camaleon_partial_prefixes = true
+      configure_frontend_lookup_prefixes
       theme_init
     end
 
@@ -324,6 +307,59 @@ module CamaleonCms
       { locale: I18n.locale }.merge!(options)
     rescue StandardError
       options
+    end
+
+    def configure_frontend_lookup_prefixes
+      lookup_context.prefixes.delete('frontend')
+      lookup_context.prefixes.delete('application')
+      lookup_context.prefixes.delete('camaleon_cms/frontend')
+      lookup_context.prefixes.delete('camaleon_cms/camaleon')
+      lookup_context.prefixes.delete('camaleon_cms/apps/plugins_front')
+      lookup_context.prefixes.delete('camaleon_cms/apps/themes_front')
+      lookup_context.prefixes.delete_if do |t|
+        t =~ %r{themes/(.*)/views}i || t == 'camaleon_cms/default_theme'
+      end
+
+      lookup_context.prefixes.append("themes/#{current_theme.slug}/views")
+      lookup_context.prefixes.append('camaleon_cms/default_theme')
+
+      lookup_context.prefixes = lookup_context.prefixes.uniq
+      lookup_context.use_camaleon_partial_prefixes = true
+    end
+
+    def ensure_preview_site_defaults
+      preview_required_menu_slugs.each do |slug|
+        current_site.nav_menus.where(slug: slug).first_or_create! do |menu|
+          menu.name = slug.to_s.humanize
+        end
+      end
+    end
+
+    def preview_required_menu_slugs
+      slugs = ['main_menu']
+      slugs.concat(extract_theme_menu_slugs(current_theme.settings['path']))
+      slugs.uniq
+    end
+
+    def extract_theme_menu_slugs(theme_path)
+      return [] if theme_path.blank?
+
+      views_path = File.join(theme_path, 'views')
+      return [] unless Dir.exist?(views_path)
+
+      Dir.glob(File.join(views_path, '**', '*.erb')).flat_map do |file_path|
+        extract_menu_slugs_from_template(File.read(file_path))
+      end.uniq
+    end
+
+    def extract_menu_slugs_from_template(content)
+      slugs = []
+      slugs.concat(content.scan(/nav_menus\.where\(\s*slug:\s*'([^']+)'\s*\)/).flatten)
+      slugs.concat(content.scan(/nav_menus\.where\(\s*slug:\s*"([^"]+)"\s*\)/).flatten)
+      content.scan(/nav_menus\.where\(\s*slug:\s*\[([^\]]+)\]\s*\)/).flatten.each do |array_content|
+        slugs.concat(array_content.scan(/['"]([^'"]+)['"]/).flatten)
+      end
+      slugs
     end
   end
 end

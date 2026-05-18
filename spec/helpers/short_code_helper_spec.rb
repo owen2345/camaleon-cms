@@ -72,4 +72,17 @@ describe 'CamaleonCms::ShortCodeHelper' do
         .to include('<h1>Hello Owen</h1> and Hello World.')
     end
   end
+
+  describe 'CurrentRequest-backed shortcode state' do
+    it 'stores shortcode registrations in CurrentRequest' do
+      helper.shortcodes_init
+      callback = ->(_attrs, _args) { 'Links' }
+
+      helper.shortcode_add('profile_social', callback, 'social links')
+
+      expect(CurrentRequest.shortcodes).to include('profile_social')
+      expect(CurrentRequest.shortcodes_template['profile_social']).to eq(callback)
+      expect(CurrentRequest.shortcodes_descr['profile_social']).to eq('social links')
+    end
+  end
 end

@@ -296,6 +296,7 @@ module CamaleonCms
           nil
         end
       end
+      args[:field_id] ||= fallback_field_id_for(key)
 
       raise ArgumentError, "There is no custom field configured for #{key}" if args[:field_id].blank?
 
@@ -314,6 +315,16 @@ module CamaleonCms
     end
 
     private
+
+    def fallback_field_id_for(key)
+      return unless self.class.to_s.parseCamaClass == 'Post'
+      return unless respond_to?(:post_type_id) && post_type_id.present?
+
+      group_ids = CamaleonCms::CustomFieldGroup.where(object_class: 'PostType_Post', objectid: post_type_id).pluck(:id)
+      return if group_ids.blank?
+
+      CamaleonCms::CustomField.where(slug: key, parent_id: group_ids).pick(:id)
+    end
 
     def fix_meta_value(value)
       return value.to_json if value.is_a?(ActionController::Parameters)
