@@ -71,6 +71,84 @@ Move to idiomatic Rails boundaries:
   - frontend visited-state mutation
 - Wire concerns into base/admin/frontend controllers.
 
+#### Phase B implementation checklist (execution-ready)
+1. `phase6b-baseline-and-guards`
+   - Work from `fix/phase-6b-helper-concern-foundation`.
+   - Reconfirm runtime include map in:
+     - `app/controllers/camaleon_cms/camaleon_controller.rb`
+     - `app/controllers/camaleon_cms/frontend_controller.rb`
+     - `app/controllers/camaleon_cms/admin_controller.rb`
+   - Enforce no feature expansion and no new helper ivar bridge logic.
+2. `phase6b-step0-large-file-cleanup`
+   - Apply Step-0 cleanup to `app/controllers/camaleon_cms/frontend_controller.rb` (>300 LOC) before structural extraction.
+3. `phase6b-create-runtime-concerns`
+   - Add:
+     - `app/controllers/concerns/camaleon_cms/request_context_concern.rb`
+     - `app/controllers/concerns/camaleon_cms/session_runtime_concern.rb`
+     - `app/controllers/concerns/camaleon_cms/hook_lifecycle_concern.rb`
+     - `app/controllers/concerns/camaleon_cms/frontend_visited_state_concern.rb`
+4. `phase6b-wire-camaleon-controller`
+   - Include new concerns in `CamaleonController`.
+   - Move/route lifecycle and site-check runtime ownership into concerns with behavior parity.
+   - Preserve `PluginRoutes.all_helpers` include behavior and existing hook call surfaces.
+5. `phase6b-wire-frontend-admin-controllers`
+   - Wire `FrontendController` and `AdminController` to concern-owned runtime paths.
+   - Keep helper includes stable unless strictly required for handoff.
+6. `phase6b-spec-coverage`
+   - Cover concern-owned runtime behavior for auth/session redirects, hook lifecycle/skip-list behavior, and frontend visited-state propagation.
+7. `phase6b-verification`
+   - `(cd spec/dummy && bin/rails zeitwerk:check)`
+   - `bin/rubocop -A`
+   - `bin/rspec`
+8. `phase6b-phase-handshake`
+   - Record Phase 6B outcomes and explicit Phase 6C carryovers.
+
+#### Phase B progress update
+- Completed foundation extraction with new controller concerns:
+  - `CamaleonCms::RequestContextConcern`
+  - `CamaleonCms::SessionRuntimeConcern`
+  - `CamaleonCms::HookLifecycleConcern`
+  - `CamaleonCms::FrontendVisitedStateConcern`
+- `CamaleonController` now includes concern-owned runtime flow for app lifecycle hooks and request context setup.
+- `FrontendController` visited-state mutations now flow through concern writers that update `CurrentRequest` and compatibility ivars.
+- `AdminController` hook lifecycle dispatch now routes through concern lifecycle helper (`run_hook_lifecycle`).
+- Added concern-focused coverage:
+  - `spec/controllers/concerns/camaleon_cms/session_runtime_concern_spec.rb`
+  - updates in `spec/helpers/camaleon_cms/hooks_helper_spec.rb`
+  - updates in `spec/controllers/camaleon_cms/frontend_controller_lookup_prefixes_spec.rb`
+- Verification completed for Phase B scope:
+  - `(cd spec/dummy && bin/rails zeitwerk:check)`
+  - `bin/rubocop -A`
+  - `bin/rspec`
+
+##### Phase C carryovers
+- Remove helper-side legacy ivar fallback reads for frontend visited/user/object context.
+- Continue migration of runtime methods out of helper modules while preserving view-helper API contracts.
+- Plan controller include cleanup to reduce runtime dependence on helper mixins after helper slimming lands.
+
+#### Phase B follow-up hotfix queue
+- **Issue:** Admin site settings (`/admin/settings/site`, Custom Configurations tab) can raise `Missing partial .../custom_fields/fields/` for multiple inputs (confirmed: Footer Description and Seo Site) when custom field render fallback resolves an empty field key.
+- **Targeted fix scope:**
+  1. Reproduce with spec coverage on admin custom field render path for both failing inputs.
+  2. Normalize field key resolution in `app/views/camaleon_cms/admin/settings/custom_fields/_render.html.erb` to prevent empty partial path fallback.
+  3. Preserve plugin/custom overrides (`field.get_option('render')`, `cama_custom_field_elements`).
+  4. Re-run standard verification:
+     - `(cd spec/dummy && bin/rails zeitwerk:check)`
+     - `bin/rubocop -A`
+     - `bin/rspec`
+
+##### Phase B hotfix progress update
+- Completed normalization fix in `app/views/camaleon_cms/admin/settings/custom_fields/_render.html.erb`:
+  - normalized `field_key` resolution now handles string-key-backed options and safe fallback.
+  - render fallback no longer builds an empty partial path (`.../fields/`).
+- Added regression coverage:
+  - `spec/views/camaleon_cms/admin/settings/custom_fields/_render.html.erb_spec.rb`
+  - covers both failing inputs (`footer_description`, `seo_site`).
+- Verification completed:
+  - `(cd spec/dummy && bin/rails zeitwerk:check)`
+  - `bin/rubocop -A`
+  - `bin/rspec`
+
 ### Phase C — Slim helpers to presentation APIs
 - Remove helper ivar mutation/access bridges.
 - Convert helper state access to explicit args and read-only `CurrentRequest`.

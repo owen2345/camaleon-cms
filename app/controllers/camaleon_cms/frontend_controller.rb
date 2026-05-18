@@ -1,6 +1,7 @@
 module CamaleonCms
   class FrontendController < CamaleonCms::CamaleonController
     before_action :init_frontent
+    include CamaleonCms::FrontendVisitedStateConcern
     include CamaleonCms::FrontendConcern
     include CamaleonCms::Frontend::ApplicationHelper
     layout proc { |controller|
@@ -13,11 +14,9 @@ module CamaleonCms
     }
     before_action :before_hooks
     after_action :after_hooks
-    # rescue_from ActiveRecord::RecordNotFound, with: :page_not_found
-
     # home page for frontend
     def index
-      @cama_visited_home = true
+      mark_frontend_home_visited
       if @_site_options[:home_page].present?
         render_post(@_site_options[:home_page].to_i)
       else
@@ -38,7 +37,7 @@ module CamaleonCms
       rescue StandardError
         return page_not_found
       end
-      @cama_visited_category = @category
+      mark_frontend_category_visited(@category)
       @children = @category.children.no_empty.decorate
       @posts = @category.the_posts.paginate(page: params[:page],
                                             per_page: current_site.front_per_page).eager_load(:metas)
@@ -76,7 +75,7 @@ module CamaleonCms
         return page_not_found
       end
       @object = @post_type
-      @cama_visited_post_type = @post_type
+      mark_frontend_post_type_visited(@post_type)
       @posts = @post_type.the_posts.paginate(page: params[:page],
                                              per_page: current_site.front_per_page).eager_load(:metas)
       @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
@@ -102,7 +101,7 @@ module CamaleonCms
         return page_not_found
       end
       @object = @post_tag
-      @cama_visited_tag = @post_tag
+      mark_frontend_tag_visited(@post_tag)
       @posts = @post_tag.the_posts.paginate(page: params[:page],
                                             per_page: current_site.front_per_page).eager_load(:metas)
       slug_post_tag = "post_types/#{@post_type.the_slug}/post_tag"
@@ -118,7 +117,7 @@ module CamaleonCms
       breadcrumb_add(ct('search'))
       post_type_slugs = params[:post_type_slugs]
       items = post_type_slugs.present? ? current_site.the_posts(post_type_slugs.split(',')) : current_site.the_posts
-      @cama_visited_search = true
+      mark_frontend_search_visited
       @param_search = params[:q]
       layout_ = lookup_context.template_exists?('layouts/search') ? 'search' : nil
       r = { layout: layout_, render: 'search', posts: nil }
@@ -135,7 +134,7 @@ module CamaleonCms
     # ajax requests
     def ajax
       r = { render_file: nil, render_text: '', layout: nil }
-      @cama_visited_ajax = true
+      mark_frontend_ajax_visited
       hooks_run('on_ajax', r)
       if r[:render_file]
         render r[:render_file], (!r[:layout].nil? ? { layout: r[:layout] } : {})
@@ -161,7 +160,7 @@ module CamaleonCms
         return page_not_found
       end
       @object = @user
-      @cama_visited_profile = true
+      mark_frontend_profile_visited(@user)
       layout_ = lookup_context.template_exists?('layouts/profile') ? 'profile' : nil
       r = { user: @user, layout: layout_, render: 'profile' }
       hooks_run('on_render_profile', r)
@@ -213,7 +212,7 @@ module CamaleonCms
         end
       else
         @object = @post
-        @cama_visited_post = @post
+        mark_frontend_post_visited(@post)
         @post_type = @post.the_post_type
         @comments = @post.the_comments
         @categories = @post.the_categories

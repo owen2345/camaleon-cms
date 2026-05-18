@@ -3,6 +3,35 @@
 require 'rails_helper'
 
 RSpec.describe CamaleonCms::FrontendController do
+  describe 'frontend visited-state concern integration' do
+    let(:controller) { described_class.new }
+    let(:post) { instance_double(CamaleonCms::Post) }
+    let(:user) { instance_double(CamaleonCms::User) }
+
+    before do
+      CurrentRequest.reset
+    end
+
+    after do
+      CurrentRequest.reset
+    end
+
+    it 'stores visited post in CurrentRequest and legacy ivar' do
+      controller.send(:mark_frontend_post_visited, post)
+
+      expect(CurrentRequest.frontend_visited_post).to eq(post)
+      expect(controller.instance_variable_get(:@cama_visited_post)).to eq(post)
+    end
+
+    it 'stores visited profile and frontend user context' do
+      controller.send(:mark_frontend_profile_visited, user)
+
+      expect(CurrentRequest.frontend_visited_profile).to be(true)
+      expect(CurrentRequest.frontend_user).to eq(user)
+      expect(controller.instance_variable_get(:@cama_visited_profile)).to be(true)
+    end
+  end
+
   describe '#configure_frontend_lookup_prefixes' do
     let(:controller) { described_class.new }
     let(:site) { instance_double(CamaleonCms::Site, id: 132) }

@@ -15,13 +15,24 @@
                     </div>
                 <% end %>
                 <div class="fields_container">
-                    <% fields.decorate.each do |field| is_disabled = field.options[:disabled].present? || field.options[:readonly].present?; group_field_data[field.slug] = {default_value: field.options[:default_value], is_disabled: is_disabled, id: field.id, multiple: field.options[:multiple].to_s.to_bool && !is_disabled, kind: field.get_option('field_key')} %>
-                        <div class="item-custom-field c-field-<%= field.options[:field_key] %>" data-field-key="<%= field.slug %>">
+                    <% fields.decorate.each do |field|
+                         field_key = field.get_option('field_key').presence || field.options[:field_key].presence || field.options['field_key'].presence
+                         normalized_field_key = field_key.presence || 'text_box'
+                         is_disabled = field.get_option('disabled').present? || field.get_option('readonly').present?
+                         required_field = field.get_option('required').to_s.to_bool
+                         group_field_data[field.slug] = {
+                           default_value: field.get_option('default_value'),
+                           is_disabled: is_disabled,
+                           id: field.id,
+                           multiple: field.get_option('multiple').to_s.to_bool && !is_disabled,
+                           kind: normalized_field_key
+                         } %>
+                        <div class="item-custom-field c-field-<%= normalized_field_key %>" data-field-key="<%= field.slug %>">
                             <input name="<%= field_name %>[<%= field.slug %>][id]" type="hidden" value="<%= field.id %>"/>
                             <input name="<%= field_name %>[<%= field.slug %>][group_number]" class="cama_custom_group_number" type="hidden" value="0"/>
                             <label>
                                 <%= field.name %>
-                                <%= raw "<em class='text-danger'>*</em>" if field.options[:required].to_s.to_bool %>
+                                <%= raw "<em class='text-danger'>*</em>" if required_field %>
                                 <% if current_site.get_option('custom_fields_show_shortcodes') && ["post", "posttype", "category", "postTag", "site", "user", "navmenu", "theme"].include?(obj_class) %>
                                     <small class="shortcode_field"><br><%= cama_shortcode_print("[data field='#{field.slug}' #{"object='#{obj_class}' #{"id='#{record.id}'" if obj_class != "Theme" }" unless record.new_record?}]") %></small>
                                 <% end %>
@@ -31,7 +42,11 @@
                             <% end  %>
                             <div class="editor-custom-fields content-field-<%= field.id %>" data-add_field_title="<%= t('camaleon_cms.admin.button.add_new_field', default: 'Add new field')%>">
                                 <%= begin
-                                      render(field.get_option('render') || (cama_custom_field_elements[field.get_option('field_key').to_sym][:render] rescue nil) || "camaleon_cms/admin/settings/custom_fields/fields/#{field.options[:field_key]}", field: field, values: nil, is_disabled: is_disabled, default_use: default_use, field_name: field_name)
+                                      custom_field_render = (cama_custom_field_elements[normalized_field_key.to_sym][:render] rescue nil)
+                                      render(
+                                        field.get_option('render') || custom_field_render || "camaleon_cms/admin/settings/custom_fields/fields/#{normalized_field_key}",
+                                        field: field, values: nil, is_disabled: is_disabled, default_use: default_use, field_name: field_name
+                                      )
                                     rescue => e
                                       Rails.logger.error "Camaleon CMS - Render Custom Fields Error: Custom field template was not found => #{e.message}: #{$!.backtrace}".cama_log_style(:red)
                                       e.message
