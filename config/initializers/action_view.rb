@@ -7,11 +7,14 @@ module ActionView
       # fix to add camaleon prefix to search partials and layouts
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         if use_camaleon_partial_prefixes.present?
+          scoped_prefixes = cama_theme_scoped_prefixes(prefixes)
+          prefixes = scoped_prefixes if scoped_prefixes.present?
+          original_prefixes_blank = prefixes.blank?
           if !partial && prefixes.blank? && File.exist?(name) # fix for windows ==> render file: '....'
             # puts "rendering specific file (render file: '....')"
           else
             prefixes = [''] if prefixes.blank?
-            prefixes = (self.prefixes + prefixes).uniq if prefixes.is_a?(Array)
+            prefixes = (self.prefixes + prefixes).uniq if prefixes.is_a?(Array) && original_prefixes_blank
           end
         end
         @view_paths.find(*cama_args_for_lookup(name, prefixes, partial, keys, options))
@@ -21,8 +24,11 @@ module ActionView
       # fix to add camaleon prefixes on verify template exist
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
         if use_camaleon_partial_prefixes.present?
+          scoped_prefixes = cama_theme_scoped_prefixes(prefixes)
+          prefixes = scoped_prefixes if scoped_prefixes.present?
+          original_prefixes_blank = prefixes.blank?
           prefixes = [''] if prefixes.blank?
-          prefixes = (prefixes + self.prefixes).uniq if prefixes.is_a?(Array)
+          prefixes = (prefixes + self.prefixes).uniq if prefixes.is_a?(Array) && original_prefixes_blank
         end
         @view_paths.exists?(*cama_args_for_lookup(name, prefixes, partial, keys, options))
       end
@@ -41,6 +47,16 @@ module ActionView
           prefixes = prefixes.map { |prefix| prefix.start_with?('/') ? prefix[1..] : prefix }
           details, details_key = detail_args_for(details_options)
           [name, prefixes, partial || false, details, details_key, keys]
+        end
+      end
+
+      def cama_theme_scoped_prefixes(prefixes)
+        theme = CurrentRequest.frontend_current_theme
+        slug = theme&.slug
+        return if slug.blank? || prefixes.blank? || !prefixes.is_a?(Array)
+
+        prefixes.select do |prefix|
+          prefix.include?("themes/#{slug}/views") || prefix == 'camaleon_cms/default_theme'
         end
       end
     end

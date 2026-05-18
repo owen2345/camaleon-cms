@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **Fix & Refactor:** Phase 5 — Restore theme preview rendering and refactor nav-menu-helper, [#1181](https://github.com/owen2345/camaleon-cms/pull/1181)
+  - Part 1: Restore preview rendering
+    - Fixes preview theme state override: prefer `@_current_theme` ivar over cached site theme
+    - Fixes legacy template ivar support: set `@current_site` on all `current_site` paths
+    - Fixes preview hook dispatch: use preview theme slug instead of site theme slug
+    - Adds preview menu bootstrap: scans theme templates for nav_menu references and auto-creates missing menus
+    - Resolves broken preview rendering for `cv` and `e_shop` themes
+  - Part 2: Refactor nav-menu-helper (planned)
+    - Replace breadcrumb and visited-state ivars with request-scoped CurrentRequest state
+    - Add comprehensive helper specs for breadcrumb and active-item detection
+    - Remove final `Rails/HelperInstanceVariable` exclusion for frontend/nav_menu_helper.rb
+
 - **Refactor:** Replace Phase 4 session/shortcode/comment helper instance-variable state, [#1179](https://github.com/owen2345/camaleon-cms/pull/1179)
   - Refactors `session_helper`, `short_code_helper`, and `comment_helper` to avoid helper ivar state via request-scoped `CurrentRequest` and explicit context passing
   - Preserves controller/view compatibility points used by existing admin/session/shortcode flows

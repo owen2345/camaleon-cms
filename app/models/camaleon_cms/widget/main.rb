@@ -15,8 +15,9 @@ module CamaleonCms
       # excerpt: string for message
       # renderer: string (path to the template for render this widget)
 
-      belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, inverse_of: :widgets
-      belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, inverse_of: :widgets
+      belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, inverse_of: :widgets,
+                         optional: true
+      belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, inverse_of: :widgets, optional: true
 
       has_many :assigned, class_name: 'CamaleonCms::Widget::Assigned', foreign_key: :visibility, dependent: :destroy,
                           inverse_of: :widget

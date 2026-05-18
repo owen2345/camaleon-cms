@@ -3,24 +3,30 @@
 require 'rails_helper'
 
 RSpec.describe CamaleonCms::HooksHelper do
-  let(:hooks_helper) do
+  let(:helper_class) do
     Class.new do
       include CamaleonCms::HooksHelper
-    end.new
+
+      attr_accessor :current_site, :current_theme
+    end
   end
 
-  describe 'CurrentRequest-backed helper state' do
-    it 'stores the skip list in CurrentRequest' do
-      hooks_helper.hook_skip('skip_me')
+  let(:helper) { helper_class.new }
+  let(:site) { instance_double(CamaleonCms::Site, get_theme_slug: 'camaleon_cms') }
+  let(:theme) { instance_double(CamaleonCms::Theme, slug: 'cv') }
+  let(:theme_plugin) { { 'key' => 'cv', 'hooks' => { 'front_before_load' => ['cv_front_before_load'] } } }
 
-      expect(CurrentRequest.hooks_helper_state[:hooks_skip]).to eq(['skip_me'])
-    end
+  before do
+    helper.current_site = site
+    helper.current_theme = theme
+    allow(PluginRoutes).to receive(:enabled_apps).with(site, 'cv').and_return([theme_plugin])
+    allow(PluginRoutes).to receive(:get_anonymous_hooks).and_return([])
+    allow(helper).to receive(:send)
+  end
 
-    it 'starts with an empty skip list after CurrentRequest.reset' do
-      hooks_helper.hook_skip('skip_me')
-      CurrentRequest.reset
+  it 'loads hooks from the current preview theme' do
+    expect(PluginRoutes).to receive(:enabled_apps).with(site, 'cv')
 
-      expect(hooks_helper.send(:hook_skip_list)).to eq([])
-    end
+    helper.hooks_run('front_before_load')
   end
 end

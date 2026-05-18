@@ -12,8 +12,10 @@ module CamaleonCms
 
       # attr_accessible :widget_id, :sidebar_id, :item_order
 
-      belongs_to :sidebar, class_name: 'CamaleonCms::Widget::Sidebar', foreign_key: :post_parent, inverse_of: :assigned
-      belongs_to :widget, class_name: 'CamaleonCms::Widget::Main', foreign_key: :visibility, inverse_of: :assigned
+      belongs_to :sidebar, class_name: 'CamaleonCms::Widget::Sidebar', foreign_key: :post_parent, inverse_of: :assigned,
+                           optional: true
+      belongs_to :widget, class_name: 'CamaleonCms::Widget::Main', foreign_key: :visibility, inverse_of: :assigned,
+                          optional: true
 
       after_initialize :fix_slug2
       before_create :set_order

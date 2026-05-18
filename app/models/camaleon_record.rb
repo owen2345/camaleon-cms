@@ -9,6 +9,22 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
 
   self.abstract_class = true
 
+  def self.polymorphic_name
+    return super unless name.to_s.start_with?('CamaleonCms::')
+
+    name.demodulize
+  end
+
+  def self.polymorphic_class_for(name)
+    super
+  rescue NameError
+    legacy_class = legacy_camaleon_polymorphic_class(name)
+    return legacy_class if legacy_class
+    return nil if legacy_polymorphic_marker?(name)
+
+    raise
+  end
+
   # save cache value for this key
   def cama_set_cache(key, val)
     @cama_cache_vars ||= {}
@@ -81,4 +97,42 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
 
     @current_site = CurrentRequest.site
   end
+
+  def self.legacy_camaleon_polymorphic_class(name)
+    class_name = name.to_s
+    return if class_name.blank?
+
+    candidates = []
+
+    unless class_name.include?('::')
+      candidates << "CamaleonCms::#{class_name}"
+
+      if class_name.include?('_')
+        base_name = class_name.split('_').first
+        candidates << "CamaleonCms::#{base_name}" if base_name.present?
+      end
+
+      candidates << CamaManager.get_user_class_name.to_s if class_name == 'User'
+    end
+
+    candidates << "CamaleonCms::#{class_name}" if class_name.include?('::') && !class_name.start_with?('CamaleonCms::')
+
+    candidates.uniq.each do |candidate|
+      next unless valid_constant_name?(candidate)
+
+      klass = candidate.safe_constantize
+      return klass if klass
+    end
+
+    nil
+  end
+  private_class_method def self.legacy_polymorphic_marker?(name)
+    name.to_s.start_with?('_')
+  end
+
+  private_class_method def self.valid_constant_name?(name)
+    name.to_s.match?(/\A[A-Z]\w*(::[A-Z]\w*)*\z/)
+  end
+
+  private_class_method :legacy_camaleon_polymorphic_class
 end

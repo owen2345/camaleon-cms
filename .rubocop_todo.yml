@@ -147,11 +147,6 @@ Naming/VariableNumber:
     - 'config/initializers/assets.rb'
     - 'spec/models/post_spec.rb'
 
-# Offense count: 160
-Rails/HelperInstanceVariable:
-  Exclude:
-    - 'app/helpers/camaleon_cms/frontend/nav_menu_helper.rb'
-
 # Offense count: 2
 Security/Eval:
   Exclude:

@@ -1,7 +1,10 @@
 # Helper ivar refactor phases (canonical plan)
 
 See also: `docs/ai/plans/helper-ivar-refactor-master-plan.md` (long-lived umbrella plan).
-Release tracking: `docs/ai/plans/releases/2.9.3.md`.
+Release tracking:
+- `docs/ai/plans/releases/2.9.3.md`
+- `docs/ai/plans/releases/2.10.0.md`
+- `docs/ai/plans/releases/rails-7.2-plus.md`
 
 ## Scope
 Progressive removal of `Rails/HelperInstanceVariable` helper state patterns, with behavior-safe migration to `CurrentRequest` and explicit local/context state passing.
@@ -10,8 +13,8 @@ Progressive removal of `Rails/HelperInstanceVariable` helper state patterns, wit
 - Phase 1: merged
 - Phase 2: merged
 - Phase 3: merged
-- Phase 4: planned/in progress
-- Phase 5: queued
+- Phase 4: merged
+- Phase 5: planned/in progress
 
 ## Phase 4 plan
 
@@ -72,11 +75,45 @@ Progressive removal of `Rails/HelperInstanceVariable` helper state patterns, wit
   - `bin/rubocop -A` ✅
   - `bin/rspec` ✅ (470 examples, 0 failures)
 - Remaining for Phase 4:
-  - commit/push + PR + changelog step.
+  - completed (PR merged).
 
 ## Phase 5 queue
 - Remaining helper cleanup: `app/helpers/camaleon_cms/frontend/nav_menu_helper.rb`
 - Final cleanup and CI parity
+
+### Phase 5 execution plan
+1. Branch + baseline
+   - Branch from latest `master` (`fix/phase-5-nav-menu-helper-cleanup`).
+   - Run baseline checks for `nav_menu_helper` + existing helper specs.
+2. Step-0 cleanup (mandatory for >300 LOC file)
+   - `app/helpers/camaleon_cms/frontend/nav_menu_helper.rb` is 300+ LOC.
+   - First pass: remove dead/unused code only (if any), no behavior change.
+   - Commit Step-0 cleanup separately before structural refactor.
+3. Refactor `frontend/nav_menu_helper.rb`
+   - Replace `@_front_breadcrumb` with request-scoped state (CurrentRequest-backed breadcrumb store).
+   - Replace direct frontend visited ivar reads (`@cama_visited_post`, `@cama_visited_category`, `@cama_visited_tag`, `@cama_visited_post_type`) with request-scoped frontend context attributes.
+   - Add helper accessors (or equivalent local readers) so parsing/rendering reads from one request-state source.
+   - Preserve public helper API and rendering behavior.
+4. Specs
+   - Extend `spec/helpers/camaleon_cms/frontend/nav_menu_helper_spec.rb` for breadcrumb and current-item detection behavior after state migration.
+   - Add missing coverage for `breadcrumb_add` + `breadcrumb_draw` order and active-last-item behavior.
+   - Add explicit current-state tests for `post`, `category`, `post_tag`, `post_type` parsing paths via request-scoped visited context.
+5. Cleanup
+   - Remove final `Rails/HelperInstanceVariable` exclusion for `frontend/nav_menu_helper.rb` from `.rubocop_todo.yml`.
+6. Final verification
+   - `(cd spec/dummy && bin/rails zeitwerk:check)`
+   - `bin/rubocop -A`
+   - `bin/rspec`
+7. Ship
+   - Commit/push/PR, then changelog entry referencing PR.
+
+### Phase 5 tracked todo IDs (SQL)
+- `phase5-branch-and-baseline`
+- `phase5-step0-nav-menu-cleanup`
+- `phase5-nav-menu-helper-refactor`
+- `phase5-spec-coverage`
+- `phase5-rubocop-todo-cleanup`
+- `phase5-verification-and-pr`
 
 ## Future follow-ups (non-blocking)
 - Deterministic `Metas#get_meta` for duplicate-key rows (stable row ordering before selecting one).
@@ -84,4 +121,5 @@ Progressive removal of `Rails/HelperInstanceVariable` helper state patterns, wit
 - Host app note (`camaleon_website`): harden e_shop header partial against missing nav menu slugs.
 
 ## Persistence policy
-This file is the durable source of truth for this refactor stream. Session-local plan files may mirror active execution detail, but should not replace this record.
+This file is the durable source of truth for this refactor stream.
+Session-local plan files are optional mirrors and must not be treated as canonical.

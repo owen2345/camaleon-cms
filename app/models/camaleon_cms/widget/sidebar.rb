@@ -4,7 +4,7 @@ module CamaleonCms
       normalize_attrs(:name, :description)
 
       has_many :assigned, foreign_key: :post_parent, dependent: :destroy, inverse_of: :sidebar
-      belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, inverse_of: :sidebars
+      belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, inverse_of: :sidebars, optional: true
 
       # scopes
       scope :default_sidebar, -> { where(slug: 'default-sidebar') }
