@@ -119,6 +119,7 @@ module CamaleonCms
             @user.errors.add(:captcha, t('camaleon_cms.admin.users.message.error_captcha'))
             render 'register'
           elsif result[:result]
+            @user = result[:user] if result[:user].present?
             flash[:notice] = result[:message]
             send_user_confirm_email(@user) if current_site.need_validate_email?
             r = { user: @user, redirect_url: result[:redirect_url] }

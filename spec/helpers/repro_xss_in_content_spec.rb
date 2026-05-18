@@ -14,7 +14,7 @@ describe CamaleonCms::Frontend::ContentSelectHelper do
 
   describe '#the_content' do
     it 'sanitizes XSS payload in post content' do
-      @object = post
+      CurrentRequest.frontend_object = post
 
       output = the_content
 

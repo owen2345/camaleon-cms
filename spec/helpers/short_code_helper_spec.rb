@@ -85,4 +85,42 @@ describe 'CamaleonCms::ShortCodeHelper' do
       expect(CurrentRequest.shortcodes_descr['profile_social']).to eq('social links')
     end
   end
+
+  describe 'Asset shortcode' do
+    let(:current_theme) { instance_double(CamaleonCms::Theme) }
+    let(:current_theme_asset_path) { '/tmp/cv/assets/img/signature.png' }
+    let(:remapped_asset) { 'themes/cv/assets/img/signature.png' }
+
+    before do
+      helper.shortcodes_init
+      allow(helper).to receive(:current_theme).and_return(current_theme)
+      allow(helper).to receive(:theme_asset_path).with('img/signature.png').and_return(remapped_asset)
+      allow(helper).to receive(:theme_asset_file_path).with('img/signature.png').and_return(current_theme_asset_path)
+      allow(File).to receive(:exist?).and_call_original
+    end
+
+    it 'remaps theme asset shortcodes to the active theme when the asset exists there' do
+      allow(File).to receive(:exist?).with(current_theme_asset_path).and_return(true)
+
+      output = helper.do_shortcode("[asset as_path='true' file='themes/camaleon_cms/assets/img/signature.png']")
+
+      expect(output).to eq('/themes/cv/assets/img/signature.png')
+    end
+
+    it 'uses the active theme asset path for image tags too' do
+      allow(File).to receive(:exist?).with(current_theme_asset_path).and_return(true)
+
+      output = helper.do_shortcode("[asset image='true' file='themes/camaleon_cms/assets/img/signature.png']")
+
+      expect(output).to include('src="/themes/cv/assets/img/signature.png"')
+    end
+
+    it 'keeps the original theme asset path when the active theme does not have the asset' do
+      allow(File).to receive(:exist?).with(current_theme_asset_path).and_return(false)
+
+      output = helper.do_shortcode("[asset as_path='true' file='themes/camaleon_cms/assets/img/signature.png']")
+
+      expect(output).to eq('/themes/camaleon_cms/assets/img/signature.png')
+    end
+  end
 end

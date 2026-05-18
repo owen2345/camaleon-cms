@@ -16,11 +16,5 @@ RSpec.describe CamaleonCms::ThemeHelper do
       state = CurrentRequest.theme_helper_state
       expect(state[:front_breadcrumb]).to eq([])
     end
-
-    it 'keeps nav menu helper compatibility via @_front_breadcrumb' do
-      theme_helper.theme_init
-
-      expect(theme_helper.instance_variable_get(:@_front_breadcrumb)).to eq([])
-    end
   end
 end

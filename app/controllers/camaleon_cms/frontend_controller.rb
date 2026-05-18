@@ -75,6 +75,7 @@ module CamaleonCms
         return page_not_found
       end
       @object = @post_type
+      CurrentRequest.frontend_object = @object
       mark_frontend_post_type_visited(@post_type)
       @posts = @post_type.the_posts.paginate(page: params[:page],
                                              per_page: current_site.front_per_page).eager_load(:metas)
@@ -101,6 +102,7 @@ module CamaleonCms
         return page_not_found
       end
       @object = @post_tag
+      CurrentRequest.frontend_object = @object
       mark_frontend_tag_visited(@post_tag)
       @posts = @post_tag.the_posts.paginate(page: params[:page],
                                             per_page: current_site.front_per_page).eager_load(:metas)
@@ -160,6 +162,7 @@ module CamaleonCms
         return page_not_found
       end
       @object = @user
+      CurrentRequest.frontend_object = @object
       mark_frontend_profile_visited(@user)
       layout_ = lookup_context.template_exists?('layouts/profile') ? 'profile' : nil
       r = { user: @user, layout: layout_, render: 'profile' }
@@ -178,6 +181,7 @@ module CamaleonCms
     def draft_render
       post_draft = current_site.posts.drafts.find(params[:draft_id])
       @object = post_draft
+      CurrentRequest.frontend_object = @object
 
       # let a hook override the ability for certain roles see drafts
       args = { permitted: false }
@@ -212,6 +216,7 @@ module CamaleonCms
         end
       else
         @object = @post
+        CurrentRequest.frontend_object = @object
         mark_frontend_post_visited(@post)
         @post_type = @post.the_post_type
         @comments = @post.the_comments
@@ -274,7 +279,9 @@ module CamaleonCms
       # preview theme initializing
       previewing_theme = cama_sign_in? && params[:ccc_theme_preview].present? && can?(:manage, :themes)
       if previewing_theme
-        @_current_theme = current_site.themes.where(slug: params[:ccc_theme_preview]).first_or_create!.decorate
+        preview_theme = current_site.themes.where(slug: params[:ccc_theme_preview]).first_or_create!.decorate
+        @_current_theme = preview_theme
+        CurrentRequest.frontend_current_theme = preview_theme
         ensure_preview_site_defaults
       end
 

@@ -16,8 +16,6 @@ module CamaleonCms
 
       # taxonomies ->  (categories || post_tags)
       def post_type_list_taxonomy(taxonomies, color = 'primary', post_type = nil)
-        # Backward compatibility: attempt to get post_type from controller context if not provided
-        post_type ||= controller.instance_variable_get(:@post_type) if controller.respond_to?(:instance_variable_get)
         return safe_join([]) if post_type.blank?
 
         safe_join(taxonomies.decorate.map do |f|

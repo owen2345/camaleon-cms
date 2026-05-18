@@ -4,21 +4,16 @@ module CamaleonCms
     def current_site(site = nil)
       if site.present?
         CurrentRequest.site = site.decorate
-        instance_variable_set(:@current_site, CurrentRequest.site)
         CurrentRequest.frontend_current_theme = nil
         return CurrentRequest.site
       end
 
       if defined?($current_site)
         CurrentRequest.site = $current_site
-        instance_variable_set(:@current_site, CurrentRequest.site)
         return $current_site
       end
 
-      if CurrentRequest.site.present?
-        instance_variable_set(:@current_site, CurrentRequest.site)
-        return CurrentRequest.site
-      end
+      return CurrentRequest.site if CurrentRequest.site.present?
 
       if PluginRoutes.get_sites.size == 1
         site = begin
@@ -53,19 +48,17 @@ module CamaleonCms
         )
       end
       CurrentRequest.site = r[:site]
-      instance_variable_set(:@current_site, CurrentRequest.site)
       CurrentRequest.frontend_current_theme = nil
       CurrentRequest.site
     end
 
     # return current theme model for current site
     def current_theme
-      theme = if instance_variable_defined?(:@_current_theme) && instance_variable_get(:@_current_theme).present?
-                instance_variable_get(:@_current_theme)
-              else
-                CurrentRequest.frontend_current_theme
-              end
-      return CurrentRequest.frontend_current_theme = theme if theme.present?
+      preview_theme = (instance_variable_get(:@_current_theme) if instance_variable_defined?(:@_current_theme))
+      return CurrentRequest.frontend_current_theme = preview_theme if preview_theme.present?
+
+      theme = CurrentRequest.frontend_current_theme
+      return theme if theme.present?
 
       theme = current_site.get_theme.decorate
       CurrentRequest.frontend_current_theme = theme

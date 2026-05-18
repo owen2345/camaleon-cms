@@ -37,7 +37,6 @@ module CamaleonCms
     # return boolean: true => authenticated, false => authentication failed
     def login_user_with_password(username, password)
       user = current_site.users.find_by(username: username)
-      assign_controller_user(user)
       r = { user: user, params: params, password: password, captcha_validate: true }
       hooks_run('user_before_login', r)
       user&.authenticate(password)
@@ -53,7 +52,6 @@ module CamaleonCms
     # - password_confirmation
     def cama_register_user(user_data, meta)
       user = current_site.users.new(user_data)
-      assign_controller_user(user)
       r = { user: user, params: params }
       hook_run('user_before_register', r)
 
@@ -68,9 +66,9 @@ module CamaleonCms
                   end
         r = { user: user, message: message, redirect_url: cama_admin_login_path }
         hooks_run('user_after_register', r)
-        { result: true, message: r[:message], redirect_url: r[:redirect_url] }
+        { result: true, message: r[:message], redirect_url: r[:redirect_url], user: user }
       else
-        { result: false, type: :no_saved }
+        { result: false, type: :no_saved, user: user }
       end
     end
 
@@ -173,13 +171,6 @@ module CamaleonCms
     end
 
     private
-
-    def assign_controller_user(user)
-      target = respond_to?(:controller) ? controller : self
-      return unless target.respond_to?(:instance_variable_set)
-
-      target.instance_variable_set(:@user, user)
-    end
 
     # validate redirect url to prevent open redirect attacks
     def safe_redirect_url(url)
