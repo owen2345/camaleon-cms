@@ -9,7 +9,7 @@ module CamaleonCms
                            optional: true
     belongs_to :post, lambda {
                         order("#{CamaleonCms::Post.table_name}.id DESC")
-                      }, foreign_key: :objectid, inverse_of: :post_relationships, dependent: :destroy, optional: true
+                      }, foreign_key: :objectid, inverse_of: :post_relationships, optional: true
 
     # callbacks
     after_create :update_count
