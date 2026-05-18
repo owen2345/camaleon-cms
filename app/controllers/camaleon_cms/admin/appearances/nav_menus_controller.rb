@@ -3,7 +3,6 @@ module CamaleonCms
     module Appearances
       class NavMenusController < CamaleonCms::AdminController
         include CamaleonCms::Admin::CustomFieldsConcern
-        include CamaleonCms::Frontend::NavMenuHelper
 
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.appearance')
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.menus')

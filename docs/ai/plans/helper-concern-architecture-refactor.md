@@ -234,6 +234,41 @@ Move to idiomatic Rails boundaries:
 - Keep helper exposure view-focused via helper contracts.
 - Ensure redirects/session side effects are concern-driven.
 
+#### Phase D implementation checklist (execution-ready)
+1. `phase6d-controller-include-baseline`
+   - Reconfirm helper include usage in:
+     - `app/controllers/camaleon_cms/camaleon_controller.rb`
+     - `app/controllers/camaleon_cms/frontend_controller.rb`
+     - `app/controllers/camaleon_cms/admin_controller.rb`
+2. `phase6d-runtime-helper-boundary`
+   - Move controller runtime helper mixins behind concern-owned include boundaries.
+   - Preserve plugin helper loading compatibility.
+3. `phase6d-view-helper-contracts`
+   - Keep view helper exposure on Rails defaults (`include_all_helpers`) without controller-level helper declarations.
+4. `phase6d-verification`
+   - `(cd spec/dummy && bin/rails zeitwerk:check)`
+   - `bin/rubocop -A`
+   - `bin/rspec`
+5. `phase6d-phase-handshake`
+   - Record explicit Phase E carryovers.
+
+#### Phase D progress update
+- Completed controller include cleanup for base/admin/frontend controller paths:
+  - `app/controllers/camaleon_cms/camaleon_controller.rb`
+  - `app/controllers/camaleon_cms/frontend_controller.rb`
+  - `app/controllers/camaleon_cms/admin_controller.rb`
+- Added runtime helper dispatch boundary without helper-module includes:
+  - `app/controllers/concerns/camaleon_cms/runtime_helper_dispatch_concern.rb`
+- Preserved dynamic plugin helper compatibility while relying on Rails default helper exposure (no controller-level helper declarations).
+- Verification completed:
+  - `(cd spec/dummy && bin/rails zeitwerk:check)`
+  - `bin/rubocop -A`
+  - `bin/rspec`
+
+##### Phase E carryovers
+- Continue reducing helper-module runtime mixin surface by extracting remaining controller flow dependencies into focused controller concerns.
+- Validate frontend/admin hotspot helper APIs while removing any residual implicit runtime/helper coupling.
+
 ### Phase E — Frontend/admin hotspots
 - Frontend: remove remaining nav/seo/content-select legacy ivar fallbacks.
 - Admin: replace helper fallback reads from controller ivars with explicit params/context APIs.

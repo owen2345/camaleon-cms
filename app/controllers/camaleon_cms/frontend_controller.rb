@@ -3,7 +3,6 @@ module CamaleonCms
     before_action :init_frontent
     include CamaleonCms::FrontendVisitedStateConcern
     include CamaleonCms::FrontendConcern
-    include CamaleonCms::Frontend::ApplicationHelper
     layout proc { |controller|
       args = {
         layout: (params[:cama_ajax_request].present? ? 'cama_ajax' : PluginRoutes.static_system_info['default_layout']),

@@ -8,22 +8,8 @@ module CamaleonCms
     include CamaleonCms::SessionRuntimeConcern
     include CamaleonCms::RequestContextConcern
     include CamaleonCms::HookLifecycleConcern
-    include CamaleonCms::CamaleonHelper
-    include CamaleonCms::SessionHelper
-    include CamaleonCms::SiteHelper
-    include CamaleonCms::HtmlHelper
-    include CamaleonCms::UserRolesHelper
-    include CamaleonCms::ShortCodeHelper
-    include CamaleonCms::PluginsHelper
-    include CamaleonCms::ThemeHelper
-    include CamaleonCms::HooksHelper
-    include CamaleonCms::ContentHelper
-    include CamaleonCms::CaptchaHelper
-    include CamaleonCms::UploaderHelper
-    include CamaleonCms::EmailHelper
+    include CamaleonCms::RuntimeStateConcern
     include Mobu::DetectMobile
-
-    PluginRoutes.all_helpers.each { |h| include h.constantize }
 
     before_action :cama_site_check_existence, except: [:captcha]
     before_action :cama_before_actions, except: [:captcha]

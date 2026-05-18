@@ -4,7 +4,6 @@ module CamaleonCms
       flash[:error] = "Error: #{exception.message}"
       redirect_to cama_admin_dashboard_path
     end
-    include CamaleonCms::Admin::ApplicationHelper
     # layout 'camaleon_cms/admin'
     before_action :cama_authenticate
     before_action :keep_request_attrs

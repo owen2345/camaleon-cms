@@ -30,6 +30,12 @@ RSpec.describe CamaleonCms::FrontendController do
       expect(CurrentRequest.frontend_user).to eq(user)
       expect(controller.instance_variable_get(:@cama_visited_profile)).to be(true)
     end
+
+    it 'stores frontend breadcrumbs in request state' do
+      controller.breadcrumb_add('Search', '/search')
+
+      expect(CurrentRequest.theme_helper_state[:front_breadcrumb]).to eq([['Search', '/search']])
+    end
   end
 
   describe '#configure_frontend_lookup_prefixes' do
