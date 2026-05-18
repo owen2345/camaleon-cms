@@ -14,7 +14,8 @@ Progressive removal of `Rails/HelperInstanceVariable` helper state patterns, wit
 - Phase 2: merged
 - Phase 3: merged
 - Phase 4: merged
-- Phase 5: planned/in progress
+- Phase 5: merged
+- Phase 6 (architecture boundary refactor): in progress
 
 ## Phase 4 plan
 
@@ -115,10 +116,23 @@ Progressive removal of `Rails/HelperInstanceVariable` helper state patterns, wit
 - `phase5-rubocop-todo-cleanup`
 - `phase5-verification-and-pr`
 
-## Future follow-ups (non-blocking)
-- Deterministic `Metas#get_meta` for duplicate-key rows (stable row ordering before selecting one).
-- Legacy polymorphic owner compatibility hardening for demodulized `object_class` values under strict host-app defaults.
-- Host app note (`camaleon_website`): harden e_shop header partial against missing nav menu slugs.
+## Phase 6 queue (canonical)
+- Canonical plan: `docs/ai/plans/helper-concern-architecture-refactor.md`
+- Objective: move controller/runtime responsibilities out of helpers into controller concerns and keep helpers view-facing only.
+- Scope highlights:
+  - remove helper-side ivar bridging (`instance_variable_set` / `instance_variable_get`)
+  - replace runtime controller includes of helpers with concern includes
+  - keep plugin/theme compatibility through explicit adapters where necessary
+
+### Phase 6 progress update
+- Branch: `fix/phase-6-helper-concern-architecture`
+- Phase A (inventory/boundaries): completed
+  - added ownership map of mixed modules (runtime concern vs view helper targets)
+  - documented compatibility constraints for themes/plugins/decorators
+  - defined enforceable boundary rules for implementation phases
+
+## Future follow-ups
+- Resolved during Phase 5 and no longer pending.
 
 ## Persistence policy
 This file is the durable source of truth for this refactor stream.
