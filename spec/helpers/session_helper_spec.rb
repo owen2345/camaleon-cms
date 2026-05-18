@@ -10,7 +10,7 @@ RSpec.describe CamaleonCms::SessionHelper, type: :helper do
   end
 
   describe '#login_user_with_password' do
-    it 'authenticates found user and exposes it on controller context' do
+    it 'authenticates found user' do
       user = instance_double(CamaleonCms::User)
       users = instance_double(ActiveRecord::Relation)
       site = instance_double(CamaleonCms::Site, users: users)
@@ -21,12 +21,11 @@ RSpec.describe CamaleonCms::SessionHelper, type: :helper do
       allow(user).to receive(:authenticate).with('secret').and_return(true)
 
       expect(helper.login_user_with_password('admin', 'secret')).to be(true)
-      expect(helper.controller.instance_variable_get(:@user)).to eq(user)
     end
   end
 
   describe '#cama_register_user' do
-    it 'registers user and preserves controller user context for callers' do
+    it 'registers user and returns it in the response payload for callers' do
       user = instance_double(CamaleonCms::User)
       users = instance_double(ActiveRecord::Relation)
       site = instance_double(
@@ -51,7 +50,7 @@ RSpec.describe CamaleonCms::SessionHelper, type: :helper do
       result = helper.cama_register_user({ username: 'john' }, {})
 
       expect(result).to include(result: true, message: 'created', redirect_url: '/admin/login')
-      expect(helper.controller.instance_variable_get(:@user)).to eq(user)
+      expect(result[:user]).to eq(user)
     end
   end
 

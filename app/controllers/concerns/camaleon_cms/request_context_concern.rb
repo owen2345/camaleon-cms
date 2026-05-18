@@ -8,6 +8,7 @@ module CamaleonCms
       sanitize_forwarded_host_header
       configure_runtime_view_paths
       sync_runtime_defaults
+      assign_template_compatibility_state
     end
 
     def sanitize_forwarded_host_header
@@ -23,6 +24,10 @@ module CamaleonCms
     def sync_runtime_defaults
       CamaleonCms::PostDefault.current_user = cama_current_user
       CamaleonCms::PostDefault.current_site = current_site
+    end
+
+    def assign_template_compatibility_state
+      @current_site = current_site
     end
 
     # check if current site exist, if not, this will be redirected to main domain

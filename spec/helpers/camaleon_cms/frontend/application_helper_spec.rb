@@ -14,8 +14,8 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
       expect(helper.site_current_path).to eq(CurrentRequest.frontend_site_current_path)
     end
 
-    it 'exposes the current site as a legacy instance variable' do
-      expect(helper.instance_variable_get(:@current_site)).to eq(site)
+    it 'stores current site in CurrentRequest' do
+      expect(CurrentRequest.site).to eq(site)
     end
 
     it 'stores SEO settings in CurrentRequest' do
@@ -40,14 +40,9 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
       expect(CurrentRequest.frontend_object).to eq(post_type)
     end
 
-    it 'reads visited state from CurrentRequest and legacy ivars' do
+    it 'reads visited state from CurrentRequest only' do
       visited_post = site.the_post('sample-post').decorate
       CurrentRequest.frontend_visited_post = visited_post
-
-      expect(helper.is_page?).to be(true)
-
-      CurrentRequest.reset
-      helper.instance_variable_set(:@cama_visited_post, visited_post)
 
       expect(helper.is_page?).to be(true)
     end
@@ -58,14 +53,28 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
       expect(CurrentRequest.frontend_current_theme).to eq(theme)
     end
 
-    it 'prefers the preview theme over an already cached site theme' do
+    it 'returns current request theme when already set' do
       preview_theme = instance_double(CamaleonCms::Theme, slug: 'cv')
-      cached_theme = instance_double(CamaleonCms::Theme, slug: 'camaleon_cms')
-      helper.instance_variable_set(:@_current_theme, preview_theme)
-      CurrentRequest.frontend_current_theme = cached_theme
+      CurrentRequest.frontend_current_theme = preview_theme
 
       expect(helper.current_theme).to eq(preview_theme)
       expect(CurrentRequest.frontend_current_theme).to eq(preview_theme)
+    end
+
+    it 'prefers preview theme ivar over stale current request theme' do
+      stale_theme = instance_double(CamaleonCms::Theme, slug: 'camaleon_cms')
+      preview_theme = instance_double(CamaleonCms::Theme, slug: 'cv')
+      CurrentRequest.frontend_current_theme = stale_theme
+      helper.instance_variable_set(:@_current_theme, preview_theme)
+
+      expect(helper.current_theme).to eq(preview_theme)
+      expect(CurrentRequest.frontend_current_theme).to eq(preview_theme)
+    end
+
+    it 'does not use controller ivar fallback for frontend object' do
+      helper.instance_variable_set(:@object, site.the_post('sample-post').decorate)
+
+      expect(helper.the_title).to be_nil
     end
   end
 end

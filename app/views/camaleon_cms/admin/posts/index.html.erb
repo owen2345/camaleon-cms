@@ -60,10 +60,10 @@
                     <td><%= link_to raw(f.the_status), {action: :index, s: f.status}, class: "cama_ajax_request" %>  </td>
                     <td><%= f.author.fullname %></td>
                     <% if @post_type.manage_categories? %>
-                        <td><%= post_type_list_taxonomy(f.categories, "success") %></td>
+                        <td><%= post_type_list_taxonomy(f.categories, "success", @post_type) %></td>
                     <% end %>
                     <% if @post_type.manage_tags? %>
-                        <td><%= post_type_list_taxonomy(f.post_tags, "default") %></td>
+                        <td><%= post_type_list_taxonomy(f.post_tags, "default", @post_type) %></td>
                     <% end %>
                     <% extra_column = {post: f, post_type: @post_type, content: "", from_body: true};  hooks_run("list_post_extra_columns", extra_column) %>
                     <%= raw extra_column[:content] %>

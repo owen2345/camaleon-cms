@@ -3,7 +3,6 @@ module CamaleonCms
     def theme_init
       breadcrumb_items = []
       camaleon_theme_state[:front_breadcrumb] = breadcrumb_items
-      instance_variable_set(:@_front_breadcrumb, breadcrumb_items)
     end
 
     # return theme full asset path

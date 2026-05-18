@@ -148,11 +148,86 @@ Move to idiomatic Rails boundaries:
   - `(cd spec/dummy && bin/rails zeitwerk:check)`
   - `bin/rubocop -A`
   - `bin/rspec`
+- Regression follow-up (theme preview compatibility):
+  - restored controller-owned `@current_site` template compatibility assignment in `RequestContextConcern`.
+  - added `spec/controllers/concerns/camaleon_cms/request_context_concern_spec.rb`.
 
 ### Phase C — Slim helpers to presentation APIs
 - Remove helper ivar mutation/access bridges.
 - Convert helper state access to explicit args and read-only `CurrentRequest`.
 - Keep public helper API stable where feasible.
+
+#### Phase C implementation checklist (execution-ready)
+1. `phase6c-baseline-and-targeting`
+   - Reconfirm remaining helper bridge patterns after Phase B.
+   - Finalize helper edit order and Step-0 requirements.
+2. `phase6c-step0-large-helper-cleanup`
+   - Apply Step-0 cleanup before structural edits on large helper files when required.
+3. `phase6c-frontend-helper-context-slimming`
+   - Slim frontend context helper fallbacks:
+     - `app/helpers/camaleon_cms/frontend/site_helper.rb`
+     - `app/helpers/camaleon_cms/frontend/seo_helper.rb`
+     - `app/helpers/camaleon_cms/frontend/content_select_helper.rb`
+4. `phase6c-hook-theme-helper-slimming`
+   - Remove helper runtime bridge fallbacks in:
+     - `app/helpers/camaleon_cms/hooks_helper.rb`
+     - `app/helpers/camaleon_cms/theme_helper.rb`
+5. `phase6c-session-site-helper-boundary`
+   - Reduce controller-runtime coupling in:
+     - `app/helpers/camaleon_cms/session_helper.rb`
+     - `app/helpers/camaleon_cms/site_helper.rb`
+6. `phase6c-admin-helper-arg-hardening`
+   - Replace admin helper ivar fallback reads with explicit argument/context APIs where needed.
+7. `phase6c-spec-coverage`
+   - Add/update helper and integration coverage for behavior parity.
+8. `phase6c-verification-and-handshake`
+   - `(cd spec/dummy && bin/rails zeitwerk:check)`
+   - `bin/rubocop -A`
+   - `bin/rspec`
+   - Record explicit Phase D carryovers.
+
+#### Phase C progress update
+- Slimmed frontend helper state access to `CurrentRequest`/explicit context:
+  - `app/helpers/camaleon_cms/frontend/site_helper.rb`
+  - `app/helpers/camaleon_cms/frontend/seo_helper.rb`
+  - `app/helpers/camaleon_cms/frontend/content_select_helper.rb`
+- Removed helper-side runtime fallback bridges in:
+  - `app/helpers/camaleon_cms/hooks_helper.rb`
+  - `app/helpers/camaleon_cms/theme_helper.rb`
+  - `app/helpers/camaleon_cms/site_helper.rb`
+  - `app/helpers/camaleon_cms/session_helper.rb`
+- Hardened admin helper argument boundary:
+  - `app/helpers/camaleon_cms/admin/post_type_helper.rb` now expects explicit `post_type`.
+  - Updated `app/views/camaleon_cms/admin/posts/index.html.erb` to pass `@post_type`.
+- Updated frontend runtime context assignment in controller flow:
+  - `app/controllers/camaleon_cms/frontend_controller.rb` now sets `CurrentRequest.frontend_object` and preview theme in `CurrentRequest.frontend_current_theme`.
+- Compatibility update for registration flow:
+  - `app/controllers/camaleon_cms/admin/sessions_controller.rb` now consumes returned user payload from `cama_register_user`.
+- Coverage updated for the new helper boundaries:
+  - `spec/helpers/camaleon_cms/frontend/application_helper_spec.rb`
+  - `spec/helpers/camaleon_cms/theme_helper_spec.rb`
+  - `spec/helpers/session_helper_spec.rb`
+  - `spec/helpers/camaleon_cms/admin/post_type_helper_spec.rb`
+  - `spec/helpers/repro_xss_in_content_spec.rb`
+- Verification completed:
+  - `(cd spec/dummy && bin/rails zeitwerk:check)`
+  - `bin/rubocop -A`
+  - `bin/rspec`
+
+##### Phase D carryovers
+- Remove remaining controller runtime helper includes from base/admin/frontend controllers now that concern ownership and helper API boundaries are in place.
+- Keep plugin helper exposure for view surfaces while reducing runtime mixin dependence.
+
+##### Phase C regression follow-up queue
+- **Issue:** Active `cv` theme rendering can resolve theme asset paths to `themes/camaleon_cms/...` during `post.the_content` rendering, causing `AssetNotFound` for CV pages.
+- **Targeted fix scope:**
+  1. Add focused repro coverage for theme asset resolution during frontend post content rendering.
+  2. Restore narrow compatibility for theme context resolution where needed, without reverting broad Phase C helper boundary cleanup.
+  3. Validate both preview and active theme rendering paths.
+  4. Re-run standard verification:
+     - `(cd spec/dummy && bin/rails zeitwerk:check)`
+     - `bin/rubocop -A`
+     - `bin/rspec`
 
 ### Phase D — Controller include cleanup
 - Remove runtime `include CamaleonCms::*Helper` usage from controllers.
