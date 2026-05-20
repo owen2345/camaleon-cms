@@ -1,0 +1,26 @@
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe CamaleonCms::RuntimeStateConcern do
+  let(:runtime_class) do
+    Class.new do
+      include CamaleonCms::RuntimeStateConcern
+    end
+  end
+
+  let(:runtime) { runtime_class.new }
+
+  it 'keeps shortcode and theme runtime methods available through the aggregate concern' do
+    expect(runtime).to respond_to(
+      :shortcodes_init,
+      :shortcode_add,
+      :shortcode_asset_reference,
+      :theme_asset_path,
+      :theme_asset_url,
+      :theme_asset_file_path,
+      :cama_shortcode_data,
+      :cama_shortcode_model_parser
+    )
+  end
+end
