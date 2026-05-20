@@ -38,4 +38,16 @@ RSpec.describe CamaleonCms::RuntimeStateConcern do
       :breadcrumb_add
     )
   end
+
+  it 'keeps admin menu runtime methods available through the aggregate concern' do
+    expect(runtime).to respond_to(
+      :admin_menus_add_commons,
+      :admin_menu_add_menu,
+      :admin_menu_append_menu_item,
+      :admin_menu_prepend_menu_item,
+      :admin_menu_insert_menu_before,
+      :admin_menu_insert_menu_after,
+      :cama_comments_get_common_data
+    )
+  end
 end
