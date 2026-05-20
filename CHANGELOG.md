@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Refactor:** Finalize Phase 6G runtime concern decomposition cleanup, [#1183](https://github.com/owen2345/camaleon-cms/pull/1183)
+  - Finalizes concern-owned runtime wiring in `CamaleonController` while preserving helper delegate compatibility used by plugin/admin flows
+  - Completes concern-focused spec/doc touch-ups for the split runtime and session-captcha concern boundaries
+
 - **Fix & Refactor:** Phase 5 — Restore theme preview rendering and refactor nav-menu-helper, [#1181](https://github.com/owen2345/camaleon-cms/pull/1181)
   - Part 1: Restore preview rendering
     - Fixes preview theme state override: prefer `@_current_theme` ivar over cached site theme
