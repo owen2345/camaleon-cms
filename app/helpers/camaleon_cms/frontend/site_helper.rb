@@ -75,7 +75,7 @@ module CamaleonCms
 
       private
 
-      def camaleon_frontend_visited_state(current_request_attr, _legacy_ivar = nil)
+      def camaleon_frontend_visited_state(current_request_attr)
         CurrentRequest.public_send(current_request_attr)
       end
     end

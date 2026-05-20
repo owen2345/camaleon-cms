@@ -273,6 +273,23 @@ Move to idiomatic Rails boundaries:
 - Frontend: remove remaining nav/seo/content-select legacy ivar fallbacks.
 - Admin: replace helper fallback reads from controller ivars with explicit params/context APIs.
 
+#### Phase E progress update
+- Removed remaining frontend visited-state legacy fallback plumbing in:
+  - `app/helpers/camaleon_cms/frontend/nav_menu_helper.rb`
+  - `app/helpers/camaleon_cms/frontend/site_helper.rb`
+- Clarified frontend content-select helper docs to remove legacy `@object` reference:
+  - `app/helpers/camaleon_cms/frontend/content_select_helper.rb`
+- Added regression coverage to enforce request-scoped visited-state reads (no helper ivar fallback):
+  - `spec/helpers/camaleon_cms/frontend/nav_menu_helper_spec.rb`
+- Verification completed:
+  - `(cd spec/dummy && bin/rails zeitwerk:check)`
+  - `bin/rubocop -A`
+  - `bin/rspec`
+
+##### Phase F carryovers
+- Keep controller-side compatibility ivar assignments only where theme/plugin rendering still requires them.
+- Introduce narrowly scoped compatibility adapters/deprecations with explicit contract docs.
+
 ### Phase F — Compatibility + deprecation
 - Add narrow adapters only where ecosystem compatibility requires it.
 - Document retained compatibility contracts and deprecation path.

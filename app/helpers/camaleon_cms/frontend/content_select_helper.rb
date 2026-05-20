@@ -88,7 +88,7 @@ module CamaleonCms
         camaleon_frontend_object&.the_thumb_url
       end
 
-      # select slug of post, post type ... (@object)
+      # select slug of post, post type ...
       # the_post('blog') do
       #   the_slug
       # end
