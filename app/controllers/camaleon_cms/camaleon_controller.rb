@@ -8,8 +8,13 @@ module CamaleonCms
     include CamaleonCms::SessionRuntimeConcern
     include CamaleonCms::RequestContextConcern
     include CamaleonCms::HookLifecycleConcern
-    include CamaleonCms::RuntimeStateConcern
+    include CamaleonCms::RuntimeShortcodeThemeConcern
+    include CamaleonCms::RuntimeHtmlContentConcern
+    include CamaleonCms::RuntimeAdminMenuConcern
+    include CamaleonCms::RuntimeCaptchaImageConcern
+    include CamaleonCms::RuntimeUploaderConcern
     include Mobu::DetectMobile
+    delegate :tag, :content_tag, :safe_join, :image_tag, :link_to, :sanitize, to: :helpers
 
     before_action :cama_site_check_existence, except: [:captcha]
     before_action :cama_before_actions, except: [:captcha]

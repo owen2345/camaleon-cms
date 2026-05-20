@@ -10,10 +10,16 @@ RSpec.describe CamaleonCms::FrontendController do
 
     before do
       CurrentRequest.reset
+      if described_class.instance_variable_defined?(:@_warned_frontend_legacy_visited_ivars)
+        described_class.remove_instance_variable(:@_warned_frontend_legacy_visited_ivars)
+      end
     end
 
     after do
       CurrentRequest.reset
+      if described_class.instance_variable_defined?(:@_warned_frontend_legacy_visited_ivars)
+        described_class.remove_instance_variable(:@_warned_frontend_legacy_visited_ivars)
+      end
     end
 
     it 'stores visited post in CurrentRequest and legacy ivar' do

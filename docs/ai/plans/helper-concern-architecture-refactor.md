@@ -310,6 +310,22 @@ Move to idiomatic Rails boundaries:
 - `bin/rspec`
 - Update plan/changelog/docs with final architecture contract.
 
+#### Phase G progress update
+- Split oversized `RuntimeStateConcern` ownership into focused controller concerns:
+  - `RuntimeShortcodeThemeConcern`
+  - `RuntimeHtmlContentConcern`
+  - `RuntimeAdminMenuConcern`
+  - `RuntimeCaptchaImageConcern`
+  - `RuntimeUploaderConcern`
+- Split captcha attack/session methods out of `SessionRuntimeConcern` into:
+  - `SessionCaptchaRuntimeConcern`
+- Updated controller runtime wiring:
+  - `CamaleonController` now includes focused runtime concerns directly instead of the monolithic runtime concern include.
+- Added/updated concern-focused coverage:
+  - `spec/controllers/concerns/camaleon_cms/session_captcha_runtime_concern_spec.rb`
+  - `spec/controllers/concerns/camaleon_cms/session_runtime_concern_spec.rb`
+  - `spec/controllers/concerns/camaleon_cms/runtime_state_concern_spec.rb`
+
 ## Constraints
 - No feature expansion; architecture-only refactor.
 - Follow Step-0 cleanup rule for files >300 LOC before structural edits.

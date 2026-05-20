@@ -35,7 +35,7 @@ RSpec.describe CamaleonCms::SessionCaptchaRuntimeConcern do
     6.times { runtime.cama_captcha_increment_attack('login') }
 
     expect(runtime.cama_captcha_total_attacks('login')).to eq(6)
-    expect(runtime.cama_captcha_under_attack?('login')).to eq(true)
+    expect(runtime.cama_captcha_under_attack?('login')).to be(true)
     expect(runtime.cama_captcha_tags_if_under_attack('login')).to eq('captcha-tag')
   end
 
@@ -43,6 +43,6 @@ RSpec.describe CamaleonCms::SessionCaptchaRuntimeConcern do
     runtime.session[:cama_captcha] = ['ABC12']
     runtime.params[:captcha] = 'abc12'
 
-    expect(runtime.cama_captcha_verified?).to eq(true)
+    expect(runtime.cama_captcha_verified?).to be(true)
   end
 end
