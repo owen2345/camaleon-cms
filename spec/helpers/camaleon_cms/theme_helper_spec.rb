@@ -17,4 +17,26 @@ RSpec.describe CamaleonCms::ThemeHelper do
       expect(state[:front_breadcrumb]).to eq([])
     end
   end
+
+  describe '#theme_view' do
+    let(:current_theme) do
+      instance_double(
+        CamaleonCms::Theme,
+        slug: 'default',
+        settings: { 'gem_mode' => false }
+      )
+    end
+
+    before do
+      allow(theme_helper).to receive(:current_theme).and_return(current_theme)
+    end
+
+    it 'warns when called with the deprecated second argument' do
+      expect(ActiveSupport::Deprecation._instance).to receive(:warn).with(
+        include('Passing theme view name as the second argument to #theme_view is deprecated')
+      )
+
+      expect(theme_helper.theme_view('ignored', 'index')).to eq('themes/default/views/index')
+    end
+  end
 end

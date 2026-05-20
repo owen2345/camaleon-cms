@@ -294,6 +294,16 @@ Move to idiomatic Rails boundaries:
 - Add narrow adapters only where ecosystem compatibility requires it.
 - Document retained compatibility contracts and deprecation path.
 
+#### Phase F progress update
+- Added narrowly scoped compatibility/deprecation adapters in runtime/helper boundaries:
+  - `FrontendVisitedStateConcern` now centralizes legacy visited-state ivar compatibility writes and emits one deprecation warning per ivar per request, while keeping `CurrentRequest` as the primary runtime source.
+  - `ThemeHelper#theme_view` now emits a deprecation warning when called with the legacy second argument compatibility shape.
+- Added coverage for deprecation behavior:
+  - `spec/controllers/camaleon_cms/frontend_controller_lookup_prefixes_spec.rb`
+  - `spec/helpers/camaleon_cms/theme_helper_spec.rb`
+- Documented retained compatibility contracts and deprecation guidance in:
+  - `docs/ai/reference.md`
+
 ### Phase G — Verification + documentation
 - `(cd spec/dummy && bin/rails zeitwerk:check)`
 - `bin/rubocop -A`
