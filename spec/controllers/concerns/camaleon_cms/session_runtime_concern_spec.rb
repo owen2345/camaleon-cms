@@ -26,4 +26,16 @@ RSpec.describe CamaleonCms::SessionRuntimeConcern do
 
     expect(runtime.redirect_target).to eq('/root')
   end
+
+  it 'keeps captcha methods available through the session runtime concern' do
+    expect(runtime).to respond_to(
+      :captcha_verify_if_under_attack,
+      :cama_captcha_under_attack?,
+      :cama_captcha_verified?,
+      :cama_captcha_increment_attack,
+      :cama_captcha_reset_attack,
+      :cama_captcha_total_attacks,
+      :cama_captcha_tags_if_under_attack
+    )
+  end
 end
