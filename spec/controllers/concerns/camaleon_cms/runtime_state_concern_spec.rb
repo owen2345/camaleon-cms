@@ -23,4 +23,19 @@ RSpec.describe CamaleonCms::RuntimeStateConcern do
       :cama_shortcode_model_parser
     )
   end
+
+  it 'keeps html/content runtime methods available through the aggregate concern' do
+    expect(runtime).to respond_to(
+      :cama_html_helpers_init,
+      :cama_load_libraries,
+      :append_asset_libraries,
+      :append_asset_content,
+      :append_pre_asset_content,
+      :cama_draw_pre_asset_contents,
+      :cama_draw_custom_assets,
+      :cama_content_init,
+      :theme_init,
+      :breadcrumb_add
+    )
+  end
 end
