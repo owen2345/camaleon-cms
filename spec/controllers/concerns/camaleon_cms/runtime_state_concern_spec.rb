@@ -50,4 +50,22 @@ RSpec.describe CamaleonCms::RuntimeStateConcern do
       :cama_comments_get_common_data
     )
   end
+
+  it 'keeps captcha and uploader runtime methods available through the aggregate concern' do
+    expect(runtime).to respond_to(
+      :cama_captcha_build,
+      :upload_file,
+      :cama_uploader_generate_thumbnail,
+      :uploader_verify_name,
+      :cama_file_path_to_url,
+      :cama_url_to_file_path,
+      :cama_crop_image,
+      :cama_resize_and_crop,
+      :cama_tmp_upload,
+      :cama_resize_upload,
+      :cama_uploader,
+      :slugify,
+      :slugify_folder
+    )
+  end
 end
