@@ -40,7 +40,7 @@ function build_custom_field_group(field_values, group_id, fields_data, is_repeat
             else $(this).removeClass('fa-angle-up').addClass('fa-angle-down').closest('.header-field-grouped').next().slideDown();
             return false;
         });
-        group_panel.bind('update_custom_group_number', function(){ $(this).find('.custom_sortable_grouped').each(function(index){ $(this).find('input.cama_custom_group_number').val(index); }); });
+        group_panel.on('update_custom_group_number', function(){ $(this).find('.custom_sortable_grouped').each(function(index){ $(this).find('input.cama_custom_group_number').val(index); }); });
         $.each(field_values, function(field_val, key){ add_group(this); });
     }else{
         add_group(field_values[0]);
@@ -66,7 +66,7 @@ function cama_build_custom_field(panel, field_data, values){
         }
         if(field_data.disabled){
             field.find('input, textarea, select').prop('readonly', true).filter('select').click(function(){ return false; }).focus(function(){ $(this).blur(); });
-            field.find('.btn').addClass('disabled').unbind().click(function(){ return false; });
+            field.find('.btn').addClass('disabled').off().click(function(){ return false; });
         }
 
         if (field_data.kind == 'checkbox'){
@@ -94,7 +94,7 @@ function cama_build_custom_field(panel, field_data, values){
 
     if(field_data.multiple){ // sortable actions
         panel.find('.field_multiple_btn .btn').click(function () { add_field(field_data.default_value); return false; });
-        panel.delegate('.actions .fa-times', "click", function () { if(confirm(I18n("msg.delete_item"))) $(this).closest('.editor-custom-fields').remove(); return false; });
+        panel.on("click", '.actions .fa-times', function () { if(confirm(I18n("msg.delete_item"))) $(this).closest('.editor-custom-fields').remove(); return false; });
         $sortable.sortable({ handle: ".fa-arrows", items: ' > .editor-custom-fields',
             start: function (e, ui) { // fix tinymce
                 $(ui.item).find('.mce-panel').each(function () {
@@ -170,7 +170,7 @@ function custom_field_editor($field) {
 function custom_field_field_attrs_val($field, value) {
     if ($field) {
         value = value || '{}'
-        var data = typeof(value) == 'object' ? value : $.parseJSON(value);
+        var data = typeof(value) == 'object' ? value : JSON.parse(value);
         $field.find('.input-attr').val(data.attr);
         $field.find('.input-value').val(data.value)
         $field.find('.input-attr, .input-value').filter('.is_translate').addClass('translatable').Translatable(ADMIN_TRANSLATIONS);
