@@ -5,6 +5,7 @@
 - **Refactor:** Finalize Phase 6G runtime concern decomposition cleanup, [#1183](https://github.com/owen2345/camaleon-cms/pull/1183)
   - Finalizes concern-owned runtime wiring in `CamaleonController` while preserving helper delegate compatibility used by plugin/admin flows
   - Completes concern-focused spec/doc touch-ups for the split runtime and session-captcha concern boundaries
+  - Code-review follow-ups: runtime concerns now `include` their corresponding helper modules instead of duplicating method bodies (single source of truth for `current_site`/`current_theme`, auth and email flows), `PluginRoutes.all_helpers` controller-side inclusion is restored, and back-compat ivars (`@current_site`, `@user`, `@_front_breadcrumb`, `@_hooks_skip`) are still assigned for templates/plugins while helpers themselves stay ivar-free
 
 - **Fix & Refactor:** Phase 5 — Restore theme preview rendering and refactor nav-menu-helper, [#1181](https://github.com/owen2345/camaleon-cms/pull/1181)
   - Part 1: Restore preview rendering

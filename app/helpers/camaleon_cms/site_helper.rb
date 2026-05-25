@@ -4,16 +4,21 @@ module CamaleonCms
     def current_site(site = nil)
       if site.present?
         CurrentRequest.site = site.decorate
+        instance_variable_set(:@current_site, CurrentRequest.site) # back-compat ivar for templates/plugins
         CurrentRequest.frontend_current_theme = nil
         return CurrentRequest.site
       end
 
       if defined?($current_site)
         CurrentRequest.site = $current_site
+        instance_variable_set(:@current_site, CurrentRequest.site) # back-compat ivar for templates/plugins
         return $current_site
       end
 
-      return CurrentRequest.site if CurrentRequest.site.present?
+      if CurrentRequest.site.present?
+        instance_variable_set(:@current_site, CurrentRequest.site) # back-compat ivar for templates/plugins
+        return CurrentRequest.site
+      end
 
       if PluginRoutes.get_sites.size == 1
         site = begin
@@ -48,6 +53,7 @@ module CamaleonCms
         )
       end
       CurrentRequest.site = r[:site]
+      instance_variable_set(:@current_site, CurrentRequest.site) # back-compat ivar for templates/plugins
       CurrentRequest.frontend_current_theme = nil
       CurrentRequest.site
     end

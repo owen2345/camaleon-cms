@@ -16,6 +16,12 @@ module CamaleonCms
     include Mobu::DetectMobile
     delegate :tag, :content_tag, :safe_join, :image_tag, :link_to, :sanitize, to: :helpers
 
+    # Preserve backwards-compatible plugin helper inclusion: any helper module a
+    # plugin declares in its config.json is mixed in here so plugins can call
+    # those methods from controllers (not only from views). Documented in
+    # `docs/ai/plans/helper-concern-architecture-refactor.md`.
+    PluginRoutes.all_helpers.each { |h| include h.constantize }
+
     before_action :cama_site_check_existence, except: [:captcha]
     before_action :cama_before_actions, except: [:captcha]
     after_action :cama_after_actions, except: [:captcha]
