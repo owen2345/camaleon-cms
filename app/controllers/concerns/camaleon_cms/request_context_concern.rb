@@ -9,6 +9,16 @@ module CamaleonCms
 
     include CamaleonCms::SiteHelper
 
+    # Back-compat: expose the resolved site as the `@current_site` controller
+    # ivar for legacy templates/plugins. The helper logic itself stays ivar-free
+    # (it reads/writes `CurrentRequest.site`); only this controller concern
+    # bridges the value into an instance variable so views/plugins keep working.
+    def current_site(site = nil)
+      result = super
+      @current_site = CurrentRequest.site
+      result
+    end
+
     private
 
     def configure_runtime_request_context

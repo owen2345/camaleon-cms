@@ -35,7 +35,12 @@ RSpec.describe CamaleonCms::SessionRuntimeConcern do
       :cama_captcha_increment_attack,
       :cama_captcha_reset_attack,
       :cama_captcha_total_attacks,
-      :cama_captcha_tags_if_under_attack
+      :cama_captcha_tags_if_under_attack,
+      # captcha rendering methods must stay reachable on the controller runtime
+      # stack: shortcodes/forms rendered in controller context (e.g. the
+      # contact-form plugin) call `cama_captcha_tag` directly
+      :cama_captcha_tag,
+      :cama_captcha_build
     )
   end
 end

@@ -3,6 +3,13 @@ module CamaleonCms
   module RuntimeShortcodeThemeConcern
     extend ActiveSupport::Concern
 
+    # Theme asset/view helpers are owned by CamaleonCms::ThemeHelper (single
+    # source of truth shared with views). Including it here exposes them on the
+    # controller runtime stack so plugin/theme hooks executed in controller
+    # context (e.g. `on_install_theme`) can call `theme_asset`, `theme_view`,
+    # `theme_asset_path`, etc. ThemeHelper is ivar-free, so it is safe to mix in.
+    include CamaleonCms::ThemeHelper
+
     def shortcodes_init
       CurrentRequest.shortcodes = []
       CurrentRequest.shortcodes_template = {}
@@ -119,37 +126,6 @@ module CamaleonCms
       return file unless File.exist?(theme_asset_file_path(asset))
 
       remapped_file
-    end
-
-    def theme_asset_path(asset = nil, theme_name = nil)
-      return theme_asset_url(theme_name, current_theme.slug) if theme_name.present? && theme_name.include?('/')
-
-      settings = theme_name.present? ? PluginRoutes.theme_info(theme_name) : current_theme.settings
-      folder_name = settings['key']
-      if settings['gem_mode']
-        "themes/#{folder_name}/#{asset}"
-      else
-        "themes/#{folder_name}/assets/#{asset}"
-      end
-    end
-
-    def theme_asset_url(asset, theme_name = nil)
-      p = theme_asset_path(asset, theme_name)
-      begin
-        ActionController::Base.helpers.asset_url(p)
-      rescue NoMethodError
-        p
-      end
-    end
-
-    def theme_asset_file_path(asset = nil, theme_name = nil)
-      theme_path = if theme_name && (theme = Theme.where(name: theme_name).first)
-                     theme.settings['path']
-                   else
-                     current_theme.settings['path']
-                   end
-
-      "#{theme_path}/assets/#{asset}"
     end
 
     def cama_shortcode_data(attrs, args)

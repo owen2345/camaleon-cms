@@ -76,7 +76,11 @@ module CamaleonCms
       state = camaleon_hooks_state
       return state[:hooks_skip] if state[:hooks_skip]
 
-      state[:hooks_skip] = []
+      # back-compat: legacy plugins/themes may seed @_hooks_skip directly on the
+      # controller. Honored here (controller concern) only as initial input so the
+      # shared view helper stays ivar-free.
+      existing_hooks_skip = @_hooks_skip
+      state[:hooks_skip] = existing_hooks_skip.is_a?(Array) ? existing_hooks_skip : []
     end
 
     def camaleon_hooks_state

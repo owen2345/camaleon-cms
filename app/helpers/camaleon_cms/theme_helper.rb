@@ -1,10 +1,7 @@
 module CamaleonCms
   module ThemeHelper
     def theme_init
-      breadcrumb_items = []
-      camaleon_theme_state[:front_breadcrumb] = breadcrumb_items
-      # back-compat ivar: themes/plugins may read @_front_breadcrumb directly
-      instance_variable_set(:@_front_breadcrumb, breadcrumb_items)
+      camaleon_theme_state[:front_breadcrumb] = []
     end
 
     # return theme full asset path

@@ -19,6 +19,10 @@ RSpec.describe CamaleonCms::RuntimeStateConcern do
       :theme_asset_path,
       :theme_asset_url,
       :theme_asset_file_path,
+      :theme_asset,
+      :theme_gem_asset,
+      :theme_view,
+      :theme_layout,
       :cama_shortcode_data,
       :cama_shortcode_model_parser
     )
@@ -34,6 +38,10 @@ RSpec.describe CamaleonCms::RuntimeStateConcern do
       :cama_draw_pre_asset_contents,
       :cama_draw_custom_assets,
       :cama_content_init,
+      :cama_content_prepend,
+      :cama_content_append,
+      :cama_content_before_draw,
+      :cama_content_after_draw,
       :theme_init,
       :breadcrumb_add
     )

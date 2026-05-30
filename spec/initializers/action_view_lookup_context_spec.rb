@@ -34,4 +34,23 @@ RSpec.describe ActionView::LookupContext do
 
     lookup_context.find('index', [], false, [], {})
   end
+
+  it 'merges global prefixes (incl. the plugin views prefix) when a plugin renders its own template' do
+    # Mirrors the runtime lookup for `/store/plugins/<id>` => `render 'detail'`: the explicit
+    # prefixes Rails passes are a *mix* of the plugin's controller prefixes and the theme
+    # prefixes (so the lookup is NOT entirely theme-scoped), while `self.prefixes` also holds
+    # the `plugins/store/views/plugins` prefix that `init_plugin` prepends. That prefix must
+    # survive so the plugin template is found (instead of raising MissingTemplate).
+    lookup_context.prefixes = ['plugins/store/views/plugins', 'plugins/store/plugins', 'plugins/store/front',
+                               'themes/132/views', 'themes/camaleon_cms/views', 'camaleon_cms/default_theme']
+    passed = ['plugins/store/plugins', 'plugins/store/front', 'themes/132/views', 'themes/camaleon_cms/views',
+              'camaleon_cms/default_theme']
+
+    expect(view_paths).to receive(:find) do |_name, prefixes, _partial, _details, _details_key, _keys|
+      expect(prefixes).to include('plugins/store/views/plugins')
+      expect(prefixes).to include('themes/camaleon_cms/views')
+    end
+
+    lookup_context.find('detail', passed, false, [], {})
+  end
 end

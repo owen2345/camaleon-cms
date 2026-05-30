@@ -15,6 +15,22 @@ module CamaleonCms
       define_method(:current_user) { cama_current_user } unless ApplicationController.method_defined?(:current_user)
     end
 
+    # Back-compat: expose the affected user record as the `@user` controller ivar
+    # for legacy templates/plugins. The helper methods themselves stay ivar-free;
+    # these controller-concern overrides own the instance-variable bridging so the
+    # shared view helpers never pollute the view context.
+    def login_user_with_password(username, password)
+      result = super
+      @user = current_site.users.find_by(username: username)
+      result
+    end
+
+    def cama_register_user(user_data, meta)
+      result = super
+      @user = result[:user] if result.is_a?(Hash) && result.key?(:user)
+      result
+    end
+
     # Redirect to login when the session has expired. Lives here because it is a
     # controller-only redirect concern (not a view helper).
     def auth_session_error

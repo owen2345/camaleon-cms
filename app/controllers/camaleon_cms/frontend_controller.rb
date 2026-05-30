@@ -322,9 +322,14 @@ module CamaleonCms
       lookup_context.prefixes.delete('camaleon_cms/apps/plugins_front')
       lookup_context.prefixes.delete('camaleon_cms/apps/themes_front')
       lookup_context.prefixes.delete_if do |t|
-        t =~ %r{themes/(.*)/views}i || t == 'camaleon_cms/default_theme'
+        t =~ %r{themes/(.*)/views}i || t == 'camaleon_cms/default_theme' || t == "themes/#{current_site.id}/views"
       end
 
+      # Per-site theme override: views placed under app/apps/themes/<site_id>/views
+      # take precedence over the active theme's views (it is appended first).
+      if Dir.exist?(Rails.root.join('app', 'apps', 'themes', current_site.id.to_s).to_s)
+        lookup_context.prefixes.append("themes/#{current_site.id}/views")
+      end
       lookup_context.prefixes.append("themes/#{current_theme.slug}/views")
       lookup_context.prefixes.append('camaleon_cms/default_theme')
 

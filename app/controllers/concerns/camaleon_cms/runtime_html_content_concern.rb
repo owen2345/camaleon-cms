@@ -3,6 +3,12 @@ module CamaleonCms
   module RuntimeHtmlContentConcern
     extend ActiveSupport::Concern
 
+    # Single source of truth for the cama_content_* surface (prepend/append/draw).
+    # Including it here keeps those methods reachable from controllers (e.g. plugin
+    # hooks running in controller context call cama_content_append) while the shared
+    # view helper stays ivar-free.
+    include CamaleonCms::ContentHelper
+
     def cama_html_helpers_init
       state = camaleon_html_helper_state
       state[:pre_assets_content] = []
@@ -71,15 +77,12 @@ module CamaleonCms
       helpers.safe_join(trusted_fragments, "\n")
     end
 
-    def cama_content_init
-      state = cama_content_state
-      state[:before_content] = []
-      state[:after_content] = []
-    end
-
     def theme_init
       breadcrumb_items = []
       camaleon_theme_state[:front_breadcrumb] = breadcrumb_items
+      # back-compat ivar: themes/plugins may read @_front_breadcrumb directly.
+      # Owned here (controller concern) so the shared view helper stays ivar-free.
+      @_front_breadcrumb = breadcrumb_items
     end
 
     def breadcrumb_add(label, url = '', prepend = false)
@@ -126,10 +129,6 @@ module CamaleonCms
       libs[:admin_intro] =
         { js: ['camaleon_cms/admin/introjs/intro.min'], css: ['camaleon_cms/admin/introjs/introjs.min'] }
       state[:cama_assets_libraries] = libs
-    end
-
-    def cama_content_state
-      CurrentRequest.content_helper_state ||= { before_content: [], after_content: [] }
     end
 
     def camaleon_theme_state

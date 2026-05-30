@@ -75,12 +75,28 @@ RSpec.describe CamaleonCms::FrontendController do
       allow(Dir).to receive(:exist?).and_return(true)
     end
 
-    it 'only keeps the active theme and default fallback prefixes' do
+    it 'keeps the active theme, per-site override and default fallback prefixes' do
       controller.send(:configure_frontend_lookup_prefixes)
 
       expect(lookup_context.prefixes).to include('themes/camaleon_cms/views')
-      expect(lookup_context.prefixes).not_to include('themes/132/views')
+      expect(lookup_context.prefixes).to include('themes/132/views')
       expect(lookup_context.prefixes.last).to eq('camaleon_cms/default_theme')
+    end
+
+    it 'gives the per-site override precedence over the active theme views' do
+      controller.send(:configure_frontend_lookup_prefixes)
+
+      expect(lookup_context.prefixes.index('themes/132/views'))
+        .to be < lookup_context.prefixes.index('themes/camaleon_cms/views')
+    end
+
+    it 'skips the per-site override prefix when the site folder does not exist' do
+      allow(Dir).to receive(:exist?).and_return(false)
+
+      controller.send(:configure_frontend_lookup_prefixes)
+
+      expect(lookup_context.prefixes).not_to include('themes/132/views')
+      expect(lookup_context.prefixes).to include('themes/camaleon_cms/views')
     end
   end
 
