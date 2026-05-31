@@ -186,7 +186,7 @@ module CamaleonCms
       else
         res = slug
         (1..9999).each do |i|
-          p = posts.find_by(slug: res)
+          p = posts.find_by_slug(res) # rubocop:disable Rails/DynamicFindBy
           break if p.blank? || (p.present? && p.id == post_id)
 
           res = "#{slug}-#{i}"

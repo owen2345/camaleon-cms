@@ -229,7 +229,7 @@ module CamaleonCms
         model = current_theme
       when 'navmenu'
         model = current_site.nav_menu_items.find(attrs['id']) if attrs['id'].present?
-        model = current_site.nav_menu_items.find_by(slug: attrs['key']) if attrs['key'].present?
+        model = current_site.nav_menu_items.find_by_slug(attrs['key']) if attrs['key'].present? # rubocop:disable Rails/DynamicFindBy
       when 'user'
         model = current_site.the_user(attrs['id'].to_i) if attrs['id'].present?
         model = current_site.the_user(attrs['key'].to_s) if attrs['key'].present?

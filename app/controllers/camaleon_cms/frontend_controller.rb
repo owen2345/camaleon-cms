@@ -29,7 +29,7 @@ module CamaleonCms
     def category
       begin
         if params[:category_slug].present?
-          @category ||= current_site.the_full_categories.find_by(slug: params[:category_slug]).decorate
+          @category ||= current_site.the_full_categories.find_by_slug(params[:category_slug]).decorate # rubocop:disable Rails/DynamicFindBy
         end
         @category ||= current_site.the_full_categories.find(params[:category_id]).decorate
         @post_type = @category.the_post_type
@@ -69,7 +69,7 @@ module CamaleonCms
     # render contents from post type
     def post_type
       begin
-        @post_type = current_site.post_types.find_by(slug: params[:post_type_slug]).decorate
+        @post_type = current_site.post_types.find_by_slug(params[:post_type_slug]).decorate # rubocop:disable Rails/DynamicFindBy
       rescue StandardError
         return page_not_found
       end
@@ -92,7 +92,7 @@ module CamaleonCms
     def post_tag
       begin
         @post_tag = if params[:post_tag_slug].present?
-                      current_site.post_tags.find_by(slug: params[:post_tag_slug]).decorate
+                      current_site.post_tags.find_by_slug(params[:post_tag_slug]).decorate # rubocop:disable Rails/DynamicFindBy
                     else
                       current_site.post_tags.find(params[:post_tag_id]).decorate
                     end
@@ -199,7 +199,9 @@ module CamaleonCms
     def render_post(post_or_slug_or_id, from_url = false, status = nil, force_visit = false)
       @post = case post_or_slug_or_id
               when String # slug
-                current_site.the_posts.find_by(slug: post_or_slug_or_id)
+                # find_by_slug is multi-language aware (matches localized slugs like
+                # "<!--:en-->sample-post<!--:-->..."), unlike find_by(slug:)
+                current_site.the_posts.find_by_slug(post_or_slug_or_id) # rubocop:disable Rails/DynamicFindBy
               when Integer # id
                 current_site.the_posts.where(id: post_or_slug_or_id).first
               else # model

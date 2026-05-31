@@ -12,7 +12,7 @@ module CamaleonCms
           @nav_menu = if params[:id].present?
                         current_site.nav_menus.find_by(id: params[:id])
                       elsif params[:slug].present?
-                        current_site.nav_menus.find_by(slug: params[:slug])
+                        current_site.nav_menus.find_by_slug(params[:slug]) # rubocop:disable Rails/DynamicFindBy
                       else
                         current_site.nav_menus.first
                       end

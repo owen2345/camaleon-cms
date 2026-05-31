@@ -91,7 +91,7 @@ module CamaleonCms
     def default_category
       return unless manage_categories?
 
-      cat = categories.find_by(slug: 'uncategorized')
+      cat = categories.find_by_slug('uncategorized') # rubocop:disable Rails/DynamicFindBy
       unless cat
         cat = categories.create({ name: 'Uncategorized', slug: 'uncategorized', parent_id: id })
         cat.set_option('not_deleted', true)

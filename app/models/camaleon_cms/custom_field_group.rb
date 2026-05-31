@@ -56,7 +56,7 @@ module CamaleonCms
 
     # return a field with slug = slug from the current group
     def get_field(slug)
-      fields.find_by(slug: slug)
+      fields.find_by_slug(slug) # rubocop:disable Rails/DynamicFindBy
     end
 
     # only used by form on admin panel (protected)
@@ -173,7 +173,7 @@ module CamaleonCms
                 begin
                   "CamaleonCms::#{class_name}".constantize.find(objectid)
                 rescue StandardError
-                  "CamaleonCms::#{class_name}".constantize.find_by(slug: objectid)
+                  "CamaleonCms::#{class_name}".constantize.find_by_slug(objectid) # rubocop:disable Rails/DynamicFindBy
                 end
               end
       (options[:default_values] || [options[:default_value]] || []).each do |value|

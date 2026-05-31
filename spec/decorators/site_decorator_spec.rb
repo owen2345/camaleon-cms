@@ -22,4 +22,22 @@ RSpec.describe CamaleonCms::SiteDecorator do
       expect(output).not_to include('<script>')
     end
   end
+
+  describe '#the_post' do
+    it 'finds a post stored with a localized (multi-language) slug' do
+      post = create(:post, site: site,
+                           slug: '<!--:en-->sample-post<!--:--><!--:es-->sample-post<!--:-->')
+
+      result = decorator.the_post('sample-post')
+
+      expect(result).to be_present
+      expect(result.id).to eq(post.id)
+    end
+
+    it 'finds a post stored with a plain slug' do
+      post = create(:post, site: site, slug: 'plain-slug')
+
+      expect(decorator.the_post('plain-slug').id).to eq(post.id)
+    end
+  end
 end

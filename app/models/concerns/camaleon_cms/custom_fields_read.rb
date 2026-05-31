@@ -186,7 +186,7 @@ module CamaleonCms
     # If kind = "" this will add group for all post_types
     def add_custom_field_group(values, kind = 'Post')
       values = values.with_indifferent_access
-      group = get_field_groups(kind).find_by(slug: values[:slug])
+      group = get_field_groups(kind).find_by_slug(values[:slug]) # rubocop:disable Rails/DynamicFindBy
       unless group
         site = _cama_get_field_site
         values[:parent_id] = site.id if site.present?
@@ -206,7 +206,7 @@ module CamaleonCms
     # more details in add_manual_field(item, options) from custom field groups
     # kind: argument only for PostType model: (Post | Category | PostTag), default => Post
     def add_custom_field_to_default_group(item, options, kind = 'Post')
-      g = get_field_groups(kind).find_by(slug: '_default')
+      g = get_field_groups(kind).find_by_slug('_default') # rubocop:disable Rails/DynamicFindBy
       g ||= add_custom_field_group({ name: 'Default Field Group', slug: '_default' }, kind)
       g.add_manual_field(item, options)
     end
