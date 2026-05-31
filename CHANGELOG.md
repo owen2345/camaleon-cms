@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Fix:** Restore `object_class` scoping on `CustomField#metas` and `CustomFieldGroup#metas`, [#1183](https://github.com/owen2345/camaleon-cms/pull/1183)
+  - Regression introduced in #1173 (polymorphic meta ownership) dropped the `-> { where(object_class: 'CustomField' / 'CustomFieldGroup') }` scope from these associations. Meta rows are keyed by both `objectid` and `object_class`, so when a custom field's numeric id collided with another model's id (e.g. a `Post` sharing the same id), `get_option('field_key')` read the wrong `_default` meta and returned `nil`.
+  - Visible symptom: on **General Site → Theme settings**, the `editor` Footer message field rendered as a plain `text_box` (no TinyMCE editor frame), because `_render.html.erb` fell back to `text_box` when `field_key` resolved to nil.
+  - Restored the explicit scopes (matching 2.9.2 and the `CommonRelationships` convention) so each custom field/group only reads its own metas; added a model regression spec covering the colliding-id scenario.
+
 - **Refactor:** Finalize Phase 6G runtime concern decomposition cleanup, [#1183](https://github.com/owen2345/camaleon-cms/pull/1183)
   - Finalizes concern-owned runtime wiring in `CamaleonController` while preserving helper delegate compatibility used by plugin/admin flows
   - Completes concern-focused spec/doc touch-ups for the split runtime and session-captcha concern boundaries
