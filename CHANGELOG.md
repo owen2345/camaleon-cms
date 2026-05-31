@@ -2,10 +2,7 @@
 
 ## Unreleased
 
-- **Security fix:** Fix authenticated account-takeover via password reset in `Admin::UsersController#updated_ajax` (Reported by Lukman Azri)
-  - The authorization guard (`validate_role`) and the action body resolved the target user from different request parameters: `validate_role` read `params[:id] || params[:user_id]` (preferring the query-string `:id`) while `updated_ajax` used the path's `params[:user_id]`. An authenticated low-privilege user could pass the self-check with `?id=<own_id>` while selecting a victim via the path (`/admin/users/<victim_id>/updated_ajax`), bypassing `authorize!(:manage, :users)` and overwriting any account's password (including the super-admin).
-  - Fixed by resolving the target user through a single canonical helper (`user_id_param`, now preferring `params[:user_id]`) in both `validate_role` and `updated_ajax`, so the authorization check always validates the record actually being modified.
-  - Added a request spec (`spec/requests/admin/users_controller/updated_ajax_vulnerability_spec.rb`) reproducing the bypass attempts and asserting they are denied.
+- **Security fix:** Prevent account takeover in `Admin::UsersController#updated_ajax` by unifying target-user lookup and authorization. [#1185](https://github.com/owen2345/camaleon-cms/pull/1185) — thanks, Lukman Azri.
 
 - **Fix:** Restore TinyMCE editor icons in development, [#1183](https://github.com/owen2345/camaleon-cms/pull/1183)
   - sprockets-rails >= 3.5 registers `Sprockets::Rails::AssetUrlProcessor`, a `text/css` post-processor that rewrites every relative `url(...)` reference to a digested asset path. TinyMCE's bundled skin (`tinymce/skins/lightgray/skin.min.css`) references its icon font with relative urls such as `url("fonts/tinymce.woff")`, whose real logical path is `tinymce/skins/lightgray/fonts/...`. The processor cannot resolve them and rewrites them to an invalid root path (`/fonts/tinymce.woff`) that 404s, leaving the editor toolbar without icons.
