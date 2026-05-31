@@ -55,7 +55,7 @@ module CamaleonCms
 
       # update some ajax requests from profile or user form
       def updated_ajax
-        @user = current_site.users.find(params[:user_id])
+        @user = current_site.users.find(user_id_param)
         update_session = current_user_is?(@user)
         attrs = params.require(:password).permit(%i[password password_confirmation])
         @user.update(password: attrs.require(:password), password_confirmation: attrs.require(:password_confirmation))
@@ -135,11 +135,11 @@ module CamaleonCms
 
       def validate_role
         user_id = user_id_param
-        (user_id.present? && cama_current_user.id.to_s == user_id) || authorize!(:manage, :users)
+        (user_id.present? && cama_current_user.id.to_s == user_id.to_s) || authorize!(:manage, :users)
       end
 
       def user_id_param
-        params[:id] || params[:user_id]
+        params[:user_id] || params[:id]
       end
 
       def user_params
