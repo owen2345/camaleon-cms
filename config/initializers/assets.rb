@@ -9,26 +9,11 @@ Rails.application.config.tinymce.install = :copy
 Rails.application.config.assets.precompile += %w[camaleon_cms/*]
 # Rails.application.config.assets.precompile += %w( themes/*/assets/* )
 
-# This will precompile any assets, not just JavaScript (.js, .swf, .css, .scss)
-
-sprockets_3 = !Sprockets.const_defined?(:BabelProcessor)
-if sprockets_3
-  Rails.application.config.assets.precompile << proc do |path|
-    res = false
-    dirname = File.dirname(path)
-    if dirname.start_with?('plugins/', 'themes/')
-      name = File.basename(path)
-      content_type = begin
-        MIME::Types.type_for(name).first.content_type
-      rescue StandardError
-        ''
-      end
-      if (path =~ /\.(css|js|svg|ttf|woff|eot|swf|pdf|png|jpg|gif)\z/ ||
-        content_type.scan(%r{(javascript|image/|audio|video|font)}).any?) &&
-         !name.start_with?('_') && !path.include?('/views/')
-        res = true
-      end
-    end
-    res
-  end
-end
+# Precompile plugin/theme assets that live under app/apps/{plugins,themes}/.../assets.
+# Rails' default precompile rules only cover app/assets, so without this plugin/theme
+# assets are never declared as precompiled and `javascript_include_tag` /
+# `stylesheet_link_tag` raise `AssetNotPrecompiledError` on Sprockets >= 4 when
+# `unknown_asset_fallback` is disabled. Sprockets 4 only resolves exact logical paths
+# (globs/procs are not honored by `asset_precompiled?`), so we enumerate them as strings.
+require 'camaleon_cms/assets_precompile'
+Rails.application.config.assets.precompile += CamaleonCms::AssetsPrecompile.logical_paths
