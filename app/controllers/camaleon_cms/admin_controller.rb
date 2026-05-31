@@ -4,7 +4,6 @@ module CamaleonCms
       flash[:error] = "Error: #{exception.message}"
       redirect_to cama_admin_dashboard_path
     end
-    include CamaleonCms::Admin::ApplicationHelper
     # layout 'camaleon_cms/admin'
     before_action :cama_authenticate
     before_action :keep_request_attrs
@@ -90,7 +89,7 @@ module CamaleonCms
 
     # trigger hooks for admin panel before admin load
     def admin_before_hooks
-      hooks_run('admin_before_load')
+      run_hook_lifecycle('admin_before_load')
     end
 
     # Set cama_current_user and current_site in CurrentRequest so models can access the current context.
@@ -102,7 +101,7 @@ module CamaleonCms
 
     # trigger hooks for admin panel after admin load
     def admin_after_hooks
-      hooks_run('admin_after_load')
+      run_hook_lifecycle('admin_after_load')
     end
 
     def admin_logged_actions

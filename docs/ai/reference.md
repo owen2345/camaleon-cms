@@ -64,6 +64,9 @@ Plugins live in `app/apps/plugins/` and can:
 
 Compatibility note:
 - `CamaleonHelper#cama_is_admin_request?` is still a public plugin API. Keep it available for admin-rendered frontend flows such as theme preview pages that call plugin helpers like `camaleon-ecommerce`, where the plugin must detect admin preview mode instead of visitor/frontend mode.
+- Frontend visited-state compatibility ivars (`@cama_visited_post`, `@cama_visited_category`, etc.) are still assigned by `FrontendVisitedStateConcern` for ecosystem compatibility, but are deprecated in favor of `CurrentRequest.frontend_visited_*`.
+- Controller `@current_site` assignment is retained for legacy theme template rendering compatibility; new code should read site context from `current_site`/`CurrentRequest.site` instead of template-level ivar coupling.
+- `ThemeHelper#theme_view` still accepts the legacy second argument for compatibility, but this call shape is deprecated; pass the view name as the first argument.
 
 ## Authorization
 

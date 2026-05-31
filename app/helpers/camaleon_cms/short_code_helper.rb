@@ -26,9 +26,9 @@ module CamaleonCms
         lambda do |attrs, args|
           return args[:shortcode] if attrs.blank?
 
-          url = ActionController::Base.helpers.asset_url(attrs['file'])
+          url = shortcode_asset_reference(attrs['file'], as_path: attrs['as_path'].present?)
           if attrs['image'].present?
-            ActionController::Base.helpers.image_tag(attrs['file'], class: attrs['class'], style: attrs['style'])
+            ActionController::Base.helpers.image_tag(url, class: attrs['class'], style: attrs['style'])
           else
             url
           end
@@ -198,6 +198,41 @@ module CamaleonCms
       CurrentRequest.shortcodes_descr ||= {}
     end
 
+    def shortcode_asset_reference(file, as_path: false)
+      return if file.blank?
+
+      # Assign locals before any call that could itself raise AssetNotFound, so
+      # the rescue branch never references nil locals (e.g. when
+      # resolve_shortcode_theme_asset triggers an asset lookup transitively).
+      helper = ActionController::Base.helpers
+      method_name = as_path ? :asset_path : :asset_url
+      file = resolve_shortcode_theme_asset(file)
+      helper.public_send(method_name, file)
+    rescue Sprockets::Rails::Helper::AssetNotFound
+      helper.public_send(method_name, file, skip_pipeline: true)
+    end
+
+    def resolve_shortcode_theme_asset(file)
+      # Tolerate both `themes/<slug>/assets/...` and `/themes/<slug>/assets/...`
+      # — the latter is what Rails' asset helpers typically emit.
+      match = file.to_s.match(%r{\A/?themes/[^/]+/assets/(?<asset>.+)\z})
+      return file unless match
+
+      can_resolve_theme_assets = respond_to?(:current_theme) &&
+                                 respond_to?(:theme_asset_path) &&
+                                 respond_to?(:theme_asset_file_path)
+      return file unless can_resolve_theme_assets
+
+      return file if current_theme.blank?
+
+      asset = match[:asset]
+      remapped_file = theme_asset_path(asset)
+      return file unless remapped_file.present? && remapped_file != file
+      return file unless File.exist?(theme_asset_file_path(asset))
+
+      remapped_file
+    end
+
     # parse the attributes of a shortcode
     def _shortcode_parse_attr(text)
       res = {}
@@ -355,7 +390,7 @@ module CamaleonCms
 
       when 'navmenu'
         model = current_site.nav_menu_items.find(attrs['id']) if attrs['id'].present?
-        model = current_site.nav_menu_items.find_by(slug: attrs['key']) if attrs['key'].present?
+        model = current_site.nav_menu_items.find_by_slug(attrs['key']) if attrs['key'].present? # rubocop:disable Rails/DynamicFindBy
 
       when 'user'
         model = current_site.the_user(attrs['id'].to_i) if attrs['id'].present?

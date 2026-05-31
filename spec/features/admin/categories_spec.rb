@@ -20,7 +20,7 @@ describe 'the signin process', :js do
 
   it 'create edit category' do
     admin_sign_in
-    post_type = @site.post_types.find_by(slug: :post)
+    post_type = @site.post_types.find_by_slug(:post) # rubocop:disable Rails/DynamicFindBy
     category_id = post_type.categories.pick(:id)
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type.id}/categories/#{category_id}/edit"
     within('#form-category') do

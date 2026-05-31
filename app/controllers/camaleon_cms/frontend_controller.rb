@@ -1,8 +1,8 @@
 module CamaleonCms
   class FrontendController < CamaleonCms::CamaleonController
     before_action :init_frontent
+    include CamaleonCms::FrontendVisitedStateConcern
     include CamaleonCms::FrontendConcern
-    include CamaleonCms::Frontend::ApplicationHelper
     layout proc { |controller|
       args = {
         layout: (params[:cama_ajax_request].present? ? 'cama_ajax' : PluginRoutes.static_system_info['default_layout']),
@@ -13,11 +13,9 @@ module CamaleonCms
     }
     before_action :before_hooks
     after_action :after_hooks
-    # rescue_from ActiveRecord::RecordNotFound, with: :page_not_found
-
     # home page for frontend
     def index
-      @cama_visited_home = true
+      mark_frontend_home_visited
       if @_site_options[:home_page].present?
         render_post(@_site_options[:home_page].to_i)
       else
@@ -31,14 +29,14 @@ module CamaleonCms
     def category
       begin
         if params[:category_slug].present?
-          @category ||= current_site.the_full_categories.find_by(slug: params[:category_slug]).decorate
+          @category ||= current_site.the_full_categories.find_by_slug(params[:category_slug]).decorate # rubocop:disable Rails/DynamicFindBy
         end
         @category ||= current_site.the_full_categories.find(params[:category_id]).decorate
         @post_type = @category.the_post_type
       rescue StandardError
         return page_not_found
       end
-      @cama_visited_category = @category
+      mark_frontend_category_visited(@category)
       @children = @category.children.no_empty.decorate
       @posts = @category.the_posts.paginate(page: params[:page],
                                             per_page: current_site.front_per_page).eager_load(:metas)
@@ -71,12 +69,13 @@ module CamaleonCms
     # render contents from post type
     def post_type
       begin
-        @post_type = current_site.post_types.find_by(slug: params[:post_type_slug]).decorate
+        @post_type = current_site.post_types.find_by_slug(params[:post_type_slug]).decorate # rubocop:disable Rails/DynamicFindBy
       rescue StandardError
         return page_not_found
       end
       @object = @post_type
-      @cama_visited_post_type = @post_type
+      CurrentRequest.frontend_object = @object
+      mark_frontend_post_type_visited(@post_type)
       @posts = @post_type.the_posts.paginate(page: params[:page],
                                              per_page: current_site.front_per_page).eager_load(:metas)
       @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
@@ -93,7 +92,7 @@ module CamaleonCms
     def post_tag
       begin
         @post_tag = if params[:post_tag_slug].present?
-                      current_site.post_tags.find_by(slug: params[:post_tag_slug]).decorate
+                      current_site.post_tags.find_by_slug(params[:post_tag_slug]).decorate # rubocop:disable Rails/DynamicFindBy
                     else
                       current_site.post_tags.find(params[:post_tag_id]).decorate
                     end
@@ -102,7 +101,8 @@ module CamaleonCms
         return page_not_found
       end
       @object = @post_tag
-      @cama_visited_tag = @post_tag
+      CurrentRequest.frontend_object = @object
+      mark_frontend_tag_visited(@post_tag)
       @posts = @post_tag.the_posts.paginate(page: params[:page],
                                             per_page: current_site.front_per_page).eager_load(:metas)
       slug_post_tag = "post_types/#{@post_type.the_slug}/post_tag"
@@ -118,7 +118,7 @@ module CamaleonCms
       breadcrumb_add(ct('search'))
       post_type_slugs = params[:post_type_slugs]
       items = post_type_slugs.present? ? current_site.the_posts(post_type_slugs.split(',')) : current_site.the_posts
-      @cama_visited_search = true
+      mark_frontend_search_visited
       @param_search = params[:q]
       layout_ = lookup_context.template_exists?('layouts/search') ? 'search' : nil
       r = { layout: layout_, render: 'search', posts: nil }
@@ -135,7 +135,7 @@ module CamaleonCms
     # ajax requests
     def ajax
       r = { render_file: nil, render_text: '', layout: nil }
-      @cama_visited_ajax = true
+      mark_frontend_ajax_visited
       hooks_run('on_ajax', r)
       if r[:render_file]
         render r[:render_file], (!r[:layout].nil? ? { layout: r[:layout] } : {})
@@ -161,7 +161,8 @@ module CamaleonCms
         return page_not_found
       end
       @object = @user
-      @cama_visited_profile = true
+      CurrentRequest.frontend_object = @object
+      mark_frontend_profile_visited(@user)
       layout_ = lookup_context.template_exists?('layouts/profile') ? 'profile' : nil
       r = { user: @user, layout: layout_, render: 'profile' }
       hooks_run('on_render_profile', r)
@@ -179,6 +180,7 @@ module CamaleonCms
     def draft_render
       post_draft = current_site.posts.drafts.find(params[:draft_id])
       @object = post_draft
+      CurrentRequest.frontend_object = @object
 
       # let a hook override the ability for certain roles see drafts
       args = { permitted: false }
@@ -197,7 +199,9 @@ module CamaleonCms
     def render_post(post_or_slug_or_id, from_url = false, status = nil, force_visit = false)
       @post = case post_or_slug_or_id
               when String # slug
-                current_site.the_posts.find_by(slug: post_or_slug_or_id)
+                # find_by_slug is multi-language aware (matches localized slugs like
+                # "<!--:en-->sample-post<!--:-->..."), unlike find_by(slug:)
+                current_site.the_posts.find_by_slug(post_or_slug_or_id) # rubocop:disable Rails/DynamicFindBy
               when Integer # id
                 current_site.the_posts.where(id: post_or_slug_or_id).first
               else # model
@@ -213,7 +217,8 @@ module CamaleonCms
         end
       else
         @object = @post
-        @cama_visited_post = @post
+        CurrentRequest.frontend_object = @object
+        mark_frontend_post_visited(@post)
         @post_type = @post.the_post_type
         @comments = @post.the_comments
         @categories = @post.the_categories
@@ -275,7 +280,9 @@ module CamaleonCms
       # preview theme initializing
       previewing_theme = cama_sign_in? && params[:ccc_theme_preview].present? && can?(:manage, :themes)
       if previewing_theme
-        @_current_theme = current_site.themes.where(slug: params[:ccc_theme_preview]).first_or_create!.decorate
+        preview_theme = current_site.themes.where(slug: params[:ccc_theme_preview]).first_or_create!.decorate
+        @_current_theme = preview_theme
+        CurrentRequest.frontend_current_theme = preview_theme
         ensure_preview_site_defaults
       end
 
@@ -317,9 +324,14 @@ module CamaleonCms
       lookup_context.prefixes.delete('camaleon_cms/apps/plugins_front')
       lookup_context.prefixes.delete('camaleon_cms/apps/themes_front')
       lookup_context.prefixes.delete_if do |t|
-        t =~ %r{themes/(.*)/views}i || t == 'camaleon_cms/default_theme'
+        t =~ %r{themes/(.*)/views}i || t == 'camaleon_cms/default_theme' || t == "themes/#{current_site.id}/views"
       end
 
+      # Per-site theme override: views placed under app/apps/themes/<site_id>/views
+      # take precedence over the active theme's views (it is appended first).
+      if Dir.exist?(Rails.root.join('app', 'apps', 'themes', current_site.id.to_s).to_s)
+        lookup_context.prefixes.append("themes/#{current_site.id}/views")
+      end
       lookup_context.prefixes.append("themes/#{current_theme.slug}/views")
       lookup_context.prefixes.append('camaleon_cms/default_theme')
 

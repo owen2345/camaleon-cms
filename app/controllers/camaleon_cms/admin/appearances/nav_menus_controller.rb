@@ -3,7 +3,6 @@ module CamaleonCms
     module Appearances
       class NavMenusController < CamaleonCms::AdminController
         include CamaleonCms::Admin::CustomFieldsConcern
-        include CamaleonCms::Frontend::NavMenuHelper
 
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.appearance')
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.menus')
@@ -13,7 +12,7 @@ module CamaleonCms
           @nav_menu = if params[:id].present?
                         current_site.nav_menus.find_by(id: params[:id])
                       elsif params[:slug].present?
-                        current_site.nav_menus.find_by(slug: params[:slug])
+                        current_site.nav_menus.find_by_slug(params[:slug]) # rubocop:disable Rails/DynamicFindBy
                       else
                         current_site.nav_menus.first
                       end

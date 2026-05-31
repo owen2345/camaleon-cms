@@ -15,7 +15,13 @@ module CamaleonCms
     # attr_accessible :object_class, :objectid, :description, :parent_id, :count, :name, :slug,
     # :field_order, :status, :is_repeat
 
-    has_many :metas, foreign_key: :objectid, dependent: :destroy, inverse_of: :owner
+    # Scope metas by object_class. Meta rows are keyed by (objectid, object_class), so a custom
+    # field whose numeric id collides with another model's id (e.g. a Post) would otherwise read
+    # the wrong "_default" meta and lose its field_key. See regression: TinyMCE editor field
+    # rendered as a plain text_box on Theme settings.
+    # rubocop:disable Rails/InverseOf
+    has_many :metas, -> { where(object_class: 'CustomField') }, foreign_key: :objectid, dependent: :destroy
+    # rubocop:enable Rails/InverseOf
     has_many :values, class_name: 'CamaleonCms::CustomFieldsRelationship', dependent: :destroy
 
     belongs_to :custom_field_group, class_name: 'CamaleonCms::CustomFieldGroup', foreign_key: :parent_id,

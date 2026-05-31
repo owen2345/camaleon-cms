@@ -8,7 +8,11 @@ module CamaleonCms
       where("object_class != '_fields'").reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC")
     end
 
-    has_many :metas, foreign_key: :objectid, dependent: :destroy, inverse_of: :owner
+    # Scope metas by object_class so a group's numeric id colliding with another model's id does
+    # not read the wrong meta rows (meta rows are keyed by both objectid and object_class).
+    # rubocop:disable Rails/InverseOf
+    has_many :metas, -> { where(object_class: 'CustomFieldGroup') }, foreign_key: :objectid, dependent: :destroy
+    # rubocop:enable Rails/InverseOf
 
     has_many :fields, -> { where(object_class: '_fields') }, class_name: 'CamaleonCms::CustomField',
                                                              foreign_key: :parent_id, dependent: :destroy,
@@ -56,7 +60,7 @@ module CamaleonCms
 
     # return a field with slug = slug from the current group
     def get_field(slug)
-      fields.find_by(slug: slug)
+      fields.find_by_slug(slug) # rubocop:disable Rails/DynamicFindBy
     end
 
     # only used by form on admin panel (protected)
@@ -173,7 +177,7 @@ module CamaleonCms
                 begin
                   "CamaleonCms::#{class_name}".constantize.find(objectid)
                 rescue StandardError
-                  "CamaleonCms::#{class_name}".constantize.find_by(slug: objectid)
+                  "CamaleonCms::#{class_name}".constantize.find_by_slug(objectid) # rubocop:disable Rails/DynamicFindBy
                 end
               end
       (options[:default_values] || [options[:default_value]] || []).each do |value|

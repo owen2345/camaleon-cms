@@ -67,7 +67,7 @@ module CamaleonCms
       return unless slug_or_id.is_a?(String)
 
       begin
-        object.posts.find_by(slug: slug_or_id).decorate
+        object.posts.find_by_slug(slug_or_id).decorate # rubocop:disable Rails/DynamicFindBy
       rescue StandardError
         nil
       end

@@ -8,13 +8,13 @@ module ActionView
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         if use_camaleon_partial_prefixes.present?
           scoped_prefixes = cama_theme_scoped_prefixes(prefixes)
-          prefixes = scoped_prefixes if scoped_prefixes.present?
-          original_prefixes_blank = prefixes.blank?
+          theme_scoped = scoped_prefixes.present?
+          prefixes = scoped_prefixes if theme_scoped
           if !partial && prefixes.blank? && File.exist?(name) # fix for windows ==> render file: '....'
             # puts "rendering specific file (render file: '....')"
           else
             prefixes = [''] if prefixes.blank?
-            prefixes = (self.prefixes + prefixes).uniq if prefixes.is_a?(Array) && original_prefixes_blank
+            prefixes = (self.prefixes + prefixes).uniq if prefixes.is_a?(Array) && !theme_scoped
           end
         end
         @view_paths.find(*cama_args_for_lookup(name, prefixes, partial, keys, options))
@@ -25,10 +25,10 @@ module ActionView
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
         if use_camaleon_partial_prefixes.present?
           scoped_prefixes = cama_theme_scoped_prefixes(prefixes)
-          prefixes = scoped_prefixes if scoped_prefixes.present?
-          original_prefixes_blank = prefixes.blank?
+          theme_scoped = scoped_prefixes.present?
+          prefixes = scoped_prefixes if theme_scoped
           prefixes = [''] if prefixes.blank?
-          prefixes = (prefixes + self.prefixes).uniq if prefixes.is_a?(Array) && original_prefixes_blank
+          prefixes = (prefixes + self.prefixes).uniq if prefixes.is_a?(Array) && !theme_scoped
         end
         @view_paths.exists?(*cama_args_for_lookup(name, prefixes, partial, keys, options))
       end
@@ -50,14 +50,28 @@ module ActionView
         end
       end
 
+      # Detects a lookup whose explicit prefixes are *entirely* scoped to the
+      # current (frontend) theme -- i.e. its `themes/<slug>/views...` prefixes
+      # and/or the gem `camaleon_cms/default_theme` fallback, and nothing else
+      # (e.g. a partial rendered from within a theme, or a theme preview). In
+      # that case the lookup is restricted to that theme and the global
+      # `self.prefixes` are NOT merged, so a different theme / per-site override
+      # does not leak in.
+      #
+      # When the explicit prefixes also include non-theme prefixes (e.g. a
+      # plugin front controller rendering its own `plugins/<name>/...`
+      # templates), it returns a blank list, signalling the caller to merge
+      # `self.prefixes` as before -- this keeps the plugin's own
+      # `plugins/<name>/views/...` lookup prefix reachable.
       def cama_theme_scoped_prefixes(prefixes)
         theme = CurrentRequest.frontend_current_theme
         slug = theme&.slug
         return if slug.blank? || prefixes.blank? || !prefixes.is_a?(Array)
 
-        prefixes.select do |prefix|
+        selected = prefixes.select do |prefix|
           prefix.include?("themes/#{slug}/views") || prefix == 'camaleon_cms/default_theme'
         end
+        selected if selected.length == prefixes.length
       end
     end
   end

@@ -2,7 +2,6 @@ require 'will_paginate/array'
 module CamaleonCms
   module Admin
     class CommentsController < CamaleonCms::AdminController
-      include CamaleonCms::CommentHelper
       add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.comments'), :cama_admin_comments_url
       before_action :validate_role
       before_action :set_post, except: :list

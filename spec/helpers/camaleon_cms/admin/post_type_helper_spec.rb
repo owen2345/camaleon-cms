@@ -59,24 +59,7 @@ RSpec.describe CamaleonCms::Admin::PostTypeHelper, type: :helper do
       expect(result).not_to be_nil
     end
 
-    it 'retrieves post_type from controller instance variable as fallback (backward compatibility)' do
-      taxonomies = double(decorate: [category])
-      allow(helper).to receive_messages(
-        controller: double(instance_variable_get: post_type),
-        link_to: '<a>link</a>',
-        safe_join: '<a>link</a>',
-        cama_admin_post_type_taxonomy_posts_path: '/path',
-        content_tag: '<span>label</span>'
-      )
-
-      result = helper.post_type_list_taxonomy(taxonomies, 'primary')
-
-      expect(result).not_to be_nil
-    end
-
     it 'returns empty output if no post_type available from any source' do
-      allow(helper).to receive(:controller).and_return(double(instance_variable_get: nil))
-
       expect(helper.post_type_list_taxonomy([])).to eq('')
     end
   end

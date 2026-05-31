@@ -1,9 +1,7 @@
 module CamaleonCms
   module ThemeHelper
     def theme_init
-      breadcrumb_items = []
-      camaleon_theme_state[:front_breadcrumb] = breadcrumb_items
-      instance_variable_set(:@_front_breadcrumb, breadcrumb_items)
+      camaleon_theme_state[:front_breadcrumb] = []
     end
 
     # return theme full asset path
@@ -44,7 +42,13 @@ module CamaleonCms
     # view_name: name of the view or template
     # sample: theme_view("index") => "themes/my_theme/index"
     def theme_view(view_name, deprecated_attr = '')
-      view_name = deprecated_attr if deprecated_attr.present?
+      if deprecated_attr.present?
+        ActiveSupport::Deprecation._instance.warn(
+          'Passing theme view name as the second argument to #theme_view is deprecated. ' \
+          'Pass the view name as the first argument instead.'
+        )
+        view_name = deprecated_attr
+      end
       if current_theme.settings['gem_mode']
         "themes/#{current_theme.slug}/#{view_name}"
       else

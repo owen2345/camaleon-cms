@@ -88,7 +88,7 @@ module CamaleonCms
         camaleon_frontend_object&.the_thumb_url
       end
 
-      # select slug of post, post type ... (@object)
+      # select slug of post, post type ...
       # the_post('blog') do
       #   the_slug
       # end
@@ -154,7 +154,6 @@ module CamaleonCms
       # end
       def process_in_block(object)
         temp_object = CurrentRequest.frontend_object
-        temp_object = instance_variable_get(:@object) if temp_object.nil? && instance_variable_defined?(:@object)
         CurrentRequest.frontend_object = object
         yield
       ensure
@@ -164,12 +163,7 @@ module CamaleonCms
       private
 
       def camaleon_frontend_object
-        object = CurrentRequest.frontend_object
-        return object if object.present?
-
-        return instance_variable_get(:@object) if instance_variable_defined?(:@object)
-
-        nil
+        CurrentRequest.frontend_object
       end
     end
   end

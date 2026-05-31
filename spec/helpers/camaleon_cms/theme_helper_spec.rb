@@ -16,11 +16,27 @@ RSpec.describe CamaleonCms::ThemeHelper do
       state = CurrentRequest.theme_helper_state
       expect(state[:front_breadcrumb]).to eq([])
     end
+  end
 
-    it 'keeps nav menu helper compatibility via @_front_breadcrumb' do
-      theme_helper.theme_init
+  describe '#theme_view' do
+    let(:current_theme) do
+      instance_double(
+        CamaleonCms::Theme,
+        slug: 'default',
+        settings: { 'gem_mode' => false }
+      )
+    end
 
-      expect(theme_helper.instance_variable_get(:@_front_breadcrumb)).to eq([])
+    before do
+      allow(theme_helper).to receive(:current_theme).and_return(current_theme)
+    end
+
+    it 'warns when called with the deprecated second argument' do
+      expect(ActiveSupport::Deprecation._instance).to receive(:warn).with(
+        include('Passing theme view name as the second argument to #theme_view is deprecated')
+      )
+
+      expect(theme_helper.theme_view('ignored', 'index')).to eq('themes/default/views/index')
     end
   end
 end

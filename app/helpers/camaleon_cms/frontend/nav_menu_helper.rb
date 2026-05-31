@@ -58,7 +58,7 @@ module CamaleonCms
         }
 
         args = args_def.merge!(args)
-        nav_menu = current_site.nav_menus.find_by(slug: args[:menu_slug])
+        nav_menu = current_site.nav_menus.find_by_slug(args[:menu_slug]) # rubocop:disable Rails/DynamicFindBy
         nav_menu ||= current_site.nav_menus.first
         html = "<#{args[:container]} class='#{args[:container_class]}' "\
           "id='#{args[:container_id]}'>#{args[:container_prepend]}{__}#{args[:container_append]}</#{args[:container]}>"
@@ -256,7 +256,7 @@ module CamaleonCms
               result = { link: post.the_url(as_path: true), name: post.the_title, type_menu: type_menu,
                          url_edit: post.the_edit_url }
               unless is_from_backend
-                visited_post = nav_menu_visited_state(:frontend_visited_post, :@cama_visited_post)
+                visited_post = nav_menu_visited_state(:frontend_visited_post)
                 result[:current] = visited_post.present? && visited_post.id == post.id
               end
             end
@@ -265,7 +265,7 @@ module CamaleonCms
             result = { link: category.the_url(as_path: true), name: category.the_title,
                        url_edit: category.the_edit_url }
             unless is_from_backend
-              visited_category = nav_menu_visited_state(:frontend_visited_category, :@cama_visited_category)
+              visited_category = nav_menu_visited_state(:frontend_visited_category)
               result[:current] = visited_category.present? && visited_category.id == category.id
             end
           when 'post_tag'
@@ -273,7 +273,7 @@ module CamaleonCms
             result = { link: post_tag.the_url(as_path: true), name: post_tag.the_title,
                        url_edit: post_tag.the_edit_url }
             unless is_from_backend
-              visited_tag = nav_menu_visited_state(:frontend_visited_tag, :@cama_visited_tag)
+              visited_tag = nav_menu_visited_state(:frontend_visited_tag)
               result[:current] = visited_tag.present? && visited_tag.id == post_tag.id
             end
           when 'post_type'
@@ -281,7 +281,7 @@ module CamaleonCms
             result = { link: post_type.the_url(as_path: true), name: post_type.the_title,
                        url_edit: post_type.the_edit_url }
             unless is_from_backend
-              visited_post_type = nav_menu_visited_state(:frontend_visited_post_type, :@cama_visited_post_type)
+              visited_post_type = nav_menu_visited_state(:frontend_visited_post_type)
               result[:current] = visited_post_type.present? && visited_post_type.id == post_type.id
             end
           when 'external'
@@ -342,9 +342,9 @@ module CamaleonCms
         CurrentRequest.theme_helper_state[:front_breadcrumb] ||= []
       end
 
-      def nav_menu_visited_state(current_request_attr, legacy_ivar)
+      def nav_menu_visited_state(current_request_attr)
         if respond_to?(:camaleon_frontend_visited_state, true)
-          return camaleon_frontend_visited_state(current_request_attr, legacy_ivar)
+          return camaleon_frontend_visited_state(current_request_attr)
         end
 
         CurrentRequest.public_send(current_request_attr)

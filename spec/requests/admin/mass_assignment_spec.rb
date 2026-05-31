@@ -8,8 +8,8 @@ RSpec.describe 'Admin Mass Assignment Protection', type: :request do
   let(:post_type) { create(:post_type, site: site) }
 
   before do
-    # Disable all hooks to avoid side effects and NoMethodErrors in some plugins/hooks
-    allow_any_instance_of(CamaleonCms::HooksHelper).to receive(:hooks_run).and_return(true)
+    # Disable hook execution to isolate parameter filtering behavior
+    allow_any_instance_of(CamaleonCms::CamaleonController).to receive(:hooks_run).and_return(true)
 
     # Ensure admin has permission for everything relevant
     admin.set_meta("_manager_#{site.id}", { 'widgets' => 1, 'categories' => 1, 'settings' => 1 })
