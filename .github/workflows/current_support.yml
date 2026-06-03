@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Chromedriver
-        uses: nanasess/setup-chromedriver@v2
+        uses: nanasess/setup-chromedriver@v3
 
       - name: Setup Ruby and install gems
         uses: ruby/setup-ruby@afeafc3d1ab54a631816aba4c914a0081c12ff2f
