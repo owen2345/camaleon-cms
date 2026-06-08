@@ -2,7 +2,7 @@
 function build_custom_field_group(field_values, group_id, fields_data, is_repeat, field_name_group){
     if(field_values.length == 0) field_values = [{}];
     var group_panel = $('#custom_field_group_'+group_id);
-    var group_panel_body = group_panel.find(' > .panel-body');
+    var group_panel_body = group_panel.find(' > .card-body');
     var group_clone = group_panel_body.children('.custom_sortable_grouped').clone().removeClass('hidden');
     var field_group_counter = 0;
     group_panel_body.children('.custom_sortable_grouped').remove();
@@ -21,7 +21,7 @@ function build_custom_field_group(field_values, group_id, fields_data, is_repeat
     }
 
     if(is_repeat){
-        new Sortable(group_panel_body[0], { handle: ".move.fa-arrows", draggable: "> .custom_sortable_grouped", animation: 150,
+        new Sortable(group_panel_body[0], { handle: ".move.fa-up-down-left-right", draggable: "> .custom_sortable_grouped", animation: 150,
             onEnd: function(evt) {
                 // fix tinymce: restore editors after drop
                 $(evt.item).find('.cama_restore_editor').each(function () {
@@ -52,8 +52,8 @@ function cama_build_custom_field(panel, field_data, values){
     values = values || [];
     var field_counter = 0;
     var $field = panel.clone().wrap('li');
-    panel.html("<div class='cama_w_custom_fields'></div>"+(field_data.multiple ? "<div class='field_multiple_btn'> <a href='#' class='btn btn-warning btn-xs'> <i class='fa fa-plus'></i> "+panel.attr('data-add_field_title')+"</a></div>" : ''));
-    var field_actions = '<div class="actions"><i style="cursor: move" class="fa fa-arrows"></i> <i style="cursor: pointer" class="fa fa-times text-danger"></i></div>';
+    panel.html("<div class='cama_w_custom_fields'></div>"+(field_data.multiple ? "<div class='field_multiple_btn'> <a href='#' class='btn btn-warning btn-sm'> <i class='fas fa-plus'></i> "+panel.attr('data-add_field_title')+"</a></div>" : ''));
+    var field_actions = '<div class="actions"><i style="cursor: move" class="fas fa-up-down-left-right"></i> <i style="cursor: pointer" class="fas fa-xmark text-danger"></i></div>';
     var callback = $field.find('.group-input-fields-content').attr('data-callback-render');
     var $sortable = panel.children('.cama_w_custom_fields');
     function add_field(value){
@@ -254,7 +254,7 @@ function load_upload_image_field($input) {
 
 // permit to show preview image of image custom fields
 function cama_custom_field_image_changed(field){
-    if(field.val()) field.closest('.input-group').append('<span class="input-group-addon custom_field_image_preview"><a href="'+field.val()+'" target="_blank"><img src="'+field.val()+'" style="width: 50px; height: 20px;"></a></span>')
+    if(field.val()) field.closest('.input-group').append('<div class="input-group-append"><span class="input-group-text custom_field_image_preview"><a href="'+field.val()+'" target="_blank"><img src="'+field.val()+'" style="width: 50px; height: 20px;"></a></span></div>')
     else field.closest('.input-group').find('.custom_field_image_preview').remove();
 }
 
@@ -275,8 +275,8 @@ function load_upload_video_field(thiss) {
 
 // Dynamically adjust icon contrast on colored panel headers
 function cama_fix_panel_icon_contrast() {
-    $('.panel-heading .panel-controls').each(function() {
-        var heading = $(this).closest('.panel-heading')[0];
+    $('.card-header .panel-controls').each(function() {
+        var heading = $(this).closest('.card-header')[0];
         if (!heading) return;
         var bg = heading.style.backgroundColor || getComputedStyle(heading).backgroundColor;
         var match = bg && bg.match(/\d+/g);

@@ -1,19 +1,33 @@
-<aside class="main-sidebar" id="sidebar-menu">
-    <!-- sidebar: style can be found in sidebar.less -->
-    <section class="sidebar">
+<aside class="main-sidebar sidebar-dark-primary elevation-4" id="sidebar-menu">
+    <!-- Brand Logo -->
+    <a href="<%= current_site.the_admin_url %>" class="brand-link">
+        <img src="<%= current_site.the_logo %>" alt="<%= current_site.the_title %>" class="brand-image img-circle elevation-3" style="opacity: .8">
+        <span class="brand-text font-weight-light"><%= current_site.the_title %></span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
         <!-- search form -->
-        <form action="<%= cama_admin_search_path %>" method="get" class="sidebar-form cama_ajax_request">
-            <div class="input-group">
-                <input type="text" name="q" class="form-control" placeholder="<%= t("camaleon_cms.admin.button.search") %>...">
-                <span class="input-group-btn"><button type="submit" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i></button></span>
-            </div>
-        </form>
+        <div class="form-inline">
+            <form action="<%= cama_admin_search_path %>" method="get" class="cama_ajax_request w-100">
+                <div class="input-group" data-widget="sidebar-search">
+                    <input class="form-control form-control-sidebar" type="search" name="q" placeholder="<%= t("camaleon_cms.admin.button.search") %>..." aria-label="Search">
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-sidebar">
+                            <i class="fas fa-magnifying-glass fa-fw"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
         <!-- /.search form -->
 
-        <ul class="sidebar-menu cama_ajax_request" data-widget="tree">
-            <li class="header" ><%= t("camaleon_cms.admin.sidebar.main_navigation") %></li>
-            <%= raw _admin_menu_draw %>
-        </ul>
-    </section>
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column cama_ajax_request" data-widget="treeview" role="menu">
+                <li class="nav-header"><%= t("camaleon_cms.admin.sidebar.main_navigation") %></li>
+                <%= raw _admin_menu_draw %>
+            </ul>
+        </nav>
+    </div>
     <!-- /.sidebar -->
 </aside>

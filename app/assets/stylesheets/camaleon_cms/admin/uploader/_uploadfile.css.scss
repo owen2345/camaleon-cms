@@ -127,6 +127,12 @@ margin: 5px 10px 5px 0px;
 }
 #cama_media_gallery{
   position: relative;
+  .media_folder_breadcrumb{
+    padding: 6px 0;
+    margin-bottom: 0;
+    background: transparent;
+  }
+
   .media_browser_list{
     background-color: #fff;
     border-right: 1px solid #3C8DBC;
@@ -177,7 +183,7 @@ margin: 5px 10px 5px 0px;
         font-size: 10px;
         background: #3C8DBC;
         color: #fff;
-        padding: 2px;
+        padding: 4px 2px;
         width: 100%;
         text-align: center;
       }
@@ -200,6 +206,22 @@ margin: 5px 10px 5px 0px;
 
   .media_file_info_col{
     margin-bottom: 15px;
+    .nav-tabs {
+      border-bottom: 2px solid #dee2e6;
+      .nav-link {
+        border: 1px solid transparent;
+        border-radius: 3px 3px 0 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: #666;
+        padding: 6px 10px;
+        &.active {
+          color: #3c8dbc;
+          background-color: #f4f4f4;
+          border-color: #dee2e6 #dee2e6 transparent;
+        }
+      }
+    }
     .media_file_info{
       .p_thumb{
         text-align: center;
@@ -228,18 +250,20 @@ margin: 5px 10px 5px 0px;
           font-weight: 600;
           color: #333;
           margin-right: 4px;
+          padding: 3px 0;
           &:after { content: ":"; }
         }
         dd{
           margin-left: 0;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
+          padding: 3px 0;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
           a{
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
             font-size: 11px;
-            color: #337ab7;
+            color: #007bff;
             word-break: break-all;
             white-space: normal;
           }

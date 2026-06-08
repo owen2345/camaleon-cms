@@ -11,7 +11,7 @@ module CamaleonCms
       end
 
       def post_type_status(status, color = 'default')
-        content_tag(:span, status, class: "label label-#{color} label-form")
+        content_tag(:span, status, class: "badge badge-#{color} badge-form")
       end
 
       # taxonomies ->  (categories || post_tags)
@@ -22,7 +22,7 @@ module CamaleonCms
           link_to(
             cama_admin_post_type_taxonomy_posts_path(post_type.id, f.taxonomy, f.id), class: 'cama_ajax_request'
           ) do
-            content_tag(:span, f.the_title, class: "label label-#{color} label-form")
+            content_tag(:span, f.the_title, class: "badge badge-#{color} badge-form")
           end
         end, ' ')
       end

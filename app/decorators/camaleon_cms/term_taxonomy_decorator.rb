@@ -28,9 +28,9 @@ module CamaleonCms
 
     def the_status
       if status.to_s.to_bool
-        "<span class='label label-success'> #{I18n.t('camaleon_cms.admin.button.actived')} </span>"
+        "<span class='badge badge-success'> #{I18n.t('camaleon_cms.admin.button.actived')} </span>"
       else
-        "<span class='label label-default'> #{I18n.t('camaleon_cms.admin.button.not_actived')} </span>"
+        "<span class='badge badge-secondary'> #{I18n.t('camaleon_cms.admin.button.not_actived')} </span>"
       end
     end
 

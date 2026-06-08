@@ -1,36 +1,52 @@
 <%= form_for(admin_plugins_attack_settings_path, html:{ id: "attack_form", class: "validate" }) do %>
-    <div class="panel panel-default">
+    <div class="card card-default">
 
-        <div class="panel-heading">
-            <h3 class="panel-title"> <%= t('plugin.attack.attack_security') %></h3>
+        <div class="card-header">
+            <h3 class="card-title"> <%= t('plugin.attack.attack_security') %></h3>
         </div>
-        <div class="panel-body">
+        <div class="card-body">
             <div class="form-group">
                 <div class="input-group">
-                    <span class="input-group-addon"><%= t('plugin.attack.form.type_max_requests_time', type: 'GET') %> </span>
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><%= t('plugin.attack.form.type_max_requests_time', type: 'GET') %> </span>
+                    </div>
                     <%= text_field_tag("attack[get_max]", @attack[:get][:max], class: "required number form-control") %>
-                    <span class="input-group-addon" style="border-left: 0; border-right: 0;"><%= t('plugin.attack.form.in') %></span>
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" style="border-left: 0; border-right: 0;"><%= t('plugin.attack.form.in') %></span>
+                    </div>
                     <%= text_field_tag("attack[get_sec]", @attack[:get][:sec], class: "required number form-control") %>
-                    <span class="input-group-addon"> <%= t('plugin.attack.form.seconds') %> </span>
+                    <div class="input-group-append">
+                        <span class="input-group-text"> <%= t('plugin.attack.form.seconds') %> </span>
+                    </div>
                 </div>
             </div>
 
             <div class="form-group">
                 <div class="input-group">
-                    <span class="input-group-addon"><%= t('plugin.attack.form.type_max_requests_time', type: 'POST') %> </span>
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><%= t('plugin.attack.form.type_max_requests_time', type: 'POST') %> </span>
+                    </div>
                     <%= text_field_tag("attack[post_max]", @attack[:post][:max], class: "required number form-control") %>
-                    <span class="input-group-addon" style="border-left: 0; border-right: 0;"><%= t('plugin.attack.form.in') %></span>
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" style="border-left: 0; border-right: 0;"><%= t('plugin.attack.form.in') %></span>
+                    </div>
                     <%= text_field_tag("attack[post_sec]", @attack[:post][:sec], class: "required number form-control") %>
-                    <span class="input-group-addon"> <%= t('plugin.attack.form.seconds') %> </span>
+                    <div class="input-group-append">
+                        <span class="input-group-text"> <%= t('plugin.attack.form.seconds') %> </span>
+                    </div>
                 </div>
             </div>
             <hr>
 
             <div class="form-group">
                 <div class="input-group">
-                    <span class="input-group-addon"><%= t('plugin.attack.form.ban_time_minutes') %> </span>
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><%= t('plugin.attack.form.ban_time_minutes') %> </span>
+                    </div>
                     <%= text_field_tag("attack[ban]", @attack[:ban], class: "required number form-control") %>
-                    <span class="input-group-addon" style="border-left: 0; border-right: 0;"><%= t('plugin.attack.form.minutes') %></span>
+                    <div class="input-group-append">
+                        <span class="input-group-text" style="border-left: 0; border-right: 0;"><%= t('plugin.attack.form.minutes') %></span>
+                    </div>
                 </div>
 
             </div>
@@ -40,9 +56,9 @@
                 <%= text_field_tag("attack[msg]", @attack[:msg], class: "form-control") %>
             </div>
         </div>
-        <div class="panel-footer">
+        <div class="card-footer">
             <a class="btn btn-default" href="<%= url_for cama_admin_plugins_path %>"><%= t('camaleon_cms.admin.button.back') %></a>
-            <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+            <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
         </div>
     </div>
 

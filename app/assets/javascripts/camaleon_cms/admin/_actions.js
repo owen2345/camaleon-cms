@@ -42,8 +42,8 @@ var page_actions = function(){
     $('a[data-toggle="tooltip"], button[data-toggle="tooltip"], a[title!=""]', "#admin_content").not(".skip_tooltip").tooltip();
 
     /* PANELS */
-    $("#admin_content").on("click", ".panel .panel-collapse", function(){
-        panel_collapse($(this).parents(".panel:first"));
+    $(document).on("click", ".card .panel-collapse", function(){
+        panel_collapse($(this).parents(".card:first"));
         $(this).parents(".dropdown").removeClass("open");
         return false;
     });
@@ -51,13 +51,13 @@ var page_actions = function(){
 
 // add action to toggle the collapse for panels
 function panel_collapse(panel,action,callback){
-    if(panel.hasClass("panel-toggled")){
-        panel.removeClass("panel-toggled");
+    if(panel.hasClass("card-toggled")){
+        panel.removeClass("card-toggled");
         panel.find(".panel-collapse .fa-angle-up").removeClass("fa-angle-up").addClass("fa-angle-down");
         if(action && action === "shown" && typeof callback === "function")
             callback();
     }else{
-        panel.addClass("panel-toggled");
+        panel.addClass("card-toggled");
         panel.find(".panel-collapse .fa-angle-down").removeClass("fa-angle-down").addClass("fa-angle-up");
         if(action && action === "hidden" && typeof callback === "function")
             callback();

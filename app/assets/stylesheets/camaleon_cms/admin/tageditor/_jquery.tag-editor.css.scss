@@ -1,6 +1,7 @@
 /* surrounding tag container */
 .tag-editor {
-    list-style-type: none; padding: 0 5px 0 0; margin: 0; overflow: hidden; border: 1px solid #eee; cursor: text;
+    list-style-type: none; padding: 4px 5px 4px 0; margin: 0; overflow: hidden;
+    border: 1px solid #ced4da; border-radius: 4px; cursor: text; min-height: 38px;
     font: normal 14px sans-serif; color: #555; background: #fff;
 }
 /* allow autocomplete dropdown to overflow when editing */
@@ -30,8 +31,7 @@
 /* delete icon */
 .tag-editor .tag-editor-delete { cursor: pointer; padding-right: 5px; border-radius: 0 2px 2px 0; }
 .tag-editor .tag-editor-delete i {
-    display: inline-block; width: 7px; height: 7px; vertical-align: middle;
-    position: relative; top: -4px;
+    font-size: 11px; vertical-align: middle;
 }
 .tag-editor .tag-editor-delete:hover i { color: #a94442; }
 .tag-editor .tag-editor-tag.active+.tag-editor-delete,

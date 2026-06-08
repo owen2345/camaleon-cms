@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_07_04_211100) do
+ActiveRecord::Schema[8.1].define(version: 2018_07_04_211100) do
   create_table "comments", force: :cascade do |t|
     t.string "agent"
     t.string "approved", default: "pending"
@@ -181,28 +181,4 @@ ActiveRecord::Schema.define(version: 2018_07_04_211100) do
     t.index ["site_id"], name: "index_users_on_site_id"
     t.index ["username"], name: "index_users_on_username"
   end
-end
-
-# NOTE: Keep this block when regenerating schema.rb.
-#
-# Why this exists:
-# - RSpec boot calls `ActiveRecord::Migration.maintain_test_schema!`, which can invoke
-#   `bin/rails db:test:prepare` and reload this schema.
-# - In this engine/dummy-app setup, schema reload may leave only a subset of migration
-#   versions recorded in `schema_migrations`, making many engine migrations appear `down`
-#   even though the schema is fully loaded.
-#
-# How this resolves it:
-# - After schema load, we mark every engine migration file under `db/migrate` as applied
-#   in `schema_migrations` if it is missing.
-# - This keeps `db:migrate:status` and pending migration checks consistent after test runs.
-engine_migration_versions = Dir[File.expand_path('../../../db/migrate/*.rb', __dir__)].map do |path|
-  File.basename(path).split('_', 2).first
-end.sort
-
-schema_migration = ActiveRecord::Base.connection_pool.schema_migration
-existing_versions = schema_migration.versions
-
-(engine_migration_versions - existing_versions).each do |version|
-  schema_migration.create_version(version)
 end

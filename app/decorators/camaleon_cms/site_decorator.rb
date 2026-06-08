@@ -192,7 +192,7 @@ module CamaleonCms
     # list_class: (String) Custom css classes for ul list
     # current_page: (boolean) true: link with translation to current url, false: link with translation to root url
     # block permit to render custom link label, default: flag icon
-    def draw_languages(list_class = 'language_list list-inline pull-right', current_page = false,
+    def draw_languages(list_class = 'language_list list-inline float-right', current_page = false,
                        current_class = 'current_l', &block)
       lan = object.get_languages
       return if lan.size < 2

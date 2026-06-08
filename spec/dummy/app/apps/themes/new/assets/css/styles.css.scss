@@ -124,12 +124,12 @@ body{
   }
 }
 
-/*********no lines panel*********/
-.panel.no-line{
+/*********no lines card*********/
+.card.no-line{
   margin-top: 20px;
   border: none;
   box-shadow: none;
-  .panel-body{ padding:10px 0;}
+  .card-body{ padding:10px 0;}
 }
 
 /************categories carousel***********/

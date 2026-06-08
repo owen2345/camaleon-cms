@@ -39,6 +39,7 @@
 //= require camaleon_cms/admin/tageditor/_jquery.caret.min
 //= require camaleon_cms/admin/tageditor/_jquery.tag-editor
 
+//= require camaleon_cms/admin/lte/jquery.overlayScrollbars.min
 //= require camaleon_cms/admin/lte/app
 
 // tinymce

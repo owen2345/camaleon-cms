@@ -1,26 +1,26 @@
 <div id="cama_media_gallery" data-url_actions="<%= actions_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-extra-params="<%= {versions: params[:versions], thumb_size: params[:thumb_size], formats: @media_formats.join(","), media_formats: @media_formats.join(","), dimension: params[:dimension], private: params[:private]}.to_json %>" data-versions="<%= params[:versions] %>" data-thumb_size="<%= params[:thumb_size] %>" data-formats="<%= @media_formats.join(",") %>" data-folder="<%= @folder %>" data-url="<%= ajax_cama_admin_media_path(actions: @show_file_actions) %>" data-dimension="<%= params[:dimension] %>">
-  <div class="panel panel-default">
-    <div class="panel-heading">
+  <div class="card card-default">
+    <div class="card-header">
       <div class="row">
         <div class="col-md-12">
           <div class="row">
               <div class="col-md-8">
-                  <ol style="margin-bottom: 0; padding-bottom: 0" class="breadcrumb media_folder_breadcrumb"></ol>
+                  <ol style="margin-bottom: 0; padding: 6px 0" class="breadcrumb media_folder_breadcrumb"></ol>
               </div>
               <div class="col-md-4">
                   <%= form_tag '#', id: 'cama_search_form', class: 'input-group' do %>
                       <input placeholder="<%= cama_t('camaleon_cms.admin.media.folder_file_name') %>.." class="form-control required" name="folder">
-                          <div class="input-group-btn">
-                              <button type="submit" class="btn btn-default"><i class="fa fa-search"></i> <%= t('camaleon_cms.common.search', default: 'Search') %></button>
+                          <div class="input-group-append">
+                              <button type="submit" class="btn btn-default"><i class="fas fa-magnifying-glass"></i> <%= t('camaleon_cms.common.search', default: 'Search') %></button>
                               <div class="btn-group" role="group">
-                                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cogs"></i> <span class="caret"></span></button>
-                                  <ul class="dropdown-menu pull-right">
-                                      <li><a href="#" class="cam_media_reload" data-action="reload"><i class="fa fa-refresh"></i> <%= cama_t('camaleon_cms.admin.media.reload') %></a></li>
+                                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-gears"></i> <span class="caret"></span></button>
+                                  <div class="dropdown-menu dropdown-menu-right">
+                                      <a href="#" class="dropdown-item cam_media_reload" data-action="reload"><i class="fas fa-arrows-rotate"></i> <%= cama_t('camaleon_cms.admin.media.reload') %></a>
                                       <% if @show_file_actions %>
-                                          <li><a href="#" class="add_folder"> <i class="fa fa-plus"></i> <%= cama_t("camaleon_cms.admin.button.add_folder") %></a></li>
+                                          <a href="#" class="dropdown-item add_folder"><i class="fas fa-plus"></i> <%= cama_t("camaleon_cms.admin.button.add_folder") %></a>
                                       <% end %>
-                                      <li><a href="#" class="cam_media_reload" data-action="clear_cache"><i class="fa fa-recycle"></i> <%= cama_t('camaleon_cms.admin.media.clear_cache') %></a></li>
-                                  </ul>
+                                      <a href="#" class="dropdown-item cam_media_reload" data-action="clear_cache"><i class="fas fa-recycle"></i> <%= cama_t('camaleon_cms.admin.media.clear_cache') %></a>
+                                  </div>
                               </div>
                           </div>
                   <% end %>
@@ -29,7 +29,7 @@
         </div>
       </div>
     </div>
-    <div class="panel-body">
+    <div class="card-body">
       <div class="row" style="margin-bottom: 16px">
         <div class="col-md-9 media_browser_list" data-next-page="<%= @next_page %>">
           <%= render "render_file_item", files: @files %>
@@ -37,23 +37,21 @@
 
         <div class="col-md-3 media_file_info_col">
           <ul class="nav nav-tabs nav-justified" role="tablist">
-            <li role="presentation" class="active"><a href="#cama_media_upload" class="link_media_upload" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.button.upload_file") %></a></li>
-            <li role="presentation"><a href="#cama_media_info" class="link_media_info" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.media.info") %></a></li>
+            <li class="nav-item"><a href="#cama_media_upload" class="nav-link link_media_upload active show" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.button.upload_file") %></a></li>
+            <li class="nav-item"><a href="#cama_media_info" class="nav-link link_media_info" role="tab" data-toggle="tab"><%= t("camaleon_cms.admin.media.info") %></a></li>
           </ul>
           <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="cama_media_upload">
                 <div class="cama_media_fileuploader" data-input-id="cama-upload-files" data-url="<%= upload_cama_admin_media_path(actions: @show_file_actions, dimension: params[:dimension]) %>" data-dragDropStr="<%= t("camaleon_cms.admin.button.drag_drop") %>" data-uploadStr="<%= t("camaleon_cms.admin.button.upload_file") %>"><%= t("camaleon_cms.admin.button.upload_file") %></div>
                 <hr/>
                 <form id="cama_media_external">
-                    <fieldset>
-                        <legend><%= t("camaleon_cms.admin.media.external", default: 'From URL') %></legend>
-                        <div class="form-group">
-                            <input type="text" name="remote_file" class="form-control" placeholder="https://..." class="required">
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary"><%= t("camaleon_cms.admin.button.submit") %></button>
-                        </div>
-                    </fieldset>
+                    <div class="form-group">
+                        <label><%= t("camaleon_cms.admin.media.external", default: 'From URL') %></label>
+                        <input type="text" name="remote_file" class="form-control" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-sm"><%= t("camaleon_cms.admin.button.submit") %></button>
+                    </div>
                 </form>
             </div>
             <div role="tabpanel" class="tab-pane" id="cama_media_info">

@@ -1,5 +1,5 @@
 //************** mixins
-@mixin link_round($radio: 30) {
+@mixin link_round($radio: 24) {
   border: 1px solid #bbb;
   border-radius: 50%;
   color: #656d78;
@@ -7,20 +7,72 @@
   align-items: center;
   justify-content: center;
   float: left;
+  font-size: 11px;
   height: #{$radio}px;
   margin-left: 3px;
   transition: all 200ms ease 0s;
   width: #{$radio}px;
 }
 
+//************** BS3 class compatibility shims
+// BS3 .hidden class (removed in BS4, still used by plugins and internal code)
+.hidden {
+  display: none !important;
+}
+
+//************** Breadcrumb (BS4 compatibility with breadcrumbs_on_rails gem)
+// The gem renders <li> without .breadcrumb-item class required by BS4.
+.breadcrumb > li {
+  display: inline-flex;
+  align-items: center;
+  padding-right: 0.5rem;
+  & + li::before {
+    content: "/";
+    padding-right: 0.5rem;
+    color: #6c757d;
+  }
+  & + li:last-child {
+    color: #6c757d;
+  }
+}
+
+//************** Link colors (neutral/dark, override BS4 primary blue)
+.content-wrapper a:not(.btn):not(.nav-link):not(.dropdown-item):not(.brand-link):not(.page-link) {
+  color: #343a40;
+  &:hover {
+    color: #000;
+  }
+}
+
+//************** Cards (global — needed in modals too)
+.card {
+  &.card-toggled > .card-body {
+    display: none;
+  }
+  .card-header {
+    position: relative;
+    .panel-controls {
+      float: right;
+      list-style: outside none none;
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      li {
+        float: left;
+        a {
+          @include link_round();
+        }
+      }
+    }
+  }
+}
+
 //************** Main content
 #admin_content {
   min-height: 400px;
-  .panel {
-    &.panel-toggled > .panel-body {
-      display: none;
-    }
-    .panel-heading {
+  .card {
+    .card-header {
       //overflow: hidden;
       position: relative;
       .panel-controls {
@@ -44,13 +96,13 @@
         transform: translateY(-50%);
       }
     }
-    .panel-footer {
+    .card-footer {
       overflow: hidden;
     }
 
-    // Make panel-controls icons visible on colored panel backgrounds
-    &.panel-primary, &.panel-success, &.panel-warning, &.panel-info, &.panel-danger {
-      .panel-heading .panel-controls a {
+    // Make panel-controls icons visible on colored card backgrounds
+    &.card-primary, &.card-success, &.card-warning, &.card-info, &.card-danger {
+      .card-header .panel-controls a {
         color: #fff;
         border-color: rgba(255, 255, 255, 0.5);
         &:hover {
@@ -60,8 +112,8 @@
       }
     }
 
-    // Light background panels: use dark icons instead of white
-    .panel-heading .panel-controls a.panel-controls-light {
+    // Light background cards: use dark icons instead of white
+    .card-header .panel-controls a.panel-controls-light {
       color: #555;
       border-color: rgba(0, 0, 0, 0.25);
       &:hover {
@@ -76,7 +128,7 @@
   }
 
   // label size
-  .label.label-form {
+  .badge.badge-form {
     font-size: 12px;
     vertical-align: middle;
   }
@@ -115,7 +167,7 @@
       position: absolute;
       top: 4px;
       right: 5px;
-      @include link_round(25);
+      @include link_round(20);
       background: rgba(250, 250, 250, 0.4);
       &.edit_link {
         left: 5px;
@@ -137,8 +189,8 @@
       margin: 0 -2px;
     }
     em {
-      background-color: #337ab7;
-      border-color: #337ab7;
+      background-color: #007bff;
+      border-color: #007bff;
       color: #fff;
       cursor: default;
     }
@@ -148,7 +200,7 @@
   }
   form {
     .form-group > .trans_panel{
-      margin-top: -25px;
+      margin-top: -18px;
     }
   }
 }
@@ -163,12 +215,14 @@
   .btn_upload {
     cursor: pointer;
   }
-  .input-append.date .input-group-addon {
+  .input-append.date .input-group-prepend .input-group-text,
+  .input-append.date .input-group-append .input-group-text {
     padding: 7px 0;
     width: 30px;
   }
   .input-group.color{
-    .input-group-addon {
+    .input-group-prepend .input-group-text,
+    .input-group-append .input-group-text {
       background-color: #ccc;
     }
     .over_field + span{
@@ -182,8 +236,16 @@
 
   // translations
   .trans_panel {
-    .nav-tabs .has-error {
-      color: #a94442;
+    .nav-tabs {
+      flex-direction: row-reverse;
+      .nav-item {
+        .nav-link.active {
+          border-bottom-color: #fff;
+        }
+        .has-error {
+          color: #a94442;
+        }
+      }
     }
     .tab-pane .has-error {
       border: 1px solid #a94442;
@@ -256,8 +318,8 @@
 
 .introjs-nextbutton {
   color: #fff !important;
-  background-color: #337ab7 !important;
-  border-color: #2e6da4 !important
+  background-color: #007bff !important;
+  border-color: #0062cc !important
 }
 
 //************** fix tinymce fullscreen
@@ -322,14 +384,18 @@ input.code_style{
 .content-upload-plugin{
   min-height: 45px;
   position: relative;
+  margin-top: 8px;
+  display: inline-block;
   .rm-file{
-    position: absolute;
-    top: 100%;
-    margin-top: -22px;
+    position: relative;
+    top: auto;
+    margin-top: 4px;
+    display: inline-block;
   }
   img{
     max-height: 100px;
     max-width: 200px;
+    display: block;
   }
 }
 label.error, span.error{
@@ -363,7 +429,7 @@ label.error, span.error{
   border-radius: 0;
   position: relative;
 
-  .panel-body-image {
+  .card-body-image {
     padding: 0;
 
     .theme-image {
@@ -395,7 +461,7 @@ label.error, span.error{
     }
   }
 
-  .panel-footer {
+  .card-footer {
     background-color: #fafafa;
     border: 0;
     border-radius: 0;

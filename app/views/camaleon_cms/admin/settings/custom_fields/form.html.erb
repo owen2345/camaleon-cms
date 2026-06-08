@@ -1,6 +1,6 @@
 <%= javascript_include_tag "camaleon_cms/admin/custom_fields_form" %>
 <div class="page-title">
-    <h2><span class="fa fa-cog"></span> <%= @field_group.new_record? ? t('camaleon_cms.admin.settings.new_custom_field_group') : "#{t('camaleon_cms.admin.settings.new_custom_field_group')}: #{@field_group.name} "%> </h2>
+    <h2><span class="fas fa-gear"></span> <%= @field_group.new_record? ? t('camaleon_cms.admin.settings.new_custom_field_group') : "#{t('camaleon_cms.admin.settings.new_custom_field_group')}: #{@field_group.name} "%> </h2>
 </div>
 
 <!-- PAGE CONTENT WRAPPER -->
@@ -8,11 +8,11 @@
     <div class="row">
         <%= form_for @field_group, as: "custom_field_group", url:{action: @field_group.new_record? ? :create : :update}, html: {class: 'validate-custom-field validate cama_ajax_request'} do |f| %>
             <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"><%= t('camaleon_cms.admin.settings.details_custom_field_group') %></h3>
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title"><%= t('camaleon_cms.admin.settings.details_custom_field_group') %></h3>
                     </div>
-                    <div class="panel-body">
+                    <div class="card-body">
                         <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @field_group} %>
                         <div class="form-group">
                             <%= f.label t('camaleon_cms.admin.table.name') %><br>
@@ -112,18 +112,18 @@
                             <div id="select_assign_group_help"></div>
                         </div>
                     </div>
-                    <div class="panel-footer">
+                    <div class="card-footer">
                         <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
-                        <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+                        <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
                     </div>
                 </div>
             </div>
             <div class="col-md-5">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"><%= t('camaleon_cms.admin.settings.fields') %></h3>
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title"><%= t('camaleon_cms.admin.settings.fields') %></h3>
                     </div>
-                    <div class="panel-body padding-0">
+                    <div class="card-body padding-0">
                         <% fields =  @field_group.new_record? ? [] : @field_group.fields %>
                         <ul id="sortable-fields" class="clear list-unstyled">
                             <% fields.each do |field|
@@ -134,22 +134,22 @@
                                 <li class="item">
                                     <%= render "get_items" %>
                                 </li>
-                            <% end  %>
+                             <% end  %>
                         </ul>
                     </div>
-                    <div class="panel-footer hidden">
+                    <div class="card-footer hidden">
                         <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
-                        <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+                        <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-3">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"><%= t('camaleon_cms.admin.settings.available_fields')%></h3>
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title"><%= t('camaleon_cms.admin.settings.available_fields')%></h3>
                     </div>
-                    <div class="panel-body">
+                    <div class="card-body">
                         <div id="content-items-default" class="form-group">
                             <% cama_custom_field_elements.each do |i,item| %>
                                 <% next if item[:key] == 'select_eval' %>
@@ -157,9 +157,9 @@
                             <% end %>
                         </div>
                     </div>
-                    <div class="panel-footer hidden">
+                    <div class="card-footer hidden">
                         <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
-                        <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+                        <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
                     </div>
                 </div>
             </div>

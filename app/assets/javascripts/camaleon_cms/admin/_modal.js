@@ -67,11 +67,11 @@ function open_modal(settings){
         '<div class="modal-dialog '+settings.modal_size+'">'+
         '<div class="modal-content">'+
         '<div class="modal-header">'+
-        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'+
-        '<h4 class="modal-title">'+settings.title+'</h4>'+
+        '<h5 class="modal-title">'+settings.title+'</h5>'+
+        '<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+
         '</div>'+
         '<div class="modal-body"></div>'+
-        ((settings.show_footer || settings.on_submit)?'<div class="modal-footer"> '+(settings.on_submit ? '<button type="button" class="btn btn-primary modal_submit" ><i class="fa fa-save"></i> '+I18n("button.save")+'</button>' : '')+' <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-arrow-circle-down"></i> '+I18n("button.close")+'</button></div>':'')+
+        ((settings.show_footer || settings.on_submit)?'<div class="modal-footer"> '+(settings.on_submit ? '<button type="button" class="btn btn-primary modal_submit" ><i class="fas fa-floppy-disk"></i> '+I18n("button.save")+'</button>' : '')+' <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-circle-arrow-down"></i> '+I18n("button.close")+'</button></div>':'')+
         '</div>'+
         '</div>'+
         '</div>');
@@ -96,16 +96,21 @@ function open_modal(settings){
         settings.callback(modal);
     });
 
+    // append modal to DOM before setting content so inline scripts execute (jQuery 3 compat)
+    modal.appendTo("body");
+
     // show modal
     if(settings.mode == "inline"){
         modal.find(".modal-body").html(settings.content);
         modal.modal(settings.modal_settings);
     }else if(settings.mode == "iframe"){
-        modal.find(".modal-body").html('<iframe id="ow_inline_modal_iframe" style="min-height: 500px;" src="'+settings.url+'" width="100%" frameborder=0></iframe>');
+        modal.find(".modal-body").html('<iframe id="ow_inline_modal_iframe" style="min-height: 500px; border: none;" src="'+settings.url+'" width="100%"></iframe>');
         modal.modal(settings.modal_settings);
     }else{ //ajax mode
         showLoading();
         $.get(settings.url, settings.ajax_params, function(res){
+            // SECURITY: res is server-rendered HTML from internal admin endpoints.
+            // All AJAX endpoints serving modal content must escape user-controlled data.
             modal.find(".modal-body").html(res);
             hideLoading()
             modal.modal(settings.modal_settings);
@@ -132,7 +137,7 @@ jQuery(function(){
         var settings = $.extend({}, {percentage: 100, state: "show"}, params);
         if(settings.state == "show"){
             if($("body > #custom_loading").length == 0)
-                $("body").append('<div id="custom_loading" style="position: fixed; z-index: 99999; width: 100%; top: 0px; height: 15px;" class="progress"><div class="progress-bar progress-bar-striped active progress-bar-success" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: '+settings.percentage+'%;"><span class="sr-only">45% Complete</span></div></div>');
+                $("body").append('<div id="custom_loading" style="position: fixed; z-index: 99999; width: 100%; top: 0px; height: 15px;" class="progress"><div class="progress-bar progress-bar-striped progress-bar-animated progress-bar-success" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: '+settings.percentage+'%;"><span class="sr-only">45% Complete</span></div></div>');
             else
                 $("body > #custom_loading").width(settings.percentage);
         }else{

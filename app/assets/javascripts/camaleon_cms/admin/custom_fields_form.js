@@ -39,7 +39,7 @@ jQuery(function($){
     var option = $(this).find('option:checked');
     _change_additional_select(option);
     var txt_help = option.data('help');
-    if(txt_help) txt_help = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txt_help + ' </div>';
+    if(txt_help) txt_help = '<div class="alert alert-info"><i class="fas fa-circle-info"></i>&nbsp; ' + txt_help + ' </div>';
     $('#select_assign_group_help', panel).html(txt_help);
     $('#select_assign_group_caption', panel).val(option.parent('optgroup').attr("label") + ' ' + option.text());
   }).val(_search_group_class_name(group_class_name)).trigger('change');
@@ -47,7 +47,7 @@ jQuery(function($){
   $('#select_post_simple', panel).change(function(){
     var option = $(this).find('option:checked');
     var txt_help = option.data('help');
-    if(txt_help) txt_help = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txt_help + ' </div>';
+    if(txt_help) txt_help = '<div class="alert alert-info"><i class="fas fa-circle-info"></i>&nbsp; ' + txt_help + ' </div>';
     $('#select_assign_group_help', panel).html(txt_help);
     $('#select_assign_group_caption', panel).val(option.parent('optgroup').attr("label") + ': ' + option.text());
   }).val(group_class_name).trigger('change');
@@ -55,7 +55,7 @@ jQuery(function($){
   $('#select_category_simple', panel).change(function(){
     var option = $(this).find('option:checked');
     var txt_help = option.data('help');
-    if(txt_help) txt_help = '<div class="alert alert-info"><i class="fa fa-info-circle"></i>&nbsp; ' + txt_help + ' </div>';
+    if(txt_help) txt_help = '<div class="alert alert-info"><i class="fas fa-circle-info"></i>&nbsp; ' + txt_help + ' </div>';
     $('#select_assign_group_help', panel).html(txt_help);
     $('#select_assign_group_caption', panel).val(option.parent('optgroup').attr("label") + ': ' + option.text());
   }).val(group_class_name).trigger('change');

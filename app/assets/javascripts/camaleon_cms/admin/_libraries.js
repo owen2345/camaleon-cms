@@ -70,9 +70,9 @@ var init_form_validations = function (form, args) {
         $(this).each(function () {
             var $that = $(this);
             var options = $.extend({}, default_options, $that.data() || {});
-            var $content_image = $("<div class='content-upload-plugin'><a style='' href='#' target='_blank'><img src=''><br><span class='rm-file btn btn-xs btn-danger'><i class='fa fa-trash'></i></span></a></div>").hide();
+            var $content_image = $("<div class='content-upload-plugin'><a style='' href='#' target='_blank'><img src=''><br><span class='rm-file btn btn-sm btn-danger'><i class='fas fa-trash'></i></span></a></div>").hide();
             if (options.type != 'image') $content_image.find('img').remove();
-            var $btn_upload = $('<a class="btn btn-default" href="#"><i class="fa fa-upload"></i> ' + options.label + '</a>')
+            var $btn_upload = $('<a class="btn btn-default" href="#"><i class="fas fa-upload"></i> ' + options.label + '</a>')
             $content_image.find('img').css('max-height', options.height);
             $content_image.find(".rm-file").click(function(){ $that.val("").trigger("change"); return false; });
 
@@ -118,7 +118,7 @@ var init_form_validations = function (form, args) {
             };
             if (!input.parent().hasClass("input-group")) {
                 input.wrap('<div class="group-input-fields-content input-group"></div>');
-                input.after('<span class="input-group-addon btn_upload"><i class="fa fa-upload"></i> </span>');
+                input.after('<div class="input-group-append"><span class="input-group-text btn_upload"><i class="fas fa-upload"></i> </span></div>');
                 input.addClass("form-control");
             }
             input.next("span").click(function () {

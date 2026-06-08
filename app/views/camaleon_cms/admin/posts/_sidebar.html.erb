@@ -1,7 +1,7 @@
 <div class="col-md-3" id="post_right_bar">
 
-    <div id="post-actions" class="panel panel-default panel-lite">
-        <div class="panel-body ">
+    <div id="post-actions" class="card card-default panel-lite">
+        <div class="card-body ">
             <div class="row">
                 <% if @post.draft? && !@post.parent.present?  %>
                     <div class="col-md-12 input-submit"><%= f.submit "#{ (@post.new_record?) ? t('camaleon_cms.admin.page_title.create') : t('camaleon_cms.admin.button.update')}", class: "btn btn-success btn-lg btn-block" %></div>
@@ -12,15 +12,15 @@
                 <% end  %>
             </div>
         </div>
-        <div class="panel-footer">
+        <div class="card-footer">
             <div class="row">
-                <div class="col-md-6 "><%= link_to t('camaleon_cms.admin.button.move_trash'), {action: :trash, post_id: @post.id}, class: "text-center text-danger btn-xs btn" unless @post.new_record? %></div>
+                <div class="col-md-6 "><%= link_to t('camaleon_cms.admin.button.move_trash'), {action: :trash, post_id: @post.id}, class: "text-center text-danger btn-sm btn" unless @post.new_record? %></div>
                 <div class="col-md-6">
                     <% if @post.draft?  %>
-                        <a class="btn btn-default btn-xs pull-right" href="#" data-type="pending" onclick="$('#form-post').submit(); return false;" style="<%= 'display: none' unless @post.pending? %>" ><%= t('camaleon_cms.admin.post_type.save_pending')%> </a>
-                        <a class="btn btn-default btn-xs pull-right" href="#" data-type="draft" onclick="App_post.save_draft(); return false;" style="<%= 'display: none' unless @post.draft? %>" ><%= t('camaleon_cms.admin.post_type.save_draft')%></a>
+                        <a class="btn btn-default btn-sm float-right" href="#" data-type="pending" onclick="$('#form-post').submit(); return false;" style="<%= 'display: none' unless @post.pending? %>" ><%= t('camaleon_cms.admin.post_type.save_pending')%> </a>
+                        <a class="btn btn-default btn-sm float-right" href="#" data-type="draft" onclick="App_post.save_draft(); return false;" style="<%= 'display: none' unless @post.draft? %>" ><%= t('camaleon_cms.admin.post_type.save_draft')%></a>
                     <% else  %>
-                        <a class="btn btn-default btn-xs pull-right" href="#" onclick="App_post.save_draft(); return false;" ><%= t('camaleon_cms.admin.post_type.save_draft')%></a>
+                        <a class="btn btn-default btn-sm float-right" href="#" onclick="App_post.save_draft(); return false;" ><%= t('camaleon_cms.admin.post_type.save_draft')%></a>
                     <% end  %>
                 </div>
 
@@ -28,16 +28,16 @@
         </div>
     </div>
 
-    <div class="panel panel-default panel-lite">
-        <div class="panel-heading">
-            <h3 class="panel-title"><%= t('camaleon_cms.admin.post_type.configuration')%></h3>
+    <div class="card card-default panel-lite">
+        <div class="card-header">
+            <h3 class="card-title"><%= t('camaleon_cms.admin.post_type.configuration')%></h3>
             <ul class="panel-controls">
-                <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                <li><a href="#" class="panel-collapse"><span class="fas fa-angle-down"></span></a></li>
             </ul>
         </div>
-        <div class="panel-body ">
+        <div class="card-body ">
             <div class="form-group">
-                <label class=" control-label"><%= t('camaleon_cms.admin.post_type.published')%></label>
+                <label class=" col-form-label"><%= t('camaleon_cms.admin.post_type.published')%></label>
                 <select id="post_status" name="post[status]" class="form-control select">
                     <% if can? :publish_post, @post_type %>
                         <option class="" value="published" <%= (@post[:status] == "published") ? "selected": "" %> ><%= t('camaleon_cms.admin.post_type.published')%></option>
@@ -49,7 +49,7 @@
             <!-- templates -->
             <% if @post.manage_template?(@post_type) && (template_files = cama_get_list_template_files(@post_type)).present? %>
                 <div class="form-group">
-                    <label class="control-label"><%= t('camaleon_cms.admin.post_type.template')%></label>
+                    <label class="col-form-label"><%= t('camaleon_cms.admin.post_type.template')%></label>
                     <%= select("meta", "template", template_files, { include_blank: true, selected: (params[:meta][:template] rescue false || @post.get_template(@post_type) ) }, {class: 'form-control'}) %>
                 </div>
             <% end %>
@@ -57,7 +57,7 @@
             <!-- layouts -->
             <% if @post.manage_layout? && (layout_files = cama_get_list_layouts_files(@post_type)).present? %>
                 <div class="form-group">
-                    <label class="control-label"><%= t('camaleon_cms.admin.post_type.layout')%></label>
+                    <label class="col-form-label"><%= t('camaleon_cms.admin.post_type.layout')%></label>
                     <%= select("meta", "layout", layout_files, { include_blank: true, selected: (params[:meta][:layout] rescue false || @post.get_layout(@post_type) ) }, {class: 'form-control'}) %>
                 </div>
             <% end %>
@@ -65,7 +65,7 @@
             <!-- page hierarchi -->
             <% if @post_type.manage_hierarchy? %>
                 <div class="form-group">
-                    <label class="control-label"><%= t('camaleon_cms.admin.post_type.post_parent', layout: 'Parent Page')%></label>
+                    <label class="col-form-label"><%= t('camaleon_cms.admin.post_type.post_parent', layout: 'Parent Page')%></label>
                     <%= f.select :post_parent, cama_hierarchy_post_list(@post_type.posts.published.decorate.to_a).map{|p| [p.the_hierarchy_title, p.id] }, { include_blank: true, selected: (params[:post][:post_parent] rescue false || @post.post_parent ), disabled: (@post.full_children.cama_pluck(:id) << @post.id) }, {class: 'form-control'} %>
                 </div>
             <% end %>
@@ -73,12 +73,12 @@
             <!-- has comments? -->
             <% if @post.manage_comments?(@post_type) %>
                 <div class="form-group">
-                    <label class="control-label"><%= check_box("meta", "has_comments", {checked: ((params[:meta][:has_comments] == '1' rescue false) || (@post.new_record? ? true : @post.get_meta('has_comments').to_s.cama_true?))  }) %> &nbsp; <%= t('camaleon_cms.admin.post_type.permit_comments')%></label>
+                    <label class="col-form-label"><%= check_box("meta", "has_comments", {checked: ((params[:meta][:has_comments] == '1' rescue false) || (@post.new_record? ? true : @post.get_meta('has_comments').to_s.cama_true?))  }) %> &nbsp; <%= t('camaleon_cms.admin.post_type.permit_comments')%></label>
                 </div>
             <% end %>
             <% if @post_type.get_option('has_featured', false) %>
                 <div class="form-group">
-                    <label class="control-label"><%= f.check_box :is_feature %> &nbsp; <%= t('camaleon_cms.admin.post.is_featured', default: 'Is Featured?')%></label>
+                    <label class="col-form-label"><%= f.check_box :is_feature %> &nbsp; <%= t('camaleon_cms.admin.post.is_featured', default: 'Is Featured?')%></label>
                 </div>
             <% end %>
             <%= raw @post_form_extra_settings.join("") if @post_form_extra_settings.present? %>
@@ -86,20 +86,20 @@
     </div>
 
     <% if @post_type.manage_categories? %>
-        <div class="panel panel-default panel-lite">
-            <div class="panel-heading">
-                <h3 class="panel-title"><%= t('camaleon_cms.admin.post_type.categories')%> <em class="text-danger">*</em></h3>
+        <div class="card card-default panel-lite">
+            <div class="card-header">
+                <h3 class="card-title"><%= t('camaleon_cms.admin.post_type.categories')%> <em class="text-danger">*</em></h3>
                 <ul class="panel-controls">
                     <li><a id="post_add_new_category"
                            data-reload-url="<%= list_cama_admin_post_type_categories_path(@post_type.id) %>"
                            data-fields-reload-url="<%= list_cama_admin_settings_custom_fields_path(post_type: @post_type.id) %>"
-                           href="<%= cama_admin_post_type_categories_path(@post_type.id, cama_body_class: true) %>"
+                           href="<%= cama_admin_post_type_categories_path(@post_type.id) %>"
                            title="<%= t("camaleon_cms.admin.post.create_category", default: 'Create New Category') %>"
-                           class="panel-add-category"><span class="fa fa-plus"></span></a></li>
-                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                           class="panel-add-category"><span class="fas fa-plus"></span></a></li>
+                    <li><a href="#" class="panel-collapse"><span class="fas fa-angle-down"></span></a></li>
                 </ul>
             </div>
-            <div class="panel-body ">
+            <div class="card-body ">
                 <div class="form-group list-categories">
                     <%= post_type_html_inputs(@post_type, "categories", "categories" , @post_type.get_option('has_single_category', false) ? 'radio' : "checkbox" ,params[:categories] || (@post.new_record? ? [] : @post.categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")), "categorychecklist", true )%>
                 </div>
@@ -107,14 +107,14 @@
         </div>
     <% end %>
     <% if @post_type.manage_tags? %>
-        <div class="panel panel-default panel-lite">
-            <div class="panel-heading">
-                <h3 class="panel-title"><%= t('camaleon_cms.admin.post_type.tags')%></h3>
+        <div class="card card-default panel-lite">
+            <div class="card-header">
+                <h3 class="card-title"><%= t('camaleon_cms.admin.post_type.tags')%></h3>
                 <ul class="panel-controls">
-                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                    <li><a href="#" class="panel-collapse"><span class="fas fa-angle-down"></span></a></li>
                 </ul>
             </div>
-            <div class="panel-body ">
+            <div class="card-body ">
                 <div class="form-group">
                     <input type="text" name="tags" class="tagsinput" value="<%= params[:tags] || (@post.post_tags.pluck("name").join(",") unless @post.new_record?) %>"/>
                 </div>
@@ -123,20 +123,20 @@
     <% end %>
 
     <% if @post.manage_picture?(@post_type) %>
-        <div class="panel panel-default panel-lite">
-            <div class="panel-heading">
-                <h3 class="panel-title"><%= t(@post_type.get_option('posts_feature_image_label', 'camaleon_cms.admin.post_type.featured_image'), default: @post_type.get_option('posts_feature_image_label_default', 'Featured Image'))%> <%= "(#{@post_type.get_option('posts_image_dimension')})" if @post_type.get_option('posts_image_dimension').present? %> <%= '<em class="text-danger">*</em>'.html_safe if @post.is_required_picture? %></h3>
+        <div class="card card-default panel-lite">
+            <div class="card-header">
+                <h3 class="card-title"><%= t(@post_type.get_option('posts_feature_image_label', 'camaleon_cms.admin.post_type.featured_image'), default: @post_type.get_option('posts_feature_image_label_default', 'Featured Image'))%> <%= "(#{@post_type.get_option('posts_image_dimension')})" if @post_type.get_option('posts_image_dimension').present? %> <%= '<em class="text-danger">*</em>'.html_safe if @post.is_required_picture? %></h3>
                 <ul class="panel-controls">
-                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                    <li><a href="#" class="panel-collapse"><span class="fas fa-angle-down"></span></a></li>
                 </ul>
             </div>
-            <div class="panel-body ">
+            <div class="card-body ">
                 <div class="form-group">
                     <div id="feature-image" class="gallery" style="display: <%= 'none' unless (params[:meta][:thumb] rescue false || @post.get_meta("thumb") ).present? %>">
                         <a class="gallery-item" style="width: 100%; padding: 0" href="#" title="Thumbnail" data-gallery="">
                             <div class="image">
-                                <img src="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>" class="img-rounded img-responsive" alt="Thumbnail">
-                                <span class="gallery-item-remove btn btn-primary btn-xs"><i class="fa fa-times"></i></span>
+                                <img src="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>" class="rounded img-fluid" alt="Thumbnail">
+                                <span class="gallery-item-remove btn btn-primary btn-sm"><i class="fas fa-xmark"></i></span>
                             </div>
                             <div class="meta text-center" style="margin-bottom: 16px">
                                 <strong><%= (params[:meta][:thumb] || @post.get_meta("thumb")).split("/").last rescue "" %></strong>
@@ -145,7 +145,7 @@
                         <input data-error-place='#feature-image ~ .validation-errors:first' class="<%= 'required' if @post.is_required_picture? %>" name="meta[thumb]" type="hidden" value="<%= params[:meta][:thumb] rescue false || @post.get_meta("thumb", "") %>"/>
                     </div>
                     <!-- posts_thumb_versions ==> '200x200,400x450', posts_thumb_size ==> '100x100', posts_image_dimension ==> '1200x1200'-->
-                    <a href="#" class="btn btn-default" onclick="cama_upload_feature_image({versions: '<%= @post_type.get_option('posts_thumb_versions') %>', thumb_size: '<%= @post_type.get_option('posts_thumb_size') %>', dimension: '<%= @post_type.get_option('posts_image_dimension') %>' }); return false;"><i class="fa fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image', default: 'Upload Image')%></a>
+                    <a href="#" class="btn btn-default" onclick="cama_upload_feature_image({versions: '<%= @post_type.get_option('posts_thumb_versions') %>', thumb_size: '<%= @post_type.get_option('posts_thumb_size') %>', dimension: '<%= @post_type.get_option('posts_image_dimension') %>' }); return false;"><i class="fas fa-upload"></i> <%= t('camaleon_cms.admin.post_type.upload_image', default: 'Upload Image')%></a>
                     <div class="validation-errors"></div>
                 </div>
             </div>

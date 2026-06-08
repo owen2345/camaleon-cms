@@ -17,6 +17,8 @@
         var I18n_data = <%= I18n.backend.respond_to?(:translations) ? I18n.backend.send(:translations)[current_locale.to_sym][:camaleon_cms][:admin][:js].to_json.html_safe : !!(I18n.backend.backends[1] && I18n.backend.backends[1].backends[1]) ? I18n.backend.backends[1].backends[1].send(:translations)[current_locale.to_sym][:camaleon_cms][:admin][:js].to_json.html_safe : "{}" rescue "{}" %>
     </script>
     <%= javascript_include_tag "camaleon_cms/admin/admin-manifest" %>
+    <%# Prevent AdminLTE IFrame module crash when page is loaded inside an iframe %>
+    <script>if(window.frameElement){try{localStorage.setItem("AdminLTE:IFrame:Options","{}")}catch(e){}}</script>
 
     <%= javascript_include_tag "camaleon_cms/admin/jquery_validate/messages_#{current_locale}.js" if current_locale != 'en' %>
 
@@ -34,7 +36,7 @@
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
-<body class="hold-transition skin-blue sidebar-mini" data-intro="<%= current_site.get_option("save_intro") %>">
+<body class="hold-transition sidebar-mini layout-fixed" data-intro="<%= current_site.get_option("save_intro") %>">
     <%= yield :before_content if content_for? :before_content %>
     <%= raw cama_content_before_draw %>
     <div class="wrapper">

@@ -4,7 +4,7 @@
    all_plugins = PluginRoutes.all_plugins.clone.delete_if{|plugin| plugin[:domain].present? && !(plugin[:domain].split(",").include?(current_site.the_slug) || plugin[:domain].split(",").include?(dom)) }
 %>
 <div class="page-title">
-    <h2><span class="fa fa-file-o"></span> <%= t('camaleon_cms.admin.sidebar.plugins') %></h2>
+    <h2><span class="far fa-file"></span> <%= t('camaleon_cms.admin.sidebar.plugins') %></h2>
 </div>
 
 <!-- PAGE CONTENT WRAPPER -->

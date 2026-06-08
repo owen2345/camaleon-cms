@@ -20,7 +20,7 @@ window.cama_init_media = function(mediaPanel) {
 
   // return the data of this file
   const fileData = function(item) {
-    const data = item.data('eval-data') || eval('(' + item.find('.data_value').val() + ')')
+    const data = item.data('eval-data') || JSON.parse(item.find('.data_value').val())
     item.data('eval-data', data)
     return data
   }
@@ -59,7 +59,7 @@ window.cama_init_media = function(mediaPanel) {
 
       if (item.find('.edit_item')) { // add button to edit image
         editImg = $(
-          '<button type="button" class="pull-right btn btn-default" title="Edit"><i class="fa fa-pencil"></i></button>').click(() => item.find('.edit_item').trigger('click')
+          '<button type="button" class="float-right btn btn-default" title="Edit"><i class="fas fa-pencil"></i></button>').click(() => item.find('.edit_item').trigger('click')
         )
       }
       mediaInfo.find('.p_footer').append(editImg)
@@ -82,7 +82,7 @@ window.cama_init_media = function(mediaPanel) {
             return btn.prop('disabled', false)
           else {
             mediaInfo.find('.p_meta dd:last').css('color', 'red')
-            const cut = $("<button class='btn btn-info pull-right'><i class='fa fa-crop'></i> " +
+            const cut = $("<button class='btn btn-info float-right'><i class='fas fa-crop'></i> " +
                           I18n('button.auto_crop') + '</button>').click(function() {
               const cropName = data.name.split('.')
               cropName[cropName.length - 2] += '_' + mediaPanel.attr('data-dimension')
@@ -169,7 +169,7 @@ window.cama_init_media = function(mediaPanel) {
         .addClass('error_file_upload')
         .find('.ajax-file-upload-filename')
         .append(
-          " <i class='fa fa-times btn btn-danger btn-xs' onclick='$(this).closest(\".ajax-file-upload-statusbar\").remove()'></i>"
+          " <i class='fas fa-xmark btn btn-danger btn-sm' onclick='$(this).closest(\".ajax-file-upload-statusbar\").remove()'></i>"
         )
     }
   })
@@ -286,7 +286,7 @@ window.cama_init_media = function(mediaPanel) {
   mediaPanel.on('click', 'a.add_folder', function() {
     const content = $(
       "<form id='add_folder_form'><div><label for=''>" + I18n('button.folder') +
-        ": </label> <div class='input-group'><input name='folder' class='form-control required' placeholder='Folder name..'><span class='input-group-btn'><button class='btn btn-primary' type='submit'>" +
+        ": </label> <div class='input-group'><input name='folder' class='form-control required' placeholder='Folder name..'><div class='input-group-append'><button class='btn btn-primary' type='submit'>" +
         I18n('button.create') +
         '</button></span></div></div> </form>'
     )
@@ -392,7 +392,7 @@ window.cama_init_media = function(mediaPanel) {
       for (const icon in object) {
         let cmd = object[icon]
         let btn = $(
-          '<button type="button" class="btn btn-default" data-cmd="' + cmd + '"><i class="fa fa-' + icon + '"></i></button>'
+          '<button type="button" class="btn btn-default" data-cmd="' + cmd + '"><i class="fas fa-' + icon + '"></i></button>'
         )
 
         modal.find('.editor_controls').append(btn)
@@ -404,7 +404,11 @@ window.cama_init_media = function(mediaPanel) {
           else if ((cmd === "('scaleY', 1)") || (cmd === "('scaleX', 1)"))
             btn.data('cmd', cmd.replace('1', '-1'))
 
-          eval('cropper.cropper' + cmd)
+          // Parse cropper command: "('method', arg)" → cropper.cropper('method', arg)
+          var parsed = cmd.match(/^\('(\w+)'(?:,\s*(-?\d+))?\)$/)
+          if (parsed) {
+            cropper.cropper(parsed[1], parsed[2] ? parseInt(parsed[2]) : undefined)
+          }
           if (cmd === "('reset')")
             return cropper.cropper('setData', cropperData.data)
         })
@@ -435,7 +439,7 @@ window.cama_init_media = function(mediaPanel) {
             zindex: 999992,
             modal_size: 'modal-lg',
             id: 'media_preview_editted_image',
-            content: '<div class="text-center" style="overflow: auto"><img class="preview"></div><br><div class="row"><div class="col-md-4"><button class="btn save_btn btn-default">' + I18n('button.replace_image') + '</button></div><div class="col-md-8"><form class="input-group"><input type="text" class="form-control file_name required" name="file_name"><div class="input-group-btn"><button class="btn btn-primary" type="submit">' + I18n('button.save_new_image') + '</button></div></form></div></div>',
+            content: '<div class="text-center" style="overflow: auto"><img class="preview"></div><br><div class="row"><div class="col-md-4"><button class="btn save_btn btn-default">' + I18n('button.replace_image') + '</button></div><div class="col-md-8"><form class="input-group"><input type="text" class="form-control file_name required" name="file_name"><div class="input-group-append"><button class="btn btn-primary" type="submit">' + I18n('button.save_new_image') + '</button></div></form></div></div>',
             callback: saveButtons
           }
         )
@@ -523,13 +527,13 @@ window.cama_init_media = function(mediaPanel) {
                   '</div>' +
                   '<div class="col-md-4">' +
                     '<form class="export_image"> ' +
-                      '<div class="input-group"><input class="form-control with_image data-error-place-parent required number" placeholder="Width"><span class="input-group-addon">x</span>' +
+                      '<div class="input-group"><input class="form-control with_image data-error-place-parent required number" placeholder="Width"><div class="input-group-prepend"><span class="input-group-text">x</span></div>' +
                       '<input class="form-control height_image data-error-place-parent required number" placeholder="Height"> ' +
-                      '<span class="input-group-btn"><button class="btn btn-primary saveImage" type="submit"><i class="fa fa-save"></i> ' + I18n('button.save', 'Save Image') + '</button> </span> </div>' +
+                      '<div class="input-group-append"><button class="btn btn-primary saveImage" type="submit"><i class="fas fa-floppy-disk"></i> ' + I18n('button.save', 'Save Image') + '</button> </div> </div>' +
                     '</form>' +
                   '</div>' +
                 '</div>' +
-                '<!--span class="label label-default pull-right label_dimension"></span-->' +
+                '<!--span class="badge badge-default float-right label_dimension"></span-->' +
               '</div>',
       callback: editCallback,
       modal_size: 'modal-lg'
@@ -554,7 +558,7 @@ window.cama_init_media = function(mediaPanel) {
 // return extra attributes for media panel
 window.cama_media_get_custom_params = function(customSettings) {
   const mediaPanel = $('#cama_media_gallery')
-  const r = eval('(' + mediaPanel.attr('data-extra-params') + ')')
+  const r = JSON.parse(mediaPanel.attr('data-extra-params') || '{}')
   r.folder = mediaPanel.attr('data-folder')
   if (customSettings)
     $.extend(r, customSettings)

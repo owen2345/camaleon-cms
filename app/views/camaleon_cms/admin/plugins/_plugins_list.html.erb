@@ -1,8 +1,8 @@
 <% enabled_plugins = PluginRoutes.enabled_plugins(current_site) %>
-<div class="panel panel-default">
-    <div class="panel-body">
+<div class="card card-default">
+    <div class="card-body">
 
-        <table class="table table-responsive table-hover table-striped">
+        <table class="table table-hover table-striped">
             <thead>
             <tr>
                 <th><%= t('camaleon_cms.admin.table.title') %></th>
@@ -30,8 +30,8 @@
                     <td><%= t("camaleon_cms.admin.plugins.status_#{status}") %></td>
                     <td>
                         <% msg = "#{status ? t('camaleon_cms.admin.button.disable_plugin') : t('camaleon_cms.admin.button.activate_plugin') }" %>
-                        <%= link_to msg, {action: :toggle, id: plugin["key"], status: status }, class: "btn btn-#{status ? 'danger' : 'primary'} btn-xs", data: { confirm: msg } %>
-                        <%= link_to("<i class='fa fa-arrow-circle-o-up'></i>".html_safe, cama_admin_plugin_upgrade_path(plugin["key"]), class: "btn btn-info btn-xs", title: "#{t("camaleon_cms.admin.plugins.upgrade_to")} #{plugin["version"]}") if status && current_site.get_plugin(plugin["key"]).old_version? %>
+                        <%= link_to msg, {action: :toggle, id: plugin["key"], status: status }, class: "btn btn-#{status ? 'danger' : 'primary'} btn-sm", data: { confirm: msg } %>
+                        <%= link_to("<i class='far fa-circle-arrow-up'></i>".html_safe, cama_admin_plugin_upgrade_path(plugin["key"]), class: "btn btn-info btn-sm", title: "#{t("camaleon_cms.admin.plugins.upgrade_to")} #{plugin["version"]}") if status && current_site.get_plugin(plugin["key"]).old_version? %>
                     </td>
                 </tr>
             <% end %>

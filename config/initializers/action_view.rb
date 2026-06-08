@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # this is a customization to support multiple prefix to render partials
 module ActionView
   class LookupContext # :nodoc:

@@ -1,9 +1,9 @@
 <div class="panel-group <%= "disabled" if @nav_menu.new_record? %>">
     <% @post_types.each do |pt|
       pt = pt.decorate %>
-        <div class="panel panel-default <%= 'panel-toggled' if pt.slug != 'post' %>">
-            <div class="panel-heading">
-                <h4 class="panel-title class_type" data-type="post_type">
+        <div class="card card-default <%= 'card-toggled' if pt.slug != 'post' %>">
+            <div class="card-header">
+                <h4 class="card-title class_type" data-type="post_type">
                     <label class=" nowrap class_slug" data-post_link_edit="">
                         <input type="checkbox" name="pt[]" value="<%= pt.id %>">
                         <span class="lbl hidden"><%= pt.the_title %></span>
@@ -11,10 +11,10 @@
                     <%= pt.the_title %>
                 </h4>
                 <ul class="panel-controls">
-                    <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a> </li>
+                    <li><a href="#" class="panel-collapse"><span class="fas fa-angle-down"></span></a> </li>
                 </ul>
             </div>
-            <div class="panel-body nav-tabs-vertical0" id="acc-<%= pt.slug %>" style="padding: 0">
+            <div class="card-body nav-tabs-vertical0" id="acc-<%= pt.slug %>" style="padding: 0">
                 <div class="tabs">
                     <ul class="nav nav-tabs ">
                         <li class="active">
@@ -56,8 +56,8 @@
                         <% end %>
                     </div>
                 </div>
-                <div class="panel-footer">
-                    <button class="add_links_to_menu btn btn-primary pull-right" type=""><%= t('camaleon_cms.admin.button.add_menu') %> <i class="fa fa-arrow-right"></i></button>
+                <div class="card-footer">
+                    <button class="add_links_to_menu btn btn-primary float-right" type=""><%= t('camaleon_cms.admin.button.add_menu') %> <i class="fas fa-arrow-right"></i></button>
                 </div>
             </div>
         </div>
@@ -65,11 +65,11 @@
 
     <%= render "custom_menus" %>
 
-    <div class="panel panel-default panel-toggled">
-        <div class="panel-heading">
-            <h4 class="panel-title"><%= t('camaleon_cms.admin.menus.external_link') %></h4>
+    <div class="card card-default card-toggled">
+        <div class="card-header">
+            <h4 class="card-title"><%= t('camaleon_cms.admin.menus.external_link') %></h4>
             <ul class="panel-controls">
-                <li><a href="#" class="panel-collapse"><span class="fa fa-angle-down"></span></a></li>
+                <li><a href="#" class="panel-collapse"><span class="fas fa-angle-down"></span></a></li>
             </ul>
         </div>
         <%= render partial: "external_menu", locals: {menu_item: @nav_menu.children.new, nav_menu: @nav_menu } %>

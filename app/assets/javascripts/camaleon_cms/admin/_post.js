@@ -71,9 +71,9 @@ function cama_init_post(obj) {
 
             var $link = $('<div class="sl-slug-edit">' +
                 '<strong>' + I18n("msg.permalink") + ':&nbsp;</strong><span class="sl-link"></span> <span> &nbsp;&nbsp;</span>' +
-                '<a href="#" class="btn btn-default btn-xs btn-edit">' + I18n("button.edit") + '</a> &nbsp;&nbsp; ' +
-                '<a href="#" class="btn btn-info btn-xs btn-preview" target="_blank">' + I18n("msg.preview") + '</a> &nbsp;&nbsp; ' +
-                '<a href="#" class="btn btn-success btn-xs btn-view" style="display: none" target="_blank">' + I18n("msg.view_page") + '</a>' +
+                '<a href="#" class="btn btn-secondary btn-sm btn-edit">' + I18n("button.edit") + '</a> &nbsp;&nbsp; ' +
+                '<a href="#" class="btn btn-info btn-sm btn-preview" target="_blank">' + I18n("msg.preview") + '</a> &nbsp;&nbsp; ' +
+                '<a href="#" class="btn btn-success btn-sm btn-view" style="display: none" target="_blank">' + I18n("msg.view_page") + '</a>' +
                 '</div>').hide();
             $this.addClass('sluged');
             $this.after($link)
@@ -142,7 +142,7 @@ function cama_init_post(obj) {
             });
             $link.find('.btn-edit').click(function () {
                 var $btn = $(this);
-                var $btn_edit = $('<a href="#" class="btn btn-default btn-xs btn-edit">' + I18n("button.accept") + '</a> &nbsp; <a href="#"  class="btn-cancel">' + I18n("button.cancel") + '</a>');
+                var $btn_edit = $('<a href="#" class="btn btn-secondary btn-sm btn-edit">' + I18n("button.accept") + '</a> &nbsp; <a href="#"  class="btn-cancel">' + I18n("button.cancel") + '</a>');
                 var $label = $link.find('.sl-url');
                 var $input = $("<input type='text' />").keyup(function(e){ if(e.keyCode == 13){ $btn_edit.filter('.btn-edit').click(); return false; } });
                 $label.hide().after($input);
@@ -247,7 +247,7 @@ function cama_init_post(obj) {
             },
             function (res) {
               $form.find('.c-field-group').remove();
-              $form.find('.panel .panel-default').after(res);
+              $form.find('.card.card-default').after(res);
               hideLoading();
             });
         });
@@ -274,11 +274,8 @@ function cama_init_post(obj) {
         };
 
         /*********** link to create categories *************/
-        $form.find("#post_add_new_category").ajax_modal({modal_size: 'modal-lg', mode: 'iframe', callback: function(modal){
-            modal.find('iframe').on('load', function(){
-                $(this).contents().find("#main-header, #sidebar-menu, #main-footer").hide();
-                $(this).contents().find('#admin_content').parent().css("margin-left", 0);
-            });
+        $form.find("#post_add_new_category").ajax_modal({modal_size: 'modal-xl', mode: 'ajax', callback: function(modal){
+            modal.find("form").validate();
         }, on_close: function(modal){
             var panel_cats = $form.find("#post_right_bar .list-categories");
             $.get($form.find("#post_add_new_category").data('reload-url'), {categories: panel_cats.find("input[name='categories[]']:checked").map(function(i, el){ return $(this).val(); }).get()}, function(res){ panel_cats.html(res); });

@@ -70,7 +70,7 @@ jQuery(function($){
             for(var ii in languages){
                 var l = languages[ii];
                 var key = "translation-"+l+"-"+TRANSLATOR_counter;
-                tabs_title.push('<li role="presentation" class="pull-right '+(ii==0?"active":"")+'"><a href="#pane-'+key+'" role="tab" data-toggle="tab">'+ l.titleize()+'</a></li>');
+                tabs_title.push('<li role="presentation" class="nav-item '+(ii==0?"active":"")+'"><a href="#pane-'+key+'" role="tab" data-toggle="tab" class="nav-link'+(ii==0?" active":"")+'">'+ l.titleize()+'</a></li>');
                 var clone = ele.clone(true).attr({id: key, name: key, "data-name": key, 'data-translation_l': l, 'data-translation': "translation-"+l}).addClass("translate-item").val(get_translation(translations, l));
                 if(ii > 0 && !clone.hasClass('required_all_langs')) clone.removeClass('required'); // to permit enter empty values for secondary languages
                 inputs[l] = clone;
@@ -78,7 +78,7 @@ jQuery(function($){
                 tabs_content.push(clone.parent());
                 TRANSLATOR_counter++;
                 // Auto Update Translates
-                clone.bind('change change_in',function(){
+                clone.on('change change_in', function(){
                     var r = [];
                     for(var l in inputs){
                         r.push("<!--:"+l+"-->"+inputs[l].val()+"<!--:-->");
@@ -107,7 +107,7 @@ jQuery(function($){
 
             // encode translation
             // remove tabs added by translation
-            ele.bind("trans_integrate", function(){
+            ele.on("trans_integrate", function(){
                 var r = [];
                 for(var l in inputs){
                     r.push("<!--:"+l+"-->"+inputs[l].val()+"<!--:-->");

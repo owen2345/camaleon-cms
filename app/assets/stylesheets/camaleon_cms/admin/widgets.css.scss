@@ -1,5 +1,5 @@
 #content-widget{
-  .panel-widget{
+  .card-widget{
     cursor: move;
     &, *{ color: #fff; }
 
@@ -12,7 +12,7 @@
 #content-sidebar{
   .sidebar-body{
     min-height:150px;
-    .panel-default:hover{
+    .card:hover{
       cursor: move;
     }
   }

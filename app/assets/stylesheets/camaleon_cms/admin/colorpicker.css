@@ -86,7 +86,8 @@
 .colorpicker-color div {
     height: 10px;
 }
-.input-group.color .input-group-addon i {
+.input-group.color .input-group-prepend .input-group-text i,
+.input-group.color .input-group-append .input-group-text i {
     display: inline-block;
     cursor: pointer;
     width: 16px;

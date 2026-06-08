@@ -1,5 +1,7 @@
-module CamaleonCms
-  module HtmlHelper
+    # frozen_string_literal: true
+
+    module CamaleonCms
+      module HtmlHelper
     def cama_html_helpers_init
       state = camaleon_html_helper_state
       state[:pre_assets_content] = [] # Assets contents before the libraries import
@@ -118,7 +120,7 @@ module CamaleonCms
     # location: location of the tooltip (left | right | top |bottom)
     def cama_html_tooltip(text = 'Tooltip', location = 'left')
       tag.a(href: 'javascript:;', title: text, data: { toggle: 'tooltip', placement: location }) do
-        tag.i(class: 'fa fa-info-circle')
+        tag.i(class: 'fas fa-circle-info')
       end
     end
 

@@ -454,9 +454,9 @@
                 }
 
                 if (horizontal === 'right') {
-                    widget.addClass('pull-right');
+                    widget.addClass('float-right');
                 } else {
-                    widget.removeClass('pull-right');
+                    widget.removeClass('float-right');
                 }
 
                 // find the first parent element that has a relative css positioning
@@ -2312,7 +2312,7 @@
         if (element.hasClass('input-group')) {
             // in case there is more then one 'input-group-addon' Issue #48
             if (element.find('.datepickerbutton').length === 0) {
-                component = element.find('.input-group-addon');
+                component = element.find('.input-group-append .input-group-text, .input-group-prepend .input-group-text');
             } else {
                 component = element.find('.datepickerbutton');
             }
@@ -2381,15 +2381,15 @@
         disabledDates: false,
         enabledDates: false,
         icons: {
-            time: 'glyphicon glyphicon-time',
-            date: 'glyphicon glyphicon-calendar',
-            up: 'glyphicon glyphicon-chevron-up',
-            down: 'glyphicon glyphicon-chevron-down',
-            previous: 'glyphicon glyphicon-chevron-left',
-            next: 'glyphicon glyphicon-chevron-right',
-            today: 'glyphicon glyphicon-screenshot',
-            clear: 'glyphicon glyphicon-trash',
-            close: 'glyphicon glyphicon-remove'
+            time: 'far fa-clock',
+            date: 'fas fa-calendar',
+            up: 'fas fa-chevron-up',
+            down: 'fas fa-chevron-down',
+            previous: 'fas fa-chevron-left',
+            next: 'fas fa-chevron-right',
+            today: 'fas fa-crosshairs',
+            clear: 'fas fa-trash',
+            close: 'fas fa-xmark'
         },
         tooltips: {
             today: 'Go to today',

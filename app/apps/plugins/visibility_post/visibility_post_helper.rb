@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Plugins
   module VisibilityPost
     module VisibilityPostHelper
@@ -40,8 +42,8 @@ module Plugins
           is_published = args[:post].published_at
           post_visibility = args[:post].visibility
           args[:content] =
-            "<td><i class='fa fa-#{{ 'private' => 'lock', '' => 'lock', 'public' => 'eye',
-                                     'password' => 'eye-slash' }[post_visibility]}'></i> #{post_visibility}</td>"
+            "<td><i class='fas fa-#{{ 'private' => 'lock', '' => 'lock', 'public' => 'eye',
+                                      'password' => 'eye-slash' }[post_visibility]}'></i> #{post_visibility}</td>"
           args[:content] +=
             "<td>#{is_published.present? ? is_published.strftime('%B %e, %Y %H:%M') : args[:post].the_created_at}</td>"
         else
@@ -108,7 +110,7 @@ module Plugins
                 name: 'post[published_at]', data: { format: 'yyyy-MM-dd hh:mm:ss' },
                 class: 'form-control ', value: @post[:published_at]
               ) +
-                tag.span(class: 'add-on input-group-addon') { tag.span(class: 'glyphicon glyphicon-calendar') }
+                tag.span(class: 'add-on input-group-addon') { tag.span(class: 'fas fa-calendar') }
             end
         end
 

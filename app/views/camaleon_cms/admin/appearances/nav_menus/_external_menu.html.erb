@@ -1,4 +1,4 @@
-<%= form_tag url_for({action: :update_menu_item, nav_menu_id: nav_menu.id, id: menu_item.id || '-1'}), class: "form-custom-link validate #{menu_item.new_record? ? "panel-body" : ""}" do %>
+<%= form_tag url_for({action: :update_menu_item, nav_menu_id: nav_menu.id, id: menu_item.id || '-1'}), class: "form-custom-link validate #{menu_item.new_record? ? "card-body" : ""}" do %>
     <div class="alert alert-info"><%= raw t('.root_alert_info', default: 'You can use <b>root_url</b> as main url.') %></div>
     <div class="form-group">
         <label><%= t('camaleon_cms.admin.menus.name_link')%></label>
@@ -18,6 +18,6 @@
     <!--<input class="form-control translatable" name="options[external_urlll]" value="<%#= menu_item.get_option('external_urlll') %>" />-->
 
     <div class="text-right">
-        <button type="submit" id="add_external_link" class="btn btn-primary"><%= menu_item.new_record? ? t('camaleon_cms.admin.button.add_menu', default: 'Add to Menu') : t('camaleon_cms.admin.button.update_menu', default: 'Update Menu') %> <i class="fa fa-arrow-right"></i></button>
+        <button type="submit" id="add_external_link" class="btn btn-primary"><%= menu_item.new_record? ? t('camaleon_cms.admin.button.add_menu', default: 'Add to Menu') : t('camaleon_cms.admin.button.update_menu', default: 'Update Menu') %> <i class="fas fa-arrow-right"></i></button>
     </div>
 <% end %>
