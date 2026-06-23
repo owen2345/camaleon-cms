@@ -98,7 +98,7 @@
                         <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @user, field_groups: @user.get_user_field_groups(current_site) } %>
                     </div>
                     <div class="card-footer">
-                        <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back')%></a>
+                        <a class="btn btn-secondary" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back')%></a>
                         <button class="btn btn-success float-right"><%= @user.new_record? ? t('camaleon_cms.admin.button.create') : t('camaleon_cms.admin.button.update') %></button>
                     </div>
                 </div>
@@ -144,7 +144,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary"><%= t('camaleon_cms.admin.button.proccess') %></button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal"><%= t('camaleon_cms.admin.button.close') %></button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><%= t('camaleon_cms.admin.button.close') %></button>
                 </div>
             <% end %>
         </div>

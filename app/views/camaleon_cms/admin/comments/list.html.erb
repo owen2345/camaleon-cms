@@ -22,7 +22,7 @@
                     <td><a href="<%= post_type.the_url %>" target="_blank"><%= post_type.the_title %></a></td>
                     <td><%= f.comments.main.size %></td>
                     <td>
-                        <%= link_to raw('<i class="fas fa-comments"></i>'), {action: :index, post_id: f.id }, class: "btn btn-default btn-sm cama_ajax_request", title: "#{t('camaleon_cms.admin.table.comments')}" %>
+                        <%= link_to raw('<i class="fas fa-comments"></i>'), {action: :index, post_id: f.id }, class: "btn btn-secondary btn-sm cama_ajax_request", title: "#{t('camaleon_cms.admin.table.comments')}" %>
                         <%#= link_to raw('<i class="fas fa-xmark"></i>'), { action: :destroy_comments, post_id: f.id }, method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete') }, class: "btn btn-danger btn-sm", title: "Delete" %>
                     </td>
                 </tr>

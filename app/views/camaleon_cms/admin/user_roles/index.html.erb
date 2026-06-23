@@ -29,7 +29,7 @@
                   <td><%= f.the_title %></td>
                   <td><%= f.the_content %></td>
                   <td>
-                    <%= link_to raw('<i class="fas fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-sm cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                    <%= link_to raw('<i class="fas fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-secondary btn-sm cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
                     <% if f.editable? %>
                         <%= link_to raw('<i class="fas fa-xmark"></i>'), { action: :destroy, id: f.id },
                                 method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-sm cama_ajax_request", title: t('camaleon_cms.admin.button.delete') %>

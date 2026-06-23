@@ -72,7 +72,7 @@ var init_form_validations = function (form, args) {
             var options = $.extend({}, default_options, $that.data() || {});
             var $content_image = $("<div class='content-upload-plugin'><a style='' href='#' target='_blank'><img src=''><br><span class='rm-file btn btn-sm btn-danger'><i class='fas fa-trash'></i></span></a></div>").hide();
             if (options.type != 'image') $content_image.find('img').remove();
-            var $btn_upload = $('<a class="btn btn-default" href="#"><i class="fas fa-upload"></i> ' + options.label + '</a>')
+            var $btn_upload = $('<a class="btn btn-secondary" href="#"><i class="fas fa-upload"></i> ' + options.label + '</a>')
             $content_image.find('img').css('max-height', options.height);
             $content_image.find(".rm-file").click(function(){ $that.val("").trigger("change"); return false; });
 

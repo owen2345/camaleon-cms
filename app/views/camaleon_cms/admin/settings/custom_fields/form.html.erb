@@ -113,7 +113,7 @@
                         </div>
                     </div>
                     <div class="card-footer">
-                        <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
+                        <a class="btn btn-secondary" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
                         <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
                     </div>
                 </div>
@@ -138,7 +138,7 @@
                         </ul>
                     </div>
                     <div class="card-footer hidden">
-                        <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
+                        <a class="btn btn-secondary" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
                         <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
                     </div>
                 </div>
@@ -153,12 +153,12 @@
                         <div id="content-items-default" class="form-group">
                             <% cama_custom_field_elements.each do |i,item| %>
                                 <% next if item[:key] == 'select_eval' %>
-                                <a id="item-<%= item[:key] %>" class="btn btn-default" href="<%= get_items_cama_admin_settings_custom_fields_path(item[:key]) %>" style="margin-bottom: 4px"><%= item[:label] %></a>
+                                <a id="item-<%= item[:key] %>" class="btn btn-secondary" href="<%= get_items_cama_admin_settings_custom_fields_path(item[:key]) %>" style="margin-bottom: 4px"><%= item[:label] %></a>
                             <% end %>
                         </div>
                     </div>
                     <div class="card-footer hidden">
-                        <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
+                        <a class="btn btn-secondary" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
                         <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
                     </div>
                 </div>

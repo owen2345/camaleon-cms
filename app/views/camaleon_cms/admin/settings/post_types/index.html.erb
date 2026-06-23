@@ -34,7 +34,7 @@
                         <td><%= item.the_posts.count %></td>
                         <td>
                             <%= link_to raw('<i class="fas fa-eye"></i>'), item.the_url, class: "btn btn-primary btn-sm", title: "#{t('camaleon_cms.common.visit')}", target: '_blank' %>
-                            <%= link_to raw('<i class="fas fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-default btn-sm cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                            <%= link_to raw('<i class="fas fa-pencil"></i>'), {action: :edit, id: item.id }, class: "btn btn-secondary btn-sm cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
                             <%= link_to raw('<i class="fas fa-xmark"></i>'), { action: :destroy, id: item.id },method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-sm cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" unless item.get_option('not_deleted', false) %>
                         </td>
                     </tr>

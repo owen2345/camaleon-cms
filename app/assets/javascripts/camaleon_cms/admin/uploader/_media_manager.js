@@ -59,7 +59,7 @@ window.cama_init_media = function(mediaPanel) {
 
       if (item.find('.edit_item')) { // add button to edit image
         editImg = $(
-          '<button type="button" class="float-right btn btn-default" title="Edit"><i class="fas fa-pencil"></i></button>').click(() => item.find('.edit_item').trigger('click')
+          '<button type="button" class="float-right btn btn-secondary" title="Edit"><i class="fas fa-pencil"></i></button>').click(() => item.find('.edit_item').trigger('click')
         )
       }
       mediaInfo.find('.p_footer').append(editImg)
@@ -392,7 +392,7 @@ window.cama_init_media = function(mediaPanel) {
       for (const icon in object) {
         let cmd = object[icon]
         let btn = $(
-          '<button type="button" class="btn btn-default" data-cmd="' + cmd + '"><i class="fas fa-' + icon + '"></i></button>'
+          '<button type="button" class="btn btn-secondary" data-cmd="' + cmd + '"><i class="fas fa-' + icon + '"></i></button>'
         )
 
         modal.find('.editor_controls').append(btn)
@@ -439,7 +439,7 @@ window.cama_init_media = function(mediaPanel) {
             zindex: 999992,
             modal_size: 'modal-lg',
             id: 'media_preview_editted_image',
-            content: '<div class="text-center" style="overflow: auto"><img class="preview"></div><br><div class="row"><div class="col-md-4"><button class="btn save_btn btn-default">' + I18n('button.replace_image') + '</button></div><div class="col-md-8"><form class="input-group"><input type="text" class="form-control file_name required" name="file_name"><div class="input-group-append"><button class="btn btn-primary" type="submit">' + I18n('button.save_new_image') + '</button></div></form></div></div>',
+            content: '<div class="text-center" style="overflow: auto"><img class="preview"></div><br><div class="row"><div class="col-md-4"><button class="btn save_btn btn-secondary">' + I18n('button.replace_image') + '</button></div><div class="col-md-8"><form class="input-group"><input type="text" class="form-control file_name required" name="file_name"><div class="input-group-append"><button class="btn btn-primary" type="submit">' + I18n('button.save_new_image') + '</button></div></form></div></div>',
             callback: saveButtons
           }
         )

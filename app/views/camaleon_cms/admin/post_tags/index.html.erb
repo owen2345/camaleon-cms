@@ -37,8 +37,8 @@
                         <td><%= tag.count %></td>
                         <td>
                             <%= link_to raw('<i class="fas fa-eye"></i>'), tag.the_url, target: '_blank', class: "btn btn-info btn-sm btn_view", title: "#{t('camaleon_cms.common.visit')}" %>
-                            <%= link_to raw('<i class="fas fa-list"></i>'), cama_admin_post_type_taxonomy_posts_path(@post_type.id, "post_tag", tag.id), class: "btn btn-default btn-sm cama_ajax_request btn_posts", title: "#{cama_pluralize_text(@post_type.decorate.the_title)}-#{tag.slug.to_s.titleize}" if @post_type.present? %>
-                            <%= link_to raw('<i class="fas fa-pencil"></i>'), {action: :edit, id: tag.id }, class: "btn btn-default btn-sm cama_ajax_request btn_edit", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                            <%= link_to raw('<i class="fas fa-list"></i>'), cama_admin_post_type_taxonomy_posts_path(@post_type.id, "post_tag", tag.id), class: "btn btn-secondary btn-sm cama_ajax_request btn_posts", title: "#{cama_pluralize_text(@post_type.decorate.the_title)}-#{tag.slug.to_s.titleize}" if @post_type.present? %>
+                            <%= link_to raw('<i class="fas fa-pencil"></i>'), {action: :edit, id: tag.id }, class: "btn btn-secondary btn-sm cama_ajax_request btn_edit", title: "#{t('camaleon_cms.admin.button.edit')}" %>
                             <%= link_to raw('<i class="fas fa-xmark"></i>'), { action: :destroy, id: tag.id }, method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete') }, class: "btn btn-danger btn-sm cama_ajax_request btn_del", title: "#{t('camaleon_cms.admin.button.delete')}" unless tag.get_option('not_deleted', false) %>
                         </td>
                     </tr>

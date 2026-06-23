@@ -79,9 +79,9 @@
             </div>
             <% if @user_role.editable? %>
                 <div id="checked-actions" class="card-footer text-right">
-                  <a class="btn btn-default btn-sm" data-type="all" href="#"><%= t('camaleon_cms.admin.button.select_all') %></a>
-                  <a class="btn btn-default btn-sm" data-type="none" href="#"><%= t('camaleon_cms.admin.button.select_none') %></a>
-                  <a class="btn btn-default btn-sm" data-type="restore" href="#"><%= t('camaleon_cms.admin.button.restore_selections') %></a>
+                  <a class="btn btn-secondary btn-sm" data-type="all" href="#"><%= t('camaleon_cms.admin.button.select_all') %></a>
+                  <a class="btn btn-secondary btn-sm" data-type="none" href="#"><%= t('camaleon_cms.admin.button.select_none') %></a>
+                  <a class="btn btn-secondary btn-sm" data-type="restore" href="#"><%= t('camaleon_cms.admin.button.restore_selections') %></a>
                 </div>
             <% end %>
           </div>
@@ -107,7 +107,7 @@
                 </div>
 
                 <div class="card-footer">
-                    <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
+                    <a class="btn btn-secondary" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
                     <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
                 </div>
 
@@ -132,7 +132,7 @@
         <p><%= t('camaleon_cms.admin.users.select_eval_modal.description') %></p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-role="select-eval-cancel" data-dismiss="modal"><%= t('camaleon_cms.admin.button.cancel') %></button>
+        <button type="button" class="btn btn-secondary" data-role="select-eval-cancel" data-dismiss="modal"><%= t('camaleon_cms.admin.button.cancel') %></button>
         <button type="button" class="btn btn-danger" data-role="select-eval-confirm"><%= t('camaleon_cms.admin.button.accept') %></button>
       </div>
     </div>

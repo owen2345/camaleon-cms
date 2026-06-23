@@ -12,7 +12,7 @@ module CamaleonCms
         @categories = @post_type.categories
         @categories = @categories.paginate(page: params[:page], per_page: current_site.admin_per_page)
         hooks_run('list_category', { categories: @categories, post_type: @post_type })
-        render layout: false if request.xhr?
+        render layout: false if request.xhr? && params[:cama_ajax_request].blank?
       end
 
       def show; end

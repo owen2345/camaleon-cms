@@ -14,3 +14,4 @@ spec/dummy/**/*.sqlite3
 spec/support/fixtures/rails_tmp.png
 *.gem
 node_modules
+spec/dummy/log/*

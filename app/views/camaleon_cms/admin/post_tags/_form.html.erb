@@ -20,7 +20,7 @@
         <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @post_tag, field_groups: @post_type.get_field_groups({kind: "PostTag"})} %>
     </div>
     <div class="card-footer">
-      <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
+      <a class="btn btn-secondary" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
       <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit')%></button>
     </div>
 <% end %>
