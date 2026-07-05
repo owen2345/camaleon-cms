@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security bumps:** Bump json, puma to 8.0.2, rubocop to 1.88.1, zeitwerk to 2.8.2, and other gems on development and fix all new Rubocop offenses, [#1167](https://github.com/owen2345/camaleon-cms/pull/1186)
+
 - **Security fix:** Prevent account takeover in `Admin::UsersController#updated_ajax` by unifying target-user lookup and authorization. [#1185](https://github.com/owen2345/camaleon-cms/pull/1185) — thanks, Lukman Azri.
 
 - **Fix:** Restore TinyMCE editor icons in development, [#1183](https://github.com/owen2345/camaleon-cms/pull/1183)
