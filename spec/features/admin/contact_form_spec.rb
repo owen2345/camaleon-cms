@@ -5,7 +5,7 @@ require 'rails_helper'
 # create a new form
 def create_form
   visit "#{cama_root_relative_path}/admin/plugins/cama_contact_form/admin_forms"
-  expect(page).to have_content('Contact Form')
+  expect(page).to have_text('Contact Form')
   within('#new_plugins_cama_contact_form_cama_contact_form') do
     fill_in 'plugins_cama_contact_form_cama_contact_form_name', with: 'Test form'
     fill_in 'plugins_cama_contact_form_cama_contact_form_slug', with: 'test-form'

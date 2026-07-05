@@ -32,10 +32,10 @@ describe 'the Custom Fields', :js do
       first('button[type="submit"]').click
     end
     within '#sortable-fields' do
-      expect(page).to have_content('Untitled Text Box')
+      expect(page).to have_text('Untitled Text Box')
     end
     expect(page).to have_css('.alert-success')
-    expect(page).to have_content('Test updated')
+    expect(page).to have_text('Test updated')
   end
 
   it 'delete custom field' do

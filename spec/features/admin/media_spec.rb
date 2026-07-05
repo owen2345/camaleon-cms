@@ -19,7 +19,7 @@ describe 'the Media', :js do
       find('button[type="submit"]').click
       wait_for_ajax
     end
-    expect(page).to have_content('test_folder_created_by_testing')
+    expect(page).to have_text('test_folder_created_by_testing')
 
     within '#cama_media_gallery' do
       # access into inner folder

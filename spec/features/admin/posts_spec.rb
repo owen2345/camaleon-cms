@@ -28,7 +28,7 @@ describe 'Posts workflows for Admin', :js do
 
     # visit page in frontend
     visit created_post.the_url(as_path: true)
-    expect(page).to have_content('Pants are pretty sweet.')
+    expect(page).to have_text('Pants are pretty sweet.')
   end
 
   it 'Can edit and update a post' do
@@ -46,7 +46,7 @@ describe 'Posts workflows for Admin', :js do
 
     # visit page in frontend
     visit post.the_url(as_path: true)
-    expect(page).to have_content('Test Title changed')
+    expect(page).to have_text('Test Title changed')
   end
 
   describe 'when visibility post plugin is enabled' do

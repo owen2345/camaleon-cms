@@ -8,6 +8,6 @@ describe 'no found', :js do
   it '404s' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/nothing-here"
-    expect(page).to have_content('Invalid route')
+    expect(page).to have_text('Invalid route')
   end
 end

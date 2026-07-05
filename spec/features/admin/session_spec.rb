@@ -20,7 +20,7 @@ describe 'the signin process', :js do
       fill_in 'user_email', with: 'admin@local.com'
     end
     click_button 'Submit'
-    expect(page).to have_content 'Send email reset success'
+    expect(page).to have_text 'Send email reset success'
   end
 
   it 'Enable Register' do

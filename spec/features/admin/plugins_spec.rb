@@ -9,10 +9,10 @@ describe 'the Menus', :js do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/plugins"
     expect(page).to have_css('#table-plugins-list')
-    expect(page).to have_content('Attack')
-    expect(page).to have_content('Contact Form')
-    expect(page).to have_content('Front Cache')
-    expect(page).to have_content('Active')
+    expect(page).to have_text('Attack')
+    expect(page).to have_text('Contact Form')
+    expect(page).to have_text('Front Cache')
+    expect(page).to have_text('Active')
 
     # uninstall plugin
     within '#tab_plugins_active' do

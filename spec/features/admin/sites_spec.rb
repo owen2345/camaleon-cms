@@ -4,7 +4,7 @@ require 'rails_helper'
 
 def create_site
   visit "#{cama_root_relative_path}/admin/settings/sites"
-  expect(page).to have_content('List Sites')
+  expect(page).to have_text('List Sites')
 
   within '#admin_content' do
     click_link 'Add Site'

@@ -8,7 +8,7 @@ describe 'the Languages', :js do
   it 'Languages list' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/settings/languages"
-    expect(page).to have_content('Languages configuration')
+    expect(page).to have_text('Languages configuration')
 
     within '#languages_form' do
       page.execute_script('$("#languages_form [name=\'lang[]\']").filter("[value=\'fr\']").click()')

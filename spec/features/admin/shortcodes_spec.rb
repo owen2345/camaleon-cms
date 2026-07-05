@@ -8,6 +8,6 @@ describe 'the Shortcodes', :js do
   it 'Shortcodes list' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/settings/shortcodes"
-    expect(page).to have_content('Short Code')
+    expect(page).to have_text('Short Code')
   end
 end

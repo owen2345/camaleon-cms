@@ -28,7 +28,7 @@ describe 'the Comments', :js do
     visit "#{cama_root_relative_path}/admin/comments"
     within('#admin_content') do
       # verify post presence
-      expect(page).to have_content(get_content_attr('post', 'the_title', 'last').to_s)
+      expect(page).to have_text(get_content_attr('post', 'the_title', 'last').to_s)
 
       # access to list of comments
       first('.btn-default').click
