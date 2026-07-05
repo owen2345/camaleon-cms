@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe 'the Menus', :js do
+RSpec.describe 'the Menus', :js do
   init_site
 
   it 'Menus list' do
@@ -27,7 +27,7 @@ describe 'the Menus', :js do
       within '.form-custom-link' do
         fill_in 'external_label', with: 'name link'
         fill_in 'external_url', with: 'https://mytest.com'
-        find('#add_external_link').click
+        find_by_id('add_external_link').click
         wait_for_ajax
       end
     end
