@@ -81,6 +81,6 @@ describe 'the Sites', :js do
     visit "#{cama_root_relative_path}/admin/settings/sites/#{main_site.id}/edit"
     fill_in 'site_slug', with: "#{main_site.slug}-updated"
     click_button 'Submit'
-    expect(current_path).not_to eq("/#{main_site.slug}")
+    expect(page).to have_no_current_path("/#{main_site.slug}", ignore_query: true)
   end
 end
