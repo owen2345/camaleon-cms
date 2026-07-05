@@ -5,8 +5,8 @@ require 'rails_helper'
 # create a new post type
 def create_post_type
   visit "#{cama_root_relative_path}/admin/settings/post_types"
-  expect(page).to have_content('Post')
-  expect(page).to have_content('Page')
+  expect(page).to have_text('Post')
+  expect(page).to have_text('Page')
   within('#post_type_form') do
     fill_in 'post_type_name', with: 'Test cat'
     fill_in 'post_type_slug', with: 'test-content'

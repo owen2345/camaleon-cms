@@ -25,7 +25,7 @@ describe 'the Widgets', :js do
     expect(page).to have_css('#view_widget_list')
     create_widget
     expect(page).to have_css('.alert-success')
-    expect(page).to have_content('test-widget')
+    expect(page).to have_text('test-widget')
   end
 
   it 'Widgets Edit' do
@@ -43,7 +43,7 @@ describe 'the Widgets', :js do
       click_button 'Submit'
     end
     expect(page).to have_css('.alert-success')
-    expect(page).to have_content('test-widget-updated')
+    expect(page).to have_text('test-widget-updated')
   end
 
   it 'Widgets destroy' do

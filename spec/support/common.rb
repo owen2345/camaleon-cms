@@ -25,7 +25,7 @@ def admin_sign_in(user = 'admin', pass = 'admin123')
     fill_in 'user[password]', with: pass
   end
   click_button 'Log In'
-  expect(page).to have_content 'Welcome'
+  expect(page).to have_text 'Welcome'
   wait(2)
 end
 
@@ -89,7 +89,7 @@ def pages_test
 
   current_site.the_contents.decorate.each do |p|
     visit p.the_url(as_path: true).to_s
-    expect(page).to have_content p.the_title
+    expect(page).to have_text p.the_title
   end
   the_tags.decorate.send(pos).send(attr)
 end

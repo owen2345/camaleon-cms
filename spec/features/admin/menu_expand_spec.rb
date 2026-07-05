@@ -35,11 +35,11 @@ RSpec.describe 'Sidebar menu expand', :js do
       # Use the first treeview item to check structure
       first_item = expandable_items.first
 
-      # The a tag should exist
+      # The 'a' tag should exist
       expect(first_item).to have_css('a')
 
       # Check that submenu exists using visible: false to include hidden elements
-      expect(first_item).to have_css('ul.treeview-menu', visible: false)
+      expect(first_item).to have_css('ul.treeview-menu', visible: :hidden)
     end
   end
 
