@@ -61,7 +61,7 @@ describe 'Post frontend', :js do
           fill_in 'post_comment_content', with: 'Sample comment'
         end
         click_button 'Comment'
-        expect(page).not_to have_text('The comment has been created')
+        expect(page).to have_no_text('The comment has been created')
       end
     end
 
@@ -81,7 +81,7 @@ describe 'Post frontend', :js do
       @post.set_meta('has_comments', '0')
       admin_sign_in
       visit @post.the_url(as_path: true)
-      expect(page).not_to have_text('New Comment')
+      expect(page).to have_no_text('New Comment')
     end
   end
 
@@ -94,7 +94,7 @@ describe 'Post frontend', :js do
     it 'public post' do
       custom_post = create(:post, site: @site).decorate
       visit custom_post.the_url(as_path: true)
-      expect(page).not_to have_text('does not exist')
+      expect(page).to have_no_text('does not exist')
     end
 
     it 'public future post with login' do
@@ -121,7 +121,7 @@ describe 'Post frontend', :js do
       custom_post = create(:private_post, site: @site, owner: user).decorate
       admin_sign_in(user.username, '12345678')
       visit custom_post.the_url(as_path: true)
-      expect(page).not_to have_text('does not exist')
+      expect(page).to have_no_text('does not exist')
     end
 
     it 'password post without password' do
@@ -133,7 +133,7 @@ describe 'Post frontend', :js do
     it 'password post with password' do
       custom_post = create(:password_post, site: @site).decorate
       visit custom_post.the_url(as_path: true, post_password: custom_post.visibility_value)
-      expect(page).not_to have_text('does not exist')
+      expect(page).to have_no_text('does not exist')
     end
   end
 end

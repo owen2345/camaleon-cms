@@ -75,7 +75,7 @@ describe 'the signin process', :js do
         fill_in 'captcha', with: 'password'
       end
       click_button 'Sign Up'
-      expect(page).not_to have_css('.alert-success')
+      expect(page).to have_no_css('.alert-success')
     end
 
     it 'Register User with no error in Captcha' do

@@ -15,7 +15,7 @@ describe 'Admin AJAX select_eval permission enforcement', :js do
 
     # The toggle endpoint is now a no-op; ensure it does not expose admin errors
     # and that the site option remains unchanged (default false)
-    expect(page).not_to have_text('Error')
+    expect(page).to have_no_text('Error')
     site.reload
     expect(site.get_option('show_select_eval_in_ui')).to be_falsey
   end
