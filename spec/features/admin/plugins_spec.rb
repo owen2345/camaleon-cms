@@ -16,7 +16,7 @@ describe 'the Menus', :js do
 
     # uninstall plugin
     within '#tab_plugins_active' do
-      all('.btn-danger')[0].click
+      first('.btn-danger').click
     end
     confirm_dialog
     expect(page).to have_css('.alert-success')
@@ -24,7 +24,7 @@ describe 'the Menus', :js do
     # install plugin
     page.execute_script('$("#table-plugins-list .nav-tabs li").eq(1).find("a").click()')
     within '#tab_plugins_disabled' do
-      all('.btn-primary')[0].click
+      first('.btn-primary').click
     end
     confirm_dialog
     expect(page).to have_css('.alert-success')
