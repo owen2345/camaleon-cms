@@ -37,7 +37,7 @@ $(function() {
   menuItemsAvailable.find('.add_links_to_menu').click(function() {
     const data = { items: [], authenticity_token: menuForm.find('[name="authenticity_token"]').val() }
     let flag = false
-    $(this).closest('.panel').find('input:checkbox:checked').each(function() {
+    $(this).closest('.card').find('input:checkbox:checked').each(function() {
       flag = true
       data.items.push({ id: $(this).val(), kind: $(this).closest('.class_type').attr('data-type') })
     }).prop('checked', false)
@@ -53,7 +53,7 @@ $(function() {
   menuItemsAvailable.find('.add_links_custom_to_menu').click(function() {
     const data = { custom_items: [], authenticity_token: menuForm.find('[name="authenticity_token"]').val() }
     let flag = false
-    $(this).closest('.panel').find('input:checkbox:checked').each(function() {
+    $(this).closest('.card').find('input:checkbox:checked').each(function() {
       flag = true
       data.custom_items.push({ url: $(this).val(), kind: $(this).attr('data-kind'), label: $(this).attr('data-label') })
     }).prop('checked', false)

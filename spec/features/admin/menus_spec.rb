@@ -34,7 +34,7 @@ RSpec.describe 'the Menus', :js do
 
     within '#menus_list' do
       all('.delete_menu_item').each do |btn|
-        btn.click
+        page.execute_script('arguments[0].click()', btn.native)
         confirm_dialog
         wait_for_ajax
       end
