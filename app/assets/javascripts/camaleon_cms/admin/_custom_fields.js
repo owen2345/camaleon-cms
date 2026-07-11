@@ -60,7 +60,7 @@ function cama_build_custom_field(panel, field_data, values){
         var field = $field.clone(true);
         if(field_data.multiple) {
             field.prepend(field_actions);
-            if(field_counter == 0) field.children('.actions').find('.fa-times').remove();
+            if(field_counter == 0) field.children('.actions').find('.fa-xmark').remove();
         }
         if(!$field.find('.group-input-fields-content').hasClass('cama_skip_cf_rename_multiple')) {
             field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) });
@@ -95,8 +95,8 @@ function cama_build_custom_field(panel, field_data, values){
 
     if(field_data.multiple){ // sortable actions
         panel.find('.field_multiple_btn .btn').click(function () { add_field(field_data.default_value); return false; });
-        panel.on('click', '.actions .fa-times', function () { if(confirm(I18n("msg.delete_item"))) $(this).closest('.editor-custom-fields').remove(); return false; });
-        new Sortable($sortable[0], { handle: ".fa-arrows", draggable: "> .editor-custom-fields", animation: 150,
+        panel.on('click', '.actions .fa-xmark', function () { if(confirm(I18n("msg.delete_item"))) $(this).closest('.editor-custom-fields').remove(); return false; });
+        new Sortable($sortable[0], { handle: ".fa-up-down-left-right", draggable: "> .editor-custom-fields", animation: 150,
             onStart: function(evt) { // fix tinymce
                 $(evt.item).find('.mce-panel').each(function () {
                     tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
