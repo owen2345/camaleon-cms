@@ -2,13 +2,15 @@
 
 ## Unreleased
 
+- **Security fix:** Prevent SVG XSS bypass via missing animation event handlers (\`onbegin\`/\`onend\`/\`onrepeat\`) in file upload content filter. DRY duplicated \`UNSAFE_EVENT_PATTERNS\` into shared \`CamaleonCms::ContentSecurity\` module, [#1195](https://github.com/owen2345/camaleon-cms/pull/1195) — thanks, Mohamed Almuhaya, for reporting this.
+
 - **Fix:** Restore legacy widget assignments, configured navigation order, and frontend plugin controller helper compatibility, [#1194](https://github.com/owen2345/camaleon-cms/pull/1194)
 
 - **Developer tooling:** Add OpenSpec planning workflow and agent guidance, [#1193](https://github.com/owen2345/camaleon-cms/pull/1193)
 
 - **Security bumps:** Bump json, puma to 8.0.2, rubocop to 1.88.1, zeitwerk to 2.8.2, and other gems on development and fix all new Rubocop offenses, [#1167](https://github.com/owen2345/camaleon-cms/pull/1186)
 
-- **Security fix:** Prevent account takeover in `Admin::UsersController#updated_ajax` by unifying target-user lookup and authorization. [#1185](https://github.com/owen2345/camaleon-cms/pull/1185) — thanks, Lukman Azri.
+- **Security fix:** Prevent account takeover in `Admin::UsersController#updated_ajax` by unifying target-user lookup and authorization. [#1185](https://github.com/owen2345/camaleon-cms/pull/1185) — thanks, Lukman Azri, for reporting this.
 
 - **Fix:** Restore TinyMCE editor icons in development, [#1183](https://github.com/owen2345/camaleon-cms/pull/1183)
   - sprockets-rails >= 3.5 registers `Sprockets::Rails::AssetUrlProcessor`, a `text/css` post-processor that rewrites every relative `url(...)` reference to a digested asset path. TinyMCE's bundled skin (`tinymce/skins/lightgray/skin.min.css`) references its icon font with relative urls such as `url("fonts/tinymce.woff")`, whose real logical path is `tinymce/skins/lightgray/fonts/...`. The processor cannot resolve them and rewrites them to an invalid root path (`/fonts/tinymce.woff`) that 404s, leaving the editor toolbar without icons.

@@ -91,9 +91,15 @@ describe CamaleonCms::UploaderHelper do
 
   describe 'file upload with unsafe content' do
     let(:unsafe_file_path) { "#{CAMALEON_CMS_ROOT}/spec/support/fixtures/unsafe-test-xss.svg" }
+    let(:unsafe_svg_animation_path) { "#{CAMALEON_CMS_ROOT}/spec/support/fixtures/unsafe-svg-onbegin.svg" }
 
     it "doesn't allow the file upload, returning an error" do
       expect(upload_file(File.open(unsafe_file_path), { folder: '/' })[:error])
+        .to eql('Potentially malicious content found!')
+    end
+
+    it "doesn't allow an SVG with animation event handlers (onbegin/onend/onrepeat)" do
+      expect(upload_file(File.open(unsafe_svg_animation_path), { folder: '/' })[:error])
         .to eql('Potentially malicious content found!')
     end
 

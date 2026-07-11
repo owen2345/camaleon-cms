@@ -6,23 +6,7 @@ module CamaleonCms
   module RuntimeUploaderConcern
     extend ActiveSupport::Concern
 
-    UNSAFE_EVENT_PATTERNS = %w[
-      onabort onafter onbefore onblur oncanplay onchange onclick oncontextmenu oncopy oncuechange oncut ondblclick
-      ondrag ondrop ondurationchange onended onerror onfocus onhashchange oninvalid oninput onkey onload onmessage
-      onmouse ononline onoffline onpagehide onpageshow onpage onpaste onpause onplay onpopstate onprogress
-      onpropertychange onratechange onreadystatechange onreset onresize onscroll onsearch onseek onselect onshow
-      onstalled onstorage onsuspend ontimeupdate ontoggle onunloadonsubmit onvolumechange onwaiting onwheel
-    ].map { |pattern| /#{pattern}\w*\s*=/i }.freeze
-
-    SUSPICIOUS_PATTERNS = (UNSAFE_EVENT_PATTERNS + [
-      /<script[\s>]/i,
-      /javascript:/i,
-      /<iframe[\s>]/i,
-      /<object[\s>]/i,
-      /<embed[\s>]/i,
-      /<base[\s>]/i,
-      /data:/i
-    ]).freeze
+    include ContentSecurity
 
     def upload_file(uploaded_io, settings = {})
       cached_name = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.original_filename : nil
