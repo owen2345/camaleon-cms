@@ -5,7 +5,19 @@
 2. **Acknowledge stack:** Ruby (infer from `.tool-versions`), Rails (infer from `Gemfile` and `Gemfile.lock`)
 3. **Create branch:** Prefix with `feature/`, `fix/`, or `security/`
 
-## 1. Agent Behaviour
+## 1. OpenSpec Workflow
+
+Use OpenSpec when the user requests it or when planned work has non-trivial behavior, contract, or cross-cutting concerns. Work directly for trivial, narrowly scoped, and documentation-only changes.
+
+Before creating a change, run `openspec list --json` and continue a relevant active change rather than creating a duplicate. Use the installed `/opsx:*` prompts or matching OpenSpec skills to:
+
+- Explore uncertain problems with `/opsx:explore`.
+- Create or continue planning artifacts with `/opsx:propose`, `/opsx:new`, or `/opsx:continue`.
+- Implement planned tasks with `/opsx:apply`.
+- Confirm implementation matches the artifacts with `/opsx:verify`.
+- Preserve completed decisions with `/opsx:archive`.
+
+## 2. Agent Behaviour
 
 ### Think Before Coding
 - Don't assume. State assumptions explicitly. If uncertain, ask.
@@ -23,7 +35,7 @@
 - "Fix the bug" → Write a test that reproduces it, then make it pass.
 - Verify before reporting completion.
 
-## 2. Key Commands
+## 3. Key Commands
 
 > **Note:** Since this project is a gem, Rails commands like `rails routes` or `bin/rails zeitwerk:check` MUST be run from the `spec/dummy` folder. Always use subshells or `&&` to ensure you return to the project root (e.g., `(cd spec/dummy && bin/rails ...)`).
 
@@ -34,7 +46,7 @@
 
 **Security Fixes:** Vulnerability fixes MUST include tests that reproduce the vulnerability (unless infeasible). All code changes must be covered by specs. See `docs/ai/workflows.md` Step 4.
 
-## 3. Quick Reference
+## 4. Quick Reference
 
 | Path | Purpose |
 |------|---------|
@@ -45,18 +57,18 @@
 
 **Namespaces:** `CamaleonCms::*`, shortcuts: `Cama::Site`, `Cama::Post`
 
-## 4. Patterns (lazy-load `docs/ai/reference.md`)
+## 5. Patterns (lazy-load `docs/ai/reference.md`)
 
 - Decorators: `object.the_title`, `object.the_url`, `object.decorate`
 - Hooks: `hooks_run('hook_name')`
 
-## 5. Gotchas (lazy-load `docs/ai/reference.md`)
+## 6. Gotchas (lazy-load `docs/ai/reference.md`)
 
 - Uses **Dart Sass** via `dartsass-sprockets`
 - Test DB: SQLite in `spec/dummy/db/schema.rb`
 - Migrations: runs from both `db/migrate/` AND `spec/dummy/db/migrate/`
 
-## 6. Required Context Files
+## 7. Required Context Files
 
 Load per task:
 - **Testing** → `docs/ai/testing.md`
