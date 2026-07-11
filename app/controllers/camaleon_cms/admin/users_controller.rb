@@ -18,6 +18,7 @@ module CamaleonCms
         add_breadcrumb I18n.t('camaleon_cms.admin.users.profile')
         user_id = params[:user_id]
         @user = user_id.present? ? current_site.the_user(user_id.to_i).object : cama_current_user.object
+        authorize! :manage, :users if user_id.present? && @user.id != cama_current_user.id
         edit
       end
 
