@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security fix:** Fix profile IDOR in \`Admin::UsersController#profile\` — add inline \`authorize!\` check when viewing another user, so low-privilege users can no longer enumerate arbitrary user accounts. [#1197](https://github.com/owen2345/camaleon-cms/pull/1197) — thanks, Neo Andrew, for reporting this.
+
 - **Security fix:** Fix improper authorization in draft autosave endpoint — scope draft lookups to post type, add \`authorize!\` checks before draft mutations, and validate \`post_parent\` against a real post, [#1196](https://github.com/owen2345/camaleon-cms/pull/1196) — thanks, Óscar Uribe, for reporting this.
 
 - **Security fix:** Prevent SVG XSS bypass via missing animation event handlers (\`onbegin\`/\`onend\`/\`onrepeat\`) in file upload content filter. DRY duplicated \`UNSAFE_EVENT_PATTERNS\` into shared \`CamaleonCms::ContentSecurity\` module, [#1195](https://github.com/owen2345/camaleon-cms/pull/1195) — thanks, Mohamed Almuhaya, for reporting this.
