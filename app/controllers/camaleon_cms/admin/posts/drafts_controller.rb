@@ -10,13 +10,18 @@ module CamaleonCms
 
         def create
           if params[:post_id].present?
-            @post_draft = CamaleonCms::Post.drafts.where(post_parent: params[:post_id]).first
+            @post_draft = @post_type.posts.drafts.where(post_parent: params[:post_id]).first
             if @post_draft.present?
+              authorize! :update, @post_draft
               @post_draft.set_option('draft_status', @post_draft.status)
               @post_draft.attributes = @post_data
             end
           end
-          @post_draft = @post_type.posts.new(@post_data) if @post_draft.blank?
+          if @post_draft.blank?
+            authorize! :create_post, @post_type
+            @post_draft = @post_type.posts.new(@post_data)
+            @post_draft.user_id = cama_current_user.id
+          end
           r = { post: @post_draft, post_type: @post_type }
           hooks_run('create_post_draft', r)
           if @post_draft.save(validate: false)
@@ -33,7 +38,8 @@ module CamaleonCms
         end
 
         def update
-          @post_draft = CamaleonCms::Post.drafts.find(params[:id])
+          @post_draft = @post_type.posts.drafts.find(params[:id])
+          authorize! :update, @post_draft
           @post_draft.attributes = @post_data
           r = { post: @post_draft, post_type: @post_type }
           hooks_run('update_post_draft', r)
@@ -60,8 +66,9 @@ module CamaleonCms
           post_data.delete(:created_at) if params[:post][:created_at].blank?
           post_data.delete(:updated_at) if params[:post][:updated_at].blank?
           post_data[:status] = 'draft_child'
-          post_data[:post_parent] = params[:post_id]
-          post_data[:user_id] = cama_current_user.id if post_data[:user_id].blank?
+          if params[:post_id].present? && current_site.posts.where(id: params[:post_id]).exists?
+            post_data[:post_parent] = params[:post_id]
+          end
           post_data[:data_tags] = params[:tags].to_s
           post_data[:data_categories] = params[:categories] || []
           @post_data = post_data
