@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Fix:** Restore legacy widget assignments, configured navigation order, and frontend plugin controller helper compatibility, [#1194](https://github.com/owen2345/camaleon-cms/pull/1194)
+
 - **Developer tooling:** Add OpenSpec planning workflow and agent guidance, [#1193](https://github.com/owen2345/camaleon-cms/pull/1193)
 
 - **Security bumps:** Bump json, puma to 8.0.2, rubocop to 1.88.1, zeitwerk to 2.8.2, and other gems on development and fix all new Rubocop offenses, [#1167](https://github.com/owen2345/camaleon-cms/pull/1186)

@@ -70,11 +70,13 @@ module CamaleonCms
       end
 
       # draw menu items
+      # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       def cama_menu_draw_items(args, nav_menu, level = 0)
         items_html = []
         parent_current = false
         index = 0
-        nav_menu.eager_load(:metas).find_each do |nav_menu_item|
+        # rubocop:disable Rails/FindEach -- Rendering must preserve the relation's configured term_order.
+        nav_menu.eager_load(:metas).each do |nav_menu_item|
           _args = args.dup
           data_nav_item = cama_parse_menu_item(nav_menu_item)
           next if data_nav_item == false
@@ -154,6 +156,7 @@ module CamaleonCms
 
           index += 1
         end
+        # rubocop:enable Rails/FindEach
 
         if level == 0
           safe_join(items_html)
@@ -167,6 +170,7 @@ module CamaleonCms
           [sub_html, parent_current]
         end
       end
+      # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
       # filter and parse all menu items visible for current user and adding the flag for current_parent or current_item
       # max_levels: max levels to iterate

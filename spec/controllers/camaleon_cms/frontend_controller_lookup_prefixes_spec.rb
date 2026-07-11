@@ -3,6 +3,28 @@
 require 'rails_helper'
 
 RSpec.describe CamaleonCms::FrontendController do
+  describe 'frontend application helper compatibility' do
+    let(:controller) { described_class.new }
+    let(:plugin_controller_class) { Class.new(described_class) }
+
+    it 'calls cama_url_to_fixed from the frontend controller' do
+      allow(controller).to receive_messages(current_site: nil, request: nil, cama_current_site_host_port: nil)
+      controller.define_singleton_method(:compatibility_path) { |_options = {}| '/compatibility' }
+
+      expect { controller.cama_url_to_fixed('compatibility_path') }.not_to raise_error
+      expect(controller.cama_url_to_fixed('compatibility_path')).to eq('/compatibility')
+    end
+
+    it 'calls verify_front_visibility from an inheriting plugin-style controller' do
+      plugin_controller = plugin_controller_class.new
+      relation = double(visible_frontend: :visible)
+      allow(plugin_controller).to receive(:hooks_run)
+
+      expect { plugin_controller.verify_front_visibility(relation) }.not_to raise_error
+      expect(plugin_controller.verify_front_visibility(relation)).to eq(:visible)
+    end
+  end
+
   describe 'frontend visited-state concern integration' do
     let(:controller) { described_class.new }
     let(:post) { instance_double(CamaleonCms::Post) }

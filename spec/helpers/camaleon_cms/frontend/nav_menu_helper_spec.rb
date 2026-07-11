@@ -276,6 +276,49 @@ RSpec.describe CamaleonCms::Frontend::NavMenuHelper do
         expect(result.scan(%r{</li>}).count).to eq(2)
       end
     end
+
+    context 'with reordered menu items' do
+      before do
+        @first = create(:nav_menu_item, name: 'First', url: '/first', kind: 'external', target: '', parent: @menu)
+        @second = create(:nav_menu_item, name: 'Second', url: '/second', kind: 'external', target: '', parent: @menu)
+        @first.update!(term_order: 2)
+        @second.update!(term_order: 1)
+
+        @child_first = create(
+          :nav_menu_item, name: 'Child First', url: '/child-first', kind: 'external', target: '', parent_item: @first
+        )
+        @child_second = create(
+          :nav_menu_item, name: 'Child Second', url: '/child-second', kind: 'external', target: '', parent_item: @first
+        )
+        @child_first.update!(term_order: 2)
+        @child_second.update!(term_order: 1)
+      end
+
+      it 'renders root and nested items in configured order' do
+        result = helper.cama_menu_draw_items(default_args, @menu.children.reorder(:term_order))
+
+        expect(result.index('Second')).to be < result.index('First')
+        expect(result.index('Child Second')).to be < result.index('Child First')
+      end
+
+      it 'supplies callback indexes in configured order at every level' do
+        yielded_items = []
+        args = default_args.merge(
+          callback_item: lambda do |item_args|
+            yielded_items << [item_args[:level], item_args[:index], item_args[:menu_item].name]
+          end
+        )
+
+        helper.cama_menu_draw_items(args, @menu.children.reorder(:term_order))
+
+        expect(yielded_items).to include(
+          [0, 0, 'Second'],
+          [0, 1, 'First'],
+          [1, 0, 'Child Second'],
+          [1, 1, 'Child First']
+        )
+      end
+    end
   end
 
   describe 'breadcrumbs' do
