@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security fix:** Prevent SVG XSS bypass via missing animation event handlers (\`onbegin\`/\`onend\`/\`onrepeat\`) in file upload content filter. DRY duplicated \`UNSAFE_EVENT_PATTERNS\` into shared \`CamaleonCms::ContentSecurity\` module, [#1195](https://github.com/owen2345/camaleon-cms/pull/1195)
+
 - **Fix:** Restore legacy widget assignments, configured navigation order, and frontend plugin controller helper compatibility, [#1194](https://github.com/owen2345/camaleon-cms/pull/1194)
 
 - **Developer tooling:** Add OpenSpec planning workflow and agent guidance, [#1193](https://github.com/owen2345/camaleon-cms/pull/1193)
