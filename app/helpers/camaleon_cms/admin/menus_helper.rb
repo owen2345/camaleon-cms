@@ -118,7 +118,7 @@ module CamaleonCms
               title: safe_join([
                                  t('camaleon_cms.admin.sidebar.plugins'),
                                  ' ',
-                                  content_tag(:small, plugin_count, class: 'badge badge-primary')
+                                 content_tag(:small, plugin_count, class: 'badge badge-primary')
                                ]),
               url: cama_admin_plugins_path,
               datas: "data-intro='#{t('camaleon_cms.admin.intro.plugins')}' data-position='right'"
@@ -263,14 +263,14 @@ module CamaleonCms
             safe_join([
               content_tag(:a, href: menu[:url], class: 'nav-link') do
                 safe_join([
-                  content_tag(:i, nil, class: "nav-icon fas fa-#{menu[:icon]}"),
-                  content_tag(:p) do
-                    safe_join([
-                      menu[:title],
-                      (content_tag(:i, nil, class: 'fas fa-angle-left right') if menu.key?(:items))
-                    ].compact)
-                  end
-                ])
+                            content_tag(:i, nil, class: "nav-icon fas fa-#{menu[:icon]}"),
+                            content_tag(:p) do
+                              safe_join([
+                                menu[:title],
+                                (content_tag(:i, nil, class: 'fas fa-angle-left right') if menu.key?(:items))
+                              ].compact)
+                            end
+                          ])
               end,
               (_admin_menu_draw(menu[:items], menu_parents) if menu.key?(:items))
             ].compact)
@@ -346,14 +346,14 @@ module CamaleonCms
               safe_join([
                 content_tag(:a, href: item[:url], class: 'nav-link') do
                   safe_join([
-                    content_tag(:i, nil, class: "nav-icon fas fa-#{item[:icon]}"),
-                    content_tag(:p) do
-                      safe_join([
-                        item[:title],
-                        (content_tag(:i, nil, class: 'fas fa-angle-left right') if item.key?(:items))
-                      ].compact)
-                    end
-                  ])
+                              content_tag(:i, nil, class: "nav-icon fas fa-#{item[:icon]}"),
+                              content_tag(:p) do
+                                safe_join([
+                                  item[:title],
+                                  (content_tag(:i, nil, class: 'fas fa-angle-left right') if item.key?(:items))
+                                ].compact)
+                              end
+                            ])
                 end,
                 (item.key?(:items) ? _admin_menu_draw(item[:items], menu_parents) : nil)
               ].compact)

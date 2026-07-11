@@ -1,7 +1,7 @@
 <% if post.has_thumb? && !defined?(skip_thumb) %>
     <div class="card card-default">
         <div class="card-body">
-            <%= raw post.the_link_thumb({}, {class: "img-fluid img-rounded col-md-12 col-lg-12"}) %>
+            <%= raw post.the_link_thumb({}, {class: "img-fluid rounded col-md-12 col-lg-12"}) %>
         </div>
     </div>
 <%  end %>
@@ -58,7 +58,7 @@
             <div class="card-header"><%= ct("post_tag_list", default: 'Tags') %></div>
             <div class="card-body">
                 <% tags.each do |post_tag| %>
-                    <a class="btn btn-default btn-xs" href="<%= post_tag.the_url %>"><%= post_tag.the_title %></a>
+                    <a class="btn btn-secondary btn-sm" href="<%= post_tag.the_url %>"><%= post_tag.the_title %></a>
                 <% end %>
             </div>
         </div>

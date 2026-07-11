@@ -2278,13 +2278,13 @@ footer.entry-meta {
 	padding: 10px 15px;
 }
 
-.comment-content .panel-heading::before {
+.comment-content .card-header::before {
 	border-right-color: #ddd;
 	border-width: 8px;
 }
 
-.comment-content .panel-heading::after,
-.comment-content .panel-heading::before {
+.comment-content .card-header::after,
+.comment-content .card-header::before {
 	border-color: transparent;
 	border-style: solid solid outset;
 	content: " ";
@@ -2298,7 +2298,7 @@ footer.entry-meta {
 	width: 0;
 }
 
-.comment-content .panel-heading::after {
+.comment-content .card-header::after {
 	border-right-color: #f7f7f7;
 	border-width: 7px;
 	margin-left: 2px;

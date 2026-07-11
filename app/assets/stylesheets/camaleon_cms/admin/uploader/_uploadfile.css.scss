@@ -127,6 +127,25 @@ margin: 5px 10px 5px 0px;
 }
 #cama_media_gallery{
   position: relative;
+
+  // Stretch card to fill available viewport height
+  > .card{
+    height: calc(100vh - 180px);
+    min-height: 480px;
+    margin-bottom: 0;
+
+    > .card-body{
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      > .row{
+        flex: 1 1 auto;
+        overflow: hidden;
+      }
+    }
+  }
+
   .media_folder_breadcrumb{
     padding: 6px 0;
     margin-bottom: 0;
@@ -139,7 +158,7 @@ margin: 5px 10px 5px 0px;
     min-height: 420px;
     padding: 2px 0 10px;
     overflow: auto;
-    max-height: 520px;
+    height: 100%;
     .file_item, .folder_item{
       position: relative;
       cursor: pointer;
@@ -172,7 +191,7 @@ margin: 5px 10px 5px 0px;
         text-align: center;
         height: 100%;
         position: relative;
-        .fa{
+        .fa, .fas, .far, .fab{
           font-size: 132px;
           color: #3C8DBC;
         }

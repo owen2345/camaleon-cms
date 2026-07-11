@@ -31,6 +31,7 @@ describe 'Modal AJAX script execution (jQuery 3 compat)', :js do
 
     expect(events_bound['error']).to be_nil, 'Media gallery not found in DOM'
     expect(events_bound['hasClick']).to be(true),
-           "Expected click events on #cama_media_gallery but got: #{events_bound['eventTypes']}"
+                                        'Expected click events on #cama_media_gallery but got: ' \
+                                          "#{events_bound['eventTypes']}"
   end
 end

@@ -9,11 +9,11 @@
               </div>
               <div class="col-md-4">
                   <%= form_tag '#', id: 'cama_search_form', class: 'input-group' do %>
-                      <input placeholder="<%= cama_t('camaleon_cms.admin.media.folder_file_name') %>.." class="form-control required" name="folder">
+                        <input type="search" aria-label="<%= cama_t('camaleon_cms.admin.media.folder_file_name') %>" placeholder="<%= cama_t('camaleon_cms.admin.media.folder_file_name') %>…" class="form-control required" name="folder">
                           <div class="input-group-append">
-                              <button type="submit" class="btn btn-secondary"><i class="fas fa-magnifying-glass"></i> <%= t('camaleon_cms.common.search', default: 'Search') %></button>
+                                <button type="submit" class="btn btn-secondary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> <%= t('camaleon_cms.common.search', default: 'Search') %></button>
                               <div class="btn-group" role="group">
-                                  <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-gears"></i> <span class="caret"></span></button>
+                                  <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Settings"><i class="fas fa-gears" aria-hidden="true"></i></button>
                                   <div class="dropdown-menu dropdown-menu-right">
                                       <a href="#" class="dropdown-item cam_media_reload" data-action="reload"><i class="fas fa-arrows-rotate"></i> <%= cama_t('camaleon_cms.admin.media.reload') %></a>
                                       <% if @show_file_actions %>
@@ -47,7 +47,7 @@
                 <form id="cama_media_external">
                     <div class="form-group">
                         <label><%= t("camaleon_cms.admin.media.external", default: 'From URL') %></label>
-                        <input type="text" name="remote_file" class="form-control" placeholder="https://...">
+                        <input type="url" name="remote_file" class="form-control" placeholder="https://…">
                     </div>
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary btn-sm"><%= t("camaleon_cms.admin.button.submit") %></button>

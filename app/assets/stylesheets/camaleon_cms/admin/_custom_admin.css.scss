@@ -20,6 +20,16 @@
   display: none !important;
 }
 
+//************** Input group: gap between adjacent buttons
+// BS4 input-group-append puts buttons flush together. When adjacent buttons
+// share the same color (e.g. two btn-secondary), they visually merge into one.
+// Add a small gap so they read as separate controls.
+.input-group-append > .btn + .btn-group,
+.input-group-append > .btn-group + .btn,
+.input-group-append > .btn-group + .btn-group {
+  margin-left: 2px;
+}
+
 //************** Breadcrumb (BS4 compatibility with breadcrumbs_on_rails gem)
 // The gem renders <li> without .breadcrumb-item class required by BS4.
 .breadcrumb > li {

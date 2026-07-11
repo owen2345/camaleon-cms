@@ -1,7 +1,7 @@
-    # frozen_string_literal: true
+# frozen_string_literal: true
 
-    module CamaleonCms
-      module HtmlHelper
+module CamaleonCms
+  module HtmlHelper
     def cama_html_helpers_init
       state = camaleon_html_helper_state
       state[:pre_assets_content] = [] # Assets contents before the libraries import

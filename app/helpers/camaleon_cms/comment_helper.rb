@@ -70,21 +70,21 @@ module CamaleonCms
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 'a' }),
                           title: t('camaleon_cms.admin.comments.tooltip.approved_comment'),
-                           class: "#{comment.approved == 'approved' ? 'hidden' : ''} " \
+                          class: "#{comment.approved == 'approved' ? 'hidden' : ''} " \
                                   'btn btn-success approve btn-sm cama_ajax_request'
                         ) { content_tag(:span, '', class: 'far fa-thumbs-up') },
                         ' ',
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 'p' }),
                           title: t('camaleon_cms.admin.comments.tooltip.comment_pending'),
-                           class: "#{comment.approved == 'pending' ? 'hidden' : ''} " \
+                          class: "#{comment.approved == 'pending' ? 'hidden' : ''} " \
                                   'btn btn-primary pending btn-sm cama_ajax_request'
                         ) { content_tag(:span, '', class: 'fas fa-triangle-exclamation') },
                         ' ',
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 's' }),
                           title: t('camaleon_cms.admin.comments.tooltip.comment_spam'),
-                           class: "#{comment.approved == 'spam' ? 'hidden' : ''} " \
+                          class: "#{comment.approved == 'spam' ? 'hidden' : ''} " \
                                   'btn btn-danger spam btn-sm cama_ajax_request'
                         ) { content_tag(:span, '', class: 'fas fa-bug') }
                       ].join.html_safe
