@@ -1,7 +1,12 @@
 module CamaleonCms
   module Widget
     class Assigned < CamaleonCms::PostDefault
-      # default_scope -> { where(post_class: name).order(:taxonomy_id) }
+      default_scope -> { order(:taxonomy_id) }
+
+      def self.type_condition(table = arel_table)
+        super.or(table[inheritance_column].eq(name))
+      end
+
       # post_parent: sidebar_id
       # visibility: widget_id
       # comment_count: item_order
