@@ -1,20 +1,21 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Camaleon CMS is a Ruby 3.4.9 and Rails 8.1 CMS engine.
+  Use RSpec via bin/rspec. Run Rails commands from spec/dummy.
+  AGENTS.md and its linked docs are the authoritative source for branching,
+  implementation, testing, security, and verification requirements.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - State the user-visible behavior, scope, and non-goals concisely.
+    - Identify only capabilities that need testable specification requirements.
+  specs:
+    - Define testable requirements and scenarios for behavior or contract changes.
+    - Do not create specifications for implementation-only details.
+  design:
+    - Record decisions, alternatives, and risks only when they affect implementation.
+    - Refer to AGENTS.md for detailed repository execution guidance.
+  tasks:
+    - Keep tasks small, ordered, and tied to specification requirements.
+    - Include verification appropriate to the affected code and AGENTS.md guidance.
