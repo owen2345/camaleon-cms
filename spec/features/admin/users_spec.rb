@@ -39,7 +39,7 @@ describe 'the Users', :js do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/users"
     within '#admin_content' do
-      all('.btn-default')[1].click
+      all('.btn-secondary')[1].click
     end
     within '#user_form' do
       fill_in 'user[first_name]', with: 'Test updated'
@@ -57,7 +57,7 @@ describe 'the Users', :js do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/users"
     within '#admin_content' do
-      all('.btn-default')[1].click
+      all('.btn-secondary')[1].click
     end
     within '#user_form' do
       click_link 'Change Password'

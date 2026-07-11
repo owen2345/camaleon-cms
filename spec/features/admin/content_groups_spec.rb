@@ -30,7 +30,7 @@ describe 'the Content Groups', :js do
     create_post_type
     visit "#{cama_root_relative_path}/admin/settings/post_types"
     within '#admin_content' do
-      all('table .btn-default').last.click
+      all('table .btn-secondary').last.click
     end
     within('#post_type_form') do
       expect(page).to have_checked_field('Manage Multiple Categories')

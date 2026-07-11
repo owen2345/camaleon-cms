@@ -31,7 +31,7 @@ describe 'the Sites', :js do
     create_site
     visit "#{cama_root_relative_path}/admin/settings/sites"
     within '#admin_content' do
-      all('.btn-default').last.click
+      all('.btn-secondary').last.click
     end
     within '#edit_site' do
       fill_in 'site_name', with: 'Owen Site Title changed'
