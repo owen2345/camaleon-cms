@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 150">
+  <rect width="300" height="150" fill="#f0f0f0"/>
+  <text x="30" y="80" font-size="20" fill="#333">Totally normal image</text>
+  <animate attributeName="opacity" values="1;1" dur="1s"
+    onbegin="alert('XSS via onbegin')"
+    onend="alert('XSS via onend')"
+    onrepeat="alert('XSS via onrepeat')" />
+</svg>

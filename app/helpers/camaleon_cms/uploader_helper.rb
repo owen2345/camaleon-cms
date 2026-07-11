@@ -5,23 +5,7 @@ require 'tempfile'
 
 module CamaleonCms
   module UploaderHelper
-    UNSAFE_EVENT_PATTERNS = %w[
-      onabort onafter onbefore onblur oncanplay onchange onclick oncontextmenu oncopy oncuechange oncut ondblclick
-      ondrag ondrop ondurationchange onended onerror onfocus onhashchange oninvalid oninput onkey onload onmessage
-      onmouse ononline onoffline onpagehide onpageshow onpage onpaste onpause onplay onpopstate onprogress
-      onpropertychange onratechange onreadystatechange onreset onresize onscroll onsearch onseek onselect onshow
-      onstalled onstorage onsuspend ontimeupdate ontoggle onunloadonsubmit onvolumechange onwaiting onwheel
-    ].map { |pattern| /#{pattern}\w*\s*=/i }.freeze
-
-    SUSPICIOUS_PATTERNS = (UNSAFE_EVENT_PATTERNS + [
-      /<script[\s>]/i,  # Script tags
-      /javascript:/i,   # JavaScript in href/src attributes
-      /<iframe[\s>]/i,  # Iframes
-      /<object[\s>]/i,  # Object tags
-      /<embed[\s>]/i,   # Embed tags
-      /<base[\s>]/i,    # Base tags (can be used to manipulate URLs)
-      /data:/i          # data: URLs (which can include scripts)
-    ]).freeze
+    include ContentSecurity
 
     include ActionView::Helpers::NumberHelper
     include CamaleonCms::CamaleonHelper
