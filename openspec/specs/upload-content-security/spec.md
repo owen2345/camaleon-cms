@@ -1,6 +1,6 @@
 ## Purpose
 
-Define the security requirements for content scanning of uploaded files. Uploaded files MUST be scanned for executable content patterns before being persisted, to prevent stored XSS attacks via uploaded SVGs and other file types.
+Define the security requirements for content scanning of uploaded files. Uploaded files MUST be scanned for executable content patterns before being persisted, to prevent stored XSS attacks via uploaded files.
 
 ## Requirements
 
@@ -8,49 +8,45 @@ Define the security requirements for content scanning of uploaded files. Uploade
 
 The system SHALL reject file uploads whose content contains known executable event handler attributes before storing or persisting the file.
 
-#### Scenario: File with `onclick` is rejected
-- **WHEN** a user uploads a file whose content includes an `onclick` attribute
+**Change**: SVG files are no longer scanned for event handlers using the regex denylist — SVG content checks are handled by the XML parse-based checker in the `svg-upload-sanitization` capability. Non-SVG files continue to be scanned by the regex pipeline.
+
+#### Scenario: Non-SVG file with onclick is rejected
+- **WHEN** a user uploads a non-SVG file whose content includes an `onclick` attribute
 - **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
 
-#### Scenario: File with `onload` is rejected
-- **WHEN** a user uploads a file whose content includes an `onload` attribute
+#### Scenario: Non-SVG file with onload is rejected
+- **WHEN** a user uploads a non-SVG file whose content includes an `onload` attribute
 - **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
 
-#### Scenario: File with `onbegin` is rejected
-- **WHEN** a user uploads an SVG whose content includes `<animate onbegin="...">`
-- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-#### Scenario: File with `onend` is rejected
-- **WHEN** a user uploads an SVG whose content includes `<animate onend="...">`
-- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-#### Scenario: File with `onrepeat` is rejected
-- **WHEN** a user uploads an SVG whose content includes `<animate onrepeat="...">`
-- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-#### Scenario: Safe SVG without event handlers is accepted
-- **WHEN** a user uploads an SVG file with no executable content patterns
-- **THEN** the system accepts and persists the file successfully
+#### Scenario: SVG with event handlers is rejected (not scanned by regex)
+- **WHEN** a user uploads an SVG file containing event handler attributes
+- **THEN** the system rejects the upload via the parse-based checker (see `svg-upload-sanitization`)
 
 ### Requirement: Reject uploaded files with `<script>` tags
 
 The system SHALL reject file uploads whose content contains `<script>` elements.
 
-#### Scenario: SVG with `<script>` is rejected
-- **WHEN** a user uploads an SVG file containing a `<script>` tag
+**Change**: SVG `<script>` elements are handled by the XML parse-based checker; non-SVG files continue to use the regex denylist.
+
+#### Scenario: Non-SVG with `<script>` is rejected
+- **WHEN** a user uploads a non-SVG file containing a `<script>` tag
 - **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
 
 ### Requirement: Reject uploaded files with `javascript:` URIs
 
 The system SHALL reject file uploads whose content contains `javascript:` URIs in attributes.
 
-#### Scenario: File with `javascript:` in href is rejected
-- **WHEN** a user uploads a file containing `javascript:` in an href or src attribute
+**Change**: SVG `javascript:` URIs are handled by the XML parse-based checker; non-SVG files continue to use the regex denylist.
+
+#### Scenario: Non-SVG with javascript: in href is rejected
+- **WHEN** a user uploads a non-SVG file containing `javascript:` in an href or src attribute
 - **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
 
 ### Requirement: Safe file scanning does not consume the IO stream
 
 After scanning for malicious content, the file pointer SHALL be rewound so subsequent consumers can read the full content.
+
+*(Unchanged — applies to all file types)*
 
 #### Scenario: Tempfile is readable after scan
 - **WHEN** the system scans a Tempfile for unsafe content and the scan passes

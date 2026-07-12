@@ -40,11 +40,12 @@ Parse uploaded SVG files with Nokogiri and reject the upload if dangerous conten
 | Regex denylist expansion | Rejected — fundamentally incomplete; new bypasses emerge as web APIs evolve |
 
 Detection logic:
-1. Parse the SVG with `Nokogiri::XML(content)` — this resolves DTD entities automatically
-2. Check for `<script>` elements → reject
+1. Parse the SVG with `Nokogiri::XML(content, &:nonet)` — `nonet` blocks XXE network access; entities are not expanded (preventing billion-laughs)
+2. Check for banned tags (`script`, `foreignObject`, `iframe`, `object`, `embed`, `animate`, `set`, `handler`) via XPath `local-name()` — catches HTML embedding and dynamic attribute mutation
 3. Check for attributes starting with `on` (event handlers) → reject
-4. Check for `href` and `xlink:href` attributes with `javascript:` URIs → reject
-5. If no dangerous content found, pass through to normal upload processing
+4. Check for `href` attributes with `javascript:`, `data:`, or `vbscript:` URIs → reject
+5. Serialize back to XML and run string pattern checks for `<script>` and `javascript:`/`data:`/`vbscript:` — catches DTD entity declarations and CDATA sections
+6. If no dangerous content found, pass through to normal upload processing
 
 **Decision 2: Rack middleware for SVG serving headers**
 
@@ -69,6 +70,16 @@ Middleware behavior:
 Since Nokogiri-based detection resolves all entities and rejects dangerous content before storage, the regex-based `file_content_unsafe?` scan is redundant for SVG files. The `file_content_unsafe?` method will skip SVG files entirely (detected by `.svg` extension or `image/svg+xml` content type). The method is retained for non-SVG files as a safety net.
 
 The `UNSAFE_EVENT_PATTERNS` and `SUSPICIOUS_PATTERNS` constants in `ContentSecurity` can be removed or deprecated.
+
+**Decision 4: Extract shared content-security methods into `UploaderContentSecurity` module**
+
+During code review, the `Metrics/ModuleLength` RuboCop rule flagged both `RuntimeUploaderConcern` and `UploaderHelper` because the new SVG methods pushed them past 339 lines. Since these two files already had near-identical implementations of `file_content_unsafe?` and the new SVG methods, the fix was to extract all three methods (`svg_upload?`, `svg_content_unsafe?`, `file_content_unsafe?`) into `lib/camaleon_cms/uploader_content_security.rb` — a shared module included by both classes.
+
+| Alternative | Verdict |
+|---|---|
+| Extract to shared module | **Chosen** — reduces duplication, fixes line count, single source of truth for content-scanning logic |
+| Inline `rubocop:disable` | Rejected — masks the underlying duplication problem |
+| Raise threshold to 400 | Rejected — would need re-raising in every future PR that touches these files |
 
 ## Risks / Trade-offs
 
