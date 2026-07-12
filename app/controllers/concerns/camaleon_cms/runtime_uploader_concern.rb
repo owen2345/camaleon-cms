@@ -6,7 +6,7 @@ module CamaleonCms
   module RuntimeUploaderConcern
     extend ActiveSupport::Concern
 
-    include ContentSecurity
+    include UploaderContentSecurity
 
     def upload_file(uploaded_io, settings = {})
       cached_name = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.original_filename : nil
@@ -340,24 +340,6 @@ module CamaleonCms
       { file: tempfile, error: nil }
     rescue StandardError => e
       { error: "Unable to download remote file: #{ERB::Util.html_escape(e.message)}" }
-    end
-
-    def file_content_unsafe?(uploaded_io)
-      file = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.tempfile : uploaded_io
-      file_content_unsafe = nil
-
-      file.set_encoding(Encoding::BINARY) if file.respond_to?(:binmode) && file.respond_to?(:set_encoding)
-
-      file_content = file.read
-      file.rewind if file.respond_to?(:rewind)
-      SUSPICIOUS_PATTERNS.each do |pattern|
-        if file_content&.match?(pattern)
-          Rails.logger.info { "Potentially malicious content found: #{pattern.inspect}" }
-          break file_content_unsafe = pattern.inspect
-        end
-      end
-
-      file_content_unsafe
     end
 
     def cama_crop_offsets_by_gravity(gravity, original_dimensions, cropped_dimensions)

@@ -82,6 +82,9 @@ module CamaleonCms
         end
       end
 
+      # Security headers for SVG media files
+      app.middleware.insert_before ::ActionDispatch::Static, CamaleonCms::MediaSecurityHeaders
+
       # Static files
       app.middleware.use ::ActionDispatch::Static, "#{root}/public"
 

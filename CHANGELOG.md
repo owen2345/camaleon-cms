@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security fix:** Fix SVG stored XSS via Nokogiri parse-based detection — replace regex denylist for SVG uploads with XML parser that resolves entities, blocks `script`/`on*`/`javascript:`/`data:`/embed tags, and disable XXE via `nonet`. Add Rack middleware serving SVGs under `/media/` with `X-Content-Type-Options: nosniff` and `Content-Security-Policy: script-src 'none'`, [#1199](https://github.com/owen2345/camaleon-cms/pull/1199) — thanks, Jose Rivas (Zero Trust Offsec), for reporting this.
+
 - **Security fix:** Fix arbitrary server-side file read via media upload — validate path prefix before `File.open` in `upload_file` and `cama_tmp_upload`, coerce nil `formats` to `'*'`, and handle crop errors gracefully, [#1198](https://github.com/owen2345/camaleon-cms/pull/1198) — thanks, Jose Rivas (Zero Trust Offsec), for reporting this.
 
 - **Security fix:** Fix profile IDOR in \`Admin::UsersController#profile\` — add inline \`authorize!\` check when viewing another user, so low-privilege users can no longer enumerate arbitrary user accounts. [#1197](https://github.com/owen2345/camaleon-cms/pull/1197) — thanks, Neo Andrew, for reporting this.

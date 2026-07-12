@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module CamaleonCms
+  # SVG content security is now handled by CamaleonCms::SvgContentChecker
+  # (Nokogiri XML parse-based detection). These patterns are retained for non-SVG file
+  # scanning as a defense-in-depth layer.
   module ContentSecurity
     UNSAFE_EVENT_PATTERNS = %w[
       onabort onafter onbefore onbegin onblur oncanplay onchange onclick oncontextmenu oncopy oncuechange oncut

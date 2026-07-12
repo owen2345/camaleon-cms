@@ -1,8 +1,4 @@
-## Purpose
-
-Define the security requirements for content scanning of uploaded files. Uploaded files MUST be scanned for executable content patterns before being persisted, to prevent stored XSS attacks via uploaded files.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Reject uploaded files with event handler attributes
 
