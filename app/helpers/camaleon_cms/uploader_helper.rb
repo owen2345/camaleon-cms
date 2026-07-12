@@ -41,6 +41,10 @@ module CamaleonCms
         settings[:remove_source] = true
         uploaded_io = tmp[:file_path]
       end
+      if uploaded_io.is_a?(String)
+        allowed_prefixes = [Rails.public_path.to_s, Dir.tmpdir]
+        return { error: 'Invalid file path' } unless allowed_prefixes.any? { |p| uploaded_io.start_with?(p) }
+      end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
       if settings[:dimension].present?
         uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension]))
@@ -67,6 +71,7 @@ module CamaleonCms
         versions: '',
         thumb_size: nil
       }.merge!(settings)
+      settings[:formats] = '*' if settings[:formats].nil?
       hooks_run('before_upload', settings)
 
       # guard against path traversal
@@ -293,6 +298,10 @@ module CamaleonCms
                       uploaded_io.path.split('/').last
                     end
         args[:name] = args[:name] || _tmp_name
+      end
+      if uploaded_io.is_a?(String)
+        allowed_prefixes = [Rails.public_path.to_s, Dir.tmpdir]
+        return { error: 'Invalid file path' } unless allowed_prefixes.any? { |p| uploaded_io.start_with?(p) }
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
       err = validate_file_format_or_error(_tmp_name || uploaded_io.path, args[:formats])
