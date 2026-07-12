@@ -49,11 +49,7 @@ module CamaleonCms
         uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension]))
       end
 
-      if svg_upload?(uploaded_io)
-        return { error: 'Potentially malicious content found!' } if svg_content_unsafe?(uploaded_io)
-      elsif file_content_unsafe?(uploaded_io)
-        return { error: 'Potentially malicious content found!' }
-      end
+      return { error: 'Potentially malicious content found!' } if file_content_unsafe?(uploaded_io)
 
       settings = settings.to_sym
       settings[:uploaded_io] = uploaded_io
