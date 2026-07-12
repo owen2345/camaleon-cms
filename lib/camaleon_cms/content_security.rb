@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module CamaleonCms
-  # Deprecated: SVG content security is now handled by CamaleonCms::SvgContentChecker
+  # SVG content security is now handled by CamaleonCms::SvgContentChecker
   # (Nokogiri XML parse-based detection). These patterns are retained for non-SVG file
   # scanning as a defense-in-depth layer.
   module ContentSecurity
