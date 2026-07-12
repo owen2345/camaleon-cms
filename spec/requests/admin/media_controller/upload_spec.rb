@@ -48,6 +48,58 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#upload', type: :request do
     end
   end
 
+  context 'when uploading SVG with dangerous content' do
+    let(:admin_role) { current_site.user_roles.create!(name: 'Media Admin', slug: 'media_admin') }
+    let(:admin_user) { create(:user, role: admin_role.slug, site: current_site) }
+
+    before do
+      admin_role.set_meta("_manager_#{current_site.id}", { 'media' => 1 })
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_return(true)
+      sign_in_as(admin_user, site: current_site)
+    end
+
+    it 'rejects SVG with onclick attribute' do
+      unsafe_svg = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <rect onclick="alert(1)" width="50" height="50"/>
+        </svg>
+      SVG
+      file = Tempfile.new(['test', '.svg'])
+      file.write(unsafe_svg)
+      file.rewind
+      rack_file = Rack::Test::UploadedFile.new(file.path, 'image/svg+xml')
+
+      post '/admin/media/upload', params: { file_upload: rack_file, folder: '' }
+
+      expect(response.body).to include('Potentially malicious content found!')
+    ensure
+      file&.close!
+      file&.unlink
+    end
+
+    it 'accepts safe SVG without dangerous content' do
+      safe_svg = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <circle cx="50" cy="50" r="40" fill="red"/>
+        </svg>
+      SVG
+      file = Tempfile.new(['test', '.svg'])
+      file.write(safe_svg)
+      file.rewind
+      rack_file = Rack::Test::UploadedFile.new(file.path, 'image/svg+xml')
+
+      post '/admin/media/upload', params: { file_upload: rack_file, folder: '' }
+
+      expect(response.body).not_to include('Potentially malicious content found!')
+      expect(response.body).not_to include('error')
+    ensure
+      file&.close!
+      file&.unlink
+    end
+  end
+
   context 'when user does NOT have media management permission' do
     let(:limited_role) { current_site.user_roles.create!(name: 'Limited User', slug: 'limited_user') }
     let(:limited_user) { create(:user, role: limited_role.slug, site: current_site) }

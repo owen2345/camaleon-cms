@@ -6,8 +6,6 @@ module CamaleonCms
   module RuntimeUploaderConcern
     extend ActiveSupport::Concern
 
-    include ContentSecurity
-
     def upload_file(uploaded_io, settings = {})
       cached_name = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.original_filename : nil
       return { error: 'File is empty', file: nil, size: nil } if uploaded_io.blank?
@@ -28,7 +26,11 @@ module CamaleonCms
         uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension]))
       end
 
-      return { error: 'Potentially malicious content found!' } if file_content_unsafe?(uploaded_io)
+      if svg_upload?(uploaded_io)
+        return { error: 'Potentially malicious content found!' } if svg_content_unsafe?(uploaded_io)
+      elsif file_content_unsafe?(uploaded_io)
+        return { error: 'Potentially malicious content found!' }
+      end
 
       settings[:uploaded_io] = uploaded_io
       settings = settings.to_h.symbolize_keys
@@ -342,15 +344,33 @@ module CamaleonCms
       { error: "Unable to download remote file: #{ERB::Util.html_escape(e.message)}" }
     end
 
+    def svg_upload?(uploaded_io)
+      file_path = if uploaded_io.is_a?(ActionDispatch::Http::UploadedFile)
+                    uploaded_io.original_filename
+                  else
+                    uploaded_io.path
+                  end
+      file_path&.end_with?('.svg')
+    end
+
+    def svg_content_unsafe?(uploaded_io)
+      file = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.tempfile : uploaded_io
+      content = file.read
+      file.rewind if file.respond_to?(:rewind)
+      CamaleonCms::SvgContentChecker.unsafe?(content)
+    end
+
     def file_content_unsafe?(uploaded_io)
       file = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.tempfile : uploaded_io
+      return nil if svg_upload?(uploaded_io)
+
       file_content_unsafe = nil
 
       file.set_encoding(Encoding::BINARY) if file.respond_to?(:binmode) && file.respond_to?(:set_encoding)
 
       file_content = file.read
       file.rewind if file.respond_to?(:rewind)
-      SUSPICIOUS_PATTERNS.each do |pattern|
+      CamaleonCms::ContentSecurity::SUSPICIOUS_PATTERNS.each do |pattern|
         if file_content&.match?(pattern)
           Rails.logger.info { "Potentially malicious content found: #{pattern.inspect}" }
           break file_content_unsafe = pattern.inspect
