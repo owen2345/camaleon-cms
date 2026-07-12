@@ -128,6 +128,20 @@ describe CamaleonCms::UploaderHelper do
     expect(upload_file(File.open(@path), { formats: 'audio' }).key?(:error)).to be(true)
   end
 
+  describe 'file upload source path validation' do
+    it 'rejects upload_file with a raw string path to a system file' do
+      expect(upload_file('/etc/hostname')[:error]).to eql('Invalid file path')
+    end
+
+    it 'rejects cama_tmp_upload with a raw string path to a system file' do
+      expect(cama_tmp_upload('/etc/hostname')[:error]).to eql('Invalid file path')
+    end
+
+    it 'does not bypass format validation when formats param is nil' do
+      expect(upload_file(File.open(@path), { formats: nil }).key?(:error)).not_to eql(true)
+    end
+  end
+
   it 'upload a local file with versions' do
     expect(upload_file(File.open(@path), { versions: '300x300,505x350,20x' }).key?(:error)).not_to eql(true)
   end

@@ -40,6 +40,23 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
     end
   end
 
+  context 'when cp_img_path is a server file path (path traversal attempt)' do
+    let(:admin_role) { current_site.user_roles.create!(name: 'Media Admin', slug: 'media_admin') }
+    let(:admin_user) { create(:user, role: admin_role.slug, site: current_site) }
+
+    before do
+      admin_role.set_meta("_manager_#{current_site.id}", { 'media' => 1 })
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_return(true)
+      sign_in_as(admin_user, site: current_site)
+    end
+
+    it 'rejects crop with cp_img_path set to a server absolute path' do
+      get '/admin/media/crop', params: { cp_img_path: '/etc/passwd' }
+
+      expect(response.body).to include('Invalid file path')
+    end
+  end
+
   context 'when user does NOT have media management permission' do
     let(:limited_role) { current_site.user_roles.create!(name: 'Limited User', slug: 'limited_user') }
     let(:limited_user) { create(:user, role: limited_role.slug, site: current_site) }

@@ -17,7 +17,10 @@ module CamaleonCms
 
       # crop a image to save as a new file
       def crop
-        path_image = cama_tmp_upload(params[:cp_img_path])[:file_path]
+        tmp = cama_tmp_upload(params[:cp_img_path])
+        return render(plain: helpers.sanitize(tmp[:error])) if tmp[:error].present?
+
+        path_image = tmp[:file_path]
         crop_path = cama_crop_image(path_image, params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
         res = upload_file(crop_path, { remove_source: true })
         CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', res['url']) if params[:saved_avatar].present?
