@@ -29,7 +29,7 @@ RSpec.describe 'the Media', :js do
 
       within '#cama_media_external' do
         fill_in 'remote_file', with: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Jpegvergroessert.jpg'
-        click_button(type: 'submit')
+        page.execute_script('$("#cama_media_external").submit()')
         wait_for_ajax
       end
     end

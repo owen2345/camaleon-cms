@@ -253,7 +253,7 @@ module CamaleonCms
         safe_join(menus.map do |menu|
           css_class = +'nav-item '
           css_class << 'has-treeview ' if menu.key?(:items)
-          css_class << 'menu-open ' if is_active_menu(menu[:key])
+          css_class << 'menu-open ' if is_active_menu(menu[:key], menu_parents)
           css_class.strip!
           data_attrs = parse_datas(menu[:datas])
           content_tag(
@@ -335,7 +335,7 @@ module CamaleonCms
           safe_join(items.each_with_index.map do |item, index|
             css_class = +"nav-item item_#{index + 1} "
             css_class << 'has-treeview ' if item.key?(:items)
-            css_class << 'menu-open ' if is_active_menu(item[:key])
+            css_class << 'menu-open ' if is_active_menu(item[:key], menu_parents)
             css_class.strip!
             data_attrs = parse_datas(item[:datas])
             content_tag(

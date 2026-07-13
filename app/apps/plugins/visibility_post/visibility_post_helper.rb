@@ -110,7 +110,11 @@ module Plugins
                 name: 'post[published_at]', data: { format: 'yyyy-MM-dd hh:mm:ss' },
                 class: 'form-control ', value: @post[:published_at]
               ) +
-                tag.div(class: 'input-group-append') { tag.span(class: 'input-group-text') { tag.span(class: 'fas fa-calendar') } }
+                tag.div(class: 'input-group-append') do
+                  tag.span(class: 'input-group-text') do
+                    tag.span(class: 'fas fa-calendar')
+                  end
+                end
             end
         end
 
