@@ -23,7 +23,4 @@
  *= require ./_bootstrap-select
 
  *= require ./colorpicker
-
- // post
- *= require ./_jquery.tagsinput
- */
+*/

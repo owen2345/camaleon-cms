@@ -128,7 +128,7 @@ window.cama_init_media = function(mediaPanel) {
       return btn.trigger('click')
   })
 
-  mediaFilesPanel.scroll(function() {
+  mediaFilesPanel.on('scroll', function() {
     if (mediaFilesPanel.attr('data-next-page') &&
       (($(this).scrollTop() + $(this).outerHeight()) === $(this)[0].scrollHeight)) {
       return mediaPanel.trigger(
@@ -191,7 +191,7 @@ window.cama_init_media = function(mediaPanel) {
     mediaPanel.trigger('navigate_to', { folder: f })
     return $('body').attr('data-last-folder', f) // remembers last opened folder on current page
   })
-  mediaPanel.bind('update_breadcrumb', function() {
+  mediaPanel.on('update_breadcrumb', function() {
     let folderItems
     const folder = mediaPanel.attr('data-folder').replace('//', '/')
     const folderPrefix = []
@@ -221,7 +221,7 @@ window.cama_init_media = function(mediaPanel) {
   // # end folders
 
   // ######## folder navigation
-  mediaPanel.bind('navigate_to', function(e, data) {
+  mediaPanel.on('navigate_to', function(e, data) {
     if (data.folder)
       mediaPanel.attr('data-folder', data.folder)
 
@@ -255,7 +255,7 @@ window.cama_init_media = function(mediaPanel) {
       mediaFilesPanel.attr('data-next-page', res.next_page)
       return hideLoading()
     })
-  }).bind('add_file', function(e, data) {
+  }).on('add_file', function(e, data) {
     // add html item in the list
     const item = $(data.item).hide()
     const lastFolder = mediaFilesPanel.children('.folder_item:last')
@@ -350,7 +350,7 @@ window.cama_init_media = function(mediaPanel) {
           return mediaInfo.html('')
         }
       }
-    ).error(() => $.fn.alert({ type: 'error', content: I18n('msg.internal_error'), title: I18n('button.error') }))
+    ).fail(() => $.fn.alert({ type: 'error', content: I18n('msg.internal_error'), title: I18n('button.error') }))
     return false
   })
 
@@ -454,7 +454,7 @@ window.cama_init_media = function(mediaPanel) {
 
       // show cropper image
       showLoading()
-      return modal.find('img.editable').load(() => setTimeout(function() {
+      return modal.find('img.editable').on('load', () => setTimeout(function() {
         const label = modal.find('.label_dimension')
         cropperData = {
           data: {},
@@ -470,7 +470,7 @@ window.cama_init_media = function(mediaPanel) {
           },
           built() {
             return $.get(data.url)
-              .error(
+              .fail(
                 () => modal.find('.modal-body')
                   .html(
                     '<div class="alert alert-danger">' +
@@ -590,7 +590,7 @@ $(() =>
           return data.callback(resUpload)
       } else
         return $.fn.alert({ type: 'error', content: resUpload, title: I18n('button.error') })
-    }).error(() => $.fn.alert({ type: 'error', content: I18n('msg.internal_error'), title: I18n('button.error') }))
+    }).fail(() => $.fn.alert({ type: 'error', content: I18n('msg.internal_error'), title: I18n('button.error') }))
   }
 )
 
