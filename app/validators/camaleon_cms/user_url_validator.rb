@@ -24,20 +24,39 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# require 'resolv'
-require 'ipaddress'
+require 'ipaddr'
+require 'resolv'
 require 'addressable/uri'
 
 module CamaleonCms
   class UserUrlValidator
+    HTTPS_SCHEME = 'https'
     LOCAL_IPS = %w[0.0.0.0 ::].freeze
+    LINK_LOCAL_NETMASK  = IPAddr.new('169.254.0.0/16').freeze
+    SHARED_ADDR_NETMASK = IPAddr.new('100.64.0.0/10').freeze
+    IPV6_SITELOCAL      = IPAddr.new('fec0::/10').freeze
+    IPV6_UNIQUE_LOCAL   = IPAddr.new('fc00::/7').freeze
+    RETURN_URL_OPTIONS = {
+      allow_localhost: false,
+      allow_local_network: false,
+      enforce_user: false,
+      enforce_sanitizing: true,
+      resolve: false
+    }.freeze
 
     def self.validate(...)
       new.validate(...)
     end
 
+    def self.validate_external_https(...)
+      new.validate_external_https(...)
+    end
+
+    attr_reader :resolved_ip
+
     def initialize
       @errors = []
+      @resolved_ip = nil
     end
 
     # Validates the given url according to the constraints specified by the received arguments.
@@ -46,30 +65,59 @@ module CamaleonCms
     # allow_local_network - Registers error if URL resolves to a link-local address and argument is false.
     # enforce_user - Registers error if URL user doesn't start with alphanumeric characters and argument is true.
     # enforce_sanitizing - Registers error if URL includes any HTML/CSS/JS tags and argument is true.
+    # resolve - When true (default), performs DNS resolution to check the IP.
+    #           When false, only validates URL structure and checks IP literals statically
+    #           (no DNS resolution, allowing unresolvable hostnames like custom scheme URLs).
+    # reject_path_traversal - When true, checks if URI path contains path traversal sequences.
     #
-    # Returns an array with [<uri>, <original-hostname>].
-    def validate(url, allow_localhost: false, allow_local_network: false, enforce_user: true, enforce_sanitizing: true)
+    # Returns an array with error messages, or true if valid.
+    def validate(url, allow_localhost: false, allow_local_network: false, enforce_user: true, enforce_sanitizing: true,
+                 resolve: true, reject_path_traversal: false)
+      return true if skip_validation?
       return invalid_url if url.blank?
 
-      # Param url can be a string, URI or Addressable::URI
       return invalid_url unless (uri = parse_url(url))
 
       validate_uri(uri: uri, enforce_sanitizing: enforce_sanitizing, enforce_user: enforce_user)
+
+      validate_path_traversal(uri) if reject_path_traversal
       return @errors if @errors.any?
 
-      address_info = get_address_info(uri)
-      return @errors if @errors.any?
+      if resolve
+        return @errors if @errors.any?
 
-      validate_local_request(
-        address_info: address_info,
-        allow_localhost: allow_localhost,
-        allow_local_network: allow_local_network
-      )
+        address_info = get_address_info(uri)
+        return @errors if @errors.any?
+
+        @resolved_ip = address_info.first&.ip_address
+
+        validate_local_request(
+          address_info: address_info,
+          allow_localhost: allow_localhost,
+          allow_local_network: allow_local_network
+        )
+      else
+        validate_static_ip(uri.hostname, allow_localhost: allow_localhost, allow_local_network: allow_local_network)
+      end
 
       @errors.empty? || @errors
     end
 
+    def validate_external_https(url)
+      return true if skip_validation?
+
+      uri = parse_url(url)
+      return [I18n.t('camaleon_cms.admin.validate.url')] if uri.nil? || uri.scheme.blank? || uri.hostname.blank?
+      return [I18n.t('camaleon_cms.admin.validate.https_only_url')] unless uri.scheme&.downcase == HTTPS_SCHEME
+
+      validate(uri, allow_localhost: false, allow_local_network: false)
+    end
+
     private
+
+    def skip_validation?
+      ENV['CAMALEON_SKIP_URL_VALIDATION'].present?
+    end
 
     def validate_uri(uri:, enforce_sanitizing:, enforce_user:)
       validate_html_tags(uri) if enforce_sanitizing
@@ -78,19 +126,23 @@ module CamaleonCms
       validate_hostname(uri.hostname)
     end
 
-    # @param uri [Addressable::URI]
-    # @return [Array<Addrinfo>] addrinfo object for the URI
     def get_address_info(uri)
-      Addrinfo.getaddrinfo(uri.hostname, get_port(uri), nil, :STREAM).map do |addr|
+      return @errors << I18n.t('camaleon_cms.admin.validate.host_invalid') if uri.hostname.blank?
+
+      Addrinfo.getaddrinfo(hostname_for_resolution(uri.hostname), get_port(uri), nil, :STREAM).map do |addr|
         addr.ipv6_v4mapped? ? addr.ipv6_to_ipv4 : addr
       end
+    rescue SocketError
+      if valid_ip?(uri.hostname)
+        addr = Addrinfo.new(Socket.pack_sockaddr_in(get_port(uri), uri.hostname))
+        [addr.ipv6_v4mapped? ? addr.ipv6_to_ipv4 : addr]
+      else
+        @errors << I18n.t('camaleon_cms.admin.validate.host_invalid')
+      end
     rescue ArgumentError => e
-      # Addrinfo.getaddrinfo errors if the domain exceeds 1024 characters.
       @errors << I18n.t('camaleon_cms.admin.validate.hostname_long') if e.message.include?('hostname too long')
 
       @errors << "#{e.message}: #{I18n.t('camaleon_cms.admin.validate.url')}" if @errors.blank?
-    rescue SocketError
-      @errors << I18n.t('camaleon_cms.admin.validate.host_invalid')
     end
 
     def validate_local_request(address_info:, allow_localhost:, allow_local_network:)
@@ -113,14 +165,20 @@ module CamaleonCms
       uri.port || uri.default_port
     end
 
+    def hostname_for_resolution(hostname)
+      return hostname if hostname.blank?
+      return hostname if valid_ip?(hostname)
+      return hostname unless hostname.match?(/\.[a-zA-Z]/)
+
+      "#{hostname}."
+    end
+
     def validate_html_tags(uri)
       uri_str = uri.to_s
       sanitized_uri = ActionController::Base.helpers.sanitize(uri_str, tags: [])
       @errors << I18n.t('camaleon_cms.admin.validate.html_tags') unless sanitized_uri == uri_str
     end
 
-    # @param [String, Addressable::URI, #to_str] url The URL string to parse
-    # @return [Addressable::URI, nil] URI object based on the parsed string, or `nil` if the `url` is invalid
     def parse_url(url)
       invalid = nil
       uri = Addressable::URI.parse(url).tap do |parsed_url|
@@ -137,7 +195,6 @@ module CamaleonCms
       url = parsed_url.to_s
 
       return true if /[\n\r]/.match?(url)
-      # Google Cloud Storage uses a multi-line, encoded Signature query string
       return false if %w[http https].include?(parsed_url.scheme&.downcase)
 
       CGI.unescape(url) =~ /[\n\r]/
@@ -152,10 +209,32 @@ module CamaleonCms
 
     def validate_hostname(value)
       return if value.blank?
-      return if IPAddress.valid?(value)
+      return @errors << I18n.t('camaleon_cms.admin.validate.host_invalid') if invalid_decimal_ipv4_hostname?(value)
+      return if valid_ip?(value)
       return if /\A\p{Alnum}/.match?(value)
 
       @errors << I18n.t('camaleon_cms.admin.validate.host_or_ip_invalid')
+    end
+
+    def invalid_decimal_ipv4_hostname?(value)
+      return false unless /\A(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))+\z/.match?(value)
+
+      octets = value.split('.')
+      return true if octets.length > 4
+
+      octets.length == 4 && octets.any? { |octet| octet.to_i > 255 }
+    end
+
+    def valid_ip?(value)
+      str = value.to_s
+      return false if str.blank?
+      return false if str.include?('/')
+      return false unless Resolv::IPv4::Regex.match?(str) || Resolv::IPv6::Regex.match?(str)
+
+      IPAddr.new(str)
+      true
+    rescue IPAddr::InvalidAddressError, IPAddr::AddressFamilyError
+      false
     end
 
     def validate_localhost(addrs_info)
@@ -165,39 +244,128 @@ module CamaleonCms
     end
 
     def validate_loopback(addrs_info)
-      return unless addrs_info.any? { |addr| addr.ipv4_loopback? || addr.ipv6_loopback? }
+      return unless addrs_info.any? { |addr| loopback_ip?(ip_from_addrinfo(addr)) }
 
       @errors << I18n.t('camaleon_cms.admin.validate.no_loopback_requests')
     end
 
     def validate_local_network(addrs_info)
-      return unless addrs_info.any? { |addr| addr.ipv4_private? || addr.ipv6_sitelocal? || addr.ipv6_unique_local? }
+      return unless addrs_info.any? { |addr| local_network_ip?(ip_from_addrinfo(addr)) }
 
       @errors << I18n.t('camaleon_cms.admin.validate.no_local_net_requests')
     end
 
     def validate_link_local(addrs_info)
-      netmask = IPAddr.new('169.254.0.0/16')
-      return unless addrs_info.any? { |addr| addr.ipv6_linklocal? || netmask.include?(addr.ip_address) }
+      return unless addrs_info.any? { |addr| link_local_ip?(ip_from_addrinfo(addr)) }
 
       @errors << I18n.t('camaleon_cms.admin.validate.no_link_local_net_requests')
     end
 
     def validate_shared_address(addrs_info)
-      netmask = IPAddr.new('100.64.0.0/10')
-      return unless addrs_info.any? { |addr| netmask.include?(addr.ip_address) }
+      return unless addrs_info.any? { |addr| shared_address_ip?(ip_from_addrinfo(addr)) }
 
       @errors << I18n.t('camaleon_cms.admin.validate.no_shared_address_requests')
     end
 
-    # Registers an error if any IP in `addrs_info` is the limited broadcast address.
-    # https://datatracker.ietf.org/doc/html/rfc919#section-7
     def validate_limited_broadcast_address(addrs_info)
-      blocked_ips = ['255.255.255.255']
-
-      return if (blocked_ips & addrs_info.map(&:ip_address)).empty?
+      return unless addrs_info.any? { |addr| limited_broadcast_ip?(ip_from_addrinfo(addr)) }
 
       @errors << I18n.t('camaleon_cms.admin.validate.no_limited_broadcast_address_requests')
+    end
+
+    def validate_static_ip(hostname, allow_localhost:, allow_local_network:)
+      return if hostname.blank?
+
+      if !allow_localhost && (hostname.casecmp?('localhost') || hostname.casecmp?('localhost.localdomain'))
+        @errors << I18n.t('camaleon_cms.admin.validate.no_localhost_requests')
+        return
+      end
+
+      return unless valid_ip?(hostname)
+
+      ip = IPAddr.new(hostname)
+      ip = ip.native if ip.ipv4_mapped?
+
+      validate_static_localhost(hostname, ip) unless allow_localhost
+      return if allow_local_network
+
+      validate_static_local_network(ip)
+      validate_static_link_local(ip)
+      validate_static_shared_address(ip)
+      validate_static_limited_broadcast(hostname)
+    end
+
+    def validate_static_localhost(hostname, ip)
+      if hostname.in?(LOCAL_IPS) || ip.to_s == '::'
+        @errors << I18n.t('camaleon_cms.admin.validate.no_localhost_requests')
+      elsif ip.loopback?
+        @errors << I18n.t('camaleon_cms.admin.validate.no_loopback_requests')
+      end
+    end
+
+    def validate_static_local_network(ip)
+      return unless local_network_ip?(ip)
+
+      @errors << I18n.t('camaleon_cms.admin.validate.no_local_net_requests')
+    end
+
+    def validate_static_link_local(ip)
+      return unless link_local_ip?(ip)
+
+      @errors << I18n.t('camaleon_cms.admin.validate.no_link_local_net_requests')
+    end
+
+    def validate_static_shared_address(ip)
+      return unless shared_address_ip?(ip)
+
+      @errors << I18n.t('camaleon_cms.admin.validate.no_shared_address_requests')
+    end
+
+    def validate_static_limited_broadcast(hostname)
+      return unless limited_broadcast_ip?(IPAddr.new(hostname))
+
+      @errors << I18n.t('camaleon_cms.admin.validate.no_limited_broadcast_address_requests')
+    end
+
+    def validate_path_traversal(uri)
+      raw_path = uri.path
+      normalized_path = uri.normalized_path
+      return if raw_path == normalized_path
+
+      @errors << I18n.t('camaleon_cms.admin.validate.path_traversal')
+    end
+
+    def ip_from_addrinfo(addr)
+      ip = IPAddr.new(addr.ip_address)
+      ip.ipv4_mapped? ? ip.native : ip
+    end
+
+    def loopback_ip?(ip)
+      ip.loopback?
+    end
+
+    def local_network_ip?(ip)
+      ip.private? || ipv6_sitelocal?(ip) || ipv6_unique_local?(ip)
+    end
+
+    def link_local_ip?(ip)
+      ip.link_local? || LINK_LOCAL_NETMASK.include?(ip)
+    end
+
+    def shared_address_ip?(ip)
+      SHARED_ADDR_NETMASK.include?(ip)
+    end
+
+    def limited_broadcast_ip?(ip)
+      ip.to_s == '255.255.255.255'
+    end
+
+    def ipv6_sitelocal?(ip)
+      IPV6_SITELOCAL.include?(ip)
+    end
+
+    def ipv6_unique_local?(ip)
+      IPV6_UNIQUE_LOCAL.include?(ip)
     end
 
     def invalid_url

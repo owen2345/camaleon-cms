@@ -55,6 +55,13 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
 
       expect(response.body).to include('Invalid file path')
     end
+
+    it 'rejects crop with path traversal after allowed prefix' do
+      allowed = Rails.public_path.to_s
+      get '/admin/media/crop', params: { cp_img_path: "#{allowed}/../../../etc/passwd" }
+
+      expect(response.body).to include('Invalid file path')
+    end
   end
 
   context 'when user does NOT have media management permission' do

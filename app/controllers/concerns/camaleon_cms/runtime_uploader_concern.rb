@@ -3,7 +3,7 @@ require 'tempfile'
 
 # rubocop:disable Naming/MethodParameterName
 module CamaleonCms
-  module RuntimeUploaderConcern
+  module RuntimeUploaderConcern # rubocop:disable Metrics/ModuleLength
     extend ActiveSupport::Concern
 
     include UploaderContentSecurity
@@ -20,8 +20,17 @@ module CamaleonCms
         uploaded_io = tmp[:file_path]
       end
       if uploaded_io.is_a?(String)
-        allowed_prefixes = [Rails.public_path.to_s, Dir.tmpdir]
-        return { error: 'Invalid file path' } unless allowed_prefixes.any? { |p| uploaded_io.start_with?(p) }
+        expanded = begin
+          File.expand_path(uploaded_io)
+        rescue ArgumentError, TypeError
+          return { error: 'Invalid file path' }
+        end
+        roots = [Rails.public_path.to_s, Dir.tmpdir]
+        unless roots.any? { |r| expanded == r || expanded.start_with?(r + File::SEPARATOR) }
+          return { error: 'Invalid file path' }
+        end
+
+        uploaded_io = expanded
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
       if settings[:dimension].present?
@@ -188,7 +197,7 @@ module CamaleonCms
       file
     end
 
-    def cama_tmp_upload(uploaded_io, args = {})
+    def cama_tmp_upload(uploaded_io, args = {}) # rubocop:disable Metrics/PerceivedComplexity
       tmp_path = args[:path] || File.join(Rails.public_path, 'tmp', current_site.id.to_s).to_s
       FileUtils.mkdir_p(tmp_path)
       saved = false
@@ -208,8 +217,8 @@ module CamaleonCms
         err = validate_file_format_or_error(uploaded_io, args[:formats])
         return err if err
 
-        if uploaded_io.include?(current_site.the_url(locale: nil))
-          uploaded_io = File.join(Rails.public_path, uploaded_io.sub(current_site.the_url(locale: nil), '')).to_s
+        if same_site_url?(uploaded_io, current_site)
+          uploaded_io = File.join(Rails.public_path, site_url_path(uploaded_io, current_site)).to_s
         else
           remote_file = cama_download_remote_file(uploaded_io)
           return remote_file if remote_file[:error].present?
@@ -225,8 +234,17 @@ module CamaleonCms
         args[:name] = args[:name] || _tmp_name
       end
       if uploaded_io.is_a?(String)
-        allowed_prefixes = [Rails.public_path.to_s, Dir.tmpdir]
-        return { error: 'Invalid file path' } unless allowed_prefixes.any? { |p| uploaded_io.start_with?(p) }
+        expanded = begin
+          File.expand_path(uploaded_io)
+        rescue ArgumentError, TypeError
+          return { error: 'Invalid file path' }
+        end
+        roots = [Rails.public_path.to_s, Dir.tmpdir]
+        unless roots.any? { |r| expanded == r || expanded.start_with?(r + File::SEPARATOR) }
+          return { error: 'Invalid file path' }
+        end
+
+        uploaded_io = expanded
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
       err = validate_file_format_or_error(_tmp_name || uploaded_io.path, args[:formats])
@@ -371,6 +389,24 @@ module CamaleonCms
       return if cama_uploader.class.validate_file_format(file, formats)
 
       { error: "#{I18n.t('camaleon_cms.common.file_format_error')} (#{formats})" }
+    end
+
+    def same_site_url?(url, site)
+      uri = URI.parse(url)
+      site_uri = URI.parse(site.the_url(locale: nil))
+      uri.host == site_uri.host && uri.port == site_uri.port
+    rescue URI::InvalidURIError
+      false
+    end
+
+    def site_url_path(url, site)
+      uri = URI.parse(url)
+      path = uri.path
+      langs = site.get_languages
+      path = path.sub(%r{\A/(?:#{Regexp.union(langs.map(&:to_s))})(?=/|$)}, '') if langs.size > 1
+      path
+    rescue URI::InvalidURIError
+      url
     end
   end
 end

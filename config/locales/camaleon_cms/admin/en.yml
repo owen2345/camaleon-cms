@@ -710,6 +710,8 @@ en:
         max: 'Please enter a value less than or equal to {0}.'
         min: 'Please enter a value greater than or equal to {0}.'
         username_alphanumeric: 'Username needs to start with an alphanumeric character'
+        https_only_url: 'Only HTTPS URLs are allowed'
+        path_traversal: 'URL path contains path traversal sequences'
       widgets:
         create_widget: 'Create Widget'
         create_sidebar: 'Create Sidebar'

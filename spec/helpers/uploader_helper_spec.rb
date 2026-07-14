@@ -120,12 +120,37 @@ describe CamaleonCms::UploaderHelper do
       expect(upload_file('/etc/hostname')[:error]).to eql('Invalid file path')
     end
 
+    it 'rejects upload_file with a path traversal after an allowed prefix' do
+      allowed = Rails.public_path.to_s
+      traverse = "#{allowed}/../../../etc/passwd"
+      expect(upload_file(traverse)[:error]).to eql('Invalid file path')
+    end
+
     it 'rejects cama_tmp_upload with a raw string path to a system file' do
       expect(cama_tmp_upload('/etc/hostname')[:error]).to eql('Invalid file path')
     end
 
     it 'does not bypass format validation when formats param is nil' do
       expect(upload_file(File.open(@path), { formats: nil }).key?(:error)).not_to eql(true)
+    end
+  end
+
+  describe 'host comparison in URL-to-path conversion' do
+    let(:site) { current_site.decorate }
+    let(:helper_obj) { Class.new { include CamaleonCms::UploaderHelper }.new }
+
+    it 'matches same-host URL' do
+      site_url = site.the_url(locale: nil)
+      expect(helper_obj.send(:same_site_url?, "#{site_url}/images/photo.jpg", site)).to be(true)
+    end
+
+    it 'rejects different-host URL' do
+      expect(helper_obj.send(:same_site_url?, 'http://evil.com/images/photo.jpg', site)).to be(false)
+    end
+
+    it 'rejects URL with site hostname only in query string' do
+      expect(helper_obj.send(:same_site_url?, "http://evil.com?url=#{site.the_url(locale: nil)}/path",
+                             site)).to be(false)
     end
   end
 
