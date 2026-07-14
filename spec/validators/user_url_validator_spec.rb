@@ -222,7 +222,7 @@ RSpec.describe CamaleonCms::UserUrlValidator do
           limited_broadcast_address_variants.each do |variant|
             if variant == '0xBaaaaaaaaaaaaaaaaffffffff' && RUBY_PLATFORM.exclude?('darwin')
               allow(Addrinfo).to receive(:getaddrinfo).with(variant, 443, nil,
-                                                             :STREAM).and_raise(SocketError)
+                                                            :STREAM).and_raise(SocketError)
             end
 
             result = described_class.validate("https://#{variant}", **url_blocker_args)
@@ -295,7 +295,7 @@ RSpec.describe CamaleonCms::UserUrlValidator do
           limited_broadcast_address_variants.each do |variant|
             if variant == '0xBaaaaaaaaaaaaaaaaffffffff' && RUBY_PLATFORM.exclude?('darwin')
               allow(Addrinfo).to receive(:getaddrinfo).with(variant, 443, nil,
-                                                             :STREAM).and_raise(SocketError)
+                                                            :STREAM).and_raise(SocketError)
             end
 
             result = described_class.validate("https://#{variant}", allow_local_network: false)
