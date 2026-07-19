@@ -42,6 +42,32 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#actions', type: :request d
         expect(response).to have_http_status(:ok)
       end
     end
+
+    context 'when crop_url action with a data: URI whose name contains path traversal' do
+      # tmp_path is public/tmp/<site.id>, so "../cama_pwn_test.png" would escape one
+      # level up to public/tmp/ before the fix stripped the name to its basename.
+      let(:escape_target) { Rails.public_path.join('tmp', 'cama_pwn_test.png').to_s }
+
+      before do
+        # Isolate the base64 write (in cama_tmp_upload) from the downstream crop/upload
+        # machinery, which is not under test here.
+        allow_any_instance_of(described_class).to receive(:upload) { |controller, *| controller.render(plain: 'ok') }
+      end
+
+      after { FileUtils.rm_f(escape_target) }
+
+      it 'does not write the base64 payload outside the site tmp dir' do
+        payload = Base64.strict_encode64('fake-bytes')
+        post '/admin/media/actions', params: {
+          media_action: 'crop_url',
+          url: "data:image/png;base64,#{payload}",
+          name: '../cama_pwn_test.png',
+          formats: 'png'
+        }
+
+        expect(File.exist?(escape_target)).to be(false)
+      end
+    end
   end
 
   context 'when user does NOT have media management permission' do

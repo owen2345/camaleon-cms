@@ -271,13 +271,18 @@ module CamaleonCms
       saved = false
       downloaded_tmp_file = nil
       if uploaded_io.is_a?(String) && uploaded_io.start_with?('data:') # create tmp file using base64 format
-        _tmp_name = args[:name]
         return { error: cama_t('camaleon_cms.admin.media.name_required').to_s } if params[:name].blank?
+
+        # Strip any directory components so a hostile name (e.g. "../../etc/x")
+        # cannot escape tmp_path when the base64 payload is written below.
+        _tmp_name = File.basename(args[:name].to_s)
 
         err = validate_file_format_or_error(_tmp_name, args[:formats])
         return err if err
 
         path = uploader_verify_name(File.join(tmp_path, _tmp_name))
+        return { error: 'Invalid file path' } unless path_within?(path, tmp_path)
+
         File.open(path, 'wb') { |f| f.write(Base64.decode64(uploaded_io.split(';base64,').last)) }
         uploaded_io = File.open(path)
         saved = true

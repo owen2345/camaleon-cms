@@ -21,6 +21,14 @@ module CamaleonCms
       nil
     end
 
+    # True when the canonicalized path stays strictly inside the given root
+    # directory. Used as a defense-in-depth check around write sinks.
+    def path_within?(path, root)
+      File.expand_path(path).start_with?("#{File.expand_path(root)}#{File::SEPARATOR}")
+    rescue ArgumentError, TypeError
+      false
+    end
+
     def same_site_url?(url, site)
       uri = URI.parse(url)
       site_uri = URI.parse(site.the_url(locale: nil))
