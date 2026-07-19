@@ -16,6 +16,14 @@ module CamaleonCms
       end
 
       # crop a image to save as a new file
+      #
+      # Unlike crop_url (which is URL-only and prefixes the site URL onto relative
+      # inputs), crop accepts three cp_img_path shapes: an http(s) URL, a data:
+      # URI, or a server filesystem path (see the cama_tmp_upload examples). Only
+      # http(s) URLs are validated here; data: URIs and filesystem paths pass
+      # through to cama_tmp_upload, whose cama_canonical_upload_path guard confines
+      # them to the public/tmp roots. A bare relative path is therefore treated as
+      # a filesystem path, not prefixed with the site URL — intentional divergence.
       def crop
         cp_img_path = params[:cp_img_path].to_s
         if (url_error = cama_upload_url_error(cp_img_path))
