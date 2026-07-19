@@ -67,7 +67,6 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
   context 'when cp_img_path is an HTTP URL (URL validation)' do
     let(:admin_role) { current_site.user_roles.create!(name: 'Media Admin', slug: 'media_admin') }
     let(:admin_user) { create(:user, role: admin_role.slug, site: current_site) }
-    let(:site_url) { current_site.decorate.the_url(locale: nil) }
 
     before do
       admin_role.set_meta("_manager_#{current_site.id}", { 'media' => 1 })
@@ -77,30 +76,46 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       sign_in_as(admin_user, site: current_site)
     end
 
-    it 'passes through a valid same-origin HTTP URL' do
-      allow(CamaleonCms::UserUrlValidator).to receive(:validate)
-        .with("#{site_url}/media/1/photo.jpg", reject_path_traversal: true).and_return(true)
-      # rubocop:disable RSpec/StubbedMock
-      expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
-        .with("#{site_url}/media/1/photo.jpg").and_return(file_path: '/tmp/test.jpg')
-      # rubocop:enable RSpec/StubbedMock
+    # Same-site URLs are read from the local filesystem (no network request), so
+    # the real validator must NOT reject them for SSRF/DNS/HTML-sanitize reasons.
+    context 'with a same-site URL (read locally)' do
+      before { allow_any_instance_of(described_class).to receive(:same_site_url?).and_return(true) }
 
-      get '/admin/media/crop', params: { cp_img_path: "#{site_url}/media/1/photo.jpg" }
+      it 'passes a same-site URL with a multi-parameter query string through to cama_tmp_upload' do
+        url = 'http://localhost:3000/media/1/photo.jpg?v=2&size=large'
+        # rubocop:disable RSpec/StubbedMock
+        expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
+          .with(url).and_return(file_path: '/tmp/test.jpg')
+        # rubocop:enable RSpec/StubbedMock
 
-      expect(response.status).not_to eq(400)
+        get '/admin/media/crop', params: { cp_img_path: url }
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'rejects a same-site URL with path traversal using the real validator message' do
+        expect_any_instance_of(described_class).not_to receive(:cama_tmp_upload)
+
+        get '/admin/media/crop', params: { cp_img_path: 'http://localhost:3000/../config/secrets.yml' }
+
+        expect(response.body).to include(I18n.t('camaleon_cms.admin.validate.path_traversal'))
+      end
     end
 
-    it 'rejects an HTTP URL containing path traversal segments' do
-      traversal_url = "#{site_url}/../config/secrets.yml"
-      allow(CamaleonCms::UserUrlValidator).to receive(:validate)
-        .with(traversal_url, reject_path_traversal: true).and_return(['Path traversal detected'])
-      expect_any_instance_of(described_class).not_to receive(:cama_tmp_upload)
-      get '/admin/media/crop', params: { cp_img_path: traversal_url }
+    # Remote URLs are actually fetched, so they get the full SSRF validation.
+    context 'with a remote URL' do
+      before { allow_any_instance_of(described_class).to receive(:same_site_url?).and_return(false) }
 
-      expect(response.body).to include('Path traversal detected')
+      it 'rejects a URL resolving to a link-local address (no live DNS needed for an IP literal)' do
+        expect_any_instance_of(described_class).not_to receive(:cama_tmp_upload)
+
+        get '/admin/media/crop', params: { cp_img_path: 'http://169.254.169.254/latest/meta-data/' }
+
+        expect(response.body).to include(I18n.t('camaleon_cms.admin.validate.no_link_local_net_requests'))
+      end
     end
 
-    it 'passes through a non-URL path without controller-level validation' do
+    it 'passes a non-URL path through without URL validation' do
       expect(CamaleonCms::UserUrlValidator).not_to receive(:validate)
       # rubocop:disable RSpec/StubbedMock
       expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
@@ -108,9 +123,11 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       # rubocop:enable RSpec/StubbedMock
 
       get '/admin/media/crop', params: { cp_img_path: '/etc/passwd' }
+
+      expect(response.body).to include('Invalid file path')
     end
 
-    it 'passes through a data: URI without controller-level validation' do
+    it 'passes a data: URI through without URL validation' do
       data_uri = 'data:image/png;base64,iVBORw0KGgo='
       expect(CamaleonCms::UserUrlValidator).not_to receive(:validate)
       # rubocop:disable RSpec/StubbedMock
