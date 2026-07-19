@@ -504,6 +504,11 @@ RSpec.describe CamaleonCms::UserUrlValidator do
           .to eql([I18n.t('camaleon_cms.admin.validate.path_traversal')])
       end
 
+      it 'detects double-encoded %252e%252e in URL path when enabled' do
+        expect(described_class.validate('http://example.com/%252e%252e/etc/passwd', reject_path_traversal: true))
+          .to eql([I18n.t('camaleon_cms.admin.validate.path_traversal')])
+      end
+
       it 'passes normal URLs when path traversal detection is enabled' do
         allow(Addrinfo).to receive(:getaddrinfo).with('example.com.', 80, nil, :STREAM)
                                                 .and_return([Addrinfo.tcp('93.184.216.34', 80)])
