@@ -2,7 +2,7 @@
 
 Define the security requirements for validating file upload source paths. The system MUST canonicalize string paths before validating them against allowed directory prefixes, preventing path traversal bypasses where `../` segments after an allowed prefix resolve to arbitrary filesystem locations.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Paths are canonicalized before prefix validation
 
