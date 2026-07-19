@@ -36,13 +36,6 @@ module CamaleonCms
     SHARED_ADDR_NETMASK = IPAddr.new('100.64.0.0/10').freeze
     IPV6_SITELOCAL      = IPAddr.new('fec0::/10').freeze
     IPV6_UNIQUE_LOCAL   = IPAddr.new('fc00::/7').freeze
-    RETURN_URL_OPTIONS = {
-      allow_localhost: false,
-      allow_local_network: false,
-      enforce_user: false,
-      enforce_sanitizing: true,
-      resolve: false
-    }.freeze
 
     def self.validate(...)
       new.validate(...)
