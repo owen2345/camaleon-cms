@@ -74,6 +74,7 @@ module CamaleonCms
         thumb_size: nil
       }.merge!(settings)
       settings[:formats] = '*' if settings[:formats].nil?
+      settings[:folder] = '' if settings[:folder].nil? # e.g. crop_url passes no folder
       hooks_run('before_upload', settings)
 
       # guard against path traversal

@@ -68,6 +68,23 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#actions', type: :request d
         expect(File.exist?(escape_target)).to be(false)
       end
     end
+
+    context 'when crop_url action uploads a data: URI without a folder param' do
+      let(:image_data_uri) do
+        png = File.binread("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png")
+        "data:image/png;base64,#{Base64.strict_encode64(png)}"
+      end
+
+      it 'uploads to the root folder instead of raising on the nil folder' do
+        post '/admin/media/actions', params: {
+          media_action: 'crop_url',
+          url: image_data_uri,
+          name: 'cropped_avatar.png'
+        }
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
   end
 
   context 'when user does NOT have media management permission' do

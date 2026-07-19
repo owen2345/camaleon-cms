@@ -133,6 +133,10 @@ describe CamaleonCms::UploaderHelper do
     it 'does not bypass format validation when formats param is nil' do
       expect(upload_file(File.open(@path), { formats: nil }).key?(:error)).not_to eql(true)
     end
+
+    it 'treats a nil folder as the root folder instead of raising' do
+      expect(upload_file(File.open(@path), { folder: nil }).key?(:error)).not_to be(true)
+    end
   end
 
   describe 'host comparison in URL-to-path conversion' do
