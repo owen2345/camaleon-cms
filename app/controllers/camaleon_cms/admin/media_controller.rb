@@ -22,7 +22,7 @@ module CamaleonCms
           return render(plain: helpers.sanitize(url_error))
         end
 
-        tmp = cama_tmp_upload(cp_img_path)
+        tmp = cama_tmp_upload(cp_img_path, formats: params[:formats], name: params[:name])
         return render(plain: helpers.sanitize(tmp[:error])) if tmp[:error].present?
 
         path_image = tmp[:file_path]

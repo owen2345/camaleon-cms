@@ -85,7 +85,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
         url = 'http://localhost:3000/media/1/photo.jpg?v=2&size=large'
         # rubocop:disable RSpec/StubbedMock
         expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
-          .with(url).and_return(file_path: '/tmp/test.jpg')
+          .with(url, formats: nil, name: nil).and_return(file_path: '/tmp/test.jpg')
         # rubocop:enable RSpec/StubbedMock
 
         get '/admin/media/crop', params: { cp_img_path: url }
@@ -119,7 +119,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       expect(CamaleonCms::UserUrlValidator).not_to receive(:validate)
       # rubocop:disable RSpec/StubbedMock
       expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
-        .with('/etc/passwd').and_return(error: 'Invalid file path')
+        .with('/etc/passwd', formats: nil, name: nil).and_return(error: 'Invalid file path')
       # rubocop:enable RSpec/StubbedMock
 
       get '/admin/media/crop', params: { cp_img_path: '/etc/passwd' }
@@ -132,10 +132,20 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       expect(CamaleonCms::UserUrlValidator).not_to receive(:validate)
       # rubocop:disable RSpec/StubbedMock
       expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
-        .with(data_uri).and_return(file_path: '/tmp/test.png')
+        .with(data_uri, formats: nil, name: nil).and_return(file_path: '/tmp/test.png')
       # rubocop:enable RSpec/StubbedMock
 
       get '/admin/media/crop', params: { cp_img_path: data_uri }
+    end
+
+    it 'forwards name and formats to cama_tmp_upload so data: URIs work as in crop_url' do
+      data_uri = 'data:image/png;base64,iVBORw0KGgo='
+      # rubocop:disable RSpec/StubbedMock
+      expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
+        .with(data_uri, formats: 'png', name: 'avatar.png').and_return(file_path: '/tmp/test.png')
+      # rubocop:enable RSpec/StubbedMock
+
+      get '/admin/media/crop', params: { cp_img_path: data_uri, name: 'avatar.png', formats: 'png' }
     end
   end
 
