@@ -406,14 +406,21 @@ module CamaleonCms
     # crop_url controller path may have already validated the URL — this ensures
     # every caller of cama_tmp_upload is protected (defense-in-depth).
     def cama_download_remote_file(url)
-      validation_result = UserUrlValidator.validate(url)
+      validator = UserUrlValidator.new
+      validation_result = validator.validate(url, reject_path_traversal: true)
       return { error: validation_result.join(', ') } if validation_result.is_a?(Array)
 
       uri = URI.parse(url)
-      response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
-        http.open_timeout = 10
-        http.read_timeout = 10
-        http.request(Net::HTTP::Get.new(uri.request_uri.presence || '/'))
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = uri.scheme == 'https'
+      # Pin the socket to the exact IP the validator vetted so a hostname whose DNS
+      # answer changes between the SSRF check and the fetch (DNS rebinding) cannot
+      # redirect the request to an internal address; SNI/cert checks keep the host.
+      http.ipaddr = validator.resolved_ip if validator.resolved_ip
+      http.open_timeout = 10
+      http.read_timeout = 10
+      response = http.start do |conn|
+        conn.request(Net::HTTP::Get.new(uri.request_uri.presence || '/'))
       end
 
       return { error: 'Redirects are not allowed for remote uploads.' } if response.is_a?(Net::HTTPRedirection)
