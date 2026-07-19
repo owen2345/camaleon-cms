@@ -505,6 +505,8 @@ RSpec.describe CamaleonCms::UserUrlValidator do
       end
 
       it 'passes normal URLs when path traversal detection is enabled' do
+        allow(Addrinfo).to receive(:getaddrinfo).with('example.com.', 80, nil, :STREAM)
+                                                .and_return([Addrinfo.tcp('93.184.216.34', 80)])
         expect(described_class.validate('http://example.com/images/photo.jpg', reject_path_traversal: true))
           .to be(true)
       end
