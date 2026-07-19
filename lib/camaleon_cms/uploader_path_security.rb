@@ -32,9 +32,19 @@ module CamaleonCms
     def same_site_url?(url, site)
       uri = Addressable::URI.parse(url)
       site_uri = Addressable::URI.parse(site.the_url(locale: nil))
-      uri.host&.downcase == site_uri.host&.downcase && uri.inferred_port == site_uri.inferred_port
+      same_host?(uri.host, site_uri.host) && uri.inferred_port == site_uri.inferred_port
     rescue Addressable::URI::InvalidURIError
       false
+    end
+
+    # Case-insensitive host comparison that also ignores a single trailing dot, so
+    # a fully-qualified form ("site.com.") still matches the site host ("site.com")
+    # instead of being classified as a remote host — which would trigger a needless
+    # (and re-validated) outbound fetch to the site itself.
+    def same_host?(host_a, host_b)
+      return false if host_a.blank? || host_b.blank?
+
+      host_a.downcase.chomp('.') == host_b.downcase.chomp('.')
     end
 
     def site_url_path(url, site)

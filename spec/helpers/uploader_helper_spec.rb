@@ -152,6 +152,13 @@ describe CamaleonCms::UploaderHelper do
       expect(helper_obj.send(:same_site_url?, 'http://evil.com/images/photo.jpg', site)).to be(false)
     end
 
+    it 'treats a fully-qualified host with a trailing dot as same-site' do
+      uri = Addressable::URI.parse(site.the_url(locale: nil))
+      uri.host = "#{uri.host}."
+      uri.path = '/images/photo.jpg'
+      expect(helper_obj.send(:same_site_url?, uri.to_s, site)).to be(true)
+    end
+
     it 'rejects URL with site hostname only in query string' do
       expect(helper_obj.send(:same_site_url?, "http://evil.com?url=#{site.the_url(locale: nil)}/path",
                              site)).to be(false)
