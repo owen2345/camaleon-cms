@@ -152,6 +152,13 @@ describe CamaleonCms::UploaderHelper do
       expect(helper_obj.send(:same_site_url?, 'http://evil.com/images/photo.jpg', site)).to be(false)
     end
 
+    it 'treats a fully-qualified host with a trailing dot as same-site' do
+      uri = Addressable::URI.parse(site.the_url(locale: nil))
+      uri.host = "#{uri.host}."
+      uri.path = '/images/photo.jpg'
+      expect(helper_obj.send(:same_site_url?, uri.to_s, site)).to be(true)
+    end
+
     it 'rejects URL with site hostname only in query string' do
       expect(helper_obj.send(:same_site_url?, "http://evil.com?url=#{site.the_url(locale: nil)}/path",
                              site)).to be(false)
@@ -224,23 +231,48 @@ describe CamaleonCms::UploaderHelper do
 
   describe 'external URL upload safety' do
     let(:remote_url) { 'https://example.com/file.txt' }
+    let(:validator) { instance_double(CamaleonCms::UserUrlValidator, resolved_ip: '93.184.216.34') }
+    let(:http_client) { instance_double(Net::HTTP) }
+
+    before do
+      allow(CamaleonCms::UserUrlValidator).to receive(:new).and_return(validator)
+      allow(http_client).to receive(:use_ssl=)
+      allow(http_client).to receive(:ipaddr=)
+      allow(http_client).to receive(:open_timeout=).with(10)
+      allow(http_client).to receive(:read_timeout=).with(10)
+    end
+
+    # Stub the pinned-IP client so `response = http.start { |conn| conn.request(..) }`
+    # yields the client and returns the given response.
+    def stub_remote_response(response)
+      allow(http_client).to receive(:request).and_return(response)
+      allow(http_client).to receive(:start).and_yield(http_client).and_return(response)
+      allow(Net::HTTP).to receive(:new).and_return(http_client)
+    end
 
     it 'blocks URLs rejected by UserUrlValidator before any network request' do
-      allow(CamaleonCms::UserUrlValidator).to receive(:validate).with(remote_url).and_return(['blocked'])
-      expect(Net::HTTP).not_to receive(:start)
+      allow(validator).to receive(:validate).with(remote_url, reject_path_traversal: true).and_return(['blocked'])
+      expect(Net::HTTP).not_to receive(:new)
 
       expect(upload_file(remote_url)[:error]).to include('blocked')
+    end
+
+    it 'pins the connection to the validated IP to defeat DNS rebinding' do
+      ok_response = Net::HTTPOK.new('1.1', '200', 'OK')
+      allow(ok_response).to receive(:body).and_return('plain text body')
+      allow(validator).to receive(:validate).and_return(true)
+      stub_remote_response(ok_response)
+
+      expect(http_client).to receive(:ipaddr=).with('93.184.216.34')
+
+      upload_file(remote_url)
     end
 
     it 'blocks redirect responses to avoid SSRF bypasses' do
       redirect_response = Net::HTTPFound.new('1.1', '302', 'Found')
       redirect_response['location'] = 'http://127.0.0.1/private'
-      http_client = instance_double(Net::HTTP, request: redirect_response)
-      allow(http_client).to receive(:open_timeout=).with(10)
-      allow(http_client).to receive(:read_timeout=).with(10)
-
-      allow(CamaleonCms::UserUrlValidator).to receive(:validate).with(remote_url).and_return(true)
-      allow(Net::HTTP).to receive(:start).and_yield(http_client)
+      allow(validator).to receive(:validate).and_return(true)
+      stub_remote_response(redirect_response)
 
       expect(upload_file(remote_url)[:error]).to eq('Redirects are not allowed for remote uploads.')
     end
@@ -248,12 +280,8 @@ describe CamaleonCms::UploaderHelper do
     it 'uploads external files when URL is safe and HTTP response is successful' do
       ok_response = Net::HTTPOK.new('1.1', '200', 'OK')
       allow(ok_response).to receive(:body).and_return('plain text body')
-      http_client = instance_double(Net::HTTP, request: ok_response)
-      allow(http_client).to receive(:open_timeout=).with(10)
-      allow(http_client).to receive(:read_timeout=).with(10)
-
-      allow(CamaleonCms::UserUrlValidator).to receive(:validate).with(remote_url).and_return(true)
-      allow(Net::HTTP).to receive(:start).and_yield(http_client)
+      allow(validator).to receive(:validate).and_return(true)
+      stub_remote_response(ok_response)
 
       result = upload_file(remote_url)
       expect(result[:error]).to be_blank
@@ -261,18 +289,14 @@ describe CamaleonCms::UploaderHelper do
     end
 
     it 'blocks remote files that exceed the site filesystem_max_size setting' do
-      # Set the site limit to 10 bytes so we can trigger it with a small body.
-      current_site.set_option('filesystem_max_size', 0.000001) # ~1 byte in megabytes
+      # Set the site limit to ~1 byte so we can trigger it with a small body.
+      current_site.set_option('filesystem_max_size', 0.000001)
 
       oversized_body = 'x' * 1024
       ok_response = Net::HTTPOK.new('1.1', '200', 'OK')
       allow(ok_response).to receive(:body).and_return(oversized_body)
-      http_client = instance_double(Net::HTTP, request: ok_response)
-      allow(http_client).to receive(:open_timeout=).with(10)
-      allow(http_client).to receive(:read_timeout=).with(10)
-
-      allow(CamaleonCms::UserUrlValidator).to receive(:validate).with(remote_url).and_return(true)
-      allow(Net::HTTP).to receive(:start).and_yield(http_client)
+      allow(validator).to receive(:validate).and_return(true)
+      stub_remote_response(ok_response)
 
       result = upload_file(remote_url)
       expect(result[:error]).to include('Remote file too large')

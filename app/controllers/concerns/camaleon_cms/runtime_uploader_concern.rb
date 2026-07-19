@@ -322,15 +322,47 @@ module CamaleonCms
 
     private
 
+    # Validates a user-supplied upload URL and returns nil when it is acceptable,
+    # or an error String to render. Only http(s) URLs are validated here; other
+    # inputs (local paths, data: URIs) are handled by the sink guards in
+    # cama_tmp_upload/upload_file.
+    #
+    # Same-site URLs are mapped to a local file and read directly (no network
+    # request), so they only need the static path-traversal check — not DNS
+    # resolution, SSRF/private-IP blocking, or HTML-tag sanitizing. Applying those
+    # to a same-site URL wrongly rejects legitimate values: hosts that resolve to a
+    # loopback/private IP (localhost, Docker, intranet), non-resolvable dev hosts,
+    # and multi-parameter query strings (the "&" is escaped by sanitize). Remote
+    # URLs, which are actually fetched, still get the full SSRF validation.
+    def cama_upload_url_error(url)
+      return unless url.to_s.start_with?('http://', 'https://')
+
+      result = if same_site_url?(url, current_site)
+                 UserUrlValidator.validate(url, reject_path_traversal: true, resolve: false,
+                                                enforce_sanitizing: false, enforce_user: false,
+                                                allow_localhost: true, allow_local_network: true)
+               else
+                 UserUrlValidator.validate(url, reject_path_traversal: true)
+               end
+      result.join(', ') if result.is_a?(Array)
+    end
+
     def cama_download_remote_file(url)
-      validation_result = UserUrlValidator.validate(url)
+      validator = UserUrlValidator.new
+      validation_result = validator.validate(url, reject_path_traversal: true)
       return { error: validation_result.join(', ') } if validation_result.is_a?(Array)
 
       uri = URI.parse(url)
-      response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
-        http.open_timeout = 10
-        http.read_timeout = 10
-        http.request(Net::HTTP::Get.new(uri.request_uri.presence || '/'))
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = uri.scheme == 'https'
+      # Pin the socket to the exact IP the validator vetted so a hostname whose DNS
+      # answer changes between the SSRF check and the fetch (DNS rebinding) cannot
+      # redirect the request to an internal address; SNI/cert checks keep the host.
+      http.ipaddr = validator.resolved_ip if validator.resolved_ip
+      http.open_timeout = 10
+      http.read_timeout = 10
+      response = http.start do |conn|
+        conn.request(Net::HTTP::Get.new(uri.request_uri.presence || '/'))
       end
 
       return { error: 'Redirects are not allowed for remote uploads.' } if response.is_a?(Net::HTTPRedirection)

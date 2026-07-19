@@ -16,8 +16,21 @@ module CamaleonCms
       end
 
       # crop a image to save as a new file
+      #
+      # Unlike crop_url (which is URL-only and prefixes the site URL onto relative
+      # inputs), crop accepts three cp_img_path shapes: an http(s) URL, a data:
+      # URI, or a server filesystem path (see the cama_tmp_upload examples). Only
+      # http(s) URLs are validated here; data: URIs and filesystem paths pass
+      # through to cama_tmp_upload, whose cama_canonical_upload_path guard confines
+      # them to the public/tmp roots. A bare relative path is therefore treated as
+      # a filesystem path, not prefixed with the site URL — intentional divergence.
       def crop
-        tmp = cama_tmp_upload(params[:cp_img_path])
+        cp_img_path = params[:cp_img_path].to_s
+        if (url_error = cama_upload_url_error(cp_img_path))
+          return render(plain: helpers.sanitize(url_error))
+        end
+
+        tmp = cama_tmp_upload(cp_img_path, formats: params[:formats], name: params[:name])
         return render(plain: helpers.sanitize(tmp[:error])) if tmp[:error].present?
 
         path_image = tmp[:file_path]
@@ -71,15 +84,11 @@ module CamaleonCms
         when 'crop_url'
           user_url = params[:url].to_s
           user_url = "#{current_site.the_url(locale: nil)}#{user_url}" unless user_url.start_with?('data:', 'http')
-          r = if user_url.start_with?('data:')
-                cama_tmp_upload(user_url, formats: params[:formats], name: params[:name])
+          url_error = cama_upload_url_error(user_url)
+          r = if url_error
+                { error: url_error }
               else
-                url_validation_result = UserUrlValidator.validate(user_url, reject_path_traversal: true)
-                if url_validation_result.is_a?(Array)
-                  { error: url_validation_result.join(', ') }
-                else
-                  cama_tmp_upload(user_url, formats: params[:formats], name: params[:name])
-                end
+                cama_tmp_upload(user_url, formats: params[:formats], name: params[:name])
               end
           if r[:error].blank?
             params[:file_upload] = r[:file_path]
@@ -100,6 +109,10 @@ module CamaleonCms
         params[:dimension] = nil if params[:skip_auto_crop].present?
         f = { error: 'File not found.' }
         if params[:file_upload].present?
+          if params[:file_upload].is_a?(String) && (url_error = cama_upload_url_error(params[:file_upload]))
+            return render plain: helpers.sanitize(url_error)
+          end
+
           f = upload_file(
             params[:file_upload],
             {

@@ -45,6 +45,13 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#upload', type: :request do
       expect(response.body).to include('Invalid file path')
     end
 
+    it 'rejects upload with file_upload set to a link-local URL (SSRF)' do
+      expect_any_instance_of(described_class).not_to receive(:upload_file)
+      post '/admin/media/upload', params: { file_upload: 'http://169.254.169.254/latest/meta-data/' }
+
+      expect(response.body).to include(I18n.t('camaleon_cms.admin.validate.no_link_local_net_requests'))
+    end
+
     it 'still accepts legitimate multipart file upload' do
       file = Rack::Test::UploadedFile.new(
         "#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png", 'image/png'
