@@ -328,9 +328,11 @@ module CamaleonCms
     end
 
     def validate_path_traversal(uri)
-      raw_path = uri.path
-      normalized_path = uri.normalized_path
-      return if raw_path == normalized_path
+      # Decode percent-encoding first (so %2e%2e is caught) then look for actual
+      # ".." path segments. Comparing uri.path to uri.normalized_path would also
+      # flag legitimate URLs whose encoding merely differs (e.g. %7E -> ~).
+      decoded = Addressable::URI.unencode(uri.path.to_s)
+      return unless decoded.split(%r{[/\\]}).include?('..')
 
       @errors << I18n.t('camaleon_cms.admin.validate.path_traversal')
     end

@@ -490,7 +490,26 @@ RSpec.describe CamaleonCms::UserUrlValidator do
       end
 
       it 'does not check path traversal when option is not set (default)' do
+        allow(Addrinfo).to receive(:getaddrinfo).with('example.com.', 80, nil, :STREAM)
+                                                .and_return([Addrinfo.tcp('93.184.216.34', 80)])
         expect(described_class.validate('http://example.com/../etc/passwd'))
+          .to be(true)
+      end
+
+      it 'does not flag legitimately percent-encoded characters as traversal' do
+        %w[
+          http://example.com/my%7Efile.jpg
+          http://example.com/a%2Db.jpg
+          http://example.com/%41BC.jpg
+        ].each do |url|
+          expect(described_class.validate(url, reject_path_traversal: true, resolve: false))
+            .to be(true)
+        end
+      end
+
+      it 'does not flag a single-dot path segment as traversal' do
+        expect(described_class.validate('http://example.com/foo/./bar.jpg', reject_path_traversal: true,
+                                                                            resolve: false))
           .to be(true)
       end
     end
