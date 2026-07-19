@@ -152,6 +152,12 @@ describe CamaleonCms::UploaderHelper do
       expect(helper_obj.send(:same_site_url?, "http://evil.com?url=#{site.the_url(locale: nil)}/path",
                              site)).to be(false)
     end
+
+    it 'matches same-host URL whose path contains characters stdlib URI rejects' do
+      site_url = site.the_url(locale: nil)
+      expect(helper_obj.send(:same_site_url?, "#{site_url}/media/my photo.jpg", site)).to be(true)
+      expect(helper_obj.send(:same_site_url?, "#{site_url}/media/café.jpg", site)).to be(true)
+    end
   end
 
   it 'upload a local file with versions' do
