@@ -40,6 +40,11 @@ module CamaleonCms
     def site_url_path(url, site)
       uri = Addressable::URI.parse(url)
       path = uri.path.to_s
+      # Strip the site's mount subpath (relative_url_root), if any, so that a
+      # same-site URL under e.g. "http://host/blog/" maps to public/... and not
+      # public/blog/...
+      base = Addressable::URI.parse(site.the_url(locale: nil)).path.to_s.chomp('/')
+      path = path.sub(%r{\A#{Regexp.escape(base)}(?=/|$)}, '') if base.present?
       langs = site.get_languages
       path = path.sub(%r{\A/(?:#{Regexp.union(langs.map(&:to_s))})(?=/|$)}, '') if langs.size > 1
       path

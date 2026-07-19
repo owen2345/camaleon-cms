@@ -160,6 +160,32 @@ describe CamaleonCms::UploaderHelper do
     end
   end
 
+  describe 'site_url_path (URL-to-local-path conversion)' do
+    let(:helper_obj) { Class.new { include CamaleonCms::UploaderHelper }.new }
+    let(:site) { current_site.decorate }
+
+    def stub_site(url:, languages: ['en'])
+      allow(site).to receive_messages(the_url: url, get_languages: languages)
+      site
+    end
+
+    it 'keeps the path for a single-language, root-mounted site' do
+      s = stub_site(url: 'http://host.com')
+      expect(helper_obj.send(:site_url_path, 'http://host.com/media/1/logo.png', s)).to eq('/media/1/logo.png')
+    end
+
+    it 'strips the mount subpath (relative_url_root) so it maps under public/' do
+      s = stub_site(url: 'http://host.com/blog/')
+      expect(helper_obj.send(:site_url_path, 'http://host.com/blog/media/1/logo.png', s)).to eq('/media/1/logo.png')
+    end
+
+    it 'strips both the mount subpath and the locale prefix on a multi-language site' do
+      s = stub_site(url: 'http://host.com/blog/', languages: %w[en es])
+      expect(helper_obj.send(:site_url_path, 'http://host.com/blog/es/media/1/logo.png', s))
+        .to eq('/media/1/logo.png')
+    end
+  end
+
   it 'upload a local file with versions' do
     expect(upload_file(File.open(@path), { versions: '300x300,505x350,20x' }).key?(:error)).not_to eql(true)
   end
