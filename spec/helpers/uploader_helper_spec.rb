@@ -179,10 +179,22 @@ describe CamaleonCms::UploaderHelper do
       expect(helper_obj.send(:site_url_path, 'http://host.com/blog/media/1/logo.png', s)).to eq('/media/1/logo.png')
     end
 
-    it 'strips both the mount subpath and the locale prefix on a multi-language site' do
+    it 'strips both the mount subpath and the locale prefix when the target file exists' do
+      target = Rails.public_path.join('media', 'loc1', 'logo.png')
+      FileUtils.mkdir_p(target.dirname)
+      File.write(target, 'x')
       s = stub_site(url: 'http://host.com/blog/', languages: %w[en es])
-      expect(helper_obj.send(:site_url_path, 'http://host.com/blog/es/media/1/logo.png', s))
-        .to eq('/media/1/logo.png')
+      expect(helper_obj.send(:site_url_path, 'http://host.com/blog/es/media/loc1/logo.png', s))
+        .to eq('/media/loc1/logo.png')
+    ensure
+      FileUtils.rm_rf(Rails.public_path.join('media', 'loc1'))
+    end
+
+    it 'keeps a real first segment matching a locale code when the stripped path has no file' do
+      s = stub_site(url: 'http://host.com/', languages: %w[en es])
+      # public/es/report.png is the real asset; public/report.png does not exist
+      expect(helper_obj.send(:site_url_path, 'http://host.com/es/report.png', s))
+        .to eq('/es/report.png')
     end
   end
 

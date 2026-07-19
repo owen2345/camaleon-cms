@@ -45,11 +45,23 @@ module CamaleonCms
       # public/blog/...
       base = Addressable::URI.parse(site.the_url(locale: nil)).path.to_s.chomp('/')
       path = path.sub(%r{\A#{Regexp.escape(base)}(?=/|$)}, '') if base.present?
-      langs = site.get_languages
-      path = path.sub(%r{\A/(?:#{Regexp.union(langs.map(&:to_s))})(?=/|$)}, '') if langs.size > 1
-      path
+      strip_locale_prefix(path, site)
     rescue Addressable::URI::InvalidURIError
       url
+    end
+
+    # Removes a leading locale segment (e.g. "/es") on multi-language sites. To
+    # avoid mis-stripping a real first directory that merely shares a language
+    # code's name, only strip when the stripped path points at an existing file
+    # under the public dir; otherwise keep the path as-is.
+    def strip_locale_prefix(path, site)
+      langs = site.get_languages
+      return path unless langs.size > 1
+
+      stripped = path.sub(%r{\A/(?:#{Regexp.union(langs.map(&:to_s))})(?=/|$)}, '')
+      return path if stripped == path
+
+      File.exist?(File.expand_path(File.join(Rails.public_path, stripped))) ? stripped : path
     end
   end
 end
