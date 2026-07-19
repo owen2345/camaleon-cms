@@ -167,6 +167,7 @@ module CamaleonCms
 
     def hostname_for_resolution(hostname)
       return hostname if hostname.blank?
+      return hostname if hostname.end_with?('.')
       return hostname if valid_ip?(hostname)
       return hostname unless hostname.match?(/\.[a-zA-Z]/)
 

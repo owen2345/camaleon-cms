@@ -347,6 +347,12 @@ RSpec.describe CamaleonCms::UserUrlValidator do
         .to eql([I18n.t('camaleon_cms.admin.validate.host_invalid')])
     end
 
+    it 'resolves a fully-qualified hostname that already ends with a dot' do
+      allow(Addrinfo).to receive(:getaddrinfo).with('example.com.', 443, nil, :STREAM)
+                                              .and_return([Addrinfo.tcp('93.184.216.34', 443)])
+      expect(described_class.validate('https://example.com./')).to be(true)
+    end
+
     describe '#resolved_ip' do
       it 'is nil before any validation' do
         expect(described_class.new.resolved_ip).to be_nil
