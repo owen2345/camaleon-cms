@@ -17,7 +17,7 @@ describe 'the signin process', :js do
       fill_in 'post_title', with: 'Test Title'
       page.execute_script('$("#form-post .required").val("test required value")')
       page.execute_script('$("#form-post .tinymce_textarea").tinymce().setContent("Pants are pretty sweet.")')
-      page.execute_script('$("#form-post #options_keywords").closest(".panel").find("a.panel-collapse").click()')
+      page.execute_script('$("#form-post #options_keywords").closest(".card").find("a.panel-collapse").click()')
       fill_in 'options[seo_title]', with: 'SEO Title'
       fill_in 'options[keywords]', with: 'Test keywords changed'
       fill_in 'options[seo_description]', with: 'Test SEO Description'

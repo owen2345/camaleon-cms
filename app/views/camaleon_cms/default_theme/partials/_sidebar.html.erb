@@ -1,16 +1,16 @@
 <% if post.has_thumb? && !defined?(skip_thumb) %>
-    <div class="panel panel-default">
-        <div class="panel-body">
-            <%= raw post.the_link_thumb({}, {class: "img-responsive img-rounded col-md-12 col-lg-12"}) %>
+    <div class="card card-default">
+        <div class="card-body">
+            <%= raw post.the_link_thumb({}, {class: "img-fluid rounded col-md-12 col-lg-12"}) %>
         </div>
     </div>
 <%  end %>
 
 <% categories = post.the_categories.decorate %>
 <% if categories.present? && !defined?(skip_categories) %>
-    <div class="panel panel-default">
-        <div class="panel-heading"><%= ct("categories", default: 'Categories') %></div>
-        <div class="panel-body">
+    <div class="card card-default">
+        <div class="card-header"><%= ct("categories", default: 'Categories') %></div>
+        <div class="card-body">
             <ul style="list-style-position: inside">
                 <% categories.each do |cat| %>
                     <li><a href="<%= cat.the_url %>"><%= cat.the_title %></a></li>
@@ -21,11 +21,11 @@
 <% end %>
 
 <% if !defined?(skip_last_articles) %>
-    <div class="panel panel-default">
-        <div class="panel-heading">
+    <div class="card card-default">
+        <div class="card-header">
             <%= ct("latest_articles", default: 'Latest Articles') %>
         </div>
-        <div class="panel-body">
+        <div class="card-body">
             <ul style="list-style-position: inside">
                 <% current_site.the_posts("post").latest.limit(7).decorate.each do |p| %>
                     <li><a href="<%= p.the_url %>"><%= p.the_title %></a></li>
@@ -36,11 +36,11 @@
 <% end %>
 
 <% if !defined?(skip_similar_art) %>
-    <div class="panel panel-default">
-        <div class="panel-heading">
+    <div class="card card-default">
+        <div class="card-header">
             <%= ct("related_articles", default: 'Related Articles') %>
         </div>
-        <div class="panel-body">
+        <div class="card-body">
             <ul style="list-style-position: inside">
                 <% post.the_related_posts.latest.limit(7).decorate.each do |p| %>
                     <li><a href="<%= p.the_url %>"><%= p.the_title %></a></li>
@@ -54,11 +54,11 @@
 <% if !defined?(skip_tags) %>
     <% tags = post.the_tags.decorate %>
     <% if tags.present? %>
-        <div class="panel panel-default">
-            <div class="panel-heading"><%= ct("post_tag_list", default: 'Tags') %></div>
-            <div class="panel-body">
+        <div class="card card-default">
+            <div class="card-header"><%= ct("post_tag_list", default: 'Tags') %></div>
+            <div class="card-body">
                 <% tags.each do |post_tag| %>
-                    <a class="btn btn-default btn-xs" href="<%= post_tag.the_url %>"><%= post_tag.the_title %></a>
+                    <a class="btn btn-secondary btn-sm" href="<%= post_tag.the_url %>"><%= post_tag.the_title %></a>
                 <% end %>
             </div>
         </div>

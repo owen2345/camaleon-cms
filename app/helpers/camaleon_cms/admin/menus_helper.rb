@@ -118,7 +118,7 @@ module CamaleonCms
               title: safe_join([
                                  t('camaleon_cms.admin.sidebar.plugins'),
                                  ' ',
-                                 content_tag(:small, plugin_count, class: 'label label-primary')
+                                 content_tag(:small, plugin_count, class: 'badge badge-primary')
                                ]),
               url: cama_admin_plugins_path,
               datas: "data-intro='#{t('camaleon_cms.admin.intro.plugins')}' data-position='right'"
@@ -251,9 +251,9 @@ module CamaleonCms
         menu_parents = []
         menus = _get_url_current(CurrentRequest.admin_menu_items, menu_parents)
         safe_join(menus.map do |menu|
-          css_class = +''
-          css_class << 'treeview ' if menu.key?(:items)
-          css_class << 'active' if is_active_menu(menu[:key], menu_parents)
+          css_class = +'nav-item '
+          css_class << 'has-treeview ' if menu.key?(:items)
+          css_class << 'menu-open ' if is_active_menu(menu[:key], menu_parents)
           css_class.strip!
           data_attrs = parse_datas(menu[:datas])
           content_tag(
@@ -261,13 +261,16 @@ module CamaleonCms
             class: css_class.presence, data: { key: menu[:key] }.merge!(data_attrs.presence || {})
           ) do
             safe_join([
-              content_tag(:a, href: menu[:url]) do
+              content_tag(:a, href: menu[:url], class: 'nav-link') do
                 safe_join([
-                  content_tag(:i, nil, class: "fa fa-#{menu[:icon]}"),
-                  ' ',
-                  content_tag(:span, menu[:title]),
-                  (content_tag(:i, nil, class: 'fa fa-angle-left pull-right') if menu.key?(:items))
-                ].compact)
+                            content_tag(:i, nil, class: "nav-icon fas fa-#{menu[:icon]}"),
+                            content_tag(:p) do
+                              safe_join([
+                                menu[:title],
+                                (content_tag(:i, nil, class: 'fas fa-angle-left right') if menu.key?(:items))
+                              ].compact)
+                            end
+                          ])
               end,
               (_admin_menu_draw(menu[:items], menu_parents) if menu.key?(:items))
             ].compact)
@@ -328,11 +331,11 @@ module CamaleonCms
       def _admin_menu_draw(items, menu_parents)
         return ''.html_safe if items.blank?
 
-        content_tag(:ul, class: 'treeview-menu') do
+        content_tag(:ul, class: 'nav nav-treeview') do
           safe_join(items.each_with_index.map do |item, index|
-            css_class = +"item_#{index + 1} "
-            css_class << 'xn-openable ' if item.key?(:items)
-            css_class << 'active ' if is_active_menu(item[:key], menu_parents)
+            css_class = +"nav-item item_#{index + 1} "
+            css_class << 'has-treeview ' if item.key?(:items)
+            css_class << 'menu-open ' if is_active_menu(item[:key], menu_parents)
             css_class.strip!
             data_attrs = parse_datas(item[:datas])
             content_tag(
@@ -341,13 +344,16 @@ module CamaleonCms
               data: { key: item[:key] }.merge!(data_attrs.presence || {})
             ) do
               safe_join([
-                content_tag(:a, href: item[:url]) do
+                content_tag(:a, href: item[:url], class: 'nav-link') do
                   safe_join([
-                    content_tag(:i, nil, class: "fa fa-#{item[:icon]}"),
-                    ' ',
-                    item[:title],
-                    (content_tag(:i, nil, class: 'fa fa-angle-left pull-right') if item.key?(:items))
-                  ].compact)
+                              content_tag(:i, nil, class: "nav-icon fas fa-#{item[:icon]}"),
+                              content_tag(:p) do
+                                safe_join([
+                                  item[:title],
+                                  (content_tag(:i, nil, class: 'fas fa-angle-left right') if item.key?(:items))
+                                ].compact)
+                              end
+                            ])
                 end,
                 (item.key?(:items) ? _admin_menu_draw(item[:items], menu_parents) : nil)
               ].compact)

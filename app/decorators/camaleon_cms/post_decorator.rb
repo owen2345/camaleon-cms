@@ -183,7 +183,7 @@ module CamaleonCms
         color = 'default'
         status = self.status
       end
-      "<span class='label label-#{color} label-form'>#{status.titleize}</span>"
+      "<span class='badge badge-#{color} badge-form'>#{status.titleize}</span>"
     end
 
     # return the user object who created this post

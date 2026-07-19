@@ -1,6 +1,6 @@
 <div class="page-title">
   <h2>
-    <span class="fa fa-users"></span>
+    <span class="fas fa-users"></span>
     <%= t('camaleon_cms.admin.page_title.edit') + " " + @user_role.the_title if !@user_role.new_record? %>
     <%= t('camaleon_cms.admin.users.create_user') if  @user_role.new_record? %>
   </h2>
@@ -9,17 +9,17 @@
   <%= form_for @user_role, as: "user_role", url:{action: @user_role.new_record? ? :create : :update}, html:{class: 'validate-user-roles cama_ajax_request'} do |f| %>
       <div class="row">
         <div class="col-md-9">
-          <div class="panel panel-default">
-            <div class="panel-heading ui-draggable-handle">
-              <h3 class="panel-title"><%= @user_role.new_record? ? t('camaleon_cms.admin.page_title.add') : t('camaleon_cms.admin.page_title.edit') %> </h3>
+          <div class="card card-default">
+            <div class="card-header ui-draggable-handle">
+              <h3 class="card-title"><%= @user_role.new_record? ? t('camaleon_cms.admin.page_title.add') : t('camaleon_cms.admin.page_title.edit') %> </h3>
             </div>
-            <div class="panel-body">
+            <div class="card-body">
               <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @user_role} %>
                 <% rol_values_post_type = @user_role.new_record? ? {} : @user_role.get_meta("_post_type_#{current_site.id.to_s}") %>
                 <% rol_values_manager = @user_role.new_record? ? {} : @user_role.get_meta("_manager_#{current_site.id.to_s}") %>
-              <div id="contents-checkbox" class="form-horizontal">
+              <div id="contents-checkbox" class="">
                 <div class="">
-                   <table class="table table-responsive table-hover table-striped">
+                   <table class="table table-hover table-striped">
                     <thead>
                     <tr>
                       <th style="width: 160px"><h5 ><%= t('camaleon_cms.admin.users.post_types')%></h5></th>
@@ -78,20 +78,20 @@
 
             </div>
             <% if @user_role.editable? %>
-                <div id="checked-actions" class="panel-footer text-right">
-                  <a class="btn btn-default btn-sm" data-type="all" href="#"><%= t('camaleon_cms.admin.button.select_all') %></a>
-                  <a class="btn btn-default btn-sm" data-type="none" href="#"><%= t('camaleon_cms.admin.button.select_none') %></a>
-                  <a class="btn btn-default btn-sm" data-type="restore" href="#"><%= t('camaleon_cms.admin.button.restore_selections') %></a>
+                <div id="checked-actions" class="card-footer text-right">
+                  <a class="btn btn-secondary btn-sm" data-type="all" href="#"><%= t('camaleon_cms.admin.button.select_all') %></a>
+                  <a class="btn btn-secondary btn-sm" data-type="none" href="#"><%= t('camaleon_cms.admin.button.select_none') %></a>
+                  <a class="btn btn-secondary btn-sm" data-type="restore" href="#"><%= t('camaleon_cms.admin.button.restore_selections') %></a>
                 </div>
             <% end %>
           </div>
         </div>
         <div class="col-md-3">
-          <div class="panel panel-default">
-            <div class="panel-heading ui-draggable-handle">
-              <h3 class="panel-title"><%= t('camaleon_cms.admin.page_title.details')%> </h3>
+          <div class="card card-default">
+            <div class="card-header ui-draggable-handle">
+              <h3 class="card-title"><%= t('camaleon_cms.admin.page_title.details')%> </h3>
             </div>
-                <div class="panel-body">
+                <div class="card-body">
                   <div class="form-group">
                     <%= f.label t('camaleon_cms.admin.table.name') %>
                     <%= f.text_field :name, :class => "form-control required translatable" %>
@@ -106,9 +106,9 @@
                   </div>
                 </div>
 
-                <div class="panel-footer">
-                    <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
-                    <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+                <div class="card-footer">
+                    <a class="btn btn-secondary" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
+                    <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
                 </div>
 
           </div>
@@ -123,16 +123,16 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
+        <h5 class="modal-title" id="select-eval-danger-modal-title"><%= t('camaleon_cms.admin.users.select_eval_modal.title') %></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="<%= t('camaleon_cms.admin.button.cancel') %>">
           <span aria-hidden="true">&times;</span>
         </button>
-        <h4 class="modal-title" id="select-eval-danger-modal-title"><%= t('camaleon_cms.admin.users.select_eval_modal.title') %></h4>
       </div>
       <div class="modal-body">
         <p><%= t('camaleon_cms.admin.users.select_eval_modal.description') %></p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-role="select-eval-cancel" data-dismiss="modal"><%= t('camaleon_cms.admin.button.cancel') %></button>
+        <button type="button" class="btn btn-secondary" data-role="select-eval-cancel" data-dismiss="modal"><%= t('camaleon_cms.admin.button.cancel') %></button>
         <button type="button" class="btn btn-danger" data-role="select-eval-confirm"><%= t('camaleon_cms.admin.button.accept') %></button>
       </div>
     </div>
@@ -175,7 +175,7 @@
       })
 
       $(document).on("keydown", function(event){
-          if(event.which === 27 && $selectEvalModal.hasClass("in")){
+          if(event.which === 27 && $selectEvalModal.hasClass("show")){
               $selectEvalModal.modal("hide")
           }
       })

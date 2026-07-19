@@ -2253,56 +2253,56 @@ footer.entry-meta {
 	position: relative;
 }
 
-.comment-body .panel-default{
-	border-color: #dddddd;
+.comment-body .card-default{
+  border-color: #dddddd;
 }
 
-.comment-content .panel {
-	background-color: #ffffff;
-	border: 1px solid transparent;
-	border-radius: 4px;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-	margin-bottom: 20px;
+.comment-content .card {
+  background-color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
 }
 
-.comment-content .panel-default > .panel-heading {
-	background-color: #f5f5f5;
-	border-color: #dddddd;
-	color: #555555;
+.comment-content .card-default > .card-header {
+  background-color: #f5f5f5;
+  border-color: #dddddd;
+  color: #555555;
 }
 
-.comment-content .panel-heading {
-	border-bottom: 1px solid transparent;
-	border-top-left-radius: 3px;
-	border-top-right-radius: 3px;
-	padding: 10px 15px;
+.comment-content .card-header {
+  border-bottom: 1px solid transparent;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  padding: 10px 15px;
 }
 
-.comment-content .panel-heading::before {
-	border-right-color: #ddd;
-	border-width: 8px;
+.comment-content .card-header::before {
+  border-right-color: #ddd;
+  border-width: 8px;
 }
 
-.comment-content .panel-heading::after,
-.comment-content .panel-heading::before {
-	border-color: transparent;
-	border-style: solid solid outset;
-	content: " ";
-	display: block;
-	height: 0;
-	left: -16px;
-	pointer-events: none;
-	position: absolute;
-	right: 100%;
-	top: 11px;
-	width: 0;
+.comment-content .card-header::after,
+.comment-content .card-header::before {
+  border-color: transparent;
+  border-style: solid solid outset;
+  content: " ";
+  display: block;
+  height: 0;
+  left: -16px;
+  pointer-events: none;
+  position: absolute;
+  right: 100%;
+  top: 11px;
+  width: 0;
 }
 
-.comment-content .panel-heading::after {
-	border-right-color: #f7f7f7;
-	border-width: 7px;
-	margin-left: 2px;
-	margin-top: 1px;
+.comment-content .card-header::after {
+  border-right-color: #f7f7f7;
+  border-width: 7px;
+  margin-left: 2px;
+  margin-top: 1px;
 }
 
 

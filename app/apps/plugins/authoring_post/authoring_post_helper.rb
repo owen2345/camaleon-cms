@@ -26,7 +26,7 @@ module Plugins
       def plugin_authoring_form_html(post)
         disabled = !(can?(:edit_other, post.post_type) && (can?(:edit_publish, post.post_type) || !post.published?))
 
-        label = tag.label(t('camaleon_cms.admin.table.author'), class: 'control-label')
+        label = tag.label(t('camaleon_cms.admin.table.author'), class: 'col-form-label')
         select = content_tag(
           :select,
           safe_join(plugin_authoring_authors_list(post)),

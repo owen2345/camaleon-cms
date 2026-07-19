@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module CamaleonCms
   module CommentHelper
     LABELS = { 'approved' => 'success', 'pending' => 'warning', 'spam' => 'danger' }.freeze
@@ -39,52 +41,52 @@ module CamaleonCms
                     content_tag(:small, comment.the_created_at),
                     ' ',
                     content_tag(:span, t("camaleon_cms.admin.comments.message.#{comment.approved}"),
-                                class: "label label-#{LABELS[comment.approved]} pull-right")
+                                class: "badge badge-#{LABELS[comment.approved]} float-right")
                   ].join.html_safe
                 end,
                 content_tag(:div, sanitize(comment.content), class: 'comment_content'),
                 content_tag(:div, class: 'comment_actions') do
                   [
-                    content_tag(:div, class: 'pull-left') do
+                    content_tag(:div, class: 'float-left') do
                       [
                         link_to(
                           cama_admin_post_comment_answer_path(post_id, comment.id),
                           data: { comment_id: comment.id },
                           title: t('camaleon_cms.admin.comments.tooltip.reply_comment'),
-                          class: 'btn btn-info reply btn-xs ajax_modal'
-                        ) { content_tag(:span, '', class: 'fa fa-mail-reply') },
+                          class: 'btn btn-info reply btn-sm ajax_modal'
+                        ) { content_tag(:span, '', class: 'fas fa-reply') },
                         ' ',
                         link_to(
                           { action: :destroy, id: comment.id },
                           method: :delete,
                           data: { confirm: t('camaleon_cms.admin.message.delete') },
-                          class: 'btn btn-danger btn-xs cama_ajax_request',
+                          class: 'btn btn-danger btn-sm cama_ajax_request',
                           title: t('camaleon_cms.admin.comments.tooltip.delete_comment')
-                        ) { content_tag(:i, '', class: 'fa fa-trash-o') }
+                        ) { content_tag(:i, '', class: 'far fa-trash-can') }
                       ].join.html_safe
                     end,
-                    content_tag(:div, class: 'pull-right') do
+                    content_tag(:div, class: 'float-right') do
                       [
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 'a' }),
                           title: t('camaleon_cms.admin.comments.tooltip.approved_comment'),
                           class: "#{comment.approved == 'approved' ? 'hidden' : ''} " \
-                                 'btn btn-success approve btn-xs cama_ajax_request'
-                        ) { content_tag(:span, '', class: 'fa fa-thumbs-o-up') },
+                                  'btn btn-success approve btn-sm cama_ajax_request'
+                        ) { content_tag(:span, '', class: 'far fa-thumbs-up') },
                         ' ',
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 'p' }),
                           title: t('camaleon_cms.admin.comments.tooltip.comment_pending'),
                           class: "#{comment.approved == 'pending' ? 'hidden' : ''} " \
-                                 'btn btn-primary pending btn-xs cama_ajax_request'
-                        ) { content_tag(:span, '', class: 'fa fa-warning') },
+                                  'btn btn-primary pending btn-sm cama_ajax_request'
+                        ) { content_tag(:span, '', class: 'fas fa-triangle-exclamation') },
                         ' ',
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 's' }),
                           title: t('camaleon_cms.admin.comments.tooltip.comment_spam'),
                           class: "#{comment.approved == 'spam' ? 'hidden' : ''} " \
-                                 'btn btn-danger spam btn-xs cama_ajax_request'
-                        ) { content_tag(:span, '', class: 'fa fa-bug') }
+                                  'btn btn-danger spam btn-sm cama_ajax_request'
+                        ) { content_tag(:span, '', class: 'fas fa-bug') }
                       ].join.html_safe
                     end
                   ].join.html_safe

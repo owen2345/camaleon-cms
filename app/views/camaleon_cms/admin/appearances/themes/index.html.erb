@@ -1,5 +1,5 @@
 <div class="page-title">
-    <h2><span class="fa fa-arrow-circle-o-left"></span> <%= t('camaleon_cms.admin.sidebar.themes')%></h2>
+    <h2><span class="far fa-circle-arrow-left"></span> <%= t('camaleon_cms.admin.sidebar.themes')%></h2>
 </div>
 
 <!-- PAGE CONTENT WRAPPER -->
@@ -8,11 +8,11 @@
     <div class="row">
         <div class="col-md-12">
 
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><%= t('camaleon_cms.admin.themes.theme_select')%></h3>
+            <div class="card card-default">
+                <div class="card-header">
+                    <h3 class="card-title"><%= t('camaleon_cms.admin.themes.theme_select')%></h3>
                 </div>
-                <div class="panel-body">
+                <div class="card-body">
                     <div class="row">
                         <% index=0;
                            dom = current_site.the_url.sub(/https?:\/\//, "").split("/").first
@@ -20,17 +20,17 @@
                             <% next if theme[:domain].present? && !(theme[:domain].split(",").include?(current_site.the_slug) || theme[:domain].split(",").include?(dom)) %>
                             <%= raw "<div class='clearfix'></div>" if index%3==0 && index > 1 %>
                             <div class="col-md-4">
-                                <div class="panel panel-default theme-card">
-                                    <div class="panel-body panel-body-image">
+                                <div class="card card-default theme-card">
+                                    <div class="card-body card-body-image">
                                         <% image_url = asset_path(theme_asset_path(theme[:thumb].to_s, theme[:key])) %>
                                         <div class="theme-image text-center" style=" background-image: url(<%= image_url %>);" >
                                         </div>
                                     </div>
-                                    <div class="panel-body theme-description">
+                                    <div class="card-body theme-description">
                                         <h3></h3>
                                         <div><%= raw theme[:description] %></div>
                                     </div>
-                                    <div class="panel-footer text-muted text-right">
+                                    <div class="card-footer text-muted text-right">
                                         <span class="theme-name">
                                             <%= theme[:name] %>
                                         </span>

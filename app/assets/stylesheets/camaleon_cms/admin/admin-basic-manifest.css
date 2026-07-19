@@ -9,8 +9,10 @@
  * compiled file, but it's generally better to create a new file per style scope.
  *
  *= require camaleon_cms/bootstrap.min
- *= require font-awesome
+ *= require ./_font_awesome_bridge
+ *= require ./_source_sans_pro.css
  *= require ./lte/_admin
+ *= require ./lte/_overlayScrollbars
  *= require ./_custom_admin
  *= require ./lte/skins/skin-blue
  */

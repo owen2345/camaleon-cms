@@ -3,17 +3,17 @@
   <div class="row">
     <div class="col-md-12">
       <!-- START BASIC TABLE SAMPLE -->
-      <div class="panel panel-default">
-        <div class="panel-heading">
+      <div class="card card-default">
+        <div class="card-header">
             <div class="row">
                 <div class="col-md-12">
-                    <h4 class="pull-left"><span class="fa fa-file-o"></span> <%= t('camaleon_cms.admin.users.user_roles')%></h4>
-                    <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.users.add_user_role')}"), {action: :new}, class: "btn btn-primary pull-right cama_ajax_request" %>
+                    <h4 class="float-left"><span class="far fa-file"></span> <%= t('camaleon_cms.admin.users.user_roles')%></h4>
+                    <%= link_to raw("<i class='fas fa-plus'></i> #{t('camaleon_cms.admin.users.add_user_role')}"), {action: :new}, class: "btn btn-primary float-right cama_ajax_request" %>
                 </div>
             </div>
         </div>
-        <div class="panel-body">
-          <table class="table table-responsive table-hover table-striped">
+        <div class="card-body">
+          <table class="table table-hover table-striped">
             <thead>
             <tr>
               <th><%= t('camaleon_cms.admin.table.id') %></th>
@@ -29,13 +29,13 @@
                   <td><%= f.the_title %></td>
                   <td><%= f.the_content %></td>
                   <td>
-                    <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                    <%= link_to raw('<i class="fas fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-secondary btn-sm cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
                     <% if f.editable? %>
-                        <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
-                                method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs cama_ajax_request", title: t('camaleon_cms.admin.button.delete') %>
+                        <%= link_to raw('<i class="fas fa-xmark"></i>'), { action: :destroy, id: f.id },
+                                method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-sm cama_ajax_request", title: t('camaleon_cms.admin.button.delete') %>
                     <% else %>
-                        <%= link_to 'javascript:;', disabled: true, class: 'btn btn-danger btn-xs cama_ajax_request', title: t('camaleon_cms.admin.users.message.role_can_not_be_deleted', default: 'This role can not be deleted') do %>
-                            <i class="fa fa-times"></i>
+                        <%= link_to 'javascript:;', disabled: true, class: 'btn btn-danger btn-sm cama_ajax_request', title: t('camaleon_cms.admin.users.message.role_can_not_be_deleted', default: 'This role can not be deleted') do %>
+                            <i class="fas fa-xmark"></i>
                         <% end %>
                     <% end %>
                   </td>

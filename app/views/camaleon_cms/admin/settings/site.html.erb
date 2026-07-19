@@ -1,11 +1,11 @@
 <% groups = @site.get_field_groups %>
 <!-- PAGE CONTENT WRAPPER -->
 <div class="page-content-wrap">
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h4><span class="fa fa-cog"></span> <%= "#{t('camaleon_cms.admin.settings.configuration_site')}: #{@site.the_title} " %> </h4>
+  <div class="card card-default">
+    <div class="card-header">
+      <h4><span class="fas fa-gear"></span> <%= "#{t('camaleon_cms.admin.settings.configuration_site')}: #{@site.the_title} " %> </h4>
     </div>
-    <%= form_for @site, as: "site", url: {action: :site_saved}, html: {id: "site_settings_form", class: "panel-body cama_ajax_request validate"} do |f| %>
+    <%= form_for @site, as: "site", url: {action: :site_saved}, html: {id: "site_settings_form", class: "card-body cama_ajax_request validate"} do |f| %>
         <div class="tabs">
           <ul role="tablist" class="nav nav-tabs">
             <li class="<%= "active" if ["", nil].include?(params[:tab]) %>">
@@ -26,7 +26,7 @@
             <li class="<%= 'active' if 'filesystem' == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-filesystem_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.filesystem_settings', default: 'Filesystem Settings ') %></a></li>
             <li class="<%= 'active' if 'media' == params[:tab] %>"><a data-toggle="tab" role="tab" href="#tab-media_settings" aria-expanded="false"><%= t('camaleon_cms.admin.settings.media_settings', default: 'Media Settings') %></a></li>
           </ul>
-          <div class="panel-body tab-content row">
+          <div class="card-body tab-content row">
 
             <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @site} %>
 
@@ -65,8 +65,8 @@
               <%= render "file_system_settings", f: f %>
               <%= render "media_settings", f: f %>
           </div>
-          <div class="panel-footer">
-            <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+          <div class="card-footer">
+            <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
           </div>
         </div>
     <% end %>

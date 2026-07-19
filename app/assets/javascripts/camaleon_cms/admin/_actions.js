@@ -1,9 +1,11 @@
-jQuery(document).on("ready page:changed", function(){
+var onReadyOrChanged = function(){
     // initialize all validations for forms
     init_form_validations();
     setTimeout(page_actions, 1000);
     if(!$("body").attr("data-intro")) setTimeout(init_intro, 500);
-});
+};
+jQuery(onReadyOrChanged);
+jQuery(document).on("page:changed", onReadyOrChanged);
 
 // show admin intro presentation
 function init_intro(){
@@ -40,8 +42,8 @@ var page_actions = function(){
     $('a[data-toggle="tooltip"], button[data-toggle="tooltip"], a[title!=""]', "#admin_content").not(".skip_tooltip").tooltip();
 
     /* PANELS */
-    $("#admin_content").on("click", ".panel .panel-collapse", function(){
-        panel_collapse($(this).parents(".panel:first"));
+    $(document).on("click", ".card .panel-collapse", function(){
+        panel_collapse($(this).parents(".card:first"));
         $(this).parents(".dropdown").removeClass("open");
         return false;
     });
@@ -49,13 +51,13 @@ var page_actions = function(){
 
 // add action to toggle the collapse for panels
 function panel_collapse(panel,action,callback){
-    if(panel.hasClass("panel-toggled")){
-        panel.removeClass("panel-toggled");
+    if(panel.hasClass("card-toggled")){
+        panel.removeClass("card-toggled");
         panel.find(".panel-collapse .fa-angle-up").removeClass("fa-angle-up").addClass("fa-angle-down");
         if(action && action === "shown" && typeof callback === "function")
             callback();
     }else{
-        panel.addClass("panel-toggled");
+        panel.addClass("card-toggled");
         panel.find(".panel-collapse .fa-angle-down").removeClass("fa-angle-down").addClass("fa-angle-up");
         if(action && action === "hidden" && typeof callback === "function")
             callback();
@@ -83,7 +85,7 @@ Object.size = function(obj) {
 // this is a fix for multiples modals when a modal was closed (reactivate scroll for next modal)
 // fix for boostrap multiple modals problem
 function modal_fix_multiple(){
-    var activeModal = $('.modal.in:last', 'body').data('bs.modal');
+    var activeModal = $('.modal.show:last', 'body').data('bs.modal');
     if (activeModal) {
         activeModal.$body.addClass('modal-open');
         activeModal.enforceFocus();

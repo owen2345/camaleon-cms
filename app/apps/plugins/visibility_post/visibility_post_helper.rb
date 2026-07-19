@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Plugins
   module VisibilityPost
     module VisibilityPostHelper
@@ -40,8 +42,8 @@ module Plugins
           is_published = args[:post].published_at
           post_visibility = args[:post].visibility
           args[:content] =
-            "<td><i class='fa fa-#{{ 'private' => 'lock', '' => 'lock', 'public' => 'eye',
-                                     'password' => 'eye-slash' }[post_visibility]}'></i> #{post_visibility}</td>"
+            "<td><i class='fas fa-#{{ 'private' => 'lock', '' => 'lock', 'public' => 'eye',
+                                      'password' => 'eye-slash' }[post_visibility]}'></i> #{post_visibility}</td>"
           args[:content] +=
             "<td>#{is_published.present? ? is_published.strftime('%B %e, %Y %H:%M') : args[:post].the_created_at}</td>"
         else
@@ -81,7 +83,7 @@ module Plugins
         "<form class='col-md-6 protected_form well'>
         <h4>#{ct('proceted_article', default: 'Protected article')}</h4>
         <div class='control-group'>
-          <label class='control-label'>#{t('camaleon_cms.admin.post_type.enter_password')}:</label>
+          <label class='col-form-label'>#{t('camaleon_cms.admin.post_type.enter_password')}:</label>
           <input type='text' name='post_password' value='' class='form-control' />
         </div>
         <div class='control-group'>
@@ -102,18 +104,22 @@ module Plugins
 
         html = []
         html << tag.div(class: 'form-group') do
-          tag.label(t('camaleon_cms.admin.post_type.published_date'), class: 'control-label') +
+          tag.label(t('camaleon_cms.admin.post_type.published_date'), class: 'col-form-label') +
             tag.div(id: 'published_from', data: { locale: current_locale }, class: 'input-group date') do
               tag.input(
                 name: 'post[published_at]', data: { format: 'yyyy-MM-dd hh:mm:ss' },
                 class: 'form-control ', value: @post[:published_at]
               ) +
-                tag.span(class: 'add-on input-group-addon') { tag.span(class: 'glyphicon glyphicon-calendar') }
+                tag.div(class: 'input-group-append') do
+                  tag.span(class: 'input-group-text') do
+                    tag.span(class: 'fas fa-calendar')
+                  end
+                end
             end
         end
 
         html << tag.div(id: 'panel-post-visibility', class: 'form-group') do
-          tag.label(class: 'control-label') do
+          tag.label(class: 'col-form-label') do
             "#{t('camaleon_cms.admin.table.visibility')}: ".html_safe + tag.span(class: 'visibility_label')
           end << ' - ' <<
             tag.a(href: '#') { tag.span(t('camaleon_cms.admin.button.edit'), 'aria-hidden': 'true') } <<

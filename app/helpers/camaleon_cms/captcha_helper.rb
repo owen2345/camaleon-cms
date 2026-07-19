@@ -38,7 +38,7 @@ module CamaleonCms
       input = helpers.tag(:input, type: 'text', name: 'captcha', **input_args)
 
       if bootstrap_group_mode
-        span = helpers.content_tag(:span, img, class: 'input-group-btn', style: 'vertical-align: top;')
+        span = helpers.content_tag(:div, img, class: 'input-group-append', style: 'vertical-align: top;')
         helpers.content_tag(:div, helpers.safe_join([span, input]), class: 'input-group input-group-captcha')
       else
         helpers.content_tag(:div, helpers.safe_join([img, input]), class: 'input-group-captcha')

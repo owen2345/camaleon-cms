@@ -28,7 +28,7 @@ describe 'the Contact Form', :js do
       fill_in 'railscf_mail_subject', with: 'test subject'
 
       within '#fields_available' do
-        all('.btn-default').each(&:click)
+        all('.btn-secondary').each(&:click)
       end
       page.execute_script('$("#contact_form_editor").find(".required").val("sample value")')
       page.execute_script('$("#contact_form_editor").submit()')

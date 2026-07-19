@@ -6,17 +6,17 @@
     </div><br><br>
 
     <% if @categories.present? %>
-        <div class="panel panel-primary no-line">
-            <div class="panel-heading">Categories</div>
-            <div class="panel-body">
+        <div class="card card-primary no-line">
+            <div class="card-header">Categories</div>
+            <div class="card-body">
                 <%= render partial: "partials/categories_list", locals: {categories: @categories} %>
             </div>
         </div>
     <% end %>
 
-    <div class="panel panel-primary post_list no-line">
-        <div class="panel-heading">Content</div>
-        <div class="panel-body">
+    <div class="card card-primary post_list no-line">
+        <div class="card-header">Content</div>
+        <div class="card-body">
             <div class="row">
                 <% @posts.each_with_index do |post, index| %>
                     <%= raw "<div class='clearfix'></div>" if index%3 == 0 && index > 0 %>

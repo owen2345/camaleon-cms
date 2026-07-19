@@ -38,8 +38,8 @@ describe 'the Site Settings SideBar options', :js do
     it 'has a Tiny MCE form' do
       visit "#{cama_root_relative_path}/admin/settings/theme"
 
-      expect(page).to have_text('Footer message')
-      expect(webfont_icon_fetch_status('fa fa-cog', 'fontawesome-webfont', 'woff2')).to be(200)
+      expect(page).to have_content('Footer message')
+      expect(webfont_icon_fetch_status('fas fa-cog', 'fa-solid', 'woff2')).to be(200)
 
       within '#theme_settings_form' do
         within '.mce-edit-area' do

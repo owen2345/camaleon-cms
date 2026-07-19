@@ -5,7 +5,7 @@ require 'rails_helper'
 # add a new comment for a post
 def add_new_comment
   visit "#{cama_root_relative_path}/admin/posts/#{@site.posts.last.id}/comments"
-  page.execute_script('$("#comments_answer_list .panel-heading .btn-primary").click()')
+  page.execute_script('$("#comments_answer_list .card-header .btn-primary").click()')
   wait_for_ajax
   within 'form#new_comment' do
     fill_in 'comment_content', with: 'Test comment'
@@ -31,7 +31,7 @@ RSpec.describe 'the Comments', :js do
       expect(page).to have_text(get_content_attr('post', 'the_title', 'last').to_s)
 
       # access to list of comments
-      first('.btn-default').click
+      first('.btn-secondary').click
       expect(page).to have_css('#comments_answer_list')
 
       # approve || disapprove comment

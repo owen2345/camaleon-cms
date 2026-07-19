@@ -2,18 +2,18 @@
     <div class="comment-body <%= "answer" if children.present? %>">
         <div class="image <%= "image_children" if children.present? %>">
             <div class="thumbnail">
-                <%= image_tag user.the_avatar, class: "img-responsive avatar"%>
+                <%= image_tag user.the_avatar, class: "img-fluid avatar"%>
             </div><!-- /thumbnail -->
         </div><!-- /col-sm-1 -->
         <div class="comment-content text <%= "text_children" if children.present? %>">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <strong class="<%= (children.present?)? "pull-right" : "" %>"><%= user.the_name %></strong> <small class="text-muted <%= (children.present?)? "" : "pull-right" %>"><%= comment.decorate.the_created_at %></small>
+            <div class="card card-default">
+                <div class="card-header">
+                    <strong class="<%= (children.present?)? "float-right" : "" %>"><%= user.the_name %></strong> <small class="text-muted <%= (children.present?)? "" : "float-right" %>"><%= comment.decorate.the_created_at %></small>
                 </div>
-                <div class="panel-body">
+                <div class="card-body">
                     <%= comment.content %>
-                </div><!-- /panel-body -->
-            </div><!-- /panel panel-default -->
+                </div><!-- /card-body -->
+            </div><!-- /card card-default -->
         </div><!-- /col-sm-5 -->
     </div>
     <%= render partial: "partials/comments_list", locals: { comments: comment.children.approveds, children: "present" }  if comment.children.present? %>

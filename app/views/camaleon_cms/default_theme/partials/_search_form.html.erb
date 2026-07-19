@@ -1,8 +1,8 @@
-<%= form_tag(cama_search_path, :method => "get", :class => "form-search form-horizontal") do %>
+<%= form_tag(cama_search_path, :method => "get", :class => "form-inline") do %>
     <div class="input-group">
         <input type="text" name="q" class="form-control" placeholder="<%= ct("search", default: 'Search here') %>...">
-        <div class="input-group-btn">
-            <button type="submit" class="btn btn-default"><i style="font-size: 14px;" class="glyphicon glyphicon-search"></i></button>
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-secondary"><i style="font-size: 14px;" class="fas fa-search"></i></button>
         </div>
     </div>
 <% end %>

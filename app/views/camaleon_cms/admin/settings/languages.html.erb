@@ -1,8 +1,7 @@
 <% current_langs = current_site.get_languages  %>
 <script>
     jQuery(function(){
-        $("#languages_form").sortable({items: ".checkbox", axis: "y"})
-        $("#languages_form .checkbox").disableSelection();
+        new Sortable(document.getElementById("sortable-langs"), {draggable: ".checkbox", filter: "input,label", preventOnFilter: false, delay: 100, delayOnTouchOnly: true, forceFallback: true, animation: 150})
     });
 </script>
 
@@ -11,11 +10,11 @@
     <div class="row">
         <%= form_tag(cama_admin_settings_languages_path, type: "post", id: "languages_form", class: "cama_ajax_request") do %>
             <div class="col-md-8 col-md-offset-2">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+                <div class="card card-default">
+                    <div class="card-header">
                         <h4><%= t('camaleon_cms.admin.settings.languages_configuration')%></h4>
                     </div>
-                    <div class="panel-body">
+                    <div class="card-body">
                         <div class="form-group">
                             <label><%= t('camaleon_cms.admin.settings.current_languages') %></label><br>
                             <% current_langs.each_with_index do |lang, index| %>
@@ -24,16 +23,16 @@
                                 </div>
                             <% end %>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="sortable-langs">
                             <label><%= t('camaleon_cms.admin.settings.available_languages') %></label><br>
                             <% current_langs.each do |lang| %>
                                 <div class="checkbox">
-                                    <i class="fa fa-arrows-v" style="cursor: move;"> &nbsp;</i><label><input type="checkbox" value="<%= lang %>" checked name="lang[]"> <%= t("languages.#{lang}") %> </label>
+                                    <i class="fas fa-up-down-left-right-v" style="cursor: move;"> &nbsp;</i><label><input type="checkbox" value="<%= lang %>" checked name="lang[]"> <%= t("languages.#{lang}") %> </label>
                                 </div>
                             <% end %>
                             <% PluginRoutes.system_info["available_languages"].each do |lang| next if current_langs.include?(lang.to_sym) %>
                                 <div class="checkbox">
-                                    <i class="fa fa-arrows-v" style="cursor: move;"> &nbsp;</i><label><input type="checkbox" value="<%= lang %>" name="lang[]"> <%= t("languages.#{lang}") %> </label>
+                                    <i class="fas fa-up-down-left-right-v" style="cursor: move;"> &nbsp;</i><label><input type="checkbox" value="<%= lang %>" name="lang[]"> <%= t("languages.#{lang}") %> </label>
                                 </div>
                             <% end %>
                         </div>
@@ -47,8 +46,8 @@
                             <% end %>
                         </div>
                     </div>
-                    <div class="panel-footer">
-                        <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit')%></button>
+                    <div class="card-footer">
+                        <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit')%></button>
                     </div>
                 </div>
             </div>

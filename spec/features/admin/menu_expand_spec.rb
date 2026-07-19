@@ -11,8 +11,8 @@ RSpec.describe 'Sidebar menu expand', :js do
 
     # Check that sidebar menu items exist with data-key attribute
     within '.sidebar' do
-      # Check that treeview items have data-key attribute directly on them
-      treeview_items = find_all('.treeview[data-key]')
+      # Check that has-treeview items have data-key attribute directly on them
+      treeview_items = find_all('.nav-item.has-treeview[data-key]')
       expect(treeview_items.length).to be > 0
 
       # Check that all treeview items have non-empty data-key
@@ -28,8 +28,8 @@ RSpec.describe 'Sidebar menu expand', :js do
     visit "#{cama_root_relative_path}/admin/"
 
     within '.sidebar' do
-      # Find treeview items that have treeview-menu children
-      expandable_items = find_all('.treeview[data-key]')
+      # Find has-treeview items that have nav-treeview children
+      expandable_items = find_all('.nav-item.has-treeview[data-key]')
       expect(expandable_items.length).to be > 0
 
       # Use the first treeview item to check structure
@@ -39,7 +39,7 @@ RSpec.describe 'Sidebar menu expand', :js do
       expect(first_item).to have_css('a')
 
       # Check that submenu exists using visible: false to include hidden elements
-      expect(first_item).to have_css('ul.treeview-menu', visible: :hidden)
+      expect(first_item).to have_css('ul.nav-treeview', visible: false)
     end
   end
 
@@ -48,7 +48,7 @@ RSpec.describe 'Sidebar menu expand', :js do
     visit "#{cama_root_relative_path}/admin/"
 
     within '.sidebar' do
-      all('.treeview[data-key]').each do |item|
+      all('.nav-item.has-treeview[data-key]').each do |item|
         data_key = item['data-key'].to_s
         expect(data_key).not_to be_empty
       end

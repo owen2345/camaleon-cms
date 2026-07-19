@@ -67,10 +67,10 @@ body{
       max-height: 50px;
     }
   }
-  .panel {
+  .card {
     position:relative;
   }
-  .panel-heading:after,.panel-heading:before{
+  .card-header:after,.card-header:before{
     position:absolute;
     top:11px;left:-16px;
     right:100%;
@@ -82,26 +82,26 @@ body{
     border-style:solid solid outset;
     pointer-events:none;
   }
-  .panel-heading:after{
+  .card-header:after{
     border-width:7px;
     border-right-color:#f7f7f7;
     margin-top:1px;
     margin-left:2px;
   }
-  .panel-heading:before{
+  .card-header:before{
     border-right-color:#ddd;
     border-width:8px;
   }
   .answer > *{
 
-    .panel-heading:after,.panel-heading:before{ left: auto; right: -16px; }
-    .panel-heading:after{
+    .card-header:after,.card-header:before{ left: auto; right: -16px; }
+    .card-header:after{
       border-left-color:#f7f7f7;
       border-right-color:transparent;
       border-width: 8px;
       margin-top: 0;
     }
-    .panel-heading:before{
+    .card-header:before{
       border-left-color:#ddd;
       border-right-color:transparent;
       right: -17px;
@@ -124,12 +124,12 @@ body{
   }
 }
 
-/*********no lines panel*********/
-.panel.no-line{
+/*********no lines card*********/
+.card.no-line{
   margin-top: 20px;
   border: none;
   box-shadow: none;
-  .panel-body{ padding:10px 0;}
+  .card-body{ padding:10px 0;}
 }
 
 /************categories carousel***********/
@@ -172,4 +172,25 @@ body{
 /************ languages **********************/
 .language{
   margin: 10px 0 0 0;
+}
+
+/* Bootstrap 3 .thumbnail compatibility shim (BS4 removed this component) */
+.thumbnail {
+  display: block;
+  padding: 4px;
+  margin-bottom: 20px;
+  line-height: 1.42857143;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  transition: border .2s ease-in-out;
+
+  > img,
+  a > img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }

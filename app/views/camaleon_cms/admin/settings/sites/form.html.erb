@@ -3,11 +3,11 @@
   <div class="row">
     <%= form_for @site, as: "site", url:{action: @site.new_record? ? :create : :update}, html: {class: 'validate cama_ajax_request'} do |f| %>
         <div class="col-md-8 col-md-offset-2">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-                <h4><span class="fa fa-cog"></span> <%= @site.new_record? ? t('camaleon_cms.admin.page_title.new_site') : "#{t('camaleon_cms.admin.page_title.edit_site')}: #{@site.the_title} "%> </h4>
+          <div class="card card-default">
+            <div class="card-header">
+                <h4><span class="fas fa-gear"></span> <%= @site.new_record? ? t('camaleon_cms.admin.page_title.new_site') : "#{t('camaleon_cms.admin.page_title.edit_site')}: #{@site.the_title} "%> </h4>
             </div>
-            <div class="panel-body">
+            <div class="card-body">
               <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @site} %>
             <div class="form-group">
                 <%= f.label t('camaleon_cms.admin.button.domain') %><br>
@@ -24,9 +24,9 @@
               </div>
             </div>
 
-            <div class="panel-footer">
-              <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
-              <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
+            <div class="card-footer">
+              <a class="btn btn-secondary" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
+              <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit') %></button>
             </div>
           </div>
         </div>

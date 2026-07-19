@@ -9,12 +9,12 @@
     </div>
     <hr>
     <div class="alert alert-info">Gmail Need Permissions:
-        <div class="pull-left">
+        <div class="float-left">
             <a href="https://know.mailsbestfriend.com/smtp_error_password_command_failed_5345714-1194946499.shtml" target="_blank">Check
                 here.</a>
         </div>
-        <div class="pull-right">
-            <a id="cama_email_send_test_email" class="btn btn-xs btn-primary" href="<%= url_for(action: :test_email) %>"><%= t('camaleon_cms.admin.settings.send_test_email', default: 'Send Test Email') %></a>
+        <div class="float-right">
+            <a id="cama_email_send_test_email" class="btn btn-sm btn-primary" href="<%= url_for(action: :test_email) %>"><%= t('camaleon_cms.admin.settings.send_test_email', default: 'Send Test Email') %></a>
         </div>
     </div>
     <div class="form-group">
@@ -44,7 +44,7 @@
     jQuery(function(){ // test email configuration
         $('#cama_email_send_test_email').click(function(){
             var link = $(this);
-            var content = '<form><div><label for=""><%= t('camaleon_cms.admin.table.email', default: 'Email') %>: </label> <div class="input-group"><input class="form-control required email data-error-place-parent" name="email"><span class="input-group-btn"><button type="submit" class="btn btn-primary"><%= t('camaleon_cms.admin.settings.send_test_email') %></button></span></div></div></form>';
+            var content = '<form><div><label for=""><%= t('camaleon_cms.admin.table.email', default: 'Email') %>: </label> <div class="input-group"><input class="form-control required email data-error-place-parent" name="email"><div class="input-group-append"><button type="submit" class="btn btn-primary"><%= t('camaleon_cms.admin.settings.send_test_email') %></button></div></div></div></form>';
             open_modal({title: link.text(), content: content, callback: function(modal){
                 var form = modal.find('form');
                 form.validate({submitHandler: function(){

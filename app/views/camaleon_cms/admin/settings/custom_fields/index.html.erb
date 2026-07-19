@@ -3,18 +3,18 @@
   <div class="row">
     <div class="col-md-12">
       <!-- START BASIC TABLE SAMPLE -->
-      <div class="panel panel-default">
-        <div class="panel-heading">
+      <div class="card card-default">
+        <div class="card-header">
             <div class="row">
                 <div class="col-md-12">
-                    <h4 class="pull-left"><span class="fa fa-cog"></span> <%= t('camaleon_cms.admin.settings.list_custom_fields_group') %> <%= @field_groups.count %></h4>
-                    <%= link_to raw("<i class='fa fa-plus'></i> #{t('camaleon_cms.admin.settings.add_field_group')}"), {action: :new}, class: "btn btn-primary pull-right cama_ajax_request" %>
+                    <h4 class="float-left"><span class="fas fa-gear"></span> <%= t('camaleon_cms.admin.settings.list_custom_fields_group') %> <%= @field_groups.count %></h4>
+                    <%= link_to raw("<i class='fas fa-plus'></i> #{t('camaleon_cms.admin.settings.add_field_group')}"), {action: :new}, class: "btn btn-primary float-right cama_ajax_request" %>
                 </div>
             </div>
         </div>
-        <div class="panel-body">
+        <div class="card-body">
 
-          <table id="table_custom_groups" class="table table-responsive table-hover table-striped">
+          <table id="table_custom_groups" class="table table-hover table-striped">
             <thead>
             <tr>
               <th><%= t('camaleon_cms.admin.table.id') %></th>
@@ -34,9 +34,9 @@
                   <td><%= f.description %></td>
                   <td><%= link_to(raw(f.get_caption), {action: :index, c: f.object_class, id: f.objectid}) %></td>
                   <td>
-                    <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
-                    <%= link_to raw('<i class="fa fa-times"></i>'), { action: :destroy, id: f.id },
-                                method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" %>
+                    <%= link_to raw('<i class="fas fa-pencil"></i>'), {action: :edit, id: f.id }, class: "btn btn-secondary btn-sm cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" %>
+                    <%= link_to raw('<i class="fas fa-xmark"></i>'), { action: :destroy, id: f.id },
+                                method: :delete, data: { confirm: t('camaleon_cms.admin.message.delete_item') }, class: "btn btn-danger btn-sm cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete')}" %>
                   </td>
                 </tr>
             <% end %>
@@ -67,36 +67,35 @@ jQuery(function($){
             var id = $(this).attr('data-id');
             var td_new = '<td>'
                     +'<div class="moved" style="cursor: all-scroll">'
-                    +'<i class="fa fa-arrows"></i>'
+                    +'<i class="fas fa-up-down-left-right"></i>'
                     +'<input type="hidden" name="values[]" value="'+id+'" />'
                     +'</div>'
             '</td>';
             $(this).prepend(td_new);
         });
 
-        $table.find('tbody').sortable({
-            axis: "y",
-            placeholder: "ui-state-highlight",
+        var startPos = null;
+        new Sortable($table.find('tbody')[0], {
+            animation: 150,
             handle: ".moved",
-            //items: "tr:not(.sortable)",
-            items: "tr",
-            start: function(event, ui) {
-                ui.item.startPos = ui.item.index();
+            draggable: "tr",
+            ghostClass: "sortable-ghost",
+            onSort: function(evt) {
+                if(options.on_change) options.on_change();
             },
-            stop: function( event, ui ) {
+            onStart: function(evt) {
+                startPos = evt.oldIndex;
+            },
+            onEnd: function(evt) {
                 $.post(options.url, $table.find("input" ).serialize(), function(res){
-                    if(ui.item.startPos != ui.item.index()){
-                        if(options.on_success) options.on_success({res: res, item: ui.item})
+                    if(startPos != evt.newIndex){
+                        if(options.on_success) options.on_success({res: res, item: $(evt.item)})
                     }
                 }).fail(function() {
-                    if(options.on_success) options.on_success({res: {error: 'Error Server'}, item: ui.item})
+                    if(options.on_success) options.on_success({res: {error: 'Error Server'}, item: $(evt.item)})
                 });
-            },
-            change: function(event, ui) {
-                if(options.on_change) options.on_change()
             }
         });
-        $table.find('tbody').disableSelection();
     };
 
     $('#table_custom_groups').table_order({url: '<%= reorder_cama_admin_settings_custom_fields_path %>', on_success: function(obj){

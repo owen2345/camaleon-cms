@@ -2,7 +2,7 @@
 <%= form_for @post_tag, as: "post_tag", url:{action: @post_tag.new_record? ? :create : :update} , html:{class: 'validate-post-tag cama_ajax_request'} do |f| %>
     <%= f.hidden_field :parent_id  %>
     <%= f.hidden_field :taxonomy %>
-    <div class="panel-body">
+    <div class="card-body">
       <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @post_tag} %>
         <div class="form-group">
           <%= f.label t('camaleon_cms.admin.table.name') %><br>
@@ -19,8 +19,8 @@
         </div>
         <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @post_tag, field_groups: @post_type.get_field_groups({kind: "PostTag"})} %>
     </div>
-    <div class="panel-footer">
-      <a class="btn btn-default" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
-      <button class="btn btn-primary pull-right" type="submit"><%= t('camaleon_cms.admin.button.submit')%></button>
+    <div class="card-footer">
+      <a class="btn btn-secondary" role="back" href="<%= url_for action: :index %>"><%= t('camaleon_cms.admin.button.back') %></a>
+      <button class="btn btn-primary float-right" type="submit"><%= t('camaleon_cms.admin.button.submit')%></button>
     </div>
 <% end %>

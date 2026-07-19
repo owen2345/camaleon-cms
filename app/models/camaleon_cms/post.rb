@@ -39,6 +39,7 @@ module CamaleonCms
     scope :drafts, -> { where(status: %w[draft draft_child]) }
     scope :pending, -> { where(status: 'pending') }
     scope :latest, -> { reorder(created_at: :desc) }
+    scope :with_eager, -> { includes(:metas, :categories, post_type: :metas) }
 
     validates_with CamaleonCms::PostUniqValidator
     attr_accessor :show_title_with_parent
@@ -257,7 +258,7 @@ module CamaleonCms
     # calculate a post order when it is empty
     def fix_post_order
       last_post = post_type.posts.where.not(id: nil).last
-      self.post_order = last_post.present? ? (last_post.post_order || 0) + 1 : 1
+      self.post_order = (last_post&.post_order || 0) + 1
     end
   end
 end

@@ -1,6 +1,6 @@
 <%= form_tag url_for({action: :save_custom_settings, nav_menu_id: @nav_menu.id, id: @nav_menu_item.id}), class: 'validate' do %>
     <%= render partial: "camaleon_cms/admin/settings/custom_fields/render", locals: {record: @nav_menu_item, field_groups: @nav_menu_item.get_field_groups } %>
     <div class="text-right">
-        <button class="btn btn-primary" type="submit"><%= t("camaleon_cms.admin.button.submit") %> <i class="fa fa-arrow-right"></i></button>
+        <button class="btn btn-primary" type="submit"><%= t("camaleon_cms.admin.button.submit") %> <i class="fas fa-arrow-right"></i></button>
     </div>
 <% end %>

@@ -20,7 +20,7 @@
                 var hz = $(this);
                 var image = $('img', hz);
 
-                image.load(function() {
+                image.on('load', function() {
                     
                     if(s.overlay === true) {
                         $(this).parent().append('<div class="zoomOverlay" />');

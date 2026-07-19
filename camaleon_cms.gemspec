@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'cancancan', '>= 2.0', '< 4'
   s.add_dependency 'dartsass-sprockets'
   s.add_dependency 'draper', '>= 4.0.2'
-  s.add_dependency 'font-awesome-rails'
+  s.add_dependency 'font-awesome-sass', '~> 6.0'
   s.add_dependency 'ipaddress'
   s.add_dependency 'jquery-rails'
   s.add_dependency 'meta-tags', '~> 2.0'
@@ -40,7 +40,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'sprockets-rails', '>= 3.5.1'
   s.add_dependency 'tinymce-rails', '< 5'
   s.add_dependency 'will_paginate'
-  s.add_dependency 'will_paginate-bootstrap'
+  s.add_dependency 'will_paginate-bootstrap4'
 
   # Standard library default gems used explicitly
   s.add_dependency 'net-http'

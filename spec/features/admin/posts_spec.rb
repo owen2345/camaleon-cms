@@ -58,10 +58,10 @@ describe 'Posts workflows for Admin', :js do
 
       within('#form-post') do
         within('#published_from') do
-          find('span.glyphicon.glyphicon-calendar')
+          find('.fas.fa-calendar')
         end
 
-        expect(webfont_icon_fetch_status('glyphicon glyphicon-calendar', 'glyphicons-halflings', 'woff2')).to be(200)
+        expect(webfont_icon_fetch_status('fas fa-calendar', 'fa-solid', 'woff2')).to be(200)
       end
     end
   end

@@ -6,7 +6,7 @@
     </div><br><br>
 
     <% if @children.present? %>
-        <div class="well">
+        <div class="card card-body">
             <%= render partial: "partials/categories_list", locals: {categories: @children } %>
         </div>
     <% end %>

@@ -97,11 +97,11 @@ describe CamaleonCms::CaptchaHelper do
     end
 
     context 'with bootstrap_group_mode enabled' do
-      it 'wraps the image inside a span.input-group-btn' do
+      it 'wraps the image inside a div.input-group-append' do
         result = helper_instance.cama_captcha_tag(5, { alt: '' }, {}, true)
 
         expect(result).to include('input-group input-group-captcha')
-        expect(result).to include(%(<span class="input-group-btn"))
+        expect(result).to include(%(<div class="input-group-append"))
       end
     end
 
