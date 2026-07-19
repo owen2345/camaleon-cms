@@ -412,6 +412,13 @@ RSpec.describe CamaleonCms::UserUrlValidator do
           .to include(I18n.t('camaleon_cms.admin.validate.host_invalid'))
       end
 
+      it 'rejects an out-of-range decimal shorthand hostname (e.g. 192.168.257), including in static mode' do
+        expect(described_class.validate('https://192.168.257/'))
+          .to include(I18n.t('camaleon_cms.admin.validate.host_invalid'))
+        expect(described_class.new.validate('http://192.168.257/callback', resolve: false))
+          .to eql([I18n.t('camaleon_cms.admin.validate.host_invalid')])
+      end
+
       it 'rejects strings with trailing spaces that look like IPs' do
         expect(described_class.validate('https://1.2.3.4 /')).to eql([I18n.t('camaleon_cms.admin.validate.url')])
       end

@@ -220,10 +220,13 @@ module CamaleonCms
     def invalid_decimal_ipv4_hostname?(value)
       return false unless /\A(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))+\z/.match?(value)
 
+      # An all-numeric dotted hostname is only ever meant to be a dotted-quad
+      # IPv4 literal. Reject it when it has too many octets or any out-of-range
+      # octet (regardless of octet count) so an out-of-range shorthand form such
+      # as 192.168.257 cannot slip through as a resolvable name. In-range
+      # shorthand (e.g. 192.168.1) is left to the resolver/category checks.
       octets = value.split('.')
-      return true if octets.length > 4
-
-      octets.length == 4 && octets.any? { |octet| octet.to_i > 255 }
+      octets.length > 4 || octets.any? { |octet| octet.to_i > 255 }
     end
 
     def valid_ip?(value)
