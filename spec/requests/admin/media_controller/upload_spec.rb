@@ -38,6 +38,13 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#upload', type: :request do
       expect(response.body).to include('Invalid file path')
     end
 
+    it 'rejects upload with path traversal after allowed prefix' do
+      allowed = Rails.public_path.to_s
+      post '/admin/media/upload', params: { file_upload: "#{allowed}/../../../etc/passwd" }
+
+      expect(response.body).to include('Invalid file path')
+    end
+
     it 'still accepts legitimate multipart file upload' do
       file = Rack::Test::UploadedFile.new(
         "#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png", 'image/png'

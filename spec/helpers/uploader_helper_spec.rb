@@ -120,12 +120,85 @@ describe CamaleonCms::UploaderHelper do
       expect(upload_file('/etc/hostname')[:error]).to eql('Invalid file path')
     end
 
+    it 'rejects upload_file with a path traversal after an allowed prefix' do
+      allowed = Rails.public_path.to_s
+      traverse = "#{allowed}/../../../etc/passwd"
+      expect(upload_file(traverse)[:error]).to eql('Invalid file path')
+    end
+
     it 'rejects cama_tmp_upload with a raw string path to a system file' do
       expect(cama_tmp_upload('/etc/hostname')[:error]).to eql('Invalid file path')
     end
 
     it 'does not bypass format validation when formats param is nil' do
       expect(upload_file(File.open(@path), { formats: nil }).key?(:error)).not_to eql(true)
+    end
+
+    it 'treats a nil folder as the root folder instead of raising' do
+      expect(upload_file(File.open(@path), { folder: nil }).key?(:error)).not_to be(true)
+    end
+  end
+
+  describe 'host comparison in URL-to-path conversion' do
+    let(:site) { current_site.decorate }
+    let(:helper_obj) { Class.new { include CamaleonCms::UploaderHelper }.new }
+
+    it 'matches same-host URL' do
+      site_url = site.the_url(locale: nil)
+      expect(helper_obj.send(:same_site_url?, "#{site_url}/images/photo.jpg", site)).to be(true)
+    end
+
+    it 'rejects different-host URL' do
+      expect(helper_obj.send(:same_site_url?, 'http://evil.com/images/photo.jpg', site)).to be(false)
+    end
+
+    it 'rejects URL with site hostname only in query string' do
+      expect(helper_obj.send(:same_site_url?, "http://evil.com?url=#{site.the_url(locale: nil)}/path",
+                             site)).to be(false)
+    end
+
+    it 'matches same-host URL whose path contains characters stdlib URI rejects' do
+      site_url = site.the_url(locale: nil)
+      expect(helper_obj.send(:same_site_url?, "#{site_url}/media/my photo.jpg", site)).to be(true)
+      expect(helper_obj.send(:same_site_url?, "#{site_url}/media/café.jpg", site)).to be(true)
+    end
+  end
+
+  describe 'site_url_path (URL-to-local-path conversion)' do
+    let(:helper_obj) { Class.new { include CamaleonCms::UploaderHelper }.new }
+    let(:site) { current_site.decorate }
+
+    def stub_site(url:, languages: ['en'])
+      allow(site).to receive_messages(the_url: url, get_languages: languages)
+      site
+    end
+
+    it 'keeps the path for a single-language, root-mounted site' do
+      s = stub_site(url: 'http://host.com')
+      expect(helper_obj.send(:site_url_path, 'http://host.com/media/1/logo.png', s)).to eq('/media/1/logo.png')
+    end
+
+    it 'strips the mount subpath (relative_url_root) so it maps under public/' do
+      s = stub_site(url: 'http://host.com/blog/')
+      expect(helper_obj.send(:site_url_path, 'http://host.com/blog/media/1/logo.png', s)).to eq('/media/1/logo.png')
+    end
+
+    it 'strips both the mount subpath and the locale prefix when the target file exists' do
+      target = Rails.public_path.join('media', 'loc1', 'logo.png')
+      FileUtils.mkdir_p(target.dirname)
+      File.write(target, 'x')
+      s = stub_site(url: 'http://host.com/blog/', languages: %w[en es])
+      expect(helper_obj.send(:site_url_path, 'http://host.com/blog/es/media/loc1/logo.png', s))
+        .to eq('/media/loc1/logo.png')
+    ensure
+      FileUtils.rm_rf(Rails.public_path.join('media', 'loc1'))
+    end
+
+    it 'keeps a real first segment matching a locale code when the stripped path has no file' do
+      s = stub_site(url: 'http://host.com/', languages: %w[en es])
+      # public/es/report.png is the real asset; public/report.png does not exist
+      expect(helper_obj.send(:site_url_path, 'http://host.com/es/report.png', s))
+        .to eq('/es/report.png')
     end
   end
 

@@ -71,11 +71,15 @@ module CamaleonCms
         when 'crop_url'
           user_url = params[:url].to_s
           user_url = "#{current_site.the_url(locale: nil)}#{user_url}" unless user_url.start_with?('data:', 'http')
-          url_validation_result = UserUrlValidator.validate(user_url)
-          r = if url_validation_result.is_a?(Array)
-                { error: url_validation_result.join(', ') }
-              else
+          r = if user_url.start_with?('data:')
                 cama_tmp_upload(user_url, formats: params[:formats], name: params[:name])
+              else
+                url_validation_result = UserUrlValidator.validate(user_url, reject_path_traversal: true)
+                if url_validation_result.is_a?(Array)
+                  { error: url_validation_result.join(', ') }
+                else
+                  cama_tmp_upload(user_url, formats: params[:formats], name: params[:name])
+                end
               end
           if r[:error].blank?
             params[:file_upload] = r[:file_path]

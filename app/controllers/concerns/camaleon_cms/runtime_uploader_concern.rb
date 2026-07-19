@@ -7,6 +7,7 @@ module CamaleonCms
     extend ActiveSupport::Concern
 
     include UploaderContentSecurity
+    include UploaderPathSecurity
 
     def upload_file(uploaded_io, settings = {})
       cached_name = uploaded_io.is_a?(ActionDispatch::Http::UploadedFile) ? uploaded_io.original_filename : nil
@@ -20,8 +21,10 @@ module CamaleonCms
         uploaded_io = tmp[:file_path]
       end
       if uploaded_io.is_a?(String)
-        allowed_prefixes = [Rails.public_path.to_s, Dir.tmpdir]
-        return { error: 'Invalid file path' } unless allowed_prefixes.any? { |p| uploaded_io.start_with?(p) }
+        expanded = cama_canonical_upload_path(uploaded_io)
+        return { error: 'Invalid file path' } unless expanded
+
+        uploaded_io = expanded
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
       if settings[:dimension].present?
@@ -50,6 +53,7 @@ module CamaleonCms
         thumb_size: nil
       }.merge!(settings)
       settings[:formats] = '*' if settings[:formats].nil?
+      settings[:folder] = '' if settings[:folder].nil? # e.g. crop_url passes no folder
       hooks_run('before_upload', settings)
 
       return { error: 'Invalid file path' } unless cama_uploader.valid_folder_path?(settings[:folder])
@@ -194,13 +198,18 @@ module CamaleonCms
       saved = false
       downloaded_tmp_file = nil
       if uploaded_io.is_a?(String) && uploaded_io.start_with?('data:')
-        _tmp_name = args[:name]
         return { error: I18n.t('camaleon_cms.admin.media.name_required').to_s } if params[:name].blank?
+
+        # Strip any directory components so a hostile name (e.g. "../../etc/x")
+        # cannot escape tmp_path when the base64 payload is written below.
+        _tmp_name = File.basename(args[:name].to_s)
 
         err = validate_file_format_or_error(_tmp_name, args[:formats])
         return err if err
 
         path = uploader_verify_name(File.join(tmp_path, _tmp_name))
+        return { error: 'Invalid file path' } unless path_within?(path, tmp_path)
+
         File.open(path, 'wb') { |f| f.write(Base64.decode64(uploaded_io.split(';base64,').last)) }
         uploaded_io = File.open(path)
         saved = true
@@ -208,8 +217,8 @@ module CamaleonCms
         err = validate_file_format_or_error(uploaded_io, args[:formats])
         return err if err
 
-        if uploaded_io.include?(current_site.the_url(locale: nil))
-          uploaded_io = File.join(Rails.public_path, uploaded_io.sub(current_site.the_url(locale: nil), '')).to_s
+        if same_site_url?(uploaded_io, current_site)
+          uploaded_io = File.join(Rails.public_path, site_url_path(uploaded_io, current_site)).to_s
         else
           remote_file = cama_download_remote_file(uploaded_io)
           return remote_file if remote_file[:error].present?
@@ -225,8 +234,10 @@ module CamaleonCms
         args[:name] = args[:name] || _tmp_name
       end
       if uploaded_io.is_a?(String)
-        allowed_prefixes = [Rails.public_path.to_s, Dir.tmpdir]
-        return { error: 'Invalid file path' } unless allowed_prefixes.any? { |p| uploaded_io.start_with?(p) }
+        expanded = cama_canonical_upload_path(uploaded_io)
+        return { error: 'Invalid file path' } unless expanded
+
+        uploaded_io = expanded
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
       err = validate_file_format_or_error(_tmp_name || uploaded_io.path, args[:formats])
