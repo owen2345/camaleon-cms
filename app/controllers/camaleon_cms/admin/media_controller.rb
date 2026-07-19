@@ -76,15 +76,11 @@ module CamaleonCms
         when 'crop_url'
           user_url = params[:url].to_s
           user_url = "#{current_site.the_url(locale: nil)}#{user_url}" unless user_url.start_with?('data:', 'http')
-          r = if user_url.start_with?('data:')
-                cama_tmp_upload(user_url, formats: params[:formats], name: params[:name])
+          url_error = cama_upload_url_error(user_url)
+          r = if url_error
+                { error: url_error }
               else
-                url_validation_result = UserUrlValidator.validate(user_url, reject_path_traversal: true)
-                if url_validation_result.is_a?(Array)
-                  { error: url_validation_result.join(', ') }
-                else
-                  cama_tmp_upload(user_url, formats: params[:formats], name: params[:name])
-                end
+                cama_tmp_upload(user_url, formats: params[:formats], name: params[:name])
               end
           if r[:error].blank?
             params[:file_upload] = r[:file_path]
@@ -105,6 +101,10 @@ module CamaleonCms
         params[:dimension] = nil if params[:skip_auto_crop].present?
         f = { error: 'File not found.' }
         if params[:file_upload].present?
+          if params[:file_upload].is_a?(String) && (url_error = cama_upload_url_error(params[:file_upload]))
+            return render plain: helpers.sanitize(url_error)
+          end
+
           f = upload_file(
             params[:file_upload],
             {

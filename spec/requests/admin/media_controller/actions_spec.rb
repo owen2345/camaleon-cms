@@ -43,6 +43,16 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#actions', type: :request d
       end
     end
 
+    context 'when crop_url action receives a URL resolving to a link-local address' do
+      it 'rejects it via UserUrlValidator without downloading' do
+        expect_any_instance_of(described_class).not_to receive(:cama_tmp_upload)
+        post '/admin/media/actions',
+             params: { media_action: 'crop_url', url: 'http://169.254.169.254/latest/meta-data/' }
+
+        expect(response.body).to include(I18n.t('camaleon_cms.admin.validate.no_link_local_net_requests'))
+      end
+    end
+
     context 'when crop_url action with a data: URI whose name contains path traversal' do
       # tmp_path is public/tmp/<site.id>, so "../cama_pwn_test.png" would escape one
       # level up to public/tmp/ before the fix stripped the name to its basename.
