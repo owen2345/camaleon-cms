@@ -27,3 +27,7 @@ The crop controller action SHALL validate user-supplied URLs via `cama_upload_ur
 #### Scenario: data: URI passes through without controller-level validation
 - **WHEN** the crop action receives `cp_img_path` set to a data URI
 - **THEN** the action SHALL pass the URI (with `name`/`formats`) directly to `cama_tmp_upload` without URL validation (existing `cama_tmp_upload` guards handle it)
+
+#### Scenario: name and formats parameters are forwarded to cama_tmp_upload
+- **WHEN** the crop action receives `cp_img_path` set to a data URI together with `name` and `formats` parameters
+- **THEN** the action SHALL pass all three parameters (`cp_img_path`, `name`, `formats`) to `cama_tmp_upload`, matching the `crop_url` calling convention

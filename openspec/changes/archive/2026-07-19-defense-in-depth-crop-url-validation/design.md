@@ -18,11 +18,11 @@ While internal guards in `cama_tmp_upload` (`cama_canonical_upload_path`) curren
 
 ## Decisions
 
-**Decision 1: Validate at the controller level, not in the concern.**
-The validation should mirror `crop_url`'s pattern exactly: check in the action before the delegation call. This keeps the defense close to the entry point and consistent within the same controller. Adding it to `cama_tmp_upload` would be redundant (the canonicalization guard already lives there) and would alter a shared method used by multiple callers.
+**Decision 1: Extract a shared `cama_upload_url_error` helper in the concern, called by all three upload entry points.**
+The core validation logic lives in `cama_upload_url_error` in `RuntimeUploaderConcern` so that `crop`, `crop_url`, and `upload` all use identical validation. The decision to validate (and the render of the error) still happens at the controller level — the helper just avoids duplicating the `UserUrlValidator` parameter tuning across three actions.
 
-**Decision 2: Use `UserUrlValidator.validate` with `reject_path_traversal: true`.**
-This is the same validator and option used by `crop_url`. It catches `..` segments in the URL path, including percent-encoded forms like `%2e%2e`. Reusing the same call ensures consistent behavior between the two actions.
+**Decision 2: Use `UserUrlValidator.validate` with `reject_path_traversal: true`, tuning options for same-site vs remote URLs.**
+For **same-site URLs** (detected by `same_site_url?`), the helper passes `resolve: false, enforce_sanitizing: false, enforce_user: false, allow_localhost: true, allow_local_network: true` — this skips DNS/SSRF checks because the file is read from the local filesystem, but still checks path traversal. For **remote URLs**, full validation (DNS resolution, SSRF guards, HTML sanitization) runs via the default parameters.
 
 **Decision 3: Only validate HTTP/HTTPS URLs.**
 Non-URL inputs (absolute paths, data URIs) cannot have hostnames and are handled by other means:
@@ -31,5 +31,5 @@ Non-URL inputs (absolute paths, data URIs) cannot have hostnames and are handled
 
 ## Risks / Trade-offs
 
-- **[Low] Double validation for same-origin URLs**: When `cp_img_path` is a same-origin HTTP URL, it will be validated in `crop` and then again inside `cama_tmp_upload`'s `cama_download_remote_file` path (if the URL is classified as remote). This is acceptable — validation is cheap and defense-in-depth is the goal.
+- **[Low] Same-site URLs skip DNS resolution**: The helper distinguishes same-site from remote URLs. Same-site URLs are read from the local filesystem, so SSRF/DNS checks would be irrelevant — the lighter validation (`resolve: false, allow_localhost: true`) prevents false rejection of legitimate local URLs and is safe because the file is only read, not fetched remotely.
 - **[Very Low] Behavior change for invalid URLs**: Previously, an invalid URL would reach `cama_tmp_upload` and return `"Invalid file path"`. With this change, it will return the `UserUrlValidator` error message instead. This is a more informative error and the contract is unchanged for valid inputs.

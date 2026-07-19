@@ -1,14 +1,16 @@
 ## 1. Core Implementation
 
-- [x] 1.1 Add URL validation to the `crop` action: wrap the `cama_tmp_upload` call with a guard that validates HTTP/HTTPS URLs via `UserUrlValidator.validate(url, reject_path_traversal: true)`, returning a bad request error for invalid URLs. Non-URL paths and data URIs pass through unchanged.
+- [x] 1.1 Extract `cama_upload_url_error` helper in `RuntimeUploaderConcern` that validates HTTP/HTTPS URLs via `UserUrlValidator.validate` with `reject_path_traversal: true`, tuning parameters for same-site (no DNS/SSRF) vs remote URLs. Wire it into `crop`, `crop_url`, and `upload` actions. Non-URL paths and data URIs pass through unchanged.
 
 ## 2. Testing
 
 - [x] 2.1 Add request specs for `crop` action URL validation covering:
       - Valid same-origin HTTP URL passes through
-      - HTTP URL with `..` path segments is rejected
+      - Same-origin HTTP URL with `..` path segments is rejected
+      - Remote HTTP URL with link-local address is rejected
       - Non-URL path is passed through (no controller-level validation)
       - data: URI is passed through (no controller-level validation)
+      - name and formats are forwarded to cama_tmp_upload
 
 ## 3. Verification
 
