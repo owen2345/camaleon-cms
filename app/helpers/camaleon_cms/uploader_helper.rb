@@ -4,8 +4,9 @@ require 'net/http'
 require 'tempfile'
 
 module CamaleonCms
-  module UploaderHelper # rubocop:disable Metrics/ModuleLength
+  module UploaderHelper
     include UploaderContentSecurity
+    include UploaderPathSecurity
     include ActionView::Helpers::NumberHelper
     include CamaleonCms::CamaleonHelper
 
@@ -41,15 +42,8 @@ module CamaleonCms
         uploaded_io = tmp[:file_path]
       end
       if uploaded_io.is_a?(String)
-        expanded = begin
-          File.expand_path(uploaded_io)
-        rescue ArgumentError, TypeError
-          return { error: 'Invalid file path' }
-        end
-        roots = [Rails.public_path.to_s, Dir.tmpdir]
-        unless roots.any? { |r| expanded == r || expanded.start_with?(r + File::SEPARATOR) }
-          return { error: 'Invalid file path' }
-        end
+        expanded = cama_canonical_upload_path(uploaded_io)
+        return { error: 'Invalid file path' } unless expanded
 
         uploaded_io = expanded
       end
@@ -271,7 +265,7 @@ module CamaleonCms
     #   formats: extensions permitted, sample: jpg,png,... or generic: images | videos | audios | documents (default *)
     #   dimension: 20x30
     # return: {file_path, error}
-    def cama_tmp_upload(uploaded_io, args = {}) # rubocop:disable Metrics/PerceivedComplexity
+    def cama_tmp_upload(uploaded_io, args = {})
       tmp_path = args[:path] || File.join(Rails.public_path, 'tmp', current_site.id.to_s).to_s
       FileUtils.mkdir_p(tmp_path)
       saved = false
@@ -308,15 +302,8 @@ module CamaleonCms
         args[:name] = args[:name] || _tmp_name
       end
       if uploaded_io.is_a?(String)
-        expanded = begin
-          File.expand_path(uploaded_io)
-        rescue ArgumentError, TypeError
-          return { error: 'Invalid file path' }
-        end
-        roots = [Rails.public_path.to_s, Dir.tmpdir]
-        unless roots.any? { |r| expanded == r || expanded.start_with?(r + File::SEPARATOR) }
-          return { error: 'Invalid file path' }
-        end
+        expanded = cama_canonical_upload_path(uploaded_io)
+        return { error: 'Invalid file path' } unless expanded
 
         uploaded_io = expanded
       end
@@ -475,24 +462,6 @@ module CamaleonCms
       return if cama_uploader.class.validate_file_format(file, formats)
 
       { error: "#{ct('file_format_error')} (#{formats})" }
-    end
-
-    def same_site_url?(url, site)
-      uri = URI.parse(url)
-      site_uri = URI.parse(site.the_url(locale: nil))
-      uri.host == site_uri.host && uri.port == site_uri.port
-    rescue URI::InvalidURIError
-      false
-    end
-
-    def site_url_path(url, site)
-      uri = URI.parse(url)
-      path = uri.path
-      langs = site.get_languages
-      path = path.sub(%r{\A/(?:#{Regexp.union(langs.map(&:to_s))})(?=/|$)}, '') if langs.size > 1
-      path
-    rescue URI::InvalidURIError
-      url
     end
   end
 end

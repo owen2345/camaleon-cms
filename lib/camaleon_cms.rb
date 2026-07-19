@@ -4,6 +4,7 @@ require 'camaleon_cms/content_security'
 require 'camaleon_cms/svg_content_checker'
 require 'camaleon_cms/media_security_headers'
 require 'camaleon_cms/uploader_content_security'
+require 'camaleon_cms/uploader_path_security'
 
 module CamaleonCms
 end
