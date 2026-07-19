@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security fix:** Add defense-in-depth URL validation to the crop action — validate user-supplied HTTP/HTTPS URLs via `UserUrlValidator` with path traversal detection before passing them to the temporary upload pipeline, matching the existing crop_url validation. [#1203](https://github.com/owen2345/camaleon-cms/pull/1203) — thanks, Theodosis Paidakis, for reporting this.
+
 - **Security fix:** Fix path traversal bypass in file upload guards — canonicalize paths with `File.expand_path` before prefix validation at all 4 sink locations, replace substring-based site URL detection with host+port comparison, harden the `data:` upload branch against `name`-based traversal writes, and add path traversal detection to `UserUrlValidator`. Also fixes the data URI upload regression from #1198 and a `crop_url` crash on uploads without a folder, extracts the shared guard logic into `UploaderPathSecurity`, and bumps `loofah` to 2.25.2 and `rails-html-sanitizer` to 1.7.1. [#1201](https://github.com/owen2345/camaleon-cms/pull/1201) — thanks, Jose Rivas (Zero Trust Offsec), for reporting this.
 
 - **Security fix:** Fix SVG stored XSS via Nokogiri parse-based detection — replace regex denylist for SVG uploads with XML parser that resolves entities, blocks `script`/`on*`/`javascript:`/`data:`/embed tags, and disable XXE via `nonet`. Add Rack middleware serving SVGs under `/media/` with `X-Content-Type-Options: nosniff` and `Content-Security-Policy: script-src 'none'`, [#1199](https://github.com/owen2345/camaleon-cms/pull/1199) — thanks, Jose Rivas (Zero Trust Offsec), for reporting this.
