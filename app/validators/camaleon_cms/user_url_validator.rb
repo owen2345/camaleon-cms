@@ -292,7 +292,7 @@ module CamaleonCms
       validate_static_local_network(ip)
       validate_static_link_local(ip)
       validate_static_shared_address(ip)
-      validate_static_limited_broadcast(hostname)
+      validate_static_limited_broadcast(ip)
     end
 
     def validate_static_localhost(hostname, ip)
@@ -321,8 +321,8 @@ module CamaleonCms
       @errors << I18n.t('camaleon_cms.admin.validate.no_shared_address_requests')
     end
 
-    def validate_static_limited_broadcast(hostname)
-      return unless limited_broadcast_ip?(IPAddr.new(hostname))
+    def validate_static_limited_broadcast(ip)
+      return unless limited_broadcast_ip?(ip)
 
       @errors << I18n.t('camaleon_cms.admin.validate.no_limited_broadcast_address_requests')
     end

@@ -461,6 +461,13 @@ RSpec.describe CamaleonCms::UserUrlValidator do
           .to eql([I18n.t('camaleon_cms.admin.validate.no_localhost_requests')])
       end
 
+      it 'blocks the limited broadcast address, including its IPv4-mapped IPv6 form' do
+        expect(described_class.new.validate('http://255.255.255.255/callback', resolve: false))
+          .to eql([I18n.t('camaleon_cms.admin.validate.no_limited_broadcast_address_requests')])
+        expect(described_class.new.validate('http://[::ffff:255.255.255.255]/callback', resolve: false))
+          .to eql([I18n.t('camaleon_cms.admin.validate.no_limited_broadcast_address_requests')])
+      end
+
       it 'allows nil hostname URLs without raising' do
         expect(described_class.new.validate('authenticator://oauth/callback', resolve: false))
           .to be(true)
