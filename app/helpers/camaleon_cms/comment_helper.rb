@@ -34,7 +34,10 @@ module CamaleonCms
               [
                 content_tag(:h4, class: 'media-heading') do
                   [
-                    author.the_name,
+                    # Escape the author name: User first_name/last_name are no longer sanitized at
+                    # save time and this heading is marked html_safe below, so a commenter-controlled
+                    # name would otherwise be injected as raw HTML into the moderator's page.
+                    ERB::Util.html_escape(author.the_name),
                     ' ',
                     content_tag(:small, comment.the_created_at),
                     ' ',
