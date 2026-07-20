@@ -4,8 +4,12 @@ module CamaleonCms
     delegate_all
 
     # return the title for current locale
+    # The name is HTML-escaped here (like PostDecorator#the_title) because taxonomy
+    # names are plain text yet are rendered through `raw`/`html_safe` sinks such as
+    # the breadcrumb builder and the nav menu, so escaping at the source prevents
+    # stored XSS via category/tag/post_type/site names.
     def the_title(locale = nil)
-      r = { title: object.name.translate(get_locale(locale)), object: object }
+      r = { title: h.h(object.name.to_s.translate(get_locale(locale))), object: object }
       begin
         h.hooks_run('taxonomy_the_title', r)
       rescue StandardError
