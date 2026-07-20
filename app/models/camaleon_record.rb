@@ -1,9 +1,24 @@
 # frozen_string_literal: true
 
 class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRecord
-  TRANSLATION_TAG_HIDE_MAP = { '<!--' => '!--', '-->' => '--!' }.freeze
+  # Sentinels used to shield HTML comment delimiters (the translation locale markers such as `<!--:en-->`)
+  # from ActionController's sanitize(), which strips HTML comments. Private-Use-Area code points are used so
+  # that plain text typed by a user can never be rewritten into a comment delimiter after sanitization: the
+  # previous `!--`/`--!` tokens collided with ordinary text (e.g. "Read more !--"), so the restore pass would
+  # inject stray `<!--`/`-->` into the output. The hide map also strips any raw sentinel characters supplied
+  # in the input, so they cannot be smuggled through to become delimiters on restore.
+  TRANSLATION_TAG_HIDE_SENTINELS = { open: "\u{E000}", close: "\u{E001}" }.freeze
+  TRANSLATION_TAG_HIDE_MAP = {
+    '<!--' => TRANSLATION_TAG_HIDE_SENTINELS[:open],
+    '-->' => TRANSLATION_TAG_HIDE_SENTINELS[:close],
+    TRANSLATION_TAG_HIDE_SENTINELS[:open] => '',
+    TRANSLATION_TAG_HIDE_SENTINELS[:close] => ''
+  }.freeze
   TRANSLATION_TAG_HIDE_REGEX = Regexp.new(TRANSLATION_TAG_HIDE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
-  TRANSLATION_TAG_RESTORE_MAP = { '--!' => '-->', '!--' => '<!--' }.freeze
+  TRANSLATION_TAG_RESTORE_MAP = {
+    TRANSLATION_TAG_HIDE_SENTINELS[:open] => '<!--',
+    TRANSLATION_TAG_HIDE_SENTINELS[:close] => '-->'
+  }.freeze
   TRANSLATION_TAG_RESTORE_REGEX =
     Regexp.new(TRANSLATION_TAG_RESTORE_MAP.keys.map { |x| Regexp.escape(x) }.join('|')).freeze
 

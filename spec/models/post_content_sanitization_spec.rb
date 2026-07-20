@@ -90,6 +90,32 @@ RSpec.describe CamaleonCms::Post, type: :model do
       end
     end
 
+    context 'translation-tag handling for untrusted content' do
+      it 'does not turn literal !-- / --! typed by a user into HTML comment delimiters' do
+        assign_current_user(contributor)
+
+        post = create(:post, post_type: post_type, owner: contributor,
+                             content: '<p>Big Sale !-- 50% off --!</p>')
+
+        expect(post.content).not_to include('<!--')
+        expect(post.content).not_to include('-->')
+        expect(post.content).to include('!--')
+        expect(post.content).to include('--!')
+      end
+
+      it 'preserves multilingual locale markers through sanitization' do
+        assign_current_user(contributor)
+
+        post = create(:post, post_type: post_type, owner: contributor,
+                             content: '<!--:en-->Hello<!--:--><!--:es-->Hola<!--:-->')
+
+        expect(post.content).to include('<!--:en-->')
+        expect(post.content).to include('<!--:es-->')
+        expect(post.content).to include('Hello')
+        expect(post.content).to include('Hola')
+      end
+    end
+
     context 'when user context is absent' do
       it 'applies sanitization with no user set (fail-safe)' do
         CurrentRequest.user = nil
