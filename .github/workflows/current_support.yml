@@ -23,7 +23,7 @@ jobs:
         uses: nanasess/setup-chromedriver@v3
 
       - name: Setup Ruby and install gems
-        uses: ruby/setup-ruby@8e41b362d2589a22a44c1cfa214b3c83052c195b
+        uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600
         with:
           bundler-cache: true
           ruby-version: ${{ matrix.ruby }}
