@@ -274,9 +274,7 @@ module CamaleonCms
       # building an Ability (a role-meta DB lookup) on every save.
       return if trusted_for_unfiltered_html?
 
-      self.content = ActionController::Base.helpers.sanitize(
-        content.to_s.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
-      ).gsub(CamaleonRecord::TRANSLATION_TAG_RESTORE_REGEX, CamaleonRecord::TRANSLATION_TAG_RESTORE_MAP)
+      self.content = CamaleonRecord.cama_sanitize_translatable(content)
     end
 
     # calculate a post order when it is empty

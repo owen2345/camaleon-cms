@@ -24,6 +24,17 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
 
   self.abstract_class = true
 
+  # Sanitize a value with ActionController's sanitize() while preserving translation locale markers
+  # (<!--:xx-->). Shared by Post#sanitize_content and the NormalizeAttrs concern so the transform lives in
+  # one place. Returns nil unchanged.
+  def self.cama_sanitize_translatable(value)
+    return value if value.nil?
+
+    ActionController::Base.helpers.sanitize(
+      value.to_s.gsub(TRANSLATION_TAG_HIDE_REGEX, TRANSLATION_TAG_HIDE_MAP)
+    ).gsub(TRANSLATION_TAG_RESTORE_REGEX, TRANSLATION_TAG_RESTORE_MAP)
+  end
+
   def self.polymorphic_name
     return super unless name.to_s.start_with?('CamaleonCms::')
 
