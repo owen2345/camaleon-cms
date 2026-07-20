@@ -5,6 +5,8 @@ module CamaleonCms
     alias_attribute :post_type_id, :taxonomy_id
     default_scope -> { where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
 
+    before_validation :sanitize_content, on: %i[create update], unless: :trusted_for_unfiltered_html?
+
     # DEPRECATED
     has_many :post_relationships, class_name: 'CamaleonCms::PostRelationship', foreign_key: :objectid,
                                   dependent: :destroy, inverse_of: :post
@@ -253,6 +255,22 @@ module CamaleonCms
     end
 
     private
+
+    def trusted_for_unfiltered_html?
+      user = CurrentRequest.user
+      return false if user.blank?
+
+      CamaleonCms::Ability.new(user, CurrentRequest.site).can?(:post_unfiltered_html, post_type)
+    end
+
+    def sanitize_content
+      return unless attribute_changed?(:content) || new_record?
+      return if content.blank?
+
+      self.content = ActionController::Base.helpers.sanitize(
+        content.to_s.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
+      ).gsub(CamaleonRecord::TRANSLATION_TAG_RESTORE_REGEX, CamaleonRecord::TRANSLATION_TAG_RESTORE_MAP)
+    end
 
     # calculate a post order when it is empty
     def fix_post_order

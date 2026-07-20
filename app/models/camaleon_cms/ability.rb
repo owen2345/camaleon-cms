@@ -54,6 +54,10 @@ module CamaleonCms
         safe_can :post_tags, CamaleonCms::PostType do |pt|
           @roles_post_type[:manage_tags].to_i.include?(pt.id)
         end
+        safe_can :post_unfiltered_html, CamaleonCms::PostType do |pt|
+          ids_unfiltered = @roles_post_type[:allow_unfiltered_html] || []
+          ids_unfiltered.to_i.include?(pt.id)
+        end
 
         safe_can :update, CamaleonCms::Post do |post|
           pt_id = post.post_type.id

@@ -6,7 +6,5 @@ module CamaleonCms
     belongs_to :owner, polymorphic: true, foreign_key: :objectid, foreign_type: :object_class, optional: true
 
     extend CamaleonCms::NormalizeAttrs
-
-    normalize_attrs(:value)
   end
 end

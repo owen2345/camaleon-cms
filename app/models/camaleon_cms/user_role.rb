@@ -1,6 +1,6 @@
 module CamaleonCms
   class UserRole < CamaleonCms::TermTaxonomy
-    normalize_attrs(:name, :description)
+    normalize_attrs(:description)
 
     def self.sti_name
       'user_roles'
@@ -84,6 +84,14 @@ module CamaleonCms
           label: I18n.t('camaleon_cms.admin.users.roles_values.html_manage_tags').to_s,
           color: 'warning',
           description: I18n.t('camaleon_cms.admin.users.tool_tip.manage_tags').to_s
+        },
+        {
+          key: 'allow_unfiltered_html',
+          label: I18n.t('camaleon_cms.admin.users.roles_values.allow_unfiltered_html',
+                        default: 'Allow unfiltered HTML').to_s,
+          color: 'danger',
+          description: I18n.t('camaleon_cms.admin.users.tool_tip.allow_unfiltered_html',
+                              default: 'Permit users with this role to save raw/unfiltered HTML in post content').to_s
         }
       ],
       manager: [

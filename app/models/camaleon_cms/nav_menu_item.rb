@@ -1,6 +1,6 @@
 module CamaleonCms
   class NavMenuItem < CamaleonCms::TermTaxonomy
-    normalize_attrs(:name, :description)
+    normalize_attrs(:description)
 
     alias_attribute :site_id, :term_group
     alias_attribute :label, :name
