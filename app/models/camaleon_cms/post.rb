@@ -5,7 +5,7 @@ module CamaleonCms
     alias_attribute :post_type_id, :taxonomy_id
     default_scope -> { where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
 
-    before_validation :sanitize_content, on: %i[create update], unless: :trusted_for_unfiltered_html?
+    before_validation :sanitize_content, on: %i[create update]
 
     # DEPRECATED
     has_many :post_relationships, class_name: 'CamaleonCms::PostRelationship', foreign_key: :objectid,
@@ -268,8 +268,11 @@ module CamaleonCms
     end
 
     def sanitize_content
-      return unless attribute_changed?(:content) || new_record?
+      return unless new_record? || attribute_changed?(:content)
       return if content.blank?
+      # Check trust only once we know there is content to sanitize, so unchanged/blank updates never pay for
+      # building an Ability (a role-meta DB lookup) on every save.
+      return if trusted_for_unfiltered_html?
 
       self.content = ActionController::Base.helpers.sanitize(
         content.to_s.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
