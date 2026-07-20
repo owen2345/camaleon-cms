@@ -49,7 +49,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
         post = create(:post, post_type: post_type, owner: contributor,
                              content: '<img src="x.png" onerror="alert(1)">')
         expect(post.content).not_to include('onerror')
-        expect(post.content).to include('src')
+        expect(post.content).to include('src="x.png"')
       end
 
       it 'preserves safe HTML tags' do
@@ -127,7 +127,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
       end
     end
 
-    context 'translation-tag handling for untrusted content' do
+    context 'with translation tags in untrusted content' do
       it 'does not turn literal !-- / --! typed by a user into HTML comment delimiters' do
         assign_current_user(contributor)
 
