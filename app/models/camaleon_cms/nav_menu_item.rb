@@ -1,6 +1,10 @@
 module CamaleonCms
   class NavMenuItem < CamaleonCms::TermTaxonomy
-    normalize_attrs(:description)
+    # NavMenuItem#name (the menu label) is the one "name" field that is rendered as raw/trusted HTML
+    # (see CamaleonCms::Frontend::NavMenuHelper#cama_menu_draw_items), unlike other model names which are
+    # ERB-auto-escaped. It therefore keeps save-time sanitization: safe formatting (icons, spans) is preserved
+    # while scripts and event handlers are stripped, preventing stored XSS from menu managers.
+    normalize_attrs(:name, :description)
 
     alias_attribute :site_id, :term_group
     alias_attribute :label, :name
