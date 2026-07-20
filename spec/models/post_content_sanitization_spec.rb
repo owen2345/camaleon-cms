@@ -100,5 +100,20 @@ RSpec.describe CamaleonCms::Post, type: :model do
         expect(post.content).to include('<p>Text</p>')
       end
     end
+
+    context 'when a non-admin user is present but site context is absent' do
+      it 'sanitizes instead of raising (fail-safe, e.g. background jobs)' do
+        CurrentRequest.user = contributor
+        CurrentRequest.site = nil
+
+        post = nil
+        expect do
+          post = create(:post, post_type: post_type, owner: contributor,
+                               content: '<p>Text</p><script>alert(1)</script>')
+        end.not_to raise_error
+        expect(post.content).not_to include('<script>')
+        expect(post.content).to include('<p>Text</p>')
+      end
+    end
   end
 end

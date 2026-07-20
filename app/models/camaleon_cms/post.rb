@@ -258,9 +258,13 @@ module CamaleonCms
 
     def trusted_for_unfiltered_html?
       user = CurrentRequest.user
-      return false if user.blank?
+      site = CurrentRequest.site
+      # Fail closed (sanitize) when either user or site context is missing - e.g. background jobs, rake tasks
+      # or the console. Guarding the site too avoids a NoMethodError from Ability#initialize (which dereferences
+      # the site for non-admin users) that would otherwise abort the whole save.
+      return false if user.blank? || site.blank?
 
-      CamaleonCms::Ability.new(user, CurrentRequest.site).can?(:post_unfiltered_html, post_type)
+      CamaleonCms::Ability.new(user, site).can?(:post_unfiltered_html, post_type)
     end
 
     def sanitize_content
