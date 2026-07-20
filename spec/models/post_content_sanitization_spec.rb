@@ -90,6 +90,43 @@ RSpec.describe CamaleonCms::Post, type: :model do
       end
     end
 
+    context 'when a non-admin role has allow_unfiltered_html enabled for the post type' do
+      let(:editor) { create(:user, role: 'editor', site: site) }
+
+      before do
+        site.user_roles.find_by(slug: 'editor')
+            .set_meta("_post_type_#{site.id}", edit: [post_type.id], allow_unfiltered_html: [post_type.id])
+      end
+
+      it 'preserves script tags via the post_unfiltered_html ability rule (not admin manage:all)' do
+        assign_current_user(editor)
+
+        post = create(:post, post_type: post_type, owner: editor,
+                             content: '<p>Content</p><script>validAppCode()</script>')
+
+        expect(post.content).to include('<script>')
+        expect(post.content).to include('validAppCode()')
+      end
+    end
+
+    context 'when a non-admin role lacks allow_unfiltered_html for the post type' do
+      let(:editor) { create(:user, role: 'editor', site: site) }
+
+      before do
+        site.user_roles.find_by(slug: 'editor').set_meta("_post_type_#{site.id}", edit: [post_type.id])
+      end
+
+      it 'sanitizes script tags for an editor without the permission' do
+        assign_current_user(editor)
+
+        post = create(:post, post_type: post_type, owner: editor,
+                             content: '<p>Content</p><script>alert(1)</script>')
+
+        expect(post.content).not_to include('<script>')
+        expect(post.content).to include('<p>Content</p>')
+      end
+    end
+
     context 'translation-tag handling for untrusted content' do
       it 'does not turn literal !-- / --! typed by a user into HTML comment delimiters' do
         assign_current_user(contributor)
