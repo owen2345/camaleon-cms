@@ -30,4 +30,4 @@
 - [x] 5.1 Grep the repo (excluding `.git/`, `openspec/changes/`) for references to the eight deleted paths and the removed section pointers ("Step 4", `docs/ai/quality/`, `docs/ai/knowledge/`, `docs/ai/decisions/`) — zero hits outside git history
 - [x] 5.2 Verify every file path referenced in AGENTS.md and the five surviving docs exists, and each execution rule (spec/dummy, coverage, security repro, phased refactor) is stated normatively in exactly one file
 - [x] 5.3 Confirm `agent-guidance-openspec-integration` spec requirements still hold against the rewritten AGENTS.md (OpenSpec routing present, AGENTS.md authoritative for execution guidance)
-- [ ] 5.4 Commit as a single docs-only commit with `[skip ci]` per workflows.md Phase 3, and add the changelog entry after the PR is created per Phase 4
+- [x] 5.4 Commit as a single docs-only commit with `[skip ci]` per workflows.md Phase 3, and add the changelog entry after the PR is created per Phase 4
