@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Developer tooling:** Restructure AGENTS.md docs tree for progressive disclosure — remove never-used knowledge/decision/quality-gate process docs superseded by OpenSpec, consolidate reference docs, and add a `CLAUDE.md` import shim, [#1208](https://github.com/owen2345/camaleon-cms/pull/1208)
+
 - **Developer tooling:** Add OpenSpec skills for Claude, [#1193](https://github.com/owen2345/camaleon-cms/pull/1207)
 
 - **Security fix:** Fix stored XSS via unsanitized post content — add server-side HTML sanitization to `Post#content` at save time with role-based allowlisting (new `allow_unfiltered_html` permission key), so untrusted contributors cannot inject arbitrary scripts into `raw @post.the_content` template output. Also fix data loss from `normalize_attrs` on plain-text and structured-data fields (Meta#value, User#name, Site#name, etc.) where `sanitize()` silently stripped angle-bracket content such as `email_from: "Name <user@domain.com>"`. Additional hardening from code review: escape taxonomy names in `TermTaxonomyDecorator#the_title` and keep save-time sanitization on `NavMenuItem#name` (both reach `raw`/`html_safe` breadcrumb and nav-menu sinks), escape commenter names in the admin comment-moderation view, exclude `allow_unfiltered_html` from the default Editor role so only admins bypass sanitization, fail closed (sanitize) when the site context is missing instead of raising, and replace the `!--`/`--!` translation-tag sentinels with collision-resistant markers so user-typed text can no longer inject stray HTML comment delimiters. [#1206](https://github.com/owen2345/camaleon-cms/pull/1206) — thanks, Theodosis Paidakis, for reporting this.
