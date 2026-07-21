@@ -1,21 +1,17 @@
 # Workflows
 
-## Phase 1: Branch Initialization & Context (MANDATORY)
-**You must perform these steps before writing any code:**
+## Phase 1: Branch Initialization (MANDATORY)
 
-1.  **Sync & Branch:**
-    - Ensure you are on the latest `master`.
-    - Create a new branch: `git checkout -b <type>/<brief-description>`.
-    - *Protocol:* Announce the branch name to the user immediately.
-2.  **Context Gathering (Task Lifecycle Triggers):**
-    - Check `docs/ai/knowledge/` and `docs/ai/decisions/`.
-    - Read `docs/ai/mechanical_overrides.md` to identify if this task requires "Step-0 Clean-up."
-3.  **Vulnerability Triage (Security Tasks Only):**
-    - If this is a security fix, you MUST follow the **Vulnerability Triage Protocol** in Phase 2 before writing the fix.
+Before writing any code:
+
+1. Ensure you are on the latest `master`.
+2. Create a new branch: `git checkout -b <type>/<brief-description>` using the prefixes from `AGENTS.md` (`feature/`, `fix/`, `security/`).
+3. *Protocol:* Announce the branch name to the user immediately.
+4. If this is a security fix, follow the **Vulnerability Triage Protocol** (Phase 2A) before writing the fix.
 
 ---
 
-## Phase 2: Execution & CI Parity
+## Phase 2: Execution
 
 ### A. Vulnerability Triage Protocol (Hypothesis-Driven)
 **Objective:** Verify that a reported vulnerability is "Legit" (exploitable or present in our specific context) before acting.
@@ -29,22 +25,17 @@
     - ❌ **False Positive:** "The report is for a library we don't use." or "The code pattern exists but is in a test-only file not reachable in production."
     - ⚠️ **Unverifiable:** "I see the code, but my tools cannot confirm the risk. I recommend a deeper manual audit."
 3.  **Step 3: Authorization to Proceed:** ONLY if the verdict is ✅ Legit:
-    - Follow the standard "Goal-Driven Execution": **Write a failing test that reproduces the risk** (if possible) before applying the fix.
+    - Write a failing test that reproduces the risk before applying the fix (rule in `AGENTS.md`; spec templates in `docs/ai/testing.md`, "Security Vulnerability Reproduction").
 
-### B. Development & Testing
-- **Goal-Driven Execution:** "Fix the bug" → Write a test that reproduces it, then make it pass.
-- **Security Fixes:** Fixing a vulnerability MUST include spec coverage.
-    - **Write a test that exposes the vulnerability** before applying the fix (unless reproducing is infeasible).
-    - **Integration/feature specs are preferred over controller specs** for vulnerability reproduction.
-- **Spec Coverage:** All code changes must be covered by specs.
-- **Commands:** Live in `docs/ai/testing.md`.
-- **Note:** Rails commands (e.g., `rails routes`, `zeitwerk:check`) MUST be run from the `spec/dummy` folder. Use subshells to avoid getting stuck there: `(cd spec/dummy && bin/rails ...)`
+### B. Development
+The spec-coverage and security-fix testing rules are stated in `AGENTS.md`. Test commands, helpers, and conventions live in `docs/ai/testing.md`.
 
-### C. CI Parity (Security & Lint)
-Your code must pass these local checks to match CI:
-- `bin/brakeman --no-pager`
-- `bin/rubocop -A` (Auto-correct only what you touched)
-- **Lifecycle Trigger:** During work, verify or contradict existing hypotheses in the decision journal.
+### C. Refactoring Protocol
+- **Step-0 cleanup:** Before any structural refactor of a file larger than 300 LOC, first remove dead code (unused methods, unused requires, debug output) and commit that cleanup separately, before the real refactor.
+- **Phased execution:** Do not attempt large multi-file refactors in one pass. Break the work into explicit phases touching no more than 5 files each; run verification and wait for explicit approval before starting the next phase.
+
+### D. CI Parity
+Before pushing, your code must pass the key commands listed in `AGENTS.md` (security scan, lint, specs, zeitwerk check). Auto-correct only what you touched.
 
 ---
 
@@ -90,4 +81,4 @@ If YES, you MUST format the commit message as:
     - **Security fix:** Fix mass assignment and open redirect vulnerabilities in SitesController, [#1152](https://github.com/owen2345/camaleon-cms/pull/1152)
     ```
 
-4.  **Final Trigger:** Before completion, self-audit against `docs/ai/quality/criteria.md`.
+4.  **Quality Gate:** Before completion, self-audit against `docs/ai/criteria.md`.

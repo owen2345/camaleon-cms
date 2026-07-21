@@ -1,7 +1,7 @@
 # Testing Guide
 
 > **Important:** Always run the specs with `bin/rspec`.
-> Since this project is a gem, Rails commands like `rails routes` or `bin/rails zeitwerk:check` MUST be run from the `spec/dummy` folder. Use subshells to ensure you return to root: `(cd spec/dummy && bin/rails ...)`
+> Remember the gem quirk from `AGENTS.md` Ground Rules: run Rails commands from `spec/dummy` via a subshell.
 
 ## Running Tests
 
@@ -129,7 +129,7 @@ it_behaves_like 'i18n value translation safety', described_class
 | Default | `spec/helpers/` | Helper method tests |
 
 ## Security Vulnerability Reproduction (PoC)
-Before fixing a reported vulnerability, you MUST attempt to reproduce it with a failing test. This proves the vulnerability is "Legit" and prevents regressions.
+Reproducing a reported vulnerability with a failing test before fixing it (required — see `AGENTS.md` Ground Rules) proves the vulnerability is "Legit" and prevents regressions.
 
 ### 1. Request Spec Template (for RCE, SQLi, XSS)
 Use a Request Spec to simulate the attack payload.
