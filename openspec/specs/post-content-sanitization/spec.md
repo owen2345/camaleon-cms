@@ -50,6 +50,7 @@ The system SHALL define an `allow_unfiltered_html` key in `UserRole::ROLES[:post
 #### Scenario: Default admin role has unfiltered HTML permission
 - **WHEN** a new site is created with default roles (seeded via `SiteDefaultSettings`)
 - **THEN** the admin role SHALL have `allow_unfiltered_html` enabled (via `can :manage, :all`)
+- **AND** the editor role SHALL NOT have `allow_unfiltered_html` enabled by default — it is explicitly skipped during seed to prevent non-admin editors from storing raw scripts
 - **AND** the contributor role SHALL NOT have `allow_unfiltered_html` enabled
 
 ### Requirement: Content sanitization does not apply when user context is absent

@@ -54,12 +54,18 @@ The following model attributes SHALL NOT have `normalize_attrs` applied after th
 - `Plugin#name`
 - `Theme#name`
 - `NavMenu#name`
-- `NavMenuItem#name`
 - `Widget::Main#name`
 - `Widget::Sidebar#name`
 
 Description fields (`:description`) on the above models SHALL retain `normalize_attrs` unchanged (they may legitimately contain user HTML content).
 
+`NavMenuItem#name` (the menu label) SHALL retain `normalize_attrs` as an intentional exception: it is the only `:name` field rendered as raw/trusted HTML by the frontend nav menu builder (`CamaleonCms::Frontend::NavMenuHelper#cama_menu_draw_items` marks it `html_safe`), unlike all other model names which are ERB-auto-escaped at render time. `sanitize()` preserves safe formatting (icons, spans) while stripping scripts and event handlers, preventing stored XSS from menu managers.
+
 #### Scenario: All cleaned models store angle brackets without stripping
 - **WHEN** any of the listed models has a name field set to a value containing `<` or `>` (e.g., `Widget::Main.name = "promo <featured>"`)
 - **THEN** the persisted value SHALL contain the angle brackets unchanged
+
+#### Scenario: NavMenuItem name is sanitized due to raw-HTML render path
+- **WHEN** a menu manager sets a NavMenuItem label to `<span class="icon"></span><script>alert(1)</script>`
+- **THEN** the persisted name SHALL contain `<span class="icon"></span>`
+- **AND** the `<script>` tag SHALL be stripped
