@@ -4,7 +4,7 @@ require 'rails_helper'
 require 'shared_specs/sanitize_attrs'
 
 RSpec.describe CamaleonCms::UserRole, type: :model do
-  it_behaves_like 'sanitize attrs', model: described_class, attrs_to_sanitize: %i[name description]
+  it_behaves_like 'sanitize attrs', model: described_class, attrs_to_sanitize: %i[description]
 
   describe 'native STI compatibility' do
     it 'uses legacy user_roles taxonomy as sti_name' do

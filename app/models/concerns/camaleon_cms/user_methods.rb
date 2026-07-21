@@ -23,8 +23,6 @@ module CamaleonCms
                               ) }
       )
 
-      normalize_attrs(:first_name, :last_name, :username)
-
       # callbacks
       before_validation :cama_before_validation
       before_destroy :reassign_posts

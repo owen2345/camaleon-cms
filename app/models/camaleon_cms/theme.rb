@@ -1,6 +1,6 @@
 module CamaleonCms
   class Theme < CamaleonCms::TermTaxonomy
-    normalize_attrs(:name, :description)
+    normalize_attrs(:description)
 
     # attrs:
     #   slug => plugin key

@@ -5,6 +5,8 @@ module CamaleonCms
     alias_attribute :post_type_id, :taxonomy_id
     default_scope -> { where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
 
+    before_validation :sanitize_content, on: %i[create update]
+
     # DEPRECATED
     has_many :post_relationships, class_name: 'CamaleonCms::PostRelationship', foreign_key: :objectid,
                                   dependent: :destroy, inverse_of: :post
@@ -253,6 +255,27 @@ module CamaleonCms
     end
 
     private
+
+    def trusted_for_unfiltered_html?
+      user = CurrentRequest.user
+      site = CurrentRequest.site
+      # Fail closed (sanitize) when either user or site context is missing - e.g. background jobs, rake tasks
+      # or the console. Guarding the site too avoids a NoMethodError from Ability#initialize (which dereferences
+      # the site for non-admin users) that would otherwise abort the whole save.
+      return false if user.blank? || site.blank?
+
+      CamaleonCms::Ability.new(user, site).can?(:post_unfiltered_html, post_type)
+    end
+
+    def sanitize_content
+      return unless new_record? || attribute_changed?(:content)
+      return if content.blank?
+      # Check trust only once we know there is content to sanitize, so unchanged/blank updates never pay for
+      # building an Ability (a role-meta DB lookup) on every save.
+      return if trusted_for_unfiltered_html?
+
+      self.content = CamaleonRecord.cama_sanitize_translatable(content)
+    end
 
     # calculate a post order when it is empty
     def fix_post_order

@@ -1,8 +1,6 @@
 module CamaleonCms
   module Widget
     class Main < CamaleonCms::TermTaxonomy
-      normalize_attrs(:name)
-
       def self.sti_name
         'widget'
       end

@@ -1,6 +1,6 @@
 module CamaleonCms
   class Plugin < CamaleonCms::TermTaxonomy
-    normalize_attrs(:name, :description)
+    normalize_attrs(:description)
 
     # attrs:
     #   term_group => status active (1, nil)

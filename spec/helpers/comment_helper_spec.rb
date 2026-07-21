@@ -36,4 +36,13 @@ RSpec.describe CamaleonCms::CommentHelper, type: :helper do
     expect(helper).to receive(:cama_admin_post_comment_answer_path).with(33, 7)
     helper.cama_comments_render_html(comments)
   end
+
+  it 'HTML-escapes the author name in the moderation heading' do
+    allow(author).to receive(:the_name).and_return('<img src=x onerror=alert(1)>')
+
+    html = helper.cama_comments_render_html(comments, 42)
+
+    expect(html).to include('&lt;img src=x onerror=alert(1)&gt;')
+    expect(html).not_to include('<img src=x onerror=alert(1)>')
+  end
 end

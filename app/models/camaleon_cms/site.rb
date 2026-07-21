@@ -1,6 +1,6 @@
 module CamaleonCms
   class Site < CamaleonCms::TermTaxonomy
-    normalize_attrs(:name, :description)
+    normalize_attrs(:description)
 
     include CamaleonCms::SiteDefaultSettings
 
