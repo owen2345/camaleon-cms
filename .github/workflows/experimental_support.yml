@@ -31,7 +31,7 @@ jobs:
           chromedriver-version: '125.0.6422.141'
 
       - name: Setup Ruby and install gems
-        uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600
+        uses: ruby/setup-ruby@a30dfa457ad68707b8b910ac3a244714b61c0626
         with:
           bundler-cache: true
           ruby-version: ${{ matrix.ruby }}
