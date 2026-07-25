@@ -20,6 +20,63 @@ describe CamaleonCms::UploaderHelper do
     expect(upload_file(File.open(@path), { maximum: 1.byte }).key?(:error)).to be(true)
   end
 
+  describe 'staging lifecycle' do
+    let(:tmp_path) { Rails.public_path.join('tmp', current_site.id.to_s).to_s }
+
+    before { FileUtils.mkdir_p(tmp_path) }
+
+    def staged_files
+      Dir.glob("#{tmp_path}/*").select { |f| File.file?(f) }
+    end
+
+    # The data: branch guards on params[:name]; helper specs have no request params.
+    def tmp_upload(uri, args)
+      allow(self).to receive(:params).and_return({ name: args[:name] })
+      cama_tmp_upload(uri, args)
+    end
+
+    it 'leaves the staged file in place after a successful cama_tmp_upload' do
+      png = File.binread("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png")
+      res = tmp_upload("data:image/png;base64,#{Base64.strict_encode64(png)}",
+                       name: 'helper_success.png')
+
+      expect(res[:error]).to be_nil
+      expect(File.exist?(res[:file_path])).to be(true)
+      expect(File.binread(res[:file_path])).to eq(png)
+    ensure
+      FileUtils.rm_f(res[:file_path]) if res && res[:file_path]
+    end
+
+    it 'writes nothing when the helper copy rejects hostile content' do
+      payload = Base64.strict_encode64('<html><script>alert(1)</script></html>')
+      res = tmp_upload("data:text/html;base64,#{payload}", name: 'helper_xss.html')
+
+      expect(res[:error]).to eq('Potentially malicious content found!')
+      expect(staged_files).to be_empty
+    end
+
+    it 'writes nothing when the helper copy rejects an oversized payload' do
+      res = tmp_upload("data:image/png;base64,#{Base64.strict_encode64('A' * 50_000)}",
+                       name: 'helper_big.png', maximum: 1.kilobyte)
+
+      expect(res[:error]).to include(ct('file_size_exceeded', default: 'File size exceeded'))
+      expect(staged_files).to be_empty
+    end
+
+    it 'keeps a caller-owned source when upload_file fails without remove_source' do
+      expect(upload_file(File.open(@path), { folder: '../escape' }).key?(:error)).to be(true)
+      expect(File.exist?(@path)).to be(true)
+    end
+
+    it 'removes an uploader-owned staged source when upload_file fails with remove_source' do
+      staged = File.join(tmp_path, 'owned_source.png')
+      FileUtils.cp("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png", staged)
+
+      expect(upload_file(File.open(staged), { folder: '../escape', remove_source: true }).key?(:error)).to be(true)
+      expect(File.exist?(staged)).to be(false)
+    end
+  end
+
   describe 'deleting temporary uploaded file' do
     before { allow(CamaleonCmsUploader).to receive(:delete_block).and_call_original }
 

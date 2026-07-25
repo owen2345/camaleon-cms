@@ -21,6 +21,38 @@ module CamaleonCms
       nil
     end
 
+    # Removes a staged upload file, but only after confirming it canonicalizes
+    # inside the given staging root. A bug in the calling code therefore cannot
+    # turn into a deletion elsewhere on the filesystem. Returns true when a file
+    # was removed.
+    def cama_purge_staged_file(path, root)
+      return false if path.blank? || root.blank?
+      return false unless path_within?(path, root)
+
+      FileUtils.rm_f(path)
+      true
+    rescue ArgumentError, TypeError
+      false
+    end
+
+    # Upper bound on the decoded byte size of a base64 payload, computed without
+    # decoding it, so an oversized upload can be rejected before it is allocated.
+    # Overestimates by at most two bytes (padding), erring toward rejecting early.
+    def cama_base64_decoded_size(payload)
+      payload.to_s.bytesize * 3 / 4
+    end
+
+    # Passes an upload error through untouched, first removing the staging file when
+    # this upload owns it (remove_source), so a rejected upload leaves nothing behind
+    # in the web-served public/tmp directory. Shared so the cleanup rule cannot drift
+    # between RuntimeUploaderConcern and UploaderHelper.
+    def cama_upload_failure(error, uploaded_io, settings)
+      return error unless settings[:remove_source]
+
+      cama_purge_staged_file(uploaded_io.try(:path), File.join(Rails.public_path, 'tmp').to_s)
+      error
+    end
+
     # True when the canonicalized path stays strictly inside the given root
     # directory. Used as a defense-in-depth check around write sinks.
     def path_within?(path, root)
