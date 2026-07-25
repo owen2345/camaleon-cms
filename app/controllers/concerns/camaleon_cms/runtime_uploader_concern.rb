@@ -31,7 +31,9 @@ module CamaleonCms
         uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension]))
       end
 
-      return { error: 'Potentially malicious content found!' } if file_content_unsafe?(uploaded_io)
+      if file_content_unsafe?(uploaded_io)
+        return cama_upload_failure({ error: 'Potentially malicious content found!' }, uploaded_io, settings)
+      end
 
       settings[:uploaded_io] = uploaded_io
       settings = settings.to_h.symbolize_keys
@@ -56,16 +58,16 @@ module CamaleonCms
       settings[:folder] = '' if settings[:folder].nil? # e.g. crop_url passes no folder
       hooks_run('before_upload', settings)
 
-      return { error: 'Invalid file path' } unless cama_uploader.valid_folder_path?(settings[:folder])
+      unless cama_uploader.valid_folder_path?(settings[:folder])
+        return cama_upload_failure({ error: 'Invalid file path' }, uploaded_io, settings)
+      end
 
       err = validate_file_format_or_error(uploaded_io.path, settings[:formats])
-      return err if err
+      return cama_upload_failure(err, uploaded_io, settings) if err
 
-      if settings[:maximum] < settings[:file_size]
-        max_size = helpers.number_to_human_size(settings[:maximum])
-        return { error: "#{I18n.t('camaleon_cms.common.file_size_exceeded',
-                                  default: 'File size exceeded')} (#{max_size})" }
-      end
+      err = cama_size_limit_error(settings[:file_size], settings[:maximum])
+      return cama_upload_failure(err, uploaded_io, settings) if err
+
       key = File.join(settings[:folder], settings[:filename]).to_s.cama_fix_slash
       res = cama_uploader.add_file(settings[:uploaded_io], key, { same_name: settings[:same_name] })
 
@@ -195,22 +197,18 @@ module CamaleonCms
     def cama_tmp_upload(uploaded_io, args = {})
       tmp_path = args[:path] || File.join(Rails.public_path, 'tmp', current_site.id.to_s).to_s
       FileUtils.mkdir_p(tmp_path)
+      # Default to the site limit so the size guard below actually applies: callers
+      # such as crop/crop_url pass no :maximum, which left it dead code.
+      args[:maximum] ||= current_site.get_option('filesystem_max_size', 100).to_f.megabytes
       saved = false
       downloaded_tmp_file = nil
+      staged_path = nil
       if uploaded_io.is_a?(String) && uploaded_io.start_with?('data:')
-        return { error: I18n.t('camaleon_cms.admin.media.name_required').to_s } if params[:name].blank?
-
-        # Strip any directory components so a hostile name (e.g. "../../etc/x")
-        # cannot escape tmp_path when the base64 payload is written below.
-        _tmp_name = File.basename(args[:name].to_s)
-
-        err = validate_file_format_or_error(_tmp_name, args[:formats])
+        path, err = cama_stage_data_uri(uploaded_io, args, tmp_path)
         return err if err
 
-        path = uploader_verify_name(File.join(tmp_path, _tmp_name))
-        return { error: 'Invalid file path' } unless path_within?(path, tmp_path)
-
-        File.open(path, 'wb') { |f| f.write(Base64.decode64(uploaded_io.split(';base64,').last)) }
+        staged_path = path
+        _tmp_name = File.basename(args[:name].to_s)
         uploaded_io = File.open(path)
         saved = true
       elsif uploaded_io.is_a?(String) && uploaded_io.start_with?('http://', 'https://')
@@ -248,18 +246,27 @@ module CamaleonCms
       rescue StandardError
         File.size(uploaded_io)
       end
-      if args[:maximum].present? && args[:maximum] < actual_size
-        max_size = helpers.number_to_human_size(args[:maximum])
-        return { error: "#{I18n.t('camaleon_cms.common.file_size_exceeded',
-                                  default: 'File size exceeded')} (#{max_size})" }
-      end
+      err = cama_size_limit_error(actual_size, args[:maximum])
+      return err if err
 
       name = args[:name] || uploaded_io&.original_filename || uploaded_io.path.split('/').last
       name = "#{File.basename(name, File.extname(name)).parameterize}#{File.extname(name)}"
       path ||= uploader_verify_name(File.join(tmp_path, name))
-      File.open(path, 'wb') { |f| f.write(uploaded_io.read) } unless saved
+      unless saved
+        # Same rule as the data: branch above -- read, scan, and only then write, so
+        # a remote or same-site source cannot land unscanned in public/tmp.
+        content = uploaded_io.read
+        return { error: 'Potentially malicious content found!' } if content_unsafe?(content, filename: name)
+
+        File.open(path, 'wb') { |f| f.write(content) }
+        staged_path = path
+      end
       path = cama_resize_upload(path, args[:dimension]) if args[:dimension].present?
       { file_path: path, error: nil }
+    rescue StandardError
+      # A raised error leaves no half-written file behind in the served staging dir.
+      cama_purge_staged_file(staged_path, tmp_path)
+      raise
     ensure
       downloaded_tmp_file&.close!
     end
@@ -414,6 +421,46 @@ module CamaleonCms
       return if cama_uploader.class.validate_file_format(file, formats)
 
       { error: "#{I18n.t('camaleon_cms.common.file_format_error')} (#{formats})" }
+    end
+
+    # Stages a base64 data: payload into tmp_path, bounding its size and scanning its
+    # content BEFORE the write, so nothing oversized or hostile ever reaches a path
+    # the web server would hand out. Returns [path, error]; exactly one is non-nil.
+    def cama_stage_data_uri(uploaded_io, args, tmp_path)
+      return [nil, { error: I18n.t('camaleon_cms.admin.media.name_required').to_s }] if params[:name].blank?
+
+      # Strip any directory components so a hostile name (e.g. "../../etc/x")
+      # cannot escape tmp_path when the base64 payload is written below.
+      tmp_name = File.basename(args[:name].to_s)
+      err = validate_file_format_or_error(tmp_name, args[:formats])
+      return [nil, err] if err
+
+      payload = uploaded_io.split(';base64,').last
+      # Bound the payload before decoding, so an oversized upload is never allocated
+      # in full nor written into the served staging directory.
+      err = cama_size_limit_error(cama_base64_decoded_size(payload), args[:maximum])
+      return [nil, err] if err
+
+      # The decoded bytes are already in memory here, so scanning costs no extra copy.
+      decoded = Base64.decode64(payload)
+      return [nil, { error: 'Potentially malicious content found!' }] if content_unsafe?(decoded, filename: tmp_name)
+
+      path = uploader_verify_name(File.join(tmp_path, tmp_name))
+      return [nil, { error: 'Invalid file path' }] unless path_within?(path, tmp_path)
+
+      File.open(path, 'wb') { |f| f.write(decoded) }
+      [path, nil]
+    end
+
+    # Returns an error hash when size exceeds maximum, nil otherwise. Not shared with
+    # UploaderHelper's copy: that one translates via `ct`, which runs the
+    # `on_translation` hook so plugins can override the message. Unifying them would
+    # silently drop that hook on one side.
+    def cama_size_limit_error(size, maximum)
+      return if maximum.blank? || maximum >= size
+
+      max_size = ActiveSupport::NumberHelper.number_to_human_size(maximum)
+      { error: "#{I18n.t('camaleon_cms.common.file_size_exceeded', default: 'File size exceeded')} (#{max_size})" }
     end
   end
 end

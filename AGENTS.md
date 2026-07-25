@@ -66,9 +66,11 @@ All four must pass before pushing (CI parity).
 | Path | Purpose |
 |------|---------|
 | `spec/dummy/` | Test Rails app |
-| `app/apps/plugins/` | Plugins |
+| `app/apps/plugins/` | Plugins bundled in this repo (4 only) |
 | `app/apps/themes/` | Themes |
 | `config/routes/` | Split routes |
 
 **Namespaces:** `CamaleonCms::*`, shortcuts: `Cama::Site`, `Cama::Post`
 **Patterns:** decorators (`object.the_title`, `object.the_url`), hooks (`hooks_run('hook_name')`) — details in `docs/ai/reference.md`
+
+**Ecosystem:** most plugins and themes live in separate gems, not in this repo — `README.md` lists the known ones. When assessing whether a change breaks downstream consumers, treat that list as the visible surface and assume more exist: a public helper's return contract cannot be verified from this repo alone.
