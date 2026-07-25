@@ -86,9 +86,9 @@ https://camaleon.website/store/plugins
 * TinyMCE Template Integration - https://github.com/owen2345/Camaleon-Tinymce-Templates
 * Download Manager - https://github.com/max2320/camaleon-download
 * OAuth - https://github.com/owen2345/camaleon_oauth
-* Visual Editor - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon_editor
-* Spree Commerce Integration - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon-spree
-* Admin AJAX - Paid Plugin ($) - https://camaleon.website/store/plugins/admin_ajax
+* Visual Editor - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon_editor (Github: https://github.com/owen2345/camaleon_editor)
+* Spree Commerce Integration - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon-spree (Github: https://github.com/owen2345/camaleon-spree)
+* Admin AJAX - Paid Plugin ($) - https://camaleon.website/store/plugins/admin_ajax (Github: https://github.com/owen2345/admin-ajax)
 * **See here for a complete Gemfile**: https://github.com/owen2345/camaleon-cms/blob/master/docs/example_gemfile.rb
 
 ## Camaleon CMS has many useful frontend Themes such as:
