@@ -128,4 +128,19 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#actions', type: :request d
       expect(File.exist?(Rails.public_path.join('media', current_site.id.to_s, 'good_upload.png'))).to be(true)
     end
   end
+
+  describe 'when no name is supplied' do
+    # The staging guard reads the :name argument rather than params[:name]; the controller
+    # forwards name: params[:name], so a blank parameter must still be rejected here.
+    it 'reports the name-required error and stages nothing' do
+      post '/admin/media/actions', params: {
+        media_action: 'crop_url',
+        url: data_uri('<p>hello</p>'),
+        name: ''
+      }
+
+      expect(response.body).to include('File name is required')
+      expect(staged_files).to be_empty
+    end
+  end
 end
