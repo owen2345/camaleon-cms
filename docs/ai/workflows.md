@@ -60,11 +60,20 @@ If YES, you MUST format the commit message as:
 
 **⚠️ The marker is per-push, not per-commit.** GitHub evaluates it against the **head commit of the push**, so a `[skip ci]` commit at the tip suppresses every workflow for that push — including the `pull_request` event when the PR is opened at that tip. Push three commits ending on a docs-only one and *nothing* runs, for any of them.
 
-Consequences to plan for:
+**Decide the marker per push, not per commit, by answering one question:**
 
-- **Every PR must get one full check run.** Make sure at least one push lands on a commit without the marker. If a docs-only commit has to come last — the usual case for the Phase 4 changelog entry, which must reference the PR number and therefore lands after the PR exists — omit the marker on that commit and say why in the message.
-- **Adding a `[skip ci]` commit after CI has passed moves the PR head.** No new run is triggered (correct — nothing needs revalidating), but the passing checks stay attached to the previous SHA. Re-trigger before merge if branch protection requires checks on the head commit.
-- **The marker matches anywhere in the message, including the body.** A commit that merely *explains* the directive will skip CI too. Write "skip-ci directive" in prose rather than the literal token.
+> Has this PR already had a full check run on an earlier push?
+
+- **No** — omit the marker, *even on a docs-only push*, and say why in the message. Every PR must get one full check run, and a push whose head carries the marker produces none. This is the case when the branch has no PR yet, or when every push so far has been docs-only.
+- **Yes** — include the marker. A second run on a docs-only change revalidates nothing. CI validates the tree at the head commit, and a `CHANGELOG.md` edit does not change any tree the earlier run already covered.
+
+**The Phase 4 changelog commit is normally in the "Yes" branch.** It lands after the PR exists, which means an earlier push already opened the PR and triggered CI. Omitting the marker there duplicates the entire matrix to validate a Markdown edit. Do not read "the changelog commit lands last" as a reason to omit the marker — *lands last* is not the condition; *no run yet* is.
+
+Other consequences to plan for:
+
+- **Including the marker moves the PR head without triggering a run.** The passing checks stay attached to the previous SHA. Before merge, check whether branch protection requires checks on the head commit, and re-trigger only if it does.
+- **If you have already pushed a docs-only commit without the marker**, cancel the now-stale runs on the *previous* SHA, not the new ones. The PR head has moved, so the new runs are the ones that count for merge.
+- **The marker matches anywhere in the message, including the body.** A commit that merely *explains* the directive will skip CI too. Write "skip-ci directive" in prose rather than the literal token — unless you are actually invoking it, in which case it belongs on its own line as shown above.
 
 ---
 
