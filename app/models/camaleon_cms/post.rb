@@ -264,7 +264,7 @@ module CamaleonCms
       # the site for non-admin users) that would otherwise abort the whole save.
       return false if user.blank? || site.blank?
 
-      CamaleonCms::Ability.new(user, site).can?(:post_unfiltered_html, post_type)
+      CamaleonCms::Ability.new(user, site).can?(:post_content_unfiltered_html, post_type)
     end
 
     def sanitize_content

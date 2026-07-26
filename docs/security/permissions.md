@@ -1,11 +1,22 @@
-# Permissions (Manager roles)
+# Permissions
 
-Camaleon CMS exposes a set of manager permissions that control access to admin surfaces. These manager permissions are defined in
-`CamaleonCms::UserRole::ROLES[:manager]` and are rendered in the User Roles form in the admin UI so site owners can toggle them per-role.
+Camaleon CMS defines role permissions in two families, both rendered in the User Roles form in the admin UI so site owners can toggle them per-role:
+
+- **Manager permissions** — `CamaleonCms::UserRole::ROLES[:manager]`, stored in a role's `_manager_<site_id>` meta, and site-wide in scope. They become
+  abilities through `Ability#define_manage_rules`, which grants `can :manage, <key>` for any key present and truthy in that meta. Checked as
+  `can?(:manage, :key)`.
+- **Post-type permissions** — `CamaleonCms::UserRole::ROLES[:post_type]`, stored in `_post_type_<site_id>`, and scoped to a list of post type IDs.
+  Checked by passing a concrete post type, e.g. `can?(:post_content_unfiltered_html, post_type)`.
+
+Users with the `admin` role satisfy every check through `can :manage, :all` in the Ability class, independently of role meta.
+
+## Manager permissions
 
 - `custom_fields` — Controls who can create/update Custom Field Groups and Custom Fields (write-time permission). This is a manager-level permission
   and should be granted only to trusted users. The permission is checked at write-time by the admin controller so that only permitted roles can
   persist custom field definitions that may contain advanced behavior.
+- `contact_form_unfiltered_html` — Permits storing raw, unsanitized HTML in the bundled contact-form plugin's markup settings. See
+  [Security: Unfiltered HTML](#security-unfiltered-html) below.
 
 Where enforcement happens
 - Write-time enforcement: `CamaleonCms::Admin::Settings::CustomFieldsController` uses CanCan (`authorize! :manage, :custom_fields`) to require the
@@ -103,3 +114,107 @@ Security notes
 - The `custom_fields` manager permission can allow storing code-like commands (e.g., `select_eval`) 
 - Treat `custom_fields` as a high-privilege permission — grant it only to trusted administrators. If you inherit a
   database with pre-existing `select_eval` fields, audit their contents before granting the permission widely
+
+## Security: Unfiltered HTML
+
+Camaleon sanitizes user-submitted HTML on save, and two permissions exempt a role from that sanitization. **They are different permissions with
+similar names**, they live in different families, and holding one does not grant the other. Both are introduced in 2.9.3.
+
+| | `post_content_unfiltered_html` | `contact_form_unfiltered_html` |
+|---|---|---|
+| Family | post-type (`ROLES[:post_type]`) | manager (`ROLES[:manager]`) |
+| Role meta | `_post_type_<site_id>` | `_manager_<site_id>` |
+| Scope | per post type | all contact forms on the site |
+| Checked as | `can?(:post_content_unfiltered_html, post_type)` | `can?(:manage, :contact_form_unfiltered_html)` |
+| Exempts | `Post#content` | contact-form `previous_html`, `after_html`, `template`, `field_attributes` |
+| Introduced in | [#1206](https://github.com/owen2345/camaleon-cms/pull/1206) | 2.9.3 |
+
+⚠️ **WARNING**: both permissions let a role store markup that is later rendered without escaping — including `<script>`. Because the admin panel is
+served from the same origin as the public site, script stored by a holder of either permission executes with the session of any administrator who
+views the affected page. Grant them only to users you would be willing to make administrators.
+
+### `post_content_unfiltered_html` — raw HTML in post content
+
+Without this permission, `Post#content` is sanitized at save time with `CamaleonRecord.cama_sanitize_translatable`, which strips `<script>`,
+`<iframe>`, event-handler attributes such as `onerror`/`onload`, and `javascript:` URLs, while preserving ordinary formatting. With it, content is
+stored exactly as submitted.
+
+The permission is granted per post type, so a role may hold it for one post type and not another.
+
+**Defaults:** the `admin` role satisfies the check through `can :manage, :all`. The default `editor` role is explicitly excluded from it during role
+seeding — `site_default_settings.rb` skips this key when granting every other post-type permission — so upgrading does not widen anyone's trust.
+
+### `contact_form_unfiltered_html` — raw HTML in contact-form settings
+
+Covers the four contact-form values that are rendered unescaped by design: `previous_html` and `after_html` (the markup wrapping a form), each field's
+`template`, and `field_attributes`. Without the permission those four are sanitized when the form is saved; with it they are stored unchanged.
+
+It affects **only** these four values. Every other contact-form value — field labels, default values, option labels, CSS classes, and anything a
+visitor submits — is always escaped when rendered, and no permission changes that.
+
+The grant is deliberately scoped to contact forms rather than to raw HTML in general. A future feature needing its own escape hatch will introduce its
+own permission, so enabling this one never silently authorizes a surface you did not intend.
+
+**Defaults:** the `admin` role receives it during seeding, along with every other manager key. The default `editor` and `contributor` roles never
+receive manager meta at all, and `client` receives an empty set, so no non-admin role holds it after an upgrade.
+
+### Granting to a custom role
+
+Via the Admin UI:
+
+1. Navigate to Settings → User Roles
+2. Edit the desired role
+3. For site-wide raw HTML, check **Allow unfiltered HTML** under Manager Permissions
+4. For raw HTML in post content, check the same-named permission under the relevant post type
+5. Save the role
+
+Via the Rails console:
+
+```ruby
+site = CamaleonCms::Site.first
+role = site.user_roles.find_by(slug: 'editor')
+
+# Manager family — contact-form markup settings, all forms on the site
+manager_meta = role.get_meta("_manager_#{site.id}", {})
+role.set_meta("_manager_#{site.id}", manager_meta.merge(contact_form_unfiltered_html: 1))
+
+# Post-type family — per post type, for Post#content
+post_type = site.post_types.find_by(slug: 'post')
+pt_meta = role.get_meta("_post_type_#{site.id}", {})
+pt_meta[:post_content_unfiltered_html] = (pt_meta[:post_content_unfiltered_html] || []) + [post_type.id]
+role.set_meta("_post_type_#{site.id}", pt_meta)
+```
+
+As with `select_eval`, the Admin role's checkboxes may appear unchecked in the UI even though the permission is effective — admin access comes from
+`can :manage, :all`, not from role meta.
+
+### Background jobs and console usage
+
+Both checks read the acting user and site from `CurrentRequest` and **fail closed**: when either is missing, content is sanitized regardless of the
+role's permissions. Saves from background jobs, rake tasks, or the console therefore sanitize by default. To save raw HTML from those contexts, set
+the request context first, as shown in the `select_eval` section above:
+
+```ruby
+CurrentRequest.user = CamaleonCms::User.find_by(username: 'admin')
+CurrentRequest.site = CamaleonCms::Site.first
+# ... perform the save ...
+CurrentRequest.reset
+```
+
+### Auditing
+
+To find roles holding either permission:
+
+```ruby
+CamaleonCms::Site.all.each do |site|
+  site.user_roles.each do |role|
+    manager = role.get_meta("_manager_#{site.id}", {})
+    post_type = role.get_meta("_post_type_#{site.id}", {})
+    puts "#{site.name}/#{role.slug}: manager=#{manager[:contact_form_unfiltered_html].inspect} " \
+         "post_type=#{post_type[:post_content_unfiltered_html].inspect}"
+  end
+end
+```
+
+Neither permission sanitizes retroactively. Revoking a role's access stops future raw saves but leaves previously stored markup untouched — audit
+existing post content and contact-form settings after revoking.

@@ -86,11 +86,11 @@ module CamaleonCms
           description: I18n.t('camaleon_cms.admin.users.tool_tip.manage_tags').to_s
         },
         {
-          key: 'allow_unfiltered_html',
-          label: I18n.t('camaleon_cms.admin.users.roles_values.allow_unfiltered_html',
-                        default: 'Allow unfiltered HTML').to_s,
+          key: 'post_content_unfiltered_html',
+          label: I18n.t('camaleon_cms.admin.users.roles_values.post_content_unfiltered_html',
+                        default: 'Allow unfiltered HTML in post content').to_s,
           color: 'danger',
-          description: I18n.t('camaleon_cms.admin.users.tool_tip.allow_unfiltered_html',
+          description: I18n.t('camaleon_cms.admin.users.tool_tip.post_content_unfiltered_html',
                               default: 'Permit users with this role to save raw/unfiltered HTML in post content').to_s
         }
       ],
@@ -153,6 +153,18 @@ module CamaleonCms
           key: 'theme_settings',
           label: I18n.t('camaleon_cms.admin.settings.theme_setting', default: 'Theme Settings').to_s,
           description: I18n.t('camaleon_cms.admin.users.tool_tip.themes').to_s
+        },
+        {
+          key: 'contact_form_unfiltered_html',
+          label: I18n.t('camaleon_cms.admin.users.roles_values.contact_form_unfiltered_html',
+                        default: 'Allow unfiltered HTML in contact forms').to_s,
+          color: 'danger',
+          description: I18n.t(
+            'camaleon_cms.admin.users.tool_tip.contact_form_unfiltered_html',
+            default: 'Permit users with this role to save raw/unfiltered HTML in contact form markup settings ' \
+                     '(the markup wrapping a form, field templates and field attributes). Distinct from the ' \
+                     'per-post-type "Allow unfiltered HTML in post content" permission.'
+          ).to_s
         }
       ]
     }.freeze
