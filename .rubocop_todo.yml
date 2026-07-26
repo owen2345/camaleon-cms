@@ -50,10 +50,10 @@ Metrics/CyclomaticComplexity:
 Metrics/MethodLength:
   Max: 320
 
-# Offense count: 19
+# Offense count: 18
 # Configuration parameters: CountComments, CountAsOne.
 Metrics/ModuleLength:
-  Max: 364
+  Max: 326
 
 # Offense count: 15
 # Configuration parameters: CountKeywordArgs.
@@ -103,13 +103,12 @@ Naming/MethodName:
     - 'lib/generators/camaleon_cms/theme_template/main_helper.rb'
     - 'lib/plugin_routes.rb'
 
-# Offense count: 8
+# Offense count: 6
 # Configuration parameters: MinNameLength, AllowNamesEndingInNumbers, AllowedNames, ForbiddenNames.
 # AllowedNames: as, at, by, cc, db, id, if, in, io, ip, of, on, os, pp, to
 Naming/MethodParameterName:
   Exclude:
     - 'app/decorators/camaleon_cms/application_decorator.rb'
-    - 'app/helpers/camaleon_cms/uploader_helper.rb'
     - 'app/models/concerns/camaleon_cms/custom_fields_read.rb'
     - 'app/models/concerns/camaleon_cms/metas.rb'
     - 'lib/plugin_routes.rb'
