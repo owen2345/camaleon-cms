@@ -61,7 +61,7 @@
 - [x] 7.2 Remove `'app/helpers/camaleon_cms/uploader_helper.rb'` from the `Naming/MethodParameterName` `Exclude` list, and refresh its offense-count comment
 - [x] 7.3 Confirm no new `.rubocop_todo.yml` entry is needed for the three new files
 - [x] 7.4 Draft the `CHANGELOG.md` entry at the top of `## Unreleased`, covering the extraction, the `args[:name]` guard change, and the note that `upload_file` now deep-symbolizes `settings` on the controller path as well as the helper path (design Risks)
-- [ ] 7.5 After opening the PR, replace the `(PR link pending)` marker in the changelog entry with the real `[#NNNN](https://github.com/owen2345/camaleon-cms/pull/NNNN)` reference, per `docs/ai/workflows.md` Phase 4 step 3
+- [x] 7.5 After opening the PR, replace the `(PR link pending)` marker in the changelog entry with the real `[#NNNN](https://github.com/owen2345/camaleon-cms/pull/NNNN)` reference, per `docs/ai/workflows.md` Phase 4 step 3
 
 ## 8. Final verification
 
