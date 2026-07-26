@@ -68,12 +68,18 @@ module CamaleonCms
         attrs = params.require(:password).permit(%i[password password_confirmation])
         @user.update(password: attrs.require(:password), password_confirmation: attrs.require(:password_confirmation))
 
-        return render inline: @user.errors.full_messages.join(', '), status: :unprocessable_entity if @user.errors.any?
+        return render plain: @user.errors.full_messages.join(', '), status: :unprocessable_entity if @user.errors.any?
 
         # keep user logged in when changing their own password
         update_auth_token_in_cookie @user.auth_token if update_session && @user.saved_change_to_password_digest?
+      rescue ActiveRecord::RecordNotFound
+        # The other failure paths of this action answer with a status and a short text body, so an
+        # unresolvable target does too rather than falling through to the framework's HTML error
+        # page. Catch this class only, never StandardError, so a genuine lookup failure still
+        # surfaces instead of being reported as a missing user.
+        render plain: t('camaleon_cms.admin.users.message.error'), status: :not_found
       rescue ActionController::ParameterMissing => e
-        render inline: "ERROR: #{e.class.name}, #{e.message}", status: :bad_request
+        render plain: "ERROR: #{e.class.name}, #{e.message}", status: :bad_request
       end
 
       def update_auth_token_in_cookie(token)
