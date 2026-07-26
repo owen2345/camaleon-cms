@@ -1,8 +1,4 @@
-## Purpose
-
-Define authorization requirements for the admin profile endpoint (`GET /admin/profile`).
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Profile access is authorized
 The system SHALL enforce authorization on the `GET /admin/profile` endpoint. A user SHALL only see another user's profile if they are viewing their own profile (`params[:user_id]` matches the current user's ID) OR they have `:manage` permission on `:users` (admin role).
@@ -33,6 +29,8 @@ The authorization decision SHALL be derived from the request parameter alone and
 - **WHEN** a non-admin user requests `/admin/profile` with a `user_id` that is not their own — whether it identifies an existing user, a nonexistent user, or a non-numeric value
 - **THEN** the system denies access in every case with the same HTTP status and the same redirect target, disclosing no difference between them
 - **AND** the system does not query for the target user before denying access
+
+## ADDED Requirements
 
 ### Requirement: Unresolvable profile targets are handled gracefully
 The system SHALL NOT raise an unhandled exception when the `user_id` supplied to `GET /admin/profile` does not resolve to a user visible to the current site. This applies to nonexistent IDs, IDs of deleted users, and non-numeric values.
