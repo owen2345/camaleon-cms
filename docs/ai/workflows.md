@@ -98,4 +98,8 @@ Other consequences to plan for:
     - **Security fix:** Fix mass assignment and open redirect vulnerabilities in SitesController, [#1152](https://github.com/owen2345/camaleon-cms/pull/1152)
     ```
 
-4.  **Quality Gate:** Before completion, self-audit against `docs/ai/criteria.md`.
+4.  **Archive the OpenSpec change — before merge, not after.** If the work was planned with OpenSpec, run `/opsx:archive` **on the branch** and commit the result as part of the PR. This syncs the change's delta specs into `openspec/specs/<capability>/spec.md` and moves the change to `openspec/changes/archive/YYYY-MM-DD-<name>/`.
+
+    Archiving is **not** a post-merge step. `master` must never carry a completed-but-unarchived change, and every box in `tasks.md` — including the archive task itself — must be checked before the branch merges. See PR [#1213](https://github.com/owen2345/camaleon-cms/pull/1213), where the archive commit precedes the merge commit on the branch.
+
+5.  **Quality Gate:** Before completion, self-audit against `docs/ai/criteria.md`.

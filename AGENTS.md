@@ -20,7 +20,7 @@ Before creating a change, run `openspec list --json` and continue a relevant act
 - Create or continue planning artifacts with `/opsx:propose`, `/opsx:new`, or `/opsx:continue`.
 - Implement planned tasks with `/opsx:apply`.
 - Confirm implementation matches the artifacts with `/opsx:verify`.
-- Preserve completed decisions with `/opsx:archive`.
+- Preserve completed decisions with `/opsx:archive` — on the branch, before merge, committed as part of the PR (sequence: `docs/ai/workflows.md` Phase 4).
 
 Record lasting decisions in the active change's `design.md`, and durable domain behavior as requirements in `openspec/specs/` — not in parallel journals under `docs/`.
 

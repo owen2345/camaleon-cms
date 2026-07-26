@@ -44,5 +44,6 @@
 ## 7. Close out
 
 - [x] 7.1 Self-audit against `docs/ai/criteria.md`
-- [x] 7.2 Open the PR; state that the only application code change is the `updated_ajax` rescue, and that the rest of the diff is specs plus tests
-- [ ] 7.3 Run `/opsx:verify`, then `/opsx:archive` once merged, syncing `user-target-resolution` into `openspec/specs/`
+- [x] 7.2 Open the PR; state that the application changes are the `updated_ajax` rescue and the conversion of its three failure renders to `render plain:`, and that the rest of the diff is specs plus tests
+- [x] 7.3 Run `/opsx:verify` and address its findings
+- [x] 7.4 Run `/opsx:archive` **on the branch, before merge** — sync `user-target-resolution` into `openspec/specs/` and commit the archive as part of this PR. Archiving is not a post-merge step: in [#1213](https://github.com/owen2345/camaleon-cms/pull/1213) the archive commit (`250bb37c`) precedes the merge commit, so `master` never carries an unarchived completed change.
