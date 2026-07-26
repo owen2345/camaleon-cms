@@ -33,16 +33,16 @@
 - [x] 5.3 `bin/rubocop -A` on touched files only
 - [x] 5.4 `bin/brakeman --no-pager`
 - [x] 5.5 `(cd spec/dummy && bin/rails zeitwerk:check)`
-- [ ] 5.6 `bin/rspec` full suite
+- [x] 5.6 `bin/rspec` full suite
 
 ## 6. Documentation
 
-- [ ] 6.1 Add a CHANGELOG.md entry under Unreleased covering both parts: the captured invariant with its new coverage, and the `updated_ajax` error-format fix
-- [ ] 6.2 Classify as **Developer tooling** / **Fix**, not **Security fix** — no vulnerability is being fixed, and the rescue closes a response-format inconsistency, not an oracle
-- [ ] 6.3 Cross-reference PR [#1185](https://github.com/owen2345/camaleon-cms/pull/1185) as the fix this change retroactively specifies
+- [x] 6.1 Add a CHANGELOG.md entry under Unreleased covering both parts: the captured invariant with its new coverage, and the `updated_ajax` error-format fix
+- [x] 6.2 Classify as **Developer tooling** / **Fix**, not **Security fix** — no vulnerability is being fixed, and the rescue closes a response-format inconsistency, not an oracle
+- [x] 6.3 Cross-reference PR [#1185](https://github.com/owen2345/camaleon-cms/pull/1185) as the fix this change retroactively specifies
 
 ## 7. Close out
 
 - [x] 7.1 Self-audit against `docs/ai/criteria.md`
-- [ ] 7.2 Open the PR; state that the only application code change is the `updated_ajax` rescue, and that the rest of the diff is specs plus tests
+- [x] 7.2 Open the PR; state that the only application code change is the `updated_ajax` rescue, and that the rest of the diff is specs plus tests
 - [ ] 7.3 Run `/opsx:verify`, then `/opsx:archive` once merged, syncing `user-target-resolution` into `openspec/specs/`
