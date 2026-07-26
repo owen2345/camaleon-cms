@@ -127,7 +127,7 @@ similar names**, they live in different families, and holding one does not grant
 | Scope | per post type | all contact forms on the site |
 | Checked as | `can?(:post_content_unfiltered_html, post_type)` | `can?(:manage, :contact_form_unfiltered_html)` |
 | Exempts | `Post#content` | contact-form `previous_html`, `after_html`, `template`, `field_attributes` |
-| Introduced in | [#1206](https://github.com/owen2345/camaleon-cms/pull/1206) | 2.9.3 |
+| Introduced in | [#1206](https://github.com/owen2345/camaleon-cms/pull/1206) | [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) |
 
 ⚠️ **WARNING**: both permissions let a role store markup that is later rendered without escaping — including `<script>`. Because the admin panel is
 served from the same origin as the public site, script stored by a holder of either permission executes with the session of any administrator who

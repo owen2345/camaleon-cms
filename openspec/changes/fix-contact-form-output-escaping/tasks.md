@@ -58,11 +58,11 @@
 
 ## 7. Documentation
 
-- [x] 7.1 `CHANGELOG.md` entry written with five behavior/upgrade bullets. **Two placeholders must be filled before merge:** `[#PR]` and `REPORTER` — the reporter's name was not in the disclosure shared with me, and the PR number does not exist yet
+- [x] 7.1 `CHANGELOG.md` entry written with five behavior/upgrade bullets, crediting Amir Aliu and Enrik Mustafa, plus a bold notice that `cama_contact_form` is sourced from its git tag until 0.1.10 reaches RubyGems, with the exact line host applications must add. A separate `**Security bumps:**` entry records the four transitive updates
 - [x] 7.2 Note in the changelog that `to_attr_format`'s output changes for all callers, including external plugins and themes
 - [x] 7.3 Created `CHANGELOG.md` in the plugin repo (it had none) with a 0.1.10 entry. Dropped a bullet I had drafted claiming an `<option> selected` fix — checking the diff showed the original already compared the normalized value, so my change was a readability extraction, not a fix
 - [x] 7.4 `docs/security/permissions.md` — done ahead of implementation. Documents both unfiltered-HTML permissions side by side, the two role families, granting, `CurrentRequest` fail-closed behavior, auditing, and that neither sanitizes retroactively. **Must land with the implementation, not before:** it describes `contact_form_unfiltered_html` as shipped
-- [ ] 7.5 Replace the `2.9.3` placeholder in that doc's "Introduced in" column with this change's PR link once the number exists (#1214 is the highest merged; open PRs are all lower, so #1215 is likely but unclaimed)
+- [x] 7.5 Filled: the doc's "Introduced in" column and both `CHANGELOG.md` entries now link [#1215](https://github.com/owen2345/camaleon-cms/pull/1215)
 
 ## 8. Verification
 
@@ -73,7 +73,7 @@
 
 ## 9. Release and coordination
 
-- [ ] 9.1 Merge the plugin PR; confirm the builder tags 0.1.10 and that `version.rb` matches
+- [x] 9.1 Plugin PR [#63](https://github.com/owen2345/cama_contact_form/pull/63) merged; the builder tagged `0.1.10` in 16s and `version.rb` matches — the first aligned tag since 0.1.7. Camaleon's six Gemfiles now pin `tag: '0.1.10'` rather than a branch, so the resolved revision is immutable
 - [ ] 9.2 Ask `owencio` to publish 0.1.10 to RubyGems, or to add a second gem owner — until this happens the plugin half reaches no user, since RubyGems still serves 0.1.0 from 2022-12-27
 - [ ] 9.3 **After publication:** revert all six Gemfiles from the git source back to a version constraint. Left in place, CI silently tests a moving branch and a plugin-side force-push becomes a Camaleon CI failure (design, Risks)
 - [ ] 9.4 Consider raising Camaleon's gemspec floor to `~> 0.1.10` so new installs cannot resolve the vulnerable 0.1.0
