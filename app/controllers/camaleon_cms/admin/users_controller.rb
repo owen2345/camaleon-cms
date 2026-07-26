@@ -72,6 +72,12 @@ module CamaleonCms
 
         # keep user logged in when changing their own password
         update_auth_token_in_cookie @user.auth_token if update_session && @user.saved_change_to_password_digest?
+      rescue ActiveRecord::RecordNotFound
+        # This endpoint is called by a modal form that renders the response body, so an
+        # unresolvable target is reported the same way as a parameter error rather than as the
+        # framework's default HTML page. Catch this class only, never StandardError, so a genuine
+        # lookup failure still surfaces instead of being reported as a missing user.
+        render plain: t('camaleon_cms.admin.users.message.error'), status: :not_found
       rescue ActionController::ParameterMissing => e
         render inline: "ERROR: #{e.class.name}, #{e.message}", status: :bad_request
       end
