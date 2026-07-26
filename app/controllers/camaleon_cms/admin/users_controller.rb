@@ -17,8 +17,15 @@ module CamaleonCms
       def profile
         add_breadcrumb I18n.t('camaleon_cms.admin.users.profile')
         user_id = params[:user_id]
-        @user = user_id.present? ? current_site.the_user(user_id.to_i).object : cama_current_user.object
-        authorize! :manage, :users if user_id.present? && @user.id != cama_current_user.id
+        # Authorize from the parameter before loading, so a denied caller cannot tell
+        # whether the requested user exists from the shape of the response.
+        authorize! :manage, :users if user_id.present? && user_id.to_i != cama_current_user.id
+        @user = user_id.present? ? current_site.the_user(user_id.to_i)&.object : cama_current_user.object
+        if @user.blank?
+          flash[:error] = t('camaleon_cms.admin.users.message.error')
+          return redirect_to(cama_admin_path)
+        end
+
         edit
       end
 
