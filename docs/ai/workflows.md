@@ -58,6 +58,14 @@ If YES, you MUST format the commit message as:
 - Configuration files with no code path changes
 - Comment-only changes
 
+**⚠️ The marker is per-push, not per-commit.** GitHub evaluates it against the **head commit of the push**, so a `[skip ci]` commit at the tip suppresses every workflow for that push — including the `pull_request` event when the PR is opened at that tip. Push three commits ending on a docs-only one and *nothing* runs, for any of them.
+
+Consequences to plan for:
+
+- **Every PR must get one full check run.** Make sure at least one push lands on a commit without the marker. If a docs-only commit has to come last — the usual case for the Phase 4 changelog entry, which must reference the PR number and therefore lands after the PR exists — omit the marker on that commit and say why in the message.
+- **Adding a `[skip ci]` commit after CI has passed moves the PR head.** No new run is triggered (correct — nothing needs revalidating), but the passing checks stay attached to the previous SHA. Re-trigger before merge if branch protection requires checks on the head commit.
+- **The marker matches anywhere in the message, including the body.** A commit that merely *explains* the directive will skip CI too. Write "skip-ci directive" in prose rather than the literal token.
+
 ---
 
 ## Phase 4: PR Submission & Maintenance
