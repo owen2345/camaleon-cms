@@ -46,6 +46,19 @@ RSpec.describe 'target resolution precedence', type: :request do
     end
   end
 
+  # This is the example that actually discriminates on target resolution for impersonate. The
+  # non-admin impersonate examples in member_route_target_resolution_spec.rb cannot: they are
+  # gated by `cannot :impersonate` in the ability, which denies them whichever user resolves.
+  # An admin holds `can :manage, :all`, so only the resolved target decides the outcome here.
+  context 'with an injected user_id on the impersonate route' do
+    it 'switches the session to the injected user rather than the path segment' do
+      get "/admin/users/#{user_a.id}/impersonate?user_id=#{user_b.id}"
+
+      expect(cookies[:auth_token]).to include(user_b.auth_token)
+      expect(cookies[:auth_token]).not_to include(user_a.auth_token)
+    end
+  end
+
   context 'without an injected key on the nested updated_ajax route' do
     it 'resolves the path segment' do
       patch "/admin/users/#{password_target.id}/updated_ajax",
