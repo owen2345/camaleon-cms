@@ -29,16 +29,10 @@ describe CamaleonCms::UploaderHelper do
       Dir.glob("#{tmp_path}/*").select { |f| File.file?(f) }
     end
 
-    # The data: branch guards on params[:name]; helper specs have no request params.
-    def tmp_upload(uri, args)
-      allow(self).to receive(:params).and_return({ name: args[:name] })
-      cama_tmp_upload(uri, args)
-    end
-
     it 'leaves the staged file in place after a successful cama_tmp_upload' do
       png = File.binread("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png")
-      res = tmp_upload("data:image/png;base64,#{Base64.strict_encode64(png)}",
-                       name: 'helper_success.png')
+      res = cama_tmp_upload("data:image/png;base64,#{Base64.strict_encode64(png)}",
+                            name: 'helper_success.png')
 
       expect(res[:error]).to be_nil
       expect(File.exist?(res[:file_path])).to be(true)
@@ -49,15 +43,15 @@ describe CamaleonCms::UploaderHelper do
 
     it 'writes nothing when the helper copy rejects hostile content' do
       payload = Base64.strict_encode64('<html><script>alert(1)</script></html>')
-      res = tmp_upload("data:text/html;base64,#{payload}", name: 'helper_xss.html')
+      res = cama_tmp_upload("data:text/html;base64,#{payload}", name: 'helper_xss.html')
 
       expect(res[:error]).to eq('Potentially malicious content found!')
       expect(staged_files).to be_empty
     end
 
     it 'writes nothing when the helper copy rejects an oversized payload' do
-      res = tmp_upload("data:image/png;base64,#{Base64.strict_encode64('A' * 50_000)}",
-                       name: 'helper_big.png', maximum: 1.kilobyte)
+      res = cama_tmp_upload("data:image/png;base64,#{Base64.strict_encode64('A' * 50_000)}",
+                            name: 'helper_big.png', maximum: 1.kilobyte)
 
       expect(res[:error]).to include(ct('file_size_exceeded', default: 'File size exceeded'))
       expect(staged_files).to be_empty
@@ -74,6 +68,106 @@ describe CamaleonCms::UploaderHelper do
 
       expect(upload_file(File.open(staged), { folder: '../escape', remove_source: true }).key?(:error)).to be(true)
       expect(File.exist?(staged)).to be(false)
+    end
+  end
+
+  describe 'staging name source' do
+    let(:tmp_path) { Rails.public_path.join('tmp', current_site.id.to_s).to_s }
+    let(:png) { File.binread("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png") }
+    let(:data_uri) { "data:image/png;base64,#{Base64.strict_encode64(png)}" }
+
+    before { FileUtils.mkdir_p(tmp_path) }
+
+    def staged_files
+      Dir.glob("#{tmp_path}/*").select { |f| File.file?(f) }
+    end
+
+    it 'rejects a data: upload with no :name argument and stages nothing' do
+      res = cama_tmp_upload(data_uri, {})
+
+      expect(res[:error]).to eq('File name is required')
+      expect(staged_files).to be_empty
+    end
+
+    it 'stages a data: upload under the :name argument' do
+      res = cama_tmp_upload(data_uri, name: 'from_args.png')
+
+      expect(res[:error]).to be_nil
+      expect(File.basename(res[:file_path])).to eq('from_args.png')
+    ensure
+      FileUtils.rm_f(res[:file_path]) if res && res[:file_path]
+    end
+
+    it 'reads the name from the arguments, not from request params' do
+      # The guard used to read params[:name]; a blank one must no longer veto a
+      # caller that supplied :name itself.
+      allow(self).to receive(:params).and_return({})
+      res = cama_tmp_upload(data_uri, name: 'ignores_params.png')
+
+      expect(res[:error]).to be_nil
+      expect(File.basename(res[:file_path])).to eq('ignores_params.png')
+    ensure
+      FileUtils.rm_f(res[:file_path]) if res && res[:file_path]
+    end
+  end
+
+  describe 'usable without a request context' do
+    # Mirrors the ActiveJob usage documented in config/initializers/custom_initializers.rb:
+    # an object that includes the helper and supplies current_site, but has no `params`.
+    let(:jobish) do
+      site = current_site
+      Class.new do
+        include CamaleonCms::UploaderHelper
+        define_method(:current_site) { site }
+        def hooks_run(_key, _args = nil); end
+      end.new
+    end
+
+    let(:tmp_path) { Rails.public_path.join('tmp', current_site.id.to_s).to_s }
+
+    before { FileUtils.mkdir_p(tmp_path) }
+
+    it 'does not respond to params' do
+      expect(jobish).not_to respond_to(:params)
+    end
+
+    it 'stages a data: upload without raising NameError for params' do
+      png = File.binread("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png")
+      res = jobish.cama_tmp_upload("data:image/png;base64,#{Base64.strict_encode64(png)}", name: 'from_job.png')
+
+      expect(res[:error]).to be_nil
+      expect(File.binread(res[:file_path])).to eq(png)
+    ensure
+      FileUtils.rm_f(res[:file_path]) if res && res[:file_path]
+    end
+  end
+
+  describe 'settings normalization' do
+    it 'deep-symbolizes the settings hash before the before_upload hook sees it' do
+      seen = {}
+      allow(self).to receive(:hooks_run).and_call_original
+      allow(self).to receive(:hooks_run).with('before_upload', anything) do |_k, s|
+        seen = { folder: s[:folder], custom: s[:custom] }
+      end
+
+      upload_file(File.open(@path), { 'folder' => 'sample', 'custom' => { 'nested' => 1 } })
+
+      expect(seen[:folder]).to eq('sample')
+      expect(seen[:custom]).to eq({ nested: 1 })
+    end
+  end
+
+  describe 'upload message pipeline' do
+    it 'renders the size-limit error through ct, so the on_translation hook can override it' do
+      allow(self).to receive(:hooks_run).and_call_original
+      allow(self).to receive(:hooks_run).with('on_translation', anything) do |_k, r|
+        r[:flag] = true
+        r[:translation] = 'Plugin supplied message'
+      end
+
+      res = upload_file(File.open(@path), { maximum: 1.byte })
+
+      expect(res[:error]).to include('Plugin supplied message')
     end
   end
 
