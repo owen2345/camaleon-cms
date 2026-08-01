@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+- **Fix:** The site settings form rendered every custom field group in the site, not just the ones
+  meant for the site. Groups belonging to posts, categories, themes or menus can hold required
+  fields, so jQuery validation refused to submit until an administrator filled in data that does not
+  apply to the site — and `site_saved` discarded that data anyway, since it permits only slugs of
+  fields under `object_class: 'Site'` groups. A field group carries both a `parent_id` (which site
+  owns it) and an `object_class`/`objectid` pair (which record's admin page shows it); `Site` was the
+  only model reading the first where it should read the second.
+  [#1216](https://github.com/owen2345/camaleon-cms/pull/1216), reported as
+  [#1124](https://github.com/owen2345/camaleon-cms/issues/1124).
+
+  Two latent defects go with it, both previously broken for sites only:
+  `site.add_custom_field_group` raised `Object class can't be blank`, and `site.set_field_value`
+  could bind to a field belonging to another content type when the two shared a slug.
+
+  **Notes for upgraders**
+
+  - **`site.get_field_groups` is narrower.** It now returns only the groups placed on the site,
+    matching its own documented contract ("get custom field groups for current object"). A plugin
+    or theme using it as "every group in this site" should use `site.custom_field_groups`, which is
+    unchanged and still means exactly that.
+  - **A site whose only groups belonged to other content types loses its Custom Configurations
+    tab.** That is the fix rather than a regression: those fields could not be saved.
+  - **`rake camaleon_cms:backfill_site_field_group_objectid`** repairs site field groups stored with
+    a `NULL` `objectid`, which the placement-scoped read would otherwise hide. `objectid` has no
+    presence validation, so such rows are constructible, but no shipped code path creates them —
+    only an installation that built site groups by hand instead of through
+    `add_custom_field_group` has anything to repair. A Rake task rather than a migration, so a
+    data-only repair does not force `spec/dummy/db/schema.rb` to be regenerated.
+
 - **Security fix:** HTML injection in `Hash#to_attr_format` and in the bundled `cama_contact_form`
   plugin's form rendering. `to_attr_format` escaped attribute values with `gsub('"', '\"')` — a Ruby
   string escape in an HTML context, where a backslash escapes nothing — and interpolated attribute

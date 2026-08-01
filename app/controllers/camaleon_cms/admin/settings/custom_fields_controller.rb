@@ -89,6 +89,10 @@ module CamaleonCms
         def set_post_data
           @post_data = params.require(:custom_field_group).permit(:name, :description, :assign_group, :caption)
           @post_data[:object_class], @post_data[:objectid] = @post_data.delete(:assign_group).to_s.split(',')
+          # A Site placement has exactly one legal target, and the form only ever offers
+          # "Site,<current_site.id>". Pinning it keeps a crafted objectid from producing a group that
+          # Site#get_field_groups can never return, which would leave it stranded and unreachable.
+          @post_data[:objectid] = current_site.id if @post_data[:object_class] == 'Site'
           @caption = @post_data.delete(:caption)
         end
 
