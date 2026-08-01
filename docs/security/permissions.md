@@ -206,8 +206,15 @@ can only ever be element content — see the placeholder rule below.
 The grant is deliberately scoped to contact forms rather than to raw HTML in general. A future feature needing its own escape hatch will introduce its
 own permission, so enabling this one never silently authorizes a surface you did not intend.
 
-**Defaults:** the `admin` role receives it during seeding, along with every other manager key. The default `editor` and `contributor` roles never
-receive manager meta at all, and `client` receives an empty set, so no non-admin role holds it after an upgrade.
+**Defaults:** administrators hold it, and always did. `Ability#initialize` answers `can :manage, :all` for any user whose role is `admin` and returns
+before `_manager_` meta is read at all, so the grant does not depend on that meta being present. Seeding writes the key alongside every other manager key,
+but seeding runs once, when the site is created — so on a site created before this release the key is simply absent from the stored meta, and the role
+editor used to render an absent key as an unchecked box. It now derives the admin role's checkboxes from the role rather than from the meta, which is both
+what `can :manage, :all` actually does and what keeps the display correct for keys added later. **No backfill task is needed**, and none should be written:
+for the default admin role (`term_group: -1`) that meta is not read by the ability system and not writable through the editor, which refuses to persist it.
+
+The default `editor` and `contributor` roles never receive manager meta at all, and `client` receives an empty set, so no non-admin role holds it after an
+upgrade.
 
 ### Granting to a custom role
 

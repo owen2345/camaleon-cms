@@ -314,6 +314,16 @@ It is distinct from `ROLES[:post_type]`'s `post_content_unfiltered_html`, which 
 - **THEN** the `admin` role's `_manager_<site_id>` meta SHALL include the key, through the existing all-manager-keys seeding
 - **AND** no key-specific exclusion SHALL be added to that seeding, which would strip it from administrators
 
+#### Scenario: An administrator's permissions render as held whatever the stored meta says
+- **WHEN** the role editor is opened for a role whose slug is `admin`, on a site seeded before the key existed and whose `_manager_` meta therefore omits it
+- **THEN** every permission SHALL render as checked, in both the post-type grid and the manager list
+- **AND** this SHALL be derived from the role rather than from the meta, so a key added to `ROLES` later needs no data migration to display correctly
+- **AND** no backfill task SHALL be introduced for it: seeding runs once at site creation, `Ability` never reads that meta for an administrator, and the editor refuses to write it for the default admin role
+
+#### Scenario: A non-admin role still renders from its own meta
+- **WHEN** the role editor is opened for a role whose slug is not `admin`
+- **THEN** each permission SHALL render as checked only where that role's stored meta grants it
+
 #### Scenario: Enabling the permission grants the bypass
 - **WHEN** an administrator enables the permission on a custom role
 - **AND** a user in that role saves `previous_html` containing an inline `<script>`
