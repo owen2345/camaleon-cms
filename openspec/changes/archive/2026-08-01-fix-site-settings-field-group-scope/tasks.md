@@ -46,6 +46,6 @@
 
 ## 8. Documentation
 
-- [ ] 8.1 Open the PR referencing issue #1124, following the PR constraints in `docs/ai/workflows.md` Phase 4
-- [ ] 8.2 Add a `CHANGELOG.md` entry under the unreleased section covering both user-visible effects: site settings no longer render field groups of other content types, and `site.add_custom_field_group` / `site.set_field_value` now work correctly; note the narrowed `site.get_field_groups` contract for downstream plugins
-- [ ] 8.3 Run `/opsx:archive` on the branch and commit the result as part of the PR, before merge
+- [x] 8.1 Open the PR referencing issue #1124, following the PR constraints in `docs/ai/workflows.md` Phase 4 — [#1216](https://github.com/owen2345/camaleon-cms/pull/1216)
+- [x] 8.2 Add a `CHANGELOG.md` entry under the unreleased section covering both user-visible effects: site settings no longer render field groups of other content types, and `site.add_custom_field_group` / `site.set_field_value` now work correctly; note the narrowed `site.get_field_groups` contract for downstream plugins, the lost Custom Configurations tab, and the backfill task
+- [x] 8.3 Run `/opsx:archive` on the branch and commit the result as part of the PR, before merge — archived as `2026-08-01-fix-site-settings-field-group-scope`, syncing the `custom-field-group-placement` capability into `openspec/specs/` (+7 requirements)
