@@ -51,6 +51,13 @@ module CamaleonCms
         end
       when 'NavMenuItem'
         main_menu.custom_field_groups
+      when 'Site'
+        # Site overrides `custom_field_groups` to mean "every group this site owns" (foreign key
+        # parent_id), unlike the object_class + objectid association every other model receives from
+        # CommonRelationships. Scoping by placement here keeps groups meant for post types, themes or
+        # menus off the site settings form, where their required fields blocked the submit and their
+        # values were discarded on save anyway.
+        custom_field_groups.where(object_class: 'Site', objectid: id)
       when 'PostType'
         case args[:kind]
         when 'all'

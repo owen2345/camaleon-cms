@@ -115,6 +115,28 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
     end
   end
 
+  describe 'Site placement' do
+    # Site#get_field_groups matches object_class and objectid, so a Site group carrying another
+    # site's id would be stranded: unreachable from both sites' settings pages. The form only ever
+    # offers "Site,<current_site.id>", so the id is pinned rather than trusted.
+    it 'pins objectid to the current site when the placement class is Site' do
+      user = create(:user, role: 'admin', site: current_site)
+      sign_in_as(user, site: current_site)
+      other_site = create(:site, slug: 'other-placement-site', name: 'Other Placement Site')
+
+      post '/admin/settings/custom_fields', params: {
+        custom_field_group: { name: 'Pinned Group', assign_group: "Site,#{other_site.id}" },
+        fields: { '0' => { name: 'Pinned Field', slug: 'pinned-field' } },
+        field_options: { '0' => { field_key: 'text_box' } }
+      }
+
+      group = current_site.custom_field_groups.find_by(name: 'Pinned Group')
+      expect(group.objectid).to eq(current_site.id)
+      expect(current_site.get_field_groups).to include(group)
+      expect(other_site.get_field_groups).not_to include(group)
+    end
+  end
+
   describe 'GET /admin/settings/custom_fields/list' do
     let(:post_type) { current_site.post_types.create!(name: 'Test PT', slug: 'test-pt') }
     let(:my_post) { post_type.posts.create!(title: 'Test Post', slug: 'test-post') }
