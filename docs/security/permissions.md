@@ -209,9 +209,14 @@ own permission, so enabling this one never silently authorizes a surface you did
 **Defaults:** administrators hold it, and always did. `Ability#initialize` answers `can :manage, :all` for any user whose role is `admin` and returns
 before `_manager_` meta is read at all, so the grant does not depend on that meta being present. Seeding writes the key alongside every other manager key,
 but seeding runs once, when the site is created — so on a site created before this release the key is simply absent from the stored meta, and the role
-editor used to render an absent key as an unchecked box. It now derives the admin role's checkboxes from the role rather than from the meta, which is both
-what `can :manage, :all` actually does and what keeps the display correct for keys added later. **No backfill task is needed**, and none should be written:
-for the default admin role (`term_group: -1`) that meta is not read by the ability system and not writable through the editor, which refuses to persist it.
+editor used to render an absent key as an unchecked box. It now derives the checkboxes of any role slugged `admin` from the role rather than from the meta,
+which is both what `can :manage, :all` actually does and what keeps the display correct for keys added later. **No backfill task is needed**, and none
+should be written: that meta is never read for an administrator.
+
+Those checkboxes are also **locked**, and `Admin::UserRolesController` declines to write the metas for such a role — the view and the controller test the
+same predicate, `UserRole#permissions_editable?`. Locking only the view would have been worse than leaving it alone: a disabled checkbox is not submitted,
+so the next save would have cleared whatever the role had stored. Withholding a permission from a role whose users are administrators is not possible
+anyway, so offering the toggle would only invite an edit that silently does nothing.
 
 The default `editor` and `contributor` roles never receive manager meta at all, and `client` receives an empty set, so no non-admin role holds it after an
 upgrade.

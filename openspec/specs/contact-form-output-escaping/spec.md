@@ -318,7 +318,17 @@ It is distinct from `ROLES[:post_type]`'s `post_content_unfiltered_html`, which 
 - **WHEN** the role editor is opened for a role whose slug is `admin`, on a site seeded before the key existed and whose `_manager_` meta therefore omits it
 - **THEN** every permission SHALL render as checked, in both the post-type grid and the manager list
 - **AND** this SHALL be derived from the role rather than from the meta, so a key added to `ROLES` later needs no data migration to display correctly
-- **AND** no backfill task SHALL be introduced for it: seeding runs once at site creation, `Ability` never reads that meta for an administrator, and the editor refuses to write it for the default admin role
+- **AND** no backfill task SHALL be introduced for it: seeding runs once at site creation and `Ability` never reads that meta for an administrator
+
+#### Scenario: An administrator's permissions cannot be toggled
+- **WHEN** the role editor is opened for a role whose slug is `admin`, whether or not that role is otherwise editable
+- **THEN** every permission checkbox SHALL be rendered disabled, the bulk selection actions SHALL be hidden, and the form SHALL state that users in the role hold every permission regardless
+- **AND** saving the role SHALL leave its `_post_type_` and `_manager_` metas untouched, since a disabled checkbox is not submitted and writing the submitted set would clear them
+- **AND** the view and the controller SHALL decide this from one predicate, so they cannot disagree
+
+#### Scenario: A non-admin role remains editable
+- **WHEN** the role editor is opened for an editable role whose slug is not `admin`
+- **THEN** its permission checkboxes SHALL be editable and saving SHALL persist the submitted set
 
 #### Scenario: A non-admin role still renders from its own meta
 - **WHEN** the role editor is opened for a role whose slug is not `admin`

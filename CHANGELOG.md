@@ -28,12 +28,13 @@
   - **`to_attr_url_format`** emits `value.to_s.inspect`; it did not escape backslashes before. Not a
     security fix, and it has no callers in this repo.
   - **The role editor** gains "Allow unfiltered HTML in contact forms", off for every role but
-    `admin`. It also now renders the `admin` role's permissions as held whatever its stored meta
-    says — which is what `can :manage, :all` has always done. Role permissions are seeded once, when
-    the site is created, so on an existing site every key added to `ROLES` since then was rendering
-    unchecked and reading as "denied to administrators". Deriving the display from the role needs no
-    data migration, and none should be written: for the default admin role that meta is neither read
-    by the ability system nor writable through the editor.
+    `admin`. It also now renders any `admin`-slugged role's permissions as held and **locked**, which
+    is what `can :manage, :all` has always meant. Role permissions are seeded once, when the site is
+    created, so on an existing site every key added to `ROLES` since then was rendering unchecked and
+    reading as "denied to administrators". Deriving the display from the role needs no data
+    migration, and none should be written — that meta is never read for an administrator. The
+    controller declines to write it for such a role too, on the same predicate: a disabled checkbox
+    is not submitted, so locking the view alone would have cleared the stored set on the next save.
   - **[#1206](https://github.com/owen2345/camaleon-cms/pull/1206)'s permission is renamed** —
     `allow_unfiltered_html` → `post_content_unfiltered_html`, and its ability likewise — so each
     identifier names its subject. No migration: #1206 has not shipped in any release.

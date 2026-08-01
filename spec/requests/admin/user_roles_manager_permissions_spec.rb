@@ -95,6 +95,57 @@ RSpec.describe 'Admin::UserRolesController permission rendering', type: :request
 
       expect(manager_box(doc, 'contact_form_unfiltered_html').attributes).to have_key('disabled')
     end
+
+    it 'hides the bulk selection actions, which would drive locked checkboxes' do
+      doc = edit_role(default_admin)
+
+      expect(doc.at_css('#checked-actions')).to be_nil
+    end
+
+    it 'explains why the permissions cannot be changed' do
+      doc = edit_role(default_admin)
+
+      expect(doc.text).to include('administrators')
+    end
+  end
+
+  # An `admin`-slugged role that IS editable (`term_group: nil`) is the case that used to be
+  # half-right: it rendered everything checked but stayed editable, so an operator could untick a box
+  # that `can :manage, :all` would go on granting anyway. It is now locked on the same terms as the
+  # default admin role — and locked in the controller too, because a disabled checkbox is not
+  # submitted, so locking the view alone would have made the next save clear the stored meta.
+  describe 'an editable role slugged admin' do
+    let(:editable_admin) do
+      @site.user_roles.create!(name: 'Editable Admin', slug: 'admin', term_group: nil)
+    end
+
+    before { editable_admin.set_meta("_manager_#{@site.id}", { themes: 1 }) }
+
+    it 'renders its permissions checked and locked' do
+      doc = edit_role(editable_admin)
+
+      box = manager_box(doc, 'contact_form_unfiltered_html')
+      expect(checked?(box)).to be(true)
+      expect(box.attributes).to have_key('disabled')
+    end
+
+    it 'does not clear the stored permissions when the role is saved' do
+      # Exactly what the browser sends for a form whose permission boxes are all disabled.
+      patch "/admin/user_roles/#{editable_admin.id}",
+            params: { user_role: { name: 'Editable Admin', slug: 'admin', description: 'x' } }
+
+      # Asserted key-agnostically: `get_meta` yields indifferent access when it parses stored JSON,
+      # but the raw hash as written when the value is still cached in this process.
+      stored = editable_admin.reload.get_meta("_manager_#{@site.id}")
+      expect(stored.to_h.transform_keys(&:to_s)).to eq('themes' => 1)
+    end
+
+    it 'still saves the role attributes themselves' do
+      patch "/admin/user_roles/#{editable_admin.id}",
+            params: { user_role: { name: 'Renamed', slug: 'admin', description: 'x' } }
+
+      expect(editable_admin.reload.name).to eq('Renamed')
+    end
   end
 
   describe 'a non-admin role' do

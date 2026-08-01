@@ -23,6 +23,23 @@ module CamaleonCms
       term_group.nil?
     end
 
+    # Users in a role slugged `admin` are administrators: `User#admin?` tests exactly this, and
+    # `Ability#initialize` answers `can :manage, :all` for them and returns before this role's
+    # `_post_type_`/`_manager_` metas are read. Those metas therefore describe nothing — every
+    # permission is held whatever they say.
+    def grants_all_permissions?
+      slug == 'admin'
+    end
+
+    # Whether the permission checkboxes mean anything. False for the default admin role, which is not
+    # editable at all, and false for any other role slugged `admin`, whose permissions cannot be
+    # withheld from its users. The editor renders them locked and the controller declines to write
+    # them, so the two cannot disagree — and a locked checkbox, which the browser does not submit,
+    # can never silently clear what is stored.
+    def permissions_editable?
+      editable? && !grants_all_permissions?
+    end
+
     ROLES = {
       post_type: [
         {
