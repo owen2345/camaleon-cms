@@ -71,16 +71,170 @@
 - [x] 8.3 `bin/brakeman --no-pager` — 0 errors, 0 security warnings
 - [x] 8.4 `(cd spec/dummy && bin/rails zeitwerk:check)` — All is good!
 
-## 9. Release and coordination
 
-- [x] 9.1 Plugin PR [#63](https://github.com/owen2345/cama_contact_form/pull/63) merged; the builder tagged `0.1.10` in 16s and `version.rb` matches — the first aligned tag since 0.1.7. Camaleon's six Gemfiles now pin `tag: '0.1.10'` rather than a branch, so the resolved revision is immutable
-- [ ] 9.2 Ask `owencio` to publish 0.1.10 to RubyGems, or to add a second gem owner — until this happens the plugin half reaches no user, since RubyGems still serves 0.1.0 from 2022-12-27
-- [ ] 9.3 **After publication:** revert all six Gemfiles from the git source back to a version constraint. Left in place, CI silently tests a moving branch and a plugin-side force-push becomes a Camaleon CI failure (design, Risks)
-- [ ] 9.4 Consider raising Camaleon's gemspec floor to `~> 0.1.10` so new installs cannot resolve the vulnerable 0.1.0
-- [ ] 9.5 Ask the reporter for their reproduction steps, specifically which access-control issue allowed form modification and what privilege the acting account held — their chain's first step is still unverified and may not be either root fixed here
+## 9. HANDOFF — read this first
 
-## 10. Out of scope, tracked separately
+The design turned over three times in review. **Sections 1–8 above describe superseded designs and are kept only as a record of how the work got here.** Anything in them about *escaping* or *sanitizing* contact-form values is obsolete. What was actually built is below.
 
-- [ ] 10.1 The two CSRF skips (`Admin::MediaController#upload`, `Admin::PostsController#ajax`) — `media#upload` permits a cross-site forced authenticated upload and deserves its own change
-- [ ] 10.2 Rewriting `cama_form_element_bootstrap_object` onto `tag`/`content_tag` and `SafeBuffer` so escaping is structural rather than positional (design D4) — correct follow-up once these specs exist to protect it
-- [ ] 10.3 Reviving the plugin's `test/dummy`, which cannot boot on Rails 8.1
+### The model that was built
+
+Nothing is ever rewritten. Content is stored and rendered exactly as written, or refused.
+
+| writer | outcome |
+|---|---|
+| author with `:manage, :contact_form_unfiltered_html` | anything stored verbatim — markup, script, event handlers — and delivered to guests as written |
+| author without it | save refused, naming only the offending *key*; nothing stored, record untouched |
+| visitor | submission refused; nothing stored, no mail sent, nothing echoed back |
+| structural values (`cid`, field type, `maxlength`) | allowlisted for **everyone**, including admins — a malformed field type is a corrupt record, not a capability |
+
+The plugin performs **no escaping at all**. `grep -rE "escapeHTML|html_escape|to_attr_format|cf_h" app/` returns nothing but comments. Enforcement is entirely at the gate:
+
+- `AdminFormsController#update` — validates *before* touching the record, fails on the first offender.
+- `ContactFormControllerConcern#validate_to_save_form` — refuses and returns immediately, before reCAPTCHA or any other validation.
+- `FrontController#save_form` — a submission containing anything malign is refused whole; nothing is stashed into `flash[:values]`.
+
+Rejection criteria are deliberately narrow, one per HTML context:
+
+- element content → an HTML sanitizer would change it
+- attribute value → contains `"`
+- textarea redisplay → contains `</textarea` (a quote is ordinary prose here and must be accepted)
+
+### Camaleon-side changes (unaffected by the revisions, still correct)
+
+`Hash#to_attr_format` escapes values with `CGI.escapeHTML` and drops keys that are not valid attribute names. **It keeps escaping** — it is public API that external plugins and themes hand untrusted data to. The contact form stopped calling it and emits its own attributes verbatim (`cf_attrs`), because there the values are gated at save. Do not "unify" these two.
+
+`to_attr_url_format` emits `value.to_s.inspect`. The permission rename (D8) and the new manager key (D7) are unaffected.
+
+### Two traps that bit during this work — do not reintroduce
+
+1. **The rejection message must never quote back what it rejected.** Both the admin and frontend flash partials render with `raw(flash[...])`. An earlier revision interpolated the author's own field label into the error, which made refusing an injection a way to perform one. Messages now name only the controller's own constants (`previous_html`, `template`, `option label`).
+2. **`type` in `cama_form_select_multiple_bootstrap` is the control type, not the field type.** A `checkboxes` field renders `type="checkbox"`, a `dropdown` renders a `<select>`. A bulk edit conflated them and no spec caught it until one was written.
+
+### Verification state
+
+`spec/requests/security/` — 83 examples, 0 failures. Every fix was mutation-verified by reverting it in isolation and confirming the intended spec fails. Two specs were found worthless that way and rewritten: one that could not reach the branch it claimed to guard, and one whose early return could be deleted with nothing failing, because every fixture failed validation for another reason.
+
+Not re-run since the final revision: full `bin/rspec`, rubocop, brakeman, zeitwerk.
+
+## 9a. Five gate-coverage holes found after the handoff — now closed
+
+The handoff's position list was incomplete, and under this design an omitted position is not degraded but **unprotected**. All five were reproduced as live XSS before being fixed: each was reachable by a role holding `:manage, :plugins` alone, which is the exact boundary this change exists to close. Found by re-deriving the position table against the renderer rather than by reading the list.
+
+- [x] 9a.1 **`default_value` on a `paragraph`/`textarea` field.** Rendered as `<textarea>` RCDATA content but judged by the attribute rule, so `</textarea><script>alert(1)</script>` — which contains no double quote — passed. Its context now follows the field type, matching the split the front controller already applied to a visitor's value.
+- [x] 9a.2 **`description`.** Judged only as markup. But `[descr ci]` is substituted wherever the *authored* template puts it, and `<div title="[descr ci]">` passes the sanitizer untouched, so `x" onmouseover="alert(1)` landed as a live handler. It now carries the attribute rule as well, as `label` already did.
+- [x] 9a.3 **`field_attributes` keys.** Validated for shape only, and `onfocus` is a perfectly well-formed attribute name carrying a quote-free value. Event-handler names are now refused by an `on` prefix test — the rule HTML sanitizers use; a list of known handler names fails open as the platform adds more.
+- [x] 9a.4 **`railscf_message`.** Not checked at all. Every value flows through `the_message` into `flash[:contact_form]`, which the frontend flash partial renders with `raw` — on the failure path *and* the success path. All values in the hash are now markup-checked, without enumerating keys, so a message added later is covered.
+- [x] 9a.5 **`recaptcha_site_key`.** The recaptcha gem interpolates it into `data-sitekey="…"` with no escaping. Now attribute-checked. The rejection is spec'd at the gate rather than at the render: the gem skips emitting the tag entirely in the test environment, so there is no rendered attribute to assert against.
+- [x] 9a.6 Mutation-verified all five by reverting each in isolation; every one is caught by its intended spec, and the tree restores clean. `spec/requests/security/` — **103 examples, 0 failures**.
+- [x] 9a.7 Removed the stale escaping-era comment block left above the rejection-model one in `admin_forms_controller.rb`, the duplicated doc line on `first_unpermitted_html_key`, the "sanitized on save" note in `forms_shorcode.html.erb`, and an empty `describe` block holding only comments in `contact_form_output_escaping_spec.rb`.
+
+**Consequence for the design:** D2's position table is the security boundary, and it is maintained by hand. This is now recorded as the change's largest structural risk and the strongest argument for the D4 rewrite onto `tag`/`content_tag`.
+
+## 9b. Fifteen findings from the post-handoff review — now fixed
+
+The rejection design was reviewed end to end against the renderer and the two mail templates. The
+position table in D2 was the weak point again, and for the same structural reason as 9a: it was
+maintained by hand against a renderer whose contexts the *author* could move.
+
+**Gate bypasses (each reproduced as live XSS by a role holding only `:manage, :plugins`)**
+
+- [x] 9b.1 **The template decided the context, so the table was not true.** `<div class='[descr ci]'>`
+  put a description inside a single-quoted attribute, where an apostrophe escapes and no rule was
+  looking for one; `<div title="[ci]">` put a whole `<textarea>` inside an attribute. Fixed
+  structurally rather than by adding rules: a template placing a placeholder **inside a tag** is
+  refused for everyone. `description` consequently drops the attribute rule, which also makes a
+  quote in a description ordinary prose again.
+- [x] 9b.2 **The sanitizer comparison is blind to what the parser drops first.** An unterminated
+  attribute (`<div class="a" onmouseover="alert(1)" x="`) serializes to `""` on both sides; a
+  `<td onmouseover=…>` is foster-parented away before the sanitizer sees it and materializes as soon
+  as the page opens table context. Both refused now, structurally.
+- [x] 9b.3 **`[label ci]`/`[descr ci]` were substituted after `[ci]`**, over the field markup the
+  first pass had just produced — so a visitor typing the literal `[label ci]` had the author's label
+  spliced into the textarea echoing their own words back. One pass now.
+- [x] 9b.4 **A Hash-shaped submitted value skipped the visitor gate** and then supplied the closing
+  quote through `Hash#to_s`. The submitted value is judged as the renderer interpolates it.
+- [x] 9b.5 **The notification e-mail is a markup sink and was ungated for visitor values.**
+  `cama_replace_codes` splices them into the author's body and the mailer renders it with `raw`.
+  Active markup is refused; prose is not. `subject`/`subject_answer` were in no list at all.
+- [x] 9b.6 **`dangerous_url?` decoded with `CGI.unescapeHTML`**, which knows the five legacy entities
+  and nothing else, so `formaction="javascript&colon;alert(1)"` passed while a browser resolves it.
+  The HTML parser now does the decoding.
+- [x] 9b.7 **`rel` and `target` had been added to the safe list.** Rails omits them deliberately:
+  `rel="opener"` re-enables the `window.opener` handle. Removed.
+
+**Broken for everyone**
+
+- [x] 9b.8 **Every checkbox, radio and file submission was refused.** `Array#to_s` is `inspect`, so
+  the array's own string form always carries a quote. The spec named after this case asserted only
+  `have_http_status(:redirect)`, which is true on both branches — it now asserts what was stored.
+- [x] 9b.9 **A refused save discarded the author's work.** The editor is repopulated from the
+  submitted params (the 9a "KNOWN GAP", closed).
+
+**Crashes reachable from an ordinary request**
+
+- [x] 9b.10 `POST save_form` with an unknown id → `nil.fields`, an unauthenticated 500.
+- [x] 9b.11 `fields=` → `String#each`; a scalar settings container → `TypeError` on every public
+  page; a nested non-scalar in `railscf_mail` → `NoMethodError` *after* the response row was stored
+  and the owner e-mailed; `required` → `String#to_bool` raises; an empty option list → `nil.each`;
+  `field_attributes` of `[1,2]` → `TypeError`. All refused at the gate, and the model gained
+  `mail_settings`/`form_button_settings`/`message_settings` so a form with no settings still renders.
+
+**False refusals and misdirection**
+
+- [x] 9b.12 A translated value containing `<` (`<!--:en-->Age < 18<!--:-->`) was refused, because
+  every `<` counted as a tag open. Prose containing `-->` was refused by a comment-count comparison
+  that only ever produced false positives. `data-*`, `aria-*`, `role` and `tabindex` were refused,
+  which is most of what `template` exists for.
+- [x] 9b.13 The refusal named a generic rule: `btn "primary"` in Custom Class was reported as
+  "contains HTML". The message now follows the rule that fired.
+
+**Cost**
+
+- [x] 9b.14 The number and size of parses were caller-chosen. 4093 option labels measured **17 s** of
+  CPU in one request; a 1 MB template measured **20 s**. Field count, option count and value size are
+  capped, and each check parses once rather than twice.
+
+**Process**
+
+- [x] 9b.15 Both replacement spec files were untracked while the spec they replace was staged for
+  deletion — committing the tree would have removed the only tracked coverage of the admin gate.
+  Tracked now, and `.bundle/` is gitignored so the local override cannot be committed.
+
+- [x] 9b.16 Full gate re-run after the fixes: `bin/rspec` — **952 examples, 0 failures**;
+  `spec/requests/security/` — **189 examples, 0 failures**; `bin/rubocop` clean on the three changed
+  spec files; `bin/brakeman --no-pager` — 0 warnings, 0 errors;
+  `(cd spec/dummy && bin/rails zeitwerk:check)` — all good; `openspec validate --strict` passes.
+
+## 10. Remaining work
+
+- [x] 10.1 Rewritten for the rejection model: `design.md` (Context, D1 addendum, D2, D3, D4, D5, D6, Risks), `proposal.md`, `specs/contact-form-output-escaping/spec.md` (full rewrite — 9 requirements), `specs/post-content-sanitization/spec.md` (remedy difference + the stale "SHALL be sanitized" scenario), `CHANGELOG.md`, `docs/security/permissions.md`, and the plugin's `CHANGELOG.md` (new 0.1.12 entry). `openspec validate --strict` passes
+- [x] 10.2 Plugin committed on `security/reject-unsafe-content`, [PR #65](https://github.com/owen2345/cama_contact_form/pull/65) opened, merged and released — `cama_contact_form` 0.1.12 is on RubyGems
+- [x] 10.3 Better than repointing at a tag: the override is removed from all six Gemfiles outright, and `camaleon_cms.gemspec` raises the dependency to `~> 0.1.12`. Left at `~> 0.1.0` the range would still have admitted the vulnerable 0.1.0
+- [x] 10.4 Local Bundler override removed (`bundle config unset local.cama_contact_form && rm -rf .bundle`); `Gemfile.lock` re-resolved and now carries no git source. `.bundle/` stays gitignored
+- [ ] 10.5 Amend/extend the Camaleon commit — the pushed branch predates the rejection design — and update the [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) body
+- [ ] 10.6 `openspec archive fix-contact-form-output-escaping -y` on the branch, before merge
+- [x] 10.7 Full gate: `bin/rspec`, `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` — all green, see 9b.16
+- [ ] 10.8 Re-confirm against the `2.9.2` tag that neither `allow_unfiltered_html` nor `post_unfiltered_html` appears, so the D8 rename still needs no migration
+
+## 11. Superseded releases
+
+`0.1.10` (uniform escaping) and `0.1.11` (context-aware escaping) are tagged and released on GitHub but describe designs reversed in review. `0.1.12` supersedes both. Neither reached RubyGems, so nobody can have installed them.
+
+## 12. Follow-ups — deliberately not part of this change
+
+**Was blocked on publication — now resolved**
+
+- `cama_contact_form` 0.1.12 is published to RubyGems. Host applications need nothing in their own `Gemfile`; `bundle update camaleon_cms` is enough.
+- The six Gemfiles no longer carry the git source, and the gemspec requires `~> 0.1.12` — raised rather than merely reverted, because `~> 0.1.0` still admitted the vulnerable 0.1.0 and an application whose lock already named it would have stayed there. `Gemfile.lock` carries no git source and the local Bundler override is gone.
+- `docs/example_gemfile.rb` still git-sources the plugin. Left alone: it predates this work by two years, is one line of a block that git-sources several Camaleon plugins on purpose for people tracking master, and now resolves a master that contains the fix.
+
+**Open question to the reporters**
+
+- Amir Aliu and Enrik Mustafa described a broken access control step that let them modify an existing form. Form editing requires `:manage, :plugins` on `master`, and no reproduction steps were shared. If they used a hole that still exists, their chain is not fully closed.
+
+**Separate changes**
+
+- The two CSRF skips (`Admin::MediaController#upload`, `Admin::PostsController#ajax`). `media#upload` permits a cross-site forced authenticated upload — a real finding, deliberately excluded here.
+- `cama_form_element_bootstrap_object` still builds HTML by string concatenation. It is now safe by construction rather than by escaping, but a rewrite onto `tag`/`content_tag` would make it structurally so. Specs now exist to protect such a rewrite.
+- The plugin's `test/dummy` cannot boot on Rails 8.1, which is why all regression coverage lives in Camaleon.
+- Pre-existing in `validate_to_save_form`: `fields[cid].match(/@/)` raises `NoMethodError` on `nil` for an email field omitted from the request. The early bail avoids it for malign input only.

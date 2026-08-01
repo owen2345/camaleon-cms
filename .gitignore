@@ -14,3 +14,7 @@ spec/dummy/**/*.sqlite3
 spec/support/fixtures/rails_tmp.png
 *.gem
 node_modules
+
+# Local Bundler overrides (e.g. a path/branch override for cama_contact_form while it is
+# developed alongside this repo). Machine-specific: committing it breaks CI, which has no such path.
+/.bundle/
