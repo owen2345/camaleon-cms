@@ -38,11 +38,11 @@
 
 ## 7. Verification
 
-- [ ] 7.1 `bin/rspec` on the new and touched spec files
-- [ ] 7.2 `bin/rspec` full suite as a regression check, paying attention to `spec/features/admin/settings_spec.rb`, `spec/features/admin/custom_fields_spec.rb`, and `spec/requests/admin/settings/`
-- [ ] 7.3 `bin/rubocop -A` on touched files only
-- [ ] 7.4 `bin/brakeman --no-pager`
-- [ ] 7.5 `(cd spec/dummy && bin/rails zeitwerk:check)`
+- [x] 7.1 `bin/rspec` on the new and touched spec files — 40 examples, 0 failures
+- [x] 7.2 `bin/rspec` full suite as a regression check, paying attention to `spec/features/admin/settings_spec.rb`, `spec/features/admin/custom_fields_spec.rb`, and `spec/requests/admin/settings/` — 986 examples, 0 failures
+- [x] 7.3 `bin/rubocop -A` on touched files only — 7 files, no offenses
+- [x] 7.4 `bin/brakeman --no-pager` — 0 security warnings
+- [x] 7.5 `(cd spec/dummy && bin/rails zeitwerk:check)` — all is good
 
 ## 8. Documentation
 
