@@ -1,3 +1,13 @@
+## RENAMED Requirements
+
+D8 renames the permission key `allow_unfiltered_html` to `post_content_unfiltered_html`, so the
+requirement named after it is renamed too. Declared here because the MODIFIED section below already
+references the new name, and a MODIFIED header that names a requirement the live spec does not carry
+matches nothing — the archive aborts rather than silently skipping it.
+
+- FROM: `### Requirement: allow_unfiltered_html permission key exists in the role system`
+- TO: `### Requirement: post_content_unfiltered_html permission key exists in the role system`
+
 ## MODIFIED Requirements
 
 ### Requirement: Untrusted users' post content is sanitized at save time

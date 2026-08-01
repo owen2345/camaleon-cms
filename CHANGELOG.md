@@ -2,18 +2,53 @@
 
 ## Unreleased
 
-- **Security fix:** Fix HTML injection in `Hash#to_attr_format` and in the bundled `cama_contact_form` plugin's form rendering. `to_attr_format` escaped attribute values with `gsub('"', '\"')` — a Ruby string escape applied to an HTML context, where a backslash escapes nothing — so a value of `x" onfocus=alert(1) y="` rendered as a live `onfocus` attribute. It also interpolated attribute *names* verbatim, so a key of `x onfocus=alert(1) y` rendered as three attributes; escaping cannot defend that position, since the splitting characters are whitespace and `=` rather than HTML metacharacters, so keys are now validated and invalid pairs dropped. Values are escaped with `CGI.escapeHTML` rather than `ERB::Util.html_escape`, which is a no-op on `html_safe` strings and would have left such a value able to break out. Separately, `cama_form_element_bootstrap_object` built its markup by raw string interpolation with no escaping at any position and the shortcode emitted the result through `raw`, so both an unauthenticated visitor's resubmitted values (stashed in `flash[:values]` when validation fails) and every form-definition field — label, default value, option labels, CSS class, custom attributes, response messages — could inject script. Because the admin panel is same-origin with the frontend, script landing there runs with an administrator's session, making this a privilege escalation from any role holding `:manage, :plugins`. Requires `cama_contact_form` 0.1.12. [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) — thanks, Amir Aliu and Enrik Mustafa, for reporting this.
-  - **The `cama_contact_form` dependency is raised to `~> 0.1.12`**, which is where the plugin-side fix lives. It is an ordinary RubyGems dependency — nothing to add to a host application's `Gemfile`; `bundle update camaleon_cms` is enough. The constraint is raised rather than left at `~> 0.1.0` because that range still admits 0.1.0 from 2022-12-27, which carries the vulnerability, so an application whose lock already named it would have stayed on it. Versions 0.1.10 and 0.1.11 are tagged on GitHub but describe two earlier designs that were reversed in review; 0.1.12 supersedes both, and neither reached RubyGems.
-  - **Behavior change:** `to_attr_format` now emits `&quot;` where it previously emitted `\"`, and silently drops pairs whose key is not a valid HTML attribute name (`/\A[a-zA-Z_:][-a-zA-Z0-9_:.]*\z/`). Plugins and themes packaged as separate gems call this method, and any that relied on the old output to inject markup through an attribute value or name will stop working — that is the fix. Keys containing spaces were already producing malformed markup. It continues to escape, and remains the right choice for a caller handling data of unknown provenance; the contact form no longer uses it, because there the values are checked when the form is saved and a trusted author is entitled to emit an event handler.
-  - **Behavior change:** `to_attr_url_format` now emits `value.to_s.inspect` instead of a hand-rolled escape. Its quote handling was already correct for the Ruby literal it generates, but it did not escape backslashes, so `a\b` became a backspace and `a\"b` produced a fragment that would not parse. Not a security fix — the method has no callers in this repo.
-  - **Behavior change:** the role editor gains an "Allow unfiltered HTML in contact forms" permission under Manager Permissions, off for every role except `admin`. Without it, a contact form save carrying HTML in a gated field is refused. See `docs/security/permissions.md`.
-  - **Behavior change:** the permission added in [#1206](https://github.com/owen2345/camaleon-cms/pull/1206) is renamed from `allow_unfiltered_html` to `post_content_unfiltered_html`, and its ability from `post_unfiltered_html` to the same name, so each post-content identifier states its subject and cannot be confused with the contact-form grant. Its UI label becomes "Allow unfiltered HTML in post content". No migration is needed: #1206 has not shipped in any release, so no site holds role meta under the old key.
-  - **Behavior change — the contact form now refuses content rather than rewriting it.** Nothing is escaped and nothing is sanitized: a form's content is stored and delivered exactly as written, or the save is refused and the author is told which setting to fix (the setting is named — `template`, `option label` — never the field, and never by quoting back what was refused). An author holding `contact_form_unfiltered_html` is unaffected and may put markup, event handlers or script anywhere in a form. Without it, a save is refused when a field label, description, template, CSS class, default value, custom attributes, response message, option label, reCAPTCHA site key or form wrapper carries HTML that could escape the position it renders in. Refusing rather than rewriting is what makes verbatim rendering safe — escaping is not idempotent, so a re-saved value accumulates entity references on every pass, and sanitizing discards the author's work without telling them.
-  - **Upgrade note:** a visitor's submission is likewise refused rather than escaped, and refused whole — if any field carries a payload, none of the submission is echoed back into the form. Ordinary punctuation is unaffected for them: a quote is accepted in a message, and `Fish & Chips <today>` round-trips as written. Authors are held to a stricter rule, since their content reaches every visitor, but ordinary writing still passes — `Tom & Jerry`, `&nbsp;`, `&copy;`, `<br/>`, uppercase tags and single-quoted attributes are all accepted, as is the contact-form plugin's own default field template.
-  - **Upgrade note:** existing stored content is not re-checked. A form saved before this release keeps rendering whatever it holds until someone saves it again, at which point the gate applies. Nothing is rewritten retroactively, and nothing needs to be.
-  - **Upgrade note:** *formatting* markup in a dropdown option label does not render — a browser drops `<b>` and the like inside `<option>`. This is not a general "options are text-only" guarantee, and must not be relied on as one: `<script>` inside an `<option>` both survives parsing and executes, and `<template>` survives too. A dropdown option label is therefore gated exactly like every other position, and an author holding the permission can put script there and have it run.
+- **Security fix:** HTML injection in `Hash#to_attr_format` and in the bundled `cama_contact_form`
+  plugin's form rendering. `to_attr_format` escaped attribute values with `gsub('"', '\"')` — a Ruby
+  string escape in an HTML context, where a backslash escapes nothing — and interpolated attribute
+  *names* verbatim, so a key of `x onfocus=alert(1) y` rendered as three attributes. Separately, the
+  contact form built its markup by raw string interpolation and emitted it through `raw`, so both an
+  unauthenticated visitor's resubmitted values and every form-definition field could inject script.
+  The admin panel is same-origin with the frontend, so script landing there runs with an
+  administrator's session — a privilege escalation from any role holding `:manage, :plugins`.
+  Requires `cama_contact_form` 0.1.12.
+  [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) — thanks, Amir Aliu and Enrik Mustafa,
+  for reporting this. Gated positions and the permission's exact scope: `docs/security/permissions.md`.
 
-- **Security bumps:** concurrent-ruby 1.3.7 → 1.3.8, erb 6.0.4 → 6.0.6, json 2.20.0 → 2.21.1, and net-imap 0.6.4.1 → 0.6.6, picked up while re-resolving `cama_contact_form`. [#1215](https://github.com/owen2345/camaleon-cms/pull/1215)
+  **Breaking changes**
+
+  - **The contact form refuses unsafe content instead of rewriting it.** Nothing is escaped or
+    sanitized: a form's content is stored and delivered exactly as written, or the save is refused
+    and the author told which setting to fix. An author holding `contact_form_unfiltered_html` is
+    unaffected. A visitor's submission is likewise refused whole rather than escaped. Ordinary
+    writing still passes for both — `Tom & Jerry`, `&nbsp;`, `<br/>`, uppercase tags, single-quoted
+    attributes, and `Fish & Chips <today>` from a visitor.
+  - **`to_attr_format`** emits `&quot;` where it emitted `\"`, and drops pairs whose key is not a
+    valid HTML attribute name (`/\A[a-zA-Z_:][-a-zA-Z0-9_:.]*\z/`). A plugin or theme relying on the
+    old output to inject markup through a value or a name will stop working — that is the fix.
+  - **`to_attr_url_format`** emits `value.to_s.inspect`; it did not escape backslashes before. Not a
+    security fix, and it has no callers in this repo.
+  - **The role editor** gains "Allow unfiltered HTML in contact forms", off for every role but
+    `admin`.
+  - **[#1206](https://github.com/owen2345/camaleon-cms/pull/1206)'s permission is renamed** —
+    `allow_unfiltered_html` → `post_content_unfiltered_html`, and its ability likewise — so each
+    identifier names its subject. No migration: #1206 has not shipped in any release.
+  - **The `cama_contact_form` dependency is raised to `~> 0.1.12`**, where the plugin-side fix lives.
+    Raised rather than left at `~> 0.1.0`, whose range still admits the vulnerable 0.1.0 from
+    2022-12-27. Nothing to add to a host application's `Gemfile`; `bundle update camaleon_cms` is
+    enough. 0.1.10 and 0.1.11 are tagged on GitHub but describe two designs reversed in review, and
+    neither reached RubyGems.
+
+  Existing stored content is not re-checked: a form keeps rendering whatever it holds until someone
+  saves it again, at which point the gate applies. One caveat worth stating because it reads like a
+  guarantee and is not — *formatting* markup in a dropdown option label does not render, since a
+  browser drops `<b>` and the like inside `<option>`, but `<script>` and `<template>` both survive
+  parsing there, so that position is gated exactly like every other.
+
+- **Security bumps** picked up while re-resolving `cama_contact_form`: rails 8.1.3 → 8.1.3.1,
+  concurrent-ruby 1.3.7 → 1.3.8, erb 6.0.4 → 6.0.6, json 2.20.0 → 2.21.1, net-imap 0.6.4.1 → 0.6.6.
+  Bundler moves 2.7.2 → 4.0.17, and both CI workflows pin `rubygems: 4.0.17` to match — RubyGems
+  ships Bundler at its own version, so a runner on 3.7.2 would be asked to run a lock pinned to
+  Bundler 4. [#1215](https://github.com/owen2345/camaleon-cms/pull/1215)
 
 - **Developer tooling:** Document when an OpenSpec change is archived. `AGENTS.md` listed `/opsx:archive` with no timing and `docs/ai/workflows.md` Phase 4 did not mention it at all, so the close-out sequence read as if archiving were a post-merge step. It is not: the archive is committed on the branch as part of the PR, so `master` never carries a completed-but-unarchived change and every task is checked off before merge. Both documents now say so, and Phase 4 lists it as an explicit step before the quality gate. [#1214](https://github.com/owen2345/camaleon-cms/pull/1214)
 
