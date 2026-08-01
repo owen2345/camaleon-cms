@@ -143,9 +143,9 @@ module CamaleonCms
         if post_type.present?
           d = user_role.get_meta("_post_type_#{id}", {})
           CamaleonCms::UserRole::ROLES[:post_type].each do |value|
-            # allow_unfiltered_html lets a role store unsanitized HTML in post content; it must not be
+            # post_content_unfiltered_html lets a role store unsanitized HTML in post content; it must not be
             # granted to the default Editor role (only admins, via `can :manage, :all`, are trusted for it).
-            next if value[:key].to_s == 'allow_unfiltered_html'
+            next if value[:key].to_s == 'post_content_unfiltered_html'
 
             value_old = d[value[:key].to_sym] || []
             d[value[:key].to_sym] = value_old + [post_type.id]
@@ -153,7 +153,7 @@ module CamaleonCms
         else
           pts = post_types.all.pluck(:id)
           CamaleonCms::UserRole::ROLES[:post_type].each do |value|
-            next if value[:key].to_s == 'allow_unfiltered_html'
+            next if value[:key].to_s == 'post_content_unfiltered_html'
 
             d[value[:key]] = pts
           end

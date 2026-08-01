@@ -1,9 +1,15 @@
-# post-content-sanitization
+## RENAMED Requirements
 
-## Purpose
+D8 renames the permission key `allow_unfiltered_html` to `post_content_unfiltered_html`, so the
+requirement named after it is renamed too. Declared here because the MODIFIED section below already
+references the new name, and a MODIFIED header that names a requirement the live spec does not carry
+matches nothing — the archive aborts rather than silently skipping it.
 
-Prevent stored XSS via post content by applying server-side HTML sanitization at save time for untrusted users, while preserving raw HTML capability for trusted roles (admins and roles with the `post_content_unfiltered_html` permission). This closes the gap where post content is rendered with `raw @post.the_content` in templates without any server-side filtering.
-## Requirements
+- FROM: `### Requirement: allow_unfiltered_html permission key exists in the role system`
+- TO: `### Requirement: post_content_unfiltered_html permission key exists in the role system`
+
+## MODIFIED Requirements
+
 ### Requirement: Untrusted users' post content is sanitized at save time
 The system SHALL apply server-side HTML sanitization to `Post#content` when the current user lacks the `post_content_unfiltered_html` permission for the associated post type. Dangerous tags and attributes (including `<script>`, `<iframe>`, event handlers like `onerror`/`onload`, and `javascript:` URLs) MUST be stripped before persistence. Safe tags (paragraphs, headings, lists, links, images, basic formatting) SHALL be preserved.
 
@@ -37,14 +43,6 @@ The system SHALL store post content unchanged (no sanitization) when the current
 - **WHEN** a user with the `editor` role that has `post_content_unfiltered_html` enabled on the post type saves post content with `<script>validAppCode()</script>`
 - **THEN** the persisted content SHALL contain the `<script>` element unchanged
 
-### Requirement: Content sanitization does not apply when user context is absent
-The system SHALL apply strict sanitization (same as untrusted user) when no user context is available (background jobs, rake tasks, console operations) to ensure security by default.
-
-#### Scenario: Background job updates post content without user context
-- **WHEN** a background job or rake task updates a post's content
-- **AND** `CurrentRequest.user` is nil
-- **THEN** the content SHALL be sanitized with the strict allowlist
-
 ### Requirement: post_content_unfiltered_html permission key exists in the role system
 The system SHALL define a `post_content_unfiltered_html` key in `UserRole::ROLES[:post_type]` that can be assigned per post type per role. The key MUST be surfaced in the admin UI alongside existing post-type permission keys.
 
@@ -67,4 +65,3 @@ The two capabilities also differ in remedy, and the difference is deliberate: po
 - **WHEN** a user holds `post_content_unfiltered_html` on every post type but not `:manage, :contact_form_unfiltered_html`
 - **AND** that user saves a contact form whose `previous_html` contains `<script>alert(1)</script>`
 - **THEN** the save SHALL be refused and nothing SHALL be persisted
-

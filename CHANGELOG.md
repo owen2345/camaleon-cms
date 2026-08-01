@@ -2,6 +2,60 @@
 
 ## Unreleased
 
+- **Security fix:** HTML injection in `Hash#to_attr_format` and in the bundled `cama_contact_form`
+  plugin's form rendering. `to_attr_format` escaped attribute values with `gsub('"', '\"')` — a Ruby
+  string escape in an HTML context, where a backslash escapes nothing — and interpolated attribute
+  *names* verbatim, so a key of `x onfocus=alert(1) y` rendered as three attributes. Separately, the
+  contact form built its markup by raw string interpolation and emitted it through `raw`, so both an
+  unauthenticated visitor's resubmitted values and every form-definition field could inject script.
+  The admin panel is same-origin with the frontend, so script landing there runs with an
+  administrator's session — a privilege escalation from any role holding `:manage, :plugins`.
+  Requires `cama_contact_form` 0.1.12.
+  [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) — thanks, Amir Aliu and Enrik Mustafa,
+  for reporting this. Gated positions and the permission's exact scope: `docs/security/permissions.md`.
+
+  **Breaking changes**
+
+  - **The contact form refuses unsafe content instead of rewriting it.** Nothing is escaped or
+    sanitized: a form's content is stored and delivered exactly as written, or the save is refused
+    and the author told which setting to fix. An author holding `contact_form_unfiltered_html` is
+    unaffected. A visitor's submission is likewise refused whole rather than escaped. Ordinary
+    writing still passes for both — `Tom & Jerry`, `&nbsp;`, `<br/>`, uppercase tags, single-quoted
+    attributes, and `Fish & Chips <today>` from a visitor.
+  - **`to_attr_format`** emits `&quot;` where it emitted `\"`, and drops pairs whose key is not a
+    valid HTML attribute name (`/\A[a-zA-Z_:][-a-zA-Z0-9_:.]*\z/`). A plugin or theme relying on the
+    old output to inject markup through a value or a name will stop working — that is the fix.
+  - **`to_attr_url_format`** emits `value.to_s.inspect`; it did not escape backslashes before. Not a
+    security fix, and it has no callers in this repo.
+  - **The role editor** gains "Allow unfiltered HTML in contact forms", off for every role but
+    `admin`. It also now renders any `admin`-slugged role's permissions as held and **locked**, which
+    is what `can :manage, :all` has always meant. Role permissions are seeded once, when the site is
+    created, so on an existing site every key added to `ROLES` since then was rendering unchecked and
+    reading as "denied to administrators". Deriving the display from the role needs no data
+    migration, and none should be written — that meta is never read for an administrator. The
+    controller declines to write it for such a role too, on the same predicate: a disabled checkbox
+    is not submitted, so locking the view alone would have cleared the stored set on the next save.
+  - **[#1206](https://github.com/owen2345/camaleon-cms/pull/1206)'s permission is renamed** —
+    `allow_unfiltered_html` → `post_content_unfiltered_html`, and its ability likewise — so each
+    identifier names its subject. No migration: #1206 has not shipped in any release.
+  - **The `cama_contact_form` dependency is raised to `~> 0.1.12`**, where the plugin-side fix lives.
+    Raised rather than left at `~> 0.1.0`, whose range still admits the vulnerable 0.1.0 from
+    2022-12-27. Nothing to add to a host application's `Gemfile`; `bundle update camaleon_cms` is
+    enough. 0.1.10 and 0.1.11 are tagged on GitHub but describe two designs reversed in review, and
+    neither reached RubyGems.
+
+  Existing stored content is not re-checked: a form keeps rendering whatever it holds until someone
+  saves it again, at which point the gate applies. One caveat worth stating because it reads like a
+  guarantee and is not — *formatting* markup in a dropdown option label does not render, since a
+  browser drops `<b>` and the like inside `<option>`, but `<script>` and `<template>` both survive
+  parsing there, so that position is gated exactly like every other.
+
+- **Security bumps** picked up while re-resolving `cama_contact_form`: rails 8.1.3 → 8.1.3.1,
+  concurrent-ruby 1.3.7 → 1.3.8, erb 6.0.4 → 6.0.6, json 2.20.0 → 2.21.1, net-imap 0.6.4.1 → 0.6.6.
+  Bundler moves 2.7.2 → 4.0.17, and both CI workflows pin `rubygems: 4.0.17` to match — RubyGems
+  ships Bundler at its own version, so a runner on 3.7.2 would be asked to run a lock pinned to
+  Bundler 4. [#1215](https://github.com/owen2345/camaleon-cms/pull/1215)
+
 - **Developer tooling:** Document when an OpenSpec change is archived. `AGENTS.md` listed `/opsx:archive` with no timing and `docs/ai/workflows.md` Phase 4 did not mention it at all, so the close-out sequence read as if archiving were a post-merge step. It is not: the archive is committed on the branch as part of the PR, so `master` never carries a completed-but-unarchived change and every task is checked off before merge. Both documents now say so, and Phase 4 lists it as an explicit step before the quality gate. [#1214](https://github.com/owen2345/camaleon-cms/pull/1214)
 
 - **Developer tooling:** Correct the skip-ci guidance in `docs/ai/workflows.md`. The rule for docs-only commits read as an unconditional instruction to omit the marker on the Phase 4 changelog commit, when omitting it is only correct while the PR has not yet had a full check run. Because that commit lands *after* the PR is opened — and therefore after an earlier push already triggered CI — following the rule as written duplicated the entire test matrix to validate a `CHANGELOG.md` edit. The guidance is now a single per-push question with both answers spelled out, states explicitly that "lands last" is not the condition, and adds what to do when a docs-only commit has already been pushed without the marker: cancel the stale runs on the previous SHA, not the new ones. [#1214](https://github.com/owen2345/camaleon-cms/pull/1214)

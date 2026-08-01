@@ -19,7 +19,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
       CurrentRequest.site = nil
     end
 
-    context 'when user lacks allow_unfiltered_html permission' do
+    context 'when user lacks post_content_unfiltered_html permission' do
       it 'strips script tags from post content' do
         assign_current_user(contributor)
         post = create(:post, post_type: post_type, owner: contributor,
@@ -73,7 +73,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
       end
     end
 
-    context 'when user has allow_unfiltered_html permission' do
+    context 'when user has post_content_unfiltered_html permission' do
       it 'preserves script tags for admin' do
         assign_current_user(admin)
         post = create(:post, post_type: post_type, owner: admin,
@@ -90,15 +90,15 @@ RSpec.describe CamaleonCms::Post, type: :model do
       end
     end
 
-    context 'when a non-admin role has allow_unfiltered_html enabled for the post type' do
+    context 'when a non-admin role has post_content_unfiltered_html enabled for the post type' do
       let(:editor) { create(:user, role: 'editor', site: site) }
 
       before do
         site.user_roles.find_by(slug: 'editor')
-            .set_meta("_post_type_#{site.id}", edit: [post_type.id], allow_unfiltered_html: [post_type.id])
+            .set_meta("_post_type_#{site.id}", edit: [post_type.id], post_content_unfiltered_html: [post_type.id])
       end
 
-      it 'preserves script tags via the post_unfiltered_html ability rule (not admin manage:all)' do
+      it 'preserves script tags via the post_content_unfiltered_html ability rule (not admin manage:all)' do
         assign_current_user(editor)
 
         post = create(:post, post_type: post_type, owner: editor,
@@ -109,7 +109,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
       end
     end
 
-    context 'when a non-admin role lacks allow_unfiltered_html for the post type' do
+    context 'when a non-admin role lacks post_content_unfiltered_html for the post type' do
       let(:editor) { create(:user, role: 'editor', site: site) }
 
       before do

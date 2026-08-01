@@ -23,6 +23,23 @@ module CamaleonCms
       term_group.nil?
     end
 
+    # Users in a role slugged `admin` are administrators: `User#admin?` tests exactly this, and
+    # `Ability#initialize` answers `can :manage, :all` for them and returns before this role's
+    # `_post_type_`/`_manager_` metas are read. Those metas therefore describe nothing — every
+    # permission is held whatever they say.
+    def grants_all_permissions?
+      slug == 'admin'
+    end
+
+    # Whether the permission checkboxes mean anything. False for the default admin role, which is not
+    # editable at all, and false for any other role slugged `admin`, whose permissions cannot be
+    # withheld from its users. The editor renders them locked and the controller declines to write
+    # them, so the two cannot disagree — and a locked checkbox, which the browser does not submit,
+    # can never silently clear what is stored.
+    def permissions_editable?
+      editable? && !grants_all_permissions?
+    end
+
     ROLES = {
       post_type: [
         {
@@ -86,11 +103,11 @@ module CamaleonCms
           description: I18n.t('camaleon_cms.admin.users.tool_tip.manage_tags').to_s
         },
         {
-          key: 'allow_unfiltered_html',
-          label: I18n.t('camaleon_cms.admin.users.roles_values.allow_unfiltered_html',
-                        default: 'Allow unfiltered HTML').to_s,
+          key: 'post_content_unfiltered_html',
+          label: I18n.t('camaleon_cms.admin.users.roles_values.post_content_unfiltered_html',
+                        default: 'Allow unfiltered HTML in post content').to_s,
           color: 'danger',
-          description: I18n.t('camaleon_cms.admin.users.tool_tip.allow_unfiltered_html',
+          description: I18n.t('camaleon_cms.admin.users.tool_tip.post_content_unfiltered_html',
                               default: 'Permit users with this role to save raw/unfiltered HTML in post content').to_s
         }
       ],
@@ -153,6 +170,20 @@ module CamaleonCms
           key: 'theme_settings',
           label: I18n.t('camaleon_cms.admin.settings.theme_setting', default: 'Theme Settings').to_s,
           description: I18n.t('camaleon_cms.admin.users.tool_tip.themes').to_s
+        },
+        {
+          key: 'contact_form_unfiltered_html',
+          label: I18n.t('camaleon_cms.admin.users.roles_values.contact_form_unfiltered_html',
+                        default: 'Allow unfiltered HTML in contact forms').to_s,
+          color: 'danger',
+          description: I18n.t(
+            'camaleon_cms.admin.users.tool_tip.contact_form_unfiltered_html',
+            default: 'Permit users with this role to save raw/unfiltered HTML anywhere in a contact form: the ' \
+                     'markup wrapping a form, field labels, descriptions, templates, CSS classes, default ' \
+                     'values, custom attributes, option labels and response messages. Without it, a save ' \
+                     'carrying such content is refused rather than cleaned up. Distinct from the per-post-type ' \
+                     '"Allow unfiltered HTML in post content" permission.'
+          ).to_s
         }
       ]
     }.freeze

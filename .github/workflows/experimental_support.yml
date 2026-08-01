@@ -34,6 +34,10 @@ jobs:
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b
         with:
           bundler-cache: true
+          # Pinned for the same reason as current_support.yml: `BUNDLED WITH` is 4.0.17, and
+          # RubyGems ships Bundler at its own version. Unpinned, this leg took whatever the runner
+          # image happened to carry, which is how the two workflows drift apart.
+          rubygems: 4.0.17
           ruby-version: ${{ matrix.ruby }}
 
       - name: Migrate DB
