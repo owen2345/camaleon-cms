@@ -15,8 +15,8 @@ Users with the `admin` role satisfy every check through `can :manage, :all` in t
 - `custom_fields` — Controls who can create/update Custom Field Groups and Custom Fields (write-time permission). This is a manager-level permission
   and should be granted only to trusted users. The permission is checked at write-time by the admin controller so that only permitted roles can
   persist custom field definitions that may contain advanced behavior.
-- `contact_form_unfiltered_html` — Permits storing raw, unsanitized HTML in the bundled contact-form plugin's markup settings. See
-  [Security: Unfiltered HTML](#security-unfiltered-html) below.
+- `contact_form_unfiltered_html` — Permits storing raw HTML anywhere in the bundled contact-form plugin. Without it, a save carrying such content is
+  refused rather than rewritten. See [Security: Unfiltered HTML](#security-unfiltered-html) below.
 
 Where enforcement happens
 - Write-time enforcement: `CamaleonCms::Admin::Settings::CustomFieldsController` uses CanCan (`authorize! :manage, :custom_fields`) to require the
@@ -117,8 +117,12 @@ Security notes
 
 ## Security: Unfiltered HTML
 
-Camaleon sanitizes user-submitted HTML on save, and two permissions exempt a role from that sanitization. **They are different permissions with
-similar names**, they live in different families, and holding one does not grant the other. Both are introduced in 2.9.3.
+Camaleon restricts the HTML a role may store, and two permissions lift that restriction. **They are different permissions with similar names**, they
+live in different families, and holding one does not grant the other. Both are introduced in 2.9.3.
+
+They also work differently, which matters when you are deciding who to grant them to. Post content is **sanitized**: an untrusted author's save
+succeeds and the disallowed markup is quietly removed. Contact forms are **refused**: an untrusted author's save does not happen at all, and they are
+told which setting to fix. Nothing in a contact form is ever rewritten.
 
 | | `post_content_unfiltered_html` | `contact_form_unfiltered_html` |
 |---|---|---|
@@ -126,7 +130,8 @@ similar names**, they live in different families, and holding one does not grant
 | Role meta | `_post_type_<site_id>` | `_manager_<site_id>` |
 | Scope | per post type | all contact forms on the site |
 | Checked as | `can?(:post_content_unfiltered_html, post_type)` | `can?(:manage, :contact_form_unfiltered_html)` |
-| Exempts | `Post#content` | contact-form `previous_html`, `after_html`, `template`, `field_attributes` |
+| Without it | `Post#content` is sanitized on save | the save is refused; nothing is stored |
+| Covers | `Post#content` | every contact-form value that reaches the page |
 | Introduced in | [#1206](https://github.com/owen2345/camaleon-cms/pull/1206) | [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) |
 
 ⚠️ **WARNING**: both permissions let a role store markup that is later rendered without escaping — including `<script>`. Because the admin panel is
@@ -144,13 +149,59 @@ The permission is granted per post type, so a role may hold it for one post type
 **Defaults:** the `admin` role satisfies the check through `can :manage, :all`. The default `editor` role is explicitly excluded from it during role
 seeding — `site_default_settings.rb` skips this key when granting every other post-type permission — so upgrading does not widen anyone's trust.
 
-### `contact_form_unfiltered_html` — raw HTML in contact-form settings
+### `contact_form_unfiltered_html` — raw HTML in contact forms
 
-Covers the four contact-form values that are rendered unescaped by design: `previous_html` and `after_html` (the markup wrapping a form), each field's
-`template`, and `field_attributes`. Without the permission those four are sanitized when the form is saved; with it they are stored unchanged.
+The bundled contact-form plugin renders every value a form holds **verbatim** — no escaping, no sanitization. What makes that safe is this permission:
+without it, a save carrying content that could escape the position it renders in is refused outright, so what is stored always equals what the author
+wrote. With it, an author may put markup, event handlers or script anywhere in a form and have visitors receive it exactly as written.
 
-It affects **only** these four values. Every other contact-form value — field labels, default values, option labels, CSS classes, and anything a
-visitor submits — is always escaped when rendered, and no permission changes that.
+The gate covers every authored value that reaches the page:
+
+| value | refused without the permission when it contains |
+|---|---|
+| `previous_html`, `after_html` (the markup wrapping a form) | markup rule |
+| the mail `subject` and `subject_answer` | markup rule |
+| the mail `body` and `body_answer` | markup rule |
+| the submit button label | markup rule |
+| any response message (`mail_sent_ok`, `invalid_required`, …) | markup rule |
+| a field's `template` | markup rule |
+| a field's `description` | markup rule |
+| a field's `label`, or an option label | markup rule, **or** a `"` |
+| a field's `field_class` | a `"` |
+| a field's `default_value` | `</textarea` on a paragraph/textarea field; a `"` on any other |
+| a field's `field_attributes` | an invalid or event-handler attribute name, `style`, a script URL, or a `"` in a value |
+| `recaptcha_site_key` | a `"` |
+
+The **markup rule** refuses a value when a sanitizer would change it, when it leaves a tag open, or when a tag it writes does not survive the parse. The
+last two matter because the first is blind to anything the parser discards before the sanitizer runs: `<div class="a" onmouseover="alert(1)" x="` is
+dropped at EOF by both sides and compares equal, while a browser — which is not at EOF — finishes the attribute at the next quote in the document; and
+`<td onmouseover="alert(1)">x</td>` parses to bare text on its own, then becomes a live cell as soon as anything opens table context around it.
+
+The mail values are included because the mailer renders the subject and the body with `raw`. A response message is included because it is rendered with
+`raw` into the public page when a visitor's submission succeeds or fails.
+
+`label` and an option label carry the quote rule because the renderer itself puts both into a double-quoted attribute. `description` does not, because it
+can only ever be element content — see the placeholder rule below.
+
+**Four things the permission does not lift:**
+
+- **Structural values.** `cid`, `field_type`, `maxlength`, `required`, a choice field's option list and the JSON shape of `field_attributes` are generated
+  by the form editor, not typed, and are held to an allowlist for *everyone*, administrators included. A field typed `text" onfocus="x` is a corrupt
+  record, not a capability, and each of the others is a permanent 500 on every public page carrying the form.
+
+- **Where a template may put a placeholder.** A `template` that places `[ci]`, `[label ci]` or `[descr ci]` **inside a tag** is refused for everyone. That
+  is what makes the table above true: without it the template decides the HTML context of a value written somewhere else, possibly by someone else. A
+  template of `<div class='[descr ci]'>` put a description inside a single-quoted attribute, where an apostrophe escaped and no rule was looking for one;
+  `<div title="[ci]">` put a whole `<textarea>` element inside an attribute, where neither the quote rule nor the RCDATA rule described the position. A
+  trusted author who wants markup in an attribute writes it literally rather than through a placeholder.
+
+- **A visitor's own submission.** It is refused, never escaped, and refused whole — if any field carries a payload, none of the submission is echoed
+  back into the form. No permission changes this; the path is reachable without credentials. A visitor is held to a *narrower* rule than an author,
+  because their content reaches two sinks rather than one: the redisplayed form (a double-quoted attribute, or `<textarea>` content) and the notification
+  e-mail, which splices every submitted value into the author's body and renders the result with `raw`. For the e-mail the test is script elements, event
+  handlers and script URLs — deliberately not a sanitizer, which would refuse ordinary prose: being told "your message contains characters that are not
+  allowed" for writing `Fish & Chips <today>` is both wrong and infuriating.
+- **Existing content.** Nothing is re-checked retroactively. See *Auditing* below.
 
 The grant is deliberately scoped to contact forms rather than to raw HTML in general. A future feature needing its own escape hatch will introduce its
 own permission, so enabling this one never silently authorizes a surface you did not intend.
@@ -164,8 +215,8 @@ Via the Admin UI:
 
 1. Navigate to Settings → User Roles
 2. Edit the desired role
-3. For site-wide raw HTML, check **Allow unfiltered HTML** under Manager Permissions
-4. For raw HTML in post content, check the same-named permission under the relevant post type
+3. For contact forms, check **Allow unfiltered HTML in contact forms** under Manager Permissions
+4. For post content, check **Allow unfiltered HTML in post content** under the relevant post type
 5. Save the role
 
 Via the Rails console:
@@ -190,9 +241,10 @@ As with `select_eval`, the Admin role's checkboxes may appear unchecked in the U
 
 ### Background jobs and console usage
 
-Both checks read the acting user and site from `CurrentRequest` and **fail closed**: when either is missing, content is sanitized regardless of the
-role's permissions. Saves from background jobs, rake tasks, or the console therefore sanitize by default. To save raw HTML from those contexts, set
-the request context first, as shown in the `select_eval` section above:
+Both checks read the acting user and site from `CurrentRequest` and **fail closed**: when either is missing, the caller is treated as untrusted
+regardless of any role's permissions — post content is sanitized, and a contact-form save is refused. Saves from background jobs, rake tasks, or the
+console therefore get the untrusted treatment by default. To save raw HTML from those contexts, set the request context first, as shown in the
+`select_eval` section above:
 
 ```ruby
 CurrentRequest.user = CamaleonCms::User.find_by(username: 'admin')
@@ -216,5 +268,9 @@ CamaleonCms::Site.all.each do |site|
 end
 ```
 
-Neither permission sanitizes retroactively. Revoking a role's access stops future raw saves but leaves previously stored markup untouched — audit
+Neither permission applies retroactively. Revoking a role's access stops future raw saves but leaves previously stored markup untouched — audit
 existing post content and contact-form settings after revoking.
+
+This matters more for contact forms than for post content, because the gate runs on save rather than on render: a form saved before 2.9.3, or by a
+holder of the permission, keeps rendering whatever it holds until someone saves it again. Re-saving a form as an untrusted author is a way to find out
+whether it holds anything the gate would refuse — the save will fail and name the field.

@@ -29,14 +29,16 @@ The system SHALL store post content unchanged (no sanitization) when the current
 - **WHEN** an admin (who has `can :manage, :all` or explicit `post_content_unfiltered_html` permission) saves a post with content containing `<iframe src="https://example.com/embed"></iframe>`
 - **THEN** the persisted content SHALL contain the `<iframe>` element unchanged
 
-#### Scenario: Editor with post_content_unfiltered_html permission saves script
+#### Scenario: Editor with unfiltered_html permission saves script
 - **WHEN** a user with the `editor` role that has `post_content_unfiltered_html` enabled on the post type saves post content with `<script>validAppCode()</script>`
 - **THEN** the persisted content SHALL contain the `<script>` element unchanged
 
 ### Requirement: post_content_unfiltered_html permission key exists in the role system
 The system SHALL define a `post_content_unfiltered_html` key in `UserRole::ROLES[:post_type]` that can be assigned per post type per role. The key MUST be surfaced in the admin UI alongside existing post-type permission keys.
 
-The key name SHALL state its subject. It governs `Post#content` only, and is distinct from the manager-family key `contact_form_unfiltered_html`, which governs contact-form markup settings under `contact-form-output-escaping`. Holding either SHALL NOT imply the other. The permission is checked as `can?(:post_content_unfiltered_html, post_type)`; the ability name and the role-meta key are deliberately identical, matching how manager-family keys resolve through `Ability#define_manage_rules`.
+The key name SHALL state its subject. It governs `Post#content` only, and is distinct from the manager-family key `contact_form_unfiltered_html`, which governs contact-form content under `contact-form-output-escaping`. Holding either SHALL NOT imply the other. The permission is checked as `can?(:post_content_unfiltered_html, post_type)`; the ability name and the role-meta key are deliberately identical, matching how manager-family keys resolve through `Ability#define_manage_rules`.
+
+The two capabilities also differ in remedy, and the difference is deliberate: post content is sanitized on save, while a contact-form save is refused outright. Post content is long-form prose where silently dropping a disallowed tag is a reasonable trade; a contact-form definition is configuration, where the author needs to know their change did not take effect.
 
 #### Scenario: Admin can grant unfiltered HTML permission to a role
 - **WHEN** an admin edits a role's post-type permissions in the admin panel
@@ -52,4 +54,4 @@ The key name SHALL state its subject. It governs `Post#content` only, and is dis
 #### Scenario: Holding the post-content grant does not widen contact-form trust
 - **WHEN** a user holds `post_content_unfiltered_html` on every post type but not `:manage, :contact_form_unfiltered_html`
 - **AND** that user saves a contact form whose `previous_html` contains `<script>alert(1)</script>`
-- **THEN** the persisted contact-form settings SHALL be sanitized
+- **THEN** the save SHALL be refused and nothing SHALL be persisted

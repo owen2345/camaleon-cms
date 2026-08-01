@@ -161,9 +161,11 @@ module CamaleonCms
           color: 'danger',
           description: I18n.t(
             'camaleon_cms.admin.users.tool_tip.contact_form_unfiltered_html',
-            default: 'Permit users with this role to save raw/unfiltered HTML in contact form markup settings ' \
-                     '(the markup wrapping a form, field templates and field attributes). Distinct from the ' \
-                     'per-post-type "Allow unfiltered HTML in post content" permission.'
+            default: 'Permit users with this role to save raw/unfiltered HTML anywhere in a contact form: the ' \
+                     'markup wrapping a form, field labels, descriptions, templates, CSS classes, default ' \
+                     'values, custom attributes, option labels and response messages. Without it, a save ' \
+                     'carrying such content is refused rather than cleaned up. Distinct from the per-post-type ' \
+                     '"Allow unfiltered HTML in post content" permission.'
           ).to_s
         }
       ]

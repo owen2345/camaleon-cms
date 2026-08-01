@@ -1,102 +1,292 @@
 ## ADDED Requirements
 
-### Requirement: Visitor-supplied field values are escaped when re-rendered
+### Requirement: Contact-form content is stored verbatim or refused, never rewritten
 
-`Plugins::CamaContactForm::FrontController#save_form` stores the submitted `params[:fields]` into `flash[:values]` whenever validation fails, and the `[forms slug=…]` shortcode renders them back into the form so the visitor does not lose their input. Every such value SHALL be HTML-escaped before interpolation, in every field type that echoes it.
+The capability retains the name it was opened under. It no longer describes escaping: the plugin
+escapes nothing and sanitizes nothing, and every value it renders reaches the page exactly as
+written. Safety is enforced at the gate instead — content that may not be written is refused before
+it is stored, so stored content always equals authored content and rendering it verbatim introduces
+nothing the writer did not put there.
 
-This is the only path in the capability reachable without any credentials, so it SHALL be escaped unconditionally — no permission, setting, or field option may exempt it.
+The plugin SHALL NOT rewrite stored or submitted content. Neither escaping nor sanitizing is
+permitted as a remedy in this capability: escaping is not idempotent, so a value re-saved through the
+form editor accumulates a further layer of entity references on each pass, and sanitizing silently
+discards an author's work with no indication of what was removed. Both leave the editor displaying
+something other than what was typed.
+
+#### Scenario: A refused save leaves the record untouched
+- **WHEN** a save is refused for any reason in this capability
+- **THEN** no part of the submitted form SHALL be persisted, including the form's `name` and `slug`
+- **AND** the previously stored definition SHALL remain exactly as it was
+
+#### Scenario: Accepted content is stored byte-for-byte
+- **WHEN** a save is accepted
+- **THEN** every stored value SHALL equal the value submitted, with no escaping, sanitization, or normalization applied
+
+### Requirement: Refusal criteria are determined by HTML context
+
+Each value SHALL be judged against the context or contexts it renders in, and SHALL be refused only
+for what can escape that context:
+
+| context | rendered as | refused |
+|---|---|---|
+| markup | element content | any value an HTML sanitizer would change |
+| attribute | inside a double-quoted attribute value | any value containing `"` |
+| textarea | `<textarea>` content, which is RCDATA | any value containing `</textarea` |
+
+The criteria SHALL be no broader than this. A sanitizer applied to a textarea or attribute context
+would refuse ordinary prose — a visitor writing `Fish & Chips <today>` would be told their message is
+not allowed — and a quote refused in a textarea context would reject the commonest punctuation in a
+written message.
+
+A value SHALL be judged against **every** context it can reach, not only the one it was designed for.
+Where a value is substituted into an author-controlled template, it can reach any context that
+template creates, and SHALL therefore satisfy the attribute rule as well as the markup rule.
+
+#### Scenario: A quote is accepted where it cannot escape
+- **WHEN** a visitor submits `He said "hello" & left` into a `paragraph` field
+- **AND** the submission fails validation for an unrelated reason
+- **THEN** the submission SHALL NOT be refused for its content
+- **AND** the `<textarea>` SHALL redisplay that exact text
+
+#### Scenario: Angle brackets are accepted in an attribute context
+- **WHEN** a visitor submits `Fish & Chips <today>` into a `text` field
+- **THEN** the submission SHALL NOT be refused for its content
+- **AND** the input's `value` attribute SHALL contain that exact text
+
+#### Scenario: A template may not decide the context of a substituted value
+- **WHEN** any author saves a `field_options[:template]` that places `[ci]`, `[label ci]` or `[descr ci]` inside a tag, such as `<div title="[descr ci]">` or `<div class='[label ci]'>`
+- **THEN** the save SHALL be refused, for every author including one holding `:manage, :contact_form_unfiltered_html`
+- **AND** the reason SHALL be that the placeholder's HTML context would otherwise be decided by the template rather than by the renderer
+
+#### Scenario: A value reaching two contexts must satisfy both
+- **WHEN** an untrusted author saves an option `label` of `x" onfocus="alert(1)`
+- **THEN** the save SHALL be refused, even though no HTML sanitizer would alter that value
+- **AND** the reason SHALL be that the renderer derives the control's `value="…"` attribute from the option label
+
+#### Scenario: A value confined to element content is not held to the attribute rule
+- **WHEN** an untrusted author saves a `field_options[:description]` of `He said "hello" to me`
+- **THEN** the save SHALL succeed and the description SHALL be stored exactly as written
+
+### Requirement: Every authored value that reaches the page is gated
+
+An author not holding `:manage, :contact_form_unfiltered_html` SHALL be refused a save carrying an
+unsafe value in any of these positions, each judged against the contexts listed:
+
+| position | contexts |
+|---|---|
+| `railscf_mail[:previous_html]`, `railscf_mail[:after_html]` | markup |
+| `railscf_mail[:subject]`, `railscf_mail[:subject_answer]` | markup |
+| `railscf_mail[:body]`, `railscf_mail[:body_answer]` | markup |
+| `railscf_form_button[:name_button]` | markup |
+| every value under `railscf_message` | markup |
+| `field_options[:template]` | markup, and placeholder position |
+| field `label` | markup, attribute |
+| `field_options[:description]` | markup |
+| `field_options[:field_class]` | attribute |
+| each option `label` | markup, attribute |
+| `default_value` | textarea for `paragraph` and `textarea` fields; attribute for every other type |
+| `field_options[:field_attributes]` | attribute name and value |
+| `recaptcha_site_key` | attribute |
+
+The **markup** context SHALL refuse a value when an HTML sanitizer would change it, when it leaves a
+tag open, or when any tag it writes does not survive parsing. The last two are not reachable by the
+sanitizer comparison, which sees only what the safe list removed.
+
+Because nothing is escaped at the point of rendering, a position absent from this list is not
+degraded but unprotected. Any change to the plugin's rendering that introduces a new interpolated
+value, or moves an existing one into a different context, SHALL extend this list.
+
+`railscf_message` is included because those values are joined into `flash[:contact_form]` by the
+front controller and rendered with `raw` by the frontend flash partial, on both the failure and the
+success path. `recaptcha_site_key` is included because the reCAPTCHA gem interpolates it into
+`data-sitekey="…"` without escaping.
+
+`field_options[:field_attributes]` is JSON emitted verbatim as attribute name/value pairs. An
+untrusted author SHALL be refused a name that is not a valid HTML attribute name, a name denoting an
+event handler, and a value containing `"`. An event-handler name escapes nothing — it is a
+well-formed name carrying a quote-free value — so neither of the other two rules detects it. The
+event-handler test SHALL be a prefix test on `on`, as HTML sanitizers use, rather than a list of
+known handler names, which fails open as the platform adds more.
+
+#### Scenario: Script in a wrapper is refused
+- **WHEN** a user holding `:manage, :plugins` but not the grant saves `previous_html` containing `<script>fetch('/admin/users')</script>`
+- **THEN** the save SHALL be refused and nothing SHALL be persisted
+
+#### Scenario: A default value that closes its own textarea is refused
+- **WHEN** the same user saves a `paragraph` field whose `default_value` is `</textarea><script>alert(1)</script>`
+- **THEN** the save SHALL be refused, even though the value contains no double quote
+
+#### Scenario: An event-handler attribute name is refused
+- **WHEN** the same user saves `field_attributes` of `{"onfocus": "alert(1)"}`
+- **THEN** the save SHALL be refused, even though the name is well-formed and the value contains no double quote
+
+#### Scenario: A response message carrying script is refused
+- **WHEN** the same user saves a `railscf_message` value containing `<script>alert(1)</script>`
+- **THEN** the save SHALL be refused
+
+#### Scenario: Ordinary content and safe formatting are accepted
+- **WHEN** the same user saves `previous_html` of `<h2>Get in touch</h2>`, a `label` of `<strong>Your name</strong>`, and a `field_class` of `form-control large`
+- **THEN** the save SHALL succeed
+- **AND** each value SHALL be stored exactly as written
+
+### Requirement: Structural values are allowlisted for every author
+
+`cid`, `field_type` and `field_options[:maxlength]` are generated by the form builder rather than
+typed. They SHALL be validated against an allowlist for **every** author, including one holding
+`:manage, :contact_form_unfiltered_html`. A field whose type is `text" onfocus="x` is a corrupt
+record, not a capability the grant exists to confer.
+
+Constraining these is what permits the renderer to emit them verbatim alongside everything else.
+
+#### Scenario: An administrator cannot store a malformed field type
+- **WHEN** an administrator saves a field whose `field_type` is `text" onfocus="alert(1)`
+- **THEN** the save SHALL be refused
+
+#### Scenario: An administrator cannot store a malformed cid
+- **WHEN** an administrator saves a field whose `cid` is `c1" onfocus="alert(1)`
+- **THEN** the save SHALL be refused
+
+#### Scenario: The values the form builder produces are accepted
+- **WHEN** a field is saved with a `cid` of `c17`, a `field_type` of `paragraph` and a `maxlength` of `500`
+- **THEN** the save SHALL succeed
+
+### Requirement: Visitor submissions are refused whole, never partially echoed
+
+A submission is stored into `flash[:values]` and re-rendered only so the visitor does not lose their
+input. A submission carrying an unsafe value in any field SHALL be refused in its entirety: nothing
+SHALL be stored, no mail SHALL be sent, and no field SHALL be echoed back, including the fields whose
+values were themselves safe.
+
+Each value SHALL be judged by the context its field type renders in — textarea for `paragraph` and
+`textarea`, attribute for every other type — matching the rule applied to `default_value`.
+
+The refusal SHALL be evaluated before any other validation in `validate_to_save_form`, including
+reCAPTCHA. Nothing is stored either way, and continuing means a round trip to an external service on
+input already known to be hostile, and an email-format check that raises `NoMethodError` on a value
+the submitter can simply omit.
+
+This path is reachable without any credentials, so no permission, setting, or field option SHALL
+exempt it.
 
 #### Scenario: Attribute breakout in a text field
-- **WHEN** an unauthenticated visitor submits a form that fails validation, with a `text` field value of `" autofocus onfocus="alert(1)`
-- **THEN** the re-rendered page SHALL NOT contain an `onfocus` attribute on the input
-- **AND** the input's `value` attribute SHALL contain the submitted string as text
+- **WHEN** an unauthenticated visitor submits a `text` field value of `" autofocus onfocus="alert(1)`
+- **THEN** the re-rendered page SHALL NOT contain an `onfocus` or `autofocus` attribute on that input
+- **AND** the input's `value` attribute SHALL be empty
 
 #### Scenario: Element breakout in a textarea
-- **WHEN** the same submission carries a `paragraph` or `textarea` value of `</textarea><script>alert(1)</script>`
-- **THEN** the re-rendered page SHALL NOT contain a parseable `<script>` element
-- **AND** the `<textarea>` SHALL remain a single well-formed element
+- **WHEN** the submission carries a `paragraph` value of `</textarea><script>alert(1)</script>`
+- **THEN** the re-rendered page SHALL NOT contain a parseable `<script>` element carrying that payload
+- **AND** the `<textarea>` SHALL be empty
 
-#### Scenario: Escaping applies to every echoing field type
-- **WHEN** a failing submission carries a breakout payload in each of `text`, `website`, `email`, `paragraph`, and `textarea`
-- **THEN** none of the rendered fields SHALL yield an executable attribute or element
+#### Scenario: A safe sibling field is dropped too
+- **WHEN** one field of a submission is refused and another carries an ordinary value
+- **THEN** neither field SHALL be echoed back
 
-#### Scenario: Legitimate input round-trips
-- **WHEN** a failing submission carries the value `Fish & Chips <today>`
-- **THEN** the re-rendered field SHALL display that exact text to the visitor
-- **AND** SHALL NOT display HTML entity references as literal text
+#### Scenario: An otherwise-valid submission is refused
+- **WHEN** a submission would pass every other validation but carries an unsafe value
+- **THEN** no response record SHALL be created
+- **AND** no mail SHALL be sent
 
-### Requirement: Form-definition data fields are escaped at render
+### Requirement: A refusal never repeats the content it refused
 
-Fields that the form editor exposes as plain-text inputs SHALL be HTML-escaped when rendered into the form markup. These are `label`, `default_value`, `field_options[:field_class]`, `field_options[:description]`, the `label` of each `checkboxes`/`radio`/`select`/`dropdown` option, and `railscf_form_button[:name_button]`.
+Both the admin and the frontend flash partials render their message with `raw`. A refusal message
+SHALL therefore contain no part of the submitted content, and SHALL NOT name a field by its authored
+label — otherwise refusing an injection becomes a way to perform one.
 
-Escaping SHALL apply wherever the value is interpolated, including attribute positions (`value`, `class`) and text positions (button contents, option contents, and substitution of the `[label ci]` and `[descr ci]` placeholders in a field template).
+The admin message SHALL identify the offending position using the controller's own fixed names only.
+The visitor-facing message SHALL name no field at all.
 
-#### Scenario: Script in a field label does not execute
-- **WHEN** a user holding `:manage, :plugins` saves a field whose `label` is `<script>alert(1)</script>`
-- **AND** a visitor loads a page containing that form's shortcode
-- **THEN** the page SHALL NOT contain a parseable `<script>` element originating from the label
-- **AND** the label SHALL be visible as literal text
+#### Scenario: The admin refusal names the position, not the payload
+- **WHEN** a save is refused for any gated position
+- **THEN** the flash message SHALL NOT contain any substring of the refused value
+- **AND** SHALL identify the position by a fixed name such as `previous_html`, `template` or `option label`
 
-#### Scenario: Attribute breakout via field_class
-- **WHEN** a field's `field_options[:field_class]` is `form-control" onmouseover="alert(1)`
-- **THEN** the rendered input SHALL NOT carry an `onmouseover` attribute
+#### Scenario: The visitor refusal quotes nothing
+- **WHEN** a visitor's submission is refused
+- **THEN** the message SHALL tell them what to remove
+- **AND** SHALL NOT contain the submitted value or any field's label
 
-#### Scenario: Breakout via a select option label
-- **WHEN** a `dropdown` field has an option whose `label` is `x" onfocus="alert(1)`
-- **THEN** neither the `<option>` element nor its `value` attribute SHALL yield an executable attribute
+### Requirement: The grant makes content deliverable verbatim
 
-#### Scenario: Breakout via the submit button name
-- **WHEN** `railscf_form_button[:name_button]` contains `</button><script>alert(1)</script>`
-- **THEN** the rendered submit control SHALL remain a single well-formed element with no `<script>`
+An author holding `:manage, :contact_form_unfiltered_html` SHALL be subject to none of the content
+rules above, and SHALL be able to store markup, event handlers or script in any gated position and
+have an anonymous visitor receive it exactly as written. That capability is the reason the grant
+exists; the structural allowlist still applies.
 
-#### Scenario: Escaping survives the template placeholder substitution
-- **WHEN** a field uses a custom `template` containing `[label ci]` and `[descr ci]`
-- **AND** the `label` and `description` contain HTML-significant characters
-- **THEN** the substituted values SHALL be escaped in the final output
-- **AND** the template's own markup SHALL be preserved unescaped
+Trust SHALL be decided by `CamaleonCms::Ability#can?(:manage, :contact_form_unfiltered_html)`. The
+`post_content_unfiltered_html` key used by `post-content-sanitization` SHALL NOT be reused here: it is
+defined against a `CamaleonCms::PostType`, and contact forms have no post type. The predicate resolves
+to administrators only by default, and a site MAY delegate it to another role by adding a
+`contact_form_unfiltered_html` manager key, which `Ability#define_manage_rules` honors through its
+generic manager-key loop.
 
-### Requirement: Markup-by-contract fields render raw but are sanitized on save
+The check SHALL fail closed when the acting user or the current site cannot be resolved, so a save
+originating from a background job, a rake task or the console is treated as untrusted.
 
-Four values exist to carry site markup and SHALL continue to render unescaped: `railscf_mail[:previous_html]`, `railscf_mail[:after_html]`, `field_options[:template]`, and `field_options[:field_attributes]`. Escaping them would be a functional regression.
-
-Because rendering them raw would otherwise let any holder of `:manage, :plugins` inject script that runs in an administrator's session, `Plugins::CamaContactForm::AdminFormsController#update` SHALL sanitize these four values at save time using `CamaleonRecord.cama_sanitize_translatable` — the entry point `Post#sanitize_content` already uses — unless the saving user is trusted. The check SHALL fail closed, sanitizing, when the user or site context cannot be resolved.
-
-Trust SHALL be decided by `CamaleonCms::Ability#can?(:manage, :contact_form_unfiltered_html)`. The `post_content_unfiltered_html` key used by `post-content-sanitization` SHALL NOT be reused here: it is defined against a `CamaleonCms::PostType` and contact forms have no post type. The predicate above resolves to administrators only by default, and a site MAY delegate it to another role by adding a `contact_form_unfiltered_html` manager key, which `Ability#define_manage_rules` honors through its generic manager-key loop.
-
-The boundary between the two capabilities: `post-content-sanitization` governs `Post#content` per post type; this requirement governs contact-form settings and field options site-wide.
-
-#### Scenario: Untrusted plugins-manager cannot store script in a wrapper
-- **WHEN** a user holding `:manage, :plugins` but not `:manage, :contact_form_unfiltered_html` saves `previous_html` containing `<script>fetch('/admin/users')</script>`
-- **THEN** the persisted settings SHALL NOT contain a `<script>` element
-- **AND** safe markup in the same value SHALL be preserved
-
-#### Scenario: Untrusted plugins-manager cannot store an event handler in a template
-- **WHEN** the same user saves a `field_options[:template]` containing `<div onload="alert(1)">[ci]</div>`
-- **THEN** the persisted template SHALL NOT contain the `onload` attribute
-- **AND** the `[ci]` placeholder SHALL be preserved
+The boundary between the two capabilities: `post-content-sanitization` governs `Post#content` per post
+type; this requirement governs contact-form settings and field options site-wide.
 
 #### Scenario: Administrator retains raw markup capability
 - **WHEN** an administrator saves `after_html` containing an `<iframe>` or an inline `<script>`
-- **THEN** the persisted value SHALL be stored unchanged
+- **THEN** the value SHALL be stored unchanged
 
 #### Scenario: Role delegated the manager key retains raw markup capability
 - **WHEN** a non-admin role has a truthy `contact_form_unfiltered_html` key in its `_manager_<site_id>` meta
-- **AND** a user with that role saves `after_html` containing an inline `<script>`
-- **THEN** the persisted value SHALL be stored unchanged
+- **AND** a user with that role saves `previous_html` containing an inline `<script>`
+- **THEN** the value SHALL be stored unchanged
 
-#### Scenario: Existing legitimate markup keeps rendering
-- **WHEN** a form has previously stored `previous_html` containing headings, paragraphs, and links
-- **THEN** the rendered page SHALL emit that markup unescaped
+#### Scenario: A guest receives the stored script
+- **WHEN** a form whose `previous_html` contains an inline `<script>` is rendered on a public page
+- **AND** the visitor is unauthenticated
+- **THEN** the page SHALL contain that script element as written
 
-#### Scenario: Sanitization fails closed without context
-- **WHEN** the saving user or the current site cannot be resolved
-- **THEN** the value SHALL be sanitized rather than stored raw
+#### Scenario: Trust fails closed without context
+- **WHEN** the acting user or the current site cannot be resolved
+- **THEN** the author SHALL be treated as untrusted
 - **AND** the save SHALL NOT raise
 
-#### Scenario: field_attributes cannot inject a second attribute
-- **WHEN** `field_attributes` is the JSON `{"data-x": "y\" onfocus=alert(1) z=\""}`
-- **THEN** the rendered element SHALL carry `data-x` as a single attribute
-- **AND** SHALL NOT carry an `onfocus` attribute
+### Requirement: Legitimate authored markup renders unescaped
+
+Because nothing is rewritten and nothing is escaped, content that passed the gate SHALL render as
+markup. This preserves the capability the grant is named for: formatting in a field label, a link in a
+description, and site markup in the form wrappers.
+
+*Formatting* markup in a `dropdown` option label is an exception: a user agent drops `<b>` and its
+neighbours inside `<option>`, so such a label renders as plain text however it is emitted. That
+limitation is inherent to the element, not a property of this design.
+
+It SHALL NOT be treated as a guarantee that an `<option>` cannot carry active content. `<script>`
+inside an `<option>` survives parsing and executes, and `<template>` survives; only ordinary
+formatting elements are discarded. A dropdown option label is therefore gated on exactly the same
+terms as every other position, and an author holding the grant can put script there and have it run.
+
+#### Scenario: A dropdown option label is gated like any other position
+- **WHEN** an untrusted author saves a `dropdown` option whose label contains `<script>alert(1)</script>`
+- **THEN** the save SHALL be refused
+
+#### Scenario: Formatting markup in a field label renders
+- **WHEN** a field's `label` is `<strong>Your name</strong> <em>(required)</em>`
+- **THEN** the rendered label SHALL contain a `<strong>` element reading `Your name` and an `<em>` element reading `(required)`
+
+#### Scenario: A link in a field description renders
+- **WHEN** a field's `field_options[:description]` contains `<a href="/privacy">privacy policy</a>`
+- **THEN** the rendered page SHALL contain that anchor element
+
+#### Scenario: Markup in a radio option label renders
+- **WHEN** a `radio` field has an option whose `label` is `<b>Bold option</b>`
+- **THEN** the rendered `<label>` SHALL contain a `<b>` element
+
+#### Scenario: The field template renders as markup with its label substituted
+- **WHEN** a field uses a custom `template` containing `[label ci]` and `[ci]`
+- **THEN** the template's own markup SHALL be preserved
+- **AND** the label SHALL be substituted into it
+- **AND** the field's input SHALL be present inside it
+
+#### Scenario: Each field type renders the control it needs
+- **WHEN** a form contains a `checkboxes` field and a `dropdown` field
+- **THEN** the `checkboxes` field SHALL render inputs of type `checkbox`
+- **AND** the `dropdown` field SHALL render a `<select>` element
 
 ### Requirement: The unfiltered-HTML grant is an assignable manager permission
 
@@ -130,3 +320,32 @@ It is distinct from `ROLES[:post_type]`'s `post_content_unfiltered_html`, which 
 - **WHEN** a user holds `:manage, :contact_form_unfiltered_html` but not `post_content_unfiltered_html` on a post type
 - **AND** that user saves a post whose content contains `<script>alert(1)</script>`
 - **THEN** the persisted post content SHALL still be sanitized
+
+### Requirement: Hash#to_attr_format escapes attribute values and rejects malformed names
+
+`Hash#to_attr_format` is public API used by plugins and themes that hand it data of unknown
+provenance, and SHALL continue to escape. It SHALL escape each value with `CGI.escapeHTML`, not
+`ERB::Util.html_escape` — the latter is a no-op on an `html_safe` string, which would let such a value
+close its own attribute — and SHALL drop any pair whose key is not a valid HTML attribute name, since
+no escaper touches the whitespace and `=` that split one name into two.
+
+The contact form SHALL NOT use it. There, values are gated at save and an author holding the grant is
+entitled to emit an event handler through `field_attributes`; the two SHALL NOT be unified, because
+one has a gate in front of it and the other does not.
+
+`Hash#to_attr_url_format` emits a Ruby fragment rather than HTML and SHALL NOT be given the HTML
+escaper, which would corrupt the generated code with entity references. It SHALL emit
+`value.to_s.inspect`.
+
+#### Scenario: An attribute value cannot close its own attribute
+- **WHEN** `to_attr_format` is given a value containing a double quote
+- **THEN** the emitted attribute SHALL carry it as an entity reference
+- **AND** the element SHALL carry no attribute the caller did not supply
+
+#### Scenario: A malformed attribute name is dropped
+- **WHEN** `to_attr_format` is given the key `x onfocus=alert(1) y`
+- **THEN** that pair SHALL NOT be emitted
+
+#### Scenario: A backslash in a URL attribute round-trips
+- **WHEN** `to_attr_url_format` is given a value containing a backslash or a backslash followed by a quote
+- **THEN** the emitted fragment SHALL be a syntactically valid Ruby string literal holding that exact value
