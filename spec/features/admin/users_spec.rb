@@ -32,7 +32,10 @@ describe 'the Users', :js do
   end
 
   it 'Users login new user' do # rubocop:disable RSpec/NoExpectationExample
-    admin_sign_in(uname, 'tester123')
+    # the user created via the UI in the example above rolled back with its
+    # transaction, so create the credentials this example actually verifies
+    create(:user_admin, username: uname, email: uemail, password: 'tester123', password_confirmation: 'tester123')
+    admin_form_sign_in(uname, 'tester123')
   end
 
   it 'Users Edit' do

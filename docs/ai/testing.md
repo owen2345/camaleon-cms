@@ -34,8 +34,10 @@ init_site              # exposes the suite-wide shared site as @site (+ @post)
 init_site(fresh: true) # replaces it with a per-example site — only for specs
                        # that need the slug to match the Capybara server host
                        # (e.g. multi-site UI flows)
-admin_sign_in          # authenticate admin user
-admin_sign_in(user, pass)
+admin_sign_in          # authenticate by setting the auth cookie (fast; verifies
+admin_sign_in(user, pass)  # the password and raises on mismatch)
+admin_form_sign_in     # authenticate through the real login form — use only in
+                       # specs that test the sign-in flow itself
 wait(2)                # wait for JS execution
 cama_root_relative_path # site URL helper
 confirm_dialog         # accept JS dialogs

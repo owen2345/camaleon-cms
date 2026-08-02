@@ -4,6 +4,10 @@ require 'rails_helper'
 
 describe 'the signin process', :js do
   init_site
+  it 'signs me in with valid credentials' do # rubocop:disable RSpec/NoExpectationExample
+    admin_form_sign_in
+  end
+
   it 'signs me in not valid' do
     visit "#{cama_root_relative_path}/admin/login"
     within('#login_user') do
