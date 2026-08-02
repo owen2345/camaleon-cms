@@ -22,16 +22,30 @@ def init_site(fresh: false)
   end
 end
 
-# sign in for admin panel
-# skip: true => close the skip button for intro
-def admin_sign_in(user = 'admin', pass = 'admin123')
+# sign in for admin panel by setting the auth cookie directly (the browser
+# must be on the app's origin to accept it, hence the static bootstrap visit).
+# The form-driven flow is covered by admin_form_sign_in in the dedicated
+# sign-in specs; the password is still verified here so a wrong one fails
+# loudly instead of silently producing a signed-out session.
+def admin_sign_in(username = 'admin', pass = 'admin123')
+  user = CamaManager.get_user_class_name.constantize.find_by!(username: username)
+  raise ArgumentError, "wrong password for #{username}" unless user.authenticate(pass)
+
+  visit '/favicon.ico' unless page.current_url.start_with?('http')
+  page.driver.browser.manage.add_cookie(name: 'auth_token', value: "#{user.auth_token}&rspec&127.0.0.1")
+end
+
+# sign in for admin panel through the real login form; use only for specs that
+# test the sign-in flow itself (the login page also says "Welcome", so assert
+# the dashboard path rather than page text).
+def admin_form_sign_in(user = 'admin', pass = 'admin123')
   visit "#{cama_root_relative_path}/admin/logout"
   within('#login_user') do
     fill_in 'user[username]', with: user
     fill_in 'user[password]', with: pass
   end
   click_button 'Log In'
-  expect(page).to have_text 'Welcome'
+  expect(page).to have_current_path(%r{/admin/dashboard}, ignore_query: true)
 end
 
 def cama_root_relative_path
