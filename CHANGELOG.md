@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Tests:** Feature specs now sign in by setting the auth cookie instead of driving the login
+  form, and the sign-in actually verifies credentials — the old flow's "Welcome" assertion was
+  satisfied by the login page itself, so failed logins passed silently. The form-driven flow lives
+  on in `admin_form_sign_in`, covered by dedicated sign-in examples.
+  [#1221](https://github.com/owen2345/camaleon-cms/pull/1221).
+
 - **Tests:** The suite now installs a single shared Camaleon site per run instead of a full site
   before nearly every example, cutting a local full run from ~18 minutes to ~5. Test-only change:
   specs get the shared site through `init_site` and the factories, and `init_site(fresh: true)`
