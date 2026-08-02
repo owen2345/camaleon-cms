@@ -30,12 +30,19 @@ module CamaleonCms
       h.do_shortcode(r[:content], self)
     end
 
+    # Same shape as PostDecorator#the_status: markup built by interpolation and rendered through
+    # `raw` at admin/search.html.erb. Only I18n strings reach it today, so there is nothing to
+    # exploit here -- escaping at the source is what keeps that true if the interpolated value ever
+    # changes.
     def the_status
-      if status.to_s.to_bool
-        "<span class='label label-success'> #{I18n.t('camaleon_cms.admin.button.actived')} </span>"
-      else
-        "<span class='label label-default'> #{I18n.t('camaleon_cms.admin.button.not_actived')} </span>"
-      end
+      color, label = if status.to_s.to_bool
+                       ['success', I18n.t('camaleon_cms.admin.button.actived')]
+                     else
+                       ['default', I18n.t('camaleon_cms.admin.button.not_actived')]
+                     end
+      # rubocop:disable Rails/OutputSafety -- only the escaped label is interpolated into fixed markup
+      "<span class='label label-#{color}'> #{h.h(label)} </span>".html_safe
+      # rubocop:enable Rails/OutputSafety
     end
 
     # return excerpt for this post type

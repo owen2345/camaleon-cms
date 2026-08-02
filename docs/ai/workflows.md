@@ -98,6 +98,12 @@ Other consequences to plan for:
     - **Security fix:** Fix mass assignment and open redirect vulnerabilities in SitesController, [#1152](https://github.com/owen2345/camaleon-cms/pull/1152)
     ```
 
+    **🔴 Keep the entry short. The PR description is where the reasoning lives.** The changelog is read by someone deciding whether an upgrade affects them — not by someone auditing your analysis. A lead paragraph carrying the PR link is the whole entry for most changes; it MUST NOT exceed ~1000 characters. Do not restate the root cause, the code path, the attack mechanics, or the design rationale — every one of those is already in the PR body, one click away through the link you just added.
+
+    Add a **Notes for upgraders** (or **Breaking changes**) list *only* for things the reader must act on or will observe: behavior that changed, output that moved, a dependency floor that was raised, data that is or is not rewritten. Two to four bullets, one or two sentences each. If a bullet explains *why* rather than *what changed for the reader*, delete it.
+
+    The entry is a lookup target, not a narrative. Before committing it, re-read it as someone who has never seen the PR and ask what they would do differently — anything that does not change their answer belongs in the PR description instead.
+
 4.  **Archive the OpenSpec change — before merge, not after.** If the work was planned with OpenSpec, run `/opsx:archive` **on the branch** and commit the result as part of the PR. This syncs the change's delta specs into `openspec/specs/<capability>/spec.md` and moves the change to `openspec/changes/archive/YYYY-MM-DD-<name>/`.
 
     Archiving is **not** a post-merge step. `master` must never carry a completed-but-unarchived change, and every box in `tasks.md` — including the archive task itself — must be checked before the branch merges. See PR [#1213](https://github.com/owen2345/camaleon-cms/pull/1213), where the archive commit precedes the merge commit on the branch.

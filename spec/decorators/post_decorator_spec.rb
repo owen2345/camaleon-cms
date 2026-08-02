@@ -26,6 +26,43 @@ RSpec.describe CamaleonCms::PostDecorator do
     end
   end
 
+  # The label reaches three admin sinks through `raw`, and downstream themes -- most of which live in
+  # separate gems this repo cannot see -- have had years to match on its exact bytes. Escaping the
+  # interpolated value must therefore leave a legitimate status byte-identical.
+  describe '#the_status' do
+    let(:title) { 'Test Post' }
+
+    {
+      'published' => "<span class='label label-info label-form'>Published</span>",
+      'pending' => "<span class='label label-default label-form'>Pending</span>",
+      'draft' => "<span class='label label-warning label-form'>Draft</span>",
+      'draft_child' => "<span class='label label-warning label-form'>Draft</span>",
+      'trash' => "<span class='label label-danger label-form'>Trash</span>"
+    }.each do |status, expected|
+      it "renders the #{status} status exactly as before" do
+        post.status = status
+
+        expect(decorator.the_status).to eq(expected)
+      end
+    end
+
+    it 'returns a SafeBuffer, so the value survives an escaping sink as well as a raw one' do
+      post.status = 'published'
+
+      expect(decorator.the_status).to be_a(ActiveSupport::SafeBuffer)
+    end
+
+    # `titleize` only changes case, and both HTML tag names and hostnames are case-insensitive.
+    it 'escapes a status that is not canonical' do
+      post.status = "x'><script src=//evil.example/a.js></script>"
+
+      output = decorator.the_status
+
+      expect(output).not_to include('<script')
+      expect(output).to include('&lt;Script Src=//Evil.Example/A.Js&gt;')
+    end
+  end
+
   describe '#the_edit_link' do
     let(:title) { 'Editable Post' }
 

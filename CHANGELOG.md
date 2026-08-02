@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+- **Security fix:** Stored XSS in two server-generated HTML fragments. `PostDecorator#the_status`
+  and `CustomFieldGroup#get_caption` assembled markup by string interpolation outside a view and
+  admin templates rendered the result through `raw`, neither escaping the values it spliced in. A
+  contributor could poison a post's status; a nav menu or widget manager could poison a field group
+  caption. The admin panel is same-origin with the frontend, so either executed with an
+  administrator's session. `TermTaxonomyDecorator#the_status` was hardened the same way, though it
+  was not exploitable. [#1218](https://github.com/owen2345/camaleon-cms/pull/1218) — thanks, Enrik
+  Mustafa: pressing the case for an already-fixed vulnerability is what prompted the re-check that
+  found these two.
+
+  **Notes for upgraders**
+
+  - **A post whose status is not one of the five canonical values now renders it as visible escaped
+    text instead of executing it** — which is how an operator spots a row poisoned before the
+    upgrade. Non-canonical statuses are supported deliberately, so nothing is rejected on write and
+    no data is rewritten.
+  - **Output for legitimate data is byte-identical**, so a theme matching on the rendered status
+    label or field group caption is unaffected. Both methods now return an
+    `ActiveSupport::SafeBuffer`.
+  - **The externally reported "Stored XSS via Draft Post Title" is not what this addresses.** It is
+    not reproducible against 2.9.2 or later, having been fixed by
+    [#1143](https://github.com/owen2345/camaleon-cms/pull/1143) and
+    [#1139](https://github.com/owen2345/camaleon-cms/pull/1139).
+
 - **Security fix:** Cross-site custom field group injection. A custom field group carries both a
   `parent_id` (which site owns and administers it) and an `object_class`/`objectid` pair (which
   record's admin page displays it). `Admin::Settings::CustomFieldsController` split the submitted
