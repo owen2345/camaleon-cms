@@ -42,7 +42,7 @@
 
 ## 6. Changelog and archive
 
-- [ ] 6.1 Add a `## Unreleased` **Fix** entry: admin headings displayed raw entities for names containing `&`, `'`, `<` or `>`; the cause is an escaped `SafeBuffer` interpolated into a plain string ahead of an ERB sink — the root cause itself stays out of the entry per `docs/ai/workflows.md` Phase 4 ("do not restate the root cause"); it belongs in the PR body
-- [ ] 6.2 Add an upgrader note for `cama_pluralize_text` — it now returns a `SafeBuffer` for a `SafeBuffer` input, propagating safeness it was given and never adding it
-- [ ] 6.3 Note explicitly that `the_title` still escapes and that the SEO surface was checked and is unaffected, so theme authors need change nothing
-- [ ] 6.4 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
+- [x] 6.1 Add a `## Unreleased` **Fix** entry: admin headings displayed raw entities for names containing `&`, `'`, `<` or `>`; the cause is an escaped `SafeBuffer` interpolated into a plain string ahead of an ERB sink — the root cause itself stays out of the entry per `docs/ai/workflows.md` Phase 4 ("do not restate the root cause"); it belongs in the PR body
+- [x] 6.2 Add an upgrader note for `cama_pluralize_text` — it now returns a `SafeBuffer` for a `SafeBuffer` input, propagating safeness it was given and never adding it
+- [x] 6.3 Note explicitly that `the_title` still escapes and that the SEO surface was checked and is unaffected, so theme authors need change nothing
+- [x] 6.4 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)

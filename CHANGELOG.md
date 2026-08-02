@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **Fix:** Admin headings and tooltips showed raw HTML entities in place of the characters they
+  encode, so a site named `Ben & Jerry's` read `Ben &amp; Jerry&#39;s`. Affected the site settings
+  page, the post edit form, the sites form, the categories and tags indexes, and the custom fields
+  category select. A category tooltip additionally read `&Amp;`, a corrupted entity rather than a
+  doubled one. [#1219](https://github.com/owen2345/camaleon-cms/pull/1219).
+
+  **Notes for upgraders**
+
+  - **`cama_pluralize_text` returns an `ActiveSupport::SafeBuffer` when given one.** It propagates
+    the safeness of its input and never adds it, so an unsafe input still yields an unsafe result
+    and no caller becomes less safe than before.
+  - **`the_title` still escapes its output.** The contract that themes and plugins rendering titles
+    through `raw` depend on is unchanged, and the SEO surface was checked and is unaffected. Theme
+    authors need change nothing.
+
 - **Security fix:** Stored XSS in two server-generated HTML fragments. `PostDecorator#the_status`
   and `CustomFieldGroup#get_caption` assembled markup by string interpolation outside a view and
   admin templates rendered the result through `raw`, neither escaping the values it spliced in. A
