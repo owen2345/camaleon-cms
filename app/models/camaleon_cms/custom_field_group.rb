@@ -122,6 +122,11 @@ module CamaleonCms
     end
 
     # generate the caption for this group
+    # The caption is rendered with `raw` by admin/settings/custom_fields/index.html.erb, so every
+    # interpolated value is escaped here, at the source: `the_title` already returns an escaped
+    # SafeBuffer, and the plain attributes below are escaped explicitly. `object_class` is included
+    # because the placement check admits any class name paired with the current site's id, so it is
+    # attacker-settable text like the model names are.
     def get_caption
       caption = ''
       begin
@@ -133,15 +138,18 @@ module CamaleonCms
         when 'PostType_PostTag'
           caption = "Fields for Post tags in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
         when 'Widget::Main'
-          caption = "Fields for Widget <b>(#{CamaleonCms::Widget::Main.find(objectid).name.translate})</b>"
+          widget_name = CamaleonCms::Widget::Main.find(objectid).name.translate
+          caption = "Fields for Widget <b>(#{ERB::Util.html_escape(widget_name)})</b>"
         when 'Theme'
-          caption = "Field settings for Theme <b>(#{begin
+          theme_name = begin
             site.themes.find(objectid).name
           rescue StandardError
             objectid
-          end})</b>"
+          end
+          caption = "Field settings for Theme <b>(#{ERB::Util.html_escape(theme_name)})</b>"
         when 'NavMenu'
-          caption = "Field settings for Menus <b>(#{CamaleonCms::NavMenu.find(objectid).name})</b>"
+          menu_name = CamaleonCms::NavMenu.find(objectid).name
+          caption = "Field settings for Menus <b>(#{ERB::Util.html_escape(menu_name)})</b>"
         when 'Site'
           caption = 'Field settings the site'
         when 'PostType'
@@ -150,12 +158,14 @@ module CamaleonCms
           p = CamaleonCms::Post.find(objectid).decorate
           caption = "Fields for content <b>(#{p.the_title})</b>"
         else # 'Plugin' or other class
-          caption = "Fields for <b>#{object_class}</b>"
+          caption = "Fields for <b>#{ERB::Util.html_escape(object_class)}</b>"
         end
       rescue StandardError => e
         Rails.logger.debug "Camaleon CMS - Menu Item Error: #{e.message} ==> Attrs: #{attributes}"
       end
-      caption
+      # rubocop:disable Rails/OutputSafety -- every interpolated value above is escaped at the source
+      caption.html_safe
+      # rubocop:enable Rails/OutputSafety
     end
 
     private

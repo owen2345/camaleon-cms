@@ -183,7 +183,15 @@ module CamaleonCms
         color = 'default'
         status = self.status
       end
-      "<span class='label label-#{color} label-form'>#{status.titleize}</span>"
+      # The `else` arm above returns the raw column value, which is not validated and is writable at
+      # contributor privilege, and three admin views render this label through `raw`. Escaping the
+      # interpolated value here -- at the source, as `the_title` does -- is what makes those sinks
+      # safe. `titleize` is not a mitigation: HTML tag names and hostnames are case-insensitive.
+      # `content_tag` is deliberately not used: it emits double-quoted attributes and would change
+      # the byte output for every legitimate status, which downstream themes may match on.
+      # rubocop:disable Rails/OutputSafety -- only the escaped status is interpolated into fixed markup
+      "<span class='label label-#{color} label-form'>#{h.h(status.titleize)}</span>".html_safe
+      # rubocop:enable Rails/OutputSafety
     end
 
     # return the user object who created this post

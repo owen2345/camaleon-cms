@@ -55,6 +55,13 @@ The escaped output MUST remain byte-identical to the current output for values t
 - **AND** an administrator opens the custom fields settings page
 - **THEN** the response contains no `<script>` element originating from the caption
 
+#### Scenario: A field group caption escapes an injected object class
+
+- **WHEN** a custom field group is stored with an `object_class` carrying a script payload and the current site's id as `objectid`
+- **AND** an administrator opens the custom fields settings page
+- **THEN** the response contains no `<script>` element originating from the caption
+- **AND** the class name is present as escaped text inside the caption
+
 #### Scenario: A caption for a legitimate placement renders unchanged
 
 - **WHEN** a custom field group is placed on a nav menu named `Main Menu`
