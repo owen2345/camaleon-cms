@@ -46,6 +46,6 @@
 ## 7. Documentation
 
 - [x] 7.1 Resolve the disclosure question in `design.md` Open Questions with the maintainer before opening a public PR — the maintainer directed the work onto a public `security/` branch, which settles it: the fix and its reproducing specs are disclosed together, matching how prior security fixes in this repo have landed
-- [ ] 7.2 Open the PR following the constraints in `docs/ai/workflows.md` Phase 4
-- [ ] 7.3 Add a `CHANGELOG.md` entry under the unreleased section, marked as a security fix, describing the cross-site injection and telling multi-site operators to review their field-group lists after upgrading
-- [ ] 7.4 Run `/opsx:archive` on the branch and commit the result as part of the PR, before merge
+- [x] 7.2 Open the PR following the constraints in `docs/ai/workflows.md` Phase 4 — [#1217](https://github.com/owen2345/camaleon-cms/pull/1217)
+- [x] 7.3 Add a `CHANGELOG.md` entry under the unreleased section, marked as a security fix, describing the cross-site injection and telling multi-site operators to review their field-group lists after upgrading
+- [x] 7.4 Run `/opsx:archive` on the branch and commit the result as part of the PR, before merge — archived as `2026-08-01-fix-cross-site-field-group-injection`, syncing the `custom-field-group-tenancy` capability into `openspec/specs/`
