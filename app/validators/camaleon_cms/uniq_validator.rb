@@ -11,7 +11,7 @@ module CamaleonCms
 
       return unless slug_exists
 
-      record.errors[:base] << I18n.t('camaleon_cms.admin.post.message.requires_different_slug').to_s
+      record.errors.add(:base, I18n.t('camaleon_cms.admin.post.message.requires_different_slug').to_s)
     end
   end
 end

@@ -52,6 +52,12 @@ factories all resolve to it by default. Example-level mutations roll back with
 the transaction. Only create additional sites when the test is about
 multi-site behavior; explicit `create(:site)` still installs a real site.
 
+Site installation already claims the default slugs — user roles `admin` /
+`editor` / `contributor` / `client`, post types `post` / `page` — and slugs are
+unique per parent and taxonomy, so reuse those records (e.g.
+`site.user_roles.find_by!(slug: 'admin')`) instead of creating same-slug
+duplicates.
+
 ## RSpec Conventions
 
 ```ruby
