@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **Fix:** Slug-uniqueness validation was silently inert on Rails 7.0+. `UniqValidator` and
+  `PostUniqValidator` registered errors by pushing onto `errors[:base]`, which modern Rails
+  discards, so duplicate slugs (same taxonomy and parent) and recursive page hierarchies saved
+  without complaint; on Rails 6.1 the old pattern still worked. Errors are registered with
+  `errors.add` again. [#1222](https://github.com/owen2345/camaleon-cms/pull/1222).
+
+  **Notes for upgraders**
+
+  - On Rails 7.0+, saves that duplicate an existing slug under the same parent and taxonomy, or
+    that create a looping page hierarchy, fail validation again — matching what Rails ≤ 6.1
+    installs always enforced.
+  - Records duplicated while the validator was inert are not rewritten; they surface the
+    "requires different slug" error the next time they are edited.
+
 - **Tests:** Feature specs now sign in by setting the auth cookie instead of driving the login
   form, and the sign-in actually verifies credentials — the old flow's "Welcome" assertion was
   satisfied by the login page itself, so failed logins passed silently. The form-driven flow lives
