@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Tests:** The suite now installs a single shared Camaleon site per run instead of a full site
+  before nearly every example, cutting a local full run from ~18 minutes to ~5. Test-only change:
+  specs get the shared site through `init_site` and the factories, and `init_site(fresh: true)`
+  keeps a per-example site for multi-site UI specs.
+  [#1220](https://github.com/owen2345/camaleon-cms/pull/1220).
+
 - **Fix:** Admin headings and tooltips showed raw HTML entities in place of the characters they
   encode, so a site named `Ben & Jerry's` read `Ben &amp; Jerry&#39;s`. Affected the site settings
   page, the post edit form, the sites form, the categories and tags indexes, and the custom fields
