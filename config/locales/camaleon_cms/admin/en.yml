@@ -102,6 +102,7 @@ en:
           custom_group_error: 'Error custom field group'
           custom_created: 'The custom field group has been created.'
           custom_updated: 'The custom field group has been updated.'
+          invalid_placement: 'Select where to display this group. The selected target does not belong to this site.'
         fields:
           text_box: 'Text Box'
           private_file: Private File

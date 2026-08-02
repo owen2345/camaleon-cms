@@ -94,6 +94,47 @@ module CamaleonCms
           # Site#get_field_groups can never return, which would leave it stranded and unreachable.
           @post_data[:objectid] = current_site.id if @post_data[:object_class] == 'Site'
           @caption = @post_data.delete(:caption)
+          reject_foreign_placement unless placement_owned_by_current_site?
+        end
+
+        # A group's placement (object_class + objectid) decides which record's admin page renders it,
+        # and those reads are not scoped by the owning site. Without this check a user who can manage
+        # custom fields on one site could stamp a group with another site's theme, menu or post type
+        # id and have it render there -- invisible in that site's own field group list, which is
+        # scoped by parent_id, so its administrators could neither find nor delete it.
+        def placement_owned_by_current_site?
+          object_class = @post_data[:object_class].to_s
+          objectid = @post_data[:objectid].to_s
+          return false if object_class.blank? || objectid !~ /\A\d+\z/
+
+          owned_placement_ids(object_class).include?(objectid.to_i)
+        end
+
+        # Every "other" option the form emits is "<Class>,<current_site.id>" -- Site, the configured
+        # user model, and any model contributed through the custom_field_custom_models hook. Keying
+        # the default arm on the id rather than on an allow-list of class names admits those hook
+        # models without this controller having to know their names.
+        def owned_placement_ids(object_class)
+          case object_class
+          when 'PostType', 'PostType_Post', 'PostType_Category', 'PostType_PostTag'
+            current_site.post_types.pluck(:id)
+          when 'Theme' then current_site.themes.pluck(:id)
+          when 'NavMenu' then current_site.nav_menus.pluck(:id)
+          when 'Plugin' then current_site.plugins.pluck(:id)
+          when 'Post' then current_site.posts.pluck(:id)
+          when 'Category', 'Category_Post' then current_site.full_categories.pluck(:id)
+          else [current_site.id]
+          end
+        end
+
+        def reject_foreign_placement
+          @field_group ||= current_site.custom_field_groups.new(@post_data.except(:object_class, :objectid))
+          @field_group.errors.add(
+            :base,
+            t('camaleon_cms.admin.custom_field.message.invalid_placement',
+              default: 'Select where to display this group. The selected target does not belong to this site.')
+          )
+          render 'form'
         end
 
         def validate_role

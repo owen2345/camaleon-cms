@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+- **Security fix:** Cross-site custom field group injection. A custom field group carries both a
+  `parent_id` (which site owns and administers it) and an `object_class`/`objectid` pair (which
+  record's admin page displays it). `Admin::Settings::CustomFieldsController` split the submitted
+  `assign_group` parameter straight into the placement columns without checking ownership, and
+  placement reads are not scoped by site — so a user who could manage custom fields on one site
+  could stamp a group with another site's theme, menu, plugin or post type id and have it render
+  there. The target site's own field-group list is scoped by `parent_id`, so the group stayed
+  invisible to its administrators, who could neither find nor delete it, while values entered
+  against those fields persisted on that site's records.
+  [#1217](https://github.com/owen2345/camaleon-cms/pull/1217).
+
+  `custom_fields` is a role-manageable resource, so the privilege required was "can manage custom
+  fields on some site", not "is a superuser". Only multi-site installs with mutually untrusted site
+  administrators were affected; single-site installs were not. `Site` placements were already
+  covered by [#1216](https://github.com/owen2345/camaleon-cms/pull/1216), and `User` placements
+  were never affected.
+
+  **Notes for upgraders**
+
+  - **Submitting a placement the current site does not own is now refused** with a form error.
+    Classes with a single legal target — `Site`, the configured user model, and models registered
+    through the `custom_field_custom_models` hook — are validated against the current site's id
+    rather than an allow-list of class names, so plugins contributing custom models keep working.
+  - **`rake camaleon_cms:rehome_cross_site_field_groups`** repairs groups already injected, moving
+    them to the site whose pages they were rendering on so that site's administrators can see and
+    delete them. Nothing is deleted, and groups whose placement target no longer exists are skipped.
+    **Multi-site operators should review their field-group lists after running it — a group that
+    appears newly is one that was already rendering on their pages.**
+  - **The read paths are unchanged.** They still resolve placement without a site filter; the fix
+    is the write-side guard plus the repair task. Rationale in the change's `design.md` D2.
+
 - **Fix:** The site settings form rendered every custom field group in the site, not just the ones
   meant for the site. Groups belonging to posts, categories, themes or menus can hold required
   fields, so jQuery validation refused to submit until an administrator filled in data that does not
