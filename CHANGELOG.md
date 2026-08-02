@@ -8,7 +8,9 @@
   contributor could poison a post's status; a nav menu or widget manager could poison a field group
   caption. The admin panel is same-origin with the frontend, so either executed with an
   administrator's session. `TermTaxonomyDecorator#the_status` was hardened the same way, though it
-  was not exploitable. [#1218](https://github.com/owen2345/camaleon-cms/pull/1218).
+  was not exploitable. [#1218](https://github.com/owen2345/camaleon-cms/pull/1218) — thanks, Enrik
+  Mustafa: pressing the case for an already-fixed vulnerability is what prompted the re-check that
+  found these two.
 
   **Notes for upgraders**
 
