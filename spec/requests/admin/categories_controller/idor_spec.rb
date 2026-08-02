@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe CamaleonCms::Admin::CategoriesController, '#set_category', type: :request do
-  let(:site) { create(:site) }
+  let(:site) { CamaleonCms::Site.first }
   let(:post_type_a) { create(:post_type, site: site) }
   let(:post_type_b) { create(:post_type, site: site) }
   let!(:category_b) { CamaleonCms::Category.create!(name: 'Category B', site_id: site.id, parent_id: post_type_b.id, taxonomy: :category, status: post_type_b.id) }

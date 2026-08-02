@@ -9,7 +9,7 @@ FactoryBot.define do
       site { nil }
     end
 
-    post_type { association :post_type, site: site || create(:site) }
+    post_type { association :post_type, site: site || CamaleonCms::Site.first || create(:site) }
     owner { association :user, site: site }
 
     factory :pending_post do

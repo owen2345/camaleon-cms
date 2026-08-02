@@ -31,7 +31,7 @@ RSpec.describe 'find_by_slug usage (organic behavioural coverage)' do # rubocop:
   let(:localized_slug) { '<!--:en-->multilang-post<!--:--><!--:es-->multilang-post<!--:-->' }
   let(:plain_key) { 'multilang-post' }
 
-  let(:site) { create(:site) }
+  let(:site) { CamaleonCms::Site.first }
   let(:decorator) { site.decorate }
 
   # ------------------------------------------------------------------

@@ -9,7 +9,7 @@ require 'rails_helper'
 # `raw`. Two trust levels reach those sinks, and the admin panel is same-origin with the frontend, so
 # script landing here runs with an administrator's session.
 RSpec.describe 'Security: contact form output escaping', type: :request do
-  let!(:site) { create(:site).decorate }
+  let!(:site) { CamaleonCms::Site.first.decorate }
 
   # `required` is stored as the string "true" by the form editor (hidden_field_tag + check_box_tag),
   # not as a JSON boolean — the plugin calls `.to_bool`, which Camaleon defines only on String.

@@ -12,7 +12,10 @@ RSpec.describe CamaleonCms::UserRole, type: :model do
     end
 
     it 'can read default roles created for a site' do
-      site = create(:site).decorate
+      # default roles are created when a site is installed as the main site;
+      # with users_share_sites a secondary site reuses them, so assert on the
+      # suite-wide shared (main) site.
+      site = CamaleonCms::Site.first.decorate
 
       expect(described_class.where(parent_id: site.id)).not_to be_empty
     end

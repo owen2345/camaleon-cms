@@ -4,15 +4,13 @@ include CamaleonCms::HooksHelper
 FactoryBot.define do
   factory :site, class: 'CamaleonCms::Site' do
     name { Faker::Name.unique.name }
-    slug do
+    # Feature specs need the slug to match the Capybara server host so multi-site
+    # resolution finds the site; elsewhere it only has to be unique, since a
+    # suite-wide shared site already exists (see spec/support/shared_site.rb).
+    sequence(:slug) do |n|
       current_session = Capybara.current_session
-      current_session.server ? "#{current_session.server.host}:#{current_session.server.port}" : 'key'
+      current_session.server ? "#{current_session.server.host}:#{current_session.server.port}" : "test-site-#{n}"
     end
-    # sequence(:slug) do |n|
-    #   next "site#{n}" unless Capybara.current_session.server
-    #
-    #   "#{Capybara.current_session.server.host}:#{Capybara.current_session.server.port}"
-    # end
     description { Faker::Lorem.sentence }
 
     transient do
@@ -21,8 +19,14 @@ FactoryBot.define do
     end
 
     after(:create) do |site, evaluator|
+      # site_after_install resolves current_site, which needs a request once a
+      # second site exists; pin the new site as current for the install instead.
+      previous_site = CurrentRequest.site
+      CurrentRequest.site = site.decorate
       site_after_install(site, evaluator.theme)
       site.set_option('save_intro', true) if evaluator.skip_intro
+    ensure
+      CurrentRequest.site = previous_site
     end
   end
 end

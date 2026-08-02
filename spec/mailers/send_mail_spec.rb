@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe 'CamaleonCms::HtmlMailer' do
   before do
-    @site = create(:site).decorate
+    @site = CamaleonCms::Site.first.decorate
   end
 
   describe 'empty content' do

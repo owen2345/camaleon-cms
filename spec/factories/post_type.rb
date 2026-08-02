@@ -4,6 +4,6 @@ FactoryBot.define do
     sequence(:slug) { |n| "posttyp#{n}" }
     description { Faker::Lorem.sentence }
     data_options {}
-    site
+    site { CamaleonCms::Site.first || create(:site) }
   end
 end

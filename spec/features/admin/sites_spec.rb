@@ -18,7 +18,10 @@ def create_site
 end
 
 describe 'the Sites', :js do
-  init_site
+  # This spec creates a second site via the UI; once two sites exist, resolution
+  # matches the request host against site slugs, so the base site's slug must be
+  # the Capybara server host — the shared site's slug is not.
+  init_site(fresh: true)
 
   it 'Sites list' do
     admin_sign_in

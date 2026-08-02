@@ -1,18 +1,24 @@
 # include ApplicationHelper
 
-# do login for admin panel and also verify if the site was created
-# if site is not created, then create a new site
-def init_site
+# expose the suite-wide shared site (see spec/support/shared_site.rb) as @site.
+# fresh: true replaces it with a site created inside the example's transaction —
+# needed by feature specs whose site slug must match the Capybara server host
+# (multi-site resolution matches request host against slugs once a second site
+# exists).
+def init_site(fresh: false)
   before do
-    CamaleonCms::Site.delete_all
-    @site = create(:site).decorate
+    if fresh
+      CamaleonCms::Site.delete_all
+      @site = create(:site).decorate
+    else
+      @site = (CamaleonCms::Site.first || create(:site)).decorate
+    end
     @post = @site.the_post('sample-post').decorate
   end
 
   after do
     @site = nil
     @post = nil
-    Cama::Site.instance_variable_set(:@main_site, nil)
   end
 end
 
@@ -26,7 +32,6 @@ def admin_sign_in(user = 'admin', pass = 'admin123')
   end
   click_button 'Log In'
   expect(page).to have_text 'Welcome'
-  wait(2)
 end
 
 def cama_root_relative_path

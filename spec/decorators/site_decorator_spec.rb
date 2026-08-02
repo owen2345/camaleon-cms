@@ -7,6 +7,9 @@ RSpec.describe CamaleonCms::SiteDecorator do
   let(:decorator) { site.decorate }
 
   before do
+    # a second site exists (the suite-wide shared one), so pin this spec's own
+    # site as current instead of relying on single-site fallback resolution
+    store_current_site(decorator)
     allow(site).to receive(:get_languages).and_return(%w[en es])
     allow(decorator.h).to receive(:asset_path).and_return('/assets/en.png')
     allow(decorator.h).to receive(:cama_url_to_fixed) do |_helper_name, options|
