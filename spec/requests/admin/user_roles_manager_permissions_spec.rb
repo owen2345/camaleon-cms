@@ -116,7 +116,9 @@ RSpec.describe 'Admin::UserRolesController permission rendering', type: :request
   # submitted, so locking the view alone would have made the next save clear the stored meta.
   describe 'an editable role slugged admin' do
     let(:editable_admin) do
-      @site.user_roles.create!(name: 'Editable Admin', slug: 'admin', term_group: nil)
+      # slugs are unique per parent, so make the default admin role editable
+      # rather than creating a second admin-slugged role
+      @site.user_roles.find_by!(slug: 'admin').tap { |role| role.update!(name: 'Editable Admin', term_group: nil) }
     end
 
     before { editable_admin.set_meta("_manager_#{@site.id}", { themes: 1 }) }
@@ -149,7 +151,7 @@ RSpec.describe 'Admin::UserRolesController permission rendering', type: :request
   end
 
   describe 'a non-admin role' do
-    let(:editor) { @site.user_roles.create!(name: 'Editor', slug: 'editor') }
+    let(:editor) { @site.user_roles.find_by!(slug: 'editor') }
 
     it 'still renders from its own stored meta' do
       editor.set_meta("_manager_#{@site.id}", { themes: 1 })

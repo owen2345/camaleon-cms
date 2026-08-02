@@ -4,7 +4,9 @@ require 'rails_helper'
 
 describe CamaleonCms::Frontend::ContentSelectHelper do
   let(:site) { create(:site) }
-  let(:post_type) { create(:post_type, slug: 'post', site: site) }
+  # the site install already creates a 'post' post type; a second one with the
+  # same slug under the same site is (correctly) rejected as a duplicate
+  let(:post_type) { site.post_types.find_by!(slug: 'post') }
   let(:xss_payload) { '<script>alert("xss")</script>' }
   let!(:post) do
     create(:post, post_type: post_type, title: 'Malicious Post', content: xss_payload, status: 'published').decorate

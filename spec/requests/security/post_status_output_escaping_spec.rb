@@ -78,7 +78,7 @@ RSpec.describe 'Security: post status output escaping', type: :request do
   # The source. A role holding only `edit` on the post type gets `:create_post` but not
   # `:publish_post`, which is the lowest privilege that can create content at all.
   describe 'reaching the column at contributor privilege' do
-    let(:contributor_role) { current_site.user_roles.create!(name: 'Contributor', slug: 'contributor') }
+    let(:contributor_role) { current_site.user_roles.find_by!(slug: 'contributor') }
     let(:contributor) { create(:user, role: contributor_role.slug, site: current_site) }
 
     before do

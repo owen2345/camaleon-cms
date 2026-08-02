@@ -13,7 +13,7 @@ RSpec.describe CamaleonCms::Admin::SettingsController, type: :request do
   end
 
   describe '#test_email' do
-    let(:admin_role) { current_site.user_roles.create!(name: 'Admin', slug: 'admin') }
+    let(:admin_role) { current_site.user_roles.find_by!(slug: 'admin') }
     let(:admin_user) { create(:user, role: admin_role.slug, site: current_site) }
 
     before do
