@@ -38,6 +38,6 @@
 
 ## 6. Changelog and archive
 
-- [ ] 6.1 Add a `## Unreleased` **Security fix** entry covering both defects: the privilege each requires, the sinks, why `titleize` was not a mitigation, and an explicit note that the externally reported draft-title XSS was already fixed in 2.9.2 and is not what this addresses
-- [ ] 6.2 Note in the entry that non-canonical statuses already stored now render as visible escaped text rather than executing, so operators can spot a poisoned row
-- [ ] 6.3 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
+- [x] 6.1 Add a `## Unreleased` **Security fix** entry covering both defects: the privilege each requires, the sinks, why `titleize` was not a mitigation, and an explicit note that the externally reported draft-title XSS was already fixed in 2.9.2 and is not what this addresses
+- [x] 6.2 Note in the entry that non-canonical statuses already stored now render as visible escaped text rather than executing, so operators can spot a poisoned row
+- [x] 6.3 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)

