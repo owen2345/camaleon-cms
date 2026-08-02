@@ -6,7 +6,7 @@ FactoryBot.define do
     username { Faker::Internet.unique.user_name }
     password { '12345678' }
     password_confirmation { '12345678' }
-    site
+    site { CamaleonCms::Site.first || create(:site) }
 
     factory :user_admin do
       role { 'admin' }

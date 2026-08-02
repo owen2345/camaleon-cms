@@ -12,7 +12,9 @@ Rails.application.configure do
   # preloads Rails for running tests, you may have to set it to true.
   config.eager_load = true
 
-  config.log_level = :debug
+  # :debug logs every SQL statement to log/test.log, which measurably slows the
+  # suite and grows the file unboundedly.
+  config.log_level = :warn
 
   # Configure static file server for tests with Cache-Control for performance.
   config.public_file_server.enabled = true

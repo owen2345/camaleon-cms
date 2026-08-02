@@ -4,7 +4,7 @@ require 'rails_helper'
 
 describe 'Posttype frontend', :js do
   before do
-    @site = create(:site).decorate
+    @site = CamaleonCms::Site.first.decorate
     @post = @site.the_post('sample-post').decorate
     @post_type = @post.post_type.decorate
   end

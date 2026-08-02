@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Security: XSS via params[:info] in flash messages', type: :request do
-  let(:site) { create(:site) }
+  let(:site) { CamaleonCms::Site.first }
   let(:admin_role) { site.user_roles.create!(name: 'Admin', slug: 'admin') }
   let(:admin_user) { create(:user, role: admin_role.slug, site: site) }
   let(:decorated_site) { site.decorate }

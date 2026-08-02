@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Security: Open Redirect in SessionHelper', type: :request do
-  let(:site) { create(:site) }
+  let(:site) { CamaleonCms::Site.first }
   let(:user) { create(:user, site: site, password: 'password', password_confirmation: 'password') }
 
   it 'does not redirect to external URLs via return_to cookie' do

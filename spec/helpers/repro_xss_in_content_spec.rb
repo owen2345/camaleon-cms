@@ -5,11 +5,15 @@ require 'rails_helper'
 describe CamaleonCms::Frontend::ContentSelectHelper do
   let(:site) { create(:site) }
   let(:post_type) { create(:post_type, slug: 'post', site: site) }
-
   let(:xss_payload) { '<script>alert("xss")</script>' }
-
   let!(:post) do
     create(:post, post_type: post_type, title: 'Malicious Post', content: xss_payload, status: 'published').decorate
+  end
+
+  before do
+    # a second site exists (the suite-wide shared one), so pin this spec's own
+    # site as current instead of relying on single-site fallback resolution
+    store_current_site(site.decorate)
   end
 
   describe '#the_content' do

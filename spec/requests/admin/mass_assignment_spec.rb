@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Admin Mass Assignment Protection', type: :request do
-  let(:site) { create(:site) }
+  let(:site) { CamaleonCms::Site.first }
   let(:admin) { create(:user, site: site, role: 'admin') }
   let(:post_type) { create(:post_type, site: site) }
 

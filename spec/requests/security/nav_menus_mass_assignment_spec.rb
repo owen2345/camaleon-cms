@@ -3,12 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe 'Security: Nav Menus Mass Assignment', type: :request do
-  let(:site) { create(:site) }
+  let(:site) { CamaleonCms::Site.first }
   let(:admin) { create(:user_admin, site: nil) }
 
   before do
-    CamaleonCms::Site.delete_all
-    site
     post cama_admin_login_path, params: { user: { username: admin.username, password: '12345678' } }
   end
 
