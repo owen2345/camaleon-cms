@@ -75,8 +75,12 @@ module CamaleonCms
     end
 
     # function that converts string into plural format
+    # `SafeBuffer#pluralize` returns a plain String, so callers composing the result with other
+    # markup lose the safe flag before they can use it. The safeness of the input is propagated --
+    # never added, so an unsafe input stays unsafe and no caller becomes less safe than before.
     def cama_pluralize_text(text)
-      text.try(:pluralize)
+      res = text.try(:pluralize)
+      text.try(:html_safe?) ? res.try(:html_safe) : res
     end
   end
 end

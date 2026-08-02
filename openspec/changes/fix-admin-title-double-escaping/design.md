@@ -58,7 +58,9 @@ Rejected alternative: leave the helper alone and call `.html_safe` at each call 
 
 `&Amp;` is not a valid entity, so this is corruption rather than double-escaping, and `safe_join` does not address it. `categories/index.html.erb:42` renders a tooltip reading `Ben &Amp; Jerry'S`.
 
-The fix is to titleize before escaping — `item.name.to_s.translate.titleize`, letting the sink escape the result. That works because the decorator delegates `name` to the model, so the raw translated value is reachable.
+The fix is to titleize before escaping — `item.name.to_s.translate(item.get_locale).titleize`, letting the sink escape the result. That works because the decorator delegates `name` to the model, so the raw translated value is reachable.
+
+The locale is passed explicitly rather than left to `translate`'s `I18n.locale` default. `the_title` resolves through `get_locale`, which prefers the cached *frontend* locale over `I18n.locale` — so on an admin page that has rendered a frontend URL, the bare default would title the tooltip in a different locale than the row it labels. `get_locale` is public on `ApplicationDecorator`, so matching it costs nothing.
 
 It is reachable, but not *offered*. `the_title` welds escaping to translation, so a caller wanting to transform the text has no public path and must reach through to the model attribute. Adding an unescaped accessor for two call sites is not justified here, but the gap is real and the next caller will hit it. Recorded rather than fixed.
 

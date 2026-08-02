@@ -3,7 +3,7 @@
 <div class="page-content-wrap">
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h4><span class="fa fa-cog"></span> <%= "#{t('camaleon_cms.admin.settings.configuration_site')}: #{@site.the_title} " %> </h4>
+      <h4><span class="fa fa-cog"></span> <%= safe_join([t('camaleon_cms.admin.settings.configuration_site'), ': ', @site.the_title, ' ']) %> </h4>
     </div>
     <%= form_for @site, as: "site", url: {action: :site_saved}, html: {id: "site_settings_form", class: "panel-body cama_ajax_request validate"} do |f| %>
         <div class="tabs">
