@@ -1,7 +1,15 @@
 # contact-form-output-escaping Specification
 
 ## Purpose
-TBD - created by archiving change fix-contact-form-output-escaping. Update Purpose after archive.
+
+Keep what the bundled `cama_contact_form` plugin renders equal to what its authors and visitors wrote. The name is the one the capability was opened under and no longer describes it: nothing here escapes and nothing sanitizes. Every value the plugin renders reaches the page exactly as written, and safety is enforced at the gate — a value that may not be written is refused before it is stored, so stored content always equals authored content and rendering it verbatim introduces nothing the writer did not put there.
+
+Rewriting content was rejected as the remedy rather than merely not chosen. Escaping is not idempotent, so a definition re-saved through the form editor accumulates another layer of entity references on every pass; sanitizing silently discards an author's work with no indication of what was removed. Both leave the editor displaying something other than what was typed. Refusing the save says so plainly instead, and the refusal is whole — a submission carrying one unsafe value echoes back none of its fields, and a refused save persists no part of the form.
+
+What makes verbatim rendering sound is that each value is judged against the HTML context it actually renders in, and refused only for what can escape that context: a sanitizer comparison for element content, a `"` for an attribute, `</textarea` for RCDATA. Anything broader would refuse ordinary prose — a visitor writing `Fish & Chips <today>` being told their message is not allowed. Because nothing is escaped at the sink, this cuts both ways: a position missing from the gated list is not degraded but unprotected, so any change to the plugin's rendering that interpolates a new value, or moves an existing one into a different context, has to extend that list.
+
+The gate has a deliberate hole in it. `:manage, :contact_form_unfiltered_html` exempts an author from every content rule, because delivering markup, event handlers or script to an anonymous visitor exactly as written is the capability the grant exists to confer; the structural allowlist still applies, since a corrupt `field_type` is not a capability anyone wants. The boundary with its neighbours is drawn by subject, not by mechanism: [`post-content-sanitization`](../post-content-sanitization/spec.md) governs `Post#content` per post type, this capability governs contact-form settings and field options site-wide, and [`html-attribute-escaping`](../html-attribute-escaping/spec.md) governs the shared `Hash#to_attr_format` helper — which the plugin deliberately does not use, because one has a gate in front of it and the other does not.
+
 ## Requirements
 ### Requirement: Contact-form content is stored verbatim or refused, never rewritten
 

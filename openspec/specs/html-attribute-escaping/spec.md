@@ -1,7 +1,15 @@
 # html-attribute-escaping Specification
 
 ## Purpose
-TBD - created by archiving change fix-contact-form-output-escaping. Update Purpose after archive.
+
+Keep the two `Hash` extensions that build attribute fragments escaped for the context each actually emits into, and never for the other's. `to_attr_format` produces HTML attribute pairs; `to_attr_url_format` produces a Ruby `:key => "value"` literal for code generation. They look alike and are one letter apart, which is how the original `gsub('"', '\"')` came to sit in `to_attr_format`: a Ruby string escape applied to an HTML context, where a backslash escapes nothing. The method looked like it sanitized and did not, so `x" onfocus=alert(1) y="` closed its own attribute and opened a live event handler.
+
+The invariant is that no value a caller passes can terminate its own attribute or introduce a new one, and that a value round-trips unchanged through the generated Ruby fragment. Both methods are public API shipped in the gem, and their callers are plugins and themes packaged as separate gems that this repo cannot enumerate — so they SHALL be safe for a caller handing them fully untrusted data with no pre-escaping, rather than safe only for callers that already knew to escape. That is also why escaping uses `CGI.escapeHTML` rather than `ERB::Util.html_escape`, which is a no-op on an `html_safe` string, and why a key that is not a valid HTML attribute name is dropped: no escaper touches the whitespace and `=` that split one name into two.
+
+Escaping must not disturb ordinary data. A value containing no HTML-significant characters is byte-identical to its input, and `to_attr_url_format` emits no entity references at all — entity-encoding a Ruby literal would corrupt the code it generates. That method's requirement is a correctness one rather than a security one.
+
+Covers the attribute context specifically. [`generated-markup-escaping`](../generated-markup-escaping/spec.md) covers fragments interpolated into an element body, and [`contact-form-output-escaping`](../contact-form-output-escaping/spec.md) records why the bundled contact form deliberately does not route its values through `to_attr_format` — it gates them at the write instead.
+
 ## Requirements
 ### Requirement: `Hash#to_attr_format` escapes values for the HTML attribute context
 
