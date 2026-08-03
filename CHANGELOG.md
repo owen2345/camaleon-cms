@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **Fix:** Validating a post without an explicit slug raised `FrozenError` instead of reporting
+  `Slug can't be blank`, so creating posts programmatically (imports, seeds, jobs, console) was
+  impossible. `String#translations` memoized its parsed locales in an instance variable on the
+  receiver, which Ruby 3.4's frozen `nil.to_s` cannot carry; frozen strings now parse without
+  memoizing. Long-standing, not a regression.
+  [#1227](https://github.com/owen2345/camaleon-cms/pull/1227).
+
 - **Fix:** The upload hardening in [#1198](https://github.com/owen2345/camaleon-cms/pull/1198)–[#1211](https://github.com/owen2345/camaleon-cms/pull/1211)
   rejected legitimate work: uploads staged outside `public/` or the system temp dir failed with
   `Invalid file path`, animated SVGs and re-crops of already-stored files were refused as
