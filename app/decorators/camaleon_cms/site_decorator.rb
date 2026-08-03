@@ -146,7 +146,7 @@ module CamaleonCms
       return unless id_or_username.is_a?(String)
 
       begin
-        object.users.find_by(username: id_or_username).decorate
+        object.users.find_by_username(id_or_username).decorate # rubocop:disable Rails/DynamicFindBy
       rescue StandardError
         nil
       end
