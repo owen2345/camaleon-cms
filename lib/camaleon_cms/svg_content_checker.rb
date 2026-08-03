@@ -6,8 +6,17 @@ module CamaleonCms
     # script by themselves, and their scripting vector is the onbegin/onend/onrepeat
     # attribute, which the element-agnostic on* check below rejects wherever it appears.
     # foreignObject and handler stay banned — they embed foreign markup or handlers.
+    #
+    # form/meta/base/style/link are valid in SVG and none executes script on its own, but an
+    # uploaded SVG is served inline from the site origin and these five are what turn a passive
+    # image into markup that can navigate (meta http-equiv=refresh, base href), collect input
+    # (form), or pull in remote styling (link, style). ContentSecurity::BLOCKED_ELEMENTS already
+    # refuses all five in every non-SVG upload; refusing them here too means the two rulesets stop
+    # disagreeing about the same bytes, so re-uploading a file under a different extension cannot
+    # reach a more permissive ruleset. This list only ever runs for uploads that are being scanned
+    # at all, i.e. from uploaders without `media_unfiltered_upload`, so it needs no trust argument.
     BANNED_TAGS = %w[
-      script foreignObject iframe object embed handler
+      script foreignObject iframe object embed handler form meta base style link
     ].freeze
 
     module_function

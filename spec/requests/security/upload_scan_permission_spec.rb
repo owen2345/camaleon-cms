@@ -39,6 +39,12 @@ RSpec.describe 'Upload scanning through the media endpoint', type: :request do
 
     before { role.set_meta("_manager_#{current_site.id}", { 'media' => 1 }) }
 
+    it 'refuses an SVG carrying a form' do
+      upload(svg_with_form, extension: '.svg', user: user)
+
+      expect(response.body).to include('Potentially malicious content found!')
+    end
+
     it 'refuses the bytes uploaded under an .html name' do
       upload(svg_with_form, extension: '.html', user: user)
 
