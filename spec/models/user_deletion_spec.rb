@@ -55,5 +55,32 @@ RSpec.describe 'User deletion content reassignment', type: :model do
       expect { decorated.the_author_name }.not_to raise_error
       expect(decorated.the_user).to be_nil
     end
+
+    # the_author_url was left out of the nil-safety pass its three siblings got, so it still
+    # raised NoMethodError for the very rows they were fixed to tolerate. Themes ship outside
+    # this repo and call it, so the crash was not visible from here.
+    it 'returns a blank url instead of raising when the user is missing' do
+      comment = post_record.comments.create!(user_id: commenter.id, content: 'orphan me', approved: 'approved')
+      comment.update_column(:user_id, nil) # rubocop:disable Rails/SkipsModelValidations
+
+      decorated = comment.reload.decorate
+
+      expect { decorated.the_author_url }.not_to raise_error
+      expect(decorated.the_author_url).to eq('')
+    end
+
+    it 'still prefers a stored author_url when the user is missing' do
+      comment = post_record.comments.create!(user_id: commenter.id, content: 'orphan me', approved: 'approved',
+                                             author_url: 'https://example.com/me')
+      comment.update_column(:user_id, nil) # rubocop:disable Rails/SkipsModelValidations
+
+      expect(comment.reload.decorate.the_author_url).to eq('https://example.com/me')
+    end
+
+    it 'still links to the profile of a live, non-anonymous author' do
+      comment = post_record.comments.create!(user_id: commenter.id, content: 'live', approved: 'approved')
+
+      expect(comment.decorate.the_author_url).to eq(commenter.decorate.the_url)
+    end
   end
 end
