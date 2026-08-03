@@ -178,5 +178,61 @@ RSpec.describe CamaleonCms::Post, type: :model do
         expect(post.content).to include('<p>Text</p>')
       end
     end
+
+    context 'when an untrusted user saves structural markup' do
+      it 'preserves table elements and colspan' do
+        assign_current_user(contributor)
+
+        post = create(:post, post_type: post_type, owner: contributor,
+                             content: '<table><thead><tr><th>H</th></tr></thead>' \
+                                      '<tbody><tr><td colspan="2">cell</td></tr></tbody></table>')
+
+        %w[<table> <thead> <tbody> <tr> <th> <td].each { |tag| expect(post.content).to include(tag) }
+        expect(post.content).to include('colspan="2"')
+      end
+
+      it 'keeps layout attributes while removing script vectors' do
+        assign_current_user(contributor)
+
+        post = create(:post, post_type: post_type, owner: contributor,
+                             content: '<p id="lead" style="color:red" onclick="alert(1)">t</p>' \
+                                      '<a href="/x" target="_blank" rel="noopener">l</a>')
+
+        expect(post.content).to include('id="lead"')
+        expect(post.content).to include('target="_blank"')
+        expect(post.content).to include('rel="noopener"')
+        expect(post.content).to include('color:red')
+        expect(post.content).not_to include('onclick')
+      end
+
+      it 'neutralizes a script payload hidden in a style attribute' do
+        assign_current_user(contributor)
+
+        post = create(:post, post_type: post_type, owner: contributor,
+                             content: '<p style="width: expression(alert(1))">t</p>')
+
+        expect(post.content).not_to include('expression(')
+      end
+    end
+
+    context 'with the developer opt-out' do
+      it 'stores raw content when unfiltered_content! is set and no user context exists' do
+        CurrentRequest.user = nil
+        CurrentRequest.site = nil
+
+        post = build(:post, post_type: post_type, content: '<p>seed</p><script>seed()</script>')
+        post.unfiltered_content!
+        post.save!
+
+        expect(post.content).to include('<script>seed()</script>')
+      end
+
+      it 'has no mass-assignment writer, so request-style attributes cannot enable it' do
+        expect(described_class.new).not_to respond_to(:unfiltered_content=)
+        expect do
+          described_class.new(unfiltered_content: true)
+        end.to raise_error(ActiveModel::UnknownAttributeError)
+      end
+    end
   end
 end

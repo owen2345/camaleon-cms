@@ -2,6 +2,27 @@ module CamaleonCms
   class Post < CamaleonCms::PostDefault
     include CamaleonCms::CategoriesTagsForPosts
 
+    # Structural, non-executable markup that long-form post content legitimately uses but the
+    # sanitizer default drops. Superset of the default so upstream security additions are inherited.
+    SANITIZE_EXTRA_TAGS = %w[table thead tbody tfoot tr td th caption col colgroup
+                             figure figcaption u s hr].freeze
+    SANITIZE_EXTRA_ATTRIBUTES = %w[id style target rel colspan rowspan].freeze
+    CONTENT_ALLOWED_TAGS = (ActionController::Base.helpers.sanitizer_vendor.safe_list_sanitizer
+                              .allowed_tags.to_a + SANITIZE_EXTRA_TAGS).uniq.freeze
+    CONTENT_ALLOWED_ATTRIBUTES = (ActionController::Base.helpers.sanitizer_vendor.safe_list_sanitizer
+                                    .allowed_attributes.to_a + SANITIZE_EXTRA_ATTRIBUTES).uniq.freeze
+
+    # Opt-out for trusted server-side pipelines (imports, seeds, plugin code) that would otherwise
+    # be sanitized by the fail-closed default. Exposed as a reader plus a bang enabler and NO
+    # `unfiltered_content=` writer, so `assign_attributes`/mass assignment cannot reach it — only
+    # explicit server-side code calling `post.unfiltered_content!` can.
+    attr_reader :unfiltered_content
+
+    def unfiltered_content!
+      @unfiltered_content = true
+      self
+    end
+
     alias_attribute :post_type_id, :taxonomy_id
     default_scope -> { where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
 
@@ -270,11 +291,15 @@ module CamaleonCms
     def sanitize_content
       return unless new_record? || attribute_changed?(:content)
       return if content.blank?
+      # The explicit pipeline opt-out short-circuits before the Ability lookup below.
+      return if unfiltered_content
       # Check trust only once we know there is content to sanitize, so unchanged/blank updates never pay for
       # building an Ability (a role-meta DB lookup) on every save.
       return if trusted_for_unfiltered_html?
 
-      self.content = CamaleonRecord.cama_sanitize_translatable(content)
+      self.content = CamaleonRecord.cama_sanitize_translatable(
+        content, tags: CONTENT_ALLOWED_TAGS, attributes: CONTENT_ALLOWED_ATTRIBUTES
+      )
     end
 
     # calculate a post order when it is empty
