@@ -7,9 +7,9 @@ module CamaleonCms
       h.l(object.created_at, format: format.to_sym)
     end
 
-    # return owner of this comment
+    # return owner of this comment, or nil for rows whose user is missing
     def the_user
-      object.user.decorate
+      object.user&.decorate
     end
     alias the_author the_user
 
@@ -26,11 +26,13 @@ module CamaleonCms
     end
 
     def the_author_name
-      object.author.presence || object.user.full_name
+      # `fullname` is the model method; `full_name` never existed, so this fallback
+      # crashed for any comment stored without an author string.
+      object.author.presence || object.user&.fullname
     end
 
     def the_author_email
-      object.author_email.presence || object.user.email
+      object.author_email.presence || object.user&.email
     end
 
     def the_author_url

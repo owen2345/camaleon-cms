@@ -15,7 +15,7 @@ module CamaleonCms
              class_name: 'CamaleonCms::CustomField', foreign_key: :objectid, dependent: :destroy, inverse_of: :owner
 
     belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, optional: true,
-                       inverse_of: :post_type_owners
+                       inverse_of: false
     belongs_to :site, foreign_key: :parent_id, optional: true, inverse_of: :post_types
 
     scope :visible_menu, -> { where(term_group: nil) }

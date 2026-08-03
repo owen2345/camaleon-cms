@@ -8,7 +8,8 @@ if PluginRoutes.static_system_info['user_model'].blank?
 
       default_scope { order(role: :asc) }
 
-      has_many :widgets, class_name: 'CamaleonCms::Widget::Main', dependent: :destroy,
+      # No `dependent:` — a deleted user's widgets keep rendering; only the owner is gone.
+      has_many :widgets, class_name: 'CamaleonCms::Widget::Main', # rubocop:disable Rails/HasManyOrHasOneDependent
                          inverse_of: :owner
 
       validates :username, presence: true
