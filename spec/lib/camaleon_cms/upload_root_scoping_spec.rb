@@ -23,7 +23,7 @@ RSpec.describe CamaleonCms::UploaderPathSecurity do
     end
 
     it 'rejects a path under Rails.root that is outside the default roots' do
-      expect(subject_class.cama_canonical_upload_path(Rails.root.join('storage', 'x.png').to_s)).to be_nil
+      expect(subject_class.cama_canonical_upload_path(Rails.root.join('storage/x.png').to_s)).to be_nil
     end
   end
 
@@ -67,7 +67,8 @@ RSpec.describe CamaleonCms::UploaderPathSecurity do
 
         def cama_uploader
           Struct.new(:private).new(true).tap do |u|
-            def u.is_private_uploader? = true
+            # Name mirrors the real uploader API this stands in for.
+            def u.is_private_uploader? = true # rubocop:disable Naming/PredicatePrefix
           end
         end
       end.new
