@@ -128,4 +128,36 @@ RSpec.describe PluginRoutes do
       expect { described_class.class_variable_get(:@@cache) }.to raise_error(NameError)
     end
   end
+
+  describe '.all_helpers' do
+    after { described_class.send(:cache).delete('plugins_helper') }
+
+    it 'omits apps that declare no helpers' do
+      described_class.send(:cache).delete('plugins_helper')
+      apps = [
+        { 'key' => 'no_helpers_key' },
+        { 'key' => 'empty_helpers', 'helpers' => [] },
+        { 'key' => 'with_helpers', 'helpers' => ['CamaleonCms::CamaleonHelper'] }
+      ]
+      allow(described_class).to receive(:all_apps).and_return(apps)
+
+      expect(described_class.all_helpers).to eq(['CamaleonCms::CamaleonHelper'])
+    end
+  end
+
+  describe '.site_plugin_helpers' do
+    after { described_class.send(:cache).delete('site_plugin_helpers') }
+
+    it 'omits enabled apps that declare no helpers' do
+      described_class.send(:cache).delete('site_plugin_helpers')
+      apps = [
+        { 'key' => 'no_helpers_key' },
+        { 'key' => 'with_helpers', 'helpers' => ['CamaleonCms::CamaleonHelper'] }
+      ]
+      site = instance_double(CamaleonCms::Site)
+      allow(described_class).to receive(:enabled_apps).with(site).and_return(apps)
+
+      expect(described_class.site_plugin_helpers(site)).to eq(['CamaleonCms::CamaleonHelper'])
+    end
+  end
 end

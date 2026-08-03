@@ -237,7 +237,7 @@ class PluginRoutes
       r = cache_variable('site_plugin_helpers')
       return r if r
 
-      res = enabled_apps(site).flat_map { |settings| settings['helpers'].presence }
+      res = enabled_apps(site).flat_map { |settings| settings['helpers'].presence }.compact
       cache_variable('site_plugin_helpers', res)
     end
 
@@ -246,7 +246,7 @@ class PluginRoutes
       r = cache_variable('plugins_helper')
       return r if r
 
-      res = all_apps.flat_map { |settings| settings['helpers'].presence }
+      res = all_apps.flat_map { |settings| settings['helpers'].presence }.compact
       cache_variable('plugins_helper', res.uniq)
     end
 
