@@ -44,12 +44,10 @@ module CamaleonCms
         settings[:remove_source] = true
         uploaded_io = tmp[:file_path]
       end
-      source_already_public = false
       if uploaded_io.is_a?(String)
         expanded = cama_canonical_upload_path(uploaded_io, extra_roots: cama_extra_upload_roots(settings))
         return { error: 'Invalid file path' } unless expanded
 
-        source_already_public = cama_source_already_public?(expanded)
         uploaded_io = expanded
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
@@ -57,7 +55,8 @@ module CamaleonCms
         uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension]))
       end
 
-      if !source_already_public && file_content_unsafe?(uploaded_io)
+      # Permission first: a trusted upload never reads the file in order to scan it.
+      if !cama_trusted_for_unfiltered_upload? && file_content_unsafe?(uploaded_io)
         return cama_upload_failure({ error: 'Potentially malicious content found!' }, uploaded_io, settings)
       end
 
@@ -174,12 +173,10 @@ module CamaleonCms
                     end
         args[:name] = args[:name] || _tmp_name
       end
-      source_already_public = false
       if uploaded_io.is_a?(String)
         expanded = cama_canonical_upload_path(uploaded_io, extra_roots: cama_extra_upload_roots(args))
         return { error: 'Invalid file path' } unless expanded
 
-        source_already_public = cama_source_already_public?(expanded)
         uploaded_io = expanded
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
@@ -198,12 +195,12 @@ module CamaleonCms
       name = "#{File.basename(name, File.extname(name)).parameterize}#{File.extname(name)}"
       path ||= uploader_verify_name(File.join(tmp_path, name))
       unless saved
-        # Same rule as the data: branch above -- read, scan, and only then write, so a
-        # remote source cannot land unscanned in public/tmp. A source already published
-        # under the public root (a re-crop, or a same-site URL) is exempt: those bytes
-        # are already served, so re-scanning them removes no exposure.
+        # Same rule as the data: branch above -- read, scan, and only then write, so no
+        # source can land unscanned in public/tmp. The scan is keyed on `name`, the output
+        # filename, because that is the extension the web server will serve the bytes under;
+        # only the uploader's permission decides whether it runs.
         content = uploaded_io.read
-        if !source_already_public && content_unsafe?(content, filename: name)
+        if !cama_trusted_for_unfiltered_upload? && content_unsafe?(content, filename: name)
           return { error: 'Potentially malicious content found!' }
         end
 
@@ -312,7 +309,9 @@ module CamaleonCms
 
       # The decoded bytes are already in memory here, so scanning costs no extra copy.
       decoded = Base64.decode64(payload)
-      return [nil, { error: 'Potentially malicious content found!' }] if content_unsafe?(decoded, filename: tmp_name)
+      if !cama_trusted_for_unfiltered_upload? && content_unsafe?(decoded, filename: tmp_name)
+        return [nil, { error: 'Potentially malicious content found!' }]
+      end
 
       path = uploader_verify_name(File.join(tmp_path, tmp_name))
       return [nil, { error: 'Invalid file path' }] unless path_within?(path, tmp_path)

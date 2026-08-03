@@ -77,19 +77,12 @@ RSpec.describe CamaleonCms::UploaderPathSecurity do
     end
   end
 
-  describe '#cama_source_already_public?' do
-    it 'is true for a file under the public root' do
-      expect(subject_class.cama_source_already_public?(Rails.public_path.join('media', 'a.png').to_s)).to be(true)
-    end
-
-    it 'is false for a private-media file' do
-      private_path = Rails.root.join(CamaleonCmsUploader::PRIVATE_DIRECTORY, 'doc.pdf').to_s
-
-      expect(subject_class.cama_source_already_public?(private_path)).to be(false)
-    end
-
-    it 'is false for a temp-dir file' do
-      expect(subject_class.cama_source_already_public?(File.join(Dir.tmpdir, 'remote.png'))).to be(false)
+  # `cama_source_already_public?` used to exempt sources under the public root from re-scanning.
+  # It is gone: whether an upload is scanned is now an authorization question, answered by
+  # `cama_trusted_for_unfiltered_upload?`, not by where the source file happens to sit.
+  describe 'the withdrawn public-source exemption' do
+    it 'no longer exists as a predicate' do
+      expect(subject_class).not_to respond_to(:cama_source_already_public?)
     end
   end
 end

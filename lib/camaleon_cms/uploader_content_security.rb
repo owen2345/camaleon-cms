@@ -2,6 +2,27 @@
 
 module CamaleonCms
   module UploaderContentSecurity
+    # Whether the current uploader may skip the malicious-content scan. Mirrors
+    # Post#trusted_for_unfiltered_html?: read the request context, fail closed (scan) when
+    # either half is missing -- background jobs, rake tasks and the console have no request
+    # user, and an upload from there must be scanned rather than exempted.
+    #
+    # Deliberately not memoized. The crop flow evaluates this twice, which costs two role-meta
+    # lookups on an operation already doing file I/O; an ivar memo would have to be invalidated
+    # whenever CurrentRequest changes, and the object it would hang on is sometimes a long-lived
+    # plugin helper rather than a per-request controller.
+    def cama_trusted_for_unfiltered_upload?
+      user = CurrentRequest.user
+      site = CurrentRequest.site
+      return false if user.blank? || site.blank?
+
+      CamaleonCms::Ability.new(user, site).can?(:manage, :media_unfiltered_upload)
+    rescue StandardError
+      # Ability#initialize dereferences the site and reads role metas for non-admin users;
+      # malformed meta must fail closed instead of aborting the upload with a 500.
+      false
+    end
+
     def svg_upload?(uploaded_io)
       file_path = if uploaded_io.is_a?(ActionDispatch::Http::UploadedFile)
                     uploaded_io.original_filename
