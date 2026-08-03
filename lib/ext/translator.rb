@@ -34,6 +34,13 @@ class String
   # return hash of translations for this string
   # sample: {es: "hola mundo", en: "Hello World"}
   def translations
+    # A frozen receiver cannot carry the memo: Ruby 3.4's nil.to_s returns a frozen —
+    # and process-wide shared — empty string, and every literal in a file with the
+    # frozen_string_literal magic comment is frozen too. Parse without memoizing for
+    # those rather than raising FrozenError (memoizing on a shared instance would be
+    # wrong even where it is permitted).
+    return split_locales if frozen?
+
     @translations ||= split_locales
   end
 
