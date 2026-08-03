@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- **Fix:** Fallout from the native-STI conversion ([#1173](https://github.com/owen2345/camaleon-cms/pull/1173),
+  which shipped with no changelog entry): rows with custom `taxonomy`/`post_class` values raised
+  `SubclassNotFound` on read and create — they load and save as the base class again; deleting a
+  user orphaned their comments (the anonymous-user reassignment had become dead code, and comment
+  rendering then crashed) and destroyed their widgets — both restored to 2.9.2 behavior; and wrong
+  `inverse_of` declarations made `.owner` raise on taxonomies, post types, and post tags (and on
+  widgets for custom `user_model` installs), and overwrote menu items' parent with the Site on
+  `site.nav_menu_items` loads. [#1224](https://github.com/owen2345/camaleon-cms/pull/1224).
+
+  **Notes for upgraders**
+
+  - Installs that deleted users while running a post-2.9.2 master build should run
+    `rake camaleon_cms:reassign_orphaned_comments` once: comments whose user is gone are
+    reassigned to each site's anonymous user; comments with an existing user are untouched.
+  - Posts of a deleted user with no surviving admin now keep `user_id` NULL (2.9.2 left a
+    dangling id); display already handled both.
+
 - **Fix:** Six high-severity regressions introduced after 2.9.2, found by a full-range audit and
   each pinned by a spec that reproduced it: engine boot failed on production hosts that serve
   static files from nginx/Apache instead of Rails; one installed plugin or theme without a
