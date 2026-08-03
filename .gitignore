@@ -18,3 +18,11 @@ node_modules
 # Local Bundler overrides (e.g. a path/branch override for cama_contact_form while it is
 # developed alongside this repo). Machine-specific: committing it breaks CI, which has no such path.
 /.bundle/
+
+# Security audit reports. These describe unpatched vulnerabilities in detail; publishing one to a
+# public repo hands attackers a roadmap before the fixes ship.
+SECURITY-AUDIT*
+
+# Regression audit reports. Working documents that track unfixed breakage between releases;
+# they go stale as fixes land and are not repo content.
+REGRESSION-AUDIT*
