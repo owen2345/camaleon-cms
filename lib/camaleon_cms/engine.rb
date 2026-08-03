@@ -82,8 +82,14 @@ module CamaleonCms
         end
       end
 
-      # Security headers for SVG media files
-      app.middleware.insert_before ::ActionDispatch::Static, CamaleonCms::MediaSecurityHeaders
+      # Security headers for SVG media files. ActionDispatch::Static is only in the host
+      # stack when public_file_server is enabled; anchoring on it unconditionally aborts
+      # boot on hosts that serve public/ from nginx/Apache.
+      if app.config.public_file_server.enabled
+        app.middleware.insert_before ::ActionDispatch::Static, CamaleonCms::MediaSecurityHeaders
+      else
+        app.middleware.use CamaleonCms::MediaSecurityHeaders
+      end
 
       # Static files
       app.middleware.use ::ActionDispatch::Static, "#{root}/public"

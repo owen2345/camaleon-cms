@@ -36,7 +36,9 @@ module CamaleonCms
     # login a user using username and password
     # return boolean: true => authenticated, false => authentication failed
     def login_user_with_password(username, password)
-      user = current_site.users.find_by(username: username)
+      # Custom class finder: usernames are stored downcased, so the lookup must
+      # lower-case both sides regardless of DB collation.
+      user = current_site.users.find_by_username(username) # rubocop:disable Rails/DynamicFindBy
       r = { user: user, params: params, password: password, captcha_validate: true }
       hooks_run('user_before_login', r)
       user&.authenticate(password)

@@ -5,6 +5,9 @@ module CamaleonCms
     add_flash_types :notice
     add_flash_types :info
 
+    # Controller-context helper surface (ct, cama_t, cama_cache_fetch, ...): plugin hook
+    # functions run on the controller and actions like FrontendController#search call these.
+    include CamaleonCms::CamaleonHelper
     include CamaleonCms::SessionRuntimeConcern
     include CamaleonCms::RequestContextConcern
     include CamaleonCms::HookLifecycleConcern

@@ -10,17 +10,11 @@ RSpec.describe CamaleonCms::SessionHelper, type: :helper do
   end
 
   describe '#login_user_with_password' do
-    it 'authenticates found user' do
-      user = instance_double(CamaleonCms::User)
-      users = instance_double(ActiveRecord::Relation)
-      site = instance_double(CamaleonCms::Site, users: users)
-
-      allow(helper).to receive_messages(current_site: site, params: {})
-      allow(users).to receive(:find_by).with(username: 'admin').and_return(user)
+    it 'authenticates found user regardless of username case' do
+      allow(helper).to receive_messages(current_site: CamaleonCms::Site.first, params: {})
       allow(helper).to receive(:hooks_run)
-      allow(user).to receive(:authenticate).with('secret').and_return(true)
 
-      expect(helper.login_user_with_password('admin', 'secret')).to be(true)
+      expect(helper.login_user_with_password('Admin', 'admin123')).to be_truthy
     end
   end
 

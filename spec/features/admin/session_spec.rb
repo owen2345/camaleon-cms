@@ -27,6 +27,21 @@ describe 'the signin process', :js do
     expect(page).to have_text 'Send email reset success'
   end
 
+  # Usernames and emails are stored downcased, so mixed-case input must keep matching
+  # regardless of the database collation's case sensitivity.
+  it 'signs me in with a mixed-case username' do # rubocop:disable RSpec/NoExpectationExample
+    admin_form_sign_in('Admin')
+  end
+
+  it 'sends the reset email for a mixed-case address' do
+    visit "#{cama_root_relative_path}/admin/forgot"
+    within('#login_user') do
+      fill_in 'user_email', with: 'Admin@Local.com'
+    end
+    click_button 'Submit'
+    expect(page).to have_text 'Send email reset success'
+  end
+
   it 'Enable Register' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/settings/site?tab=config"

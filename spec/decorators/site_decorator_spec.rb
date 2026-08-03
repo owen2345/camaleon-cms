@@ -17,6 +17,14 @@ RSpec.describe CamaleonCms::SiteDecorator do
     end
   end
 
+  describe '#the_user' do
+    it 'finds users case-insensitively by username' do
+      shared_site = CamaleonCms::Site.first.decorate
+
+      expect(shared_site.the_user('ADMIN')).to be_present
+    end
+  end
+
   describe '#draw_languages' do
     it 'escapes labels returned by the block' do
       output = decorator.draw_languages('langs', true) { |_lang, _current| '<script>alert(1)</script>' }

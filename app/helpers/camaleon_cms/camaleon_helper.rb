@@ -40,7 +40,8 @@ module CamaleonCms
     # generate loop categories html sitemap links
     # this is a helper for sitemap generator to print categories, sub categories and post contents in html list format
     def cama_sitemap_cats_generator(cats, skip_config = {})
-      skip_config = { skip_cat_ids: [], skip_post_ids: [] } unless skip_config.is_a?(Hash)
+      skip_config = {} unless skip_config.is_a?(Hash)
+      skip_config = { skip_cat_ids: [], skip_post_ids: [] }.merge!(skip_config)
       res = []
       cats.decorate.each do |cat|
         next if skip_config[:skip_cat_ids].include?(cat.id)

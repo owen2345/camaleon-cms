@@ -20,7 +20,9 @@ module CamaleonCms
 
       def login_post
         data_user = user_permit_data
-        @user = current_site.users.find_by(username: data_user[:username])
+        # Custom class finder (not the dynamic finder): usernames are stored downcased,
+        # so the lookup must lower-case both sides regardless of DB collation.
+        @user = current_site.users.find_by_username(data_user[:username]) # rubocop:disable Rails/DynamicFindBy
         captcha_validate = captcha_verify_if_under_attack('login')
         r = { user: @user, params: params, password: data_user[:password], captcha_validate: captcha_validate,
               stop_process: false }
@@ -96,7 +98,9 @@ module CamaleonCms
         return if params[:user].blank?
 
         data_user = user_permit_data
-        @user = current_site.users.find_by(email: data_user[:email])
+        # Custom class finder: emails are stored downcased, so the lookup must
+        # lower-case both sides regardless of DB collation.
+        @user = current_site.users.find_by_email(data_user[:email]) # rubocop:disable Rails/DynamicFindBy
         if @user.present?
           send_password_reset_email(@user)
           flash[:notice] = t('camaleon_cms.admin.login.message.send_mail_succes')
