@@ -13,7 +13,9 @@ module CamaleonCms
                           inverse_of: :site
     has_many :nav_menus, class_name: 'CamaleonCms::NavMenu', foreign_key: :parent_id, dependent: :destroy,
                          inverse_of: :site
-    has_many :nav_menu_items, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :term_group, inverse_of: :parent,
+    # inverse_of: false — this joins by term_group (the site id), while NavMenuItem#parent
+    # reads parent_id (the menu id); an inverse here overwrites items' real menu parent.
+    has_many :nav_menu_items, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :term_group, inverse_of: false,
                               dependent: :destroy
     has_many :widgets, class_name: 'CamaleonCms::Widget::Main', foreign_key: :parent_id, dependent: :destroy,
                        inverse_of: :site

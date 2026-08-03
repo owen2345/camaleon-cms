@@ -26,9 +26,21 @@ module CamaleonCms
     # "Post" -> "CamaleonCms::Post"
     def self.find_sti_class(type_name)
       full_class_name = type_name.start_with?('CamaleonCms::') ? type_name : "CamaleonCms::#{type_name}"
-      full_class_name.constantize
-    rescue NameError
-      super
+      klass = begin
+        full_class_name.constantize
+      rescue NameError
+        nil
+      end
+      return klass if klass && klass <= base_class
+
+      # `super` resolves fully-qualified external classes (plugin STI outside the
+      # CamaleonCms namespace) and enforces ancestry; values it cannot place load as
+      # the base class, as every row did before native STI.
+      begin
+        super
+      rescue ActiveRecord::SubclassNotFound
+        base_class
+      end
     end
 
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}posts"

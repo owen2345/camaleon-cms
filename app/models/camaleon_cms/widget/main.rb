@@ -13,7 +13,9 @@ module CamaleonCms
       # excerpt: string for message
       # renderer: string (path to the template for render this widget)
 
-      belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, inverse_of: :widgets,
+      # inverse_of: false — custom `user_model` classes get only UserMethods, which
+      # defines no `widgets` collection the inverse could point at.
+      belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, inverse_of: false,
                          optional: true
       belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, inverse_of: :widgets, optional: true
 

@@ -40,15 +40,20 @@ module CamaleonCms
 
       # Standard conversion for "site" -> "CamaleonCms::Site"
       # or "nav_menu_item" -> "CamaleonCms::NavMenuItem"
-      full_class_name = "CamaleonCms::#{type_name.camelize}"
-      full_class_name.constantize
-    rescue NameError
-      # Universal safety net: runtime scan across loaded taxonomy memory models
-      found_subclass = CamaleonCms::TermTaxonomy.descendants.find do |klass|
-        klass.sti_name == type_name.to_s
+      klass = begin
+        "CamaleonCms::#{type_name.camelize}".constantize
+      rescue NameError
+        nil
       end
+      # The ancestry guard keeps a value like "meta" from instantiating an unrelated
+      # CamaleonCms class against the term_taxonomy table.
+      return klass if klass && klass <= base_class
 
-      found_subclass || super
+      # Runtime scan across loaded taxonomy models, then the root: rows whose taxonomy
+      # value maps to no descendant (plugin-defined or legacy data) load as the base
+      # class, as every row did before native STI.
+      CamaleonCms::TermTaxonomy.descendants.find { |k| k.sti_name == type_name.to_s } ||
+        base_class
     end
 
     # callbacks
@@ -65,7 +70,7 @@ module CamaleonCms
     # has_many :posts, foreign_key: :objectid, through: :term_relationships, :source => :objects
     belongs_to :parent, class_name: 'CamaleonCms::TermTaxonomy', optional: true
     belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, optional: true,
-                       inverse_of: :term_taxonomies
+                       inverse_of: false
 
     # return all children taxonomy
     # sample: sub categories of a category

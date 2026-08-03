@@ -34,7 +34,9 @@ module CamaleonCms
       # relations
       has_many :all_posts, class_name: 'CamaleonCms::Post', foreign_key: :user_id, inverse_of: :owner,
                            dependent: :nullify
-      has_many :all_comments, class_name: 'CamaleonCms::PostComment', dependent: :nullify
+      # No `dependent:` — the rows must still carry this user_id when the
+      # `after_destroy :reassign_comments` callback moves them to the anonymous user.
+      has_many :all_comments, class_name: 'CamaleonCms::PostComment' # rubocop:disable Rails/HasManyOrHasOneDependent
 
       belongs_to :site, class_name: 'CamaleonCms::Site', optional: true
 

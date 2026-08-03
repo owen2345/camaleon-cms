@@ -17,7 +17,7 @@ module CamaleonCms
     has_many :categories, class_name: 'CamaleonCms::Category', through: :term_relationships, source: :term_taxonomy
     has_many :post_tags, class_name: 'CamaleonCms::PostTag', through: :term_relationships, source: :term_taxonomy
     has_many :comments, class_name: 'CamaleonCms::PostComment', dependent: :destroy
-    has_many :drafts, -> { where(status: 'draft_child') }, class_name: 'CamaleonCms::Post', inverse_of: :owner,
+    has_many :drafts, -> { where(status: 'draft_child') }, class_name: 'CamaleonCms::Post', inverse_of: :parent,
                                                            foreign_key: :post_parent, dependent: :destroy
     has_many :children, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, dependent: :destroy,
                         primary_key: :id, inverse_of: :parent
