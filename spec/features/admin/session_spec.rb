@@ -29,8 +29,13 @@ describe 'the signin process', :js do
 
   # Usernames and emails are stored downcased, so mixed-case input must keep matching
   # regardless of the database collation's case sensitivity.
-  it 'signs me in with a mixed-case username' do # rubocop:disable RSpec/NoExpectationExample
+  # The expectation admin_form_sign_in makes internally is invisible to the reader and to
+  # RSpec/NoExpectationExample, which is why this needed a cop disable. Naming the outcome here
+  # says what signing in is supposed to produce, and drops the disable.
+  it 'signs me in with a mixed-case username' do
     admin_form_sign_in('Admin')
+
+    expect(page).to have_current_path(%r{/admin/dashboard}, ignore_query: true)
   end
 
   it 'sends the reset email for a mixed-case address' do
