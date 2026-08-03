@@ -2,27 +2,22 @@
 
 ## Why
 
-The upload content scan is currently applied to everybody or to nobody, decided by where the
-source file happens to sit on disk. #1226 exempted any source already under `Rails.public_path`
-from re-scanning, reasoning that those bytes are already served so re-scanning them removes no
-exposure. That reasoning holds for the *bytes* but not for the *operation*: the exemption is keyed
-on the source path, while the scan ruleset and the `Content-Type` the web server will serve are
-both keyed on the **output filename**, which the caller supplies as `params[:name]`.
+Whether an upload is scanned was decided by a filesystem predicate. #1226 exempted any source
+already under `Rails.public_path` from re-scanning, on the reasoning that those bytes are already
+served. That holds for the *bytes* but not for the *operation*: the exemption keyed on the source
+path, while the scan ruleset and the `Content-Type` the web server will serve both key on the
+**output filename**, which the caller supplies as `params[:name]`.
 
-`content_unsafe?` branches on extension — `.svg` goes to `SvgContentChecker`, everything else to
-`ContentSecurity::SUSPICIOUS_PATTERNS` — and those rulesets do not agree. `SvgContentChecker` does
-not ban `form`, `meta`, `base`, `style` or `link`; `BLOCKED_ELEMENTS` does. So a user holding only
-`manage :media` can upload an SVG carrying a `<form>`, then re-crop it with `name=phish.html`,
-whereupon the exemption skips the scan and the identical bytes land in `public/media/` to be served
-as `text/html` from the site origin. There is no server-side extension allowlist to stop it
-(`formats` defaults to `'*'` and arrives as `params[:formats]`), and `MediaSecurityHeaders` covers
-only `.svg` — and does not run at all where the web server serves `public/` directly.
+`content_unsafe?` sends `.svg` to `SvgContentChecker` and everything else to
+`ContentSecurity::BLOCKED_ELEMENTS`, and those rulesets disagreed. A user holding only
+`manage :media` could upload an SVG carrying a `<form>`, re-crop it with `name=phish.html`, and
+have the identical bytes served as `text/html` from the site origin, unscanned. Nothing else
+stopped it: `formats` defaults to `'*'` and arrives from params, and `MediaSecurityHeaders` covers
+only `.svg` — and does not run where the web server serves `public/` directly.
 
-The underlying problem is that "may this content skip the scan?" is an authorization question, and
-it was being answered with a filesystem predicate. Camaleon already answers the equivalent question
-for post content (`post_content_unfiltered_html`) and for contact forms
-(`contact_form_unfiltered_html`) with a role permission that only administrators hold by default.
-Uploads should work the same way.
+"May this content skip the scan?" is an authorization question. Camaleon already answers the
+equivalent question for post content and for contact forms with a role permission that only
+administrators hold by default. Uploads should work the same way.
 
 ## What Changes
 

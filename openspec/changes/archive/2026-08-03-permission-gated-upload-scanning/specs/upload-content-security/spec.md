@@ -20,9 +20,9 @@ Scanning rejects; it never repairs. Content that trips a rule SHALL be refused w
 - **WHEN** a media-permission user posts a `crop_url` upload named `x.html` whose `data:` payload contains `<script>`
 - **THEN** no file is ever created at `public/tmp/{site_id}/x.html`, so a concurrent request for `/tmp/{site_id}/x.html` cannot retrieve the payload at any point
 
-#### Scenario: An already-published file is re-scanned when re-cropped
+#### Scenario: An already-published file can be re-cropped
 - **WHEN** a user without `media_unfiltered_upload` uses a file already stored under `Rails.public_path` as the source of a crop
-- **THEN** the content scan runs against the source, using the output filename to select the ruleset
+- **THEN** the crop proceeds, with the content scan running against the source and the output filename selecting the ruleset — the exemption that previously skipped it no longer applies
 
 #### Scenario: Re-crop under a different extension cannot bypass the ruleset
 - **WHEN** a user without `media_unfiltered_upload` uploads an SVG that the SVG ruleset accepts, then re-crops it supplying an output name ending in `.html`
