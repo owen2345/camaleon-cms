@@ -45,6 +45,26 @@ RSpec.describe 'User deletion content reassignment', type: :model do
     expect(post_record.reload.user_id).to eq(admin.id)
   end
 
+  # The reassignment callback only started running once dependent: :nullify was removed from
+  # all_comments, so its unguarded comment.post.post_type.site chain had never been exercised.
+  it 'deletes the user even when a comment has no resolvable post' do
+    comment = post_record.comments.create!(user_id: commenter.id, content: 'dangling', approved: 'approved')
+    comment.update_column(:post_id, nil) # rubocop:disable Rails/SkipsModelValidations
+
+    expect { commenter.destroy! }.not_to raise_error
+    expect(CamaleonCms::User.exists?(commenter.id)).to be(false)
+  end
+
+  it 'still reassigns the resolvable comments of a user who also has a dangling one' do
+    dangling = post_record.comments.create!(user_id: commenter.id, content: 'dangling', approved: 'approved')
+    dangling.update_column(:post_id, nil) # rubocop:disable Rails/SkipsModelValidations
+    resolvable = post_record.comments.create!(user_id: commenter.id, content: 'fine', approved: 'approved')
+
+    commenter.destroy!
+
+    expect(resolvable.reload.user_id).to eq(site.get_anonymous_user.id)
+  end
+
   describe 'orphan tolerance' do
     it 'renders a blank author instead of raising when the user is missing' do
       comment = post_record.comments.create!(user_id: commenter.id, content: 'orphan me', approved: 'approved')
