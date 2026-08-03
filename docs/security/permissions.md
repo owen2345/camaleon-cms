@@ -17,6 +17,9 @@ Users with the `admin` role satisfy every check through `can :manage, :all` in t
   persist custom field definitions that may contain advanced behavior.
 - `contact_form_unfiltered_html` — Permits storing raw HTML anywhere in the bundled contact-form plugin. Without it, a save carrying such content is
   refused rather than rewritten. See [Security: Unfiltered HTML](#security-unfiltered-html) below.
+- `media_unfiltered_upload` — Permits uploading files without the malicious-content scan. Without it, every upload is scanned whatever its source, and
+  a file carrying scripts, event handlers, blocked elements or blocked URI schemes is refused rather than cleaned up. See
+  [Security: Unfiltered HTML](#security-unfiltered-html) below.
 
 Where enforcement happens
 - Write-time enforcement: `CamaleonCms::Admin::Settings::CustomFieldsController` uses CanCan (`authorize! :manage, :custom_fields`) to require the
@@ -117,26 +120,26 @@ Security notes
 
 ## Security: Unfiltered HTML
 
-Camaleon restricts the HTML a role may store, and two permissions lift that restriction. **They are different permissions with similar names**, they
-live in different families, and holding one does not grant the other. Both are introduced in 2.9.3.
+Camaleon restricts the HTML a role may store, and three permissions lift that restriction. **They are different permissions with similar names**, they
+do not all live in the same family, and holding one does not grant the others. All three are introduced in 2.9.3.
 
 They also work differently, which matters when you are deciding who to grant them to. Post content is **sanitized**: an untrusted author's save
-succeeds and the disallowed markup is quietly removed. Contact forms are **refused**: an untrusted author's save does not happen at all, and they are
-told which setting to fix. Nothing in a contact form is ever rewritten.
+succeeds and the disallowed markup is quietly removed. Contact forms and uploads are **refused**: an untrusted author's save or upload does not happen
+at all. Nothing in a contact form or an uploaded file is ever rewritten.
 
-| | `post_content_unfiltered_html` | `contact_form_unfiltered_html` |
-|---|---|---|
-| Family | post-type (`ROLES[:post_type]`) | manager (`ROLES[:manager]`) |
-| Role meta | `_post_type_<site_id>` | `_manager_<site_id>` |
-| Scope | per post type | all contact forms on the site |
-| Checked as | `can?(:post_content_unfiltered_html, post_type)` | `can?(:manage, :contact_form_unfiltered_html)` |
-| Without it | `Post#content` is sanitized on save | the save is refused; nothing is stored |
-| Covers | `Post#content` | every contact-form value that reaches the page |
-| Introduced in | [#1206](https://github.com/owen2345/camaleon-cms/pull/1206) | [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) |
+| | `post_content_unfiltered_html` | `contact_form_unfiltered_html` | `media_unfiltered_upload` |
+|---|---|---|---|
+| Family | post-type (`ROLES[:post_type]`) | manager (`ROLES[:manager]`) | manager (`ROLES[:manager]`) |
+| Role meta | `_post_type_<site_id>` | `_manager_<site_id>` | `_manager_<site_id>` |
+| Scope | per post type | all contact forms on the site | all uploads on the site |
+| Checked as | `can?(:post_content_unfiltered_html, post_type)` | `can?(:manage, :contact_form_unfiltered_html)` | `can?(:manage, :media_unfiltered_upload)` |
+| Without it | `Post#content` is sanitized on save | the save is refused; nothing is stored | the upload is refused; nothing is stored |
+| Covers | `Post#content` | every contact-form value that reaches the page | every upload, whatever its source |
+| Introduced in | [#1206](https://github.com/owen2345/camaleon-cms/pull/1206) | [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) | [#1228](https://github.com/owen2345/camaleon-cms/pull/1228) |
 
-⚠️ **WARNING**: both permissions let a role store markup that is later rendered without escaping — including `<script>`. Because the admin panel is
-served from the same origin as the public site, script stored by a holder of either permission executes with the session of any administrator who
-views the affected page. Grant them only to users you would be willing to make administrators.
+⚠️ **WARNING**: all three permissions let a role publish markup that is later served without escaping — including `<script>`. Because the admin panel
+and the media library are served from the same origin as the public site, script stored by a holder of any of them executes with the session of any
+administrator who views the affected page or opens the affected file. Grant them only to users you would be willing to make administrators.
 
 ### `post_content_unfiltered_html` — raw HTML in post content
 
@@ -221,6 +224,29 @@ anyway, so offering the toggle would only invite an edit that silently does noth
 The default `editor` and `contributor` roles never receive manager meta at all, and `client` receives an empty set, so no non-admin role holds it after an
 upgrade.
 
+### `media_unfiltered_upload` — unscanned file uploads
+
+Uploads are served from the site's own origin, and there is no server-enforced extension allowlist: `settings[:formats]` defaults to `'*'` and arrives
+as `params[:formats]`, so the client picks its own restriction. What stands between an authenticated uploader and an active file in the site origin is
+the content scan, and this permission is what decides whether it runs.
+
+Without the permission every upload is scanned, whatever its source — a browser file, a `data:` payload, a remote download, a private-media file, or a
+file already published under `public/`. The scan reads the bytes and refuses them outright if they carry a `<script>`, an event-handler attribute, one
+of the blocked elements (`iframe`, `object`, `embed`, `base`, `meta`, `style`, `form`, `link`, `frame`, …), or a `javascript:`/`vbscript:`/`data:` URI.
+An SVG is additionally parsed as XML and refused if it carries `script`, `foreignObject`, `handler`, `form`, `meta`, `base`, `style` or `link`, or any
+`on*` attribute. Nothing is stripped or rewritten; the upload simply fails with `Potentially malicious content found!`.
+
+With the permission, none of that runs.
+
+**The ruleset is chosen by the output filename**, because that is the extension the web server will serve the bytes under. Uploading the same bytes as
+`x.svg` and as `x.html` is two different questions, and both are asked of an uploader without the permission. Before this permission existed, a source
+already under `public/` was exempt from re-scanning on the reasoning that its bytes were already served — which let an SVG that the SVG ruleset
+accepted be re-cropped under an `.html` name and served as live markup, unscanned. Authorization now decides, so where the file sits is irrelevant.
+
+**Defaults:** administrators hold it through `can :manage, :all`, exactly as for `contact_form_unfiltered_html`, and the same reasoning about seeding,
+locked checkboxes and the absence of a backfill applies unchanged. `editor`, `contributor` and `client` never receive it. **`manage :media` does not
+imply it** — reaching the upload and crop endpoints is a different question from skipping the scan, which is the whole point of the split.
+
 ### Granting to a custom role
 
 Via the Admin UI:
@@ -228,8 +254,9 @@ Via the Admin UI:
 1. Navigate to Settings → User Roles
 2. Edit the desired role
 3. For contact forms, check **Allow unfiltered HTML in contact forms** under Manager Permissions
-4. For post content, check **Allow unfiltered HTML in post content** under the relevant post type
-5. Save the role
+4. For uploads, check **Allow unscanned media uploads** under Manager Permissions
+5. For post content, check **Allow unfiltered HTML in post content** under the relevant post type
+6. Save the role
 
 Via the Rails console:
 
@@ -237,9 +264,10 @@ Via the Rails console:
 site = CamaleonCms::Site.first
 role = site.user_roles.find_by(slug: 'editor')
 
-# Manager family — contact-form markup settings, all forms on the site
+# Manager family — contact-form markup settings (all forms on the site) and unscanned uploads
 manager_meta = role.get_meta("_manager_#{site.id}", {})
-role.set_meta("_manager_#{site.id}", manager_meta.merge(contact_form_unfiltered_html: 1))
+role.set_meta("_manager_#{site.id}", manager_meta.merge(contact_form_unfiltered_html: 1,
+                                                        media_unfiltered_upload: 1))
 
 # Post-type family — per post type, for Post#content
 post_type = site.post_types.find_by(slug: 'post')
@@ -253,10 +281,10 @@ As with `select_eval`, the Admin role's checkboxes may appear unchecked in the U
 
 ### Background jobs and console usage
 
-Both checks read the acting user and site from `CurrentRequest` and **fail closed**: when either is missing, the caller is treated as untrusted
-regardless of any role's permissions — post content is sanitized, and a contact-form save is refused. Saves from background jobs, rake tasks, or the
-console therefore get the untrusted treatment by default. To save raw HTML from those contexts, set the request context first, as shown in the
-`select_eval` section above:
+All three checks read the acting user and site from `CurrentRequest` and **fail closed**: when either is missing, the caller is treated as untrusted
+regardless of any role's permissions — post content is sanitized, a contact-form save is refused, and an upload is scanned. Saves and uploads from
+background jobs, rake tasks, or the console therefore get the untrusted treatment by default. To save raw HTML or upload an unscanned file from those
+contexts, set the request context first, as shown in the `select_eval` section above:
 
 ```ruby
 CurrentRequest.user = CamaleonCms::User.find_by(username: 'admin')
@@ -267,21 +295,22 @@ CurrentRequest.reset
 
 ### Auditing
 
-To find roles holding either permission:
+To find roles holding any of the three permissions:
 
 ```ruby
 CamaleonCms::Site.all.each do |site|
   site.user_roles.each do |role|
     manager = role.get_meta("_manager_#{site.id}", {})
     post_type = role.get_meta("_post_type_#{site.id}", {})
-    puts "#{site.name}/#{role.slug}: manager=#{manager[:contact_form_unfiltered_html].inspect} " \
+    puts "#{site.name}/#{role.slug}: contact_form=#{manager[:contact_form_unfiltered_html].inspect} " \
+         "upload=#{manager[:media_unfiltered_upload].inspect} " \
          "post_type=#{post_type[:post_content_unfiltered_html].inspect}"
   end
 end
 ```
 
-Neither permission applies retroactively. Revoking a role's access stops future raw saves but leaves previously stored markup untouched — audit
-existing post content and contact-form settings after revoking.
+No permission applies retroactively. Revoking a role's access stops future raw saves and unscanned uploads but leaves previously stored markup and
+already-uploaded files untouched — audit existing post content, contact-form settings and the media library after revoking.
 
 This matters more for contact forms than for post content, because the gate runs on save rather than on render: a form saved before 2.9.3, or by a
 holder of the permission, keeps rendering whatever it holds until someone saves it again. Re-saving a form as an untrusted author is a way to find out
