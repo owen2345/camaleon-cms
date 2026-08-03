@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- **Fix:** Save-time post-content sanitization ([#1206](https://github.com/owen2345/camaleon-cms/pull/1206))
+  destroyed legitimate markup for untrusted authors — the default allowlist has no table or figure
+  elements and drops `id`/`style`/`target`/`rel` — and sanitized every programmatic save with no
+  opt-out. Untrusted `Post#content` now keeps structural, non-executable markup (tables, figures,
+  `u`/`s`/`hr`, and `id`/`style`/`target`/`rel`/`colspan`/`rowspan`) while still stripping scripts,
+  iframes, event handlers, and `javascript:`/style-expression payloads. Also restores activation of
+  the bundled `camaleon_first` theme, which 500'd on a `helper.capture` call in controller context.
+  [#1225](https://github.com/owen2345/camaleon-cms/pull/1225).
+
+  **Notes for upgraders**
+
+  - **Trusted server-side code can bypass sanitization per record** with
+    `post.unfiltered_content!` before save (imports, seeds, plugin pipelines). It has no `=`
+    writer, so it is not mass-assignable and request parameters cannot set it.
+  - Role gating is unchanged: admins and roles holding `post_content_unfiltered_html` still store
+    raw HTML; the Editor default is still excluded. Content stripped before this release is not
+    restored — re-add it and it now persists.
+
 - **Fix:** Fallout from the native-STI conversion ([#1173](https://github.com/owen2345/camaleon-cms/pull/1173),
   which shipped with no changelog entry): rows with custom `taxonomy`/`post_class` values raised
   `SubclassNotFound` on read and create — they load and save as the base class again; deleting a
