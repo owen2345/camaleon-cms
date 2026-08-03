@@ -124,9 +124,9 @@ module CamaleonCms
       layout_ = lookup_context.template_exists?('layouts/search') ? 'search' : nil
       r = { layout: layout_, render: 'search', posts: nil }
       hooks_run('on_render_search', r)
-      q_params = params[:q]
-      params[:q] = (q_params || '').downcase
-      @posts = r[:posts].presence ||
+      q_params = params[:q].to_s.downcase
+      params[:q] = q_params
+      @posts = r[:posts] ||
                items.where('LOWER(title) LIKE ? OR LOWER(content_filtered) LIKE ?', "%#{q_params}%", "%#{q_params}%")
       @posts_size = @posts.size
       @posts = @posts.paginate(page: params[:page], per_page: current_site.front_per_page)
