@@ -49,6 +49,25 @@ RSpec.describe 'STI discriminator compatibility', type: :model do
 
       expect(CamaleonCms::TermTaxonomy.find(id)).to be_instance_of(CamaleonCms::TermTaxonomy)
     end
+
+    # PostDefault.find_sti_class keeps a `super` fallback for exactly this: a plugin STI class
+    # outside the CamaleonCms namespace. The descendants scan only sees classes already loaded,
+    # so without the fallback an unloaded one degraded to the base class instead of being
+    # constantized by name. This subclass is loaded but its sti_name does not match the stored
+    # value, so the scan misses it the same way and only `super` can resolve it.
+    it 'constantizes an external subclass the descendants scan cannot match' do
+      stub_const('ExternalPluginTaxonomy', Class.new(CamaleonCms::TermTaxonomy) do
+        def self.sti_name
+          'external_plugin_taxonomy_stored_value'
+        end
+      end)
+
+      expect(CamaleonCms::TermTaxonomy.find_sti_class('ExternalPluginTaxonomy')).to eq(ExternalPluginTaxonomy)
+    end
+
+    it 'still falls back to the base class for a value no strategy can place' do
+      expect(CamaleonCms::TermTaxonomy.find_sti_class('NoSuchTaxonomyAnywhere')).to eq(CamaleonCms::TermTaxonomy)
+    end
   end
 
   describe 'posts discriminator' do
