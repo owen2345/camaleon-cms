@@ -39,10 +39,16 @@ module CamaleonCms
 
     BLOCKED_SCHEMES = %w[javascript vbscript data].freeze
 
-    # Allow whitespace between the characters of a scheme name: browsers strip it,
-    # so "jav<TAB>ascript:" and "java<LF>script:" both execute.
+    # Tolerate exactly the characters the URL parser strips (TAB, LF, CR) between the
+    # characters of a scheme name, so "jav<TAB>ascript:" and "java<LF>script:" — which
+    # both execute in a browser — are still caught. Deliberately NOT all of \s: a space
+    # is not stripped, so "Sample data : 42" is prose, never a working URI, and matching
+    # it reported ordinary text files as malicious.
+    SCHEME_GAP = '[\t\n\r]*'
     BLOCKED_SCHEME_PATTERN = Regexp.new(
-      "(?:#{BLOCKED_SCHEMES.map { |s| s.chars.map { |c| Regexp.escape(c) }.join('\s*') }.join('|')})\\s*:",
+      "(?:#{BLOCKED_SCHEMES.map do |s|
+        s.chars.map { |c| Regexp.escape(c) }.join(SCHEME_GAP)
+      end.join('|')})#{SCHEME_GAP}:",
       Regexp::IGNORECASE
     )
 

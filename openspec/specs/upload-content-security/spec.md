@@ -8,6 +8,8 @@ Define the security requirements for content scanning of uploaded files. Uploade
 
 The system SHALL scan upload content for malicious patterns before writing it into the upload staging directory, so that rejected content is never present — even transiently — at a path served by the web server.
 
+Content whose source is an existing file under `Rails.public_path` is exempt from this scan: the bytes are already published at a URL the web server hands out, so re-scanning them when they are used as an upload source (a re-crop, or a same-site URL) removes no exposure that the original upload did not already create. The exemption is keyed on the canonicalized source path being inside the public root — sources outside it, including remote downloads, `data:` payloads, and private-media files, SHALL be scanned as before.
+
 #### Scenario: data: payload is scanned before staging
 - **WHEN** a `crop_url` upload supplies a `data:` URI whose decoded payload contains a `<script>` tag
 - **THEN** the payload is rejected without any file being created under `public/tmp/{site_id}/`
@@ -19,6 +21,14 @@ The system SHALL scan upload content for malicious patterns before writing it in
 #### Scenario: Hostile payload is never retrievable from the staging path
 - **WHEN** a media-permission user posts a `crop_url` upload named `x.html` whose `data:` payload contains `<script>`
 - **THEN** no file is ever created at `public/tmp/{site_id}/x.html`, so a concurrent request for `/tmp/{site_id}/x.html` cannot retrieve the payload at any point
+
+#### Scenario: An already-published file can be re-cropped
+- **WHEN** a file that is already stored under `Rails.public_path` is used as the source of a crop
+- **THEN** the crop proceeds without the source being re-scanned
+
+#### Scenario: A private-media source is still scanned
+- **WHEN** a file outside the public root (for example under the private-media directory) is used as an upload source
+- **THEN** the content scan runs as before
 
 ### Requirement: Content scanning is available for in-memory content
 
@@ -38,7 +48,7 @@ The system SHALL expose a content-scanning entry point that accepts content and 
 
 ### Requirement: Content is normalized before pattern matching
 
-The system SHALL normalize file content before matching it against the malicious-content patterns, so that encoded variants of a blocked pattern are detected. Normalization SHALL decode HTML entities repeatedly up to a bounded number of passes, remove NUL and control characters, and remove whitespace injected inside a URI scheme.
+The system SHALL normalize file content before matching it against the malicious-content patterns, so that encoded variants of a blocked pattern are detected. Normalization SHALL decode HTML entities repeatedly up to a bounded number of passes, remove NUL and control characters, and tolerate — inside a URI scheme name — exactly the characters browsers strip when parsing a URL: TAB, LF and CR. Other whitespace, notably the space character, SHALL NOT be tolerated inside a scheme, so ordinary prose in which a blocked scheme word is followed by a space and a colon is not reported as malicious.
 
 #### Scenario: Hex-entity encoded javascript scheme is rejected
 - **WHEN** a user uploads a non-SVG file containing `<a href="jav&#x61;script:alert(1)">`
@@ -75,6 +85,10 @@ The system SHALL normalize file content before matching it against the malicious
 #### Scenario: Plain non-markup content is unaffected
 - **WHEN** a user uploads a plain text, CSV, or JSON file containing no blocked pattern
 - **THEN** the upload is accepted
+
+#### Scenario: Prose containing a scheme word before a spaced colon is accepted
+- **WHEN** a user uploads a text file containing `Sample data : 42`
+- **THEN** the upload is accepted, because a space is not a character browsers strip from a URI scheme
 
 ### Requirement: Reject uploaded files with event handler attributes
 

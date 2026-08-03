@@ -2,8 +2,12 @@
 
 module CamaleonCms
   module SvgContentChecker
+    # `animate` and `set` are intentionally absent: SMIL animation elements carry no
+    # script by themselves, and their scripting vector is the onbegin/onend/onrepeat
+    # attribute, which the element-agnostic on* check below rejects wherever it appears.
+    # foreignObject and handler stay banned — they embed foreign markup or handlers.
     BANNED_TAGS = %w[
-      script foreignObject iframe object embed animate set handler
+      script foreignObject iframe object embed handler
     ].freeze
 
     module_function
