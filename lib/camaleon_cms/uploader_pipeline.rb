@@ -44,10 +44,12 @@ module CamaleonCms
         settings[:remove_source] = true
         uploaded_io = tmp[:file_path]
       end
+      source_already_public = false
       if uploaded_io.is_a?(String)
-        expanded = cama_canonical_upload_path(uploaded_io)
+        expanded = cama_canonical_upload_path(uploaded_io, extra_roots: cama_extra_upload_roots(settings))
         return { error: 'Invalid file path' } unless expanded
 
+        source_already_public = cama_source_already_public?(expanded)
         uploaded_io = expanded
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
@@ -55,7 +57,7 @@ module CamaleonCms
         uploaded_io = File.open(cama_resize_upload(uploaded_io.path, settings[:dimension]))
       end
 
-      if file_content_unsafe?(uploaded_io)
+      if !source_already_public && file_content_unsafe?(uploaded_io)
         return cama_upload_failure({ error: 'Potentially malicious content found!' }, uploaded_io, settings)
       end
 
@@ -172,10 +174,12 @@ module CamaleonCms
                     end
         args[:name] = args[:name] || _tmp_name
       end
+      source_already_public = false
       if uploaded_io.is_a?(String)
-        expanded = cama_canonical_upload_path(uploaded_io)
+        expanded = cama_canonical_upload_path(uploaded_io, extra_roots: cama_extra_upload_roots(args))
         return { error: 'Invalid file path' } unless expanded
 
+        source_already_public = cama_source_already_public?(expanded)
         uploaded_io = expanded
       end
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
@@ -194,10 +198,14 @@ module CamaleonCms
       name = "#{File.basename(name, File.extname(name)).parameterize}#{File.extname(name)}"
       path ||= uploader_verify_name(File.join(tmp_path, name))
       unless saved
-        # Same rule as the data: branch above -- read, scan, and only then write, so
-        # a remote or same-site source cannot land unscanned in public/tmp.
+        # Same rule as the data: branch above -- read, scan, and only then write, so a
+        # remote source cannot land unscanned in public/tmp. A source already published
+        # under the public root (a re-crop, or a same-site URL) is exempt: those bytes
+        # are already served, so re-scanning them removes no exposure.
         content = uploaded_io.read
-        return { error: 'Potentially malicious content found!' } if content_unsafe?(content, filename: name)
+        if !source_already_public && content_unsafe?(content, filename: name)
+          return { error: 'Potentially malicious content found!' }
+        end
 
         File.open(path, 'wb') { |f| f.write(content) }
         staged_path = path

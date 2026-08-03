@@ -11,14 +11,58 @@ module CamaleonCms
     # roots (the Rails public dir or the system tmp dir). Returns the expanded path
     # when valid, or nil when the path escapes the roots or is otherwise hostile
     # (null bytes, nil).
-    def cama_canonical_upload_path(path)
+    #
+    # `extra_roots` widens the set for this call only, so trusted application code
+    # (plugins, jobs, imports) can stage files elsewhere. It MUST come from
+    # application code or operator configuration — never from a request parameter,
+    # since Admin::MediaController#crop feeds params[:cp_img_path] into this check and
+    # the default roots are what stop it reading arbitrary files.
+    def cama_canonical_upload_path(path, extra_roots: [])
       expanded = File.expand_path(path)
-      roots = [Rails.public_path.to_s, Dir.tmpdir]
+      roots = cama_allowed_upload_roots(extra_roots)
       return expanded if roots.any? { |r| expanded == r || expanded.start_with?(r + File::SEPARATOR) }
 
       nil
     rescue ArgumentError, TypeError
       nil
+    end
+
+    # The default roots plus any caller-supplied ones, and the private-media directory
+    # while the uploader is in private mode (so private files can be cropped without
+    # widening the roots for anything else).
+    def cama_allowed_upload_roots(extra_roots = [])
+      roots = [Rails.public_path.to_s, Dir.tmpdir]
+      roots << cama_private_upload_root if cama_private_upload_mode?
+      roots.concat(Array.wrap(extra_roots).compact_blank.map { |r| File.expand_path(r.to_s) })
+      roots.compact_blank
+    end
+
+    def cama_private_upload_root
+      Rails.root.join(CamaleonCmsUploader::PRIVATE_DIRECTORY).to_s
+    end
+
+    def cama_private_upload_mode?
+      respond_to?(:cama_uploader, true) && cama_uploader.try(:is_private_uploader?).present?
+    rescue StandardError
+      false
+    end
+
+    # Reads a caller-supplied root list off an options hash, accepting either key
+    # form. Only application code populates this; see cama_canonical_upload_path.
+    def cama_extra_upload_roots(options)
+      opts = options.try(:to_h) || {}
+      Array.wrap(opts[:allowed_roots] || opts['allowed_roots'])
+    end
+
+    # True when a source path is already published under the public root. Such bytes
+    # are retrievable at a URL the web server hands out, so re-scanning them when they
+    # are used as an upload source (a re-crop, or a same-site URL) removes no exposure
+    # the original upload did not already create. Scoped to the public root on purpose:
+    # private-media and caller-supplied roots are NOT published, so they stay scanned.
+    def cama_source_already_public?(path)
+      return false if path.blank?
+
+      path_within?(path, Rails.public_path.to_s)
     end
 
     # Removes a staged upload file, but only after confirming it canonicalizes

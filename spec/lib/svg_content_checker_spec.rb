@@ -114,5 +114,50 @@ RSpec.describe CamaleonCms::SvgContentChecker do
     it 'rejects non-XML content (binary garbage)' do
       expect(described_class.unsafe?("\xFF\xFE\x00\x01")).to be(true)
     end
+
+    # SMIL animation elements carry no script themselves; the vector is the
+    # onbegin/onend/onrepeat attribute, which the element-agnostic on* rule below
+    # still rejects.
+    it 'accepts an animated SVG with no event handlers' do
+      content = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <circle cx="50" cy="50" r="10">
+            <animate attributeName="r" values="10;20;10" dur="2s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+      SVG
+      expect(described_class.unsafe?(content)).to be(false)
+    end
+
+    it 'accepts a set element with no event handlers' do
+      content = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <rect width="50" height="50"><set attributeName="fill" to="blue" begin="1s"/></rect>
+        </svg>
+      SVG
+      expect(described_class.unsafe?(content)).to be(false)
+    end
+
+    it 'still rejects an animate element carrying an onbegin handler' do
+      content = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <animate onbegin="alert(1)" attributeName="r" dur="1s"/>
+        </svg>
+      SVG
+      expect(described_class.unsafe?(content)).to be(true)
+    end
+
+    it 'still rejects a bare foreignObject' do
+      content = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <foreignObject width="100" height="100"><div xmlns="http://www.w3.org/1999/xhtml">t</div></foreignObject>
+        </svg>
+      SVG
+      expect(described_class.unsafe?(content)).to be(true)
+    end
   end
 end
