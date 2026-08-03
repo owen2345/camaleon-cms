@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- **Fix:** The upload hardening in [#1198](https://github.com/owen2345/camaleon-cms/pull/1198)–[#1211](https://github.com/owen2345/camaleon-cms/pull/1211)
+  rejected legitimate work: uploads staged outside `public/` or the system temp dir failed with
+  `Invalid file path`, animated SVGs and re-crops of already-stored files were refused as
+  malicious, and prose containing a word such as `data` before a colon tripped the scheme
+  detector. Trusted server-side callers can now widen the allowed roots per call, animation
+  elements are accepted, already-published sources are not re-scanned, and scheme detection
+  matches the browser rule. [#1226](https://github.com/owen2345/camaleon-cms/pull/1226).
+
+  **Notes for upgraders**
+
+  - **Plugins, jobs and imports may pass `allowed_roots:`** to `upload_file`/`cama_tmp_upload`
+    to stage files under `Rails.root/tmp`, `storage/`, or a mounted share. It applies to that call
+    only and must come from application code — a request parameter cannot widen the roots, and
+    request-driven uploads keep the default roots.
+  - SVG event handlers (`onbegin`/`onend`/`onrepeat`), `script`, `foreignObject` and `handler`
+    remain rejected; only the `animate`/`set` elements themselves are allowed.
+  - HTML uploads are still refused. Re-permitting them needs a server-side extension policy
+    first, since `formats` is client-supplied and uploads are served same-origin.
+
 - **Fix:** Save-time post-content sanitization ([#1206](https://github.com/owen2345/camaleon-cms/pull/1206))
   destroyed legitimate markup for untrusted authors — the default allowlist has no table or figure
   elements and drops `id`/`style`/`target`/`rel` — and sanitized every programmatic save with no
