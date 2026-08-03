@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **Fix:** Six high-severity regressions introduced after 2.9.2, found by a full-range audit and
+  each pinned by a spec that reproduced it: engine boot failed on production hosts that serve
+  static files from nginx/Apache instead of Rails; one installed plugin or theme without a
+  `helpers` key in its config crashed every request; `GET /search` 500ed because `ct` was
+  unreachable on controllers, which also broke plugins calling `current_plugin`; frontend search
+  matched nothing for mixed-case queries on PostgreSQL and ignored an empty result set from the
+  `on_render_search` hook; `/sitemap.html` crashed for any site with a category and ignored the
+  `on_render_sitemap` skip lists; and login, password reset, and `site.the_user` became
+  case-sensitive. All six restore the 2.9.2 behavior.
+  [#1223](https://github.com/owen2345/camaleon-cms/pull/1223).
+
 - **Fix:** Slug-uniqueness validation was silently inert on Rails 7.0+. `UniqValidator` and
   `PostUniqValidator` registered errors by pushing onto `errors[:base]`, which modern Rails
   discards, so duplicate slugs (same taxonomy and parent) and recursive page hierarchies saved
