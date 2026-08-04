@@ -81,7 +81,6 @@ https://camaleon.website/store/plugins
 * Image/iFrame Lazy Loader - https://github.com/brian-kephart/camaleon_lazy_loader
 * Import / Export - https://github.com/owen2345/camaleon_export_import
 * Lightbox - https://github.com/owen2345/CamaImageLightbox
-* Autocomplete - https://github.com/gaelfokou/cama_autocomplete
 * Permissions for External Menus - https://github.com/owen2345/cama_external_menu
 * TinyMCE Template Integration - https://github.com/owen2345/Camaleon-Tinymce-Templates
 * Download Manager - https://github.com/max2320/camaleon-download
