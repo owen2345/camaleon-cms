@@ -54,17 +54,6 @@ module CamaleonCms
       Array.wrap(opts[:allowed_roots] || opts['allowed_roots'])
     end
 
-    # True when a source path is already published under the public root. Such bytes
-    # are retrievable at a URL the web server hands out, so re-scanning them when they
-    # are used as an upload source (a re-crop, or a same-site URL) removes no exposure
-    # the original upload did not already create. Scoped to the public root on purpose:
-    # private-media and caller-supplied roots are NOT published, so they stay scanned.
-    def cama_source_already_public?(path)
-      return false if path.blank?
-
-      path_within?(path, Rails.public_path.to_s)
-    end
-
     # Removes a staged upload file, but only after confirming it canonicalizes
     # inside the given staging root. A bug in the calling code therefore cannot
     # turn into a deletion elsewhere on the filesystem. Returns true when a file

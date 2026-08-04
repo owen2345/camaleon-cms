@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+- **Security fix:** A user with only the `media` permission could upload an SVG the SVG ruleset
+  accepted, then re-crop it under an `.html` name to have the identical bytes served as
+  `text/html` from the site origin, unscanned — the re-scan exemption added in
+  [#1226](https://github.com/owen2345/camaleon-cms/pull/1226) keyed on the source path while the
+  ruleset and the served content type key on the caller-supplied output name. Scanning is now
+  gated on a new `media_unfiltered_upload` role permission instead. Also fixes seven defects
+  found reviewing [#1223](https://github.com/owen2345/camaleon-cms/pull/1223)–[#1227](https://github.com/owen2345/camaleon-cms/pull/1227).
+  [#1228](https://github.com/owen2345/camaleon-cms/pull/1228).
+
+  **Notes for upgraders**
+
+  - **Uploads by anyone but an administrator are scanned whatever their source**, including files
+    already stored under `public/`, so re-cropping an existing file is scanned again. Grant
+    **Allow unscanned media uploads** (Manager Permissions) to a role that needs the previous
+    behaviour; no default role but `admin` holds it, and existing role metas read as not granting
+    it. See `docs/security/permissions.md`.
+  - SVGs containing `form`, `meta`, `base`, `style` or `link` are now refused for those users.
+  - `rake camaleon_cms:reassign_orphaned_comments` no longer rewrites genuine guest comments —
+    only rows with no author string, or a user id that no longer exists. If you already ran it,
+    guest comments were reassigned to the anonymous user; display is unaffected, since a stored
+    author name takes precedence.
+  - Deleting a user no longer aborts when one of their comments has an unresolvable post; such
+    comments are skipped and reported by the task above.
+
 - **Fix:** Validating a post without an explicit slug raised `FrozenError` instead of reporting
   `Slug can't be blank`, so creating posts programmatically (imports, seeds, jobs, console) was
   impossible. `String#translations` memoized its parsed locales in an instance variable on the

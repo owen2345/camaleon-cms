@@ -184,6 +184,21 @@ module CamaleonCms
                      'carrying such content is refused rather than cleaned up. Distinct from the per-post-type ' \
                      '"Allow unfiltered HTML in post content" permission.'
           ).to_s
+        },
+        {
+          key: 'media_unfiltered_upload',
+          label: I18n.t('camaleon_cms.admin.users.roles_values.media_unfiltered_upload',
+                        default: 'Allow unscanned media uploads').to_s,
+          color: 'danger',
+          description: I18n.t(
+            'camaleon_cms.admin.users.tool_tip.media_unfiltered_upload',
+            default: 'Permit users with this role to upload files without the malicious-content scan. Without ' \
+                     'it, every upload is scanned whatever its source, and a file carrying scripts, event ' \
+                     'handlers, blocked elements or blocked URI schemes is refused rather than cleaned up. ' \
+                     'Uploaded files are served from the site origin, so this grants the ability to publish ' \
+                     'active content there. Site-wide, unlike the per-post-type "Allow unfiltered HTML in post ' \
+                     'content" permission.'
+          ).to_s
         }
       ]
     }.freeze

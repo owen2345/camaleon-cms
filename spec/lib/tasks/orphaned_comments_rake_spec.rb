@@ -40,5 +40,32 @@ RSpec.describe 'orphaned_comments Rake task', type: :task do
 
       expect(kept.reload.user_id).to eq(author.id)
     end
+
+    # A guest comment has always had a null user_id and carries an author string instead, so it
+    # is indistinguishable from a regression orphan by user_id alone. It is not this task's to
+    # rewrite: the rows the regression produced belonged to registered users, which never carry
+    # an author string.
+    it 'leaves a guest comment untouched' do
+      guest = post_record.comments.create!(content: 'from a visitor', approved: 'approved',
+                                           author: 'A Visitor', author_email: 'visitor@example.com')
+
+      task.invoke
+
+      expect(guest.reload.user_id).to be_nil
+      expect(guest.author).to eq('A Visitor')
+    end
+
+    it 'repairs a comment whose user_id points at a user that no longer exists' do
+      dangling = post_record.comments.create!(user_id: author.id, content: 'dangling', approved: 'approved')
+      dangling.update_column(:user_id, CamaleonCms::User.maximum(:id).to_i + 1000) # rubocop:disable Rails/SkipsModelValidations
+
+      task.invoke
+
+      expect(dangling.reload.user_id).to eq(site.get_anonymous_user.id)
+    end
+
+    it 'reports what it did on stdout, where the operator running it can see it' do
+      expect { task.invoke }.to output(/reassigned \d+ comment\(s\)/).to_stdout
+    end
   end
 end

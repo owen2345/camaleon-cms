@@ -49,11 +49,20 @@ module CamaleonCms
       # CamaleonCms class against the term_taxonomy table.
       return klass if klass && klass <= base_class
 
-      # Runtime scan across loaded taxonomy models, then the root: rows whose taxonomy
-      # value maps to no descendant (plugin-defined or legacy data) load as the base
-      # class, as every row did before native STI.
-      CamaleonCms::TermTaxonomy.descendants.find { |k| k.sti_name == type_name.to_s } ||
+      # Runtime scan across loaded taxonomy models.
+      found = CamaleonCms::TermTaxonomy.descendants.find { |k| k.sti_name == type_name.to_s }
+      return found if found
+
+      # `super` resolves fully-qualified external classes (plugin STI outside the CamaleonCms
+      # namespace) and enforces ancestry — the scan above only sees classes already loaded, so
+      # without this an unloaded plugin taxonomy silently degraded to the base class. Same
+      # fallback PostDefault.find_sti_class keeps. Values it cannot place load as the base class,
+      # as every row did before native STI.
+      begin
+        super
+      rescue ActiveRecord::SubclassNotFound
         base_class
+      end
     end
 
     # callbacks

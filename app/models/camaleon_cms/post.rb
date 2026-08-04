@@ -6,6 +6,13 @@ module CamaleonCms
     # sanitizer default drops. Superset of the default so upstream security additions are inherited.
     SANITIZE_EXTRA_TAGS = %w[table thead tbody tfoot tr td th caption col colgroup
                              figure figcaption u s hr].freeze
+    # These attributes are allowed knowing what they cost, none of which is script execution:
+    # `style` is still CSS-scrubbed by the sanitizer (expression(), url(javascript:) and friends
+    # are stripped) but permits absolutely-positioned overlays; `id` widens DOM clobbering, which
+    # the sanitizer's own default `name` already opened; and `target` without a forced
+    # `rel=noopener` is reverse tabnabbing on browsers predating the implicit default. The trade
+    # is deliberate: an untrusted author who cannot use them loses tables and layout on every
+    # save, and the role that wants more grants post_content_unfiltered_html.
     SANITIZE_EXTRA_ATTRIBUTES = %w[id style target rel colspan rowspan].freeze
     CONTENT_ALLOWED_TAGS = (ActionController::Base.helpers.sanitizer_vendor.safe_list_sanitizer
                               .allowed_tags.to_a + SANITIZE_EXTRA_TAGS).uniq.freeze
@@ -16,6 +23,11 @@ module CamaleonCms
     # be sanitized by the fail-closed default. Exposed as a reader plus a bang enabler and NO
     # `unfiltered_content=` writer, so `assign_attributes`/mass assignment cannot reach it — only
     # explicit server-side code calling `post.unfiltered_content!` can.
+    #
+    # It is sticky for the lifetime of the object, not for one save: an instance that has been
+    # opted out stays opted out for every subsequent save of that instance. That is what a
+    # pipeline staging a record over several steps wants; code that needs the opt-out to apply
+    # once should not reuse the instance afterwards.
     attr_reader :unfiltered_content
 
     def unfiltered_content!

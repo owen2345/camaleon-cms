@@ -8,7 +8,9 @@ Define the security requirements for content scanning of uploaded files. Uploade
 
 The system SHALL scan upload content for malicious patterns before writing it into the upload staging directory, so that rejected content is never present — even transiently — at a path served by the web server.
 
-Content whose source is an existing file under `Rails.public_path` is exempt from this scan: the bytes are already published at a URL the web server hands out, so re-scanning them when they are used as an upload source (a re-crop, or a same-site URL) removes no exposure that the original upload did not already create. The exemption is keyed on the canonicalized source path being inside the public root — sources outside it, including remote downloads, `data:` payloads, and private-media files, SHALL be scanned as before.
+Whether the scan runs is decided by authorization, not by the location of the source file. An upload SHALL be scanned unless the uploading user holds the `media_unfiltered_upload` permission. For a user without it every upload is scanned, whatever the source — a `data:` payload, a remote download, a private-media file, or a file already published under `Rails.public_path`. The previous exemption for sources already under the public root is withdrawn: it was keyed on the source path while the scan ruleset and the served `Content-Type` are keyed on the caller-supplied output filename, so a source accepted under one extension could be rewritten to another and served as live markup without being re-scanned.
+
+Scanning rejects; it never repairs. Content that trips a rule SHALL be refused with `Potentially malicious content found!` rather than sanitized, escaped or rewritten.
 
 #### Scenario: data: payload is scanned before staging
 - **WHEN** a `crop_url` upload supplies a `data:` URI whose decoded payload contains a `<script>` tag
@@ -23,12 +25,24 @@ Content whose source is an existing file under `Rails.public_path` is exempt fro
 - **THEN** no file is ever created at `public/tmp/{site_id}/x.html`, so a concurrent request for `/tmp/{site_id}/x.html` cannot retrieve the payload at any point
 
 #### Scenario: An already-published file can be re-cropped
-- **WHEN** a file that is already stored under `Rails.public_path` is used as the source of a crop
-- **THEN** the crop proceeds without the source being re-scanned
+- **WHEN** a user without `media_unfiltered_upload` uses a file already stored under `Rails.public_path` as the source of a crop
+- **THEN** the crop proceeds, with the content scan running against the source and the output filename selecting the ruleset — the exemption that previously skipped it no longer applies
+
+#### Scenario: Re-crop under a different extension cannot bypass the ruleset
+- **WHEN** a user without `media_unfiltered_upload` uploads an SVG that the SVG ruleset accepts, then re-crops it supplying an output name ending in `.html`
+- **THEN** the re-crop is scanned under the non-SVG ruleset and rejected, so the bytes are never served as `text/html`
 
 #### Scenario: A private-media source is still scanned
 - **WHEN** a file outside the public root (for example under the private-media directory) is used as an upload source
 - **THEN** the content scan runs as before
+
+#### Scenario: A permitted user uploads without scanning
+- **WHEN** a user holding `media_unfiltered_upload` uploads a file whose content matches a blocked pattern
+- **THEN** the upload is accepted, because the permission exempts the uploader from scanning
+
+#### Scenario: Scanning is skipped without reading the file for a permitted user
+- **WHEN** the permission check answers true
+- **THEN** the content scan is not performed, so the file is not read in order to scan it
 
 ### Requirement: Content scanning is available for in-memory content
 
@@ -186,3 +200,4 @@ After scanning for malicious content, the file pointer SHALL be rewound so subse
 #### Scenario: Tempfile is readable after scan
 - **WHEN** the system scans a Tempfile for unsafe content and the scan passes
 - **THEN** the Tempfile pointer is at the beginning and the full content can be read again
+

@@ -227,6 +227,18 @@ RSpec.describe CamaleonCms::Post, type: :model do
         expect(post.content).to include('<script>seed()</script>')
       end
 
+      it 'stays enabled for later saves of the same instance' do
+        CurrentRequest.user = nil
+        CurrentRequest.site = nil
+
+        post = build(:post, post_type: post_type, content: '<p>seed</p>')
+        post.unfiltered_content!
+        post.save!
+        post.update!(content: '<p>again</p><script>again()</script>')
+
+        expect(post.reload.content).to include('<script>again()</script>')
+      end
+
       it 'has no mass-assignment writer, so request-style attributes cannot enable it' do
         expect(described_class.new).not_to respond_to(:unfiltered_content=)
         expect do

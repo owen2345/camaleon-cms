@@ -35,8 +35,14 @@ module CamaleonCms
       object.author_email.presence || object.user&.email
     end
 
+    # A missing user reads the same as the anonymous one: there is no profile to link to.
+    # Its three siblings above were made nil-safe for orphaned rows; this one was missed, so it
+    # still raised NoMethodError on exactly the rows they were fixed to tolerate.
     def the_author_url
-      object.author_url.presence || (object.user.username == 'anonymous' ? '' : object.user.decorate.the_url)
+      return object.author_url if object.author_url.present?
+      return '' if object.user.blank? || object.user.username == 'anonymous'
+
+      object.user.decorate.the_url
     end
   end
 end

@@ -143,6 +143,16 @@ RSpec.describe PluginRoutes do
 
       expect(described_class.all_helpers).to eq(['CamaleonCms::CamaleonHelper'])
     end
+
+    # filter_map + flatten has to keep behaving like the flat_map + compact it replaced, for a
+    # scalar as well as a list, since an app config may declare either shape.
+    it 'accepts a single helper declared as a scalar' do
+      described_class.send(:cache).delete('plugins_helper')
+      apps = [{ 'key' => 'scalar_helper', 'helpers' => 'CamaleonCms::CamaleonHelper' }]
+      allow(described_class).to receive(:all_apps).and_return(apps)
+
+      expect(described_class.all_helpers).to eq(['CamaleonCms::CamaleonHelper'])
+    end
   end
 
   describe '.site_plugin_helpers' do

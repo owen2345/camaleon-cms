@@ -41,7 +41,10 @@ module CamaleonCms
     # this is a helper for sitemap generator to print categories, sub categories and post contents in html list format
     def cama_sitemap_cats_generator(cats, skip_config = {})
       skip_config = {} unless skip_config.is_a?(Hash)
-      skip_config = { skip_cat_ids: [], skip_post_ids: [] }.merge!(skip_config)
+      # merge! alone is not enough: an on_render_sitemap hook that sets one of these keys to nil
+      # overwrites the default with nil and brings back the very nil.include? crash the defaults
+      # exist to prevent. compact drops those before they win.
+      skip_config = { skip_cat_ids: [], skip_post_ids: [] }.merge!(skip_config.compact)
       res = []
       cats.decorate.each do |cat|
         next if skip_config[:skip_cat_ids].include?(cat.id)

@@ -145,11 +145,18 @@ module CamaleonCms
       end
     end
 
+    # Until the dependent: :nullify on all_comments was removed this loop never ran — the
+    # association was already empty by the time after_destroy fired — so the unguarded chain
+    # below was never exercised. It runs now, and a comment whose post, post type or site cannot
+    # be resolved would raise inside after_destroy and roll the whole user deletion back. Such a
+    # comment is skipped instead; `rake camaleon_cms:reassign_orphaned_comments` reports the same
+    # rows, and it already guarded the identical chain.
     def reassign_comments
       all_comments.includes(post: { post_type: :site }).find_each do |comment|
-        site = comment.post.post_type.site
-        user = site.get_anonymous_user
-        comment.update_column(:user_id, user.id) # rubocop:disable Rails/SkipsModelValidations
+        site = comment.post&.post_type&.site
+        next if site.nil?
+
+        comment.update_column(:user_id, site.get_anonymous_user.id) # rubocop:disable Rails/SkipsModelValidations
       end
     end
   end
