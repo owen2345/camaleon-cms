@@ -18,6 +18,7 @@ Before marking any task complete, evaluate against these criteria.
 - No `eval`, `instance_eval`, or `class_eval` with user input
 - SQL queries use parameterized forms
 - User input is sanitized appropriately
+- Security-sensitive actions follow the gating rule: admin-only by default, gated for non-admins by a dedicated, off-by-default, fail-closed permission — never a path/filename/flag proxy, never fail-open. See `docs/security/permissions.md` ("The gating rule") and the `security-capability-gating` spec.
 
 ## Rails Conventions
 

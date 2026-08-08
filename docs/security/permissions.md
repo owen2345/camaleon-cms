@@ -10,6 +10,24 @@ Camaleon CMS defines role permissions in two families, both rendered in the User
 
 Users with the `admin` role satisfy every check through `can :manage, :all` in the Ability class, independently of role meta.
 
+## The gating rule
+
+Every permission on this page is an instance of one rule, and a new security-sensitive capability MUST follow it:
+
+1. **Administrators can do anything.** The `admin` role satisfies every check through `can :manage, :all`, before any role meta is read.
+2. **For every other role, an action that presents a security threat is allowed only through a dedicated permission that is off by default.** The permission is never seeded onto a non-admin role, so an existing install reads it as not-granted with no migration; and the check **fails closed** — with no `CurrentRequest` user or site (a background job, a rake task, the console), the caller is treated as untrusted.
+
+The gate is an **authorization** decision, never a proxy for one. A filesystem path, an output filename, a client-supplied flag or a network location can each be walked through by the caller; [#1228](https://github.com/owen2345/camaleon-cms/pull/1228) replaced exactly such a path-based upload exemption with `media_unfiltered_upload` for that reason. Where content can be substituted after the check — a `before_upload` handler rewriting the scanned bytes — the substituted content is re-checked, not trusted because the handler ran. A check that fails *open* (allowing the action when it cannot evaluate the permission) is the bug this rule exists to prevent.
+
+**Adding a new gated capability** — the four documented below are the templates:
+
+1. Add the key to `UserRole::ROLES[:manager]` (site-wide) or `ROLES[:post_type]` (per post type) with `color: 'danger'` and an i18n label/description.
+2. Gate the dangerous work behind a predicate that mirrors `Post#trusted_for_unfiltered_html?` or `CamaleonCms::UploaderContentSecurity#cama_trusted_for_unfiltered_upload?`: read `CurrentRequest.user` and `CurrentRequest.site`, return false if either is blank, otherwise ask `CamaleonCms::Ability`, and `rescue StandardError` to false. Check it *before* doing the work.
+3. Seed no non-admin role with the key. For a **post-type** permission, also add `next if key == '<key>'` to the Editor post-type seeding in `site_default_settings.rb`, which otherwise grants every post-type key.
+4. Ship a spec that reproduces the threat (per `AGENTS.md`) and covers the admin-allowed, non-admin-refused, granted-allowed and no-request-context-refused cases.
+
+The convention is specified as `openspec/specs/security-capability-gating/spec.md`.
+
 ## Manager permissions
 
 - `custom_fields` — Controls who can create/update Custom Field Groups and Custom Fields (write-time permission). This is a manager-level permission
