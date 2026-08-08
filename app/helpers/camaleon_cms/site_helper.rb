@@ -13,6 +13,17 @@ module CamaleonCms
         return $current_site
       end
 
+      # Honor a caller-set @current_site (HtmlMailer and other background senders assign it) before the
+      # memoized CurrentRequest.site, so a delivery for another site resolves against that site rather
+      # than the request's. Restores 2.9.2; without it, multisite/background mail resolves the wrong site
+      # or raises NameError on `request` in a job. See regression audit M21. Read via
+      # instance_variable_get to match #current_theme and avoid Rails/HelperInstanceVariable.
+      caller_site = (instance_variable_get(:@current_site) if instance_variable_defined?(:@current_site))
+      if caller_site.present?
+        CurrentRequest.site = caller_site
+        return caller_site
+      end
+
       return CurrentRequest.site if CurrentRequest.site.present?
 
       if PluginRoutes.get_sites.size == 1
