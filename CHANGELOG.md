@@ -7,7 +7,11 @@
   back silently otherwise); same-host `return_to` destinations are followed regardless of host
   letter case and emitted with the canonical host; and malformed `?user_id[]=` requests on admin
   user routes no longer crash with a 500 or wrongly deny self-edits — a non-scalar `user_id` is
-  ignored and the route target wins. Regression audit M15/M17/M14.
+  ignored and the route target wins. Post-review hardening on the same PR: non-scalar locale
+  parameters (`?locale[]=`, `?cama_set_language[]=`) are likewise ignored on the admin session
+  pages and the site frontend instead of crashing with a 500, and a scalar `?locale=` naming a
+  language the site does not offer now renders the site's 404 page (in the site's own language)
+  instead of failing with a template error. Regression audit M15/M17/M14.
   [#1236](https://github.com/owen2345/camaleon-cms/pull/1236).
 
 - **Security fix:** Draft autosaves could be forged to parent a new draft under an arbitrary
