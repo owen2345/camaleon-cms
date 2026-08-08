@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Docs:** Removed the defunct Autocomplete plugin (`gaelfokou/cama_autocomplete` — repository and
+  gem no longer exist) from the README plugin list and the example Gemfile, and recorded the external
+  plugin/theme binding surface as the `ecosystem-plugin-bindings` OpenSpec capability with a
+  `docs/ai/ecosystem.md` inventory. [#1229](https://github.com/owen2345/camaleon-cms/pull/1229).
+
 - **Security fix:** A user with only the `media` permission could upload an SVG the SVG ruleset
   accepted, then re-crop it under an `.html` name to have the identical bytes served as
   `text/html` from the site origin, unscanned — the re-scan exemption added in

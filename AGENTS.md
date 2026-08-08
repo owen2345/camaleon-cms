@@ -58,6 +58,7 @@ All four must pass before pushing (CI parity).
 | Branching, vulnerability triage, refactoring protocol, commits, PRs, changelog | `docs/ai/workflows.md` |
 | Writing or running tests; reproducing vulnerabilities | `docs/ai/testing.md` |
 | Reading or writing app code: paths, namespacing, models, decorators, hooks, plugins, style idioms | `docs/ai/reference.md` |
+| Removing, renaming or hardening a public helper/hook/API that external plugins or themes may bind to | `docs/ai/ecosystem.md` |
 | Env files, keys, credentials | `docs/ai/secrets.md` |
 | Self-audit before opening a PR | `docs/ai/criteria.md` |
 

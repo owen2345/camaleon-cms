@@ -24,7 +24,6 @@ gem 'camaleon_sitemap_customizer', git: 'https://github.com/brian-kephart/camale
 gem 'camaleon_image_optimizer', git: 'https://github.com/brian-kephart/camaleon_image_optimizer'
 
 # gem 'cama_tinymce_template', git: 'https://github.com/owen2345/Camaleon-Tinymce-Templates'
-# gem 'cama_autocomplete', git: 'https://github.com/gaelfokou/cama_autocomplete.git'
 # gem 'cama_image_lightbox', git: 'https://github.com/owen2345/CamaImageLightbox'
 # gem 'camaleon_oauth', git: 'https://github.com/owen2345/camaleon_oauth'
 # gem 'camaleon_download', git: 'https://github.com/max2320/camaleon-download'
