@@ -79,7 +79,10 @@ module CamaleonCms
     # initialize all vars and methods for admin panel
     def admin_init_actions
       I18n.locale = current_site.get_admin_language
-      @_admin_menus = {}
+      # Alias the legacy @_admin_menus ivar onto the live menu store so a hook using the WordPress-style
+      # `@_admin_menus.delete('comments')` removal idiom mutates the same hash admin_menu_draw reads. The
+      # menu-insert methods mutate in place (.replace), so this reference stays valid. Regression M19.
+      @_admin_menus = CurrentRequest.admin_menu_items = {}
       @_admin_breadcrumb = []
       @_extra_models_for_fields = []
       # Cache the site's frontend language for decorators and plugins that still

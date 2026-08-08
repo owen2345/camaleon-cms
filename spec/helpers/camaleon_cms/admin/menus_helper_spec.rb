@@ -44,6 +44,28 @@ RSpec.describe CamaleonCms::Admin::MenusHelper, type: :helper do
     end
   end
 
+  describe 'admin menu store identity (regression M19)' do
+    it 'lets a reference held before menu building (the @_admin_menus.delete idiom) still mutate the store' do
+      admin_menu_add_menu('comments', { icon: 'c', title: 'Comments' })
+      admin_menu_add_menu('media', { icon: 'm', title: 'Media' })
+      aliased = CurrentRequest.admin_menu_items # what admin_init_actions aliases into @_admin_menus
+      admin_menu_insert_menu_before('media', 'new', { icon: 'n', title: 'New' }) # identity-preserving op
+
+      aliased.delete('comments')
+
+      expect(CurrentRequest.admin_menu_items).not_to have_key('comments')
+      expect(CurrentRequest.admin_menu_items).to equal(aliased)
+    end
+
+    it 'preserves store identity on insert_after' do
+      admin_menu_add_menu('a', { icon: 'a', title: 'A' })
+      store = CurrentRequest.admin_menu_items
+      admin_menu_insert_menu_after('a', 'new', { icon: 'n', title: 'New' })
+
+      expect(CurrentRequest.admin_menu_items).to equal(store)
+    end
+  end
+
   describe 'admin menu management with CurrentRequest' do
     it 'stores menu items in CurrentRequest instead of instance variables' do
       expect(CurrentRequest).to receive(:admin_menu_items=).and_call_original
