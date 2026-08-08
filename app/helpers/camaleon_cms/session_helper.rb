@@ -107,6 +107,7 @@ module CamaleonCms
       c_data[:domain] = :all if PluginRoutes.system_info['users_share_sites'].present? && CamaleonCms::Site.count > 1
       cookies[:auth_token] = c_data
       CurrentRequest.user = nil
+      CurrentRequest.user_resolved = true # the cookie is gone; don't re-resolve to a stale user
       redirect_to safe_redirect_url(params[:return_to]) || cama_admin_login_path,
                   notice: t('camaleon_cms.admin.logout.message.closed')
     end
@@ -126,16 +127,16 @@ module CamaleonCms
 
     # return the current user logged in
     def cama_current_user
-      return CurrentRequest.user if CurrentRequest.user
+      # Honor an externally-set user, and memoize a nil resolution via user_resolved so a signed-out
+      # request (or a present-but-stale auth cookie) is not re-resolved on every call (regression M16).
+      return CurrentRequest.user if CurrentRequest.user || CurrentRequest.user_resolved
 
-      # api current user...
-      current_user = cama_calc_api_current_user
-      return CurrentRequest.user = current_user if current_user
-
-      return nil unless cookie_auth_token_complete?
-
-      users = current_site.users_include_admins
-      CurrentRequest.user = users.find_by(auth_token: user_auth_token_from_cookie).try(:decorate)
+      CurrentRequest.user_resolved = true
+      user = cama_calc_api_current_user # api current user...
+      if user.nil? && cookie_auth_token_complete?
+        user = current_site.users_include_admins.find_by(auth_token: user_auth_token_from_cookie).try(:decorate)
+      end
+      CurrentRequest.user = user
     end
 
     def cookie_auth_token_complete?
