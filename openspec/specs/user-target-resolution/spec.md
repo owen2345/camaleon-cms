@@ -3,9 +3,7 @@
 Define how `CamaleonCms::Admin::UsersController` resolves the target user for every action guarded by `validate_role`, and require that the record authorized is always the record acted upon. Covers both route families the controller exposes: the nested route (`PATCH /admin/users/:user_id/updated_ajax`) and the member routes (`/admin/users/:id` for `show`/`edit`/`update`/`destroy`/`impersonate`).
 
 `GET /admin/profile` is exempt from `validate_role` and is governed by the `profile-authorization` capability instead.
-
 ## Requirements
-
 ### Requirement: Target user resolution is canonical across authorization and mutation
 
 Every action in `CamaleonCms::Admin::UsersController` guarded by the `validate_role` filter SHALL resolve its target user through a single canonical parameter helper, and SHALL authorize and act upon the same resolved user.
@@ -42,7 +40,7 @@ Coverage note: the two nested-route scenarios below are satisfied by `spec/reque
 
 ### Requirement: The canonical helper resolves one ordered parameter chain
 
-The canonical helper SHALL resolve the target user id from `params[:user_id]` first, falling back to `params[:id]`.
+The canonical helper SHALL resolve the target user id from `params[:user_id]` first, falling back to `params[:id]`. Only a **scalar** `user_id` SHALL participate in resolution: when `params[:user_id]` is non-scalar (an array or hash, e.g. `?user_id[]=X`), the helper SHALL ignore it and resolve from `params[:id]`, so a malformed injection can neither crash the action nor change which record the authorization filter and the lookup agree on.
 
 This ordering is deliberate for the nested route `PATCH /admin/users/:user_id/updated_ajax`, where the path segment lands in `params[:user_id]` and is therefore not attacker-controllable, while `params[:id]` is absent from the route and can only arrive by injection. Rails merges path parameters last (`ActionDispatch::Http::Parameters#parameters`), so a path segment always overrides a query-string or body value of the same name.
 
@@ -71,6 +69,19 @@ On the member routes `/admin/users/:id` the ordering inverts which key is author
 - **AND** the session does not switch to user A
 
 Note: this scenario is the one that exercises `impersonate` against target resolution. It uses an admin caller deliberately — an admin holds `can :manage, :all`, so the resolved target alone decides the outcome. A non-admin caller cannot test this, because `cannot :impersonate` denies them whichever user resolves.
+
+#### Scenario: Non-scalar user_id falls back to the path segment
+
+- **WHEN** an admin sends `PATCH /admin/users/<USER_A_ID>?user_id[]=<USER_B_ID>` with `user` attributes
+- **THEN** the system updates user A (the path segment)
+- **AND** user B is unchanged
+- **AND** the response is not a server error
+
+#### Scenario: Non-scalar user_id does not deny a self-edit
+
+- **WHEN** a non-admin sends `PATCH /admin/users/<OWN_ID>?user_id[]=<OTHER_ID>` with `user` attributes
+- **THEN** the system updates only the caller's own record
+- **AND** the other user is unchanged
 
 ### Requirement: Unresolvable targets are reported in the endpoint's own error format
 
@@ -130,3 +141,4 @@ This requirement states the security outcome independently of the mechanism that
 - **AND** the caller's session is not switched to the admin
 
 Note on what enforces this scenario: denial here comes from `cannot :impersonate` in `CamaleonCms::Ability`, which rejects a non-admin caller whichever user the request resolves to. The scenario therefore holds even if target resolution were to regress — it is defense in depth for the outcome, not a test of the resolution mechanism. The resolution behavior of `impersonate` is exercised by the admin-caller scenario under the precedence requirement above. Both are kept deliberately: this one pins the outcome a reader of this requirement cares about, that one pins the mechanism.
+

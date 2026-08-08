@@ -160,7 +160,21 @@ module CamaleonCms
         # NOTE: session[:cama_current_language] is for FRONTEND only (user's site language choice)
         # Admin should use admin language setting, not frontend language
         # This prevents language mixing when switching between frontend and admin contexts
+        set_login_locale
         hooks_run('session_before_load')
+      end
+
+      # These pages render before authentication, so the site's languages — not a user
+      # preference — pick the locale; ?locale= applies only when scalar (?locale[]=
+      # would crash to_sym) and offered by the site
+      def set_login_locale
+        site_languages = current_site.get_languages
+        requested = (params[:locale].presence&.to_sym if params[:locale].is_a?(String))
+        I18n.locale = if site_languages.include?(requested)
+                        requested
+                      else
+                        site_languages.first || I18n.default_locale
+                      end
       end
 
       def after_hook_session
