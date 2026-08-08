@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Fix:** On multisite installs, background and cross-site email (password reset, email confirmation,
+  admin notifications) raised `NameError` during delivery and sent nothing — `SiteHelper#current_site`
+  stopped honoring the `@current_site` that `HtmlMailer` sets, so a delivery with no request fell
+  through to a request-only branch. Restored; single-site installs were unaffected.
+  [#1233](https://github.com/owen2345/camaleon-cms/pull/1233).
+
 - **Docs:** Codified the security-capability-gating rule — a security-sensitive action is admin-only by
   default and gated for non-admins by a dedicated, off-by-default, fail-closed role permission
   (authorization, never a path/filename/flag proxy, and never fail-open). Adds the
