@@ -1,7 +1,9 @@
 ## Purpose
 
 Ensure the admin draft autosave endpoint performs authorization checks and scoped lookups before mutating draft data, preventing cross-user draft overwrites and content integrity compromise.
+
 ## Requirements
+
 ### Requirement: Draft create scopes lookup to post type
 The `DraftsController#create` SHALL scope its draft lookup to the requested post type, the
 validated parent post, and the current user: `@post_type.posts.drafts.where(post_parent: <validated
