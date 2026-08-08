@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **Security fix:** Draft autosaves could be forged to parent a new draft under an arbitrary
+  existing post (a client-supplied `post[post_parent]` survived validation), and an edit-own-only
+  user was locked out of autosaving their own post once someone else's autosave had created its
+  draft. `post_parent` is now create-only, derived solely from the validated `post_id`, and draft
+  buffers are per-user, authorized against the post being edited — no request can read, overwrite,
+  re-parent, or detach another user's buffer. Regression audit M12/M13.
+  [#1235](https://github.com/owen2345/camaleon-cms/pull/1235).
+
+  **Notes for upgraders:**
+  - Each editor now keeps a private autosave buffer per post, so the admin drafts list can show
+    one draft per editing user; any successful save of a post still removes all of its buffers.
+  - Roles holding only `edit_other` can now autosave posts they can edit but not author
+    (previously the first autosave of such a post was silently denied).
+
 - **Fix:** Restores seven admin and frontend runtime-compatibility contracts broken by the
   `CurrentRequest` and admin-menu refactors: the 2-arg `post_type_list_taxonomy` (which rendered empty
   taxonomy columns in overridden admin posts-index views), signed-out `cama_current_user` memoization,
