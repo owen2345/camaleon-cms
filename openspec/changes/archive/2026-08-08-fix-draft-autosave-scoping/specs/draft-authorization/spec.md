@@ -1,7 +1,31 @@
-## Purpose
+## ADDED Requirements
 
-Ensure the admin draft autosave endpoint performs authorization checks and scoped lookups before mutating draft data, preventing cross-user draft overwrites and content integrity compromise.
-## Requirements
+### Requirement: Per-user draft buffers
+Autosave draft buffers SHALL be private to the user who created them. No request SHALL read,
+overwrite, re-parent, or detach another user's draft buffer, regardless of the requester's
+permissions on the parent post. Editing surfaces that link to a draft SHALL link to the current
+user's own buffer only.
+
+#### Scenario: Autosave never touches another user's buffer
+- **WHEN** a draft buffer for post 5 exists with User B's `user_id` and User A (authorized to
+  update post 5) sends `POST /admin/post_type/1/drafts` with `post_id=5`
+- **THEN** a separate draft owned by User A MUST be created (or User A's own existing buffer
+  updated)
+- **AND** User B's buffer MUST remain unchanged
+
+#### Scenario: Own buffer is reused across autosaves
+- **WHEN** User A already has a draft buffer for post 5 and sends another
+  `POST /admin/post_type/1/drafts` with `post_id=5`
+- **THEN** User A's existing buffer MUST be updated in place
+- **AND** no additional draft MUST be created
+
+#### Scenario: Edit form links to the current user's own buffer
+- **WHEN** drafts for post 5 exist for both User A and User B, and User A opens post 5's edit
+  form
+- **THEN** the "view draft" link MUST target User A's draft only
+
+## MODIFIED Requirements
+
 ### Requirement: Draft create scopes lookup to post type
 The `DraftsController#create` SHALL scope its draft lookup to the requested post type, the
 validated parent post, and the current user: `@post_type.posts.drafts.where(post_parent: <validated
@@ -155,28 +179,3 @@ neither `params[:post_id]` nor any request attribute re-parents or detaches an e
 - **WHEN** an update request for a parented draft omits `params[:post_id]` (or carries any other
   value)
 - **THEN** the draft's `post_parent` MUST remain unchanged
-
-### Requirement: Per-user draft buffers
-Autosave draft buffers SHALL be private to the user who created them. No request SHALL read,
-overwrite, re-parent, or detach another user's draft buffer, regardless of the requester's
-permissions on the parent post. Editing surfaces that link to a draft SHALL link to the current
-user's own buffer only.
-
-#### Scenario: Autosave never touches another user's buffer
-- **WHEN** a draft buffer for post 5 exists with User B's `user_id` and User A (authorized to
-  update post 5) sends `POST /admin/post_type/1/drafts` with `post_id=5`
-- **THEN** a separate draft owned by User A MUST be created (or User A's own existing buffer
-  updated)
-- **AND** User B's buffer MUST remain unchanged
-
-#### Scenario: Own buffer is reused across autosaves
-- **WHEN** User A already has a draft buffer for post 5 and sends another
-  `POST /admin/post_type/1/drafts` with `post_id=5`
-- **THEN** User A's existing buffer MUST be updated in place
-- **AND** no additional draft MUST be created
-
-#### Scenario: Edit form links to the current user's own buffer
-- **WHEN** drafts for post 5 exist for both User A and User B, and User A opens post 5's edit
-  form
-- **THEN** the "view draft" link MUST target User A's draft only
-
