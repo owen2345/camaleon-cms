@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Fix:** Restores seven admin and frontend runtime-compatibility contracts broken by the
+  `CurrentRequest` and admin-menu refactors: the 2-arg `post_type_list_taxonomy` (which rendered empty
+  taxonomy columns in overridden admin posts-index views), signed-out `cama_current_user` memoization,
+  quote-safe admin menu `data-*` attributes (the admin Menus tooltip), inline formatting in plugin menu
+  titles, `cf_add_model`'s placement-dropdown models, the `@_admin_menus.delete` menu-removal idiom, and
+  the frontend legacy-ivar read fallback for `the_title`/`is_home?`/SEO helpers. Regression audit
+  M16/M18–M20/M22/M23. [#1234](https://github.com/owen2345/camaleon-cms/pull/1234).
+
 - **Fix:** On multisite installs, background and cross-site email (password reset, email confirmation,
   admin notifications) raised `NameError` during delivery and sent nothing — `SiteHelper#current_site`
   stopped honoring the `@current_site` that `HtmlMailer` sets, so a delivery with no request fell

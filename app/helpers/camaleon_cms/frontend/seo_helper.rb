@@ -10,6 +10,7 @@ module CamaleonCms
         visited_tag = camaleon_frontend_visited_state(:frontend_visited_tag)
         visited_category = camaleon_frontend_visited_state(:frontend_visited_category)
         visited_user = CurrentRequest.frontend_user
+        visited_user ||= instance_variable_get(:@user) if instance_variable_defined?(:@user) # legacy @user (M20)
 
         data2 = if is_home?
                   {}

@@ -74,5 +74,21 @@ RSpec.describe CamaleonCms::SessionHelper, type: :helper do
       expect(helper.cama_current_user).to eq(decorated_user)
       expect(CurrentRequest.user).to eq(decorated_user)
     end
+
+    it 'memoizes a nil result so it is not re-resolved on every call (regression M16)' do
+      allow(helper).to receive(:cookie_auth_token_complete?).and_return(false)
+      expect(helper).to receive(:cama_calc_api_current_user).once.and_return(nil)
+
+      expect(helper.cama_current_user).to be_nil
+      expect(helper.cama_current_user).to be_nil
+    end
+
+    it 'returns an externally set CurrentRequest.user without re-resolving' do
+      cached = instance_double(CamaleonCms::User)
+      CurrentRequest.user = cached
+      expect(helper).not_to receive(:cama_calc_api_current_user)
+
+      expect(helper.cama_current_user).to eq(cached)
+    end
   end
 end

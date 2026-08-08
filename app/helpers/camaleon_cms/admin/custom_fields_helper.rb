@@ -344,6 +344,19 @@ module CamaleonCms
         CurrentRequest.extra_models_for_fields ||= []
         CurrentRequest.extra_models_for_fields << model_class
       end
+
+      # Models offered in the field-group placement dropdown: those registered via cf_add_model plus any
+      # a custom_field_custom_models hook appends. Seeded from the legacy @_extra_models_for_fields ivar
+      # so a controller still assigning it keeps working. The dropdown used to read that ivar while
+      # cf_add_model wrote CurrentRequest, so registered models never appeared. Regression M18.
+      # The seed and the hook payload are copies: hook appends must reach only this read, not
+      # accumulate in the request store or leak into the controller ivar.
+      def cf_extra_models_for_fields
+        CurrentRequest.extra_models_for_fields ||= (instance_variable_get(:@_extra_models_for_fields) || []).dup
+        f_args = { models: CurrentRequest.extra_models_for_fields.dup }
+        hooks_run('custom_field_custom_models', f_args)
+        f_args[:models]
+      end
     end
   end
 end

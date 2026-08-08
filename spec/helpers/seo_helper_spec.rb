@@ -78,5 +78,38 @@ describe CamaleonCms::Frontend::SeoHelper do
         )
       end
     end
+
+    # Regression M20: the profile branch reads visited_user for the avatar/name/slogan; a plugin front
+    # controller that sets the legacy @user ivar (the 2.9.2 way) must still back it when
+    # CurrentRequest.frontend_user is unset.
+    context 'when visiting a profile (regression M20)' do
+      let(:legacy_user) do
+        instance_double(CamaleonCms::UserDecorator,
+                        the_avatar: '/legacy.png', the_name: 'Legacy', the_slogan: 'legacy bio')
+      end
+
+      before { CurrentRequest.frontend_visited_profile = true }
+
+      it 'builds the profile SEO from a plugin-set legacy @user ivar' do
+        helper.instance_variable_set(:@user, legacy_user)
+
+        result = helper.cama_the_seo
+
+        expect(result[:og][:title]).to eql("#{site.the_title} | Legacy")
+        expect(result[:og][:description]).to eql('legacy bio')
+        expect(result[:og][:image]).to eql('/legacy.png')
+      end
+
+      it 'prefers CurrentRequest.frontend_user over the legacy ivar' do
+        CurrentRequest.frontend_user = instance_double(
+          CamaleonCms::UserDecorator, the_avatar: '/current.png', the_name: 'Current', the_slogan: 'current bio'
+        )
+        helper.instance_variable_set(:@user, legacy_user)
+
+        result = helper.cama_the_seo
+
+        expect(result[:og][:title]).to eql("#{site.the_title} | Current")
+      end
+    end
   end
 end

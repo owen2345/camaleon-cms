@@ -230,7 +230,7 @@ module CamaleonCms
           hsh[key_menu] = menu if key == key_target
           hsh[key] = val
         end
-        CurrentRequest.admin_menu_items = res
+        CurrentRequest.admin_menu_items.replace(res) # mutate in place so @_admin_menus stays a live alias (M19)
       end
 
       # add menu after menu with key = key_target
@@ -242,7 +242,7 @@ module CamaleonCms
           hsh[key] = val
           hsh[key_menu] = menu if key == key_target
         end
-        CurrentRequest.admin_menu_items = res
+        CurrentRequest.admin_menu_items.replace(res) # mutate in place so @_admin_menus stays a live alias (M19)
       end
 
       # draw admin menu as html
@@ -265,7 +265,7 @@ module CamaleonCms
                 safe_join([
                   content_tag(:i, nil, class: "fa fa-#{menu[:icon]}"),
                   ' ',
-                  content_tag(:span, menu[:title]),
+                  content_tag(:span, cama_admin_menu_title(menu[:title])),
                   (content_tag(:i, nil, class: 'fa fa-angle-left pull-right') if menu.key?(:items))
                 ].compact)
               end,
@@ -345,7 +345,7 @@ module CamaleonCms
                   safe_join([
                     content_tag(:i, nil, class: "fa fa-#{item[:icon]}"),
                     ' ',
-                    item[:title],
+                    cama_admin_menu_title(item[:title]),
                     (content_tag(:i, nil, class: 'fa fa-angle-left pull-right') if item.key?(:items))
                   ].compact)
                 end,
@@ -356,12 +356,25 @@ module CamaleonCms
         end
       end
 
+      # Menu titles may carry inline formatting (e.g. camaleon-ecommerce's count badge). Core builds its
+      # titles as SafeBuffers via safe_join/content_tag and those pass through untouched; a plain-String
+      # title from a plugin is sanitized to a safe inline subset — the badge renders, scripts and event
+      # handlers are stripped — rather than escaped whole. Regression M22.
+      def cama_admin_menu_title(title)
+        return title if title.is_a?(ActiveSupport::SafeBuffer)
+
+        sanitize(title.to_s, tags: %w[span small i b strong em], attributes: %w[class])
+      end
+
       def parse_datas(datas_string)
         return {} if datas_string.blank?
 
         result = {}
-        datas_string.scan(/data-(\w+)=['"]([^'"]*)['"]/).each do |key, value|
-          result[key.to_sym] = value
+        # Match single- or double-quoted values so a value may contain the other quote character. The
+        # old /['"]([^'"]*)['"]/ stopped at the first quote of either kind, truncating data-intro
+        # strings that carry HTML (e.g. the Menus tooltip's <img ... style="...">). Regression M22.
+        datas_string.scan(/data-([\w-]+)=(?:'([^']*)'|"([^"]*)")/).each do |key, single, double|
+          result[key.to_sym] = single || double
         end
         result
       end

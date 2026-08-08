@@ -210,7 +210,7 @@ module CamaleonCms
         hsh[key_menu] = menu if key == key_target
         hsh[key] = val
       end
-      CurrentRequest.admin_menu_items = res
+      CurrentRequest.admin_menu_items.replace(res) # mutate in place so @_admin_menus stays a live alias (M19)
     end
 
     def admin_menu_insert_menu_after(key_target, key_menu, menu)
@@ -219,7 +219,7 @@ module CamaleonCms
         hsh[key] = val
         hsh[key_menu] = menu if key == key_target
       end
-      CurrentRequest.admin_menu_items = res
+      CurrentRequest.admin_menu_items.replace(res) # mutate in place so @_admin_menus stays a live alias (M19)
     end
 
     def cama_comments_get_common_data

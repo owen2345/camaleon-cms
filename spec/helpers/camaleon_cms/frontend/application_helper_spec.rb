@@ -71,10 +71,11 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
       expect(CurrentRequest.frontend_current_theme).to eq(preview_theme)
     end
 
-    it 'does not use controller ivar fallback for frontend object' do
-      helper.instance_variable_set(:@object, site.the_post('sample-post').decorate)
+    it 'falls back to the controller @object ivar for the frontend object (regression M20)' do
+      post = site.the_post('sample-post').decorate
+      helper.instance_variable_set(:@object, post)
 
-      expect(helper.the_title).to be_nil
+      expect(helper.the_title).to eq(post.the_title)
     end
   end
 end
