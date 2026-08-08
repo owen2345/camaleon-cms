@@ -59,6 +59,18 @@ RSpec.describe CamaleonCms::Admin::PostTypeHelper, type: :helper do
       expect(result).not_to be_nil
     end
 
+    it 'falls back to the controller @post_type for the legacy 2-arg call (regression M23)' do
+      # #1178 kept this fallback; #1183 (Phase 6C) removed it, so overridden admin posts-index views
+      # calling the 2-arg form rendered nothing. camaleon-ecommerce is a live 2-arg caller.
+      taxonomies = double(decorate: [category])
+      controller.instance_variable_set(:@post_type, post_type)
+      allow(helper).to receive(:cama_admin_post_type_taxonomy_posts_path).and_return('/path')
+
+      result = helper.post_type_list_taxonomy(taxonomies, 'primary')
+
+      expect(result).to include('Test Category')
+    end
+
     it 'returns empty output if no post_type available from any source' do
       expect(helper.post_type_list_taxonomy([])).to eq('')
     end

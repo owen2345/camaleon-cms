@@ -16,6 +16,9 @@ module CamaleonCms
 
       # taxonomies ->  (categories || post_tags)
       def post_type_list_taxonomy(taxonomies, color = 'primary', post_type = nil)
+        # Legacy 2-arg call sites (e.g. overridden admin posts-index views, camaleon-ecommerce) omit
+        # post_type and expect the controller's @post_type. Restored from #1178; see regression M23.
+        post_type ||= controller.instance_variable_get(:@post_type) if respond_to?(:controller)
         return safe_join([]) if post_type.blank?
 
         safe_join(taxonomies.decorate.map do |f|
