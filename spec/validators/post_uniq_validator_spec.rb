@@ -38,6 +38,17 @@ RSpec.describe CamaleonCms::PostUniqValidator, type: :model do
       end
     end
 
+    context 'when the slug duplicates a published post of another post type in the same site' do
+      it 'registers a base error (uniqueness is site-wide, not per post type)' do
+        other_type = create(:post_type, slug: 'other-pt', site: @site)
+        create(:post, post_type: other_type, slug: 'shared-slug', status: 'published')
+        duplicate = build(:post, post_type: post_type, slug: 'shared-slug')
+
+        expect(validate_post(duplicate))
+          .to contain_exactly(a_string_matching(I18n.t('camaleon_cms.admin.post.message.requires_different_slug')))
+      end
+    end
+
     context 'when the parent chain loops back to the post' do
       it 'registers a recursive-hierarchy error' do
         post_type.set_option(:has_parent_structure, true)

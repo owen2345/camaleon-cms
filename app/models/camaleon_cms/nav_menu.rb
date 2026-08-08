@@ -2,6 +2,9 @@ module CamaleonCms
   class NavMenu < CamaleonCms::TermTaxonomy
     normalize_attrs(:description)
 
+    # deterministic external iteration order (2.9.2 parity); render paths reorder(:term_order)
+    default_scope { order(id: :asc) }
+
     alias_attribute :site_id, :parent_id
 
     has_many :children, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :parent_id, dependent: :destroy,

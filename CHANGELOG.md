@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- **Fix:** Three legacy model-API surfaces restored: `Media.find_by_key` (as an alias of
+  `by_key` — the rename left legacy callers raising `NoMethodError`), `Post#unassign_category`
+  (with its category-counter refresh made reliable on posts whose categories association is
+  already loaded), and the default ascending-id ordering on `NavMenu`/`NavMenuItem` (rendered
+  menu order was and stays `term_order`). Also documents the `ActiveRecordExtras` removal (see
+  the entry below) and corrects the [#1222](https://github.com/owen2345/camaleon-cms/pull/1222)
+  claim about slug-uniqueness scope: it is site-wide across post types, now spec-pinned.
+  Regression audit M5/M6/M10/M4/M11.
+  [#1237](https://github.com/owen2345/camaleon-cms/pull/1237).
+
+- **Removed:** The `ActiveRecordExtras` mixin and with it the `update_or_create`,
+  `update_or_create!`, and `assign_or_new` model methods, formerly available on every Camaleon
+  model. External code that called them should use the Rails idiom instead:
+  `Model.find_or_initialize_by(lookup_attrs).tap { |r| r.assign_attributes(extra_attrs); r.save }`
+  (or `save!`). The 2026-08 ecosystem sweep found no plugin, theme, or host app calling these
+  methods; this note exists because the removal was previously undocumented. Regression audit M4.
+
 - **Fix:** Three session-adjacent regressions: the admin login/register/forgot-password pages
   render in the site's language again (with `?locale=` honored when the site offers it, falling
   back silently otherwise); same-host `return_to` destinations are followed regardless of host
@@ -153,15 +170,16 @@
 
 - **Fix:** Slug-uniqueness validation was silently inert on Rails 7.0+. `UniqValidator` and
   `PostUniqValidator` registered errors by pushing onto `errors[:base]`, which modern Rails
-  discards, so duplicate slugs (same taxonomy and parent) and recursive page hierarchies saved
-  without complaint; on Rails 6.1 the old pattern still worked. Errors are registered with
+  discards, so duplicate slugs and recursive page hierarchies saved without complaint; on
+  Rails 6.1 the old pattern still worked. Errors are registered with
   `errors.add` again. [#1222](https://github.com/owen2345/camaleon-cms/pull/1222).
 
   **Notes for upgraders**
 
-  - On Rails 7.0+, saves that duplicate an existing slug under the same parent and taxonomy, or
-    that create a looping page hierarchy, fail validation again — matching what Rails ≤ 6.1
-    installs always enforced.
+  - On Rails 7.0+, saves that duplicate a post slug already held by any non-draft, non-trashed
+    post of the same site — the scope is site-wide, across post types and parents (this entry
+    originally understated it as "same parent and taxonomy") — or that create a looping page
+    hierarchy, fail validation again, matching what Rails ≤ 6.1 installs always enforced.
   - Records duplicated while the validator was inert are not rewritten; they surface the
     "requires different slug" error the next time they are edited.
 

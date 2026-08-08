@@ -32,6 +32,12 @@ module CamaleonCms
       end
     end
 
+    # legacy public name (pre-rename callers); the media table has no `key` column, so
+    # without the alias this falls through to Rails' dynamic finder and raises
+    class << self
+      alias find_by_key by_key
+    end
+
     # return all items of current folder
     def items
       coll = is_public ? site.public_media : site.private_media
