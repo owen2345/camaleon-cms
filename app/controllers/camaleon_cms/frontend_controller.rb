@@ -288,9 +288,13 @@ module CamaleonCms
       end
 
       @_site_options = current_site.options
-      session[:cama_current_language] = params[:cama_set_language].to_sym if params[:cama_set_language].present?
+      # Only a scalar language param participates in locale resolution — a non-scalar
+      # (?locale[]= / ?cama_set_language[]=) would crash to_sym and 500 the request
+      set_language = params[:cama_set_language]
+      session[:cama_current_language] = set_language.to_sym if set_language.is_a?(String) && set_language.present?
       session[:cama_current_language] = nil if current_site.get_languages.exclude?(session[:cama_current_language])
-      I18n.locale = params[:locale] || session[:cama_current_language] || current_site.get_languages.first
+      requested_locale = params[:locale] if params[:locale].is_a?(String)
+      I18n.locale = requested_locale || session[:cama_current_language] || current_site.get_languages.first
       return page_not_found unless current_site.get_languages.include?(I18n.locale.to_sym)
 
       configure_frontend_lookup_prefixes
