@@ -60,14 +60,16 @@ module CamaleonCms
         def set_post_data_params
           post_data = params
                       .require(:post).permit(
-                        :title, :slug, :content, :excerpt, :status, :comment_status, :post_parent, :visibility,
+                        :title, :slug, :content, :excerpt, :status, :comment_status, :visibility,
                         :visibility_value, :post_order, :published_at
                       ).to_h
           post_data.delete(:created_at) if params[:post][:created_at].blank?
           post_data.delete(:updated_at) if params[:post][:updated_at].blank?
           post_data[:status] = 'draft_child'
-          if params[:post_id].present? && current_site.posts.where(id: params[:post_id]).exists?
-            post_data[:post_parent] = params[:post_id]
+          if action_name == 'create'
+            @draft_parent_post = current_site.posts.find_by(id: params[:post_id]) if params[:post_id].present?
+            # post_parent is create-only and always overwritten — never client-writable via post[post_parent]
+            post_data[:post_parent] = @draft_parent_post&.id
           end
           post_data[:data_tags] = params[:tags].to_s
           post_data[:data_categories] = params[:categories] || []

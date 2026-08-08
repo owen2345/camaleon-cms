@@ -210,5 +210,37 @@ RSpec.describe 'Security: Draft Authorization', type: :request do
       draft = CamaleonCms::Post.find(json['draft']['id'])
       expect(draft.post_parent).to be_nil
     end
+
+    it 'discards a client-supplied post[post_parent] when post_id is absent' do
+      expect do
+        post "/admin/post_type/#{post_type.id}/drafts", params: {
+          post: { title: 'Smuggled Parent', content: 'Content', post_parent: published_post.id }
+        }
+      end.not_to(change { published_post.drafts.count })
+
+      json = JSON.parse(response.body)
+      draft = CamaleonCms::Post.find(json['draft']['id'])
+      expect(draft.post_parent).to be_nil
+    end
+
+    it 'discards a client-supplied post[post_parent] when post_id is invalid' do
+      post "/admin/post_type/#{post_type.id}/drafts", params: {
+        post_id: 999_999,
+        post: { title: 'Smuggled Parent', content: 'Content', post_parent: published_post.id }
+      }
+
+      json = JSON.parse(response.body)
+      draft = CamaleonCms::Post.find(json['draft']['id'])
+      expect(draft.post_parent).to be_nil
+    end
+
+    it 'never modifies post_parent on update' do
+      patch "/admin/post_type/#{post_type.id}/drafts/#{existing_draft.id}", params: {
+        post: { title: 'Updated Without post_id', content: 'Updated', post_parent: 999_999 }
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(existing_draft.reload.post_parent).to eq(published_post.id)
+    end
   end
 end
