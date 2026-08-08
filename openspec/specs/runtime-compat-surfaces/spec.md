@@ -1,7 +1,14 @@
 # runtime-compat-surfaces Specification
 
 ## Purpose
-TBD - created by archiving change restore-runtime-compat-surfaces. Update Purpose after archive.
+
+Preserve the admin and frontend runtime contracts that plugins, themes and overridden views from the
+2.9.2 era bind to, across the `CurrentRequest` and admin-menu refactors: the legacy 2-argument
+`post_type_list_taxonomy` form, single-resolution `cama_current_user`, quote-safe admin menu `data-*`
+attributes, inline formatting in menu titles, `cf_add_model`'s placement-dropdown listing, the
+`@_admin_menus` removal idiom, and the legacy-ivar read fallbacks behind `the_title` / `is_home?` /
+SEO helpers.
+
 ## Requirements
 ### Requirement: Legacy 2-argument taxonomy-list calls resolve the post type from the controller
 `post_type_list_taxonomy` SHALL accept its legacy 2-argument form (`taxonomies`, `color`) and resolve
