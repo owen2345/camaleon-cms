@@ -295,10 +295,15 @@ module CamaleonCms
       session[:cama_current_language] = nil if current_site.get_languages.exclude?(session[:cama_current_language])
       requested_locale = params[:locale] if params[:locale].is_a?(String)
       I18n.locale = requested_locale || session[:cama_current_language] || current_site.get_languages.first
-      return page_not_found unless current_site.get_languages.include?(I18n.locale.to_sym)
-
+      # The availability gate renders the site's 404 (directly or via a custom error_404
+      # post), so the theme lookup prefixes must already be registered when it fires
       configure_frontend_lookup_prefixes
       theme_init
+      return if current_site.get_languages.include?(I18n.locale.to_sym)
+
+      # The unoffered locale must not style the 404 page or leak into its links
+      I18n.locale = current_site.get_languages.first
+      page_not_found
     end
 
     # initialize hooks before to execute action

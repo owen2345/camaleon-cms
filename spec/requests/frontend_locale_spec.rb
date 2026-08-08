@@ -29,4 +29,11 @@ RSpec.describe 'Frontend locale resolution', type: :request do
 
     expect(response).to have_http_status(:ok)
   end
+
+  it 'rejects an unoffered scalar ?locale= with the site 404 page instead of a server error' do
+    get '/', params: { locale: 'de' }
+
+    expect(response).to have_http_status(:not_found)
+    expect(response.body).to include(I18n.t('camaleon_cms.page_not_exist', locale: :en))
+  end
 end
