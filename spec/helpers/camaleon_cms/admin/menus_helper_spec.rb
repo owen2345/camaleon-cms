@@ -7,6 +7,20 @@ RSpec.describe CamaleonCms::Admin::MenusHelper, type: :helper do
 
   before { CurrentRequest.reset }
 
+  describe '#parse_datas (regression M22)' do
+    it 'keeps a single-quoted value that contains double quotes' do
+      datas = %(data-intro='<img style="max-width: 100%;" src="x.png" /> hi' data-position='right')
+      result = helper.send(:parse_datas, datas)
+
+      expect(result[:intro]).to eq('<img style="max-width: 100%;" src="x.png" /> hi')
+      expect(result[:position]).to eq('right')
+    end
+
+    it 'keeps a double-quoted value that contains single quotes' do
+      expect(helper.send(:parse_datas, %(data-note="it's here"))).to eq(note: "it's here")
+    end
+  end
+
   describe 'admin menu management with CurrentRequest' do
     it 'stores menu items in CurrentRequest instead of instance variables' do
       expect(CurrentRequest).to receive(:admin_menu_items=).and_call_original

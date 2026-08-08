@@ -360,8 +360,11 @@ module CamaleonCms
         return {} if datas_string.blank?
 
         result = {}
-        datas_string.scan(/data-(\w+)=['"]([^'"]*)['"]/).each do |key, value|
-          result[key.to_sym] = value
+        # Match single- or double-quoted values so a value may contain the other quote character. The
+        # old /['"]([^'"]*)['"]/ stopped at the first quote of either kind, truncating data-intro
+        # strings that carry HTML (e.g. the Menus tooltip's <img ... style="...">). Regression M22.
+        datas_string.scan(/data-([\w-]+)=(?:'([^']*)'|"([^"]*)")/).each do |key, single, double|
+          result[key.to_sym] = single || double
         end
         result
       end
