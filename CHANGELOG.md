@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **Removed:** The `ActiveRecordExtras` mixin and with it the `update_or_create`,
+  `update_or_create!`, and `assign_or_new` model methods, formerly available on every Camaleon
+  model. External code that called them should use the Rails idiom instead:
+  `Model.find_or_initialize_by(lookup_attrs).tap { |r| r.assign_attributes(extra_attrs); r.save }`
+  (or `save!`). The 2026-08 ecosystem sweep found no plugin, theme, or host app calling these
+  methods; this note exists because the removal was previously undocumented. Regression audit M4.
+
 - **Fix:** Three session-adjacent regressions: the admin login/register/forgot-password pages
   render in the site's language again (with `?locale=` honored when the site offers it, falling
   back silently otherwise); same-host `return_to` destinations are followed regardless of host
