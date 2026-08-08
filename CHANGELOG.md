@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Fix:** Three legacy model-API surfaces restored: `Media.find_by_key` (as an alias of
+  `by_key` — the rename left legacy callers raising `NoMethodError`), `Post#unassign_category`
+  (with its category-counter refresh made reliable on posts whose categories association is
+  already loaded), and the default ascending-id ordering on `NavMenu`/`NavMenuItem` (rendered
+  menu order was and stays `term_order`). Also documents the `ActiveRecordExtras` removal (see
+  the entry below) and corrects the [#1222](https://github.com/owen2345/camaleon-cms/pull/1222)
+  claim about slug-uniqueness scope: it is site-wide across post types, now spec-pinned.
+  Regression audit M5/M6/M10/M4/M11.
+  [#1237](https://github.com/owen2345/camaleon-cms/pull/1237).
+
 - **Removed:** The `ActiveRecordExtras` mixin and with it the `update_or_create`,
   `update_or_create!`, and `assign_or_new` model methods, formerly available on every Camaleon
   model. External code that called them should use the Rails idiom instead:
