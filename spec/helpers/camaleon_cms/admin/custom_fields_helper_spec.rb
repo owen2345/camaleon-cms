@@ -47,5 +47,26 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsHelper, type: :helper do
 
       expect(helper.cf_extra_models_for_fields).to include(CamaleonCms::User)
     end
+
+    it 'does not accumulate hook-appended models across repeated calls' do
+      helper.cf_add_model(CamaleonCms::Post)
+      allow(helper).to receive(:hooks_run) { |_key, args| args[:models] << CamaleonCms::User }
+
+      first = helper.cf_extra_models_for_fields
+      second = helper.cf_extra_models_for_fields
+
+      expect(first).to eq([CamaleonCms::Post, CamaleonCms::User])
+      expect(second).to eq(first)
+      expect(CurrentRequest.extra_models_for_fields).to eq([CamaleonCms::Post])
+    end
+
+    it 'seeds from a controller-assigned legacy @_extra_models_for_fields without mutating it' do
+      legacy = [CamaleonCms::Post]
+      helper.instance_variable_set(:@_extra_models_for_fields, legacy)
+      allow(helper).to receive(:hooks_run) { |_key, args| args[:models] << CamaleonCms::User }
+
+      expect(helper.cf_extra_models_for_fields).to eq([CamaleonCms::Post, CamaleonCms::User])
+      expect(legacy).to eq([CamaleonCms::Post])
+    end
   end
 end

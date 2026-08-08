@@ -58,11 +58,18 @@ so scripts and event handlers are removed.
 ### Requirement: Models registered via cf_add_model reach the placement dropdown
 A model registered through `cf_add_model`, plus any a `custom_field_custom_models` hook appends, SHALL
 appear in the custom-field-group placement dropdown. The writer and the dropdown SHALL read the same
-`CurrentRequest` store.
+`CurrentRequest` store. The hook SHALL receive a copy of the store, so its appends reach only that
+read — they SHALL NOT accumulate in the store or mutate a controller-assigned legacy ivar.
 
 #### Scenario: A registered model is offered for placement
 - **WHEN** `cf_add_model(SomeModel)` is called before the custom-fields form renders
 - **THEN** `SomeModel` SHALL be among the models the placement dropdown lists
+
+#### Scenario: Hook-appended models do not accumulate across repeated reads
+- **WHEN** a `custom_field_custom_models` hook appends a model and the list is read more than once in
+  a request
+- **THEN** each read SHALL include the hook's model once, and the `CurrentRequest` store SHALL retain
+  only the registered models
 
 ### Requirement: The admin menu store supports in-place removal held across menu building
 The admin menu store SHALL keep the same object identity across all menu operations, and `@_admin_menus`
