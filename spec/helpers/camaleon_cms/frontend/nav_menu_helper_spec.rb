@@ -339,7 +339,7 @@ RSpec.describe CamaleonCms::Frontend::NavMenuHelper do
   end
 
   describe '#cama_parse_menu_item current state' do
-    it 'does not use legacy visited post ivar fallback' do
+    it 'falls back to the legacy visited post ivar when CurrentRequest is unset (regression M20)' do
       create(:nav_menu_item, name: 'Post', kind: 'post', url: '42', parent: @menu)
       post = double(
         id: 42,
@@ -354,7 +354,7 @@ RSpec.describe CamaleonCms::Frontend::NavMenuHelper do
 
       result = helper.cama_parse_menu_item(@menu.children.first)
 
-      expect(result[:current]).to be(false)
+      expect(result[:current]).to be(true)
     end
 
     it 'marks post menu item as current from request-scoped visited post' do

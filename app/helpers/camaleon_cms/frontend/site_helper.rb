@@ -76,7 +76,13 @@ module CamaleonCms
       private
 
       def camaleon_frontend_visited_state(current_request_attr)
-        CurrentRequest.public_send(current_request_attr)
+        value = CurrentRequest.public_send(current_request_attr)
+        return value unless value.nil?
+
+        # Fall back to a legacy @cama_visited_* ivar a plugin front controller may have set directly;
+        # core writes both stores, so stock flows never reach here. Regression M20.
+        legacy_ivar = CamaleonCms::FrontendVisitedStateConcern::LEGACY_VISITED_IVAR_BY_ATTR[current_request_attr]
+        instance_variable_get(legacy_ivar) if legacy_ivar && instance_variable_defined?(legacy_ivar)
       end
     end
   end

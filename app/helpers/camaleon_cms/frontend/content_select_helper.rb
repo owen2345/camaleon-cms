@@ -163,7 +163,8 @@ module CamaleonCms
       private
 
       def camaleon_frontend_object
-        CurrentRequest.frontend_object
+        # Fall back to a plugin-set @object ivar; core writes CurrentRequest.frontend_object. Regression M20.
+        CurrentRequest.frontend_object || (instance_variable_get(:@object) if instance_variable_defined?(:@object))
       end
     end
   end
