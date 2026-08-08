@@ -176,14 +176,20 @@ module CamaleonCms
 
     private
 
-    # validate redirect url to prevent open redirect attacks
+    # validate redirect url to prevent open redirect attacks: relative or same-host only,
+    # host compared case-insensitively (RFC 3986); cross-site return_to on multisite is
+    # deliberately unsupported — a sibling-site allowlist would be its own security change.
+    # A passing absolute URL is emitted with the host in the request's canonical case, so
+    # Rails' own case-sensitive open-redirect protection stays active without tripping on it.
     def safe_redirect_url(url)
       return if url.blank?
 
       uri = URI.parse(url)
-      return if uri.host.present? && uri.host != request.host
+      return url if uri.host.blank?
+      return unless uri.host.casecmp?(request.host)
 
-      url
+      uri.host = request.host
+      uri.to_s
     rescue URI::InvalidURIError
       nil
     end
