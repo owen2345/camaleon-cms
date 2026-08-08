@@ -39,6 +39,12 @@ server error.
 - **THEN** the page renders with Spanish translations
 - **AND** the response is not a server error
 
+#### Scenario: Non-scalar locale parameter falls back
+
+- **WHEN** a visitor opens `/admin/login?locale[]=en` (or any other non-scalar `locale` value)
+- **THEN** the page renders in the site's first configured language
+- **AND** the response is not a server error
+
 ### Requirement: Frontend language choice stays out of admin session pages
 
 The frontend visitor language stored in `session[:cama_current_language]` SHALL NOT influence the

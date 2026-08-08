@@ -165,10 +165,11 @@ module CamaleonCms
       end
 
       # These pages render before authentication, so the site's languages — not a user
-      # preference — pick the locale; ?locale= applies only when the site offers it
+      # preference — pick the locale; ?locale= applies only when scalar (?locale[]=
+      # would crash to_sym) and offered by the site
       def set_login_locale
         site_languages = current_site.get_languages
-        requested = params[:locale].presence&.to_sym
+        requested = (params[:locale].presence&.to_sym if params[:locale].is_a?(String))
         I18n.locale = if site_languages.include?(requested)
                         requested
                       else
