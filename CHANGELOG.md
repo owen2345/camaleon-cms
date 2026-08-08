@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Docs:** Codified the security-capability-gating rule — a security-sensitive action is admin-only by
+  default and gated for non-admins by a dedicated, off-by-default, fail-closed role permission
+  (authorization, never a path/filename/flag proxy, and never fail-open). Adds the
+  `security-capability-gating` OpenSpec capability, a "The gating rule" section in
+  `docs/security/permissions.md` with a recipe for adding a new gated capability, and a
+  `docs/ai/criteria.md` checkpoint. No engine changes; the four existing permissions are cited as
+  templates. [#1231](https://github.com/owen2345/camaleon-cms/pull/1231).
+
 - **Docs:** Removed the defunct Autocomplete plugin (`gaelfokou/cama_autocomplete` — repository and
   gem no longer exist) from the README plugin list and the example Gemfile, and recorded the external
   plugin/theme binding surface as the `ecosystem-plugin-bindings` OpenSpec capability with a
