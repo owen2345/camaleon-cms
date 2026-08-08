@@ -7,8 +7,6 @@ module CamaleonCms
     # attrs: [name, description, slug]
     attr_accessor :site_domain
 
-    # default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
-
     has_many :post_types, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id, dependent: :destroy,
                           inverse_of: :site
     has_many :nav_menus, class_name: 'CamaleonCms::NavMenu', foreign_key: :parent_id, dependent: :destroy,

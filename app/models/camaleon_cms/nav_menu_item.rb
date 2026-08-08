@@ -6,6 +6,9 @@ module CamaleonCms
     # while scripts and event handlers are stripped, preventing stored XSS from menu managers.
     normalize_attrs(:name, :description)
 
+    # deterministic external iteration order (2.9.2 parity); render paths reorder(:term_order)
+    default_scope { order(id: :asc) }
+
     alias_attribute :site_id, :term_group
     alias_attribute :label, :name
     alias_attribute :url, :description

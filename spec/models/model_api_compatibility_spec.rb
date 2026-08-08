@@ -54,4 +54,17 @@ RSpec.describe 'Model API compatibility', type: :model do
       expect(cat_b.reload.count).to eq(0)
     end
   end
+
+  describe 'navigation default ordering' do
+    # A behavioral shuffle test would be vacuously green (SQLite returns insertion
+    # order for unordered selects); the contract external iterators depend on is the
+    # ORDER BY itself. Render paths override it via reorder(:term_order).
+    it 'orders NavMenu relations by ascending id by default' do
+      expect(CamaleonCms::NavMenu.all.to_sql).to match(/ORDER BY.*id.* ASC/i)
+    end
+
+    it 'orders NavMenuItem relations by ascending id by default' do
+      expect(CamaleonCms::NavMenuItem.all.to_sql).to match(/ORDER BY.*id.* ASC/i)
+    end
+  end
 end
