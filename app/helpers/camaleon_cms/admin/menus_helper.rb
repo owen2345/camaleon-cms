@@ -265,7 +265,7 @@ module CamaleonCms
                 safe_join([
                   content_tag(:i, nil, class: "fa fa-#{menu[:icon]}"),
                   ' ',
-                  content_tag(:span, menu[:title]),
+                  content_tag(:span, cama_admin_menu_title(menu[:title])),
                   (content_tag(:i, nil, class: 'fa fa-angle-left pull-right') if menu.key?(:items))
                 ].compact)
               end,
@@ -345,7 +345,7 @@ module CamaleonCms
                   safe_join([
                     content_tag(:i, nil, class: "fa fa-#{item[:icon]}"),
                     ' ',
-                    item[:title],
+                    cama_admin_menu_title(item[:title]),
                     (content_tag(:i, nil, class: 'fa fa-angle-left pull-right') if item.key?(:items))
                   ].compact)
                 end,
@@ -354,6 +354,16 @@ module CamaleonCms
             end
           end)
         end
+      end
+
+      # Menu titles may carry inline formatting (e.g. camaleon-ecommerce's count badge). Core builds its
+      # titles as SafeBuffers via safe_join/content_tag and those pass through untouched; a plain-String
+      # title from a plugin is sanitized to a safe inline subset — the badge renders, scripts and event
+      # handlers are stripped — rather than escaped whole. Regression M22.
+      def cama_admin_menu_title(title)
+        return title if title.is_a?(ActiveSupport::SafeBuffer)
+
+        sanitize(title.to_s, tags: %w[span small i b strong em], attributes: %w[class])
       end
 
       def parse_datas(datas_string)
