@@ -177,6 +177,146 @@ RSpec.describe 'Security: Draft Authorization', type: :request do
     end
   end
 
+  describe 'per-user draft buffers' do
+    let(:contributor_role) { current_site.user_roles.find_by!(slug: 'contributor') }
+    let(:contributor) { create(:user, role: contributor_role.slug, site: current_site) }
+    let(:own_post) do
+      post_type.posts.create!(title: 'Own Post', slug: 'own-post', user_id: contributor.id, status: 'published')
+    end
+    let!(:admins_draft_of_own_post) do
+      post_type.posts.create!(
+        title: 'Admin Autosave', slug: 'admin-autosave', content: 'Admin content',
+        user_id: admin.id, status: 'draft_child', post_parent: own_post.id
+      )
+    end
+
+    before do
+      contributor_role.set_meta("_post_type_#{current_site.id}", { 'edit' => [post_type.id.to_s] })
+      sign_in_as(contributor, site: current_site)
+    end
+
+    it 'lets the post owner autosave into their own buffer while another user buffer exists' do
+      expect do
+        post "/admin/post_type/#{post_type.id}/drafts", params: {
+          post_id: own_post.id,
+          post: { title: 'Owner Update', content: 'Owner content' }
+        }
+      end.to(change { own_post.drafts.count }.by(1))
+
+      expect(response).to have_http_status(:ok)
+      own_buffer = CamaleonCms::Post.find(JSON.parse(response.body).dig('draft', 'id'))
+      expect(own_buffer.id).not_to eq(admins_draft_of_own_post.id)
+      expect(own_buffer.user_id).to eq(contributor.id)
+      expect(own_buffer.content).to eq('Owner content')
+    end
+
+    it 'leaves the other user buffer untouched' do
+      post "/admin/post_type/#{post_type.id}/drafts", params: {
+        post_id: own_post.id,
+        post: { title: 'Owner Update', content: 'Owner content' }
+      }
+
+      expect(admins_draft_of_own_post.reload.content).to eq('Admin content')
+      expect(admins_draft_of_own_post.reload.user_id).to eq(admin.id)
+    end
+
+    it 'reuses the own buffer on subsequent autosaves' do
+      post "/admin/post_type/#{post_type.id}/drafts", params: {
+        post_id: own_post.id,
+        post: { title: 'First', content: 'First content' }
+      }
+      own_buffer_id = JSON.parse(response.body).dig('draft', 'id')
+
+      expect do
+        post "/admin/post_type/#{post_type.id}/drafts", params: {
+          post_id: own_post.id,
+          post: { title: 'Second', content: 'Second content' }
+        }
+      end.not_to(change { own_post.drafts.count })
+
+      expect(JSON.parse(response.body).dig('draft', 'id')).to eq(own_buffer_id)
+      expect(CamaleonCms::Post.find(own_buffer_id).content).to eq('Second content')
+    end
+
+    it 'treats another user buffer as missing on PATCH' do
+      patch "/admin/post_type/#{post_type.id}/drafts/#{admins_draft_of_own_post.id}", params: {
+        post_id: own_post.id,
+        post: { title: 'Hijack', content: 'Hijack content' }
+      }
+
+      # Indistinguishable from a nonexistent draft id: the standard missing-record
+      # redirect, not an authorization denial (no existence oracle for foreign buffers)
+      expect(response).to redirect_to(%r{/admin\z})
+      expect(flash[:error])
+        .to eq(I18n.t('camaleon_cms.admin.post.message.error', post_type: post_type.decorate.the_title))
+      expect(admins_draft_of_own_post.reload.content).to eq('Admin content')
+    end
+
+    it 'does not create a buffer under a post the user cannot update' do
+      admins_post = post_type.posts.create!(title: 'Admins Post', slug: 'admins-post', user_id: admin.id,
+                                            status: 'published')
+
+      expect do
+        post "/admin/post_type/#{post_type.id}/drafts", params: {
+          post_id: admins_post.id,
+          post: { title: 'Sneaky', content: 'Sneaky content' }
+        }
+      end.not_to(change { current_site.posts.drafts.count })
+
+      expect(response).to have_http_status(:found)
+    end
+
+    it 'grants nothing from draft ownership under another user post' do
+      admins_post = post_type.posts.create!(title: 'Admins Post', slug: 'admins-post', user_id: admin.id,
+                                            status: 'published')
+      stray = post_type.posts.create!(
+        title: 'Stray', slug: 'stray-buffer', content: 'Original',
+        user_id: contributor.id, status: 'draft_child', post_parent: admins_post.id
+      )
+
+      post "/admin/post_type/#{post_type.id}/drafts", params: {
+        post_id: admins_post.id,
+        post: { title: 'Sneaky', content: 'Sneaky content' }
+      }
+
+      expect(response).to have_http_status(:found)
+      expect(stray.reload.content).to eq('Original')
+    end
+
+    it 'lets an edit_other role autosave another user post into its own buffer' do
+      editor_role = current_site.user_roles.find_by!(slug: 'editor')
+      editor_role.set_meta("_post_type_#{current_site.id}", { 'edit_other' => [post_type.id.to_s] })
+      editor = create(:user, role: 'editor', site: current_site)
+      sign_in_as(editor, site: current_site)
+      admins_post = post_type.posts.create!(title: 'Admins Post', slug: 'admins-post', user_id: admin.id,
+                                            status: 'published')
+
+      expect do
+        post "/admin/post_type/#{post_type.id}/drafts", params: {
+          post_id: admins_post.id,
+          post: { title: 'Review Pass', content: 'Review content' }
+        }
+      end.to(change { admins_post.drafts.count }.by(1))
+
+      expect(response).to have_http_status(:ok)
+      buffer = CamaleonCms::Post.find(JSON.parse(response.body).dig('draft', 'id'))
+      expect(buffer.user_id).to eq(editor.id)
+    end
+
+    it 'links the edit form view-draft to the current user own buffer' do
+      own_buffer = post_type.posts.create!(
+        title: 'Mine', slug: 'mine-buffer', content: 'Mine',
+        user_id: contributor.id, status: 'draft_child', post_parent: own_post.id
+      )
+
+      get "/admin/post_type/#{post_type.id}/posts/#{own_post.id}/edit"
+
+      expect(response).to have_http_status(:ok)
+      href = Nokogiri::HTML5.parse(response.body).at_css('#view_draft')['href']
+      expect(href).to end_with("/posts/#{own_buffer.id}/edit")
+    end
+  end
+
   describe 'post_parent validation' do
     before { sign_in_as(admin, site: current_site) }
 
