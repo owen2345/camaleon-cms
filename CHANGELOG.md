@@ -160,15 +160,16 @@
 
 - **Fix:** Slug-uniqueness validation was silently inert on Rails 7.0+. `UniqValidator` and
   `PostUniqValidator` registered errors by pushing onto `errors[:base]`, which modern Rails
-  discards, so duplicate slugs (same taxonomy and parent) and recursive page hierarchies saved
-  without complaint; on Rails 6.1 the old pattern still worked. Errors are registered with
+  discards, so duplicate slugs and recursive page hierarchies saved without complaint; on
+  Rails 6.1 the old pattern still worked. Errors are registered with
   `errors.add` again. [#1222](https://github.com/owen2345/camaleon-cms/pull/1222).
 
   **Notes for upgraders**
 
-  - On Rails 7.0+, saves that duplicate an existing slug under the same parent and taxonomy, or
-    that create a looping page hierarchy, fail validation again — matching what Rails ≤ 6.1
-    installs always enforced.
+  - On Rails 7.0+, saves that duplicate a post slug already held by any non-draft, non-trashed
+    post of the same site — the scope is site-wide, across post types and parents (this entry
+    originally understated it as "same parent and taxonomy") — or that create a looping page
+    hierarchy, fail validation again, matching what Rails ≤ 6.1 installs always enforced.
   - Records duplicated while the validator was inert are not rewritten; they surface the
     "requires different slug" error the next time they are edited.
 
