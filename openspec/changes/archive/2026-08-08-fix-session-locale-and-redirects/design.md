@@ -76,6 +76,24 @@ flipping the flag back on needs verification across the whole engine (any `redir
 `the_url`-derived value can be cross-host on wildcard-subdomain multisite). Spun off as its own
 follow-up; no engine change in this PR.
 
+## Post-review addendum
+
+Code review extended the change with three locale-parameter fixes; the decisions:
+
+5. **Non-scalar params never participate, anywhere.** The M14 scalar rule generalizes: a
+   non-scalar `?locale=` (admin and frontend) or `?cama_set_language=` is ignored in favor of
+   the rest of the resolution chain — not rejected with a 4xx, never a 500. Same rationale as
+   M14: degrade to the value the rest of the request already agrees on.
+6. **The frontend locale gate fires after theme lookup registration.** Both branches of
+   `page_not_found` (the 404 template under the theme layout, a custom `error_404` post via
+   `render_post`) need `configure_frontend_lookup_prefixes`; the reorder is safe because
+   neither that method nor `theme_init` depends on the locale, and passing requests execute
+   the same calls in the same relative order. Rejected: rendering the gate 404 with
+   `layout: false` (unstyled, diverges from every other frontend 404).
+7. **The rejected locale is replaced before the 404 renders.** `I18n.locale` resets to the
+   site's first language so the error page renders in the site's language and
+   `default_url_options` does not stamp the rejected locale onto the page's links.
+
 ## Risks / Trade-offs
 
 - [A site whose stored `languages_site` meta is malformed] → `get_languages` already rescues to

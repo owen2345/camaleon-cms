@@ -44,3 +44,15 @@
       counts/logs/SHAs), first push runs CI.
 - [x] 5.3 Commit the short changelog entry referencing the PR with `[skip ci]` and push; record
       the `cama_site_check_existence` triage outcome for follow-up.
+
+## 6. Post-review hardening (same branch, after archive)
+
+- [x] 6.1 Admin: scalar guard for `?locale=` in `set_login_locale` (red-first spec in
+      `sessions_locale_spec.rb`); non-scalar scenario added to `admin-login-locale`.
+- [x] 6.2 Frontend: scalar guards for `?locale=` / `?cama_set_language=` in `init_frontent`
+      (red-first specs in new `spec/requests/frontend_locale_spec.rb`).
+- [x] 6.3 Frontend: register theme lookup prefixes before the locale availability gate and
+      reset the rejected locale, so unoffered locales render the site's 404 instead of a
+      `MissingTemplate` 500 (red-first spec); `frontend-locale-resolution` capability added.
+- [x] 6.4 Full gauntlet re-run (rspec, rubocop, brakeman, zeitwerk); changelog entry extended;
+      PR description updated.

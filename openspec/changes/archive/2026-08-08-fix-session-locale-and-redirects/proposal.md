@@ -34,6 +34,24 @@ medium regressions, batched as PR 3 of the fix plan:
   `:id`. The #1214 scalar-`user_id` precedence is unchanged; `?user_id[]=` requests stop 500ing
   for managers and stop mis-denying self-edits, resolving to the path target instead.
 
+### Post-review additions (same branch)
+
+Code review of the three fixes surfaced three adjacent locale-parameter defects, fixed on this
+branch after the archive:
+
+- **Admin session pages**: the M15 resolver symbolized the raw `?locale=` parameter, so a
+  non-scalar value (`?locale[]=`) raised `NoMethodError` — a 500 on the pre-authentication
+  pages, violating this change's own "malformed values fall back silently" requirement. Only a
+  scalar `?locale=` participates now.
+- **Frontend non-scalar params**: `FrontendController#init_frontent` had the same unguarded
+  symbolization for `?locale=` and `?cama_set_language=` (pre-existing on master). Only scalar
+  values participate; non-scalars degrade to the session-language / site-first fallback chain.
+- **Frontend unoffered locale**: the locale availability gate called `page_not_found` before
+  the theme lookup prefixes were registered, so an unoffered scalar `?locale=` raised
+  `ActionView::MissingTemplate` instead of rendering a 404 (pre-existing on master, and the
+  same for a site's custom `error_404` post). The gate now fires after prefix registration and
+  renders the site's 404 in the site's first language.
+
 ## Capabilities
 
 ### New Capabilities
@@ -44,6 +62,9 @@ medium regressions, batched as PR 3 of the fix plan:
 - `session-return-redirects`: the `return_to` redirect policy shared by the three session call
   sites: relative and same-host-any-casing values pass, cross-host and unparsable values fall
   back to the safe default — never an error, never an off-host redirect.
+- `frontend-locale-resolution` (post-review): the frontend's scalar-only locale fallback chain
+  (`?locale=` → session language → site first language) and the unoffered-locale outcome — the
+  site's own 404 page in the site's language, never a server error.
 
 ### Modified Capabilities
 
@@ -55,9 +76,12 @@ medium regressions, batched as PR 3 of the fix plan:
 - `app/controllers/camaleon_cms/admin/sessions_controller.rb` (`before_hook_session`).
 - `app/helpers/camaleon_cms/session_helper.rb` (`safe_redirect_url`).
 - `app/controllers/camaleon_cms/admin/users_controller.rb` (`user_id_param`).
-- Specs: new `spec/requests/admin/sessions_locale_spec.rb`; extensions to
+- `app/controllers/camaleon_cms/frontend_controller.rb` (`init_frontent`) — post-review.
+- Specs: new `spec/requests/admin/sessions_locale_spec.rb` and (post-review)
+  `spec/requests/frontend_locale_spec.rb`; extensions to
   `spec/requests/security/open_redirect_session_spec.rb` and
   `spec/requests/admin/users_controller/member_route_target_resolution_spec.rb`.
 - No routes, models, JS, or data changes. Behavior deltas: localized session pages return,
   mixed-case same-host `return_to` works again, `?user_id[]=` degrades safely to the route
-  target.
+  target, non-scalar locale params degrade instead of erroring, and unoffered frontend locales
+  render the site's 404.
