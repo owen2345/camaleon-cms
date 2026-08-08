@@ -42,6 +42,15 @@ RSpec.describe CamaleonCms::Admin::MenusHelper, type: :helper do
       expect(html).not_to include('<script')
       expect(html).not_to include('onclick')
     end
+
+    it 'passes a core-composed SafeBuffer title through untouched' do
+      # Core builds titles via safe_join/content_tag; the data-count attribute sits outside the
+      # plain-String sanitize allowlist, so this fails if the SafeBuffer guard is ever dropped.
+      title = helper.safe_join([helper.content_tag(:span, 'Plugins', data: { count: 3 }), ' ',
+                                helper.content_tag(:small, '3', class: 'label')])
+
+      expect(helper.send(:cama_admin_menu_title, title)).to eql(title)
+    end
   end
 
   describe 'admin menu store identity (regression M19)' do
