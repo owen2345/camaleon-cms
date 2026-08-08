@@ -53,6 +53,24 @@ RSpec.describe 'member route target resolution', type: :request do
     end
   end
 
+  context 'when the injected user_id is not a scalar' do
+    it 'updates the user named in the path with no server error' do
+      post cama_admin_login_path, params: { user: { username: admin_user.username, password: 'admin_secret' } }
+
+      patch "/admin/users/#{victim.id}?user_id[]=#{attacker.id}", params: { user: { first_name: 'ByAdmin' } }
+
+      expect(victim.reload.first_name).to eq('ByAdmin')
+      expect(attacker.reload.first_name).to eq('Attacker')
+    end
+
+    it 'resolves a self-edit to the path target instead of denying it' do
+      patch "/admin/users/#{attacker.id}?user_id[]=#{victim.id}", params: { user: { first_name: 'SelfEdit' } }
+
+      expect(attacker.reload.first_name).to eq('SelfEdit')
+      expect(victim.reload.first_name).to eq('Original')
+    end
+  end
+
   context 'when a low-privilege caller targets another user directly' do
     it 'denies a member-route edit and leaves the target unchanged' do
       patch "/admin/users/#{victim.id}", params: { user: { first_name: 'Pwned' } }

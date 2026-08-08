@@ -152,8 +152,13 @@ module CamaleonCms
         (user_id.present? && cama_current_user.id.to_s == user_id.to_s) || authorize!(:manage, :users)
       end
 
+      # Only a scalar user_id participates in target resolution (?user_id[]= would
+      # crash the record lookup and flip authorization); otherwise the route id wins
       def user_id_param
-        params[:user_id] || params[:id]
+        user_id = params[:user_id]
+        return params[:id] unless user_id.is_a?(String)
+
+        user_id
       end
 
       def user_params
