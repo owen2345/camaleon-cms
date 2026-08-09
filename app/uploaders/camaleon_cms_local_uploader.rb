@@ -32,18 +32,15 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     { error: 'File not found' }
   end
 
-  # Lists cached media objects for a folder, transparently fixing legacy thumbnail
-  # URLs (see #cama_compat_legacy_thumb). The cache (media DB records) may still
-  # hold thumb URLs computed from the source extension (sample: ".jpg") while the
-  # on-disk thumbnail is a legacy ".png"; without this the admin media browser
-  # would render 404 thumbnails for such files.
-  def objects(prefix = '/', _sort = 'created_at')
-    res = super
-    return res if res.blank?
-
-    res = res.to_a
-    res.each { |item| cama_fix_legacy_thumb_item(item) }
-    res
+  # Repairs legacy thumbnail URLs (see #cama_compat_legacy_thumb) for one rendered page of
+  # media items. The cache (media DB records) may still hold thumb URLs computed from the
+  # source extension (sample: ".jpg") while the on-disk thumbnail is a legacy ".png"; without
+  # this the admin media browser would render 404 thumbnails for such files. Applied by the
+  # media controller to the paginated page only — #objects stays a lazy relation so the browser
+  # paginates at the database instead of materializing (and stat-ing) the whole folder.
+  def cama_prepare_browser_page(items)
+    items.each { |item| cama_fix_legacy_thumb_item(item) }
+    items
   end
 
   def file_parse(key)

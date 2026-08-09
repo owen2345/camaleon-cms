@@ -63,6 +63,13 @@ module ActionView
       # templates), it returns a blank list, signalling the caller to merge
       # `self.prefixes` as before -- this keeps the plugin's own
       # `plugins/<name>/views/...` lookup prefix reachable.
+      #
+      # Known limitation (regression audit M30, deliberately kept): an explicit
+      # `render prefixes:` whose list is *entirely* theme-scoped but whose target
+      # template actually lives under a controller prefix raises MissingTemplate,
+      # because `self.prefixes` are not merged in that case. Merging them would
+      # reopen the per-site-override / cross-theme leak this guard exists to close,
+      # and no stock or ecosystem caller hits it, so the isolation is kept.
       def cama_theme_scoped_prefixes(prefixes)
         theme = CurrentRequest.frontend_current_theme
         slug = theme&.slug

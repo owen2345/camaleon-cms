@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- **Fix:** The admin media browser paginates at the database again instead of loading a folder's
+  entire media list into memory and re-checking every image's thumbnail on disk per page view;
+  the legacy-thumbnail repair now runs only over the rendered page. Sites with large media folders
+  load the media manager far faster. Regression audit M27.
+  [#1242](https://github.com/owen2345/camaleon-cms/pull/1242).
+
+- **Notes for upgraders (two documented behaviors, no code change):**
+  - **Assets:** the engine's list of plugin/theme asset roots to precompile is a boot-time
+    snapshot. A Sprockets-3 host app that appends its own `config.assets.paths` in an initializer
+    running *after* the engine's will not have those files precompiled in production. Drive
+    precompilation from `manifest.js` (as the maintained host apps do) rather than appending paths
+    after boot. Regression audit M29.
+  - **Template lookup:** an explicit `render prefixes: [...]` whose list is entirely theme-scoped
+    (only `themes/<slug>/views` and/or `camaleon_cms/default_theme`) is looked up in exactly those
+    prefixes — the controller/global prefixes are deliberately not merged, so a theme partial
+    cannot resolve another site's per-site-override or a plugin's views. A render that needs a
+    controller-owned template must include a non-theme prefix in the list. Regression audit M30.
+
 - **Security fix:** An authenticated uploader without the `media_unfiltered_upload` permission
   could use a `before_upload` hook to substitute bytes the content scanner never saw, since the
   hook runs after the scan and the persisted IO is what it leaves behind. The pipeline now

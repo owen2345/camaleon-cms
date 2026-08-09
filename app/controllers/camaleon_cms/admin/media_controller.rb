@@ -10,7 +10,7 @@ module CamaleonCms
       # render media section
       def index
         @show_file_actions = true
-        @files = @tree.paginate(page: params[:page], per_page: 100)
+        @files = cama_uploader.cama_prepare_browser_page(@tree.paginate(page: params[:page], per_page: 100))
         @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.media')
       end
@@ -58,7 +58,7 @@ module CamaleonCms
       def ajax
         @show_file_actions = true if current_site.get_option('file_actions_in_modals') == 'yes'
         @tree = cama_uploader.search(params[:search]) if params[:search].present?
-        @files = @tree.paginate(page: params[:page], per_page: 100)
+        @files = cama_uploader.cama_prepare_browser_page(@tree.paginate(page: params[:page], per_page: 100))
         @next_page = @files.current_page < @files.total_pages ? @files.current_page + 1 : nil
         if params[:partial].present?
           render json: { next_page: @next_page,
