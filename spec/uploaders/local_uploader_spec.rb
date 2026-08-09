@@ -74,7 +74,21 @@ RSpec.describe CamaleonCmsLocalUploader do
     end
   end
 
-  describe '#objects (legacy thumbnail fallback for cached media records)' do
+  describe '#objects (lazy relation for DB-level pagination)' do
+    let(:collection) { uploader.send(:get_media_collection) }
+
+    it 'returns a lazy ActiveRecord relation, not a materialized array' do
+      collection.create!(name: 'a.jpg', folder_path: '/', is_folder: false, is_public: false,
+                         file_type: 'image', url: '/media/1/a.jpg', thumb: '')
+
+      res = uploader.objects('/')
+
+      expect(res).to be_a(ActiveRecord::Relation)
+      expect(res).to respond_to(:limit)
+    end
+  end
+
+  describe '#cama_prepare_browser_page (legacy thumbnail fallback, applied to the rendered page)' do
     let(:root_folder) { uploader.instance_variable_get(:@root_folder) }
     let(:thumb_dir) { File.join(root_folder, 'thumb') }
     let(:collection) { uploader.send(:get_media_collection) }
@@ -87,20 +101,22 @@ RSpec.describe CamaleonCmsLocalUploader do
                          file_type: 'image', url: '/media/1/photo.jpg', thumb: thumb)
     end
 
+    def prepared(name)
+      uploader.cama_prepare_browser_page(uploader.objects('/').to_a).find { |i| i['name'] == name }
+    end
+
     it 'rewrites cached .jpg thumb urls to the on-disk legacy .png' do
       File.write(File.join(thumb_dir, 'photo-jpg.png'), 'x')
       create_image_media('/media/1/thumb/photo-jpg.jpg')
 
-      item = uploader.objects('/').find { |i| i['name'] == 'photo.jpg' }
-      expect(item['thumb']).to eq('/media/1/thumb/photo-jpg.png')
+      expect(prepared('photo.jpg')['thumb']).to eq('/media/1/thumb/photo-jpg.png')
     end
 
     it 'keeps the cached thumb url when the matching file exists on disk' do
       File.write(File.join(thumb_dir, 'photo-jpg.jpg'), 'x')
       create_image_media('/media/1/thumb/photo-jpg.jpg')
 
-      item = uploader.objects('/').find { |i| i['name'] == 'photo.jpg' }
-      expect(item['thumb']).to eq('/media/1/thumb/photo-jpg.jpg')
+      expect(prepared('photo.jpg')['thumb']).to eq('/media/1/thumb/photo-jpg.jpg')
     end
 
     it 'falls back to the original file url for a cached item with no thumbnail on disk (favicon)' do
@@ -108,8 +124,16 @@ RSpec.describe CamaleonCmsLocalUploader do
                          file_type: 'image', url: '/media/1/favicon.ico',
                          thumb: '/media/1/thumb/favicon-ico.ico')
 
-      item = uploader.objects('/').find { |i| i['name'] == 'favicon.ico' }
-      expect(item['thumb']).to eq('/media/1/favicon.ico')
+      expect(prepared('favicon.ico')['thumb']).to eq('/media/1/favicon.ico')
+    end
+  end
+
+  describe '#cama_prepare_browser_page on the base uploader (no-op)' do
+    it 'returns the items unchanged' do
+      items = [{ 'name' => 'x', 'thumb' => '/computed.jpg' }]
+      base = CamaleonCmsUploader.new(current_site: current_site)
+
+      expect(base.cama_prepare_browser_page(items)).to eq(items)
     end
   end
 end

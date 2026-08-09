@@ -38,6 +38,15 @@ class CamaleonCmsUploader
     res
   end
 
+  # Post-process one *rendered page* of media items for display. Base and S3 need nothing;
+  # the local uploader overrides this to repair legacy thumbnail URLs (see its override), so
+  # that per-image filesystem check runs over the paginated page rather than the whole folder.
+  # Kept out of #objects on purpose: #objects must stay a lazy relation so the media browser
+  # paginates at the database.
+  def cama_prepare_browser_page(items)
+    items
+  end
+
   # clean cached of files structure saved into DB
   def clear_cache
     get_media_collection.destroy_all
