@@ -29,7 +29,8 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#index', type: :request do
     # <img src> would fall back to the 404ing .jpg. The unit specs only exercise the .to_a path.
     it 'renders the repaired legacy thumbnail url on the page' do
       uploader = CamaleonCmsLocalUploader.new(current_site: current_site)
-      thumb_dir = File.join(uploader.instance_variable_get(:@root_folder), 'thumb')
+      media_root = uploader.instance_variable_get(:@root_folder)
+      thumb_dir = File.join(media_root, 'thumb')
       FileUtils.mkdir_p(thumb_dir)
       File.write(File.join(thumb_dir, 'photo-jpg.png'), 'x') # only the legacy .png exists on disk
       uploader.send(:get_media_collection).create!(
@@ -43,7 +44,10 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#index', type: :request do
       expect(response.body).to include('/media/1/thumb/photo-jpg.png')
       expect(response.body).not_to include('/media/1/thumb/photo-jpg.jpg')
     ensure
-      FileUtils.rm_rf(thumb_dir)
+      # Disk state outlives the DB transaction: remove the whole per-site media root the setup
+      # created (the uploader constructor mkdir_p's it), not just the thumb subdirectory. The
+      # nil check keeps a setup failure from being masked by an error here.
+      FileUtils.rm_rf(media_root) if media_root
     end
   end
 
