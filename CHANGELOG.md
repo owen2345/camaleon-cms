@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Fix:** A failed avatar crop now shows an error instead of silently blanking the saved avatar and
+  returning an empty response; the theme generator and the custom-fields/site/cross-site repair rake
+  tasks print their progress to the terminal (they logged only to a file before). Regression audit
+  L3, L16, L11, L18. [#1244](https://github.com/owen2345/camaleon-cms/pull/1244).
+  - **Notes for upgraders:** Post content edited during the 2.9.1–2.9.2 sanitize-on-save era stored
+    HTML-escaped entities and may render visibly double-encoded once (e.g. `&amp;` shown literally)
+    under the current escape-at-render behavior. There is no repair task — a blanket re-encode
+    cannot tell a legitimately-authored `&amp;` from a sanitize-era artifact — but each affected
+    field self-heals the next time it is edited and saved. Regression audit L7.
+
 - **Security fix:** SVG uploads and `/media/` SVG responses are now matched by extension
   case-insensitively, so an uppercase-extension SVG (`image.SVG`) is scanned by the SVG parser and
   served with the `nosniff` / `script-src 'none'` headers like a lowercase one; the media security
