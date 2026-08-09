@@ -137,7 +137,7 @@ module CamaleonCms
           caption = "Fields for Categories in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
         when 'PostType_PostTag'
           caption = "Fields for Post tags in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
-        when 'Widget::Main'
+        when 'Main'
           widget_name = CamaleonCms::Widget::Main.find(objectid).name.translate
           caption = "Fields for Widget <b>(#{ERB::Util.html_escape(widget_name)})</b>"
         when 'Theme'
