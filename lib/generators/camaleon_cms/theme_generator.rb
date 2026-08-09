@@ -13,17 +13,15 @@ module CamaleonCms
         if behavior == :revoke
           if Dir.exist?(theme_folder)
             FileUtils.rm_rf(theme_folder)
-            Rails.logger.info 'Theme destroyed successfully'
+            say 'Theme destroyed successfully'
           else
-            Rails.logger.info "This theme doesn't exist"
+            say "This theme doesn't exist"
           end
         elsif Dir.exist?(theme_folder)
-          Rails.logger.info 'This theme already exist'
+          say 'This theme already exist'
         else
           theme_folder = Rails.root.join('app', 'apps', 'themes', get_theme_name)
-          if Dir.exist?(theme_folder)
-            return Rails.logger.info "There is already a theme with the same name in: #{theme_folder}"
-          end
+          return say "There is already a theme with the same name in: #{theme_folder}" if Dir.exist?(theme_folder)
 
           # tmp copy
           FileUtils.mkdir_p(theme_folder)
@@ -37,7 +35,7 @@ module CamaleonCms
           # helper
           t = fix_text(File.read(File.join(theme_folder, 'main_helper.rb')))
           File.open(File.join(theme_folder, 'main_helper.rb'), 'w') { |f| f << t }
-          Rails.logger.info "Theme successfully created in: #{theme_folder}"
+          say "Theme successfully created in: #{theme_folder}"
         end
       end
 

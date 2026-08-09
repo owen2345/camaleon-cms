@@ -10,7 +10,13 @@ namespace :camaleon_cms do
   # the group restores the invariant and surfaces it where an administrator can judge and remove it.
   desc 'Re-home custom field groups whose owning site differs from the site owning their placement'
   task rehome_cross_site_field_groups: :environment do
-    Rails.logger.info 'Re-homing cross-site custom field groups...'
+    # Log for the record AND print to stdout: an operator runs this from a terminal, where
+    # Rails.logger writes to a file they are not watching, so a logger-only task looks like a no-op.
+    report = lambda do |msg|
+      Rails.logger.info(msg)
+      puts msg
+    end
+    report.call 'Re-homing cross-site custom field groups...'
     rehomed_count = 0
     skipped_count = 0
 
@@ -18,8 +24,8 @@ namespace :camaleon_cms do
       site_id = cama_placement_site_id(group)
 
       if site_id.blank?
-        Rails.logger.info "  Skipped group id=#{group.id} slug=#{group.slug} " \
-                          "(#{group.object_class}/#{group.objectid} does not resolve to a site)"
+        report.call "  Skipped group id=#{group.id} slug=#{group.slug} " \
+                    "(#{group.object_class}/#{group.objectid} does not resolve to a site)"
         skipped_count += 1
         next
       end
@@ -27,21 +33,21 @@ namespace :camaleon_cms do
       next if site_id == group.parent_id
 
       begin
-        Rails.logger.info "✓ Re-homed group id=#{group.id} slug=#{group.slug} " \
-                          "from site_id=#{group.parent_id} to site_id=#{site_id} " \
-                          "(placement #{group.object_class}/#{group.objectid})"
+        report.call "✓ Re-homed group id=#{group.id} slug=#{group.slug} " \
+                    "from site_id=#{group.parent_id} to site_id=#{site_id} " \
+                    "(placement #{group.object_class}/#{group.objectid})"
         group.update_column(:parent_id, site_id) # rubocop:disable Rails/SkipsModelValidations
         rehomed_count += 1
       rescue StandardError => e
-        Rails.logger.info "✗ Failed to re-home group id=#{group.id}: #{e.message}"
+        report.call "✗ Failed to re-home group id=#{group.id}: #{e.message}"
         skipped_count += 1
       end
     end
 
-    Rails.logger.info "\nSummary:"
-    Rails.logger.info "  Re-homed: #{rehomed_count} field groups"
-    Rails.logger.info "  Skipped:  #{skipped_count} field groups"
-    Rails.logger.info "\nDone. Review the field group list of any site that gained a group."
+    report.call "\nSummary:"
+    report.call "  Re-homed: #{rehomed_count} field groups"
+    report.call "  Skipped:  #{skipped_count} field groups"
+    report.call "\nDone. Review the field group list of any site that gained a group."
   end
 end
 
@@ -68,6 +74,8 @@ def cama_placement_site_id(group)
     CamaleonCms::Site.find_by(id: objectid)&.id
   end
 rescue StandardError => e
-  Rails.logger.info "  Could not resolve placement for group id=#{group.id}: #{e.message}"
+  msg = "  Could not resolve placement for group id=#{group.id}: #{e.message}"
+  Rails.logger.info msg
+  puts msg
   nil
 end

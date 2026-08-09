@@ -6,30 +6,36 @@ namespace :camaleon_cms do
   # they should always have had: the site that owns them.
   desc 'Backfill objectid for site custom field groups that were saved without one'
   task backfill_site_field_group_objectid: :environment do
-    Rails.logger.info 'Backfilling objectid for site custom field groups...'
+    # Log for the record AND print to stdout: an operator runs this from a terminal, where
+    # Rails.logger writes to a file they are not watching, so a logger-only task looks like a no-op.
+    report = lambda do |msg|
+      Rails.logger.info(msg)
+      puts msg
+    end
+    report.call 'Backfilling objectid for site custom field groups...'
     updated_count = 0
     skipped_count = 0
 
     CamaleonCms::CustomField.unscoped.where(object_class: 'Site', objectid: nil).find_each do |group|
       if group.parent_id.blank?
-        Rails.logger.info "  Skipped group id=#{group.id} slug=#{group.slug} (no owning site)"
+        report.call "  Skipped group id=#{group.id} slug=#{group.slug} (no owning site)"
         skipped_count += 1
         next
       end
 
       begin
         group.update_column(:objectid, group.parent_id) # rubocop:disable Rails/SkipsModelValidations
-        Rails.logger.info "✓ Updated group id=#{group.id} slug=#{group.slug} site_id=#{group.parent_id}"
+        report.call "✓ Updated group id=#{group.id} slug=#{group.slug} site_id=#{group.parent_id}"
         updated_count += 1
       rescue StandardError => e
-        Rails.logger.info "✗ Failed to update group id=#{group.id}: #{e.message}"
+        report.call "✗ Failed to update group id=#{group.id}: #{e.message}"
         skipped_count += 1
       end
     end
 
-    Rails.logger.info "\nSummary:"
-    Rails.logger.info "  Updated: #{updated_count} field groups"
-    Rails.logger.info "  Skipped: #{skipped_count} field groups"
-    Rails.logger.info "\nDone."
+    report.call "\nSummary:"
+    report.call "  Updated: #{updated_count} field groups"
+    report.call "  Skipped: #{skipped_count} field groups"
+    report.call "\nDone."
   end
 end

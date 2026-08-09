@@ -19,6 +19,10 @@ RSpec.describe 'cross_site_field_groups Rake task', type: :task do
 
     before { task.reenable }
 
+    it 'reports a summary on stdout for the operator running it' do
+      expect { task.invoke }.to output(/Summary:/).to_stdout
+    end
+
     def injected_group(object_class, objectid, slug)
       owner_site.custom_field_groups.create!(
         name: "Injected #{slug}", slug: slug, object_class: object_class, objectid: objectid
