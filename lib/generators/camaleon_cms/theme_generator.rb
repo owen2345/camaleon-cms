@@ -20,9 +20,6 @@ module CamaleonCms
         elsif Dir.exist?(theme_folder)
           say 'This theme already exist'
         else
-          theme_folder = Rails.root.join('app', 'apps', 'themes', get_theme_name)
-          return say "There is already a theme with the same name in: #{theme_folder}" if Dir.exist?(theme_folder)
-
           # tmp copy
           FileUtils.mkdir_p(theme_folder)
           FileUtils.copy_entry(File.join($camaleon_engine_dir, 'lib', 'generators', 'camaleon_cms', 'theme_template'),
