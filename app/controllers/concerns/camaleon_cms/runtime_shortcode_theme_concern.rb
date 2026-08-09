@@ -102,8 +102,9 @@ module CamaleonCms
     def shortcode_asset_reference(file, as_path: false)
       return if file.blank?
 
-      # Assign locals before any call that could itself raise AssetNotFound, so the rescue branch
-      # never references nil locals (resolve_shortcode_theme_asset can trigger an asset lookup).
+      # Defensive ordering: assign the locals the rescue branch uses before everything else, so it
+      # can never see them nil. The only call that raises AssetNotFound is the asset helper below —
+      # resolve_shortcode_theme_asset never does (regex, string interpolation and File.exist? only).
       helper = ActionController::Base.helpers
       method_name = as_path ? :asset_path : :asset_url
       file = resolve_shortcode_theme_asset(file)

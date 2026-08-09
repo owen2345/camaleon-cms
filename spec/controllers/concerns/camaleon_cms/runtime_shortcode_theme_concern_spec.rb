@@ -4,15 +4,17 @@ require 'rails_helper'
 
 # The concern copy of shortcode_asset_reference / resolve_shortcode_theme_asset must stay in lockstep
 # with the CamaleonCms::ShortCodeHelper twin. Two drifts had crept in (regression L17): the concern
-# assigned its rescue locals AFTER the call that can raise AssetNotFound, and its path regex did not
-# tolerate a leading slash.
+# assigned the locals its rescue branch uses after the resolve call instead of first, and its path
+# regex did not tolerate a leading slash.
 RSpec.describe CamaleonCms::RuntimeShortcodeThemeConcern do
   let(:host) { Class.new { include CamaleonCms::RuntimeShortcodeThemeConcern }.new }
 
   describe '#shortcode_asset_reference' do
-    it 'falls back through skip_pipeline without a nil-local error when resolve raises AssetNotFound' do
-      # Before the parity fix the rescue referenced helper/method_name assigned AFTER the raising
-      # call, so this raised NoMethodError on nil instead of resolving the fallback path.
+    it 'falls back through skip_pipeline when AssetNotFound is forced at the resolve step' do
+      # Ordering-invariant guard, not a reproduction of a real failure:
+      # resolve_shortcode_theme_asset never raises AssetNotFound itself (regex, string
+      # interpolation and File.exist? only), so the stub forces the raise at the earliest
+      # point to pin the rescue's locals being assigned first.
       allow(host).to receive(:resolve_shortcode_theme_asset)
         .and_raise(Sprockets::Rails::Helper::AssetNotFound)
 

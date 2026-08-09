@@ -26,8 +26,9 @@ module CamaleonCms
     # img_args: attributes for image_tag
     # input_args: attributes for input field
     def cama_captcha_tag(len = 5, img_args = { alt: '' }, input_args = {}, bootstrap_group_mode = false)
-      # Symbolize so string-keyed args work: `**input_args` raises TypeError on string keys, and the
-      # :placeholder / :style reads below would otherwise miss a caller's string key.
+      # Symbolize so string-keyed args work: the :placeholder / :style reads below use Symbol keys,
+      # so a caller's String key would be missed — the default placeholder would then be added under
+      # the Symbol key and render as a duplicate attribute.
       img_args = img_args.to_h.symbolize_keys
       input_args = input_args.to_h.symbolize_keys
       if input_args[:placeholder].blank?
