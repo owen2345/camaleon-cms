@@ -43,8 +43,9 @@ See `proposal.md` — Why. Load-bearing facts verified in code and git history:
   but its naming is the host's contract, not the engine's user_model config.
 - No re-keying of rows written by unreleased master-tracking installs under the short-lived
   prefixed association scopes — already deliberately abandoned by #1238.
-- No change to the users controller literal or the association scope: both already say
-  `'User'`, which is the pinned contract.
+- No change to the association scope: it already derives the pinned demodulized name
+  (`name.to_s.demodulize`). (An earlier revision also kept the users controller's `'User'`
+  literal out of scope; branch review overturned that — see Decision 4.)
 
 ## Decisions
 
@@ -73,6 +74,20 @@ See `proposal.md` — Why. Load-bearing facts verified in code and git history:
    `legacy_camaleon_polymorphic_class` uses `safe_constantize`) are proven red against the
    current code. The user round-trip request spec is a green-by-design end-to-end pin, the
    sibling of #1238's widget pin, era-portable against any future one-sided rename.
+4. **The save filter derives from the same accessor (branch-review fix).** With the read, the
+   form emission, and the association all deriving the demodulized name dynamically, the
+   controller's hardcoded `cama_permitted_field_options('User')` became the one static surface
+   left: for a host user model whose demodulized name is not `'User'` (e.g. `Accounts::Member`
+   → `'Member'`), the other three surfaces agree while the filter finds no groups — the same
+   silent-discard anatomy this change repairs, harder to see because the group still renders.
+   Both users controller call sites now key on `PluginRoutes.get_user_class_name.demodulize`
+   (a private helper), mirroring the form emission; identical output for the engine default
+   and every `*::User` host. Proven red-first by a round-trip request spec stubbing a
+   `'SpecHost::Member'` config.
+5. **The repair task reports on stdout (branch-review fix).** Operators run it once from a
+   console; `Rails.logger.info` lands in the log file, in production potentially below the
+   configured level, and the task's config-miss and rollback caveats travel through that
+   output. `puts`, pinned by stdout assertions in the task spec.
 
 ## Risks / Trade-offs
 

@@ -29,3 +29,15 @@
 - [x] 3.3 Push, open the PR, then commit the short changelog entry referencing it (skip-ci
       directive, per Phase 3).
 - [x] 3.4 Update the regression-audit memory (N5 → done) and the audit doc's fix-plan section.
+
+## 4. Branch-review fixes (commits 5–7)
+
+- [x] 4.1 Red spec: user round-trip with a `'SpecHost::Member'` config (the save filter keyed
+      on the `'User'` literal drops the value); key both users controller call sites on
+      `PluginRoutes.get_user_class_name.demodulize`; green.
+- [x] 4.2 Switch the repair task's summary and no-op notice from `Rails.logger.info` to `puts`,
+      red-first via stdout assertions in the task spec.
+- [x] 4.3 Amend the change artifacts (proposal, design, delta + main spec, this file) and the
+      changelog sentence that described the save filter as static; re-run the gates. This push
+      also carries the PR's first CI run — the changelog commit's skip-ci directive at the
+      previous head suppressed the run that should have covered commits 1–4.

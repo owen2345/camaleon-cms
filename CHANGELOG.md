@@ -3,11 +3,11 @@
 ## Unreleased
 
 - **Fix:** User custom fields work again for host apps configuring a namespaced `user_model`
-  (e.g. `'Admin::User'`): the settings form's users placement option and the user edit page's
-  field-group read now use the demodulized scope name (`'User'`) the association scope and the
-  save filter already used, so submitted user field values are no longer silently discarded
-  (broken since 2.9.2). Engine-default and top-level `User` installs are unaffected. Regression
-  audit N5. [#1239](https://github.com/owen2345/camaleon-cms/pull/1239).
+  (e.g. `'Admin::User'`): the settings form's users placement option, the user edit page's
+  field-group read, and the save filter's allowed-slugs lookup now all derive the demodulized
+  user-model scope name the association scope uses, so submitted user field values are no longer
+  silently discarded (broken since 2.9.2). Engine-default and top-level `User` installs are
+  unaffected. Regression audit N5. [#1239](https://github.com/owen2345/camaleon-cms/pull/1239).
 
   **Notes for upgraders:**
   - Namespaced-`user_model` installs run `bin/rails camaleon_cms:demodulize_user_field_groups`

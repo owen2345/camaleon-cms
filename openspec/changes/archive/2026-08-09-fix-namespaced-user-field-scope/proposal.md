@@ -17,7 +17,11 @@ it.
 - The custom-fields settings form emits the demodulized user-model name in the users placement
   option, so new groups are stored under the name every other surface reads.
 - A new idempotent rake task re-keys group placements stored under the previously emitted
-  qualified name to the demodulized contract, so existing groups survive the read-side change.
+  qualified name to the demodulized contract, so existing groups survive the read-side change;
+  it reports its summary on stdout.
+- The users controller's save filter keys its allowed-slugs lookup on the same derived name
+  (`PluginRoutes.get_user_class_name.demodulize`) instead of a hardcoded `'User'`, so host
+  models that demodulize to another name get their values accepted too (branch-review fix).
 - Installs on the engine-default `CamaleonCms::User` or a top-level host `User` see no
   behavioral change (all spellings already collapse to `'User'`).
 
@@ -37,6 +41,7 @@ _None._
 
 - `app/models/concerns/camaleon_cms/custom_fields_read.rb` (`get_user_field_groups`)
 - `app/views/camaleon_cms/admin/settings/custom_fields/form.html.erb` (users placement option)
+- `app/controllers/camaleon_cms/admin/users_controller.rb` (save-filter scope derivation)
 - `lib/tasks/user_field_groups.rake` (new repair task) + task spec
 - Specs: `spec/models/meta_scope_resolution_spec.rb`, a new settings-form request spec, a new
   user field-values round-trip request spec
