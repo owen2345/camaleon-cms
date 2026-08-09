@@ -30,4 +30,25 @@ RSpec.describe 'Admin user custom field values', type: :request do
     expect(response).to have_http_status(:found)
     expect(member.reload.get_field_value('color')).to eq('red')
   end
+
+  # The save filter must key its allowed-slugs lookup on the same demodulized name the settings
+  # form emits and get_user_field_groups queries: keyed on a hardcoded 'User' it finds no groups
+  # for a host model that demodulizes to another name, and every submitted value is dropped.
+  it 'accepts values for a host user model that demodulizes to a non-User name' do
+    allow(PluginRoutes).to receive(:static_system_info).and_return(
+      PluginRoutes.static_system_info.merge('user_model' => 'SpecHost::Member')
+    )
+    group = current_site.custom_field_groups.create!(
+      name: 'Member Fields', slug: '_member-fields', object_class: 'Member', objectid: current_site.id
+    )
+    tier_field = group.add_manual_field({ name: 'Tier', slug: 'tier' }, { field_key: 'text_box' })
+
+    patch "/admin/users/#{member.id}", params: {
+      user: { username: member.username, email: member.email },
+      field_options: { '0' => { 'tier' => { 'id' => tier_field.id.to_s, 'values' => { '0' => 'gold' } } } }
+    }
+
+    expect(response).to have_http_status(:found)
+    expect(member.reload.get_field_value('tier')).to eq('gold')
+  end
 end
