@@ -74,4 +74,27 @@ RSpec.describe 'Theme settings field-value filtering', type: :request do
       expect(theme.get_field_value('footer_text')).to eq('hi')
     end
   end
+
+  # A submission whose slugs are all unregistered filters to an empty payload. set_field_values
+  # deletes every existing value before writing, so an empty-but-present payload must not reach
+  # it, or a save carrying no registered slug wipes the object's stored values.
+  describe 'a submission carrying no registered slug' do
+    before { theme.save_field_value('bg_color', 'keep') }
+
+    it 'leaves existing values intact on the field_options path' do
+      post '/admin/settings/save_theme', params: {
+        field_options: { '0' => { 'evil' => { 'id' => @bg_field.id.to_s, 'values' => { '0' => 'x' } } } }
+      }
+
+      expect(theme.get_field_value('bg_color')).to eq('keep')
+    end
+
+    it 'leaves existing values intact on the theme_fields path' do
+      post '/admin/settings/save_theme', params: {
+        theme_fields: { '0' => { 'evil' => { 'id' => @bg_field.id.to_s, 'values' => { '0' => 'x' } } } }
+      }
+
+      expect(theme.get_field_value('bg_color')).to eq('keep')
+    end
+  end
 end

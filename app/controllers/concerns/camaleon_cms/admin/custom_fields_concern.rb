@@ -15,9 +15,13 @@ module CamaleonCms
         return {} if allowed_keys.blank?
 
         field_options = params.require(param_key)
-        field_options.permit(field_options.keys.select { |k| k.to_s =~ /\A\d+\z/ }.index_with do
+        permitted = field_options.permit(field_options.keys.select { |k| k.to_s =~ /\A\d+\z/ }.index_with do
           allowed_keys.index_with { [:id, :group_number, { values: {} }] }
         end).to_h
+        # Drop groups left empty after filtering. set_field_values deletes every existing value
+        # before writing, so handing it a non-blank-but-empty payload (a group whose submitted
+        # slugs were all unregistered) would wipe the object's stored values and write nothing.
+        permitted.reject { |_group, fields| fields.blank? }
       end
 
       def cama_custom_field_allowed_slugs(object_class)
