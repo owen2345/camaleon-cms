@@ -3,10 +3,12 @@
 require 'rails_helper'
 
 # save_theme wrote two custom-field payloads straight into set_field_values without the 2.9.2
-# allowed-slugs filter every sibling admin save uses: the `theme_fields` param, and (for the
-# bundled `new` theme) the `field_options` payload its on_theme_settings hook re-saves raw --
-# the latter also colliding with save_theme's own redirect into a DoubleRenderError. The surface
-# is a grantable role capability (`:manage, :theme_settings`), reachable by non-admin roles.
+# allowed-slugs filter every sibling admin save uses: the `theme_fields` param, and the
+# `field_options` the bundled `new` theme's on_theme_settings hook re-saved raw (its redirect to
+# a non-existent route also errored after that write). Both now route through the filter, and the
+# bundled hook no longer saves at all -- save_theme persists field_options generically. The
+# surface is a grantable role capability (`:manage, :theme_settings`), reachable by non-admin
+# roles.
 RSpec.describe 'Theme settings field-value filtering', type: :request do
   init_site
 
@@ -46,7 +48,7 @@ RSpec.describe 'Theme settings field-value filtering', type: :request do
     end
   end
 
-  describe "the bundled 'new' theme's on_theme_settings save hook" do
+  describe 'a save with the bundled new theme active' do
     let(:theme) { current_site.get_theme('new') }
 
     before { current_site.set_option('_theme', 'new') }
