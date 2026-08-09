@@ -34,7 +34,8 @@ RSpec.describe 'user_field_groups Rake task', type: :task do
       stub_user_model('Admin::User')
       group = create_group(object_class: 'Admin::User', objectid: site.id, parent_id: site.id)
 
-      task.invoke
+      # Operators run this once from a console; the summary must land on stdout, not in the log.
+      expect { task.invoke }.to output(/Re-keyed 1 user field group\(s\) from 'Admin::User' to 'User'/).to_stdout
 
       expect(group.reload.object_class).to eq('User')
 
@@ -73,7 +74,7 @@ RSpec.describe 'user_field_groups Rake task', type: :task do
     it 'is a no-op when the configured user model is not namespaced' do
       stray = create_group(object_class: 'Admin::User', objectid: site.id, parent_id: site.id)
 
-      task.invoke
+      expect { task.invoke }.to output(/Nothing to re-key/).to_stdout
 
       expect(stray.reload.object_class).to eq('Admin::User')
     end

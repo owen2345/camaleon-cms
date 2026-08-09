@@ -15,13 +15,13 @@ namespace :camaleon_cms do
     demodulized = configured.demodulize
 
     if configured.blank? || configured == demodulized
-      Rails.logger.info 'Nothing to re-key: the configured user model is not namespaced.'
+      puts 'Nothing to re-key: the configured user model is not namespaced.'
       next
     end
 
     count = CamaleonCms::CustomField.unscoped
                                     .where(object_class: configured)
                                     .update_all(object_class: demodulized) # rubocop:disable Rails/SkipsModelValidations
-    Rails.logger.info "Re-keyed #{count} user field group(s) from '#{configured}' to '#{demodulized}'."
+    puts "Re-keyed #{count} user field group(s) from '#{configured}' to '#{demodulized}'."
   end
 end
