@@ -19,6 +19,10 @@ RSpec.describe 'site_custom_field_groups Rake task', type: :task do
 
     before { task.reenable }
 
+    it 'reports a summary on stdout for the operator running it' do
+      expect { task.invoke }.to output(/Summary:/).to_stdout
+    end
+
     # object_class has a presence validation but objectid does not, so a group with a NULL objectid
     # is constructible. Build it unscoped to keep the spec honest about what it repairs.
     def create_group(attrs)

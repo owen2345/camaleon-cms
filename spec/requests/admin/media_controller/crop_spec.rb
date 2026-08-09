@@ -38,6 +38,21 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       expect(response.media_type).to eq('text/plain')
       expect(response.body).to eq('/uploads/<script>alert(1)</script>.jpg')
     end
+
+    it 'surfaces an upload error and leaves the saved avatar untouched instead of an empty body' do
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_return(true)
+      allow_any_instance_of(described_class).to receive(:cama_tmp_upload).and_return(file_path: '/tmp/test.jpg')
+      allow_any_instance_of(described_class).to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
+      allow_any_instance_of(described_class).to receive(:upload_file)
+        .and_return(error: 'Potentially malicious content found!')
+      admin_user.set_meta('avatar', '/uploads/existing.jpg')
+      sign_in_as(admin_user, site: current_site)
+
+      get '/admin/media/crop', params: { saved_avatar: admin_user.id }
+
+      expect(response.body).to eq('Potentially malicious content found!')
+      expect(admin_user.reload.get_meta('avatar')).to eq('/uploads/existing.jpg')
+    end
   end
 
   context 'when cp_img_path is a server file path (path traversal attempt)' do

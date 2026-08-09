@@ -69,6 +69,16 @@ describe CamaleonCms::UploaderHelper do
       expect(upload_file(File.open(staged), { folder: '../escape', remove_source: true }).key?(:error)).to be(true)
       expect(File.exist?(staged)).to be(false)
     end
+
+    it 'removes an uploader-owned staged source on the pre-symbolize failure path with a string key' do
+      # The malicious-content rejection runs before settings are symbolized, so a string-keyed
+      # remove_source must still purge the staged file rather than leak it in public/tmp.
+      staged = File.join(tmp_path, 'string_key_source.html')
+      File.write(staged, '<html><script>alert(1)</script></html>')
+
+      expect(upload_file(File.open(staged), { 'remove_source' => true }).key?(:error)).to be(true)
+      expect(File.exist?(staged)).to be(false)
+    end
   end
 
   describe 'staging name source' do

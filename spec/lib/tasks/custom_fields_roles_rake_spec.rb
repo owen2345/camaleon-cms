@@ -19,6 +19,10 @@ RSpec.describe 'custum_fields_roles Rake task', type: :task do
 
     before { task.reenable }
 
+    it 'reports progress on stdout for the operator running it' do
+      expect { task.invoke }.to output(/Backfilling custom_fields manager permission/).to_stdout
+    end
+
     it 'adds custom_fields permission when manager meta is missing' do
       site = create(:site)
       role = site.user_roles.create!(name: 'Needs Backfill', slug: 'needs_backfill')
@@ -78,6 +82,10 @@ RSpec.describe 'custum_fields_roles Rake task', type: :task do
     let(:task) { Rake::Task[task_name] }
 
     before { task.reenable }
+
+    it 'reports a summary on stdout for the operator running it' do
+      expect { task.invoke }.to output(/Summary:/).to_stdout
+    end
 
     it 'adds select_eval permission for admin roles with term_group -1' do
       # slugs are unique per parent, so the scenarios below reuse the shared
