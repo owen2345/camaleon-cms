@@ -96,6 +96,22 @@ describe CamaleonCms::CaptchaHelper do
       expect(result).to include('id="captcha"')
     end
 
+    it 'honors a string-keyed placeholder in input_args' do
+      I18n.backend.store_translations(:en, camaleon_cms: { captcha_placeholder: 'Default' })
+
+      result = helper_instance.cama_captcha_tag(5, { alt: '' }, { 'placeholder' => 'My placeholder' })
+
+      expect(result).to include('placeholder="My placeholder"')
+      expect(result).not_to include('placeholder="Default"')
+    end
+
+    it 'keeps a caller-supplied image style alongside the pointer cursor' do
+      result = helper_instance.cama_captcha_tag(5, { alt: '', style: 'border: 1px solid red;' })
+
+      expect(result).to include('cursor: pointer;')
+      expect(result).to include('border: 1px solid red;')
+    end
+
     context 'with bootstrap_group_mode enabled' do
       it 'wraps the image inside a span.input-group-btn' do
         result = helper_instance.cama_captcha_tag(5, { alt: '' }, {}, true)

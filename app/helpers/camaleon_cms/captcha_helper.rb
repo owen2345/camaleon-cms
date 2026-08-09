@@ -26,12 +26,17 @@ module CamaleonCms
     # img_args: attributes for image_tag
     # input_args: attributes for input field
     def cama_captcha_tag(len = 5, img_args = { alt: '' }, input_args = {}, bootstrap_group_mode = false)
+      # Symbolize so string-keyed args work: `**input_args` raises TypeError on string keys, and the
+      # :placeholder / :style reads below would otherwise miss a caller's string key.
+      img_args = img_args.to_h.symbolize_keys
+      input_args = input_args.to_h.symbolize_keys
       if input_args[:placeholder].blank?
         input_args[:placeholder] =
           I18n.t('camaleon_cms.captcha_placeholder', default: 'Please enter the text of the image')
       end
       img_args[:onclick] = "this.src = \"#{cama_captcha_url(len: len)}\"+\"&t=\"+(new Date().getTime());"
-      img_args[:style] = 'cursor: pointer;'
+      # Keep a caller-supplied style; the pointer cursor is required for click-to-refresh, so prepend it.
+      img_args[:style] = ['cursor: pointer;', img_args[:style].presence].compact.join(' ')
 
       helpers = ActionController::Base.helpers
       img = helpers.image_tag(cama_captcha_url(len: len, t: Time.current.to_i), img_args)
