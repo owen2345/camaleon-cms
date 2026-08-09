@@ -1,9 +1,7 @@
 ## Purpose
 
 Define the parity requirements for the two uploader entry points: `CamaleonCms::RuntimeUploaderConcern`, reached by controllers through the runtime concern chain, and `CamaleonCms::UploaderHelper`, included into views, ActiveJobs, and standalone objects. Both entry points MUST draw their behavior from a single shared implementation under `lib/camaleon_cms/`, so that upload behavior cannot drift between them, while a message seam lets each keep its own translation pipeline and the helper stays usable without a request context.
-
 ## Requirements
-
 ### Requirement: Uploader behavior is defined once and shared by both entry points
 
 The system SHALL define each uploader method that both `CamaleonCms::RuntimeUploaderConcern` and `CamaleonCms::UploaderHelper` provide exactly once, in a module under `lib/camaleon_cms/` that both include, so that a change to upload behavior cannot land in one entry point and not the other.
@@ -41,7 +39,13 @@ The system SHALL make the same public uploader methods available through `Camale
 
 ### Requirement: Each entry point keeps its own upload message pipeline
 
-The system SHALL render user-facing upload error messages through a seam that each entry point supplies, so that `CamaleonCms::UploaderHelper` continues to translate via `ct` and `cama_t` — running the `on_translation` hook that lets plugins override message text — while `CamaleonCms::RuntimeUploaderConcern`, whose context has no `ct`, continues to translate via `I18n`.
+The system SHALL render user-facing upload error messages through a seam that each entry point
+supplies. `CamaleonCms::UploaderHelper` translates via `ct` and `cama_t`. `CamaleonCms::RuntimeUploaderConcern`
+SHALL translate through `ct` when its host responds to `ct` — which is the case for the media
+controllers, where `ct` was restored to the controller chain — so the `on_translation` hook that
+lets plugins override message text runs on the controller upload path too; when the host does not
+respond to `ct` (a non-controller includer), it SHALL fall back to `I18n`. The default (no hook)
+translation MUST be identical on both paths.
 
 #### Scenario: A plugin can override an upload message on the helper path
 
@@ -49,15 +53,30 @@ The system SHALL render user-facing upload error messages through a seam that ea
 - **AND** an upload is rejected for exceeding the size limit through `CamaleonCms::UploaderHelper`
 - **THEN** the returned error contains the plugin's text
 
+#### Scenario: A plugin can override an upload message on the controller path
+
+- **WHEN** a plugin registers an `on_translation` hook that replaces the file-size-exceeded text
+- **AND** an upload is rejected through a host that includes `CamaleonCms::RuntimeUploaderConcern`
+  and responds to `ct`
+- **THEN** the returned error contains the plugin's text
+
 #### Scenario: The controller path translates without the hook
 
-- **WHEN** an upload is rejected for exceeding the size limit through `CamaleonCms::RuntimeUploaderConcern`
+- **WHEN** an upload is rejected for exceeding the size limit through a
+  `CamaleonCms::RuntimeUploaderConcern` host with no `on_translation` hook registered
 - **THEN** the returned error contains the `I18n` translation of the message
-- **AND** rendering the message does not require `ct` to be defined
+
+#### Scenario: The concern falls back to I18n without ct
+
+- **WHEN** an upload message is rendered through a `CamaleonCms::RuntimeUploaderConcern` host that
+  does not respond to `ct`
+- **THEN** the message is the `I18n` translation
+- **AND** rendering does not require `ct` to be defined
 
 #### Scenario: Both paths report the same limit
 
-- **WHEN** the same size limit is exceeded through either entry point
+- **WHEN** the same size limit is exceeded through either entry point with no `on_translation`
+  hook registered
 - **THEN** both errors state the limit in the same human-readable form
 
 ### Requirement: The helper entry point works without a request context
@@ -74,3 +93,4 @@ The system SHALL keep `CamaleonCms::UploaderHelper` usable by objects that have 
 
 - **WHEN** a bare class including `CamaleonCms::UploaderHelper` is instantiated
 - **THEN** its uploader methods are callable without a controller
+
