@@ -74,6 +74,27 @@ RSpec.describe CamaleonCmsLocalUploader do
     end
   end
 
+  describe '#file_parse thumb naming for an uppercase .SVG source' do
+    let(:root_folder) { uploader.instance_variable_get(:@root_folder) }
+
+    before do
+      FileUtils.mkdir_p(File.join(root_folder, 'thumb'))
+      File.write(File.join(root_folder, 'logo.SVG'), '<svg xmlns="http://www.w3.org/2000/svg"/>')
+      # The generated thumb is a JPEG regardless of the source extension's case; stage it so
+      # file_parse's on-disk check confirms the computed name instead of falling back.
+      File.write(File.join(root_folder, 'thumb', 'logo-svg.jpg'), 'x')
+    end
+
+    after do
+      FileUtils.rm_f(File.join(root_folder, 'logo.SVG'))
+      FileUtils.rm_rf(File.join(root_folder, 'thumb'))
+    end
+
+    it 'computes the .jpg thumb url (case-insensitive svg-to-jpg rename)' do
+      expect(uploader.file_parse('/logo.SVG')['thumb']).to end_with('/thumb/logo-svg.jpg')
+    end
+  end
+
   describe '#objects (lazy relation for DB-level pagination)' do
     let(:collection) { uploader.send(:get_media_collection) }
 

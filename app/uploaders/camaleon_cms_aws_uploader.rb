@@ -72,9 +72,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
       'dimension' => ''
     }.with_indifferent_access
     if res['file_type'] == 'image' && File.extname(res['name']).downcase != '.gif'
-      res['thumb'] =
-        version_path(res['url']).sub('.svg',
-                                     '.jpg')
+      res['thumb'] = version_path(res['url']).sub(SVG_EXT_PATTERN, '.jpg')
     end
     res['key'] = File.join(res['folder_path'], res['name'])
     @aws_settings[:aws_file_read_settings].call(res, s3_file)

@@ -6,6 +6,12 @@ module CamaleonCms
   # CamaleonCms::RuntimeUploaderConcern and CamaleonCms::UploaderHelper, so cropping
   # and resizing behave identically whichever one a caller included.
   module UploaderImageProcessing
+    # Terminal `.svg` extension, any case. The upload pipeline preserves the client's extension
+    # case (`logo.SVG` is stored verbatim), so every site renaming an SVG-derived artifact to
+    # `.jpg` must match case-insensitively or uppercase uploads keep their SVG name and format.
+    # Anchored so the rename never touches an `.svg` occurring mid-path.
+    SVG_EXT_PATTERN = /\.svg\z/i
+
     # generate thumbnail of a existent image
     # key: key of the current file
     # the thumbnail will be saved in my_images/my_img.png => my_images/thumb/my_img.png
@@ -14,8 +20,8 @@ module CamaleonCms
       h = thumb_size.present? ? thumb_size.split('x')[1] : cama_uploader.thumb[:h]
       uploaded_io = File.open(uploaded_io) if uploaded_io.is_a?(String)
       path_thumb = cama_resize_and_crop(uploaded_io.path, w, h)
-      thumb = cama_uploader.add_file(path_thumb, cama_uploader.version_path(key).sub('.svg', '.jpg'), is_thumb: true,
-                                                                                                      same_name: true)
+      thumb = cama_uploader.add_file(path_thumb, cama_uploader.version_path(key).sub(SVG_EXT_PATTERN, '.jpg'),
+                                     is_thumb: true, same_name: true)
       FileUtils.rm_f(path_thumb) if remove_source
       thumb
     end
@@ -66,10 +72,10 @@ module CamaleonCms
     def cama_resize_and_crop(file, w, h, settings = {})
       settings = { gravity: :north_east, overwrite: true, output_name: +'' }.merge!(settings)
       img = MiniMagick::Image.open(file)
-      if file.end_with? '.svg'
+      if file.match?(SVG_EXT_PATTERN)
         img.format 'jpg'
-        file.sub! '.svg', '.jpg'
-        settings[:output_name]&.sub!('.svg', '.jpg')
+        file.sub!(SVG_EXT_PATTERN, '.jpg')
+        settings[:output_name]&.sub!(SVG_EXT_PATTERN, '.jpg')
       end
       w = clamp_to_image_dimension(w, img[:width])
       h = clamp_to_image_dimension(h, img[:height])
@@ -99,12 +105,13 @@ module CamaleonCms
       end
 
       if settings[:overwrite]
-        data[:img].write(file.sub('.svg', '.jpg'))
+        data[:img].write(file.sub(SVG_EXT_PATTERN, '.jpg'))
       elsif settings[:output_name].present?
         data[:img].write(file = File.join(File.dirname(file), settings[:output_name]).to_s)
       else
-        data[:img].write(file = uploader_verify_name(File.join(File.dirname(file),
-                                                               "crop_#{File.basename(file.sub('.svg', '.jpg'))}")))
+        data[:img].write(file = uploader_verify_name(
+          File.join(File.dirname(file), "crop_#{File.basename(file.sub(SVG_EXT_PATTERN, '.jpg'))}")
+        ))
       end
       file
     end

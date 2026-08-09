@@ -66,6 +66,17 @@ RSpec.describe CamaleonCmsAwsUploader do
     end
   end
 
+  describe '#file_parse thumb naming for an uppercase .SVG source' do
+    let(:s3_file) do
+      instance_double(Aws::S3::Object, key: 'media/1/logo.SVG', size: 123.4, last_modified: Time.zone.now,
+                                       public_url: 'https://s3.example.com/media/1/logo.SVG')
+    end
+
+    it 'computes the .jpg thumb url (case-insensitive svg-to-jpg rename)' do
+      expect(uploader.file_parse(s3_file)['thumb']).to end_with('/thumb/logo-svg.jpg')
+    end
+  end
+
   context 'with a valid file path' do
     describe '#add_file' do
       let(:s3_file) { instance_double(Aws::S3::Object) }
