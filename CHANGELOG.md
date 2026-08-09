@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Note for upgraders:** Dropping a new plugin or theme folder into the app and then activating
+  it from the admin now requires a server restart before it is discovered — the Plugins/Themes
+  admin index no longer rescans the filesystem on each view (changed in #1163). Restart the app
+  after adding a plugin/theme directory. Regression audit M28.
+
 - **Security fix:** The two admin theme-settings paths that still saved custom-field values raw
   — the `theme_fields` param and the bundled `new` theme's settings-save hook — now go through
   the same allowed-slugs filter as every other admin custom-field save (added in 2.9.2), closing
