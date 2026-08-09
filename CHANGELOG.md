@@ -6,7 +6,8 @@
   could use a `before_upload` hook to substitute bytes the content scanner never saw, since the
   hook runs after the scan and the persisted IO is what it leaves behind. The pipeline now
   re-scans the substituted content for untrusted uploaders. Same PR also: a blank or `0`
-  "Max file size" setting no longer rejects every upload and crop; media-manager upload errors
+  "Max file size" setting no longer rejects every upload and crop (and the size gate coerces a
+  numeric-string limit instead of raising on it); media-manager upload errors
   again run the `on_translation` hook so plugins can override them; and the content scan folds
   its 58 event-handler patterns into one pass. Regression audit N2/M26/M24/M25.
   [#1241](https://github.com/owen2345/camaleon-cms/pull/1241).

@@ -110,7 +110,9 @@ and accept any size, rather than rejecting every non-empty file. This is the sin
 caller's size check flows through — core's `upload_file`/`cama_tmp_upload`/data-URI staging and
 plugin callers such as `cama_contact_form` that read `filesystem_max_size` and pass it as
 `maximum:` — so a site whose stored `filesystem_max_size` is blank or `0` can still upload and
-crop. A positive limit continues to reject sizes above it.
+crop. A positive limit continues to reject sizes above it. The size comparison SHALL coerce
+`maximum`, so a positive numeric-string limit is enforced rather than raising a comparison
+error.
 
 #### Scenario: Zero limit accepts an upload
 
@@ -125,5 +127,11 @@ crop. A positive limit continues to reject sizes above it.
 #### Scenario: A positive limit still rejects an oversized file
 
 - **WHEN** the size check runs with a positive `maximum` and a file larger than it
+- **THEN** a size error is returned
+
+#### Scenario: A numeric-string limit is enforced
+
+- **WHEN** the size check runs with a positive numeric-string `maximum` and a file larger than
+  that value
 - **THEN** a size error is returned
 

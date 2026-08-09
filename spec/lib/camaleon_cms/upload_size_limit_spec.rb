@@ -44,5 +44,14 @@ RSpec.describe CamaleonCms::UploaderPipeline do
     it 'treats a blank maximum as unlimited' do
       expect(host.send(:cama_size_limit_error, 5.megabytes, nil)).to be_nil
     end
+
+    it 'enforces a positive numeric-string maximum instead of raising' do
+      error = host.send(:cama_size_limit_error, 5.megabytes, 1.megabyte.to_s)
+      expect(error[:error]).to be_present
+    end
+
+    it 'accepts a file within a positive numeric-string maximum' do
+      expect(host.send(:cama_size_limit_error, 1.megabyte, 5.megabytes.to_s)).to be_nil
+    end
   end
 end

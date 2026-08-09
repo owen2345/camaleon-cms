@@ -337,9 +337,11 @@ module CamaleonCms
     # Returns an error hash when size exceeds maximum, nil otherwise.
     # A non-positive maximum means "no limit" — a site whose stored filesystem_max_size is blank
     # or 0 (also reached by plugin callers passing that option as :maximum) would otherwise fail
-    # every upload with "File size exceeded (0 Bytes)".
+    # every upload with "File size exceeded (0 Bytes)". The size comparison coerces for the same
+    # reason: a caller-supplied :maximum can be a numeric String, and a bare `String >= Integer`
+    # raises instead of enforcing the limit.
     def cama_size_limit_error(size, maximum)
-      return if maximum.blank? || maximum.to_f <= 0 || maximum >= size
+      return if maximum.blank? || maximum.to_f <= 0 || maximum.to_f >= size
 
       max_size = cama_uploader_human_size(maximum)
       { error: "#{cama_uploader_ct('file_size_exceeded', default: 'File size exceeded')} (#{max_size})" }
