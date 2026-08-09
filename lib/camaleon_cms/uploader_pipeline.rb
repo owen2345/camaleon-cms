@@ -81,7 +81,18 @@ module CamaleonCms
       }.merge!(settings)
       settings[:formats] = '*' if settings[:formats].nil?
       settings[:folder] = '' if settings[:folder].nil? # e.g. crop_url passes no folder
+      io_before_hook = settings[:uploaded_io]
       hooks_run('before_upload', settings)
+
+      # A before_upload handler may rebind settings[:uploaded_io] to bytes the top-of-method
+      # scan never saw (e.g. an image optimizer rewriting an SVG). For an untrusted uploader,
+      # re-scan the substituted IO so a handler cannot launder a blocked payload past the scan.
+      # Keyed on object identity: an unchanged IO was already scanned, and a permission-holder
+      # is exempt exactly as above.
+      if !settings[:uploaded_io].equal?(io_before_hook) && !cama_trusted_for_unfiltered_upload? &&
+         file_content_unsafe?(settings[:uploaded_io])
+        return cama_upload_failure({ error: 'Potentially malicious content found!' }, settings[:uploaded_io], settings)
+      end
 
       # guard against path traversal
       unless cama_uploader.valid_folder_path?(settings[:folder])
@@ -220,11 +231,14 @@ module CamaleonCms
     # Message seam. Rendering user-facing upload errors differs by execution context,
     # so the pipeline never calls a translator directly.
     #
-    # The defaults below are what a controller gets: CamaleonCms::CamaleonController does
-    # not include CamaleonHelper, so `ct` is undefined there. CamaleonCms::UploaderHelper
-    # overrides all three to route through `ct` / `cama_t` / `number_to_human_size`; `ct`
-    # runs the `on_translation` hook that lets plugins override the text, which a shared
-    # I18n.t call would silently drop.
+    # `ct` runs the `on_translation` hook that lets plugins override the text, which a
+    # shared I18n.t call would silently drop. CamaleonCms::UploaderHelper overrides all
+    # three to route through `ct` / `cama_t` / `number_to_human_size` (it includes
+    # CamaleonHelper itself). CamaleonCms::RuntimeUploaderConcern overrides only
+    # cama_uploader_ct, routing through `ct` when its host has one — true for
+    # CamaleonCms::CamaleonController since #1223 restored CamaleonHelper there. The
+    # defaults below are what remains: `t`/`human_size` on the concern path, and all
+    # three for concern hosts without `ct` (ActiveJobs, standalone objects).
     def cama_uploader_ct(key, args = {})
       I18n.t("camaleon_cms.common.#{key}", **args)
     end
@@ -321,8 +335,13 @@ module CamaleonCms
     end
 
     # Returns an error hash when size exceeds maximum, nil otherwise.
+    # A non-positive maximum means "no limit" — a site whose stored filesystem_max_size is blank
+    # or 0 (also reached by plugin callers passing that option as :maximum) would otherwise fail
+    # every upload with "File size exceeded (0 Bytes)". The size comparison coerces for the same
+    # reason: a caller-supplied :maximum can be a numeric String, and a bare `String >= Integer`
+    # raises instead of enforcing the limit.
     def cama_size_limit_error(size, maximum)
-      return if maximum.blank? || maximum >= size
+      return if maximum.blank? || maximum.to_f <= 0 || maximum.to_f >= size
 
       max_size = cama_uploader_human_size(maximum)
       { error: "#{cama_uploader_ct('file_size_exceeded', default: 'File size exceeded')} (#{max_size})" }

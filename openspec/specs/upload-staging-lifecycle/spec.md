@@ -1,9 +1,7 @@
 ## Purpose
 
 Define the lifecycle requirements for files staged in the upload staging directory (`public/tmp/{site_id}/`). Uploads MUST be bounded before their content is decoded or written, and any file the uploader stages MUST be removed when the upload fails, so that rejected or oversized payloads are never left behind at a web-served path.
-
 ## Requirements
-
 ### Requirement: Oversized payloads are rejected before being decoded or written
 
 The system SHALL reject a `data:` upload that exceeds the permitted size before decoding it, estimating the decoded size from the length of the base64 source, so that oversized content is never allocated in full nor written to the staging directory.
@@ -104,3 +102,36 @@ The system SHALL determine whether a `data:` upload supplies a filename from the
 #### Scenario: The media controller path is unaffected
 - **WHEN** a `crop_url` request supplies a `data:` URI and a blank `name` parameter
 - **THEN** the name-required error is returned, as before, because the controller passes `name: params[:name]` through to `cama_tmp_upload`
+
+### Requirement: A non-positive size limit means unlimited
+
+`cama_size_limit_error` SHALL treat a non-positive `maximum` (zero or negative) as "no limit"
+and accept any size, rather than rejecting every non-empty file. This is the single point every
+caller's size check flows through — core's `upload_file`/`cama_tmp_upload`/data-URI staging and
+plugin callers such as `cama_contact_form` that read `filesystem_max_size` and pass it as
+`maximum:` — so a site whose stored `filesystem_max_size` is blank or `0` can still upload and
+crop. A positive limit continues to reject sizes above it. The size comparison SHALL coerce
+`maximum`, so a positive numeric-string limit is enforced rather than raising a comparison
+error.
+
+#### Scenario: Zero limit accepts an upload
+
+- **WHEN** the size check runs with a `maximum` of `0` for a non-empty file
+- **THEN** no size error is returned
+
+#### Scenario: A crop succeeds on a site whose max file size is zero
+
+- **WHEN** a site's `filesystem_max_size` option is `0` and a user crops an existing image
+- **THEN** the crop is not rejected with a "File size exceeded (0 Bytes)" error
+
+#### Scenario: A positive limit still rejects an oversized file
+
+- **WHEN** the size check runs with a positive `maximum` and a file larger than it
+- **THEN** a size error is returned
+
+#### Scenario: A numeric-string limit is enforced
+
+- **WHEN** the size check runs with a positive numeric-string `maximum` and a file larger than
+  that value
+- **THEN** a size error is returned
+

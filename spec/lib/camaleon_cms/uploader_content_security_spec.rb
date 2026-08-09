@@ -70,6 +70,24 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
       end
     end
 
+    context 'with representative event handlers (single-alternation equivalence)' do
+      # The 58 per-stem regexes were folded into one alternation; these span the list and its
+      # `<stem>\w*\s*=` family matching, proving the consolidation kept the same coverage.
+      %w[onclick onerror onload onmouseover onmousedown onfocusin onreadystatechange onwheel].each do |handler|
+        it "rejects #{handler}" do
+          expect(scan(%(<div #{handler}="alert(1)">x</div>))).to be_truthy
+        end
+      end
+
+      it 'still tolerates whitespace between the handler and the equals sign' do
+        expect(scan(%(<div onclick = "alert(1)">x</div>))).to be_truthy
+      end
+
+      it 'does not flag a plain word that merely starts with "on"' do
+        expect(scan('The online onboarding notes are onerous.', ext: '.txt')).to be_falsey
+      end
+    end
+
     context 'with dangerous elements' do
       it 'rejects a meta refresh redirect' do
         expect(scan(%(<meta http-equiv="refresh" content="0;url=//evil.tld">))).to be_truthy

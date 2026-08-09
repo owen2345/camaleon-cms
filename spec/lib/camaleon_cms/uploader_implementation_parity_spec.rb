@@ -51,12 +51,19 @@ RSpec.describe 'uploader implementation parity' do
       expect(helper.instance_methods + helper.private_instance_methods).not_to include(:cama_upload_url_error)
     end
 
-    it 'keeps the message seam overrides on the helper only' do
-      seam = %i[cama_uploader_ct cama_uploader_t cama_uploader_human_size]
+    it 'keeps the t and human_size seam overrides on the helper only' do
+      seam = %i[cama_uploader_t cama_uploader_human_size]
 
       expect(helper.instance_methods(false) & seam).to match_array(seam)
       expect(concern.instance_methods(false) & seam).to be_empty
       seam.each { |name| expect(concern.instance_method(name).owner).to eq(CamaleonCms::UploaderPipeline) }
+    end
+
+    it 'overrides cama_uploader_ct on both entry points so each can run its own translation hook' do
+      # The helper always routes through ct; the concern routes through ct only when its host
+      # responds to it (the media controllers), falling back to the pipeline I18n default.
+      expect(helper.instance_method(:cama_uploader_ct).owner).to eq(CamaleonCms::UploaderHelper)
+      expect(concern.instance_method(:cama_uploader_ct).owner).to eq(CamaleonCms::RuntimeUploaderConcern)
     end
   end
 

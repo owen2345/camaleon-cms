@@ -19,14 +19,20 @@ module CamaleonCms
     # bytes, and removing them would mangle legitimate multibyte text.
     CONTROL_CHARS = /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/
 
-    UNSAFE_EVENT_PATTERNS = %w[
+    # Event-handler attribute stems. Each is matched as `<stem>\w*\s*=`, so a stem covers its
+    # whole family (`onmouse` → onmousedown/onmouseover/...).
+    UNSAFE_EVENT_HANDLERS = %w[
       onabort onafter onbefore onbegin onblur oncanplay onchange onclick oncontextmenu oncopy oncuechange oncut
       ondblclick ondrag ondrop ondurationchange onend onended onerror onfocus onhashchange oninvalid oninput onkey
       onload onmessage onmouse ononline onoffline onpagehide onpageshow onpage onpaste onpause onplay onpopstate
       onprogress onpropertychange onratechange onreadystatechange onrepeat onreset onresize onscroll onsearch onseek
       onselect onshow onstalled onstorage onsubmit onsuspend ontimeupdate ontoggle onunload onvolumechange onwaiting
       onwheel
-    ].map { |pattern| /#{pattern}\w*\s*=/i }.freeze
+    ].freeze
+
+    # One alternation over all stems instead of 58 separate scans of the full buffer — the same
+    # `<stem>\w*\s*=` match, folded into a single pass.
+    UNSAFE_EVENT_PATTERN = /(?:#{Regexp.union(UNSAFE_EVENT_HANDLERS).source})\w*\s*=/i
 
     # Elements able to navigate, exfiltrate, or load remote active content.
     # Longest-first so "frameset" is preferred over "frame".
@@ -52,10 +58,11 @@ module CamaleonCms
       Regexp::IGNORECASE
     )
 
-    SUSPICIOUS_PATTERNS = (UNSAFE_EVENT_PATTERNS + [
+    SUSPICIOUS_PATTERNS = [
+      UNSAFE_EVENT_PATTERN,
       BLOCKED_ELEMENT_PATTERN,
       BLOCKED_SCHEME_PATTERN
-    ]).freeze
+    ].freeze
 
     # Canonicalizes content so encoded variants of a blocked pattern are detected.
     # Returns a normalized copy; the stored file is never modified.

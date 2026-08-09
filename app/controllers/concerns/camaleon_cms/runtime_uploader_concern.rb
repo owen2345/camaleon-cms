@@ -14,6 +14,18 @@ module CamaleonCms
 
     private
 
+    # Route upload messages through `ct` when the host provides it — the media controllers do,
+    # since #1223 restored CamaleonHelper (and its `ct`) to the controller chain — so the
+    # on_translation hook that lets plugins override upload error text runs on the controller
+    # path too. Non-controller includers (ActiveJobs, standalone objects) have no `ct` and keep
+    # the pipeline's I18n default via super. The default (no hook) text is identical either way:
+    # `ct`'s default arm is I18n.translate("camaleon_cms.common.#{key}", **args).
+    def cama_uploader_ct(key, args = {})
+      return ct(key, args) if respond_to?(:ct, true)
+
+      super
+    end
+
     # Validates a user-supplied upload URL and returns nil when it is acceptable,
     # or an error String to render. Only http(s) URLs are validated here; other
     # inputs (local paths, data: URIs) are handled by the sink guards in
