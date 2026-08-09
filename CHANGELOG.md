@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **Fix:** The captcha tag now honors a caller-supplied image style and string-keyed input
+  attributes, and the admin "no categories/tags created" message shows a properly translated,
+  localized label instead of the raw taxonomy slug; an internal shortcode-asset helper was realigned
+  with its twin. Regression audit L14, L15, L17.
+  [#1245](https://github.com/owen2345/camaleon-cms/pull/1245).
+  - **Notes for upgraders:**
+    - `ENV['CAMALEON_SKIP_URL_VALIDATION']` is an operator escape hatch that bypasses **all**
+      upload-URL validation (scheme, host, SSRF/link-local, path traversal, HTML sanitization). It is
+      for trusted, isolated environments only — leaving it set in production removes the SSRF and
+      open-fetch protections around crop/crop_url. Regression audit L12.
+    - The `SUSPICIOUS_PATTERNS` and unsafe-event-handler constants now live in
+      `CamaleonCms::ContentSecurity`, not `CamaleonCms::UploaderHelper`. A plugin referencing the old
+      path gets a `NameError`; update the constant path. Regression audit L4.
+
 - **Fix:** A failed avatar crop now shows an error instead of silently blanking the saved avatar and
   returning an empty response; the theme generator and the custom-fields/site/cross-site repair rake
   tasks print their progress to the terminal (they logged only to a file before). Review follow-ups
