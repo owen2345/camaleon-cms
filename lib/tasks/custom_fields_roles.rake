@@ -1,12 +1,7 @@
 namespace :camaleon_cms do
   desc 'Backfill user roles to include custom_fields manager permission'
   task backfill_custom_fields_permission: :environment do
-    # Log for the record AND print to stdout: an operator runs this from a terminal, where
-    # Rails.logger writes to a file they are not watching, so a logger-only task looks like a no-op.
-    report = lambda do |msg|
-      Rails.logger.info(msg)
-      puts msg
-    end
+    report = CamaleonCms::TaskReporter
     report.call 'Backfilling custom_fields manager permission for existing user roles...'
     CamaleonCms::UserRole.find_each do |role|
       key = "_manager_#{role.parent_id}"
@@ -29,10 +24,7 @@ namespace :camaleon_cms do
 
   desc 'Backfill admin user roles to include select_eval permission'
   task backfill_select_eval_permission: :environment do
-    report = lambda do |msg|
-      Rails.logger.info(msg)
-      puts msg
-    end
+    report = CamaleonCms::TaskReporter
     report.call 'Backfilling select_eval permission for admin roles...'
     updated_count = 0
     skipped_count = 0

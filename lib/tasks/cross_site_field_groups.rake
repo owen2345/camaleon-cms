@@ -10,12 +10,7 @@ namespace :camaleon_cms do
   # the group restores the invariant and surfaces it where an administrator can judge and remove it.
   desc 'Re-home custom field groups whose owning site differs from the site owning their placement'
   task rehome_cross_site_field_groups: :environment do
-    # Log for the record AND print to stdout: an operator runs this from a terminal, where
-    # Rails.logger writes to a file they are not watching, so a logger-only task looks like a no-op.
-    report = lambda do |msg|
-      Rails.logger.info(msg)
-      puts msg
-    end
+    report = CamaleonCms::TaskReporter
     report.call 'Re-homing cross-site custom field groups...'
     rehomed_count = 0
     skipped_count = 0
@@ -74,8 +69,6 @@ def cama_placement_site_id(group)
     CamaleonCms::Site.find_by(id: objectid)&.id
   end
 rescue StandardError => e
-  msg = "  Could not resolve placement for group id=#{group.id}: #{e.message}"
-  Rails.logger.info msg
-  puts msg
+  CamaleonCms::TaskReporter.call "  Could not resolve placement for group id=#{group.id}: #{e.message}"
   nil
 end

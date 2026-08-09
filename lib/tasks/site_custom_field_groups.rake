@@ -6,12 +6,7 @@ namespace :camaleon_cms do
   # they should always have had: the site that owns them.
   desc 'Backfill objectid for site custom field groups that were saved without one'
   task backfill_site_field_group_objectid: :environment do
-    # Log for the record AND print to stdout: an operator runs this from a terminal, where
-    # Rails.logger writes to a file they are not watching, so a logger-only task looks like a no-op.
-    report = lambda do |msg|
-      Rails.logger.info(msg)
-      puts msg
-    end
+    report = CamaleonCms::TaskReporter
     report.call 'Backfilling objectid for site custom field groups...'
     updated_count = 0
     skipped_count = 0
