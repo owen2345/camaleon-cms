@@ -236,7 +236,9 @@ substitute bytes the scanner never saw. It implements the `security-capability-g
 The content scanner SHALL treat an upload whose filename extension is `.svg` in any case as an SVG,
 routing it to the SVG-specific parser (`SvgContentChecker`) rather than the generic denylist scan.
 An uppercase-extension SVG (`evil.SVG`) therefore cannot reach the weaker generic ruleset that does
-not list SVG-only vectors such as `foreignObject`.
+not list SVG-only vectors such as `foreignObject`. A filename whose basename is exactly `.svg` (a
+dotfile, which `File.extname` reports as having no extension) SHALL be treated as an SVG as well,
+preserving the fail-closed routing of the suffix check this requirement replaced.
 
 #### Scenario: Uppercase-extension SVG is routed to the SVG parser
 
@@ -247,4 +249,9 @@ not list SVG-only vectors such as `foreignObject`.
 
 - **WHEN** an SVG carrying a `foreignObject` element is scanned as `image.svg` and as `image.SVG`
 - **THEN** both are rejected as unsafe
+
+#### Scenario: A bare `.svg` dotfile name keeps SVG routing
+
+- **WHEN** `content_unsafe?` is called with a filename whose basename is exactly `.svg`, in any case
+- **THEN** the content is evaluated by the SVG parser, not the generic pattern scan
 

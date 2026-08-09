@@ -76,9 +76,13 @@ module CamaleonCms
 
     # Case-insensitive `.svg` test. Upload names arrive with whatever case the client sent
     # (`evil.SVG`); a case-sensitive check routed those past the SVG-specific scanner into the
-    # weaker generic ruleset, so both entry points normalize the extension here.
+    # weaker generic ruleset, so both entry points normalize the extension here. A name whose
+    # basename is exactly `.svg` (a dotfile, which File.extname reports as having no extension)
+    # is still treated as an SVG: the pre-hardening `end_with?` check matched it, and routing it
+    # to the stricter parser fails closed.
     def cama_svg_extension?(name)
-      File.extname(name.to_s).casecmp?('.svg')
+      base = File.basename(name.to_s)
+      File.extname(base).casecmp?('.svg') || base.casecmp?('.svg')
     end
   end
 end
