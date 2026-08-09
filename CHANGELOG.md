@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Rollback hazard (documentation):** Sidebar widget assignments created on this version are
+  stored with the compact `Widget::Assigned` discriminator. 2.9.2 reads only the full
+  `CamaleonCms::Widget::Assigned` name, so rolling back to 2.9.2 hides every assignment created
+  here (they reappear on re-upgrade — the upgrade direction reads both spellings), and raw SQL
+  filtering on the old value misses rows written here. Regression audit M7.
+
 - **Fix:** Three legacy model-API surfaces restored: `Media.find_by_key` (as an alias of
   `by_key` — the rename left legacy callers raising `NoMethodError`), `Post#unassign_category`
   (with its category-counter refresh made reliable on posts whose categories association is
