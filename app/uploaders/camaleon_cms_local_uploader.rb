@@ -75,8 +75,9 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
                      end
     end
     if res['file_type'] == 'image'
-      res['thumb'].sub! '.svg', '.jpg'
-      res['thumb'] = cama_compat_legacy_thumb(res['thumb'], version_path(key).sub('.svg', '.jpg'), res['url'])
+      res['thumb'].sub!(SVG_EXT_PATTERN, '.jpg')
+      res['thumb'] = cama_compat_legacy_thumb(res['thumb'], version_path(key).sub(SVG_EXT_PATTERN, '.jpg'),
+                                              res['url'])
       im = MiniMagick::Image.open(file_path)
       res['dimension'] = begin
         "#{im[:width]}x#{im[:height]}"

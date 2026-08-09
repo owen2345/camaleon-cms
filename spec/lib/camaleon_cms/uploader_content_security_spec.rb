@@ -169,6 +169,47 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
       expect(scanner.content_unsafe?(svg, filename: 'x.svg')).to be_nil
     end
 
+    # A bare <foreignObject> is a banned SVG tag (SvgContentChecker::BANNED_TAGS) that the generic
+    # element denylist (ContentSecurity::BLOCKED_ELEMENTS) does not list, so it is rejected only
+    # when the upload is routed through the SVG-specific scanner. A case-sensitive `.svg` check
+    # sent `evil.SVG` down the weaker generic path where the payload passed.
+    context 'with an uppercase .SVG extension' do
+      let(:svg_only_payload) { %(<svg xmlns="http://www.w3.org/2000/svg"><foreignObject/></svg>) }
+
+      it 'is caught by the SVG scanner for a lowercase .svg' do
+        expect(scanner.content_unsafe?(svg_only_payload, filename: 'x.svg')).to be(true)
+      end
+
+      it 'is caught by the SVG scanner for an uppercase .SVG too' do
+        expect(scanner.content_unsafe?(svg_only_payload, filename: 'x.SVG')).to be(true)
+      end
+
+      it 'accepts a clean uppercase .SVG (routed through the SVG checker, not the generic scan)' do
+        clean = %(<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>)
+        expect(CamaleonCms::SvgContentChecker).to receive(:unsafe?).with(clean).and_call_original
+        expect(scanner.content_unsafe?(clean, filename: 'x.SVG')).to be_nil
+      end
+    end
+
+    # File.extname reports no extension for a dotfile, so an extname-based test alone would
+    # route a file named exactly `.svg` to the generic scanner — weaker than the SVG parser
+    # the pre-hardening `end_with?` check sent it to. Routing must stay fail-closed.
+    context 'with a filename that is exactly ".svg" (dotfile)' do
+      let(:svg_only_payload) { %(<svg xmlns="http://www.w3.org/2000/svg"><foreignObject/></svg>) }
+
+      it 'still routes the name to the SVG scanner' do
+        expect(scanner.content_unsafe?(svg_only_payload, filename: '.svg')).to be(true)
+      end
+
+      it 'routes an uppercase ".SVG" dotfile the same way' do
+        expect(scanner.content_unsafe?(svg_only_payload, filename: '.SVG')).to be(true)
+      end
+
+      it 'routes a path whose basename is ".svg" the same way' do
+        expect(scanner.content_unsafe?(svg_only_payload, filename: 'tmp/.svg')).to be(true)
+      end
+    end
+
     it 'handles binary content without raising' do
       binary = File.binread("#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png")
       expect { scanner.content_unsafe?(binary, filename: 'rails.png') }.not_to raise_error

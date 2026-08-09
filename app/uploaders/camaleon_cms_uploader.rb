@@ -1,5 +1,8 @@
 class CamaleonCmsUploader
   PRIVATE_DIRECTORY = 'private'.freeze
+  # Case-insensitive terminal-`.svg` matcher, borrowed from the thumb/crop rename convention it
+  # must stay in lockstep with (defined beside that convention in UploaderImageProcessing).
+  SVG_EXT_PATTERN = CamaleonCms::UploaderImageProcessing::SVG_EXT_PATTERN
 
   attr_accessor :thumb
 
