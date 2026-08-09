@@ -80,7 +80,11 @@ module CamaleonCms
     # in the web-served public/tmp directory. Shared so the cleanup rule cannot drift
     # between RuntimeUploaderConcern and UploaderHelper.
     def cama_upload_failure(error, uploaded_io, settings)
-      return error unless settings[:remove_source]
+      # The first (malicious-content) rejection in upload_file runs before settings are
+      # deep-symbolized, so honor a string-keyed remove_source too — otherwise a rejected upload
+      # owning its staging file leaks it in the web-served public/tmp directory.
+      remove_source = settings[:remove_source] || settings['remove_source']
+      return error unless remove_source
 
       cama_purge_staged_file(uploaded_io.try(:path), File.join(Rails.public_path, 'tmp').to_s)
       error
