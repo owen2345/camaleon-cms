@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Security fix:** The two admin theme-settings paths that still saved custom-field values raw
+  — the `theme_fields` param and the bundled `new` theme's settings-save hook — now go through
+  the same allowed-slugs filter as every other admin custom-field save (added in 2.9.2), closing
+  a mass-assignment gap reachable by any role granted the theme-settings capability.
+  [#1240](https://github.com/owen2345/camaleon-cms/pull/1240).
+
+  **Notes for upgraders:**
+  - Values submitted through theme settings for slugs that are not registered theme fields are
+    no longer persisted; registered fields are unaffected.
+
 - **Fix:** User custom fields work again for host apps configuring a namespaced `user_model`
   (e.g. `'Admin::User'`): the settings form's users placement option, the user edit page's
   field-group read, and the save filter's allowed-slugs lookup now all derive the demodulized
