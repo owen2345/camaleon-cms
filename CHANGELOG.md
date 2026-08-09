@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Fix:** The admin media browser paginates at the database again instead of loading a folder's
+  entire media list into memory and re-checking every image's thumbnail on disk per page view;
+  the legacy-thumbnail repair now runs only over the rendered page. Sites with large media folders
+  load the media manager far faster. Regression audit M27.
+  [#1242](https://github.com/owen2345/camaleon-cms/pull/1242).
+
 - **Notes for upgraders (two documented behaviors, no code change):**
   - **Assets:** the engine's list of plugin/theme asset roots to precompile is a boot-time
     snapshot. A Sprockets-3 host app that appends its own `config.assets.paths` in an initializer
