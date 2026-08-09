@@ -148,7 +148,7 @@ RSpec.describe 'Cross-site custom field group injection', type: :request do
 
     it 'lets an administrator re-save a group whose stored placement is not in the select' do
       group = current_site.custom_field_groups.create!(
-        name: 'Widget Group', slug: '_widget-group', object_class: 'Widget::Main', objectid: current_site.id
+        name: 'Widget Group', slug: '_widget-group', object_class: 'Main', objectid: current_site.id
       )
       theme = current_site.get_theme
 

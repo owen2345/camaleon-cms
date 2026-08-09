@@ -51,7 +51,7 @@ RSpec.describe 'Security: custom field group caption escaping', type: :request d
 
   it 'escapes an injected widget name' do
     widget = current_site.widgets.create!(name: payload, slug: 'evil-widget')
-    place_group_on('Widget::Main', widget.id, '_evil-widget-group')
+    place_group_on('Main', widget.id, '_evil-widget-group')
 
     cell = caption_cell
     expect(injected_script_sources(cell)).to be_empty

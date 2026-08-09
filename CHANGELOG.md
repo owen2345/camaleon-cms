@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- **Fix:** The `object_class` scope naming for metas, custom fields, and field groups returns to
+  the demodulized 2.9.2 contract (`'Main'`, `'User'`), reverting an unreleased rename to
+  prefix-qualified names that stranded every row existing installs had written; the widget admin
+  literals move with it, keeping widget custom-field values saving correctly (broken
+  2.8.x–2.9.2, now spec-pinned end to end). Also removes the bulk-delete cascade on the
+  definition associations: teardown belongs to the placement hook (which destroys groups with
+  callbacks), and on models without that hook the cascade raw-deleted definition rows while
+  orphaning their fields and option metas. Regression audit M9/M8/N4.
+  [#1238](https://github.com/owen2345/camaleon-cms/pull/1238).
+
+  **Notes for upgraders:**
+  - Rows written by unreleased master-tracking installs under the short-lived prefixed scopes
+    (`'Widget::Main'`, `'Admin::User'`) are not migrated; released installs are unaffected.
+
+- **Rollback hazard (documentation):** Sidebar widget assignments created on this version are
+  stored with the compact `Widget::Assigned` discriminator. 2.9.2 reads only the full
+  `CamaleonCms::Widget::Assigned` name, so rolling back to 2.9.2 hides every assignment created
+  here (they reappear on re-upgrade — the upgrade direction reads both spellings), and raw SQL
+  filtering on the old value misses rows written here. Regression audit M7.
+
 - **Fix:** Three legacy model-API surfaces restored: `Media.find_by_key` (as an alias of
   `by_key` — the rename left legacy callers raising `NoMethodError`), `Post#unassign_category`
   (with its category-counter refresh made reliable on posts whose categories association is
