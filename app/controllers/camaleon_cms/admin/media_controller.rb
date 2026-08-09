@@ -36,6 +36,11 @@ module CamaleonCms
         path_image = tmp[:file_path]
         crop_path = cama_crop_image(path_image, params[:ic_w], params[:ic_h], params[:ic_x], params[:ic_y])
         res = upload_file(crop_path, { remove_source: true })
+        # A failed upload returns { error: ... } with no url. Surface it like the action's other
+        # error paths instead of writing a nil avatar meta and rendering an empty 200 body (which
+        # let the avatar flow store "").
+        return render(plain: helpers.sanitize(res[:error])) if res[:error].present?
+
         CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', res['url']) if params[:saved_avatar].present?
         render plain: res['url'].to_s
       end
