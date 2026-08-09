@@ -77,7 +77,9 @@ module CamaleonCms
     # return collections CustomFieldGroup
     # site: site object
     def get_user_field_groups(site)
-      site.custom_field_groups.where(object_class: self.class.to_s.parseCamaClass)
+      # Demodulized to match the association scope and the placement the settings form stores
+      # ('User' for a host Admin::User); parseCamaClass still strips a Draper Decorator suffix.
+      site.custom_field_groups.where(object_class: self.class.to_s.parseCamaClass.demodulize)
     end
 
     # get custom field value

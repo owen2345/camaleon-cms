@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **Fix:** User custom fields work again for host apps configuring a namespaced `user_model`
+  (e.g. `'Admin::User'`): the settings form's users placement option, the user edit page's
+  field-group read, and the save filter's allowed-slugs lookup now all derive the demodulized
+  user-model scope name the association scope uses, so submitted user field values are no longer
+  silently discarded (broken since 2.9.2). Engine-default and top-level `User` installs are
+  unaffected. Regression audit N5. [#1239](https://github.com/owen2345/camaleon-cms/pull/1239).
+
+  **Notes for upgraders:**
+  - Namespaced-`user_model` installs run `bin/rails camaleon_cms:demodulize_user_field_groups`
+    once after upgrading: it re-keys user field groups stored under the old qualified placement
+    so they stay visible and editable. Idempotent; a no-op everywhere else.
+  - After that task runs, rolling back to 2.9.2 hides those groups on the user edit page until
+    re-upgrade (data intact — same class of hazard as the `Widget::Assigned` note below).
+
 - **Fix:** The `object_class` scope naming for metas, custom fields, and field groups returns to
   the demodulized 2.9.2 contract (`'Main'`, `'User'`), reverting an unreleased rename to
   prefix-qualified names that stranded every row existing installs had written; the widget admin

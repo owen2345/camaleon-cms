@@ -45,7 +45,7 @@ module CamaleonCms
         hooks_run('user_update', r)
         if @user.update(user_params)
           @user.set_metas(user_meta_params) if params[:meta].present?
-          @user.set_field_values(cama_permitted_field_options('User')) if params[:field_options].present?
+          @user.set_field_values(cama_permitted_field_options(user_field_scope)) if params[:field_options].present?
           r = { user: @user, message: t('camaleon_cms.admin.users.message.updated'), params: params }
           hooks_run('user_after_edited', r)
           flash[:notice] = r[:message]
@@ -117,7 +117,7 @@ module CamaleonCms
         hooks_run('user_create', r)
         if @user.save
           @user.set_metas(user_meta_params) if params[:meta].present?
-          @user.set_field_values(cama_permitted_field_options('User')) if params[:field_options].present?
+          @user.set_field_values(cama_permitted_field_options(user_field_scope)) if params[:field_options].present?
           r = { user: @user }
           hooks_run('user_created', r)
           flash[:notice] = t('camaleon_cms.admin.users.message.created')
@@ -169,6 +169,13 @@ module CamaleonCms
 
       def user_meta_params
         params.require(:meta).permit(:avatar, :slogan)
+      end
+
+      # Allowed field slugs must be keyed on the demodulized placement name the settings form
+      # emits and get_user_field_groups queries; keyed on a hardcoded 'User' the lookup finds no
+      # groups for a host user model that demodulizes to another name, discarding every value.
+      def user_field_scope
+        PluginRoutes.get_user_class_name.demodulize
       end
 
       def set_user
