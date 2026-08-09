@@ -6,9 +6,10 @@ module Themes
         when 'settings'
           render 'themes/new/views/admin/settings'
         when 'save_settings'
-          theme.set_field_values(params[:field_options])
-          flash[:notice] = 'Settings saved!'
-          redirect_to action: :settings, action_name: 'settings'
+          # Filter through the allowed-slugs permit (the controller includes CustomFieldsConcern
+          # and hooks run on the controller instance) and let save_theme render the response —
+          # its own redirect_to made this one an error, and the raw payload skipped the filter.
+          theme.set_field_values(cama_permitted_field_options('Theme'))
         end
       end
 

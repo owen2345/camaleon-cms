@@ -45,4 +45,33 @@ RSpec.describe 'Theme settings field-value filtering', type: :request do
       expect(theme.get_field_value('bg_color')).to eq('blue')
     end
   end
+
+  describe "the bundled 'new' theme's on_theme_settings save hook" do
+    let(:theme) { current_site.get_theme('new') }
+
+    before { current_site.set_option('_theme', 'new') }
+
+    it 'drops values for an unregistered slug and answers with a single redirect' do
+      post '/admin/settings/save_theme', params: {
+        action_name: 'save_settings',
+        field_options: { '0' => { 'evil' => { 'id' => @bg_field.id.to_s, 'values' => { '0' => 'x' } } } }
+      }
+
+      expect(response).to have_http_status(:found)
+      expect(relationship_count('evil')).to eq(0)
+    end
+
+    it 'saves a registered slug and answers with a single redirect' do
+      registered = theme.add_field_group({ name: 'New Theme Fields', slug: '_new-theme-fields' })
+                        .add_manual_field({ name: 'Footer', slug: 'footer_text' }, { field_key: 'text_box' })
+
+      post '/admin/settings/save_theme', params: {
+        action_name: 'save_settings',
+        field_options: { '0' => { 'footer_text' => { 'id' => registered.id.to_s, 'values' => { '0' => 'hi' } } } }
+      }
+
+      expect(response).to have_http_status(:found)
+      expect(theme.get_field_value('footer_text')).to eq('hi')
+    end
+  end
 end
