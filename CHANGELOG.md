@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Security fix:** SVG uploads and `/media/` SVG responses are now matched by extension
+  case-insensitively, so an uppercase-extension SVG (`image.SVG`) is scanned by the SVG parser and
+  served with the `nosniff` / `script-src 'none'` headers like a lowercase one; the media security
+  header keys are also emitted lowercase for Rack 3. Regression audit L5, L6.
+  [#1243](https://github.com/owen2345/camaleon-cms/pull/1243).
+
 - **Fix:** The admin media browser paginates at the database again instead of loading a folder's
   entire media list into memory and re-checking every image's thumbnail on disk per page view;
   the legacy-thumbnail repair now runs only over the rendered page. Sites with large media folders
