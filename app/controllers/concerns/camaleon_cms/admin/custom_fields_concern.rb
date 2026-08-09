@@ -5,17 +5,23 @@ module CamaleonCms
 
       private
 
-      # Only permit field_options that match registered custom field slugs
-      def cama_permitted_field_options(object_class)
-        return {} if params[:field_options].blank?
+      # Only permit field values whose slug is registered under object_class. param_key selects
+      # which request param carries the payload, so sibling params (the theme form's
+      # theme_fields) get the same allowed-slugs permit as the default field_options.
+      def cama_permitted_field_options(object_class, param_key: :field_options)
+        return {} if params[param_key].blank?
 
         allowed_keys = cama_custom_field_allowed_slugs(object_class)
         return {} if allowed_keys.blank?
 
-        field_options = params.require(:field_options)
-        field_options.permit(field_options.keys.select { |k| k.to_s =~ /\A\d+\z/ }.index_with do
+        field_options = params.require(param_key)
+        permitted = field_options.permit(field_options.keys.select { |k| k.to_s =~ /\A\d+\z/ }.index_with do
           allowed_keys.index_with { [:id, :group_number, { values: {} }] }
         end).to_h
+        # Drop groups left empty after filtering. set_field_values deletes every existing value
+        # before writing, so handing it a non-blank-but-empty payload (a group whose submitted
+        # slugs were all unregistered) would wipe the object's stored values and write nothing.
+        permitted.reject { |_group, fields| fields.blank? }
       end
 
       def cama_custom_field_allowed_slugs(object_class)

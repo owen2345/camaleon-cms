@@ -1,15 +1,11 @@
 module Themes
   module New
     module CustomHelper
-      def theme_custom_settings(theme)
-        case params[:action_name]
-        when 'settings'
-          render 'themes/new/views/admin/settings'
-        when 'save_settings'
-          theme.set_field_values(params[:field_options])
-          flash[:notice] = 'Settings saved!'
-          redirect_to action: :settings, action_name: 'settings'
-        end
+      def theme_custom_settings(_theme)
+        # save_theme already persists the submitted field_options through the filtered
+        # cama_permitted_field_options('Theme') path and renders the single response, so this
+        # hook no longer saves (its old raw save bypassed that filter and its redirect errored).
+        render 'themes/new/views/admin/settings' if params[:action_name] == 'settings'
       end
 
       def theme_custom_on_install_theme(theme)

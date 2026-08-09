@@ -62,7 +62,7 @@ module CamaleonCms
       end
 
       def save_theme
-        current_theme.set_field_values(params[:theme_fields]) if params[:theme_fields].present?
+        current_theme.set_field_values(cama_permitted_field_options('Theme', param_key: :theme_fields))
         current_theme.set_options(params[:theme_option]) if params[:theme_option].present?
         current_theme.set_metas(params[:theme_meta]) if params[:theme_meta].present?
         current_theme.set_field_values(cama_permitted_field_options('Theme'))
