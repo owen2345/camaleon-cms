@@ -231,11 +231,14 @@ module CamaleonCms
     # Message seam. Rendering user-facing upload errors differs by execution context,
     # so the pipeline never calls a translator directly.
     #
-    # The defaults below are what a controller gets: CamaleonCms::CamaleonController does
-    # not include CamaleonHelper, so `ct` is undefined there. CamaleonCms::UploaderHelper
-    # overrides all three to route through `ct` / `cama_t` / `number_to_human_size`; `ct`
-    # runs the `on_translation` hook that lets plugins override the text, which a shared
-    # I18n.t call would silently drop.
+    # `ct` runs the `on_translation` hook that lets plugins override the text, which a
+    # shared I18n.t call would silently drop. CamaleonCms::UploaderHelper overrides all
+    # three to route through `ct` / `cama_t` / `number_to_human_size` (it includes
+    # CamaleonHelper itself). CamaleonCms::RuntimeUploaderConcern overrides only
+    # cama_uploader_ct, routing through `ct` when its host has one — true for
+    # CamaleonCms::CamaleonController since #1223 restored CamaleonHelper there. The
+    # defaults below are what remains: `t`/`human_size` on the concern path, and all
+    # three for concern hosts without `ct` (ActiveJobs, standalone objects).
     def cama_uploader_ct(key, args = {})
       I18n.t("camaleon_cms.common.#{key}", **args)
     end
