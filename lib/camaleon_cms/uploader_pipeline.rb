@@ -81,7 +81,18 @@ module CamaleonCms
       }.merge!(settings)
       settings[:formats] = '*' if settings[:formats].nil?
       settings[:folder] = '' if settings[:folder].nil? # e.g. crop_url passes no folder
+      io_before_hook = settings[:uploaded_io]
       hooks_run('before_upload', settings)
+
+      # A before_upload handler may rebind settings[:uploaded_io] to bytes the top-of-method
+      # scan never saw (e.g. an image optimizer rewriting an SVG). For an untrusted uploader,
+      # re-scan the substituted IO so a handler cannot launder a blocked payload past the scan.
+      # Keyed on object identity: an unchanged IO was already scanned, and a permission-holder
+      # is exempt exactly as above.
+      if !settings[:uploaded_io].equal?(io_before_hook) && !cama_trusted_for_unfiltered_upload? &&
+         file_content_unsafe?(settings[:uploaded_io])
+        return cama_upload_failure({ error: 'Potentially malicious content found!' }, settings[:uploaded_io], settings)
+      end
 
       # guard against path traversal
       unless cama_uploader.valid_folder_path?(settings[:folder])
