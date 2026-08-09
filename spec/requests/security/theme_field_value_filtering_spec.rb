@@ -31,20 +31,19 @@ RSpec.describe 'Theme settings field-value filtering', type: :request do
   end
 
   describe 'the theme_fields payload' do
-    it 'drops values for a slug not registered on the theme' do
+    # Mixed payload: the registered slug must save (proving the request reached save_theme past
+    # authorization) while the unregistered one is dropped -- a filter test that cannot pass
+    # merely because an authorization failure redirected before any write.
+    it 'keeps a registered slug while dropping an unregistered one' do
       post '/admin/settings/save_theme', params: {
-        theme_fields: { '0' => { 'evil' => { 'id' => @bg_field.id.to_s, 'values' => { '0' => 'x' } } } }
-      }
-
-      expect(relationship_count('evil')).to eq(0)
-    end
-
-    it 'saves values for a registered slug' do
-      post '/admin/settings/save_theme', params: {
-        theme_fields: { '0' => { 'bg_color' => { 'id' => @bg_field.id.to_s, 'values' => { '0' => 'blue' } } } }
+        theme_fields: { '0' => {
+          'bg_color' => { 'id' => @bg_field.id.to_s, 'values' => { '0' => 'blue' } },
+          'evil' => { 'id' => @bg_field.id.to_s, 'values' => { '0' => 'x' } }
+        } }
       }
 
       expect(theme.get_field_value('bg_color')).to eq('blue')
+      expect(relationship_count('evil')).to eq(0)
     end
   end
 
@@ -53,27 +52,24 @@ RSpec.describe 'Theme settings field-value filtering', type: :request do
 
     before { current_site.set_option('_theme', 'new') }
 
-    it 'drops values for an unregistered slug and answers with a single redirect' do
-      post '/admin/settings/save_theme', params: {
-        action_name: 'save_settings',
-        field_options: { '0' => { 'evil' => { 'id' => @bg_field.id.to_s, 'values' => { '0' => 'x' } } } }
-      }
-
-      expect(response).to have_http_status(:found)
-      expect(relationship_count('evil')).to eq(0)
-    end
-
-    it 'saves a registered slug and answers with a single redirect' do
+    # The registered slug saving proves the request reached save_theme past authorization; the
+    # single redirect proves the removed hook no longer double-renders; the unregistered slug is
+    # dropped by save_theme's generic field_options filter.
+    it 'keeps a registered slug while dropping an unregistered one, with a single redirect' do
       registered = theme.add_field_group({ name: 'New Theme Fields', slug: '_new-theme-fields' })
                         .add_manual_field({ name: 'Footer', slug: 'footer_text' }, { field_key: 'text_box' })
 
       post '/admin/settings/save_theme', params: {
         action_name: 'save_settings',
-        field_options: { '0' => { 'footer_text' => { 'id' => registered.id.to_s, 'values' => { '0' => 'hi' } } } }
+        field_options: { '0' => {
+          'footer_text' => { 'id' => registered.id.to_s, 'values' => { '0' => 'hi' } },
+          'evil' => { 'id' => registered.id.to_s, 'values' => { '0' => 'x' } }
+        } }
       }
 
       expect(response).to have_http_status(:found)
       expect(theme.get_field_value('footer_text')).to eq('hi')
+      expect(relationship_count('evil')).to eq(0)
     end
   end
 
