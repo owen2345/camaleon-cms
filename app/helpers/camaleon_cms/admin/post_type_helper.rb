@@ -60,8 +60,14 @@ module CamaleonCms
       def post_type_taxonomy_html_(categories, taxonomy = 'categories', name = 'categories', type = 'checkbox',
                                    values = [], class_cat = '', required = false)
         if categories.count < 1
-          taxonomy == 'categories' ? t('camaleon_cms.admin.table.categories') : t('camaleon_cms.admin.table.tags')
-          return t('camaleon_cms.admin.post_type.message.no_created_html', taxonomy: taxonomy)
+          # Interpolate the translated taxonomy label, not the raw 'categories'/'post_tags' slug
+          # (the label was computed here and discarded before).
+          taxonomy_label = if taxonomy == 'categories'
+                             t('camaleon_cms.admin.table.categories')
+                           else
+                             t('camaleon_cms.admin.table.tags')
+                           end
+          return t('camaleon_cms.admin.post_type.message.no_created_html', taxonomy: taxonomy_label)
         end
 
         content_tag(:ul, class: class_cat) do

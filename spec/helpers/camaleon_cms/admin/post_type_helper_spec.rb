@@ -75,4 +75,16 @@ RSpec.describe CamaleonCms::Admin::PostTypeHelper, type: :helper do
       expect(helper.post_type_list_taxonomy([])).to eq('')
     end
   end
+
+  describe 'empty-taxonomy message (regression L15)' do
+    # The empty branch computed the translated taxonomy label and then discarded it, interpolating
+    # the raw 'post_tags' slug instead. Drive the private builder with an empty relation so the
+    # result does not depend on fixture state.
+    it 'interpolates the translated taxonomy label, not the raw slug' do
+      html = helper.send(:post_type_taxonomy_html_, CamaleonCms::PostTag.none, 'post_tags')
+
+      expect(html).to include('Tags')
+      expect(html).not_to include('post_tags')
+    end
+  end
 end

@@ -108,6 +108,11 @@ module CamaleonCms
 
     private
 
+    # Operator escape hatch: when ENV['CAMALEON_SKIP_URL_VALIDATION'] is set, all upload-URL
+    # validation (scheme, host, SSRF/link-local, path traversal, HTML sanitization) is bypassed.
+    # It is meant only for trusted, isolated environments (e.g. a local import job behind no
+    # network); leaving it set in production removes the SSRF and open-fetch protections around
+    # crop/crop_url. Off unless the variable is explicitly present.
     def skip_validation?
       ENV['CAMALEON_SKIP_URL_VALIDATION'].present?
     end

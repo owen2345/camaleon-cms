@@ -102,16 +102,21 @@ module CamaleonCms
     def shortcode_asset_reference(file, as_path: false)
       return if file.blank?
 
-      file = resolve_shortcode_theme_asset(file)
+      # Defensive ordering: assign the locals the rescue branch uses before everything else, so it
+      # can never see them nil. The only call that raises AssetNotFound is the asset helper below —
+      # resolve_shortcode_theme_asset never does (regex, string interpolation and File.exist? only).
       helper = ActionController::Base.helpers
       method_name = as_path ? :asset_path : :asset_url
+      file = resolve_shortcode_theme_asset(file)
       helper.public_send(method_name, file)
     rescue Sprockets::Rails::Helper::AssetNotFound
       helper.public_send(method_name, file, skip_pipeline: true)
     end
 
     def resolve_shortcode_theme_asset(file)
-      match = file.to_s.match(%r{\Athemes/[^/]+/assets/(?<asset>.+)\z})
+      # Tolerate both `themes/<slug>/assets/...` and `/themes/<slug>/assets/...` — the latter is
+      # what Rails' asset helpers typically emit.
+      match = file.to_s.match(%r{\A/?themes/[^/]+/assets/(?<asset>.+)\z})
       return file unless match
 
       can_resolve_theme_assets = respond_to?(:current_theme) &&
