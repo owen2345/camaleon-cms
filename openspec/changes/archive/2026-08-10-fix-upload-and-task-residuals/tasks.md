@@ -37,3 +37,13 @@
       change (no `[skip ci]` — heads the first push).
 - [x] 7.2 Push, open the PR (What and Why + User-Visible Impact).
 - [x] 7.3 Commit the short changelog entry referencing the PR with `[skip ci]` and push.
+
+## 8. Code-review follow-ups (same branch, post-archive; no behavior change)
+
+- [x] 8.1 Extract the per-task `report` lambda into a shared `CamaleonCms::TaskReporter` (log +
+      puts), required from `lib/camaleon_cms.rb`; call sites keep the `report.call` form.
+- [x] 8.2 Remove the dead duplicate-theme guard in the theme generator (its condition re-checked
+      the same deterministic path the `elsif` above had already ruled out).
+- [x] 8.3 Harden the L18 spec cleanup: remove the whole per-site media root in `ensure`,
+      nil-guarded so a setup failure is not masked by the cleanup.
+- [x] 8.4 Sync the OpenSpec artifacts, PR description, and changelog entry with the follow-ups.

@@ -41,9 +41,11 @@ facts:
    rather than symbolizing earlier in `upload_file`. The seam is the shared invariant; hardening it
    fixes every caller, present and future, in one place. Rejected: moving the symbolize call above
    the first scan (fixes only that one call site, leaves the seam fragile).
-3. **L11: `report` lambda (log + puts) in tasks; `say` in the generator.** Keeps the log record
-   (matching `orphaned_comments`) while giving the operator console output; the generator is a Thor
-   generator, whose idiomatic operator output is `say`.
+3. **L11: shared `CamaleonCms::TaskReporter` (log + puts) in tasks; `say` in the generator.** Keeps
+   the log record (matching `orphaned_comments`) while giving the operator console output; the
+   generator is a Thor generator, whose idiomatic operator output is `say`. First landed as a
+   per-task `report` lambda; the on-branch review pass extracted the shared module so the reporting
+   rule cannot drift between the repair tasks (call sites keep the `report.call` form).
 4. **L18: request-level guard.** A record with a cached `.jpg` thumb and only an on-disk `.png` is
    rendered; the spec asserts the page contains the `.png` and NOT the `.jpg`, so a regression that
    stops the in-place mutation reaching the view fails the suite.

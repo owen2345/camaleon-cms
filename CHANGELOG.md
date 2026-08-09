@@ -4,7 +4,9 @@
 
 - **Fix:** A failed avatar crop now shows an error instead of silently blanking the saved avatar and
   returning an empty response; the theme generator and the custom-fields/site/cross-site repair rake
-  tasks print their progress to the terminal (they logged only to a file before). Regression audit
+  tasks print their progress to the terminal (they logged only to a file before). Review follow-ups
+  on the same branch (no behavior change): the tasks' terminal reporting moved into a shared
+  `CamaleonCms::TaskReporter` helper and the theme generator lost a dead branch. Regression audit
   L3, L16, L11, L18. [#1244](https://github.com/owen2345/camaleon-cms/pull/1244).
   - **Notes for upgraders:** Post content edited during the 2.9.1–2.9.2 sanitize-on-save era stored
     HTML-escaped entities and may render visibly double-encoded once (e.g. `&amp;` shown literally)

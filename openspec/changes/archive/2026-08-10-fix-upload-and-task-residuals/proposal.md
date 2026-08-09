@@ -25,8 +25,8 @@ L11, plus the L18 test gap and the L7 documentation note.
   sanitized message) and skips the avatar meta write.
 - **L16**: `cama_upload_failure` honors a string-keyed `remove_source` too, so the staged file is
   purged on the pre-symbolize failure path.
-- **L11**: operator output goes to stdout as well as the log (a `report` lambda in the tasks, Thor's
-  `say` in the generator).
+- **L11**: operator output goes to stdout as well as the log (a shared `CamaleonCms::TaskReporter`
+  in the tasks, Thor's `say` in the generator).
 - **L18**: a request spec asserts the repaired `.png` thumbnail URL appears in the rendered page.
 - **L7**: a CHANGELOG upgraders note.
 
@@ -46,7 +46,8 @@ L11, plus the L18 test gap and the L7 documentation note.
 
 - `app/controllers/camaleon_cms/admin/media_controller.rb` (L3),
   `lib/camaleon_cms/uploader_path_security.rb` (L16),
-  `lib/tasks/{custom_fields_roles,site_custom_field_groups,cross_site_field_groups}.rake` and
+  `lib/tasks/{custom_fields_roles,site_custom_field_groups,cross_site_field_groups}.rake`,
+  `lib/camaleon_cms/task_reporter.rb` (new shared reporting seam) and
   `lib/generators/camaleon_cms/theme_generator.rb` (L11), `CHANGELOG.md` (L7).
 - Specs: crop request spec (L3), `uploader_helper_spec` (L16), the three rake-task specs (L11
   stdout), media `index` request spec (L18).
