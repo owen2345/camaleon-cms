@@ -2,7 +2,10 @@
 
 module CamaleonCms
   class MediaSecurityHeaders
-    SVG_PATH_PATTERN = %r{\A/media/.*\.svg\z}
+    # Case-insensitive: an `evil.SVG` is stored and served verbatim (get_file_format downcases
+    # the extension), so a case-sensitive match left uppercase-extension SVGs served inline
+    # without the protective headers.
+    SVG_PATH_PATTERN = %r{\A/media/.*\.svg\z}i
 
     def initialize(app)
       @app = app

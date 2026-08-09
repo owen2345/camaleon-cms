@@ -29,7 +29,7 @@ module CamaleonCms
                   else
                     uploaded_io.path
                   end
-      file_path&.end_with?('.svg')
+      cama_svg_extension?(file_path)
     end
 
     # Scans in-memory content. Callers holding decoded bytes (e.g. a base64 data:
@@ -39,8 +39,11 @@ module CamaleonCms
     # Returns a truthy value (the matched pattern, or true for SVG) when unsafe,
     # nil when safe -- matching file_content_unsafe?'s contract.
     def content_unsafe?(content, filename: nil)
-      return true if filename&.end_with?('.svg') && CamaleonCms::SvgContentChecker.unsafe?(content)
-      return nil if filename&.end_with?('.svg')
+      if cama_svg_extension?(filename)
+        return true if CamaleonCms::SvgContentChecker.unsafe?(content)
+
+        return nil
+      end
 
       normalized = CamaleonCms::ContentSecurity.normalize(content)
       CamaleonCms::ContentSecurity::SUSPICIOUS_PATTERNS.each do |pattern|
@@ -67,6 +70,15 @@ module CamaleonCms
       file.rewind if file.respond_to?(:rewind)
 
       content_unsafe?(content, filename: filename)
+    end
+
+    private
+
+    # Case-insensitive `.svg` test. Upload names arrive with whatever case the client sent
+    # (`evil.SVG`); a case-sensitive check routed those past the SVG-specific scanner into the
+    # weaker generic ruleset, so both entry points normalize the extension here.
+    def cama_svg_extension?(name)
+      File.extname(name.to_s).casecmp?('.svg')
     end
   end
 end
