@@ -19,11 +19,13 @@ write commits.
   sibling payload params; the eight existing call sites are unchanged.
 - `save_theme` filters `theme_fields` through the concern (`param_key: :theme_fields`) instead
   of passing it raw; registered slugs posted through `theme_fields` keep saving.
-- The `themes/new` `on_theme_settings` handler saves through the same filtered call and drops
-  its own flash + redirect, letting `save_theme`'s standard response complete — which also
-  removes the `DoubleRenderError` on the custom-save path.
-- The other bundled themes and the theme generator template are already clean (empty or no
-  save handler); no change there.
+- The filter drops groups left empty after filtering, so a submission carrying no registered
+  slug returns `{}` and `set_field_values` no-ops instead of running its `delete_all` and wiping
+  the object's stored values (pre-existing across all its call sites; branch-review fix).
+- The `themes/new` `on_theme_settings` handler no longer saves at all: `save_theme` already
+  persists `field_options` generically, so the hook's duplicate write is removed along with its
+  broken redirect (the branch's first pass filtered the hook's write; branch review simplified it
+  away). The other bundled themes and the theme generator template were already clean.
 
 ## Capabilities
 

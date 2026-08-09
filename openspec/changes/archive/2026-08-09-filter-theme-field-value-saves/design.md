@@ -80,7 +80,26 @@ See `proposal.md` — Why. Load-bearing facts verified in code:
    red: an unregistered slug via `theme_fields`, and one via the bundled theme's custom-save
    action (site's `_theme` option pointed at `new`, group + fields registered directly on the
    theme record). The double-render pin asserts the standard redirect — red today because the
-   request raises `DoubleRenderError` (the dummy app runs `show_exceptions :none`).
+   request raises (see branch-review correction in Decision 6).
+
+### Branch-review revisions
+
+5. **All-unregistered payloads must not wipe stored values.** `cama_permitted_field_options`
+   returned each submitted group as an empty hash when none of its slugs were registered
+   (`params.permit` keeps the group key with no children). That result is not blank, so
+   `set_field_values` ran its `delete_all` and then wrote nothing — clearing every stored value.
+   Pre-existing across all eba56d6f call sites; surfaced here because the theme paths route
+   through the same helper. Fix: reject groups left empty after filtering, so an all-unregistered
+   submission returns `{}` and `set_field_values` no-ops. A clear-all still works (it carries the
+   registered slug keys). Now a general requirement of this capability.
+6. **The bundled handler stops saving entirely (supersedes Decision 3's filtered save).** Once
+   `save_theme` filters `field_options` generically, the `new` theme's hook doing the same
+   filtered write was pure redundancy (a second `delete_all`+rewrite). Removed — the hook now
+   only renders the theme's settings view; `save_theme` persists `field_options` and renders the
+   single response. This aligns the bundled theme with the generator template's empty save
+   handler. Correction to Decision 4: the old hook's `redirect_to action: :settings` targeted a
+   non-existent route, so it raised `UrlGenerationError` (not `DoubleRenderError`) after the raw
+   write committed; removing the branch resolves it regardless.
 
 ## Risks / Trade-offs
 
