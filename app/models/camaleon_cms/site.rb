@@ -7,6 +7,12 @@ module CamaleonCms
     # attrs: [name, description, slug]
     attr_accessor :site_domain
 
+    # Transient (never persisted): when default_settings auto-provisions the
+    # administrator, it stashes the randomly generated plaintext password here so
+    # the provisioning controller can surface it once. nil when no admin was minted
+    # (e.g. a shared admin already existed). See harden-installer-default-admin.
+    attr_accessor :generated_admin_password
+
     has_many :post_types, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id, dependent: :destroy,
                           inverse_of: :site
     has_many :nav_menus, class_name: 'CamaleonCms::NavMenu', foreign_key: :parent_id, dependent: :destroy,

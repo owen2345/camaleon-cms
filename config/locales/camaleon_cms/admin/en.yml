@@ -488,10 +488,24 @@ en:
         message:
           error: 'Not found site'
           created: 'The site has been created.'
+          created_with_admin: 'Site created. New administrator password: %{password}. Change it after signing in.'
           updated: 'The site has been updated.'
           deleted: 'Correct Deleted'
           enter_key_domain: 'Enter a key or a domain'
           enter_key_domain_empty: 'Enter a key (site2) or a domain (my_domain.com). Key will be the name of your subdomain.'
+      installer:
+        setup_token: 'Setup token'
+        setup_token_hint: 'Required for remote installations; leave blank when installing locally. Printed in the server log and saved to tmp/camaleon_setup_token on first run.'
+        invalid_setup_token: 'A valid setup token is required to install. See the server log or tmp/camaleon_setup_token.'
+        welcome_title: 'Your site was created successfully.'
+        visit_frontend: 'Visit Frontend:'
+        visit_admin: 'Visit Admin panel'
+        here: 'Here.'
+        user_label: 'User:'
+        password_label: 'Password:'
+        copy: 'Copy'
+        copied: 'Copied!'
+        must_change_notice: 'Save this password now — it is shown only once. You will be asked to change it when you first sign in.'
       signin:
         message:
           enter_username_password: 'You must enter a username and/or password'
@@ -629,6 +643,7 @@ en:
           created: 'The user has been created.'
           updated: 'The user has been updated.'
           deleted: 'The user has been deleted.'
+          must_change_password: 'Please choose a new password before continuing.'
           incorrect_old_password: 'Incorrect old password'
           rol_error: 'Not found group user.'
           rol_created: 'The user role has been created.'

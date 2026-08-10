@@ -25,6 +25,7 @@ end
 
 $camaleon_engine_dir = File.expand_path('../..', __dir__)
 require File.join($camaleon_engine_dir, 'lib', 'plugin_routes').to_s
+require File.join($camaleon_engine_dir, 'lib', 'camaleon_cms', 'setup_token').to_s
 Dir[File.join($camaleon_engine_dir, 'lib', 'ext', '**', '*.rb')].sort.each { |f| require f }
 require 'draper'
 
