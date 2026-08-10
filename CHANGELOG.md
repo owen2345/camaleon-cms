@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Fix:** Administrator password reset is working again. On Rails 7.1+ `has_secure_password` generates
+  a `password_reset_token` method that shadowed Camaleon's same-named column, so the emailed reset link
+  never matched the account lookup and every reset dead-ended on "URL incorrect". Reset links now
+  resolve, expire, are single-use, confined to the account's own site, and reject a blank or
+  malformed password. The session endpoints (login, registration, password reset) also no longer
+  raise a 500 on a malformed `user` parameter.
+  [#1248](https://github.com/owen2345/camaleon-cms/pull/1248).
+  - **Notes for upgraders:** any password-reset links already outstanding at upgrade time are
+    invalidated and must be re-requested (they were non-functional in practice). No schema change.
+
 - **Security fix:** The installer no longer publishes a default administrator password and can no
   longer be run by an anonymous visitor on a fresh deploy (audit finding C1). New sites mint the
   `admin` account with a random password shown once on the installer confirmation page — now reachable
