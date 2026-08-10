@@ -54,10 +54,14 @@ module CamaleonCms
 
       token = SecureRandom.hex(32)
       FileUtils.mkdir_p(File.dirname(file_path))
-      File.write(file_path, token)
-      File.chmod(0o600, file_path)
+      # 0600 from the first byte (write-then-chmod would leave a world-readable window at default
+      # umask), EXCL so a concurrent generator cannot clobber a token already handed to an operator.
+      File.open(file_path, File::WRONLY | File::CREAT | File::EXCL, 0o600) { |f| f.write(token) }
       Rails.logger.info("Camaleon CMS: setup token written to #{file_path} — required to run the installer.")
       token
+    rescue Errno::EEXIST
+      # Lost the creation race between the exist? check and the open: adopt the winner's token.
+      read_or_generate_file
     rescue StandardError
       nil
     end
