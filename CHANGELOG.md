@@ -9,7 +9,7 @@
   first-run installer is gated by a setup token, read from `CAMALEON_SETUP_TOKEN` or a generated
   `tmp/camaleon_setup_token` file. See [docs/installation.md](docs/installation.md) and
   [docs/upgrading-to-2.9.3.md](docs/upgrading-to-2.9.3.md).
-  [#XXXX](https://github.com/owen2345/camaleon-cms/pulls).
+  [#1246](https://github.com/owen2345/camaleon-cms/pull/1246).
   - **Notes for upgraders:**
     - **Scripted installs must now supply `CAMALEON_SETUP_TOKEN`.**
     - **Existing installs are not rewritten.** An administrator still using the historical default
