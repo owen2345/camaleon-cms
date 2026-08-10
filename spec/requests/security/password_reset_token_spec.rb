@@ -100,6 +100,15 @@ RSpec.describe 'Password reset token validation', type: :request do
       # The link must survive the rejected attempt (a false success used to consume it).
       expect(user.read_attribute(:password_reset_token)).to eq(token)
     end
+
+    it 'treats a scalar user param as an empty submission instead of failing' do
+      token = emitted_reset_token
+
+      post cama_admin_forgot_path(h: token), params: { user: 'foo' }
+
+      expect(response).to have_http_status(:ok) # the reset form re-renders with an error
+      expect(user.reload.authenticate('oldpassword12')).to be_truthy
+    end
   end
 
   describe 'reset links are honored only for the account\'s own site' do

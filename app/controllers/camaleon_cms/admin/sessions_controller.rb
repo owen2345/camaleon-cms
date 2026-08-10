@@ -86,7 +86,8 @@ module CamaleonCms
             # Blank-check the *permitted* password: permit drops a non-scalar value (e.g.
             # `user[password][]=x`), and has_secure_password only validates presence on create —
             # either way `update` would be a silent no-op reported as success, consuming the token.
-            reset_params = params[:user].permit(:password, :password_confirmation)
+            # A scalar `user` param (`?user=foo`) has no .permit: treat it as an empty submission.
+            reset_params = params[:user].try(:permit, :password, :password_confirmation) || {}
             if reset_params[:password].blank?
               flash[:error] = t('camaleon_cms.admin.login.message.reset_password_error')
             elsif @user.update(reset_params)
