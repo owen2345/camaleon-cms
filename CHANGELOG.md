@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **Security fix:** The installer no longer publishes a default administrator password and can no
+  longer be run by an anonymous visitor on a fresh deploy (audit finding C1). New sites mint the
+  `admin` account with a random password shown once on the installer confirmation page — now reachable
+  only by the operator who just installed — and require a password change on first sign-in. The
+  first-run installer is gated by a setup token, read from `CAMALEON_SETUP_TOKEN` or a generated
+  `tmp/camaleon_setup_token` file. See [docs/installation.md](docs/installation.md) and
+  [docs/upgrading-to-2.9.3.md](docs/upgrading-to-2.9.3.md).
+  [#XXXX](https://github.com/owen2345/camaleon-cms/pulls).
+  - **Notes for upgraders:**
+    - **Scripted installs must now supply `CAMALEON_SETUP_TOKEN`.**
+    - **Existing installs are not rewritten.** An administrator still using the historical default
+      password should be rotated (admin profile screen or a `rails console` reset); the credential
+      disclosure on the installer page is closed for all installs regardless.
+
 - **Fix:** The captcha tag now honors a caller-supplied image style and string-keyed input
   attributes, and the admin "no categories/tags created" message shows a properly translated,
   localized label instead of the raw taxonomy slug; an internal shortcode-asset helper was realigned
