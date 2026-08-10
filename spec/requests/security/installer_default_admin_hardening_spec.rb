@@ -5,7 +5,8 @@ require 'rails_helper'
 # Reproduces audit finding C1: the installer publishes a known default admin
 # password on a permanently public page, and the installer itself is
 # unauthenticated on a fresh deploy. See
-# openspec/changes/harden-installer-default-admin.
+# openspec/specs/installer-access-control/spec.md and
+# openspec/specs/default-admin-credential-safety/spec.md.
 RSpec.describe 'Installer and default-admin hardening', type: :request do
   describe 'GET /admin/installers/welcome on an already-installed site' do
     init_site # a site already exists

@@ -7,7 +7,7 @@ module CamaleonCms
   # deploy (audit finding C1, vector 2). The expected token comes from ENV['CAMALEON_SETUP_TOKEN']
   # when set, otherwise from a generated 0600 file under tmp/; generating it logs its location once so
   # the operator can read it. It is required only while no site exists, and is cleared once one does.
-  # See openspec/changes/harden-installer-default-admin.
+  # See openspec/specs/installer-access-control/spec.md.
   module SetupToken
     ENV_KEY = 'CAMALEON_SETUP_TOKEN'.freeze
 
