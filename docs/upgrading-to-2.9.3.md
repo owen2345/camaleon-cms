@@ -53,8 +53,22 @@ u.update(password: "your-new-password", password_confirmation: "your-new-passwor
 The disclosure itself (the credentials showing on the installer's confirmation page) is closed for all
 installs by this release, regardless of whether you rotate.
 
+## Administrator password reset restored
+
+On Rails 7.1+, `has_secure_password` generates a `password_reset_token` method that shadowed
+Camaleon's same-named database column: the mailer emailed one value while the reset lookup matched
+the other, so every emailed reset link dead-ended on "URL incorrect" even though the user was told
+the email was sent. This release aligns both sides on the stored column (which behaves identically on
+Rails 6.1–8.1), and makes reset links single-use, time-bounded, and confined to the account's own
+site.
+
+- **Any reset links already outstanding at upgrade time are invalidated** and must be re-requested —
+  they were non-functional in practice anyway.
+- No schema change; no action beyond re-requesting a reset if one was in flight.
+
 ## Recommended rollout
 
 1. Upgrade to `2.9.3`.
 2. For scripted installs, set `CAMALEON_SETUP_TOKEN` before running the installer.
 3. On existing installs, rotate any administrator still using the historical default password.
+4. Re-request any administrator password-reset link that was outstanding at upgrade time.
