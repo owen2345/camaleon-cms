@@ -124,7 +124,8 @@ module CamaleonCms
 
       def register
         @user ||= current_site.users.new
-        if params[:user].present?
+        # A scalar `user` param has no .permit — only a form-shaped submission enters this branch.
+        if params[:user].respond_to?(:permit)
           params[:user][:role] = PluginRoutes.system_info['default_user_role']
           params[:user][:is_valid_email] = false if current_site.need_validate_email?
           user_data = user_permit_data
@@ -201,8 +202,12 @@ module CamaleonCms
       end
 
       def user_permit_data
-        params.require(:user)
-              .permit(:first_name, :last_name, :email, :username, :password, :password_confirmation, :is_valid_email)
+        user_params = params.require(:user)
+        # A scalar `user` param (`?user=foo`) has no .permit: treat it as an empty submission.
+        return {} unless user_params.respond_to?(:permit)
+
+        user_params.permit(:first_name, :last_name, :email, :username, :password, :password_confirmation,
+                           :is_valid_email)
       end
     end
   end
