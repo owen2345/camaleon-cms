@@ -42,10 +42,10 @@ See proposal.md — Why. The relevant current-state facts that shape the approac
 ## Decisions
 
 ### D1 — Setup token: `ENV` override, else a generated operator-readable file
-On boot, when `Site.count == 0`, the app ensures a setup token exists: it uses
-`ENV['CAMALEON_SETUP_TOKEN']` if set, otherwise generates a high-entropy token and writes it to an
-operator-readable file under the app's writable state (default `tmp/camaleon_setup_token`), logging
-its location once. The installer requires a matching token to provision, and the generated file is
+On the first remote installer access while `Site.count == 0`, the app ensures a setup token exists:
+it uses `ENV['CAMALEON_SETUP_TOKEN']` if set, otherwise generates a high-entropy token and writes it
+to an operator-readable file under the app's writable state (default `tmp/camaleon_setup_token`),
+logging its location once. Local installs never need — and never generate — the token. The installer requires a matching token to provision, and the generated file is
 removed once a site exists.
 - *Why:* possession proves host access, which is exactly the line between the real operator and a web
   visitor — the same model Jenkins/GitLab use for their initial secret. The `ENV` override handles
@@ -135,7 +135,7 @@ provisions without one. The setup-token field on the installer form is therefore
   read the setup token), with the email reset path added once the sibling fix lands. The plaintext is
   never persisted (D2). Called out in the install guide and upgrade notes.
 - **Setup token on a clustered / read-only deploy** → `ENV['CAMALEON_SETUP_TOKEN']` override (D1);
-  boot-time file generation is idempotent (only when absent) so multiple workers converge.
+  the lazy file generation is idempotent (only when absent) so multiple workers converge.
 - **Gate causes a redirect loop or locks the operator out of the change screen** → the change screen,
   its submit action, and logout are explicitly exempted; covered by a feature spec.
 - **Scripted/automated installs break** (BREAKING) → documented; automation supplies

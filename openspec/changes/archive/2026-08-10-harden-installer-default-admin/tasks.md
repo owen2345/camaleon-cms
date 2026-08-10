@@ -14,7 +14,7 @@
 
 ## 3. Setup-token gate (vector 2)
 
-- [x] 3.1 Add boot-time setup-token provisioning: when `Site.count == 0`, use `ENV['CAMALEON_SETUP_TOKEN']` if set, else generate and write `tmp/camaleon_setup_token` (0600) idempotently, logging its path once.
+- [x] 3.1 Add lazy setup-token provisioning: on first remote installer access while `Site.count == 0`, use `ENV['CAMALEON_SETUP_TOKEN']` if set, else generate and write `tmp/camaleon_setup_token` (0600) idempotently, logging its path once.
 - [x] 3.2 Add a `before_action` to `InstallersController` requiring a matching setup token on `save` for remote requests while no site exists; refuse provisioning otherwise. Loopback requests (`request.local?`) are exempt — local access already proves host access (design D8).
 - [x] 3.3 Consume the token: remove the generated file once a site exists so it cannot be replayed.
 - [x] 3.4 Add the setup-token field to the installer form view (client-side optional; server-enforced for remote only).

@@ -62,8 +62,8 @@ password is minted on secondary sites created through the settings UI when `user
   change-password path the gate must exempt).
 - **Models:** `concerns/camaleon_cms/site_default_settings.rb` (random password + must-change marker;
   expose the generated plaintext transiently to the caller).
-- **New:** boot-time setup-token provisioning (generated when `Site.count == 0`), read from
-  `ENV['CAMALEON_SETUP_TOKEN']` or a generated file.
+- **New:** lazy setup-token provisioning (generated on first remote installer access while
+  `Site.count == 0`), read from `ENV['CAMALEON_SETUP_TOKEN']` or a generated file.
 - **Views / locales:** `installers/form` (setup-token field), `installers/welcome` (show generated
   password + copy-to-clipboard control), new strings.
 - **Docs:** new `docs/installation.md` and `docs/upgrading-to-2.9.3.md`; CHANGELOG entry.
