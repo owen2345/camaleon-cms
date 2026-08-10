@@ -112,8 +112,16 @@ module CamaleonCms
           end
           user = users.admin_scope.first
           if user.blank?
-            user = users.admin_scope.create({ email: 'admin@local.com', username: 'admin', password: 'admin123',
-                                              password_confirmation: 'admin123', first_name: 'Administrator' })
+            # Never mint a known default password. Generate a random one, force a change on first
+            # login, and stash the plaintext transiently so the provisioning controller can surface
+            # it once. See harden-installer-default-admin.
+            generated_password = SecureRandom.alphanumeric(16)
+            user = users.admin_scope.create({ email: 'admin@local.com', username: 'admin',
+                                              password: generated_password,
+                                              password_confirmation: generated_password,
+                                              first_name: 'Administrator' })
+            user.set_meta('must_change_password', true)
+            self.generated_admin_password = generated_password
           end
           post = pt.add_post({ title: title, slug: slug, content: content, user_id: user.id, status: 'published' })
           @nav_menu.append_menu_item({ label: title, type: 'post', link: post.id })

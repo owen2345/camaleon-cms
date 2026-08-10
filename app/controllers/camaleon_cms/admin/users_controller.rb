@@ -70,6 +70,10 @@ module CamaleonCms
 
         return render plain: @user.errors.full_messages.join(', '), status: :unprocessable_entity if @user.errors.any?
 
+        # A newly provisioned admin (see harden-installer-default-admin) owes a password change; clearing
+        # the marker on a real change lets them past the enforce_password_change gate.
+        @user.delete_meta('must_change_password') if @user.saved_change_to_password_digest?
+
         # keep user logged in when changing their own password
         update_auth_token_in_cookie @user.auth_token if update_session && @user.saved_change_to_password_digest?
       rescue ActiveRecord::RecordNotFound

@@ -64,6 +64,8 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
 
   # remove cache value for this key
   def cama_remove_cache(key)
+    return unless @cama_cache_vars
+
     @cama_cache_vars.delete(cama_build_cache_key(key))
   end
 

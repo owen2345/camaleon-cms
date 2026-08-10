@@ -55,6 +55,12 @@ end
 # Capybara.javascript_driver = :selenium_chrome125
 Capybara.javascript_driver = :selenium_chrome_headless125
 
+# Selenium's native `element.clear` does not reliably empty a pre-filled input on macOS headless
+# Chrome, so `fill_in` types onto the existing value instead of replacing it (e.g. a site name saves
+# as "Old NameNew Name"). Clearing via backspace is reliable on both macOS and the Linux CI. See PR
+# #1246.
+Capybara.default_set_options = { clear: :backspace }
+
 # Next 2 are FireFox drivers
 # Capybara.javascript_driver = :selenium
 # Capybara.javascript_driver = :selenium_headless

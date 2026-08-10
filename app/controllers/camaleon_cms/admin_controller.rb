@@ -8,6 +8,7 @@ module CamaleonCms
     before_action :cama_authenticate
     before_action :keep_request_attrs
     before_action :admin_init_actions
+    before_action :enforce_password_change
     before_action :admin_logged_actions
     before_action :admin_before_hooks
     after_action :admin_after_hooks
@@ -75,6 +76,24 @@ module CamaleonCms
     end
 
     private
+
+    # Actions reachable while an administrator still owes a password change: the profile screen, its
+    # submit, and the AJAX password-change endpoint. Everything else in the admin panel is redirected
+    # to the change-password screen until the marker is cleared. Sign-out lives on SessionsController
+    # (not an AdminController subclass), so it is out of this gate's reach and always reachable.
+    PASSWORD_CHANGE_EXEMPT = { 'camaleon_cms/admin/users' => %w[profile profile_edit update updated_ajax] }.freeze
+
+    # Force a newly provisioned administrator (minted with a generated password, see
+    # harden-installer-default-admin) to set their own password before using the admin panel.
+    def enforce_password_change
+      return if cama_current_user.blank?
+      return if cama_current_user.get_meta('must_change_password').blank?
+      return if PASSWORD_CHANGE_EXEMPT[controller_path]&.include?(action_name)
+
+      flash[:alert] = t('camaleon_cms.admin.users.message.must_change_password',
+                        default: 'Please choose a new password before continuing.')
+      redirect_to cama_admin_profile_edit_path
+    end
 
     # initialize all vars and methods for admin panel
     def admin_init_actions
