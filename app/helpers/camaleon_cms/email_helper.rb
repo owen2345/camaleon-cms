@@ -43,7 +43,10 @@ module CamaleonCms
 
     def send_password_reset_email(user_to_send)
       user_to_send.send_password_reset
-      reset_url = cama_admin_forgot_url({ h: user_to_send.password_reset_token })
+      # Read the column, not the same-named method has_secure_password generates on Rails 7.1+ (which
+      # shadows it with a signed token the controller's column lookup never matches). read_attribute
+      # returns the stored column on every supported Rails version (6.1–8.1).
+      reset_url = cama_admin_forgot_url({ h: user_to_send.read_attribute(:password_reset_token) })
       extra_data = {
         url: reset_url,
         fullname: user_to_send.fullname,

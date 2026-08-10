@@ -67,30 +67,37 @@ module CamaleonCms
       def forgot
         @user = current_site.users.new
         # get form reset password
-        if params[:h]
+        if params[:h].present?
+          # Look up by the DB column (a `where` clause is never shadowed by the Rails 7.1+
+          # has_secure_password method), scoped to the current site so a token cannot be redeemed
+          # against a site that does not own the account.
           @user = current_site.users.where(password_reset_token: params[:h]).first
           if @user.nil?
             flash[:error] = t('camaleon_cms.admin.login.message.forgot_url_incorrect')
-            redirect_to cama_admin_forgot_path
-            return
-          elsif @user.password_reset_sent_at < 2.hours.ago
-            flash[:error] = t('camaleon_cms.admin.login.message.forgot_expired')
-            redirect_to cama_admin_login_path
-          else
-            # saved new password
-            if params[:user].present?
-              if @user.update(params[:user].permit(:password, :password_confirmation))
-                flash[:notice] = t('camaleon_cms.admin.login.message.reset_password_succes')
-                redirect_to cama_admin_login_path
-                return
-              else
-                flash[:error] = t('camaleon_cms.admin.login.message.reset_password_error')
-              end
-            end
-            @form_reset = true
-            render 'forgot'
-            return
+            return redirect_to cama_admin_forgot_path
           end
+          # nil timestamp (or one past the window) is expired, not a NoMethodError.
+          if @user.password_reset_sent_at.blank? || @user.password_reset_sent_at < 2.hours.ago
+            flash[:error] = t('camaleon_cms.admin.login.message.forgot_expired')
+            return redirect_to cama_admin_login_path
+          end
+
+          if params[:user].present?
+            if params[:user][:password].blank?
+              # has_secure_password only validates presence on create, so a blank password on this
+              # update path is a silent no-op that would otherwise report success.
+              flash[:error] = t('camaleon_cms.admin.login.message.reset_password_error')
+            elsif @user.update(params[:user].permit(:password, :password_confirmation))
+              # Single-use: clear the token so the same link cannot be replayed.
+              @user.update_columns(password_reset_token: nil, password_reset_sent_at: nil) # rubocop:disable Rails/SkipsModelValidations
+              flash[:notice] = t('camaleon_cms.admin.login.message.reset_password_succes')
+              return redirect_to cama_admin_login_path
+            else
+              flash[:error] = t('camaleon_cms.admin.login.message.reset_password_error')
+            end
+          end
+          @form_reset = true
+          return render 'forgot'
         end
 
         # TODO: Move this out of the controller
