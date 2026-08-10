@@ -88,6 +88,20 @@ RSpec.describe 'Password reset token validation', type: :request do
     end
   end
 
+  describe 'a malformed password is not accepted as a successful reset' do
+    it 'rejects an array-shaped password without consuming the reset link' do
+      token = emitted_reset_token
+
+      post cama_admin_forgot_path(h: token),
+           params: { user: { password: ['sneakyarray12'], password_confirmation: ['sneakyarray12'] } }
+
+      expect(response).not_to redirect_to(cama_admin_login_path)
+      expect(user.reload.authenticate('oldpassword12')).to be_truthy
+      # The link must survive the rejected attempt (a false success used to consume it).
+      expect(user.read_attribute(:password_reset_token)).to eq(token)
+    end
+  end
+
   describe 'reset links are honored only for the account\'s own site' do
     # The site boundary only applies when users are not shared across sites (with users_share_sites
     # a user belongs to every site, so any site legitimately honors the token).

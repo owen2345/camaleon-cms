@@ -83,11 +83,13 @@ module CamaleonCms
           end
 
           if params[:user].present?
-            if params[:user][:password].blank?
-              # has_secure_password only validates presence on create, so a blank password on this
-              # update path is a silent no-op that would otherwise report success.
+            # Blank-check the *permitted* password: permit drops a non-scalar value (e.g.
+            # `user[password][]=x`), and has_secure_password only validates presence on create —
+            # either way `update` would be a silent no-op reported as success, consuming the token.
+            reset_params = params[:user].permit(:password, :password_confirmation)
+            if reset_params[:password].blank?
               flash[:error] = t('camaleon_cms.admin.login.message.reset_password_error')
-            elsif @user.update(params[:user].permit(:password, :password_confirmation))
+            elsif @user.update(reset_params)
               # Single-use: clear the token so the same link cannot be replayed.
               @user.update_columns(password_reset_token: nil, password_reset_sent_at: nil) # rubocop:disable Rails/SkipsModelValidations
               flash[:notice] = t('camaleon_cms.admin.login.message.reset_password_succes')

@@ -40,11 +40,17 @@ to change the password again.
 ### Requirement: A blank password is not accepted as a successful reset
 
 Submitting the reset form without a new password SHALL NOT report success or leave the existing
-password in place under the guise of a completed reset.
+password in place under the guise of a completed reset. A password value that is not a single text
+value (for example an array-shaped parameter) SHALL be treated the same way, and the reset link
+SHALL NOT be consumed by the rejected attempt.
 
 #### Scenario: Blank password is rejected
 - **WHEN** a user submits the reset form with an empty password
 - **THEN** the reset is not reported as successful and the existing password is unchanged
+
+#### Scenario: A non-scalar password value is rejected without consuming the link
+- **WHEN** the reset form is submitted with a password value that is not a single text value
+- **THEN** the reset is not reported as successful, the existing password is unchanged, and the link remains usable
 
 ### Requirement: Reset links are honored only for the account's own site
 
