@@ -6,7 +6,8 @@
   a `password_reset_token` method that shadowed Camaleon's same-named column, so the emailed reset link
   never matched the account lookup and every reset dead-ended on "URL incorrect". Reset links now
   resolve, expire, are single-use, confined to the account's own site, and reject a blank or
-  malformed password.
+  malformed password. The session endpoints (login, registration, password reset) also no longer
+  raise a 500 on a malformed `user` parameter.
   [#1248](https://github.com/owen2345/camaleon-cms/pull/1248).
   - **Notes for upgraders:** any password-reset links already outstanding at upgrade time are
     invalidated and must be re-requested (they were non-functional in practice). No schema change.
