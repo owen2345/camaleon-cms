@@ -13,6 +13,11 @@
                                        placeholder: t('camaleon_cms.admin.login.password', default: 'Password') %>
             </div>
         </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <%= raw cama_captcha_tags_if_under_attack("login") %>
+            </div>
+        </div>
         <div class="row">
             <div class="col-xs-6">
                 <a href="<%= cama_admin_logout_path(full: 1) %>" class="btn btn-default btn-block btn-flat"><%= t('camaleon_cms.admin.login.back_to_parent.logout', default: 'Log out completely') %></a>

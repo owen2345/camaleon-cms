@@ -79,10 +79,23 @@ module CamaleonCms
 
         @impersonated_user = cama_current_user
         if request.post?
-          return session_back_to_parent(cama_admin_dashboard_path) if @parent_user.authenticate(params[:password].to_s)
+          # Failed guesses feed the login form's attack counter (same 'login' key), so this endpoint is
+          # not an unthrottled oracle for the admin password: past the threshold a captcha is also
+          # required, and because the parent stash lives in this same session, resetting the counter
+          # (new session / full logout) destroys the stash being attacked.
+          captcha_validate = captcha_verify_if_under_attack('login')
+          if captcha_validate && @parent_user.authenticate(params[:password].to_s)
+            cama_captcha_reset_attack('login')
+            return session_back_to_parent(cama_admin_dashboard_path)
+          end
 
-          flash.now[:error] = t('camaleon_cms.admin.login.message.reauth_failed',
-                                default: 'Incorrect password. Please try again.')
+          cama_captcha_increment_attack('login')
+          flash.now[:error] = if captcha_validate
+                                t('camaleon_cms.admin.login.message.reauth_failed',
+                                  default: 'Incorrect password. Please try again.')
+                              else
+                                t('camaleon_cms.admin.login.message.invalid_caption')
+                              end
         end
         render 'back_to_parent'
       end

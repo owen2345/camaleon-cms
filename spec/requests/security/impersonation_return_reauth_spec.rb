@@ -80,4 +80,49 @@ RSpec.describe 'Security: impersonation return requires re-auth', type: :request
     expect(auth_token_in_jar).not_to eq(admin_token)
     expect(session[:parent_auth_token]).to be_nil
   end
+
+  # Guessing the admin password through the confirmation must be throttled like the login form
+  # itself: failures feed the same 'login' attack counter, and past the site's threshold a captcha
+  # is required on top of the password. The counter lives in the same session as the parent stash,
+  # so it cannot be reset without destroying the stash being attacked.
+  describe 'brute-force protection' do
+    let(:max_tries) { site.get_option('max_try_attack', 5).to_i }
+
+    def wrong_guess
+      post cama_admin_back_to_parent_path, params: { password: 'not-the-admin-password' }
+    end
+
+    it 'feeds failed attempts into the shared login attack counter' do
+      impersonate_then_abandon
+      counter_before = session['cama_captcha_login'].to_i
+
+      2.times { wrong_guess }
+
+      expect(session['cama_captcha_login'].to_i).to eq(counter_before + 2)
+    end
+
+    it 'requires a captcha past the threshold, even with the correct password' do
+      admin_token = admin.auth_token
+      impersonate_then_abandon
+
+      (max_tries + 1).times { wrong_guess }
+      post cama_admin_back_to_parent_path, params: { password: 'admin-pass-1' }
+
+      # The correct password alone no longer restores; the form re-renders asking for a captcha.
+      expect(auth_token_in_jar).to eq(target.auth_token)
+      expect(auth_token_in_jar).not_to eq(admin_token)
+      expect(response.body).to include('name="captcha"')
+      # Impersonation stays active: the real admin can still return by also solving the captcha.
+      expect(session[:parent_auth_token]).to be_present
+    end
+
+    it 'resets the counter on a successful return' do
+      impersonate_then_abandon
+      2.times { wrong_guess }
+
+      post cama_admin_back_to_parent_path, params: { password: 'admin-pass-1' }
+
+      expect(session['cama_captcha_login'].to_i).to eq(0)
+    end
+  end
 end
