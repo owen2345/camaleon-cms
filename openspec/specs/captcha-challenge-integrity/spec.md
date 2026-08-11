@@ -4,15 +4,16 @@
 Pin that the captcha is a single, single-use, bounded-length challenge, so it cannot be turned into an
 unauthenticated denial-of-service vector or bypassed. The `/captcha` endpoint is unauthenticated and takes
 an attacker-controlled length; the answer is held in the session and checked on form submission. Without
-bounds and single-use semantics, a caller could exhaust worker memory with a huge image, shrink the answer
-space to a brute-forceable size, or replay/accumulate answers to pass without solving anything.
+bounds and single-use semantics, a caller could tie up a worker building an arbitrarily large challenge
+string for ImageMagick to draw, shrink the answer space to a brute-forceable size, or replay/accumulate
+answers to pass without solving anything.
 ## Requirements
 ### Requirement: The captcha length is bounded
 
 `cama_captcha_build` SHALL clamp the requested character count into a safe range (a lower floor and an
 upper ceiling) before generating the image, and SHALL fall back to the default for a non-numeric or absent
-value. An attacker-supplied `?len=` SHALL NOT be able to exhaust memory with an oversized image or shrink
-the answer space below the floor.
+value. An attacker-supplied `?len=` SHALL NOT be able to force an unbounded challenge string into image
+generation or shrink the answer space below the floor.
 
 #### Scenario: An oversized length is clamped to the ceiling
 
@@ -55,4 +56,33 @@ be replayed. A legitimate submission of the current answer SHALL verify.
 
 - **WHEN** a user submits the registration form with the answer to the captcha that form issued
 - **THEN** the account is created
+
+### Requirement: Solving a captcha does not by itself clear the under-attack state
+
+`captcha_verify_if_under_attack` SHALL report only whether the current challenge was solved. The per-key
+attack counter SHALL be cleared solely by an explicit reset after the protected action itself succeeds
+(as the login flows do), never as a side effect of captcha verification. When the key is not under
+attack, verification SHALL be skipped and the pending challenge SHALL NOT be consumed.
+
+#### Scenario: A correct captcha with a wrong password keeps the throttle
+
+- **WHEN** the login key is under attack and a request solves the captcha but fails authentication
+- **THEN** the attack counter keeps counting and the next attempt still requires a captcha
+
+#### Scenario: The counter clears only on real success
+
+- **WHEN** a request under attack solves the captcha and the login succeeds
+- **THEN** the counter is reset and captcha-free logins resume
+
+### Requirement: Captcha generation has a single implementation
+
+Challenge/image generation (including the length clamp) SHALL resolve to one shared implementation from
+every entry point that exposes it — the controller stack serving `GET /captcha` and the view/runtime
+helper — so a hardening fix cannot land in one entry point while another keeps running an unhardened
+copy.
+
+#### Scenario: Both entry points resolve to the shared implementation
+
+- **WHEN** the controller concern and the captcha helper are inspected for the generation methods
+- **THEN** each resolves to the shared module, and neither carries its own copy
 

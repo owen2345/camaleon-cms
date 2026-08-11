@@ -3,13 +3,18 @@
 ## Unreleased
 
 - **Security fix:** The captcha is now a single, single-use challenge of bounded length. The
-  unauthenticated `GET /captcha?len=` fed its length straight into image generation, so a large value
-  could exhaust a worker's memory (H4) and a value of `1` shrank the answer to one letter; meanwhile every
-  issued answer was accumulated in the session and never cleared, and verification accepted any of them, so
-  the captcha could be bypassed without solving it (H3). The length is now clamped, each image replaces the
-  stored challenge instead of accumulating, and a solved captcha is consumed (a blank value never matches).
-  Upgrade note: captchas are single-use now — reusing one answer across submissions no longer works; render
-  a fresh image per attempt. [#1255](https://github.com/owen2345/camaleon-cms/pull/1255).
+  unauthenticated `GET /captcha?len=` fed its length straight into challenge generation, so a huge value
+  tied up the worker building an arbitrarily large challenge string for ImageMagick to draw (H4) and a
+  value of `1` shrank the answer to one letter; meanwhile every issued answer was accumulated in the
+  session and never cleared, and verification accepted any of them, so the captcha could be bypassed
+  without solving it (H3). The length is now clamped, each image replaces the stored challenge, a solved
+  captcha is consumed (a blank value never matches), and generation resolves to one shared module for both
+  the controller and view entry points. Upgrade note: captchas are single-use now — render a fresh image
+  per attempt instead of reusing one answer across submissions. Solving a captcha also no longer resets
+  the login under-attack counter by itself; it clears only when the protected action succeeds, so
+  downstream callers of `captcha_verify_if_under_attack` should call `cama_captcha_reset_attack(key)`
+  after their own success (the bundled login flows already do).
+  [#1255](https://github.com/owen2345/camaleon-cms/pull/1255).
 
 - **Security fix:** Ending admin impersonation now requires the impersonating admin's password. Returning
   from an impersonated session replays the admin's auth cookie stashed in the session; previously the
