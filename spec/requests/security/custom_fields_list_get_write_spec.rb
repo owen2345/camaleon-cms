@@ -7,8 +7,9 @@ require 'rails_helper'
 # `update_categories` destroys every one of the post's category relationships. Because CSRF protection
 # does not cover GET and the SameSite=Lax auth cookie rides a top-level navigation, a bare
 # `GET /admin/settings/custom_fields/list?post_id=42` from an attacker page wipes post 42's categories.
-# The category write is now performed only on a non-GET (CSRF-verified) request.
-RSpec.describe 'Security: custom_fields#list category write requires a non-GET verb (M6)', type: :request do
+# The category write is now performed only on a POST — the sole verb on this route that Rails' CSRF
+# verification covers, since verified_request? exempts HEAD exactly like GET.
+RSpec.describe 'Security: custom_fields#list category write requires a CSRF-verified POST (M6)', type: :request do
   init_site
 
   let(:current_site) { Cama::Site.first.decorate }
@@ -29,6 +30,14 @@ RSpec.describe 'Security: custom_fields#list category write requires a non-GET v
     expect(the_post.categories.pluck(:id)).to eq([category.id])
 
     get '/admin/settings/custom_fields/list', params: { post_id: the_post.id }
+
+    expect(the_post.reload.categories.pluck(:id)).to eq([category.id])
+  end
+
+  it "does not strip a post's categories on a HEAD, which Rails also exempts from CSRF verification" do
+    expect(the_post.categories.pluck(:id)).to eq([category.id])
+
+    head '/admin/settings/custom_fields/list', params: { post_id: the_post.id }
 
     expect(the_post.reload.categories.pluck(:id)).to eq([category.id])
   end

@@ -6,8 +6,9 @@
   GET request. The read-named `GET /admin/settings/custom_fields/list` also called `update_categories`,
   and with the `categories` parameter omitted it deleted every one of the post's category relationships
   — reachable by CSRF, since a GET carries no forgery token and the auth cookie rides a top-level
-  navigation. The category write now requires a non-GET (CSRF-verified) request, and the route accepts
-  POST (audit finding M6). [#1252](https://github.com/owen2345/camaleon-cms/pull/1252).
+  navigation. The category write now runs only on a CSRF-verified POST (Rails exempts HEAD as well as
+  GET from CSRF verification), and the route accepts POST (audit finding M6).
+  [#1252](https://github.com/owen2345/camaleon-cms/pull/1252).
 
 - **Security fix:** Foreign keys that carry a record's tenancy are no longer mass-assignable across
   sites. A post type's `parent_id` is its `site_id`, so a settings manager could re-home a post type

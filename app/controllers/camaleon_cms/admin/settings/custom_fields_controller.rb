@@ -72,12 +72,14 @@ module CamaleonCms
           p = params.permit(:post_type, :post_id)
           cat_ids = current_site.full_categories.where(id: params[:categories]).pluck(:id)
           if p[:post_id].present? && (post = current_site.the_post(p[:post_id].to_i)).present?
-            # The category write is state-changing, so it runs only on a CSRF-verified non-GET request;
-            # a GET renders the current fields without mutating the post. Otherwise a bare
-            # GET .../custom_fields/list?post_id=N (CSRF through a top-level navigation, which carries the
-            # SameSite=Lax auth cookie) wipes the post's categories, because an omitted `categories`
+            # The category write is state-changing, so it runs only on a POST — the sole verb on this
+            # route that protect_from_forgery verifies, because Rails exempts HEAD from CSRF checks
+            # just like GET (an `unless request.get?` guard would let a CSRF-exempt HEAD through). A GET
+            # or HEAD renders the current fields without mutating the post. Otherwise a bare
+            # GET .../custom_fields/list?post_id=N (CSRF through a top-level navigation, which carries
+            # the SameSite=Lax auth cookie) wipes the post's categories, because an omitted `categories`
             # param resolves to [] and update_categories then deletes them all (audit finding M6).
-            post.update_categories(cat_ids) unless request.get?
+            post.update_categories(cat_ids) if request.post?
             args = {}
           else
             post = CamaleonCms::Post.new
