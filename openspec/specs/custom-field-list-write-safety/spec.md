@@ -37,3 +37,22 @@ accept POST so a legitimate, CSRF-verified caller can still perform the write.
 - **WHEN** the `categories` list on the POST names a category owned by another site
 - **THEN** that category is not added to the post
 
+### Requirement: The custom-fields list endpoint authorizes the caller against the resolved record
+
+`Admin::Settings::CustomFieldsController#list` carries no role `before_action` and is reachable by any
+signed-in user, so it SHALL authorize the caller against the record it resolves before rendering or
+writing: `:update` on the post when `post_id` names an existing post — covering both the GET/HEAD render
+of that post's custom-field values and the POST category write — and `:create_post` on the post type for
+the new-post render branch. A caller who lacks the required ability SHALL be denied, with neither the
+field groups rendered nor the categories changed.
+
+#### Scenario: A user who cannot update the post is denied
+
+- **WHEN** a signed-in user without `:update` on the post sends `#list` with that `post_id` (by GET or POST)
+- **THEN** the request is denied, and the post's categories are unchanged
+
+#### Scenario: A user who cannot create posts of the type is denied the new-post render
+
+- **WHEN** a signed-in user without `:create_post` on the post type sends `#list` with only `post_type`
+- **THEN** the request is denied
+

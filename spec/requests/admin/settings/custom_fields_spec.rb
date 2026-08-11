@@ -188,5 +188,51 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       expect(response.body).not_to include('Other Group')
       expect(my_post.categories.reload).to be_empty
     end
+
+    # #list carries no before_action, so it is reachable by any signed-in user; the action authorizes
+    # against the resolved record itself (audit finding M6).
+    context 'when authorizing the caller against the record' do
+      let(:limited_user) do
+        role = current_site.user_roles.create!(name: 'No Posts', slug: 'no_posts')
+        role.set_meta("_manager_#{current_site.id}", {})
+        create(:user, role: role.slug, site: current_site)
+      end
+
+      it 'denies the POST category write for a user who cannot update the post, leaving categories intact' do
+        my_post.update_categories([category.id])
+        sign_in_as(limited_user, site: current_site)
+
+        post '/admin/settings/custom_fields/list',
+             params: { post_type: post_type.id, post_id: my_post.id, categories: [] }
+
+        expect(response).to redirect_to(cama_admin_dashboard_path)
+        expect(my_post.categories.reload.pluck(:id)).to eq([category.id])
+      end
+
+      it 'denies the GET render of a post the user cannot update' do
+        sign_in_as(limited_user, site: current_site)
+
+        get '/admin/settings/custom_fields/list', params: { post_type: post_type.id, post_id: my_post.id }
+
+        expect(response).to redirect_to(cama_admin_dashboard_path)
+      end
+
+      it 'denies the new-post render for a user who cannot create posts of that type' do
+        sign_in_as(limited_user, site: current_site)
+
+        get '/admin/settings/custom_fields/list', params: { post_type: post_type.id }
+
+        expect(response).to redirect_to(cama_admin_dashboard_path)
+      end
+
+      it 'still renders the new-post field groups for an authorized user' do
+        user = create(:user, role: 'admin', site: current_site)
+        sign_in_as(user, site: current_site)
+
+        get '/admin/settings/custom_fields/list', params: { post_type: post_type.id }
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
   end
 end
