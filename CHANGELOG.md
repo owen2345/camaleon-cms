@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Security fix:** The session is now reset on a genuine sign-in and on logout. The admin
+  "impersonate user" feature stashes the admin's auth cookie in the session so it can be restored on
+  return; because the session was never rotated, that stash outlived the admin on a shared browser — a
+  different user who signed in afterward inherited it and was handed the admin's cookie on logout,
+  escalating to admin. `login_user` and `cama_logout_user` now call `reset_session`, and impersonation
+  resets and re-stashes the token so switching and returning still work (audit finding H6). Downstream
+  note: plugins that place data in the session during a `user_before_login`/`after_login` hook must move
+  it elsewhere (a cookie, or after the redirect), because a sign-in now starts a fresh session.
+  [#1253](https://github.com/owen2345/camaleon-cms/pull/1253).
+
 - **Security fix:** The admin custom-fields "list" endpoint no longer writes a post's categories on a
   GET request. The read-named `GET /admin/settings/custom_fields/list` also called `update_categories`,
   and with the `categories` parameter omitted it deleted every one of the post's category relationships
