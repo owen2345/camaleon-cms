@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Security fix:** The captcha is now a single, single-use challenge of bounded length. The
+  unauthenticated `GET /captcha?len=` fed its length straight into image generation, so a large value
+  could exhaust a worker's memory (H4) and a value of `1` shrank the answer to one letter; meanwhile every
+  issued answer was accumulated in the session and never cleared, and verification accepted any of them, so
+  the captcha could be bypassed without solving it (H3). The length is now clamped, each image replaces the
+  stored challenge instead of accumulating, and a solved captcha is consumed (a blank value never matches).
+  Upgrade note: captchas are single-use now — reusing one answer across submissions no longer works; render
+  a fresh image per attempt. [#1255](https://github.com/owen2345/camaleon-cms/pull/1255).
+
 - **Security fix:** Ending admin impersonation now requires the impersonating admin's password. Returning
   from an impersonated session replays the admin's auth cookie stashed in the session; previously the
   ordinary Logout link restored it for whoever held the session, so an admin who walked away

@@ -32,4 +32,4 @@
 ## 6. Changelog and archive
 
 - [x] 6.1 Add a `## Unreleased` **Security fix** entry: the captcha length is clamped and only a single, single-use challenge verifies
-- [ ] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
+- [x] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
