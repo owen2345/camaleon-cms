@@ -6,7 +6,9 @@ category write on a GET. The action is read-named and read-shaped — the admin 
 field groups — but it also persists the post's categories, which is state-changing and must sit behind
 CSRF protection. Rails exempts GET and HEAD from that protection, so the write is confined to POST —
 the one verb on this route that CSRF verification actually covers — while the render stays available
-on GET.
+on GET. Because the action also carries no role `before_action`, the capability additionally pins that
+it authorizes the caller against the record it resolves, so neither the render nor the write is exposed
+to a signed-in user without rights on that post or post type.
 ## Requirements
 ### Requirement: The custom-fields list category write requires a CSRF-verified POST
 
