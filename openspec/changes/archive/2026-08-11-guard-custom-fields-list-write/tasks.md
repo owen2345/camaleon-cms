@@ -30,4 +30,4 @@
 ## 6. Changelog and archive
 
 - [x] 6.1 Add a `## Unreleased` **Security fix** entry: the read-named GET that wrote, what it destroyed (a post's category relationships), and that the write now requires a non-GET verb
-- [ ] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
+- [x] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
