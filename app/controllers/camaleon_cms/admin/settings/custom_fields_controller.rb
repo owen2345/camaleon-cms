@@ -72,11 +72,26 @@ module CamaleonCms
           p = params.permit(:post_type, :post_id)
           cat_ids = current_site.full_categories.where(id: params[:categories]).pluck(:id)
           if p[:post_id].present? && (post = current_site.the_post(p[:post_id].to_i)).present?
-            post.update_categories(cat_ids)
+            # The action carries no before_action, so authorize against the resolved post: a caller who
+            # cannot update it may neither read its custom-field values (GET) nor rewrite its categories
+            # (POST). This scopes an otherwise any-signed-in-user endpoint to the post's own editors.
+            authorize! :update, post
+            # The category write is state-changing, so it runs only on a POST — the sole verb on this
+            # route that protect_from_forgery verifies, because Rails exempts HEAD from CSRF checks
+            # just like GET (an `unless request.get?` guard would let a CSRF-exempt HEAD through). A GET
+            # or HEAD renders the current fields without mutating the post. Otherwise a bare
+            # GET .../custom_fields/list?post_id=N (CSRF through a top-level navigation, which carries
+            # the SameSite=Lax auth cookie) wipes the post's categories, because an omitted `categories`
+            # param resolves to [] and update_categories then deletes them all (audit finding M6).
+            post.update_categories(cat_ids) if request.post?
             args = {}
           else
+            # The render-only branch builds a new post of the requested type; gate it on the ability to
+            # create posts of that type so the field-group structure is not disclosed to other roles.
+            post_type = current_site.the_post_type(p[:post_type].to_i)
+            authorize! :create_post, post_type if post_type
             post = CamaleonCms::Post.new
-            post.taxonomy_id = current_site.the_post_type(p[:post_type].to_i)&.id
+            post.taxonomy_id = post_type&.id
             args = { cat_ids: cat_ids }
           end
           render partial: 'camaleon_cms/admin/settings/custom_fields/render',

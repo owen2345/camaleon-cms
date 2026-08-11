@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- **Security fix:** The admin custom-fields "list" endpoint no longer writes a post's categories on a
+  GET request. The read-named `GET /admin/settings/custom_fields/list` also called `update_categories`,
+  and with the `categories` parameter omitted it deleted every one of the post's category relationships
+  — reachable by CSRF, since a GET carries no forgery token and the auth cookie rides a top-level
+  navigation. The category write now runs only on a CSRF-verified POST (Rails exempts HEAD as well as
+  GET from CSRF verification), and the route accepts POST. The endpoint, which any signed-in user could
+  reach, now also authorizes the caller against the resolved record — `:update` on the post (guarding
+  both the field-value render and the category write) or `:create_post` on the post type — so it no
+  longer discloses a post's custom-field values or rewrites its categories for users without those
+  rights (audit finding M6). [#1252](https://github.com/owen2345/camaleon-cms/pull/1252).
+
+- **Fix:** The admin `confirm_email` route now accepts PATCH. Its `via:` list carried `path` — not an
+  HTTP verb, but a typo for `patch` (the verb its `forgot`/`register` siblings accept) — so a PATCH
+  request fell through to the admin "invalid route" handler.
+  [#1252](https://github.com/owen2345/camaleon-cms/pull/1252).
+
 - **Security fix:** Foreign keys that carry a record's tenancy are no longer mass-assignable across
   sites. A post type's `parent_id` is its `site_id`, so a settings manager could re-home a post type
   (with its posts, categories, tags and field groups) onto another site by editing a hidden field; a
