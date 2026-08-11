@@ -33,4 +33,4 @@
 ## 6. Changelog and archive
 
 - [x] 6.1 Add a `## Unreleased` **Security fix** entry covering H8 and H9: the tenancy FKs, the privilege (a site manager), and what was reachable (re-homing a post type / reparenting a category or tag / re-pointing a widget assignment across sites)
-- [ ] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
+- [x] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)

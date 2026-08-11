@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Security fix:** Foreign keys that carry a record's tenancy are no longer mass-assignable across
+  sites. A post type's `parent_id` is its `site_id`, so a settings manager could re-home a post type
+  (with its posts, categories, tags and field groups) onto another site by editing a hidden field; a
+  category's or tag's `parent_id`, and a widget assignment's `sidebar_id`/`widget_id`, were reassignable
+  the same way. `parent_id` is now dropped from the post-type and tag permits, validated against the
+  current post type on categories, and the widget-assignment update no longer accepts
+  `sidebar_id`/`widget_id` (audit findings H8 and H9).
+  [#1251](https://github.com/owen2345/camaleon-cms/pull/1251).
+
 - **Security fix:** The admin user-list and account-creation actions (`GET`/`POST /admin/users` and
   `GET /admin/users/new`) now require the `:manage, :users` capability even when the caller injects their
   own id as `?user_id=`. The `validate_role` self-exemption — meant for a user acting on their own record
