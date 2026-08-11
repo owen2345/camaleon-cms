@@ -16,6 +16,10 @@
   after their own success (the bundled login flows already do).
   [#1255](https://github.com/owen2345/camaleon-cms/pull/1255).
 
+- **Fix:** Saving a frontend comment no longer fails with a 500 when the client sends no `User-Agent`
+  header; the header is now recorded nil-safely and without mutating the request's string in place.
+  [#1255](https://github.com/owen2345/camaleon-cms/pull/1255).
+
 - **Security fix:** Ending admin impersonation now requires the impersonating admin's password. Returning
   from an impersonated session replays the admin's auth cookie stashed in the session; previously the
   ordinary Logout link restored it for whoever held the session, so an admin who walked away

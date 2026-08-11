@@ -101,12 +101,10 @@ RSpec.describe 'Security: captcha hardening (H3/H4)', type: :request do
       answer = captcha_answers.first
 
       expect do
-        # save_comment records request.user_agent, which real browsers always send; it also
-        # force-encodes the header string in place, so hand it an unfrozen copy.
         post cama_save_comment_path(post_id: commented_post.id), params: {
           post_comment: { name: 'Anon', email: 'anon@tester.com', content: 'A fine post' },
           captcha: answer
-        }, headers: { 'User-Agent' => +'RSpec' }
+        }
       end.to change(CamaleonCms::PostComment, :count).by(1)
       expect(flash[:comment_submit][:error]).to be_blank
     end
