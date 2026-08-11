@@ -30,7 +30,7 @@ module CamaleonCms
       def update
         args = { post_tag: @post_tag, post_type: @post_type }
         hooks_run('before_update_post_tag', args)
-        if @post_tag.update(params.require(:post_tag).permit(:name, :slug, :description, :parent_id))
+        if @post_tag.update(post_tag_params)
           @post_tag.set_options(params[:meta]) if params[:meta].present?
           @post_tag.set_field_values(cama_permitted_field_options('PostType_PostTag'))
           hooks_run('after_update_post_tag', args)
@@ -43,7 +43,7 @@ module CamaleonCms
 
       # render post tag create form
       def create
-        @post_tag = @post_type.post_tags.new(params.require(:post_tag).permit(:name, :slug, :description, :parent_id))
+        @post_tag = @post_type.post_tags.new(post_tag_params)
         args = { post_tag: @post_tag, post_type: @post_type }
         hooks_run('before_create_post_tag', args)
         if @post_tag.save
@@ -72,6 +72,12 @@ module CamaleonCms
       end
 
       private
+
+      # parent_id is the owning post type's id, set from the @post_type association on create; it is not
+      # accepted from the request so a tag cannot be moved under another post type or site (H8).
+      def post_tag_params
+        params.require(:post_tag).permit(:name, :slug, :description)
+      end
 
       def set_post_type
         @post_type = current_site.post_types.find_by(id: params[:post_type_id]).decorate

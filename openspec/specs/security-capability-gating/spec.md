@@ -1,7 +1,17 @@
 # security-capability-gating Specification
 
 ## Purpose
-TBD - created by archiving change security-capability-gating. Update Purpose after archive.
+
+A security-sensitive action is admin-only by default: a non-administrator role performs it only
+through a dedicated permission that is off by default, seeded onto no role, and read as not-granted
+by upgraded installations without a migration. The gate is an authorization decision on the acting
+user — never a filesystem path, output filename, client flag or other proxy signal — and it fails
+closed: no request context, or a failure while evaluating the permission, resolves to untrusted.
+States as a checkable rule the convention the four existing permissions
+(`post_content_unfiltered_html`, `contact_form_unfiltered_html`, `media_unfiltered_upload`,
+`select_eval`) already follow, so a new dangerous capability must conform to it and cite it rather
+than ship ungated, gate by a proxy, or fail open.
+
 ## Requirements
 ### Requirement: Security-sensitive actions are gated by a default-off role permission
 Any action or method that presents a security threat SHALL be permitted for a non-administrator role

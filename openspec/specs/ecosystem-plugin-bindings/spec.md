@@ -1,7 +1,16 @@
 # ecosystem-plugin-bindings Specification
 
 ## Purpose
-TBD - created by archiving change 2026-08-05-document-ecosystem-plugin-bindings. Update Purpose after archive.
+
+Pin the extension surface that plugins, themes and host applications shipped as separate gems bind
+to at runtime: hook dispatch on the request controller, in-place payload mutation, admin-menu
+registration, asset helper arities, the `PluginRoutes` read surface, the uploader and mail
+contracts, and session/site helper overridability. None of those consumers are visible from this
+repository, so each requirement names the surveyed repositories that depend on it — the inventory
+lives in `docs/ai/ecosystem.md` — and a change that would remove, rename or narrow a bound API must
+record the affected consumer and its disposition while still a proposal, never break it as a silent
+refactor casualty.
+
 ## Requirements
 ### Requirement: Hook handlers execute with the request controller as receiver
 `hooks_run` SHALL dispatch each handler on the object handling the current request, so that handlers

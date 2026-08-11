@@ -17,7 +17,12 @@ module CamaleonCms
           end
 
           def update
-            if @assigned.update(params.require(:assign).permit(:title, :content, :widget_id, :sidebar_id, :item_order))
+            # sidebar_id (post_parent) and widget_id (visibility) identify the tenant-scoped sidebar and
+            # widget this assignment belongs to; they are set from @sidebar/@widget on create and must
+            # not be reassigned from the request, or the assignment could be re-pointed into another
+            # site's sidebar or widget (audit finding H9). Reordering has its own current-site-scoped
+            # action (sidebar#reorder).
+            if @assigned.update(params.require(:assign).permit(:title, :content, :item_order))
               @assigned.set_field_values(cama_permitted_field_options('Main'))
               flash[:notice] = t('camaleon_cms.admin.widgets.assign.updated')
             else

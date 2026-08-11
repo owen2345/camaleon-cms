@@ -1,7 +1,15 @@
 # site-resolution-order Specification
 
 ## Purpose
-TBD - created by archiving change restore-caller-site-resolution. Update Purpose after archive.
+
+Define the precedence `SiteHelper#current_site` follows — explicit argument, `$current_site` global,
+caller-set `@current_site`, memoized `CurrentRequest.site`, and only then computation from the
+installed sites or the request host — so a caller with no request can pin the site explicitly. The
+caller-set slot sits above the memoized site on purpose: a mailer or background delivery on a
+multisite install has no request to fall back on, and an in-request delivery for another site must
+resolve against the site the sender assigned, not the request's. Assigning `@current_site` writes
+through to `CurrentRequest.site`.
+
 ## Requirements
 ### Requirement: current_site honors a caller-set @current_site before the memoized site
 `SiteHelper#current_site` SHALL resolve the current site in precedence order: an explicit `site`
