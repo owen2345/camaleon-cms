@@ -42,6 +42,12 @@ against the account resolved from `session[:parent_auth_token]` — before the a
 A request that does not supply the correct password SHALL NOT restore the admin session, and the current
 holder SHALL be able to log out of the impersonated session instead.
 
+Failed password attempts at the confirmation SHALL feed the same brute-force counter as the admin login
+form; once the counter passes the site's threshold, restoring SHALL additionally require solving a
+captcha. The confirmation SHALL NOT disclose the parent admin's username to the session holder. A stash
+that does not resolve to a user — or resolves to an account that cannot be password-authenticated —
+SHALL end the session instead of restoring it or raising an error.
+
 #### Scenario: An admin impersonates a user
 
 - **WHEN** an admin impersonates a user
@@ -69,4 +75,17 @@ holder SHALL be able to log out of the impersonated session instead.
 
 - **WHEN** the holder chooses to log out completely (`GET /admin/logout?full=1`)
 - **THEN** the impersonated session is ended and no parent token survives
+
+#### Scenario: Repeated wrong passwords engage the login throttle
+
+- **WHEN** more wrong passwords than the site's `max_try_attack` threshold are submitted to the
+  confirmation
+- **THEN** the failures are counted by the same counter as the login form, and even the correct admin
+  password does not restore the session unless the captcha is also solved
+
+#### Scenario: A stash that cannot be re-authenticated ends the session
+
+- **WHEN** the confirmation is reached but the stashed token no longer resolves to a user, or resolves to
+  an account with no password digest
+- **THEN** the impersonated session is logged out instead of restoring the admin or raising an error
 
