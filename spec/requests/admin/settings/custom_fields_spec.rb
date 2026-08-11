@@ -161,8 +161,9 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       expect(group.fields.count).to eq(1)
 
       my_post.update_categories([])
-      get '/admin/settings/custom_fields/list',
-          params: { post_type: post_type.id, post_id: my_post.id, categories: [category.id] }
+      # The category write is state-changing, so it is exercised through POST (a GET renders only).
+      post '/admin/settings/custom_fields/list',
+           params: { post_type: post_type.id, post_id: my_post.id, categories: [category.id] }
 
       expect(response.body).to include('Cat Group')
       expect(my_post.categories.reload).to include(category)
@@ -181,8 +182,8 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       other_group.add_field({ name: 'Other Field', slug: 'other-field' }, { field_key: 'text' })
 
       my_post.update_categories([])
-      get '/admin/settings/custom_fields/list',
-          params: { post_type: post_type.id, post_id: my_post.id, categories: [other_category.id] }
+      post '/admin/settings/custom_fields/list',
+           params: { post_type: post_type.id, post_id: my_post.id, categories: [other_category.id] }
 
       expect(response.body).not_to include('Other Group')
       expect(my_post.categories.reload).to be_empty

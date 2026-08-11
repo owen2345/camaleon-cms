@@ -53,7 +53,7 @@ Rails.application.routes.draw do
             collection do
               post 'get_items/:key', action: :get_items, as: :get_items
               post 'reorder'
-              get 'list'
+              match 'list', via: %i[get post]
             end
           end
           get 'site'
