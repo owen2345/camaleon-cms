@@ -137,7 +137,7 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
     end
   end
 
-  describe 'GET /admin/settings/custom_fields/list' do
+  describe '/admin/settings/custom_fields/list' do
     let(:post_type) { current_site.post_types.create!(name: 'Test PT', slug: 'test-pt') }
     let(:my_post) { post_type.posts.create!(title: 'Test Post', slug: 'test-post') }
     let(:category) { post_type.categories.create!(name: 'Test Cat', slug: 'test-cat') }
