@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Security fix:** The admin user-list and account-creation actions (`GET`/`POST /admin/users` and
+  `GET /admin/users/new`) now require the `:manage, :users` capability even when the caller injects their
+  own id as `?user_id=`. The `validate_role` self-exemption — meant for a user acting on their own record
+  — was short-circuiting the capability check on these collection actions, which have no target user, so
+  any authenticated user could read the full user table (including every email address) and create
+  accounts, bypassing the `permit_create_account` registration setting (audit finding H7).
+  [#1250](https://github.com/owen2345/camaleon-cms/pull/1250).
+
 - **Security fix:** The breadcrumb, the HTML sitemap, and the bundled default theme's taxonomy links now
   HTML-escape the post/category URL they interpolate into an `href`. Because a slug persists byte-for-byte
   and Rails route generation does not percent-encode a single quote, a contributor could previously store

@@ -3,6 +3,11 @@ module CamaleonCms
     class UsersController < CamaleonCms::AdminController
       include CamaleonCms::Admin::CustomFieldsConcern
 
+      # Member actions resolve a single target user, so a caller acting on their own record is
+      # legitimately exempt from :manage, :users. The collection actions (index/new/create) resolve
+      # no such target, so a self-referential ?user_id= must not exempt them from the capability check.
+      SELF_TARGET_ACTIONS = %w[show edit update destroy impersonate updated_ajax].freeze
+
       before_action :validate_role, except: %i[profile profile_edit]
 
       add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.users'), :cama_admin_users_url
@@ -152,8 +157,19 @@ module CamaleonCms
       private
 
       def validate_role
+        return if self_target_own_record?
+
+        authorize! :manage, :users
+      end
+
+      # The self-exemption applies only to member actions that resolve a single target user; a
+      # collection action (index/new/create) has no such target, so a self-referential ?user_id=
+      # never exempts it (audit finding H7).
+      def self_target_own_record?
+        return false unless SELF_TARGET_ACTIONS.include?(action_name)
+
         user_id = user_id_param
-        (user_id.present? && cama_current_user.id.to_s == user_id.to_s) || authorize!(:manage, :users)
+        user_id.present? && cama_current_user.id.to_s == user_id.to_s
       end
 
       # Only a scalar user_id participates in target resolution (?user_id[]= would
