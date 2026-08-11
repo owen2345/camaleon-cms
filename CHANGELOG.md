@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Security fix:** The breadcrumb, the HTML sitemap, and the bundled default theme's taxonomy links now
+  HTML-escape the post/category URL they interpolate into an `href`. Because a slug persists byte-for-byte
+  and Rails route generation does not percent-encode a single quote, a contributor could previously store
+  a slug that closed the attribute and ran an event handler in a visitor's — or a same-origin
+  administrator's — browser (audit finding H11). [#1249](https://github.com/owen2345/camaleon-cms/pull/1249).
+  - **Notes for upgraders:** A slug containing HTML metacharacters that was already stored now renders as
+    an inert, escaped link instead of executing. Ordinary slugs are unaffected — the output is
+    byte-identical for URLs with no HTML-significant characters.
+
 - **Fix:** Administrator password reset is working again. On Rails 7.1+ `has_secure_password` generates
   a `password_reset_token` method that shadowed Camaleon's same-named column, so the emailed reset link
   never matched the account lookup and every reset dead-ended on "URL incorrect". Reset links now

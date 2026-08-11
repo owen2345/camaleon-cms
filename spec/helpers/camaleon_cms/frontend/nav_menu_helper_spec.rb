@@ -336,6 +336,18 @@ RSpec.describe CamaleonCms::Frontend::NavMenuHelper do
 
       expect(CurrentRequest.theme_helper_state[:front_breadcrumb]).to eq([%w[Home /], %w[Blog /blog]])
     end
+
+    # H11: `the_url` is a plain (non-html_safe) String, and a post slug persists byte-for-byte, so a
+    # single quote in the URL would otherwise close the href and inject an event handler.
+    it 'escapes the link href so a malicious URL cannot break out of the attribute (H11)' do
+      helper.breadcrumb_add('Home', "/post/x' onmouseover='alert(document.domain)")
+      helper.breadcrumb_add('Current page', '/current')
+
+      result = helper.breadcrumb_draw
+
+      expect(result).to include("href='/post/x&#39; onmouseover=&#39;alert(document.domain)'")
+      expect(result).not_to include("x' onmouseover='alert(document.domain)")
+    end
   end
 
   describe '#cama_parse_menu_item current state' do
