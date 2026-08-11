@@ -102,24 +102,10 @@ describe 'the signin process', :js do
       expect(page).to have_no_css('.alert-success')
     end
 
-    it 'Register User with no error in Captcha' do
-      @site.set_option('security_captcha_user_register', true) # enable captcha security for user registration
-      Capybara.using_session('test session') do
-        visit cama_captcha_path(len: 4, t: Time.current.to_i)
-        captcha = page.get_rack_session['cama_captcha'].first
-        visit "#{cama_root_relative_path}/admin/register"
-        within('#login_user') do
-          fill_in 'user[first_name]', with: 'Name'
-          fill_in 'user[last_name]', with: 'Last Name'
-          fill_in 'user[email]', with: "test_#{Time.current.to_i}@tester.com"
-          fill_in 'user[username]', with: "tester_#{Time.current.to_i}"
-          fill_in 'user[password]', with: 'passsword'
-          fill_in 'user[password_confirmation]', with: 'passsword'
-          fill_in 'captcha', with: captcha
-        end
-        click_button 'Sign Up'
-        expect(page).to have_css('.alert-success')
-      end
-    end
+    # The happy path — a correct captcha registers a legitimate user — is covered deterministically in
+    # spec/requests/security/captcha_hardening_spec.rb. It cannot be exercised reliably here: a captcha
+    # is now single-use and bound to the one challenge the register page issues, while get_rack_session
+    # navigates away to read it and each register render issues a fresh challenge, so the browser can
+    # never both read the current answer and submit against it.
   end
 end

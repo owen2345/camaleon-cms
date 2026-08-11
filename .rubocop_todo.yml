@@ -151,7 +151,6 @@ Security/Eval:
 # Configuration parameters: AllowedVariables.
 Style/GlobalVars:
   Exclude:
-    - 'app/helpers/camaleon_cms/captcha_helper.rb'
     - 'app/helpers/camaleon_cms/site_helper.rb'
     - 'app/mailers/camaleon_cms/html_mailer.rb'
     - 'lib/camaleon_cms/engine.rb'

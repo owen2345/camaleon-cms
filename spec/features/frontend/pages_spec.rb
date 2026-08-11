@@ -32,23 +32,12 @@ RSpec.describe 'Post frontend', :js do
         expect(page).to have_text('The comment has been created')
       end
 
-      it 'anonymous comment valid captcha' do
-        @site.set_option('enable_captcha_for_comments', true) # enable anonymous captcha
-        Capybara.using_session('test session') do
-          visit cama_captcha_path(len: 4, t: Time.current.to_i)
-          captcha = page.get_rack_session['cama_captcha'].first
-          visit @post.the_url(as_path: true)
-          expect(page).to have_text('New Comment')
-          within('#form-comment') do
-            fill_in 'post_comment_name', with: 'Owen'
-            fill_in 'post_comment_email', with: 'owenperedo@gmail.com'
-            fill_in 'post_comment_content', with: 'Sample comment'
-            fill_in 'captcha', with: captcha
-          end
-          click_button 'Comment'
-          expect(page).to have_text('The comment has been created')
-        end
-      end
+      # The happy path — a correct captcha lets the anonymous comment through — is covered
+      # deterministically in spec/requests/security/captcha_hardening_spec.rb. It cannot be
+      # exercised reliably here: a captcha is now single-use and bound to the one challenge the
+      # rendered page issues, while get_rack_session navigates away to read it and each post-page
+      # render fetches a fresh captcha image, so the browser can never both read the current
+      # answer and submit against it.
 
       it 'anonymous comment wrong captcha' do
         @site.set_option('enable_captcha_for_comments', true) # enable anonymous captcha

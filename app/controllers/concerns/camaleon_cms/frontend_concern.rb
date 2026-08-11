@@ -62,7 +62,9 @@ module CamaleonCms
           comment_data[:author_url] = post_comment[:url] || ''
           comment_data[:author_IP] = request.remote_ip.to_s
           comment_data[:approved] = current_site.front_comment_status
-          comment_data[:agent] = request.user_agent.force_encoding('ISO-8859-1').encode('UTF-8')
+          # Browsers always send a User-Agent but API clients/bots may not; record it nil-safely
+          # and without mutating the request's header string in place.
+          comment_data[:agent] = request.user_agent.to_s.encode('UTF-8', 'ISO-8859-1')
           comment_data[:content] = post_comment[:content]
           @comment = if post_comment[:parent_id].present?
                        @post.comments.find_by(id: post_comment[:parent_id]).children.new(comment_data)
