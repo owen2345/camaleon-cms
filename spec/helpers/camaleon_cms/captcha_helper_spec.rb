@@ -137,4 +137,29 @@ describe CamaleonCms::CaptchaHelper do
       expect(result).to match(%r{src="http://test\.host/captcha\.png\?len=5&amp;t=\d+"})
     end
   end
+
+  describe '#cama_captcha_verified?' do
+    it 'accepts the issued challenge (case-insensitively) and consumes it so it cannot be replayed' do
+      helper_instance.session[:cama_captcha] = ['ABCDE']
+      helper_instance.params[:captcha] = 'abcde'
+
+      expect(helper_instance.cama_captcha_verified?).to be(true)
+      # single-use: the solved challenge is cleared, so the same value no longer verifies
+      expect(helper_instance.cama_captcha_verified?).to be(false)
+    end
+
+    it 'rejects a value that does not match the issued challenge' do
+      helper_instance.session[:cama_captcha] = ['ABCDE']
+      helper_instance.params[:captcha] = 'ZZZZZ'
+
+      expect(helper_instance.cama_captcha_verified?).to be(false)
+    end
+
+    it 'rejects a blank submission even if the session somehow holds a blank challenge' do
+      helper_instance.session[:cama_captcha] = ['']
+      helper_instance.params[:captcha] = ''
+
+      expect(helper_instance.cama_captcha_verified?).to be(false)
+    end
+  end
 end

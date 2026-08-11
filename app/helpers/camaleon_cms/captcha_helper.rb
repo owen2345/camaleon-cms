@@ -1,13 +1,21 @@
 module CamaleonCms
   module CaptchaHelper
+    # Captcha length is clamped to this range so an attacker-supplied ?len= can neither exhaust
+    # memory by rendering a huge image (H4) nor shrink the answer space to a brute-forceable size
+    # (H3). Kept in sync with CamaleonCms::RuntimeCaptchaImageConcern.
+    CAPTCHA_MIN_LENGTH = 4
+    CAPTCHA_MAX_LENGTH = 8
+    CAPTCHA_DEFAULT_LENGTH = 5
+
     # build a captcha image
     # @param [Integer, nil] len Number of characters to include in captcha (default: 5)
     # @return [MiniMagick::Image]
     def cama_captcha_build(len = 5)
       img = MiniMagick::Image.open(resolve_captcha_file("captcha_#{rand(12)}.jpg"))
-      text = cama_rand_str(len)
-      session[:cama_captcha] = [] if session[:cama_captcha].blank?
-      session[:cama_captcha] << text
+      text = cama_rand_str(cama_captcha_length(len))
+      # Single active challenge: replace, never accumulate. An append-only list let any previously
+      # issued answer keep verifying, which (with a shrinkable length) made the captcha bypassable (H3).
+      session[:cama_captcha] = [text]
       img.combine_options do |c|
         c.gravity('Center')
         c.fill('#FFFFFF')
@@ -51,9 +59,15 @@ module CamaleonCms
       end
     end
 
-    # verify captcha value
+    # verify captcha value against the single active challenge and consume it on success, so a solved
+    # captcha is single-use and a blank submission can never match (H3).
     def cama_captcha_verified?
-      (session[:cama_captcha] || []).include?((params[:cama_captcha] || params[:captcha]).to_s.upcase)
+      submitted = (params[:cama_captcha] || params[:captcha]).to_s.upcase
+      return false if submitted.blank?
+      return false unless Array(session[:cama_captcha]).include?(submitted)
+
+      session.delete(:cama_captcha)
+      true
     end
 
     # ************************* captcha in attack helpers ***************************#
@@ -68,8 +82,11 @@ module CamaleonCms
     # verify captcha values if this key is under attack
     # key: a string to represent a url or form view
     def captcha_verify_if_under_attack(key)
-      res = cama_captcha_under_attack?(key) ? cama_captcha_verified? : true
-      session["cama_captcha_#{key}"] = 0 if cama_captcha_verified?
+      # Verify once: cama_captcha_verified? consumes the challenge, so a second call would
+      # always be false and would never reset the attack counter after a genuine solve.
+      verified = cama_captcha_verified?
+      res = cama_captcha_under_attack?(key) ? verified : true
+      session["cama_captcha_#{key}"] = 0 if verified
       res
     end
 
@@ -98,6 +115,14 @@ module CamaleonCms
     end
 
     private
+
+    # Clamp a requested captcha length into the safe range; a non-numeric or absent value
+    # falls back to the default. Keep in sync with CamaleonCms::RuntimeCaptchaImageConcern.
+    def cama_captcha_length(len)
+      return CAPTCHA_DEFAULT_LENGTH unless len.to_s.match?(/\A\d+\z/)
+
+      len.to_i.clamp(CAPTCHA_MIN_LENGTH, CAPTCHA_MAX_LENGTH)
+    end
 
     # generate random string for captcha
     # len: length of characters, default 6
