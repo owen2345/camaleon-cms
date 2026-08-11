@@ -8,7 +8,13 @@ module CamaleonCms
     #   it doesn't redirect if redirect_url === false
     #   return to previous page if defined the cookie['return_to'], or login
     #     url received extra param: return_to=https://mysite.com
-    def login_user(user, remember_me = false, redirect_url = nil)
+    def login_user(user, remember_me = false, redirect_url = nil, rotate_session: true)
+      # Rotate the session on a genuine sign-in (H6): a fresh session drops any state left behind by a
+      # previous occupant of a shared browser — notably an impersonation parent_auth_token, which
+      # session_back_to_parent would otherwise restore on logout, escalating the new user to admin.
+      # Impersonation manages that token itself and passes rotate_session: false so this does not wipe it.
+      reset_session if rotate_session
+
       c = { value: [user.auth_token, request.user_agent, request.ip], expires: 24.hours.from_now }
       c[:domain] = :all if PluginRoutes.system_info['users_share_sites'].present? && CamaleonCms::Site.count > 1
       c[:expires] = 1.month.from_now if remember_me
@@ -85,8 +91,13 @@ module CamaleonCms
     def session_switch_user(user, redirect_url = nil)
       return unless cama_sign_in?
 
-      session[:parent_auth_token] = cookies[:auth_token]
-      login_user(user, false, redirect_url)
+      # Start impersonation from a clean session (see login_user), then stash the admin's auth cookie.
+      # The stash happens AFTER the reset and login_user is told not to rotate again, so the token
+      # session_back_to_parent restores later survives this rotation (H6).
+      parent_auth_token = cookies[:auth_token]
+      reset_session
+      session[:parent_auth_token] = parent_auth_token
+      login_user(user, false, redirect_url, rotate_session: false)
     end
 
     # switch current session into parent session called by session_switch_user
@@ -108,6 +119,9 @@ module CamaleonCms
       cookies[:auth_token] = c_data
       CurrentRequest.user = nil
       CurrentRequest.user_resolved = true # the cookie is gone; don't re-resolve to a stale user
+      # Drop all server-side session state on logout (H6): a lingering impersonation parent_auth_token
+      # must not survive to be restored into a later session on a shared browser.
+      reset_session
       redirect_to safe_redirect_url(params[:return_to]) || cama_admin_login_path,
                   notice: t('camaleon_cms.admin.logout.message.closed')
     end
