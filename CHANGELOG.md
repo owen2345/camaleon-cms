@@ -10,6 +10,11 @@
   GET from CSRF verification), and the route accepts POST (audit finding M6).
   [#1252](https://github.com/owen2345/camaleon-cms/pull/1252).
 
+- **Fix:** The admin `confirm_email` route now accepts PATCH. Its `via:` list carried `path` — not an
+  HTTP verb, but a typo for `patch` (the verb its `forgot`/`register` siblings accept) — so a PATCH
+  request fell through to the admin "invalid route" handler.
+  [#1252](https://github.com/owen2345/camaleon-cms/pull/1252).
+
 - **Security fix:** Foreign keys that carry a record's tenancy are no longer mass-assignable across
   sites. A post type's `parent_id` is its `site_id`, so a settings manager could re-home a post type
   (with its posts, categories, tags and field groups) onto another site by editing a hidden field; a

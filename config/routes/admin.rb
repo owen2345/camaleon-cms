@@ -10,7 +10,7 @@ Rails.application.routes.draw do
         post 'login' => 'sessions#login_post'
         get 'logout' => 'sessions#logout'
         match 'forgot' => 'sessions#forgot', via: %i[get post patch]
-        match 'confirm_email' => 'sessions#confirm_email', via: %i[get post path]
+        match 'confirm_email' => 'sessions#confirm_email', via: %i[get post patch]
         match 'register' => 'sessions#register', via: %i[get post patch]
         match 'api/:method', action: :api, via: %i[get post], as: :api
 
