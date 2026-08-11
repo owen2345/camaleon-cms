@@ -35,4 +35,4 @@
 ## 6. Changelog and archive
 
 - [x] 6.1 Add a `## Unreleased` **Security fix** entry: the three `href` sinks, the privilege (a contributor stores the slug; it fires for visitors and same-origin admins), and a note that stored malicious slugs now render as inert escaped links
-- [ ] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
+- [x] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
