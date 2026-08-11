@@ -8,6 +8,7 @@ require 'camaleon_cms/uploader_path_security'
 require 'camaleon_cms/uploader_pipeline'
 require 'camaleon_cms/uploader_image_processing'
 require 'camaleon_cms/uploader_support'
+require 'camaleon_cms/captcha_image_generation'
 require 'camaleon_cms/task_reporter'
 
 module CamaleonCms
