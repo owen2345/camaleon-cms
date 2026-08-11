@@ -20,10 +20,13 @@ describe CamaleonCms::CaptchaHelper do
       end
 
       def current_site
-        # Return a decorated site object required by cama_captcha_under_attack?
-        site = instance_double(Cama::Site)
-        allow(site).to receive(:get_option).and_return(5)
-        site
+        # Struct-based stub (mirrors session_captcha_runtime_concern_spec): RSpec doubles
+        # are not available inside this plain class, only in example context.
+        @current_site ||= Struct.new(:max_try_attack) do
+          def get_option(_key, default)
+            max_try_attack || default
+          end
+        end.new(5)
       end
 
       def cama_captcha_url(**args)
@@ -160,6 +163,36 @@ describe CamaleonCms::CaptchaHelper do
       helper_instance.params[:captcha] = ''
 
       expect(helper_instance.cama_captcha_verified?).to be(false)
+    end
+  end
+
+  describe '#captcha_verify_if_under_attack' do
+    it 'passes without consuming the pending challenge when the key is not under attack' do
+      helper_instance.session[:cama_captcha] = ['ABCDE']
+
+      expect(helper_instance.captcha_verify_if_under_attack('login')).to be(true)
+      # the challenge still belongs to whatever form issued it
+      expect(helper_instance.session[:cama_captcha]).to eq(['ABCDE'])
+    end
+
+    it 'accepts a correct captcha while under attack without resetting the counter' do
+      helper_instance.session['cama_captcha_login'] = 6
+      helper_instance.session[:cama_captcha] = ['ABCDE']
+      helper_instance.params[:captcha] = 'ABCDE'
+
+      expect(helper_instance.captcha_verify_if_under_attack('login')).to be(true)
+      # a solve alone must not clear the throttle: only the caller's explicit
+      # cama_captcha_reset_attack after a real success does
+      expect(helper_instance.session['cama_captcha_login']).to eq(6)
+      expect(helper_instance.cama_captcha_under_attack?('login')).to be(true)
+    end
+
+    it 'rejects a wrong captcha while under attack' do
+      helper_instance.session['cama_captcha_login'] = 6
+      helper_instance.session[:cama_captcha] = ['ABCDE']
+      helper_instance.params[:captcha] = 'NOPE1'
+
+      expect(helper_instance.captcha_verify_if_under_attack('login')).to be(false)
     end
   end
 end

@@ -55,15 +55,16 @@ module CamaleonCms
       session["cama_captcha_#{key}"].to_i > current_site.get_option('max_try_attack', 5).to_i
     end
 
-    # verify captcha values if this key is under attack
-    # key: a string to represent a url or form view
+    # verify the captcha only when this key is under attack; reports solely whether the
+    # current challenge was solved. The attack counter is cleared only by an explicit
+    # cama_captcha_reset_attack once the protected action itself succeeds (as the login
+    # flows do), so solving a captcha can no longer buy captcha-free attempts for an
+    # otherwise failing action. When the key is not under attack, the pending challenge
+    # is left unconsumed for whatever form it belongs to.
     def captcha_verify_if_under_attack(key)
-      # Verify once: cama_captcha_verified? consumes the challenge, so a second call would
-      # always be false and would never reset the attack counter after a genuine solve.
-      verified = cama_captcha_verified?
-      res = cama_captcha_under_attack?(key) ? verified : true
-      session["cama_captcha_#{key}"] = 0 if verified
-      res
+      return true unless cama_captcha_under_attack?(key)
+
+      cama_captcha_verified?
     end
 
     # increment attempts for key by 1
