@@ -2,9 +2,11 @@
     <h3 class="login-box-msg"><%= t('camaleon_cms.admin.login.back_to_parent.title', default: 'Return to your account') %></h3>
     <%= render "camaleon_cms/flash_messages" %>
     <p>
+        <%# The parent admin's username is deliberately not shown: whoever holds an abandoned
+            impersonation must not learn which admin account to attack (or phish). %>
         <%= t('camaleon_cms.admin.login.back_to_parent.instructions',
-              default: 'You are currently working as %{impersonated}. Enter the password for your own account (%{admin}) to return to it, or log out completely.',
-              impersonated: @impersonated_user.username, admin: @parent_user.username) %>
+              default: 'You are currently working as %{impersonated}. Enter the password for your own account to return to it, or log out completely.',
+              impersonated: @impersonated_user.username) %>
     </p>
     <%= form_tag cama_admin_back_to_parent_path, method: "post", role: "form", id: "back_to_parent", class: "form-horizontal cama_form_validate" do %>
         <div class="form-group">

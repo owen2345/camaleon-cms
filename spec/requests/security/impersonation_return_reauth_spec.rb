@@ -13,7 +13,9 @@ require 'rails_helper'
 RSpec.describe 'Security: impersonation return requires re-auth', type: :request do
   let(:site) { CamaleonCms::Site.first }
   let(:admin) do
-    create(:user_admin, site: site, password: 'admin-pass-1', password_confirmation: 'admin-pass-1')
+    # A distinctive username makes the "not disclosed in the page" assertion deterministic.
+    create(:user_admin, site: site, username: 'zq-parent-admin',
+                        password: 'admin-pass-1', password_confirmation: 'admin-pass-1')
   end
   let(:target) do
     create(:user, site: site, password: 'target-pass-1', password_confirmation: 'target-pass-1')
@@ -79,6 +81,18 @@ RSpec.describe 'Security: impersonation return requires re-auth', type: :request
 
     expect(auth_token_in_jar).not_to eq(admin_token)
     expect(session[:parent_auth_token]).to be_nil
+  end
+
+  it 'renders the confirmation form without disclosing the admin username' do
+    impersonate_then_abandon
+
+    get cama_admin_back_to_parent_path
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include(cama_admin_back_to_parent_path) # the password form posts back here
+    expect(response.body).to include(cama_admin_logout_path(full: 1)) # the full-logout escape hatch
+    # Whoever holds the abandoned session must not learn which admin account to attack.
+    expect(response.body).not_to include(admin.username)
   end
 
   # Guessing the admin password through the confirmation must be throttled like the login form

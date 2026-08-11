@@ -179,7 +179,7 @@ en:
           reauth_failed: 'Incorrect password. Please try again.'
         back_to_parent:
           title: 'Return to your account'
-          instructions: 'You are currently working as %{impersonated}. Enter the password for your own account (%{admin}) to return to it, or log out completely.'
+          instructions: 'You are currently working as %{impersonated}. Enter the password for your own account to return to it, or log out completely.'
           submit: 'Return to my account'
           logout: 'Log out completely'
         personal_info: 'Personal info'
