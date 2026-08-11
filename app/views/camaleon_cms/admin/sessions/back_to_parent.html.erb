@@ -1,0 +1,25 @@
+<div class="login-body">
+    <h3 class="login-box-msg"><%= t('camaleon_cms.admin.login.back_to_parent.title', default: 'Return to your account') %></h3>
+    <%= render "camaleon_cms/flash_messages" %>
+    <p>
+        <%= t('camaleon_cms.admin.login.back_to_parent.instructions',
+              default: 'You are currently working as %{impersonated}. Enter the password for your own account (%{admin}) to return to it, or log out completely.',
+              impersonated: @impersonated_user.username, admin: @parent_user.username) %>
+    </p>
+    <%= form_tag cama_admin_back_to_parent_path, method: "post", role: "form", id: "back_to_parent", class: "form-horizontal cama_form_validate" do %>
+        <div class="form-group">
+            <div class="col-md-12">
+                <%= password_field_tag :password, nil, class: "form-control required", autofocus: true,
+                                       placeholder: t('camaleon_cms.admin.login.password', default: 'Password') %>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-6">
+                <a href="<%= cama_admin_logout_path(full: 1) %>" class="btn btn-default btn-block btn-flat"><%= t('camaleon_cms.admin.login.back_to_parent.logout', default: 'Log out completely') %></a>
+            </div>
+            <div class="col-xs-6">
+                <button type="submit" class="btn btn-primary btn-block btn-flat"><%= t('camaleon_cms.admin.login.back_to_parent.submit', default: 'Return to my account') %></button>
+            </div>
+        </div>
+    <% end %>
+</div>

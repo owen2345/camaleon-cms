@@ -9,6 +9,7 @@ Rails.application.routes.draw do
         get 'login' => 'sessions#login'
         post 'login' => 'sessions#login_post'
         get 'logout' => 'sessions#logout'
+        match 'back_to_parent' => 'sessions#back_to_parent', via: %i[get post]
         match 'forgot' => 'sessions#forgot', via: %i[get post patch]
         match 'confirm_email' => 'sessions#confirm_email', via: %i[get post patch]
         match 'register' => 'sessions#register', via: %i[get post patch]

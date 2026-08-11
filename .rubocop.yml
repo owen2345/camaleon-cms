@@ -37,6 +37,7 @@ RSpec/BeEql:
 Metrics/BlockLength:
   Exclude:
     - spec/**/*
+    - config/routes/**/*
 
 Metrics/MethodLength:
   Exclude:

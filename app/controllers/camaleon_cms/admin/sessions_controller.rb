@@ -57,11 +57,34 @@ module CamaleonCms
       end
 
       def logout
-        if session[:parent_auth_token].present? && cama_sign_in?
-          session_back_to_parent(cama_admin_dashboard_path)
+        # While impersonating, the ordinary Logout link must not silently hand the admin account back
+        # to whoever holds the session — returning to the parent now requires the admin's password
+        # (see #back_to_parent). `?full=1` forces a real logout of the impersonated session instead.
+        if session[:parent_auth_token].present? && cama_sign_in? && params[:full].blank?
+          redirect_to cama_admin_back_to_parent_path
         else
           cama_logout_user
         end
+      end
+
+      # Re-authenticate the impersonating admin before restoring their session (H6 residual). Reachable
+      # only while an impersonation is active; a GET renders the confirmation form, a POST checks the
+      # admin's password and only then returns to the parent session.
+      def back_to_parent
+        return redirect_to(cama_admin_login_path) unless session[:parent_auth_token].present? && cama_sign_in?
+
+        @parent_user = cama_impersonation_parent_user
+        # A stash that no longer resolves to a user cannot be returned to — just end the session.
+        return cama_logout_user if @parent_user.blank?
+
+        @impersonated_user = cama_current_user
+        if request.post?
+          return session_back_to_parent(cama_admin_dashboard_path) if @parent_user.authenticate(params[:password].to_s)
+
+          flash.now[:error] = t('camaleon_cms.admin.login.message.reauth_failed',
+                                default: 'Incorrect password. Please try again.')
+        end
+        render 'back_to_parent'
       end
 
       def forgot

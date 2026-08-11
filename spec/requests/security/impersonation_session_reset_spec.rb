@@ -58,9 +58,12 @@ RSpec.describe 'Security: impersonation session reset (H6)', type: :request do
     get impersonate_cama_admin_user_path(target)
     expect(auth_token_in_jar).to eq(target.auth_token)
 
-    # The "return to parent" path is the same /admin/logout route while the
-    # parent token is present: it must hand the admin back their own session.
+    # Ending impersonation now re-authenticates the admin before restoring their
+    # session (see impersonation_return_reauth_spec): the Logout link routes to the
+    # confirmation, and the admin's password hands them back their own session.
     get cama_admin_logout_path
+    expect(response).to redirect_to(cama_admin_back_to_parent_path)
+    post cama_admin_back_to_parent_path, params: { password: 'admin-pass-1' }
     expect(auth_token_in_jar).to eq(admin_token)
   end
 
