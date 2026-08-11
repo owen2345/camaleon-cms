@@ -1,7 +1,15 @@
 # term-and-widget-tenancy Specification
 
 ## Purpose
-TBD - created by archiving change prevent-cross-site-reparenting. Update Purpose after archive.
+
+Keep taxonomy terms and widget assignments anchored to the site that owns them. `parent_id` doubles
+as the tenancy foreign key on taxonomies — for a post type it is `site_id` itself, for a post tag the
+owning post type, and for a category its place in a post type's tree — and a widget assignment's
+`sidebar_id`/`widget_id` name its tenant-scoped sidebar and widget. None of these may be reassigned
+across sites through admin mass assignment: the tenancy keys are set from the owning association and
+never from the request, and the one legitimately caller-chosen value — a category's parent — is
+accepted only from the post type's own tree.
+
 ## Requirements
 ### Requirement: Taxonomy tenancy foreign keys are not reassignable across tenants
 
