@@ -74,8 +74,10 @@ module CamaleonCms
         return redirect_to(cama_admin_login_path) unless session[:parent_auth_token].present? && cama_sign_in?
 
         @parent_user = cama_impersonation_parent_user
-        # A stash that no longer resolves to a user cannot be returned to — just end the session.
-        return cama_logout_user if @parent_user.blank?
+        # A stash that no longer resolves to a user — or resolves to an account with no password
+        # digest, which #authenticate would raise on and which cannot prove the holder is the admin —
+        # cannot be returned to; fail closed and end the session.
+        return cama_logout_user if @parent_user.blank? || @parent_user.password_digest.blank?
 
         @impersonated_user = cama_current_user
         if request.post?

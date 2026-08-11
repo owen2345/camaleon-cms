@@ -83,6 +83,31 @@ RSpec.describe 'Security: impersonation return requires re-auth', type: :request
     expect(session[:parent_auth_token]).to be_nil
   end
 
+  it 'ends the session when the stashed token no longer resolves to the admin' do
+    impersonate_then_abandon
+    # Changing the admin's password rotates their auth_token, orphaning the stash.
+    admin.update!(password: 'rotated-pass-9', password_confirmation: 'rotated-pass-9')
+
+    get cama_admin_back_to_parent_path
+
+    expect(response).to redirect_to(cama_admin_login_path)
+    expect(session[:parent_auth_token]).to be_blank
+    expect(auth_token_in_jar).to be_blank
+  end
+
+  it 'fails closed instead of erroring when the parent admin has no password digest' do
+    impersonate_then_abandon
+    # update_column skips validations and the token-rotation callback, so the stash still resolves
+    # to the admin; only the digest is gone (reachable via custom user models or direct DB state).
+    admin.update_column(:password_digest, nil) # rubocop:disable Rails/SkipsModelValidations
+
+    post cama_admin_back_to_parent_path, params: { password: 'admin-pass-1' }
+
+    expect(response).to redirect_to(cama_admin_login_path)
+    expect(session[:parent_auth_token]).to be_blank
+    expect(auth_token_in_jar).to be_blank
+  end
+
   it 'renders the confirmation form without disclosing the admin username' do
     impersonate_then_abandon
 
