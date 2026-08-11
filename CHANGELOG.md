@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **Security fix:** Ending admin impersonation now requires the impersonating admin's password. Returning
+  from an impersonated session replays the admin's auth cookie stashed in the session; previously the
+  ordinary Logout link restored it for whoever held the session, so an admin who walked away
+  mid-impersonation on a shared browser let the next occupant become admin. The Logout link now routes to
+  a confirmation that verifies the admin's password before restoring (or lets the holder log out
+  completely), closing the residual left by the H6 session-reset fix. Failed attempts feed the same
+  brute-force throttle as the login form (captcha past the threshold), the confirmation does not
+  disclose the admin's username, and a stash that can no longer be re-authenticated ends the session
+  instead. [#1254](https://github.com/owen2345/camaleon-cms/pull/1254).
+
 - **Security fix:** The session is now reset on a genuine sign-in and on logout. The admin
   "impersonate user" feature stashes the admin's auth cookie in the session so it can be restored on
   return; because the session was never rotated, that stash outlived the admin on a shared browser — a

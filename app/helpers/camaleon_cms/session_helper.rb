@@ -100,8 +100,23 @@ module CamaleonCms
       login_user(user, false, redirect_url, rotate_session: false)
     end
 
+    # The admin who started the current impersonation, resolved from the stashed parent auth token
+    # (same lookup as cama_current_user). Returns nil if there is no active impersonation or the stash
+    # no longer resolves to a user (e.g. the admin rotated their token by changing their password).
+    # Callers MUST re-authenticate this user before session_back_to_parent (H6 residual): the
+    # impersonated session an admin holds is indistinguishable from one they abandon, so the admin's
+    # password is the only proof that the person returning is the admin and not a later occupant.
+    def cama_impersonation_parent_user
+      token = session[:parent_auth_token].to_s.split('&').first
+      return if token.blank?
+
+      current_site.users_include_admins.find_by(auth_token: token)
+    end
+
     # switch current session into parent session called by session_switch_user
     # after returned into parent session, this will be redirected to redirect_url or admin dashboard
+    # SECURITY: only call this once the parent admin has been re-authenticated (see
+    # Admin::SessionsController#back_to_parent and cama_impersonation_parent_user).
     def session_back_to_parent(redirect_url = nil)
       return unless cama_sign_in? && session[:parent_auth_token].present?
 

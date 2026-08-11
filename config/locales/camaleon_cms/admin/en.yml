@@ -176,6 +176,12 @@ en:
           confirm_email_token_incorrect: 'URL incorrect'
           confirm_email_token_expired: 'Confirm email URL expired'
           confirm_email_success: 'Confirm email success!'
+          reauth_failed: 'Incorrect password. Please try again.'
+        back_to_parent:
+          title: 'Return to your account'
+          instructions: 'You are currently working as %{impersonated}. Enter the password for your own account to return to it, or log out completely.'
+          submit: 'Return to my account'
+          logout: 'Log out completely'
         personal_info: 'Personal info'
         please_login: 'Please login'
         reset_password: 'reset password'
