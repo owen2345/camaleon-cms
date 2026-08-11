@@ -53,9 +53,11 @@ module CamaleonCms
         cat.the_posts.decorate.each do |post|
           next if skip_config[:skip_post_ids].include?(post.id)
 
-          res_posts << "<li><a href='#{post.the_url}'>#{post.the_title}</a></li>"
+          post_href = ERB::Util.html_escape(post.the_url)
+          res_posts << "<li><a href='#{post_href}'>#{post.the_title}</a></li>"
         end
-        res << "<li><h4><a href='#{cat.the_url}'>#{cat.the_title}</a></h4><ul>#{res_posts.join('')}</ul></li>"
+        cat_href = ERB::Util.html_escape(cat.the_url)
+        res << "<li><h4><a href='#{cat_href}'>#{cat.the_title}</a></h4><ul>#{res_posts.join('')}</ul></li>"
         res << cama_sitemap_cats_generator(cat.the_categories, skip_config)
       end
       res.join('')

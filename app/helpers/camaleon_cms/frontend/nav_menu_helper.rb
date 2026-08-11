@@ -231,7 +231,7 @@ module CamaleonCms
           res << if breadcrumb_items.size == (index + 1) # last menu
                    "<li class='active'>#{item[0]}</li>"
                  else
-                   "<li><a href='#{item[1]}'>#{item[0]}</a></li>"
+                   "<li><a href='#{ERB::Util.html_escape(item[1])}'>#{item[0]}</a></li>"
                  end
         end
         res.join('')

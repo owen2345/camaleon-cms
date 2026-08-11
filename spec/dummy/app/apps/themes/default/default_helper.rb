@@ -15,7 +15,8 @@ module Themes
         list = []
         if taxonomies.present?
           taxonomies.each do |taxonomy|
-            list << "<a href='#{taxonomy.the_url}' rel='#{rel}'>#{taxonomy.the_title}</a>"
+            href = ERB::Util.html_escape(taxonomy.the_url)
+            list << "<a href='#{href}' rel='#{ERB::Util.html_escape(rel)}'>#{taxonomy.the_title}</a>"
           end
         end
         list.join(', ')
