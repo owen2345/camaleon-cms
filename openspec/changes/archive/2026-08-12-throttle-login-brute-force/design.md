@@ -12,9 +12,12 @@ over `max_try_attack`. Because both the controller check and the view helper cal
 form and the submission agree automatically, and dropping the session cookie no longer clears the gate.
 
 The IP counter is keyed `cama_captcha_attack:<site>:<ip>:<form-key>` and written with a rolling TTL
-(`CAMA_ATTACK_WINDOW`), so a burst of failures rolls off after the window of inactivity. The per-session
-counter is kept (unchanged) so existing behaviour and its spec are preserved; it is now the weaker of the
-two signals.
+(`CAMA_ATTACK_WINDOW`), so a burst of failures rolls off after the window of inactivity. It is bumped with
+an **atomic** `Rails.cache.increment` (values kept `raw` so Redis/Memcached `INCR` applies; `:raw` is a
+no-op on Memory/File stores), not a read-then-write — otherwise concurrent failed logins from one IP would
+race on the read+write, lose updates, and slip past both the captcha gate and the hard lockout. The
+per-session counter is kept (unchanged) so existing behaviour and its spec are preserved; it is now the
+weaker of the two signals.
 
 ## D2. Hard lockout lives in the controller
 
@@ -49,7 +52,13 @@ collapses all clients to one IP, the throttle would over-trigger — a deploymen
 
 `login_brute_force_throttle_spec` simulates the cookieless attacker by dropping the `_dummy_session`
 cookie between requests (the client IP is constant across request specs), proving the gate survives a
-session reset and that an IP is 429-locked after the hard threshold. `attack/attack_helper_spec` drives the
-real throttle against a created `plugins_attacks` table and asserts the stored `browser_key` is the IP and
-that inserts stop once banned. Per-IP cache counters are cleared before each example in `rails_helper` so
-throttle state never leaks between the many request specs that log in from 127.0.0.1.
+session reset, that an IP is 429-locked after the hard threshold, and that a locked-out JSON client gets a
+JSON 429; the impersonation re-auth 429 is covered in `impersonation_return_reauth_spec`.
+`attack/attack_helper_spec` drives the real throttle against a created `plugins_attacks` table and asserts
+the stored `browser_key` is the IP and that the row total stays bounded once banned. Its
+`cama_get_session_id` stub returns a fresh id per request: a constant stub would let the unfixed code
+accumulate and ban too — proving nothing — so rotating it is what makes the case actually reproduce H2. A
+helper spec pins that the per-IP counter is bumped with the atomic `Rails.cache.increment` rather than a
+read-then-write, and that a successful login clears it. Per-IP counters and the attack ban are cleared
+before each example in `rails_helper` so throttle state never leaks between the many request specs that log
+in from 127.0.0.1.
