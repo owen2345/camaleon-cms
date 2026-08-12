@@ -177,6 +177,7 @@ en:
           confirm_email_token_expired: 'Confirm email URL expired'
           confirm_email_success: 'Confirm email success!'
           reauth_failed: 'Incorrect password. Please try again.'
+          too_many_attempts: 'Too many failed attempts. Please try again later.'
         back_to_parent:
           title: 'Return to your account'
           instructions: 'You are currently working as %{impersonated}. Enter the password for your own account to return to it, or log out completely.'

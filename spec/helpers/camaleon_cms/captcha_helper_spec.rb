@@ -22,11 +22,16 @@ describe CamaleonCms::CaptchaHelper do
       def current_site
         # Struct-based stub (mirrors session_captcha_runtime_concern_spec): RSpec doubles
         # are not available inside this plain class, only in example context.
-        @current_site ||= Struct.new(:max_try_attack) do
+        @current_site ||= Struct.new(:id, :max_try_attack) do
           def get_option(_key, default)
             max_try_attack || default
           end
-        end.new(5)
+        end.new(1, 5)
+      end
+
+      # the per-IP attack counter keys on the client IP; a plain stub is enough here
+      def request
+        @request ||= Struct.new(:remote_ip).new('127.0.0.1')
       end
 
       def cama_captcha_url(**args)

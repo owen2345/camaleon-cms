@@ -43,5 +43,8 @@ RSpec.configure do |config|
   config.before do
     # clear CurrentRequest before each example to avoid leakage
     CurrentRequest.reset
+    # Clear the per-IP captcha/brute-force counters (H1) so cache state never leaks between examples
+    # (all request specs share the 127.0.0.1 client IP and the same site).
+    Rails.cache.delete_matched(/cama_captcha_attack/) if Rails.cache.respond_to?(:delete_matched)
   end
 end
