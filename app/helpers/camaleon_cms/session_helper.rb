@@ -31,7 +31,10 @@ module CamaleonCms
       return if redirect_url == false
 
       if redirect_url.present?
-        redirect_to redirect_url
+        # Host-check the explicit redirect_url too: after_login hooks and downstream plugins pass
+        # caller-controlled destinations here (e.g. a return_to cookie), so it gets the same open-redirect
+        # guard as the return_to cookie branch below rather than being followed verbatim.
+        redirect_to safe_redirect_url(redirect_url) || cama_admin_dashboard_path
       elsif (return_to = cookies.delete(:return_to)).present?
         redirect_to safe_redirect_url(return_to) || cama_admin_dashboard_path
       else
@@ -214,11 +217,20 @@ module CamaleonCms
       return if url.blank?
 
       uri = URI.parse(url)
-      return url if uri.host.blank?
-      return unless uri.host.casecmp?(request.host)
+      if uri.host.present?
+        return unless uri.host.casecmp?(request.host)
 
-      uri.host = request.host
-      uri.to_s
+        uri.host = request.host
+        return uri.to_s
+      end
+
+      # A blank parsed host does not mean same-origin: a scheme (https:evil.com, javascript:...) or a
+      # slash/backslash-led form (///evil.com, /\evil.com, and their %2f/%5c encodings) still sends a
+      # browser off-site. Follow only a genuine same-origin path — one leading "/" then a normal path
+      # character (audit: the ///evil.com open redirect).
+      return unless uri.scheme.blank? && url.start_with?('/') && !url.match?(%r{\A/(?:[/\\]|%2f|%5c)}i)
+
+      url
     rescue URI::InvalidURIError
       nil
     end
