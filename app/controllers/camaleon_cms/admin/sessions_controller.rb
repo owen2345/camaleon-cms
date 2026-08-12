@@ -176,7 +176,7 @@ module CamaleonCms
           user_data = user_permit_data
           result = cama_register_user(user_data, nil)
           if result[:result] == false && result[:type] == :captcha_error
-            @user.errors.add(:captcha, t('camaleon_cms.admin.users.message.error_captcha'))
+            @user.errors.add(:captcha, result[:message])
             render 'register'
           elsif result[:result] == false && result[:type] == :stopped
             # A vetoing user_before_register handler may take over the response itself (render/redirect,
