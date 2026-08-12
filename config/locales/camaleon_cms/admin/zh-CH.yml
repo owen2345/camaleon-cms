@@ -143,6 +143,7 @@ zh-CN:
         message:
           success: '欢迎登录!!!'
           fail: '用户名或密码不正确'
+          too_many_attempts: '尝试次数过多，请稍后再试。'
           forgot_url_incorrect: '链接错误'
           forgot_expired: '重置链接已过期。'
           hello: '您好'
