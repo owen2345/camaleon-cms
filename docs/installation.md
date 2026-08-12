@@ -101,6 +101,10 @@ camaleon.website points here.)
 
 - Provide `SECRET_KEY_BASE` via the environment (do not commit secrets).
 
+- Integrating SSO or an external payment provider? The admin session flows only redirect to the site's own
+  host by default. Trust a provider's host (or let a plugin vouch for a dynamic destination) via the
+  off-site redirect allowlist — see [docs/security/permissions.md](security/permissions.md#security-off-site-redirect-allowlist).
+
 ## Support
 
 - Issues: https://github.com/owen2345/camaleon-cms/issues
