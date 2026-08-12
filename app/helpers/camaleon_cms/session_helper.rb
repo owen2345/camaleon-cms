@@ -81,7 +81,8 @@ module CamaleonCms
       # never fired. Match the sibling user_before_login/user_after_register broadcasts.
       hooks_run('user_before_register', r)
       # A handler may veto the registration by setting r[:stop_process] (parity with user_before_login):
-      # stop here without saving. The handler is expected to surface the reason itself (e.g. a flash).
+      # stop here without saving. The handler may surface its own reason (add to r[:user].errors, or
+      # render/redirect); otherwise the controller shows a generic error.
       return { result: false, type: :stopped, user: user } if r[:stop_process]
 
       if user.save

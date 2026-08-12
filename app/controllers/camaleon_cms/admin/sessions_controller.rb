@@ -179,10 +179,17 @@ module CamaleonCms
             @user.errors.add(:captcha, t('camaleon_cms.admin.users.message.error_captcha'))
             render 'register'
           elsif result[:result] == false && result[:type] == :stopped
-            # A vetoing user_before_register handler may have taken over the response itself
-            # (render/redirect, the user_before_login convention); rendering again would raise
-            # DoubleRenderError, so re-render the form only when the handler did not.
-            render 'register' unless performed?
+            # A vetoing user_before_register handler may take over the response itself (render/redirect,
+            # the user_before_login convention) or add its own errors to r[:user]; rendering again would
+            # raise DoubleRenderError, so re-render only when it did not — and show a generic reason so the
+            # visitor is not left with a silently re-rendered form.
+            unless performed?
+              if @user.errors.empty?
+                @user.errors.add(:base, t('camaleon_cms.admin.users.message.registration_stopped',
+                                          default: 'Registration could not be completed.'))
+              end
+              render 'register'
+            end
           elsif result[:result]
             @user = result[:user] if result[:user].present?
             flash[:notice] = result[:message]

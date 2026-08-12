@@ -59,6 +59,27 @@ RSpec.describe 'Registration user_before_register hook', type: :request do
     expect(response).to redirect_to('/admin/login')
   end
 
+  it 'shows a generic error when a veto provides no feedback of its own' do
+    add_ubr_hook('spec_ubr_stop_default') { |r| r[:stop_process] = true }
+
+    register!("veto_default_#{SecureRandom.hex(4)}")
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Registration could not be completed.')
+  end
+
+  it "shows the handler's own error instead of the generic one" do
+    add_ubr_hook('spec_ubr_stop_custom') do |r|
+      r[:user].errors.add(:base, 'Signups are paused')
+      r[:stop_process] = true
+    end
+
+    register!("veto_custom_#{SecureRandom.hex(4)}")
+
+    expect(response.body).to include('Signups are paused')
+    expect(response.body).not_to include('Registration could not be completed.')
+  end
+
   context 'with the registration captcha enabled (hook fires only past the captcha gate)' do
     before { CamaleonCms::Site.first.decorate.set_option('security_captcha_user_register', true) }
 
