@@ -146,4 +146,16 @@ RSpec.describe 'Security: only admins may control admin accounts (H10)', type: :
 
     expect(target_admin.reload.authenticate('new_secret')).to be_truthy
   end
+
+  # A malformed nested role param (user[role][x]=admin) makes params[:user][:role] an unpermitted
+  # Parameters; without coercion it reaches mass-assignment and raises, 500-ing the request.
+  it 'ignores a malformed nested role param instead of raising' do
+    victim = create(:user, role: 'client', site: current_site)
+    sign_in_as(admin, site: current_site)
+
+    patch cama_admin_user_path(victim), params: { user: { role: { 'x' => 'admin' } } }
+
+    expect(response).to have_http_status(:found) # a normal redirect, not a 500
+    expect(victim.reload.role).to eq('client')
+  end
 end

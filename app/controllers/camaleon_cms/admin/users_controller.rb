@@ -195,7 +195,10 @@ module CamaleonCms
           fields -= %i[username email password password_confirmation]
         end
         p = params.require(:user).permit(*fields)
+        # role is a scalar slug; coerce anything else (e.g. a nested user[role][x] param) to nil so it is
+        # never mass-assigned — assigning an unpermitted nested Parameters would raise and 500 the request.
         requested_role = params[:user][:role]
+        requested_role = nil unless requested_role.is_a?(String)
         p[:role] = requested_role if requested_role.present? && cama_current_user.role_grantor?(@user, requested_role)
         p
       end
