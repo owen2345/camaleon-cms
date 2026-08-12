@@ -45,6 +45,20 @@ RSpec.describe 'Registration user_before_register hook', type: :request do
     expect(response).to have_http_status(:ok)
   end
 
+  it 'does not double-render when a vetoing handler already performed the response' do
+    # A manifest handler runs via `send` on the controller, so a veto may redirect itself (the
+    # user_before_login convention). Rendering the form on top of that would raise DoubleRenderError.
+    allow_any_instance_of(CamaleonCms::Admin::SessionsController)
+      .to receive(:cama_register_user) do |controller, *_args|
+        controller.redirect_to('/admin/login')
+        { result: false, type: :stopped, user: CamaleonCms::Site.first.users.new }
+      end
+
+    register!('vetoredir')
+
+    expect(response).to redirect_to('/admin/login')
+  end
+
   context 'with the registration captcha enabled (hook fires only past the captcha gate)' do
     before { CamaleonCms::Site.first.decorate.set_option('security_captcha_user_register', true) }
 
