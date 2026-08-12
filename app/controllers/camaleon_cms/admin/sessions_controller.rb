@@ -19,6 +19,8 @@ module CamaleonCms
       end
 
       def login_post
+        return if cama_halt_when_login_locked_out('login')
+
         data_user = user_permit_data
         # Custom class finder (not the dynamic finder): usernames are stored downcased,
         # so the lookup must lower-case both sides regardless of DB collation.
@@ -81,6 +83,8 @@ module CamaleonCms
 
         @impersonated_user = cama_current_user
         if request.post?
+          return if cama_halt_when_login_locked_out('back_to_parent')
+
           # Failed guesses feed the login form's attack counter (same 'login' key), so this endpoint is
           # not an unthrottled oracle for the admin password: past the threshold a captcha is also
           # required, and because the parent stash lives in this same session, resetting the counter
@@ -204,6 +208,33 @@ module CamaleonCms
       end
 
       private
+
+      # Hard brute-force lockout (audit finding H1): once the per-IP failed-login counter reaches the
+      # limit, refuse every attempt from that IP (renders the given template with 429) for the cooldown
+      # window, regardless of credentials or captcha. Re-counting the blocked attempt keeps the window
+      # fresh so a persistent attacker stays locked. Returns true when it halted the action.
+      def cama_halt_when_login_locked_out(template)
+        return false unless cama_captcha_attack_ip_count('login') >= cama_login_lockout_limit
+
+        cama_captcha_increment_attack('login')
+        msg = t('camaleon_cms.admin.login.message.too_many_attempts',
+                default: 'Too many failed attempts. Please try again later.')
+        if params[:format] == 'json'
+          render json: { error: msg }, status: :too_many_requests
+        else
+          flash.now[:error] = msg
+          @user ||= current_site.users.new
+          render template, status: :too_many_requests
+        end
+        true
+      end
+
+      # Failures past this per-IP threshold trigger the hard lockout; defaults to 4x the captcha
+      # (soft) threshold and is configurable per site.
+      def cama_login_lockout_limit
+        soft = current_site.get_option('max_try_attack', 5).to_i
+        current_site.get_option('login_lockout_attempts', soft * 4).to_i
+      end
 
       def before_hook_session
         # NOTE: session[:cama_current_language] is for FRONTEND only (user's site language choice)

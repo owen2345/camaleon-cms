@@ -126,6 +126,7 @@ nl:
         message:
           success: 'Welkom!!!'
           fail: 'Gebruikersnaam of wachtwoord incorrect'
+          too_many_attempts: 'Te veel mislukte pogingen. Probeer het later opnieuw.'
           forgot_url_incorrect: 'URL incorrect'
           forgot_expired: 'Reset verlopen.'
           hello: 'Hallo'

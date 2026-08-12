@@ -163,5 +163,21 @@ RSpec.describe 'Security: impersonation return requires re-auth', type: :request
 
       expect(session['cama_captcha_login'].to_i).to eq(0)
     end
+
+    it 'hard-locks the IP with a 429 past the lockout threshold, without restoring the admin' do
+      admin_token = admin.auth_token
+      site.set_option('login_lockout_attempts', 3)
+      impersonate_then_abandon
+
+      3.times { wrong_guess }
+      # Even the correct password is now refused from this IP: the re-auth form comes back as 429
+      # (rendered, not erroring on a missing ivar) and the impersonation stays active.
+      post cama_admin_back_to_parent_path, params: { password: 'admin-pass-1' }
+
+      expect(response).to have_http_status(:too_many_requests)
+      expect(auth_token_in_jar).to eq(target.auth_token)
+      expect(auth_token_in_jar).not_to eq(admin_token)
+      expect(session[:parent_auth_token]).to be_present
+    end
   end
 end

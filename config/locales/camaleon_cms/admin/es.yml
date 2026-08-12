@@ -125,6 +125,7 @@ es:
         message:
           success: 'Bienvenido!!!'
           fail: 'Usuario o contraseña incorrectos'
+          too_many_attempts: 'Demasiados intentos fallidos. Vuelva a intentarlo más tarde.'
           forgot_url_incorrect: 'URL incorrecta'
           forgot_expired: 'Restablecer caducado.'
           hello: 'Hola'

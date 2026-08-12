@@ -22,11 +22,16 @@ describe CamaleonCms::CaptchaHelper do
       def current_site
         # Struct-based stub (mirrors session_captcha_runtime_concern_spec): RSpec doubles
         # are not available inside this plain class, only in example context.
-        @current_site ||= Struct.new(:max_try_attack) do
+        @current_site ||= Struct.new(:id, :max_try_attack) do
           def get_option(_key, default)
             max_try_attack || default
           end
-        end.new(5)
+        end.new(1, 5)
+      end
+
+      # the per-IP attack counter keys on the client IP; a plain stub is enough here
+      def request
+        @request ||= Struct.new(:remote_ip).new('127.0.0.1')
       end
 
       def cama_captcha_url(**args)
@@ -193,6 +198,36 @@ describe CamaleonCms::CaptchaHelper do
       helper_instance.params[:captcha] = 'NOPE1'
 
       expect(helper_instance.captcha_verify_if_under_attack('login')).to be(false)
+    end
+  end
+
+  describe '#cama_captcha_increment_attack' do
+    it 'increments the per-IP counter via an ATOMIC cache increment (guards the lost-update fix)' do
+      # A plain read-then-write would race and lose updates under concurrent failures from one IP;
+      # pin that the atomic primitive is used, not Rails.cache.write.
+      expect(Rails.cache).to receive(:increment).and_call_original
+
+      helper_instance.cama_captcha_increment_attack('login')
+
+      expect(helper_instance.cama_captcha_attack_ip_count('login')).to eq(1)
+    end
+
+    it 'accumulates the per-IP counter across successive failures' do
+      3.times { helper_instance.cama_captcha_increment_attack('login') }
+
+      expect(helper_instance.cama_captcha_attack_ip_count('login')).to eq(3)
+    end
+  end
+
+  describe '#cama_captcha_reset_attack' do
+    it 'clears the per-IP counter so a user who finally succeeds is no longer throttled' do
+      2.times { helper_instance.cama_captcha_increment_attack('login') }
+      expect(helper_instance.cama_captcha_attack_ip_count('login')).to eq(2)
+
+      helper_instance.cama_captcha_reset_attack('login')
+
+      expect(helper_instance.cama_captcha_attack_ip_count('login')).to eq(0)
+      expect(helper_instance.session['cama_captcha_login']).to eq(0)
     end
   end
 end

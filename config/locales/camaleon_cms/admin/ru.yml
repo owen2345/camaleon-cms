@@ -137,6 +137,7 @@ ru:
         message:
           success: 'Добро пожаловать!!!'
           fail: 'Неверное имя пользователя или пароль'
+          too_many_attempts: 'Слишком много неудачных попыток. Повторите попытку позже.'
           forgot_url_incorrect: 'Неверный URL'
           forgot_expired: 'Сброс истек.'
           hello: 'Привет'

@@ -134,6 +134,7 @@ uk:
         message:
           success: 'Ласкаво просимо !!!'
           fail: "Неправильне ім'я користувача або пароль"
+          too_many_attempts: 'Забагато невдалих спроб. Спробуйте пізніше.'
           forgot_url_incorrect: 'Неправильний URL'
           forgot_expired: 'Скидання закінчилось.'
           hello: 'Привіт'

@@ -135,6 +135,7 @@ it:
         message:
           success: 'Benvenuto!!!'
           fail: 'Username o Password errati'
+          too_many_attempts: 'Troppi tentativi falliti. Riprova più tardi.'
           forgot_url_incorrect: 'URL errato'
           forgot_expired: 'Reset scaduto.'
           hello: 'Ciao'

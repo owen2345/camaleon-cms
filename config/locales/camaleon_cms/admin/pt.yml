@@ -124,6 +124,7 @@ pt:
         message:
           success: 'Benvindo!!!'
           fail: 'Utilizador ou password incorreta'
+          too_many_attempts: 'Demasiadas tentativas falhadas. Tente novamente mais tarde.'
           forgot_url_incorrect: 'Endereço incorreto'
           forgot_expired: 'Expirou o prazo para redefinir a password.'
           hello: 'Olá'
