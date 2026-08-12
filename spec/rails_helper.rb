@@ -43,8 +43,10 @@ RSpec.configure do |config|
   config.before do
     # clear CurrentRequest before each example to avoid leakage
     CurrentRequest.reset
-    # Clear the per-IP captcha/brute-force counters (H1) so cache state never leaks between examples
-    # (all request specs share the 127.0.0.1 client IP and the same site).
-    Rails.cache.delete_matched(/cama_captcha_attack/) if Rails.cache.respond_to?(:delete_matched)
+    # Clear the per-IP brute-force counters (H1) and the attack-plugin ban (H2) so cache state never
+    # leaks between examples (all request specs share the 127.0.0.1 client IP and the same site). The
+    # ban key is cleared here too, not just in a local after-hook, so an interrupted run cannot leave
+    # a stale ban that breaks a later example.
+    Rails.cache.delete_matched(/cama_captcha_attack|plugins_attack_ban/) if Rails.cache.respond_to?(:delete_matched)
   end
 end
