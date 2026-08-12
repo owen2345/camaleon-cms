@@ -71,7 +71,9 @@ module CamaleonCms
       # Gate on the register captcha before running any hook, so user_before_register does not fire for
       # attempts that fail the captcha. This diverges from user_before_login, which runs its hook even on a
       # failed captcha and passes the result as r[:captcha_validate]; user_before_register does neither, so
-      # the "parity with user_before_login" below is limited to the stop_process veto.
+      # the "parity with user_before_login" below is limited to the stop_process veto. Verifying here also
+      # consumes the single-use captcha before the hook, so a later veto burns a solved challenge —
+      # harmless, since the re-rendered form issues a fresh one.
       if current_site.security_user_register_captcha_enabled? && !cama_captcha_verified?
         return { result: false, type: :captcha_error,
                  message: t('camaleon_cms.admin.users.message.error_captcha'), user: user }
