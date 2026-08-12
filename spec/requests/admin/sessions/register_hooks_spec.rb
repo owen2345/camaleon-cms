@@ -92,6 +92,8 @@ RSpec.describe 'Registration user_before_register hook', type: :request do
 
       expect(ran).to be_empty
       expect(CamaleonCms::User.find_by(username: username)).to be_nil
+      # Prove the hook was skipped by the captcha gate (not merely absent): the captcha error rendered.
+      expect(response.body).to include('Oh! Its error with CAPTCHA!')
     end
 
     it 'fires user_before_register once the captcha passes' do
