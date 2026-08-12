@@ -11,8 +11,8 @@
   the IP is refused with HTTP 429 for a cooldown; the `attack` plugin keys on `request.remote_ip` and stops
   inserting once over the limit. Upgrade notes: counters are per IP, so behind a shared IP a captcha may
   appear after enough failures from anyone on it (tune `max_try_attack` / `login_lockout_attempts`), and
-  the per-IP counters use `Rails.cache` — use a shared store (Redis/memcached) in production so the throttle
-  holds across workers. [#1256](https://github.com/owen2345/camaleon-cms/pull/1256).
+  the per-IP counters use `Rails.cache` and are incremented atomically — use a shared store (Redis/memcached)
+  in production so the throttle holds across workers. [#1256](https://github.com/owen2345/camaleon-cms/pull/1256).
 
 - **Security fix:** The captcha is now a single, single-use challenge of bounded length. The
   unauthenticated `GET /captcha?len=` fed its length straight into challenge generation, so a huge value
