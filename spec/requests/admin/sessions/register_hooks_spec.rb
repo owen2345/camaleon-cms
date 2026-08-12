@@ -44,4 +44,32 @@ RSpec.describe 'Registration user_before_register hook', type: :request do
     expect(CamaleonCms::User.find_by(username: username)).to be_nil
     expect(response).to have_http_status(:ok)
   end
+
+  context 'with the registration captcha enabled (hook fires only past the captcha gate)' do
+    before { CamaleonCms::Site.first.decorate.set_option('security_captcha_user_register', true) }
+
+    it 'does not fire user_before_register when the captcha fails' do
+      ran = []
+      add_ubr_hook('spec_ubr_captcha') { |_r| ran << true }
+
+      username = "capfail_#{Time.current.to_i}"
+      register!(username) # no captcha submitted → verification fails before the hook
+
+      expect(ran).to be_empty
+      expect(CamaleonCms::User.find_by(username: username)).to be_nil
+    end
+
+    it 'fires user_before_register once the captcha passes' do
+      allow_any_instance_of(CamaleonCms::Admin::SessionsController)
+        .to receive(:cama_captcha_verified?).and_return(true)
+      ran = []
+      add_ubr_hook('spec_ubr_pass') { |_r| ran << true }
+
+      username = "cappass_#{Time.current.to_i}"
+      register!(username)
+
+      expect(ran).to eq([true])
+      expect(CamaleonCms::User.find_by(username: username)).not_to be_nil
+    end
+  end
 end

@@ -67,6 +67,14 @@ module CamaleonCms
     # - password_confirmation
     def cama_register_user(user_data, meta)
       user = current_site.users.new(user_data)
+
+      # Gate on the register captcha before running any hook, so user_before_register does not fire for
+      # attempts that fail the captcha.
+      if current_site.security_user_register_captcha_enabled? && !cama_captcha_verified?
+        return { result: false, type: :captcha_error,
+                 message: t('camaleon_cms.admin.users.message.error_captcha'), user: user }
+      end
+
       r = { user: user, params: params, stop_process: false }
       # Broadcast (hooks_run), not hook_run: hook_run(target, name, …) takes the app as its first arg, so
       # hook_run('user_before_register', r) treated the name as a plugin and silently no-op'd — the hook
@@ -76,10 +84,7 @@ module CamaleonCms
       # stop here without saving. The handler is expected to surface the reason itself (e.g. a flash).
       return { result: false, type: :stopped, user: user } if r[:stop_process]
 
-      if current_site.security_user_register_captcha_enabled? && !cama_captcha_verified?
-        { result: false, type: :captcha_error, message: t('camaleon_cms.admin.users.message.error_captcha'),
-          user: user }
-      elsif user.save
+      if user.save
         user.set_metas(meta)
         message = if current_site.need_validate_email?
                     t('camaleon_cms.admin.users.message.created_pending_validate_email')
