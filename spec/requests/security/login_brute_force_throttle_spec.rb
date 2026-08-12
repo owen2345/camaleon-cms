@@ -52,4 +52,17 @@ RSpec.describe 'Security: admin login brute-force throttle (H1)', type: :request
     expect(response).to have_http_status(:too_many_requests)
     expect(signed_in?).to be(false)
   end
+
+  it 'answers a locked-out JSON client with a JSON 429 body, not an HTML page' do
+    site.set_option('login_lockout_attempts', 3)
+    3.times { attempt('wrong-password') }
+
+    post cama_admin_login_path(format: :json),
+         params: { user: { username: admin.username, password: 'admin-pass-1' } }
+
+    expect(response).to have_http_status(:too_many_requests)
+    expect(response.media_type).to eq('application/json')
+    expect(JSON.parse(response.body)).to include('error')
+    expect(signed_in?).to be(false)
+  end
 end
