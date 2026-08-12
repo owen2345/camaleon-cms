@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **Security fix:** Admin login is now brute-force throttled per client IP. The "under attack" decision was
+  a per-session counter, so an attacker who dropped their session cookie each request never triggered the
+  captcha and could guess passwords without limit (H1); the bundled `attack` plugin keyed its own throttle
+  and ban on the session id too and inserted a tracking row per request, an unbounded unauthenticated write
+  (H2). Failed logins are now counted per IP in the cache: past the captcha threshold a captcha is required
+  server-side (a fresh session no longer clears it), and past a higher `login_lockout_attempts` threshold
+  the IP is refused with HTTP 429 for a cooldown; the `attack` plugin keys on `request.remote_ip` and stops
+  inserting once over the limit. Upgrade notes: counters are per IP, so behind a shared IP a captcha may
+  appear after enough failures from anyone on it (tune `max_try_attack` / `login_lockout_attempts`), and
+  the per-IP counters use `Rails.cache` — use a shared store (Redis/memcached) in production so the throttle
+  holds across workers. [#1256](https://github.com/owen2345/camaleon-cms/pull/1256).
+
 - **Security fix:** The captcha is now a single, single-use challenge of bounded length. The
   unauthenticated `GET /captcha?len=` fed its length straight into challenge generation, so a huge value
   tied up the worker building an arbitrarily large challenge string for ImageMagick to draw (H4) and a
