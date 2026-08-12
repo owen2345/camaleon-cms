@@ -8,7 +8,10 @@ module CamaleonCms
     #   it doesn't redirect if redirect_url === false
     #   return to previous page if defined the cookie['return_to'], or login
     #     url received extra param: return_to=https://mysite.com
-    def login_user(user, remember_me = false, redirect_url = nil, rotate_session: true)
+    # allow_external (default false): follow redirect_url even when it points off-site, for a caller that
+    #   has vetted the destination (e.g. an after_login hook doing SSO/payment). http(s) only; a configured
+    #   allowlist (redirect_allowed_hosts option / safe_redirect_hosts hook) is honored regardless of it.
+    def login_user(user, remember_me = false, redirect_url = nil, rotate_session: true, allow_external: false)
       # Rotate the session on a genuine sign-in (H6): a fresh session drops any state left behind by a
       # previous occupant of a shared browser — notably an impersonation parent_auth_token, which
       # session_back_to_parent would otherwise restore on logout, escalating the new user to admin.
@@ -33,10 +36,11 @@ module CamaleonCms
       if redirect_url.present?
         # Host-check the explicit redirect_url too: after_login hooks and downstream plugins pass
         # caller-controlled destinations here (e.g. a return_to cookie), so it gets the same open-redirect
-        # guard as the return_to cookie branch below rather than being followed verbatim.
-        redirect_to safe_redirect_url(redirect_url) || cama_admin_dashboard_path
+        # guard as the return_to cookie branch below. allow_external lets such a hook opt a vetted off-site
+        # destination (SSO/payment) past the same-host rule; it stays http(s)-only either way.
+        cama_safe_redirect(redirect_url, cama_admin_dashboard_path, allow_external: allow_external)
       elsif (return_to = cookies.delete(:return_to)).present?
-        redirect_to safe_redirect_url(return_to) || cama_admin_dashboard_path
+        cama_safe_redirect(return_to, cama_admin_dashboard_path)
       else
         redirect_to cama_admin_dashboard_path
       end
@@ -140,8 +144,8 @@ module CamaleonCms
       # Drop all server-side session state on logout (H6): a lingering impersonation parent_auth_token
       # must not survive to be restored into a later session on a shared browser.
       reset_session
-      redirect_to safe_redirect_url(params[:return_to]) || cama_admin_login_path,
-                  notice: t('camaleon_cms.admin.logout.message.closed')
+      cama_safe_redirect(params[:return_to], cama_admin_login_path,
+                         notice: t('camaleon_cms.admin.logout.message.closed'))
     end
 
     # Check if the current user is already signed
@@ -208,24 +212,32 @@ module CamaleonCms
 
     private
 
-    # validate redirect url to prevent open redirect attacks: relative, or same-host over http(s),
-    # only; host compared case-insensitively (RFC 3986); cross-site return_to on multisite is
-    # deliberately unsupported — a sibling-site allowlist would be its own security change.
-    # A passing absolute URL is emitted with the host in the request's canonical case, so
+    # validate redirect url to prevent open redirect attacks: relative, or same-host over http(s), only —
+    # unless the off-site host is explicitly trusted (see cama_redirect_allowed_hosts) or the caller vouches
+    # for it (allow_external, for hook-set SSO/payment destinations). Host compared case-insensitively
+    # (RFC 3986); a same-host absolute URL is emitted with the host in the request's canonical case, so
     # Rails' own case-sensitive open-redirect protection stays active without tripping on it.
-    def safe_redirect_url(url)
+    def safe_redirect_url(url, allow_external: false)
       return if url.blank?
 
       uri = URI.parse(url)
       if uri.host.present?
-        return unless uri.host.casecmp?(request.host)
-        # Same host is not enough: a non-HTTP scheme carrying the request host (javascript://host/...,
-        # data://host/...) still parses as same-host but is not a real navigation — a caller that rendered
-        # this into an href/JS sink would execute it. Follow only http(s) or a scheme-relative (//host) form.
+        # A non-HTTP scheme carrying a host (javascript://host/..., data://host/...) parses with a host but
+        # is not a real navigation — it would execute if rendered into an href/JS sink. Reject it before any
+        # host decision, so neither the allowlist nor allow_external can let such a scheme through.
         return unless uri.scheme.blank? || %w[http https].include?(uri.scheme.downcase)
 
-        uri.host = request.host
-        return uri.to_s
+        if uri.host.casecmp?(request.host)
+          uri.host = request.host
+          return uri.to_s
+        end
+
+        # Off-host: followed only for an admin/plugin-vetted host, or when the caller explicitly vouches for
+        # this destination (allow_external — a hook doing SSO/payment). Never for a caller-controlled
+        # return_to, which always passes allow_external: false.
+        return uri.to_s if allow_external || cama_redirect_host_allowed?(uri.host)
+
+        return
       end
 
       # A blank parsed host does not mean same-origin: a scheme (https:evil.com, javascript:...) or a
@@ -237,6 +249,45 @@ module CamaleonCms
       url
     rescue URI::InvalidURIError
       nil
+    end
+
+    # Redirect to a destination vetted by safe_redirect_url, or to `fallback` when it is dropped. A vetted
+    # off-host destination (allowlisted or vouched via allow_external) is emitted with allow_other_host so
+    # Rails' backstop does not reject it; a same-host destination keeps that backstop as a second layer.
+    def cama_safe_redirect(url, fallback, allow_external: false, **opts)
+      target = safe_redirect_url(url, allow_external: allow_external)
+      return redirect_to(fallback, **opts) if target.blank?
+
+      opts[:allow_other_host] = true if cama_redirect_off_host?(target) && cama_supports_allow_other_host?
+      redirect_to(target, **opts)
+    end
+
+    # Admin- and plugin-declared allowlist of off-site hosts that redirects may target, in addition to the
+    # request host. Sourced from the `redirect_allowed_hosts` site option (comma-separated) and the
+    # `safe_redirect_hosts` hook (plugins append their provider host to r[:hosts]). Empty by default — the
+    # strict same-host policy — so an off-host redirect is only ever reachable once a host is explicitly
+    # trusted. Only consulted for an off-host destination, so same-host/relative redirects skip it.
+    def cama_redirect_allowed_hosts
+      r = { hosts: current_site.get_option('redirect_allowed_hosts', '').to_s.split(',') }
+      hooks_run('safe_redirect_hosts', r)
+      Array(r[:hosts]).map { |h| h.to_s.strip }.reject(&:blank?)
+    end
+
+    def cama_redirect_host_allowed?(host)
+      cama_redirect_allowed_hosts.any? { |allowed| allowed.casecmp?(host) }
+    end
+
+    def cama_redirect_off_host?(url)
+      host = URI.parse(url).host
+      host.present? && !host.casecmp?(request.host)
+    rescue URI::InvalidURIError
+      false
+    end
+
+    # allow_other_host is a Rails 7.0+ redirect_to option; on the 6.1 floor there is no open-redirect
+    # backstop to satisfy, so an off-host redirect there just works without it.
+    def cama_supports_allow_other_host?
+      Rails::VERSION::MAJOR >= 7
     end
 
     # calculate the current user for API

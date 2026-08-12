@@ -10,7 +10,7 @@ module CamaleonCms
       # you can pass return_to as a param (mysite.com/admin/login?return_to=my-url) and
       # this will be used after user logged in
       def login
-        return redirect_to(safe_redirect_url(params[:return_to]) || cama_admin_dashboard_path) if signin?
+        return cama_safe_redirect(params[:return_to], cama_admin_dashboard_path) if signin?
 
         cookies[:return_to] = params[:return_to] if params[:return_to].present?
         @user ||= current_site.users.new
@@ -37,7 +37,10 @@ module CamaleonCms
             cama_captcha_reset_attack('login')
             r = { user: @user, redirect_to: params[:format] == 'json' ? false : nil }
             hooks_run('after_login', r)
-            login_user(@user, params[:remember_me].present?, r[:redirect_to])
+            # An after_login hook may set r[:allow_external_redirect] to vouch for an off-site r[:redirect_to]
+            # (SSO/payment); without it the destination is same-host/allowlist-only. See login_user.
+            login_user(@user, params[:remember_me].present?, r[:redirect_to],
+                       allow_external: r[:allow_external_redirect].present?)
             render(json: flash.discard.to_hash) if params[:format] == 'json'
             return
           else
@@ -183,8 +186,10 @@ module CamaleonCms
             hooks_run('user_registered', r)
             # Host-check the post-registration destination for the same reason login_user host-checks its
             # explicit redirect_url: the user_registered hook is caller-controlled (downstream plugins), so
-            # an off-site value must fall back to the safe default rather than be followed verbatim.
-            redirect_to safe_redirect_url(r[:redirect_url]) || cama_admin_login_path
+            # an off-site value falls back to the safe default unless the hook vouches for it via
+            # r[:allow_external_redirect] (or its host is allowlisted).
+            cama_safe_redirect(r[:redirect_url], cama_admin_login_path,
+                               allow_external: r[:allow_external_redirect].present?)
           else
             render 'register'
           end

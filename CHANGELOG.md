@@ -13,6 +13,15 @@
   plugins), closing the matching post-login and post-registration open redirects.
   [#1258](https://github.com/owen2345/camaleon-cms/pull/1258).
 
+  **Notes for upgraders:**
+  - A plugin that intentionally redirects off-site after login or registration (SSO, payment providers) is
+    now dropped to the safe default. Restore it by trusting the destination host: set the
+    `redirect_allowed_hosts` site option (comma-separated) or append to it from the new `safe_redirect_hosts`
+    hook (`r[:hosts] << 'checkout.stripe.com'`).
+  - For a fully-dynamic off-site destination, an `after_login`/`user_registered` hook can set
+    `r[:allow_external_redirect]` to vouch for its `redirect_to`/`redirect_url`. `http`/`https` only in both
+    cases; a caller-supplied `return_to` is never opted in this way.
+
 - **Security fix:** Only an admin may control an admin account. Holding `:manage, :users` was a path to
   superadmin: a non-admin user manager could set `role: 'admin'` on a created or edited account (minting an
   admin) or strip an existing admin's role, and could also reset an admin's password to sign in as them or
