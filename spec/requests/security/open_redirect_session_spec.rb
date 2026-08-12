@@ -71,7 +71,8 @@ RSpec.describe 'Security: Open Redirect in SessionHelper', type: :request do
   # slash/backslash lead (/%5cevil.com) still resolves off-site or trips the redirect backstop.
   # The old check only rejected destinations with a non-blank, mismatched host.
   describe 'host-blank destinations that are not safe local paths' do
-    ['///evil.com', 'https:evil.com', 'javascript:alert(document.domain)', '/%5cevil.com'].each do |evil|
+    ['///evil.com', 'https:evil.com', 'javascript:alert(document.domain)', '/%5cevil.com',
+     '/%2fevil.com'].each do |evil|
       it "falls back to the dashboard for return_to=#{evil.inspect} on login" do
         post cama_admin_login_path, params: { user: { username: user.username, password: 'password' } }
         get cama_admin_login_path, params: { return_to: evil }
@@ -123,6 +124,19 @@ RSpec.describe 'Security: Open Redirect in SessionHelper', type: :request do
       post cama_admin_login_path, params: { user: { username: user.username, password: 'password' } }
 
       expect(response).to redirect_to(cama_admin_dashboard_path)
+    end
+
+    it 'follows a same-host destination set by an after_login hook' do
+      allow_any_instance_of(CamaleonCms::Admin::SessionsController)
+        .to receive(:hooks_run).and_wrap_original do |orig, name, *rest|
+          rest.first[:redirect_to] = '/admin/posts' if name == 'after_login' && rest.first.is_a?(Hash)
+          orig.call(name, *rest)
+        end
+
+      post cama_admin_login_path, params: { user: { username: user.username, password: 'password' } }
+
+      expect(response).to have_http_status(:found)
+      expect(response.location).to end_with('/admin/posts')
     end
   end
 
