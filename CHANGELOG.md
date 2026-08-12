@@ -8,9 +8,9 @@
   `/admin/login?return_to=///evil.com` emitted it as `Location`. It now follows a host-blank destination
   only when it is a genuine same-origin path (rejecting scheme, protocol-relative/backslash and `%2f`/`%5c`
   forms), and follows a host-matching absolute URL only over an `http`/`https` scheme (rejecting a same-host
-  `javascript:`/`data:` destination). Separately, `login_user`'s explicit `redirect_url` argument — set by
-  `after_login` hooks and downstream plugins — is now host-checked like the `return_to` cookie, closing a
-  post-login open redirect; the registration flow's `user_registered` hook redirect is guarded the same way.
+  `javascript:`/`data:` destination). The same host check now also guards `login_user`'s explicit
+  `redirect_url` and the registration `user_registered` hook redirect (both set by hooks/downstream
+  plugins), closing the matching post-login and post-registration open redirects.
   [#1258](https://github.com/owen2345/camaleon-cms/pull/1258).
 
 - **Security fix:** Only an admin may control an admin account. Holding `:manage, :users` was a path to
