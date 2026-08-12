@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Change:** The `user_before_register` hook can now veto a registration by setting `r[:stop_process]`
+  (parity with `user_before_login`), and fires only after the register captcha passes. Follow-up to #1258.
+  [#1259](https://github.com/owen2345/camaleon-cms/pull/1259).
+
 - **Security fix:** Closed an open redirect in the admin session flows. `safe_redirect_url` treated any URL
   whose *parsed* host was blank as same-origin and returned it unchanged, but `return_to=///evil.com` (also
   `https:evil.com`, `javascript:...`) parses to a blank host yet sends a browser off-site — so
