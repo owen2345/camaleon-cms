@@ -8,7 +8,13 @@ require 'rails_helper'
 # themselves — and could equally strip an existing admin's role. Granting the admin role, or changing the
 # role of a user who is already an admin, now requires being an admin; a user manager keeps every
 # non-admin grant.
-RSpec.describe 'Security: only admins may grant the admin role (H10)', type: :request do
+#
+# The same threat also has a non-role path: a user manager who could reset an admin's password would sign
+# in as them, and one who could repoint an admin's email would hijack a password-reset link. Editing an
+# admin's password or recovery identifiers (email/username) therefore requires being an admin too, via
+# UserDecorator#may_edit_credentials? applied in #user_params and #updated_ajax. A manager keeps full
+# control of non-admin accounts and of their own.
+RSpec.describe 'Security: only admins may control admin accounts (H10)', type: :request do
   init_site
 
   let(:current_site) { Cama::Site.first.decorate }
@@ -73,5 +79,71 @@ RSpec.describe 'Security: only admins may grant the admin role (H10)', type: :re
     patch cama_admin_user_path(target_admin), params: { user: { role: 'client' } }
 
     expect(target_admin.reload.role).to eq('client')
+  end
+
+  # --- the non-role path to an admin account: password and recovery identifiers ---
+
+  it 'does not let a non-admin user manager reset an existing admin password' do
+    target_admin = create(:user_admin, site: current_site) # factory password is '12345678'
+    sign_in_as(manager, site: current_site)
+
+    patch cama_admin_user_path(target_admin),
+          params: { user: { password: 'pwned_password', password_confirmation: 'pwned_password' } }
+
+    target_admin.reload
+    expect(target_admin.authenticate('pwned_password')).to be_falsey
+    expect(target_admin.authenticate('12345678')).to be_truthy
+  end
+
+  it 'does not let a non-admin user manager change an existing admin email' do
+    target_admin = create(:user_admin, site: current_site)
+    original_email = target_admin.email
+    sign_in_as(manager, site: current_site)
+
+    patch cama_admin_user_path(target_admin), params: { user: { email: 'attacker@tester.com' } }
+
+    expect(target_admin.reload.email).to eq(original_email)
+  end
+
+  it 'does not let a non-admin user manager reset an admin password through updated_ajax' do
+    target_admin = create(:user_admin, site: current_site)
+    sign_in_as(manager, site: current_site)
+
+    patch cama_admin_user_updated_ajax_path(target_admin),
+          params: { password: { password: 'pwned_password', password_confirmation: 'pwned_password' } }
+
+    expect(response).to have_http_status(:forbidden)
+    expect(target_admin.reload.authenticate('pwned_password')).to be_falsey
+  end
+
+  it 'still lets a non-admin user manager reset a non-admin user password' do
+    victim = create(:user, role: 'client', site: current_site)
+    sign_in_as(manager, site: current_site)
+
+    patch cama_admin_user_updated_ajax_path(victim),
+          params: { password: { password: 'new_secret', password_confirmation: 'new_secret' } }
+
+    expect(response).to have_http_status(:no_content)
+    expect(victim.reload.authenticate('new_secret')).to be_truthy
+  end
+
+  it 'still lets a user change their own password through updated_ajax' do
+    sign_in_as(manager, site: current_site)
+
+    patch cama_admin_user_updated_ajax_path(manager),
+          params: { password: { password: 'my_new_secret', password_confirmation: 'my_new_secret' } }
+
+    expect(response).to have_http_status(:no_content)
+    expect(manager.reload.authenticate('my_new_secret')).to be_truthy
+  end
+
+  it 'still lets an admin reset another admin password' do
+    target_admin = create(:user_admin, site: current_site)
+    sign_in_as(admin, site: current_site)
+
+    patch cama_admin_user_path(target_admin),
+          params: { user: { password: 'new_secret', password_confirmation: 'new_secret' } }
+
+    expect(target_admin.reload.authenticate('new_secret')).to be_truthy
   end
 end

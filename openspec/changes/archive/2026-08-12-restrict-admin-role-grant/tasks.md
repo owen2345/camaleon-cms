@@ -31,3 +31,15 @@
 
 - [x] 6.1 Add a `## Unreleased` **Security fix** entry: granting the admin role now requires being an admin
 - [x] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
+
+## 7. Follow-up — close the non-role vector (code review)
+
+A `max` code review found the role fix left the stated goal unmet: a `:manage, :users` holder could still
+take over an admin by resetting its password/email, and a malformed nested `role` param `500`'d the request.
+
+- [x] 7.1 Add `UserDecorator#may_edit_credentials?(other_user)` — only an admin may edit an admin's password/email/username
+- [x] 7.2 `user_params` drops `password`/`password_confirmation`/`email`/`username` for a non-admin editing an admin; `updated_ajax` refuses with `403`
+- [x] 7.3 Coerce a non-`String` `role` param to `nil` so a nested `user[role][x]` cannot reach mass-assignment (no `500`)
+- [x] 7.4 The user form disables the username/email inputs and hides the change-password action for anyone who cannot use them
+- [x] 7.5 Extend `admin_role_grant_spec.rb`: manager cannot reset an admin's password (form + AJAX) or email; still manages non-admin/own credentials; admin still can; malformed role param is ignored
+- [x] 7.6 `bin/rspec` touched specs, `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` — all green

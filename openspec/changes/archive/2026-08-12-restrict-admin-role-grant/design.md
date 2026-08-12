@@ -35,3 +35,24 @@ H10's other residual — `admin?` being a global, cross-site string rather than 
 here. A user's `role` is a single global column with no per-`(user, site)` storage, so per-site admin
 would need a schema/model change and touches the authorization root (`Ability`) and a public predicate;
 it is a redesign, not a permit fix, and the maintainer has treated it as by-design.
+
+## D5. The role permit was only half the boundary — credentials are the other half
+
+Gating the role alone does not meet the goal ("`:manage, :users` is not a path to controlling admin
+accounts"). The same holder could reset an admin's password through `#update` or the `#updated_ajax`
+endpoint and sign in as them, or repoint the admin's email and hijack a password-reset link — both are
+paths to superadmin that leave the role restriction moot. A companion predicate,
+`UserDecorator#may_edit_credentials?(other_user)`, returns `admin?` when the target is an admin and `true`
+otherwise (no self-check needed: a non-admin can never be an admin target). `#user_params` drops
+`password`/`password_confirmation`/`email`/`username` for a non-admin editing an admin — the same
+drop-and-fail-safe the role permit uses (D1) — and `#updated_ajax`, which bypasses `user_params`, refuses
+with `403`. Self-edits and non-admin targets are untouched, so a manager keeps every legitimate power. The
+form mirrors this (D3): those inputs are disabled and the change-password action hidden when unusable.
+
+## D6. A role parameter is a scalar
+
+`#user_params` reads `role` outside the permit list (so it can gate the value), which means a non-scalar
+`user[role][x]` param arrives as an unpermitted `ActionController::Parameters`; assigning it during
+`update` would raise `ActionController::UnfilteredParameters` and `500` the request. The value is coerced
+to `nil` unless it `is_a?(String)`, matching the scalar slug the form emits — malformed input is ignored,
+not fatal.

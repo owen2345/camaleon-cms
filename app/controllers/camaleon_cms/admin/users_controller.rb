@@ -69,6 +69,12 @@ module CamaleonCms
       # update some ajax requests from profile or user form
       def updated_ajax
         @user = current_site.users.find(user_id_param)
+        # Only an admin may reset an admin's password; a `:manage, :users` holder who could would sign in
+        # as that admin (H10). Self-service and non-admin targets are unaffected.
+        unless cama_current_user.may_edit_credentials?(@user)
+          return render plain: t('camaleon_cms.admin.users.message.error'), status: :forbidden
+        end
+
         update_session = current_user_is?(@user)
         attrs = params.require(:password).permit(%i[password password_confirmation])
         @user.update(password: attrs.require(:password), password_confirmation: attrs.require(:password_confirmation))
@@ -182,7 +188,13 @@ module CamaleonCms
       end
 
       def user_params
-        p = params.require(:user).permit(:username, :email, :first_name, :last_name, :password, :password_confirmation)
+        fields = %i[username email first_name last_name password password_confirmation]
+        # Only an admin may change an admin's password or recovery identifiers (email/username); drop them
+        # for anyone else editing an admin, the same fail-safe the role permit below uses (H10).
+        unless cama_current_user.may_edit_credentials?(@user)
+          fields -= %i[username email password password_confirmation]
+        end
+        p = params.require(:user).permit(*fields)
         requested_role = params[:user][:role]
         p[:role] = requested_role if requested_role.present? && cama_current_user.role_grantor?(@user, requested_role)
         p

@@ -2,13 +2,13 @@
 
 ## Unreleased
 
-- **Security fix:** Only an admin may change who is an admin. `role_grantor?` only checked for the
-  `:manage, :users` capability, so a non-admin user manager could create or edit an account with
-  `role: 'admin'` — the role `admin?` tests, which confers `:manage, :all` — minting an admin and
-  escalating to superadmin, and could equally strip an existing admin's role. Granting the `admin` role,
-  or changing the role of a user who is already an admin, now requires being an admin; the role permit
-  drops such a change from anyone who is not one, and the user form hides/disables the admin role for them
-  (non-admin role changes are unaffected) (audit finding H10).
+- **Security fix:** Only an admin may control an admin account. Holding `:manage, :users` was a path to
+  superadmin: a non-admin user manager could set `role: 'admin'` on a created or edited account (minting an
+  admin) or strip an existing admin's role, and could also reset an admin's password to sign in as them or
+  repoint their email to hijack a reset link. Granting or removing the `admin` role, and changing an
+  existing admin's password, email, or username, now require being an admin — the server drops such changes
+  and the user form hides and disables what the caller cannot use; non-admin accounts and a user's own are
+  unaffected. A malformed nested `role` parameter is now ignored rather than raising (audit finding H10).
   [#1257](https://github.com/owen2345/camaleon-cms/pull/1257).
 
 - **Security fix:** Admin login is now brute-force throttled per client IP. The "under attack" decision was
