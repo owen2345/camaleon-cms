@@ -30,4 +30,4 @@
 ## 6. Changelog and archive
 
 - [x] 6.1 Add a `## Unreleased` **Security fix** entry: granting the admin role now requires being an admin
-- [ ] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
+- [x] 6.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
