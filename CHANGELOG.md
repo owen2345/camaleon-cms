@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Security fix:** Closed an open redirect in the admin session flows. `safe_redirect_url` treated any URL
+  whose *parsed* host was blank as same-origin and returned it unchanged, but `return_to=///evil.com` (also
+  `https:evil.com`, `javascript:...`) parses to a blank host yet sends a browser off-site — so
+  `/admin/login?return_to=///evil.com` emitted it as `Location`. It now follows a host-blank destination
+  only when it is a genuine same-origin path (rejecting scheme, protocol-relative/backslash and `%2f`/`%5c`
+  forms). Separately, `login_user`'s explicit `redirect_url` argument — set by `after_login` hooks and
+  downstream plugins — is now host-checked like the `return_to` cookie, closing a post-login open redirect.
+  [#1258](https://github.com/owen2345/camaleon-cms/pull/1258).
+
 - **Security fix:** Only an admin may control an admin account. Holding `:manage, :users` was a path to
   superadmin: a non-admin user manager could set `role: 'admin'` on a created or edited account (minting an
   admin) or strip an existing admin's role, and could also reset an admin's password to sign in as them or

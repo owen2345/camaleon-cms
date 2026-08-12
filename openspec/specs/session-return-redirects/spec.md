@@ -7,18 +7,20 @@ without dropping legitimate same-host destinations.
 ## Requirements
 ### Requirement: return_to redirects are same-host with case-insensitive comparison
 
-A caller-supplied `return_to` destination SHALL be followed only when it is relative (no host) or
-absolute on the requesting host, and the host comparison SHALL be case-insensitive (host names
-are case-insensitive per RFC 3986). A followed absolute destination SHALL be emitted with the
-host in the request's canonical case, so the framework's own case-sensitive open-redirect
-protection (`action_on_open_redirect`) stays active and never trips on a legitimate destination.
-Cross-host and unparsable destinations SHALL be dropped in favor of the flow's safe default
-path — never an error, never an off-host redirect. Cross-site destinations on multisite installs
-are deliberately unsupported by this policy; supporting sibling sites would be a separate
-security change.
+A caller-supplied redirect destination SHALL be followed only when it is a genuine same-origin reference:
+either an absolute URL on the requesting host (host comparison case-insensitive per RFC 3986, emitted with
+the host in the request's canonical case so the framework's own open-redirect protection stays active), or
+a same-origin path — one leading `/` followed by a normal path character. A destination whose parsed host
+is blank but which a browser would still resolve off-site SHALL be dropped: a scheme (`https:evil.com`,
+`javascript:...`), a protocol-relative or backslash form (`///evil.com`, `/\evil.com`), and their `%2f` /
+`%5c` encodings. Cross-host and unparsable destinations SHALL likewise be dropped in favor of the flow's
+safe default path — never an error, never an off-host redirect. Cross-site destinations on multisite
+installs are deliberately unsupported by this policy; supporting sibling sites would be a separate security
+change.
 
-The policy SHALL apply uniformly to every session flow that consumes `return_to`: visiting the
-login page while already signed in, the post-login `return_to` cookie, and logout.
+The policy SHALL apply uniformly to every session flow that consumes a caller-supplied destination:
+visiting the login page while already signed in, the post-login `return_to` cookie, logout, and
+`login_user`'s explicit `redirect_url` argument (set by `after_login` hooks and downstream plugins).
 
 #### Scenario: Mixed-case same-host destination is followed
 
@@ -41,6 +43,17 @@ login page while already signed in, the post-login `return_to` cookie, and logou
 
 - **WHEN** a session flow consumes a `return_to` that is not a parsable URI
 - **THEN** the response redirects to the flow's safe default path
+
+#### Scenario: Host-blank off-site destination falls back
+
+- **WHEN** a session flow consumes a `return_to` whose parsed host is blank but which resolves off-site
+  or trips the redirect backstop (`///evil.com`, `https:evil.com`, `javascript:...`, `/%5cevil.com`)
+- **THEN** the response redirects to the flow's safe default path
+
+#### Scenario: Explicit login redirect argument is host-checked
+
+- **WHEN** `login_user` is given an off-site explicit `redirect_url` (e.g. set by an `after_login` hook)
+- **THEN** the response redirects to the dashboard rather than the off-site destination
 
 #### Scenario: Post-login cookie honors a mixed-case same-host destination
 
