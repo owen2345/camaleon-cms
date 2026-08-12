@@ -81,6 +81,13 @@ Changes that look free from inside this repository and are not:
 - **Moving mail to a background job** breaks `camaleon-ecommerce`'s `email_late` PDF path and drops
   its mid-request locale.
 - **Renaming gem-side assets** breaks `camaleon_website`'s production precompile.
+- **Host-checking `login_user`'s `redirect_url` and the session flows' `return_to`** (#1258) drops an
+  off-site post-login/registration redirect. Surveyed consumers that feed these: `camaleon-ecommerce`
+  (unvalidated `params[:return_to]`/`request.referer` into `login_user`) and `camaleon-download` (`return_to`
+  on the login path); a same-site value like `cama-ecommerce-theme`'s `site_current_url` is unaffected, and
+  `camaleon_website` (which runs `raise_on_open_redirects = false`) had a live off-site leak here, now closed.
+  An intentional off-site destination is restored via the `redirect_allowed_hosts` option /
+  `safe_redirect_hosts` hook, or a hook's `allow_external_redirect` — see `docs/security/permissions.md`.
 
 ## APIs with no surveyed consumer
 

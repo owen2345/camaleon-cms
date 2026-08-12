@@ -360,3 +360,78 @@ already-uploaded files untouched — audit existing post content, contact-form s
 This matters more for contact forms than for post content, because the gate runs on save rather than on render: a form saved before 2.9.3, or by a
 holder of the permission, keeps rendering whatever it holds until someone saves it again. Re-saving a form as an untrusted author is a way to find out
 whether it holds anything the gate would refuse — the save will fail and name the field.
+
+## Security: Off-site redirect allowlist
+
+Unlike the controls above, this is not a role permission — no user holds it. It is a site- and plugin-level allowlist that governs where the admin
+session flows (`login`, `logout`, registration) will send the browser after they run.
+
+By default those flows follow only a **same-host** destination: a relative path, or an absolute `http`/`https` URL whose host matches the request host
+(compared case-insensitively per RFC 3986). A caller-supplied `return_to` (URL parameter or cookie), an `after_login`/`user_registered` hook's redirect,
+and `login_user`'s explicit `redirect_url` are all held to that rule, so a value such as `return_to=https://evil.example/phish` is dropped in favour of
+the flow's safe default — the dashboard, or the login page on logout. That is what closes the open redirect
+([#1258](https://github.com/owen2345/camaleon-cms/pull/1258)); a non-`http` scheme that embeds the request host (`javascript://your-host/…`) is refused
+for the same reason.
+
+A legitimate off-site redirect — an SSO hand-off to an identity provider, a payment provider's hosted checkout — is permitted in one of two ways, both
+**fail closed** (nothing off-site is reachable until you opt a specific host or destination in) and both **`http`/`https` only**.
+
+### Trusting a host (the allowlist)
+
+Add the destination's host to the site's `redirect_allowed_hosts` option — a comma-separated list, hosts compared case-insensitively. Once listed, any
+session flow (including a user-supplied `return_to`) may redirect to that host:
+
+```ruby
+site = CamaleonCms::Site.first
+site.set_option('redirect_allowed_hosts', 'idp.example.com, checkout.stripe.com')
+```
+
+A plugin can contribute a host at runtime instead of relying on site configuration, by handling the `safe_redirect_hosts` hook and appending to
+`args[:hosts]` — the idiomatic way for an SSO or payment plugin to declare its own provider. Declare the hook in the plugin's `config/config.json` and
+append the host in the named helper method:
+
+```json
+"hooks": { "safe_redirect_hosts": ["add_trusted_redirect_hosts"] }
+```
+
+```ruby
+# in the plugin's helper (declared under "helpers" in config.json)
+def add_trusted_redirect_hosts(args)
+  args[:hosts] << 'idp.example.com'
+end
+```
+
+Exact host match only — there is no wildcard or subdomain matching; list each host you trust.
+
+### Vouching for a destination (the opt-in)
+
+When the destination host is not known in advance — a per-request checkout URL, say — an `after_login` or `user_registered` hook may vouch for its own
+redirect by setting `allow_external_redirect` alongside the `redirect_to`/`redirect_url` it sets:
+
+```ruby
+def after_login(args)
+  args[:redirect_to] = my_dynamic_checkout_url   # any host
+  args[:allow_external_redirect] = true
+end
+```
+
+This is the one path that follows an off-site host without allowlisting it, so use it only for a destination the plugin has itself constructed and
+trusts — **never** one derived from request input, which would re-open the open redirect. It is available only on these server-set hook redirects; a
+caller-supplied `return_to` can never opt itself in this way, so it cannot be reached from a crafted URL. (`login_user` exposes the same control as an
+`allow_external:` keyword for code that calls it directly.)
+
+A followed off-site redirect is emitted with Rails' `allow_other_host` where the framework supports it (7.0+), so the redirect backstop permits it; a
+same-host redirect keeps that backstop as a second layer.
+
+### Auditing
+
+The allowlist is per site. Hook-contributed hosts are added per request and are not stored, so they live in plugin code rather than the database:
+
+```ruby
+CamaleonCms::Site.all.each do |site|
+  puts "#{site.name}: redirect_allowed_hosts=#{site.get_option('redirect_allowed_hosts', '(none)').inspect}"
+end
+```
+
+An empty or unset `redirect_allowed_hosts`, with no plugin handling `safe_redirect_hosts` and no hook setting `allow_external_redirect`, is the default
+strict same-host posture.

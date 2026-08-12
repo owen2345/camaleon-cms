@@ -98,22 +98,33 @@ end
 Camaleon CMS provides a hook system for plugin extensibility:
 
 ```ruby
-# Trigger hooks
+# Trigger a hook (engine side). Handlers receive one `args` hash and mutate it in place;
+# the caller reads the mutated hash back after the call.
 hooks_run('admin_before_load')
-hooks_run('admin_after_load')
-
-# Register hooks (in plugins)
-CamaleonCms::HooksManager.add_listener(
-  hook: 'admin_before_load',
-  callback: -> { # do something }
-)
+hooks_run('safe_redirect_hosts', r) # r[:hosts] is read back afterwards
 ```
 
-Available hook points:
-- `admin_before_load`, `admin_after_load`
-- `frontend_before_load`, `frontend_after_load`
-- `site_after_install`
-- `post_after_save`, `post_before_destroy`
+Register a handler (in a plugin/theme) by mapping the hook to a helper method in `config/config.json`:
+
+```json
+"helpers": ["Plugins::MyPlugin::MainHelper"],
+"hooks":   { "admin_before_load": ["my_before_load"] }
+```
+
+```ruby
+# in Plugins::MyPlugin::MainHelper — the handler mutates the single `args` hash
+def my_before_load(args)
+  args[:links] << link_to('My link', root_url)
+end
+```
+
+`PluginRoutes.add_anonymous_hook('admin_before_load', ->(args) { ... })` registers one programmatically
+without a manifest. (There is no `HooksManager.add_listener`.)
+
+Common hook points (full 130-hook inventory and the session/auth contracts in [docs/hooks.md](../hooks.md)):
+`app_before_load`/`app_after_load`, `admin_before_load`/`admin_after_load`,
+`front_before_load`/`front_after_load`, `after_login`, `user_registered`, `on_render_post`,
+`before_upload`, `on_active`/`on_inactive`.
 
 ## Routes
 
