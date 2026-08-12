@@ -62,7 +62,7 @@ Argument shapes are read from the call sites in
 | `session_before_load` / `session_after_load` | around every admin session action | none (notification only) |
 | `user_before_login` | before authenticating a login | `:user`, `:params`, `:password`, `:captcha_validate`, `:stop_process` (set true to halt) |
 | `after_login` | after a successful login, before redirect | `:user`, `:redirect_to` (destination), `:allow_external_redirect` (vouch for an off-site destination) |
-| `user_before_register` | before saving a registering user | `:user` (unsaved), `:params` |
+| `user_before_register` | past the register captcha, before saving | `:user` (unsaved), `:params`, `:stop_process` (set true to veto the registration) |
 | `user_after_register` | after the new user is saved | `:user`, `:message`, `:redirect_url` |
 | `user_registered` | after registration, before redirect | `:user`, `:redirect_url`, `:allow_external_redirect` (vouch for an off-site destination) |
 | `safe_redirect_hosts` | when vetting an off-site redirect target | `:hosts` (append trusted hostnames) |
@@ -70,6 +70,12 @@ Argument shapes are read from the call sites in
 `after_login`, `user_registered` and `safe_redirect_hosts` are the extension points for the off-site
 redirect allowlist/opt-in; the policy they feed is specified in
 `openspec/specs/session-return-redirects/spec.md`.
+
+`user_before_login` and `user_before_register` both take a `stop_process` veto, but they are **not**
+symmetric on the captcha: `user_before_login` runs even when the captcha fails (it receives the result as
+`:captcha_validate`), whereas `user_before_register` runs only once the register captcha passes and is
+given no `:captcha_validate`. A `user_before_register` veto stops the save; the handler may add its own
+message to `r[:user].errors` (or render/redirect itself), otherwise the controller shows a generic error.
 
 ## Full inventory (core-fired hooks)
 

@@ -176,8 +176,20 @@ module CamaleonCms
           user_data = user_permit_data
           result = cama_register_user(user_data, nil)
           if result[:result] == false && result[:type] == :captcha_error
-            @user.errors.add(:captcha, t('camaleon_cms.admin.users.message.error_captcha'))
+            @user.errors.add(:captcha, result[:message])
             render 'register'
+          elsif result[:result] == false && result[:type] == :stopped
+            # A vetoing user_before_register handler may take over the response itself (render/redirect,
+            # the user_before_login convention) or add its own errors to r[:user]; rendering again would
+            # raise DoubleRenderError, so re-render only when it did not — and show a generic reason so the
+            # visitor is not left with a silently re-rendered form.
+            unless performed?
+              if @user.errors.empty?
+                @user.errors.add(:base, t('camaleon_cms.admin.users.message.registration_stopped',
+                                          default: 'Registration could not be completed.'))
+              end
+              render 'register'
+            end
           elsif result[:result]
             @user = result[:user] if result[:user].present?
             flash[:notice] = result[:message]
