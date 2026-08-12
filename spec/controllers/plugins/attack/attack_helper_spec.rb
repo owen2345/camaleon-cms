@@ -24,10 +24,12 @@ RSpec.describe Plugins::Attack::AttackHelper, type: :controller do
       CamaleonCms::Site.first
     end
 
-    # A distinct value from the client IP: the fix no longer calls this, so on the unfixed code the
-    # throttle/ban would key on this session id instead and the IP assertions below would fail.
+    # Simulate the cookieless / cookie-rotating attacker: a FRESH session id every request. The fix
+    # ignores this entirely (it keys on request.remote_ip), so the IP-keyed assertions below hold.
+    # On the unfixed code the per-session-id counter never accumulates, so the ban never trips and
+    # the per-request DB insert runs unbounded — which is exactly what the H2 cases here reproduce.
     def cama_get_session_id
-      'attack-helper-session'
+      SecureRandom.hex(8)
     end
   end
 
@@ -66,13 +68,18 @@ RSpec.describe Plugins::Attack::AttackHelper, type: :controller do
     end
 
     it 'bans the IP once over the limit and then stops inserting rows (bounded write)' do
-      5.times { get :index } # max=3: rows accrue until the count trips, then the ban blocks inserts
-      rows_when_banned = site.attack.where(browser_key: client_ip).count
+      # max=3: a few rows accrue until the count trips the limit, then the ban blocks every insert.
+      6.times { get :index }
+      expect(response.body).to include('request limit exceeded') # the IP is banned now
 
-      get :index
+      rows_after_ban = site.attack.count
+      3.times { get :index }
 
-      expect(response.body).to include('request limit exceeded')
-      expect(site.attack.where(browser_key: client_ip).count).to eq(rows_when_banned)
+      # Once banned, attack_app_before_load short-circuits and writes nothing more, so the total
+      # stays put. On the unfixed code the rotating session id never let the counter accumulate, so
+      # it never banned and inserted a row on every request — the unbounded write H2 is about.
+      expect(site.attack.count).to eq(rows_after_ban)
+      expect(rows_after_ban).to be <= 4 # max(3) + the request that tripped the limit
     end
   end
 end
