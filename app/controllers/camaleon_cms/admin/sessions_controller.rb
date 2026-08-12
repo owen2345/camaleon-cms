@@ -181,7 +181,10 @@ module CamaleonCms
             send_user_confirm_email(@user) if current_site.need_validate_email?
             r = { user: @user, redirect_url: result[:redirect_url] }
             hooks_run('user_registered', r)
-            redirect_to r[:redirect_url]
+            # Host-check the post-registration destination for the same reason login_user host-checks its
+            # explicit redirect_url: the user_registered hook is caller-controlled (downstream plugins), so
+            # an off-site value must fall back to the safe default rather than be followed verbatim.
+            redirect_to safe_redirect_url(r[:redirect_url]) || cama_admin_login_path
           else
             render 'register'
           end

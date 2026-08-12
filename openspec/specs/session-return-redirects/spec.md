@@ -22,8 +22,9 @@ destinations on multisite installs are deliberately unsupported by this policy; 
 would be a separate security change.
 
 The policy SHALL apply uniformly to every session flow that consumes a caller-supplied destination:
-visiting the login page while already signed in, the post-login `return_to` cookie, logout, and
-`login_user`'s explicit `redirect_url` argument (set by `after_login` hooks and downstream plugins).
+visiting the login page while already signed in, the post-login `return_to` cookie, logout,
+`login_user`'s explicit `redirect_url` argument (set by `after_login` hooks and downstream plugins), and
+the post-registration redirect (set by the `user_registered` hook and downstream plugins).
 
 #### Scenario: Mixed-case same-host destination is followed
 
@@ -63,6 +64,11 @@ visiting the login page while already signed in, the post-login `return_to` cook
 
 - **WHEN** `login_user` is given an off-site explicit `redirect_url` (e.g. set by an `after_login` hook)
 - **THEN** the response redirects to the dashboard rather than the off-site destination
+
+#### Scenario: Explicit registration redirect is host-checked
+
+- **WHEN** the `user_registered` hook sets an off-site `redirect_url` for a successful registration
+- **THEN** the response redirects to the login path rather than the off-site destination
 
 #### Scenario: Post-login cookie honors a mixed-case same-host destination
 

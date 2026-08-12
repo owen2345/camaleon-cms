@@ -125,4 +125,27 @@ RSpec.describe 'Security: Open Redirect in SessionHelper', type: :request do
       expect(response).to redirect_to(cama_admin_dashboard_path)
     end
   end
+
+  # register feeds redirect_to the user_registered hook's redirect_url the same way login feeds the
+  # after_login hook's, so an off-site value set there must be host-checked, not followed verbatim.
+  describe 'explicit redirect_url from the user_registered hook on register' do
+    before { CamaleonCms::Site.first.decorate.set_option('permit_create_account', true) }
+
+    it 'does not follow an off-site destination set by a user_registered hook' do
+      allow_any_instance_of(CamaleonCms::Admin::SessionsController)
+        .to receive(:hooks_run).and_wrap_original do |orig, name, *rest|
+          rest.first[:redirect_url] = 'https://evil.com/phish' if name == 'user_registered' && rest.first.is_a?(Hash)
+          orig.call(name, *rest)
+        end
+
+      username = "reg_#{Time.current.to_i}"
+      post cama_admin_register_path, params: {
+        user: { first_name: 'Reg', last_name: 'Test', email: "#{username}@tester.com",
+                username: username, password: 'password123', password_confirmation: 'password123' }
+      }
+
+      expect(response.location).not_to include('evil.com')
+      expect(response).to redirect_to(cama_admin_login_path)
+    end
+  end
 end

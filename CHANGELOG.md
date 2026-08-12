@@ -10,7 +10,7 @@
   forms), and follows a host-matching absolute URL only over an `http`/`https` scheme (rejecting a same-host
   `javascript:`/`data:` destination). Separately, `login_user`'s explicit `redirect_url` argument — set by
   `after_login` hooks and downstream plugins — is now host-checked like the `return_to` cookie, closing a
-  post-login open redirect.
+  post-login open redirect; the registration flow's `user_registered` hook redirect is guarded the same way.
   [#1258](https://github.com/owen2345/camaleon-cms/pull/1258).
 
 - **Security fix:** Only an admin may control an admin account. Holding `:manage, :users` was a path to
