@@ -8,15 +8,18 @@ without dropping legitimate same-host destinations.
 ### Requirement: return_to redirects are same-host with case-insensitive comparison
 
 A caller-supplied redirect destination SHALL be followed only when it is a genuine same-origin reference:
-either an absolute URL on the requesting host (host comparison case-insensitive per RFC 3986, emitted with
-the host in the request's canonical case so the framework's own open-redirect protection stays active), or
-a same-origin path — one leading `/` followed by a normal path character. A destination whose parsed host
-is blank but which a browser would still resolve off-site SHALL be dropped: a scheme (`https:evil.com`,
-`javascript:...`), a protocol-relative or backslash form (`///evil.com`, `/\evil.com`), and their `%2f` /
-`%5c` encodings. Cross-host and unparsable destinations SHALL likewise be dropped in favor of the flow's
-safe default path — never an error, never an off-host redirect. Cross-site destinations on multisite
-installs are deliberately unsupported by this policy; supporting sibling sites would be a separate security
-change.
+either an absolute URL on the requesting host over an `http`/`https` (or scheme-relative) scheme (host
+comparison case-insensitive per RFC 3986, emitted with the host in the request's canonical case so the
+framework's own open-redirect protection stays active), or a same-origin path — one leading `/` followed
+by a normal path character. A host-matching absolute URL carrying any other scheme SHALL be dropped: a
+`javascript:`/`data:` destination that embeds the request host (`javascript://requesthost/...`) parses as
+same-host yet is not a real navigation and would execute if rendered into an `href`/JS sink. A destination
+whose parsed host is blank but which a browser would still resolve off-site SHALL likewise be dropped: a
+scheme (`https:evil.com`, `javascript:...`), a protocol-relative or backslash form (`///evil.com`,
+`/\evil.com`), and their `%2f` / `%5c` encodings. Cross-host and unparsable destinations SHALL likewise be
+dropped in favor of the flow's safe default path — never an error, never an off-host redirect. Cross-site
+destinations on multisite installs are deliberately unsupported by this policy; supporting sibling sites
+would be a separate security change.
 
 The policy SHALL apply uniformly to every session flow that consumes a caller-supplied destination:
 visiting the login page while already signed in, the post-login `return_to` cookie, logout, and
@@ -48,6 +51,12 @@ visiting the login page while already signed in, the post-login `return_to` cook
 
 - **WHEN** a session flow consumes a `return_to` whose parsed host is blank but which resolves off-site
   or trips the redirect backstop (`///evil.com`, `https:evil.com`, `javascript:...`, `/%5cevil.com`)
+- **THEN** the response redirects to the flow's safe default path
+
+#### Scenario: Same-host destination with a non-http scheme falls back
+
+- **WHEN** a session flow consumes a destination whose parsed host matches the request host but whose
+  scheme is not `http`/`https` (e.g. `javascript://www.example.com/...`, `data://www.example.com/x`)
 - **THEN** the response redirects to the flow's safe default path
 
 #### Scenario: Explicit login redirect argument is host-checked

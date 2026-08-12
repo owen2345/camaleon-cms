@@ -88,6 +88,28 @@ RSpec.describe 'Security: Open Redirect in SessionHelper', type: :request do
     end
   end
 
+  # A destination whose parsed host matches the request host is still unsafe when it carries a non-HTTP
+  # scheme: javascript://www.example.com/... parses as "same host" but is not a real same-origin
+  # navigation, so only an http(s) (or scheme-relative //host) same-host destination is followed.
+  describe 'same-host destinations carrying a non-http scheme' do
+    ['javascript://www.example.com/%0aalert(document.domain)', 'data://www.example.com/x'].each do |evil|
+      it "falls back to the dashboard for return_to=#{evil.inspect} on login" do
+        post cama_admin_login_path, params: { user: { username: user.username, password: 'password' } }
+        get cama_admin_login_path, params: { return_to: evil }
+
+        expect(response).to redirect_to(cama_admin_dashboard_path)
+      end
+    end
+
+    it 'still follows a scheme-relative same-host destination' do
+      post cama_admin_login_path, params: { user: { username: user.username, password: 'password' } }
+      get cama_admin_login_path, params: { return_to: '//www.example.com/admin/posts' }
+
+      expect(response).to have_http_status(:found)
+      expect(response.location).to include('www.example.com/admin/posts')
+    end
+  end
+
   # login_user's explicit redirect_url argument (set by after_login hooks / downstream plugins) was
   # redirected without the host check that the return_to cookie already gets.
   describe 'explicit redirect_url argument to login_user' do
