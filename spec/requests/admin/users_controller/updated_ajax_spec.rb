@@ -11,6 +11,9 @@ RSpec.describe 'updated_ajax request', type: :request do
   before do
     allow_any_instance_of(CamaleonCms::AdminController).to receive(:cama_authenticate)
     allow_any_instance_of(CamaleonCms::Admin::UsersController).to receive(:validate_role).and_return(true)
+    # updated_ajax now checks the acting user may edit the target's credentials, so resolve a real one
+    # (here the admin editing their own password).
+    sign_in_as(current_user, site: current_site)
   end
 
   context 'when receiving correct params' do

@@ -54,8 +54,26 @@ module CamaleonCms
       h.current_site.posts.where(user_id: object.id)
     end
 
-    def role_grantor?(other_user)
-      h.can?(:manage, :users) && (other_user.nil? || id != other_user.id)
+    # Whether this user may set another user's role. Only an admin may grant the `admin` role (the one
+    # `User#admin?` tests) or change the role of a user who is already an admin — so holding
+    # `:manage, :users` is neither a path to minting an admin (escalation) nor to stripping one (H10).
+    def role_grantor?(other_user, new_role = nil)
+      return false unless h.can?(:manage, :users) && (other_user.nil? || id != other_user.id)
+      return admin? if new_role.to_s == 'admin' || other_user&.role.to_s == 'admin'
+
+      true
+    end
+
+    # Whether this user may edit +other_user+'s login credential (password) or recovery identifiers
+    # (email, username). Only an admin may edit an admin's account: a `:manage, :users` holder who could
+    # reset an admin's password would sign in as them, and one who could repoint an admin's email would
+    # hijack a password-reset link — either is a path to superadmin that would make `role_grantor?`'s
+    # guard of the privileged set moot (H10). Editing one's own account, or any non-admin, is unrestricted
+    # here; the controller's `:manage, :users` (or self) authorization still applies first.
+    def may_edit_credentials?(other_user)
+      return true unless other_user&.admin?
+
+      admin?
     end
 
     def self.object_class_name

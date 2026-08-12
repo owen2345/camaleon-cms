@@ -28,6 +28,33 @@ The gate is an **authorization** decision, never a proxy for one. A filesystem p
 
 The convention is specified as `openspec/specs/security-capability-gating/spec.md`.
 
+## The admin role
+
+Because administrators can do anything (rule 1 above), the `admin` role is the most powerful grant on a
+site. Three properties of it matter to operators:
+
+- **Only an admin may grant or remove it.** Holding the `users` manager permission (`can?(:manage, :users)`)
+  lets a role create and edit user accounts and assign roles, but it is **not** a path to superadmin.
+  Assigning a user the `admin` role — the role `User#admin?` tests, which maps to `can :manage, :all` — or
+  changing the role of a user who is *already* an admin, is permitted only when the acting user is
+  themselves an admin. This is enforced server-side in `CamaleonCms::UserDecorator#role_grantor?` and
+  applied by `Admin::UsersController#user_params` (the user form also hides the `admin` option, and
+  disables the role selector, for anyone who cannot grant it). A non-admin user manager can still assign
+  every non-admin role. Pinned by `openspec/specs/admin-role-grant-authorization/spec.md`.
+- **Only an admin may edit an admin's account.** The role restriction alone would not close the escalation:
+  a `:manage, :users` holder who could reset an admin's password would simply sign in as that admin, and
+  one who could repoint the admin's email would hijack a password-reset link. Changing an existing admin's
+  password or recovery identifiers (email/username) therefore also requires being an admin. This is
+  enforced server-side in `CamaleonCms::UserDecorator#may_edit_credentials?`, applied by
+  `Admin::UsersController#user_params` and `#updated_ajax` (the user form likewise disables those inputs
+  and hides the change-password action for anyone who cannot use them). A non-admin user manager keeps full
+  control of every non-admin account, and of their own — only other admins are off-limits.
+- **It is global, not per-site.** `User#admin?` is `role == 'admin'` with no site scope, so a user with the
+  `admin` role administers **every** site in the installation — most visibly when `users_share_sites` is
+  enabled and all users are shared across sites. Treat granting `admin` as granting site-wide superadmin
+  across the whole install, not just the current site. Per-site administration would require a
+  per-`(user, site)` role model and is not currently supported.
+
 ## Manager permissions
 
 - `custom_fields` — Controls who can create/update Custom Field Groups and Custom Fields (write-time permission). This is a manager-level permission
