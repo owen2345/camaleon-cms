@@ -22,6 +22,10 @@
     `r[:allow_external_redirect]` to vouch for its `redirect_to`/`redirect_url`. `http`/`https` only in both
     cases; a caller-supplied `return_to` is never opted in this way.
 
+- **Fix:** The `user_before_register` hook now fires during account registration. It was dispatched with
+  `hook_run` in a form that resolved to a no-op, so a plugin listening on it never ran; it now broadcasts
+  like `user_before_login`. [#1258](https://github.com/owen2345/camaleon-cms/pull/1258).
+
 - **Security fix:** Only an admin may control an admin account. Holding `:manage, :users` was a path to
   superadmin: a non-admin user manager could set `role: 'admin'` on a created or edited account (minting an
   admin) or strip an existing admin's role, and could also reset an admin's password to sign in as them or

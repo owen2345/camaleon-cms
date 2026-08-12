@@ -68,7 +68,10 @@ module CamaleonCms
     def cama_register_user(user_data, meta)
       user = current_site.users.new(user_data)
       r = { user: user, params: params }
-      hook_run('user_before_register', r)
+      # Broadcast (hooks_run), not hook_run: hook_run(target, name, …) takes the app as its first arg, so
+      # hook_run('user_before_register', r) treated the name as a plugin and silently no-op'd — the hook
+      # never fired. Match the sibling user_before_login/user_after_register broadcasts.
+      hooks_run('user_before_register', r)
 
       if current_site.security_user_register_captcha_enabled? && !cama_captcha_verified?
         { result: false, type: :captcha_error, message: t('camaleon_cms.admin.users.message.error_captcha'),
