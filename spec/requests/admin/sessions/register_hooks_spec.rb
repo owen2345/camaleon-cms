@@ -29,7 +29,7 @@ RSpec.describe 'Registration user_before_register hook', type: :request do
     seen = []
     add_ubr_hook('spec_ubr') { |r| seen << r[:user]&.username }
 
-    username = "ubr_#{Time.current.to_i}"
+    username = "ubr_#{SecureRandom.hex(4)}"
     register!(username)
 
     expect(seen).to include(username)
@@ -38,7 +38,7 @@ RSpec.describe 'Registration user_before_register hook', type: :request do
   it 'lets a user_before_register handler veto the registration via stop_process' do
     add_ubr_hook('spec_ubr_stop') { |r| r[:stop_process] = true }
 
-    username = "veto_#{Time.current.to_i}"
+    username = "veto_#{SecureRandom.hex(4)}"
     register!(username)
 
     expect(CamaleonCms::User.find_by(username: username)).to be_nil
@@ -87,7 +87,7 @@ RSpec.describe 'Registration user_before_register hook', type: :request do
       ran = []
       add_ubr_hook('spec_ubr_captcha') { |_r| ran << true }
 
-      username = "capfail_#{Time.current.to_i}"
+      username = "capfail_#{SecureRandom.hex(4)}"
       register!(username) # no captcha submitted → verification fails before the hook
 
       expect(ran).to be_empty
@@ -102,7 +102,7 @@ RSpec.describe 'Registration user_before_register hook', type: :request do
       ran = []
       add_ubr_hook('spec_ubr_pass') { |_r| ran << true }
 
-      username = "cappass_#{Time.current.to_i}"
+      username = "cappass_#{SecureRandom.hex(4)}"
       register!(username)
 
       expect(ran).to eq([true])
