@@ -183,7 +183,8 @@ module CamaleonCms
 
       def user_params
         p = params.require(:user).permit(:username, :email, :first_name, :last_name, :password, :password_confirmation)
-        p[:role] = params[:user][:role] if cama_current_user.role_grantor?(@user) && params[:user][:role].present?
+        requested_role = params[:user][:role]
+        p[:role] = requested_role if requested_role.present? && cama_current_user.role_grantor?(@user, requested_role)
         p
       end
 

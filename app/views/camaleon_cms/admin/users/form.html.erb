@@ -54,7 +54,8 @@
                         <div class="">
                             <%= f.label "#{t('camaleon_cms.admin.table.role')}", class: "control-label" %>
                             <div class="">
-                                <%= f.select :role,current_site.user_roles.reorder(:name).decorate.map{|role| [role.the_title, role.slug]}, {}, {:class => "form-control required", disabled: !cama_current_user.role_grantor?(@user)}%>
+                                <%# Only offer the admin role to someone who may actually grant it (H10); keep it listed when editing a user who already holds it so their role still displays. %>
+                                <%= f.select :role, current_site.user_roles.reorder(:name).decorate.reject { |role| role.slug == 'admin' && !cama_current_user.role_grantor?(@user, 'admin') && @user&.role.to_s != 'admin' }.map{|role| [role.the_title, role.slug]}, {}, {:class => "form-control required", disabled: !cama_current_user.role_grantor?(@user)}%>
                             </div>
                         </div>
                         <hr>

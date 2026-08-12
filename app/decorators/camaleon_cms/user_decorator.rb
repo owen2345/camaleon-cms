@@ -54,8 +54,14 @@ module CamaleonCms
       h.current_site.posts.where(user_id: object.id)
     end
 
-    def role_grantor?(other_user)
-      h.can?(:manage, :users) && (other_user.nil? || id != other_user.id)
+    # Whether this user may set another user's role. Only an admin may grant the `admin` role (the one
+    # `User#admin?` tests) or change the role of a user who is already an admin — so holding
+    # `:manage, :users` is neither a path to minting an admin (escalation) nor to stripping one (H10).
+    def role_grantor?(other_user, new_role = nil)
+      return false unless h.can?(:manage, :users) && (other_user.nil? || id != other_user.id)
+      return admin? if new_role.to_s == 'admin' || other_user&.role.to_s == 'admin'
+
+      true
     end
 
     def self.object_class_name
