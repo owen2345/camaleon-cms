@@ -189,6 +189,13 @@ RAILS_ENV=test bundle exec rake app:db:test:prepare
 
 See [docs/security/permissions.md](docs/security/permissions.md) for details on manager permissions, custom fields, and security considerations.
 
+## Hooks
+
+Plugins and themes extend Camaleon by handling named hooks. See [docs/hooks.md](docs/hooks.md) for the
+mechanism (registration via `config.json`, the mutable `args` payload) and a code-derived inventory of the
+hooks core fires, including the session/auth hooks (`user_before_login`, `user_before_register`,
+`after_login`, …).
+
 ## Contributing
 * Fork it.
 * Create a branch (git checkout -b my_feature_branch)

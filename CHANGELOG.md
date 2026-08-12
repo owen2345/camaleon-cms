@@ -2,8 +2,9 @@
 
 ## Unreleased
 
-- **Change:** The `user_before_register` hook can now veto a registration by setting `r[:stop_process]`
-  (parity with `user_before_login`), and fires only after the register captcha passes. Follow-up to #1258.
+- **Change:** The `user_before_register` hook now fires during registration (it was previously dispatched
+  as a silent no-op) — after the register captcha passes — and a handler can veto a signup by setting
+  `r[:stop_process]`; the form shows a generic error unless the handler supplies its own. Follow-up to #1258.
   [#1259](https://github.com/owen2345/camaleon-cms/pull/1259).
 
 - **Security fix:** Closed an open redirect in the admin session flows. `safe_redirect_url` treated any URL
