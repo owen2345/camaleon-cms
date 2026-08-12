@@ -71,6 +71,12 @@ Argument shapes are read from the call sites in
 redirect allowlist/opt-in; the policy they feed is specified in
 `openspec/specs/session-return-redirects/spec.md`.
 
+`user_before_login` and `user_before_register` both take a `stop_process` veto, but they are **not**
+symmetric on the captcha: `user_before_login` runs even when the captcha fails (it receives the result as
+`:captcha_validate`), whereas `user_before_register` runs only once the register captcha passes and is
+given no `:captcha_validate`. A `user_before_register` veto stops the save; the handler may add its own
+message to `r[:user].errors` (or render/redirect itself), otherwise the controller shows a generic error.
+
 ## Full inventory (core-fired hooks)
 
 Grouped by subsystem; names only — read the call site (grep the name under `app/`, `lib/`) for the exact
