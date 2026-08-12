@@ -62,7 +62,7 @@ Argument shapes are read from the call sites in
 | `session_before_load` / `session_after_load` | around every admin session action | none (notification only) |
 | `user_before_login` | before authenticating a login | `:user`, `:params`, `:password`, `:captcha_validate`, `:stop_process` (set true to halt) |
 | `after_login` | after a successful login, before redirect | `:user`, `:redirect_to` (destination), `:allow_external_redirect` (vouch for an off-site destination) |
-| `user_before_register` | before saving a registering user | `:user` (unsaved), `:params` |
+| `user_before_register` | before saving a registering user | `:user` (unsaved), `:params`, `:stop_process` (set true to veto the registration) |
 | `user_after_register` | after the new user is saved | `:user`, `:message`, `:redirect_url` |
 | `user_registered` | after registration, before redirect | `:user`, `:redirect_url`, `:allow_external_redirect` (vouch for an off-site destination) |
 | `safe_redirect_hosts` | when vetting an off-site redirect target | `:hosts` (append trusted hostnames) |

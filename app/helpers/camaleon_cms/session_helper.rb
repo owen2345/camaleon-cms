@@ -67,11 +67,14 @@ module CamaleonCms
     # - password_confirmation
     def cama_register_user(user_data, meta)
       user = current_site.users.new(user_data)
-      r = { user: user, params: params }
+      r = { user: user, params: params, stop_process: false }
       # Broadcast (hooks_run), not hook_run: hook_run(target, name, …) takes the app as its first arg, so
       # hook_run('user_before_register', r) treated the name as a plugin and silently no-op'd — the hook
       # never fired. Match the sibling user_before_login/user_after_register broadcasts.
       hooks_run('user_before_register', r)
+      # A handler may veto the registration by setting r[:stop_process] (parity with user_before_login):
+      # stop here without saving. The handler is expected to surface the reason itself (e.g. a flash).
+      return { result: false, type: :stopped, user: user } if r[:stop_process]
 
       if current_site.security_user_register_captcha_enabled? && !cama_captcha_verified?
         { result: false, type: :captcha_error, message: t('camaleon_cms.admin.users.message.error_captcha'),
