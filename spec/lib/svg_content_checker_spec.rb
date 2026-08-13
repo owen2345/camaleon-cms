@@ -31,6 +31,18 @@ RSpec.describe CamaleonCms::SvgContentChecker do
       expect(described_class.unsafe?(content)).to be(true)
     end
 
+    # An SVG inlined into an HTML document fires ONCLICK exactly as onclick; the case-sensitive XPath
+    # missed it while the non-SVG ruleset (case-insensitive) rejected it.
+    it 'rejects an uppercase/mixed-case event handler attribute' do
+      content = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <rect ONCLICK="alert(1)" OnMouseOver="alert(2)" width="50" height="50"/>
+        </svg>
+      SVG
+      expect(described_class.unsafe?(content)).to be(true)
+    end
+
     it 'rejects SVG with onbegin animation event' do
       content = File.read("#{fixtures}/unsafe-svg-onbegin.svg")
       expect(described_class.unsafe?(content)).to be(true)

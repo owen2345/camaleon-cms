@@ -12,10 +12,17 @@ The system SHALL reject SVG uploads that contain `<script>` elements.
 
 ### Requirement: Reject SVGs with event handler attributes
 
-The system SHALL reject SVG uploads that contain attributes starting with `on` (event handlers).
+The system SHALL reject SVG uploads that contain attributes whose name starts with `on` (event
+handlers). The match SHALL be case-insensitive, because an SVG inlined into an HTML document fires
+`ONCLICK`/`OnClick` exactly as `onclick`, matching the case-insensitive event-handler rule used for
+non-SVG uploads.
 
 #### Scenario: SVG with onclick is rejected
 - **WHEN** a user uploads an SVG file containing an `onclick` attribute
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: SVG with an uppercase/mixed-case event handler is rejected
+- **WHEN** a user uploads an SVG file containing an `ONCLICK` or `OnMouseOver` attribute
 - **THEN** the system returns an error and does NOT store the file
 
 #### Scenario: SVG with onpointerdown is rejected
@@ -37,8 +44,12 @@ TAB/LF/CR gaps *inside* the scheme that a browser strips before executing the UR
 `java&#9;script:`), matching `ContentSecurity::BLOCKED_SCHEME_PATTERN` used for non-SVG uploads.
 Entity-encoded variants are caught because XML parsing resolves entities into the decoded attribute
 value, and the serialized document is entity-decoded (normalized) before inspection. The SVG scanner is
-the only gate for a served `.svg`, so it SHALL NOT be more permissive than the non-SVG ruleset about
-the same bytes.
+the only gate for a served `.svg`, so it aligns with the non-SVG ruleset's scheme, element, and
+(case-insensitive) event-handler checks as defense-in-depth. It inspects the XML-parsed document,
+exactly as a browser does when serving `image/svg+xml`; a *literal* TAB/LF/CR that XML attribute-value
+normalization folds to a space — making the scheme inert when the file is served as an image — is
+therefore out of scope, unlike the entity/character-reference gaps above, which survive parsing and are
+caught.
 
 #### Scenario: SVG with javascript: in href is rejected
 - **WHEN** a user uploads an SVG file containing an `href` attribute with `javascript:` URI

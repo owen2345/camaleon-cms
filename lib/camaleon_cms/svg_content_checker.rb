@@ -30,7 +30,11 @@ module CamaleonCms
       banned_tags_query = BANNED_TAGS.map { |tag| "local-name() = '#{tag}'" }.join(' or ')
       return true if doc.xpath("//*[#{banned_tags_query}]").any?
 
-      return true if doc.xpath('//@*[starts-with(local-name(), "on")]').any?
+      # Case-insensitive: XML attribute names are case-sensitive, but an SVG inlined into an HTML
+      # document fires ONCLICK/OnClick exactly as onclick, and the non-SVG ruleset already matches
+      # handlers case-insensitively. translate() lowercases the "on" prefix so every case variant is
+      # caught (no standard SVG attribute name begins with "on" except an event handler).
+      return true if doc.xpath('//@*[starts-with(translate(local-name(), "ON", "on"), "on")]').any?
 
       # Blocked URI schemes via the shared ContentSecurity.blocked_scheme?, so the SVG and non-SVG
       # rulesets cannot drift apart about the same bytes (audit 2026-08-11 NEW-1). Nokogiri decodes
