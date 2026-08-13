@@ -9,9 +9,10 @@ a symbol before use:
 direction = order.to_s.casecmp?('DESC') ? :desc : :asc
 ```
 
-`casecmp?` returns a boolean (Ruby 2.4+, safe across the 6.1+ range), so `desc`/`DESC`/`Desc` order
-descending and anything else — the documented `'ASC'` default, a typo, or an attack string — orders
-ascending. Falling back to ascending preserves the method's documented default and keeps a hostile
+`casecmp?` (Ruby 2.4+, safe across the 6.1+ range) returns `true` only on a case-insensitive match —
+`false` otherwise, and `nil` for an encoding-incompatible string, which the ternary treats the same
+as `false` — so `desc`/`DESC`/`Desc` order descending and anything else — the documented `'ASC'`
+default, a typo, an attack string, or incomparable input — orders ascending. Falling back to ascending preserves the method's documented default and keeps a hostile
 value from raising; it never becomes SQL.
 
 ## D2. Order by a quoted Arel column
