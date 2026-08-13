@@ -54,6 +54,26 @@ RSpec.describe 'Security: admin search and drafts authorization', type: :request
     end
   end
 
+  describe 'GET /admin/search with a non-String q param' do
+    # ?q[]=x and ?q[a]=b arrive as Array / ActionController::Parameters; neither responds to
+    # #downcase, which 500ed the action for any signed-in admin-area user.
+    it 'treats an array q as an empty query instead of 500ing' do
+      sign_in_as(admin, site: current_site)
+
+      get '/admin/search', params: { q: ['x'], kind: 'content' }
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'treats a hash q as an empty query instead of 500ing' do
+      sign_in_as(admin, site: current_site)
+
+      get '/admin/search', params: { q: { a: 'b' }, kind: 'content' }
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
   describe 'GET /admin/search (category and tag) for a taxonomy-manager role' do
     # Categories and tags are authorized by their own :categories / :post_tags abilities (the roles UI
     # grants manage_categories / manage_tags independently of any post edit right), so a taxonomy

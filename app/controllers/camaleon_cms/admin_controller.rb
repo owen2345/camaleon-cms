@@ -47,7 +47,9 @@ module CamaleonCms
     def search
       add_breadcrumb I18n.t('camaleon_cms.admin.button.search')
       params[:kind] = 'content' if params[:kind].blank?
-      params[:q] = (params[:q] || '').downcase
+      # A crafted ?q[]=x / ?q[a]=b arrives as an Array / Parameters, which has no #downcase; treat any
+      # non-String q as an empty query instead of 500ing.
+      params[:q] = params[:q].is_a?(String) ? params[:q].downcase : ''
       # Security (audit 2026-08-11 M12): the action had no authorization and no status filter, so any
       # admin-area user (e.g. a client with no content rights) could enumerate every post title/slug in
       # every status -- draft, pending, private, trash -- plus post types, categories and tags they
