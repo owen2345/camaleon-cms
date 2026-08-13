@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Security fix:** The uploaded-SVG scanner now catches blocked URI schemes (`javascript:`,
+  `vbscript:`, `data:`) that hide a TAB/LF/CR gap inside the scheme name — e.g. `java&#9;script:` in an
+  `xlink:href`, which a browser strips back to `javascript:` before executing. The SVG scanner is the
+  only content gate for a served `.svg`, and its scheme checks lacked the gap tolerance the non-SVG
+  ruleset already had, so such a file (auto-triggering with `<animate begin="0s">`) was accepted. Both
+  scheme checks now share `ContentSecurity`'s gap-tolerant pattern and entity normalization.
+  [#1261](https://github.com/owen2345/camaleon-cms/pull/1261).
+
 - **Security fix:** `sort_by_field` no longer interpolates its sort-direction argument into the SQL
   `ORDER BY`. It is a public API (themes and plugins call `collection.sort_by_field(key, params[:order])`),
   so a user-controlled direction reached the `ORDER BY` clause: on Rails 6.1+ ActiveRecord blocks arbitrary
