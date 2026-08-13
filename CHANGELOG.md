@@ -18,9 +18,10 @@
 
 - **Security fix:** Credential parameters are now filtered from the Rails logs. The engine set no
   `config.filter_parameters`, so the site-settings SMTP password and S3 keys (`options[email_pass]`,
-  `options[filesystem_s3_access_key]`, `options[filesystem_s3_secret_key]`) and user passwords were
-  logged in cleartext on hosts without their own filter. The engine now appends the relevant filters
-  (preserving any the host app already set). [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+  `options[filesystem_s3_access_key]`, `options[filesystem_s3_secret_key]`), user passwords, token
+  parameters (e.g. the installer `setup_token`) and protected-post passwords
+  (`post[visibility_value]`) were logged in cleartext on hosts without their own filter. The engine now
+  appends the relevant filters (preserving any the host app already set). [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
 
 - **Security fix:** Private uploads to S3 are now stored with an owner-only (`private`) ACL instead of
   `public-read`. Only the key prefix changed in private mode, so a private file was world-readable at a

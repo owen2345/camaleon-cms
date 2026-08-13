@@ -35,5 +35,13 @@ RSpec.describe CamaleonCms::Engine do
 
       expect(filtered['options']['site_name']).to eq('My Site')
     end
+
+    it 'redacts the installer setup token and a protected post password' do
+      filtered = filter.filter({ 'setup_token' => 'gate-secret',
+                                 'post' => { 'visibility_value' => 'post-pass' } })
+
+      expect(filtered['setup_token']).to eq('[FILTERED]')
+      expect(filtered['post']['visibility_value']).to eq('[FILTERED]')
+    end
   end
 end
