@@ -14,6 +14,13 @@ direction raises `UnknownAttributeReference`, and a comma continuation emits
 `ORDER BY ...value ASC, ...term_order DESC` — the injected term executes. Both fail without the fix.
 Arbitrary SQL is blocked by Rails' guard, so this is a Low, not a critical.
 
+### Ecosystem
+
+Per `docs/ai/ecosystem.md` (surveyed 2026-08-05): no surveyed plugin, theme or host application binds
+to `sort_by_field` — it appears in no inventory row and no hardening hazard — so this hardening
+proceeds on the engine's merits. An unsurveyed caller passing raw SQL through `order` is covered by
+the upgrader note below.
+
 ## What Changes
 
 - `sort_by_field` whitelists the direction: a case-insensitive `DESC` orders descending, everything
