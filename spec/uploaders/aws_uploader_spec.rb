@@ -119,6 +119,23 @@ RSpec.describe CamaleonCmsAwsUploader do
 
         expect(result).to eql(parsed_file)
       end
+
+      # Security (audit 2026-08-11 M5): a private-mode upload must not be world-readable. On master it
+      # was stored with acl: 'public-read' regardless of mode, so a guessed s3://bucket/private/<name>
+      # URL bypassed the download_private_file access gate.
+      context 'when the uploader is in private mode' do
+        let(:uploader) do
+          described_class.new({ current_site: current_site, aws_settings: {}, private: true }, hook_instance)
+        end
+
+        it 'stores the object with a private ACL, not public-read' do
+          file_path = "#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png"
+
+          expect(s3_file).to receive(:upload_file).with(file_path, { acl: 'private' })
+
+          uploader.add_file(file_path, 'safe/test.png')
+        end
+      end
     end
   end
 end

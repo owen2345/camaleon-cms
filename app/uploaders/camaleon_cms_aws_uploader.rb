@@ -98,9 +98,14 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     end
 
     s3_file = bucket.object(key.slice(1..-1))
+    # Security (audit 2026-08-11 M5): a private-mode upload must be owner-only. Storing it 'public-read'
+    # (like a public file) left it world-readable at a guessable s3://bucket/private/<name> URL,
+    # bypassing the download_private_file gate. That gate fetches via the authenticated S3 API, so a
+    # 'private' ACL does not affect legitimate serving.
+    acl = is_private_uploader? ? 'private' : 'public-read'
     s3_file.upload_file(
       uploaded_io_or_file_path.is_a?(String) ? uploaded_io_or_file_path : uploaded_io_or_file_path.path,
-      @aws_settings[:aws_file_upload_settings].call({ acl: 'public-read' })
+      @aws_settings[:aws_file_upload_settings].call({ acl: acl })
     )
     res = cache_item(file_parse(s3_file)) unless args[:is_thumb]
     res
