@@ -64,6 +64,15 @@ module CamaleonCms
       BLOCKED_SCHEME_PATTERN
     ].freeze
 
+    # Single source of truth for "does this content carry a blocked URI scheme?" -- shared by the
+    # SVG scanner and the non-SVG ruleset so the two cannot drift apart about the same bytes.
+    # Normalizes (entity/control-char decoding) and matches the gap-tolerant scheme pattern.
+    def self.blocked_scheme?(content)
+      return false if content.nil?
+
+      normalize(content).match?(BLOCKED_SCHEME_PATTERN)
+    end
+
     # Canonicalizes content so encoded variants of a blocked pattern are detected.
     # Returns a normalized copy; the stored file is never modified.
     #
