@@ -10,11 +10,17 @@ RSpec.describe CamaleonCms::ContentSecurity do
       expect(scanner.content_unsafe?('Sample data : 42', filename: 'notes.txt')).to be_nil
     end
 
-    # Accepted false positive: browsers strip LF from a URL, so "data\n:" in an
-    # attribute really does resolve to "data:". Prose in that exact shape stays
-    # blocked because it is indistinguishable from the evasion.
-    it 'still rejects a scheme word separated from its colon by a newline' do
-      expect(scanner.content_unsafe?("column: data\n: 42\n", filename: 'notes.txt')).not_to be_nil
+    # A browser strips LF/CR/TAB from inside a URL, so a newline-gapped *functional* data: URI
+    # ("data\n:text/html,..") resolves to a live "data:text/html,.." and stays blocked.
+    it 'still rejects a newline gap inside a functional data: URI' do
+      expect(scanner.content_unsafe?(%(<a href="data\n:text/html,x">y</a>), filename: 'x.txt')).not_to be_nil
+    end
+
+    # A bare "data:" with no media type or ;/, delimiter is not a working URI, so it is left alone even
+    # across a gap -- once the gap is stripped it is indistinguishable from prose like "metadata: 42",
+    # and blocking it would false-positive on ordinary text/CSV/log uploads.
+    it 'accepts a non-functional data: word even across a newline gap' do
+      expect(scanner.content_unsafe?("column: data\n: 42\n", filename: 'notes.txt')).to be_nil
     end
 
     it 'still rejects a TAB injected inside a scheme name' do
