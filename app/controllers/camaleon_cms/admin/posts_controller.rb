@@ -12,6 +12,9 @@ module CamaleonCms
 
       def index
         authorize! :posts, @post_type
+        # Array/hash-typed query params (?q[]=x, ?s[]=published, ?taxonomy_id[]=1) have no meaning here
+        # and 500ed the action (Array#downcase / Array#to_sym / find(Array).decorate); treat them as absent.
+        %i[q s taxonomy taxonomy_id].each { |k| params[k] = nil unless params[k].nil? || params[k].is_a?(String) }
         per_page = current_site.admin_per_page
         posts_all = @post_type.posts.eager_load(:parent, :post_type)
         if params[:taxonomy].present? && params[:taxonomy_id].present?
