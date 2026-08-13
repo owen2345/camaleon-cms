@@ -45,32 +45,35 @@ module CamaleonCms
 
     BLOCKED_SCHEMES = %w[javascript vbscript data].freeze
 
-    # Tolerate exactly the characters the URL parser strips (TAB, LF, CR) between the
-    # characters of a scheme name, so "jav<TAB>ascript:" and "java<LF>script:" — which
-    # both execute in a browser — are still caught. Deliberately NOT all of \s: a space
-    # is not stripped, so "Sample data : 42" is prose, never a working URI, and matching
-    # it reported ordinary text files as malicious.
-    SCHEME_GAP = '[\t\n\r]*'
-    BLOCKED_SCHEME_PATTERN = Regexp.new(
-      "(?:#{BLOCKED_SCHEMES.map do |s|
-        s.chars.map { |c| Regexp.escape(c) }.join(SCHEME_GAP)
-      end.join('|')})#{SCHEME_GAP}:",
-      Regexp::IGNORECASE
-    )
+    # Characters the URL parser strips from inside a scheme ("jav<TAB>ascript:" executes as
+    # javascript:). blocked_scheme_in? deletes these before matching, so the pattern itself stays a
+    # cheap contiguous alternation instead of an `[\t\n\r]*` between every character -- the latter
+    # backtracked into seconds of CPU on adversarial near-miss input. Deliberately not all of \s: a
+    # space is not stripped, so "Sample data : 42" stays prose, never a working URI.
+    SCHEME_GAP_CHARS = "\t\n\r"
+    BLOCKED_SCHEME_PATTERN = /(?:#{Regexp.union(BLOCKED_SCHEMES).source}):/i
 
     SUSPICIOUS_PATTERNS = [
       UNSAFE_EVENT_PATTERN,
-      BLOCKED_ELEMENT_PATTERN,
-      BLOCKED_SCHEME_PATTERN
+      BLOCKED_ELEMENT_PATTERN
     ].freeze
 
-    # Single source of truth for "does this content carry a blocked URI scheme?" -- shared by the
-    # SVG scanner and the non-SVG ruleset so the two cannot drift apart about the same bytes.
-    # Normalizes (entity/control-char decoding) and matches the gap-tolerant scheme pattern.
+    # True if `content` carries a blocked URI scheme. Normalizes (entity/control-char decoding)
+    # first -- use this when you hold raw bytes (the SVG scanner). The non-SVG ruleset normalizes
+    # once for all its patterns and calls blocked_scheme_in? directly to avoid a second full copy.
     def self.blocked_scheme?(content)
       return false if content.nil?
 
-      normalize(content).match?(BLOCKED_SCHEME_PATTERN)
+      blocked_scheme_in?(normalize(content))
+    end
+
+    # Same test against already-normalized content. The gap bytes a browser strips inside a scheme
+    # are removed here so BLOCKED_SCHEME_PATTERN can stay a cheap contiguous match rather than
+    # backtracking through an `[\t\n\r]*` between every character.
+    def self.blocked_scheme_in?(normalized)
+      return false if normalized.nil?
+
+      normalized.delete(SCHEME_GAP_CHARS).match?(BLOCKED_SCHEME_PATTERN)
     end
 
     # Canonicalizes content so encoded variants of a blocked pattern are detected.
