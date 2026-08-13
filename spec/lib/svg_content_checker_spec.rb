@@ -161,6 +161,28 @@ RSpec.describe CamaleonCms::SvgContentChecker do
     end
   end
 
+  # Security: doc.to_xml echoes the declared encoding, so a UTF-16/UTF-32 SVG produced an
+  # ASCII-incompatible String that raised Encoding::CompatibilityError from the raw <script scan --
+  # an exception the Nokogiri::XML::SyntaxError rescue did not catch, surfacing as a 500 on upload
+  # instead of a verdict. The scan must return a boolean for any declared encoding.
+  describe 'non-UTF-8 declared encodings' do
+    def utf16(markup)
+      xml = %(<?xml version="1.0" encoding="UTF-16"?>#{markup})
+      "\xFF\xFE".b + xml.encode(Encoding::UTF_16LE).b
+    end
+
+    it 'does not raise on a benign UTF-16 SVG and accepts it' do
+      content = utf16('<svg xmlns="http://www.w3.org/2000/svg"><rect width="5" height="5"/></svg>')
+      expect { described_class.unsafe?(content) }.not_to raise_error
+      expect(described_class.unsafe?(content)).to be(false)
+    end
+
+    it 'still rejects a dangerous UTF-16 SVG (fails closed, no crash)' do
+      content = utf16('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>')
+      expect(described_class.unsafe?(content)).to be(true)
+    end
+  end
+
   # Security (audit 2026-08-11 NEW-1): #1226 narrowed the SVG scan and left the scheme checks without
   # the TAB/LF/CR gap tolerance that ContentSecurity::BLOCKED_SCHEME_PATTERN carries. A browser strips
   # a TAB/LF/CR inside a URI scheme before executing it, so "java&#9;script:" is live markup that the

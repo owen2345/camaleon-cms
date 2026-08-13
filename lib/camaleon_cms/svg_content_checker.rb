@@ -42,7 +42,13 @@ module CamaleonCms
         ContentSecurity.normalize(attr.value).match?(ContentSecurity::BLOCKED_SCHEME_PATTERN)
       end
 
-      serialized = doc.to_xml
+      # to_xml echoes the document's declared encoding, so a UTF-16/UTF-32 SVG yields an
+      # ASCII-incompatible String. Matching an ASCII regex against it raises
+      # Encoding::CompatibilityError, which the rescue below does not catch -- surfacing as a 500
+      # on upload instead of a verdict. Force BINARY first: the byte scan stays correct (BANNED_TAGS
+      # already caught any <script> element, and normalize strips the interleaved NUL bytes of a
+      # non-UTF-8 encoding before the scheme match).
+      serialized = doc.to_xml.b
       return true if serialized.match?(/<script[\s>]/i)
       return true if ContentSecurity.normalize(serialized).match?(ContentSecurity::BLOCKED_SCHEME_PATTERN)
 
