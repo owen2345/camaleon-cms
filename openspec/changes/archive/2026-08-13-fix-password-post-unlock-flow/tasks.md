@@ -25,11 +25,11 @@
 
 - [x] 4.1 `bin/rubocop` on the touched files — no offenses (lint before specs)
 - [x] 4.2 `bin/rspec` on both password-post request specs and the visibility feature specs — green
-- [ ] 4.3 `bin/brakeman --no-pager` — no new warnings (bundle-level pass before push)
-- [ ] 4.4 `(cd spec/dummy && bin/rails zeitwerk:check)` — clean (bundle-level pass before push)
+- [x] 4.3 `bin/brakeman --no-pager` — no new warnings (bundle-level pass before push)
+- [x] 4.4 `(cd spec/dummy && bin/rails zeitwerk:check)` — clean (bundle-level pass before push)
 
 ## 5. Changelog and archive
 
 - [x] 5.1 Add a `## Unreleased` **Security fix** entry: password-post unlock moves to POST + session
-- [ ] 5.2 Archive the change on the branch before merge, committed as part of the PR
+- [x] 5.2 Archive the change on the branch before merge, committed as part of the PR
   (`docs/ai/workflows.md` Phase 4)

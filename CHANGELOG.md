@@ -2,6 +2,75 @@
 
 ## Unreleased
 
+- **Security fix:** Post content from untrusted authors is now rejected on save when it contains
+  disallowed HTML, instead of being silently sanitized. Under the project's security model untrusted
+  input is refused, never rewritten: the save fails with a validation error naming the remedy, and
+  stored content always equals authored content. Trust is unchanged — admins and roles holding
+  `post_content_unfiltered_html` for the post type save anything, and `unfiltered_content!` still
+  opts server-side pipelines out. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+  - **Notes for upgraders:** a save that previously went through with markup stripped now fails with
+    an error until the author removes the markup (or is granted the permission). Stored content is
+    not rewritten; `rake camaleon_cms:security:scan_content` lists what would be refused today.
+    `data-*`/`aria-*` attributes are now accepted (previously silently stripped). The theme-DSL
+    helper `the_content` no longer sanitizes at render either — it emits stored content verbatim,
+    like the templates always did.
+
+- **Security fix:** Unlocking a password-protected post now happens over POST with a session-side
+  unlock and a constant-time comparison. The prompt used to submit over GET with a text-type input —
+  putting the password on screen and into URLs, browser history, logs and `Referer` headers — and the
+  gate compared it with `==`. The form now posts to a dedicated plugin endpoint (CSRF-protected,
+  `type='password'`) and the query-string parameter no longer unlocks anything.
+  [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+  - **Notes for upgraders:** bookmarked `?post_password=` links no longer unlock a post — visitors
+    enter the password in the prompt instead. Themes that override the visibility_post password form
+    should adopt the POST form markup.
+
+- **Security fix:** Password-protected posts no longer leak their body through excerpts. The
+  visibility_post plugin gated only the post content, while `the_excerpt` — shown by listing pages,
+  search results and every RSS feed — was still derived from the body and visible to anyone. A locked
+  post's excerpt is now a neutral "This content is password protected." notice (translatable); titles
+  stay visible as before. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
+- **Security fix:** The admin auth cookie is now `HttpOnly` and `Secure` (over SSL), and logging out
+  rotates the server-side `auth_token`. Previously the cookie's bearer token was readable by JavaScript
+  and sent in the clear, and a cookie copied before logout stayed valid. Because the token is per-user,
+  logging out now ends the user's sessions on all devices.
+  [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
+- **Security fix:** `field_attrs` custom-field values are now gated at save like editor values and
+  rendered verbatim, closing a second stored-XSS path in the same partial as the `editor` fix. The
+  gate scans the decoded JSON members, so markup hidden by the encoder's unicode escaping is refused
+  like literal markup; nothing is sanitized or escaped away. A `field_attrs` field now also shows its
+  stored value (it previously repeated the attribute name).
+  [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
+- **Security fix:** Dangerous custom-field values are now rejected on save instead of being stored.
+  Rich-text (`editor`) values were rendered with `raw` and URL-type values land in href/src, with no
+  gate on what a non-admin could store — stored XSS. A value an untrusted author is not permitted to
+  write (scripts, event handlers, embeds, `javascript:` URLs) is now refused with an error naming the
+  field; nothing is ever sanitized or rewritten, so trusted authors' content stays byte-for-byte
+  intact. Admins, and roles holding `post_content_unfiltered_html` for the post type, can store
+  anything. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+  - **Notes for upgraders:** values stored before this gate are not rewritten — run
+    `rake camaleon_cms:security:scan_content` to list stored posts and field values that would fail
+    the gate today, and clean them up by hand.
+
+- **Security fix:** Passwords must now be at least 8 characters. The user model previously validated only
+  presence and the 72-byte bcrypt maximum, so a one-character password was accepted on signup, change, or
+  reset. The floor is length-only (NIST-aligned) and applies whenever a password is set; a profile update
+  that leaves the password untouched is unaffected. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
+- **Security fix:** The forgot-password endpoint no longer reveals whether an email is registered or
+  lets itself be used to flood an inbox. It answered a matched email with a success notice and an
+  unmatched one with a distinct "not found" error (a user-enumeration oracle), and re-sent a reset email
+  on every request. It now returns one neutral message either way and sends at most one reset email per
+  account per 5-minute window. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
+- **Security fix:** Admin login no longer leaks whether a username exists through response timing. It
+  verified the password with `@user&.authenticate`, so a missing username skipped bcrypt and answered
+  faster than a wrong password for a real account (a username-enumeration oracle). Login now spends one
+  bcrypt comparison on the missing-username branch too. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
 - **Security fix:** Two admin endpoints now enforce authorization. `AdminController#search` queried all
   posts with no status filter or permission check, so any admin-area user (e.g. a `client`) could
   enumerate every post title/slug in every status — plus post types, categories and tags they cannot

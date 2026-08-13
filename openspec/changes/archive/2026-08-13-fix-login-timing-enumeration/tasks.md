@@ -23,4 +23,4 @@
 ## 5. Changelog and archive
 
 - [x] 5.1 Add a `## Unreleased` **Security fix** entry: login equalizes timing for unknown usernames
-- [ ] 5.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
+- [x] 5.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)

@@ -19,5 +19,5 @@
 
 ## 4. Archive
 
-- [ ] 4.1 Archive the change on the branch before merge, committed as part of the PR
+- [x] 4.1 Archive the change on the branch before merge, committed as part of the PR
   (`docs/ai/workflows.md` Phase 4)
