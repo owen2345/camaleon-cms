@@ -18,8 +18,10 @@ module CamaleonCms
       # Impersonation manages that token itself and passes rotate_session: false so this does not wipe it.
       reset_session if rotate_session
 
-      c = { value: [user.auth_token, request.user_agent, request.ip], expires: 24.hours.from_now }
-      c[:domain] = :all if PluginRoutes.system_info['users_share_sites'].present? && CamaleonCms::Site.count > 1
+      # Security (audit 2026-08-11 M3): the auth cookie is HttpOnly (JavaScript/XSS cannot read the
+      # bearer token) and Secure over an SSL request (never sent in the clear). The three components are
+      # joined into one string so the split-based reader and the impersonation stash keep their shape.
+      c = cama_auth_cookie_options([user.auth_token, request.user_agent, request.ip].join('&'))
       c[:expires] = 1.month.from_now if remember_me
 
       # fix to overwrite a cookie
@@ -143,13 +145,16 @@ module CamaleonCms
     def session_back_to_parent(redirect_url = nil)
       return unless cama_sign_in? && session[:parent_auth_token].present?
 
-      cookies[:auth_token] = session[:parent_auth_token]
+      cookies[:auth_token] = cama_auth_cookie_options(session[:parent_auth_token])
       session.delete(:parent_auth_token)
       redirect_to (redirect_url || cama_admin_dashboard_path), notice: 'Welcome back!'
     end
 
     # logout current user
     def cama_logout_user
+      # Security (audit 2026-08-11 M3): rotate the server-side token so a cookie copied before logout
+      # cannot be replayed afterwards. The token is per-user, so this also ends the user's other sessions.
+      cama_current_user&.cama_reset_auth_token!
       cookies.delete(:auth_token, domain: :all)
       cookies.delete(:auth_token, domain: nil)
       c_data = { value: nil, expires: 24.hours.ago }
@@ -227,6 +232,15 @@ module CamaleonCms
     end
 
     private
+
+    # Options for the auth cookie (M3): HttpOnly so JavaScript cannot read the bearer token, Secure over
+    # an SSL request so it is never sent in the clear, a 24h default lifetime, and the shared-domain
+    # scope when sites share users. Callers override :expires (remember-me) as needed.
+    def cama_auth_cookie_options(value)
+      opts = { value: value, httponly: true, secure: request.ssl?, expires: 24.hours.from_now }
+      opts[:domain] = :all if PluginRoutes.system_info['users_share_sites'].present? && CamaleonCms::Site.count > 1
+      opts
+    end
 
     # validate redirect url to prevent open redirect attacks: relative, or same-host over http(s), only —
     # unless the off-site host is explicitly trusted (see cama_redirect_allowed_hosts) or the caller vouches

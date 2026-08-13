@@ -105,6 +105,14 @@ module CamaleonCms
       end
     end
 
+    # Rotate the auth token and persist it (audit 2026-08-11 M3): called on logout so a cookie copied
+    # before logout can no longer authenticate. Skips validations/callbacks -- it only replaces the
+    # token column and must work even for a record that would not otherwise pass validation.
+    def cama_reset_auth_token!
+      generate_token(:auth_token)
+      update_column(:auth_token, auth_token) # rubocop:disable Rails/SkipsModelValidations
+    end
+
     def send_password_reset
       generate_token(:password_reset_token)
       self.password_reset_sent_at = Time.zone.now
