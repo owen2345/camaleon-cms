@@ -152,13 +152,11 @@ module CamaleonCms
     # Posts the caller may see in admin search: within the accessible post types, every post on the
     # types they can edit_other, otherwise only their own -- mirroring PostsController#index visibility.
     def cama_admin_searchable_posts(pt_ids)
-      scope = current_site.posts.where(taxonomy_id: pt_ids)
+      scope = current_site.posts.where(post_type_id: pt_ids)
       return scope if can?(:manage, :all)
 
-      posts_table = Cama::Post.table_name
       edit_other_ids = current_site.post_types.select { |pt| can?(:edit_other, pt) }.map(&:id)
-      scope.where("#{posts_table}.taxonomy_id IN (?) OR #{posts_table}.user_id = ?",
-                  edit_other_ids, cama_current_user.id)
+      scope.where(post_type_id: edit_other_ids).or(scope.where(user_id: cama_current_user.id))
     end
 
     def items_sql_by_name(table_name)
