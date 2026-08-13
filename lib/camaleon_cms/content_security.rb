@@ -43,26 +43,61 @@ module CamaleonCms
     # "/" counts as a tag delimiter, so <script/src="..."> cannot evade the check.
     BLOCKED_ELEMENT_PATTERN = %r{</?(#{Regexp.union(BLOCKED_ELEMENTS).source})[\s/>]}i
 
-    BLOCKED_SCHEMES = %w[javascript vbscript data].freeze
+    # Script schemes are dangerous in any URI position.
+    SCRIPT_SCHEMES = %w[javascript vbscript].freeze
 
-    # Tolerate exactly the characters the URL parser strips (TAB, LF, CR) between the
-    # characters of a scheme name, so "jav<TAB>ascript:" and "java<LF>script:" — which
-    # both execute in a browser — are still caught. Deliberately NOT all of \s: a space
-    # is not stripped, so "Sample data : 42" is prose, never a working URI, and matching
-    # it reported ordinary text files as malicious.
-    SCHEME_GAP = '[\t\n\r]*'
+    # A browser interprets a data: URI by its media type, so data:image/png;base64,... is an inert
+    # bitmap (Inkscape/Figma embed rasters this way and such files must upload), while data:text/html
+    # and data:image/svg+xml carry active content. These raster media types are therefore allowed;
+    # every other data: URI is blocked.
+    DATA_URI_SAFE_MEDIA = %w[
+      image/png image/gif image/jpeg image/jpg image/webp image/bmp image/avif
+      image/x-icon image/vnd.microsoft.icon
+    ].freeze
+
+    # Characters the URL parser strips from inside a scheme ("jav<TAB>ascript:" executes as
+    # javascript:). blocked_scheme_in? deletes these before matching, so the pattern itself stays a
+    # cheap contiguous alternation instead of an `[\t\n\r]*` between every character -- the latter
+    # backtracked into seconds of CPU on adversarial near-miss input. Deliberately not all of \s: a
+    # space is not stripped, so "Sample data : 42" stays prose, never a working URI.
+    SCHEME_GAP_CHARS = "\t\n\r"
+
+    # An allowlisted raster media type ending at a data-URI delimiter (;/,), a markup boundary
+    # (whitespace/quote/>/)), or end of input -- so "image/pngx" is not mistaken for "image/png".
+    DATA_URI_SAFE_MEDIA_PATTERN = /(?:#{Regexp.union(DATA_URI_SAFE_MEDIA).source})(?=[;,\s"'>)]|\z)/i
+
+    # javascript:/vbscript: are always blocked. data: is blocked only when it is a functional data URI
+    # -- a media type, or a bare ;/, delimiter -- that is NOT an allowlisted raster image; prose that
+    # merely contains "...data:" has no such continuation and is left alone. Gaps are deleted by
+    # blocked_scheme_in? before this matches, so the scheme and media type are written contiguously.
     BLOCKED_SCHEME_PATTERN = Regexp.new(
-      "(?:#{BLOCKED_SCHEMES.map do |s|
-        s.chars.map { |c| Regexp.escape(c) }.join(SCHEME_GAP)
-      end.join('|')})#{SCHEME_GAP}:",
+      "(?:#{Regexp.union(SCRIPT_SCHEMES).source}):" \
+      "|data:(?!#{DATA_URI_SAFE_MEDIA_PATTERN.source})(?:[a-z0-9.+-]+/[a-z0-9.+-]+|[;,])",
       Regexp::IGNORECASE
     )
 
     SUSPICIOUS_PATTERNS = [
       UNSAFE_EVENT_PATTERN,
-      BLOCKED_ELEMENT_PATTERN,
-      BLOCKED_SCHEME_PATTERN
+      BLOCKED_ELEMENT_PATTERN
     ].freeze
+
+    # True if `content` carries a blocked URI scheme. Normalizes (entity/control-char decoding)
+    # first -- use this when you hold raw bytes (the SVG scanner). The non-SVG ruleset normalizes
+    # once for all its patterns and calls blocked_scheme_in? directly to avoid a second full copy.
+    def self.blocked_scheme?(content)
+      return false if content.nil?
+
+      blocked_scheme_in?(normalize(content))
+    end
+
+    # Same test against already-normalized content. The gap bytes a browser strips inside a scheme
+    # are removed here so BLOCKED_SCHEME_PATTERN can stay a cheap contiguous match rather than
+    # backtracking through an `[\t\n\r]*` between every character.
+    def self.blocked_scheme_in?(normalized)
+      return false if normalized.nil?
+
+      normalized.delete(SCHEME_GAP_CHARS).match?(BLOCKED_SCHEME_PATTERN)
+    end
 
     # Canonicalizes content so encoded variants of a blocked pattern are detected.
     # Returns a normalized copy; the stored file is never modified.

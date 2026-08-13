@@ -30,15 +30,29 @@ module CamaleonCms
       banned_tags_query = BANNED_TAGS.map { |tag| "local-name() = '#{tag}'" }.join(' or ')
       return true if doc.xpath("//*[#{banned_tags_query}]").any?
 
-      return true if doc.xpath('//@*[starts-with(local-name(), "on")]').any?
+      # Case-insensitive: XML attribute names are case-sensitive, but an SVG inlined into an HTML
+      # document fires ONCLICK/OnClick exactly as onclick, and the non-SVG ruleset already matches
+      # handlers case-insensitively. translate() lowercases the "on" prefix so every case variant is
+      # caught (no standard SVG attribute name begins with "on" except an event handler).
+      return true if doc.xpath('//@*[starts-with(translate(local-name(), "ON", "on"), "on")]').any?
 
+      # Blocked URI schemes via the shared ContentSecurity.blocked_scheme?, so the SVG and non-SVG
+      # rulesets cannot drift apart about the same bytes (audit 2026-08-11 NEW-1). Nokogiri decodes
+      # char-refs into attr.value but re-emits them in to_xml, so the href is matched decoded while the
+      # serialized document is entity-decoded (normalized) inside the helper before the scheme match.
       return true if doc.xpath('//@*[local-name() = "href"]').any? do |attr|
-        attr.value.strip.match?(/\A(javascript|data|vbscript):/i)
+        ContentSecurity.blocked_scheme?(attr.value)
       end
 
-      serialized = doc.to_xml
+      # to_xml echoes the document's declared encoding, so a UTF-16/UTF-32 SVG yields an
+      # ASCII-incompatible String. Matching an ASCII regex against it raises
+      # Encoding::CompatibilityError, which the rescue below does not catch -- surfacing as a 500
+      # on upload instead of a verdict. Force BINARY first: the byte scan stays correct (BANNED_TAGS
+      # already caught any <script> element, and normalize strips the interleaved NUL bytes of a
+      # non-UTF-8 encoding before the scheme match).
+      serialized = doc.to_xml.b
       return true if serialized.match?(/<script[\s>]/i)
-      return true if serialized.match?(/(javascript|data|vbscript):/i)
+      return true if ContentSecurity.blocked_scheme?(serialized)
 
       false
     rescue Nokogiri::XML::SyntaxError

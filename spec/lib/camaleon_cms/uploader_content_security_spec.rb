@@ -56,6 +56,14 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
       it 'rejects a vbscript: URI' do
         expect(scan(%(<a href="vbscript:msgbox(1)">x</a>))).to be_truthy
       end
+
+      it 'rejects a dangerous data:text/html URI' do
+        expect(scan(%(<a href="data:text/html,alert(1)">x</a>))).to be_truthy
+      end
+
+      it 'rejects a data:image/svg+xml URI, which can carry script' do
+        expect(scan(%(<a href="data:image/svg+xml,payload">x</a>))).to be_truthy
+      end
     end
 
     context 'with event handlers lost to a typo in the original list' do
@@ -114,6 +122,14 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
   describe 'content that must keep passing' do
     it 'accepts plain text' do
       expect(scan('Just a normal readme about uploads.', ext: '.txt')).to be_falsey
+    end
+
+    it 'accepts an embedded raster image encoded as a data:image/* URI' do
+      expect(scan(%(<img src="data:image/png;base64,iVBORw0KGgo=">), ext: '.html')).to be_falsey
+    end
+
+    it 'accepts prose that merely contains a scheme-like word' do
+      expect(scan('See the metadata: 42 rows of data below.', ext: '.txt')).to be_falsey
     end
 
     it 'accepts CSV' do
@@ -217,6 +233,25 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
   end
 
   describe CamaleonCms::ContentSecurity do
+    describe '.blocked_scheme?' do
+      it 'flags a plain javascript: scheme' do
+        expect(described_class.blocked_scheme?('javascript:alert(1)')).to be(true)
+      end
+
+      it 'flags an entity/control-char obfuscated scheme after normalization' do
+        expect(described_class.blocked_scheme?('jav&#x61;script:alert(1)')).to be(true)
+        expect(described_class.blocked_scheme?("java\tscript:alert(1)")).to be(true)
+      end
+
+      it 'does not flag safe text' do
+        expect(described_class.blocked_scheme?('just a normal caption')).to be(false)
+      end
+
+      it 'returns false for nil' do
+        expect(described_class.blocked_scheme?(nil)).to be(false)
+      end
+    end
+
     describe '.normalize' do
       it 'decodes entities so encoded payloads match' do
         expect(described_class.normalize('jav&#x61;script:')).to include('javascript:')

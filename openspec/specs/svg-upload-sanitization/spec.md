@@ -1,9 +1,7 @@
 ## Purpose
 
 Define the security requirements for detecting dangerous content in uploaded SVG files. SVG files MUST be parsed with an XML parser that resolves all entities, and the upload MUST be rejected if dangerous elements or attributes are present. Safe SVGs without dangerous content are accepted.
-
 ## Requirements
-
 ### Requirement: Reject SVGs with script elements
 
 The system SHALL reject SVG uploads that contain `<script>` elements.
@@ -14,10 +12,17 @@ The system SHALL reject SVG uploads that contain `<script>` elements.
 
 ### Requirement: Reject SVGs with event handler attributes
 
-The system SHALL reject SVG uploads that contain attributes starting with `on` (event handlers).
+The system SHALL reject SVG uploads that contain attributes whose name starts with `on` (event
+handlers). The match SHALL be case-insensitive, because an SVG inlined into an HTML document fires
+`ONCLICK`/`OnClick` exactly as `onclick`, matching the case-insensitive event-handler rule used for
+non-SVG uploads.
 
 #### Scenario: SVG with onclick is rejected
 - **WHEN** a user uploads an SVG file containing an `onclick` attribute
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: SVG with an uppercase/mixed-case event handler is rejected
+- **WHEN** a user uploads an SVG file containing an `ONCLICK` or `OnMouseOver` attribute
 - **THEN** the system returns an error and does NOT store the file
 
 #### Scenario: SVG with onpointerdown is rejected
@@ -30,7 +35,21 @@ The system SHALL reject SVG uploads that contain attributes starting with `on` (
 
 ### Requirement: Reject SVGs with javascript: URIs
 
-The system SHALL reject SVG uploads that contain `href` or `xlink:href` attributes with `javascript:` URIs. Entity-encoded variants are caught because XML parsing resolves all entities before inspection.
+The system SHALL reject SVG uploads whose `href`/`xlink:href` attributes, or whose serialized markup,
+contain a blocked URI scheme. `javascript:` and `vbscript:` are always blocked; a `data:` URI is
+blocked unless its media type is an allowlisted raster image (for example `image/png`, `image/gif`,
+`image/jpeg`, `image/webp`), so an embedded raster bitmap is accepted while `data:text/html`,
+`data:image/svg+xml`, and a bare `data:,…` are rejected. Detection SHALL tolerate the same
+TAB/LF/CR gaps *inside* the scheme that a browser strips before executing the URI (for example
+`java&#9;script:`), matching `ContentSecurity::BLOCKED_SCHEME_PATTERN` used for non-SVG uploads.
+Entity-encoded variants are caught because XML parsing resolves entities into the decoded attribute
+value, and the serialized document is entity-decoded (normalized) before inspection. The SVG scanner is
+the only gate for a served `.svg`, so it aligns with the non-SVG ruleset's scheme, element, and
+(case-insensitive) event-handler checks as defense-in-depth. It inspects the XML-parsed document,
+exactly as a browser does when serving `image/svg+xml`; a *literal* TAB/LF/CR that XML attribute-value
+normalization folds to a space — making the scheme inert when the file is served as an image — is
+therefore out of scope, unlike the entity/character-reference gaps above, which survive parsing and are
+caught.
 
 #### Scenario: SVG with javascript: in href is rejected
 - **WHEN** a user uploads an SVG file containing an `href` attribute with `javascript:` URI
@@ -39,6 +58,30 @@ The system SHALL reject SVG uploads that contain `href` or `xlink:href` attribut
 #### Scenario: SVG with entity-encoded javascript: in href is rejected
 - **WHEN** a user uploads an SVG file containing `href="javascript&#58;alert(1)"`
 - **THEN** the system returns an error and does NOT store the file (entity is resolved during XML parsing, javascript: is detected)
+
+#### Scenario: SVG with an in-scheme TAB/LF/CR gap in href is rejected
+- **WHEN** a user uploads an SVG file containing `href="java&#9;script:alert(1)"` (a TAB inside the scheme name)
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: An auto-triggering animated gap-scheme href is rejected
+- **WHEN** a user uploads an SVG containing `<a xlink:href="java&#9;script:alert(1)"><animate begin="0s"/></a>`
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: A gap-obfuscated scheme anywhere in the serialized document is rejected
+- **WHEN** a user uploads an SVG in which a blocked scheme with a TAB/LF/CR gap appears outside an `href` (for example in text content)
+- **THEN** the system returns an error and does NOT store the file
+
+#### Scenario: A safe SVG whose text merely contains a colon is accepted
+- **WHEN** a user uploads an SVG whose text is prose containing a colon but no blocked scheme (for example `Fig 1: a red circle`)
+- **THEN** the system stores the file normally
+
+#### Scenario: An embedded raster image is accepted
+- **WHEN** a user uploads an SVG containing `<image xlink:href="data:image/png;base64,…"/>` (an embedded raster bitmap)
+- **THEN** the system stores the file normally
+
+#### Scenario: A dangerous data: URI is rejected
+- **WHEN** a user uploads an SVG containing a `data:text/html` or `data:image/svg+xml` URI (which can carry active content)
+- **THEN** the system returns an error and does NOT store the file
 
 ### Requirement: Reject SVGs with DTD entities containing dangerous content
 

@@ -277,9 +277,11 @@ the content scan, and this permission is what decides whether it runs.
 
 Without the permission every upload is scanned, whatever its source — a browser file, a `data:` payload, a remote download, a private-media file, or a
 file already published under `public/`. The scan reads the bytes and refuses them outright if they carry a `<script>`, an event-handler attribute, one
-of the blocked elements (`iframe`, `object`, `embed`, `base`, `meta`, `style`, `form`, `link`, `frame`, …), or a `javascript:`/`vbscript:`/`data:` URI.
-An SVG is additionally parsed as XML and refused if it carries `script`, `foreignObject`, `handler`, `form`, `meta`, `base`, `style` or `link`, or any
-`on*` attribute. Nothing is stripped or rewritten; the upload simply fails with `Potentially malicious content found!`.
+of the blocked elements (`iframe`, `object`, `embed`, `base`, `meta`, `style`, `form`, `link`, `frame`, …), or a dangerous URI scheme —
+`javascript:`, `vbscript:`, or a non-raster `data:` URI such as `data:text/html` or `data:image/svg+xml` (an embedded raster image like
+`data:image/png;base64,…` is allowed, since a browser renders it as an inert bitmap). An SVG is additionally parsed as XML and refused if it carries
+`script`, `foreignObject`, `handler`, `form`, `meta`, `base`, `style` or `link`, or any `on*` attribute (matched case-insensitively). Nothing is
+stripped or rewritten; the upload simply fails with `Potentially malicious content found!`.
 
 With the permission, none of that runs.
 

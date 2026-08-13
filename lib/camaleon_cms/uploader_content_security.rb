@@ -46,6 +46,10 @@ module CamaleonCms
       end
 
       normalized = CamaleonCms::ContentSecurity.normalize(content)
+      if CamaleonCms::ContentSecurity.blocked_scheme_in?(normalized)
+        Rails.logger.info { 'Potentially malicious content found: blocked URI scheme' }
+        return 'blocked_scheme'
+      end
       CamaleonCms::ContentSecurity::SUSPICIOUS_PATTERNS.each do |pattern|
         next unless normalized&.match?(pattern)
 
