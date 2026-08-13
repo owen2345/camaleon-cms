@@ -32,6 +32,10 @@ RSpec.describe 'Security: admin post index post-type scoping', type: :request do
                                   parent_id: post_type.id, taxonomy: :category, status: post_type.id)
   end
 
+  def tag_for(post_type, name)
+    post_type.post_tags.create!(name: name, slug: name.parameterize)
+  end
+
   it "does not leak another post type's posts through a category filter" do
     category_b = category_for(post_type_b, 'Secret Cat B')
     post_b = post_type_b.posts.create!(title: 'CONFIDENTIAL B POST', slug: 'confidential-b',
@@ -54,5 +58,29 @@ RSpec.describe 'Security: admin post index post-type scoping', type: :request do
         params: { taxonomy: 'category', taxonomy_id: category_a.id }
 
     expect(response.body).to include('VISIBLE A POST')
+  end
+
+  it "does not leak another post type's posts through a tag filter" do
+    tag_b = tag_for(post_type_b, 'Secret Tag B')
+    post_b = post_type_b.posts.create!(title: 'CONFIDENTIAL B TAGGED POST', slug: 'confidential-b-tagged',
+                                       user_id: owner.id, status: 'pending')
+    post_b.post_tags << tag_b
+
+    get "/admin/post_type/#{post_type_a.id}/posts",
+        params: { taxonomy: 'post_tag', taxonomy_id: tag_b.id, s: 'all' }
+
+    expect(response.body).not_to include('CONFIDENTIAL B TAGGED POST')
+  end
+
+  it "still lists the post type's own posts filtered by its own tag" do
+    tag_a = tag_for(post_type_a, 'Tag A')
+    post_a = post_type_a.posts.create!(title: 'VISIBLE A TAGGED POST', slug: 'visible-a-tagged',
+                                       user_id: owner.id, status: 'published')
+    post_a.post_tags << tag_a
+
+    get "/admin/post_type/#{post_type_a.id}/posts",
+        params: { taxonomy: 'post_tag', taxonomy_id: tag_a.id }
+
+    expect(response.body).to include('VISIBLE A TAGGED POST')
   end
 end
