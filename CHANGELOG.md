@@ -6,8 +6,9 @@
   posts with no status filter or permission check, so any admin-area user (e.g. a `client`) could
   enumerate every post title/slug in every status — plus post types, categories and tags they cannot
   manage; it now scopes each result kind to the caller's authorized post types (content further to
-  own/`edit_other` posts). `Posts::DraftsController#index` rendered the post type as JSON with no check
-  and now requires `:posts` authorization. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+  own/`edit_other` posts; categories and tags by their own `manage_categories`/`manage_tags`
+  abilities, covering nested categories). `Posts::DraftsController#index` rendered the post type as
+  JSON with no check and now requires `:posts` authorization. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
 
 - **Security fix:** The admin post index no longer leaks another post type's posts through a taxonomy
   filter. It authorizes `:posts` on the post type in the URL, but `?taxonomy=category|post_tag` replaced
