@@ -5,6 +5,12 @@ require 'rails_helper'
 RSpec.describe CamaleonCms::SvgContentChecker do
   let(:fixtures) { "#{CAMALEON_CMS_ROOT}/spec/support/fixtures" }
 
+  # Shared SVG scaffold declaring both namespaces, so any block can wrap a markup snippet without
+  # re-pasting the root element.
+  def svg_wrapping(markup)
+    %(<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">#{markup}</svg>)
+  end
+
   describe '.unsafe?' do
     it 'rejects SVG with script tag' do
       content = File.read("#{fixtures}/unsafe-test-xss.svg")
@@ -202,49 +208,25 @@ RSpec.describe CamaleonCms::SvgContentChecker do
   # is skipped for that extension), so it must match its non-SVG sibling.
   describe 'in-scheme TAB/LF/CR gap evasion (parity with ContentSecurity)' do
     it 'rejects a TAB gap inside a javascript: href' do
-      content = <<~SVG
-        <?xml version="1.0" encoding="UTF-8"?>
-        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
-          <a href="java&#9;script:alert(1)">click</a>
-        </svg>
-      SVG
-      expect(described_class.unsafe?(content)).to be(true)
+      expect(described_class.unsafe?(svg_wrapping('<a href="java&#9;script:alert(1)">click</a>'))).to be(true)
     end
 
     # The audit's proof-of-concept: an animated href fires with no user interaction (begin="0s"),
     # so this gap variant is auto-triggering stored XSS, not a click-through.
     it 'rejects the auto-triggering animated javascript: href' do
-      content = <<~SVG
-        <?xml version="1.0" encoding="UTF-8"?>
-        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100">
-          <a xlink:href="java&#9;script:alert(1)"><animate attributeName="x" begin="0s"/></a>
-        </svg>
-      SVG
-      expect(described_class.unsafe?(content)).to be(true)
+      markup = '<a xlink:href="java&#9;script:alert(1)"><animate attributeName="x" begin="0s"/></a>'
+      expect(described_class.unsafe?(svg_wrapping(markup))).to be(true)
     end
 
     # Defense-in-depth parity for the serialized `doc.to_xml` catch-all: a gap scheme outside an href is not
     # itself executable, but the non-SVG ruleset already rejects the same bytes, so the SVG scanner
     # must not disagree about them.
     it 'rejects a newline gap inside a scheme anywhere in the document' do
-      content = <<~SVG
-        <?xml version="1.0" encoding="UTF-8"?>
-        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
-          <text>java&#10;script:alert(1)</text>
-        </svg>
-      SVG
-      expect(described_class.unsafe?(content)).to be(true)
+      expect(described_class.unsafe?(svg_wrapping('<text>java&#10;script:alert(1)</text>'))).to be(true)
     end
 
     it 'still accepts a safe SVG whose text merely mentions a colon' do
-      content = <<~SVG
-        <?xml version="1.0" encoding="UTF-8"?>
-        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
-          <text>Fig 1: a red circle</text>
-          <circle cx="50" cy="50" r="40" fill="red"/>
-        </svg>
-      SVG
-      expect(described_class.unsafe?(content)).to be(false)
+      expect(described_class.unsafe?(svg_wrapping('<text>Fig 1: a red circle</text>'))).to be(false)
     end
   end
 
@@ -252,34 +234,30 @@ RSpec.describe CamaleonCms::SvgContentChecker do
   # Figma embed rasters this way and such files must upload), while data:text/html and
   # data:image/svg+xml carry active content and must stay rejected.
   describe 'data: URI scheme handling' do
-    def svg(inner)
-      %(<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">#{inner}</svg>)
-    end
-
     it 'accepts an embedded raster image (data:image/png)' do
-      expect(described_class.unsafe?(svg('<image xlink:href="data:image/png;base64,iVBORw0KGgo="/>'))).to be(false)
+      expect(described_class.unsafe?(svg_wrapping('<image xlink:href="data:image/png;base64,AAAA"/>'))).to be(false)
     end
 
     it 'accepts other raster media types' do
       %w[image/jpeg image/gif image/webp image/x-icon].each do |mime|
-        expect(described_class.unsafe?(svg(%(<image xlink:href="data:#{mime};base64,AAAA"/>)))).to be(false)
+        expect(described_class.unsafe?(svg_wrapping(%(<image xlink:href="data:#{mime};base64,AAAA"/>)))).to be(false)
       end
     end
 
     it 'still rejects data:text/html' do
-      expect(described_class.unsafe?(svg('<a href="data:text/html,alert(1)">y</a>'))).to be(true)
+      expect(described_class.unsafe?(svg_wrapping('<a href="data:text/html,alert(1)">y</a>'))).to be(true)
     end
 
     it 'still rejects data:image/svg+xml, which can carry script' do
-      expect(described_class.unsafe?(svg('<a href="data:image/svg+xml,payload">y</a>'))).to be(true)
+      expect(described_class.unsafe?(svg_wrapping('<a href="data:image/svg+xml,payload">y</a>'))).to be(true)
     end
 
     it 'still rejects a bare data: URI' do
-      expect(described_class.unsafe?(svg('<a href="data:,payload">y</a>'))).to be(true)
+      expect(described_class.unsafe?(svg_wrapping('<a href="data:,payload">y</a>'))).to be(true)
     end
 
     it 'accepts prose whose text merely contains a scheme-like word' do
-      expect(described_class.unsafe?(svg('<text>Metadata: 42 rows of data</text>'))).to be(false)
+      expect(described_class.unsafe?(svg_wrapping('<text>Metadata: 42 rows of data</text>'))).to be(false)
     end
   end
 
@@ -288,15 +266,6 @@ RSpec.describe CamaleonCms::SvgContentChecker do
   # every non-SVG upload; refusing them here stops the two rulesets disagreeing about the same
   # bytes, which is what let an accepted .svg be re-uploaded under another extension.
   describe 'elements that make a served SVG behave like a page' do
-    def svg_wrapping(markup)
-      <<~SVG
-        <?xml version="1.0" encoding="UTF-8"?>
-        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
-          #{markup}
-        </svg>
-      SVG
-    end
-
     it 'rejects a form, which can collect credentials on the site origin' do
       expect(described_class.unsafe?(svg_wrapping('<form action="https://evil.example"><input name="p"/></form>')))
         .to be(true)
