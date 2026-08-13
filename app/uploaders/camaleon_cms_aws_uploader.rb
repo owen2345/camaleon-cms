@@ -98,9 +98,14 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     end
 
     s3_file = bucket.object(key.slice(1..-1))
+    # Security (audit 2026-08-11 M5): a private-mode upload must be owner-only. Storing it 'public-read'
+    # (like a public file) left it world-readable at a guessable s3://bucket/private/<name> URL,
+    # bypassing the download_private_file gate. That gate fetches via the authenticated S3 API, so a
+    # 'private' ACL does not affect legitimate serving.
+    acl = is_private_uploader? ? 'private' : 'public-read'
     s3_file.upload_file(
       uploaded_io_or_file_path.is_a?(String) ? uploaded_io_or_file_path : uploaded_io_or_file_path.path,
-      @aws_settings[:aws_file_upload_settings].call({ acl: 'public-read' })
+      @aws_settings[:aws_file_upload_settings].call({ acl: acl })
     )
     res = cache_item(file_parse(s3_file)) unless args[:is_thumb]
     res
@@ -140,6 +145,23 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     end
     @instance.hooks_run('after_delete', key)
     get_media_collection.by_key(key).take.destroy
+  end
+
+  # Security (audit 2026-08-11 M5 follow-up): uploads stored before the private-ACL fix kept a
+  # world-readable ACL under the private prefix. Sweep them back to owner-only and return the count.
+  # The prefix mirrors setup_private_folder -- <inner_folder>/private/ -- normalized exactly like
+  # add_file keys (leading slash added by cama_fix_media_key, then stripped for S3), with a trailing
+  # slash so a sibling folder such as private_x is not swept.
+  def repair_private_acls!
+    inner_folder = @aws_settings['inner_folder'].to_s
+    inner_folder = "#{inner_folder}/#{PRIVATE_DIRECTORY}" unless is_private_uploader?
+    prefix = "#{inner_folder.cama_fix_media_key.slice(1..-1)}/"
+    repaired = 0
+    bucket.objects(prefix: prefix).each do |object|
+      object.acl.put(acl: 'private')
+      repaired += 1
+    end
+    repaired
   end
 
   # Initialize a bucket with AWS configurations

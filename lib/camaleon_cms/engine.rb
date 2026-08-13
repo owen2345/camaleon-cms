@@ -44,6 +44,16 @@ module CamaleonCms
       end
     end
 
+    # Security (audit 2026-08-11 M9): redact credential-bearing parameters from the Rails logs. The site
+    # settings form submits the SMTP password and S3 keys in the clear (options[email_pass],
+    # options[filesystem_s3_access_key], options[filesystem_s3_secret_key]), as do user passwords, the
+    # installer gate token (setup_token, matched by :token) and the stored password of a
+    # password-protected post (post[visibility_value]), and the engine set no filter. Appended (+=) so
+    # a host app's own filters are preserved.
+    initializer 'camaleon_cms.filter_parameters' do |app|
+      app.config.filter_parameters += %i[passw email_pass secret access_key token visibility_value]
+    end
+
     initializer :append_migrations do |app|
       engine_dir = File.expand_path('../..', __dir__)
       translation_files = Dir[File.join($camaleon_engine_dir, 'config', 'locales', '**', '*.{rb,yml}')]

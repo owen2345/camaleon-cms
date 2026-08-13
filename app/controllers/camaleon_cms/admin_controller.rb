@@ -47,19 +47,32 @@ module CamaleonCms
     def search
       add_breadcrumb I18n.t('camaleon_cms.admin.button.search')
       params[:kind] = 'content' if params[:kind].blank?
-      params[:q] = (params[:q] || '').downcase
+      # A crafted ?q[]=x / ?q[a]=b arrives as an Array / Parameters, which has no #downcase; treat any
+      # non-String q as an empty query instead of 500ing.
+      params[:q] = params[:q].is_a?(String) ? params[:q].downcase : ''
+      # Security (audit 2026-08-11 M12): the action had no authorization and no status filter, so any
+      # admin-area user (e.g. a client with no content rights) could enumerate every post title/slug in
+      # every status -- draft, pending, private, trash -- plus post types, categories and tags they
+      # cannot access. Scope every kind to the post types the caller may manage: content and post types
+      # by :posts, categories and tags by their own :categories / :post_tags abilities (the roles UI
+      # grants manage_categories / manage_tags independently of any post edit right).
       table_name = case params[:kind]
                    when 'post_type'
-                     base_query = current_site.post_types
+                     base_query = current_site.post_types.where(id: cama_admin_searchable_post_type_ids)
                      Cama::PostType.table_name
                    when 'category'
-                     base_query = current_site.full_categories
+                     pt_ids = cama_admin_searchable_post_type_ids(:categories)
+                     # A category's post type lives in post_type_id (the status column) at every nesting
+                     # level; parent_id points at the parent *category* for children, so filtering by it
+                     # would drop every nested category.
+                     base_query = current_site.full_categories.where(post_type_id: pt_ids)
                      Cama::Category.table_name
                    when 'tag'
-                     base_query = current_site.post_tags
+                     pt_ids = cama_admin_searchable_post_type_ids(:post_tags)
+                     base_query = current_site.post_tags.where(parent_id: pt_ids)
                      Cama::PostTag.table_name
                    else
-                     base_query = current_site.posts
+                     base_query = cama_admin_searchable_posts
                      Cama::Post.table_name
                    end
       @items = base_query.where(
@@ -128,6 +141,43 @@ module CamaleonCms
 
     def admin_logged_actions
       admin_menus_add_commons if !request.xhr? || params[:cama_ajax_request].blank? # initialize admin sidebar menus
+    end
+
+    # Post types on which the caller holds `action`: :posts for content and the post-type kind,
+    # :categories / :post_tags for the taxonomy kinds. Admins hold every ability on every type, so
+    # skip the per-record sweep (and the redundant IN filter it would feed) for them.
+    def cama_admin_searchable_post_type_ids(action = :posts)
+      return current_site.post_types.ids if can?(:manage, :all)
+
+      cama_admin_searchable_post_types(action).map(&:id)
+    end
+
+    def cama_admin_searchable_post_types(action)
+      current_site.post_types.select { |pt| can?(action, pt) }
+    end
+
+    # Posts the caller may see in admin search: the accessible post types narrowed by the shared
+    # admin visibility rule. edit_other implies :posts, so the visibility sweep only rechecks the
+    # already-loaded listable subset; admins skip the scoping entirely.
+    def cama_admin_searchable_posts
+      return current_site.posts if can?(:manage, :all)
+
+      listable = cama_admin_searchable_post_types(:posts)
+      cama_admin_visible_posts(current_site.posts.where(post_type_id: listable.map(&:id)), listable)
+    end
+
+    # Restrict `scope` to the posts the caller may see in admin listings across `post_types`: every
+    # post on the types where they hold edit_other, only their own elsewhere. Admins see everything.
+    # Single source of the visibility rule for PostsController#index (per post type) and admin search
+    # (across types) -- these drifting apart is how the M12 disclosure shipped, so change it here, not
+    # at a call site.
+    def cama_admin_visible_posts(scope, post_types)
+      return scope if can?(:manage, :all)
+
+      edit_other_ids = post_types.select { |pt| can?(:edit_other, pt) }.map(&:id)
+      return scope if edit_other_ids.length == post_types.length
+
+      scope.where(post_type_id: edit_other_ids).or(scope.where(user_id: cama_current_user.id))
     end
 
     def items_sql_by_name(table_name)

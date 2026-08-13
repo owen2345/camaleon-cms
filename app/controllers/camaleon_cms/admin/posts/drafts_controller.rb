@@ -5,6 +5,9 @@ module CamaleonCms
         before_action :set_post_data_params, only: %i[create update]
 
         def index
+          # Security (audit 2026-08-11 M12): this action had no authorization, so any signed-in user
+          # could read a post type's JSON. Gate it on the same permission the post listing requires.
+          authorize! :posts, @post_type
           render json: @post_type
         end
 

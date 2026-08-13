@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+- **Security fix:** Two admin endpoints now enforce authorization. `AdminController#search` queried all
+  posts with no status filter or permission check, so any admin-area user (e.g. a `client`) could
+  enumerate every post title/slug in every status — plus post types, categories and tags they cannot
+  manage; it now scopes each result kind to the caller's authorized post types (content further to
+  own/`edit_other` posts; categories and tags by their own `manage_categories`/`manage_tags`
+  abilities, covering nested categories). `Posts::DraftsController#index` rendered the post type as
+  JSON with no check and now requires `:posts` authorization. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+- **Security fix:** The admin post index no longer leaks another post type's posts through a taxonomy
+  filter. It authorizes `:posts` on the post type in the URL, but `?taxonomy=category|post_tag` replaced
+  the scope with the taxonomy owner's site-wide posts, so a user authorized on one post type could list
+  another's posts (with `?s=all`, in every status) by passing a foreign category/tag id. The taxonomy
+  filter is now resolved within the authorized post type (a foreign id 404s, so its name is not
+  disclosed either) and intersected with that post type's posts. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+- **Security fix:** Credential parameters are now filtered from the Rails logs. The engine set no
+  `config.filter_parameters`, so the site-settings SMTP password and S3 keys (`options[email_pass]`,
+  `options[filesystem_s3_access_key]`, `options[filesystem_s3_secret_key]`), user passwords, token
+  parameters (e.g. the installer `setup_token`) and protected-post passwords
+  (`post[visibility_value]`) were logged in cleartext on hosts without their own filter. The engine now
+  appends the relevant filters (preserving any the host app already set). [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+- **Security fix:** Private uploads to S3 are now stored with an owner-only (`private`) ACL instead of
+  `public-read`. Only the key prefix changed in private mode, so a private file was world-readable at a
+  guessable `s3://bucket/private/<name>` URL, bypassing the `download_private_file` gate. Public uploads
+  are unchanged; private serving is unaffected because it fetches through the authenticated S3 API.
+  [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+  **Notes for upgraders:**
+  - Objects already stored under the private prefix keep their `public-read` ACL until re-uploaded. Run
+    `bin/rails camaleon_cms:repair_private_upload_acls` from the host app to sweep them back to
+    owner-only; it covers every AWS-backed site, and `CAMA_S3_INNER_FOLDER=<folder>` handles setups
+    whose uploader hook configures an `inner_folder` (their private root is `<inner_folder>/private/`,
+    which a plain `private/`-prefix sweep would miss).
+
 - **Fix:** The upload content scanner now accepts embedded raster images encoded as `data:image/*`
   URIs (for example an Inkscape/Figma SVG carrying `<image xlink:href="data:image/png;base64,…">`),
   which were previously rejected as false positives. Dangerous `data:` URIs (`data:text/html`,

@@ -12,19 +12,28 @@ module CamaleonCms
 
       def index
         authorize! :posts, @post_type
+        # Array/hash-typed query params (?q[]=x, ?s[]=published, ?taxonomy_id[]=1) have no meaning here
+        # and 500ed the action (Array#downcase / Array#to_sym / find(Array).decorate); treat them as absent.
+        %i[q s taxonomy taxonomy_id].each { |k| params[k] = nil unless params[k].nil? || params[k].is_a?(String) }
         per_page = current_site.admin_per_page
         posts_all = @post_type.posts.eager_load(:parent, :post_type)
         if params[:taxonomy].present? && params[:taxonomy_id].present?
+          # Security (audit 2026-08-11 M11): keep the listing scoped to @post_type. The taxonomy is
+          # resolved within the authorized post type -- a foreign category/tag id raises RecordNotFound
+          # instead of rendering that taxonomy's title/edit URL in the breadcrumb (a name/existence
+          # oracle across the very boundary `authorize! :posts, @post_type` draws). The listing then
+          # intersects with the post type's posts, so a filter can only ever narrow the authorized set.
           if params[:taxonomy] == 'category'
-            cat_owner = current_site.full_categories.find(params[:taxonomy_id]).decorate
-            posts_all = cat_owner.posts
+            cat_owner = @post_type.full_categories.find(params[:taxonomy_id]).decorate
+            # reorder(nil): the relation becomes an IN subquery, where its default-scope ORDER BY is dead sort work
+            posts_all = posts_all.where(id: cat_owner.posts.reorder(nil))
             add_breadcrumb t('camaleon_cms.admin.post_type.category'), @post_type.the_admin_url('category')
             add_breadcrumb cat_owner.the_title, cat_owner.the_edit_url
           end
 
           if params[:taxonomy] == 'post_tag'
-            tag_owner = current_site.post_tags.find(params[:taxonomy_id]).decorate
-            posts_all = tag_owner.posts
+            tag_owner = @post_type.post_tags.find(params[:taxonomy_id]).decorate
+            posts_all = posts_all.where(id: tag_owner.posts.reorder(nil))
             add_breadcrumb t('camaleon_cms.admin.post_type.tags'), @post_type.the_admin_url('tag')
             add_breadcrumb tag_owner.the_title, tag_owner.the_edit_url
           end
@@ -39,7 +48,7 @@ module CamaleonCms
           )
         end
 
-        posts_all = posts_all.where(user_id: cama_current_user) if cannot?(:edit_other, @post_type)
+        posts_all = cama_admin_visible_posts(posts_all, [@post_type])
 
         @posts = posts_all
         params[:s] = 'published' if params[:s].blank?
