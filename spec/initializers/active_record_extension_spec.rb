@@ -59,12 +59,11 @@ RSpec.describe 'CollectionProxy custom-field helpers', type: :model do
       # A comma continuation: this slips past Rails' guard and appends an attacker-chosen ORDER BY term.
       let(:comma_payload) { "ASC, #{cfr_table}.term_order DESC" }
 
-      it 'does not raise a query error' do
-        expect { post_type.posts.sort_by_field(field_key, stacked_payload).load }.not_to raise_error
-      end
+      it 'is neutralised to a plain ascending sort without raising' do
+        relation = post_type.posts.sort_by_field(field_key, stacked_payload)
 
-      it 'falls back to an ascending sort instead of injecting' do
-        expect(post_type.posts.sort_by_field(field_key, stacked_payload).map(&:id)).to eq([post_b.id, post_a.id])
+        expect { relation.load }.not_to raise_error
+        expect(relation.map(&:id)).to eq([post_b.id, post_a.id])
       end
 
       it 'orders only by the value column, identically to a plain ascending sort' do

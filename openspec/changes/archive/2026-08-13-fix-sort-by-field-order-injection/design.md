@@ -51,6 +51,6 @@ asserts, at the layer the code lives in:
 - a stacked/comment direction no longer raises and falls back to ascending;
 - a comma-continuation direction does not add the injected term to the generated SQL.
 
-The three hostile-direction examples fail against unfixed master (verified by stashing the fix), the
-first two by the `UnknownAttributeReference` raise and the third by the injected `term_order` term in
-`to_sql`.
+The hostile-direction examples fail against unfixed master (verified by stashing the fix): the
+stacked/comment example by the `UnknownAttributeReference` raise, and the comma-continuation example
+by the injected `term_order` term in `to_sql`.
