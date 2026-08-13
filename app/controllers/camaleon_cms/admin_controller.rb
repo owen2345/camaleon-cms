@@ -72,7 +72,7 @@ module CamaleonCms
                      base_query = current_site.post_tags.where(parent_id: pt_ids)
                      Cama::PostTag.table_name
                    else
-                     base_query = cama_admin_searchable_posts(cama_admin_searchable_post_type_ids)
+                     base_query = cama_admin_searchable_posts
                      Cama::Post.table_name
                    end
       @items = base_query.where(
@@ -144,18 +144,28 @@ module CamaleonCms
     end
 
     # Post types on which the caller holds `action`: :posts for content and the post-type kind,
-    # :categories / :post_tags for the taxonomy kinds. Admins match every type via can?(:manage, :all).
+    # :categories / :post_tags for the taxonomy kinds. Admins hold every ability on every type, so
+    # skip the per-record sweep (and the redundant IN filter it would feed) for them.
     def cama_admin_searchable_post_type_ids(action = :posts)
-      current_site.post_types.select { |pt| can?(action, pt) }.map(&:id)
+      return current_site.post_types.ids if can?(:manage, :all)
+
+      cama_admin_searchable_post_types(action).map(&:id)
+    end
+
+    def cama_admin_searchable_post_types(action)
+      current_site.post_types.select { |pt| can?(action, pt) }
     end
 
     # Posts the caller may see in admin search: within the accessible post types, every post on the
     # types they can edit_other, otherwise only their own -- mirroring PostsController#index visibility.
-    def cama_admin_searchable_posts(pt_ids)
-      scope = current_site.posts.where(post_type_id: pt_ids)
-      return scope if can?(:manage, :all)
+    # One sweep over post_types serves both ability sets (edit_other implies :posts, so the second
+    # check only walks the already-loaded listable subset); admins skip the scoping entirely.
+    def cama_admin_searchable_posts
+      return current_site.posts if can?(:manage, :all)
 
-      edit_other_ids = current_site.post_types.select { |pt| can?(:edit_other, pt) }.map(&:id)
+      listable = cama_admin_searchable_post_types(:posts)
+      scope = current_site.posts.where(post_type_id: listable.map(&:id))
+      edit_other_ids = listable.select { |pt| can?(:edit_other, pt) }.map(&:id)
       scope.where(post_type_id: edit_other_ids).or(scope.where(user_id: cama_current_user.id))
     end
 
