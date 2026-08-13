@@ -67,10 +67,11 @@ RSpec.describe 'CollectionProxy custom-field helpers', type: :model do
         expect(post_type.posts.sort_by_field(field_key, stacked_payload).map(&:id)).to eq([post_b.id, post_a.id])
       end
 
-      it 'does not append attacker-controlled ORDER BY terms' do
+      it 'orders only by the value column, identically to a plain ascending sort' do
+        baseline = post_type.posts.sort_by_field(field_key, 'asc').to_sql
         sql = post_type.posts.sort_by_field(field_key, comma_payload).to_sql
 
-        expect(sql).not_to include('term_order')
+        expect(sql).to eq(baseline)
       end
     end
   end
