@@ -39,10 +39,11 @@ identifier.
 
 ### Requirement: A hostile direction cannot inject or error
 
-`sort_by_field` SHALL neutralize any direction that is not `asc`/`desc`: the query SHALL NOT raise a
-database error, the generated `ORDER BY` SHALL NOT include attacker-supplied terms, and the result SHALL
-fall back to an ascending sort. This SHALL hold without depending on ActiveRecord's implicit raw-SQL
-guard.
+`sort_by_field` SHALL neutralize any direction whose leading whitespace-delimited token is not a
+case-insensitive `asc`/`desc` — punctuation binds to the token, so `"DESC;..."` or `"DESC,..."` does
+not qualify: the query SHALL NOT raise a database error, the generated `ORDER BY` SHALL NOT include
+attacker-supplied terms, and the result SHALL fall back to an ascending sort. This SHALL hold without
+depending on ActiveRecord's implicit raw-SQL guard.
 
 #### Scenario: A stacked or comment payload is neutralized
 
