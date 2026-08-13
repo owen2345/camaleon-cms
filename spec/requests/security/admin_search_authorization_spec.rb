@@ -104,6 +104,69 @@ RSpec.describe 'Security: admin search and drafts authorization', type: :request
     end
   end
 
+  describe 'GET /admin/search kind and visibility scoping for a limited role' do
+    # Pins the three non-content kind clauses and the own-vs-edit_other OR clause, none of which the
+    # admin examples reach (admins short-circuit on can?(:manage, :all)) or the client examples
+    # exercise (an empty pt_ids empties the scope before the OR clause matters).
+    let(:role) { current_site.user_roles.create!(name: 'Editor P', slug: 'editor-p') }
+    let(:editor) { create(:user, role: role.slug, site: current_site) }
+    let(:granted_post_type) { create(:post_type, slug: 'granted-pt', name: 'Grantedpt Docs', site: current_site) }
+    let(:other_post_type) { create(:post_type, slug: 'unrelated-pt', name: 'Unrelatedpt Docs', site: current_site) }
+
+    before do
+      role.set_meta("_post_type_#{current_site.id}", { 'edit' => [granted_post_type.id.to_s] })
+      sign_in_as(editor, site: current_site)
+    end
+
+    it 'limits post_type results to the post types the caller may list' do
+      granted_post_type
+      other_post_type
+
+      get '/admin/search', params: { q: 'pt docs', kind: 'post_type' }
+
+      expect(response.body).to include('Grantedpt Docs')
+      expect(response.body).not_to include('Unrelatedpt Docs')
+    end
+
+    it 'hides categories of post types whose categories the caller does not manage' do
+      other_post_type.categories.create!(name: 'Hiddencat Docs', slug: 'hiddencat-docs')
+
+      get '/admin/search', params: { q: 'hiddencat', kind: 'category' }
+
+      expect(response.body).not_to include('Hiddencat Docs')
+    end
+
+    it 'hides tags of post types whose tags the caller does not manage' do
+      other_post_type.post_tags.create!(name: 'Hiddentag Docs', slug: 'hiddentag-docs')
+
+      get '/admin/search', params: { q: 'hiddentag', kind: 'tag' }
+
+      expect(response.body).not_to include('Hiddentag Docs')
+    end
+
+    it "limits content results to the caller's own posts on types without edit_other" do
+      granted_post_type.posts.create!(title: 'Ownsecret Report', slug: 'ownsecret',
+                                      user_id: editor.id, status: 'pending')
+      granted_post_type.posts.create!(title: 'Foreignsecret Report', slug: 'foreignsecret',
+                                      user_id: admin.id, status: 'pending')
+
+      get '/admin/search', params: { q: 'secret report', kind: 'content' }
+
+      expect(response.body).to include('Ownsecret Report')
+      expect(response.body).not_to include('Foreignsecret Report')
+    end
+
+    it "includes other users' posts on types where the caller holds edit_other" do
+      role.set_meta("_post_type_#{current_site.id}", { 'edit_other' => [granted_post_type.id.to_s] })
+      granted_post_type.posts.create!(title: 'Foreignsecret Report', slug: 'foreignsecret',
+                                      user_id: admin.id, status: 'pending')
+
+      get '/admin/search', params: { q: 'foreignsecret', kind: 'content' }
+
+      expect(response.body).to include('Foreignsecret Report')
+    end
+  end
+
   describe 'GET /admin/post_type/:post_type_id/drafts (#index)' do
     it 'denies a user without :posts permission on the post type' do
       sign_in_as(client, site: current_site)
