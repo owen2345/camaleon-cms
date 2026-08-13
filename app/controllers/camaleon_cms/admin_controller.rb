@@ -51,23 +51,26 @@ module CamaleonCms
       # Security (audit 2026-08-11 M12): the action had no authorization and no status filter, so any
       # admin-area user (e.g. a client with no content rights) could enumerate every post title/slug in
       # every status -- draft, pending, private, trash -- plus post types, categories and tags they
-      # cannot access. Scope every kind to the post types the caller may manage.
-      pt_ids = cama_admin_searchable_post_type_ids
+      # cannot access. Scope every kind to the post types the caller may manage: content and post types
+      # by :posts, categories and tags by their own :categories / :post_tags abilities (the roles UI
+      # grants manage_categories / manage_tags independently of any post edit right).
       table_name = case params[:kind]
                    when 'post_type'
-                     base_query = current_site.post_types.where(id: pt_ids)
+                     base_query = current_site.post_types.where(id: cama_admin_searchable_post_type_ids)
                      Cama::PostType.table_name
                    when 'category'
+                     pt_ids = cama_admin_searchable_post_type_ids(:categories)
                      # A category's post type lives in post_type_id (the status column) at every nesting
                      # level; parent_id points at the parent *category* for children, so filtering by it
                      # would drop every nested category.
                      base_query = current_site.full_categories.where(post_type_id: pt_ids)
                      Cama::Category.table_name
                    when 'tag'
+                     pt_ids = cama_admin_searchable_post_type_ids(:post_tags)
                      base_query = current_site.post_tags.where(parent_id: pt_ids)
                      Cama::PostTag.table_name
                    else
-                     base_query = cama_admin_searchable_posts(pt_ids)
+                     base_query = cama_admin_searchable_posts(cama_admin_searchable_post_type_ids)
                      Cama::Post.table_name
                    end
       @items = base_query.where(
@@ -138,9 +141,10 @@ module CamaleonCms
       admin_menus_add_commons if !request.xhr? || params[:cama_ajax_request].blank? # initialize admin sidebar menus
     end
 
-    # Post types whose posts the caller may list (:posts). Admins match every type via can?(:manage, :all).
-    def cama_admin_searchable_post_type_ids
-      current_site.post_types.select { |pt| can?(:posts, pt) }.map(&:id)
+    # Post types on which the caller holds `action`: :posts for content and the post-type kind,
+    # :categories / :post_tags for the taxonomy kinds. Admins match every type via can?(:manage, :all).
+    def cama_admin_searchable_post_type_ids(action = :posts)
+      current_site.post_types.select { |pt| can?(action, pt) }.map(&:id)
     end
 
     # Posts the caller may see in admin search: within the accessible post types, every post on the

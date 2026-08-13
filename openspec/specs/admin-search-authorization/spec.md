@@ -8,13 +8,15 @@ belongs to.
 ## Requirements
 ### Requirement: Admin search returns only results the caller may manage
 
-`AdminController#search` SHALL scope every result kind to the post types the caller is authorized to
-list (`can? :posts`). Content results SHALL be limited to posts within those post types, and — for a
-non-administrator — further to the caller's own posts on any post type where they lack `edit_other`.
-Post type, category and tag results SHALL be limited to the caller's accessible post types; category
-results SHALL cover every nesting level (a category belongs to a post type at every level, regardless
-of whether its direct parent is the post type or another category). A caller with no content
-permissions SHALL receive no results of any kind.
+`AdminController#search` SHALL scope every result kind to the caller's authorized post types. Content
+and post-type results SHALL be limited to the post types the caller may list (`can? :posts`), and
+content — for a non-administrator — further to the caller's own posts on any post type where they lack
+`edit_other`. Category and tag results SHALL be limited to the post types where the caller holds the
+matching taxonomy ability (`can? :categories` / `can? :post_tags`), so a taxonomy-manager role with no
+post edit grants still finds what it manages; category results SHALL cover every nesting level (a
+category belongs to a post type at every level, regardless of whether its direct parent is the post
+type or another category). A caller holding none of these abilities SHALL receive no results of any
+kind.
 
 #### Scenario: A user without content permissions sees no content
 
@@ -26,6 +28,12 @@ permissions SHALL receive no results of any kind.
 
 - **WHEN** an administrator searches content for a term matching a post in any status
 - **THEN** the post appears in the results
+
+#### Scenario: A taxonomy manager finds the taxonomies they manage
+
+- **WHEN** a user whose role grants only `manage_categories` / `manage_tags` on a post type searches
+  categories or tags
+- **THEN** that post type's matching categories and tags appear in the results
 
 ### Requirement: The drafts index is authorized
 

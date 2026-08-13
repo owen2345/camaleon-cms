@@ -54,6 +54,36 @@ RSpec.describe 'Security: admin search and drafts authorization', type: :request
     end
   end
 
+  describe 'GET /admin/search (category and tag) for a taxonomy-manager role' do
+    # Categories and tags are authorized by their own :categories / :post_tags abilities (the roles UI
+    # grants manage_categories / manage_tags independently of any post edit right), so a taxonomy
+    # manager with no :posts grant anywhere must still find the taxonomies they manage.
+    let(:role) { current_site.user_roles.create!(name: 'Taxonomist', slug: 'taxonomist') }
+    let(:taxonomist) { create(:user, role: role.slug, site: current_site) }
+
+    before do
+      role.set_meta("_post_type_#{current_site.id}",
+                    { 'manage_categories' => [post_type.id.to_s], 'manage_tags' => [post_type.id.to_s] })
+      sign_in_as(taxonomist, site: current_site)
+    end
+
+    it 'returns categories of the post types whose categories they manage' do
+      post_type.categories.create!(name: 'Managed Cat', slug: 'managed-cat')
+
+      get '/admin/search', params: { q: 'managed cat', kind: 'category' }
+
+      expect(response.body).to include('Managed Cat')
+    end
+
+    it 'returns tags of the post types whose tags they manage' do
+      post_type.post_tags.create!(name: 'Managed Tag', slug: 'managed-tag')
+
+      get '/admin/search', params: { q: 'managed tag', kind: 'tag' }
+
+      expect(response.body).to include('Managed Tag')
+    end
+  end
+
   describe 'GET /admin/post_type/:post_type_id/drafts (#index)' do
     it 'denies a user without :posts permission on the post type' do
       sign_in_as(client, site: current_site)
