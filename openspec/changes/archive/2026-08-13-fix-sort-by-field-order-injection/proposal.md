@@ -39,4 +39,6 @@ the upgrader note below.
 ## Out of scope
 
 - The `key` argument is already bound as a query parameter and is not an injection sink; unchanged.
-- The unrelated `filter_by_field` helper in the same file is not affected (no raw interpolation).
+- The sibling `filter_by_field` helper in the same file has no `ORDER BY`, and the only values it
+  interpolates into SQL are server-controlled table names — its caller inputs are bound — so it is
+  outside this change's injection scope.
