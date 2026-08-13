@@ -173,8 +173,10 @@ RSpec.describe 'Security: admin search and drafts authorization', type: :request
 
       get "/admin/post_type/#{post_type.id}/drafts"
 
-      # CanCan::AccessDenied is rescued into a dashboard redirect, not a JSON render
-      expect(response).to have_http_status(:found)
+      # CanCan::AccessDenied is rescued into a dashboard redirect, not a JSON render. Assert the
+      # target, not just :found -- a broken sign-in also 302s (to the login page), which would let
+      # this example pass with authorize! never reached.
+      expect(response).to redirect_to(cama_admin_dashboard_path)
     end
 
     it 'allows an authorized admin' do
