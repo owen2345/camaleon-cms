@@ -2,18 +2,17 @@
 
 `sort_by_field(key, order)` is a documented public API — themes and plugins call
 `collection.sort_by_field(key, params[:order])` — that interpolated `order` straight into the SQL
-`ORDER BY` clause. On the supported Rails range (6.1+) ActiveRecord's raw-SQL guard blocks arbitrary
-injection here, but two real problems remain: a hostile direction raises
-`ActiveRecord::UnknownAttributeReference` — an unhandled 500 (minor DoS) — and the guard still permits
-comma-separated `ORDER BY` continuations, so an attacker can append attacker-chosen `<column>
-<direction>` terms (a blind ordering oracle). Audit finding Tier-2 #8.
+`ORDER BY` clause. On Rails 6.1+ ActiveRecord's raw-SQL guard blocks arbitrary injection here, but two
+real problems remain: a hostile direction raises `ActiveRecord::UnknownAttributeReference` — an
+unhandled 500 (minor DoS) — and the guard still permits comma-separated `ORDER BY` continuations, so an
+attacker can append `<column> <direction>` terms (a blind ordering oracle). Audit finding Tier-2 #8.
 
 ### Triage verdict: legit (scoped)
 
 Reproduced against master (`spec/initializers/active_record_extension_spec.rb`): a stacked/comment
-direction raises `UnknownAttributeReference`, and a comma-continuation direction emits
-`ORDER BY ...value ASC, ...term_order DESC` — the injected term executes. Both fail without the fix
-(confirmed by stashing it). Arbitrary SQL is blocked by Rails' guard, so this is a Low, not a critical.
+direction raises `UnknownAttributeReference`, and a comma continuation emits
+`ORDER BY ...value ASC, ...term_order DESC` — the injected term executes. Both fail without the fix.
+Arbitrary SQL is blocked by Rails' guard, so this is a Low, not a critical.
 
 ## What Changes
 

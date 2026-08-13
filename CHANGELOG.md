@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- **Security fix:** `sort_by_field` no longer interpolates its sort-direction argument into the SQL
+  `ORDER BY`. It is a public API (themes and plugins call `collection.sort_by_field(key, params[:order])`),
+  so a user-controlled direction reached the `ORDER BY` clause: on Rails 6.1+ ActiveRecord blocks arbitrary
+  injection there, but a hostile value still raised an unhandled 500, and a comma-separated direction could
+  append attacker-chosen `ORDER BY` terms (a blind ordering oracle). The direction is now whitelisted to
+  `ASC`/`DESC` (ascending by default) and the value column is ordered as a quoted identifier.
+  [#1260](https://github.com/owen2345/camaleon-cms/pull/1260).
+
+  **Notes for upgraders:**
+  - `sort_by_field` now honors only `asc`/`desc` (case-insensitive) and falls back to ascending for any
+    other value. A caller that passed additional raw SQL through the `order` argument must use `reorder`
+    directly instead.
+
 - **Change:** The `user_before_register` hook now fires during registration (it was previously dispatched
   as a silent no-op) — after the register captcha passes — and a handler can veto a signup by setting
   `r[:stop_process]`; the form shows a generic error unless the handler supplies its own. Follow-up to #1258.
