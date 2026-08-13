@@ -223,7 +223,7 @@ RSpec.describe CamaleonCms::SvgContentChecker do
       expect(described_class.unsafe?(content)).to be(true)
     end
 
-    # Defense-in-depth parity for the serialized catch-all (:41): a gap scheme outside an href is not
+    # Defense-in-depth parity for the serialized `doc.to_xml` catch-all: a gap scheme outside an href is not
     # itself executable, but the non-SVG ruleset already rejects the same bytes, so the SVG scanner
     # must not disagree about them.
     it 'rejects a newline gap inside a scheme anywhere in the document' do
