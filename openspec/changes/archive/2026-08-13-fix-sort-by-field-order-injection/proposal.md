@@ -23,8 +23,10 @@ the upgrader note below.
 
 ## What Changes
 
-- `sort_by_field` whitelists the direction: a case-insensitive `DESC` orders descending, everything
-  else (including the documented default) orders ascending. The argument is no longer interpolated.
+- `sort_by_field` whitelists the direction: an argument whose leading token is a case-insensitive
+  `DESC` orders descending — padding and modifiers such as `NULLS LAST` are tolerated, the modifier
+  itself dropped — and everything else (including the documented default) orders ascending. The
+  argument is no longer interpolated.
 - It orders by a quoted Arel column (`CustomFieldsRelationship.arel_table[:value]`) instead of an
   interpolated string, so a hostile direction can neither append `ORDER BY` terms nor raise.
 - The method no longer relies on ActiveRecord's implicit raw-SQL guard — a future `Arel.sql()`
@@ -32,9 +34,10 @@ the upgrader note below.
 
 ## Notes for upgraders
 
-- `sort_by_field` now honors only `asc`/`desc` (case-insensitive) and falls back to ascending for any
-  other value. Any caller that (undocumented) passed additional raw SQL through the `order` argument
-  must use `reorder` directly instead.
+- `sort_by_field` now honors only the sort direction: the leading token of `order` is matched against
+  `asc`/`desc` case-insensitively (padded or modifier-bearing directions keep their direction, the
+  modifier itself dropped), and anything else falls back to ascending. Any caller that (undocumented)
+  passed additional raw SQL through the `order` argument must use `reorder` directly instead.
 
 ## Out of scope
 

@@ -10,10 +10,12 @@ able to inject `ORDER BY` terms or turn the query into an error.
 
 ### Requirement: sort_by_field honors only a sort direction
 
-`CollectionProxy#sort_by_field` SHALL interpret its `order` argument as a sort direction only: a
-case-insensitive `DESC` orders descending, and every other value — including the default — orders
-ascending. It SHALL NOT interpolate the argument into the SQL `ORDER BY` clause, and SHALL order by the
-custom-field value column as a quoted identifier.
+`CollectionProxy#sort_by_field` SHALL interpret its `order` argument as a sort direction only: an
+argument whose leading whitespace-delimited token is a case-insensitive `DESC` orders descending —
+surrounding whitespace and trailing modifiers (for example `NULLS LAST`) are tolerated but never
+emitted — and every other value, including the default, orders ascending. It SHALL NOT interpolate the
+argument into the SQL `ORDER BY` clause, and SHALL order by the custom-field value column as a quoted
+identifier.
 
 #### Scenario: Ascending direction sorts ascending
 
@@ -23,6 +25,11 @@ custom-field value column as a quoted identifier.
 #### Scenario: Descending direction sorts descending
 
 - **WHEN** `sort_by_field(key, 'desc')` is called on the same collection
+- **THEN** the members are returned in descending order of that value
+
+#### Scenario: A padded or modifier-bearing direction keeps its direction
+
+- **WHEN** `sort_by_field(key, ' desc ')` or `sort_by_field(key, 'DESC NULLS LAST')` is called
 - **THEN** the members are returned in descending order of that value
 
 #### Scenario: The default direction is ascending

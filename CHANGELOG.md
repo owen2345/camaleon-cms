@@ -11,9 +11,11 @@
   [#1260](https://github.com/owen2345/camaleon-cms/pull/1260).
 
   **Notes for upgraders:**
-  - `sort_by_field` now honors only `asc`/`desc` (case-insensitive) and falls back to ascending for any
-    other value. A caller that passed additional raw SQL through the `order` argument must use `reorder`
-    directly instead.
+  - `sort_by_field` now honors only the sort direction: the leading token of the `order` argument is
+    matched against `asc`/`desc` case-insensitively — padded or modifier-bearing directions such as
+    `'DESC NULLS LAST'` keep their direction, though the modifier itself is dropped — and anything
+    else falls back to ascending. A caller that passed additional raw SQL through `order` must use
+    `reorder` directly instead.
 
 - **Fix:** `sort_by_field` and `filter_by_field` no longer append phantom unsaved records to the
   collection they are called on — class discovery now uses the relation's `klass` instead of `build`.

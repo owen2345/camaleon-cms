@@ -47,6 +47,14 @@ RSpec.describe 'CollectionProxy custom-field helpers', type: :model do
         expect(post_type.posts.sort_by_field(field_key, 'desc').map(&:id)).to eq([post_a.id, post_b.id])
       end
 
+      it 'honors a padded descending direction' do
+        expect(post_type.posts.sort_by_field(field_key, ' desc ').map(&:id)).to eq([post_a.id, post_b.id])
+      end
+
+      it 'honors the direction token of a modifier-bearing direction' do
+        expect(post_type.posts.sort_by_field(field_key, 'DESC NULLS LAST').map(&:id)).to eq([post_a.id, post_b.id])
+      end
+
       it 'defaults to ascending when no direction is given' do
         expect(post_type.posts.sort_by_field(field_key).map(&:id)).to eq([post_b.id, post_a.id])
       end

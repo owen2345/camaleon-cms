@@ -2,18 +2,22 @@
 
 ## D1. Whitelist the direction, don't interpolate it
 
-The one piece of caller input that reached the `ORDER BY` was the sort direction. It is now mapped to
-a symbol before use:
+The one piece of caller input that reached the `ORDER BY` was the sort direction. Its leading
+whitespace-delimited token is now mapped to a symbol before use:
 
 ```ruby
-direction = order.to_s.casecmp?('DESC') ? :desc : :asc
+direction = order.to_s.strip[/\A\S+/]&.casecmp?('DESC') ? :desc : :asc
 ```
 
-`casecmp?` (Ruby 2.4+, safe across the 6.1+ range) returns `true` only on a case-insensitive match —
-`false` otherwise, and `nil` for an encoding-incompatible string, which the ternary treats the same
-as `false` — so `desc`/`DESC`/`Desc` order descending and anything else — the documented `'ASC'`
-default, a typo, an attack string, or incomparable input — orders ascending. Falling back to ascending preserves the method's documented default and keeps a hostile
-value from raising; it never becomes SQL.
+Comparing the leading token keeps previously working spellings working: `' desc '` (padding) and
+`'DESC NULLS LAST'` (permitted by Rails' own order matcher on PostgreSQL) still order descending, with
+the modifier dropped rather than emitted. Punctuation binds to the token, so an attack string like
+`'DESC; --'` yields the token `'DESC;'` and does not match. `casecmp?` (Ruby 2.4+, safe across the
+6.1+ range) returns `true` only on a case-insensitive match — `false` otherwise, `nil` for an
+encoding-incompatible string, and the token itself is `nil` for a blank argument, all of which the
+`&.` ternary treats as no-match — so anything without a clean leading `desc` token, including the
+documented `'ASC'` default, a typo, or an attack string, orders ascending. Falling back to ascending
+preserves the method's documented default and keeps a hostile value from raising; it never becomes SQL.
 
 ## D2. Order by a quoted Arel column
 
