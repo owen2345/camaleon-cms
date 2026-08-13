@@ -147,6 +147,23 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     get_media_collection.by_key(key).take.destroy
   end
 
+  # Security (audit 2026-08-11 M5 follow-up): uploads stored before the private-ACL fix kept a
+  # world-readable ACL under the private prefix. Sweep them back to owner-only and return the count.
+  # The prefix mirrors setup_private_folder -- <inner_folder>/private/ -- normalized exactly like
+  # add_file keys (leading slash added by cama_fix_media_key, then stripped for S3), with a trailing
+  # slash so a sibling folder such as private_x is not swept.
+  def repair_private_acls!
+    inner_folder = @aws_settings['inner_folder'].to_s
+    inner_folder = "#{inner_folder}/#{PRIVATE_DIRECTORY}" unless is_private_uploader?
+    prefix = "#{inner_folder.cama_fix_media_key.slice(1..-1)}/"
+    repaired = 0
+    bucket.objects(prefix: prefix).each do |object|
+      object.acl.put(acl: 'private')
+      repaired += 1
+    end
+    repaired
+  end
+
   # Initialize a bucket with AWS configurations
   # return: (AWS Bucket object)
   def bucket

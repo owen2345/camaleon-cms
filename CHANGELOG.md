@@ -30,9 +30,11 @@
   [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
 
   **Notes for upgraders:**
-  - Objects already stored under `private/` keep their `public-read` ACL until re-uploaded. If you store
-    sensitive media privately, repair the ACL of existing objects under that prefix (e.g. an
-    `aws s3api put-object-acl` sweep).
+  - Objects already stored under the private prefix keep their `public-read` ACL until re-uploaded. Run
+    `bin/rails camaleon_cms:repair_private_upload_acls` from the host app to sweep them back to
+    owner-only; it covers every AWS-backed site, and `CAMA_S3_INNER_FOLDER=<folder>` handles setups
+    whose uploader hook configures an `inner_folder` (their private root is `<inner_folder>/private/`,
+    which a plain `private/`-prefix sweep would miss).
 
 - **Fix:** The upload content scanner now accepts embedded raster images encoded as `data:image/*`
   URIs (for example an Inkscape/Figma SVG carrying `<image xlink:href="data:image/png;base64,…">`),

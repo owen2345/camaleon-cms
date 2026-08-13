@@ -24,3 +24,15 @@ URL, so the owner-only ACL does not prevent an authorized download through the p
 - **WHEN** the uploader is in public (default) mode and stores a file
 - **THEN** the object is written with a `public-read` ACL
 
+### Requirement: Pre-existing private objects can be swept back to owner-only
+
+The gem SHALL provide a repair task (`camaleon_cms:repair_private_upload_acls`) that re-applies the
+owner-only ACL to every object already stored under a site's private prefix — including a configured
+`inner_folder` root (`<inner_folder>/private/...`) — for uploads that predate write-time ACL
+enforcement.
+
+#### Scenario: The repair task re-ACLs stored private objects
+
+- **WHEN** the repair task runs for an AWS-backed site with objects under its private prefix
+- **THEN** each object under that prefix is set to the owner-only (`private`) ACL
+

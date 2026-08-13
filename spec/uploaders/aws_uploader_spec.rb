@@ -66,6 +66,34 @@ RSpec.describe CamaleonCmsAwsUploader do
     end
   end
 
+  describe '#repair_private_acls!' do
+    # Security (audit 2026-08-11 M5 follow-up): objects uploaded before the private-ACL fix stayed
+    # world-readable; the sweep re-applies the owner-only ACL under the private prefix, including a
+    # configured inner_folder root.
+    let(:object_acl) { instance_double(Aws::S3::ObjectAcl) }
+    let(:s3_object) { instance_double(Aws::S3::ObjectSummary, acl: object_acl) }
+
+    it 'sweeps objects under the default private prefix back to an owner-only ACL' do
+      allow(bucket).to receive(:objects).with(prefix: 'private/').and_return([s3_object, s3_object])
+      expect(object_acl).to receive(:put).with(acl: 'private').twice
+
+      expect(uploader.repair_private_acls!).to eq(2)
+    end
+
+    context 'with a configured inner_folder' do
+      let(:uploader) do
+        described_class.new({ current_site: current_site, aws_settings: { 'inner_folder' => 'myfolder' } },
+                            hook_instance)
+      end
+
+      it 'sweeps under <inner_folder>/private/' do
+        allow(bucket).to receive(:objects).with(prefix: 'myfolder/private/').and_return([])
+
+        expect(uploader.repair_private_acls!).to eq(0)
+      end
+    end
+  end
+
   describe '#file_parse thumb naming for an uppercase .SVG source' do
     let(:s3_file) do
       instance_double(Aws::S3::Object, key: 'media/1/logo.SVG', size: 123.4, last_modified: Time.zone.now,
