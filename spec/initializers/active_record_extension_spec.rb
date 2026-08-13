@@ -30,22 +30,25 @@ RSpec.describe 'CollectionProxy custom-field helpers', type: :model do
     let(:field_key) { 'rank' }
     let(:cfr_table) { CamaleonCms::CustomFieldsRelationship.table_name }
 
+    # The values are deliberately anti-correlated with creation order (post_a has the higher value
+    # despite the lower id), so ordering by any other column -- posts.id, the CFR row id/objectid --
+    # fails these examples: they pass only when the sort really reads the custom-field value.
     before do
-      post_a.custom_field_values.create!(custom_field_id: field.id, custom_field_slug: field_key, value: 'Apple')
-      post_b.custom_field_values.create!(custom_field_id: field.id, custom_field_slug: field_key, value: 'Banana')
+      post_a.custom_field_values.create!(custom_field_id: field.id, custom_field_slug: field_key, value: 'Banana')
+      post_b.custom_field_values.create!(custom_field_id: field.id, custom_field_slug: field_key, value: 'Apple')
     end
 
     describe 'legitimate directions still sort' do
       it 'orders ascending' do
-        expect(post_type.posts.sort_by_field(field_key, 'asc').map(&:id)).to eq([post_a.id, post_b.id])
+        expect(post_type.posts.sort_by_field(field_key, 'asc').map(&:id)).to eq([post_b.id, post_a.id])
       end
 
       it 'orders descending' do
-        expect(post_type.posts.sort_by_field(field_key, 'desc').map(&:id)).to eq([post_b.id, post_a.id])
+        expect(post_type.posts.sort_by_field(field_key, 'desc').map(&:id)).to eq([post_a.id, post_b.id])
       end
 
       it 'defaults to ascending when no direction is given' do
-        expect(post_type.posts.sort_by_field(field_key).map(&:id)).to eq([post_a.id, post_b.id])
+        expect(post_type.posts.sort_by_field(field_key).map(&:id)).to eq([post_b.id, post_a.id])
       end
     end
 
@@ -61,7 +64,7 @@ RSpec.describe 'CollectionProxy custom-field helpers', type: :model do
       end
 
       it 'falls back to an ascending sort instead of injecting' do
-        expect(post_type.posts.sort_by_field(field_key, stacked_payload).map(&:id)).to eq([post_a.id, post_b.id])
+        expect(post_type.posts.sort_by_field(field_key, stacked_payload).map(&:id)).to eq([post_b.id, post_a.id])
       end
 
       it 'does not append attacker-controlled ORDER BY terms' do
