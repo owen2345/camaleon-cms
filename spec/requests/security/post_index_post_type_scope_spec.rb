@@ -7,7 +7,10 @@ require 'rails_helper'
 # post-type-scoped relation with the taxonomy owner's own posts -- site-scoped but not
 # post-type-scoped. A user authorized on post type A could pass a category/tag id belonging to post
 # type B and list B's posts (with `?s=all`, in every status), crossing a post-type authorization
-# boundary. The listing must stay intersected with the authorized post type's posts.
+# boundary. The taxonomy is now resolved within the authorized post type, so a foreign id raises
+# RecordNotFound -- which also stops the residual breadcrumb oracle (the foreign taxonomy's title and
+# edit URL used to render over an empty listing) -- and the listing stays intersected with the post
+# type's posts.
 RSpec.describe 'Security: admin post index post-type scoping', type: :request do
   init_site
 
@@ -36,16 +39,16 @@ RSpec.describe 'Security: admin post index post-type scoping', type: :request do
     post_type.post_tags.create!(name: name, slug: name.parameterize)
   end
 
-  it "does not leak another post type's posts through a category filter" do
+  it 'rejects a category filter belonging to another post type (no posts, no breadcrumb name)' do
     category_b = category_for(post_type_b, 'Secret Cat B')
     post_b = post_type_b.posts.create!(title: 'CONFIDENTIAL B POST', slug: 'confidential-b',
                                        user_id: owner.id, status: 'pending')
     post_b.categories << category_b
 
-    get "/admin/post_type/#{post_type_a.id}/posts",
-        params: { taxonomy: 'category', taxonomy_id: category_b.id, s: 'all' }
-
-    expect(response.body).not_to include('CONFIDENTIAL B POST')
+    expect do
+      get "/admin/post_type/#{post_type_a.id}/posts",
+          params: { taxonomy: 'category', taxonomy_id: category_b.id, s: 'all' }
+    end.to raise_error(ActiveRecord::RecordNotFound)
   end
 
   it "still lists the post type's own posts filtered by its own category" do
@@ -60,16 +63,16 @@ RSpec.describe 'Security: admin post index post-type scoping', type: :request do
     expect(response.body).to include('VISIBLE A POST')
   end
 
-  it "does not leak another post type's posts through a tag filter" do
+  it 'rejects a tag filter belonging to another post type (no posts, no breadcrumb name)' do
     tag_b = tag_for(post_type_b, 'Secret Tag B')
     post_b = post_type_b.posts.create!(title: 'CONFIDENTIAL B TAGGED POST', slug: 'confidential-b-tagged',
                                        user_id: owner.id, status: 'pending')
     post_b.post_tags << tag_b
 
-    get "/admin/post_type/#{post_type_a.id}/posts",
-        params: { taxonomy: 'post_tag', taxonomy_id: tag_b.id, s: 'all' }
-
-    expect(response.body).not_to include('CONFIDENTIAL B TAGGED POST')
+    expect do
+      get "/admin/post_type/#{post_type_a.id}/posts",
+          params: { taxonomy: 'post_tag', taxonomy_id: tag_b.id, s: 'all' }
+    end.to raise_error(ActiveRecord::RecordNotFound)
   end
 
   it "still lists the post type's own posts filtered by its own tag" do

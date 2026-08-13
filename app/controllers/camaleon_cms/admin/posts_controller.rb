@@ -18,19 +18,20 @@ module CamaleonCms
         per_page = current_site.admin_per_page
         posts_all = @post_type.posts.eager_load(:parent, :post_type)
         if params[:taxonomy].present? && params[:taxonomy_id].present?
-          # Security (audit 2026-08-11 M11): keep the listing scoped to @post_type. A taxonomy filter
-          # must intersect with the authorized post type's posts, not replace the scope with the
-          # taxonomy's own posts -- a category/tag from another post type would otherwise leak that
-          # type's posts (with ?s=all, in every status) past the `authorize! :posts, @post_type` gate.
+          # Security (audit 2026-08-11 M11): keep the listing scoped to @post_type. The taxonomy is
+          # resolved within the authorized post type -- a foreign category/tag id raises RecordNotFound
+          # instead of rendering that taxonomy's title/edit URL in the breadcrumb (a name/existence
+          # oracle across the very boundary `authorize! :posts, @post_type` draws). The listing then
+          # intersects with the post type's posts, so a filter can only ever narrow the authorized set.
           if params[:taxonomy] == 'category'
-            cat_owner = current_site.full_categories.find(params[:taxonomy_id]).decorate
+            cat_owner = @post_type.full_categories.find(params[:taxonomy_id]).decorate
             posts_all = posts_all.where(id: cat_owner.posts)
             add_breadcrumb t('camaleon_cms.admin.post_type.category'), @post_type.the_admin_url('category')
             add_breadcrumb cat_owner.the_title, cat_owner.the_edit_url
           end
 
           if params[:taxonomy] == 'post_tag'
-            tag_owner = current_site.post_tags.find(params[:taxonomy_id]).decorate
+            tag_owner = @post_type.post_tags.find(params[:taxonomy_id]).decorate
             posts_all = posts_all.where(id: tag_owner.posts)
             add_breadcrumb t('camaleon_cms.admin.post_type.tags'), @post_type.the_admin_url('tag')
             add_breadcrumb tag_owner.the_title, tag_owner.the_edit_url

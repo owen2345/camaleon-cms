@@ -12,8 +12,9 @@
 - **Security fix:** The admin post index no longer leaks another post type's posts through a taxonomy
   filter. It authorizes `:posts` on the post type in the URL, but `?taxonomy=category|post_tag` replaced
   the scope with the taxonomy owner's site-wide posts, so a user authorized on one post type could list
-  another's posts (with `?s=all`, in every status) by passing a foreign category/tag id. The filter now
-  intersects with the authorized post type's posts. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+  another's posts (with `?s=all`, in every status) by passing a foreign category/tag id. The taxonomy
+  filter is now resolved within the authorized post type (a foreign id 404s, so its name is not
+  disclosed either) and intersected with that post type's posts. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
 
 - **Security fix:** Credential parameters are now filtered from the Rails logs. The engine set no
   `config.filter_parameters`, so the site-settings SMTP password and S3 keys (`options[email_pass]`,
