@@ -94,18 +94,18 @@ RSpec.describe 'contact_form_unfiltered_html permission', type: :model do
       CurrentRequest.site = nil
     end
 
-    it 'does not let the contact-form grant bypass post content sanitization' do
+    it 'does not let the contact-form grant bypass post content rejection' do
       custom = site.user_roles.create!(name: 'Forms only', slug: 'forms-only')
       custom.set_meta("_manager_#{site.id}", { 'contact_form_unfiltered_html' => 1 })
       user = create(:user, role: 'forms-only', site: site)
       CurrentRequest.user = user
       CurrentRequest.site = site
 
-      post = create(:post, post_type: post_type, owner: user,
-                           content: '<p>Hi</p><script>alert(1)</script>')
+      post = build(:post, post_type: post_type, owner: user,
+                          content: '<p>Hi</p><script>alert(1)</script>')
 
-      expect(post.content).not_to include('<script>')
-      expect(post.content).to include('<p>Hi</p>')
+      expect(post).not_to be_valid
+      expect(post.errors[:content]).to be_present
     end
 
     it 'does not let the post-content grant satisfy the contact-form check' do

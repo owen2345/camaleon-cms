@@ -292,6 +292,7 @@ en:
         label_required: 'Required Label'
         placeholder_required: 'Required Placeholder'
         message:
+          content_rejected: 'contains HTML that is not allowed for your role (for example scripts, event handlers or embeds). Remove it, or ask an administrator for the unfiltered-content permission.'
           created: 'The %{post_type} has been created.'
           updated: 'The %{post_type} has been updated.'
           deleted: 'The %{post_type} has been removed.'
