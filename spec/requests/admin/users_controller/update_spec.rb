@@ -6,7 +6,9 @@ RSpec.describe 'users update request', type: :request do
   init_site
 
   let(:current_site) { Cama::Site.first.decorate }
-  let(:admin_user) { create(:user_admin, site: current_site, password: 'secret', password_confirmation: 'secret') }
+  let(:admin_user) do
+    create(:user_admin, site: current_site, password: 'secretpass', password_confirmation: 'secretpass')
+  end
   let(:target_user) { create(:user, site: current_site) }
 
   before do

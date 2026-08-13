@@ -3,7 +3,7 @@
 RSpec.describe CamaleonCms::User, type: :model do
   describe 'email' do
     it 'is lowercased' do
-      user = described_class.create!(email: 'FOO@BAR.COM', username: 'test', password: 'test')
+      user = described_class.create!(email: 'FOO@BAR.COM', username: 'test', password: 'testpassword')
 
       expect(user.email).to eql('foo@bar.com')
     end
