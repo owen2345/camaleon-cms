@@ -48,18 +48,23 @@ module CamaleonCms
       add_breadcrumb I18n.t('camaleon_cms.admin.button.search')
       params[:kind] = 'content' if params[:kind].blank?
       params[:q] = (params[:q] || '').downcase
+      # Security (audit 2026-08-11 M12): the action had no authorization and no status filter, so any
+      # admin-area user (e.g. a client with no content rights) could enumerate every post title/slug in
+      # every status -- draft, pending, private, trash -- plus post types, categories and tags they
+      # cannot access. Scope every kind to the post types the caller may manage.
+      pt_ids = cama_admin_searchable_post_type_ids
       table_name = case params[:kind]
                    when 'post_type'
-                     base_query = current_site.post_types
+                     base_query = current_site.post_types.where(id: pt_ids)
                      Cama::PostType.table_name
                    when 'category'
-                     base_query = current_site.full_categories
+                     base_query = current_site.full_categories.where(parent_id: pt_ids)
                      Cama::Category.table_name
                    when 'tag'
-                     base_query = current_site.post_tags
+                     base_query = current_site.post_tags.where(parent_id: pt_ids)
                      Cama::PostTag.table_name
                    else
-                     base_query = current_site.posts
+                     base_query = cama_admin_searchable_posts(pt_ids)
                      Cama::Post.table_name
                    end
       @items = base_query.where(
@@ -128,6 +133,23 @@ module CamaleonCms
 
     def admin_logged_actions
       admin_menus_add_commons if !request.xhr? || params[:cama_ajax_request].blank? # initialize admin sidebar menus
+    end
+
+    # Post types whose posts the caller may list (:posts). Admins match every type via can?(:manage, :all).
+    def cama_admin_searchable_post_type_ids
+      current_site.post_types.select { |pt| can?(:posts, pt) }.map(&:id)
+    end
+
+    # Posts the caller may see in admin search: within the accessible post types, every post on the
+    # types they can edit_other, otherwise only their own -- mirroring PostsController#index visibility.
+    def cama_admin_searchable_posts(pt_ids)
+      scope = current_site.posts.where(taxonomy_id: pt_ids)
+      return scope if can?(:manage, :all)
+
+      posts_table = Cama::Post.table_name
+      edit_other_ids = current_site.post_types.select { |pt| can?(:edit_other, pt) }.map(&:id)
+      scope.where("#{posts_table}.taxonomy_id IN (?) OR #{posts_table}.user_id = ?",
+                  edit_other_ids, cama_current_user.id)
     end
 
     def items_sql_by_name(table_name)
