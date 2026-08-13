@@ -48,5 +48,9 @@ RSpec.configure do |config|
     # ban key is cleared here too, not just in a local after-hook, so an interrupted run cannot leave
     # a stale ban that breaks a later example.
     Rails.cache.delete_matched(/cama_captcha_attack|plugins_attack_ban/) if Rails.cache.respond_to?(:delete_matched)
+    # Request specs leak the app's per-request locale: frontend locale resolution assigns
+    # I18n.locale process-wide, so later examples otherwise run under whatever locale the last
+    # request used (surfaced as es-locale "translation missing" in unrelated model specs).
+    I18n.locale = I18n.default_locale
   end
 end
