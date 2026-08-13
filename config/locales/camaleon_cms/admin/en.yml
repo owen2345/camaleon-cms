@@ -171,6 +171,7 @@ en:
           subject_email: 'Reset your access'
           send_mail_succes: 'Send email reset success.'
           send_mail_error: 'Not found email address.'
+          password_reset_requested: 'If an account matches that email, a password reset link has been sent.'
           invalid_caption: 'Invalid captcha'
           email_not_validated: 'Email has not been validated.'
           confirm_email_token_incorrect: 'URL incorrect'

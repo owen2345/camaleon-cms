@@ -12,6 +12,12 @@ module CamaleonCms
       # M14: username enumeration by login timing). Computed once at load, at this environment's cost.
       TIMING_EQUALIZER_DIGEST = BCrypt::Password.create('cama-login-timing-equalizer').to_s.freeze
 
+      # Minimum interval between password-reset emails to the same account, so the forgot-password
+      # endpoint cannot be used to flood a known address (audit finding M13). Within the window a
+      # reset request is accepted (and answered identically) but sends no new email; the previously
+      # issued token stays valid for its 2h lifetime (see #forgot).
+      PASSWORD_RESET_EMAIL_COOLDOWN = 5.minutes
+
       # you can pass return_to as a param (mysite.com/admin/login?return_to=my-url) and
       # this will be used after user logged in
       def login
@@ -161,15 +167,12 @@ module CamaleonCms
         # Custom class finder: emails are stored downcased, so the lookup must
         # lower-case both sides regardless of DB collation.
         @user = current_site.users.find_by_email(data_user[:email]) # rubocop:disable Rails/DynamicFindBy
-        if @user.present?
-          send_password_reset_email(@user)
-          flash[:notice] = t('camaleon_cms.admin.login.message.send_mail_succes')
-          redirect_to cama_admin_login_path
-          nil
-        else
-          flash[:error] = t('camaleon_cms.admin.login.message.send_mail_error')
-          @user = current_site.users.new(data_user)
-        end
+        # Security (audit 2026-08-11 M13): do not reveal whether an account exists, and do not let the
+        # endpoint mail-bomb a known address. Send at most one reset email per cooldown window, and
+        # always answer with the same neutral message whether or not the email matched an account.
+        send_password_reset_email(@user) if @user.present? && cama_password_reset_email_allowed?(@user)
+        flash[:notice] = t('camaleon_cms.admin.login.message.password_reset_requested')
+        redirect_to cama_admin_login_path
       end
 
       def register
@@ -269,6 +272,13 @@ module CamaleonCms
 
         BCrypt::Password.new(TIMING_EQUALIZER_DIGEST).is_password?(password.to_s)
         false
+      end
+
+      # Whether a fresh reset email may be sent to this account, throttled per account so the endpoint
+      # cannot flood a known inbox (M13). Reads the column directly (not shadowed, unlike the token).
+      def cama_password_reset_email_allowed?(user)
+        sent_at = user.password_reset_sent_at
+        sent_at.blank? || sent_at < PASSWORD_RESET_EMAIL_COOLDOWN.ago
       end
 
       def before_hook_session

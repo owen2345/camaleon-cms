@@ -24,7 +24,8 @@ describe 'the signin process', :js do
       fill_in 'user_email', with: 'admin@local.com'
     end
     click_button 'Submit'
-    expect(page).to have_text 'Send email reset success'
+    # Security (M13): one neutral message whether or not the email matched an account.
+    expect(page).to have_text 'If an account matches that email, a password reset link has been sent.'
   end
 
   # Usernames and emails are stored downcased, so mixed-case input must keep matching
@@ -39,12 +40,19 @@ describe 'the signin process', :js do
   end
 
   it 'sends the reset email for a mixed-case address' do
+    # The page answer is deliberately neutral (M13), so the proof that the mixed-case input matched
+    # the downcased account is the reset stamp on the user itself.
+    account = CamaleonCms::User.find_by(email: 'admin@local.com')
+    expect(account.password_reset_sent_at).to be_blank
+
     visit "#{cama_root_relative_path}/admin/forgot"
     within('#login_user') do
       fill_in 'user_email', with: 'Admin@Local.com'
     end
     click_button 'Submit'
-    expect(page).to have_text 'Send email reset success'
+
+    expect(page).to have_text 'If an account matches that email, a password reset link has been sent.'
+    expect(account.reload.password_reset_sent_at).to be_present
   end
 
   it 'Enable Register' do
