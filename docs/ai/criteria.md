@@ -17,7 +17,7 @@ Before marking any task complete, evaluate against these criteria.
 
 - No `eval`, `instance_eval`, or `class_eval` with user input
 - SQL queries use parameterized forms
-- User input is sanitized appropriately
+- Untrusted input follows the remedy rule: dangerous content is **rejected** at save with an error — never sanitized, stripped, or otherwise transformed (no render-time sanitization either). See `docs/security/permissions.md` ("The remedy rule").
 - Security-sensitive actions follow the gating rule: admin-only by default, gated for non-admins by a dedicated, off-by-default, fail-closed permission — never a path/filename/flag proxy, never fail-open. See `docs/security/permissions.md` ("The gating rule") and the `security-capability-gating` spec.
 
 ## Rails Conventions

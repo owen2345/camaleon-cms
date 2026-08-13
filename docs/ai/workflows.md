@@ -30,6 +30,8 @@ Before writing any code:
 ### B. Development
 The spec-coverage and security-fix testing rules are stated in `AGENTS.md`. Test commands, helpers, and conventions live in `docs/ai/testing.md`.
 
+**Security remedies are rejections, not transforms.** When a fix must stop dangerous content from an untrusted user, the remedy is a save-time refusal with an error naming the problem — never sanitizing, stripping, or escaping-away what the author wrote. Stored content must always equal authored content, so the frontend may render it verbatim. Do not add render-time sanitization either. Trusted skips (admins, the relevant dedicated permission), fail-closed defaults, and explicit server-side opt-outs (`unfiltered_content!`-style bang methods) follow `docs/security/permissions.md`; the shared detector for authored markup is `CamaleonCms::UnsafeMarkup`. Pre-existing stored data is reported (`rake camaleon_cms:security:scan_content`), never rewritten. Positions the platform already escapes by default (plain `<%= %>` output of non-markup values) are not "escaping as a remedy" — they simply carry no gate.
+
 ### C. Refactoring Protocol
 - **Step-0 cleanup:** Before any structural refactor of a file larger than 300 LOC, first remove dead code (unused methods, unused requires, debug output) and commit that cleanup separately, before the real refactor.
 - **Phased execution:** Do not attempt large multi-file refactors in one pass. Break the work into explicit phases touching no more than 5 files each; run verification and wait for explicit approval before starting the next phase.
