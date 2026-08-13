@@ -17,6 +17,7 @@
     "created_post":["plugin_visibility_create_post"],
     "updated_post":["plugin_visibility_create_post"],
     "post_the_content": ["plugin_visibility_post_the_content"],
+    "post_the_excerpt": ["plugin_visibility_post_the_excerpt"],
     "filter_post": ["plugin_visibility_filter_post"],
     "post_can_visit": ["plugin_visibility_can_visit"],
     "list_post_extra_columns": ["plugin_visibility_extra_columns"]

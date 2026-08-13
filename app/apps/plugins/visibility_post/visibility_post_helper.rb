@@ -3,10 +3,19 @@ module Plugins
     module VisibilityPostHelper
       # {content: object.content.translate(@_deco_locale), post: object}
       def plugin_visibility_post_the_content(args)
-        return unless args[:post].visibility == 'password'
-        return if params[:post_password].present? && params[:post_password] == args[:post].visibility_value
+        return unless _visibility_password_locked?(args[:post])
 
         args[:content] = _password_form
+      end
+
+      # {content: <excerpt computed by PostDecorator#the_excerpt>, post: object}
+      # Security (audit M1): the excerpt is derived from the post body (or its summary meta), so it
+      # must honor the same password gate as the content -- otherwise listings, search results and
+      # the RSS builders leak the body of a still-locked post through `the_excerpt`.
+      def plugin_visibility_post_the_excerpt(args)
+        return unless _visibility_password_locked?(args[:post])
+
+        args[:content] = ct('password_protected_excerpt', default: 'This content is password protected.')
       end
 
       def plugin_visibility_on_active(_plugin); end
@@ -76,6 +85,15 @@ module Plugins
       end
 
       private
+
+      # Security (audit M1): single lock predicate for password-protected posts, shared by the
+      # content and excerpt gates so every derived representation of the body agrees on whether
+      # the post is unlocked for this request.
+      def _visibility_password_locked?(post)
+        return false unless post.visibility == 'password'
+
+        !(params[:post_password].present? && params[:post_password] == post.visibility_value)
+      end
 
       def _password_form
         "<form class='col-md-6 protected_form well'>
