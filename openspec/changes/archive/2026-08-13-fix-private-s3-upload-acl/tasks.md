@@ -23,4 +23,4 @@
 ## 5. Changelog and archive
 
 - [x] 5.1 Add a `## Unreleased` **Security fix** entry: private-mode S3 uploads are stored owner-only
-- [ ] 5.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)
+- [x] 5.2 Archive the change on the branch before merge, committed as part of the PR (`docs/ai/workflows.md` Phase 4)

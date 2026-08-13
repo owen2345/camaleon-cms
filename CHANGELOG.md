@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+- **Security fix:** Two admin endpoints now enforce authorization. `AdminController#search` queried all
+  posts with no status filter or permission check, so any admin-area user (e.g. a `client`) could
+  enumerate every post title/slug in every status — plus post types, categories and tags they cannot
+  manage; it now scopes each result kind to the caller's authorized post types (content further to
+  own/`edit_other` posts). `Posts::DraftsController#index` rendered the post type as JSON with no check
+  and now requires `:posts` authorization. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+- **Security fix:** The admin post index no longer leaks another post type's posts through a taxonomy
+  filter. It authorizes `:posts` on the post type in the URL, but `?taxonomy=category|post_tag` replaced
+  the scope with the taxonomy owner's site-wide posts, so a user authorized on one post type could list
+  another's posts (with `?s=all`, in every status) by passing a foreign category/tag id. The filter now
+  intersects with the authorized post type's posts. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+- **Security fix:** Credential parameters are now filtered from the Rails logs. The engine set no
+  `config.filter_parameters`, so the site-settings SMTP password and S3 keys (`options[email_pass]`,
+  `options[filesystem_s3_access_key]`, `options[filesystem_s3_secret_key]`) and user passwords were
+  logged in cleartext on hosts without their own filter. The engine now appends the relevant filters
+  (preserving any the host app already set). [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+- **Security fix:** Private uploads to S3 are now stored with an owner-only (`private`) ACL instead of
+  `public-read`. Only the key prefix changed in private mode, so a private file was world-readable at a
+  guessable `s3://bucket/private/<name>` URL, bypassing the `download_private_file` gate. Public uploads
+  are unchanged; private serving is unaffected because it fetches through the authenticated S3 API.
+  [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+  **Notes for upgraders:**
+  - Objects already stored under `private/` keep their `public-read` ACL until re-uploaded. If you store
+    sensitive media privately, repair the ACL of existing objects under that prefix (e.g. an
+    `aws s3api put-object-acl` sweep).
+
 - **Fix:** The upload content scanner now accepts embedded raster images encoded as `data:image/*`
   URIs (for example an Inkscape/Figma SVG carrying `<image xlink:href="data:image/png;base64,…">`),
   which were previously rejected as false positives. Dangerous `data:` URIs (`data:text/html`,
