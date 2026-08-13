@@ -22,9 +22,10 @@ The interpolated `reorder("#{cfr_table}.value #{order}")` is replaced with an Ar
 .reorder(CamaleonCms::CustomFieldsRelationship.arel_table[:value].public_send(direction))
 ```
 
-`arel_table[:value].asc` / `.desc` renders a properly quoted identifier plus a bound direction
-(`"custom_fields_relationships"."value" ASC`). No caller string is concatenated into SQL, so there is
-no ORDER BY sink left to guard. `arel_table`, attribute indexing, and `.asc`/`.desc` are stable public
+`arel_table[:value].asc` / `.desc` renders a properly quoted identifier plus a literal `ASC`/`DESC`
+keyword (`"custom_fields_relationships"."value" ASC`). SQL has no bind slot for an ORDER BY direction,
+so nothing is bound here — the keyword is safe because it can only come from the two whitelisted D1
+symbols. No caller string is concatenated into SQL, so there is no ORDER BY sink left to guard. `arel_table`, attribute indexing, and `.asc`/`.desc` are stable public
 Arel API across Rails 6.1–8.1, so the fix is version-agnostic.
 
 ## D3. Why not just rely on Rails' raw-SQL guard
