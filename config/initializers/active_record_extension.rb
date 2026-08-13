@@ -6,9 +6,17 @@ ActiveRecord::Associations::CollectionProxy.class_eval do
   # sample: CamaleonCms::Site.first.posts.sort_by_field("untitled-field-attributes", "desc")
   def sort_by_field(key, order = 'ASC')
     cfr_table = CamaleonCms::CustomFieldsRelationship.table_name
-    joins("LEFT OUTER JOIN #{cfr_table} ON #{cfr_table}.objectid = #{build.class.table_name}.id").where(
-      "#{cfr_table}.custom_field_slug = ? and #{cfr_table}.object_class = ?", key, build.class.name.parseCamaClass
-    ).reorder("#{cfr_table}.value #{order}")
+    # Security (audit 2026-08-11, Tier-2 #8): sort_by_field is a public API themes/plugins reach as
+    # sort_by_field(key, params[:order]), so interpolating `order` straight into ORDER BY was an
+    # injection sink. Whitelist the direction to ASC/DESC and order by a quoted Arel column, so a
+    # hostile direction can neither append extra ORDER BY terms nor raise -- without relying on
+    # ActiveRecord's implicit raw-SQL guard. The whitelist reads the leading token so previously
+    # working spellings (' desc ', 'DESC NULLS LAST') keep their direction; punctuation sticks to
+    # the token ('DESC;...' != 'DESC'), so hostile strings still fail closed to ascending.
+    direction = order.to_s.strip[/\A\S+/]&.casecmp?('DESC') ? :desc : :asc
+    joins("LEFT OUTER JOIN #{cfr_table} ON #{cfr_table}.objectid = #{klass.table_name}.id").where(
+      "#{cfr_table}.custom_field_slug = ? and #{cfr_table}.object_class = ?", key, klass.name.parseCamaClass
+    ).reorder(CamaleonCms::CustomFieldsRelationship.arel_table[:value].public_send(direction))
   end
 
   # Filter by custom field values
@@ -21,8 +29,8 @@ ActiveRecord::Associations::CollectionProxy.class_eval do
   #   .where("#{CamaleonCms::CustomFieldsRelationship.table_name}.value=?", "my_value_for_field")
   def filter_by_field(key, args = {})
     cfr_table = CamaleonCms::CustomFieldsRelationship.table_name
-    res = joins("LEFT OUTER JOIN #{cfr_table} ON #{cfr_table}.objectid = #{build.class.table_name}.id").where(
-      "#{cfr_table}.custom_field_slug = ? and #{cfr_table}.object_class = ?", key, build.class.name.parseCamaClass
+    res = joins("LEFT OUTER JOIN #{cfr_table} ON #{cfr_table}.objectid = #{klass.table_name}.id").where(
+      "#{cfr_table}.custom_field_slug = ? and #{cfr_table}.object_class = ?", key, klass.name.parseCamaClass
     )
     res = res.where("#{cfr_table}.value = ?", args[:value]) if args[:value]
     res
