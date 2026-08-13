@@ -48,7 +48,7 @@ module CamaleonCms
           )
         end
 
-        posts_all = posts_all.where(user_id: cama_current_user) if cannot?(:edit_other, @post_type)
+        posts_all = cama_admin_visible_posts(posts_all, [@post_type])
 
         @posts = posts_all
         params[:s] = 'published' if params[:s].blank?

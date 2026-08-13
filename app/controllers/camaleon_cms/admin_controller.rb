@@ -156,16 +156,27 @@ module CamaleonCms
       current_site.post_types.select { |pt| can?(action, pt) }
     end
 
-    # Posts the caller may see in admin search: within the accessible post types, every post on the
-    # types they can edit_other, otherwise only their own -- mirroring PostsController#index visibility.
-    # One sweep over post_types serves both ability sets (edit_other implies :posts, so the second
-    # check only walks the already-loaded listable subset); admins skip the scoping entirely.
+    # Posts the caller may see in admin search: the accessible post types narrowed by the shared
+    # admin visibility rule. edit_other implies :posts, so the visibility sweep only rechecks the
+    # already-loaded listable subset; admins skip the scoping entirely.
     def cama_admin_searchable_posts
       return current_site.posts if can?(:manage, :all)
 
       listable = cama_admin_searchable_post_types(:posts)
-      scope = current_site.posts.where(post_type_id: listable.map(&:id))
-      edit_other_ids = listable.select { |pt| can?(:edit_other, pt) }.map(&:id)
+      cama_admin_visible_posts(current_site.posts.where(post_type_id: listable.map(&:id)), listable)
+    end
+
+    # Restrict `scope` to the posts the caller may see in admin listings across `post_types`: every
+    # post on the types where they hold edit_other, only their own elsewhere. Admins see everything.
+    # Single source of the visibility rule for PostsController#index (per post type) and admin search
+    # (across types) -- these drifting apart is how the M12 disclosure shipped, so change it here, not
+    # at a call site.
+    def cama_admin_visible_posts(scope, post_types)
+      return scope if can?(:manage, :all)
+
+      edit_other_ids = post_types.select { |pt| can?(:edit_other, pt) }.map(&:id)
+      return scope if edit_other_ids.length == post_types.length
+
       scope.where(post_type_id: edit_other_ids).or(scope.where(user_id: cama_current_user.id))
     end
 
