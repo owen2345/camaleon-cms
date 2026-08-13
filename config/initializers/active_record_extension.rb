@@ -12,8 +12,8 @@ ActiveRecord::Associations::CollectionProxy.class_eval do
     # hostile direction can neither append extra ORDER BY terms nor raise -- without relying on
     # ActiveRecord's implicit raw-SQL guard.
     direction = order.to_s.casecmp?('DESC') ? :desc : :asc
-    joins("LEFT OUTER JOIN #{cfr_table} ON #{cfr_table}.objectid = #{build.class.table_name}.id").where(
-      "#{cfr_table}.custom_field_slug = ? and #{cfr_table}.object_class = ?", key, build.class.name.parseCamaClass
+    joins("LEFT OUTER JOIN #{cfr_table} ON #{cfr_table}.objectid = #{klass.table_name}.id").where(
+      "#{cfr_table}.custom_field_slug = ? and #{cfr_table}.object_class = ?", key, klass.name.parseCamaClass
     ).reorder(CamaleonCms::CustomFieldsRelationship.arel_table[:value].public_send(direction))
   end
 
@@ -27,8 +27,8 @@ ActiveRecord::Associations::CollectionProxy.class_eval do
   #   .where("#{CamaleonCms::CustomFieldsRelationship.table_name}.value=?", "my_value_for_field")
   def filter_by_field(key, args = {})
     cfr_table = CamaleonCms::CustomFieldsRelationship.table_name
-    res = joins("LEFT OUTER JOIN #{cfr_table} ON #{cfr_table}.objectid = #{build.class.table_name}.id").where(
-      "#{cfr_table}.custom_field_slug = ? and #{cfr_table}.object_class = ?", key, build.class.name.parseCamaClass
+    res = joins("LEFT OUTER JOIN #{cfr_table} ON #{cfr_table}.objectid = #{klass.table_name}.id").where(
+      "#{cfr_table}.custom_field_slug = ? and #{cfr_table}.object_class = ?", key, klass.name.parseCamaClass
     )
     res = res.where("#{cfr_table}.value = ?", args[:value]) if args[:value]
     res

@@ -15,6 +15,10 @@
     other value. A caller that passed additional raw SQL through the `order` argument must use `reorder`
     directly instead.
 
+- **Fix:** `sort_by_field` and `filter_by_field` no longer append phantom unsaved records to the
+  collection they are called on — class discovery now uses the relation's `klass` instead of `build`.
+  [#1260](https://github.com/owen2345/camaleon-cms/pull/1260).
+
 - **Change:** The `user_before_register` hook now fires during registration (it was previously dispatched
   as a silent no-op) — after the register captcha passes — and a handler can veto a signup by setting
   `r[:stop_process]`; the form shows a generic error unless the handler supplies its own. Follow-up to #1258.
