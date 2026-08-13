@@ -37,6 +37,23 @@ RSpec.describe 'Security: admin search and drafts authorization', type: :request
     end
   end
 
+  describe 'GET /admin/search (category)' do
+    # Categories nest: a child category's parent_id is its parent *category*, not a post type. The
+    # post-type link every category carries (nested or not) is post_type_id (the status column), so
+    # search must scope by that -- scoping by parent_id silently dropped every nested category, even
+    # for full admins.
+    it 'finds a nested category for an admin' do
+      parent = post_type.categories.create!(name: 'Parent Cat', slug: 'parent-cat')
+      parent.children.create!(name: 'Nested Child Cat', slug: 'nested-child-cat')
+
+      sign_in_as(admin, site: current_site)
+
+      get '/admin/search', params: { q: 'nested child', kind: 'category' }
+
+      expect(response.body).to include('Nested Child Cat')
+    end
+  end
+
   describe 'GET /admin/post_type/:post_type_id/drafts (#index)' do
     it 'denies a user without :posts permission on the post type' do
       sign_in_as(client, site: current_site)

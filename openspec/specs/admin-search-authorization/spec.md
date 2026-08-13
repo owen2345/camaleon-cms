@@ -11,8 +11,10 @@ belongs to.
 `AdminController#search` SHALL scope every result kind to the post types the caller is authorized to
 list (`can? :posts`). Content results SHALL be limited to posts within those post types, and — for a
 non-administrator — further to the caller's own posts on any post type where they lack `edit_other`.
-Post type, category and tag results SHALL be limited to the caller's accessible post types. A caller
-with no content permissions SHALL receive no results of any kind.
+Post type, category and tag results SHALL be limited to the caller's accessible post types; category
+results SHALL cover every nesting level (a category belongs to a post type at every level, regardless
+of whether its direct parent is the post type or another category). A caller with no content
+permissions SHALL receive no results of any kind.
 
 #### Scenario: A user without content permissions sees no content
 

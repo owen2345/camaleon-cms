@@ -58,7 +58,10 @@ module CamaleonCms
                      base_query = current_site.post_types.where(id: pt_ids)
                      Cama::PostType.table_name
                    when 'category'
-                     base_query = current_site.full_categories.where(parent_id: pt_ids)
+                     # A category's post type lives in post_type_id (the status column) at every nesting
+                     # level; parent_id points at the parent *category* for children, so filtering by it
+                     # would drop every nested category.
+                     base_query = current_site.full_categories.where(post_type_id: pt_ids)
                      Cama::Category.table_name
                    when 'tag'
                      base_query = current_site.post_tags.where(parent_id: pt_ids)
