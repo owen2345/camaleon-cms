@@ -7,6 +7,11 @@ module CamaleonCms
       before_action :verificate_register_permission, only: [:register]
       layout 'camaleon_cms/login'
 
+      # A precomputed bcrypt digest spent only to equalize login timing when the username does not exist,
+      # so a missing username is not distinguishable from a wrong password by response time (audit finding
+      # M14: username enumeration by login timing). Computed once at load, at this environment's cost.
+      TIMING_EQUALIZER_DIGEST = BCrypt::Password.create('cama-login-timing-equalizer').to_s.freeze
+
       # you can pass return_to as a param (mysite.com/admin/login?return_to=my-url) and
       # this will be used after user logged in
       def login
@@ -31,7 +36,7 @@ module CamaleonCms
         hooks_run('user_before_login', r)
         return if r[:stop_process] # permit to redirect for data completion
 
-        if captcha_validate && @user&.authenticate(data_user[:password])
+        if captcha_validate && cama_password_matches?(@user, data_user[:password])
           # Email validation if is necessary
           if @user.is_valid_email? || !current_site.need_validate_email?
             cama_captcha_reset_attack('login')
@@ -254,6 +259,16 @@ module CamaleonCms
       def cama_login_lockout_limit
         soft = current_site.get_option('max_try_attack', 5).to_i
         current_site.get_option('login_lockout_attempts', soft * 4).to_i
+      end
+
+      # Verify the password while spending one bcrypt comparison whether or not the username exists, so
+      # an unknown username takes about as long as a wrong password (audit M14). The dummy comparison on
+      # the missing-user branch does the same work the real path does (BCrypt::Password#is_password?).
+      def cama_password_matches?(user, password)
+        return user.authenticate(password) if user
+
+        BCrypt::Password.new(TIMING_EQUALIZER_DIGEST).is_password?(password.to_s)
+        false
       end
 
       def before_hook_session
