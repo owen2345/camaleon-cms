@@ -8,6 +8,12 @@
   `data:image/svg+xml`, bare `data:,…`) and `javascript:`/`vbscript:` remain blocked, for both SVG
   and non-SVG uploads. [#1261](https://github.com/owen2345/camaleon-cms/pull/1261).
 
+- **Security fix:** The uploaded-SVG scanner now rejects uppercase/mixed-case event-handler
+  attributes (for example `ONCLICK`), matching the case-insensitive rule the non-SVG ruleset already
+  applied. It also no longer raises on an SVG that declares a non-UTF-8 encoding — such a file is
+  scanned normally instead of failing the upload with an error.
+  [#1261](https://github.com/owen2345/camaleon-cms/pull/1261).
+
 - **Security fix:** The uploaded-SVG scanner now catches blocked URI schemes (`javascript:`,
   `vbscript:`, `data:`) that hide a TAB/LF/CR gap inside the scheme name — e.g. `java&#9;script:` in an
   `xlink:href`, which a browser strips back to `javascript:` before executing. The SVG scanner is the
