@@ -25,14 +25,15 @@ module CamaleonCms
           # intersects with the post type's posts, so a filter can only ever narrow the authorized set.
           if params[:taxonomy] == 'category'
             cat_owner = @post_type.full_categories.find(params[:taxonomy_id]).decorate
-            posts_all = posts_all.where(id: cat_owner.posts)
+            # reorder(nil): the relation becomes an IN subquery, where its default-scope ORDER BY is dead sort work
+            posts_all = posts_all.where(id: cat_owner.posts.reorder(nil))
             add_breadcrumb t('camaleon_cms.admin.post_type.category'), @post_type.the_admin_url('category')
             add_breadcrumb cat_owner.the_title, cat_owner.the_edit_url
           end
 
           if params[:taxonomy] == 'post_tag'
             tag_owner = @post_type.post_tags.find(params[:taxonomy_id]).decorate
-            posts_all = posts_all.where(id: tag_owner.posts)
+            posts_all = posts_all.where(id: tag_owner.posts.reorder(nil))
             add_breadcrumb t('camaleon_cms.admin.post_type.tags'), @post_type.the_admin_url('tag')
             add_breadcrumb tag_owner.the_title, tag_owner.the_edit_url
           end
