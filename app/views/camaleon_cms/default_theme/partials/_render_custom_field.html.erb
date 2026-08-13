@@ -41,9 +41,15 @@
                 %>
                     <p><%= post.decorate.the_title if post.present? %></p>
                 <% when 'field_attrs'
-                    post = JSON.parse(value) rescue {}
+                    attrs = JSON.parse(value) rescue {}
                 %>
-                    <p><%= raw("<strong>#{post['attr']}: </strong>#{post['attr']}") if post.present? %></p>
+                    <% if attrs.present? %>
+                      <%# Security (scan-and-reject policy): attr/value are gated at save like editor %>
+                      <%# values -- CustomFieldsRelationship scans the DECODED JSON members -- so stored %>
+                      <%# values equal authored values and render verbatim. (Also renders the stored %>
+                      <%# value; the old line printed the attribute name twice.) %>
+                      <p><strong><%= raw attrs['attr'] %>: </strong><%= raw attrs['value'] %></p>
+                    <% end %>
                 <% else %>
                     <p><%= value %></p>
             <% end %>

@@ -14,10 +14,12 @@ module CamaleonCms
     validates :custom_field_id, presence: true # error on clone model
 
     # Rendered positions that need a save-time gate (audit M17, scan-and-reject policy). An
-    # `editor` value is emitted as markup (`raw`); the URI field types are emitted into href/src.
-    # Every other field type's value renders through escaping ERB as element content, where
-    # markup cannot execute, so it needs no gate.
+    # `editor` value is emitted as markup (`raw`); a `field_attrs` value is a JSON pair whose
+    # members are emitted as markup; the URI field types are emitted into href/src. Every other
+    # field type's value renders through escaping ERB as element content, where markup cannot
+    # execute, so it needs no gate.
     MARKUP_FIELD_KEYS = %w[editor].freeze
+    JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
     URI_FIELD_KEYS = %w[url image audio video file].freeze
 
     validate :reject_untrusted_dangerous_value
@@ -52,12 +54,36 @@ module CamaleonCms
         )
 
         errors.add(:base, cama_rejection_message('value_rejected_html'))
+      elsif JSON_MARKUP_FIELD_KEYS.include?(field_key)
+        return if author_trusted_for_unfiltered_value?
+
+        unsafe_member = json_member_values(value).any? do |member|
+          CamaleonCms::UnsafeMarkup.unsafe_html?(
+            member, tags: CamaleonCms::Post::CONTENT_ALLOWED_TAGS,
+                    attributes: CamaleonCms::Post::CONTENT_ALLOWED_ATTRIBUTES
+          )
+        end
+        return unless unsafe_member
+
+        errors.add(:base, cama_rejection_message('value_rejected_html'))
       elsif URI_FIELD_KEYS.include?(field_key)
         return if author_trusted_for_unfiltered_value?
         return unless CamaleonCms::UnsafeMarkup.dangerous_uri?(value)
 
         errors.add(:base, cama_rejection_message('value_rejected_uri'))
       end
+    end
+
+    # A field_attrs value stores a JSON {attr:, value:} pair whose members render verbatim. Scan
+    # the DECODED members, not the stored bytes: the Rails JSON encoder unicode-escapes angle
+    # brackets (escape_html_entities_in_json stores \u003c instead of a literal <), so a
+    # byte-level scan of the stored string would pass markup that JSON.parse restores at render.
+    # Unparseable values are scanned as-is (fail closed on whatever the renderer would fall back to).
+    def json_member_values(value)
+      parsed = JSON.parse(value)
+      parsed.is_a?(Hash) ? parsed.values.map(&:to_s) : [value.to_s]
+    rescue JSON::ParserError
+      [value.to_s]
     end
 
     # The message must never be swallowed by a missing translation: only en.yml carries these keys,

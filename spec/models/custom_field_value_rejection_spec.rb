@@ -22,6 +22,7 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
     group.add_manual_field({ name: 'Body', slug: 'body' }, { field_key: 'editor' })
     group.add_manual_field({ name: 'Link', slug: 'link' }, { field_key: 'url' })
     group.add_manual_field({ name: 'Note', slug: 'note' }, { field_key: 'text_box' })
+    group.add_manual_field({ name: 'Specs', slug: 'specs' }, { field_key: 'field_attrs' })
   end
 
   def as_user(user)
@@ -114,6 +115,46 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       post.set_field_value('note', script)
 
       expect(post.get_field_value('note')).to eq(script)
+    end
+  end
+
+  describe 'field_attrs values (verbatim JSON markup position)' do
+    it 'refuses a script hidden in the pair for an untrusted author' do
+      as_user(contributor)
+      literal = JSON.generate(attr: 'Color', value: script) # stdlib generate: literal markup bytes
+
+      expect { post.set_field_value('specs', literal) }
+        .to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+    end
+
+    it 'refuses markup the JSON encoder unicode-escaped (no literal angle bracket in the bytes)' do
+      as_user(contributor)
+      # What the admin form stores: the ActiveSupport encoder escapes markup
+      # (escape_html_entities_in_json), so the stored bytes carry no "<" -- but JSON.parse
+      # restores it and the renderer emits it verbatim.
+      escaped = { attr: 'Color', value: script }.to_json
+      expect(escaped).not_to include('<script')
+
+      expect { post.set_field_value('specs', escaped) }
+        .to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+    end
+
+    it 'stores a benign pair unchanged' do
+      as_user(contributor)
+      pair = { attr: 'Color', value: 'Deep <em>red</em>' }.to_json
+
+      post.set_field_value('specs', pair)
+
+      expect(post.get_field_value('specs')).to eq(pair)
+    end
+
+    it 'stores an admin author pair verbatim, script included' do
+      as_user(admin)
+      pair = { attr: 'Widget', value: script }.to_json
+
+      post.set_field_value('specs', pair)
+
+      expect(post.get_field_value('specs')).to eq(pair)
     end
   end
 end
