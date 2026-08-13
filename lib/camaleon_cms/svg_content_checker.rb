@@ -32,13 +32,19 @@ module CamaleonCms
 
       return true if doc.xpath('//@*[starts-with(local-name(), "on")]').any?
 
+      # Security (audit 2026-08-11 NEW-1): reuse ContentSecurity's gap-tolerant scheme pattern and its
+      # entity/control-char normalization, so an in-scheme TAB/LF/CR gap ("java&#9;script:") -- which a
+      # browser strips before executing -- is caught here exactly as it is in every non-SVG upload.
+      # This scanner is the only gate for a served .svg, so the two rulesets must not disagree. Nokogiri
+      # decodes char-refs into attr.value but re-emits them in to_xml, so the href is matched decoded
+      # while the serialized document is normalized (entity-decoded) before the scheme match.
       return true if doc.xpath('//@*[local-name() = "href"]').any? do |attr|
-        attr.value.strip.match?(/\A(javascript|data|vbscript):/i)
+        ContentSecurity.normalize(attr.value).match?(ContentSecurity::BLOCKED_SCHEME_PATTERN)
       end
 
       serialized = doc.to_xml
       return true if serialized.match?(/<script[\s>]/i)
-      return true if serialized.match?(/(javascript|data|vbscript):/i)
+      return true if ContentSecurity.normalize(serialized).match?(ContentSecurity::BLOCKED_SCHEME_PATTERN)
 
       false
     rescue Nokogiri::XML::SyntaxError

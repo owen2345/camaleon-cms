@@ -161,6 +161,59 @@ RSpec.describe CamaleonCms::SvgContentChecker do
     end
   end
 
+  # Security (audit 2026-08-11 NEW-1): #1226 narrowed the SVG scan and left the scheme checks without
+  # the TAB/LF/CR gap tolerance that ContentSecurity::BLOCKED_SCHEME_PATTERN carries. A browser strips
+  # a TAB/LF/CR inside a URI scheme before executing it, so "java&#9;script:" is live markup that the
+  # no-gap regexes missed. The SVG scanner is the ONLY gate for an uploaded .svg (the generic ruleset
+  # is skipped for that extension), so it must match its non-SVG sibling.
+  describe 'in-scheme TAB/LF/CR gap evasion (parity with ContentSecurity)' do
+    it 'rejects a TAB gap inside a javascript: href' do
+      content = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <a href="java&#9;script:alert(1)">click</a>
+        </svg>
+      SVG
+      expect(described_class.unsafe?(content)).to be(true)
+    end
+
+    # The audit's proof-of-concept: an animated href fires with no user interaction (begin="0s"),
+    # so this gap variant is auto-triggering stored XSS, not a click-through.
+    it 'rejects the auto-triggering animated javascript: href' do
+      content = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100">
+          <a xlink:href="java&#9;script:alert(1)"><animate attributeName="x" begin="0s"/></a>
+        </svg>
+      SVG
+      expect(described_class.unsafe?(content)).to be(true)
+    end
+
+    # Defense-in-depth parity for the serialized catch-all (:41): a gap scheme outside an href is not
+    # itself executable, but the non-SVG ruleset already rejects the same bytes, so the SVG scanner
+    # must not disagree about them.
+    it 'rejects a newline gap inside a scheme anywhere in the document' do
+      content = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <text>java&#10;script:alert(1)</text>
+        </svg>
+      SVG
+      expect(described_class.unsafe?(content)).to be(true)
+    end
+
+    it 'still accepts a safe SVG whose text merely mentions a colon' do
+      content = <<~SVG
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <text>Fig 1: a red circle</text>
+          <circle cx="50" cy="50" r="40" fill="red"/>
+        </svg>
+      SVG
+      expect(described_class.unsafe?(content)).to be(false)
+    end
+  end
+
   # These five are valid SVG and none executes script on its own, but an uploaded SVG is served
   # inline from the site origin. ContentSecurity::BLOCKED_ELEMENTS already refuses all of them in
   # every non-SVG upload; refusing them here stops the two rulesets disagreeing about the same
