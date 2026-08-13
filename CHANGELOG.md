@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Fix:** The upload content scanner now accepts embedded raster images encoded as `data:image/*`
+  URIs (for example an Inkscape/Figma SVG carrying `<image xlink:href="data:image/png;base64,…">`),
+  which were previously rejected as false positives. Dangerous `data:` URIs (`data:text/html`,
+  `data:image/svg+xml`, bare `data:,…`) and `javascript:`/`vbscript:` remain blocked, for both SVG
+  and non-SVG uploads. [#1261](https://github.com/owen2345/camaleon-cms/pull/1261).
+
 - **Security fix:** The uploaded-SVG scanner now catches blocked URI schemes (`javascript:`,
   `vbscript:`, `data:`) that hide a TAB/LF/CR gap inside the scheme name — e.g. `java&#9;script:` in an
   `xlink:href`, which a browser strips back to `javascript:` before executing. The SVG scanner is the

@@ -43,7 +43,17 @@ module CamaleonCms
     # "/" counts as a tag delimiter, so <script/src="..."> cannot evade the check.
     BLOCKED_ELEMENT_PATTERN = %r{</?(#{Regexp.union(BLOCKED_ELEMENTS).source})[\s/>]}i
 
-    BLOCKED_SCHEMES = %w[javascript vbscript data].freeze
+    # Script schemes are dangerous in any URI position.
+    SCRIPT_SCHEMES = %w[javascript vbscript].freeze
+
+    # A browser interprets a data: URI by its media type, so data:image/png;base64,... is an inert
+    # bitmap (Inkscape/Figma embed rasters this way and such files must upload), while data:text/html
+    # and data:image/svg+xml carry active content. These raster media types are therefore allowed;
+    # every other data: URI is blocked.
+    DATA_URI_SAFE_MEDIA = %w[
+      image/png image/gif image/jpeg image/jpg image/webp image/bmp image/avif
+      image/x-icon image/vnd.microsoft.icon
+    ].freeze
 
     # Characters the URL parser strips from inside a scheme ("jav<TAB>ascript:" executes as
     # javascript:). blocked_scheme_in? deletes these before matching, so the pattern itself stays a
@@ -51,7 +61,20 @@ module CamaleonCms
     # backtracked into seconds of CPU on adversarial near-miss input. Deliberately not all of \s: a
     # space is not stripped, so "Sample data : 42" stays prose, never a working URI.
     SCHEME_GAP_CHARS = "\t\n\r"
-    BLOCKED_SCHEME_PATTERN = /(?:#{Regexp.union(BLOCKED_SCHEMES).source}):/i
+
+    # An allowlisted raster media type ending at a data-URI delimiter (;/,), a markup boundary
+    # (whitespace/quote/>/)), or end of input -- so "image/pngx" is not mistaken for "image/png".
+    DATA_URI_SAFE_MEDIA_PATTERN = /(?:#{Regexp.union(DATA_URI_SAFE_MEDIA).source})(?=[;,\s"'>)]|\z)/i
+
+    # javascript:/vbscript: are always blocked. data: is blocked only when it is a functional data URI
+    # -- a media type, or a bare ;/, delimiter -- that is NOT an allowlisted raster image; prose that
+    # merely contains "...data:" has no such continuation and is left alone. Gaps are deleted by
+    # blocked_scheme_in? before this matches, so the scheme and media type are written contiguously.
+    BLOCKED_SCHEME_PATTERN = Regexp.new(
+      "(?:#{Regexp.union(SCRIPT_SCHEMES).source}):" \
+      "|data:(?!#{DATA_URI_SAFE_MEDIA_PATTERN.source})(?:[a-z0-9.+-]+/[a-z0-9.+-]+|[;,])",
+      Regexp::IGNORECASE
+    )
 
     SUSPICIOUS_PATTERNS = [
       UNSAFE_EVENT_PATTERN,

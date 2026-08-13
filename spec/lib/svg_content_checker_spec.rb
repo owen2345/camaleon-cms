@@ -236,6 +236,41 @@ RSpec.describe CamaleonCms::SvgContentChecker do
     end
   end
 
+  # A browser interprets a data: URI by its media type: data:image/png is an inert bitmap (Inkscape/
+  # Figma embed rasters this way and such files must upload), while data:text/html and
+  # data:image/svg+xml carry active content and must stay rejected.
+  describe 'data: URI scheme handling' do
+    def svg(inner)
+      %(<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">#{inner}</svg>)
+    end
+
+    it 'accepts an embedded raster image (data:image/png)' do
+      expect(described_class.unsafe?(svg('<image xlink:href="data:image/png;base64,iVBORw0KGgo="/>'))).to be(false)
+    end
+
+    it 'accepts other raster media types' do
+      %w[image/jpeg image/gif image/webp image/x-icon].each do |mime|
+        expect(described_class.unsafe?(svg(%(<image xlink:href="data:#{mime};base64,AAAA"/>)))).to be(false)
+      end
+    end
+
+    it 'still rejects data:text/html' do
+      expect(described_class.unsafe?(svg('<a href="data:text/html,alert(1)">y</a>'))).to be(true)
+    end
+
+    it 'still rejects data:image/svg+xml, which can carry script' do
+      expect(described_class.unsafe?(svg('<a href="data:image/svg+xml,payload">y</a>'))).to be(true)
+    end
+
+    it 'still rejects a bare data: URI' do
+      expect(described_class.unsafe?(svg('<a href="data:,payload">y</a>'))).to be(true)
+    end
+
+    it 'accepts prose whose text merely contains a scheme-like word' do
+      expect(described_class.unsafe?(svg('<text>Metadata: 42 rows of data</text>'))).to be(false)
+    end
+  end
+
   # These five are valid SVG and none executes script on its own, but an uploaded SVG is served
   # inline from the site origin. ContentSecurity::BLOCKED_ELEMENTS already refuses all of them in
   # every non-SVG upload; refusing them here stops the two rulesets disagreeing about the same

@@ -29,7 +29,10 @@ The system SHALL reject SVG uploads that contain attributes starting with `on` (
 ### Requirement: Reject SVGs with javascript: URIs
 
 The system SHALL reject SVG uploads whose `href`/`xlink:href` attributes, or whose serialized markup,
-contain a blocked URI scheme (`javascript:`, `vbscript:`, `data:`). Detection SHALL tolerate the same
+contain a blocked URI scheme. `javascript:` and `vbscript:` are always blocked; a `data:` URI is
+blocked unless its media type is an allowlisted raster image (for example `image/png`, `image/gif`,
+`image/jpeg`, `image/webp`), so an embedded raster bitmap is accepted while `data:text/html`,
+`data:image/svg+xml`, and a bare `data:,…` are rejected. Detection SHALL tolerate the same
 TAB/LF/CR gaps *inside* the scheme that a browser strips before executing the URI (for example
 `java&#9;script:`), matching `ContentSecurity::BLOCKED_SCHEME_PATTERN` used for non-SVG uploads.
 Entity-encoded variants are caught because XML parsing resolves entities into the decoded attribute
@@ -60,6 +63,14 @@ the same bytes.
 #### Scenario: A safe SVG whose text merely contains a colon is accepted
 - **WHEN** a user uploads an SVG whose text is prose containing a colon but no blocked scheme (for example `Fig 1: a red circle`)
 - **THEN** the system stores the file normally
+
+#### Scenario: An embedded raster image is accepted
+- **WHEN** a user uploads an SVG containing `<image xlink:href="data:image/png;base64,…"/>` (an embedded raster bitmap)
+- **THEN** the system stores the file normally
+
+#### Scenario: A dangerous data: URI is rejected
+- **WHEN** a user uploads an SVG containing a `data:text/html` or `data:image/svg+xml` URI (which can carry active content)
+- **THEN** the system returns an error and does NOT store the file
 
 ### Requirement: Reject SVGs with DTD entities containing dangerous content
 
