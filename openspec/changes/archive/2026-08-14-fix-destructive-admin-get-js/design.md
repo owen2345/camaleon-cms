@@ -25,8 +25,8 @@ controller regardless of verb).
 
 The delete link's click handler already owns the request (`$.get`), so it converts in place to
 `$.ajax({type: 'DELETE'})` — jquery_ujs (in the admin manifest) registers an ajax prefilter that
-attaches X-CSRF-Token to every non-GET same-origin request, the established idiom documented at
-`_post.js`'s test-email note. No `data-method` on the link: the handler would still fire and a
+attaches X-CSRF-Token to every same-origin request (it gates on crossDomain, not the verb), so the
+DELETE carries the token. No `data-method` on the link: the handler would still fire and a
 second ujs-driven request would double-delete. `url_for` route generation is verb-agnostic, so the
 `_menu_items.html.erb` link keeps generating the same href for the now-DELETE route.
 

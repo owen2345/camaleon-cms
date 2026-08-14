@@ -111,8 +111,9 @@ $(function() {
       return false
 
     showLoading()
-    // Security (audit M6): the route is DELETE-only -- jquery_ujs' ajax prefilter attaches the
-    // X-CSRF-Token header to any non-GET request (the test-email note in _post.js).
+    // Security (audit M6): the route is DELETE-only. jquery_ujs' ajax prefilter attaches the
+    // X-CSRF-Token header to every same-origin request (it gates on crossDomain, not the verb), so
+    // this DELETE carries the token.
     $.ajax({
       url: link.attr('href'),
       type: 'DELETE',
