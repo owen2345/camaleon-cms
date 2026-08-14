@@ -143,10 +143,11 @@ window.cama_init_media = function(mediaPanel) {
   const customFileData = function() {
     const r = window.cama_media_get_custom_params()
     r.skip_auto_crop = true
-    // Security (audit M7): the uploadFile plugin posts multipart data outside jquery_ujs' ajax
+    // Security (audit M7): the uploadFile plugin posts multipart data outside the UJS ajax
     // prefilter, so the CSRF token must ride as a form field (media#upload no longer skips it).
-    // jquery_ujs loads before this uploader, so reuse its helper rather than re-reading the meta tag.
-    r.authenticity_token = $.rails.csrfToken()
+    // Read the meta tag directly so this does not depend on any UJS library being loaded.
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]')
+    r.authenticity_token = csrfMeta && csrfMeta.getAttribute('content')
     return r
   }
 
