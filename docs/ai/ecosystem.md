@@ -101,7 +101,13 @@ Changes that look free from inside this repository and are not:
   `plugins/toggle` appears only in two plugins' localhost integration tests; the review round's
   `load_data` narrowing (theme sample-data import, GET dropped) has **no caller in core or any
   surveyed repository**. The theme generator now scaffolds the logout `button_to`, so newly
-  generated themes start on the POST pattern.
+  generated themes start on the POST pattern. Follow-up 2's JS-coupled trio is equally invisible:
+  nav-menu `item_delete` (now DELETE) is called only by core's own `nav_menu.js`; the legacy
+  `widgets`/`widget_delete` routes (GET dropped, non-GET verbs and helpers kept) point at a
+  controller deleted in 2015, and no surveyed repository references them or supplies the missing
+  controller; `media/crop` (now POST-only) has **no caller anywhere** — the admin cropper POSTs
+  `crop_url` to `media#actions`, and the only crop-adjacent ecosystem file is `camaleon_website`'s
+  vendored `croppic.js`, never instantiated (and it would POST).
 
 ## APIs with no surveyed consumer
 

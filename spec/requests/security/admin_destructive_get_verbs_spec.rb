@@ -13,6 +13,10 @@ include CamaleonCms::PluginsHelper
 # renders not-found) and, decisively, performs no state change. Logout answers a GET with a
 # confirmation page instead -- frontend themes across the ecosystem link that path -- and ends the
 # session only on POST.
+#
+# Follow-up 2 converts the JS-coupled surface the first pass deferred: the nav-menu item delete
+# (DELETE; the admin JS sends a token-bearing ajax), the legacy appearances widgets delete routes
+# (GET dropped), and media crop (POST-only; `via: :all` admitted every verb, GET and HEAD included).
 RSpec.describe 'Security: destructive admin actions are not reachable over GET (M6)', type: :request do
   init_site
 
@@ -153,6 +157,124 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
 
       expect(recognized).to include(controller: 'camaleon_cms/admin/appearances/themes',
                                     action: 'load_data')
+    end
+  end
+
+  describe 'nav menu item delete (destroys a menu item)' do
+    let(:nav_menu) { current_site.nav_menus.first }
+    let!(:menu_item) { nav_menu.append_menu_item(label: 'A link', type: 'external', link: 'http://example.com') }
+    let(:path) { "/admin/appearances/nav_menus/#{nav_menu.id}/item_delete/#{menu_item.id}" }
+
+    it 'performs no state change over GET' do
+      get path
+
+      expect(current_site.nav_menu_items.where(id: menu_item.id)).to exist
+    end
+
+    it 'destroys the item over DELETE' do
+      delete path
+
+      expect(response).to have_http_status(:ok)
+      expect(current_site.nav_menu_items.where(id: menu_item.id)).not_to exist
+    end
+  end
+
+  # Security (audit M6): the examples above run with forgery protection off (the test default), so
+  # they pin the verb routing but not that the converted DELETE is actually CSRF-protected. With
+  # protection on, a token-less DELETE must be rejected -- the endpoint is no longer CSRF-exempt as
+  # the old GET was -- and a DELETE carrying the page's csrf-token meta (exactly what jquery_ujs
+  # replays onto every same-origin ajax) must still delete. This is the standing guard for the token
+  # half of the conversion: it fails if the endpoint stops enforcing CSRF or stops accepting the meta
+  # token (e.g. jquery_ujs or the admin layout's csrf meta is dropped).
+  describe 'nav menu item delete under CSRF enforcement' do
+    around do |example|
+      original = ActionController::Base.allow_forgery_protection
+      ActionController::Base.allow_forgery_protection = true
+      example.run
+    ensure
+      ActionController::Base.allow_forgery_protection = original
+    end
+
+    let(:nav_menu) { current_site.nav_menus.first }
+    let!(:menu_item) { nav_menu.append_menu_item(label: 'A link', type: 'external', link: 'http://example.com') }
+    let(:path) { "/admin/appearances/nav_menus/#{nav_menu.id}/item_delete/#{menu_item.id}" }
+
+    # The masked token the admin layout renders into its csrf-token meta -- the same token jquery_ujs
+    # reads and replays as X-CSRF-Token on every non-cross-origin ajax.
+    def page_csrf_token
+      get '/admin/appearances/nav_menus'
+      response.body[/name="csrf-token"\s+content="([^"]+)"/, 1]
+    end
+
+    it 'rejects a token-less DELETE and destroys nothing' do
+      expect { delete path }.to raise_error(ActionController::InvalidAuthenticityToken)
+      expect(current_site.nav_menu_items.where(id: menu_item.id)).to exist
+    end
+
+    it 'accepts a DELETE carrying the page csrf token' do
+      token = page_csrf_token
+      expect(token).to be_present
+
+      delete path, headers: { 'X-CSRF-Token' => token }
+
+      expect(response).to have_http_status(:ok)
+      expect(current_site.nav_menu_items.where(id: menu_item.id)).not_to exist
+    end
+  end
+
+  describe 'legacy appearances widgets delete routes' do
+    # The widgets/widget_delete matches predate the widgets/{main,sidebar,assign} controllers --
+    # their target controller was deleted in 2015 (34159392), so nothing executes (even
+    # recognize_path refuses the missing constant, on every verb) -- but the routes still admitted
+    # GET for delete-shaped endpoints. Pin the fact where the audit spec enforces it, on the loaded
+    # route table: the delete surface admits no CSRF-exempt verb, while the non-GET verbs keep the
+    # paths and helpers routable for any external binding.
+    let(:delete_surface) do
+      Rails.application.routes.routes.select do |route|
+        route.defaults[:controller] == 'camaleon_cms/admin/appearances' &&
+          %w[widgets widget_delete].include?(route.defaults[:action].to_s)
+      end
+    end
+
+    it 'exposes the widgets delete surface only over its non-GET verbs' do
+      pairs = delete_surface.map { |route| [route.defaults[:action].to_s, route.verb.to_s] }
+
+      # contain_exactly fails on an empty surface, on any GET/HEAD-bearing verb string (e.g. the old
+      # 'GET|DELETE' or the '' of via: :all), and on a reintroduced duplicate GET route -- so this
+      # single assertion carries both "no CSRF-exempt verb" and "the non-GET verbs stay routable".
+      expect(pairs).to contain_exactly(%w[widgets DELETE], %w[widget_delete PATCH])
+    end
+  end
+
+  describe 'media crop (writes a cropped upload and can rewrite a user avatar)' do
+    before do
+      allow_any_instance_of(CamaleonCms::Admin::MediaController)
+        .to receive(:cama_tmp_upload).and_return(file_path: '/tmp/test.jpg')
+      allow_any_instance_of(CamaleonCms::Admin::MediaController)
+        .to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
+      allow_any_instance_of(CamaleonCms::Admin::MediaController)
+        .to receive(:upload_file).and_return('url' => '/uploads/cropped.jpg')
+      admin_user.set_meta('avatar', '/uploads/existing.jpg')
+    end
+
+    # set_meta/get_meta memoize per instance (cama_fetch_cache), which reload does not clear, so
+    # read through a fresh record -- an instance-cached read would mask the controller's write and
+    # turn the GET example into a false green.
+    def stored_avatar
+      CamaleonCms::User.find(admin_user.id).get_meta('avatar')
+    end
+
+    it 'performs no state change over GET' do
+      get '/admin/media/crop', params: { cp_img_path: 'photo.jpg', saved_avatar: admin_user.id }
+
+      expect(stored_avatar).to eq('/uploads/existing.jpg')
+    end
+
+    it 'crops and saves over POST' do
+      post '/admin/media/crop', params: { cp_img_path: 'photo.jpg', saved_avatar: admin_user.id }
+
+      expect(response.body).to eq('/uploads/cropped.jpg')
+      expect(stored_avatar).to eq('/uploads/cropped.jpg')
     end
   end
 

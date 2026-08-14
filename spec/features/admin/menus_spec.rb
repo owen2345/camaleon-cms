@@ -33,11 +33,23 @@ RSpec.describe 'the Menus', :js do
     end
 
     within '#menus_list' do
-      all('.delete_menu_item').each do |btn|
-        btn.click
+      # Delete every menu item. Rows are pruned by the ajax success handler only, so an empty list
+      # proves the server accepted the DELETE (M6: the route no longer answers GET). Trigger each
+      # delete via execute_script (as the single-delete specs do): Capybara's own .click can return
+      # before the handler's confirm() dialog has rendered, so confirm_dialog would find no alert and
+      # the delete would be silently cancelled, stranding a .dd-item; execute_script blocks until the
+      # confirm() opens. jQuery.active can likewise read 0 in the window before the DELETE ajax
+      # starts, so wait for the row count to actually drop (a positive signal) rather than trusting
+      # wait_for_ajax alone, and re-query each pass so a removed row is never reclicked.
+      while all('.delete_menu_item', minimum: 0).any?
+        rows = all('.dd-item').count
+        page.execute_script("jQuery('#menus_list .delete_menu_item').first().click()")
         confirm_dialog
+        expect(page).to have_css('.dd-item', maximum: rows - 1, wait: 10)
         wait_for_ajax
       end
+
+      expect(page).to have_no_css('.dd-item')
     end
   end
 

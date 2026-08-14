@@ -84,9 +84,13 @@ Rails.application.routes.draw do
         end
 
         namespace :appearances do
-          match 'widgets', via: %i[get delete]
+          # Security (audit M6): this legacy widgets surface predates the widgets/{main,sidebar,
+          # assign} controllers (its target controller is long gone) but still declared delete
+          # endpoints reachable over CSRF-exempt GET. The non-GET verbs keep the paths and helpers
+          # routable for any external binding.
+          delete 'widgets'
           match 'widgets_save', via: %i[post patch]
-          match 'widget_delete', via: %i[get patch]
+          patch 'widget_delete'
           get 'render_form'
 
           resources :themes, only: [:index] do
@@ -99,7 +103,9 @@ Rails.application.routes.draw do
             end
           end
           resources :nav_menus, except: :show do
-            get 'item_delete/:id' => :delete_menu_item, as: :delete_menu_item
+            # Security (audit M6): destroys a menu item -- must not ride a CSRF-exempt GET. The
+            # admin JS sends a token-bearing DELETE (nav_menu.js).
+            delete 'item_delete/:id' => :delete_menu_item, as: :delete_menu_item
             get 'custom_settings/:id' => :custom_settings, as: :custom_settings
             post 'save_custom_settings/:id' => :save_custom_settings, as: :save_custom_settings
             get 'edit_menu_item/:id' => :edit_menu_item, as: :edit_menu_item
@@ -135,7 +141,9 @@ Rails.application.routes.draw do
         end
 
         resources :media, only: [:index] do
-          match 'crop', via: :all, on: :collection
+          # Security (audit M6): crop writes a cropped upload and can rewrite a user avatar
+          # (saved_avatar); via: :all admitted every verb, the CSRF-exempt GET/HEAD included.
+          post 'crop', on: :collection
           get 'ajax', on: :collection
           get 'download_private_file', on: :collection
           post 'upload', on: :collection

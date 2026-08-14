@@ -19,7 +19,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       allow_any_instance_of(described_class).to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
       allow_any_instance_of(described_class).to receive(:upload_file).and_return('url' => '/uploads/cropped.jpg')
       sign_in_as(admin_user, site: current_site)
-      get '/admin/media/crop'
+      post '/admin/media/crop'
 
       expect(response.status).not_to eq(403)
     end
@@ -33,7 +33,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       )
       sign_in_as(admin_user, site: current_site)
 
-      get '/admin/media/crop'
+      post '/admin/media/crop'
 
       expect(response.media_type).to eq('text/plain')
       expect(response.body).to eq('/uploads/<script>alert(1)</script>.jpg')
@@ -48,10 +48,12 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       admin_user.set_meta('avatar', '/uploads/existing.jpg')
       sign_in_as(admin_user, site: current_site)
 
-      get '/admin/media/crop', params: { saved_avatar: admin_user.id }
+      post '/admin/media/crop', params: { saved_avatar: admin_user.id }
 
       expect(response.body).to eq('Potentially malicious content found!')
-      expect(admin_user.reload.get_meta('avatar')).to eq('/uploads/existing.jpg')
+      # Read through a fresh record: set_meta/get_meta memoize per instance and reload does not clear
+      # that cache, so admin_user.reload.get_meta would echo the setup value and never see a bad write.
+      expect(CamaleonCms::User.find(admin_user.id).get_meta('avatar')).to eq('/uploads/existing.jpg')
     end
   end
 
@@ -66,14 +68,14 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
     end
 
     it 'rejects crop with cp_img_path set to a server absolute path' do
-      get '/admin/media/crop', params: { cp_img_path: '/etc/passwd' }
+      post '/admin/media/crop', params: { cp_img_path: '/etc/passwd' }
 
       expect(response.body).to include('Invalid file path')
     end
 
     it 'rejects crop with path traversal after allowed prefix' do
       allowed = Rails.public_path.to_s
-      get '/admin/media/crop', params: { cp_img_path: "#{allowed}/../../../etc/passwd" }
+      post '/admin/media/crop', params: { cp_img_path: "#{allowed}/../../../etc/passwd" }
 
       expect(response.body).to include('Invalid file path')
     end
@@ -103,7 +105,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
           .with(url, formats: nil, name: nil).and_return(file_path: '/tmp/test.jpg')
         # rubocop:enable RSpec/StubbedMock
 
-        get '/admin/media/crop', params: { cp_img_path: url }
+        post '/admin/media/crop', params: { cp_img_path: url }
 
         expect(response).to have_http_status(:ok)
       end
@@ -111,7 +113,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       it 'rejects a same-site URL with path traversal using the real validator message' do
         expect_any_instance_of(described_class).not_to receive(:cama_tmp_upload)
 
-        get '/admin/media/crop', params: { cp_img_path: 'http://localhost:3000/../config/secrets.yml' }
+        post '/admin/media/crop', params: { cp_img_path: 'http://localhost:3000/../config/secrets.yml' }
 
         expect(response.body).to include(I18n.t('camaleon_cms.admin.validate.path_traversal'))
       end
@@ -124,7 +126,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       it 'rejects a URL resolving to a link-local address (no live DNS needed for an IP literal)' do
         expect_any_instance_of(described_class).not_to receive(:cama_tmp_upload)
 
-        get '/admin/media/crop', params: { cp_img_path: 'http://169.254.169.254/latest/meta-data/' }
+        post '/admin/media/crop', params: { cp_img_path: 'http://169.254.169.254/latest/meta-data/' }
 
         expect(response.body).to include(I18n.t('camaleon_cms.admin.validate.no_link_local_net_requests'))
       end
@@ -137,7 +139,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
         .with('/etc/passwd', formats: nil, name: nil).and_return(error: 'Invalid file path')
       # rubocop:enable RSpec/StubbedMock
 
-      get '/admin/media/crop', params: { cp_img_path: '/etc/passwd' }
+      post '/admin/media/crop', params: { cp_img_path: '/etc/passwd' }
 
       expect(response.body).to include('Invalid file path')
     end
@@ -150,7 +152,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
         .with(data_uri, formats: nil, name: nil).and_return(file_path: '/tmp/test.png')
       # rubocop:enable RSpec/StubbedMock
 
-      get '/admin/media/crop', params: { cp_img_path: data_uri }
+      post '/admin/media/crop', params: { cp_img_path: data_uri }
     end
 
     it 'forwards name and formats to cama_tmp_upload so data: URIs work as in crop_url' do
@@ -160,7 +162,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
         .with(data_uri, formats: 'png', name: 'avatar.png').and_return(file_path: '/tmp/test.png')
       # rubocop:enable RSpec/StubbedMock
 
-      get '/admin/media/crop', params: { cp_img_path: data_uri, name: 'avatar.png', formats: 'png' }
+      post '/admin/media/crop', params: { cp_img_path: data_uri, name: 'avatar.png', formats: 'png' }
     end
   end
 
@@ -173,7 +175,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
     it 'blocks access and redirects' do
       allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_raise(CanCan::AccessDenied)
       sign_in_as(limited_user, site: current_site)
-      get '/admin/media/crop'
+      post '/admin/media/crop'
 
       expect(response).to redirect_to(/admin/)
       expect(flash[:error]).to be_present

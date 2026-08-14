@@ -111,9 +111,20 @@ $(function() {
       return false
 
     showLoading()
-    $.get(link.attr('href'), function() {
-      link.closest('.dd-item').remove()
-      hideLoading()
+    // Security (audit M6): the route is DELETE-only. jquery_ujs' ajax prefilter attaches the
+    // X-CSRF-Token header to every same-origin request (it gates on crossDomain, not the verb), so
+    // this DELETE carries the token.
+    $.ajax({
+      url: link.attr('href'),
+      type: 'DELETE',
+      success() {
+        link.closest('.dd-item').remove()
+      },
+      // Hide the overlay on every outcome -- a failed DELETE (e.g. a stale CSRF token after the
+      // session rotated) would otherwise leave the full-screen spinner blocking the admin.
+      complete() {
+        hideLoading()
+      }
     })
     return false
   })

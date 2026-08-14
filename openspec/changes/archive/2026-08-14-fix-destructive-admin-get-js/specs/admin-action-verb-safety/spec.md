@@ -1,12 +1,7 @@
-# admin-action-verb-safety Specification
+# admin-action-verb-safety
 
-## Purpose
-A state-changing admin endpoint must not be reachable over GET or HEAD, because Rails' CSRF
-protection exempts those verbs entirely: a forged image tag or link must never trash content, flip
-moderation, toggle plugins, send mail, switch a session to another user, or end a session. Actions
-act only over verbs the CSRF check covers, and every first-party caller carries that verb with the
-CSRF token.
-## Requirements
+## MODIFIED Requirements
+
 ### Requirement: State-changing admin endpoints act only over CSRF-protected verbs
 
 The posts `trash` and `restore`, comments `toggle_status`, plugins `toggle` and `upgrade`, users
@@ -49,36 +44,3 @@ links where jquery_ujs is loaded, `button_to` forms or token-bearing ajax otherw
   loaded route set and fails when a mutation-named core admin route admits GET/HEAD outside a
   documented allowlist — after this change only the deliberate logout / back_to_parent
   confirmation pair — so the invariant is enforced rather than only asserted per endpoint
-
-### Requirement: Logout ends a session only over POST, with a GET confirmation
-
-The logout path SHALL remain routable over GET for link compatibility, but a GET (or HEAD) SHALL
-NOT end the session: it SHALL render the confirmation page whose submission POSTs the logout.
-The confirmation SHALL carry the `full` (impersonation), `return_to` (vetted by the safe-redirect
-check at logout), and `locale` parameters through to the POST, treating each as a scalar — a
-hash-shaped parameter is dropped, never an error — and its Cancel link SHALL honor the vetted
-`return_to`. The GET SHALL answer with the HTML confirmation regardless of requested format, and a
-POST whose CSRF token has gone stale SHALL re-render the confirmation rather than fail. Only a POST
-SHALL invoke the session-ending logic (keyed on `request.post?`, since HEAD is CSRF-exempt like
-GET). An impersonating session's logout SHALL keep redirecting to the re-authentication flow, and a
-request that is no longer authenticated SHALL still receive the logout cleanup (stale impersonation
-stash removal) on any verb.
-
-#### Scenario: Forced-logout CSRF is dead
-
-- **WHEN** a signed-in user's browser is made to GET the logout path
-- **THEN** the session remains signed in and a confirmation page is shown
-
-#### Scenario: POST ends the session
-
-- **WHEN** the user submits the logout over POST (header button, confirmation page, or a theme's
-  button_to)
-- **THEN** the session ends as before
-
-#### Scenario: Impersonation and de-authenticated cleanup are unchanged
-
-- **WHEN** an impersonating session requests logout without `full=1`, or a request with a stale
-  session and no valid authentication requests logout on any verb
-- **THEN** the former is redirected to the re-authentication flow and the latter still has its
-  session leftovers cleared
-
