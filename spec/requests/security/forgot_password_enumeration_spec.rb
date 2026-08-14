@@ -48,4 +48,16 @@ RSpec.describe 'Security: forgot-password enumeration and mail-bomb (M13)', type
       expect(sent).to eq(1)
     end
   end
+
+  # Audit M15: the neutral notice key lives only in en.yml, so under a non-English admin locale the
+  # controller must fall back to English via the same expression rather than emit "translation missing".
+  describe 'neutral notice localization' do
+    it 'resolves through the English fallback under a locale that lacks the key' do
+      key = 'camaleon_cms.admin.login.message.password_reset_requested'
+      message = I18n.t(key, locale: :es, default: I18n.t(key, locale: :en))
+
+      expect(message).to eq(I18n.t(key, locale: :en))
+      expect(message).not_to include('translation missing')
+    end
+  end
 end

@@ -171,7 +171,10 @@ module CamaleonCms
         # endpoint mail-bomb a known address. Send at most one reset email per cooldown window, and
         # always answer with the same neutral message whether or not the email matched an account.
         send_password_reset_email(@user) if @user.present? && cama_password_reset_email_allowed?(@user)
-        flash[:notice] = t('camaleon_cms.admin.login.message.password_reset_requested')
+        # Only en.yml carries this key while the process locale follows the current admin/site
+        # language (audit M15) -- fall back to English rather than emit "translation missing".
+        flash[:notice] = t('camaleon_cms.admin.login.message.password_reset_requested',
+                           default: t('camaleon_cms.admin.login.message.password_reset_requested', locale: :en))
         redirect_to cama_admin_login_path
       end
 
