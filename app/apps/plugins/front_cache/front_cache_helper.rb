@@ -33,7 +33,11 @@ module Plugins
         elsif params[:action] == 'post' && params[:controller] == 'camaleon_cms/frontend' && params[:draft_id].blank?
           if (post = current_site.the_posts.find_by_slug(params[:slug])) # rubocop:disable Rails/DynamicFindBy
             post = post.decorate
-            if post.can_visit? && post.visibility != 'private'
+            # Never cache non-public posts. A password-protected post is unlocked per session (visibility_post
+            # audit M2), but the page cache is keyed on the URL alone, so caching an unlocked render would
+            # serve the protected body to visitors who never entered the password. Private posts are already
+            # excluded; password posts must be too.
+            if post.can_visit? && !%w[private password].include?(post.visibility)
               if (@caches[:skip_posts] || []).include?(post.id.to_s)
                 @_plugin_do_cache = false
               elsif (@caches[:post_types] || []).include?(post.post_type_id.to_s) ||
