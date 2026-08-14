@@ -137,24 +137,22 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
   end
 
   describe 'theme load_data (clears and re-imports post types, nav menus, sliders)' do
-    # load_data delegates to the export_content plugin's importer, so pin the security-relevant fact:
-    # whether the request reaches the action at all (GET must not).
-    it 'does not reach the import action over GET' do
-      expect_any_instance_of(CamaleonCms::Admin::Appearances::ThemesController)
-        .not_to receive(:load_data)
+    # load_data delegates to the export_content plugin's importer, so pin the security-relevant fact
+    # at the routing layer (no controller/template/plugin execution): GET must not reach the action,
+    # POST must. Reproduces against the old routes, where GET recognized as load_data.
+    let(:path) { '/admin/appearances/themes/load_data' }
 
-      get '/admin/appearances/themes/load_data'
+    it 'does not route a GET to the import action' do
+      recognized = Rails.application.routes.recognize_path(path, method: :get)
 
-      expect(response).not_to have_http_status(:redirect) # the admin action would render results
+      expect(recognized).not_to include(action: 'load_data')
     end
 
-    it 'reaches the import action over POST' do
-      allow_any_instance_of(CamaleonCms::Admin::Appearances::ThemesController)
-        .to receive(:load_data) { |controller| controller.head :ok }
+    it 'routes a POST to the import action' do
+      recognized = Rails.application.routes.recognize_path(path, method: :post)
 
-      post '/admin/appearances/themes/load_data'
-
-      expect(response).to have_http_status(:ok)
+      expect(recognized).to include(controller: 'camaleon_cms/admin/appearances/themes',
+                                    action: 'load_data')
     end
   end
 
