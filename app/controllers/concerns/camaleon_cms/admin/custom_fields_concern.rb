@@ -28,6 +28,11 @@ module CamaleonCms
         permitted.reject { |_group, fields| fields.blank? }
       end
 
+      # The allow-list covers fields registered directly under object_class. For a post
+      # ('PostType_Post') this intentionally spans only the post type's own groups -- not per-post
+      # ('Post') or category-inherited ('Category_Post') groups the edit form also renders. It
+      # matches PostsController#save_post_with_fields, so the main post save and drafts confine field
+      # writes identically; values for those sibling scopes are deliberately not written this way.
       def cama_custom_field_allowed_slugs(object_class)
         CamaleonCms::CustomField.where(
           parent_id: CamaleonCms::CustomField.where(object_class: object_class).select(:id),
