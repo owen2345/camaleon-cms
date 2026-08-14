@@ -53,9 +53,11 @@ module CamaleonCms
     def cama_rand_str(len = 6)
       alphabets = [('A'..'Z').to_a].flatten!
       alphanumerics = [('A'..'Z').to_a, ('1'..'9').to_a].flatten!
-      str = alphabets[rand(alphabets.size)]
+      # Security (audit Low): draw from a CSPRNG. Kernel#rand is a Mersenne-Twister PRNG whose future
+      # output is predictable from observed samples, so a seen challenge weakened the next one.
+      str = alphabets[SecureRandom.random_number(alphabets.size)]
       (len.to_i - 1).times do
-        str << alphanumerics[rand(alphanumerics.size)]
+        str << alphanumerics[SecureRandom.random_number(alphanumerics.size)]
       end
       str
     end
