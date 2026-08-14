@@ -313,15 +313,24 @@ module CamaleonCms
       # Check trust only once we know there is content to gate, so unchanged/blank updates never pay for
       # building an Ability (a role-meta DB lookup) on every save.
       return if trusted_for_unfiltered_html?
-      return unless CamaleonCms::UnsafeMarkup.unsafe_html?(
+
+      # Distinguish an over-size refusal from a disallowed-markup refusal (audit M16): an over-size
+      # value can be perfectly clean, so the markup message (scripts/handlers/embeds) would misdescribe
+      # it and send the author hunting for markup that is not there.
+      if CamaleonCms::UnsafeMarkup.too_large?(content)
+        errors.add(:content, cama_content_rejection_message('content_too_large'))
+      elsif CamaleonCms::UnsafeMarkup.unsafe_html?(
         content, tags: CONTENT_ALLOWED_TAGS, attributes: CONTENT_ALLOWED_ATTRIBUTES
       )
+        errors.add(:content, cama_content_rejection_message('content_rejected'))
+      end
+    end
 
-      # Only en.yml carries this key while the process locale follows the current admin/site
-      # language — fall back to English rather than emit "translation missing".
-      errors.add(:content, I18n.t('camaleon_cms.admin.post.message.content_rejected',
-                                  default: I18n.t('camaleon_cms.admin.post.message.content_rejected',
-                                                  locale: :en)))
+    # Only en.yml carries these keys while the process locale follows the current admin/site
+    # language — fall back to English rather than emit "translation missing".
+    def cama_content_rejection_message(key)
+      full_key = "camaleon_cms.admin.post.message.#{key}"
+      I18n.t(full_key, default: I18n.t(full_key, locale: :en))
     end
 
     # calculate a post order when it is empty

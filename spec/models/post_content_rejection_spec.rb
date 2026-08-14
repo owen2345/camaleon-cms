@@ -110,6 +110,43 @@ RSpec.describe CamaleonCms::Post, type: :model do
 
         expect(post.update(title: 'New title')).to be true
       end
+
+      # Audit M1: markup smuggled through an attribute value (entity-encoded so no literal "<" is
+      # stored) still reaches the DOM through a client-side data-html sink -- refuse it.
+      it 'refuses entity-encoded markup smuggled through a data attribute' do
+        post = build_post('<a rel="popover" data-toggle="popover" data-html="true" ' \
+                          'data-content="&lt;img src=x onerror=alert(1)&gt;">x</a>', owner: contributor)
+
+        expect(post).not_to be_valid
+        expect(post.errors[:content].join).to include('not allowed for your role')
+      end
+
+      it 'stores a benign data-* attribute unchanged' do
+        content = '<span data-toggle="tooltip" aria-label="hi" title="plain">hi</span>'
+        post = build_post(content, owner: contributor)
+
+        expect(post.save).to be true
+        expect(post.reload.content).to eq(content)
+      end
+
+      # Audit M16: the size ceiling now refuses with a size-specific message (an over-size value may
+      # be perfectly clean), and a long clean post that the old 64 KiB cap refused now saves.
+      it 'refuses over-size content with a size-specific message, not the markup message' do
+        post = build_post("<p>#{'a' * (CamaleonCms::UnsafeMarkup::MAX_GATED_VALUE_BYTES + 10)}</p>",
+                          owner: contributor)
+
+        expect(post).not_to be_valid
+        expect(post.errors[:content].join).to include('too large')
+        expect(post.errors[:content].join).not_to include('scripts')
+      end
+
+      it 'stores a long clean post that exceeds the old 64 KiB cap' do
+        content = "<p>#{'word ' * 20_000}</p>"
+        post = build_post(content, owner: contributor)
+
+        expect(content.bytesize).to be > 64 * 1024
+        expect(post.save).to be true
+      end
     end
 
     context 'with translation markers and lookalikes in untrusted content' do
