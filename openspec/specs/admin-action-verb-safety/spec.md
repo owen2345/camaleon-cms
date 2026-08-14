@@ -39,11 +39,16 @@ token-bearing ajax otherwise.
 ### Requirement: Logout ends a session only over POST, with a GET confirmation
 
 The logout path SHALL remain routable over GET for link compatibility, but a GET (or HEAD) SHALL
-NOT end the session: it SHALL render a confirmation page whose submission POSTs the logout,
-carrying the `full` parameter through. Only a POST SHALL invoke the session-ending logic (keyed on
-`request.post?`, since HEAD is CSRF-exempt like GET). An impersonating session's logout SHALL keep
-redirecting to the re-authentication flow, and a request that is no longer authenticated SHALL
-still receive the logout cleanup (stale impersonation stash removal) on any verb.
+NOT end the session: it SHALL render the confirmation page whose submission POSTs the logout.
+The confirmation SHALL carry the `full` (impersonation), `return_to` (vetted by the safe-redirect
+check at logout), and `locale` parameters through to the POST, treating each as a scalar — a
+hash-shaped parameter is dropped, never an error — and its Cancel link SHALL honor the vetted
+`return_to`. The GET SHALL answer with the HTML confirmation regardless of requested format, and a
+POST whose CSRF token has gone stale SHALL re-render the confirmation rather than fail. Only a POST
+SHALL invoke the session-ending logic (keyed on `request.post?`, since HEAD is CSRF-exempt like
+GET). An impersonating session's logout SHALL keep redirecting to the re-authentication flow, and a
+request that is no longer authenticated SHALL still receive the logout cleanup (stale impersonation
+stash removal) on any verb.
 
 #### Scenario: Forced-logout CSRF is dead
 
