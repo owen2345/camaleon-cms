@@ -237,6 +237,13 @@ module CamaleonCms
       return if datas.blank?
 
       ActiveRecord::Base.transaction do
+        # A value identical to one already stored is not newly authored, so it must not be re-gated on
+        # an unrelated edit (audit M8): the admin form round-trips every value and this method
+        # delete/recreates them all, so without this skip a single pre-gate dangerous value would fail
+        # the whole save and brick every later edit -- the trap Post#reject_untrusted_dangerous_content
+        # avoids via content_changed?. Snapshot the stored pairs before clearing; skip the gate for any
+        # recreated value that matches one.
+        previously_stored = custom_field_values.pluck(:custom_field_slug, :value).to_set
         custom_field_values.delete_all
         datas.each_value do |fields_data|
           fields_data.each do |field_key, values|
@@ -250,12 +257,12 @@ module CamaleonCms
                 values[:values]
               end
             ).each do |value|
-              custom_field_values.create!(
-                {
-                  custom_field_id: values[:id], custom_field_slug: field_key,
-                  value: fix_meta_value(value), term_order: order_value += 1, group_number: values[:group_number] || 0
-                }
+              row = custom_field_values.new(
+                custom_field_id: values[:id], custom_field_slug: field_key,
+                value: fix_meta_value(value), term_order: order_value += 1, group_number: values[:group_number] || 0
               )
+              row.unfiltered_value! if previously_stored.include?([field_key.to_s, row.value])
+              row.save!
             end
           end
         end
@@ -265,8 +272,10 @@ module CamaleonCms
     # Update the value for the field with slug _key
     # Sample: my_posy.update_field_value('sub_title', 'Test Sub Title')
     def update_field_value(key, value = nil, group_number = 0)
+      # Route through validations so the scan-and-reject gate applies (audit M5): update_column
+      # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
       custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
-                         &.update_column(:value, value) # rubocop:disable Rails/SkipsModelValidations
+                         &.update(value: value)
     rescue StandardError
       nil
     end
@@ -309,17 +318,22 @@ module CamaleonCms
 
       raise ArgumentError, "There is no custom field configured for #{key}" if args[:field_id].blank?
 
-      if args[:clear]
-        custom_field_values.where({ custom_field_slug: key, group_number: args[:group_number] }).delete_all
-      end
       v = {
         custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),
         term_order: args[:order], group_number: args[:group_number]
       }
-      if value.is_a?(Array)
-        value.each { |val| custom_field_values.create!(v.merge({ value: fix_meta_value(val) })) }
-      else
-        custom_field_values.create!(v)
+      # Atomic (audit M7): clear the previous value and write the new one in one transaction, so a
+      # value the scan-and-reject gate refuses (create! -> RecordInvalid) rolls the delete back and
+      # the previously stored value survives instead of being destroyed.
+      ActiveRecord::Base.transaction do
+        if args[:clear]
+          custom_field_values.where({ custom_field_slug: key, group_number: args[:group_number] }).delete_all
+        end
+        if value.is_a?(Array)
+          value.each { |val| custom_field_values.create!(v.merge({ value: fix_meta_value(val) })) }
+        else
+          custom_field_values.create!(v)
+        end
       end
     end
 

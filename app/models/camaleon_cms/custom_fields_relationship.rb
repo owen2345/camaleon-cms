@@ -21,6 +21,7 @@ module CamaleonCms
     MARKUP_FIELD_KEYS = %w[editor].freeze
     JSON_MARKUP_FIELD_KEYS = %w[field_attrs].freeze
     URI_FIELD_KEYS = %w[url image audio video file].freeze
+    GATED_FIELD_KEYS = (MARKUP_FIELD_KEYS + JSON_MARKUP_FIELD_KEYS + URI_FIELD_KEYS).freeze
 
     validate :reject_untrusted_dangerous_value
 
@@ -37,53 +38,91 @@ module CamaleonCms
       self
     end
 
+    class << self
+      # Whether this field type's value is emitted into a markup or URL position (so it is gated).
+      def gated_field_key?(field_key)
+        GATED_FIELD_KEYS.include?(field_key.to_s)
+      end
+
+      # Why the save-time gate would refuse this value for the field type, or nil if it passes:
+      # :too_large (over the parse ceiling), :html (disallowed markup), :uri (script-capable URL).
+      # Ignores author trust, so the validation (trust-gated) and the scan_content rake task (which
+      # reports every stored row) share one dispatch and cannot drift.
+      def gate_rejection_reason(field_key, value)
+        return if value.blank?
+
+        key = field_key.to_s
+        if MARKUP_FIELD_KEYS.include?(key)
+          markup_rejection_reason(value)
+        elsif JSON_MARKUP_FIELD_KEYS.include?(key)
+          return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
+
+          :html if json_member_values(value).any? { |member| markup_unsafe?(member) }
+        elsif URI_FIELD_KEYS.include?(key)
+          :uri if CamaleonCms::UnsafeMarkup.dangerous_uri?(value)
+        end
+      end
+
+      private
+
+      def markup_rejection_reason(value)
+        return :too_large if CamaleonCms::UnsafeMarkup.too_large?(value)
+
+        :html if markup_unsafe?(value)
+      end
+
+      def markup_unsafe?(value)
+        CamaleonCms::UnsafeMarkup.unsafe_html?(
+          value, tags: CamaleonCms::Post::CONTENT_ALLOWED_TAGS,
+                 attributes: CamaleonCms::Post::CONTENT_ALLOWED_ATTRIBUTES
+        )
+      end
+
+      # A field_attrs value stores JSON whose string members render verbatim. Scan every DECODED
+      # member (Hash, Array or nested), not the stored bytes: the Rails JSON encoder unicode-escapes
+      # angle brackets (storing the escape instead of a literal bracket), so a byte-level scan of the
+      # stored string would pass markup that JSON.parse restores at render. Unparseable values are
+      # scanned as-is (fail closed on whatever the renderer would fall back to).
+      def json_member_values(value)
+        flatten_json_strings(JSON.parse(value))
+      rescue JSON::ParserError
+        [value.to_s]
+      end
+
+      def flatten_json_strings(node)
+        case node
+        when Hash then node.values.flat_map { |member| flatten_json_strings(member) }
+        when Array then node.flat_map { |member| flatten_json_strings(member) }
+        else [node.to_s]
+        end
+      end
+    end
+
     private
 
-    # Security (audit M17): the frontend renders an `editor` value verbatim and URI-type values
-    # into URL positions, so a value an untrusted author may not write is refused — never
-    # rewritten. Stored values therefore always equal authored values.
+    # Security (audit M17): the frontend renders an `editor`/`field_attrs` value verbatim and
+    # URI-type values into URL positions, so a value an untrusted author may not write is refused --
+    # never rewritten. Stored values therefore always equal authored values. The scan/dispatch lives
+    # in the class-level gate_rejection_reason so the scan_content rake task reuses it verbatim.
     def reject_untrusted_dangerous_value
       return if value.blank? || unfiltered_value
 
       field_key = custom_field&.options&.[](:field_key).to_s
-      if MARKUP_FIELD_KEYS.include?(field_key)
-        return if author_trusted_for_unfiltered_value?
-        return unless CamaleonCms::UnsafeMarkup.unsafe_html?(
-          value, tags: CamaleonCms::Post::CONTENT_ALLOWED_TAGS,
-                 attributes: CamaleonCms::Post::CONTENT_ALLOWED_ATTRIBUTES
-        )
+      return unless self.class.gated_field_key?(field_key)
+      return if author_trusted_for_unfiltered_value?
 
-        errors.add(:base, cama_rejection_message('value_rejected_html'))
-      elsif JSON_MARKUP_FIELD_KEYS.include?(field_key)
-        return if author_trusted_for_unfiltered_value?
+      reason = self.class.gate_rejection_reason(field_key, value)
+      return unless reason
 
-        unsafe_member = json_member_values(value).any? do |member|
-          CamaleonCms::UnsafeMarkup.unsafe_html?(
-            member, tags: CamaleonCms::Post::CONTENT_ALLOWED_TAGS,
-                    attributes: CamaleonCms::Post::CONTENT_ALLOWED_ATTRIBUTES
-          )
-        end
-        return unless unsafe_member
-
-        errors.add(:base, cama_rejection_message('value_rejected_html'))
-      elsif URI_FIELD_KEYS.include?(field_key)
-        return if author_trusted_for_unfiltered_value?
-        return unless CamaleonCms::UnsafeMarkup.dangerous_uri?(value)
-
-        errors.add(:base, cama_rejection_message('value_rejected_uri'))
-      end
+      errors.add(:base, cama_rejection_message(rejection_message_key(reason)))
     end
 
-    # A field_attrs value stores a JSON {attr:, value:} pair whose members render verbatim. Scan
-    # the DECODED members, not the stored bytes: the Rails JSON encoder unicode-escapes angle
-    # brackets (escape_html_entities_in_json stores \u003c instead of a literal <), so a
-    # byte-level scan of the stored string would pass markup that JSON.parse restores at render.
-    # Unparseable values are scanned as-is (fail closed on whatever the renderer would fall back to).
-    def json_member_values(value)
-      parsed = JSON.parse(value)
-      parsed.is_a?(Hash) ? parsed.values.map(&:to_s) : [value.to_s]
-    rescue JSON::ParserError
-      [value.to_s]
+    def rejection_message_key(reason)
+      case reason
+      when :too_large then 'value_too_large'
+      when :uri then 'value_rejected_uri'
+      else 'value_rejected_html'
+      end
     end
 
     # The message must never be swallowed by a missing translation: only en.yml carries these keys,

@@ -139,6 +139,26 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
         .to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
     end
 
+    # Audit M3: a field_attrs value need not be a top-level object -- a JSON array (or nested)
+    # smuggling unicode-escaped script must be scanned member-by-member, not by raw bytes.
+    it 'refuses a JSON-array value hiding unicode-escaped script' do
+      as_user(contributor)
+      arr = [{ attr: 'a', value: script }].to_json
+      expect(arr).not_to include('<script')
+
+      expect { post.set_field_value('specs', arr) }
+        .to raise_error(ActiveRecord::RecordInvalid, /not allowed/)
+    end
+
+    it 'stores a benign JSON-array value unchanged' do
+      as_user(contributor)
+      arr = [{ attr: 'a', value: 'plain' }, { attr: 'b', value: 'Deep <em>red</em>' }].to_json
+
+      post.set_field_value('specs', arr)
+
+      expect(post.get_field_value('specs')).to eq(arr)
+    end
+
     it 'stores a benign pair unchanged' do
       as_user(contributor)
       pair = { attr: 'Color', value: 'Deep <em>red</em>' }.to_json
@@ -155,6 +175,54 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       post.set_field_value('specs', pair)
 
       expect(post.get_field_value('specs')).to eq(pair)
+    end
+  end
+
+  describe 'persistence semantics of the gate' do
+    it 'keeps the previously stored value when a new value is refused (M7 atomicity)' do
+      as_user(contributor)
+      post.set_field_value('body', '<p>keep me</p>')
+
+      expect { post.set_field_value('body', script) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(post.reload.get_field_value('body')).to eq('<p>keep me</p>')
+    end
+
+    it 'refuses a dangerous value written through update_field_value (M5)' do
+      as_user(contributor)
+      post.set_field_value('body', '<p>ok</p>')
+
+      post.update_field_value('body', script)
+
+      expect(post.reload.get_field_value('body')).to eq('<p>ok</p>')
+    end
+
+    # Audit M8: the admin form round-trips every value and set_field_values delete/recreates them
+    # all, so an unchanged pre-gate value must not fail the whole save on an unrelated edit.
+    it 'does not re-gate an unchanged legacy value on an unrelated edit (M8)' do
+      post.set_field_value('body', '<p>ok</p>')
+      post.custom_field_values.find_by(custom_field_slug: 'body')
+          .update_column(:value, script) # rubocop:disable Rails/SkipsModelValidations -- simulate pre-gate data
+
+      as_user(contributor)
+      datas = { '0' => {
+        'body' => { id: post.get_field_object('body').id, values: { '0' => script } },
+        'note' => { id: post.get_field_object('note').id, values: { '0' => 'edited note' } }
+      } }
+
+      expect { post.set_field_values(datas) }.not_to raise_error
+      expect(post.get_field_value('note')).to eq('edited note')
+      expect(post.get_field_value('body')).to eq(script)
+    end
+
+    it 'still refuses a legacy value that the author actually changes (M8 does not weaken the gate)' do
+      post.set_field_value('body', '<p>ok</p>')
+
+      as_user(contributor)
+      datas = { '0' => {
+        'body' => { id: post.get_field_object('body').id, values: { '0' => script } }
+      } }
+
+      expect { post.set_field_values(datas) }.to raise_error(ActiveRecord::RecordInvalid)
     end
   end
 end

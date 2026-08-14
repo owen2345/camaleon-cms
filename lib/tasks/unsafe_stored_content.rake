@@ -23,23 +23,12 @@ namespace :camaleon_cms do
                     'content would be rejected'
       end
 
-      markup_keys = CamaleonCms::CustomFieldsRelationship::MARKUP_FIELD_KEYS
-      uri_keys = CamaleonCms::CustomFieldsRelationship::URI_FIELD_KEYS
+      # Reuse the model's own gate dispatch (which covers editor, field_attrs and URI field types),
+      # so the scan can never diverge from what the save-time validation would refuse.
       CamaleonCms::CustomFieldsRelationship.unscoped.where.not(value: [nil, ''])
                                            .includes(:custom_field).find_each do |row|
         field_key = row.custom_field&.options&.[](:field_key).to_s
-        unsafe =
-          if markup_keys.include?(field_key)
-            CamaleonCms::UnsafeMarkup.unsafe_html?(
-              row.value, tags: CamaleonCms::Post::CONTENT_ALLOWED_TAGS,
-                         attributes: CamaleonCms::Post::CONTENT_ALLOWED_ATTRIBUTES
-            )
-          elsif uri_keys.include?(field_key)
-            CamaleonCms::UnsafeMarkup.dangerous_uri?(row.value)
-          else
-            false
-          end
-        next unless unsafe
+        next unless CamaleonCms::CustomFieldsRelationship.gate_rejection_reason(field_key, row.value)
 
         flagged += 1
         report.call "✗ Custom-field value id=#{row.id} field='#{row.custom_field_slug}' " \
