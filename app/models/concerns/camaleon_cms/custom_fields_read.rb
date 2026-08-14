@@ -249,6 +249,15 @@ module CamaleonCms
           fields_data.each do |field_key, values|
             next if values[:values].blank?
 
+            # Resolve the field id from the trusted slug, not the client-supplied values[:id]: a
+            # forged custom_field_id points the row at a different field definition, and the
+            # scan-and-reject gate keys off custom_field.options[:field_key] -- so a forged non-gated
+            # id would slip markup past the gate for a gated (editor/uri/field_attrs) slug. Fall back
+            # to values[:id] only when the slug names no field here (trusted/internal callers that
+            # pass slugs outside this object's registered groups; permitted browser payloads never do).
+            field_id = get_field_object(field_key)&.id || fallback_field_id_for(field_key) || values[:id]
+            group_number = [values[:group_number].to_i, 0].max
+
             order_value = -1
             (
               if values[:values].is_a?(Hash) || values[:values].is_a?(ActionController::Parameters)
@@ -258,8 +267,8 @@ module CamaleonCms
               end
             ).each do |value|
               row = custom_field_values.new(
-                custom_field_id: values[:id], custom_field_slug: field_key,
-                value: fix_meta_value(value), term_order: order_value += 1, group_number: values[:group_number] || 0
+                custom_field_id: field_id, custom_field_slug: field_key,
+                value: fix_meta_value(value), term_order: order_value += 1, group_number: group_number
               )
               row.unfiltered_value! if previously_stored.include?([field_key.to_s, row.value])
               row.save!
