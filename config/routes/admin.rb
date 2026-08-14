@@ -99,7 +99,9 @@ Rails.application.routes.draw do
             end
           end
           resources :nav_menus, except: :show do
-            get 'item_delete/:id' => :delete_menu_item, as: :delete_menu_item
+            # Security (audit M6): destroys a menu item -- must not ride a CSRF-exempt GET. The
+            # admin JS sends a token-bearing DELETE (nav_menu.js).
+            delete 'item_delete/:id' => :delete_menu_item, as: :delete_menu_item
             get 'custom_settings/:id' => :custom_settings, as: :custom_settings
             post 'save_custom_settings/:id' => :save_custom_settings, as: :save_custom_settings
             get 'edit_menu_item/:id' => :edit_menu_item, as: :edit_menu_item

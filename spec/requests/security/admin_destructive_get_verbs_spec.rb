@@ -13,6 +13,10 @@ include CamaleonCms::PluginsHelper
 # renders not-found) and, decisively, performs no state change. Logout answers a GET with a
 # confirmation page instead -- frontend themes across the ecosystem link that path -- and ends the
 # session only on POST.
+#
+# Follow-up 2 converts the JS-coupled surface the first pass deferred: the nav-menu item delete
+# (DELETE; the admin JS sends a token-bearing ajax), the legacy appearances widgets delete routes
+# (GET dropped), and media crop (POST-only; `via: :all` admitted every verb, GET and HEAD included).
 RSpec.describe 'Security: destructive admin actions are not reachable over GET (M6)', type: :request do
   init_site
 
@@ -153,6 +157,25 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
 
       expect(recognized).to include(controller: 'camaleon_cms/admin/appearances/themes',
                                     action: 'load_data')
+    end
+  end
+
+  describe 'nav menu item delete (destroys a menu item)' do
+    let(:nav_menu) { current_site.nav_menus.first }
+    let!(:menu_item) { nav_menu.append_menu_item(label: 'A link', type: 'external', link: 'http://example.com') }
+    let(:path) { "/admin/appearances/nav_menus/#{nav_menu.id}/item_delete/#{menu_item.id}" }
+
+    it 'performs no state change over GET' do
+      get path
+
+      expect(current_site.nav_menu_items.where(id: menu_item.id)).to exist
+    end
+
+    it 'destroys the item over DELETE' do
+      delete path
+
+      expect(response).to have_http_status(:ok)
+      expect(current_site.nav_menu_items.where(id: menu_item.id)).not_to exist
     end
   end
 

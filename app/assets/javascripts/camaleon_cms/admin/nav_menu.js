@@ -111,9 +111,15 @@ $(function() {
       return false
 
     showLoading()
-    $.get(link.attr('href'), function() {
-      link.closest('.dd-item').remove()
-      hideLoading()
+    // Security (audit M6): the route is DELETE-only -- jquery_ujs' ajax prefilter attaches the
+    // X-CSRF-Token header to any non-GET request (the test-email note in _post.js).
+    $.ajax({
+      url: link.attr('href'),
+      type: 'DELETE',
+      success() {
+        link.closest('.dd-item').remove()
+        hideLoading()
+      }
     })
     return false
   })

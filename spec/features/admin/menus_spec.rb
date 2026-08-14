@@ -38,6 +38,10 @@ RSpec.describe 'the Menus', :js do
         confirm_dialog
         wait_for_ajax
       end
+
+      # Rows are pruned by the ajax success handler only, so this proves the server accepted the
+      # DELETE (M6: the route no longer answers GET).
+      expect(page).to have_no_css('.dd-item')
     end
   end
 
