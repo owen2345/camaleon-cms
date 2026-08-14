@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Security fix:** The remaining destructive admin endpoints no longer answer GET (completing the
+  audit's M6): deleting a nav-menu item requires DELETE (the admin JS sends it with the CSRF token),
+  the legacy `appearances/widgets` delete routes no longer admit GET, and `media/crop` — previously
+  reachable over every verb — accepts only POST. A routing audit spec now enforces that no
+  mutation-named admin route answers GET/HEAD outside the deliberate logout confirmation pair.
+  [#1265](https://github.com/owen2345/camaleon-cms/pull/1265).
+  - **Notes for upgraders:** external scripts driving these three paths over GET stop working — send
+    DELETE/PATCH/POST with a CSRF token instead. The admin UI's own callers are already updated.
+
 - **Security fix:** Destructive admin actions no longer ride GET links, which Rails' CSRF protection
   exempts entirely: trashing/restoring posts, flipping comment moderation, toggling or upgrading
   plugins, impersonating a user, sending a test email, importing a theme's sample data, and logging

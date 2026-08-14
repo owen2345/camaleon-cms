@@ -27,14 +27,14 @@
 
 ## 4. Verification
 
-- [ ] 4.1 `bin/rubocop` on the touched files — no offenses (lint before specs)
-- [ ] 4.2 `bin/rspec` on the reproduction spec, the routing audit, `crop_spec.rb`, and the menus
-  `:js` feature spec — green
-- [ ] 4.3 `bin/brakeman --no-pager` — no new warnings
-- [ ] 4.4 `(cd spec/dummy && bin/rails zeitwerk:check)` — clean
+- [x] 4.1 `bin/rubocop` on the touched files — no offenses (lint before specs)
+- [x] 4.2 `bin/rspec` on the reproduction spec, the routing audit, `crop_spec.rb`, and the menus
+  `:js` feature spec — green (full suite green as well)
+- [x] 4.3 `bin/brakeman --no-pager` — no new warnings
+- [x] 4.4 `(cd spec/dummy && bin/rails zeitwerk:check)` — clean
 
 ## 5. Changelog and archive
 
-- [ ] 5.1 Add a `## Unreleased` **Security fix** entry once the PR number exists
-- [ ] 5.2 Archive the change on the branch before merge, committed as part of the PR
+- [x] 5.1 Add a `## Unreleased` **Security fix** entry once the PR number exists (#1265)
+- [x] 5.2 Archive the change on the branch before merge, committed as part of the PR
   (`docs/ai/workflows.md` Phase 4)
