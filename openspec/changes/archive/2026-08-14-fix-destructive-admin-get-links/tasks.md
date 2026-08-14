@@ -27,11 +27,11 @@
 
 - [x] 4.1 `bin/rubocop` on the touched files — no offenses (lint before specs)
 - [x] 4.2 `bin/rspec` on the reproduction spec and the eleven affected suites — green
-- [ ] 4.3 `bin/brakeman --no-pager` — no new warnings
-- [ ] 4.4 `(cd spec/dummy && bin/rails zeitwerk:check)` — clean
+- [x] 4.3 `bin/brakeman --no-pager` — no new warnings
+- [x] 4.4 `(cd spec/dummy && bin/rails zeitwerk:check)` — clean
 
 ## 5. Changelog and archive
 
 - [x] 5.1 Add a `## Unreleased` **Security fix** entry: destructive admin actions no longer ride GET
-- [ ] 5.2 Archive the change on the branch before merge, committed as part of the PR
+- [x] 5.2 Archive the change on the branch before merge, committed as part of the PR
   (`docs/ai/workflows.md` Phase 4)

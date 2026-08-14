@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Security fix:** Destructive admin actions no longer ride GET links, which Rails' CSRF protection
+  exempts entirely: trashing/restoring posts, flipping comment moderation, toggling or upgrading
+  plugins, impersonating a user, sending a test email, and logging out now act only over
+  PATCH/POST, carried by the admin UI's own links and forms.
+  [#1264](https://github.com/owen2345/camaleon-cms/pull/1264).
+  - **Notes for upgraders:** external links to the converted admin paths stop working over GET.
+    `GET /admin/logout` keeps working — it now shows a one-click confirmation page instead of
+    logging out directly, so themes that link it (including older ones) keep functioning.
+
 - **Security fix:** Post content from untrusted authors is now rejected on save when it contains
   disallowed HTML, instead of being silently sanitized. Under the project's security model untrusted
   input is refused, never rewritten: the save fails with a validation error naming the remedy, and
