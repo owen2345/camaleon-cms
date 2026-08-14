@@ -32,14 +32,19 @@ module CamaleonCms
     # save comment from a post
     def save_comment
       flash[:comment_submit] = {}
-      @post = current_site.posts.find_by(id: params[:post_id]).decorate
+      # Security (audit Low): this is a public endpoint. A post id naming no post used to reach
+      # `.decorate` on nil (500), and the anonymous branch indexed a missing post_comment param.
+      # Fail closed with a graceful error instead of a 500 an attacker can trigger at will.
+      @post = current_site.posts.find_by(id: params[:post_id])&.decorate
       user = cama_current_user
       comment_data = {}
-      unless @post.can_commented?
+      if @post.nil?
+        flash[:comment_submit][:error] = t('.post_not_found', default: 'Post not found')
+      elsif !@post.can_commented?
         flash[:comment_submit][:error] = t('.comments_not_enabled', default: 'This post can not be commented')
       end
 
-      post_comment = params[:post_comment]
+      post_comment = params[:post_comment] || {}
 
       if user.present?
         comment_data[:author] = user.fullname
@@ -85,7 +90,7 @@ module CamaleonCms
 
       return render(json: flash.discard(:comment_submit).to_hash) if params[:format] == 'json'
 
-      redirect_to(request.referer || @post.the_url(as_path: true))
+      redirect_to(request.referer || @post&.the_url(as_path: true) || '/')
     end
   end
 end
