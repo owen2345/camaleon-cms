@@ -117,6 +117,15 @@ Changes that look free from inside this repository and are not:
   store plugin and `florsan` are their own upload flows, not core's endpoint. Any external script
   that posted there without a token must now send one.
 
+- **`set_field_values` deriving `custom_field_id` from the slug** (review follow-up) touches a public
+  model API plugins may call directly. Each value row's `custom_field_id` now comes from the field
+  the submitted slug names, not the caller-supplied `id`. A plugin passing the browser payload shape
+  (`{group => {slug => {id:, values:}}}`) is unaffected — its `id` already matches the slug; only a
+  caller that deliberately paired a slug with a *different* field's id sees a change (it gets the
+  slug's field id). The plugin generator template now routes `field_options` through the same
+  `cama_permitted_field_options` allow-list core uses, so freshly generated plugins no longer ship
+  the pre-M8 unfiltered save.
+
 ## APIs with no surveyed consumer
 
 Safe to change on the engine's own merits, citing this file: `update_or_create` / `update_or_create!`

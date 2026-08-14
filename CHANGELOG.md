@@ -6,11 +6,17 @@
   verification (the multipart uploader now sends the token); draft custom-field options are confined
   to the post type's registered slugs like the main post save; the nav-menu reorder resolves its
   destination menu through the current site, so an item cannot be moved into another site's menu; and
-  the email-confirmation token is consumed on use, like the password-reset token.
+  the email-confirmation token is consumed on use, like the password-reset token. Review follow-ups
+  in the same PR harden the shared custom-field save path: `set_field_values` derives each value's
+  `custom_field_id` from the field slug (a forged id can no longer point a value at a different field
+  type to slip past the scan-and-reject gate), and the field-options permit ignores a non-hash
+  payload instead of raising.
   [#1266](https://github.com/owen2345/camaleon-cms/pull/1266).
   - **Notes for upgraders:** external scripts that POSTed to `/admin/media/upload` without a CSRF
     token stop working — send the `authenticity_token` field (or `X-CSRF-Token` header). First-party
     uploaders are updated.
+  - A submitted custom-field `id` that does not match its slug is ignored — the id now always comes
+    from the field the slug names.
 
 - **Security fix:** The remaining destructive admin endpoints no longer answer GET (completing the
   audit's M6): deleting a nav-menu item requires DELETE (the admin JS sends it with the CSRF token),
