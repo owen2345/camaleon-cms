@@ -35,6 +35,10 @@ links where jquery_ujs is loaded, `button_to` forms or token-bearing ajax otherw
   form (the nav-menu item delete)
 - **THEN** the handler sends the converted verb via ajax and jquery_ujs' prefilter attaches the
   CSRF token, so the action executes exactly as before the conversion
+- **AND** an executable spec exercises the endpoint with forgery protection enabled — a token-less
+  request is rejected and destroys nothing, while a request carrying the page's csrf-token meta (the
+  token jquery_ujs replays) still performs the action — so CSRF enforcement is verified rather than
+  assumed from the suite's disabled-forgery default
 
 #### Scenario: A new state-changing admin endpoint conforms
 

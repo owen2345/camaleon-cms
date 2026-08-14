@@ -28,7 +28,10 @@ The delete link's click handler already owns the request (`$.get`), so it conver
 attaches X-CSRF-Token to every same-origin request (it gates on crossDomain, not the verb), so the
 DELETE carries the token. No `data-method` on the link: the handler would still fire and a
 second ujs-driven request would double-delete. `url_for` route generation is verb-agnostic, so the
-`_menu_items.html.erb` link keeps generating the same href for the now-DELETE route.
+`_menu_items.html.erb` link keeps generating the same href for the now-DELETE route. The handler
+hides the loading overlay from a `complete` callback (not only `success`), so a failed DELETE — a
+stale-CSRF 422 that the exempt GET could never hit, a double-click 404, a 5xx — clears the
+full-screen spinner instead of stranding it (there is no global `ajaxError` hook to fall back on).
 
 ## D4. crop becomes POST-only
 
@@ -49,3 +52,11 @@ clear — an instance-cached read masked the crop write and turned the GET examp
 green, so the spec reads the avatar through a freshly-found record. The `:js` feature spec
 (`spec/features/admin/menus_spec.rb`) drives the converted nav-menu delete end-to-end through the
 real click handler.
+
+Post-review hardening (same PR): `crop_spec.rb`'s scan-reject assertion carried the same
+`reload`-masked meta read and gets the fresh-record fix too. And because the suite disables forgery
+protection by default, no example proved the converted DELETE is actually CSRF-protected — a dropped
+`jquery_ujs` require or admin-layout csrf meta would 422 every production delete while every spec
+stayed green. A dedicated describe enables `allow_forgery_protection` and pins both halves: a
+token-less DELETE raises `InvalidAuthenticityToken` and destroys nothing, and a DELETE carrying the
+page's csrf-token meta (what jquery_ujs replays) still deletes.

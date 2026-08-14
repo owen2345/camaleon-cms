@@ -38,3 +38,17 @@
 - [x] 5.1 Add a `## Unreleased` **Security fix** entry once the PR number exists (#1265)
 - [x] 5.2 Archive the change on the branch before merge, committed as part of the PR
   (`docs/ai/workflows.md` Phase 4)
+
+## 6. Review fixes (max-effort code review, same PR, one commit each)
+
+- [x] 6.1 `crop_spec.rb` scan-reject assertion reads the avatar through a fresh record — `reload`
+  does not clear the per-instance meta cache, so the old assertion could never fail
+- [x] 6.2 `nav_menu.js` hides the loading overlay from a `complete` callback, so a failed DELETE
+  (e.g. a stale-CSRF 422 the exempt GET could never hit) no longer strands the full-screen spinner
+- [x] 6.3 New `allow_forgery_protection`-on describe enforces the DELETE's CSRF protection
+  (token-less rejected and destroys nothing; csrf-meta-token accepted) — the token half was untested
+- [x] 6.4 Collapsed the two widgets route-table examples into one strictly-stronger assertion
+- [x] 6.5 Doc/comment accuracy: scoped the upgrader note to the two live paths, corrected the
+  jquery_ujs mechanism comment (crossDomain-gated) and its design.md D3 echo, dropped the stale
+  "seven" count from the audit-spec header, and recorded the executable CSRF enforcement in the
+  capability spec
