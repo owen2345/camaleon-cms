@@ -44,5 +44,19 @@ RSpec.describe CamaleonCms::Admin::SettingsController, type: :request do
         expect(response.content_type).to include('text/plain')
       end
     end
+
+    # Security (audit M6): test_email is POST-only, so the dialog that calls it must submit over POST
+    # (jquery_ujs' prefilter then attaches the CSRF token). A revert of the dialog to $.get would
+    # silently 404 against the converted route; a full :js spec of the modal is disproportionate for
+    # this one-line caller, so pin the rendered caller directly.
+    it 'wires the test-email dialog to $.post, not a CSRF-exempt GET' do
+      sign_in_as(admin_user, site: current_site)
+
+      get '/admin/settings/site'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("$.post(link.attr('href')")
+      expect(response.body).not_to include("$.get(link.attr('href')")
+    end
   end
 end

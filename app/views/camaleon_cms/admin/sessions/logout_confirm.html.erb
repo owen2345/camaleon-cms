@@ -9,15 +9,18 @@
     </p>
     <div class="row">
         <div class="col-xs-6">
-            <a href="<%= cama_admin_dashboard_path %>" class="btn btn-default btn-block btn-flat"><%= t('camaleon_cms.admin.button.cancel', default: 'Cancel') %></a>
+            <%# Cancel returns to the vetted return_to when a theme supplied one (see
+                #prepare_logout_confirmation), else the dashboard -- never blindly into the admin. %>
+            <a href="<%= @logout_cancel_url %>" class="btn btn-default btn-block btn-flat"><%= t('camaleon_cms.admin.button.cancel', default: 'Cancel') %></a>
         </div>
         <div class="col-xs-6">
-            <%# `full` (impersonation) and `return_to` (ecosystem themes link logout with a
-                return-to-site destination) are carried through to the POST; return_to is then
+            <%# `full` (impersonation), `return_to` (ecosystem themes link logout with a return-to-site
+                destination) and `locale` are carried through to the POST -- precomputed as scalars in
+                the controller so a hash-shaped param cannot crash url generation; return_to is then
                 vetted by cama_logout_user's safe-redirect check like on any logout. %>
             <%= button_to t('camaleon_cms.admin.logout.logout', default: 'Logout'),
-                          cama_admin_logout_path(full: params[:full].presence,
-                                                 return_to: params[:return_to].presence),
+                          cama_admin_logout_path(full: @logout_full, return_to: @logout_return_to,
+                                                 locale: @logout_locale),
                           method: :post, class: 'btn btn-danger btn-block btn-flat' %>
         </div>
     </div>

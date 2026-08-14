@@ -7,6 +7,16 @@ module CamaleonCms
       before_action :verificate_register_permission, only: [:register]
       layout 'camaleon_cms/login'
 
+      # Security (audit M6): logout acts only over POST, so a logout submitted with a stale CSRF token
+      # (a second tab that already reset the session, or a cached theme page) would otherwise render a
+      # raw 422 instead of ending the session. For logout alone, fall back to the GET confirmation so
+      # the user gets a fresh token and one extra click; every other action keeps the strict failure.
+      rescue_from ActionController::InvalidAuthenticityToken do |error|
+        raise error unless action_name == 'logout'
+
+        redirect_to cama_admin_logout_path
+      end
+
       # A precomputed bcrypt digest spent only to equalize login timing when the username does not exist,
       # so a missing username is not distinguishable from a wrong password by response time (audit finding
       # M14: username enumeration by login timing). Computed once at load, at this environment's cost.
@@ -90,7 +100,11 @@ module CamaleonCms
           # keyed on request.post?, not !request.get?, because Rails exempts HEAD from CSRF exactly
           # like GET. The GET renders a confirmation instead of 404ing: frontend themes across the
           # ecosystem link this path, and their visitors get one extra click, not a broken link.
-          render :logout_confirm
+          prepare_logout_confirmation
+          # Force the HTML template/layout: the confirmation is HTML-only, so a non-HTML GET (an ajax
+          # `/admin/logout.json`) renders the same confirmation instead of raising MissingTemplate (500),
+          # still leaving the session untouched.
+          render :logout_confirm, formats: [:html], content_type: 'text/html'
         end
       end
 
@@ -250,6 +264,18 @@ module CamaleonCms
       end
 
       private
+
+      # Data for the GET logout confirmation page (see #logout). Carries the caller's own logout
+      # parameters into the POST button, but only scalar values -- a hash-shaped ?full[x]= or
+      # ?return_to[x]= would otherwise crash URL generation with UnfilteredParameters (500). The
+      # Cancel destination is the vetted return_to when present (frontend themes link logout with a
+      # return-to-site URL) so cancelling goes back to the site, not into the admin panel.
+      def prepare_logout_confirmation
+        @logout_full = params[:full].presence if params[:full].is_a?(String)
+        @logout_return_to = params[:return_to] if params[:return_to].is_a?(String)
+        @logout_locale = params[:locale] if params[:locale].is_a?(String)
+        @logout_cancel_url = safe_redirect_url(@logout_return_to).presence || cama_admin_dashboard_path
+      end
 
       # Hard brute-force lockout (audit finding H1): once the per-IP failed-login counter reaches the
       # limit, refuse every attempt from that IP (renders the given template with 429) for the cooldown

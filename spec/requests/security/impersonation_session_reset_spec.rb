@@ -80,4 +80,18 @@ RSpec.describe 'Security: impersonation session reset (H6)', type: :request do
     post cama_admin_logout_path
     expect(session[:parent_auth_token]).to be_nil
   end
+
+  it 'clears the stashed parent token even when the de-authenticated request is a GET' do
+    login(admin, 'admin-pass-1')
+    post impersonate_cama_admin_user_path(target)
+    expect(session[:parent_auth_token]).to be_present
+
+    # The de-authenticated cleanup must run on ANY verb: a forged GET against a signed-out session
+    # ends nothing, but a stale impersonation stash must still be cleared (H6). The early
+    # `return cama_logout_user unless cama_sign_in?` applies regardless of verb -- pinned over GET so a
+    # future reorder that moves the guard below the request.post? branch cannot reopen H6 for GET.
+    cookies[:auth_token] = 'invalid'
+    get cama_admin_logout_path
+    expect(session[:parent_auth_token]).to be_nil
+  end
 end

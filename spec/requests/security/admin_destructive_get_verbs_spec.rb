@@ -78,25 +78,47 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
       expect(response).to redirect_to(action: :index)
       expect(current_site.plugins.active.pluck(:slug)).not_to include('attack')
     end
+
+    it 'performs no upgrade over GET' do
+      expect(PluginRoutes).not_to receive(:reload) # the upgrade action reloads routes; the no-op must not
+
+      get '/admin/plugins/attack/upgrade'
+
+      expect(response).not_to have_http_status(:redirect) # the admin action redirects; the no-op does not
+    end
+
+    it 'upgrades a plugin over POST' do
+      allow_any_instance_of(CamaleonCms::Admin::PluginsController)
+        .to receive(:plugin_upgrade).and_return(double(title: 'Attack', error: false))
+      expect(PluginRoutes).to receive(:reload)
+
+      post '/admin/plugins/attack/upgrade'
+
+      expect(response).to redirect_to(action: :index)
+    end
   end
 
   describe 'user impersonation' do
     let!(:target) { create(:user, site: current_site) }
 
+    # The auth cookie is stored as "<token>&<user_agent>&<ip>"; assert on the token the jar holds
+    # (the impersonation suites' auth_token_in_jar idiom) rather than scraping a rendered page.
+    def auth_token_in_jar
+      cookies[:auth_token].to_s.split('&').first
+    end
+
     it 'performs no session switch over GET' do
       get "/admin/users/#{target.id}/impersonate"
 
-      get '/admin/profile/edit'
-      expect(response.body).to include(admin_user.username)
-      expect(response.body).not_to include(">#{target.username}<")
+      expect(auth_token_in_jar).to eq(admin_user.auth_token)
+      expect(auth_token_in_jar).not_to eq(target.auth_token)
     end
 
     it 'switches the session over POST' do
       post "/admin/users/#{target.id}/impersonate"
-      follow_redirect!
 
-      get '/admin/profile/edit'
-      expect(response.body).to include(target.username)
+      expect(auth_token_in_jar).to eq(target.auth_token)
+      expect(auth_token_in_jar).not_to eq(admin_user.auth_token)
     end
   end
 
@@ -111,6 +133,28 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
       post '/admin/settings/test_email', params: { email: 'x@example.com' }
 
       expect(response).to have_http_status(:ok).or have_http_status(:bad_gateway)
+    end
+  end
+
+  describe 'theme load_data (clears and re-imports post types, nav menus, sliders)' do
+    # load_data delegates to the export_content plugin's importer, so pin the security-relevant fact:
+    # whether the request reaches the action at all (GET must not).
+    it 'does not reach the import action over GET' do
+      expect_any_instance_of(CamaleonCms::Admin::Appearances::ThemesController)
+        .not_to receive(:load_data)
+
+      get '/admin/appearances/themes/load_data'
+
+      expect(response).not_to have_http_status(:redirect) # the admin action would render results
+    end
+
+    it 'reaches the import action over POST' do
+      allow_any_instance_of(CamaleonCms::Admin::Appearances::ThemesController)
+        .to receive(:load_data) { |controller| controller.head :ok }
+
+      post '/admin/appearances/themes/load_data'
+
+      expect(response).to have_http_status(:ok)
     end
   end
 
@@ -139,6 +183,45 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
       get '/admin/logout', params: { return_to: 'http://www.example.com/somewhere' }
 
       expect(response.body).to include('return_to=http%3A%2F%2Fwww.example.com%2Fsomewhere')
+    end
+
+    # A multilingual theme may link logout with ?locale=; the confirmation POST must keep it so the
+    # 'Session Closed' flash is rendered in the visitor's language, not the site default.
+    it 'carries locale through the confirmation form' do
+      get '/admin/logout', params: { locale: 'en' }
+
+      expect(response.body).to include('locale=en')
+    end
+
+    # A crafted or mangled link can make either param arrive hash-shaped; carrying it straight into
+    # the path helper would raise UnfilteredParameters (500). The confirmation must still render.
+    it 'does not 500 when a param arrives hash-shaped' do
+      get '/admin/logout', params: { return_to: { evil: 'x' }, full: { evil: 'x' } }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('You are about to end your session')
+    end
+
+    # The confirmation is HTML-only; a non-HTML GET (an ajax /admin/logout.json) must render it rather
+    # than raise MissingTemplate (500), and must not end the session.
+    it 'renders the confirmation for a .json GET instead of 500' do
+      get '/admin/logout.json'
+
+      expect(response).to have_http_status(:ok)
+
+      get '/admin/profile/edit'
+      expect(response).to have_http_status(:ok) # still signed in
+    end
+
+    # Security (audit M6): a logout POST carrying a stale CSRF token (a second tab that already reset
+    # the session, or a cached page) must fall back to the confirmation, not a raw 422.
+    it 'redirects a stale-token POST back to the confirmation instead of raising' do
+      allow_any_instance_of(CamaleonCms::Admin::SessionsController)
+        .to receive(:verify_authenticity_token).and_raise(ActionController::InvalidAuthenticityToken)
+
+      post '/admin/logout'
+
+      expect(response).to redirect_to(cama_admin_logout_path)
     end
   end
 end

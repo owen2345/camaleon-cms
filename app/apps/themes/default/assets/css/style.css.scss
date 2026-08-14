@@ -3396,3 +3396,27 @@ footer.entry-meta {
 		color: #333;
 	}
 }
+
+/* Security (audit M6): the logout menu item is a button_to <form><button> (its POST carries the CSRF
+   token; the frontend loads no rails-ujs), so the `.nav-menu li a` rules above do not reach it.
+   Match it to the sibling dropdown links. */
+.nav-menu li form.button_to {
+	margin: 0;
+}
+.nav-menu li form.button_to > button {
+	background: transparent;
+	border: 0;
+	color: #fff;
+	cursor: pointer;
+	display: block;
+	font-size: 15px;
+	line-height: 1;
+	padding: 15px 20px;
+	text-align: left;
+	width: 200px;
+}
+.nav-menu li form.button_to > button:hover,
+.nav-menu li form.button_to > button:focus {
+	background-color: #db572f;
+	color: #fff;
+}

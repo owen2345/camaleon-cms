@@ -93,7 +93,9 @@ Rails.application.routes.draw do
             collection do
               get 'preview'
               # match "settings", via: [:get, :post, :patch]
-              match 'load_data', via: %i[get post patch]
+              # Security (audit M6): load_data clears and re-imports post types, nav menus and sliders
+              # -- a state change that must not ride a CSRF-exempt GET link.
+              match 'load_data', via: %i[post patch]
             end
           end
           resources :nav_menus, except: :show do

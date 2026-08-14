@@ -10,10 +10,11 @@ CSRF token.
 ### Requirement: State-changing admin endpoints act only over CSRF-protected verbs
 
 The posts `trash` and `restore`, comments `toggle_status`, plugins `toggle` and `upgrade`, users
-`impersonate`, and settings `test_email` endpoints SHALL be routed only over non-GET verbs (PATCH
-or POST per their semantics). A GET or HEAD request to those paths SHALL NOT match the admin route
-and SHALL perform no state change. First-party callers SHALL carry the verb and CSRF token —
-`data-method` links where jquery_ujs is loaded, `button_to` forms or token-bearing ajax otherwise.
+`impersonate`, settings `test_email`, and appearances themes `load_data` endpoints SHALL be routed
+only over non-GET verbs (PATCH or POST per their semantics). A GET or HEAD request to those paths
+SHALL NOT match the admin route and SHALL perform no state change. First-party callers SHALL carry
+the verb and CSRF token — `data-method` links where jquery_ujs is loaded, `button_to` forms or
+token-bearing ajax otherwise.
 
 #### Scenario: Forged GETs perform nothing
 
@@ -31,6 +32,9 @@ and SHALL perform no state change. First-party callers SHALL carry the verb and 
 - **WHEN** a change proposes an admin endpoint that creates, mutates, or destroys state
 - **THEN** it is routed only over verbs covered by the CSRF check, and its callers carry the verb;
   a GET route for it does not conform to this capability
+- **AND** an executable audit (`spec/routing/admin/state_changing_verb_audit_spec.rb`) walks the
+  loaded route set and fails when a mutation-named core admin route admits GET/HEAD outside a
+  documented allowlist, so the invariant is enforced rather than only asserted per endpoint
 
 ### Requirement: Logout ends a session only over POST, with a GET confirmation
 
