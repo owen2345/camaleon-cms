@@ -11,9 +11,11 @@
   - **Notes for upgraders:** a save that previously went through with markup stripped now fails with
     an error until the author removes the markup (or is granted the permission). Stored content is
     not rewritten; `rake camaleon_cms:security:scan_content` lists what would be refused today.
-    `data-*`/`aria-*` attributes are now accepted (previously silently stripped). The theme-DSL
-    helper `the_content` no longer sanitizes at render either — it emits stored content verbatim,
-    like the templates always did.
+    `data-*`/`aria-*` attributes are now accepted (previously silently stripped) — but a value that
+    decodes to markup is still refused, so a `data-html`-style sink cannot be fed through one. Content
+    beyond a generous size bound (a few MB) is refused with a distinct "too large" error. The
+    theme-DSL helper `the_content` no longer sanitizes at render either — it emits stored content
+    verbatim, like the templates always did.
 
 - **Security fix:** Unlocking a password-protected post now happens over POST with a session-side
   unlock and a constant-time comparison. The prompt used to submit over GET with a text-type input —
@@ -29,19 +31,25 @@
   visibility_post plugin gated only the post content, while `the_excerpt` — shown by listing pages,
   search results and every RSS feed — was still derived from the body and visible to anyone. A locked
   post's excerpt is now a neutral "This content is password protected." notice (translatable); titles
-  stay visible as before. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+  stay visible as before. Password-protected posts are also excluded from the front_cache page cache,
+  so an unlocked render is never stored under the shared URL key and served to another visitor.
+  [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
 
 - **Security fix:** The admin auth cookie is now `HttpOnly` and `Secure` (over SSL), and logging out
   rotates the server-side `auth_token`. Previously the cookie's bearer token was readable by JavaScript
   and sent in the clear, and a cookie copied before logout stayed valid. Because the token is per-user,
   logging out now ends the user's sessions on all devices.
   [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+  - **Notes for upgraders:** logging out ends the user's sessions on all devices (the token is
+    per-user); a full logout while impersonating leaves the impersonated user's own sessions alone.
+    Changing your own password re-issues the cookie with the same `HttpOnly`/`Secure` hardening.
 
 - **Security fix:** `field_attrs` custom-field values are now gated at save like editor values and
   rendered verbatim, closing a second stored-XSS path in the same partial as the `editor` fix. The
-  gate scans the decoded JSON members, so markup hidden by the encoder's unicode escaping is refused
-  like literal markup; nothing is sanitized or escaped away. A `field_attrs` field now also shows its
-  stored value (it previously repeated the attribute name).
+  gate scans the decoded members of any JSON shape (object or array), so markup hidden by the
+  encoder's unicode escaping is refused like literal markup; nothing is sanitized or escaped away. A
+  `field_attrs` field now also shows its stored value (it previously repeated the attribute name), and
+  renders nothing for a non-object JSON value instead of erroring.
   [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
 
 - **Security fix:** Dangerous custom-field values are now rejected on save instead of being stored.
@@ -52,8 +60,10 @@
   intact. Admins, and roles holding `post_content_unfiltered_html` for the post type, can store
   anything. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
   - **Notes for upgraders:** values stored before this gate are not rewritten — run
-    `rake camaleon_cms:security:scan_content` to list stored posts and field values that would fail
-    the gate today, and clean them up by hand.
+    `rake camaleon_cms:security:scan_content` to list stored posts and field values (editor,
+    `field_attrs` and URL types) that would fail the gate today, and clean them up by hand. Writing a
+    field value through `update_field_value` now applies the gate too, so a dangerous value is refused
+    there instead of stored.
 
 - **Security fix:** Passwords must now be at least 8 characters. The user model previously validated only
   presence and the 72-byte bcrypt maximum, so a one-character password was accepted on signup, change, or

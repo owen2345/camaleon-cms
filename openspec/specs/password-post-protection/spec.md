@@ -62,3 +62,16 @@ SHALL NOT unlock a post.
   this site's frontend)
 - **THEN** it responds 404 and no session marker is written
 
+### Requirement: Password-protected posts are excluded from page caching
+
+Because a password post is unlocked per session while the page cache is keyed on the URL alone, a
+password-protected post SHALL NOT be page-cached; otherwise an unlocked render would be stored under
+the shared URL key and replayed to visitors who never entered the password. The page cache SHALL
+exclude `password` visibility as it already excludes `private`.
+
+#### Scenario: An unlocked render is not cached for other visitors
+
+- **WHEN** the page-cache plugin evaluates whether to cache a `password`-visibility post
+- **THEN** it SHALL NOT cache it, so a later visitor without the session unlock never receives a
+  cached body
+

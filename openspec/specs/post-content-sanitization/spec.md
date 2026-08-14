@@ -59,7 +59,14 @@ The allowlist is unchanged from the sanitize era: the sanitizer default widened 
 structural, non-executable markup long-form content legitimately uses — table elements (`table`,
 `thead`, `tbody`, `tfoot`, `tr`, `td`, `th`, `caption`, `col`, `colgroup`), `figure`/`figcaption`,
 `u`, `s`, `hr`, and the attributes `id`, `style` (css-scrubbed), `target`, `rel`, `colspan`,
-`rowspan` — plus `data-*`/`aria-*` attributes admitted by shape (inert without script).
+`rowspan` — plus `data-*`/`aria-*` attributes admitted by shape.
+
+Admitting an attribute by shape SHALL NOT admit markup carried in its value: a value that decodes to
+a tag-open — entity-encoded so no literal `<` is stored, e.g. `data-content="&lt;img onerror=...&gt;"`
+— SHALL be refused, because a client-side `data-html` sink (Bootstrap tooltip/popover and the like)
+would inject it as HTML. The parse-size bound is generous (multiple megabytes); a value beyond it
+SHALL be refused with a size-specific error distinct from the markup error, since an over-size value
+may be perfectly clean.
 
 #### Scenario: Contributor saves post with script tag
 
@@ -102,6 +109,20 @@ structural, non-executable markup long-form content legitimately uses — table 
 
 - **WHEN** a contributor saves content containing `<!-- hidden -->` (not a translation marker)
 - **THEN** the save SHALL fail with a validation error on `content`
+
+#### Scenario: Markup smuggled through an attribute value is refused
+
+- **WHEN** a contributor saves content whose `data-*` (or an allowed attribute like `title`) value
+  decodes to markup, e.g. `<a data-html="true" data-content="&lt;img src=x onerror=alert(1)&gt;">x</a>`
+- **THEN** the save SHALL fail with a validation error on `content` — a benign `data-*` value with no
+  markup still saves
+
+#### Scenario: Over-size content is refused with a size-specific message
+
+- **WHEN** a contributor saves content beyond the parse-size bound
+- **THEN** the save SHALL fail with a size-specific error on `content`, not the disallowed-markup error
+- **AND WHEN** a long but clean post within the bound is saved
+- **THEN** the save SHALL succeed
 
 #### Scenario: Pre-gate stored content stays editable while untouched
 

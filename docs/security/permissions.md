@@ -50,14 +50,22 @@ The pieces that implement the rule:
 
 - **`CamaleonCms::UnsafeMarkup`** (`lib/camaleon_cms/unsafe_markup.rb`) is the shared detector for
   authored markup: one parse, safe-list scrub compared against the parse's own reserialization
-  (only genuine removals register), plus structural guards. It mirrors the cama_contact_form gate —
-  keep the two in parity. Scan the content **the renderer will emit**, not the stored encoding
-  (`CustomFieldsRelationship#json_member_values` decodes field_attrs JSON before scanning, because
-  the JSON encoder hides `<` behind unicode escapes).
+  (only genuine removals register), plus structural guards — markup the parser drops or leaves open,
+  a translation marker inside a tag, and markup smuggled through an attribute value (a value that
+  entity-decodes to a tag-open, which a client-side `data-html` sink would inject). It bounds value
+  size (an over-size value is refused, and callers report it with a size-specific message) and yields
+  a verdict for mis-encoded input rather than raising. It mirrors the cama_contact_form gate — keep
+  the two in parity. Scan the content **the renderer will emit**, not the stored encoding:
+  `CustomFieldsRelationship.gate_rejection_reason` decodes every member of a `field_attrs` value's
+  JSON (any shape — object, array, nested) before scanning, because the JSON encoder hides `<` behind
+  unicode escapes, and the same class-level dispatch backs the `scan_content` audit task so the two
+  cannot drift.
 - **Gates sit on models** (`Post#reject_untrusted_dangerous_content`,
   `CustomFieldsRelationship#reject_untrusted_dangerous_value`), so no controller path can skip
-  them. Positions the platform escapes by default (plain `<%= %>` output of non-markup values)
-  carry no gate — that is the platform's normal output encoding, not a remedy.
+  them; the admin post save wraps the parent and its field values in one transaction, so a refused
+  value rolls the whole save back rather than leaving a half-applied post. Positions the platform
+  escapes by default (plain `<%= %>` output of non-markup values) carry no gate — that is the
+  platform's normal output encoding, not a remedy.
 - **Trust and fail-closed follow the gating rule above**: admins always pass; non-admins pass
   through the dedicated permission (`post_content_unfiltered_html` for a post's content and its
   gated field values); no request context means the gate applies. Trusted server-side pipelines

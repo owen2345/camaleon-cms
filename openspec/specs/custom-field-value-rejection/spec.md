@@ -16,7 +16,10 @@ that stay open, translation markers inside tags), or values beyond the parse siz
 refused. For URI-type values (`url`, `image`, `audio`, `video`, `file`), a script-capable scheme
 (`javascript:`, `vbscript:`, non-raster `data:`) SHALL be refused. The value SHALL NOT be sanitized,
 escaped, or otherwise rewritten: it is stored exactly as written or not stored at all. Field types
-whose values render through escaping ERB as element content SHALL NOT be gated.
+whose values render through escaping ERB as element content SHALL NOT be gated. The gate SHALL apply
+on every value-write path (including `update_field_value`), not only the admin form. The same
+per-field-type dispatch SHALL back the `scan_content` audit task, so it reports exactly the stored
+values the gate would refuse (editor, `field_attrs`, and URI types).
 
 #### Scenario: Untrusted author's script editor value is refused
 
@@ -39,6 +42,11 @@ whose values render through escaping ERB as element content SHALL NOT be gated.
 
 - **WHEN** an untrusted author saves a `text_box` value containing markup
 - **THEN** the value is stored as written (its renderer escapes it as element content)
+
+#### Scenario: update_field_value routes through the gate
+
+- **WHEN** an untrusted author writes a dangerous value through `update_field_value`
+- **THEN** the gate refuses it and the value is not stored (the API SHALL NOT bypass validations)
 
 ### Requirement: Trusted authors and explicit pipelines bypass the gate
 
@@ -71,26 +79,34 @@ explicit opt-out for trusted server-side pipelines.
 - **WHEN** server-side code calls `unfiltered_value!` on the value row before saving
 - **THEN** the value is stored exactly as written regardless of context
 
-### Requirement: A refused value surfaces as an error, not a failure
+### Requirement: A refused value rolls the save back and surfaces as an error
 
-When a custom-field value is refused during an admin save, the response SHALL surface a flash error
-naming the field (the parent object's own save is unaffected); the refusal SHALL NOT produce an
-unhandled 500.
+An admin post save SHALL be atomic across the parent post and its metas, field values and options:
+they are written in one transaction, so a value the gate refuses rolls the parent save back with it —
+no half-applied post, and no orphan post on create. The response SHALL surface a flash error naming
+the field, and the refusal SHALL NOT produce an unhandled 500.
 
-#### Scenario: Posts controller surfaces the refusal
+#### Scenario: Posts controller surfaces the refusal atomically
 
 - **WHEN** an untrusted author submits a post update whose editor field value contains a script
-- **THEN** the response redirects back with a flash error naming the field, and the value is not
-  stored
+- **THEN** the response redirects back with a flash error naming the field, the value is not stored,
+  and the parent post's other changes in that submission are not persisted either
+
+#### Scenario: Value persistence does not destroy the prior value
+
+- **WHEN** an author's new value for a field is refused (through the single-value write path)
+- **THEN** the previously stored value for that field is unchanged
 
 ### Requirement: Field-attribute values are gated on their decoded members and rendered verbatim
 
-For `field_attrs` values — stored as a JSON pair whose members the frontend emits as markup — the
-system SHALL parse the stored JSON and apply the markup gate to each **decoded** member, so that
+For `field_attrs` values — stored as JSON whose string members the frontend emits as markup — the
+system SHALL parse the stored JSON and apply the markup gate to each **decoded** member of any JSON
+shape (object, array, or nested), so that
 markup hidden by JSON unicode-escaping (\u003c stored instead of a literal `<`) is refused exactly like literal markup;
 a value that does not parse SHALL be scanned as stored. Trust, fail-closed and opt-out semantics
-SHALL be those of the custom-field gate. The renderer SHALL emit the stored attribute name and
-value verbatim, and SHALL emit the pair's value (not the attribute name twice).
+SHALL be those of the custom-field gate. When the stored JSON is an object the renderer SHALL emit
+the stored attribute name and value verbatim (the pair's value, not the attribute name twice); a JSON
+value that is not an object (array or scalar) SHALL render nothing rather than raise.
 
 #### Scenario: Script in a pair member is refused regardless of byte encoding
 
@@ -114,4 +130,30 @@ value verbatim, and SHALL emit the pair's value (not the attribute name twice).
 
 - **WHEN** a stored pair `{attr: "Size", value: "XL"}` is rendered
 - **THEN** the output shows `Size` as the label and `XL` as the value (not the label twice)
+
+#### Scenario: Script hidden in a JSON-array member is refused
+
+- **WHEN** an untrusted author saves a field_attrs value that is a JSON array whose member carries a
+  unicode-escaped script
+- **THEN** the save is refused and no value row is stored
+
+#### Scenario: A non-object field_attrs value renders nothing
+
+- **WHEN** a stored field_attrs value is valid JSON but not an object (an array or scalar)
+- **THEN** the partial renders no pair and does not raise
+
+### Requirement: An unchanged pre-gate value does not block an unrelated edit
+
+When the admin form round-trips a post's field values (delete-and-recreate), a value identical to one
+already stored SHALL NOT be re-gated, so a value stored before the gate existed does not fail an
+unrelated edit — mirroring the post-content gate's unchanged-content skip. A value the author
+actually changes SHALL be gated.
+
+#### Scenario: Editing another field leaves a legacy value in place
+
+- **WHEN** a post holds a field value that predates the gate (and would fail it) and the author edits
+  a different field, re-submitting the pre-gate value unchanged
+- **THEN** the save succeeds and the legacy value is preserved
+- **AND WHEN** the author changes that value itself
+- **THEN** the gate re-runs and refuses it
 
