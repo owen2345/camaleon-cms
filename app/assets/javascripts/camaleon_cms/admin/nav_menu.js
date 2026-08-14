@@ -119,6 +119,10 @@ $(function() {
       type: 'DELETE',
       success() {
         link.closest('.dd-item').remove()
+      },
+      // Hide the overlay on every outcome -- a failed DELETE (e.g. a stale CSRF token after the
+      // session rotated) would otherwise leave the full-screen spinner blocking the admin.
+      complete() {
         hideLoading()
       }
     })
