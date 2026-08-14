@@ -51,4 +51,15 @@ RSpec.describe 'Security: auth cookie hardening (M3)', type: :request do
     expect(admin.reload.auth_token).to be_present
     expect(admin.reload.auth_token).not_to eq(token_before)
   end
+
+  # Audit M4: changing your own password rotates the token and re-issues the cookie; that re-issue
+  # must keep the M3 hardening rather than write a bare cookie.
+  it 're-issues the auth cookie HttpOnly when a user changes their own password' do
+    login
+    patch "/admin/users/#{admin.id}/updated_ajax",
+          params: { password: { password: 'new-cookie-pass-2', password_confirmation: 'new-cookie-pass-2' } }
+
+    expect(response).to have_http_status(:no_content)
+    expect(auth_set_cookie).to match(/;\s*httponly/i)
+  end
 end
