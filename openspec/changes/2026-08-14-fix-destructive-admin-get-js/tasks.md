@@ -21,7 +21,7 @@
   `$.ajax type: 'DELETE'`; `delete_menu_item` leaves `allowed_get_actions`
 - [x] 3.2 Commit 2: appearances `widgets` → DELETE-only, `widget_delete` → PATCH-only (no callers
   exist to fix); `widget_delete` leaves `allowed_get_actions`
-- [ ] 3.3 Commit 3: media `crop` → POST-only; `crop_spec.rb` converts its requests to POST; `crop`
+- [x] 3.3 Commit 3: media `crop` → POST-only; `crop_spec.rb` converts its requests to POST; `crop`
   leaves `allowed_get_actions` (allowlist ends at the logout/back_to_parent pair);
   `docs/ai/ecosystem.md`'s M6 entry records the follow-up-2 outcome
 

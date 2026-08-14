@@ -210,6 +210,38 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
     end
   end
 
+  describe 'media crop (writes a cropped upload and can rewrite a user avatar)' do
+    before do
+      allow_any_instance_of(CamaleonCms::Admin::MediaController)
+        .to receive(:cama_tmp_upload).and_return(file_path: '/tmp/test.jpg')
+      allow_any_instance_of(CamaleonCms::Admin::MediaController)
+        .to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
+      allow_any_instance_of(CamaleonCms::Admin::MediaController)
+        .to receive(:upload_file).and_return('url' => '/uploads/cropped.jpg')
+      admin_user.set_meta('avatar', '/uploads/existing.jpg')
+    end
+
+    # set_meta/get_meta memoize per instance (cama_fetch_cache), which reload does not clear, so
+    # read through a fresh record -- an instance-cached read would mask the controller's write and
+    # turn the GET example into a false green.
+    def stored_avatar
+      CamaleonCms::User.find(admin_user.id).get_meta('avatar')
+    end
+
+    it 'performs no state change over GET' do
+      get '/admin/media/crop', params: { cp_img_path: 'photo.jpg', saved_avatar: admin_user.id }
+
+      expect(stored_avatar).to eq('/uploads/existing.jpg')
+    end
+
+    it 'crops and saves over POST' do
+      post '/admin/media/crop', params: { cp_img_path: 'photo.jpg', saved_avatar: admin_user.id }
+
+      expect(response.body).to eq('/uploads/cropped.jpg')
+      expect(stored_avatar).to eq('/uploads/cropped.jpg')
+    end
+  end
+
   describe 'logout' do
     it 'keeps the session on GET and shows a confirmation instead' do
       get '/admin/logout'

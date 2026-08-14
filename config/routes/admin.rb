@@ -141,7 +141,9 @@ Rails.application.routes.draw do
         end
 
         resources :media, only: [:index] do
-          match 'crop', via: :all, on: :collection
+          # Security (audit M6): crop writes a cropped upload and can rewrite a user avatar
+          # (saved_avatar); via: :all admitted every verb, the CSRF-exempt GET/HEAD included.
+          post 'crop', on: :collection
           get 'ajax', on: :collection
           get 'download_private_file', on: :collection
           post 'upload', on: :collection
