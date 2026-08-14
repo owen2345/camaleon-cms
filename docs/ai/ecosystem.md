@@ -109,6 +109,14 @@ Changes that look free from inside this repository and are not:
   `crop_url` to `media#actions`, and the only crop-adjacent ecosystem file is `camaleon_website`'s
   vendored `croppic.js`, never instantiated (and it would POST).
 
+- **Requiring a CSRF token on `media#upload`** (M7) is invisible to every surveyed consumer: no
+  repository POSTs to core's `media#upload` with its own transport. `camaleon_editor` reaches uploads
+  through core's own `input_upload_field` → `upload_filemanager` → the same `uploadFile` instance, so
+  the token fix (an `authenticity_token` form field on the multipart POST, since that transport
+  bypasses jquery_ujs' ajax prefilter) covers it; the `file_upload` matches in `camaleon_website`'s
+  store plugin and `florsan` are their own upload flows, not core's endpoint. Any external script
+  that posted there without a token must now send one.
+
 ## APIs with no surveyed consumer
 
 Safe to change on the engine's own merits, citing this file: `update_or_create` / `update_or_create!`

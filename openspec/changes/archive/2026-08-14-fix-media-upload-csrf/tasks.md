@@ -17,5 +17,5 @@
 - [x] 3.1 `bin/rubocop` on the touched files — no offenses
 - [x] 3.2 `bin/rspec` on the reproduction spec and `spec/requests/admin/media_controller/upload_spec.rb`
   — green
-- [ ] 3.3 Full-suite + brakeman + zeitwerk at bundle presentation time
-- [ ] 3.4 Changelog + archive at ship time
+- [x] 3.3 Full-suite + brakeman + zeitwerk at bundle presentation time
+- [x] 3.4 Changelog + archive at ship time
