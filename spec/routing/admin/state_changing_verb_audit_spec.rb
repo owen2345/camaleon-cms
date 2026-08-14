@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 # Security (audit M6): the admin-action-verb-safety capability requires that a state-changing admin
-# endpoint is never reachable over a CSRF-exempt verb (GET/HEAD). The seven converted endpoints are
+# endpoint is never reachable over a CSRF-exempt verb (GET/HEAD). The converted endpoints are
 # pinned one-by-one in spec/requests/security/admin_destructive_get_verbs_spec.rb; this walks the
 # loaded route set so the NEXT mutation-named admin route added anywhere in core is caught here
 # instead of shipping a forgeable endpoint. Prose requirement:
