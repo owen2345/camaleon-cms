@@ -145,7 +145,8 @@ window.cama_init_media = function(mediaPanel) {
     r.skip_auto_crop = true
     // Security (audit M7): the uploadFile plugin posts multipart data outside jquery_ujs' ajax
     // prefilter, so the CSRF token must ride as a form field (media#upload no longer skips it).
-    r.authenticity_token = $('meta[name=csrf-token]').attr('content')
+    // jquery_ujs loads before this uploader, so reuse its helper rather than re-reading the meta tag.
+    r.authenticity_token = $.rails.csrfToken()
     return r
   }
 
