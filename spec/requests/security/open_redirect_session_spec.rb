@@ -25,7 +25,7 @@ RSpec.describe 'Security: Open Redirect in SessionHelper', type: :request do
 
   it 'does not redirect to external URLs via return_to param on logout' do
     post cama_admin_login_path, params: { user: { username: user.username, password: 'password' } }
-    get cama_admin_logout_path, params: { return_to: 'https://evil.com/path' }
+    post cama_admin_logout_path, params: { return_to: 'https://evil.com/path' }
 
     expect(response.location).not_to include('evil.com')
     expect(response).to redirect_to(cama_admin_login_path)
@@ -51,7 +51,7 @@ RSpec.describe 'Security: Open Redirect in SessionHelper', type: :request do
 
     it 'follows a mixed-case same-host return_to on logout' do
       post cama_admin_login_path, params: { user: { username: user.username, password: 'password' } }
-      get cama_admin_logout_path, params: { return_to: 'http://WWW.EXAMPLE.COM/admin/login' }
+      post cama_admin_logout_path, params: { return_to: 'http://WWW.EXAMPLE.COM/admin/login' }
 
       expect(response).to have_http_status(:found)
       expect(response.location).to eq('http://www.example.com/admin/login')
@@ -83,7 +83,7 @@ RSpec.describe 'Security: Open Redirect in SessionHelper', type: :request do
 
     it 'falls back to the login path for a host-blank return_to on logout' do
       post cama_admin_login_path, params: { user: { username: user.username, password: 'password' } }
-      get cama_admin_logout_path, params: { return_to: '///evil.com' }
+      post cama_admin_logout_path, params: { return_to: '///evil.com' }
 
       expect(response).to redirect_to(cama_admin_login_path)
     end

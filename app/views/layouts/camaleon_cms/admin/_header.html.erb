@@ -38,7 +38,7 @@
                                 <a href="<%= cama_admin_profile_edit_path %>" class="btn btn-primary cama_ajax_request"><%= t("camaleon_cms.admin.users.profile") %></a>
                             </div>
                             <div class="pull-right">
-                                <a href="<%= cama_admin_logout_path %>" class="btn btn-danger"><%= t("camaleon_cms.admin.logout.logout") %></a>
+                                <%= button_to t("camaleon_cms.admin.logout.logout"), cama_admin_logout_path, method: :post, class: "btn btn-danger" %>
                             </div>
                         </li>
                     </ul>

@@ -1,0 +1,27 @@
+<div class="login-body">
+    <h3 class="login-box-msg"><%= t('camaleon_cms.admin.logout.confirm_title', default: 'Log out?') %></h3>
+    <%= render "camaleon_cms/flash_messages" %>
+    <p>
+        <%# Security (audit M6): reached over GET (an old bookmark, or a theme still linking the
+            path) — the session ends only through the POST below, so a forged GET cannot end it. %>
+        <%= t('camaleon_cms.admin.logout.confirm_instructions',
+              default: 'You are about to end your session. Continue?') %>
+    </p>
+    <div class="row">
+        <div class="col-xs-6">
+            <%# Cancel returns to the vetted return_to when a theme supplied one (see
+                #prepare_logout_confirmation), else the dashboard -- never blindly into the admin. %>
+            <a href="<%= @logout_cancel_url %>" class="btn btn-default btn-block btn-flat"><%= t('camaleon_cms.admin.button.cancel', default: 'Cancel') %></a>
+        </div>
+        <div class="col-xs-6">
+            <%# `full` (impersonation), `return_to` (ecosystem themes link logout with a return-to-site
+                destination) and `locale` are carried through to the POST -- precomputed as scalars in
+                the controller so a hash-shaped param cannot crash url generation; return_to is then
+                vetted by cama_logout_user's safe-redirect check like on any logout. %>
+            <%= button_to t('camaleon_cms.admin.logout.logout', default: 'Logout'),
+                          cama_admin_logout_path(full: @logout_full, return_to: @logout_return_to,
+                                                 locale: @logout_locale),
+                          method: :post, class: 'btn btn-danger btn-block btn-flat' %>
+        </div>
+    </div>
+</div>

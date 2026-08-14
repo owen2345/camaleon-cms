@@ -20,13 +20,20 @@
                 <%= raw cama_captcha_tags_if_under_attack("login") %>
             </div>
         </div>
-        <div class="row">
-            <div class="col-xs-6">
-                <a href="<%= cama_admin_logout_path(full: 1) %>" class="btn btn-default btn-block btn-flat"><%= t('camaleon_cms.admin.login.back_to_parent.logout', default: 'Log out completely') %></a>
-            </div>
-            <div class="col-xs-6">
-                <button type="submit" class="btn btn-primary btn-block btn-flat"><%= t('camaleon_cms.admin.login.back_to_parent.submit', default: 'Return to my account') %></button>
-            </div>
-        </div>
     <% end %>
+    <%# Security (audit M6): the full-logout button is its OWN button_to form, a sibling of the
+        re-auth form above -- never nested inside it. A nested <form> is dropped by the HTML parser
+        (the button would submit the outer form), and with per-form CSRF tokens the two tokens would
+        collide, breaking both submits. The "Return to my account" button stays a submit of the
+        re-auth form via the HTML5 `form` attribute. %>
+    <div class="row">
+        <div class="col-xs-6">
+            <%= button_to t('camaleon_cms.admin.login.back_to_parent.logout', default: 'Log out completely'),
+                          cama_admin_logout_path(full: 1), method: :post,
+                          class: 'btn btn-default btn-block btn-flat' %>
+        </div>
+        <div class="col-xs-6">
+            <button type="submit" form="back_to_parent" class="btn btn-primary btn-block btn-flat"><%= t('camaleon_cms.admin.login.back_to_parent.submit', default: 'Return to my account') %></button>
+        </div>
+    </div>
 </div>

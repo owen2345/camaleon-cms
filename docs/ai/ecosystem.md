@@ -89,6 +89,20 @@ Changes that look free from inside this repository and are not:
   An intentional off-site destination is restored via the `redirect_allowed_hosts` option /
   `safe_redirect_hosts` hook, or a hook's `allow_external_redirect` — see `docs/security/permissions.md`.
 
+- **Converting admin GET routes to PATCH/POST** (M6) is invisible to every surveyed consumer except
+  **logout**, which five theme layouts (`cama-ecommerce-theme`, `efashion`, `shoppy`, and the two
+  bundled themes), both host apps, and `camaleon_website`'s store plugin (`redirect_to
+  cama_admin_logout_path`) reach over GET — two of them with `return_to:`. That is why
+  `GET /admin/logout` stays routable and renders a POST confirmation instead of 404ing like the
+  other converted paths; the confirmation carries `full`, `return_to` and `locale` through as
+  scalars (a malformed hash-shaped parameter is dropped, not a 500), answers any requested format
+  with HTML, and a stale-token POST re-renders it — so an odd ecosystem link degrades to an extra
+  click, never an error page. `camaleon-spree` replaces the logout path helpers and is unaffected;
+  `plugins/toggle` appears only in two plugins' localhost integration tests; the review round's
+  `load_data` narrowing (theme sample-data import, GET dropped) has **no caller in core or any
+  surveyed repository**. The theme generator now scaffolds the logout `button_to`, so newly
+  generated themes start on the POST pattern.
+
 ## APIs with no surveyed consumer
 
 Safe to change on the engine's own merits, citing this file: `update_or_create` / `update_or_create!`

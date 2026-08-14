@@ -173,3 +173,27 @@ body{
 .language{
   margin: 10px 0 0 0;
 }
+
+/* Security (audit M6): the logout menu item is a button_to <form><button> (its POST carries the CSRF
+   token; the frontend loads no rails-ujs). Match it to the sibling Bootstrap dropdown links. */
+.dropdown-menu > li > form.button_to {
+  margin: 0;
+}
+.dropdown-menu > li > form.button_to > button {
+  background: transparent;
+  border: 0;
+  color: #333;
+  cursor: pointer;
+  display: block;
+  font-weight: 400;
+  padding: 3px 20px;
+  text-align: left;
+  white-space: nowrap;
+  width: 100%;
+}
+.dropdown-menu > li > form.button_to > button:hover,
+.dropdown-menu > li > form.button_to > button:focus {
+  background-color: #f5f5f5;
+  color: #262626;
+  text-decoration: none;
+}

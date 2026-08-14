@@ -33,21 +33,33 @@ RSpec.describe 'Security: impersonation return requires re-auth', type: :request
   # as the target and the session still carries the admin's stashed token.
   def impersonate_then_abandon
     login(admin, 'admin-pass-1')
-    get impersonate_cama_admin_user_path(target)
+    post impersonate_cama_admin_user_path(target)
     expect(auth_token_in_jar).to eq(target.auth_token)
   end
 
-  it 'does not restore the admin from the plain Logout link without re-auth' do
+  it 'does not restore the admin from the Logout button without re-auth' do
     admin_token = admin.auth_token
     impersonate_then_abandon
 
-    # The ordinary Logout link (a bare GET) must no longer hand back the admin's
-    # session to whoever holds the abandoned impersonation; it routes to the
-    # re-auth confirmation instead.
-    get cama_admin_logout_path
+    # The ordinary Logout button must not hand back the admin's session to whoever holds the
+    # abandoned impersonation; it routes to the re-auth confirmation instead.
+    post cama_admin_logout_path
     expect(response).to redirect_to(cama_admin_back_to_parent_path)
     follow_redirect!
     expect(auth_token_in_jar).not_to eq(admin_token)
+  end
+
+  it 'routes an impersonating GET Logout link to the re-auth confirmation' do
+    impersonate_then_abandon
+
+    # An abandoned impersonation reached over a bare GET (an un-upgraded theme's Logout link, or the
+    # frontend confirmation link) must not silently restore the admin: the impersonation branch
+    # redirects to the re-auth flow before the verb check, so it still applies on GET. Pinned so a
+    # future reorder that renders the generic confirmation for GET cannot bypass the re-auth flow.
+    get cama_admin_logout_path
+    expect(response).to redirect_to(cama_admin_back_to_parent_path)
+    follow_redirect!
+    expect(auth_token_in_jar).to eq(target.auth_token) # still the impersonated session, not restored
   end
 
   it 'does not restore the admin when the password is wrong' do
@@ -77,7 +89,7 @@ RSpec.describe 'Security: impersonation return requires re-auth', type: :request
     admin_token = admin.auth_token
     impersonate_then_abandon
 
-    get cama_admin_logout_path, params: { full: 1 }
+    post cama_admin_logout_path, params: { full: 1 }
 
     expect(auth_token_in_jar).not_to eq(admin_token)
     expect(session[:parent_auth_token]).to be_nil
@@ -118,6 +130,15 @@ RSpec.describe 'Security: impersonation return requires re-auth', type: :request
     expect(response.body).to include(cama_admin_logout_path(full: 1)) # the full-logout escape hatch
     # Whoever holds the abandoned session must not learn which admin account to attack.
     expect(response.body).not_to include(admin.username)
+
+    # Security (audit M6): the full-logout button must be its OWN form, a sibling of the re-auth form
+    # -- never nested inside it (a nested <form> is dropped by the parser, and with per-form CSRF
+    # tokens the collision would break both submits). Asserted on the raw HTML, before any parser
+    # normalises the nesting away: the re-auth form (up to its first </form>) must not contain the
+    # logout action.
+    reauth_form = response.body[%r{id="back_to_parent".*?</form>}m]
+    expect(reauth_form).to be_present
+    expect(reauth_form).not_to include('/admin/logout')
   end
 
   # Guessing the admin password through the confirmation must be throttled like the login form

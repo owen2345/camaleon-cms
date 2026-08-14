@@ -88,18 +88,18 @@
                         <% end %>
 
                         <% if f.trash? %>
-                            <%= link_to raw('<i class="fa fa-check"></i>'), {action: :restore, post_id: f.id, s: params[:s]}, class: "btn btn-success btn-xs", title: "#{t('camaleon_cms.admin.button.restore')}" if can? :update, f %>
+                            <%= link_to raw('<i class="fa fa-check"></i>'), {action: :restore, post_id: f.id, s: params[:s]}, method: :patch, class: "btn btn-success btn-xs", title: "#{t('camaleon_cms.admin.button.restore')}" if can? :update, f %>
                             <%= link_to raw('<i class="fa fa-times"></i>'), {action: :destroy, id: f.id, s: params[:s]},
                                         method: :delete, data: {confirm: t('camaleon_cms.admin.message.delete_item')}, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.delete_complete', default: 'Delete completely')}" if can? :destroy, f %>
                         <% elsif f.draft? %>
                             <%#= link_to raw('<i class="fa fa-check"></i>'), {action: :edit, id: f.id, recover_draft: 'true' }, class: "btn btn-success btn-xs", title: "#{t('camaleon_cms.admin.button.recover')}" if can? :update, f %>
                             <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id}, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" if can? :update, f %>
                             <%= link_to raw('<i class="fa fa-trash"></i>'), {action: :trash, post_id: f.id, s: params[:s]},
-                                        data: {confirm: t('camaleon_cms.admin.message.delete')}, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.move_trash')}" if can? :destroy, f %>
+                                        method: :patch, data: {confirm: t('camaleon_cms.admin.message.delete')}, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.move_trash')}" if can? :destroy, f %>
                         <% else %>
                             <%= link_to raw('<i class="fa fa-pencil"></i>'), {action: :edit, id: f.id}, class: "btn btn-default btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.edit')}" if can? :update, f %>
                             <%= link_to raw('<i class="fa fa-trash"></i>'), {action: :trash, post_id: f.id, s: params[:s]},
-                                        data: {confirm: t('camaleon_cms.admin.message.delete')}, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.move_trash')}" if can? :destroy, f %>
+                                        method: :patch, data: {confirm: t('camaleon_cms.admin.message.delete')}, class: "btn btn-danger btn-xs cama_ajax_request", title: "#{t('camaleon_cms.admin.button.move_trash')}" if can? :destroy, f %>
                         <% end %>
                     </td>
                 </tr>

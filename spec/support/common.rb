@@ -39,7 +39,11 @@ end
 # test the sign-in flow itself (the login page also says "Welcome", so assert
 # the dashboard path rather than page text).
 def admin_form_sign_in(user = 'admin', pass = 'admin123')
-  visit "#{cama_root_relative_path}/admin/logout"
+  # Ensure a clean, signed-out session first. A GET to /admin/logout no longer ends a session (it
+  # renders a confirmation now), so clear the auth cookie directly, then land on the login form.
+  visit '/favicon.ico' unless page.current_url.start_with?('http')
+  page.driver.browser.manage.delete_cookie('auth_token')
+  visit "#{cama_root_relative_path}/admin/login"
   within('#login_user') do
     fill_in 'user[username]', with: user
     fill_in 'user[password]', with: pass

@@ -18,7 +18,9 @@
                         <ul class="dropdown-menu">
                             <li><a href="<%= cama_admin_dashboard_path %>">Dashboard</a></li>
                             <li><a href="<%= cama_admin_profile_path %>">Profile</a></li>
-                            <li><a href="<%= cama_admin_logout_path %>">Logout</a></li>
+                            <%# Security (audit M6): logout acts only over POST; button_to carries the CSRF
+                                token without needing rails-ujs on the frontend. %>
+                            <li><%= button_to 'Logout', cama_admin_logout_path, method: :post, class: 'btn btn-link' %></li>
                         </ul>
                     </li>
                 <% else %>

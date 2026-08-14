@@ -25,7 +25,7 @@ RSpec.describe CamaleonCms::Admin::SettingsController, type: :request do
         sign_in_as(admin_user, site: current_site)
         allow(CamaleonCms::HtmlMailer).to receive(:sender).and_return(double(deliver_now: true))
 
-        get '/admin/settings/test_email', params: { email: 'test@example.com' }
+        post '/admin/settings/test_email', params: { email: 'test@example.com' }
 
         expect(response).to have_http_status(:ok)
       end
@@ -37,12 +37,26 @@ RSpec.describe CamaleonCms::Admin::SettingsController, type: :request do
         error_message = '<%= system("ls") %>'
         allow(CamaleonCms::HtmlMailer).to receive(:sender).and_raise(StandardError.new(error_message))
 
-        get '/admin/settings/test_email', params: { email: 'test@example.com' }
+        post '/admin/settings/test_email', params: { email: 'test@example.com' }
 
         expect(response).to have_http_status(:bad_gateway)
         expect(response.body).to eq(error_message)
         expect(response.content_type).to include('text/plain')
       end
+    end
+
+    # Security (audit M6): test_email is POST-only, so the dialog that calls it must submit over POST
+    # (jquery_ujs' prefilter then attaches the CSRF token). A revert of the dialog to $.get would
+    # silently 404 against the converted route; a full :js spec of the modal is disproportionate for
+    # this one-line caller, so pin the rendered caller directly.
+    it 'wires the test-email dialog to $.post, not a CSRF-exempt GET' do
+      sign_in_as(admin_user, site: current_site)
+
+      get '/admin/settings/site'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("$.post(link.attr('href')")
+      expect(response.body).not_to include("$.get(link.attr('href')")
     end
   end
 end

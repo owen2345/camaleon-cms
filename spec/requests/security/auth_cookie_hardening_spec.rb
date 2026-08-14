@@ -46,7 +46,7 @@ RSpec.describe 'Security: auth cookie hardening (M3)', type: :request do
     login
     token_before = admin.reload.auth_token
 
-    get cama_admin_logout_path
+    post cama_admin_logout_path
 
     expect(admin.reload.auth_token).to be_present
     expect(admin.reload.auth_token).not_to eq(token_before)

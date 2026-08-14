@@ -105,12 +105,12 @@ RSpec.describe 'Security: post status output escaping', type: :request do
     before { sign_in_as(admin, site: current_site) }
 
     it 'writes the payload into the column and still renders it inert' do
-      get "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}/trash"
+      patch "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}/trash"
       patch "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}", params: {
         post: { title: poisoned_post.title, slug: poisoned_post.slug, status: 'trash' },
         options: { status_default: payload }
       }
-      get "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}/restore"
+      patch "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}/restore"
 
       expect(poisoned_post.reload.status).to eq(payload)
 
