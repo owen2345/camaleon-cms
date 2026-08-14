@@ -48,9 +48,10 @@ and an `AppearancesController` definition a plugin might supply for the dead wid
 
 ## Notes for upgraders
 
-- External scripts that drove these paths over GET stop working: nav-menu item delete requires
-  DELETE, the legacy widgets endpoints require DELETE/PATCH, and `crop` requires POST — each with a
-  CSRF token. The admin UI's own callers are updated.
+- External scripts that drove these paths over GET stop working: the nav-menu item delete requires
+  DELETE and `crop` requires POST — each with a CSRF token. (The legacy widgets routes point at a
+  controller removed in 2015, so no working GET caller exists to migrate.) The admin UI's own
+  callers are updated.
 
 ## Out of scope
 
