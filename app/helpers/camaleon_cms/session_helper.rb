@@ -154,7 +154,10 @@ module CamaleonCms
     def cama_logout_user
       # Security (audit 2026-08-11 M3): rotate the server-side token so a cookie copied before logout
       # cannot be replayed afterwards. The token is per-user, so this also ends the user's other sessions.
-      cama_current_user&.cama_reset_auth_token!
+      # Audit M14: skip the rotation during impersonation -- cama_current_user is then the impersonated
+      # user, not the admin ending the session, and rotating their token would log the innocent user
+      # out of all their own devices. session_back_to_parent is the intended exit from impersonation.
+      cama_current_user&.cama_reset_auth_token! if session[:parent_auth_token].blank?
       cookies.delete(:auth_token, domain: :all)
       cookies.delete(:auth_token, domain: nil)
       c_data = { value: nil, expires: 24.hours.ago }
