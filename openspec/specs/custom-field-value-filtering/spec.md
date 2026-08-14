@@ -49,6 +49,19 @@ nothing.
   registered under its scope
 - **THEN** the object's existing values remain unchanged
 
+### Requirement: A non-hash field-options payload is ignored, not fatal
+
+The allowed-slugs permit SHALL treat a `field_options` (or sibling `theme_fields`) payload that is
+not a parameter hash — a scalar or an array — as empty, saving no value rows rather than raising.
+Every admin controller sharing the permit MUST NOT let an authenticated caller turn a malformed
+field-options param into a 500.
+
+#### Scenario: Scalar field_options saves nothing and does not error
+
+- **WHEN** a save submits `field_options` as a scalar string (or an array) while the target has
+  registered fields
+- **THEN** no value row is stored and the request completes normally (no 500)
+
 ### Requirement: The bundled theme's custom save answers with the standard response
 
 The bundled `new` theme's custom-save path SHALL complete with the theme-settings form's

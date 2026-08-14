@@ -157,3 +157,24 @@ actually changes SHALL be gated.
 - **AND WHEN** the author changes that value itself
 - **THEN** the gate re-runs and refuses it
 
+### Requirement: The gated field type is resolved from the slug, not a client-supplied id
+
+`set_field_values` SHALL resolve each value row's `custom_field_id` from the trusted field slug — the
+field registered under that slug on the object — not from the client-supplied `id`. Because the gate
+selects a value's rendered position from its field's `field_key`, a forged `id` naming a non-gated
+field MUST NOT let a value written under a gated slug (`editor`, URI types, `field_attrs`) skip the
+gate. When the slug names no field on the object the caller-supplied `id` MAY stand (trusted internal
+callers); permitted browser payloads always name registered slugs.
+
+#### Scenario: A forged non-gated id does not bypass the gate
+
+- **WHEN** an untrusted author submits a value for a gated `editor` slug carrying the `id` of a
+  different, non-gated `text_box` field, with dangerous markup as the value
+- **THEN** the value is gated as an `editor` value (its field resolved from the slug) and refused,
+  storing nothing
+
+#### Scenario: The stored row names the slug's field
+
+- **WHEN** a value is saved for a slug while a different field's `id` is submitted alongside it
+- **THEN** the stored row's `custom_field_id` is the id of the field the slug names
+

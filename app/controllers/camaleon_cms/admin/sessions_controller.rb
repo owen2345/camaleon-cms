@@ -258,6 +258,9 @@ module CamaleonCms
             flash[:notice] = t('camaleon_cms.admin.login.message.confirm_email_success')
             @user.is_valid_email = true
             @user.save!
+            # Security (audit M16): single-use, like the password-reset token -- clear it so the same
+            # confirmation link cannot be replayed.
+            @user.update_columns(confirm_email_token: nil, confirm_email_sent_at: nil) # rubocop:disable Rails/SkipsModelValidations
           end
         end
         redirect_to cama_admin_login_path

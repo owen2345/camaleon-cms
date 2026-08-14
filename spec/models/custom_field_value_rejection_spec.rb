@@ -225,4 +225,29 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
       expect { post.set_field_values(datas) }.to raise_error(ActiveRecord::RecordInvalid)
     end
   end
+
+  # Audit: set_field_values took custom_field_id straight from the client-supplied values[:id]. A
+  # forged non-gated id on a gated slug made the gate read the wrong field_key and skip the scan, so
+  # markup reached a verbatim-rendered slug. The id is now resolved from the trusted slug instead.
+  describe 'forged custom_field_id' do
+    it 'still gates a markup slug when the client forges a non-gated custom_field_id' do
+      as_user(contributor)
+      forged_id = post.get_field_object('note').id # a non-gated text_box field
+
+      datas = { '0' => { 'body' => { id: forged_id, values: { '0' => script } } } }
+
+      expect { post.set_field_values(datas) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(post.custom_field_values.where(custom_field_slug: 'body')).not_to exist
+    end
+
+    it 'records the value against the field the slug names, ignoring the forged id' do
+      as_user(contributor)
+      forged_id = post.get_field_object('body').id # an unrelated (editor) field
+
+      post.set_field_values('0' => { 'note' => { id: forged_id, values: { '0' => 'plain note' } } })
+
+      row = post.custom_field_values.find_by(custom_field_slug: 'note')
+      expect(row.custom_field_id).to eq(post.get_field_object('note').id)
+    end
+  end
 end

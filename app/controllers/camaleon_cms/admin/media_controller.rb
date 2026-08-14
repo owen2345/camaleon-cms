@@ -3,7 +3,10 @@ module CamaleonCms
   module Admin
     class MediaController < CamaleonCms::AdminController
       skip_before_action :admin_logged_actions, except: %i[index download_private_file], raise: false
-      skip_before_action :verify_authenticity_token, only: :upload, raise: false
+      # Security (audit M6/M7): upload writes files (and, via saved_avatar-style flows, model state),
+      # so it must not skip CSRF. The multipart uploader (jQuery uploadFile) posts outside jquery_ujs'
+      # ajax prefilter, so it carries the token as an authenticity_token form field instead (see
+      # _media_manager.js). The url-upload path posts through media#actions, already CSRF-protected.
       before_action :init_media_vars, except: :download_private_file
       before_action :verify_media_authorization
 

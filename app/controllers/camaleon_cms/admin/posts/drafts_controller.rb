@@ -32,7 +32,10 @@ module CamaleonCms
           r = { post: @post_draft, post_type: @post_type }
           hooks_run('create_post_draft', r)
           if @post_draft.save(validate: false)
-            @post_draft.set_params(params[:meta], params[:field_options], @post_data[:keywords])
+            # Security (audit M8): confine field values to slugs actually registered on the post type,
+            # like PostsController#save_post_with_fields -- raw params[:field_options] let a caller
+            # write custom_field_values with attacker-chosen slugs/ids/group numbers.
+            @post_draft.set_params(params[:meta], cama_permitted_field_options('PostType_Post'), @post_data[:keywords])
             msg = { draft: { id: @post_draft.id },
                     _drafts_path: cama_admin_post_type_draft_path(@post_type.id, @post_draft) }
             r = { post: @post_draft, post_type: @post_type }
@@ -51,7 +54,8 @@ module CamaleonCms
           r = { post: @post_draft, post_type: @post_type }
           hooks_run('update_post_draft', r)
           if @post_draft.save(validate: false)
-            @post_draft.set_params(params[:meta], params[:field_options], params[:options])
+            # Security (audit M8): confine field values to the post type's registered slugs (see #create).
+            @post_draft.set_params(params[:meta], cama_permitted_field_options('PostType_Post'), params[:options])
             hooks_run('updated_post_draft', { post: @post_draft, post_type: @post_type })
             msg = { draft: { id: @post_draft.id } }
           else
