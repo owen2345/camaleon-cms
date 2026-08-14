@@ -45,7 +45,7 @@ RSpec.describe 'member route target resolution', type: :request do
     end
 
     it 'cannot impersonate the admin named in the path' do
-      get "/admin/users/#{admin_user.id}/impersonate?user_id=#{attacker.id}"
+      post "/admin/users/#{admin_user.id}/impersonate?user_id=#{attacker.id}"
 
       expect(response).to redirect_to(cama_admin_dashboard_path)
       expect(cookies[:auth_token]).not_to include(admin_user.auth_token)
@@ -80,7 +80,7 @@ RSpec.describe 'member route target resolution', type: :request do
     end
 
     it 'denies impersonation with no injected parameter' do
-      get "/admin/users/#{admin_user.id}/impersonate"
+      post "/admin/users/#{admin_user.id}/impersonate"
 
       expect(response).to redirect_to(cama_admin_dashboard_path)
       expect(cookies[:auth_token]).not_to include(admin_user.auth_token)

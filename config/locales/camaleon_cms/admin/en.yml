@@ -212,6 +212,8 @@ en:
         out: 'Out'
         logout: 'Logout'
         logout_html: 'Log <strong>Out</strong>?'
+        confirm_title: 'Log out?'
+        confirm_instructions: 'You are about to end your session. Continue?'
         message:
           closed: 'Session Closed'
       media:

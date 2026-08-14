@@ -39,26 +39,26 @@ RSpec.describe 'Admin::PluginsController', type: :request do
 
     it 'calls PluginRoutes.reload when toggling plugin (activate)' do
       expect(PluginRoutes).to receive(:reload)
-      get '/admin/plugins/toggle', params: { id: 'test_plugin', status: false }
+      patch '/admin/plugins/toggle', params: { id: 'test_plugin', status: false }
     end
 
     it 'calls PluginRoutes.reload when toggling plugin (deactivate)' do
       expect(PluginRoutes).to receive(:reload)
-      get '/admin/plugins/toggle', params: { id: 'test_plugin', status: true }
+      patch '/admin/plugins/toggle', params: { id: 'test_plugin', status: true }
     end
 
     it 'calls PluginRoutes.reload when upgrading plugin' do
       expect(PluginRoutes).to receive(:reload)
-      get '/admin/plugins/test_plugin/upgrade'
+      post '/admin/plugins/test_plugin/upgrade'
     end
 
     it 'redirects after toggle' do
-      get '/admin/plugins/toggle', params: { id: 'test_plugin', status: false }
+      patch '/admin/plugins/toggle', params: { id: 'test_plugin', status: false }
       expect(response).to redirect_to('/admin/plugins')
     end
 
     it 'redirects after upgrade' do
-      get '/admin/plugins/test_plugin/upgrade'
+      post '/admin/plugins/test_plugin/upgrade'
       expect(response).to redirect_to('/admin/plugins')
     end
   end

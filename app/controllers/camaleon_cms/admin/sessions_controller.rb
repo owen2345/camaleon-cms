@@ -73,13 +73,24 @@ module CamaleonCms
       end
 
       def logout
+        # A request that is no longer authenticated has nothing to confirm and nothing a forged GET
+        # could end -- but it may still carry session leftovers (a stale impersonation stash, H6),
+        # so it goes through cama_logout_user's cleanup on any verb, exactly as before.
+        return cama_logout_user unless cama_sign_in?
+
         # While impersonating, the ordinary Logout link must not silently hand the admin account back
         # to whoever holds the session — returning to the parent now requires the admin's password
         # (see #back_to_parent). `?full=1` forces a real logout of the impersonated session instead.
-        if session[:parent_auth_token].present? && cama_sign_in? && params[:full].blank?
+        if session[:parent_auth_token].present? && params[:full].blank?
           redirect_to cama_admin_back_to_parent_path
-        else
+        elsif request.post?
           cama_logout_user
+        else
+          # Security (audit M6): logging out changes state, so only the POST above performs it —
+          # keyed on request.post?, not !request.get?, because Rails exempts HEAD from CSRF exactly
+          # like GET. The GET renders a confirmation instead of 404ing: frontend themes across the
+          # ecosystem link this path, and their visitors get one extra click, not a broken link.
+          render :logout_confirm
         end
       end
 

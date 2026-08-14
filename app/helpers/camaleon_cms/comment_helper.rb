@@ -70,6 +70,7 @@ module CamaleonCms
                       [
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 'a' }),
+                          method: :patch,
                           title: t('camaleon_cms.admin.comments.tooltip.approved_comment'),
                           class: "#{comment.approved == 'approved' ? 'hidden' : ''} " \
                                  'btn btn-success approve btn-xs cama_ajax_request'
@@ -77,6 +78,7 @@ module CamaleonCms
                         ' ',
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 'p' }),
+                          method: :patch,
                           title: t('camaleon_cms.admin.comments.tooltip.comment_pending'),
                           class: "#{comment.approved == 'pending' ? 'hidden' : ''} " \
                                  'btn btn-primary pending btn-xs cama_ajax_request'
@@ -84,6 +86,7 @@ module CamaleonCms
                         ' ',
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 's' }),
+                          method: :patch,
                           title: t('camaleon_cms.admin.comments.tooltip.comment_spam'),
                           class: "#{comment.approved == 'spam' ? 'hidden' : ''} " \
                                  'btn btn-danger spam btn-xs cama_ajax_request'

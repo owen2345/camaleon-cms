@@ -25,7 +25,7 @@ RSpec.describe CamaleonCms::Admin::SettingsController, type: :request do
         sign_in_as(admin_user, site: current_site)
         allow(CamaleonCms::HtmlMailer).to receive(:sender).and_return(double(deliver_now: true))
 
-        get '/admin/settings/test_email', params: { email: 'test@example.com' }
+        post '/admin/settings/test_email', params: { email: 'test@example.com' }
 
         expect(response).to have_http_status(:ok)
       end
@@ -37,7 +37,7 @@ RSpec.describe CamaleonCms::Admin::SettingsController, type: :request do
         error_message = '<%= system("ls") %>'
         allow(CamaleonCms::HtmlMailer).to receive(:sender).and_raise(StandardError.new(error_message))
 
-        get '/admin/settings/test_email', params: { email: 'test@example.com' }
+        post '/admin/settings/test_email', params: { email: 'test@example.com' }
 
         expect(response).to have_http_status(:bad_gateway)
         expect(response.body).to eq(error_message)

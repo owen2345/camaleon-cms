@@ -52,7 +52,7 @@ RSpec.describe 'target resolution precedence', type: :request do
   # An admin holds `can :manage, :all`, so only the resolved target decides the outcome here.
   context 'with an injected user_id on the impersonate route' do
     it 'switches the session to the injected user rather than the path segment' do
-      get "/admin/users/#{user_a.id}/impersonate?user_id=#{user_b.id}"
+      post "/admin/users/#{user_a.id}/impersonate?user_id=#{user_b.id}"
 
       expect(cookies[:auth_token]).to include(user_b.auth_token)
       expect(cookies[:auth_token]).not_to include(user_a.auth_token)

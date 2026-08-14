@@ -23,11 +23,11 @@ RSpec.describe 'Security: impersonation logout token rotation (M14)', type: :req
 
   it "does not rotate the impersonated user's token on a full logout during impersonation" do
     post cama_admin_login_path, params: { user: { username: admin.username, password: 'admin-pass-1' } }
-    get impersonate_cama_admin_user_path(target)
+    post impersonate_cama_admin_user_path(target)
     expect(auth_token_in_jar).to eq(target.auth_token) # browsing as the target
     target_token_before = target.reload.auth_token
 
-    get cama_admin_logout_path, params: { full: 1 }
+    post cama_admin_logout_path, params: { full: 1 }
 
     expect(target.reload.auth_token).to eq(target_token_before)
   end
@@ -36,7 +36,7 @@ RSpec.describe 'Security: impersonation logout token rotation (M14)', type: :req
     post cama_admin_login_path, params: { user: { username: admin.username, password: 'admin-pass-1' } }
     admin_token_before = admin.reload.auth_token
 
-    get cama_admin_logout_path
+    post cama_admin_logout_path
 
     expect(admin.reload.auth_token).not_to eq(admin_token_before)
   end

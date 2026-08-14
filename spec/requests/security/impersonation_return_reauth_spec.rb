@@ -33,7 +33,7 @@ RSpec.describe 'Security: impersonation return requires re-auth', type: :request
   # as the target and the session still carries the admin's stashed token.
   def impersonate_then_abandon
     login(admin, 'admin-pass-1')
-    get impersonate_cama_admin_user_path(target)
+    post impersonate_cama_admin_user_path(target)
     expect(auth_token_in_jar).to eq(target.auth_token)
   end
 
@@ -44,7 +44,7 @@ RSpec.describe 'Security: impersonation return requires re-auth', type: :request
     # The ordinary Logout link (a bare GET) must no longer hand back the admin's
     # session to whoever holds the abandoned impersonation; it routes to the
     # re-auth confirmation instead.
-    get cama_admin_logout_path
+    post cama_admin_logout_path
     expect(response).to redirect_to(cama_admin_back_to_parent_path)
     follow_redirect!
     expect(auth_token_in_jar).not_to eq(admin_token)
@@ -77,7 +77,7 @@ RSpec.describe 'Security: impersonation return requires re-auth', type: :request
     admin_token = admin.auth_token
     impersonate_then_abandon
 
-    get cama_admin_logout_path, params: { full: 1 }
+    post cama_admin_logout_path, params: { full: 1 }
 
     expect(auth_token_in_jar).not_to eq(admin_token)
     expect(session[:parent_auth_token]).to be_nil

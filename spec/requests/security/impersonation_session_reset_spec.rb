@@ -37,7 +37,7 @@ RSpec.describe 'Security: impersonation session reset (H6)', type: :request do
     admin_token = admin.auth_token
 
     login(admin, 'admin-pass-1')
-    get impersonate_cama_admin_user_path(target) # admin -> target; the admin token is stashed in the session
+    post impersonate_cama_admin_user_path(target) # admin -> target; the admin token is stashed in the session
     expect(auth_token_in_jar).to eq(target.auth_token) # now browsing as the target
 
     # The admin walks away without returning to their own session; a different
@@ -47,7 +47,7 @@ RSpec.describe 'Security: impersonation session reset (H6)', type: :request do
     expect(auth_token_in_jar).to eq(attacker.auth_token)
 
     # Ending the session must log the attacker out — not restore the admin's cookie.
-    get cama_admin_logout_path
+    post cama_admin_logout_path
     expect(auth_token_in_jar).not_to eq(admin_token)
   end
 
@@ -55,13 +55,13 @@ RSpec.describe 'Security: impersonation session reset (H6)', type: :request do
     admin_token = admin.auth_token
 
     login(admin, 'admin-pass-1')
-    get impersonate_cama_admin_user_path(target)
+    post impersonate_cama_admin_user_path(target)
     expect(auth_token_in_jar).to eq(target.auth_token)
 
     # Ending impersonation now re-authenticates the admin before restoring their
     # session (see impersonation_return_reauth_spec): the Logout link routes to the
     # confirmation, and the admin's password hands them back their own session.
-    get cama_admin_logout_path
+    post cama_admin_logout_path
     expect(response).to redirect_to(cama_admin_back_to_parent_path)
     post cama_admin_back_to_parent_path, params: { password: 'admin-pass-1' }
     expect(auth_token_in_jar).to eq(admin_token)
@@ -69,7 +69,7 @@ RSpec.describe 'Security: impersonation session reset (H6)', type: :request do
 
   it 'clears the stashed parent token when a real logout ends the session' do
     login(admin, 'admin-pass-1')
-    get impersonate_cama_admin_user_path(target)
+    post impersonate_cama_admin_user_path(target)
     expect(session[:parent_auth_token]).to be_present
 
     # Reaching cama_logout_user with the stash still present requires a request that is NOT
@@ -77,7 +77,7 @@ RSpec.describe 'Security: impersonation session reset (H6)', type: :request do
     # the stash itself. An incomplete auth cookie de-authenticates the request; assigning it
     # (not cookies.delete, which leaves the jar unchanged in a request spec) forces that branch.
     cookies[:auth_token] = 'invalid'
-    get cama_admin_logout_path
+    post cama_admin_logout_path
     expect(session[:parent_auth_token]).to be_nil
   end
 end

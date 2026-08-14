@@ -8,7 +8,10 @@ Rails.application.routes.draw do
         get 'search'
         get 'login' => 'sessions#login'
         post 'login' => 'sessions#login_post'
-        get 'logout' => 'sessions#logout'
+        # Security (audit M6): logout changes state, so it acts only over POST. The GET renders a
+        # confirmation page instead of 404ing -- frontend themes across the ecosystem link this
+        # path -- and the impersonation flow keeps its redirect (see SessionsController#logout).
+        match 'logout' => 'sessions#logout', via: %i[get post]
         match 'back_to_parent' => 'sessions#back_to_parent', via: %i[get post]
         match 'forgot' => 'sessions#forgot', via: %i[get post patch]
         match 'confirm_email' => 'sessions#confirm_email', via: %i[get post patch]
@@ -18,8 +21,9 @@ Rails.application.routes.draw do
         resources :post_type, as: :post_type do
           resources :posts, controller: 'posts' do
             # resources :comments
-            get :trash
-            get :restore
+            # Security (audit M6): state-changing member actions must not ride GET links.
+            patch :trash
+            patch :restore
             collection do
               match 'ajax', via: %i[get post patch]
             end
@@ -42,7 +46,8 @@ Rails.application.routes.draw do
         match 'profile/edit' => 'users#profile_edit', via: %i[get post patch]
         resources :users, controller: 'users' do
           patch 'updated_ajax'
-          get :impersonate, on: :member
+          # Security (audit M6): forces a session switch -- the highest-value CSRF target here.
+          post :impersonate, on: :member
         end
 
         resources :user_roles, controller: 'user_roles' do
@@ -58,7 +63,7 @@ Rails.application.routes.draw do
             end
           end
           get 'site'
-          get 'test_email'
+          post 'test_email' # Security (audit M6): sends mail; must not be a CSRF-able GET
           get 'theme'
           post 'save_theme'
           get 'languages'
@@ -74,7 +79,7 @@ Rails.application.routes.draw do
           resources :comments, controller: 'comments' do
             get 'answer'
             post 'save_answer'
-            get 'toggle_status'
+            patch 'toggle_status' # Security (audit M6): flips moderation state
           end
         end
 
@@ -115,8 +120,10 @@ Rails.application.routes.draw do
         end
 
         resources :plugins, only: %i[index destroy] do
-          get 'toggle', on: :collection
-          get 'upgrade'
+          # Security (audit M6): activating/deactivating and upgrading a plugin run install and
+          # upgrade hooks -- state changes, not reads.
+          patch 'toggle', on: :collection
+          post 'upgrade'
         end
 
         # installer

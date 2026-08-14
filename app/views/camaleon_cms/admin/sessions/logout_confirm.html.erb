@@ -1,0 +1,24 @@
+<div class="login-body">
+    <h3 class="login-box-msg"><%= t('camaleon_cms.admin.logout.confirm_title', default: 'Log out?') %></h3>
+    <%= render "camaleon_cms/flash_messages" %>
+    <p>
+        <%# Security (audit M6): reached over GET (an old bookmark, or a theme still linking the
+            path) — the session ends only through the POST below, so a forged GET cannot end it. %>
+        <%= t('camaleon_cms.admin.logout.confirm_instructions',
+              default: 'You are about to end your session. Continue?') %>
+    </p>
+    <div class="row">
+        <div class="col-xs-6">
+            <a href="<%= cama_admin_dashboard_path %>" class="btn btn-default btn-block btn-flat"><%= t('camaleon_cms.admin.button.cancel', default: 'Cancel') %></a>
+        </div>
+        <div class="col-xs-6">
+            <%# `full` (impersonation) and `return_to` (ecosystem themes link logout with a
+                return-to-site destination) are carried through to the POST; return_to is then
+                vetted by cama_logout_user's safe-redirect check like on any logout. %>
+            <%= button_to t('camaleon_cms.admin.logout.logout', default: 'Logout'),
+                          cama_admin_logout_path(full: params[:full].presence,
+                                                 return_to: params[:return_to].presence),
+                          method: :post, class: 'btn btn-danger btn-block btn-flat' %>
+        </div>
+    </div>
+</div>

@@ -22,7 +22,9 @@
         </div>
         <div class="row">
             <div class="col-xs-6">
-                <a href="<%= cama_admin_logout_path(full: 1) %>" class="btn btn-default btn-block btn-flat"><%= t('camaleon_cms.admin.login.back_to_parent.logout', default: 'Log out completely') %></a>
+                <%= button_to t('camaleon_cms.admin.login.back_to_parent.logout', default: 'Log out completely'),
+                              cama_admin_logout_path(full: 1), method: :post,
+                              class: 'btn btn-default btn-block btn-flat' %>
             </div>
             <div class="col-xs-6">
                 <button type="submit" class="btn btn-primary btn-block btn-flat"><%= t('camaleon_cms.admin.login.back_to_parent.submit', default: 'Return to my account') %></button>
