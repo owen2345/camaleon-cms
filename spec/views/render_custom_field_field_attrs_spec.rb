@@ -34,4 +34,11 @@ RSpec.describe 'camaleon_cms/default_theme/partials/_render_custom_field', type:
     expect(rendered).not_to include('<p><strong>')
     expect(rendered).not_to include('not json')
   end
+
+  # Audit M6: a valid JSON value that is not an object (array/scalar) must render nothing instead of
+  # raising a TypeError (Array#[] with a String key) and 500ing the public page.
+  it 'renders no pair (and does not raise) for a JSON array value' do
+    expect { render_field_attrs([{ attr: 'a', value: 'b' }].to_json) }.not_to raise_error
+    expect(rendered).not_to include('<p><strong>')
+  end
 end
