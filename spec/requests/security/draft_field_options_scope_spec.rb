@@ -21,6 +21,16 @@ RSpec.describe 'Security: draft custom-field options are confined to registered 
 
   let(:subtitle_field) { post_type.get_field_object('subtitle') }
 
+  # A registered slug alongside one never registered on the post type (the foreign entry reuses a
+  # real field id so the row would save): the permit must keep the registered slug and drop the
+  # foreign one.
+  let(:field_options) do
+    { '0' => {
+      'subtitle' => { 'id' => subtitle_field.id, 'values' => { '0' => 'legit subtitle' } },
+      'evil_field' => { 'id' => subtitle_field.id, 'values' => { '0' => 'injected' } }
+    } }
+  end
+
   before do
     allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
     post_type.add_field({ 'name' => 'Subtitle', 'slug' => 'subtitle' }, { 'field_key' => 'text_box' })
@@ -36,20 +46,16 @@ RSpec.describe 'Security: draft custom-field options are confined to registered 
     post_type.posts.drafts.where(user_id: admin.id, post_parent: parent_post.id).order(:id).last
   end
 
-  # The attacker submits a slug never registered on the post type (here reusing a real field id, so
-  # the row would save) alongside a legitimate one; the permit must keep the registered slug and
-  # drop the foreign one.
-  it 'drops a field_options entry whose slug is not registered on the post type' do
-    draft = create_draft_with(
-      '0' => {
-        'subtitle' => { 'id' => subtitle_field.id, 'values' => { '0' => 'legit subtitle' } },
-        'evil_field' => { 'id' => subtitle_field.id, 'values' => { '0' => 'injected' } }
-      }
-    )
-
-    expect(draft).to be_present
+  def expect_only_subtitle(draft)
     expect(draft.custom_field_values.where(custom_field_slug: 'subtitle')).to exist
     expect(draft.custom_field_values.where(custom_field_slug: 'evil_field')).not_to exist
+  end
+
+  it 'drops a field_options entry whose slug is not registered on the post type' do
+    draft = create_draft_with(field_options)
+
+    expect(draft).to be_present
+    expect_only_subtitle(draft)
   end
 
   it 'drops an unregistered slug on update too' do
@@ -58,15 +64,9 @@ RSpec.describe 'Security: draft custom-field options are confined to registered 
 
     patch "/admin/post_type/#{post_type.id}/drafts/#{draft.id}", params: {
       post: { title: 'Draft' },
-      field_options: {
-        '0' => {
-          'subtitle' => { 'id' => subtitle_field.id, 'values' => { '0' => 'legit subtitle' } },
-          'evil_field' => { 'id' => subtitle_field.id, 'values' => { '0' => 'injected' } }
-        }
-      }
+      field_options: field_options
     }
 
-    expect(draft.custom_field_values.where(custom_field_slug: 'subtitle')).to exist
-    expect(draft.custom_field_values.where(custom_field_slug: 'evil_field')).not_to exist
+    expect_only_subtitle(draft)
   end
 end
