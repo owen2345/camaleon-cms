@@ -23,18 +23,19 @@ RSpec.describe 'Cross-site nav-menu item reorder', type: :request do
     sign_in_as(admin, site: current_site)
   end
 
+  def reorder(menu)
+    post "/admin/appearances/nav_menus/#{menu.id}/reorder_items",
+         params: { items: { '0' => { 'id' => item.id.to_s } } }
+  end
+
   it "refuses to move an item into another site's menu" do
-    expect do
-      post "/admin/appearances/nav_menus/#{victim_menu.id}/reorder_items",
-           params: { items: { '0' => { 'id' => item.id.to_s } } }
-    end.to raise_error(ActiveRecord::RecordNotFound)
+    expect { reorder(victim_menu) }.to raise_error(ActiveRecord::RecordNotFound)
 
     expect(item.reload.parent_id).to eq(own_menu.id)
   end
 
   it "still reorders items within the current site's own menu" do
-    post "/admin/appearances/nav_menus/#{own_menu.id}/reorder_items",
-         params: { items: { '0' => { 'id' => item.id.to_s } } }
+    reorder(own_menu)
 
     expect(response).to have_http_status(:ok)
     expect(item.reload.parent_id).to eq(own_menu.id)
