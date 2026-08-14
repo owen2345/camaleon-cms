@@ -20,9 +20,11 @@ module CamaleonCms
   # renderer deletes markers, so one inside a tag splices markup the gate never saw).
   module UnsafeMarkup
     # Every gated value costs a parse, and both the number of values and their size are chosen by
-    # the caller — bound the size so one multi-megabyte value cannot drive a giant Loofah parse.
-    # Oversized values are simply refused (fail closed).
-    MAX_GATED_VALUE_BYTES = 64 * 1024
+    # the caller — bound the size so a pathological multi-megabyte value cannot drive a giant Loofah
+    # parse. The ceiling is generous (an ordinary long article is well under it); callers surface an
+    # over-size refusal with its own message via `too_large?`, and `unsafe_html?` keeps the check as a
+    # fail-closed backstop for callers that do not pre-check.
+    MAX_GATED_VALUE_BYTES = 2 * 1024 * 1024
 
     # Nothing below can find anything in a string holding none of these: the scrubber and the
     # serializer are both the identity function on it. `&` counts because entity decoding is a
@@ -49,7 +51,12 @@ module CamaleonCms
     # rejection message names.
     OPEN_ATTR_NAME = /\A(?:data|aria)-[a-zA-Z][-a-zA-Z0-9_.]*\z/
 
-    class PermissiveDataAttrScrubber < Rails::HTML::PermitScrubber
+    # rails-html-sanitizer >= 1.6 exposes the scrubber under Rails::HTML (all caps); older releases
+    # (valid with Rails 6.1/7.0, which this gem supports) expose only Rails::Html. Resolve whichever
+    # the host bundled so the engine loads across the whole supported range.
+    PERMIT_SCRUBBER_BASE = defined?(Rails::HTML::PermitScrubber) ? Rails::HTML::PermitScrubber : Rails::Html::PermitScrubber
+
+    class PermissiveDataAttrScrubber < PERMIT_SCRUBBER_BASE
       private
 
       def scrub_attribute?(name)
@@ -63,7 +70,7 @@ module CamaleonCms
       # True when `value` contains markup outside the given allowlist (or one of the structural
       # shapes above). Callers reject the save when this is true for an untrusted author.
       def unsafe_html?(value, tags:, attributes:)
-        string = value.to_s
+        string = scannable_string(value)
         return false unless string.match?(SANITIZER_SIGNIFICANT)
         return true if string.bytesize > MAX_GATED_VALUE_BYTES
         return true if disallowed_comment?(string)
@@ -77,6 +84,7 @@ module CamaleonCms
         # (whitespace-insensitively) and normalize them on the tree first, so the comparison sees
         # identical css on both sides and only element/attribute removals register.
         return true if dangerous_or_normalized_css!(fragment)
+        return true if attribute_holds_markup?(fragment)
 
         baseline = fragment.to_s
         return true if markup_dropped?(shielded, fragment)
@@ -84,6 +92,12 @@ module CamaleonCms
         # One parse, not two: scrub the fragment already built, so both sides of the comparison
         # share the same parser and serializer and only a genuine removal differs.
         fragment.scrub!(scrubber_for(tags, attributes)).to_s != baseline
+      end
+
+      # True when the value exceeds the parse-cost ceiling. Callers refuse it with a size-specific
+      # message rather than the markup message — an over-size value may be perfectly clean.
+      def too_large?(value)
+        value.to_s.bytesize > MAX_GATED_VALUE_BYTES
       end
 
       # True when `value` carries a script-capable URI scheme (javascript:, vbscript:, or a
@@ -95,8 +109,26 @@ module CamaleonCms
 
       private
 
+      # Prefer the HTML5 parser (browser-parity) only when it is actually available: the method
+      # arrived in loofah 2.21, so guard on the method itself, not on `Nokogiri::HTML5` (present
+      # since nokogiri 1.11) -- an older loofah with a newer nokogiri would otherwise NoMethodError.
       def parse(string)
-        defined?(Nokogiri::HTML5) ? Loofah.html5_fragment(string) : Loofah.fragment(string)
+        if Loofah.respond_to?(:html5_fragment) && defined?(Nokogiri::HTML5)
+          Loofah.html5_fragment(string)
+        else
+          Loofah.fragment(string)
+        end
+      end
+
+      # The gate only reads, never stores. A legacy value with invalid (or non-UTF-8) encoding would
+      # make the `match?` below raise ArgumentError -- a 500 on save and an abort of the scan task --
+      # so scan a scrubbed UTF-8 copy instead. The stored bytes are never touched (reject, don't
+      # transform), and invalid byte sequences cannot spell markup anyway.
+      def scannable_string(value)
+        string = value.to_s
+        return string if string.encoding == Encoding::UTF_8 && string.valid_encoding?
+
+        string.b.force_encoding(Encoding::UTF_8).scrub
       end
 
       def scrubber_for(tags, attributes)
@@ -143,6 +175,19 @@ module CamaleonCms
 
         parsed = fragment.css('*').map { |node| node.name.downcase }.tally
         written.any? { |name, count| parsed.fetch(name, 0) < count }
+      end
+
+      # An attribute value that decodes to a tag-open is markup smuggled through an attribute the
+      # scrubber keeps -- a data-*/aria-* attribute admitted by shape, or an allowed one like `title`.
+      # A client-side `data-html` sink (Bootstrap tooltip/popover, and similar) injects such a value
+      # as HTML at render. Entity-encoded markup (`&lt;img ...&gt;`) leaves no literal `<` in the
+      # stored bytes, so `markup_dropped?` never sees it; but the parser has already entity-decoded
+      # the value on the node, so a tag-open here is real markup the renderer would emit. Reject it
+      # (never rewrite). A legitimate `<` in an attribute value (rare) must be entity-escaped by hand.
+      def attribute_holds_markup?(fragment)
+        fragment.css('*').any? do |node|
+          node.attribute_nodes.any? { |attr| attr.value.to_s.match?(TAG_OPEN) }
+        end
       end
 
       # A translation marker separates whole translated blocks; it never belongs *inside* a tag.
