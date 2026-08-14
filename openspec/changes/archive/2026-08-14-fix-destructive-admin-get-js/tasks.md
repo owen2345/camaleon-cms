@@ -52,3 +52,7 @@
   jquery_ujs mechanism comment (crossDomain-gated) and its design.md D3 echo, dropped the stale
   "seven" count from the audit-spec header, and recorded the executable CSRF enforcement in the
   capability spec
+- [x] 6.6 Made the menus `:js` delete-loop deterministic (the new empty-list assertion exposed a
+  pre-existing confirm()/ajax race that flaked in CI): trigger each delete via `execute_script` and
+  wait for the row count to drop, so a confirm the driver has not rendered yet no longer silently
+  cancels a delete
