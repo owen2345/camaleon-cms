@@ -19,7 +19,6 @@ RSpec.describe 'Cross-site nav-menu item reorder', type: :request do
   let!(:victim_menu) { other_site.nav_menus.create!(name: 'Victim Menu', slug: 'victim-menu') }
 
   before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:cama_authenticate)
     allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
     sign_in_as(admin, site: current_site)
   end
