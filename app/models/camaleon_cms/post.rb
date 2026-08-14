@@ -7,12 +7,12 @@ module CamaleonCms
     SANITIZE_EXTRA_TAGS = %w[table thead tbody tfoot tr td th caption col colgroup
                              figure figcaption u s hr].freeze
     # These attributes are allowed knowing what they cost, none of which is script execution:
-    # `style` is still CSS-scrubbed by the sanitizer (expression(), url(javascript:) and friends
-    # are stripped) but permits absolutely-positioned overlays; `id` widens DOM clobbering, which
-    # the sanitizer's own default `name` already opened; and `target` without a forced
+    # `style` is CSS-scrubbed by the gate's scrubber (expression(), url(javascript:) and friends
+    # register as removals) but permits absolutely-positioned overlays; `id` widens DOM clobbering,
+    # which the scrubber's own default `name` already opened; and `target` without a forced
     # `rel=noopener` is reverse tabnabbing on browsers predating the implicit default. The trade
-    # is deliberate: an untrusted author who cannot use them loses tables and layout on every
-    # save, and the role that wants more grants post_content_unfiltered_html.
+    # is deliberate: an untrusted author whose content needs more than this list has the save
+    # refused, and the role that wants more grants post_content_unfiltered_html.
     SANITIZE_EXTRA_ATTRIBUTES = %w[id style target rel colspan rowspan].freeze
     CONTENT_ALLOWED_TAGS = (ActionController::Base.helpers.sanitizer_vendor.safe_list_sanitizer
                               .allowed_tags.to_a + SANITIZE_EXTRA_TAGS).uniq.freeze
@@ -38,7 +38,7 @@ module CamaleonCms
     alias_attribute :post_type_id, :taxonomy_id
     default_scope -> { where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
 
-    before_validation :sanitize_content, on: %i[create update]
+    validate :reject_untrusted_dangerous_content, on: %i[create update]
 
     # DEPRECATED
     has_many :post_relationships, class_name: 'CamaleonCms::PostRelationship', foreign_key: :objectid,
@@ -300,18 +300,37 @@ module CamaleonCms
       CamaleonCms::Ability.new(user, site).can?(:post_content_unfiltered_html, post_type)
     end
 
-    def sanitize_content
-      return unless new_record? || attribute_changed?(:content)
+    # Security (scan-and-reject policy): content an untrusted author is not permitted to write is
+    # refused with a validation error -- never sanitized or rewritten -- so stored content always
+    # equals authored content and the frontend may render it verbatim. The guard on
+    # `content_changed?` deliberately leaves pre-gate stored content editable (a title fix on an
+    # old post must not brick it); `rake camaleon_cms:security:scan_content` lists such content.
+    def reject_untrusted_dangerous_content
+      return unless new_record? || content_changed?
       return if content.blank?
       # The explicit pipeline opt-out short-circuits before the Ability lookup below.
       return if unfiltered_content
-      # Check trust only once we know there is content to sanitize, so unchanged/blank updates never pay for
+      # Check trust only once we know there is content to gate, so unchanged/blank updates never pay for
       # building an Ability (a role-meta DB lookup) on every save.
       return if trusted_for_unfiltered_html?
 
-      self.content = CamaleonRecord.cama_sanitize_translatable(
+      # Distinguish an over-size refusal from a disallowed-markup refusal (audit M16): an over-size
+      # value can be perfectly clean, so the markup message (scripts/handlers/embeds) would misdescribe
+      # it and send the author hunting for markup that is not there.
+      if CamaleonCms::UnsafeMarkup.too_large?(content)
+        errors.add(:content, cama_content_rejection_message('content_too_large'))
+      elsif CamaleonCms::UnsafeMarkup.unsafe_html?(
         content, tags: CONTENT_ALLOWED_TAGS, attributes: CONTENT_ALLOWED_ATTRIBUTES
       )
+        errors.add(:content, cama_content_rejection_message('content_rejected'))
+      end
+    end
+
+    # Only en.yml carries these keys while the process locale follows the current admin/site
+    # language — fall back to English rather than emit "translation missing".
+    def cama_content_rejection_message(key)
+      full_key = "camaleon_cms.admin.post.message.#{key}"
+      I18n.t(full_key, default: I18n.t(full_key, locale: :en))
     end
 
     # calculate a post order when it is empty

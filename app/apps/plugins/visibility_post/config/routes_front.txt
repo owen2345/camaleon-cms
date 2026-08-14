@@ -1,0 +1,1 @@
+post 'unlock/:post_id' => 'front#unlock', as: :unlock, constraints: { post_id: /[0-9]+/ }

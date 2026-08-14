@@ -102,7 +102,10 @@ module CamaleonCms
 
         current_token = cookie_split_auth_token
         updated_token = [token, *current_token[1..]]
-        cookies[:auth_token] = updated_token.join('&')
+        # Route through the shared hardened-cookie options (audit M3/M4): a bare assignment here
+        # re-issued the auth cookie without HttpOnly/Secure/domain/expiry when a user changed their
+        # own password, undoing the M3 hardening for that session.
+        cookies[:auth_token] = cama_auth_cookie_options(updated_token.join('&'))
       end
 
       def current_user_is?(user)

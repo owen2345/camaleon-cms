@@ -28,6 +28,55 @@ The gate is an **authorization** decision, never a proxy for one. A filesystem p
 
 The convention is specified as `openspec/specs/security-capability-gating/spec.md`.
 
+## The remedy rule: reject, don't transform
+
+The gating rule says *who* may perform a dangerous action; this rule says what happens when an
+untrusted user submits dangerous **content**: the save is **refused with an error naming the
+problem** — the content is never sanitized, stripped, escaped-away, or otherwise rewritten
+(maintainer decision, 2026-08-13). Three properties follow, and every content gate relies on them:
+
+1. **Stored content always equals authored content.** What the gate admitted is byte-for-byte what
+   the author wrote, so the frontend may render it verbatim (`raw post.the_content`, editor and
+   field_attrs custom-field values). There is no render-time sanitization anywhere: a transform at
+   render would silently mutate a trusted author's work and mask gate regressions.
+2. **Refusal is loud.** A sanitizer that silently drops markup surprises the author later and
+   invites probing until a payload slips through; a refusal names the field and the remedy (remove
+   the markup, or hold the relevant permission).
+3. **History is reported, not rewritten.** Content stored before a gate existed is left untouched;
+   `rake camaleon_cms:security:scan_content` lists everything today's gates would refuse so an
+   operator can clean it up deliberately.
+
+The pieces that implement the rule:
+
+- **`CamaleonCms::UnsafeMarkup`** (`lib/camaleon_cms/unsafe_markup.rb`) is the shared detector for
+  authored markup: one parse, safe-list scrub compared against the parse's own reserialization
+  (only genuine removals register), plus structural guards — markup the parser drops or leaves open,
+  a translation marker inside a tag, and markup smuggled through an attribute value (a value that
+  entity-decodes to a tag-open, which a client-side `data-html` sink would inject). It bounds value
+  size (an over-size value is refused, and callers report it with a size-specific message) and yields
+  a verdict for mis-encoded input rather than raising. It mirrors the cama_contact_form gate — keep
+  the two in parity. Scan the content **the renderer will emit**, not the stored encoding:
+  `CustomFieldsRelationship.gate_rejection_reason` decodes every member of a `field_attrs` value's
+  JSON (any shape — object, array, nested) before scanning, because the JSON encoder hides `<` behind
+  unicode escapes, and the same class-level dispatch backs the `scan_content` audit task so the two
+  cannot drift.
+- **Gates sit on models** (`Post#reject_untrusted_dangerous_content`,
+  `CustomFieldsRelationship#reject_untrusted_dangerous_value`), so no controller path can skip
+  them; the admin post save wraps the parent and its field values in one transaction, so a refused
+  value rolls the whole save back rather than leaving a half-applied post. Positions the platform
+  escapes by default (plain `<%= %>` output of non-markup values) carry no gate — that is the
+  platform's normal output encoding, not a remedy.
+- **Trust and fail-closed follow the gating rule above**: admins always pass; non-admins pass
+  through the dedicated permission (`post_content_unfiltered_html` for a post's content and its
+  gated field values); no request context means the gate applies. Trusted server-side pipelines
+  opt out explicitly per record (`Post#unfiltered_content!`,
+  `CustomFieldsRelationship#unfiltered_value!` — bang enablers with no writers, unreachable by
+  mass assignment).
+- **Uploads already follow the rule** (`svg-upload-sanitization`, `upload-content-security`: scan
+  and refuse, with `media_unfiltered_upload` as the trusted skip).
+
+The rule is codified as a requirement in `openspec/specs/security-capability-gating/spec.md`.
+
 ## The admin role
 
 Because administrators can do anything (rule 1 above), the `admin` role is the most powerful grant on a

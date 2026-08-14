@@ -4,6 +4,16 @@ module CamaleonCms
       flash[:error] = "Error: #{exception.message}"
       redirect_to cama_admin_dashboard_path
     end
+    # Security (scan-and-reject policy, audit M17): custom-field values save after their parent
+    # through `custom_field_values.create!`, so a value the gate refuses arrives here as
+    # RecordInvalid. Surface the refusal as a flash error naming the field instead of a 500; the
+    # parent's own attributes were already saved, only the refused value rows are rolled back.
+    rescue_from ActiveRecord::RecordInvalid do |exception|
+      raise exception unless exception.record.is_a?(CamaleonCms::CustomFieldsRelationship)
+
+      flash[:error] = exception.record.errors.full_messages.to_sentence
+      redirect_back fallback_location: cama_admin_dashboard_path
+    end
     # layout 'camaleon_cms/admin'
     before_action :cama_authenticate
     before_action :keep_request_attrs

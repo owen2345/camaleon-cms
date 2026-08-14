@@ -126,11 +126,17 @@ RSpec.describe 'Post frontend', :js do
     end
 
     it 'password post with password' do
-      custom_post = create(:password_post, site: @site).decorate
-      visit custom_post.the_url(as_path: true, post_password: custom_post.visibility_value)
+      custom_post = create(:password_post, site: @site, content: '<p>unlocked secret body</p>').decorate
+      visit custom_post.the_url(as_path: true)
+      expect(page).to have_css('form.protected_form')
+      expect(page).to have_no_text('unlocked secret body')
 
-      expect(page).to have_text(custom_post.the_title)
-      expect(page).to have_no_text('does not exist')
+      within('form.protected_form') do
+        fill_in 'post_password', with: custom_post.visibility_value
+        click_button
+      end
+
+      expect(page).to have_text('unlocked secret body')
     end
   end
 end

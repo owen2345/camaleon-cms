@@ -41,9 +41,15 @@
                 %>
                     <p><%= post.decorate.the_title if post.present? %></p>
                 <% when 'field_attrs'
-                    post = JSON.parse(value) rescue {}
+                    attrs = JSON.parse(value) rescue nil
                 %>
-                    <p><%= raw("<strong>#{post['attr']}: </strong>#{post['attr']}") if post.present? %></p>
+                    <% if attrs.is_a?(Hash) && attrs.present? %>
+                      <%# Security (scan-and-reject policy): attr/value are gated at save like editor %>
+                      <%# values -- CustomFieldsRelationship scans the DECODED JSON members (any shape) -- %>
+                      <%# so stored values equal authored values and render verbatim. Guard on Hash so a %>
+                      <%# non-object JSON value (array/scalar) renders nothing instead of raising a 500. %>
+                      <p><strong><%= raw attrs['attr'] %>: </strong><%= raw attrs['value'] %></p>
+                    <% end %>
                 <% else %>
                     <p><%= value %></p>
             <% end %>

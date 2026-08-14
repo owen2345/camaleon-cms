@@ -102,10 +102,7 @@ module CamaleonCms
         r = { post: @post, post_type: @post_type }
         hooks_run('create_post', r)
         @post = r[:post]
-        if @post.save
-          @post.set_metas(params[:meta])
-          @post.set_field_values(cama_permitted_field_options('PostType_Post'))
-          @post.set_options(params[:options])
+        if save_post_with_fields(@post)
           flash[:notice] = t('camaleon_cms.admin.post.message.created', post_type: @post_type.decorate.the_title)
           r = { post: @post, post_type: @post_type }
           hooks_run('created_post', r)
@@ -142,12 +139,9 @@ module CamaleonCms
         r = { post: @post, post_type: @post_type }
         hooks_run('update_post', r)
         @post = r[:post]
-        if @post.update(post_data)
+        if save_post_with_fields(@post, post_data)
           # delete drafts only on successful update operation
           @post.drafts.destroy_all if delete_drafts
-          @post.set_metas(params[:meta])
-          @post.set_field_values(cama_permitted_field_options('PostType_Post'))
-          @post.set_options(params[:options])
           hooks_run('updated_post', { post: @post, post_type: @post_type })
           flash[:notice] = t('camaleon_cms.admin.post.message.updated', post_type: @post_type.decorate.the_title)
           redirect_to action: :edit, id: @post.id
@@ -208,6 +202,25 @@ module CamaleonCms
       end
 
       private
+
+      # Persist the post together with its metas, field values and options atomically (audit M10).
+      # Before this, the parent was saved and its metas committed before set_field_values ran, so a
+      # field value the scan-and-reject gate refused (CustomFieldsRelationship RecordInvalid) left a
+      # half-applied post -- an orphan on create, skipped options, only a redirect explaining why.
+      # Wrapping the whole sequence in one transaction rolls the parent save back with the refused
+      # value, and the RecordInvalid propagates to AdminController's rescue_from (flash + redirect
+      # back) with nothing persisted. Returns true on success, false on a parent validation failure.
+      def save_post_with_fields(post, update_attrs = nil)
+        ActiveRecord::Base.transaction do
+          saved = update_attrs ? post.update(update_attrs) : post.save
+          raise ActiveRecord::Rollback unless saved
+
+          post.set_metas(params[:meta])
+          post.set_field_values(cama_permitted_field_options('PostType_Post'))
+          post.set_options(params[:options])
+          true
+        end
+      end
 
       # define post type parent
       def set_post_type

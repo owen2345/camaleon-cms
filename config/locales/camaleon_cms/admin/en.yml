@@ -100,6 +100,9 @@ en:
         custom_group_support_multiple: Support multiple groups
         message:
           custom_group_error: 'Error custom field group'
+          value_rejected_html: "The '%{slug}' field contains HTML that is not allowed for your role (for example scripts, event handlers or embeds). Remove it, or ask an administrator for the unfiltered-content permission."
+          value_rejected_uri: "The '%{slug}' field contains a script-capable URL (javascript:/data:), which is not allowed."
+          value_too_large: "The '%{slug}' field is too large to store; please shorten it."
           custom_created: 'The custom field group has been created.'
           custom_updated: 'The custom field group has been updated.'
           invalid_placement: 'Select where to display this group. The selected target does not belong to this site.'
@@ -171,6 +174,7 @@ en:
           subject_email: 'Reset your access'
           send_mail_succes: 'Send email reset success.'
           send_mail_error: 'Not found email address.'
+          password_reset_requested: 'If an account matches that email, a password reset link has been sent.'
           invalid_caption: 'Invalid captcha'
           email_not_validated: 'Email has not been validated.'
           confirm_email_token_incorrect: 'URL incorrect'
@@ -289,6 +293,8 @@ en:
         label_required: 'Required Label'
         placeholder_required: 'Required Placeholder'
         message:
+          content_rejected: 'contains HTML that is not allowed for your role (for example scripts, event handlers or embeds). Remove it, or ask an administrator for the unfiltered-content permission.'
+          content_too_large: 'is too large to store; please shorten it.'
           created: 'The %{post_type} has been created.'
           updated: 'The %{post_type} has been updated.'
           deleted: 'The %{post_type} has been removed.'

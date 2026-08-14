@@ -69,7 +69,12 @@ module CamaleonCms
       #   the_content
       # end
       def the_content
-        sanitize(camaleon_frontend_object.the_content) if camaleon_frontend_object.present?
+        # Security (scan-and-reject policy): no render-time transform. Stored content is gated at
+        # save (Post#reject_untrusted_dangerous_content), always equals what its author wrote, and
+        # renders verbatim — the same contract as the templates' `raw post.the_content`. The
+        # sanitize this once applied used the narrow default allowlist, so it also broke trusted
+        # authors' tables and embeds on this DSL path only.
+        camaleon_frontend_object.the_content.to_s.html_safe if camaleon_frontend_object.present? # rubocop:disable Rails/OutputSafety
       end
 
       # select url of post

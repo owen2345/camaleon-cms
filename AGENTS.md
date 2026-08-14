@@ -9,6 +9,7 @@ This file is self-sufficient: every rule below applies to every task. Load the d
 - **Gem quirk:** this project is a gem — Rails commands like `rails routes` or `bin/rails zeitwerk:check` MUST be run from the `spec/dummy` folder. Always use subshells or `&&` to ensure you return to the project root, e.g. `(cd spec/dummy && bin/rails ...)`.
 - **Spec coverage:** ALL code changes must be covered by specs, except pure behavior-preserving refactors, documentation-only changes, and config changes with no code path modifications. If writing tests is infeasible, state why explicitly.
 - **Security fixes:** vulnerability fixes MUST include a test that reproduces the vulnerability (unless reproducing is infeasible). Integration/feature specs are preferred over controller specs. Triage protocol: `docs/ai/workflows.md` Phase 2A; spec templates: `docs/ai/testing.md`.
+- **Security remedy rule (reject, don't transform):** content or uploads from untrusted users are **scanned and rejected** at save — never sanitized, stripped, escaped-away, or otherwise rewritten. Admins can do anything; other roles get dangerous capabilities only through dedicated default-off permissions. Full model: `docs/security/permissions.md` ("The remedy rule" and "The gating rule"); codified in `openspec/specs/security-capability-gating/spec.md`.
 
 ## 2. OpenSpec Workflow
 

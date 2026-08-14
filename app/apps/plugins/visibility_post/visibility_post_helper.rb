@@ -1,12 +1,25 @@
 module Plugins
   module VisibilityPost
     module VisibilityPostHelper
+      # Session key listing the post ids this session has unlocked by password (audit M2). Shared
+      # with FrontController#unlock, which writes it after a successful comparison.
+      SESSION_UNLOCKED_KEY = 'cama_visibility_unlocked_posts'.freeze
+
       # {content: object.content.translate(@_deco_locale), post: object}
       def plugin_visibility_post_the_content(args)
-        return unless args[:post].visibility == 'password'
-        return if params[:post_password].present? && params[:post_password] == args[:post].visibility_value
+        return unless _visibility_password_locked?(args[:post])
 
-        args[:content] = _password_form
+        args[:content] = _password_form(args[:post])
+      end
+
+      # {content: <excerpt computed by PostDecorator#the_excerpt>, post: object}
+      # Security (audit M1): the excerpt is derived from the post body (or its summary meta), so it
+      # must honor the same password gate as the content -- otherwise listings, search results and
+      # the RSS builders leak the body of a still-locked post through `the_excerpt`.
+      def plugin_visibility_post_the_excerpt(args)
+        return unless _visibility_password_locked?(args[:post])
+
+        args[:content] = ct('password_protected_excerpt', default: 'This content is password protected.')
       end
 
       def plugin_visibility_on_active(_plugin); end
@@ -77,17 +90,36 @@ module Plugins
 
       private
 
-      def _password_form
-        "<form class='col-md-6 protected_form well'>
+      # Security (audit M1): single lock predicate for password-protected posts, shared by the
+      # content and excerpt gates so every derived representation of the body agrees on whether
+      # the post is unlocked. Security (audit M2): unlocked state lives in the session, written
+      # only by FrontController#unlock over POST -- a password in the query string no longer
+      # unlocks anything.
+      def _visibility_password_locked?(post)
+        return false unless post.visibility == 'password'
+
+        !Array(session[SESSION_UNLOCKED_KEY]).include?(post.id)
+      end
+
+      # Security (audit M2): the prompt posts to the plugin unlock endpoint with a password-type
+      # input, instead of the old method-less form (GET: password in URLs, logs and referrers)
+      # with a text-type input.
+      def _password_form(post)
+        error_msg = ct('wrong_password', default: 'Wrong password, please try again.')
+        error_html = flash[:cama_visibility_post_error] ? "<div class='alert alert-danger'>#{error_msg}</div>" : ''
+        unlock_action = plugins_visibility_post_unlock_path(post_id: post.id)
+        "<form method='post' action='#{unlock_action}' class='col-md-6 protected_form well'>
+        <input type='hidden' name='authenticity_token' value='#{form_authenticity_token}' />
         <h4>#{ct('proceted_article', default: 'Protected article')}</h4>
+        #{error_html}
         <div class='control-group'>
           <label class='control-label'>#{t('camaleon_cms.admin.post_type.enter_password')}:</label>
-          <input type='text' name='post_password' value='' class='form-control' />
+          <input type='password' name='post_password' value='' class='form-control' />
         </div>
         <div class='control-group'>
           <button class='btn btn-primary' type='submit'>#{ct('submit')}</button>
         </div>
-    <form>"
+    </form>"
       end
 
       def save_visibility(post)
