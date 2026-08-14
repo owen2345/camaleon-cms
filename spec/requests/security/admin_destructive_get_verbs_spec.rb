@@ -179,6 +179,49 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
     end
   end
 
+  # Security (audit M6): the examples above run with forgery protection off (the test default), so
+  # they pin the verb routing but not that the converted DELETE is actually CSRF-protected. With
+  # protection on, a token-less DELETE must be rejected -- the endpoint is no longer CSRF-exempt as
+  # the old GET was -- and a DELETE carrying the page's csrf-token meta (exactly what jquery_ujs
+  # replays onto every same-origin ajax) must still delete. This is the standing guard for the token
+  # half of the conversion: it fails if the endpoint stops enforcing CSRF or stops accepting the meta
+  # token (e.g. jquery_ujs or the admin layout's csrf meta is dropped).
+  describe 'nav menu item delete under CSRF enforcement' do
+    around do |example|
+      original = ActionController::Base.allow_forgery_protection
+      ActionController::Base.allow_forgery_protection = true
+      example.run
+    ensure
+      ActionController::Base.allow_forgery_protection = original
+    end
+
+    let(:nav_menu) { current_site.nav_menus.first }
+    let!(:menu_item) { nav_menu.append_menu_item(label: 'A link', type: 'external', link: 'http://example.com') }
+    let(:path) { "/admin/appearances/nav_menus/#{nav_menu.id}/item_delete/#{menu_item.id}" }
+
+    # The masked token the admin layout renders into its csrf-token meta -- the same token jquery_ujs
+    # reads and replays as X-CSRF-Token on every non-cross-origin ajax.
+    def page_csrf_token
+      get '/admin/appearances/nav_menus'
+      response.body[/name="csrf-token"\s+content="([^"]+)"/, 1]
+    end
+
+    it 'rejects a token-less DELETE and destroys nothing' do
+      expect { delete path }.to raise_error(ActionController::InvalidAuthenticityToken)
+      expect(current_site.nav_menu_items.where(id: menu_item.id)).to exist
+    end
+
+    it 'accepts a DELETE carrying the page csrf token' do
+      token = page_csrf_token
+      expect(token).to be_present
+
+      delete path, headers: { 'X-CSRF-Token' => token }
+
+      expect(response).to have_http_status(:ok)
+      expect(current_site.nav_menu_items.where(id: menu_item.id)).not_to exist
+    end
+  end
+
   describe 'legacy appearances widgets delete routes' do
     # The widgets/widget_delete matches predate the widgets/{main,sidebar,assign} controllers --
     # their target controller was deleted in 2015 (34159392), so nothing executes (even
