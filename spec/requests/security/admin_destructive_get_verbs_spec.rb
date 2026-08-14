@@ -193,20 +193,13 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
       end
     end
 
-    it 'admits no GET or HEAD on the widgets delete surface' do
-      expect(delete_surface).not_to be_empty
-      get_reachable = delete_surface.select do |route|
-        verb = route.verb.to_s
-        verb.empty? || verb.match?(/GET|HEAD/)
-      end
+    it 'exposes the widgets delete surface only over its non-GET verbs' do
+      pairs = delete_surface.map { |route| [route.defaults[:action].to_s, route.verb.to_s] }
 
-      expect(get_reachable.map { |route| route.defaults[:action] }).to be_empty
-    end
-
-    it 'keeps the non-GET verbs routable' do
-      verbs = delete_surface.to_h { |route| [route.defaults[:action].to_s, route.verb.to_s] }
-
-      expect(verbs).to eq('widgets' => 'DELETE', 'widget_delete' => 'PATCH')
+      # contain_exactly fails on an empty surface, on any GET/HEAD-bearing verb string (e.g. the old
+      # 'GET|DELETE' or the '' of via: :all), and on a reintroduced duplicate GET route -- so this
+      # single assertion carries both "no CSRF-exempt verb" and "the non-GET verbs stay routable".
+      expect(pairs).to contain_exactly(%w[widgets DELETE], %w[widget_delete PATCH])
     end
   end
 
