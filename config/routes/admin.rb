@@ -84,9 +84,13 @@ Rails.application.routes.draw do
         end
 
         namespace :appearances do
-          match 'widgets', via: %i[get delete]
+          # Security (audit M6): this legacy widgets surface predates the widgets/{main,sidebar,
+          # assign} controllers (its target controller is long gone) but still declared delete
+          # endpoints reachable over CSRF-exempt GET. The non-GET verbs keep the paths and helpers
+          # routable for any external binding.
+          delete 'widgets'
           match 'widgets_save', via: %i[post patch]
-          match 'widget_delete', via: %i[get patch]
+          patch 'widget_delete'
           get 'render_form'
 
           resources :themes, only: [:index] do

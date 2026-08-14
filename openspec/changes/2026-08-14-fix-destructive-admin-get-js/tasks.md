@@ -19,7 +19,7 @@
 
 - [x] 3.1 Commit 1: nav_menus `item_delete` → DELETE; `nav_menu.js` sends the token-bearing
   `$.ajax type: 'DELETE'`; `delete_menu_item` leaves `allowed_get_actions`
-- [ ] 3.2 Commit 2: appearances `widgets` → DELETE-only, `widget_delete` → PATCH-only (no callers
+- [x] 3.2 Commit 2: appearances `widgets` → DELETE-only, `widget_delete` → PATCH-only (no callers
   exist to fix); `widget_delete` leaves `allowed_get_actions`
 - [ ] 3.3 Commit 3: media `crop` → POST-only; `crop_spec.rb` converts its requests to POST; `crop`
   leaves `allowed_get_actions` (allowlist ends at the logout/back_to_parent pair);

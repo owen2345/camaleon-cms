@@ -179,6 +179,37 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
     end
   end
 
+  describe 'legacy appearances widgets delete routes' do
+    # The widgets/widget_delete matches predate the widgets/{main,sidebar,assign} controllers --
+    # their target controller was deleted in 2015 (34159392), so nothing executes (even
+    # recognize_path refuses the missing constant, on every verb) -- but the routes still admitted
+    # GET for delete-shaped endpoints. Pin the fact where the audit spec enforces it, on the loaded
+    # route table: the delete surface admits no CSRF-exempt verb, while the non-GET verbs keep the
+    # paths and helpers routable for any external binding.
+    let(:delete_surface) do
+      Rails.application.routes.routes.select do |route|
+        route.defaults[:controller] == 'camaleon_cms/admin/appearances' &&
+          %w[widgets widget_delete].include?(route.defaults[:action].to_s)
+      end
+    end
+
+    it 'admits no GET or HEAD on the widgets delete surface' do
+      expect(delete_surface).not_to be_empty
+      get_reachable = delete_surface.select do |route|
+        verb = route.verb.to_s
+        verb.empty? || verb.match?(/GET|HEAD/)
+      end
+
+      expect(get_reachable.map { |route| route.defaults[:action] }).to be_empty
+    end
+
+    it 'keeps the non-GET verbs routable' do
+      verbs = delete_surface.to_h { |route| [route.defaults[:action].to_s, route.verb.to_s] }
+
+      expect(verbs).to eq('widgets' => 'DELETE', 'widget_delete' => 'PATCH')
+    end
+  end
+
   describe 'logout' do
     it 'keeps the session on GET and shows a confirmation instead' do
       get '/admin/logout'
