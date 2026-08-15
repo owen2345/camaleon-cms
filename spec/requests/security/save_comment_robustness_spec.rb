@@ -28,4 +28,22 @@ RSpec.describe 'Security: save_comment tolerates crafted input (Low)', type: :re
 
     expect(response).to have_http_status(:ok)
   end
+
+  it 'does not 500 when post_comment[parent_id] names no comment on the post' do
+    current_site.set_option('permit_anonimos_comment', true)
+    post_record = commentable_post('commentable-parent')
+
+    post "/save_comment/#{post_record.id}",
+         params: { format: 'json', post_comment: { content: 'hi', parent_id: 999_999 } }
+
+    expect(response).to have_http_status(:ok)
+  end
+
+  def commentable_post(slug)
+    post_record = current_site.post_types.find_by(slug: 'post')
+                              .posts.create!(title: 'Commentable', slug: slug, status: 'published')
+    post_record.set_option('has_comments', true)
+    post_record.set_meta('has_comments', '1')
+    post_record
+  end
 end

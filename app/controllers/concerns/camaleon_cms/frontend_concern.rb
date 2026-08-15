@@ -71,17 +71,21 @@ module CamaleonCms
           # and without mutating the request's header string in place.
           comment_data[:agent] = request.user_agent.to_s.encode('UTF-8', 'ISO-8859-1')
           comment_data[:content] = post_comment[:content]
-          @comment = if post_comment[:parent_id].present?
-                       @post.comments.find_by(id: post_comment[:parent_id]).children.new(comment_data)
-                     else
-                       @post.comments.main.new(comment_data)
-                     end
-          if @comment.save
-            flash[:comment_submit][:notice] = t('camaleon_cms.admin.comments.message.created')
+          # Security (audit Low): a crafted parent_id naming no comment on this post made find_by
+          # return nil and the chained `.children` raise (500). Resolve the parent first and fail
+          # closed with a graceful error when a supplied parent_id matches nothing.
+          parent_id = post_comment[:parent_id]
+          parent = @post.comments.find_by(id: parent_id) if parent_id.present?
+          if parent_id.present? && parent.nil?
+            flash[:comment_submit][:error] = t('.parent_comment_not_found', default: 'Parent comment not found')
           else
-            flash[:comment_submit][:error] =
-              "#{t('camaleon_cms.common.comment_error',
-                   default: 'An error was occurred on save comment')}:<br> #{@comment.errors.full_messages.join(', ')}"
+            @comment = parent ? parent.children.new(comment_data) : @post.comments.main.new(comment_data)
+            if @comment.save
+              flash[:comment_submit][:notice] = t('camaleon_cms.admin.comments.message.created')
+            else
+              base = t('camaleon_cms.common.comment_error', default: 'An error was occurred on save comment')
+              flash[:comment_submit][:error] = "#{base}:<br> #{@comment.errors.full_messages.join(', ')}"
+            end
           end
         else
           flash[:comment_submit][:error] = t('camaleon_cms.admin.message.unauthorized')
