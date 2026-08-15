@@ -16,6 +16,9 @@ Every permission on this page is an instance of one rule, and a new security-sen
 
 1. **Administrators can do anything.** The `admin` role satisfies every check through `can :manage, :all`, before any role meta is read.
 2. **For every other role, an action that presents a security threat is allowed only through a dedicated permission that is off by default.** The permission is never seeded onto a non-admin role, so an existing install reads it as not-granted with no migration; and the check **fails closed** — with no `CurrentRequest` user or site (a background job, a rake task, the console), the caller is treated as untrusted.
+3. **A gate is the last resort, not the first.** Where the threat is *content* and that content can be judged, the save-time scan judges it (see the remedy rule below) — a blanket refusal by file type, format or category is wrong there. A dedicated permission is the remedy only where no scan can reach a verdict at all. Uploaded JavaScript is the worked example: it has no safe subset and every dangerous capability is reachable through dynamic construction (`window['fet'+'ch']`, `[]['constructor']['constructor']`), so no static rule decides it and the check fails closed. Uploaded markup is the counter-example: it has a finite grammar, so the parse-based scan decides it and `.html` is deliberately *not* gated by type.
+
+Where an existing permission's holders already possess the capability, extend that permission rather than adding one — a new permission would *revoke* the capability from installs that already granted the old one. `media_unfiltered_upload` covers script uploads for exactly this reason: a holder already skips the scan and could already store them.
 
 The gate is an **authorization** decision, never a proxy for one. A filesystem path, an output filename, a client-supplied flag or a network location can each be walked through by the caller; [#1228](https://github.com/owen2345/camaleon-cms/pull/1228) replaced exactly such a path-based upload exemption with `media_unfiltered_upload` for that reason. Where content can be substituted after the check — a `before_upload` handler rewriting the scanned bytes — the substituted content is re-checked, not trusted because the handler ran. A check that fails *open* (allowing the action when it cannot evaluate the permission) is the bug this rule exists to prevent.
 
@@ -33,7 +36,7 @@ The convention is specified as `openspec/specs/security-capability-gating/spec.m
 The gating rule says *who* may perform a dangerous action; this rule says what happens when an
 untrusted user submits dangerous **content**: the save is **refused with an error naming the
 problem** — the content is never sanitized, stripped, escaped-away, or otherwise rewritten
-(maintainer decision, 2026-08-13). Three properties follow, and every content gate relies on them:
+(maintainer decision, 2026-08-13). Four properties follow, and every content gate relies on them:
 
 1. **Stored content always equals authored content.** What the gate admitted is byte-for-byte what
    the author wrote, so the frontend may render it verbatim (`raw post.the_content`, editor and
@@ -44,7 +47,15 @@ problem** — the content is never sanitized, stripped, escaped-away, or otherwi
    the markup, or hold the relevant permission).
 3. **History is reported, not rewritten.** Content stored before a gate existed is left untouched;
    `rake camaleon_cms:security:scan_content` lists everything today's gates would refuse so an
-   operator can clean it up deliberately.
+   operator can clean it up deliberately, and `rake camaleon_cms:security:scan_uploads` does the
+   same for files already under the media root.
+4. **The save-time decision is the only lever.** Content that passes the gate is stored *and
+   served* verbatim. No response header, CSP, `X-Content-Type-Options`, `Content-Disposition`,
+   separate media origin or other serving-side control constrains what a stored file does in the
+   browser — a trusted user was permitted to store it, so it behaves exactly as they intended.
+   This bounds the rule from below as the no-transform clause bounds it from above. The test before
+   proposing any control: *would it constrain a trusted user's content?* If yes, it is outside this
+   model whatever its merit as general security hygiene.
 
 The pieces that implement the rule:
 
@@ -325,19 +336,33 @@ as `params[:formats]`, so the client picks its own restriction. What stands betw
 the content scan, and this permission is what decides whether it runs.
 
 Without the permission every upload is scanned, whatever its source — a browser file, a `data:` payload, a remote download, a private-media file, or a
-file already published under `public/`. The scan reads the bytes and refuses them outright if they carry a `<script>`, an event-handler attribute, one
-of the blocked elements (`iframe`, `object`, `embed`, `base`, `meta`, `style`, `form`, `link`, `frame`, …), or a dangerous URI scheme —
-`javascript:`, `vbscript:`, or a non-raster `data:` URI such as `data:text/html` or `data:image/svg+xml` (an embedded raster image like
-`data:image/png;base64,…` is allowed, since a browser renders it as an inert bitmap). An SVG is additionally parsed as XML and refused if it carries
-`script`, `foreignObject`, `handler`, `form`, `meta`, `base`, `style` or `link`, or any `on*` attribute (matched case-insensitively). Nothing is
-stripped or rewritten; the upload simply fails with `Potentially malicious content found!`.
+file already published under `public/`. Nothing is stripped or rewritten; the upload simply fails with `Potentially malicious content found!`.
+
+**The ruleset is chosen by how the stored file will be rendered**, which the output filename's extension determines, because that is the extension the
+web server will serve the bytes under. There are three:
+
+- **Markup** (`svg svgz svg.gz html htm xhtml xht shtml xml xsl xslt`) is parsed — as XML, or as HTML for the formats that are not well-formed XML —
+  and refused if it carries any attribute whose name begins with `on` (matched case-insensitively, by *shape*, so no list of handler names is involved),
+  any of the banned elements (`script`, `foreignObject`, `handler`, `iframe`, `object`, `embed`, `form`, `meta`, `base`, `style`, `link`, `applet`,
+  `frameset`, `frame`, `template`, `portal`, `marquee`, `math`), or a dangerous URI scheme. Compressed markup is decompressed first, under a size
+  ceiling, since compressed bytes are opaque to every rule.
+- **Executable script** (`js mjs cjs wasm swf`) is refused outright rather than scanned. No scan can reach a verdict on JavaScript — see rule 3 of
+  the gating rule above — so the check fails closed, and this permission is what lifts it. Its holders skip scanning entirely and could already store
+  these files, which is why the capability lives here rather than in a second permission.
+- **Everything else** is scanned by the pattern ruleset: `<script>`, event-handler attributes, blocked elements, and dangerous URI schemes —
+  `javascript:`, `vbscript:`, or a non-raster `data:` URI such as `data:text/html` or `data:image/svg+xml` (an embedded raster image like
+  `data:image/png;base64,…` is allowed, since a browser renders it as an inert bitmap). Its element and handler lists are enumerations and therefore
+  incomplete, which is why nothing a browser parses as markup is left to it.
 
 With the permission, none of that runs.
 
-**The ruleset is chosen by the output filename**, because that is the extension the web server will serve the bytes under. Uploading the same bytes as
-`x.svg` and as `x.html` is two different questions, and both are asked of an uploader without the permission. Before this permission existed, a source
-already under `public/` was exempt from re-scanning on the reasoning that its bytes were already served — which let an SVG that the SVG ruleset
-accepted be re-cropped under an `.html` name and served as live markup, unscanned. Authorization now decides, so where the file sits is irrelevant.
+Uploading the same bytes as `x.svg` and as `x.html` is two different questions, and both are asked of an uploader without the permission. Before this
+permission existed, a source already under `public/` was exempt from re-scanning on the reasoning that its bytes were already served — which let an SVG
+that the SVG ruleset accepted be re-cropped under an `.html` name and served as live markup, unscanned. Authorization now decides, so where the file
+sits is irrelevant.
+
+Files stored before these rules are never re-examined and never rewritten. `rake camaleon_cms:security:scan_uploads` lists what today's rules would
+refuse, read-only, for an operator to review.
 
 **Defaults:** administrators hold it through `can :manage, :all`, exactly as for `contact_form_unfiltered_html`, and the same reasoning about seeding,
 locked checkboxes and the absence of a backfill applies unchanged. `editor`, `contributor` and `client` never receive it. **`manage :media` does not
