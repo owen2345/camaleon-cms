@@ -111,8 +111,8 @@ The page takes a few seconds to show the new run; reload if it does not appear. 
 to watch the three jobs — *Verify and build*, *Publish to RubyGems*, and *Tag and publish GitHub
 release* — go green in turn.
 
-> If the **Release** workflow is not listed in step 3, the workflow file has not reached `master`
-> yet. GitHub only offers a manually-triggered workflow once its file exists on the default branch.
+> If **Release** is not in the sidebar at all, the workflow file has not reached `master` yet.
+> GitHub only offers a manually-triggered workflow once its file exists on the default branch.
 > Merge the PR first.
 
 ## Step 4 — Confirm
