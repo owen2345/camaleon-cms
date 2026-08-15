@@ -46,6 +46,13 @@ module CamaleonCms
     ASCII_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     ASCII_LOWER = 'abcdefghijklmnopqrstuvwxyz'
 
+    # The banned-element XPath, built once from the frozen BANNED_TAGS rather than reassembled on
+    # every scan: `//*[translate(local-name(),UPPER,LOWER)='tag' or ...]`, each tag folded to
+    # lowercase so an HTML-lowercased element name still matches.
+    BANNED_TAGS_XPATH = "//*[#{BANNED_TAGS.map do |tag|
+      "translate(local-name(), '#{ASCII_UPPER}', '#{ASCII_LOWER}') = '#{tag.downcase}'"
+    end.join(' or ')}]".freeze
+
     module_function
 
     # `mode:` defaults to :xml so the pre-existing single-argument call (`unsafe?(content)`) keeps
@@ -66,10 +73,7 @@ module CamaleonCms
     end
 
     def dangerous_document?(doc, mode)
-      banned_tags_query = BANNED_TAGS.map do |tag|
-        "translate(local-name(), '#{ASCII_UPPER}', '#{ASCII_LOWER}') = '#{tag.downcase}'"
-      end.join(' or ')
-      return true if doc.xpath("//*[#{banned_tags_query}]").any?
+      return true if doc.xpath(BANNED_TAGS_XPATH).any?
 
       # Case-insensitive: XML attribute names are case-sensitive, but an SVG inlined into an HTML
       # document fires ONCLICK/OnClick exactly as onclick, and the non-SVG ruleset already matches
