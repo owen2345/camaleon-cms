@@ -62,6 +62,7 @@ All four must pass before pushing (CI parity).
 | Removing, renaming or hardening a public helper/hook/API that external plugins or themes may bind to | `docs/ai/ecosystem.md` |
 | Env files, keys, credentials | `docs/ai/secrets.md` |
 | Self-audit before opening a PR | `docs/ai/criteria.md` |
+| Cutting a release: version bump, tag, publishing the gem | `docs/releasing.md` |
 
 ## 6. Quick Reference
 

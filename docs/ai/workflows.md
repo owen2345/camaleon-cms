@@ -78,6 +78,7 @@ Other consequences to plan for:
 - **Including the marker moves the PR head without triggering a run.** The passing checks stay attached to the previous SHA. Before merge, check whether branch protection requires checks on the head commit, and re-trigger only if it does — `master` currently has none, so no re-trigger is needed.
 - **If you have already pushed a docs-only commit without the marker**, cancel the now-stale runs on the *previous* SHA, not the new ones. The PR head has moved, so the new runs are the ones that count for merge.
 - **The marker matches anywhere in the message, including the body.** A commit that merely *explains* the directive will skip CI too. Write "skip-ci directive" in prose rather than the literal token — unless you are actually invoking it, in which case it belongs on its own line as shown above.
+- **Never mark a release PR.** The Release workflow refuses to publish a commit that has no successful `current_support.yml` and `audit.yml` runs recorded against it, and a marker on the head of the push to `master` produces none. A version bump is a code change, so the rule above already lands a release PR in the "omit the marker" branch — keep it there. See `docs/releasing.md`.
 
 ---
 
