@@ -179,6 +179,58 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
     end
   end
 
+  describe 'compressed markup' do
+    def gzip(payload)
+      buffer = StringIO.new(+'', 'wb')
+      writer = Zlib::GzipWriter.new(buffer)
+      writer.write(payload)
+      writer.close
+      buffer.string
+    end
+
+    let(:hostile_svg) do
+      %(<svg xmlns="http://www.w3.org/2000/svg"><rect onpointerdown="alert(1)" width="10" height="10"/></svg>)
+    end
+
+    let(:clean_svg) do
+      %(<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>)
+    end
+
+    %w[x.svgz x.svg.gz].each do |name|
+      it "refuses a hostile payload gzipped under #{name}" do
+        expect(scanner).to be_content_unsafe(gzip(hostile_svg), filename: name)
+      end
+
+      it "accepts a clean payload gzipped under #{name}" do
+        expect(scanner).not_to be_content_unsafe(gzip(clean_svg), filename: name)
+      end
+    end
+
+    it 'refuses a payload that decompresses past the ceiling' do
+      bomb = gzip('a' * (CamaleonCms::UploaderContentSecurity::MAX_DECOMPRESSED_MARKUP_BYTES + 1024))
+
+      expect(scanner).to be_content_unsafe(bomb, filename: 'bomb.svgz')
+    end
+
+    it 'stops at the bound rather than materializing the whole expansion' do
+      bomb = gzip('a' * (CamaleonCms::UploaderContentSecurity::MAX_DECOMPRESSED_MARKUP_BYTES + 1024))
+      ceiling = CamaleonCms::UploaderContentSecurity::MAX_DECOMPRESSED_MARKUP_BYTES
+
+      # Pins the lazy read: a reader that decompressed to EOF and measured afterwards would ask for
+      # everything, which is exactly what a bomb is built to exploit.
+      expect_any_instance_of(Zlib::GzipReader).to receive(:read).with(ceiling + 1).and_call_original
+      scanner.content_unsafe?(bomb, filename: 'bomb.svgz')
+    end
+
+    it 'still scans ungzipped bytes stored under a compressed extension' do
+      expect(scanner).to be_content_unsafe(hostile_svg, filename: 'x.svgz')
+    end
+
+    it 'accepts clean ungzipped bytes stored under a compressed extension' do
+      expect(scanner).not_to be_content_unsafe(clean_svg, filename: 'x.svgz')
+    end
+  end
+
   describe 'escaped code examples' do
     # Normalization decodes entities before matching, so the generic ruleset rejects a document that
     # merely *shows* escaped markup. Fail-closed and intentional; pinned for the extensions that

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'zlib'
+require 'stringio'
+
 module CamaleonCms
   module UploaderContentSecurity
     # Extensions a browser parses as markup. These select the parse-based checker; everything else
@@ -24,6 +27,12 @@ module CamaleonCms
     # Gzip-compressed markup. Compressed bytes are high-entropy: no pattern matches them and no
     # parser reads them, so scanning them as they arrive is not weak scanning, it is no scanning.
     COMPRESSED_MARKUP_EXTENSIONS = %w[svgz svg.gz].freeze
+
+    # Ceiling on decompressed markup. Compression is the one case where the upload size limit stops
+    # bounding the work: a few-KB upload can expand to gigabytes, so the input limit says nothing
+    # about the memory the scan will use. Generous for a real compressed image and far below
+    # anything a bomb aims for; an upload that exceeds it is refused rather than expanded further.
+    MAX_DECOMPRESSED_MARKUP_BYTES = 10 * 1024 * 1024
     # Whether the current uploader may skip the malicious-content scan. Mirrors
     # Post#trusted_for_unfiltered_html?: read the request context, fail closed (scan) when
     # either half is missing -- background jobs, rake tasks and the console have no request
@@ -136,9 +145,47 @@ module CamaleonCms
     # a document that merely *shows* escaped markup (`&lt;script&gt;`) contains no script element,
     # renders as literal text in a browser, and is no longer refused for it.
     def markup_unsafe?(content, extension)
-      return true if CamaleonCms::ContentSecurity.blocked_scheme?(content)
+      scannable = cama_markup_scannable(content, extension)
+      return true if scannable == :too_large
 
-      CamaleonCms::SvgContentChecker.unsafe?(content, mode: cama_markup_parse_mode(extension))
+      return true if CamaleonCms::ContentSecurity.blocked_scheme?(scannable)
+
+      CamaleonCms::SvgContentChecker.unsafe?(scannable, mode: cama_markup_parse_mode(extension))
+    end
+
+    # The bytes a browser will actually parse: the decompressed payload for a compressed markup
+    # extension, the content itself otherwise.
+    #
+    # Bytes under a compressed extension that are not valid gzip fall back to being scanned as raw
+    # markup rather than skipped. nginx's default mime map serves `.svgz` as `image/svg+xml`, so an
+    # ungzipped file under that name still renders as SVG; skipping it would be the same
+    # scanned-in-name-only hole the compression created.
+    def cama_markup_scannable(content, extension)
+      return content unless COMPRESSED_MARKUP_EXTENSIONS.include?(extension)
+
+      cama_gunzip_bounded(content) || content
+    end
+
+    # Decompresses at most MAX_DECOMPRESSED_MARKUP_BYTES. Returns the payload, `:too_large` when it
+    # exceeds the ceiling, or nil when the bytes are not gzip at all.
+    #
+    # Reads one byte past the ceiling rather than reading to EOF and measuring afterwards: a
+    # GzipReader decompresses lazily, so a bomb is detected having materialized only the bound, not
+    # the gigabytes behind it.
+    def cama_gunzip_bounded(content)
+      reader = Zlib::GzipReader.new(StringIO.new(content.to_s.b))
+      begin
+        decompressed = reader.read(MAX_DECOMPRESSED_MARKUP_BYTES + 1).to_s
+      ensure
+        reader.close
+      end
+      return :too_large if decompressed.bytesize > MAX_DECOMPRESSED_MARKUP_BYTES
+
+      decompressed
+    rescue Zlib::Error, EOFError
+      # Not gzip, or a truncated stream whose footer will not verify. Either way the caller falls
+      # back to scanning the raw bytes, which fails closed for anything that is not clean markup.
+      nil
     end
 
     def cama_markup_parse_mode(extension)
