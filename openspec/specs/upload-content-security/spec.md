@@ -106,7 +106,7 @@ The system SHALL normalize file content before matching it against the malicious
 
 The system SHALL reject file uploads whose content contains executable event handler attributes before storing or persisting the file. Rejection SHALL leave no copy of the file on disk, including the copy in the upload staging directory.
 
-**Change**: markup uploads — every extension a browser parses as markup, not only `.svg` — are scanned for event handlers by the parse-based checker in the `svg-upload-sanitization` capability, which rejects any attribute whose name begins with `on` by shape rather than by matching a list of handler names. The regex denylist no longer decides event handlers for any content a browser parses as markup; it continues to apply to non-markup uploads as defense-in-depth, where its incompleteness cannot produce a stored-XSS path.
+**Change**: markup uploads — every extension a browser parses as markup, not only `.svg` — are scanned for event handlers by the parse-based checker in the `svg-upload-sanitization` capability, which rejects any attribute whose name begins with `on` by shape rather than by matching a list of handler names. The parse decides which handlers are present; a byte-level backstop over the same bytes catches handlers and blocked elements the parse would miss because it autodetected an encoding a browser resolves differently (see "Markup is scanned at the byte level as well as the parse level"). The regex denylist is not the *only* control for markup, but it is not removed from it either: its incompleteness cannot produce a stored-XSS path on non-markup uploads, where it continues to apply as defense-in-depth.
 
 #### Scenario: A markup file with an unlisted handler is rejected
 - **WHEN** a user uploads an `.html` file whose content includes an `onpointerdown`, `ontouchstart`, `onauxclick` or `onemptied` attribute
@@ -301,6 +301,35 @@ the name suggesting compression.
 #### Scenario: Uncompressed bytes under a compressed extension are still scanned
 - **WHEN** a user uploads a `.svgz` whose bytes are plain, ungzipped SVG containing an `onclick` attribute
 - **THEN** the upload is refused, because the bytes are scanned as raw markup
+
+### Requirement: Markup is scanned at the byte level as well as the parse level
+
+A markup parser autodetects its character encoding from in-band signals — a BOM, an XML
+declaration, or a `<meta charset>` element. A browser can resolve the same signals differently; in
+particular WHATWG maps a `utf-16` or `utf-32` `<meta charset>` back to UTF-8, so a pure-ASCII
+document that declares `utf-16` fires its event handlers in the browser while the parser re-decodes
+the bytes as UTF-16 and sees none. The scan SHALL NOT depend on the parser choosing the same
+encoding as the browser.
+
+For every markup upload the system SHALL therefore apply a byte-level check in addition to the
+parse: it SHALL strip NUL and C0 control bytes (collapsing UTF-16/UTF-32 padding, and the byte
+tricks a URL parser ignores) and refuse the upload if the result contains an event-handler
+attribute or a blocked element. This byte check SHALL NOT decode HTML entities, so a document that
+merely displays escaped markup (`&lt;script&gt;`) is not refused by it — a character reference in a
+tag or attribute *name* is never decoded by a browser, so decoding would add no coverage while
+reintroducing that false positive.
+
+#### Scenario: A spoofed `<meta charset>` cannot hide a handler from the scan
+- **WHEN** a user uploads an `.html` file of pure-ASCII bytes declaring `<meta charset="utf-16">` and carrying an `onerror` attribute
+- **THEN** the upload is refused, because the byte-level check matches the handler regardless of the encoding the parser autodetected
+
+#### Scenario: Real wide-encoded markup bytes carrying a handler are refused
+- **WHEN** a user uploads markup encoded as UTF-16 whose text carries an `onerror` attribute
+- **THEN** the upload is refused, because stripping the NUL padding collapses the handler to the bytes a browser would run
+
+#### Scenario: The byte-level check does not entity-decode
+- **WHEN** a user uploads a markup file whose only script-like content is escaped (`<p>Use &lt;script&gt; carefully</p>`)
+- **THEN** the byte-level check does not refuse it, leaving the parse to accept it as displayed text
 
 ### Requirement: Executable script uploads require the unfiltered-upload permission
 

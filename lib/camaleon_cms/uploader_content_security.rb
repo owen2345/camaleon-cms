@@ -161,16 +161,21 @@ module CamaleonCms
     # the NUL, leaving `java` and nothing for a parse-based check to find. Bytes and tree disagree,
     # so both are consulted.
     #
-    # The element and handler patterns are deliberately not run here — the parse supersedes them.
-    # BANNED_TAGS already unions ContentSecurity::BLOCKED_ELEMENTS, and the `on*` shape match is
-    # strictly stronger than the stem list. What the parse changes is a documented false positive:
-    # a document that merely *shows* escaped markup (`&lt;script&gt;`) contains no script element,
-    # renders as literal text in a browser, and is no longer refused for it.
+    # The element and handler patterns still run here, as a byte-level backstop the parse cannot
+    # provide. A markup parser autodetects its encoding from in-band signals (a BOM, an XML
+    # declaration, a `<meta charset>`); a browser can resolve the same signals differently, so a
+    # document declaring `utf-16` while carrying ASCII fires its handlers in the browser but reaches
+    # the parser as garbled utf-16 with no handlers seen. `suspicious_markup_bytes?` strips the
+    # NUL/C0 padding and matches the element/handler tokens on the collapsed bytes, catching the
+    # payload whatever encoding the parser chose. It does not entity-decode, so the parse still owns
+    # the documented false positive it removes: a document that merely *shows* escaped markup
+    # (`&lt;script&gt;`) renders as literal text in a browser and is not refused for it.
     def markup_unsafe?(content, extension)
       scannable = cama_markup_scannable(content, extension)
       return true if scannable == :too_large
 
       return true if CamaleonCms::ContentSecurity.blocked_scheme?(scannable)
+      return true if CamaleonCms::ContentSecurity.suspicious_markup_bytes?(scannable)
 
       CamaleonCms::SvgContentChecker.unsafe?(scannable, mode: cama_markup_parse_mode(extension))
     end

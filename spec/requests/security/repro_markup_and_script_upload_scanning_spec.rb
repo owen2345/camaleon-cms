@@ -74,6 +74,18 @@ RSpec.describe 'Markup and script upload scanning', type: :request do
     end
   end
 
+  describe 'encoding-confused markup' do
+    # A pure-ASCII HTML document declaring utf-16 fires its handler in the browser (WHATWG maps a
+    # utf-16 <meta charset> back to UTF-8) while the HTML parser re-decodes the bytes as utf-16 and
+    # sees no handler. The scan must not depend on the parser agreeing with the browser about the
+    # encoding.
+    it 'refuses an .html whose <meta charset> hides a handler from the parser' do
+      upload(%(<!doctype html><meta charset="utf-16"><img src=x onerror="alert(1)">), extension: '.html')
+
+      expect(response.body).to include('Potentially malicious content found!')
+    end
+  end
+
   describe 'compressed markup' do
     # Gzip output is high-entropy: no regex matches it and no parser reads it, so a `.svgz` is
     # scanned today in name only.

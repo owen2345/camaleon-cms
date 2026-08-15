@@ -289,6 +289,31 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
     end
   end
 
+  describe 'encoding-confusion backstop' do
+    # A markup parser autodetects its encoding from in-band signals; a browser can resolve them
+    # differently. A pure-ASCII document that declares utf-16 fires its handlers in the browser
+    # (WHATWG maps a utf-16 <meta charset> back to UTF-8), while the HTML parser re-decodes the
+    # bytes as utf-16 and sees no handlers. The byte-level backstop refuses it regardless.
+    it 'rejects a spoofed <meta charset> that hides a handler from the parser' do
+      expect(scan(%(<!doctype html><meta charset="utf-16"><img src=x onerror="alert(1)">))).to be_truthy
+    end
+
+    it 'rejects a spoofed <meta charset> that hides a <script> from the parser' do
+      expect(scan(%(<!doctype html><meta charset="utf-32"><script>alert(1)</script>))).to be_truthy
+    end
+
+    it 'rejects real UTF-16 markup bytes carrying a handler' do
+      utf16 = %(<img src=x onerror="alert(1)">).encode(Encoding::UTF_16LE).b
+      expect(scanner).to be_content_unsafe(utf16, filename: 'x.html')
+    end
+
+    # The backstop must not entity-decode, or it would reintroduce the escaped-markup false positive
+    # the parse-based checker exists to remove.
+    it 'still accepts a markup file that merely displays escaped markup' do
+      expect(scan(%(<p>Use &lt;script&gt; carefully</p>))).to be_falsey
+    end
+  end
+
   describe 'IO handling' do
     it 'rewinds the IO after a passing scan so the content can be read again' do
       Tempfile.create(['scan', '.txt'], binmode: true) do |f|
@@ -314,7 +339,9 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
     end
 
     it 'routes SVG content to the parse-based checker' do
-      svg = %(<svg xmlns="http://www.w3.org/2000/svg"><rect onclick="alert(1)"/></svg>)
+      # A bare foreignObject is caught only by the parse-based checker (the byte-level backstop does
+      # not list it), so reaching a verdict of unsafe proves the content was routed to the parse.
+      svg = %(<svg xmlns="http://www.w3.org/2000/svg"><foreignObject/></svg>)
       expect(CamaleonCms::SvgContentChecker).to receive(:unsafe?).with(svg, mode: :xml).and_call_original
       expect(scanner.content_unsafe?(svg, filename: 'x.svg')).to be(true)
     end
@@ -388,6 +415,24 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
 
       it 'returns false for nil' do
         expect(described_class.blocked_scheme?(nil)).to be(false)
+      end
+    end
+
+    describe '.suspicious_markup_bytes?' do
+      it 'matches a handler hidden behind NUL padding (UTF-16-style bytes)' do
+        expect(described_class.suspicious_markup_bytes?("o\x00n\x00e\x00r\x00r\x00o\x00r\x00=\x00")).to be(true)
+      end
+
+      it 'matches a blocked element hidden behind NUL padding' do
+        expect(described_class.suspicious_markup_bytes?("<\x00s\x00c\x00r\x00i\x00p\x00t\x00>\x00")).to be(true)
+      end
+
+      it 'does not entity-decode, so escaped markup is not flagged' do
+        expect(described_class.suspicious_markup_bytes?('Use &lt;script&gt; carefully')).to be(false)
+      end
+
+      it 'returns false for nil' do
+        expect(described_class.suspicious_markup_bytes?(nil)).to be(false)
       end
     end
 
