@@ -67,6 +67,15 @@ is a link. A trailing date is ignored. A heading it cannot match to the version 
 including a leftover `## Unreleased` — silently costs you your release notes and falls back to a
 bare commit list.
 
+Then fold this version's upgrader notes into its upgrade guide. Create or update
+`docs/upgrading-to-<version>.md` as the operator/upgrader runbook — operator actions with
+copy-paste commands, observable behavior changes, and notes for theme/plugin developers — moving
+those notes out of the individual `CHANGELOG.md` entries and trimming each entry to its
+≤500-character lead paragraph. Keep each entry's **Breaking changes** inline; add a single banner at
+the top of the version's CHANGELOG section (just before the first entry) linking the guide; and end
+every entry whose notes moved with a link to its specific guide section anchor. The convention is
+spelled out in `docs/ai/workflows.md` Phase 4.
+
 Commit, push, open the PR, and merge it once it is approved:
 
 ```bash
