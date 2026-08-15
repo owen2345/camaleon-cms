@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- **Security fix:** The upload content scan chose its ruleset by matching the filename against
+  `.svg`, so identical bytes carrying an event handler the regex denylist does not list were refused
+  as `x.svg` and stored as `x.html`. The ruleset is now chosen by how the stored file will be
+  rendered, and every markup format is checked by the parser, which rejects any `on*` attribute by
+  shape rather than by a list of handler names. Compressed markup (`.svgz`) is decompressed before
+  scanning under a bounded read, and executable script uploads require `media_unfiltered_upload`.
+  Reported by Guilherme Facini.
+  [#1269](https://github.com/owen2345/camaleon-cms/pull/1269).
+  - **Breaking change:** a role without `media_unfiltered_upload` can no longer upload `.js`,
+    `.mjs`, `.cjs`, `.wasm` or `.swf` files. Grant that permission to a role that needs them.
+  - **Notes for upgraders:** files stored before this release are not re-examined and never
+    rewritten; `rake camaleon_cms:security:scan_uploads` lists what today's rules would refuse, for
+    review by hand.
+  - A document that merely displays escaped markup (`&lt;script&gt;`) is no longer refused when
+    uploaded under a markup extension — the parser reads it as text, which is what a browser does.
+
 - **Release process:** Releases are now cut by a manually-started **Release** GitHub Actions
   workflow that verifies, builds and publishes the gem, then tags the commit and creates the GitHub
   release from this file's section for that version. `lib/camaleon_cms/version.rb` is the single
