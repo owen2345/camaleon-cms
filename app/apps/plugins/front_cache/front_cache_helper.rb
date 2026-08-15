@@ -145,12 +145,26 @@ module Plugins
       end
 
       def front_cache_plugin_match_path_patterns?(key, key2)
-        @caches[:paths].any? { |path_pattern| key =~ Regexp.new(path_pattern) || key2 =~ Regexp.new(path_pattern) }
+        front_cache_compiled_path_patterns.any? { |pattern| key =~ pattern || key2 =~ pattern }
+      end
+
+      # Security (audit Low): compile the admin-configured patterns once per request and skip any that
+      # are malformed -- Regexp.new was rebuilt on every request and raised (500) on an invalid pattern
+      # (RegexpError) or a non-String pattern reachable via crafted settings params (TypeError).
+      def front_cache_compiled_path_patterns
+        @front_cache_compiled_path_patterns ||= (@caches[:paths] || []).filter_map do |pattern|
+          Regexp.new(pattern)
+        rescue RegexpError, TypeError
+          nil
+        end
       end
 
       def front_cache_plugin_cache_key
         uri = [request.protocol + request.host_with_port, request.fullpath].join('/')
-        uri.parameterize
+        # Security (audit Low): a lossless key. parameterize lowercased and collapsed every run of
+        # non-alphanumerics to '-', so distinct URLs shared one cache entry -- a visitor to one
+        # cacheable URL could be served the cached body of another.
+        Digest::SHA256.hexdigest(uri)
       end
     end
   end

@@ -44,7 +44,12 @@ module CamaleonCms
         # let the avatar flow store "").
         return render(plain: helpers.sanitize(res[:error])) if res[:error].present?
 
-        CamaleonCms::User.find(params[:saved_avatar]).set_meta('avatar', res['url']) if params[:saved_avatar].present?
+        # Security (audit Low): resolve the avatar target through the current site and nil-safely --
+        # an unscoped User.find let a media manager set (or probe) a user on another site, and 500ed
+        # on a bad id.
+        if params[:saved_avatar].present?
+          current_site.users.find_by(id: params[:saved_avatar])&.set_meta('avatar', res['url'])
+        end
         render plain: res['url'].to_s
       end
 
