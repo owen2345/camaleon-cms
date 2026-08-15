@@ -99,7 +99,10 @@ module CamaleonCms
 
       return render(json: flash.discard(:comment_submit).to_hash) if params[:format] == 'json'
 
-      redirect_to(request.referer || @post&.the_url(as_path: true) || '/')
+      # Security (audit Low): the Referer header is attacker-controlled; redirecting to it raw is an
+      # open redirect (Rails < 7) or an UnsafeRedirectError 500 (Rails >= 7). Vet it through the shared
+      # same-host/allowlist redirect helper, falling back to the post URL (or root).
+      cama_safe_redirect(request.referer, @post&.the_url(as_path: true) || '/')
     end
   end
 end
