@@ -344,8 +344,11 @@ web server will serve the bytes under. There are three:
 - **Markup** (`svg svgz svg.gz html htm xhtml xht shtml xml xsl xslt`) is parsed — as XML, or as HTML for the formats that are not well-formed XML —
   and refused if it carries any attribute whose name begins with `on` (matched case-insensitively, by *shape*, so no list of handler names is involved),
   any of the banned elements (`script`, `foreignObject`, `handler`, `iframe`, `object`, `embed`, `form`, `meta`, `base`, `style`, `link`, `applet`,
-  `frameset`, `frame`, `template`, `portal`, `marquee`, `math`), or a dangerous URI scheme. Compressed markup is decompressed first, under a size
-  ceiling, since compressed bytes are opaque to every rule.
+  `frameset`, `frame`, `template`, `portal`, `marquee`, `math`), or a dangerous URI scheme. A byte-level pass over the same bytes backs the parse up:
+  it strips the NUL/C0 padding and matches the element and handler patterns, so a document that declares a bogus encoding (a `utf-16` `<meta charset>` a
+  browser resolves to UTF-8) cannot hide a handler from a parser that re-decoded the bytes differently than the browser will. Every member of a
+  compressed upload is decompressed first, under a size ceiling, since compressed bytes are opaque to every rule and a compliant decoder concatenates
+  all members.
 - **Executable script** (`js mjs cjs wasm swf`) is refused outright rather than scanned. No scan can reach a verdict on JavaScript — see rule 3 of
   the gating rule above — so the check fails closed, and this permission is what lifts it. Its holders skip scanning entirely and could already store
   these files, which is why the capability lives here rather than in a second permission.

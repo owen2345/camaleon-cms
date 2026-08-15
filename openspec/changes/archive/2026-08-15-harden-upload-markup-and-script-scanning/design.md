@@ -225,3 +225,27 @@ here so applying it is mechanical rather than improvised.
 3. Land D6, which is additive and read-only.
 4. Rollback: each commit is independent. Reverting D5 alone restores script uploads for untrusted
    roles without touching the markup work.
+
+## Post-review hardening
+
+A max-effort review of the branch found two stored-XSS bypasses and several lower issues in the
+implementation above; all were fixed on the branch before merge. The load-bearing lessons, folded
+into `openspec/specs/`:
+
+- **The parse is not the whole verdict for markup.** A markup parser autodetects its encoding from
+  in-band signals (a BOM, an XML declaration, a `<meta charset>`), and a browser can resolve them
+  differently — WHATWG maps a `utf-16`/`utf-32` `<meta charset>` back to UTF-8. A pure-ASCII `.html`
+  declaring `utf-16` therefore fired its handlers in the browser while Nokogiri saw none. D2's
+  reasoning that "the `on*` shape match is strictly stronger than the stem list" held only when the
+  parser and the browser agreed on the bytes. Fix: a byte-level backstop (`suspicious_markup_bytes?`)
+  strips NUL/C0 padding and matches the element/handler patterns independent of the parse. It does
+  not entity-decode, so the escaped-markup allowance D2 gained is preserved. This is the durable
+  boundary: matching browser HTML5 parsing byte-for-byte is not achievable from libxml2, so the byte
+  backstop is the floor, not the parse.
+- **Scanning the first gzip member is scanning in name only (D4, one layer down).** `GzipReader#read`
+  stops at the first member; a compliant decoder concatenates all of them. Fix: decompress every
+  member under the shared ceiling.
+- **Case and encoding are part of "how the browser parses it."** The element XPath now folds case
+  (HTML lowercases `foreignObject`), and routing strips trailing dots/spaces a server may strip.
+- **The report task must match how uploads are stored.** It now honours `media_slug_folder`, scans
+  dotfiles (`FNM_DOTMATCH`), and covers the private-media root, not only `media/<id>`.
