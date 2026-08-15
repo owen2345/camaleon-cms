@@ -35,5 +35,11 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
 
       expect { host.send(:front_cache_plugin_match_path_patterns?, '/x', '/y') }.not_to raise_error
     end
+
+    it 'ignores a non-String path pattern instead of raising' do
+      host.instance_variable_set(:@caches, { paths: [['nested-array']] })
+
+      expect { host.send(:front_cache_plugin_match_path_patterns?, '/x', '/y') }.not_to raise_error
+    end
   end
 end

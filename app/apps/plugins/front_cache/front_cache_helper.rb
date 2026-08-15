@@ -149,11 +149,12 @@ module Plugins
       end
 
       # Security (audit Low): compile the admin-configured patterns once per request and skip any that
-      # are malformed -- Regexp.new was rebuilt on every request and raised (500) on an invalid pattern.
+      # are malformed -- Regexp.new was rebuilt on every request and raised (500) on an invalid pattern
+      # (RegexpError) or a non-String pattern reachable via crafted settings params (TypeError).
       def front_cache_compiled_path_patterns
         @front_cache_compiled_path_patterns ||= (@caches[:paths] || []).filter_map do |pattern|
           Regexp.new(pattern)
-        rescue RegexpError
+        rescue RegexpError, TypeError
           nil
         end
       end
