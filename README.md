@@ -203,6 +203,13 @@ hooks core fires, including the session/auth hooks (`user_before_login`, `user_b
 * Push to the branch (git push origin my_feature_branch)
 * Create a pull request from your branch into master (Please be sure to provide enough detail for us to understand what this change is doing)
 
+## Releasing
+
+Releases are cut by the manually-started **Release** GitHub Actions workflow, which builds the gem,
+publishes it to RubyGems, tags the commit and creates the GitHub release. See
+[docs/releasing.md](docs/releasing.md) for the full procedure, what the workflow checks before it
+publishes, and the fully manual fallback.
+
 ## Version History
 
 https://camaleon.website/version-history.html
