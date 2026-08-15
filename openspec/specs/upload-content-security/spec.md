@@ -386,6 +386,11 @@ The system SHALL provide a report-only task that scans files already stored unde
 reports those the current rules would refuse. The new rules apply at upload time, so files stored
 before this change are never otherwise re-examined.
 
+The task SHALL locate each site's media directory the same way uploads are stored — honouring the
+`media_slug_folder` configuration, which places uploads under `media/<slug>` rather than
+`media/<id>` — so that on a slug-configured install it does not silently scan an empty path and
+report a false all-clear.
+
 The task SHALL NOT delete, move, quarantine or rewrite any file. Its output SHALL identify each
 finding by site and path, and SHALL state the rule that would refuse it, so an operator can decide
 what to do.

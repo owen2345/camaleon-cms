@@ -19,7 +19,10 @@ namespace :camaleon_cms do
       report.call 'Scanning stored media against the upload scan rules (read-only)...'
 
       CamaleonCms::Site.unscoped.find_each do |site|
-        root = Rails.public_path.join('media', site.id.to_s)
+        # Site#upload_directory honours the `media_slug_folder` config, which stores uploads under
+        # media/<slug> instead of media/<id>. Hardcoding the id scanned nothing on a slug-configured
+        # install and printed a clean "0 would be rejected" -- a false all-clear.
+        root = Pathname.new(site.upload_directory)
         next unless root.directory?
 
         Dir.glob(root.join('**', '*')).sort.each do |path|

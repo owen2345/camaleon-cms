@@ -86,4 +86,23 @@ RSpec.describe 'camaleon_cms:security:scan_uploads Rake task', type: :task do
 
     expect { task.invoke }.to output(/would be rejected \(unreadable/).to_stdout
   end
+
+  context 'when media_slug_folder stores uploads under media/<slug>' do
+    let(:slug_root) { Rails.public_path.join('media', site.slug) }
+
+    before do
+      allow(PluginRoutes).to receive(:static_system_info)
+        .and_return(PluginRoutes.static_system_info.merge('media_slug_folder' => true))
+      FileUtils.mkdir_p(slug_root)
+    end
+
+    after { FileUtils.rm_rf(slug_root) }
+
+    # Hardcoding media/<id> found nothing on a slug-configured install and printed a false all-clear.
+    it 'scans the slug-named directory, not media/<id>' do
+      File.binwrite(slug_root.join('legacy.js'), 'console.log(1)')
+
+      expect { task.invoke }.to output(%r{/media/#{site.slug}/legacy\.js: would be rejected}).to_stdout
+    end
+  end
 end
