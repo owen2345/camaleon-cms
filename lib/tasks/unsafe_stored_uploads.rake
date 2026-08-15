@@ -25,7 +25,10 @@ namespace :camaleon_cms do
         root = Pathname.new(site.upload_directory)
         next unless root.directory?
 
-        Dir.glob(root.join('**', '*')).sort.each do |path|
+        # FNM_DOTMATCH so dotfiles are scanned: a basename that is entirely an extension (`.svg`,
+        # `.js`) is exactly what the scanner fail-closes on, so skipping it would omit the strictest
+        # names from the report. `.`/`..` are directory entries the File.file? guard drops.
+        Dir.glob(root.join('**', '*'), File::FNM_DOTMATCH).sort.each do |path|
           next unless File.file?(path)
 
           scanned += 1

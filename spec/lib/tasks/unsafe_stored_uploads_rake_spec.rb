@@ -87,6 +87,14 @@ RSpec.describe 'camaleon_cms:security:scan_uploads Rake task', type: :task do
     expect { task.invoke }.to output(/would be rejected \(unreadable/).to_stdout
   end
 
+  # A basename that is entirely an extension is what cama_upload_extension fail-closes on, yet a
+  # plain glob skips leading-dot names -- so the report omitted its own strictest case.
+  it 'reports a dotfile whose whole basename is an extension' do
+    store('.js', 'console.log(1)')
+
+    expect { task.invoke }.to output(%r{/media/#{site.id}/\.js: would be rejected}).to_stdout
+  end
+
   context 'when media_slug_folder stores uploads under media/<slug>' do
     let(:slug_root) { Rails.public_path.join('media', site.slug) }
 

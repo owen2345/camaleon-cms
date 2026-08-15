@@ -391,6 +391,10 @@ The task SHALL locate each site's media directory the same way uploads are store
 `media/<id>` — so that on a slug-configured install it does not silently scan an empty path and
 report a false all-clear.
 
+The task SHALL include stored files whose basename begins with a dot. A basename that is entirely an
+extension (`.svg`, `.js`) is exactly what upload routing fails closed on, so omitting such names
+would leave the strictest cases out of the report.
+
 The task SHALL NOT delete, move, quarantine or rewrite any file. Its output SHALL identify each
 finding by site and path, and SHALL state the rule that would refuse it, so an operator can decide
 what to do.
@@ -410,4 +414,8 @@ what to do.
 #### Scenario: A clean media root reports nothing
 - **WHEN** the task runs over a media root whose files all pass the current rules
 - **THEN** the report is empty and the task exits successfully
+
+#### Scenario: A stored dotfile is reported
+- **WHEN** the task runs over a media root containing a file whose basename is exactly `.js`
+- **THEN** the file is listed in the report, because dotfiles are not skipped
 
