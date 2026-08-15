@@ -44,7 +44,12 @@ module CamaleonCms
         flash[:comment_submit][:error] = t('.comments_not_enabled', default: 'This post can not be commented')
       end
 
-      post_comment = params[:post_comment] || {}
+      # Security (audit Low): params[:post_comment] is attacker-controlled and may arrive as a scalar
+      # or array, not the expected hash. `|| {}` only covered nil; indexing a String/Array with a
+      # symbol key raises TypeError (500). Coerce anything not hash-shaped to an empty hash so every
+      # post_comment[...] read below is safe.
+      post_comment = params[:post_comment]
+      post_comment = {} unless post_comment.is_a?(ActionController::Parameters) || post_comment.is_a?(Hash)
 
       if user.present?
         comment_data[:author] = user.fullname
