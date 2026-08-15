@@ -76,7 +76,7 @@ module CamaleonCms
                   else
                     uploaded_io.path
                   end
-      cama_svg_extension?(file_path)
+      cama_upload_extension(file_path) == 'svg'
     end
 
     # Scans in-memory content. Callers holding decoded bytes (e.g. a base64 data:
@@ -127,8 +127,12 @@ module CamaleonCms
                  else
                    uploaded_io.path
                  end
-      file.set_encoding(Encoding::BINARY) if !svg_upload?(uploaded_io) && file.respond_to?(:binmode) &&
-                                             file.respond_to?(:set_encoding)
+      # `.svg` is read as-is; every other extension is forced to BINARY (svgz needs the raw gzip
+      # bytes, and the markup parser reads the encoding from the content, not the String tag). Reuse
+      # the filename already computed rather than re-deriving the path through svg_upload?.
+      if cama_upload_extension(filename) != 'svg' && file.respond_to?(:binmode) && file.respond_to?(:set_encoding)
+        file.set_encoding(Encoding::BINARY)
+      end
       content = file.read
       file.rewind if file.respond_to?(:rewind)
 
@@ -239,17 +243,6 @@ module CamaleonCms
 
     def cama_markup_parse_mode(extension)
       HTML_MODE_EXTENSIONS.include?(extension) ? :html : :xml
-    end
-
-    # Case-insensitive `.svg` test. Upload names arrive with whatever case the client sent
-    # (`evil.SVG`); a case-sensitive check routed those past the SVG-specific scanner into the
-    # weaker generic ruleset, so both entry points normalize the extension here. A name whose
-    # basename is exactly `.svg` (a dotfile, which File.extname reports as having no extension)
-    # is still treated as an SVG: the pre-hardening `end_with?` check matched it, and routing it
-    # to the stricter parser fails closed.
-    def cama_svg_extension?(name)
-      base = File.basename(name.to_s)
-      File.extname(base).casecmp?('.svg') || base.casecmp?('.svg')
     end
   end
 end

@@ -351,6 +351,31 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
     end
   end
 
+  # svg_upload? now derives its answer from cama_upload_extension rather than a second, parallel
+  # extension parser; these pin the public contract so the two cannot drift.
+  describe '#svg_upload?' do
+    def io_named(name)
+      instance_double(File, path: name)
+    end
+
+    it 'is true for an .svg path, in any case' do
+      expect(scanner.svg_upload?(io_named('x.svg'))).to be(true)
+      expect(scanner.svg_upload?(io_named('x.SVG'))).to be(true)
+    end
+
+    it 'is true for a bare .svg dotfile' do
+      expect(scanner.svg_upload?(io_named('.svg'))).to be(true)
+    end
+
+    it 'is false for a compressed .svgz, which must be read as binary' do
+      expect(scanner.svg_upload?(io_named('x.svgz'))).to be(false)
+    end
+
+    it 'is false for other markup such as .html' do
+      expect(scanner.svg_upload?(io_named('x.html'))).to be(false)
+    end
+  end
+
   describe '#content_unsafe?' do
     it 'returns the same verdict as the IO entry point for unsafe content' do
       content = %(<a href="jav&#x61;script:alert(1)">x</a>)
