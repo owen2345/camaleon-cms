@@ -19,11 +19,18 @@ differ SHALL map to different cache keys.
 
 ### Requirement: A malformed path pattern does not break request handling
 
-The configured cache path patterns SHALL be compiled defensively: an invalid pattern SHALL be
-skipped rather than raising, so a bad admin-entered pattern cannot 500 every matched request.
+The configured cache path patterns SHALL be compiled defensively: a pattern that is not a valid
+regular expression, or that is not a String at all, SHALL be skipped rather than raising, so a bad
+admin-entered pattern cannot 500 every matched request.
 
 #### Scenario: An invalid pattern is ignored
 
 - **WHEN** the cache path patterns include a string that is not a valid regular expression
+- **THEN** matching skips it and does not raise
+
+#### Scenario: A non-String pattern is ignored
+
+- **WHEN** the cache path patterns include a value that is not a String (for example a nested array
+  reachable through crafted settings params)
 - **THEN** matching skips it and does not raise
 

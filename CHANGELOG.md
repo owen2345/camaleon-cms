@@ -3,10 +3,12 @@
 ## Unreleased
 
 - **Security fix:** Low-severity hardening bundle. The captcha challenge is now drawn from a CSPRNG
-  instead of `Kernel#rand`; the public `save_comment` endpoint no longer 500s on a bad post id or a
-  missing payload; the media crop avatar target is resolved within the current site (no cross-tenant
-  write or existence oracle); and the `front_cache` plugin keys its page cache on a lossless digest
-  instead of a lossy `parameterize` (so distinct URLs can no longer collide onto one cached page).
+  instead of `Kernel#rand`; the public `save_comment` endpoint fails closed on crafted input (a bad
+  post id, a missing or non-hash payload, or a parent id that names no comment) and no longer follows
+  an off-host `Referer` on redirect; the media crop avatar target is resolved within the current site
+  (no cross-tenant write or existence oracle); and the `front_cache` plugin keys its page cache on a
+  lossless digest instead of a lossy `parameterize` (so distinct URLs can no longer collide onto one
+  cached page) and skips a malformed or non-String path pattern instead of 500ing.
   [#1267](https://github.com/owen2345/camaleon-cms/pull/1267).
   - **Notes for upgraders:** existing `front_cache` entries are keyed under the old scheme and simply
     regenerate once after upgrade — no action needed.
