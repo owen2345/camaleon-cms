@@ -28,6 +28,18 @@ module CamaleonCms
     # parser reads them, so scanning them as they arrive is not weak scanning, it is no scanning.
     COMPRESSED_MARKUP_EXTENSIONS = %w[svgz svg.gz].freeze
 
+    # Executable script. Refused for untrusted uploaders rather than scanned, because no scan can
+    # reach a verdict on JavaScript: it has no safe subset, every dangerous capability is reachable
+    # through dynamic construction (`window['fet'+'ch']`), and legitimate uploaded script is
+    # arbitrary script -- indistinguishable from a payload by any static rule. A scanner that cannot
+    # decide has to fail closed, and a fail-closed scanner for these types is a permission gate.
+    #
+    # The gate is the existing `media_unfiltered_upload`, not a new permission. Its holders skip
+    # scanning entirely, so they could already store these files; reusing it grants nothing new and
+    # changes nothing for an install that has already granted it, whereas a new permission would
+    # revoke the capability from those installs until they granted the second one too.
+    SCRIPT_EXTENSIONS = %w[js mjs cjs wasm swf].freeze
+
     # Ceiling on decompressed markup. Compression is the one case where the upload size limit stops
     # bounding the work: a few-KB upload can expand to gigabytes, so the input limit says nothing
     # about the memory the scan will use. Generous for a real compressed image and far below
@@ -71,6 +83,16 @@ module CamaleonCms
     # nil when safe -- matching file_content_unsafe?'s contract.
     def content_unsafe?(content, filename: nil)
       extension = cama_upload_extension(filename)
+
+      # No permission check here. Every caller reaches this method only after
+      # `cama_trusted_for_unfiltered_upload?` already answered false, so the uploader is known to be
+      # untrusted; asking again would cost a second role-meta lookup and could disagree with the
+      # check that already ran. It also means the fail-closed behaviour is inherited exactly --
+      # no request user or no site means the scan runs, and the scan refuses these.
+      if SCRIPT_EXTENSIONS.include?(extension)
+        Rails.logger.info { 'Potentially malicious content found: executable script upload' }
+        return 'script_upload'
+      end
 
       if MARKUP_EXTENSIONS.include?(extension)
         return true if markup_unsafe?(content, extension)

