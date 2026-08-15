@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **Release process:** Releases are now cut by a manually-started **Release** GitHub Actions
+  workflow that verifies, builds and publishes the gem, then tags the commit and creates the GitHub
+  release from this file's section for that version. `lib/camaleon_cms/version.rb` is the single
+  source of truth, and every check runs before `gem push`. Procedure and manual fallback:
+  [docs/releasing.md](docs/releasing.md).
+  [#1268](https://github.com/owen2345/camaleon-cms/pull/1268).
+
 - **Security fix:** Low-severity hardening bundle. The captcha challenge is now drawn from a CSPRNG
   instead of `Kernel#rand`; the public `save_comment` endpoint fails closed on crafted input (a bad
   post id, a missing or non-hash payload, or a parent id that names no comment) and no longer follows
