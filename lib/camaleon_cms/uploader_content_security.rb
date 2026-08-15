@@ -1,7 +1,54 @@
 # frozen_string_literal: true
 
+require 'zlib'
+require 'stringio'
+
 module CamaleonCms
   module UploaderContentSecurity
+    # Extensions a browser parses as markup. These select the parse-based checker; everything else
+    # keeps the generic pattern ruleset.
+    #
+    # The routing key is *how the stored file will be rendered*, not a literal `.svg` comparison.
+    # The two are not the same thing, and the difference was the bug: identical bytes carrying an
+    # `onpointerdown` attribute were refused as `x.svg` and stored as `x.html`, because only the
+    # first name reached the checker that rejects handlers by shape.
+    #
+    # Deliberately narrow. Everything listed here is served as markup and therefore parsed as markup
+    # by the browser; nothing else is added "just in case". Running a markup parser over content
+    # that is not markup invents attributes that were never written -- `if a<b and on=1 then x` in a
+    # .txt parses to a `b` element with an `on` attribute -- so a wider list would refuse ordinary
+    # text files.
+    MARKUP_EXTENSIONS = %w[svg svgz svg.gz html htm xhtml xht shtml xml xsl xslt].freeze
+
+    # Of those, the ones that are not well-formed XML and need the HTML parser (see
+    # SvgContentChecker: the two modes differ in whether a parse failure means anything).
+    HTML_MODE_EXTENSIONS = %w[html htm shtml].freeze
+
+    # Gzip-compressed markup. Compressed bytes are high-entropy: no pattern matches them and no
+    # parser reads them, so scanning them as they arrive is not weak scanning, it is no scanning.
+    COMPRESSED_MARKUP_EXTENSIONS = %w[svgz svg.gz].freeze
+
+    # Executable script. Refused for untrusted uploaders rather than scanned, because no scan can
+    # reach a verdict on JavaScript: it has no safe subset, every dangerous capability is reachable
+    # through dynamic construction (`window['fet'+'ch']`), and legitimate uploaded script is
+    # arbitrary script -- indistinguishable from a payload by any static rule. A scanner that cannot
+    # decide has to fail closed, and a fail-closed scanner for these types is a permission gate.
+    #
+    # The gate is the existing `media_unfiltered_upload`, not a new permission. Its holders skip
+    # scanning entirely, so they could already store these files; reusing it grants nothing new and
+    # changes nothing for an install that has already granted it, whereas a new permission would
+    # revoke the capability from those installs until they granted the second one too.
+    SCRIPT_EXTENSIONS = %w[js mjs cjs wasm swf].freeze
+
+    # Ceiling on decompressed markup. Compression is the one case where the upload size limit stops
+    # bounding the work: a few-KB upload can expand to gigabytes, so the input limit says nothing
+    # about the memory the scan will use. Generous for a real compressed image and far below
+    # anything a bomb aims for; an upload that exceeds it is refused rather than expanded further.
+    MAX_DECOMPRESSED_MARKUP_BYTES = 10 * 1024 * 1024
+
+    # Leading bytes of a gzip member. Used to decide whether trailing bytes after one member begin
+    # another, so every member is decompressed rather than only the first.
+    GZIP_MAGIC = "\x1f\x8b".b.freeze
     # Whether the current uploader may skip the malicious-content scan. Mirrors
     # Post#trusted_for_unfiltered_html?: read the request context, fail closed (scan) when
     # either half is missing -- background jobs, rake tasks and the console have no request
@@ -29,7 +76,7 @@ module CamaleonCms
                   else
                     uploaded_io.path
                   end
-      cama_svg_extension?(file_path)
+      cama_upload_extension(file_path) == 'svg'
     end
 
     # Scans in-memory content. Callers holding decoded bytes (e.g. a base64 data:
@@ -39,8 +86,20 @@ module CamaleonCms
     # Returns a truthy value (the matched pattern, or true for SVG) when unsafe,
     # nil when safe -- matching file_content_unsafe?'s contract.
     def content_unsafe?(content, filename: nil)
-      if cama_svg_extension?(filename)
-        return true if CamaleonCms::SvgContentChecker.unsafe?(content)
+      extension = cama_upload_extension(filename)
+
+      # No permission check here. Every caller reaches this method only after
+      # `cama_trusted_for_unfiltered_upload?` already answered false, so the uploader is known to be
+      # untrusted; asking again would cost a second role-meta lookup and could disagree with the
+      # check that already ran. It also means the fail-closed behaviour is inherited exactly --
+      # no request user or no site means the scan runs, and the scan refuses these.
+      if SCRIPT_EXTENSIONS.include?(extension)
+        Rails.logger.info { 'Potentially malicious content found: executable script upload' }
+        return 'script_upload'
+      end
+
+      if MARKUP_EXTENSIONS.include?(extension)
+        return true if markup_unsafe?(content, extension)
 
         return nil
       end
@@ -68,8 +127,12 @@ module CamaleonCms
                  else
                    uploaded_io.path
                  end
-      file.set_encoding(Encoding::BINARY) if !svg_upload?(uploaded_io) && file.respond_to?(:binmode) &&
-                                             file.respond_to?(:set_encoding)
+      # `.svg` is read as-is; every other extension is forced to BINARY (svgz needs the raw gzip
+      # bytes, and the markup parser reads the encoding from the content, not the String tag). Reuse
+      # the filename already computed rather than re-deriving the path through svg_upload?.
+      if cama_upload_extension(filename) != 'svg' && file.respond_to?(:binmode) && file.respond_to?(:set_encoding)
+        file.set_encoding(Encoding::BINARY)
+      end
       content = file.read
       file.rewind if file.respond_to?(:rewind)
 
@@ -78,15 +141,108 @@ module CamaleonCms
 
     private
 
-    # Case-insensitive `.svg` test. Upload names arrive with whatever case the client sent
-    # (`evil.SVG`); a case-sensitive check routed those past the SVG-specific scanner into the
-    # weaker generic ruleset, so both entry points normalize the extension here. A name whose
-    # basename is exactly `.svg` (a dotfile, which File.extname reports as having no extension)
-    # is still treated as an SVG: the pre-hardening `end_with?` check matched it, and routing it
-    # to the stricter parser fails closed.
-    def cama_svg_extension?(name)
-      base = File.basename(name.to_s)
-      File.extname(base).casecmp?('.svg') || base.casecmp?('.svg')
+    # The extension that selects the ruleset, lowercased. Handles three shapes a naive
+    # `File.extname` gets wrong, each of which was or would be a routing bypass:
+    #   - a compound `.svg.gz`, which File.extname reports as `.gz`
+    #   - a dotfile (`.svg`), which File.extname reports as having no extension at all
+    #   - any case (`evil.SVG`), since the stored name keeps whatever case the client sent
+    # A name with no extension yields '' and takes the generic ruleset.
+    def cama_upload_extension(name)
+      base = File.basename(name.to_s).downcase
+      # Trailing dots and spaces do not survive the way the file is served: some servers and
+      # filesystems strip them (IIS-style), turning `evil.svg.` back into `evil.svg` and serving it
+      # as SVG, so `File.extname` reporting no extension would route it to the weaker generic ruleset
+      # while the browser parses it as markup. Strip them so routing matches how the file is served.
+      base = base.sub(/[.\s]+\z/, '')
+      compound = COMPRESSED_MARKUP_EXTENSIONS.find { |ext| ext.include?('.') && base.end_with?(".#{ext}") }
+      return compound if compound
+
+      extension = File.extname(base).delete_prefix('.')
+      return extension if extension.present?
+
+      # A basename that is entirely an extension (`.svg`) routes on that name rather than falling
+      # through to the generic ruleset -- fail closed, preserving the behaviour of the suffix check
+      # this replaced.
+      base.start_with?('.') ? base.delete_prefix('.') : ''
+    end
+
+    # Markup verdict: the byte-level scheme check, then the parser the browser would use.
+    #
+    # The scheme check is not redundant with the parse, and dropping it would have lost detection.
+    # `normalize` strips the NUL and C0 bytes a URL parser ignores inside a scheme, so
+    # `java\0script:` matches on the raw bytes; the HTML parser instead *truncates* the attribute at
+    # the NUL, leaving `java` and nothing for a parse-based check to find. Bytes and tree disagree,
+    # so both are consulted.
+    #
+    # The element and handler patterns still run here, as a byte-level backstop the parse cannot
+    # provide. A markup parser autodetects its encoding from in-band signals (a BOM, an XML
+    # declaration, a `<meta charset>`); a browser can resolve the same signals differently, so a
+    # document declaring `utf-16` while carrying ASCII fires its handlers in the browser but reaches
+    # the parser as garbled utf-16 with no handlers seen. `suspicious_markup_bytes?` strips the
+    # NUL/C0 padding and matches the element/handler tokens on the collapsed bytes, catching the
+    # payload whatever encoding the parser chose. It does not entity-decode, so the parse still owns
+    # the documented false positive it removes: a document that merely *shows* escaped markup
+    # (`&lt;script&gt;`) renders as literal text in a browser and is not refused for it.
+    def markup_unsafe?(content, extension)
+      scannable = cama_markup_scannable(content, extension)
+      return true if scannable == :too_large
+
+      return true if CamaleonCms::ContentSecurity.blocked_scheme?(scannable)
+      return true if CamaleonCms::ContentSecurity.suspicious_markup_bytes?(scannable)
+
+      CamaleonCms::SvgContentChecker.unsafe?(scannable, mode: cama_markup_parse_mode(extension))
+    end
+
+    # The bytes a browser will actually parse: the decompressed payload for a compressed markup
+    # extension, the content itself otherwise.
+    #
+    # Bytes under a compressed extension that are not valid gzip fall back to being scanned as raw
+    # markup rather than skipped. nginx's default mime map serves `.svgz` as `image/svg+xml`, so an
+    # ungzipped file under that name still renders as SVG; skipping it would be the same
+    # scanned-in-name-only hole the compression created.
+    def cama_markup_scannable(content, extension)
+      return content unless COMPRESSED_MARKUP_EXTENSIONS.include?(extension)
+
+      cama_gunzip_bounded(content) || content
+    end
+
+    # Decompresses every gzip member, at most MAX_DECOMPRESSED_MARKUP_BYTES in total. Returns the
+    # payload, `:too_large` when it exceeds the ceiling, or nil when the bytes are not gzip at all.
+    #
+    # A gzip stream may hold several concatenated members, and a compliant decoder returns their
+    # concatenation -- the browser serving `.svgz` with `Content-Encoding: gzip`, the gzip CLI, and
+    # zlib all do. `GzipReader#read` stops at the first member, so reading once would scan a clean
+    # decoy member while a hostile second member is served unexamined. Loop over `unused` (the bytes
+    # left after a member's footer) so every member is decompressed and scanned.
+    #
+    # Reads one byte past the remaining ceiling per member and checks after each, rather than reading
+    # to EOF and measuring afterwards: a GzipReader decompresses lazily, so a bomb is detected having
+    # materialized only the bound, not the gigabytes behind it.
+    def cama_gunzip_bounded(content)
+      remaining = content.to_s.b
+      return nil unless remaining.start_with?(GZIP_MAGIC)
+
+      decompressed = +''.b
+      while remaining.start_with?(GZIP_MAGIC)
+        reader = Zlib::GzipReader.new(StringIO.new(remaining))
+        begin
+          decompressed << reader.read(MAX_DECOMPRESSED_MARKUP_BYTES + 1 - decompressed.bytesize).to_s
+          remaining = reader.unused.to_s.b
+        ensure
+          reader.close
+        end
+        return :too_large if decompressed.bytesize > MAX_DECOMPRESSED_MARKUP_BYTES
+      end
+      decompressed
+    rescue Zlib::Error, EOFError
+      # A member whose footer will not verify (truncated or corrupt). Scan whatever earlier members
+      # already decoded -- the prefix a compliant decoder would emit before erroring -- or, if none
+      # did, fall back to the raw bytes, which fail closed for anything that is not clean markup.
+      decompressed.empty? ? nil : decompressed
+    end
+
+    def cama_markup_parse_mode(extension)
+      HTML_MODE_EXTENSIONS.include?(extension) ? :html : :xml
     end
   end
 end

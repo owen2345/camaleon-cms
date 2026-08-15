@@ -99,6 +99,26 @@ module CamaleonCms
       normalized.delete(SCHEME_GAP_CHARS).match?(BLOCKED_SCHEME_PATTERN)
     end
 
+    # Byte-level backstop for markup, immune to the encoding a parser autodetects. A markup parser
+    # picks its encoding from in-band signals (a BOM, an XML declaration, a `<meta charset>`) that a
+    # browser can resolve differently -- WHATWG maps a `utf-16`/`utf-32` `<meta charset>` back to
+    # UTF-8, so a pure-ASCII document declaring utf-16 fires its handlers in the browser while the
+    # parser re-decodes the bytes as utf-16 and sees none. Stripping the NUL/C0 padding collapses a
+    # UTF-16/UTF-32 (or spoofed-declaration) handler down to the ASCII bytes the browser will run,
+    # so the element and handler patterns match it regardless of the declared encoding.
+    #
+    # Deliberately does NOT entity-decode, unlike `normalize`: character references in a tag or
+    # attribute NAME are never decoded by a browser (`on&#99;lick` is an inert attribute, not
+    # `onclick`), so decoding would buy no coverage while turning escaped markup (`&lt;script&gt;`,
+    # which a browser renders as text) into a false positive. The scheme check keeps using
+    # `blocked_scheme?`, which does normalize, because a scheme in an attribute VALUE is decoded.
+    def self.suspicious_markup_bytes?(content)
+      return false if content.nil?
+
+      stripped = content.dup.force_encoding(Encoding::BINARY).gsub(CONTROL_CHARS, '')
+      UNSAFE_EVENT_PATTERN.match?(stripped) || BLOCKED_ELEMENT_PATTERN.match?(stripped)
+    end
+
     # Canonicalizes content so encoded variants of a blocked pattern are detected.
     # Returns a normalized copy; the stored file is never modified.
     #

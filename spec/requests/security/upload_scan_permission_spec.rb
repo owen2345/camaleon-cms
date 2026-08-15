@@ -50,6 +50,12 @@ RSpec.describe 'Upload scanning through the media endpoint', type: :request do
 
       expect(response.body).to include('Potentially malicious content found!')
     end
+
+    it 'refuses an executable script upload' do
+      upload('console.log(1)', extension: '.js', user: user)
+
+      expect(response.body).to include('Potentially malicious content found!')
+    end
   end
 
   context 'with a role granted media_unfiltered_upload' do
@@ -65,6 +71,14 @@ RSpec.describe 'Upload scanning through the media endpoint', type: :request do
 
       expect(response.body).not_to include('Potentially malicious content found!')
     end
+
+    # The permission is reused rather than replaced precisely so this keeps working: a holder skips
+    # scanning entirely and could already store script before the gate existed.
+    it 'accepts an executable script upload' do
+      upload('console.log(1)', extension: '.js', user: user)
+
+      expect(response.body).not_to include('Potentially malicious content found!')
+    end
   end
 
   context 'with an administrator' do
@@ -74,6 +88,30 @@ RSpec.describe 'Upload scanning through the media endpoint', type: :request do
       upload(svg_with_form, extension: '.html', user: user)
 
       expect(response.body).not_to include('Potentially malicious content found!')
+    end
+
+    it 'accepts an executable script upload' do
+      upload('console.log(1)', extension: '.js', user: user)
+
+      expect(response.body).not_to include('Potentially malicious content found!')
+    end
+  end
+
+  # The scan decision and the script refusal share one fail-closed predicate, so a caller with no
+  # request context -- a rake task, a job, the console -- is untrusted for both.
+  context 'without a request context' do
+    let(:scanner) { Class.new { include CamaleonCms::UploaderContentSecurity }.new }
+
+    before do
+      allow(CurrentRequest).to receive_messages(user: nil, site: nil)
+    end
+
+    it 'treats the uploader as untrusted' do
+      expect(scanner.cama_trusted_for_unfiltered_upload?).to be(false)
+    end
+
+    it 'refuses a script upload' do
+      expect(scanner).to be_content_unsafe('console.log(1)', filename: 'lib.js')
     end
   end
 end

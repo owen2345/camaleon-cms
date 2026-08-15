@@ -293,4 +293,109 @@ RSpec.describe CamaleonCms::SvgContentChecker do
       expect(described_class.unsafe?(svg_wrapping('<circle cx="50" cy="50" r="40" fill="red"/>'))).to be(false)
     end
   end
+
+  describe 'HTML parse mode' do
+    def html(markup)
+      described_class.unsafe?(markup, mode: :html)
+    end
+
+    context 'with the handler match keyed on shape rather than a name list' do
+      # The four the regex denylist in ContentSecurity misses. Each is an ordinary interaction
+      # handler that fires on a plain click or touch -- no exotic element required.
+      %w[onpointerdown ontouchstart onauxclick onemptied].each do |handler|
+        it "rejects #{handler}, which no denylist stem matches" do
+          expect(html(%(<div #{handler}="alert(1)">x</div>))).to be(true)
+        end
+      end
+
+      it 'rejects a handler name that does not exist yet, because the match is on the on prefix' do
+        expect(html(%(<div onsomethingnotyetinvented="alert(1)">x</div>))).to be(true)
+      end
+
+      it 'rejects a handler in mixed case' do
+        expect(html(%(<div OnPointerDown="alert(1)">x</div>))).to be(true)
+      end
+    end
+
+    context 'with malformed input, where HTML has no parse-failure signal' do
+      it 'accepts a badly nested document that carries nothing dangerous' do
+        expect(html('<div><p><span>unclosed everything')).to be(false)
+      end
+
+      it 'still rejects a badly nested document that carries a handler' do
+        expect(html('<div><p><span onpointerdown=x>hi</div>')).to be(true)
+      end
+
+      it 'accepts a whitespace-only document, which parses to a nil root' do
+        expect(html("\n  \n")).to be(false)
+      end
+
+      it 'accepts a comment-only document, which also parses to a nil root' do
+        expect(html('<!-- just a comment -->')).to be(false)
+      end
+
+      it 'accepts ordinary prose containing a comparison operator' do
+        expect(html('<p>Ages 5 &lt; n &lt; 12 qualify</p>')).to be(false)
+      end
+    end
+
+    context 'with the same payload in either mode' do
+      # The two modes exist because the parsers differ, not because the rules do. A payload that is
+      # well-formed XML and valid HTML must get the same verdict whichever parser reads it.
+      let(:handler_payload) do
+        %(<svg xmlns="http://www.w3.org/2000/svg"><rect onpointerdown="alert(1)" width="10" height="10"/></svg>)
+      end
+
+      let(:clean_payload) do
+        %(<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>)
+      end
+
+      it 'rejects the handler payload in XML mode' do
+        expect(described_class.unsafe?(handler_payload, mode: :xml)).to be(true)
+      end
+
+      it 'rejects the handler payload in HTML mode' do
+        expect(described_class.unsafe?(handler_payload, mode: :html)).to be(true)
+      end
+
+      it 'accepts the clean payload in both modes' do
+        expect(described_class.unsafe?(clean_payload, mode: :xml)).to be(false)
+        expect(described_class.unsafe?(clean_payload, mode: :html)).to be(false)
+      end
+    end
+
+    context 'with elements the generic ruleset refuses but the SVG list omitted' do
+      # BANNED_TAGS is the union of the SVG list and ContentSecurity::BLOCKED_ELEMENTS. Without the
+      # union, routing .html here would have refused these for fewer reasons than the regex denylist
+      # it replaced -- a narrowing disguised as a hardening.
+      %w[applet frameset frame template portal marquee math].each do |tag|
+        it "rejects a #{tag} element, which BLOCKED_ELEMENTS also refuses" do
+          expect(html("<#{tag}></#{tag}>")).to be(true)
+        end
+      end
+    end
+
+    context 'with a camelCase tag the HTML parser lowercases' do
+      # foreignObject is the only mixed-case entry in BANNED_TAGS. Nokogiri::HTML reports it as
+      # `foreignobject`, so a case-sensitive tag match missed it in HTML mode -- accepting as .html
+      # a construct refused as .svg, contrary to the same-verdict-either-mode guarantee.
+      it 'rejects a bare foreignObject in HTML mode' do
+        expect(html('<svg><foreignObject>x</foreignObject></svg>')).to be(true)
+      end
+
+      it 'gives foreignObject the same verdict in both modes' do
+        svg = svg_wrapping('<foreignObject>x</foreignObject>')
+        expect(described_class.unsafe?(svg, mode: :xml)).to be(true)
+        expect(described_class.unsafe?(svg, mode: :html)).to be(true)
+      end
+    end
+
+    it 'defaults to XML mode when no mode is given, preserving the original signature' do
+      expect(described_class.unsafe?(svg_wrapping('<circle r="5"/>'))).to be(false)
+      # Content that parses to no root at all is refused in XML mode -- the fail-closed signal HTML
+      # mode cannot have. The identical bytes are accepted as HTML, where they are just prose.
+      expect(described_class.unsafe?('plain text, no markup at all')).to be(true)
+      expect(html('plain text, no markup at all')).to be(false)
+    end
+  end
 end
