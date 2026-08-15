@@ -45,6 +45,10 @@ module CamaleonCms
     # about the memory the scan will use. Generous for a real compressed image and far below
     # anything a bomb aims for; an upload that exceeds it is refused rather than expanded further.
     MAX_DECOMPRESSED_MARKUP_BYTES = 10 * 1024 * 1024
+
+    # Leading bytes of a gzip member. Used to decide whether trailing bytes after one member begin
+    # another, so every member is decompressed rather than only the first.
+    GZIP_MAGIC = "\x1f\x8b".b.freeze
     # Whether the current uploader may skip the malicious-content scan. Mirrors
     # Post#trusted_for_unfiltered_html?: read the request context, fail closed (scan) when
     # either half is missing -- background jobs, rake tasks and the console have no request
@@ -193,26 +197,39 @@ module CamaleonCms
       cama_gunzip_bounded(content) || content
     end
 
-    # Decompresses at most MAX_DECOMPRESSED_MARKUP_BYTES. Returns the payload, `:too_large` when it
-    # exceeds the ceiling, or nil when the bytes are not gzip at all.
+    # Decompresses every gzip member, at most MAX_DECOMPRESSED_MARKUP_BYTES in total. Returns the
+    # payload, `:too_large` when it exceeds the ceiling, or nil when the bytes are not gzip at all.
     #
-    # Reads one byte past the ceiling rather than reading to EOF and measuring afterwards: a
-    # GzipReader decompresses lazily, so a bomb is detected having materialized only the bound, not
-    # the gigabytes behind it.
+    # A gzip stream may hold several concatenated members, and a compliant decoder returns their
+    # concatenation -- the browser serving `.svgz` with `Content-Encoding: gzip`, the gzip CLI, and
+    # zlib all do. `GzipReader#read` stops at the first member, so reading once would scan a clean
+    # decoy member while a hostile second member is served unexamined. Loop over `unused` (the bytes
+    # left after a member's footer) so every member is decompressed and scanned.
+    #
+    # Reads one byte past the remaining ceiling per member and checks after each, rather than reading
+    # to EOF and measuring afterwards: a GzipReader decompresses lazily, so a bomb is detected having
+    # materialized only the bound, not the gigabytes behind it.
     def cama_gunzip_bounded(content)
-      reader = Zlib::GzipReader.new(StringIO.new(content.to_s.b))
-      begin
-        decompressed = reader.read(MAX_DECOMPRESSED_MARKUP_BYTES + 1).to_s
-      ensure
-        reader.close
-      end
-      return :too_large if decompressed.bytesize > MAX_DECOMPRESSED_MARKUP_BYTES
+      remaining = content.to_s.b
+      return nil unless remaining.start_with?(GZIP_MAGIC)
 
+      decompressed = +''.b
+      while remaining.start_with?(GZIP_MAGIC)
+        reader = Zlib::GzipReader.new(StringIO.new(remaining))
+        begin
+          decompressed << reader.read(MAX_DECOMPRESSED_MARKUP_BYTES + 1 - decompressed.bytesize).to_s
+          remaining = reader.unused.to_s.b
+        ensure
+          reader.close
+        end
+        return :too_large if decompressed.bytesize > MAX_DECOMPRESSED_MARKUP_BYTES
+      end
       decompressed
     rescue Zlib::Error, EOFError
-      # Not gzip, or a truncated stream whose footer will not verify. Either way the caller falls
-      # back to scanning the raw bytes, which fails closed for anything that is not clean markup.
-      nil
+      # A member whose footer will not verify (truncated or corrupt). Scan whatever earlier members
+      # already decoded -- the prefix a compliant decoder would emit before erroring -- or, if none
+      # did, fall back to the raw bytes, which fail closed for anything that is not clean markup.
+      decompressed.empty? ? nil : decompressed
     end
 
     def cama_markup_parse_mode(extension)

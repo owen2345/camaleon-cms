@@ -279,8 +279,14 @@ the only control for any content a browser parses as markup.
 The system SHALL decompress gzip-compressed markup uploads and scan the decompressed bytes, because
 compressed content is opaque to every detection rule and would otherwise pass unexamined.
 
-Decompression SHALL be bounded by a maximum decompressed size. An upload that exceeds the bound
-SHALL be refused rather than decompressed further, so a compression bomb cannot exhaust memory.
+A gzip stream may hold several concatenated members, and a compliant decoder — the browser serving
+the file with `Content-Encoding: gzip`, the gzip CLI, zlib — returns the concatenation of them all.
+The system SHALL decompress every member, not only the first, so a hostile payload cannot be hidden
+behind a clean decoy member.
+
+Decompression SHALL be bounded by a maximum decompressed size, counted across all members. An upload
+that exceeds the bound SHALL be refused rather than decompressed further, so a compression bomb
+cannot exhaust memory.
 
 An upload carrying a compressed-markup extension whose bytes are not valid gzip SHALL be scanned as
 raw markup rather than skipped, because a web server may serve those bytes as markup regardless of
@@ -301,6 +307,14 @@ the name suggesting compression.
 #### Scenario: Uncompressed bytes under a compressed extension are still scanned
 - **WHEN** a user uploads a `.svgz` whose bytes are plain, ungzipped SVG containing an `onclick` attribute
 - **THEN** the upload is refused, because the bytes are scanned as raw markup
+
+#### Scenario: A payload hidden past the first gzip member is refused
+- **WHEN** a user uploads a `.svgz` built from two concatenated gzip members, the first a clean SVG fragment and the second carrying an `onpointerdown` attribute
+- **THEN** the upload is refused, because every member is decompressed and scanned, not only the first
+
+#### Scenario: A clean multi-member gzip is accepted
+- **WHEN** a user uploads a `.svgz` of several gzip members that together decompress to a clean SVG
+- **THEN** the upload is accepted, because the members are decompressed and scanned rather than rejected for being multi-member
 
 ### Requirement: Markup is scanned at the byte level as well as the parse level
 

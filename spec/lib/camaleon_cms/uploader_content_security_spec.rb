@@ -267,6 +267,22 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
     it 'accepts clean ungzipped bytes stored under a compressed extension' do
       expect(scanner).not_to be_content_unsafe(clean_svg, filename: 'x.svgz')
     end
+
+    # `gzip(a) + gzip(b)` is a two-member stream. GzipReader#read stops at member 1, but a compliant
+    # decoder concatenates both, so a hostile payload split across the boundary must still be caught.
+    it 'refuses a multi-member gzip whose payload spans the member boundary' do
+      bytes = gzip('<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/>') +
+              gzip('<rect onpointerdown="alert(1)"/></svg>')
+
+      expect(scanner).to be_content_unsafe(bytes, filename: 'x.svgz')
+    end
+
+    it 'accepts a clean multi-member gzip, decompressing every member rather than rejecting on sight' do
+      bytes = gzip('<svg xmlns="http://www.w3.org/2000/svg">') +
+              gzip('<rect width="10" height="10"/></svg>')
+
+      expect(scanner).not_to be_content_unsafe(bytes, filename: 'x.svgz')
+    end
   end
 
   describe 'escaped code examples' do

@@ -94,6 +94,22 @@ RSpec.describe 'Markup and script upload scanning', type: :request do
 
       expect(response.body).to include('Potentially malicious content found!')
     end
+
+    # GzipReader#read stops at the first member; a compliant decoder concatenates every member. A
+    # clean decoy member cannot hide the hostile bytes that follow it.
+    it 'refuses a multi-member gzip that hides the payload past the first member' do
+      multi_member = ['<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/>',
+                      '<rect onpointerdown="alert(1)"/></svg>'].map do |member|
+        buffer = StringIO.new(+'', 'wb')
+        writer = Zlib::GzipWriter.new(buffer)
+        writer.write(member)
+        writer.close
+        buffer.string
+      end.join
+      upload(multi_member, extension: '.svgz')
+
+      expect(response.body).to include('Potentially malicious content found!')
+    end
   end
 
   describe 'executable script' do
