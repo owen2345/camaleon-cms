@@ -141,12 +141,61 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
     end
   end
 
-  describe 'accepted false positive' do
-    # Normalization decodes entities before matching, so a document that merely
-    # *shows* escaped markup is rejected. This is fail-closed and intentional --
-    # see design.md Risks. Pinned so it is not "fixed" later as a bug.
-    it 'rejects a document containing HTML-escaped code examples' do
-      expect(scan(%(<p>Use &lt;script&gt; carefully</p>))).to be_truthy
+  describe 'ruleset selection by render behavior' do
+    # Well-formed XML and valid HTML at once, so the only variable across these examples is which
+    # ruleset the extension selects. `onpointerdown` is matched by the parse-based checker's shape
+    # rule and by no stem in ContentSecurity::UNSAFE_EVENT_HANDLERS.
+    let(:handler_payload) do
+      %(<svg xmlns="http://www.w3.org/2000/svg"><rect onpointerdown="alert(1)" width="10" height="10"/></svg>)
+    end
+
+    %w[.svg .svgz .html .htm .xhtml .xht .shtml .xml .xsl .xslt].each do |extension|
+      it "refuses the payload under #{extension}" do
+        expect(scanner).to be_content_unsafe(handler_payload, filename: "x#{extension}")
+      end
+    end
+
+    it 'refuses it under a compound .svg.gz name, which File.extname reports as .gz' do
+      expect(scanner).to be_content_unsafe(handler_payload, filename: 'x.svg.gz')
+    end
+
+    it 'refuses it under an uppercase markup extension' do
+      expect(scanner).to be_content_unsafe(handler_payload, filename: 'x.HTML')
+    end
+
+    it 'refuses it under a bare markup dotfile name' do
+      expect(scanner).to be_content_unsafe(handler_payload, filename: '.html')
+    end
+
+    # The reason routing must stay narrow. An HTML parse of this text invents a `b` element with an
+    # `on` attribute, so a wider markup list would refuse ordinary text files.
+    it 'accepts a text file whose prose parses to a spurious on attribute' do
+      expect(scanner).not_to be_content_unsafe('if a<b and on=1 then x', filename: 'notes.txt')
+    end
+
+    it 'keeps the generic ruleset for a non-markup extension' do
+      expect(CamaleonCms::SvgContentChecker).not_to receive(:unsafe?)
+      scanner.content_unsafe?('harmless', filename: 'x.pdf')
+    end
+  end
+
+  describe 'escaped code examples' do
+    # Normalization decodes entities before matching, so the generic ruleset rejects a document that
+    # merely *shows* escaped markup. Fail-closed and intentional; pinned for the extensions that
+    # still use it.
+    it 'rejects escaped code examples in a non-markup file, where the generic ruleset decides' do
+      expect(scan(%(Use &lt;script&gt; carefully), ext: '.txt')).to be_truthy
+    end
+
+    # For markup the parse decides, and the parse is right: `&lt;script&gt;` is text, not an
+    # element, and a browser renders it as literal characters. The false positive is gone for the
+    # formats where a parser can tell the difference -- the point of routing markup to a parser.
+    it 'accepts escaped code examples in a markup file, where the parse decides' do
+      expect(scan(%(<p>Use &lt;script&gt; carefully</p>))).to be_falsey
+    end
+
+    it 'still rejects a real script element in the same markup file' do
+      expect(scan(%(<p>hi</p><script>alert(1)</script>))).to be_truthy
     end
   end
 
@@ -176,7 +225,7 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
 
     it 'routes SVG content to the parse-based checker' do
       svg = %(<svg xmlns="http://www.w3.org/2000/svg"><rect onclick="alert(1)"/></svg>)
-      expect(CamaleonCms::SvgContentChecker).to receive(:unsafe?).with(svg).and_call_original
+      expect(CamaleonCms::SvgContentChecker).to receive(:unsafe?).with(svg, mode: :xml).and_call_original
       expect(scanner.content_unsafe?(svg, filename: 'x.svg')).to be(true)
     end
 
@@ -202,7 +251,7 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
 
       it 'accepts a clean uppercase .SVG (routed through the SVG checker, not the generic scan)' do
         clean = %(<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10"/></svg>)
-        expect(CamaleonCms::SvgContentChecker).to receive(:unsafe?).with(clean).and_call_original
+        expect(CamaleonCms::SvgContentChecker).to receive(:unsafe?).with(clean, mode: :xml).and_call_original
         expect(scanner.content_unsafe?(clean, filename: 'x.SVG')).to be_nil
       end
     end
