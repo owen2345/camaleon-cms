@@ -38,6 +38,14 @@ module CamaleonCms
     HTML_MODE = :html
     XML_MODE = :xml
 
+    # Lowercasing tables for XPath translate(). The tag check folds case so a name an HTML parser
+    # lowercases is matched the same as its source form: `Nokogiri::HTML` reports `<foreignObject>`
+    # as `foreignobject`, and an SVG inlined into an HTML document fires `<SCRIPT>` exactly as
+    # `<script>`. Without folding, `foreignObject` -- the only mixed-case entry in BANNED_TAGS --
+    # would be refused as `.svg` (XML, case-sensitive) yet accepted as `.html`.
+    ASCII_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    ASCII_LOWER = 'abcdefghijklmnopqrstuvwxyz'
+
     module_function
 
     # `mode:` defaults to :xml so the pre-existing single-argument call (`unsafe?(content)`) keeps
@@ -58,7 +66,9 @@ module CamaleonCms
     end
 
     def dangerous_document?(doc, mode)
-      banned_tags_query = BANNED_TAGS.map { |tag| "local-name() = '#{tag}'" }.join(' or ')
+      banned_tags_query = BANNED_TAGS.map do |tag|
+        "translate(local-name(), '#{ASCII_UPPER}', '#{ASCII_LOWER}') = '#{tag.downcase}'"
+      end.join(' or ')
       return true if doc.xpath("//*[#{banned_tags_query}]").any?
 
       # Case-insensitive: XML attribute names are case-sensitive, but an SVG inlined into an HTML

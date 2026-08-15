@@ -375,6 +375,21 @@ RSpec.describe CamaleonCms::SvgContentChecker do
       end
     end
 
+    context 'with a camelCase tag the HTML parser lowercases' do
+      # foreignObject is the only mixed-case entry in BANNED_TAGS. Nokogiri::HTML reports it as
+      # `foreignobject`, so a case-sensitive tag match missed it in HTML mode -- accepting as .html
+      # a construct refused as .svg, contrary to the same-verdict-either-mode guarantee.
+      it 'rejects a bare foreignObject in HTML mode' do
+        expect(html('<svg><foreignObject>x</foreignObject></svg>')).to be(true)
+      end
+
+      it 'gives foreignObject the same verdict in both modes' do
+        svg = svg_wrapping('<foreignObject>x</foreignObject>')
+        expect(described_class.unsafe?(svg, mode: :xml)).to be(true)
+        expect(described_class.unsafe?(svg, mode: :html)).to be(true)
+      end
+    end
+
     it 'defaults to XML mode when no mode is given, preserving the original signature' do
       expect(described_class.unsafe?(svg_wrapping('<circle r="5"/>'))).to be(false)
       # Content that parses to no root at all is refused in XML mode -- the fail-closed signal HTML

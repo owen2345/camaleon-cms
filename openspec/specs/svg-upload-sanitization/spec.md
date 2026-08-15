@@ -209,7 +209,10 @@ parser, because an HTML document is not well-formed XML and an XML parse would r
 The XML parser SHALL remain in use for `svg`, `svgz`, `xhtml`, `xht`, `xml`, `xsl` and `xslt`.
 
 Both parse modes SHALL apply the same rejection rules, so the verdict for a given payload does not
-depend on which parser read it.
+depend on which parser read it. In particular, the element check SHALL fold case: an HTML parser
+lowercases element names (`foreignObject` becomes `foreignobject`), so a case-sensitive match would
+refuse a construct in XML mode yet accept it in HTML mode. Folding case also matches an SVG inlined
+into an HTML document, where `<SCRIPT>` fires exactly as `<script>`.
 
 #### Scenario: A structurally ordinary HTML document is not rejected merely for being HTML
 - **WHEN** an `.html` upload contains unclosed `<p>` tags, an implicit `<tbody>`, or attribute values without quotes
@@ -222,4 +225,8 @@ depend on which parser read it.
 #### Scenario: The same payload gets the same verdict in either mode
 - **WHEN** identical event-handler markup is scanned once as `.html` and once as `.xhtml`
 - **THEN** both are reported unsafe
+
+#### Scenario: A camelCase blocked element is rejected in HTML mode too
+- **WHEN** markup carrying a `<foreignObject>` element is scanned once as `.svg` (XML mode) and once as `.html` (HTML mode, where the parser lowercases it to `foreignobject`)
+- **THEN** both are reported unsafe, because the element check folds case
 
