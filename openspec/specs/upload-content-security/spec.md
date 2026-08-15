@@ -395,6 +395,10 @@ The task SHALL include stored files whose basename begins with a dot. A basename
 extension (`.svg`, `.js`) is exactly what upload routing fails closed on, so omitting such names
 would leave the strictest cases out of the report.
 
+The task SHALL also scan the private-media directory, not only the public media roots. Private
+uploads are scanned at save time exactly like public ones, so files stored before these rules apply
+are equally worth surfacing; reporting only the public root would overstate the task's coverage.
+
 The task SHALL NOT delete, move, quarantine or rewrite any file. Its output SHALL identify each
 finding by site and path, and SHALL state the rule that would refuse it, so an operator can decide
 what to do.
@@ -418,4 +422,8 @@ what to do.
 #### Scenario: A stored dotfile is reported
 - **WHEN** the task runs over a media root containing a file whose basename is exactly `.js`
 - **THEN** the file is listed in the report, because dotfiles are not skipped
+
+#### Scenario: A flagged private-media file is reported
+- **WHEN** the task runs with a file stored under the private-media directory that the current rules would refuse
+- **THEN** the file is listed in the report, because private media is scanned as well as public
 

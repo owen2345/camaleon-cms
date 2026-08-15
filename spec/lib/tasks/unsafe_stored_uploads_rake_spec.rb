@@ -95,6 +95,21 @@ RSpec.describe 'camaleon_cms:security:scan_uploads Rake task', type: :task do
     expect { task.invoke }.to output(%r{/media/#{site.id}/\.js: would be rejected}).to_stdout
   end
 
+  context 'with private media stored outside the public root' do
+    let(:private_root) { Rails.root.join(CamaleonCmsUploader::PRIVATE_DIRECTORY) }
+
+    before { FileUtils.mkdir_p(private_root) }
+    after { FileUtils.rm_f(private_root.join('legacy.js')) }
+
+    # Private uploads are scanned at save time exactly like public ones, so the report must cover
+    # them too rather than overstating its coverage by looking only under the public media root.
+    it 'reports a flagged private-media file' do
+      File.binwrite(private_root.join('legacy.js'), 'console.log(1)')
+
+      expect { task.invoke }.to output(%r{Private media /private/legacy\.js: would be rejected}).to_stdout
+    end
+  end
+
   context 'when media_slug_folder stores uploads under media/<slug>' do
     let(:slug_root) { Rails.public_path.join('media', site.slug) }
 
