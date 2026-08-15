@@ -251,6 +251,10 @@ The markup extensions SHALL be `svg`, `svgz`, `svg.gz`, `html`, `htm`, `xhtml`, 
 exactly one of these extensions with no stem (a dotfile, which reports no extension) SHALL be
 treated as markup as well, so routing fails closed.
 
+Trailing dots and spaces SHALL be stripped from the filename before the extension is read, because
+a server or filesystem may strip them and serve `evil.svg.` as `evil.svg` — so the routing key must
+match how the file is served, not the raw name.
+
 The generic ruleset remains in force for non-markup uploads as defense-in-depth. It SHALL NOT be
 the only control for any content a browser parses as markup.
 
@@ -265,6 +269,10 @@ the only control for any content a browser parses as markup.
 #### Scenario: A bare markup dotfile name keeps markup routing
 - **WHEN** `content_unsafe?` is called with a filename whose basename is exactly `.svg` or `.html`, in any case
 - **THEN** the content is evaluated by the parse-based markup checker
+
+#### Scenario: A trailing-dot markup name is routed to the markup checker
+- **WHEN** `content_unsafe?` is called with a filename ending in `.svg.` or `.svg ` (a trailing dot or space)
+- **THEN** the content is evaluated by the parse-based markup checker, because the trailing character is stripped before the extension is read
 
 #### Scenario: A markup-only vector is rejected regardless of extension case
 - **WHEN** markup carrying a `foreignObject` element is scanned as `image.svg` and as `image.SVG`

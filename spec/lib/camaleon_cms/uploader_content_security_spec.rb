@@ -167,6 +167,16 @@ RSpec.describe CamaleonCms::UploaderContentSecurity do
       expect(scanner).to be_content_unsafe(handler_payload, filename: '.html')
     end
 
+    # A trailing dot makes File.extname report no extension, but a server that strips it serves the
+    # bytes as SVG -- so routing must read the extension off the stripped name.
+    it 'refuses it under a trailing-dot markup name' do
+      expect(scanner).to be_content_unsafe(handler_payload, filename: 'x.svg.')
+    end
+
+    it 'refuses it under a trailing-space markup name' do
+      expect(scanner).to be_content_unsafe(handler_payload, filename: 'x.svg ')
+    end
+
     # The reason routing must stay narrow. An HTML parse of this text invents a `b` element with an
     # `on` attribute, so a wider markup list would refuse ordinary text files.
     it 'accepts a text file whose prose parses to a spurious on attribute' do

@@ -145,6 +145,11 @@ module CamaleonCms
     # A name with no extension yields '' and takes the generic ruleset.
     def cama_upload_extension(name)
       base = File.basename(name.to_s).downcase
+      # Trailing dots and spaces do not survive the way the file is served: some servers and
+      # filesystems strip them (IIS-style), turning `evil.svg.` back into `evil.svg` and serving it
+      # as SVG, so `File.extname` reporting no extension would route it to the weaker generic ruleset
+      # while the browser parses it as markup. Strip them so routing matches how the file is served.
+      base = base.sub(/[.\s]+\z/, '')
       compound = COMPRESSED_MARKUP_EXTENSIONS.find { |ext| ext.include?('.') && base.end_with?(".#{ext}") }
       return compound if compound
 
