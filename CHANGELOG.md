@@ -6,7 +6,8 @@
   workflow that verifies, builds and publishes the gem, then tags the commit and creates the GitHub
   release from this file's section for that version. `lib/camaleon_cms/version.rb` is the single
   source of truth, and every check runs before `gem push`. Procedure and manual fallback:
-  [docs/releasing.md](docs/releasing.md).
+  [docs/releasing.md](docs/releasing.md). The Rakefile drops Bundler's competing `rake release`,
+  an unused RDoc task, and a `statistics.rake` load that Rails 8.2 removes.
   [#1268](https://github.com/owen2345/camaleon-cms/pull/1268).
 
 - **Security fix:** Low-severity hardening bundle. The captcha challenge is now drawn from a CSPRNG
