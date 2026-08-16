@@ -41,7 +41,7 @@ module CamaleonCms
     def get_meta(key, default = nil)
       key_str = key.is_a?(Symbol) ? key.to_s : key
       cama_fetch_cache("meta_#{key_str}") do
-        option = metas.loaded? ? metas.find { |m| m.key == key } : metas.where(key: key_str).first
+        option = metas.loaded? ? metas.find { |m| m.key == key_str } : metas.where(key: key_str).first
         res = ''
         if option.present?
           value = begin
