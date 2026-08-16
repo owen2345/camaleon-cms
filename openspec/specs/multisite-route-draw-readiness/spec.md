@@ -37,23 +37,22 @@ slugs SHALL be collected in a single query across all sites.
 ### Requirement: The route table is ready before the first request
 
 When Rails would otherwise draw routes lazily on the first request — development, where
-`config.eager_load` is false — the route table SHALL be drawn once during boot instead, so no request
-is served against a partially built table. The boot-time draw SHALL run after the route set is fully
-assembled (Rails' internal routes and the host app's own route additions) and SHALL leave the table
-marked loaded, so the first request is served the boot-drawn table rather than redrawing it. The
-draw SHALL be guarded so it never aborts boot when the database is unavailable.
+`config.eager_load` is false — the route table SHALL be drawn during boot instead, so the expensive
+multi-site draw completes at boot and the first request never races a cold draw. The boot-time draw
+SHALL be wired so it does not perturb Rails' initializer ordering or the asset load path, and SHALL be
+guarded so it never aborts boot when the database is unavailable.
 
-#### Scenario: Routes are drawn once at boot in development
+#### Scenario: Routes are drawn at boot in development
 
 - **WHEN** the application boots with `config.eager_load` false and the database installed
-- **THEN** the route table is drawn during initialization, before the first request, and is left
-  marked loaded so the first request does not redraw it
+- **THEN** the route table is drawn during initialization, before the first request is served
 
-#### Scenario: The boot draw reflects internal and host routes
+#### Scenario: The boot draw does not perturb the asset load path
 
-- **WHEN** the boot-time draw runs
-- **THEN** it runs after Rails' internal routes and the host app's own after_initialize route
-  additions are registered, so the drawn table includes them
+- **WHEN** the boot-time draw is wired into the engine
+- **THEN** it is registered as an `after_initialize` callback rather than a named initializer anchored
+  to a late boot hook, so it does not reorder Rails' initializer graph or drop engine asset load paths
+  (which would raise `AssetNotPrecompiledError` for plugin/theme and core assets)
 
 #### Scenario: The boot-time draw is skipped when routes are already eager-loaded
 

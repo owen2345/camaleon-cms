@@ -117,12 +117,15 @@ module CamaleonCms
     # of routes (see PluginRoutes.draw_routes_eagerly). Closes the development-mode window where
     # the first request after a restart races the multi-site route draw; a no-op once drawn.
     #
-    # Anchored `after: :set_routes_reloader_hook` -- and therefore after :add_internal_routes (the
-    # /rails/info + welcome routes) and after the host app's own after_initialize route additions --
-    # so the boot draw reflects the final route set instead of a table built before those register.
-    # Declared last among the engine initializers so this cross-cutting `after:` dependency does not
-    # pull earlier engine initializers (which mutate the middleware stack) past :build_middleware_stack.
-    initializer :cama_draw_routes_eagerly, after: :set_routes_reloader_hook do
+    # Runs as a config.after_initialize callback, NOT as a named `initializer ... after:
+    # :set_routes_reloader_hook`. Anchoring a CamaleonCms::Engine initializer to that late Finisher
+    # hook adds a cross-cutting edge to Rails' initializer tsort that reorders the `append_assets_path`
+    # initializers and drops engine/host asset load paths from config.assets.paths -- gem-packaged
+    # plugin assets and core camaleon_cms images then raise AssetNotPrecompiledError and 500 the site
+    # (regression fixed here). after_initialize runs once the whole boot -- routes reloader, internal
+    # routes and every engine's asset path -- is assembled, so the draw still reflects the final route
+    # set without perturbing initializer ordering.
+    config.after_initialize do
       PluginRoutes.draw_routes_eagerly
     end
 

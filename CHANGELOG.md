@@ -4,7 +4,7 @@
 
 - **Performance fix:** On installs with many sites, the first request after a server (re)start could
   404 or render an admin page half-initialized. Route drawing no longer scales with the number of
-  sites, it is drawn once at boot in development so no request is served mid-draw, and admin
+  sites, it is drawn at boot in development so no request is served mid-draw, and admin
   responses now send `Cache-Control: no-store`. [#1272](https://github.com/owen2345/camaleon-cms/pull/1272).
 
 - **Security fix:** A role holding only the `media` manager permission could set any other same-site

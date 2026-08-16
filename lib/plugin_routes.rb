@@ -188,7 +188,7 @@ class PluginRoutes
       return if running_db_rake_task?
       return unless db_installed?
 
-      perform_eager_route_draw
+      Rails.application.reload_routes!
     rescue ActiveRecord::ActiveRecordError => e
       # Only swallow database-unavailability (migrations, asset precompile, a fresh install before
       # db:create) so boot never aborts on it. A route-file syntax error, a raised constraint lambda
@@ -495,21 +495,6 @@ class PluginRoutes
     end
 
     private
-
-    # Draw the route table once, leaving it loaded so the first request does not redraw it.
-    # execute_unless_loaded (Rails 8+) does exactly that; reload_routes! would draw and then reset
-    # loaded=false, which -- since the engine runs this after :set_routes_reloader_hook, with the
-    # route set fully assembled -- would only make the first request rebuild the identical table.
-    # Older Rails (< 8) has no execute_unless_loaded, and there the reloader already draws at boot,
-    # so fall back to reload_routes! (no first-request LazyRouteSet redraw to avoid there).
-    def perform_eager_route_draw
-      reloader = Rails.application.routes_reloader
-      if reloader.respond_to?(:execute_unless_loaded)
-        reloader.execute_unless_loaded
-      else
-        Rails.application.reload_routes!
-      end
-    end
 
     # True when this process is running a task in the `db:` Rake namespace (db:migrate,
     # db:schema:load, ... or their engine-prefixed forms like app:db:test:prepare), whether launched

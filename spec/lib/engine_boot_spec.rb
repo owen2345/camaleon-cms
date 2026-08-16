@@ -32,28 +32,16 @@ RSpec.describe CamaleonCms::Engine do
     expect(output).to include('file_server=false'), "the env flag did not disable the file server:\n#{output}"
   end
 
-  # The eager boot draw is wired as a named engine initializer, so a rename or a dropped hook is
-  # caught here rather than silently disabling the draw (every draw_routes_eagerly unit spec would
-  # still pass). It must be anchored after Rails' :set_routes_reloader_hook so the route set
-  # (internal + host routes) is fully assembled first.
-  describe 'eager route draw wiring' do
-    let(:ordered_names) { Rails.application.initializers.tsort.map(&:name) }
-
-    it 'registers the cama_draw_routes_eagerly initializer' do
-      expect(ordered_names).to include(:cama_draw_routes_eagerly)
-    end
-
-    it 'runs the draw after the routes reloader hook' do
-      expect(ordered_names.index(:cama_draw_routes_eagerly))
-        .to be > ordered_names.index(:set_routes_reloader_hook)
-    end
-
-    it 'keeps the middleware-mutating initializer before the stack is built' do
-      # Guards the "declared last" placement: the draw's cross-cutting `after:` must not reorder the
-      # engine's earlier :append_migrations (which inserts middleware) past :build_middleware_stack,
-      # which freezes the stack.
-      expect(ordered_names.index(:append_migrations))
-        .to be < ordered_names.index(:build_middleware_stack)
-    end
+  # The boot draw is wired as a config.after_initialize callback (see the engine), deliberately NOT
+  # as a named `initializer :cama_draw_routes_eagerly, after: :set_routes_reloader_hook`. Anchoring a
+  # CamaleonCms::Engine initializer to that late Finisher hook adds a cross-cutting edge to Rails'
+  # initializer tsort that reorders the append_assets_path initializers: on a host app with several
+  # gem-packaged engines it drops their asset load paths (and the host's own app/assets) from
+  # config.assets.paths, so plugin assets and core camaleon_cms images raise AssetNotPrecompiledError
+  # and 500 the site. The dummy app has too few engines to drop a path, so this guards the wiring
+  # shape instead -- reintroducing the named-initializer form flips this red.
+  it 'does not wire the boot draw as a tsort-perturbing named initializer' do
+    names = Rails.application.initializers.map(&:name)
+    expect(names).not_to include(:cama_draw_routes_eagerly)
   end
 end
