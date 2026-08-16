@@ -44,13 +44,6 @@ module CamaleonCms
       end
     end
 
-    # Draw the route table at boot so the first request is never served against a half-built set
-    # of routes (see PluginRoutes.draw_routes_eagerly). Closes the development-mode window where
-    # the first request after a restart races the multi-site route draw; a no-op once drawn.
-    config.after_initialize do
-      PluginRoutes.draw_routes_eagerly
-    end
-
     # Security (audit 2026-08-11 M9): redact credential-bearing parameters from the Rails logs. The site
     # settings form submits the SMTP password and S3 keys in the clear (options[email_pass],
     # options[filesystem_s3_access_key], options[filesystem_s3_secret_key]), as do user passwords, the
@@ -118,6 +111,19 @@ module CamaleonCms
           app.config.paths['db/migrate'] << expanded_path
         end
       end
+    end
+
+    # Draw the route table at boot so the first request is never served against a half-built set
+    # of routes (see PluginRoutes.draw_routes_eagerly). Closes the development-mode window where
+    # the first request after a restart races the multi-site route draw; a no-op once drawn.
+    #
+    # Anchored `after: :set_routes_reloader_hook` -- and therefore after :add_internal_routes (the
+    # /rails/info + welcome routes) and after the host app's own after_initialize route additions --
+    # so the boot draw reflects the final route set instead of a table built before those register.
+    # Declared last among the engine initializers so this cross-cutting `after:` dependency does not
+    # pull earlier engine initializers (which mutate the middleware stack) past :build_middleware_stack.
+    initializer :cama_draw_routes_eagerly, after: :set_routes_reloader_hook do
+      PluginRoutes.draw_routes_eagerly
     end
 
     if defined?(FactoryBotRails)
