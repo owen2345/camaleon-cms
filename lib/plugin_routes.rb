@@ -307,6 +307,11 @@ class PluginRoutes
       # lookups (get_meta checks metas.loaded?), and post_types back the frontend post-type route
       # loop. On large multi-site installs those N+1s are the bulk of cold-boot route-draw time --
       # the window where the first request races a half-built table.
+      #
+      # The whole metas set is loaded on purpose, not a scoped subset: get_meta's loaded branch reads
+      # a key absent from the loaded records as unset, so preloading only _default/languages_site
+      # would make every other site meta read silently return its default. Site-level metas are few
+      # rows per site, so this bounded over-fetch is the safe trade against that correctness hazard.
       @all_sites ||= CamaleonCms::Site.includes(:metas, :post_types).order(id: :asc).to_a
     rescue StandardError
       []
