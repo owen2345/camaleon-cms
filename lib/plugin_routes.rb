@@ -251,8 +251,11 @@ class PluginRoutes
       return [] if get_sites.empty?
 
       # One query for every enabled plugin slug across all sites, rather than a
-      # `site.plugins.active.pluck` per site (the N+1 that dominated multi-site route drawing).
-      enabled_ps = CamaleonCms::Plugin.active.where(parent_id: get_sites.map(&:id)).distinct.pluck(:slug)
+      # `site.plugins.active.pluck` per site (the N+1 that dominated multi-site route drawing). A
+      # subquery over the site ids avoids marshaling every id into an IN(...) bind list, which can
+      # exceed SQLite's SQLITE_MAX_VARIABLE_NUMBER on very large multi-site installs; Postgres and
+      # MySQL handle either form.
+      enabled_ps = CamaleonCms::Plugin.active.where(parent_id: CamaleonCms::Site.select(:id)).distinct.pluck(:slug)
       res = all_plugins.each_with_object([]) do |plugin, ary|
         ary << plugin if enabled_ps.include?(plugin['key'])
       end
