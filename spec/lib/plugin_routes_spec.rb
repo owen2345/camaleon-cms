@@ -202,6 +202,17 @@ RSpec.describe PluginRoutes do
       expect(sites).to be_present
       sites.each { |site| expect(site.association(:metas)).to be_loaded }
     end
+
+    # Frontend route drawing loops PluginRoutes.get_sites and reads each site's post_types; without
+    # eager-loading them here that is one query per site at draw time.
+    it 'eager-loads the post_types association for every site' do
+      create(:site)
+
+      sites = described_class.get_sites
+
+      expect(sites).to be_present
+      sites.each { |site| expect(site.association(:post_types)).to be_loaded }
+    end
   end
 
   describe '.all_enabled_plugins' do
@@ -235,8 +246,10 @@ RSpec.describe PluginRoutes do
 
       plugin_queries = sql_queries(matching: /term_taxonomy/i) { described_class.all_enabled_plugins }
       # Every site's enabled-plugin slugs come back in one `parent_id IN (...)` query -- the whole
-      # point of the fix -- rather than one lookup per site.
-      batched_lookups = plugin_queries.count { |q| q.match?(/parent_id.*\bIN\b/i) }
+      # point of the fix -- rather than one lookup per site. get_sites also batches its post_types
+      # preload with a `parent_id IN`, so match the plugin lookup specifically: it is the one that
+      # selects `slug` (the preload selects `*`).
+      batched_lookups = plugin_queries.count { |q| q.match?(/parent_id.*\bIN\b/i) && q.include?('slug') }
 
       expect(batched_lookups).to(eq(1), plugin_queries.join("\n----\n"))
     end

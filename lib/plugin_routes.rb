@@ -302,11 +302,12 @@ class PluginRoutes
 
     # return all sites registered for Plugin routes
     def get_sites
-      # Eager-load metas so the per-site option/language/theme lookups route drawing performs
-      # read from the loaded association (get_meta checks metas.loaded?) instead of firing one
-      # `_default` options query per site. On large multi-site installs that N+1 is the bulk of
-      # cold-boot route-draw time -- the window where the first request races a half-built table.
-      @all_sites ||= CamaleonCms::Site.includes(:metas).order(id: :asc).to_a
+      # Eager-load metas and post_types so the per-site reads route drawing performs come from the
+      # loaded associations instead of one query per site: metas back the option/language/theme
+      # lookups (get_meta checks metas.loaded?), and post_types back the frontend post-type route
+      # loop. On large multi-site installs those N+1s are the bulk of cold-boot route-draw time --
+      # the window where the first request races a half-built table.
+      @all_sites ||= CamaleonCms::Site.includes(:metas, :post_types).order(id: :asc).to_a
     rescue StandardError
       []
     end
