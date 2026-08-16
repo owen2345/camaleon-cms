@@ -239,4 +239,42 @@ RSpec.describe PluginRoutes do
       expect(batched_lookups).to(eq(1), plugin_queries.join("\n----\n"))
     end
   end
+
+  describe '.draw_routes_eagerly' do
+    # eager_load is off in development/test, where routes would otherwise be drawn lazily on the
+    # first request; the guarded draw is a no-op when eager_load is on (production draws at boot).
+    before { allow(Rails.application.config).to receive(:eager_load).and_return(false) }
+
+    it 'draws the routes when the database is installed and routes are lazy' do
+      allow(described_class).to receive(:db_installed?).and_return(true)
+
+      expect(Rails.application).to receive(:reload_routes!)
+
+      described_class.draw_routes_eagerly
+    end
+
+    it 'does nothing when the database is not installed' do
+      allow(described_class).to receive(:db_installed?).and_return(false)
+
+      expect(Rails.application).not_to receive(:reload_routes!)
+
+      described_class.draw_routes_eagerly
+    end
+
+    it 'does nothing when routes are already eager-loaded at boot (production)' do
+      allow(Rails.application.config).to receive(:eager_load).and_return(true)
+      allow(described_class).to receive(:db_installed?).and_return(true)
+
+      expect(Rails.application).not_to receive(:reload_routes!)
+
+      described_class.draw_routes_eagerly
+    end
+
+    it 'never lets a boot-time failure abort startup' do
+      allow(described_class).to receive(:db_installed?).and_return(true)
+      allow(Rails.application).to receive(:reload_routes!).and_raise(StandardError, 'db unavailable')
+
+      expect { described_class.draw_routes_eagerly }.not_to raise_error
+    end
+  end
 end

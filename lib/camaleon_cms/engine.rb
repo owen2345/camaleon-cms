@@ -44,6 +44,13 @@ module CamaleonCms
       end
     end
 
+    # Draw the route table at boot so the first request is never served against a half-built set
+    # of routes (see PluginRoutes.draw_routes_eagerly). Closes the development-mode window where
+    # the first request after a restart races the multi-site route draw; a no-op once drawn.
+    config.after_initialize do
+      PluginRoutes.draw_routes_eagerly
+    end
+
     # Security (audit 2026-08-11 M9): redact credential-bearing parameters from the Rails logs. The site
     # settings form submits the SMTP password and S3 keys in the clear (options[email_pass],
     # options[filesystem_s3_access_key], options[filesystem_s3_secret_key]), as do user passwords, the

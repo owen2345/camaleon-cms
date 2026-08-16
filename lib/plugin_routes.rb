@@ -172,6 +172,21 @@ class PluginRoutes
       end
     end
 
+    # Draw the route table at boot so the first request is never served against a half-built set
+    # of routes. Production already eager-loads routes; this closes the development window where
+    # the first request after a restart races the (multi-site) draw. Guarded by db_installed? and
+    # rescued so boot never aborts when the DB is unavailable (migrations, asset precompile, or a
+    # fresh install before db:create).
+    def draw_routes_eagerly
+      return if Rails.application.config.eager_load # production draws routes at boot already
+      return unless db_installed?
+
+      Rails.application.reload_routes!
+    rescue StandardError => e
+      Rails.logger&.warn("Camaleon CMS: skipped eager route draw at boot (#{e.class}: #{e.message})")
+      nil
+    end
+
     # Add a callable (Proc/Lambda) to run after routes reload; strings are not supported.
     def add_after_reload_routes(command)
       raise(ArgumentError, 'Expected a callable (Proc/Lambda), not a String') if command.is_a?(String)
