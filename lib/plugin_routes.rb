@@ -225,7 +225,13 @@ class PluginRoutes
       r = cache_variable('all_enabled_plugins')
       return r if r
 
-      enabled_ps = get_sites.flat_map { |site| site.plugins.active.pluck(:slug) }
+      # One query for every enabled plugin slug across all sites, rather than a
+      # `site.plugins.active.pluck` per site (the N+1 that dominated multi-site route drawing).
+      # Skip it when there are no sites: get_sites rescues to [] before the DB is ready during early
+      # boot, and an unconditional pluck (unlike the per-site loop it replaces) would still hit the
+      # DB there and abort route loading.
+      site_ids = get_sites.map(&:id)
+      enabled_ps = site_ids.empty? ? [] : CamaleonCms::Plugin.active.where(parent_id: site_ids).distinct.pluck(:slug)
       res = all_plugins.each_with_object([]) do |plugin, ary|
         ary << plugin if enabled_ps.include?(plugin['key'])
       end
@@ -272,7 +278,11 @@ class PluginRoutes
 
     # return all sites registered for Plugin routes
     def get_sites
-      @all_sites ||= CamaleonCms::Site.order(id: :asc).all.to_a
+      # Eager-load metas so the per-site option/language/theme lookups route drawing performs
+      # read from the loaded association (get_meta checks metas.loaded?) instead of firing one
+      # `_default` options query per site. On large multi-site installs that N+1 is the bulk of
+      # cold-boot route-draw time -- the window where the first request races a half-built table.
+      @all_sites ||= CamaleonCms::Site.includes(:metas).order(id: :asc).to_a
     rescue StandardError
       []
     end

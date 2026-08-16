@@ -170,4 +170,73 @@ RSpec.describe PluginRoutes do
       expect(described_class.site_plugin_helpers(site)).to eq(['CamaleonCms::CamaleonHelper'])
     end
   end
+
+  # ---- cold-boot route-draw performance + eager draw (fix/cold-boot-route-draw) ----
+
+  # Collect the SQL a block issues, optionally only statements matching `matching`.
+  def sql_queries(matching: nil)
+    queries = []
+    sub = ActiveSupport::Notifications.subscribe('sql.active_record') do |*args|
+      payload = args.last
+      next if payload[:name].to_s.match?(/SCHEMA|TRANSACTION/i)
+
+      queries << payload[:sql] if matching.nil? || payload[:sql].match?(matching)
+    end
+    yield
+    queries
+  ensure
+    ActiveSupport::Notifications.unsubscribe(sub)
+  end
+
+  describe '.get_sites' do
+    before { described_class.instance_variable_set(:@all_sites, nil) }
+    after  { described_class.instance_variable_set(:@all_sites, nil) }
+
+    # The per-site option/language/theme reads route drawing performs are an N+1 unless metas
+    # are eager-loaded here; on a multi-site install that N+1 is the bulk of cold-boot draw time.
+    it 'eager-loads the metas association for every site' do
+      create(:site)
+
+      sites = described_class.get_sites
+
+      expect(sites).to be_present
+      sites.each { |site| expect(site.association(:metas)).to be_loaded }
+    end
+  end
+
+  describe '.all_enabled_plugins' do
+    # Reset the memoized site list and the cached result. Creating a site can trigger a route
+    # reload that re-populates both with pre-stub data, so each example resets again just before
+    # exercising the method.
+    def reset_enabled_plugins_cache!
+      described_class.instance_variable_set(:@all_sites, nil)
+      described_class.send(:cache).delete('all_enabled_plugins')
+    end
+
+    before { reset_enabled_plugins_cache! }
+    after  { reset_enabled_plugins_cache! }
+
+    it 'returns the config of a plugin active on any site' do
+      site = create(:site)
+      site.plugins.where(slug: 'cb_active_plugin').first_or_create!.update!(term_group: 1)
+      config = { 'key' => 'cb_active_plugin', 'name' => 'Active Plugin' }
+      allow(described_class).to receive(:all_plugins).and_return([config])
+      reset_enabled_plugins_cache!
+
+      expect(described_class.all_enabled_plugins).to include(config)
+    end
+
+    it 'resolves enabled plugin slugs in a single query, not one per site' do
+      allow(described_class).to receive(:all_plugins).and_return([])
+      create_list(:site, 2) # more than one site: a per-site lookup would issue several queries
+      reset_enabled_plugins_cache!
+
+      plugin_queries = sql_queries(matching: /term_taxonomy/i) { described_class.all_enabled_plugins }
+      # Every site's enabled-plugin slugs come back in one `parent_id IN (...)` query -- the whole
+      # point of the fix -- rather than one lookup per site.
+      batched_lookups = plugin_queries.count { |q| q.match?(/parent_id.*\bIN\b/i) }
+
+      expect(batched_lookups).to(eq(1), plugin_queries.join("\n----\n"))
+    end
+  end
 end
