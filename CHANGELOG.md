@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **Security fix:** A role holding only the `media` manager permission could set any other same-site
+  user's avatar — including an administrator's — through the media crop endpoint (`media#crop` with
+  `saved_avatar`), because the write was gated only by `:manage, :media`. Writing another user's avatar
+  now requires `:manage, :users`, the same permission the user form already enforces; a caller may
+  still set their own avatar with the media permission alone. This completes the object-level half of
+  the media-crop authorization finding (the cross-site half shipped in
+  [#1267](https://github.com/owen2345/camaleon-cms/pull/1267)). Reported by Guilherme Facini.
+  [#1271](https://github.com/owen2345/camaleon-cms/pull/1271).
+  - **Breaking change:** a role with `:manage, :media` but not `:manage, :users` can no longer set
+    other users' avatars via crop. Grant `:manage, :users` to a role that needs to manage other users'
+    avatars.
+
 - **Security fix:** The upload content scan chose its ruleset by matching the filename against
   `.svg`, so identical bytes carrying an event handler the regex denylist does not list were refused
   as `x.svg` and stored as `x.html`. The ruleset is now chosen by how the stored file will be

@@ -93,5 +93,5 @@ media-only caller staying media-only IS the reproduction. Change the **assertion
 - [x] 7.1 Run `/opsx:verify` to confirm the implementation matches proposal, specs, and design.
   → Passed: 2/2 requirements implemented, 7/7 scenarios tested, all 6 design decisions followed, no
   critical or warning issues.
-- [ ] 7.2 Archive the change on-branch, before merge, committed as part of the PR (AGENTS.md §2 /
+- [x] 7.2 Archive the change on-branch, before merge, committed as part of the PR (AGENTS.md §2 /
   workflows Phase 4).
