@@ -54,9 +54,11 @@ module CamaleonCms
         # let the avatar flow store "").
         return render(plain: helpers.sanitize(res[:error])) if res[:error].present?
 
-        # Security (audit Low): resolve the avatar target through the current site and nil-safely --
-        # an unscoped User.find let a media manager set (or probe) a user on another site, and 500ed
-        # on a bad id.
+        # Security (audit Low): resolve the avatar target through the current site and nil-safely.
+        # The object-level gate above (:manage, :users for a non-self target) is the primary control
+        # that stops a media manager from writing another user's avatar; this site-scoping is defense
+        # in depth -- for an authorized :manage,:users holder a foreign id is a no-op here, where an
+        # unscoped User.find would reach across sites and 500 on a bad id.
         if params[:saved_avatar].present?
           current_site.users.find_by(id: params[:saved_avatar])&.set_meta('avatar', res['url'])
         end
