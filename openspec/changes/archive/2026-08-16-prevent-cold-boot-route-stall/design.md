@@ -30,3 +30,36 @@ the browser — such content is judged at save time and served verbatim. `no-sto
 it applies to *admin HTML responses* (trusted, per-user, dynamic pages) purely as caching hygiene, so
 a stale admin render is never reused. It constrains no stored content and no untrusted author, so it
 sits outside that rule.
+
+## Refinements from code review
+
+A max-effort review of the branch surfaced several issues in the first cut; the fixes below landed as
+follow-up commits on the same PR.
+
+- **Where the boot draw runs.** `config.after_initialize` runs before Rails' `:add_internal_routes`
+  and the host app's own `after_initialize`, so drawing there built an incomplete table that only
+  survived because `reload_routes!` leaves the table marked unloaded for the first request to redraw
+  — a double draw every boot that never actually pre-empted the first-request draw. The draw now runs
+  from an initializer anchored `after: :set_routes_reloader_hook` (declared last among the engine
+  initializers so its cross-cutting `after:` does not reorder the middleware-mutating initializer past
+  `:build_middleware_stack`) and calls `routes_reloader.execute_unless_loaded`, which draws once and
+  leaves the table loaded so the first request serves it directly.
+- **post_types was still an N+1.** Only metas and plugin slugs were batched; the frontend post-type
+  route loop still issued one `post_types` query per site. `get_sites` now eager-loads `:post_types`
+  too and the loop maps in memory, so the whole draw is a fixed query count regardless of site count.
+- **Full metas load is deliberate.** A scoped metas preload would be cheaper, but `get_meta`'s loaded
+  branch reads a key absent from the loaded records as unset, so preloading only the route-draw keys
+  would make every other site meta read return its default. The bounded full load is the safe trade.
+- **Empty results are not cached as a hit.** `all_enabled_plugins`/`all_enabled_themes`/`all_locales`
+  returned `[]`/`''` on a not-ready DB and cached it; because those are truthy, the empty value stuck
+  until an explicit reload (an empty `all_locales` also degraded the frontend locale constraint to
+  `//`). They now recompute on an empty result, matching the self-healing filesystem-backed caches.
+- **DB-readiness gated once; batched query is subquery-shaped.** The per-call `site_ids.empty?` check
+  became one `return [] if get_sites.empty?` guard, and the enabled-plugin lookup uses a
+  `parent_id IN (SELECT id …)` subquery so it carries no IN-list bind cap on very large installs.
+- **Boot-safety rescue narrowed.** The draw now rescues only `ActiveRecord::ActiveRecordError`, so
+  DB-unavailability still fails safe but a genuine route error surfaces instead of being hidden.
+- **Process scope left as-is, on purpose.** The draw runs in every non-`eager_load` process, not just
+  the server. Rails exposes no reliable, version-stable boot-time "is this the server?" signal across
+  the 6.1–8.1 range, and the draw is already bounded and safe (one guarded, rescued, idempotent draw
+  over long-stable columns), so a fragile process gate would cost more than it saves.
