@@ -66,12 +66,16 @@ RSpec.describe 'Security: crop avatar target authorization', type: :request do
       expect(stored_avatar(member)).to eq('/uploads/original.jpg')
     end
 
+    # The redirect + flash are the load-bearing assertions: on the pre-fix code a foreign id was
+    # already a silent no-op (tenancy scoping), so the unchanged-avatar check alone would pass on the
+    # vulnerable code too -- the denial is what distinguishes fixed from vulnerable here.
     it "is denied a foreign-site user's avatar" do
       victim.set_meta('avatar', '/uploads/original.jpg')
 
       post '/admin/media/crop', params: { cp_img_path: 'photo.jpg', saved_avatar: victim.id }
 
       expect(response).to have_http_status(:redirect)
+      expect(flash[:error]).to be_present
       expect(stored_avatar(victim)).to eq('/uploads/original.jpg')
     end
 
