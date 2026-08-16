@@ -1,10 +1,7 @@
 # avatar-target-tenancy Specification
 
-## Purpose
-When the media crop flow writes a user's avatar from `saved_avatar`, the target user must be
-resolved within the caller's tenancy, so a media manager cannot write — or probe the existence of —
-a user outside the sites they administer.
-## Requirements
+## MODIFIED Requirements
+
 ### Requirement: The crop avatar target is resolved within the current site
 
 `MediaController#crop` SHALL resolve the `saved_avatar` target through `current_site.users` and write
@@ -28,6 +25,8 @@ to write the target.
 - **WHEN** a caller authorized to write the target (the target is the caller, or the caller holds
   `:manage, :users`) crops with `saved_avatar` naming a user the current site owns
 - **THEN** that user's avatar is set to the cropped image
+
+## ADDED Requirements
 
 ### Requirement: The crop avatar target is authorized as self or by a user manager
 
@@ -68,8 +67,8 @@ so that the same write reached by a different path yields the same authorization
 #### Scenario: Denial does not reveal whether the target exists
 
 - **WHEN** a caller not authorized to manage users crops with a `saved_avatar` that is not their own —
-  whether it names an existing same-site user, a user of another site, a nonexistent id, a
-  non-numeric value, or a non-scalar value such as an array of ids
+  whether it names an existing same-site user, a user of another site, a nonexistent id, or a
+  non-numeric value
 - **THEN** the request is denied identically in every case, disclosing no difference between them
 - **AND** the target is not queried before the denial
 
@@ -78,4 +77,3 @@ so that the same write reached by a different path yields the same authorization
 - **WHEN** crop is called with no `saved_avatar`
 - **THEN** the image is cropped and its url is returned, with no avatar write and no
   user-management check
-

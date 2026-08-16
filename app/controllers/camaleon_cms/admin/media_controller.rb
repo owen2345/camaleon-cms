@@ -33,6 +33,19 @@ module CamaleonCms
           return render(plain: helpers.sanitize(url_error))
         end
 
+        # Security (object-level authorization): setting another user's avatar is a user-management
+        # write, so gate a non-self saved_avatar target on :manage, :users -- the same capability
+        # UsersController#update already requires. Decide from the parameter, before resolving the
+        # target (so a denied caller cannot use the response as a same-site existence oracle) and
+        # before the upload/crop (so no file work happens on a denied request). A caller may always
+        # set their own avatar with the media permission the endpoint already requires.
+        # (Mirrors UsersController#profile's self-vs-other gate. The .to_s compare and the blank-
+        # saved_avatar skip -- a plain crop, not a user write -- are intentional and fail-closed; do
+        # not "align" this to users_controller's .to_i, which coerces non-canonical ids.)
+        if params[:saved_avatar].present? && params[:saved_avatar].to_s != cama_current_user.id.to_s
+          authorize! :manage, :users
+        end
+
         tmp = cama_tmp_upload(cp_img_path, formats: params[:formats], name: params[:name])
         return render(plain: helpers.sanitize(tmp[:error])) if tmp[:error].present?
 
@@ -44,9 +57,11 @@ module CamaleonCms
         # let the avatar flow store "").
         return render(plain: helpers.sanitize(res[:error])) if res[:error].present?
 
-        # Security (audit Low): resolve the avatar target through the current site and nil-safely --
-        # an unscoped User.find let a media manager set (or probe) a user on another site, and 500ed
-        # on a bad id.
+        # Security (audit Low): resolve the avatar target through the current site and nil-safely.
+        # The object-level gate above (:manage, :users for a non-self target) is the primary control
+        # that stops a media manager from writing another user's avatar; this site-scoping is defense
+        # in depth -- for an authorized :manage,:users holder a foreign id is a no-op here, where an
+        # unscoped User.find would reach across sites and 500 on a bad id.
         if params[:saved_avatar].present?
           current_site.users.find_by(id: params[:saved_avatar])&.set_meta('avatar', res['url'])
         end
