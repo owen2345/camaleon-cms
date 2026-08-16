@@ -243,13 +243,16 @@ class PluginRoutes
       r = cache_variable('all_enabled_plugins')
       return r if r.present? # an empty [] must not stick as a cache hit -- see all_enabled_themes
 
+      # Empty get_sites (the DB is not ready during early boot, or there simply are no sites) means
+      # no DB work: gate the batched query on it here, as one explicit early return, so the query
+      # never runs against a table that may not exist yet and aborts route loading. get_sites rescues
+      # to [] on any DB error, so this single guard keeps the whole draw path safe -- and any batched
+      # query added below inherits it, rather than each repeating a per-call emptiness check.
+      return [] if get_sites.empty?
+
       # One query for every enabled plugin slug across all sites, rather than a
       # `site.plugins.active.pluck` per site (the N+1 that dominated multi-site route drawing).
-      # Skip it when there are no sites: get_sites rescues to [] before the DB is ready during early
-      # boot, and an unconditional pluck (unlike the per-site loop it replaces) would still hit the
-      # DB there and abort route loading.
-      site_ids = get_sites.map(&:id)
-      enabled_ps = site_ids.empty? ? [] : CamaleonCms::Plugin.active.where(parent_id: site_ids).distinct.pluck(:slug)
+      enabled_ps = CamaleonCms::Plugin.active.where(parent_id: get_sites.map(&:id)).distinct.pluck(:slug)
       res = all_plugins.each_with_object([]) do |plugin, ary|
         ary << plugin if enabled_ps.include?(plugin['key'])
       end
