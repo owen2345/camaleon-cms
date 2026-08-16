@@ -181,6 +181,13 @@ class PluginRoutes
       return if Rails.application.config.eager_load # production draws routes at boot already
       return unless db_installed?
 
+      # This runs in every non-eager-load process (server, console, rake), not just the web server:
+      # Rails exposes no reliable, version-stable "is this the web server?" signal at boot (and the
+      # migration-context API that would let us skip mid-migration boots moved between the 6.1..8.1
+      # range we support). The cost is bounded and safe regardless -- a single idempotent draw
+      # (below), guarded by db_installed? and rescued so it never aborts boot, reading only long-
+      # stable term_taxonomy/metas columns -- so scoping it to the server is not worth a fragile gate.
+      #
       # Draw once and leave the table marked loaded, so the first request does not redraw it.
       # reload_routes! would draw and then reset loaded=false (its contract is to force a *reload*),
       # which -- now that the engine runs this after :set_routes_reloader_hook, with the route set
