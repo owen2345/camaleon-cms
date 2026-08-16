@@ -276,12 +276,13 @@ RSpec.describe PluginRoutes do
     # first request; the guarded draw is a no-op when eager_load is on (production draws at boot).
     before { allow(Rails.application.config).to receive(:eager_load).and_return(false) }
 
-    it 'draws the routes once (execute_unless_loaded) when the DB is installed and routes are lazy' do
+    # Assert on perform_eager_route_draw rather than the reloader method directly: which method it
+    # calls is version-dependent (execute_unless_loaded on Rails 8+, reload_routes! before), and that
+    # choice is covered by its own example below.
+    it 'draws the routes when the DB is installed and routes are lazy' do
       allow(described_class).to receive(:db_installed?).and_return(true)
 
-      # execute_unless_loaded draws and leaves loaded=true, unlike reload_routes! which resets it and
-      # forces the first request to redraw.
-      expect(Rails.application.routes_reloader).to receive(:execute_unless_loaded)
+      expect(described_class).to receive(:perform_eager_route_draw)
 
       described_class.draw_routes_eagerly
     end
@@ -289,7 +290,7 @@ RSpec.describe PluginRoutes do
     it 'does nothing when the database is not installed' do
       allow(described_class).to receive(:db_installed?).and_return(false)
 
-      expect(Rails.application.routes_reloader).not_to receive(:execute_unless_loaded)
+      expect(described_class).not_to receive(:perform_eager_route_draw)
 
       described_class.draw_routes_eagerly
     end
@@ -298,7 +299,7 @@ RSpec.describe PluginRoutes do
       allow(Rails.application.config).to receive(:eager_load).and_return(true)
       allow(described_class).to receive(:db_installed?).and_return(true)
 
-      expect(Rails.application.routes_reloader).not_to receive(:execute_unless_loaded)
+      expect(described_class).not_to receive(:perform_eager_route_draw)
 
       described_class.draw_routes_eagerly
     end
@@ -306,14 +307,14 @@ RSpec.describe PluginRoutes do
     it 'does nothing while a db: rake task is running (schema is mid-change)' do
       allow(described_class).to receive_messages(running_db_rake_task?: true, db_installed?: true)
 
-      expect(Rails.application.routes_reloader).not_to receive(:execute_unless_loaded)
+      expect(described_class).not_to receive(:perform_eager_route_draw)
 
       described_class.draw_routes_eagerly
     end
 
     it 'never lets a database failure at boot abort startup' do
       allow(described_class).to receive(:db_installed?).and_return(true)
-      allow(Rails.application.routes_reloader).to receive(:execute_unless_loaded)
+      allow(described_class).to receive(:perform_eager_route_draw)
         .and_raise(ActiveRecord::ConnectionNotEstablished)
 
       expect { described_class.draw_routes_eagerly }.not_to raise_error
@@ -321,16 +322,38 @@ RSpec.describe PluginRoutes do
 
     it 'lets a non-database error (a real route bug) surface instead of swallowing it' do
       allow(described_class).to receive(:db_installed?).and_return(true)
-      allow(Rails.application.routes_reloader).to receive(:execute_unless_loaded)
+      allow(described_class).to receive(:perform_eager_route_draw)
         .and_raise(NameError, 'uninitialized constant BrokenRoute')
 
       expect { described_class.draw_routes_eagerly }.to raise_error(NameError)
     end
   end
 
+  describe '.perform_eager_route_draw' do
+    # Rails 8+ exposes routes_reloader.execute_unless_loaded (draw once, stay loaded); earlier Rails
+    # does not, so the draw must fall back to reload_routes! rather than raise NoMethodError.
+    it 'uses execute_unless_loaded when the reloader supports it, else reload_routes!' do
+      reloader = Rails.application.routes_reloader
+
+      if reloader.respond_to?(:execute_unless_loaded)
+        expect(reloader).to receive(:execute_unless_loaded)
+      else
+        expect(Rails.application).to receive(:reload_routes!)
+      end
+
+      described_class.send(:perform_eager_route_draw)
+    end
+  end
+
   describe '.running_db_rake_task?' do
     it 'is true when a db: task is the top-level Rake task' do
       stub_const('Rake', double(application: double(top_level_tasks: ['db:migrate'])))
+
+      expect(described_class.send(:running_db_rake_task?)).to be(true)
+    end
+
+    it 'is true for an engine-prefixed db task (app:db:...)' do
+      stub_const('Rake', double(application: double(top_level_tasks: ['app:db:test:prepare'])))
 
       expect(described_class.send(:running_db_rake_task?)).to be(true)
     end

@@ -179,21 +179,16 @@ class PluginRoutes
     # fresh install before db:create).
     def draw_routes_eagerly
       return if Rails.application.config.eager_load # production draws routes at boot already
-      # Skip while a db: Rake task runs (db:migrate, db:schema:load, ...): it boots against a schema
-      # that is mid-change, so drawing here would query that schema -- and it never serves a request
-      # that could race the draw. Other non-server processes (console, workers) still draw: Rails
-      # exposes no reliable, version-stable "is this the web server?" signal, and the draw is
-      # otherwise bounded and safe (a single guarded, rescued, idempotent draw over long-stable
-      # columns), so scoping it further is not worth a fragile gate.
+      # Skip while a db: Rake task runs (db:migrate, db:schema:load, app:db:test:prepare, ...): it
+      # boots against a schema that is mid-change, so drawing here would query that schema -- and it
+      # never serves a request that could race the draw. Other non-server processes (console,
+      # workers) still draw: Rails exposes no reliable, version-stable "is this the web server?"
+      # signal, and the draw is otherwise bounded and safe (a single guarded, rescued, idempotent
+      # draw over long-stable columns), so scoping it further is not worth a fragile gate.
       return if running_db_rake_task?
       return unless db_installed?
 
-      # Draw once and leave the table marked loaded, so the first request does not redraw it.
-      # reload_routes! would draw and then reset loaded=false (its contract is to force a *reload*),
-      # which -- now that the engine runs this after :set_routes_reloader_hook, with the route set
-      # fully assembled -- would only make the first request rebuild the identical table. The hook's
-      # own execute_unless_loaded is skipped for a development LazyRouteSet, so this is the one draw.
-      Rails.application.routes_reloader.execute_unless_loaded
+      perform_eager_route_draw
     rescue ActiveRecord::ActiveRecordError => e
       # Only swallow database-unavailability (migrations, asset precompile, a fresh install before
       # db:create) so boot never aborts on it. A route-file syntax error, a raised constraint lambda
@@ -501,13 +496,29 @@ class PluginRoutes
 
     private
 
-    # True when this process is running a `db:` Rake task (db:migrate, db:schema:load, ...), whether
-    # launched through `rails` or `rake`. Rake.application is absent outside a Rake run (the web
-    # server, `rails console`, `rails runner`), so this is false there.
+    # Draw the route table once, leaving it loaded so the first request does not redraw it.
+    # execute_unless_loaded (Rails 8+) does exactly that; reload_routes! would draw and then reset
+    # loaded=false, which -- since the engine runs this after :set_routes_reloader_hook, with the
+    # route set fully assembled -- would only make the first request rebuild the identical table.
+    # Older Rails (< 8) has no execute_unless_loaded, and there the reloader already draws at boot,
+    # so fall back to reload_routes! (no first-request LazyRouteSet redraw to avoid there).
+    def perform_eager_route_draw
+      reloader = Rails.application.routes_reloader
+      if reloader.respond_to?(:execute_unless_loaded)
+        reloader.execute_unless_loaded
+      else
+        Rails.application.reload_routes!
+      end
+    end
+
+    # True when this process is running a task in the `db:` Rake namespace (db:migrate,
+    # db:schema:load, ... or their engine-prefixed forms like app:db:test:prepare), whether launched
+    # through `rails` or `rake`. Rake.application is absent outside a Rake run (the web server,
+    # `rails console`, `rails runner`), so this is false there.
     def running_db_rake_task?
       return false unless defined?(Rake) && Rake.respond_to?(:application)
 
-      Rake.application.top_level_tasks.any? { |task| task.to_s.start_with?('db:') }
+      Rake.application.top_level_tasks.any? { |task| task.to_s.split(':').include?('db') }
     end
 
     def anonymous_hooks
