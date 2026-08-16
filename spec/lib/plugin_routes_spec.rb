@@ -240,6 +240,22 @@ RSpec.describe PluginRoutes do
 
       expect(batched_lookups).to(eq(1), plugin_queries.join("\n----\n"))
     end
+
+    # A draw that runs before the DB is ready caches []; that empty result must not stick (it is
+    # truthy), or plugin routes stay undrawn until an explicit reload even after sites exist.
+    it 'recomputes instead of serving a cached empty result as a hit' do
+      site = create(:site)
+      site.plugins.where(slug: 'cb_active_plugin').first_or_create!.update!(term_group: 1)
+      config = { 'key' => 'cb_active_plugin', 'name' => 'Active Plugin' }
+      allow(described_class).to receive(:all_plugins).and_return([config])
+      reset_enabled_plugins_cache!
+
+      # Seed a stale empty result, as if an earlier draw ran before the DB was ready.
+      described_class.send(:cache)['all_enabled_plugins'] = []
+
+      # The stuck [] is ignored and the plugin active on the site is resolved.
+      expect(described_class.all_enabled_plugins).to include(config)
+    end
   end
 
   describe '.draw_routes_eagerly' do

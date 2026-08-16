@@ -226,7 +226,10 @@ class PluginRoutes
     # return all enabled themes (a theme is enabled if at least one site is assigned)
     def all_enabled_themes
       r = cache_variable('all_enabled_themes')
-      return r if r
+      # Do not treat an empty result as a cache hit (an empty [] is truthy): if a draw runs before
+      # the DB is ready, get_sites returns [] and this would otherwise cache [] permanently, matching
+      # the self-healing all_plugins/all_themes below rather than the sticky-empty behavior.
+      return r if r.present?
 
       res = get_sites.each_with_object([]) do |site, ary|
         i = theme_info(site.get_theme_slug)
@@ -238,7 +241,7 @@ class PluginRoutes
     # return all enabled plugins (a theme is enabled if at least one site has installed)
     def all_enabled_plugins
       r = cache_variable('all_enabled_plugins')
-      return r if r
+      return r if r.present? # an empty [] must not stick as a cache hit -- see all_enabled_themes
 
       # One query for every enabled plugin slug across all sites, rather than a
       # `site.plugins.active.pluck` per site (the N+1 that dominated multi-site route drawing).
@@ -310,7 +313,9 @@ class PluginRoutes
     # return all locales for all sites joined by |
     def all_locales
       r = cache_variable('site_all_locales')
-      return r if r
+      # A blank '' must not stick as a hit: an empty all_locales makes the frontend
+      # `locale: /#{all_locales}/` constraint an empty regex `//` that matches anything.
+      return r if r.present?
 
       res = get_sites.flat_map(&:get_languages)
       cache_variable('site_all_locales', res.uniq.join('|'))
