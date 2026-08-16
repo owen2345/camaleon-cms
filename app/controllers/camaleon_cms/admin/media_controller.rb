@@ -39,6 +39,9 @@ module CamaleonCms
         # target (so a denied caller cannot use the response as a same-site existence oracle) and
         # before the upload/crop (so no file work happens on a denied request). A caller may always
         # set their own avatar with the media permission the endpoint already requires.
+        # (Mirrors UsersController#profile's self-vs-other gate. The .to_s compare and the blank-
+        # saved_avatar skip -- a plain crop, not a user write -- are intentional and fail-closed; do
+        # not "align" this to users_controller's .to_i, which coerces non-canonical ids.)
         if params[:saved_avatar].present? && params[:saved_avatar].to_s != cama_current_user.id.to_s
           authorize! :manage, :users
         end
