@@ -276,10 +276,12 @@ RSpec.describe PluginRoutes do
     # first request; the guarded draw is a no-op when eager_load is on (production draws at boot).
     before { allow(Rails.application.config).to receive(:eager_load).and_return(false) }
 
-    it 'draws the routes when the database is installed and routes are lazy' do
+    it 'draws the routes once (execute_unless_loaded) when the DB is installed and routes are lazy' do
       allow(described_class).to receive(:db_installed?).and_return(true)
 
-      expect(Rails.application).to receive(:reload_routes!)
+      # execute_unless_loaded draws and leaves loaded=true, unlike reload_routes! which resets it and
+      # forces the first request to redraw.
+      expect(Rails.application.routes_reloader).to receive(:execute_unless_loaded)
 
       described_class.draw_routes_eagerly
     end
@@ -287,7 +289,7 @@ RSpec.describe PluginRoutes do
     it 'does nothing when the database is not installed' do
       allow(described_class).to receive(:db_installed?).and_return(false)
 
-      expect(Rails.application).not_to receive(:reload_routes!)
+      expect(Rails.application.routes_reloader).not_to receive(:execute_unless_loaded)
 
       described_class.draw_routes_eagerly
     end
@@ -296,14 +298,15 @@ RSpec.describe PluginRoutes do
       allow(Rails.application.config).to receive(:eager_load).and_return(true)
       allow(described_class).to receive(:db_installed?).and_return(true)
 
-      expect(Rails.application).not_to receive(:reload_routes!)
+      expect(Rails.application.routes_reloader).not_to receive(:execute_unless_loaded)
 
       described_class.draw_routes_eagerly
     end
 
     it 'never lets a boot-time failure abort startup' do
       allow(described_class).to receive(:db_installed?).and_return(true)
-      allow(Rails.application).to receive(:reload_routes!).and_raise(StandardError, 'db unavailable')
+      allow(Rails.application.routes_reloader).to receive(:execute_unless_loaded)
+        .and_raise(StandardError, 'db unavailable')
 
       expect { described_class.draw_routes_eagerly }.not_to raise_error
     end

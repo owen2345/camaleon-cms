@@ -181,7 +181,12 @@ class PluginRoutes
       return if Rails.application.config.eager_load # production draws routes at boot already
       return unless db_installed?
 
-      Rails.application.reload_routes!
+      # Draw once and leave the table marked loaded, so the first request does not redraw it.
+      # reload_routes! would draw and then reset loaded=false (its contract is to force a *reload*),
+      # which -- now that the engine runs this after :set_routes_reloader_hook, with the route set
+      # fully assembled -- would only make the first request rebuild the identical table. The hook's
+      # own execute_unless_loaded is skipped for a development LazyRouteSet, so this is the one draw.
+      Rails.application.routes_reloader.execute_unless_loaded
     rescue StandardError => e
       Rails.logger&.warn("Camaleon CMS: skipped eager route draw at boot (#{e.class}: #{e.message})")
       nil
