@@ -60,6 +60,12 @@ draw SHALL be guarded so it never aborts boot when the database is unavailable.
 - **WHEN** the application boots with `config.eager_load` true, where routes are drawn at boot already
 - **THEN** no additional draw is performed
 
+#### Scenario: The boot-time draw is skipped during a database Rake task
+
+- **WHEN** the process is running a `db:` Rake task (for example `db:migrate`), whose schema is
+  mid-change and which serves no request
+- **THEN** the eager draw is skipped and routes are left to be drawn lazily
+
 #### Scenario: The boot-time draw never aborts boot on database unavailability
 
 - **WHEN** the database is unavailable during boot (migrations, asset precompile, a fresh install)

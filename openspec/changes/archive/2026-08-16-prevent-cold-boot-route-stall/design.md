@@ -59,7 +59,11 @@ follow-up commits on the same PR.
   `parent_id IN (SELECT id …)` subquery so it carries no IN-list bind cap on very large installs.
 - **Boot-safety rescue narrowed.** The draw now rescues only `ActiveRecord::ActiveRecordError`, so
   DB-unavailability still fails safe but a genuine route error surfaces instead of being hidden.
-- **Process scope left as-is, on purpose.** The draw runs in every non-`eager_load` process, not just
-  the server. Rails exposes no reliable, version-stable boot-time "is this the server?" signal across
-  the 6.1–8.1 range, and the draw is already bounded and safe (one guarded, rescued, idempotent draw
-  over long-stable columns), so a fragile process gate would cost more than it saves.
+- **Skipped during `db:` Rake tasks; otherwise process-agnostic.** A `db:` task (`db:migrate`,
+  `db:schema:load`, …) boots against a schema that is mid-change, so the draw is skipped there —
+  detected via `Rake.application.top_level_tasks` (populated for both `rails db:*` and `rake db:*`;
+  absent in the server/console/runner). `ARGV` is not usable this early, since `rails` consumes the
+  command name before initializers run. The draw still runs in every other non-`eager_load` process
+  (server, console, workers): Rails exposes no reliable, version-stable "is this the server?" signal
+  across the 6.1–8.1 range, and the draw is otherwise bounded and safe (one guarded, rescued,
+  idempotent draw over long-stable columns), so gating it further is not worth the fragility.
