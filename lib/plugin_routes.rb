@@ -194,7 +194,11 @@ class PluginRoutes
       # fully assembled -- would only make the first request rebuild the identical table. The hook's
       # own execute_unless_loaded is skipped for a development LazyRouteSet, so this is the one draw.
       Rails.application.routes_reloader.execute_unless_loaded
-    rescue StandardError => e
+    rescue ActiveRecord::ActiveRecordError => e
+      # Only swallow database-unavailability (migrations, asset precompile, a fresh install before
+      # db:create) so boot never aborts on it. A route-file syntax error, a raised constraint lambda
+      # or any other bug in the draw is NOT a boot-safety concern and must surface, not be logged and
+      # hidden here where nothing would ever redraw and reveal it.
       Rails.logger&.warn("Camaleon CMS: skipped eager route draw at boot (#{e.class}: #{e.message})")
       nil
     end

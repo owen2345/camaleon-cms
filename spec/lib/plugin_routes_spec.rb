@@ -303,12 +303,20 @@ RSpec.describe PluginRoutes do
       described_class.draw_routes_eagerly
     end
 
-    it 'never lets a boot-time failure abort startup' do
+    it 'never lets a database failure at boot abort startup' do
       allow(described_class).to receive(:db_installed?).and_return(true)
       allow(Rails.application.routes_reloader).to receive(:execute_unless_loaded)
-        .and_raise(StandardError, 'db unavailable')
+        .and_raise(ActiveRecord::ConnectionNotEstablished)
 
       expect { described_class.draw_routes_eagerly }.not_to raise_error
+    end
+
+    it 'lets a non-database error (a real route bug) surface instead of swallowing it' do
+      allow(described_class).to receive(:db_installed?).and_return(true)
+      allow(Rails.application.routes_reloader).to receive(:execute_unless_loaded)
+        .and_raise(NameError, 'uninitialized constant BrokenRoute')
+
+      expect { described_class.draw_routes_eagerly }.to raise_error(NameError)
     end
   end
 end
