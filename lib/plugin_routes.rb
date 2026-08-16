@@ -179,15 +179,15 @@ class PluginRoutes
     # fresh install before db:create).
     def draw_routes_eagerly
       return if Rails.application.config.eager_load # production draws routes at boot already
+      # Skip while a db: Rake task runs (db:migrate, db:schema:load, ...): it boots against a schema
+      # that is mid-change, so drawing here would query that schema -- and it never serves a request
+      # that could race the draw. Other non-server processes (console, workers) still draw: Rails
+      # exposes no reliable, version-stable "is this the web server?" signal, and the draw is
+      # otherwise bounded and safe (a single guarded, rescued, idempotent draw over long-stable
+      # columns), so scoping it further is not worth a fragile gate.
+      return if running_db_rake_task?
       return unless db_installed?
 
-      # This runs in every non-eager-load process (server, console, rake), not just the web server:
-      # Rails exposes no reliable, version-stable "is this the web server?" signal at boot (and the
-      # migration-context API that would let us skip mid-migration boots moved between the 6.1..8.1
-      # range we support). The cost is bounded and safe regardless -- a single idempotent draw
-      # (below), guarded by db_installed? and rescued so it never aborts boot, reading only long-
-      # stable term_taxonomy/metas columns -- so scoping it to the server is not worth a fragile gate.
-      #
       # Draw once and leave the table marked loaded, so the first request does not redraw it.
       # reload_routes! would draw and then reset loaded=false (its contract is to force a *reload*),
       # which -- now that the engine runs this after :set_routes_reloader_hook, with the route set
@@ -500,6 +500,15 @@ class PluginRoutes
     end
 
     private
+
+    # True when this process is running a `db:` Rake task (db:migrate, db:schema:load, ...), whether
+    # launched through `rails` or `rake`. Rake.application is absent outside a Rake run (the web
+    # server, `rails console`, `rails runner`), so this is false there.
+    def running_db_rake_task?
+      return false unless defined?(Rake) && Rake.respond_to?(:application)
+
+      Rake.application.top_level_tasks.any? { |task| task.to_s.start_with?('db:') }
+    end
 
     def anonymous_hooks
       @anonymous_hooks ||= {}

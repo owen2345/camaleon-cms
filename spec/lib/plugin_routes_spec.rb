@@ -303,6 +303,14 @@ RSpec.describe PluginRoutes do
       described_class.draw_routes_eagerly
     end
 
+    it 'does nothing while a db: rake task is running (schema is mid-change)' do
+      allow(described_class).to receive_messages(running_db_rake_task?: true, db_installed?: true)
+
+      expect(Rails.application.routes_reloader).not_to receive(:execute_unless_loaded)
+
+      described_class.draw_routes_eagerly
+    end
+
     it 'never lets a database failure at boot abort startup' do
       allow(described_class).to receive(:db_installed?).and_return(true)
       allow(Rails.application.routes_reloader).to receive(:execute_unless_loaded)
@@ -317,6 +325,26 @@ RSpec.describe PluginRoutes do
         .and_raise(NameError, 'uninitialized constant BrokenRoute')
 
       expect { described_class.draw_routes_eagerly }.to raise_error(NameError)
+    end
+  end
+
+  describe '.running_db_rake_task?' do
+    it 'is true when a db: task is the top-level Rake task' do
+      stub_const('Rake', double(application: double(top_level_tasks: ['db:migrate'])))
+
+      expect(described_class.send(:running_db_rake_task?)).to be(true)
+    end
+
+    it 'is false when the top-level Rake task is not a db: task' do
+      stub_const('Rake', double(application: double(top_level_tasks: ['assets:precompile'])))
+
+      expect(described_class.send(:running_db_rake_task?)).to be(false)
+    end
+
+    it 'is false when no Rake application is running (web server, console, runner)' do
+      hide_const('Rake')
+
+      expect(described_class.send(:running_db_rake_task?)).to be(false)
     end
   end
 end
