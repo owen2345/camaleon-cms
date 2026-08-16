@@ -68,8 +68,8 @@ so that the same write reached by a different path yields the same authorization
 #### Scenario: Denial does not reveal whether the target exists
 
 - **WHEN** a caller not authorized to manage users crops with a `saved_avatar` that is not their own —
-  whether it names an existing same-site user, a user of another site, a nonexistent id, or a
-  non-numeric value
+  whether it names an existing same-site user, a user of another site, a nonexistent id, a
+  non-numeric value, or a non-scalar value such as an array of ids
 - **THEN** the request is denied identically in every case, disclosing no difference between them
 - **AND** the target is not queried before the denial
 

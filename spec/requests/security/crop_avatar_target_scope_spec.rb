@@ -86,6 +86,20 @@ RSpec.describe 'Security: crop avatar target authorization', type: :request do
 
       expect(statuses).to all(eq(302))
     end
+
+    # An array-shaped saved_avatar[] never string-equals the caller's own id, so it fails closed
+    # (denied) rather than being treated as self, and the write's find_by(id: [...]) IN-query is
+    # never reached -- a guard against a future array-aware self-check smuggling a cross-user write.
+    it 'is denied an array-shaped saved_avatar, even one containing its own id' do
+      member = create(:user, site: current_site)
+      member.set_meta('avatar', '/uploads/original.jpg')
+
+      post '/admin/media/crop',
+           params: { cp_img_path: 'photo.jpg', saved_avatar: [media_user.id, member.id] }
+
+      expect(response).to have_http_status(:redirect)
+      expect(stored_avatar(member)).to eq('/uploads/original.jpg')
+    end
   end
 
   context 'when the caller is a user manager (holds :manage, :users)' do
