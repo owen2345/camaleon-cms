@@ -135,4 +135,20 @@ RSpec.describe 'Security: crop avatar target authorization', type: :request do
       expect(stored_avatar(victim)).to eq('/uploads/original.jpg')
     end
   end
+
+  context 'when the caller is a full admin' do
+    let(:admin_user) { create(:user_admin, site: current_site) }
+
+    before { sign_in_as(admin_user, site: current_site) }
+
+    # can :manage, :all satisfies the object-level gate without an explicit :manage, :users grant.
+    it "sets another same-site user's avatar" do
+      member = create(:user, site: current_site)
+
+      post '/admin/media/crop', params: { cp_img_path: 'photo.jpg', saved_avatar: member.id }
+
+      expect(response).to have_http_status(:ok)
+      expect(stored_avatar(member)).to eq('/uploads/cropped.jpg')
+    end
+  end
 end
