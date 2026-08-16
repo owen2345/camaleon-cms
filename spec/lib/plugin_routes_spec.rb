@@ -213,8 +213,10 @@ RSpec.describe PluginRoutes do
       described_class.send(:cache).delete('all_enabled_plugins')
     end
 
-    before { reset_enabled_plugins_cache! }
-    after  { reset_enabled_plugins_cache! }
+    # No `before` reset: each example creates its sites (which triggers a route reload that
+    # re-populates the cache with pre-stub data) and then resets again just before exercising the
+    # method, so a leading reset would be immediately overwritten. The `after` keeps the isolation.
+    after { reset_enabled_plugins_cache! }
 
     it 'returns the config of a plugin active on any site' do
       site = create(:site)
