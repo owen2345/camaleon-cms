@@ -115,6 +115,14 @@ site. Three properties of it matter to operators:
   across the whole install, not just the current site. Per-site administration would require a
   per-`(user, site)` role model and is not currently supported.
 
+Editing another user's account at all requires `:manage, :users`; the admin-only rules above are
+exceptions layered on top of that base boundary. The boundary holds at every write path, not only the
+user form: `Admin::MediaController#crop` gates its `saved_avatar` avatar write on `:manage, :users` for
+any non-self target — a caller may set **their own** avatar with only `:manage, :media`, but not
+another user's — so the media library cannot be used to edit another user's profile without the
+user-management permission. As on the profile endpoint, the decision is read from the request
+parameter before the target is resolved, so it discloses nothing about which users exist.
+
 ## Manager permissions
 
 - `custom_fields` — Controls who can create/update Custom Field Groups and Custom Fields (write-time permission). This is a manager-level permission

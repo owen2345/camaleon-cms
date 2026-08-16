@@ -33,6 +33,16 @@ module CamaleonCms
           return render(plain: helpers.sanitize(url_error))
         end
 
+        # Security (object-level authorization): setting another user's avatar is a user-management
+        # write, so gate a non-self saved_avatar target on :manage, :users -- the same capability
+        # UsersController#update already requires. Decide from the parameter, before resolving the
+        # target (so a denied caller cannot use the response as a same-site existence oracle) and
+        # before the upload/crop (so no file work happens on a denied request). A caller may always
+        # set their own avatar with the media permission the endpoint already requires.
+        if params[:saved_avatar].present? && params[:saved_avatar].to_s != cama_current_user.id.to_s
+          authorize! :manage, :users
+        end
+
         tmp = cama_tmp_upload(cp_img_path, formats: params[:formats], name: params[:name])
         return render(plain: helpers.sanitize(tmp[:error])) if tmp[:error].present?
 
