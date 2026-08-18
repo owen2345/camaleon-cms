@@ -2,8 +2,12 @@
 
 ## Unreleased
 
+- **Bug fix:** The post editor could load with an empty body on a cold server when the edit form was
+  opened in a background browser tab, and saving then overwrote the post with the empty body; the
+  editor now restores the server-rendered content when it initializes empty. [#1273](https://github.com/owen2345/camaleon-cms/pull/1273)
+
 - **Performance fix:** On installs with many sites, the first request after a server (re)start could
-  404 or render an admin page half-initialized. Route drawing no longer scales with the number of
+  404 or be served against a still-building route table. Route drawing no longer scales with the number of
   sites, it is drawn at boot in development so no request is served mid-draw, and admin
   responses now send `Cache-Control: no-store`. [#1272](https://github.com/owen2345/camaleon-cms/pull/1272).
 

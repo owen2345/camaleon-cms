@@ -49,6 +49,32 @@ describe 'Posts workflows for Admin', :js do
     expect(page).to have_text('Test Title changed')
   end
 
+  # Regression: on a cold server, opening the edit form in a throttled background tab could bring up
+  # TinyMCE empty even though the server rendered the post content -- the field's live value was
+  # blanked before TinyMCE read it (surfaced by the PluginRoutes reload changes in #1163). The init
+  # guard in cama_get_tinymce_settings restores the server value (textarea.defaultValue) when the
+  # editor comes up empty. The throttling race is not reproducible headlessly, so this drives the
+  # exact state it produces -- empty live value, server value still in defaultValue -- and asserts
+  # the guard refills the editor. Without the guard the editor stays empty and this fails.
+  it 'restores the server-rendered content when the editor initializes empty' do
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    page.execute_script(<<~JS)
+      tinymce.get('post_content').remove();
+      var ta = document.getElementById('post_content');
+      ta.defaultValue = '<p>Cold-boot guard body</p>';
+      ta.value = '';
+      tinymce.init(cama_get_tinymce_settings({ selector: '#post_content' }));
+    JS
+    wait(2)
+
+    within_frame('post_content_ifr') do
+      expect(page).to have_text('Cold-boot guard body')
+    end
+  end
+
   describe 'when visibility post plugin is enabled' do
     it 'correctly fetches the assets' do
       plugin_install('visibility_post')

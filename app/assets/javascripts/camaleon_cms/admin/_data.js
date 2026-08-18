@@ -60,6 +60,22 @@ function cama_get_tinymce_settings(settings){
 
             editor.on('init', function(e) {
                 for(var ff in tinymce_global_settings["init"]) tinymce_global_settings["init"][ff](editor);
+
+                // Content guard for the cold-boot / background-tab init race: when the edit form is
+                // opened in a background tab on a cold server, the browser throttles the tab and
+                // TinyMCE can initialize empty even though the server rendered the post content into
+                // the textarea -- the field's live value is blanked before TinyMCE reads it. The
+                // DOM still holds the server value in `defaultValue`, so restore it when the editor
+                // came up empty but the server value did not. Skip Translatable clones and encoded
+                // multi-language values (leading `<!--:`), whose per-locale decoding Translatable owns.
+                var ta = document.getElementById(editor.id);
+                if (ta && !ta.classList.contains('translate-item') &&
+                    (editor.getContent() || '').length === 0 &&
+                    (ta.defaultValue || '').length > 0 &&
+                    ta.defaultValue.indexOf('<!--:') !== 0) {
+                    editor.setContent(ta.defaultValue);
+                    editor.save();
+                }
             });
         },
         onPostRender: function(editor){}
