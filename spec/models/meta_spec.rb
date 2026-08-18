@@ -25,4 +25,19 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(fresh_site.get_option('email_cc')).to eq('Support <support@test.com>')
     end
   end
+
+  describe '#get_meta with an eager-loaded metas association' do
+    # PluginRoutes.get_sites eager-loads :metas, so route-draw reads take get_meta's in-memory
+    # branch. That branch must normalize a Symbol key the same way the DB branch does, otherwise
+    # 'a_key' == :a_key is always false and the stored value is silently replaced by the default.
+    it 'resolves a Symbol key against the loaded metas instead of returning the default' do
+      site = create(:site)
+      site.set_meta('languages_site', %w[en es])
+
+      loaded = CamaleonCms::Site.includes(:metas).find(site.id)
+      expect(loaded.metas).to be_loaded
+
+      expect(loaded.get_meta(:languages_site)).to eq(%w[en es])
+    end
+  end
 end

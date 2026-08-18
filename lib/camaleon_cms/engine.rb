@@ -113,6 +113,22 @@ module CamaleonCms
       end
     end
 
+    # Draw the route table at boot so the first request is never served against a half-built set
+    # of routes (see PluginRoutes.draw_routes_eagerly). Closes the development-mode window where
+    # the first request after a restart races the multi-site route draw; a no-op once drawn.
+    #
+    # Runs as a config.after_initialize callback, NOT as a named `initializer ... after:
+    # :set_routes_reloader_hook`. Anchoring a CamaleonCms::Engine initializer to that late Finisher
+    # hook adds a cross-cutting edge to Rails' initializer tsort that reorders the `append_assets_path`
+    # initializers and drops engine/host asset load paths from config.assets.paths -- gem-packaged
+    # plugin assets and core camaleon_cms images then raise AssetNotPrecompiledError and 500 the site
+    # (regression fixed here). after_initialize runs once the whole boot -- routes reloader, internal
+    # routes and every engine's asset path -- is assembled, so the draw still reflects the final route
+    # set without perturbing initializer ordering.
+    config.after_initialize do
+      PluginRoutes.draw_routes_eagerly
+    end
+
     if defined?(FactoryBotRails)
       config.factory_bot.definition_file_paths +=
         [File.expand_path('../../spec/factories', __dir__)]

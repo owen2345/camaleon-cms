@@ -15,6 +15,10 @@ module CamaleonCms
       redirect_back fallback_location: cama_admin_dashboard_path
     end
     # layout 'camaleon_cms/admin'
+    # Admin responses are user-specific and must never be served from a browser or shared cache;
+    # without this a stale render (e.g. an editor that failed to initialize on a cold boot) can
+    # reappear after a restart until a manual reload. Set first so it applies to auth redirects too.
+    before_action :cama_prevent_response_caching
     before_action :cama_authenticate
     before_action :keep_request_attrs
     before_action :admin_init_actions
@@ -99,6 +103,13 @@ module CamaleonCms
     end
 
     private
+
+    # Send `Cache-Control: no-store` on every admin response so no admin page is ever cached by the
+    # browser or an intermediary. Admin pages are per-user and dynamic; caching them risks a stale
+    # render being reused (the cold-boot blank-editor symptom is one such case).
+    def cama_prevent_response_caching
+      response.headers['Cache-Control'] = 'no-store'
+    end
 
     # Actions reachable while an administrator still owes a password change: the profile screen, its
     # submit, and the AJAX password-change endpoint. Everything else in the admin panel is redirected

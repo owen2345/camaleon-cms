@@ -74,7 +74,8 @@ Rails.application.routes.draw do
         # post types
         controller 'camaleon_cms/frontend' do
           PluginRoutes.get_sites.each do |s|
-            s.post_types.pluck(:slug, :id).each do |pt_slug, pt_id|
+            # get_sites eager-loads :post_types, so map in memory instead of a per-site pluck query.
+            s.post_types.map { |pt| [pt.slug, pt.id] }.each do |pt_slug, pt_id|
               get ':post_type_slug' => :post_type, as: "post_type_#{pt_id}", post_type_id: pt_id,
                   constraints: lambda { |request|
                     multilingual_segment =
