@@ -112,6 +112,44 @@ RSpec.describe 'Posts workflows for Admin', :js do
     end
   end
 
+  # Regression: a capture-phase input listener ran update_globals() on every keystroke,
+  # leaking the uncommitted partial tag into the hidden tags field -- where the 60-second
+  # draft autosave persisted it as a permanent PostTag -- and filtering a suggestion out of
+  # the dropdown at the exact moment its full name was typed. Suggestions are now filtered
+  # through Awesomplete's filter option against committed tags only.
+  it 'does not leak uncommitted tag text into the tags field while typing' do
+    post.update_tags('ruby,rails')
+    post.update_tags('') # keep the PostTag rows as autocomplete suggestions, none assigned
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    within('#form-post') do
+      find('.tag-editor').click
+      find('.tag-editor .tag-editor-tag.active input').send_keys('ruby')
+
+      expect(find('input[name="tags"]', visible: :all).value).to eq('')
+      expect(page).to have_css('.awesomplete li', text: 'ruby')
+    end
+  end
+
+  it 'does not suggest tags already added to the post' do
+    post.update_tags('ruby,rails')
+    post.update_tags('') # keep the PostTag rows as autocomplete suggestions, none assigned
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    within('#form-post') do
+      find('.tag-editor').click
+      find('.tag-editor .tag-editor-tag.active input').send_keys('ruby', :enter)
+      find('.tag-editor .tag-editor-tag.active input').send_keys('r')
+
+      expect(page).to have_css('.awesomplete li', text: 'rails')
+      expect(page).to have_no_css('.awesomplete li', text: 'ruby')
+    end
+  end
+
   describe 'when visibility post plugin is enabled' do
     it 'correctly fetches the assets' do
       plugin_install('visibility_post')
