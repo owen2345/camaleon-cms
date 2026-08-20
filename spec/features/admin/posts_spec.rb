@@ -73,6 +73,24 @@ describe 'Posts workflows for Admin', :js do
     end
   end
 
+  # Regression: space is not a tag delimiter. Multi-word tag names are legal (update_tags
+  # documents "Tag1,Tag two,tag new" and the sidebar joins them with ","), but passing
+  # `delimiter: ',; '` to tagEditor made the editor split them at form load and rewrite the
+  # hidden tags field, so merely opening a post and saving it (or the draft autosave firing)
+  # corrupted its stored tags.
+  it 'keeps a multi-word tag intact in the tag editor' do
+    post.update_tags('new york')
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    within('#form-post') do
+      expect(page).to have_css('.tag-editor .tag-editor-tag', count: 1)
+      expect(find('.tag-editor .tag-editor-tag').text).to eq('new york')
+      expect(find('input[name="tags"]', visible: :all).value).to eq('new york')
+    end
+  end
+
   describe 'when visibility post plugin is enabled' do
     it 'correctly fetches the assets' do
       plugin_install('visibility_post')
