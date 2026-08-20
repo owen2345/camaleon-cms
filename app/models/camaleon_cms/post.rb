@@ -4,23 +4,8 @@ module CamaleonCms
 
     # Structural, non-executable markup that long-form post content legitimately uses but the
     # sanitizer default drops. Superset of the default so upstream security additions are inherited.
-    SANITIZE_EXTRA_TAGS = %w[
-      table
-      thead
-      tbody
-      tfoot
-      tr
-      td
-      th
-      caption
-      col
-      colgroup
-      figure
-      figcaption
-      u
-      s
-      hr
-    ].freeze
+    SANITIZE_EXTRA_TAGS = %w[table thead tbody tfoot tr td th caption col colgroup
+                             figure figcaption u s hr].freeze
     # These attributes are allowed knowing what they cost, none of which is script execution:
     # `style` is CSS-scrubbed by the gate's scrubber (expression(), url(javascript:) and friends
     # register as removals) but permits absolutely-positioned overlays; `id` widens DOM clobbering,
@@ -29,24 +14,10 @@ module CamaleonCms
     # is deliberate: an untrusted author whose content needs more than this list has the save
     # refused, and the role that wants more grants post_content_unfiltered_html.
     SANITIZE_EXTRA_ATTRIBUTES = %w[id style target rel colspan rowspan].freeze
-    CONTENT_ALLOWED_TAGS = (ActionController::Base
-      .helpers
-      .sanitizer_vendor
-      .safe_list_sanitizer
-      .allowed_tags
-      .to_a +
-      SANITIZE_EXTRA_TAGS)
-      .uniq
-      .freeze
-    CONTENT_ALLOWED_ATTRIBUTES = (ActionController::Base
-      .helpers
-      .sanitizer_vendor
-      .safe_list_sanitizer
-      .allowed_attributes
-      .to_a +
-      SANITIZE_EXTRA_ATTRIBUTES)
-      .uniq
-      .freeze
+    CONTENT_ALLOWED_TAGS = (ActionController::Base.helpers.sanitizer_vendor.safe_list_sanitizer
+                              .allowed_tags.to_a + SANITIZE_EXTRA_TAGS).uniq.freeze
+    CONTENT_ALLOWED_ATTRIBUTES = (ActionController::Base.helpers.sanitizer_vendor.safe_list_sanitizer
+                                    .allowed_attributes.to_a + SANITIZE_EXTRA_ATTRIBUTES).uniq.freeze
 
     # Opt-out for trusted server-side pipelines (imports, seeds, plugin code) that would otherwise
     # be sanitized by the fail-closed default. Exposed as a reader plus a bang enabler and NO
@@ -65,82 +36,50 @@ module CamaleonCms
     end
 
     alias_attribute :post_type_id, :taxonomy_id
-    default_scope -> { where(post_class: "Post").order(post_order: :asc, created_at: :desc) }
+    default_scope -> { where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
 
     validate :reject_untrusted_dangerous_content, on: %i[create update]
 
     # DEPRECATED
-    has_many(
-      :post_relationships,
-      class_name: "CamaleonCms::PostRelationship",
-      foreign_key: :objectid,
-      dependent: :destroy,
-      inverse_of: :post
-    )
-    has_many :post_types, class_name: "CamaleonCms::PostType", through: :post_relationships, source: :post_type
+    has_many :post_relationships, class_name: 'CamaleonCms::PostRelationship', foreign_key: :objectid,
+                                  dependent: :destroy, inverse_of: :post
+    has_many :post_types, class_name: 'CamaleonCms::PostType', through: :post_relationships, source: :post_type
     # END DEPRECATED
 
     has_many :term_relationships, foreign_key: :objectid, dependent: :destroy, inverse_of: :object
-    has_many :categories, class_name: "CamaleonCms::Category", through: :term_relationships, source: :term_taxonomy
-    has_many :post_tags, class_name: "CamaleonCms::PostTag", through: :term_relationships, source: :term_taxonomy
-    has_many :comments, class_name: "CamaleonCms::PostComment", dependent: :destroy
-    has_many(
-      :drafts,
-      -> { where(status: "draft_child") },
-      class_name: "CamaleonCms::Post",
-      inverse_of: :parent,
-      foreign_key: :post_parent,
-      dependent: :destroy
-    )
-    has_many(
-      :children,
-      class_name: "CamaleonCms::Post",
-      foreign_key: :post_parent,
-      dependent: :destroy,
-      primary_key: :id,
-      inverse_of: :parent
-    )
+    has_many :categories, class_name: 'CamaleonCms::Category', through: :term_relationships, source: :term_taxonomy
+    has_many :post_tags, class_name: 'CamaleonCms::PostTag', through: :term_relationships, source: :term_taxonomy
+    has_many :comments, class_name: 'CamaleonCms::PostComment', dependent: :destroy
+    has_many :drafts, -> { where(status: 'draft_child') }, class_name: 'CamaleonCms::Post', inverse_of: :parent,
+                                                           foreign_key: :post_parent, dependent: :destroy
+    has_many :children, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, dependent: :destroy,
+                        primary_key: :id, inverse_of: :parent
 
-    belongs_to(
-      :owner,
-      class_name: CamaManager.get_user_class_name.to_s,
-      foreign_key: :user_id,
-      optional: true,
-      inverse_of: :all_posts
-    )
-    belongs_to(
-      :parent,
-      class_name: "CamaleonCms::Post",
-      foreign_key: :post_parent,
-      optional: true,
-      inverse_of: :children
-    )
+    belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, optional: true,
+                       inverse_of: :all_posts
+    belongs_to :parent, class_name: 'CamaleonCms::Post', foreign_key: :post_parent, optional: true,
+                        inverse_of: :children
     belongs_to :post_type, foreign_key: :taxonomy_id, inverse_of: :posts, optional: true
 
-    scope :visible_frontend, -> { where(status: "published") }
-    scope(
-      :public_posts,
-      lambda {
-        visible_frontend.where(visibility: ["public", ""])
-        # public posts (not passwords, not privates)
-      }
-    )
-    # public posts (not passwords, not privates)
-    scope :private_posts, -> { where(visibility: "private") }
+    scope :visible_frontend, -> { where(status: 'published') }
+    scope :public_posts, lambda {
+                           visible_frontend.where(visibility: ['public', ''])
+                         } # public posts (not passwords, not privates)
+    scope :private_posts, -> { where(visibility: 'private') } # public posts (not passwords, not privates)
 
-    scope :trash, -> { where(status: "trash") }
-    scope :no_trash, -> { where.not(status: "trash") }
-    scope :published, -> { where(status: "published") }
-    scope :root_posts, -> { where(post_parent: [nil, ""]) }
+    scope :trash, -> { where(status: 'trash') }
+    scope :no_trash, -> { where.not(status: 'trash') }
+    scope :published, -> { where(status: 'published') }
+    scope :root_posts, -> { where(post_parent: [nil, '']) }
     scope :drafts, -> { where(status: %w[draft draft_child]) }
-    scope :pending, -> { where(status: "pending") }
+    scope :pending, -> { where(status: 'pending') }
     scope :latest, -> { reorder(created_at: :desc) }
     scope :with_eager, -> { includes(:metas, :categories, post_type: :metas) }
 
     validates_with CamaleonCms::PostUniqValidator
     attr_accessor :show_title_with_parent
 
-    before_create :fix_post_order, if: -> (p) { p.post_order.blank? || p.post_order == 0 }
+    before_create :fix_post_order, if: ->(p) { p.post_order.blank? || p.post_order == 0 }
 
     # return all parents for current page hierarchy ordered bottom to top
     def parents
@@ -151,7 +90,6 @@ module CamaleonCms
           res << p
           p = p.parent
         end
-
         res
       end
     end
@@ -172,12 +110,12 @@ module CamaleonCms
 
     # Check if this post was published
     def published?
-      status == "published"
+      status == 'published'
     end
 
     # Check if this post is in the pending status
     def pending?
-      status == "pending"
+      status == 'pending'
     end
 
     # Check if this post is in the draft status
@@ -186,47 +124,47 @@ module CamaleonCms
     end
 
     def draft_child?
-      status == "draft_child"
+      status == 'draft_child'
     end
 
     # Check if this post is in the trash status
     def trash?
-      status == "trash"
+      status == 'trash'
     end
 
     # Check if the current post can manage content
     # return boolean
     def manage_content?(posttype = nil)
-      get_option("has_content", (posttype || post_type).get_option("has_content", true))
+      get_option('has_content', (posttype || post_type).get_option('has_content', true))
     end
 
     # return boolean
     def manage_layout?(posttype = nil)
-      get_option("has_layout", (posttype || post_type).get_option("has_layout", false))
+      get_option('has_layout', (posttype || post_type).get_option('has_layout', false))
     end
 
     # Check if current post can manage template
     # return boolean
     def manage_template?(posttype = nil)
-      get_option("has_template", (posttype || post_type).get_option("has_template", true))
+      get_option('has_template', (posttype || post_type).get_option('has_template', true))
     end
 
     # Check if the current post can manage summary
     # return boolean
     def manage_summary?(posttype = nil)
-      get_option("has_summary", (posttype || post_type).get_option("has_summary", true))
+      get_option('has_summary', (posttype || post_type).get_option('has_summary', true))
     end
 
     # Check if the current post can manage picture
     # return boolean
     def manage_picture?(posttype = nil)
-      get_option("has_picture", (posttype || post_type).get_option("has_picture", true))
+      get_option('has_picture', (posttype || post_type).get_option('has_picture', true))
     end
 
     # Check if the current post can manage comments
     # return boolean
     def manage_comments?(posttype = nil)
-      get_option("has_comments", (posttype || post_type).get_option("has_comments", false))
+      get_option('has_comments', (posttype || post_type).get_option('has_comments', false))
     end
 
     # Check if the post can be commented
@@ -235,12 +173,12 @@ module CamaleonCms
     # Note: Parent PostType should be enabled for comments too: post_type.set_option('has_comments', true)
     # @return [TrueClass, FalseClass]
     def can_commented?
-      manage_comments? && get_meta("has_comments").to_s == "1"
+      manage_comments? && get_meta('has_comments').to_s == '1'
     end
 
     # check if is required picture for current post
     def is_required_picture?
-      post_type.get_option("is_required_picture", false)
+      post_type.get_option('is_required_picture', false)
     end
 
     # define post configuration for current post
@@ -276,71 +214,67 @@ module CamaleonCms
     # new_order_position: (Integer) position number
     # return nil
     def set_position(new_order_position)
-      # rubocop:disable Rails/SkipsModelValidations
-      update_column(:post_order, new_order_position)
+      update_column(:post_order, new_order_position) # rubocop:disable Rails/SkipsModelValidations
     end
 
     # save the summary for current post
     # summary: Text String without html
     def set_summary(summary)
-      set_meta("summary", summary)
+      set_meta('summary', summary)
     end
 
     # check if current post permit manage seo attrs
     # has_keywords: used until next version (deprecated to use has_seo)
     # return boolean
     def manage_seo?(posttype = nil)
-      get_option("has_seo", get_option("has_keywords", false)) || (posttype || post_type).manage_seo?
+      get_option('has_seo', get_option('has_keywords', false)) || (posttype || post_type).manage_seo?
     end
-    # method name deprecated to use manage_seo?
-    alias manage_keywords? manage_seo?
+    alias manage_keywords? manage_seo? # method name deprecated to use manage_seo?
 
     # save the thumbnail url for current post
     # thumb_url: String url
     def set_thumb(thumb_url)
-      set_meta("thumb", thumb_url)
+      set_meta('thumb', thumb_url)
     end
 
     # save the layout name to be used on render this post
     # layout_name: String layout name: my_layout.html.erb => 'my_layout'
     def set_layout(layout_name)
-      set_meta("layout", layout_name)
+      set_meta('layout', layout_name)
     end
 
     # return the layout assigned to this post
     # post_type: post type owner of this post
     def get_layout(posttype = nil)
-      return get_option("default_layout") unless manage_layout?(posttype)
+      return get_option('default_layout') unless manage_layout?(posttype)
 
-      get_meta("layout", get_option("default_layout") || (posttype || post_type).get_option("default_layout", nil))
+      get_meta('layout', get_option('default_layout') || (posttype || post_type).get_option('default_layout', nil))
     end
 
     # return the template assigned to this post
     # verify default template defined in post type
     # post_type: post type owner of this post
     def get_template(posttype = nil)
-      return get_option("default_template") unless manage_template?(posttype)
+      return get_option('default_template') unless manage_template?(posttype)
 
-      get_meta(
-        "template",
-        get_option("default_template") || (posttype || post_type).get_option("default_template", nil)
-      )
+      get_meta('template',
+               get_option('default_template') || (posttype || post_type).get_option('default_template', nil))
     end
 
     # increment the counter of visitors
     def increment_visits!
-      set_meta("visits", total_visits + 1)
+      set_meta('visits', total_visits + 1)
     end
 
     # return the quantity of visits for this post
     def total_visits
-      get_meta("visits", 0).to_i
+      get_meta('visits', 0).to_i
     end
 
     # return the quantity of comments for this post
     # TODO comments count to move into cache counter
     def total_comments
-      get_meta("comments_count", 0).to_i
+      get_meta('comments_count', 0).to_i
     end
 
     # manage the custom decorators for posts
@@ -348,11 +282,10 @@ module CamaleonCms
     # Sample: https://github.com/owen2345/camaleon-ecommerce/tree/master/app/decorators/
     def decorator_class
       begin
-        post_type.get_option("cama_post_decorator_class", "CamaleonCms::PostDecorator")
+        post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator')
       rescue StandardError
-        "CamaleonCms::PostDecorator"
-      end
-        .constantize
+        'CamaleonCms::PostDecorator'
+      end.constantize
     end
 
     private
@@ -386,13 +319,11 @@ module CamaleonCms
       # value can be perfectly clean, so the markup message (scripts/handlers/embeds) would misdescribe
       # it and send the author hunting for markup that is not there.
       if CamaleonCms::UnsafeMarkup.too_large?(content)
-        errors.add(:content, cama_content_rejection_message("content_too_large"))
+        errors.add(:content, cama_content_rejection_message('content_too_large'))
       elsif CamaleonCms::UnsafeMarkup.unsafe_html?(
-          content,
-          tags: CONTENT_ALLOWED_TAGS,
-          attributes: CONTENT_ALLOWED_ATTRIBUTES
-        )
-        errors.add(:content, cama_content_rejection_message("content_rejected"))
+        content, tags: CONTENT_ALLOWED_TAGS, attributes: CONTENT_ALLOWED_ATTRIBUTES
+      )
+        errors.add(:content, cama_content_rejection_message('content_rejected'))
       end
     end
 
