@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe 'Posts workflows for Admin', :js do
+RSpec.describe 'Posts workflows for Admin', :js do
   let(:post) { site.the_post('sample-post').decorate }
   let(:post_type_id) { site.post_types.where(slug: :post).pick(:id) }
   let!(:site) { CamaleonCms::Site.first.decorate }
@@ -90,6 +90,25 @@ describe 'Posts workflows for Admin', :js do
       expect(page).to have_css('.tag-editor .tag-editor-tag', count: 1)
       expect(find('.tag-editor .tag-editor-tag').text).to eq('new york')
       expect(find('input[name="tags"]', visible: :all).value).to eq('new york')
+    end
+  end
+
+  # Regression: pressing Enter on a typed tag must commit it. The active-input guard added
+  # in the jQuery 3 rework swallowed the plugin's own synthetic clicks -- Enter/Tab/arrow
+  # keys commit by triggering a click on the editor -- so a typed tag could only be
+  # committed with a delimiter character or by clicking outside the field.
+  it 'commits a typed tag with Enter' do
+    post.update_tags('')
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    within('#form-post') do
+      find('.tag-editor').click
+      find('.tag-editor .tag-editor-tag.active input').send_keys('ruby', :enter)
+
+      expect(page).to have_css('.tag-editor .tag-editor-tag', text: 'ruby')
+      expect(find('input[name="tags"]', visible: :all).value).to eq('ruby')
     end
   end
 
