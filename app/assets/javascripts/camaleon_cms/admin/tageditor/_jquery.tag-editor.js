@@ -182,15 +182,13 @@
                         var aw = new Awesomplete(input[0], {
                             list: awList,
                             minChars: aco.minChars || 1,
-                            maxItems: aco.maxItems || 10
+                            maxItems: aco.maxItems || 10,
+                            // suggest only tags not already in the editor; tag_list holds
+                            // committed tags only (the open input's text is not in it)
+                            filter: function(text, value) {
+                                return Awesomplete.FILTER_CONTAINS(text, value) && tag_list.indexOf(text.value) === -1;
+                            }
                         });
-                        // before Awesomplete evaluates, filter out already-selected tags
-                        input[0].addEventListener('input', function() {
-                            update_globals();
-                            aw._list = awList.filter(function(item) {
-                                return tag_list.indexOf(item) === -1;
-                            });
-                        }, true);
                         if (typeof aco.source === 'function') {
                             input.on('input', function() {
                                 aco.source(input.val(), function(results) {
