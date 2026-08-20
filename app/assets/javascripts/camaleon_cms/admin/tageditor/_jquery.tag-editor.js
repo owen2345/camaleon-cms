@@ -102,9 +102,6 @@
             ed.click(function(e, closest_tag){
                 // don't create new tag when clicking on delete buttons or existing tags
                 if ($(e.target).closest('.tag-editor-delete, .tag-editor-tag').length) return;
-                // if there's already an active input, focus it instead of creating a new tag
-                var activeInput = ed.find('.tag-editor-tag.active input');
-                if (activeInput.length) { activeInput.focus(); return false; }
                 var d, dist = 99999, loc;
 
                 // do not create tag when user selects tags by text selection
@@ -112,8 +109,12 @@
 
                 if (o.maxTags && ed.data('tags').length >= o.maxTags) { ed.find('input').blur(); return false; }
 
-                // blur any active input (blur handler runs async via setTimeout)
+                // commit any open input: its blur handler runs synchronously and flips
+                // blur_result to false when beforeTagDelete vetoes the pending change
+                blur_result = true;
                 $('input:focus', ed).blur();
+                if (!blur_result) return false;
+                blur_result = true;
 
                 // always remove placeholder on click
                 $('.placeholder', ed).remove();
