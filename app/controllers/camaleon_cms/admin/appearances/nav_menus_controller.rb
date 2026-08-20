@@ -3,7 +3,6 @@ module CamaleonCms
     module Appearances
       class NavMenusController < CamaleonCms::AdminController
         include CamaleonCms::Admin::CustomFieldsConcern
-        include CamaleonCms::Frontend::NavMenuHelper
 
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.appearance')
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.menus')
@@ -13,7 +12,7 @@ module CamaleonCms
           @nav_menu = if params[:id].present?
                         current_site.nav_menus.find_by(id: params[:id])
                       elsif params[:slug].present?
-                        current_site.nav_menus.find_by(slug: params[:slug])
+                        current_site.nav_menus.find_by_slug(params[:slug]) # rubocop:disable Rails/DynamicFindBy
                       else
                         current_site.nav_menus.first
                       end
@@ -91,7 +90,10 @@ module CamaleonCms
         # update the reorder of items
         def reorder_items(items = nil, parent_id = nil, is_root = true)
           items = params[:items] if items.nil?
-          parent_id = params[:nav_menu_id] if parent_id.nil?
+          # Security (audit M10): resolve the destination menu through the current site (like
+          # #add_items) -- a raw params[:nav_menu_id] let an item be re-homed under another site's
+          # nav menu. Nested calls pass an explicit parent item id, so only the root needs scoping.
+          parent_id = current_site.nav_menus.find(params[:nav_menu_id]).id if parent_id.nil?
           items.each do |index, _item|
             item = current_site.nav_menu_items.find(_item['id'])
             item.update(parent_id: parent_id, term_order: index)

@@ -1,32 +1,55 @@
 # include ApplicationHelper
 
-# do login for admin panel and also verify if the site was created
-# if site is not created, then create a new site
-def init_site
+# expose the suite-wide shared site (see spec/support/shared_site.rb) as @site.
+# fresh: true replaces it with a site created inside the example's transaction —
+# needed by feature specs whose site slug must match the Capybara server host
+# (multi-site resolution matches request host against slugs once a second site
+# exists).
+def init_site(fresh: false)
   before do
-    CamaleonCms::Site.delete_all
-    @site = create(:site).decorate
+    if fresh
+      CamaleonCms::Site.delete_all
+      @site = create(:site).decorate
+    else
+      @site = (CamaleonCms::Site.first || create(:site)).decorate
+    end
     @post = @site.the_post('sample-post').decorate
   end
 
   after do
     @site = nil
     @post = nil
-    Cama::Site.instance_variable_set(:@main_site, nil)
   end
 end
 
-# sign in for admin panel
-# skip: true => close the skip button for intro
-def admin_sign_in(user = 'admin', pass = 'admin123')
-  visit "#{cama_root_relative_path}/admin/logout"
+# sign in for admin panel by setting the auth cookie directly (the browser
+# must be on the app's origin to accept it, hence the static bootstrap visit).
+# The form-driven flow is covered by admin_form_sign_in in the dedicated
+# sign-in specs; the password is still verified here so a wrong one fails
+# loudly instead of silently producing a signed-out session.
+def admin_sign_in(username = 'admin', pass = 'admin123')
+  user = CamaManager.get_user_class_name.constantize.find_by!(username: username)
+  raise ArgumentError, "wrong password for #{username}" unless user.authenticate(pass)
+
+  visit '/favicon.ico' unless page.current_url.start_with?('http')
+  page.driver.browser.manage.add_cookie(name: 'auth_token', value: "#{user.auth_token}&rspec&127.0.0.1")
+end
+
+# sign in for admin panel through the real login form; use only for specs that
+# test the sign-in flow itself (the login page also says "Welcome", so assert
+# the dashboard path rather than page text).
+def admin_form_sign_in(user = 'admin', pass = 'admin123')
+  # Ensure a clean, signed-out session first. A GET to /admin/logout no longer ends a session (it
+  # renders a confirmation now), so clear the auth cookie directly, then land on the login form.
+  visit '/favicon.ico' unless page.current_url.start_with?('http')
+  page.driver.browser.manage.delete_cookie('auth_token')
+  visit "#{cama_root_relative_path}/admin/login"
   within('#login_user') do
     fill_in 'user[username]', with: user
     fill_in 'user[password]', with: pass
   end
   click_button 'Log In'
-  expect(page).to have_content 'Welcome'
-  wait(2)
+  expect(page).to have_current_path(%r{/admin/dashboard}, ignore_query: true)
 end
 
 def cama_root_relative_path
@@ -89,7 +112,7 @@ def pages_test
 
   current_site.the_contents.decorate.each do |p|
     visit p.the_url(as_path: true).to_s
-    expect(page).to have_content p.the_title
+    expect(page).to have_text p.the_title
   end
   the_tags.decorate.send(pos).send(attr)
 end

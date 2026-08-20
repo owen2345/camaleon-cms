@@ -8,12 +8,20 @@ module CamaleonCms
 
       extend CamaleonCms::NormalizeAttrs
 
-      validates_uniqueness_of :username, scope: [:site_id], case_sensitive: false,
-                                         message: I18n.t('camaleon_cms.admin.users.message.requires_different_username', default: 'Requires different username')
-      validates_uniqueness_of :email, scope: [:site_id], case_sensitive: false,
-                                      message: I18n.t('camaleon_cms.admin.users.message.requires_different_email', default: 'Requires different email')
-
-      normalize_attrs(:first_name, :last_name, :username)
+      validates(
+        :username, uniqueness: { scope: [:site_id], case_sensitive: false,
+                                 message: I18n.t(
+                                   'camaleon_cms.admin.users.message.requires_different_username',
+                                   default: 'Requires different username'
+                                 ) }
+      )
+      validates(
+        :email, uniqueness: { scope: [:site_id], case_sensitive: false,
+                              message: I18n.t(
+                                'camaleon_cms.admin.users.message.requires_different_email',
+                                default: 'Requires different email'
+                              ) }
+      )
 
       # callbacks
       before_validation :cama_before_validation
@@ -24,8 +32,12 @@ module CamaleonCms
       before_update { generate_token :auth_token if will_save_change_to_password_digest? }
 
       # relations
-      has_many :all_posts, class_name: 'CamaleonCms::Post', foreign_key: :user_id
-      has_many :all_comments, class_name: 'CamaleonCms::PostComment'
+      has_many :all_posts, class_name: 'CamaleonCms::Post', foreign_key: :user_id, inverse_of: :owner,
+                           dependent: :nullify
+      # No `dependent:` — the rows must still carry this user_id when the
+      # `after_destroy :reassign_comments` callback moves them to the anonymous user.
+      has_many :all_comments, class_name: 'CamaleonCms::PostComment' # rubocop:disable Rails/HasManyOrHasOneDependent
+
       belongs_to :site, class_name: 'CamaleonCms::Site', optional: true
 
       # scopes
@@ -93,6 +105,14 @@ module CamaleonCms
       end
     end
 
+    # Rotate the auth token and persist it (audit 2026-08-11 M3): called on logout so a cookie copied
+    # before logout can no longer authenticate. Skips validations/callbacks -- it only replaces the
+    # token column and must work even for a record that would not otherwise pass validation.
+    def cama_reset_auth_token!
+      generate_token(:auth_token)
+      update_column(:auth_token, auth_token) # rubocop:disable Rails/SkipsModelValidations
+    end
+
     def send_password_reset
       generate_token(:password_reset_token)
       self.password_reset_sent_at = Time.zone.now
@@ -133,11 +153,18 @@ module CamaleonCms
       end
     end
 
+    # Until the dependent: :nullify on all_comments was removed this loop never ran — the
+    # association was already empty by the time after_destroy fired — so the unguarded chain
+    # below was never exercised. It runs now, and a comment whose post, post type or site cannot
+    # be resolved would raise inside after_destroy and roll the whole user deletion back. Such a
+    # comment is skipped instead; `rake camaleon_cms:reassign_orphaned_comments` reports the same
+    # rows, and it already guarded the identical chain.
     def reassign_comments
       all_comments.includes(post: { post_type: :site }).find_each do |comment|
-        site = comment.post.post_type.site
-        user = site.get_anonymous_user
-        comment.update_column(:user_id, user.id) # rubocop:disable Rails/SkipsModelValidations
+        site = comment.post&.post_type&.site
+        next if site.nil?
+
+        comment.update_column(:user_id, site.get_anonymous_user.id) # rubocop:disable Rails/SkipsModelValidations
       end
     end
   end

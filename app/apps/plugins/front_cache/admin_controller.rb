@@ -9,15 +9,20 @@ module Plugins
       end
 
       def save_settings
-        current_site.set_meta('front_cache_elements', { paths: (params[:cache][:paths] || []).compact_blank || [],
-                                                        posts: params[:cache][:posts] || [],
-                                                        post_types: params[:cache][:post_type] || [],
-                                                        skip_posts: params[:cache][:skip_posts] || [],
-                                                        cache_login: params[:cache][:cache_login],
-                                                        home: params[:cache][:home],
-                                                        preserve_cache_on_restart: params[:cache][:preserve_cache_on_restart],
-                                                        invalidate_only: params[:cache][:invalidate_only],
-                                                        cache_counter: current_site.get_meta('front_cache_elements')[:cache_counter] || 0 })
+        current_site.set_meta(
+          'front_cache_elements',
+          {
+            paths: (params[:cache][:paths] || []).compact_blank || [],
+            posts: params[:cache][:posts] || [],
+            post_types: params[:cache][:post_type] || [],
+            skip_posts: params[:cache][:skip_posts] || [],
+            cache_login: params[:cache][:cache_login],
+            home: params[:cache][:home],
+            preserve_cache_on_restart: params[:cache][:preserve_cache_on_restart],
+            invalidate_only: params[:cache][:invalidate_only],
+            cache_counter: current_site.get_meta('front_cache_elements')[:cache_counter] || 0
+          }
+        )
         flash[:notice] = t('plugin.front_cache.message.settings_saved').to_s
         redirect_to action: :settings
       end

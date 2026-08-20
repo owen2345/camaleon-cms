@@ -1,0 +1,350 @@
+# Cutting a release is a deliberate, manual act: pick the ref (master) and type the version that
+# lib/camaleon_cms/version.rb already declares. Nothing is released by merging to master.
+#
+# The suite is not re-run here. It already ran against this exact commit on push to master, so the
+# release requires those runs to have succeeded rather than repeating them — see "Verify CI passed
+# for this commit".
+#
+# Step order is deliberate. Pushing to RubyGems is the only irreversible step (a version can be
+# yanked, but never re-pushed), so every check runs before it and the reversible steps — the git
+# tag and the GitHub release — run after it. A failed check therefore never burns a version
+# number. In the rare case the push succeeds but tagging fails, the gem is already public: create
+# the tag and release by hand rather than re-running this workflow.
+#
+# Full procedure, including the manual fallback: docs/releasing.md
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, must match lib/camaleon_cms/version.rb (sample: 2.9.3)'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  GEM_NAME: camaleon_cms
+
+jobs:
+  build:
+    name: Verify and build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read # lists this commit's CI runs; job-level permissions replace the workflow's
+    outputs:
+      version: ${{ steps.verify.outputs.version }}
+      gem_file: ${{ steps.build.outputs.gem_file }}
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # tags and full history, for the duplicate-tag check and changelog fallback
+          persist-credentials: false
+
+      # This pin is load-bearing, not hygiene. The RubyGems bundled with the runner's Ruby still
+      # warns about open-ended dependencies, of which this gemspec has many (addressable, bcrypt,
+      # jquery-rails, …), and --strict promotes that to an error, so the build cannot succeed
+      # without it. RubyGems 4 dropped that validation while still rejecting a missing homepage or
+      # required_ruby_version, which is what --strict is here to catch.
+      #
+      # Pinned rather than `latest` because --strict is a hard gate whose behaviour is decided by
+      # the RubyGems version: a floating version lets a RubyGems release fail a gem release nobody
+      # touched. setup-ruby treats this as a floor — if the runner's own default ever exceeds it,
+      # that default is used instead — so raise it deliberately, and re-check --strict when you do.
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b
+        with:
+          ruby-version: .tool-versions
+          rubygems: 4.0.17
+
+      # Everything that can invalidate the release is checked here, before anything is published.
+      - name: Verify the release is publishable
+        id: verify
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          version="${INPUT_VERSION#v}"
+
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)*$ ]]; then
+            echo "::error::'$version' is not a valid gem version"
+            exit 1
+          fi
+
+          if [ "$GITHUB_REF_NAME" != "$DEFAULT_BRANCH" ]; then
+            echo "::error::Releases must be cut from $DEFAULT_BRANCH, but this run is on $GITHUB_REF_NAME"
+            exit 1
+          fi
+
+          gem_version=$(ruby -e 'puts Gem::Specification.load(ARGV[0]).version' "$GEM_NAME.gemspec")
+          if [ "$version" != "$gem_version" ]; then
+            echo "::error::Requested version ($version) does not match lib/$GEM_NAME/version.rb ($gem_version)"
+            exit 1
+          fi
+
+          if git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
+            echo "::error::Tag $version already exists"
+            exit 1
+          fi
+
+          ruby -rjson -ropen-uri -e '
+            version, gem_name = ARGV
+            begin
+              published = JSON.parse(URI.open("https://rubygems.org/api/v1/versions/#{gem_name}.json").read)
+            rescue OpenURI::HTTPError => e
+              raise unless e.io.status.first == "404" # never published before
+              published = []
+            end
+            if published.any? { |release| release["number"] == version }
+              abort "::error::#{gem_name} #{version} is already published on RubyGems"
+            end
+          ' "$version" "$GEM_NAME"
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # Unlike the plugin gems, this repository holds the suite that covers what is being released,
+      # so a release must not be cut from a commit CI has not validated. The matrix is not repeated
+      # here: it already ran on the push to master, and re-running it would spend ~20 minutes
+      # revalidating a tree that has not changed. Requiring a recorded success for this exact SHA
+      # gives the same guarantee in seconds.
+      #
+      # A run that is still in progress fails this check — wait for it, then start the release
+      # again. experimental_support.yml is deliberately absent: it tests Ruby head and Rails edge,
+      # which are expected to break for reasons that have nothing to do with the release.
+      - name: Verify CI passed for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUIRED_WORKFLOWS: current_support.yml audit.yml
+        run: |
+          set -euo pipefail
+
+          for workflow in $REQUIRED_WORKFLOWS; do
+            runs="repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?head_sha=$GITHUB_SHA"
+
+            if [ "$(gh api "$runs&status=success&per_page=1" --jq '.total_count')" -gt 0 ]; then
+              echo "$workflow: passed"
+              continue
+            fi
+
+            echo "::error::$workflow has no successful run for $GITHUB_SHA"
+            recorded=$(gh api "$runs&per_page=20" --jq '.workflow_runs[] | "  \(.status) \(.conclusion // "-") \(.html_url)"')
+            echo "${recorded:-  (no runs recorded for this commit)}"
+            exit 1
+          done
+
+      - name: Collect release notes
+        env:
+          VERSION: ${{ steps.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p pkg
+
+          # The hand-written section of CHANGELOG.md is the release body when there is one;
+          # otherwise fall back to the commits since the previous tag. Version headings come in two
+          # shapes here — a bare "## 2.9.2" and the linked-and-dated
+          # "## [2.9.2](https://github.com/owen2345/camaleon-cms/tree/2.9.2) (2026-05-01)" — so the
+          # version is read out of the heading rather than the heading being matched literally.
+          notes=$(ruby -e '
+            def heading_version(line)
+              match = line.match(/\A##\s+(.+?)\s*\z/)
+              return nil unless match
+
+              title = match[1]
+              title = Regexp.last_match(1) if title =~ /\A\[([^\]]+)\]\([^)]*\)/
+              title[/\A\S+/]
+            end
+
+            version = ARGV[0]
+            lines = File.readlines("CHANGELOG.md", chomp: true)
+            start = lines.index { |line| heading_version(line) == version }
+
+            if start
+              rest = lines[(start + 1)..]
+              stop = rest.index { |line| heading_version(line) }
+              puts (stop ? rest[0...stop] : rest).join("\n").strip
+            end
+          ' "$VERSION")
+
+          previous_tag=$(git describe --tags --abbrev=0 2>/dev/null || true)
+
+          if [ -z "$notes" ]; then
+            echo "::warning::CHANGELOG.md has no section for $VERSION, falling back to the commit log"
+            notes=$(git log --no-merges --pretty=format:'* %s (%h)' "${previous_tag:+$previous_tag..}HEAD")
+          fi
+
+          # Empty notes mean the version has neither a changelog entry nor a single commit behind
+          # it, which is a release nobody meant to cut.
+          if [ -z "$notes" ]; then
+            echo "::error::No release notes: CHANGELOG.md has no section for $VERSION and there are no commits since ${previous_tag:-the start of history}"
+            exit 1
+          fi
+
+          {
+            echo "$notes"
+            if [ -n "$previous_tag" ]; then
+              echo
+              echo "**Full Changelog**: https://github.com/$GITHUB_REPOSITORY/compare/$previous_tag...$VERSION"
+            fi
+          } > pkg/RELEASE_NOTES.md
+
+          echo '--- release notes ---'
+          cat pkg/RELEASE_NOTES.md
+
+      # --strict promotes every gemspec warning to a build failure, so the release stops rather
+      # than shipping a spec that RubyGems complains about.
+      - name: Build gem
+        id: build
+        env:
+          VERSION: ${{ steps.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          gem build "$GEM_NAME.gemspec" --strict --output "pkg/$GEM_NAME-$VERSION.gem"
+          echo "gem_file=$GEM_NAME-$VERSION.gem" >> "$GITHUB_OUTPUT"
+
+      # Inspect the artifact that will actually be pushed, rather than trusting the sources it
+      # was built from.
+      - name: Verify gem contents
+        env:
+          VERSION: ${{ steps.verify.outputs.version }}
+          GEM_FILE: pkg/${{ steps.build.outputs.gem_file }}
+        run: |
+          set -euo pipefail
+
+          built_version=$(ruby -rrubygems/package -e 'puts Gem::Package.new(ARGV[0]).spec.version' "$GEM_FILE")
+          if [ "$built_version" != "$VERSION" ]; then
+            echo "::error::Built gem reports version $built_version, expected $VERSION"
+            exit 1
+          fi
+
+          manifest=$(ruby -rrubygems/package -e 'puts Gem::Package.new(ARGV[0]).spec.files' "$GEM_FILE")
+
+          # Around 740 files, so summarised rather than listed: a whole directory dropping out of
+          # s.files is the failure worth seeing at a glance.
+          echo "--- packaged files ($(wc -l <<< "$manifest")) ---"
+          awk -F/ 'NF > 1 { print $1; next } { print "(root)" }' <<< "$manifest" | sort | uniq -c
+
+          # The lib entrypoints, plus every literal (non-glob) name in s.files. A literal that stops
+          # matching a real file makes Dir[] quietly return nothing, and no error is raised.
+          for required in "lib/$GEM_NAME.rb" "lib/$GEM_NAME/version.rb" "lib/$GEM_NAME/engine.rb" \
+                          "README.md" "LICENSE" "Rakefile"; do
+            if ! grep -qxF "$required" <<< "$manifest"; then
+              echo "::error::$required is missing from the gem"
+              exit 1
+            fi
+          done
+
+          # s.files covers app, config, db and lib, none of which should hold a suite. Setting
+          # s.test_files would re-package one silently, because RubyGems merges test_files into
+          # files.
+          packaged_tests=$(grep -E '(^|/)(test|spec)/' <<< "$manifest" || true)
+          if [ -n "$packaged_tests" ]; then
+            echo "::error::Test files packaged into the gem:"
+            echo "$packaged_tests"
+            exit 1
+          fi
+
+          leaked=$(grep -E '(^|/)(\.env.*|.*\.pem|.*\.key|.*\.p12|credentials\.yml\.enc)$' <<< "$manifest" || true)
+          if [ -n "$leaked" ]; then
+            echo "::error::Credential-like files packaged into the gem:"
+            echo "$leaked"
+            exit 1
+          fi
+
+      - name: Generate checksums
+        env:
+          GEM_FILE: ${{ steps.build.outputs.gem_file }}
+        run: |
+          set -euo pipefail
+          cd pkg
+          sha256sum "$GEM_FILE" > "$GEM_FILE.sha256"
+          sha512sum "$GEM_FILE" > "$GEM_FILE.sha512"
+          cat "$GEM_FILE.sha256" "$GEM_FILE.sha512"
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: release
+          path: pkg/
+          if-no-files-found: error
+
+  publish:
+    name: Publish to RubyGems
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # only here so .tool-versions pins the Ruby used to push
+
+      - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b
+        with:
+          ruby-version: .tool-versions
+          rubygems: 4.0.17 # the same toolchain that built the gem also pushes it
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: release
+          path: pkg
+
+      - name: Verify checksums
+        env:
+          GEM_FILE: ${{ needs.build.outputs.gem_file }}
+        run: |
+          set -euo pipefail
+          cd pkg
+          sha256sum -c "$GEM_FILE.sha256"
+          sha512sum -c "$GEM_FILE.sha512"
+
+      - name: Push to RubyGems
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBY_GEMS_PUBLISH_GEM_KEY }}
+          GEM_FILE: pkg/${{ needs.build.outputs.gem_file }}
+        run: gem push "$GEM_FILE"
+
+  release:
+    name: Tag and publish GitHub release
+    needs: [build, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }} # the exact commit the gem was built from
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: release
+          path: pkg
+
+      - name: Create annotated tag
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "refs/tags/$VERSION"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.build.outputs.version }}
+          GEM_FILE: ${{ needs.build.outputs.gem_file }}
+        run: |
+          set -euo pipefail
+          gh release create "$VERSION" \
+            --title "Release $VERSION" \
+            --notes-file pkg/RELEASE_NOTES.md \
+            --verify-tag \
+            "pkg/$GEM_FILE" "pkg/$GEM_FILE.sha256" "pkg/$GEM_FILE.sha512"

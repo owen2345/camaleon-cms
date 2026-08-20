@@ -12,7 +12,13 @@ module CamaleonCms
     # return the excerpt of this post
     def the_excerpt(qty_chars = 200)
       excerpt = object.get_meta('summary').to_s.translate(get_locale)
-      # r = {content: (excerpt.present? ? excerpt : object.content_filtered.to_s.translate(get_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars)), post: object}
+      # r = {
+      #   content: (
+      #     (excerpt if excerpt.present?) ||
+      #     object.content_filtered.to_s.translate(get_locale).strip_tags.gsub(/&#13;|\n/, " ").truncate(qty_chars)
+      #   ),
+      #   post: object
+      # }
       r = {
         content:
           excerpt.presence || h.cama_strip_shortcodes(object.content_filtered.to_s.translate(get_locale)
@@ -123,12 +129,10 @@ module CamaleonCms
     # sample: {es: 'https://mydomain.com/es/articulo-3.html', en: 'https://mydomain.com/en/post-3.html'}
     def the_urls(*args)
       args = args.extract_options!
-      res = {}
-      h.current_site.the_languages.each do |l|
+      h.current_site.the_languages.each_with_object({}) do |l, hsh|
         args[:locale] = l
-        res[l] = the_url(args.clone)
+        hsh[l] = the_url(args.clone)
       end
-      res
     end
 
     # return edit url for this post
@@ -143,8 +147,8 @@ module CamaleonCms
     def the_edit_link(title = nil, attrs = {})
       return '' if h.cama_current_user.blank?
 
-      attrs = { target: '_blank', style: 'font-size:11px !important;cursor:pointer;' }.merge(attrs)
-      h.link_to("&rarr; #{title || h.ct('edit', default: 'Edit')}".html_safe, the_edit_url, attrs)
+      attrs = { target: '_blank', style: 'font-size:11px !important;cursor:pointer;' }.merge!(attrs)
+      h.link_to(h.safe_join(['→ ', title || h.ct('edit', default: 'Edit')]), the_edit_url, attrs)
     end
 
     # show thumbnail image as html
@@ -155,7 +159,7 @@ module CamaleonCms
     end
 
     # show link and thumbnail included as html
-    # link_args: html attributes for link
+    # link_args: html attributes for the link
     # img_args: html attributes for image
     def the_link_thumb(link_args = {}, img_args = {})
       h.link_to(the_thumb(img_args), the_url, link_args)
@@ -179,7 +183,15 @@ module CamaleonCms
         color = 'default'
         status = self.status
       end
-      "<span class='label label-#{color} label-form'>#{status.titleize}</span>"
+      # The `else` arm above returns the raw column value, which is not validated and is writable at
+      # contributor privilege, and three admin views render this label through `raw`. Escaping the
+      # interpolated value here -- at the source, as `the_title` does -- is what makes those sinks
+      # safe. `titleize` is not a mitigation: HTML tag names and hostnames are case-insensitive.
+      # `content_tag` is deliberately not used: it emits double-quoted attributes and would change
+      # the byte output for every legitimate status, which downstream themes may match on.
+      # rubocop:disable Rails/OutputSafety -- only the escaped status is interpolated into fixed markup
+      "<span class='label label-#{color} label-form'>#{h.h(status.titleize)}</span>".html_safe
+      # rubocop:enable Rails/OutputSafety
     end
 
     # return the user object who created this post
@@ -202,7 +214,7 @@ module CamaleonCms
       object.comments.main.approveds.eager_load(:user)
     end
 
-    # check if the post can be visited by current visitor
+    # check if the post can be visited by the current user
     def can_visit?
       r = { flag: true, post: object }
       h.hooks_run('post_can_visit', r)
@@ -221,7 +233,7 @@ module CamaleonCms
         p_type.decorate.generate_breadcrumb(add_post_type, true)
       end
       if object.post_parent.present? && p_type.manage_hierarchy?
-        object.parents.reverse.each do |p|
+        object.parents.reverse_each do |p|
           p = p.decorate
           h.breadcrumb_add(p.the_title, p.published? ? p.the_url : nil)
         end
@@ -231,50 +243,61 @@ module CamaleonCms
 
     # return the post type of this post
     def the_post_type
-      object.post_type.decorate
+      @the_post_type ||= object.post_type.decorate
     end
 
-    # looks for the next post item related to parent element based on post_order attribute
-    # @param _parent: parent decorated model, like: (PostType *default), Category, PostTag, Site
+    # It looks for the next post item related to the parent element based on the post_order attribute
+    # @param parent: parent decorated model, like: (PostType *default), Category, PostTag, Site
     # @samples: my_post.the_next_post(), my_post.the_next_post(@category), my_post.the_next_post(current_site)
-    def the_next_post(_parent = nil)
-      (_parent.presence || the_post_type).the_posts.where(
-        "#{CamaleonCms::Post.table_name}.post_order > :position OR (#{CamaleonCms::Post.table_name}.post_order = :position and #{CamaleonCms::Post.table_name}.created_at > :created_at)", {
-          position: object.post_order, created_at: object.created_at
-        }
+    def the_next_post(parent = nil)
+      (parent.presence || the_post_type).the_posts.where(
+        post_order_predicate_gt(object.post_order, object.created_at)
       ).where.not(id: object.id).take.try(:decorate)
     end
 
-    # looks for the next post item related to parent element based on post_order attribute
-    # @param _parent: parent decorated model, like: (PostType *default), Category, PostTag, Site
+    # looks for the next post item related to the parent element based on post_order attribute
+    # @param parent: parent decorated model, like: (PostType *default), Category, PostTag, Site
     # @samples: my_post.the_prev_post(), my_post.the_prev_post(@category), my_post.the_prev_post(current_site)
-    def the_prev_post(_parent = nil)
-      (_parent.presence || the_post_type).the_posts.where("#{CamaleonCms::Post.table_name}.post_order < :position OR (#{CamaleonCms::Post.table_name}.post_order = :position and #{CamaleonCms::Post.table_name}.created_at < :created_at)", { position: object.post_order, created_at: object.created_at }).where.not(id: object.id).reorder(
-        post_order: :asc, created_at: :asc
-      ).last.try(:decorate)
+    def the_prev_post(parent = nil)
+      (parent.presence || the_post_type).the_posts
+        .where(post_order_predicate_lt(object.post_order, object.created_at))
+        .where.not(id: object.id).reorder(post_order: :asc, created_at: :asc).last.try(:decorate)
     end
 
     # return the title with hierarchy prefixed
-    # sample: title paren 1 - title parent 2 -.. -...
+    # sample: title paren 1 - title parent 2 -... -...
     # if add_parent_title: true will add parent title like: —— item 1.1.1 | item 1.1
     def the_hierarchy_title
       return the_title if object.post_parent.blank?
 
-      res = '&#8212;' * object.parents.count
-      res << " #{the_title}"
-      res << " | #{object.parent.decorate.the_title}" if object.show_title_with_parent
-      res.html_safe
+      parts = [h.raw('&#8212;' * object.parents.count), h.sanitize(" #{the_title}")]
+      parts << h.sanitize(" | #{object.parent.decorate.the_title}") if object.show_title_with_parent
+      h.safe_join(parts)
     end
 
-    # return all related posts of current post
+    # return all related posts of the current post
     def the_related_posts
       ptype = the_post_type
-      ptype.the_posts.joins(:categories).where(CamaleonCms::TermRelationship.table_name.to_s => { term_taxonomy_id: the_categories.pluck(:id) }).distinct
+      ptype.the_posts.joins(:categories).where(
+        CamaleonCms::TermRelationship.table_name.to_s => { term_taxonomy_id: the_categories.pluck(:id) }
+      ).distinct
     end
 
     # fix for "Using Draper::Decorator without inferred source class"
     def self.object_class_name
       'CamaleonCms::Post'
+    end
+
+    private
+
+    def post_order_predicate_gt(position, created_at)
+      t = CamaleonCms::Post.arel_table
+      t[:post_order].gt(position).or(t[:post_order].eq(position).and(t[:created_at].gt(created_at)))
+    end
+
+    def post_order_predicate_lt(position, created_at)
+      t = CamaleonCms::Post.arel_table
+      t[:post_order].lt(position).or(t[:post_order].eq(position).and(t[:created_at].lt(created_at)))
     end
   end
 end

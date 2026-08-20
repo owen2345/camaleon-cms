@@ -18,20 +18,30 @@ module Plugins
           response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE'
           args = { data: front_cache_get(cache_key).gsub('{{form_authenticity_token}}', form_authenticity_token) }
           hooks_run('front_cache_reading_cache', args)
+          # rubocop:disable Rails/OutputSafety -- This replays a trusted cached page body that was already rendered by Rails.
           render html: args[:data].html_safe
+          # rubocop:enable Rails/OutputSafety
           return
         end
 
         @_plugin_do_cache = false
-        if @caches[:paths].include?(request.original_url) || @caches[:paths].include?(request.path_info) || front_cache_plugin_match_path_patterns?(request.original_url, request.path_info) || (params[:action] == 'index' && params[:controller] == 'camaleon_cms/frontend' && @caches[:home].present?) # cache paths and home page
+        # cache paths and home page
+        if @caches[:paths].include?(request.original_url) || @caches[:paths].include?(request.path_info) ||
+           front_cache_plugin_match_path_patterns?(request.original_url, request.path_info) ||
+           (params[:action] == 'index' && params[:controller] == 'camaleon_cms/frontend' && @caches[:home].present?)
           @_plugin_do_cache = true
         elsif params[:action] == 'post' && params[:controller] == 'camaleon_cms/frontend' && params[:draft_id].blank?
-          if (post = current_site.the_posts.find_by(slug: params[:slug]))
+          if (post = current_site.the_posts.find_by_slug(params[:slug])) # rubocop:disable Rails/DynamicFindBy
             post = post.decorate
-            if post.can_visit? && post.visibility != 'private'
+            # Never cache non-public posts. A password-protected post is unlocked per session (visibility_post
+            # audit M2), but the page cache is keyed on the URL alone, so caching an unlocked render would
+            # serve the protected body to visitors who never entered the password. Private posts are already
+            # excluded; password posts must be too.
+            if post.can_visit? && !%w[private password].include?(post.visibility)
               if (@caches[:skip_posts] || []).include?(post.id.to_s)
                 @_plugin_do_cache = false
-              elsif (@caches[:post_types] || []).include?(post.post_type_id.to_s) || (@caches[:posts] || []).include?(post.id.to_s)
+              elsif (@caches[:post_types] || []).include?(post.post_type_id.to_s) ||
+                    (@caches[:posts] || []).include?(post.id.to_s)
                 @_plugin_do_cache = true
               end
             end
@@ -135,12 +145,26 @@ module Plugins
       end
 
       def front_cache_plugin_match_path_patterns?(key, key2)
-        @caches[:paths].any? { |path_pattern| key =~ Regexp.new(path_pattern) || key2 =~ Regexp.new(path_pattern) }
+        front_cache_compiled_path_patterns.any? { |pattern| key =~ pattern || key2 =~ pattern }
+      end
+
+      # Security (audit Low): compile the admin-configured patterns once per request and skip any that
+      # are malformed -- Regexp.new was rebuilt on every request and raised (500) on an invalid pattern
+      # (RegexpError) or a non-String pattern reachable via crafted settings params (TypeError).
+      def front_cache_compiled_path_patterns
+        @front_cache_compiled_path_patterns ||= (@caches[:paths] || []).filter_map do |pattern|
+          Regexp.new(pattern)
+        rescue RegexpError, TypeError
+          nil
+        end
       end
 
       def front_cache_plugin_cache_key
         uri = [request.protocol + request.host_with_port, request.fullpath].join('/')
-        uri.parameterize
+        # Security (audit Low): a lossless key. parameterize lowercased and collapsed every run of
+        # non-alphanumerics to '-', so distinct URLs shared one cache entry -- a visitor to one
+        # cacheable URL could be served the cached body of another.
+        Digest::SHA256.hexdigest(uri)
       end
     end
   end

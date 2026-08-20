@@ -1,32 +1,45 @@
 module CamaleonCms
   class Site < CamaleonCms::TermTaxonomy
-    normalize_attrs(:name, :description)
+    normalize_attrs(:description)
 
     include CamaleonCms::SiteDefaultSettings
 
     # attrs: [name, description, slug]
     attr_accessor :site_domain
 
-    default_scope { where(taxonomy: :site).reorder(term_group: :desc) }
+    # Transient (never persisted): when default_settings auto-provisions the
+    # administrator, it stashes the randomly generated plaintext password here so
+    # the provisioning controller can surface it once. nil when no admin was minted
+    # (e.g. a shared admin already existed). See harden-installer-default-admin.
+    attr_accessor :generated_admin_password
 
-    has_many :post_types, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id, dependent: :destroy
+    has_many :post_types, class_name: 'CamaleonCms::PostType', foreign_key: :parent_id, dependent: :destroy,
+                          inverse_of: :site
     has_many :nav_menus, class_name: 'CamaleonCms::NavMenu', foreign_key: :parent_id, dependent: :destroy,
                          inverse_of: :site
-    has_many :nav_menu_items, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :term_group
-    has_many :widgets, class_name: 'CamaleonCms::Widget::Main', foreign_key: :parent_id, dependent: :destroy
-    has_many :sidebars, class_name: 'CamaleonCms::Widget::Sidebar', foreign_key: :parent_id, dependent: :destroy
-    has_many :user_roles_rel, class_name: 'CamaleonCms::UserRole', foreign_key: :parent_id, dependent: :destroy
+    # inverse_of: false — this joins by term_group (the site id), while NavMenuItem#parent
+    # reads parent_id (the menu id); an inverse here overwrites items' real menu parent.
+    has_many :nav_menu_items, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :term_group, inverse_of: false,
+                              dependent: :destroy
+    has_many :widgets, class_name: 'CamaleonCms::Widget::Main', foreign_key: :parent_id, dependent: :destroy,
+                       inverse_of: :site
+    has_many :sidebars, class_name: 'CamaleonCms::Widget::Sidebar', foreign_key: :parent_id, dependent: :destroy,
+                        inverse_of: :site
+    has_many :user_roles_rel, class_name: 'CamaleonCms::UserRole', foreign_key: :parent_id, dependent: :destroy,
+                              inverse_of: :site
     has_many :custom_field_groups, class_name: 'CamaleonCms::CustomFieldGroup', foreign_key: :parent_id,
-                                   dependent: :destroy
-    has_many :term_taxonomies, class_name: 'CamaleonCms::TermTaxonomy', foreign_key: :parent_id
+                                   dependent: :destroy, inverse_of: :parent
+    has_many :term_taxonomies, class_name: 'CamaleonCms::TermTaxonomy', foreign_key: :parent_id, inverse_of: :parent,
+                               dependent: :destroy
 
     has_many :posts, through: :post_types, source: :posts
-    has_many :plugins, class_name: 'CamaleonCms::Plugin', foreign_key: :parent_id, dependent: :destroy
-    has_many :themes, class_name: 'CamaleonCms::Theme', foreign_key: :parent_id, dependent: :destroy
-    has_many :public_media, -> { where(is_public: true) },
-             class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
-    has_many :private_media, -> { where(is_public: false) },
-             class_name: 'CamaleonCms::Media', foreign_key: :site_id, dependent: :destroy
+    has_many :plugins, class_name: 'CamaleonCms::Plugin', foreign_key: :parent_id, dependent: :destroy,
+                       inverse_of: :site
+    has_many :themes, class_name: 'CamaleonCms::Theme', foreign_key: :parent_id, dependent: :destroy, inverse_of: :site
+    has_many :public_media, -> { where(is_public: true) }, class_name: 'CamaleonCms::Media', foreign_key: :site_id,
+                                                           dependent: :destroy, inverse_of: :site
+    has_many :private_media, -> { where(is_public: false) }, class_name: 'CamaleonCms::Media', foreign_key: :site_id,
+                                                             dependent: :destroy, inverse_of: :site
 
     after_create :default_settings
     after_create :set_default_user_roles
@@ -35,7 +48,7 @@ module CamaleonCms
     before_destroy :destroy_site
     after_destroy :refresh_routes
 
-    validates_uniqueness_of :slug, scope: :taxonomy
+    validates :slug, uniqueness: { scope: :taxonomy }
 
     # all user roles for this site
     def user_roles
@@ -79,7 +92,7 @@ module CamaleonCms
       options[:_admin_theme] || 'en'
     end
 
-    # set current admin language for this site
+    # Set the current admin language for this site
     def set_admin_language(language)
       set_option('_admin_theme', language)
     end
@@ -149,11 +162,9 @@ module CamaleonCms
 
     # list all users of current site
     def users
-      if PluginRoutes.system_info['users_share_sites']
-        CamaleonCms::User.all
-      else
-        CamaleonCms::User.where(site_id: id)
-      end
+      return CamaleonCms::User.all if PluginRoutes.system_info['users_share_sites']
+
+      CamaleonCms::User.where(site_id: id)
     end
     alias users_include_admins users
 
@@ -176,14 +187,12 @@ module CamaleonCms
     def get_valid_post_slug(slug, post_id = nil)
       slugs = slug.translations
       if slugs.present?
-        slugs.each do |k, v|
-          slugs[k] = get_valid_post_slug(v)
-        end
+        slugs.each { |k, v| slugs[k] = get_valid_post_slug(v) }
         slugs.to_translate
       else
         res = slug
         (1..9999).each do |i|
-          p = posts.find_by(slug: res)
+          p = posts.find_by_slug(res) # rubocop:disable Rails/DynamicFindBy
           break if p.blank? || (p.present? && p.id == post_id)
 
           res = "#{slug}-#{i}"
@@ -221,7 +230,8 @@ module CamaleonCms
 
     # return the domain for current site
     # sample: mysite.com | sample.mysite.com
-    # also, you can define custom domain for this site by: my_site.site_domain = 'my_site.com' # used for sites with different domains to call from console or task
+    # also, you can define custom domain for this site by: my_site.site_domain = 'my_site.com'
+    # used for sites with different domains to call from console or task
     def get_domain
       @site_domain || (if main_site?
                          slug

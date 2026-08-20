@@ -1,7 +1,13 @@
 inherit_from: .rubocop_todo.yml
 
 plugins:
+  - rubocop-capybara
+  - rubocop-factory_bot
+  - rubocop-performance
+  - rubocop-rails
+  - rubocop-rake
   - rubocop-rspec
+  - rubocop-rspec_rails
 
 AllCops:
   Exclude:
@@ -31,10 +37,14 @@ RSpec/BeEql:
 Metrics/BlockLength:
   Exclude:
     - spec/**/*
+    - config/routes/**/*
 
 Metrics/MethodLength:
   Exclude:
     - spec/**/*
+
+Rails/Delegate:
+  Enabled: false
 
 RSpec/AnyInstance:
   Enabled: false

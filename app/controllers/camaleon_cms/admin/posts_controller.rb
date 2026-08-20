@@ -12,19 +12,28 @@ module CamaleonCms
 
       def index
         authorize! :posts, @post_type
+        # Array/hash-typed query params (?q[]=x, ?s[]=published, ?taxonomy_id[]=1) have no meaning here
+        # and 500ed the action (Array#downcase / Array#to_sym / find(Array).decorate); treat them as absent.
+        %i[q s taxonomy taxonomy_id].each { |k| params[k] = nil unless params[k].nil? || params[k].is_a?(String) }
         per_page = current_site.admin_per_page
         posts_all = @post_type.posts.eager_load(:parent, :post_type)
         if params[:taxonomy].present? && params[:taxonomy_id].present?
+          # Security (audit 2026-08-11 M11): keep the listing scoped to @post_type. The taxonomy is
+          # resolved within the authorized post type -- a foreign category/tag id raises RecordNotFound
+          # instead of rendering that taxonomy's title/edit URL in the breadcrumb (a name/existence
+          # oracle across the very boundary `authorize! :posts, @post_type` draws). The listing then
+          # intersects with the post type's posts, so a filter can only ever narrow the authorized set.
           if params[:taxonomy] == 'category'
-            cat_owner = current_site.full_categories.find(params[:taxonomy_id]).decorate
-            posts_all = cat_owner.posts
+            cat_owner = @post_type.full_categories.find(params[:taxonomy_id]).decorate
+            # reorder(nil): the relation becomes an IN subquery, where its default-scope ORDER BY is dead sort work
+            posts_all = posts_all.where(id: cat_owner.posts.reorder(nil))
             add_breadcrumb t('camaleon_cms.admin.post_type.category'), @post_type.the_admin_url('category')
             add_breadcrumb cat_owner.the_title, cat_owner.the_edit_url
           end
 
           if params[:taxonomy] == 'post_tag'
-            tag_owner = current_site.post_tags.find(params[:taxonomy_id]).decorate
-            posts_all = tag_owner.posts
+            tag_owner = @post_type.post_tags.find(params[:taxonomy_id]).decorate
+            posts_all = posts_all.where(id: tag_owner.posts.reorder(nil))
             add_breadcrumb t('camaleon_cms.admin.post_type.tags'), @post_type.the_admin_url('tag')
             add_breadcrumb tag_owner.the_title, tag_owner.the_edit_url
           end
@@ -39,7 +48,7 @@ module CamaleonCms
           )
         end
 
-        posts_all = posts_all.where(user_id: cama_current_user) if cannot?(:edit_other, @post_type)
+        posts_all = cama_admin_visible_posts(posts_all, [@post_type])
 
         @posts = posts_all
         params[:s] = 'published' if params[:s].blank?
@@ -53,8 +62,13 @@ module CamaleonCms
           @posts = @posts.no_trash
         end
 
-        @btns = { published: "#{t('camaleon_cms.admin.post_type.published')} (#{posts_all.published.size})",
-                  all: "#{t('camaleon_cms.admin.post_type.all')} (#{posts_all.no_trash.size})", pending: "#{t('camaleon_cms.admin.post_type.pending')} (#{posts_all.pending.size})", draft: "#{t('camaleon_cms.admin.post_type.draft')} (#{posts_all.drafts.size})", trash: "#{t('camaleon_cms.admin.post_type.trash')} (#{posts_all.trash.size})" }
+        @btns = {
+          published: "#{t('camaleon_cms.admin.post_type.published')} (#{posts_all.published.size})",
+          all: "#{t('camaleon_cms.admin.post_type.all')} (#{posts_all.no_trash.size})",
+          pending: "#{t('camaleon_cms.admin.post_type.pending')} (#{posts_all.pending.size})",
+          draft: "#{t('camaleon_cms.admin.post_type.draft')} (#{posts_all.drafts.size})",
+          trash: "#{t('camaleon_cms.admin.post_type.trash')} (#{posts_all.trash.size})"
+        }
         per_page = 9_999_999 if @post_type.manage_hierarchy?
         r = { posts: @posts, post_type: @post_type, btns: @btns, all_posts: posts_all, render: 'index',
               per_page: per_page }
@@ -88,10 +102,7 @@ module CamaleonCms
         r = { post: @post, post_type: @post_type }
         hooks_run('create_post', r)
         @post = r[:post]
-        if @post.save
-          @post.set_metas(params[:meta])
-          @post.set_field_values(cama_permitted_field_options('PostType_Post'))
-          @post.set_options(params[:options])
+        if save_post_with_fields(@post)
           flash[:notice] = t('camaleon_cms.admin.post.message.created', post_type: @post_type.decorate.the_title)
           r = { post: @post, post_type: @post_type }
           hooks_run('created_post', r)
@@ -128,12 +139,9 @@ module CamaleonCms
         r = { post: @post, post_type: @post_type }
         hooks_run('update_post', r)
         @post = r[:post]
-        if @post.update(post_data)
+        if save_post_with_fields(@post, post_data)
           # delete drafts only on successful update operation
           @post.drafts.destroy_all if delete_drafts
-          @post.set_metas(params[:meta])
-          @post.set_field_values(cama_permitted_field_options('PostType_Post'))
-          @post.set_options(params[:options])
           hooks_run('updated_post', { post: @post, post_type: @post_type })
           flash[:notice] = t('camaleon_cms.admin.post.message.updated', post_type: @post_type.decorate.the_title)
           redirect_to action: :edit, id: @post.id
@@ -195,6 +203,25 @@ module CamaleonCms
 
       private
 
+      # Persist the post together with its metas, field values and options atomically (audit M10).
+      # Before this, the parent was saved and its metas committed before set_field_values ran, so a
+      # field value the scan-and-reject gate refused (CustomFieldsRelationship RecordInvalid) left a
+      # half-applied post -- an orphan on create, skipped options, only a redirect explaining why.
+      # Wrapping the whole sequence in one transaction rolls the parent save back with the refused
+      # value, and the RecordInvalid propagates to AdminController's rescue_from (flash + redirect
+      # back) with nothing persisted. Returns true on success, false on a parent validation failure.
+      def save_post_with_fields(post, update_attrs = nil)
+        ActiveRecord::Base.transaction do
+          saved = update_attrs ? post.update(update_attrs) : post.save
+          raise ActiveRecord::Rollback unless saved
+
+          post.set_metas(params[:meta])
+          post.set_field_values(cama_permitted_field_options('PostType_Post'))
+          post.set_options(params[:options])
+          true
+        end
+      end
+
       # define post type parent
       def set_post_type
         @post_type = current_site.post_types.find_by(id: params[:post_type_id])
@@ -218,7 +245,11 @@ module CamaleonCms
       # return common params data for posts
       # is_create: indicate if this info is for create a new post
       def get_post_data(is_create = false)
-        post_data = params.require(:post).permit(:title, :slug, :content, :excerpt, :status, :comment_status, :post_parent, :visibility, :visibility_value, :post_order, :published_at).to_h
+        post_data = params
+                    .require(:post).permit(
+                      :title, :slug, :content, :excerpt, :status, :comment_status, :post_parent, :visibility,
+                      :visibility_value, :post_order, :published_at
+                    ).to_h
         post_data[:user_id] = cama_current_user.id if is_create
         post_data[:status] = 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
         post_data[:data_tags] = params[:tags].to_s

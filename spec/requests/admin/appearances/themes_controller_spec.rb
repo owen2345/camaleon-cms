@@ -4,11 +4,13 @@ require 'rails_helper'
 
 RSpec.describe 'Admin::Appearances::ThemesController', type: :request do
   init_site
-  let(:admin_user) { create(:user, username: 'admin', password: 'admin123', password_confirmation: 'admin123', role: 'admin', site: @site) }
-
-  before do
-    sign_in_as(admin_user, site: @site)
+  let(:admin_user) do
+    create(
+      :user, username: 'admin', password: 'admin123', password_confirmation: 'admin123', role: 'admin', site: @site
+    )
   end
+
+  before { sign_in_as(admin_user, site: @site) }
 
   describe 'GET /admin/appearances/themes' do
     it 'does not call PluginRoutes.reload when viewing themes list' do

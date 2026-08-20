@@ -51,4 +51,32 @@ RSpec.describe 'PostDecorator' do
     expect(post.has_thumb?).to be(true)
     expect(post.manage_comments?).to be(true)
   end
+
+  describe '#fix_post_order' do
+    it 'assigns post_order 1 when creating the first post with nil post_order' do
+      post_type = create(:post_type, site: @site)
+      post = build(:post, post_type: post_type, post_order: nil)
+      post.save
+      expect(post.post_order).to eq(1)
+    end
+
+    it 'does not fail when the last post has a nil post_order' do
+      post_type = create(:post_type, site: @site)
+      first_post = create(:post, post_type: post_type, post_order: 1)
+      first_post.update_column(:post_order, nil) # rubocop:disable Rails/SkipsModelValidations
+
+      new_post = build(:post, post_type: post_type, post_order: nil)
+      expect { new_post.save }.not_to raise_error
+      expect(new_post.post_order).to eq(1)
+    end
+
+    it 'assigns post_order 2 when the last post has post_order 1' do
+      post_type = create(:post_type, site: @site)
+      create(:post, post_type: post_type, post_order: 1)
+
+      new_post = build(:post, post_type: post_type, post_order: nil)
+      new_post.save
+      expect(new_post.post_order).to eq(2)
+    end
+  end
 end

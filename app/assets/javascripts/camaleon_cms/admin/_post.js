@@ -237,10 +237,13 @@ function cama_init_post(obj) {
             return false;
         });
 
-        /* Disabled until fix to reload only category fields and not all
+        /* Disabled until fix to reload only category fields and not all.
+           NOTE (M6): custom_fields#list performs its category write only on a CSRF-verified POST, so
+           this must stay $.post when re-enabled (jquery_ujs attaches the CSRF token) — with $.get the
+           fields would still render but the post's categories would silently not be saved.
         $form.on("change", ".list-categories input", function () {
           showLoading();
-          $.get(
+          $.post(
             $form.find("#post_add_new_category").data('fields-reload-url'), {
               categories: $form.find("#post_right_bar .list-categories input[name='categories[]']:checked").map(function(i, el){ return $(this).val(); }).get(),
               post_id: post_id

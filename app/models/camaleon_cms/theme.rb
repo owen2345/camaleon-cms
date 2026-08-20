@@ -1,12 +1,10 @@
 module CamaleonCms
   class Theme < CamaleonCms::TermTaxonomy
-    normalize_attrs(:name, :description)
+    normalize_attrs(:description)
 
     # attrs:
     #   slug => plugin key
-    belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, required: false
-
-    default_scope { where(taxonomy: :theme) }
+    belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, optional: true, inverse_of: :themes
 
     before_validation :fix_name
     before_destroy :destroy_custom_fields

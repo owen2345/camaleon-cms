@@ -17,17 +17,20 @@ jobs:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Chromedriver
-        uses: nanasess/setup-chromedriver@v2
+        uses: nanasess/setup-chromedriver@v3
 
       - name: Setup Ruby and install gems
-        uses: ruby/setup-ruby@6aaa311d81eba98ae12eaffbcb63296ace0efcde
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b
         with:
           bundler-cache: true
           ruby-version: ${{ matrix.ruby }}
-          rubygems: 3.7.2
+          # Matched pair: RubyGems ships Bundler at the same version, and `BUNDLED WITH` in
+          # Gemfile.lock is 4.0.17. Leaving this at 3.7.2 would ask a RubyGems that ships Bundler 2.x
+          # to run a lock pinned to Bundler 4. Needs Ruby >= 3.2, which is this matrix's floor.
+          rubygems: 4.0.17
 
       - name: Migrate DB
         run: bin/rake app:db:migrate

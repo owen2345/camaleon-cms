@@ -1,19 +1,25 @@
 module CamaleonCms
   class NavMenuItem < CamaleonCms::TermTaxonomy
+    # NavMenuItem#name (the menu label) is the one "name" field that is rendered as raw/trusted HTML
+    # (see CamaleonCms::Frontend::NavMenuHelper#cama_menu_draw_items), unlike other model names which are
+    # ERB-auto-escaped. It therefore keeps save-time sanitization: safe formatting (icons, spans) is preserved
+    # while scripts and event handlers are stripped, preventing stored XSS from menu managers.
     normalize_attrs(:name, :description)
+
+    # deterministic external iteration order (2.9.2 parity); render paths reorder(:term_order)
+    default_scope { order(id: :asc) }
 
     alias_attribute :site_id, :term_group
     alias_attribute :label, :name
     alias_attribute :url, :description
     alias_attribute :kind, :slug
     alias_attribute :target, :status
-    # attr_accessible :label, :url, :kind
-    #
-    default_scope { where(taxonomy: :nav_menu_item).order(id: :asc) }
 
-    belongs_to :parent, class_name: 'CamaleonCms::NavMenu', inverse_of: :children, required: false
+    # attr_accessible :label, :url, :kind
+
+    belongs_to :parent, class_name: 'CamaleonCms::NavMenu', inverse_of: :children, optional: true
     belongs_to :parent_item, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :parent_id, inverse_of: :children,
-                             required: false
+                             optional: true
     has_many :children, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :parent_id, dependent: :destroy,
                         inverse_of: :parent_item
 

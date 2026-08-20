@@ -66,6 +66,45 @@ RSpec.describe CamaleonCmsAwsUploader do
     end
   end
 
+  describe '#repair_private_acls!' do
+    # Security (audit 2026-08-11 M5 follow-up): objects uploaded before the private-ACL fix stayed
+    # world-readable; the sweep re-applies the owner-only ACL under the private prefix, including a
+    # configured inner_folder root.
+    let(:object_acl) { instance_double(Aws::S3::ObjectAcl) }
+    let(:s3_object) { instance_double(Aws::S3::ObjectSummary, acl: object_acl) }
+
+    it 'sweeps objects under the default private prefix back to an owner-only ACL' do
+      allow(bucket).to receive(:objects).with(prefix: 'private/').and_return([s3_object, s3_object])
+      expect(object_acl).to receive(:put).with(acl: 'private').twice
+
+      expect(uploader.repair_private_acls!).to eq(2)
+    end
+
+    context 'with a configured inner_folder' do
+      let(:uploader) do
+        described_class.new({ current_site: current_site, aws_settings: { 'inner_folder' => 'myfolder' } },
+                            hook_instance)
+      end
+
+      it 'sweeps under <inner_folder>/private/' do
+        allow(bucket).to receive(:objects).with(prefix: 'myfolder/private/').and_return([])
+
+        expect(uploader.repair_private_acls!).to eq(0)
+      end
+    end
+  end
+
+  describe '#file_parse thumb naming for an uppercase .SVG source' do
+    let(:s3_file) do
+      instance_double(Aws::S3::Object, key: 'media/1/logo.SVG', size: 123.4, last_modified: Time.zone.now,
+                                       public_url: 'https://s3.example.com/media/1/logo.SVG')
+    end
+
+    it 'computes the .jpg thumb url (case-insensitive svg-to-jpg rename)' do
+      expect(uploader.file_parse(s3_file)['thumb']).to end_with('/thumb/logo-svg.jpg')
+    end
+  end
+
   context 'with a valid file path' do
     describe '#add_file' do
       let(:s3_file) { instance_double(Aws::S3::Object) }
@@ -107,6 +146,23 @@ RSpec.describe CamaleonCmsAwsUploader do
         result = uploader.add_file(file_path, 'safe/test.png')
 
         expect(result).to eql(parsed_file)
+      end
+
+      # Security (audit 2026-08-11 M5): a private-mode upload must not be world-readable. On master it
+      # was stored with acl: 'public-read' regardless of mode, so a guessed s3://bucket/private/<name>
+      # URL bypassed the download_private_file access gate.
+      context 'when the uploader is in private mode' do
+        let(:uploader) do
+          described_class.new({ current_site: current_site, aws_settings: {}, private: true }, hook_instance)
+        end
+
+        it 'stores the object with a private ACL, not public-read' do
+          file_path = "#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png"
+
+          expect(s3_file).to receive(:upload_file).with(file_path, { acl: 'private' })
+
+          uploader.add_file(file_path, 'safe/test.png')
+        end
       end
     end
   end

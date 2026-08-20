@@ -8,17 +8,22 @@ Rails.application.routes.draw do
         get 'search'
         get 'login' => 'sessions#login'
         post 'login' => 'sessions#login_post'
-        get 'logout' => 'sessions#logout'
+        # Security (audit M6): logout changes state, so it acts only over POST. The GET renders a
+        # confirmation page instead of 404ing -- frontend themes across the ecosystem link this
+        # path -- and the impersonation flow keeps its redirect (see SessionsController#logout).
+        match 'logout' => 'sessions#logout', via: %i[get post]
+        match 'back_to_parent' => 'sessions#back_to_parent', via: %i[get post]
         match 'forgot' => 'sessions#forgot', via: %i[get post patch]
-        match 'confirm_email' => 'sessions#confirm_email', via: %i[get post path]
+        match 'confirm_email' => 'sessions#confirm_email', via: %i[get post patch]
         match 'register' => 'sessions#register', via: %i[get post patch]
         match 'api/:method', action: :api, via: %i[get post], as: :api
 
         resources :post_type, as: :post_type do
           resources :posts, controller: 'posts' do
             # resources :comments
-            get :trash
-            get :restore
+            # Security (audit M6): state-changing member actions must not ride GET links.
+            patch :trash
+            patch :restore
             collection do
               match 'ajax', via: %i[get post patch]
             end
@@ -41,7 +46,8 @@ Rails.application.routes.draw do
         match 'profile/edit' => 'users#profile_edit', via: %i[get post patch]
         resources :users, controller: 'users' do
           patch 'updated_ajax'
-          get :impersonate, on: :member
+          # Security (audit M6): forces a session switch -- the highest-value CSRF target here.
+          post :impersonate, on: :member
         end
 
         resources :user_roles, controller: 'user_roles' do
@@ -53,11 +59,11 @@ Rails.application.routes.draw do
             collection do
               post 'get_items/:key', action: :get_items, as: :get_items
               post 'reorder'
-              get 'list'
+              match 'list', via: %i[get post]
             end
           end
           get 'site'
-          get 'test_email'
+          post 'test_email' # Security (audit M6): sends mail; must not be a CSRF-able GET
           get 'theme'
           post 'save_theme'
           get 'languages'
@@ -73,25 +79,33 @@ Rails.application.routes.draw do
           resources :comments, controller: 'comments' do
             get 'answer'
             post 'save_answer'
-            get 'toggle_status'
+            patch 'toggle_status' # Security (audit M6): flips moderation state
           end
         end
 
         namespace :appearances do
-          match 'widgets', via: %i[get delete]
+          # Security (audit M6): this legacy widgets surface predates the widgets/{main,sidebar,
+          # assign} controllers (its target controller is long gone) but still declared delete
+          # endpoints reachable over CSRF-exempt GET. The non-GET verbs keep the paths and helpers
+          # routable for any external binding.
+          delete 'widgets'
           match 'widgets_save', via: %i[post patch]
-          match 'widget_delete', via: %i[get patch]
+          patch 'widget_delete'
           get 'render_form'
 
           resources :themes, only: [:index] do
             collection do
               get 'preview'
               # match "settings", via: [:get, :post, :patch]
-              match 'load_data', via: %i[get post patch]
+              # Security (audit M6): load_data clears and re-imports post types, nav menus and sliders
+              # -- a state change that must not ride a CSRF-exempt GET link.
+              match 'load_data', via: %i[post patch]
             end
           end
           resources :nav_menus, except: :show do
-            get 'item_delete/:id' => :delete_menu_item, as: :delete_menu_item
+            # Security (audit M6): destroys a menu item -- must not ride a CSRF-exempt GET. The
+            # admin JS sends a token-bearing DELETE (nav_menu.js).
+            delete 'item_delete/:id' => :delete_menu_item, as: :delete_menu_item
             get 'custom_settings/:id' => :custom_settings, as: :custom_settings
             post 'save_custom_settings/:id' => :save_custom_settings, as: :save_custom_settings
             get 'edit_menu_item/:id' => :edit_menu_item, as: :edit_menu_item
@@ -114,8 +128,10 @@ Rails.application.routes.draw do
         end
 
         resources :plugins, only: %i[index destroy] do
-          get 'toggle', on: :collection
-          get 'upgrade'
+          # Security (audit M6): activating/deactivating and upgrading a plugin run install and
+          # upgrade hooks -- state changes, not reads.
+          patch 'toggle', on: :collection
+          post 'upgrade'
         end
 
         # installer
@@ -125,7 +141,9 @@ Rails.application.routes.draw do
         end
 
         resources :media, only: [:index] do
-          match 'crop', via: :all, on: :collection
+          # Security (audit M6): crop writes a cropped upload and can rewrite a user avatar
+          # (saved_avatar); via: :all admitted every verb, the CSRF-exempt GET/HEAD included.
+          post 'crop', on: :collection
           get 'ajax', on: :collection
           get 'download_private_file', on: :collection
           post 'upload', on: :collection

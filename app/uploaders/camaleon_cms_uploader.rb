@@ -1,5 +1,8 @@
 class CamaleonCmsUploader
   PRIVATE_DIRECTORY = 'private'.freeze
+  # Case-insensitive terminal-`.svg` matcher, borrowed from the thumb/crop rename convention it
+  # must stay in lockstep with (defined beside that convention in UploaderImageProcessing).
+  SVG_EXT_PATTERN = CamaleonCms::UploaderImageProcessing::SVG_EXT_PATTERN
 
   attr_accessor :thumb
 
@@ -27,14 +30,24 @@ class CamaleonCmsUploader
           else
             get_media_collection.by_key(prefix).take.try(:items)
           end
-    # Private hook to recover custom files to include in current list where data can be modified to add custom{files, folders}
-    # Note: this hooks doesn't have access to public vars like params. requests, ...
+    # Private hook to recover custom files to include into the current list where
+    # data can be modified to add custom{files, folders}.
+    # Note: these hooks don't have access to public vars like params. requests, ...
     if @instance
       args = { data: res, prefix: prefix }
       @instance.hooks_run('uploader_list_objects', args)
       res = args[:data]
     end
     res
+  end
+
+  # Post-process one *rendered page* of media items for display. Base and S3 need nothing;
+  # the local uploader overrides this to repair legacy thumbnail URLs (see its override), so
+  # that per-image filesystem check runs over the paginated page rather than the whole folder.
+  # Kept out of #objects on purpose: #objects must stay a lazy relation so the media browser
+  # paginates at the database.
+  def cama_prepare_browser_page(items)
+    items
   end
 
   # clean cached of files structure saved into DB
@@ -116,7 +129,8 @@ class CamaleonCmsUploader
   # verify permitted formats (return boolean true | false)
   # true: if format is accepted
   # false: if format is not accepted
-  # sample: validate_file_format('/var/www/myfile.xls', 'image,audio,docx,xls') => return true if the file extension is in formats
+  # sample: validate_file_format('/var/www/myfile.xls', 'image,audio,docx,xls') => return true if the file extension
+  # is in formats
   def self.validate_file_format(key, valid_formats = '*')
     return true if valid_formats == '*' || valid_formats.blank?
 

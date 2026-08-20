@@ -81,14 +81,13 @@ https://camaleon.website/store/plugins
 * Image/iFrame Lazy Loader - https://github.com/brian-kephart/camaleon_lazy_loader
 * Import / Export - https://github.com/owen2345/camaleon_export_import
 * Lightbox - https://github.com/owen2345/CamaImageLightbox
-* Autocomplete - https://github.com/gaelfokou/cama_autocomplete
 * Permissions for External Menus - https://github.com/owen2345/cama_external_menu
 * TinyMCE Template Integration - https://github.com/owen2345/Camaleon-Tinymce-Templates
 * Download Manager - https://github.com/max2320/camaleon-download
 * OAuth - https://github.com/owen2345/camaleon_oauth
-* Visual Editor - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon_editor
-* Spree Commerce Integration - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon-spree
-* Admin AJAX - Paid Plugin ($) - https://camaleon.website/store/plugins/admin_ajax
+* Visual Editor - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon_editor (Github: https://github.com/owen2345/camaleon_editor)
+* Spree Commerce Integration - Paid Plugin ($) - https://camaleon.website/store/plugins/camaleon-spree (Github: https://github.com/owen2345/camaleon-spree)
+* Admin AJAX - Paid Plugin ($) - https://camaleon.website/store/plugins/admin_ajax (Github: https://github.com/owen2345/admin-ajax)
 * **See here for a complete Gemfile**: https://github.com/owen2345/camaleon-cms/blob/master/docs/example_gemfile.rb
 
 ## Camaleon CMS has many useful frontend Themes such as:
@@ -190,12 +189,26 @@ RAILS_ENV=test bundle exec rake app:db:test:prepare
 
 See [docs/security/permissions.md](docs/security/permissions.md) for details on manager permissions, custom fields, and security considerations.
 
+## Hooks
+
+Plugins and themes extend Camaleon by handling named hooks. See [docs/hooks.md](docs/hooks.md) for the
+mechanism (registration via `config.json`, the mutable `args` payload) and a code-derived inventory of the
+hooks core fires, including the session/auth hooks (`user_before_login`, `user_before_register`,
+`after_login`, …).
+
 ## Contributing
 * Fork it.
 * Create a branch (git checkout -b my_feature_branch)
 * Commit your changes (git commit -am "Added a sweet feature")
 * Push to the branch (git push origin my_feature_branch)
 * Create a pull request from your branch into master (Please be sure to provide enough detail for us to understand what this change is doing)
+
+## Releasing
+
+Releases are cut by the manually-started **Release** GitHub Actions workflow, which builds the gem,
+publishes it to RubyGems, tags the commit and creates the GitHub release. See
+[docs/releasing.md](docs/releasing.md) for the full procedure, what the workflow checks before it
+publishes, and the fully manual fallback.
 
 ## Version History
 

@@ -2,96 +2,100 @@ module CamaleonCms
   module ShortCodeHelper
     # Internal method
     def shortcodes_init
-      @_shortcodes = []
-      @_shortcodes_template = {}
-      @_shortcodes_descr = {}
+      CurrentRequest.shortcodes = []
+      CurrentRequest.shortcodes_template = {}
+      CurrentRequest.shortcodes_descr = {}
 
       shortcode_add('widget', nil, "Renderize the widget content in this place.
                 Don't forget to create and copy the shortcode of your widgets in appearance -> widgets
                 Sample: [widget widget_key]")
 
-      shortcode_add('load_libraries',
-                    lambda { |attrs, args|
-                      return args[:shortcode] if attrs.blank?
+      shortcode_add(
+        'load_libraries',
+        lambda do |attrs, args|
+          return args[:shortcode] if attrs.blank?
 
-                      cama_load_libraries(*attrs['data'].to_s.split(','))
-                      ''
-                    },
-                    "Permit to load libraries on demand, sample: [load_libraries data='datepicker,tinymce']")
+          cama_load_libraries(*attrs['data'].to_s.split(','))
+          ''
+        end,
+        "Permit to load libraries on demand, sample: [load_libraries data='datepicker,tinymce']"
+      )
+      # rubocop:disable Layout/LineLength
+      shortcode_add(
+        'asset',
+        lambda do |attrs, args|
+          return args[:shortcode] if attrs.blank?
 
-      shortcode_add('asset',
-                    lambda { |attrs, args|
-                      return args[:shortcode] if attrs.blank?
+          url = shortcode_asset_reference(attrs['file'], as_path: attrs['as_path'].present?)
+          if attrs['image'].present?
+            ActionController::Base.helpers.image_tag(url, class: attrs['class'], style: attrs['style'])
+          else
+            url
+          end
+        end,
+        "Permit to generate an asset url (
+        add file='' asset file path,
+        add as_path='true' to generate only the path and not the full url,
+        add class='my_class' to setup image class,
+        add style='height: 100px; width: 200px;...' to setup image style,
+        add image='true' to generate the image tag with this url),
+      sample: <img src=\"[asset as_path='true' file='themes/my_theme/assets/img/signature.png']\" /> or [asset image='true' file='themes/my_theme/assets/img/signature.png' style='height: 50px;']"
+      )
 
-                      url = ActionController::Base.helpers.asset_url(attrs['file'])
-                      if attrs['image'].present?
-                        ActionController::Base.helpers.image_tag(attrs['file'], class: attrs['class'],
-                                                                                style: attrs['style'])
-                      else
-                        url
-                      end
-                    },
-                    "Permit to generate an asset url (
-                    add file='' asset file path,
-                    add as_path='true' to generate only the path and not the full url,
-                    add class='my_class' to setup image class,
-                    add style='height: 100px; width: 200px;...' to setup image style,
-                    add image='true' to generate the image tag with this url),
-                  sample: <img src=\"[asset as_path='true' file='themes/my_theme/assets/img/signature.png']\" /> or [asset image='true' file='themes/my_theme/assets/img/signature.png' style='height: 50px;']")
-
-      shortcode_add('data',
-                    lambda { |attrs, args|
-                      attrs.present? ? cama_shortcode_data(attrs, args) : args[:shortcode]
-                    },
-                    "Permit to generate specific data of a post.
-                  Attributes:
-                    object: (String, defaut post) Model name: post | posttype | category | posttag | site | user |theme | navmenu
-                    id: (Integer) Post id
-                    key: (String) Post slug
-                    field: (String) Custom field key, you can add render_field='true' to render field as html element, also you can add index=2 to indicate the value in position 2 for multitple values
-                    attrs: (String) attribute name
-                            post: title | created_at | excerpt | url | link | thumb | updated_at | author_name | author_url | content
-                            posttype: title | created_at | excerpt | url | link | thumb | updated_at
-                            category: title | created_at | excerpt | url | link | thumb | updated_at
-                            posttag: title | created_at | excerpt | url | link | thumb | updated_at
-                            site: title | created_at | excerpt | url | link | thumb | updated_at
-                            user: title | created_at | excerpt | url | link | thumb | updated_at
-                            theme: title | created_at | excerpt | url | link | thumb | updated_at
-                            navmenu: title | created_at | excerpt | url | link | thumb | updated_at
-                    Note: If id and key is not present, then will be rendered for current model
-                  Sample:
-                    [data id='122' attr='title'] ==> return the title of post with id = 122
-                    [data key='contact' attr='url'] ==> return the url of post with slug = contact
-                    [data key='contact' attr='link'] ==> return the link with title as text of the link of post with slug = contact
-                    [data object='site' attr='url'] ==> return the url of currrent site
-                    [data key='page' object='posttype' attr='url'] ==> return the url of post_type with slug = page
-                    [data field=icon index=2] ==> return the second value (multiple values) for this custom field with key=icon of current object
-                    [data key='contact' field='sub_title'] ==> return the value of the custom_field with key=sub_title registered for post.slug = contact
-                    [data object='site' field='sub_title'] ==> return the value of the custom_field with key=sub_title registered for current_site")
+      shortcode_add(
+        'data',
+        ->(attrs, args) { attrs.present? ? cama_shortcode_data(attrs, args) : args[:shortcode] },
+        "Permit to generate specific data of a post.
+        Attributes:
+          object: (String, defaut post) Model name: post | posttype | category | posttag | site | user |theme | navmenu
+          id: (Integer) Post id
+          key: (String) Post slug
+          field: (String) Custom field key, you can add render_field='true' to render field as html element, also you can add index=2 to indicate the value in position 2 for multitple values
+          attrs: (String) attribute name
+                  post: title | created_at | excerpt | url | link | thumb | updated_at | author_name | author_url | content
+                  posttype: title | created_at | excerpt | url | link | thumb | updated_at
+                  category: title | created_at | excerpt | url | link | thumb | updated_at
+                  posttag: title | created_at | excerpt | url | link | thumb | updated_at
+                  site: title | created_at | excerpt | url | link | thumb | updated_at
+                  user: title | created_at | excerpt | url | link | thumb | updated_at
+                  theme: title | created_at | excerpt | url | link | thumb | updated_at
+                  navmenu: title | created_at | excerpt | url | link | thumb | updated_at
+          Note: If id and key is not present, then will be rendered for current model
+        Sample:
+          [data id='122' attr='title'] ==> return the title of post with id = 122
+          [data key='contact' attr='url'] ==> return the url of post with slug = contact
+          [data key='contact' attr='link'] ==> return the link with title as text of the link of post with slug = contact
+          [data object='site' attr='url'] ==> return the url of currrent site
+          [data key='page' object='posttype' attr='url'] ==> return the url of post_type with slug = page
+          [data field=icon index=2] ==> return the second value (multiple values) for this custom field with key=icon of current object
+          [data key='contact' field='sub_title'] ==> return the value of the custom_field with key=sub_title registered for post.slug = contact
+          [data object='site' field='sub_title'] ==> return the value of the custom_field with key=sub_title registered for current_site"
+      )
     end
+    # rubocop:enable Layout/LineLength
 
     # add shortcode
     # key: shortcode key
-    # template: template to render, if nil will render "shortcode_templates/<key>"
-    # Also can be a function to execute that instead a render, sample: lambda{|attrs, args| return "my custom content"; }
+    # template: template to render, if nil renders "shortcode_templates/<key>"
+    # Also can be a function to execute that instead a render, sample: lambda{|attrs, args| return "my custom content" }
     # descr: description for shortcode
     def shortcode_add(key, template = nil, descr = '')
-      @_shortcodes << key
-      @_shortcodes_template = @_shortcodes_template.merge({ key.to_s => template }) if template.present?
-      @_shortcodes_descr[key] = descr if descr.present?
+      shortcode_keys << key
+      CurrentRequest.shortcodes_template = shortcode_templates.merge({ key.to_s => template }) if template.present?
+      shortcode_descriptions[key] = descr if descr.present?
     end
 
     # add or update shortcode template
     # key: chortcode key to add or update
     # template: template to render, if nil will render "shortcode_templates/<key>"
     def shortcode_change_template(key, template = nil)
-      @_shortcodes_template[key] = template
+      shortcode_templates[key] = template
     end
 
-    # delete shortcode
+    # Delete the shortcode
     # key: chortcode key to delete
     def shortcode_delete(key)
-      @_shortcodes.delete(key)
+      shortcode_keys.delete(key)
     end
 
     # run all shortcodes in the content
@@ -122,13 +126,24 @@ module CamaleonCms
     # text: text that contain the shortcode
     # key: shortcode key
     # template: template to render, if nil this will render default render file
-    # Also can be a function to execute that instead a render, sample: lambda{|attrs, args| return "my custom content"; }
-    # render_shortcode("asda dasdasdas[owen a='1'] [bbb] sdasdas dasd as das[owen a=213]", "owen", lambda{|attrs, args| puts attrs; return "my test"; })
+    # Also can be a function to execute that instead a render, sample: lambda{|attrs, args| return "my custom content" }
+    # render_shortcode(
+    #   "asda dasdasdas[owen a='1'] [bbb] sdasdas dasd as das[owen a=213]", "owen",
+    #   lambda { |attrs, args| puts attrs; return "my test"; }
+    # )
     def render_shortcode(text, key, template = nil)
       text.scan(/#{cama_reg_shortcode(key)}/).each do |item|
         text = _cama_replace_shortcode(text, item, {}, template)
       end
       text
+    end
+
+    def shortcodes_list
+      shortcode_keys
+    end
+
+    def shortcodes_descriptions
+      shortcode_descriptions
     end
 
     private
@@ -154,19 +169,69 @@ module CamaleonCms
     # if empty, codes will be replaced with all registered shortcodes
     # Return: (String) reg expression string
     def cama_reg_shortcode(codes = nil)
-      # "(\\[(#{codes || (@_shortcodes || []).join("|")})(\s|\\]){0}(.*?)\\])" # doesn't support for similar names, like: [media] and [media_gallery]
-      "(\\[(#{codes || (@_shortcodes || []).join('|')})((\s)((?!\\]).)*|)\\])"
+      # doesn't support for similar names, like: [media] and [media_gallery]
+      # "(\\[(#{codes || (@_shortcodes || []).join("|")})(\s|\\]){0}(.*?)\\])"
+      "(\\[(#{codes || shortcode_keys.join('|')})((\s)((?!\\]).)*|)\\])"
     end
 
     # determine the content to replace instead the shortcode
     # return string
     def _eval_shortcode(code, attrs, args = {}, template = nil)
-      template ||= @_shortcodes_template[code].presence || "camaleon_cms/shortcode_templates/#{code}"
-      if @_shortcodes_template[code].instance_of?(::Proc)
-        @_shortcodes_template[code].call(_shortcode_parse_attr(attrs), args)
+      templates = shortcode_templates
+      template ||= templates[code].presence || "camaleon_cms/shortcode_templates/#{code}"
+      if templates[code].instance_of?(::Proc)
+        templates[code].call(_shortcode_parse_attr(attrs), args)
       else
         render template: template, locals: { attributes: _shortcode_parse_attr(attrs), args: args }, formats: [:html]
       end
+    end
+
+    def shortcode_keys
+      CurrentRequest.shortcodes ||= []
+    end
+
+    def shortcode_templates
+      CurrentRequest.shortcodes_template ||= {}
+    end
+
+    def shortcode_descriptions
+      CurrentRequest.shortcodes_descr ||= {}
+    end
+
+    def shortcode_asset_reference(file, as_path: false)
+      return if file.blank?
+
+      # Defensive ordering: assign the locals the rescue branch uses before
+      # everything else, so it can never see them nil. The only call that raises
+      # AssetNotFound is the asset helper below — resolve_shortcode_theme_asset
+      # never does (regex, string interpolation and File.exist? only).
+      helper = ActionController::Base.helpers
+      method_name = as_path ? :asset_path : :asset_url
+      file = resolve_shortcode_theme_asset(file)
+      helper.public_send(method_name, file)
+    rescue Sprockets::Rails::Helper::AssetNotFound
+      helper.public_send(method_name, file, skip_pipeline: true)
+    end
+
+    def resolve_shortcode_theme_asset(file)
+      # Tolerate both `themes/<slug>/assets/...` and `/themes/<slug>/assets/...`
+      # — the latter is what Rails' asset helpers typically emit.
+      match = file.to_s.match(%r{\A/?themes/[^/]+/assets/(?<asset>.+)\z})
+      return file unless match
+
+      can_resolve_theme_assets = respond_to?(:current_theme) &&
+                                 respond_to?(:theme_asset_path) &&
+                                 respond_to?(:theme_asset_file_path)
+      return file unless can_resolve_theme_assets
+
+      return file if current_theme.blank?
+
+      asset = match[:asset]
+      remapped_file = theme_asset_path(asset)
+      return file unless remapped_file.present? && remapped_file != file
+      return file unless File.exist?(theme_asset_file_path(asset))
+
+      remapped_file
     end
 
     # parse the attributes of a shortcode
@@ -174,12 +239,43 @@ module CamaleonCms
       res = {}
       return res if text.blank?
 
-      text.scan(/(\w+)\s*=\s*"([^"]*)"(?:\s|$)|(\w+)\s*=\s*'([^']*)'(?:\s|$)|(\w+)\s*=\s*([^\s'"]+)(?:\s|$)|"([^"]*)"(?:\s|$)|(\S+)(?:\s|$)/).each do |item|
-        item.each_with_index do |c, index|
-          if c.present?
-            res[c] = item[index + 1]
-            break
-          end
+      # StringScanner tokenizes the text by moving through it sequentially,
+      # matching patterns and advancing the scan pointer with each successful scan.
+      scanner = StringScanner.new(text)
+
+      # Continue parsing until we reach the end of the string.
+      until scanner.eos?
+        # Skip any leading whitespace before attempting to match a token.
+        scanner.skip(/\s+/)
+        break if scanner.eos?
+
+        # Attempt to match a key=value attribute (e.g., width="100", class='foo', height=200).
+        # Capture group 1 extracts the attribute name (word characters before =).
+        if scanner.scan(/(\w+)\s*=\s*/)
+          key = scanner[1]
+
+          # Determine the attribute value based on its quoting style:
+          # 1. Double-quoted string: "value" → extract content between quotes
+          # 2. Single-quoted string: 'value' → extract content between quotes
+          # 3. Unquoted value: any characters except whitespace or quotes
+          val = if scanner.scan(/"([^"]*)"/)
+                  scanner[1]
+                elsif scanner.scan(/'([^']*)'/)
+                  scanner[1]
+                elsif scanner.scan(/([^\s'"]+)/)
+                  scanner[1]
+                end
+
+          # Store the parsed key-value pair in the result hash.
+          res[key] = val
+
+        # If no key=value pattern matched, this is a standalone value (no assignment).
+        # Match either a double-quoted string or a bare unquoted token.
+        elsif scanner.scan(/"([^"]*)"|(\S+)/)
+          # Use the appropriate capture group: group 1 for quoted, group 2 for unquoted.
+          val = scanner[1] || scanner[2]
+          # Standalone values are stored with a nil key reference.
+          res[val] = nil
         end
       end
       res
@@ -295,7 +391,7 @@ module CamaleonCms
 
       when 'navmenu'
         model = current_site.nav_menu_items.find(attrs['id']) if attrs['id'].present?
-        model = current_site.nav_menu_items.find_by(slug: attrs['key']) if attrs['key'].present?
+        model = current_site.nav_menu_items.find_by_slug(attrs['key']) if attrs['key'].present? # rubocop:disable Rails/DynamicFindBy
 
       when 'user'
         model = current_site.the_user(attrs['id'].to_i) if attrs['id'].present?

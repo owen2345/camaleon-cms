@@ -4,7 +4,7 @@ require 'rails_helper'
 
 def create_site
   visit "#{cama_root_relative_path}/admin/settings/sites"
-  expect(page).to have_content('List Sites')
+  expect(page).to have_text('List Sites')
 
   within '#admin_content' do
     click_link 'Add Site'
@@ -18,7 +18,10 @@ def create_site
 end
 
 describe 'the Sites', :js do
-  init_site
+  # This spec creates a second site via the UI; once two sites exist, resolution
+  # matches the request host against site slugs, so the base site's slug must be
+  # the Capybara server host — the shared site's slug is not.
+  init_site(fresh: true)
 
   it 'Sites list' do
     admin_sign_in
@@ -81,6 +84,6 @@ describe 'the Sites', :js do
     visit "#{cama_root_relative_path}/admin/settings/sites/#{main_site.id}/edit"
     fill_in 'site_slug', with: "#{main_site.slug}-updated"
     click_button 'Submit'
-    expect(current_path).not_to eq("/#{main_site.slug}")
+    expect(page).to have_no_current_path("/#{main_site.slug}", ignore_query: true)
   end
 end

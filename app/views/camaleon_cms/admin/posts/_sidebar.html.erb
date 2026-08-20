@@ -14,7 +14,7 @@
         </div>
         <div class="panel-footer">
             <div class="row">
-                <div class="col-md-6 "><%= link_to t('camaleon_cms.admin.button.move_trash'), {action: :trash, post_id: @post.id}, class: "text-center text-danger btn-xs btn" unless @post.new_record? %></div>
+                <div class="col-md-6 "><%= link_to t('camaleon_cms.admin.button.move_trash'), {action: :trash, post_id: @post.id}, method: :patch, data: {confirm: t('camaleon_cms.admin.message.delete')}, class: "text-center text-danger btn-xs btn" unless @post.new_record? %></div>
                 <div class="col-md-6">
                     <% if @post.draft?  %>
                         <a class="btn btn-default btn-xs pull-right" href="#" data-type="pending" onclick="$('#form-post').submit(); return false;" style="<%= 'display: none' unless @post.pending? %>" ><%= t('camaleon_cms.admin.post_type.save_pending')%> </a>

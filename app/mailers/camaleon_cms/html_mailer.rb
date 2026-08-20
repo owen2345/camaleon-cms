@@ -1,5 +1,5 @@
 module CamaleonCms
-  class HtmlMailer < ActionMailer::Base
+  class HtmlMailer < ActionMailer::Base # rubocop:disable Rails/ApplicationMailer
     include CamaleonCms::SiteHelper
     include CamaleonCms::HooksHelper
     include CamaleonCms::PluginsHelper

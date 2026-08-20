@@ -109,7 +109,7 @@ class String
     name = tr('\\', '/') # work-around for IE
     name = File.basename(name)
     name = name.gsub(sanitize_regexp, '_')
-    name = "_#{name}" if name =~ /\A\.+\z/
+    name = "_#{name}" if /\A\.+\z/.match?(name)
     name = 'unnamed' if name.empty?
     name
   end
@@ -122,7 +122,9 @@ class String
   end
 
   # convert url into custom url with postfix,
-  # sample: "http://localhost/company/rack_multipart20160124_2288_8xcdjs.jpg".cama_add_postfix_url('thumbs/') into http://localhost/company/thumbs/rack_multipart20160124_2288_8xcdjs.jpg
+  # sample:
+  # "http://localhost/company/rack_multipart20160124_2288_8xcdjs.jpg".cama_add_postfix_url('thumbs/')
+  #   into http://localhost/company/thumbs/rack_multipart20160124_2288_8xcdjs.jpg
   def cama_add_postfix_url(postfix)
     File.join(File.dirname(self), "#{postfix}#{File.basename(self)}")
   end
@@ -135,9 +137,12 @@ class String
 
   # Parse the url to get the image version
   #   version_name: (String, default empty) version name,
-  #     if this is empty, this will return the image version for thumb of the image, sample: 'http://localhost/my_image.png'.cama_parse_image_version('') => http://localhost/thumb/my_image.png
-  #     if this is present, this will return the image version generated, sample: , sample: 'http://localhost/my_image.png'.cama_parse_image_version('200x200') => http://localhost/thumb/my_image_200x200.png
-  #   check_url: (boolean, default false) if true the image version will be verified, i.e. if the url exist will return version url, if not will return current url
+  #     if this is empty, this will return the image version for thumb of the image, sample:
+  #  'http://localhost/my_image.png'.cama_parse_image_version('') => http://localhost/thumb/my_image.png
+  #     if this is present, this will return the image version generated, sample:
+  #  'http://localhost/my_image.png'.cama_parse_image_version('200x200') => http://localhost/thumb/my_image_200x200.png
+  #   check_url: (boolean, default false) if true the image version will be verified,
+  #              i.e. if the url exist will return version url, if not will return current url
   def cama_parse_image_version(version_name = '', check_url = false)
     res = File.join(File.dirname(self), 'thumb', "#{File.basename(self).parameterize}#{File.extname(self)}")
     res = res.cama_add_postfix_file_name("_#{version_name}") if version_name.present?

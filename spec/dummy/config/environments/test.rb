@@ -12,10 +12,14 @@ Rails.application.configure do
   # preloads Rails for running tests, you may have to set it to true.
   config.eager_load = true
 
-  config.log_level = :debug
+  # :debug logs every SQL statement to log/test.log, which measurably slows the
+  # suite and grows the file unboundedly.
+  config.log_level = :warn
 
   # Configure static file server for tests with Cache-Control for performance.
-  config.public_file_server.enabled = true
+  # The env flag lets spec/lib/engine_boot_spec.rb boot without ActionDispatch::Static,
+  # mirroring production hosts that serve public/ from nginx/Apache.
+  config.public_file_server.enabled = ENV['CAMA_TEST_DISABLE_FILE_SERVER'].blank?
   config.static_cache_control = 'public, max-age=3600'
 
   # Show full error reports and disable caching.

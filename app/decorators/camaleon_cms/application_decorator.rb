@@ -50,14 +50,25 @@ module CamaleonCms
       @_deco_locale = locale.to_sym
     end
 
-    # get the locale for current decorator
+    # Admin requests can render frontend URLs from the dashboard, so prefer the
+    # cached frontend locale before falling back to the current I18n locale.
     def get_locale(locale = nil)
-      locale || @_deco_locale || I18n.locale
+      frontend_locale = begin
+        h.cama_get_i18n_frontend
+      rescue NoMethodError
+        nil
+      end
+      locale || @_deco_locale || frontend_locale || I18n.locale
     end
 
     # return the current locale prefixed to add in frontend routes
     def _calc_locale(_l)
-      _l = (_l || @_deco_locale || I18n.locale).to_s
+      frontend_locale = begin
+        h.cama_get_i18n_frontend
+      rescue NoMethodError
+        nil
+      end
+      _l = (_l || @_deco_locale || frontend_locale || I18n.locale).to_s
       "_#{_l}"
     end
   end

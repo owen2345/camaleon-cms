@@ -14,7 +14,25 @@ module CamaleonCms
     # Add meta with value or Update meta with key: key
     # return true or false
     def set_meta(key, value)
-      metas.where(key: key).update_or_create({ value: fix_meta_value(value) })
+      fixed_value = fix_meta_value(value)
+
+      # Check if the parent object has been saved to the database yet
+      if persisted?
+        # Safe to use database-driven lookups and updates
+        meta_record = metas.find_or_create_by(key: key.to_s)
+        meta_record.update(value: fixed_value)
+      else
+        # In-Memory Fallback: Find an existing unsaved item in the array collection,
+        # or build a brand new unsaved record on the association.
+        meta_record = metas.find { |m| m.key == key.to_s }
+
+        if meta_record
+          meta_record.value = fixed_value
+        else
+          metas.build(key: key.to_s, value: fixed_value)
+        end
+      end
+
       cama_set_cache("meta_#{key}", value)
     end
 
@@ -23,7 +41,7 @@ module CamaleonCms
     def get_meta(key, default = nil)
       key_str = key.is_a?(Symbol) ? key.to_s : key
       cama_fetch_cache("meta_#{key_str}") do
-        option = metas.loaded? ? metas.select { |m| m.key == key }.first : metas.where(key: key_str).first
+        option = metas.loaded? ? metas.find { |m| m.key == key_str } : metas.where(key: key_str).first
         res = ''
         if option.present?
           value = begin
@@ -73,12 +91,16 @@ module CamaleonCms
     # return value for attribute
     def get_option(key = nil, default = nil, meta_key = '_default')
       values = cama_options(meta_key)
+      return default if key.nil?
+
       key = key.to_sym
       values.key?(key) && values[key] != '' ? values[key] : default
     end
 
     # delete attribute from configuration
     def delete_option(key, meta_key = '_default')
+      return if key.nil?
+
       values = cama_options(meta_key)
       key = key.to_sym
       values.delete(key) if values.key?(key)
@@ -116,8 +138,11 @@ module CamaleonCms
       save_metas_options # unless self.changed?
     end
 
-    # save all settings for this post type received in data_options and data_metas attribute (options and metas)
-    # sample: Site.first.post_types.create({name: "owen", slug: "my_post_type", data_options: { has_category: true, default_layout: "my_layout" }})
+    # Save all settings for this post type - received in data_options and data_metas attribute (options and metas)
+    # sample:
+    # Site.first.post_types.create(
+    #   {name: "owen", slug: "my_post_type", data_options: { has_category: true, default_layout: "my_layout" }}
+    # )
     def save_metas_options
       set_multiple_options(data_options)
       return if data_metas.blank?

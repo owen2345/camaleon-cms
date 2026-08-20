@@ -1,9 +1,8 @@
 module CamaleonCms
   class PostType < CamaleonCms::TermTaxonomy
-    normalize_attrs(:name, :description)
+    normalize_attrs(:description)
 
     alias_attribute :site_id, :parent_id
-    default_scope { where(taxonomy: :post_type) }
 
     has_many :categories, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type_parent
     has_many :post_tags, foreign_key: :parent_id, dependent: :destroy, inverse_of: :post_type
@@ -12,12 +11,12 @@ module CamaleonCms
     has_many :posts_through_categories, foreign_key: :objectid, through: :term_relationships, source: :object
     has_many :posts_draft, class_name: 'CamaleonCms::Post', foreign_key: :taxonomy_id, dependent: :destroy,
                            inverse_of: :post_type
-    has_many :field_group_taxonomy, lambda {
-                                      where('object_class LIKE ?', 'PostType_%')
-                                    }, class_name: 'CamaleonCms::CustomField', foreign_key: :objectid, dependent: :destroy
+    has_many :field_group_taxonomy, -> { where('object_class LIKE ?', 'PostType_%') },
+             class_name: 'CamaleonCms::CustomField', foreign_key: :objectid, dependent: :destroy, inverse_of: :owner
 
-    belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, required: false
-    belongs_to :site, foreign_key: :parent_id, required: false
+    belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, optional: true,
+                       inverse_of: false
+    belongs_to :site, foreign_key: :parent_id, optional: true, inverse_of: :post_types
 
     scope :visible_menu, -> { where(term_group: nil) }
     scope :hidden_menu, -> { where(term_group: -1) }
@@ -92,7 +91,7 @@ module CamaleonCms
     def default_category
       return unless manage_categories?
 
-      cat = categories.find_by(slug: 'uncategorized')
+      cat = categories.find_by_slug('uncategorized') # rubocop:disable Rails/DynamicFindBy
       unless cat
         cat = categories.create({ name: 'Uncategorized', slug: 'uncategorized', parent_id: id })
         cat.set_option('not_deleted', true)
@@ -110,10 +109,17 @@ module CamaleonCms
     #   summary: String resume (optional)  => default (empty)
     #   post_order: Integer to define the order position in the list (optional)
     #   fields: Hash of values for custom fields, sample => fields: {subtitle: 'abc', icon: 'test' } (optional)
-    #   settings: Hash of post settings, sample => settings:
-    #     {has_content: false, has_summary: true, default_layout: 'my_layout', default_template: 'my_template' } (optional, see more in post.set_setting(...))
+    #   settings: Hash of post settings, sample => settings: (optional, see more in post.set_setting(...))
+    #     {has_content: false, has_summary: true, default_layout: 'my_layout', default_template: 'my_template' }
     #   data_metas: {template: "", layout: ""}
-    # sample: my_posttype.add_post(title: "My Title", post_order: 5, content: 'lorem_ipsum', settings: {default_template: "home/counters", has_content: false, has_seo: false, skip_fields: ["sub_tite", 'banner']}, fields: {pattern: true, bg: 'https://www.reallusion.com/de/images/3dx5/whatsnew/3dx5_features_banner_bg_02.jpg'})
+    # sample:
+    # my_posttype.add_post(
+    #   title: "My Title", post_order: 5, content: 'lorem_ipsum',
+    #   settings: {
+    #     default_template: "home/counters", has_content: false, has_seo: false, skip_fields: ["sub_tite", 'banner']
+    #   },
+    #   fields: { pattern: true, bg: 'https://www.reallusion.com/de/images/3dx5/whatsnew/3dx5_features_banner_bg_02.jpg' }
+    # )
     #   More samples here: https://gist.github.com/owen2345/eba9691585ed78ad6f7b52e9591357bf
     # return created post if it was created, else return errors
     def add_post(args)
@@ -139,6 +145,7 @@ module CamaleonCms
     end
 
     # return all available route formats of this post type for content posts
+    # rubocop:disable Layout/LineLength
     def contents_route_formats
       {
         'post_of_post_type' => '<code>/group/:post_type_id-:title/:slug</code><br>  (Sample: https://localhost.com/group/17-services/myservice.html)',
@@ -149,6 +156,7 @@ module CamaleonCms
         'hierarchy_post' => '<code>/:parent1_slug/:parent2_slug/.../:slug</code><br>  (Sample: https://localhost.com/item-1/item-1-1/item-111.html)'
       }
     end
+    # rubocop:enable Layout/LineLength
 
     # return the configuration of routes for post contents
     def contents_route_format

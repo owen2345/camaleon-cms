@@ -19,9 +19,150 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       allow_any_instance_of(described_class).to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
       allow_any_instance_of(described_class).to receive(:upload_file).and_return('url' => '/uploads/cropped.jpg')
       sign_in_as(admin_user, site: current_site)
-      get '/admin/media/crop'
+      post '/admin/media/crop'
 
       expect(response.status).not_to eq(403)
+    end
+
+    it 'returns the cropped url as plain text' do
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_return(true)
+      allow_any_instance_of(described_class).to receive(:cama_tmp_upload).and_return(file_path: '/tmp/test.jpg')
+      allow_any_instance_of(described_class).to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
+      allow_any_instance_of(described_class).to receive(:upload_file).and_return(
+        'url' => '/uploads/<script>alert(1)</script>.jpg'
+      )
+      sign_in_as(admin_user, site: current_site)
+
+      post '/admin/media/crop'
+
+      expect(response.media_type).to eq('text/plain')
+      expect(response.body).to eq('/uploads/<script>alert(1)</script>.jpg')
+    end
+
+    it 'surfaces an upload error and leaves the saved avatar untouched instead of an empty body' do
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_return(true)
+      allow_any_instance_of(described_class).to receive(:cama_tmp_upload).and_return(file_path: '/tmp/test.jpg')
+      allow_any_instance_of(described_class).to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
+      allow_any_instance_of(described_class).to receive(:upload_file)
+        .and_return(error: 'Potentially malicious content found!')
+      admin_user.set_meta('avatar', '/uploads/existing.jpg')
+      sign_in_as(admin_user, site: current_site)
+
+      post '/admin/media/crop', params: { saved_avatar: admin_user.id }
+
+      expect(response.body).to eq('Potentially malicious content found!')
+      # Read through a fresh record: set_meta/get_meta memoize per instance and reload does not clear
+      # that cache, so admin_user.reload.get_meta would echo the setup value and never see a bad write.
+      expect(CamaleonCms::User.find(admin_user.id).get_meta('avatar')).to eq('/uploads/existing.jpg')
+    end
+  end
+
+  context 'when cp_img_path is a server file path (path traversal attempt)' do
+    let(:admin_role) { current_site.user_roles.create!(name: 'Media Admin', slug: 'media_admin') }
+    let(:admin_user) { create(:user, role: admin_role.slug, site: current_site) }
+
+    before do
+      admin_role.set_meta("_manager_#{current_site.id}", { 'media' => 1 })
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_return(true)
+      sign_in_as(admin_user, site: current_site)
+    end
+
+    it 'rejects crop with cp_img_path set to a server absolute path' do
+      post '/admin/media/crop', params: { cp_img_path: '/etc/passwd' }
+
+      expect(response.body).to include('Invalid file path')
+    end
+
+    it 'rejects crop with path traversal after allowed prefix' do
+      allowed = Rails.public_path.to_s
+      post '/admin/media/crop', params: { cp_img_path: "#{allowed}/../../../etc/passwd" }
+
+      expect(response.body).to include('Invalid file path')
+    end
+  end
+
+  context 'when cp_img_path is an HTTP URL (URL validation)' do
+    let(:admin_role) { current_site.user_roles.create!(name: 'Media Admin', slug: 'media_admin') }
+    let(:admin_user) { create(:user, role: admin_role.slug, site: current_site) }
+
+    before do
+      admin_role.set_meta("_manager_#{current_site.id}", { 'media' => 1 })
+      allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_return(true)
+      allow_any_instance_of(described_class).to receive(:cama_crop_image).and_return('/tmp/cropped.jpg')
+      allow_any_instance_of(described_class).to receive(:upload_file).and_return('url' => '/uploads/cropped.jpg')
+      sign_in_as(admin_user, site: current_site)
+    end
+
+    # Same-site URLs are read from the local filesystem (no network request), so
+    # the real validator must NOT reject them for SSRF/DNS/HTML-sanitize reasons.
+    context 'with a same-site URL (read locally)' do
+      before { allow_any_instance_of(described_class).to receive(:same_site_url?).and_return(true) }
+
+      it 'passes a same-site URL with a multi-parameter query string through to cama_tmp_upload' do
+        url = 'http://localhost:3000/media/1/photo.jpg?v=2&size=large'
+        # rubocop:disable RSpec/StubbedMock
+        expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
+          .with(url, formats: nil, name: nil).and_return(file_path: '/tmp/test.jpg')
+        # rubocop:enable RSpec/StubbedMock
+
+        post '/admin/media/crop', params: { cp_img_path: url }
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'rejects a same-site URL with path traversal using the real validator message' do
+        expect_any_instance_of(described_class).not_to receive(:cama_tmp_upload)
+
+        post '/admin/media/crop', params: { cp_img_path: 'http://localhost:3000/../config/secrets.yml' }
+
+        expect(response.body).to include(I18n.t('camaleon_cms.admin.validate.path_traversal'))
+      end
+    end
+
+    # Remote URLs are actually fetched, so they get the full SSRF validation.
+    context 'with a remote URL' do
+      before { allow_any_instance_of(described_class).to receive(:same_site_url?).and_return(false) }
+
+      it 'rejects a URL resolving to a link-local address (no live DNS needed for an IP literal)' do
+        expect_any_instance_of(described_class).not_to receive(:cama_tmp_upload)
+
+        post '/admin/media/crop', params: { cp_img_path: 'http://169.254.169.254/latest/meta-data/' }
+
+        expect(response.body).to include(I18n.t('camaleon_cms.admin.validate.no_link_local_net_requests'))
+      end
+    end
+
+    it 'passes a non-URL path through without URL validation' do
+      expect(CamaleonCms::UserUrlValidator).not_to receive(:validate)
+      # rubocop:disable RSpec/StubbedMock
+      expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
+        .with('/etc/passwd', formats: nil, name: nil).and_return(error: 'Invalid file path')
+      # rubocop:enable RSpec/StubbedMock
+
+      post '/admin/media/crop', params: { cp_img_path: '/etc/passwd' }
+
+      expect(response.body).to include('Invalid file path')
+    end
+
+    it 'passes a data: URI through without URL validation' do
+      data_uri = 'data:image/png;base64,iVBORw0KGgo='
+      expect(CamaleonCms::UserUrlValidator).not_to receive(:validate)
+      # rubocop:disable RSpec/StubbedMock
+      expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
+        .with(data_uri, formats: nil, name: nil).and_return(file_path: '/tmp/test.png')
+      # rubocop:enable RSpec/StubbedMock
+
+      post '/admin/media/crop', params: { cp_img_path: data_uri }
+    end
+
+    it 'forwards name and formats to cama_tmp_upload so data: URIs work as in crop_url' do
+      data_uri = 'data:image/png;base64,iVBORw0KGgo='
+      # rubocop:disable RSpec/StubbedMock
+      expect_any_instance_of(described_class).to receive(:cama_tmp_upload)
+        .with(data_uri, formats: 'png', name: 'avatar.png').and_return(file_path: '/tmp/test.png')
+      # rubocop:enable RSpec/StubbedMock
+
+      post '/admin/media/crop', params: { cp_img_path: data_uri, name: 'avatar.png', formats: 'png' }
     end
   end
 
@@ -34,7 +175,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
     it 'blocks access and redirects' do
       allow_any_instance_of(described_class).to receive(:verify_media_authorization).and_raise(CanCan::AccessDenied)
       sign_in_as(limited_user, site: current_site)
-      get '/admin/media/crop'
+      post '/admin/media/crop'
 
       expect(response).to redirect_to(/admin/)
       expect(flash[:error]).to be_present

@@ -20,7 +20,11 @@ RSpec.describe 'Security: XSS Vulnerabilities Fixes', type: :request do
 
   describe 'Custom Fields and Shortcodes' do
     it 'escapes field names and field options' do
-      group = current_site.custom_field_groups.create!(name: malicious_payload, object_class: 'PostType_Post', objectid: post_type.id, slug: "malicious-group-#{SecureRandom.hex(4)}")
+      group = current_site
+              .custom_field_groups.create!(
+                name: malicious_payload, object_class: 'PostType_Post', objectid: post_type.id,
+                slug: "malicious-group-#{SecureRandom.hex(4)}"
+              )
       group.add_field({ name: malicious_payload, slug: 'test-field' }, { field_key: 'text_box' })
 
       get '/admin/settings/custom_fields/list', params: {
@@ -43,7 +47,11 @@ RSpec.describe 'Security: XSS Vulnerabilities Fixes', type: :request do
     end
 
     it 'includes auto-select JavaScript attributes in shortcodes' do
-      group = current_site.custom_field_groups.create!(name: 'Test Group', object_class: 'PostType_Post', objectid: post_type.id, slug: "test-group-#{SecureRandom.hex(4)}")
+      group = current_site
+              .custom_field_groups.create!(
+                name: 'Test Group', object_class: 'PostType_Post', objectid: post_type.id,
+                slug: "test-group-#{SecureRandom.hex(4)}"
+              )
       group.add_field({ name: 'Test Field', slug: 'test-field' }, { field_key: 'text_box' })
 
       get '/admin/settings/custom_fields/list', params: {
@@ -63,7 +71,9 @@ RSpec.describe 'Security: XSS Vulnerabilities Fixes', type: :request do
       my_post = post_type.posts.create!(title: 'Test Post', slug: 'test-post', user_id: admin.id)
       # Associate with admin user and set malicious first name
       admin.update!(first_name: malicious_payload, last_name: '')
-      my_post.comments.create!(content: 'Test comment', author: 'Attacker', author_email: 'a@b.com', approved: 'approved', user_id: admin.id)
+      my_post.comments.create!(
+        content: 'Test comment', author: 'Attacker', author_email: 'a@b.com', approved: 'approved', user_id: admin.id
+      )
 
       get "/admin/posts/#{my_post.id}/comments"
 
@@ -76,7 +86,10 @@ RSpec.describe 'Security: XSS Vulnerabilities Fixes', type: :request do
     it 'escapes category and tag names' do
       cat = post_type.categories.create!(name: malicious_payload, slug: "malicious-cat-#{SecureRandom.hex(4)}")
       tag = post_type.post_tags.create!(name: malicious_payload, slug: "malicious-tag-#{SecureRandom.hex(4)}")
-      my_post = post_type.posts.create!(title: 'Post with Malicious Cat', slug: "malicious-post-#{SecureRandom.hex(4)}", user_id: admin.id, categories: [cat], post_tags: [tag])
+      my_post = post_type.posts.create!(
+        title: 'Post with Malicious Cat', slug: "malicious-post-#{SecureRandom.hex(4)}", user_id: admin.id,
+        categories: [cat], post_tags: [tag]
+      )
 
       # Categories index (Finding 1)
       get "/admin/post_type/#{post_type.id}/categories"

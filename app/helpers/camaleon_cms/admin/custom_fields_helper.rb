@@ -2,31 +2,19 @@ module CamaleonCms
   module Admin
     module CustomFieldsHelper
       def cama_custom_field_elements
-        return @_cama_custom_field_elements if @_cama_custom_field_elements.present?
+        return CurrentRequest.custom_field_elements if CurrentRequest.custom_field_elements.present?
 
         items = {}
         items[:text_box] = {
           key: 'text_box',
           label: t('camaleon_cms.admin.custom_field.fields.text_box'),
-          options: {
-            required: true,
-            multiple: true,
-            translate: true,
-            default_value: '',
-            show_frontend: true
-          }
+          options: { required: true, multiple: true, translate: true, default_value: '', show_frontend: true }
         }
 
         items[:text_area] = {
           key: 'text_area',
           label: t('camaleon_cms.admin.custom_field.fields.text_area'),
-          options: {
-            required: true,
-            multiple: true,
-            translate: true,
-            default_value: '',
-            show_frontend: true
-          }
+          options: { required: true, multiple: true, translate: true, default_value: '', show_frontend: true }
         }
         items[:select] = {
           key: 'select',
@@ -35,10 +23,7 @@ module CamaleonCms
             required: true,
             multiple: true,
             translate: true,
-            multiple_options: {
-              label: t('camaleon_cms.admin.settings.options_select'),
-              default: 'radio'
-            },
+            multiple_options: { label: t('camaleon_cms.admin.settings.options_select'), default: 'radio' },
             show_frontend: true
           }
         }
@@ -298,7 +283,8 @@ module CamaleonCms
         }
 
         # evaluate the content of command value on listing
-        # sample command: options_from_collection_for_select(current_site.the_posts("commerce").decorate, :id, :the_title)
+        # sample command:
+        # options_from_collection_for_select(current_site.the_posts("commerce").decorate, :id, :the_title)
         items[:select_eval] = {
           key: 'select_eval',
           label: t('camaleon_cms.admin.custom_field.fields.select_eval'),
@@ -344,17 +330,32 @@ module CamaleonCms
         }
         r = { fields: items }
         hooks_run('extra_custom_fields', r)
-        @_cama_custom_field_elements = r[:fields]
+        CurrentRequest.custom_field_elements = r[:fields]
       end
 
       # add your model class into custom fields editor
       # Note: to use custom fields on your model, you need the following:
-      # - add: belongs_to :site (in your model) //don't forget multi site support, i.e.: you need site_id attribute in your table
+      # - add: belongs_to :site (in your model)
+      #   //don't forget multi site support, i.e.: you need site_id attribute in your table
       # - add: include CamaleonCms::CustomFieldsRead (in your model)
       # ==> With this, you can manage your model like a plugin. Check api -> custom fields section into docs)
       # model_class: class name (Product)
       def cf_add_model(model_class)
-        @_extra_models_for_fields << model_class
+        CurrentRequest.extra_models_for_fields ||= []
+        CurrentRequest.extra_models_for_fields << model_class
+      end
+
+      # Models offered in the field-group placement dropdown: those registered via cf_add_model plus any
+      # a custom_field_custom_models hook appends. Seeded from the legacy @_extra_models_for_fields ivar
+      # so a controller still assigning it keeps working. The dropdown used to read that ivar while
+      # cf_add_model wrote CurrentRequest, so registered models never appeared. Regression M18.
+      # The seed and the hook payload are copies: hook appends must reach only this read, not
+      # accumulate in the request store or leak into the controller ivar.
+      def cf_extra_models_for_fields
+        CurrentRequest.extra_models_for_fields ||= (instance_variable_get(:@_extra_models_for_fields) || []).dup
+        f_args = { models: CurrentRequest.extra_models_for_fields.dup }
+        hooks_run('custom_field_custom_models', f_args)
+        f_args[:models]
       end
     end
   end

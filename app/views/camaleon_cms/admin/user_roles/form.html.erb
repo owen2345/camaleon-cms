@@ -17,6 +17,26 @@
               <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @user_role} %>
                 <% rol_values_post_type = @user_role.new_record? ? {} : @user_role.get_meta("_post_type_#{current_site.id.to_s}") %>
                 <% rol_values_manager = @user_role.new_record? ? {} : @user_role.get_meta("_manager_#{current_site.id.to_s}") %>
+                <%# A role whose users are administrators holds every permission through `Ability`'s   %>
+                <%# `can :manage, :all`, which returns before either meta above is read. Their stored  %>
+                <%# metas are only what `set_default_user_roles` seeded when the site was created, so  %>
+                <%# every key added to ROLES afterwards rendered unchecked on existing sites and read  %>
+                <%# as "denied to administrators", which it never was. Deriving the state from the     %>
+                <%# role keeps it true for keys added later, with no backfill task to run and none to  %>
+                <%# write again next time.                                                            %>
+                <%#                                                                                    %>
+                <%# Such a role's boxes are also locked, and `UserRolesController` declines to write   %>
+                <%# its metas — the two conditions are the same predicate, so a locked box, which the  %>
+                <%# browser never submits, cannot silently clear what is stored.                      %>
+                <% grants_all = @user_role.grants_all_permissions? %>
+                <% permissions_editable = @user_role.permissions_editable? %>
+                <%# Without this the locked, all-checked boxes look like a bug rather than a statement %>
+                <%# about what an administrator is. %>
+                <% if grants_all %>
+                    <div class="alert alert-info">
+                      <span class="fa fa-info-circle"></span>&nbsp;<%= t('camaleon_cms.admin.users.admin_holds_all_permissions', default: 'Users with this role are administrators, so they hold every permission below regardless of what is selected. These settings cannot be changed.') %>
+                    </div>
+                <% end %>
               <div id="contents-checkbox" class="form-horizontal">
                 <div class="">
                    <table class="table table-responsive table-hover table-striped">
@@ -49,7 +69,7 @@
                                 values = [] if values == 0
                                 %>
                                 <% if visible %>
-                                    <input type="checkbox" name="rol_values[post_type][<%= value[:key] %>][]" value="<%= pt.id %>" <%= "checked" if values.include?(pt.id)  %> <%= "disabled" unless @user_role.editable?  %> onclick="<%= "cama_user_roles_do_all_publish(this, '#{value[:color]}', '#{value[:key]}')" %>" >
+                                    <input type="checkbox" name="rol_values[post_type][<%= value[:key] %>][]" value="<%= pt.id %>" <%= "checked" if grants_all || values.include?(pt.id)  %> <%= "disabled" unless permissions_editable  %> onclick="<%= "cama_user_roles_do_all_publish(this, '#{value[:color]}', '#{value[:key]}')" %>" >
                                 <% end %>
                               </td>
                           <% end %>
@@ -64,9 +84,10 @@
                   <h5><%= t('camaleon_cms.admin.users.other_permissions')%></h5>
                   <div class="row">
                     <% values = rol_values_manager || {}  %>
+                    <%# Same rule as the grid above: see `grants_all` where it is assigned. %>
                     <% cama_get_roles_values[:manager].each do |value|  %>
                         <div class="col-md-4">
-                          <label><input type="checkbox" name="rol_values[manager][<%= value[:key] %>]" value="1" <%= "checked" if values[value[:key].to_sym].present?  %> <%= "disabled" unless @user_role.editable?  %> <%= 'data-danger-select-eval=1' if value[:key].to_s == 'select_eval' %> >&nbsp; <%= raw value[:label] %></label>
+                          <label><input type="checkbox" name="rol_values[manager][<%= value[:key] %>]" value="1" <%= "checked" if grants_all || values[value[:key].to_sym].present?  %> <%= "disabled" unless permissions_editable  %> <%= 'data-danger-select-eval=1' if value[:key].to_s == 'select_eval' %> >&nbsp; <%= raw value[:label] %></label>
                           &nbsp;<%= raw cama_html_tooltip(value[:description], 'right') if value[:description].present? %>
                         </div>
                     <% end %>
@@ -77,7 +98,7 @@
 
 
             </div>
-            <% if @user_role.editable? %>
+            <% if permissions_editable %>
                 <div id="checked-actions" class="panel-footer text-right">
                   <a class="btn btn-default btn-sm" data-type="all" href="#"><%= t('camaleon_cms.admin.button.select_all') %></a>
                   <a class="btn btn-default btn-sm" data-type="none" href="#"><%= t('camaleon_cms.admin.button.select_none') %></a>

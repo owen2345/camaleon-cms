@@ -11,9 +11,42 @@ module CamaleonCms
       end
     end
 
+    # Point Rails to use the post_class column for Native STI
+    self.inheritance_column = :post_class
+
+    # Controls Writing: Strip 'CamaleonCms::' when saving to DB
+    # "CamaleonCms::Widget::Assigned" -> "Widget::Assigned"
+    # "CamaleonCms::Post" -> "Post"
+    def self.sti_name
+      name.sub(/^CamaleonCms::/, '')
+    end
+
+    # Controls Reading: Prepend 'CamaleonCms::' when pulling from DB
+    # "Widget::Assigned" -> "CamaleonCms::Widget::Assigned"
+    # "Post" -> "CamaleonCms::Post"
+    def self.find_sti_class(type_name)
+      full_class_name = type_name.start_with?('CamaleonCms::') ? type_name : "CamaleonCms::#{type_name}"
+      klass = begin
+        full_class_name.constantize
+      rescue NameError
+        nil
+      end
+      return klass if klass && klass <= base_class
+
+      # `super` resolves fully-qualified external classes (plugin STI outside the
+      # CamaleonCms namespace) and enforces ancestry; values it cannot place load as
+      # the base class, as every row did before native STI.
+      begin
+        super
+      rescue ActiveRecord::SubclassNotFound
+        base_class
+      end
+    end
+
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}posts"
 
-    # attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value, :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order, :is_feature
+    # attr_accessible :user_id, :title, :slug, :content, :content_filtered, :status,  :visibility, :visibility_value,
+    #                 :post_order, :post_type_key, :taxonomy_id, :published_at, :post_parent, :post_order, :is_feature
     attr_accessor :draft_id
 
     # attr_accessible :data_options
@@ -21,10 +54,12 @@ module CamaleonCms
     cattr_accessor :current_user
     cattr_accessor :current_site
 
-    has_many :term_relationships, foreign_key: :objectid, dependent: :destroy, primary_key: :id
-    has_many :children, lambda {
-                          where(post_class: 'PostDefault')
-                        }, class_name: 'CamaleonCms::PostDefault', foreign_key: :post_parent, dependent: :destroy, primary_key: :id
+    has_many :children, -> { where(post_class: 'PostDefault') },
+             class_name: 'CamaleonCms::PostDefault', foreign_key: :post_parent, dependent: :destroy, inverse_of: :parent
+
+    belongs_to :parent, class_name: 'CamaleonCms::PostDefault', foreign_key: :post_parent, optional: true,
+                        inverse_of: :children
+
     scope :featured, -> { where(is_feature: true) }
 
     validates :title, :slug, presence: true
@@ -45,11 +80,6 @@ module CamaleonCms
       res.take
     end
 
-    # return the parent of a post (support for sub contents or tree of posts)
-    def parent
-      CamaleonCms::Post.where(id: post_parent).first
-    end
-
     # return the author of this Content
     def author
       CamaleonCms::User.find(user_id)
@@ -62,7 +92,7 @@ module CamaleonCms
       CamaleonCms::NavMenuItem.where(url: id, kind: 'post')
     end
 
-    # Set the meta, field values and the post keywords here
+    # Set the meta-field values and the post keywords here
     def set_params(meta, custom_fields, options)
       set_metas(meta)
       set_field_values(custom_fields)

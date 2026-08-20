@@ -36,7 +36,9 @@
                                     <ul class="dropdown-menu">
                                         <li><a href="<%= cama_admin_dashboard_path %>"><%= I18n.t('camaleon_cms.common.dashboard') %></a></li>
                                         <li><a href="<%= cama_admin_profile_path %>"><%= I18n.t('camaleon_cms.common.profile') %></a></li>
-                                        <li><a href="<%= cama_admin_logout_path %>"><%= I18n.t('camaleon_cms.common.logout') %></a></li>
+                                        <%# Security (audit M6): logout acts only over POST; button_to carries the CSRF
+                                            token without needing rails-ujs on the frontend. %>
+                                        <li><%= button_to I18n.t('camaleon_cms.common.logout'), cama_admin_logout_path, method: :post, class: 'btn btn-link' %></li>
                                     </ul>
                                 </li>
                             <% else %>

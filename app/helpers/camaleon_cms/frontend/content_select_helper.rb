@@ -1,21 +1,22 @@
 #   Camaleon CMS is a content management system
 #   Copyright (C) 2015 by Owen Peredo Diaz
 #   Email: owenperedo@gmail.com
-#   This program is free software: you can redistribute it and/or modify   it under the terms of the GNU Affero General Public License as  published by the Free Software Foundation, either version 3 of the  License, or (at your option) any later version.
-#   This program is distributed in the hope that it will be useful,  but WITHOUT ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#   This program is free software: you can redistribute it and/or modify it under the terms of the
+#   GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License,
+#   or (at your option) any later version.
+#   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+#   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #   See the  GNU Affero General Public License (GPLv3) for more details.
 module CamaleonCms
   module Frontend
     module ContentSelectHelper
-      # select single post of post type
+      # select a single post of post type
       # the_post_type('post') do
       #   the_post('first-blog-post')
       # end
       def the_post(slug)
-        post = @object.the_post(slug)
-        process_in_block(post) do
-          yield(post) if block_given?
-        end
+        post = camaleon_frontend_object.the_post(slug)
+        process_in_block(post) { yield(post) if block_given? }
         post
       end
 
@@ -28,7 +29,7 @@ module CamaleonCms
       #   the_posts(limit: 10)
       # end
       def the_posts(options = {})
-        @object.posts.visible_frontend.limit(options[:limit]).decorate
+        camaleon_frontend_object.posts.visible_frontend.limit(options[:limit]).decorate
       end
 
       # select post type by just pass slug to parameter
@@ -52,7 +53,7 @@ module CamaleonCms
       #   the_comments
       # end
       def the_comments(options = {})
-        @object.comments.limit(options[:limit]).decorate if @object.present?
+        camaleon_frontend_object.comments.limit(options[:limit]).decorate if camaleon_frontend_object.present?
       end
 
       # select title of post
@@ -60,7 +61,7 @@ module CamaleonCms
       #   the_title
       # end
       def the_title
-        @object&.the_title
+        camaleon_frontend_object&.the_title
       end
 
       # select content of post
@@ -68,7 +69,12 @@ module CamaleonCms
       #   the_content
       # end
       def the_content
-        sanitize(@object.the_content) if @object.present?
+        # Security (scan-and-reject policy): no render-time transform. Stored content is gated at
+        # save (Post#reject_untrusted_dangerous_content), always equals what its author wrote, and
+        # renders verbatim — the same contract as the templates' `raw post.the_content`. The
+        # sanitize this once applied used the narrow default allowlist, so it also broke trusted
+        # authors' tables and embeds on this DSL path only.
+        camaleon_frontend_object.the_content.to_s.html_safe if camaleon_frontend_object.present? # rubocop:disable Rails/OutputSafety
       end
 
       # select url of post
@@ -76,7 +82,7 @@ module CamaleonCms
       #   the_url
       # end
       def the_url
-        @object&.the_url
+        camaleon_frontend_object&.the_url
       end
 
       # select thumbnail of post
@@ -84,15 +90,15 @@ module CamaleonCms
       #   the_thumbnail
       # end
       def the_thumbnail
-        @object&.the_thumb_url
+        camaleon_frontend_object&.the_thumb_url
       end
 
-      # select slug of post, post type ... (@object)
+      # select slug of post, post type ...
       # the_post('blog') do
       #   the_slug
       # end
       def the_slug
-        @object&.the_slug
+        camaleon_frontend_object&.the_slug
       end
 
       # select excerpt of post
@@ -100,7 +106,7 @@ module CamaleonCms
       #   the_excerpt
       # end
       def the_excerpt(chars = 200)
-        @object&.the_excerpt(chars)
+        camaleon_frontend_object&.the_excerpt(chars)
       end
 
       # select custome field from object
@@ -108,7 +114,7 @@ module CamaleonCms
       #   the_field('extra-content')
       # end
       def the_field(slug)
-        @object&.the_field(slug)
+        camaleon_frontend_object&.the_field(slug)
       end
 
       # loop through each post of post type
@@ -152,10 +158,18 @@ module CamaleonCms
       #   the_field('extra-content')
       # end
       def process_in_block(object)
-        temp_object = @object
-        @object     = object
+        temp_object = CurrentRequest.frontend_object
+        CurrentRequest.frontend_object = object
         yield
-        @object = temp_object
+      ensure
+        CurrentRequest.frontend_object = temp_object
+      end
+
+      private
+
+      def camaleon_frontend_object
+        # Fall back to a plugin-set @object ivar; core writes CurrentRequest.frontend_object. Regression M20.
+        CurrentRequest.frontend_object || (instance_variable_get(:@object) if instance_variable_defined?(:@object))
       end
     end
   end

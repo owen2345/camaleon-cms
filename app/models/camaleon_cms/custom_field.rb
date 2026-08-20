@@ -14,15 +14,24 @@ module CamaleonCms
     # status: nil -> visible on list group fields
     # attr_accessible :object_class, :objectid, :description, :parent_id, :count, :name, :slug,
     # :field_order, :status, :is_repeat
+
+    # Scope metas by object_class. Meta rows are keyed by (objectid, object_class), so a custom
+    # field whose numeric id collides with another model's id (e.g. a Post) would otherwise read
+    # the wrong "_default" meta and lose its field_key. See regression: TinyMCE editor field
+    # rendered as a plain text_box on Theme settings.
+    # rubocop:disable Rails/InverseOf
     has_many :metas, -> { where(object_class: 'CustomField') }, foreign_key: :objectid, dependent: :destroy
-    has_many :values, class_name: 'CamaleonCms::CustomFieldsRelationship',
-                      foreign_key: :custom_field_id, dependent: :destroy
-    belongs_to :custom_field_group, required: false
-    belongs_to :parent, class_name: 'CamaleonCms::CustomField', foreign_key: :parent_id, required: false
+    # rubocop:enable Rails/InverseOf
+    has_many :values, class_name: 'CamaleonCms::CustomFieldsRelationship', dependent: :destroy
+
+    belongs_to :custom_field_group, class_name: 'CamaleonCms::CustomFieldGroup', foreign_key: :parent_id,
+                                    optional: true, inverse_of: :fields
+    belongs_to :parent, class_name: 'CamaleonCms::CustomField', optional: true
+    belongs_to :owner, polymorphic: true, foreign_key: :objectid, foreign_type: :object_class, optional: true
 
     validates :name, :object_class, presence: true
-    validates_uniqueness_of :slug, scope: %i[parent_id object_class],
-                                   unless: ->(o) { o.is_a?(CamaleonCms::CustomFieldGroup) }
+    validates :slug, uniqueness: { scope: %i[parent_id object_class],
+                                   unless: ->(o) { o.is_a?(CamaleonCms::CustomFieldGroup) } }
 
     before_validation :before_validating
     before_update :check_select_eval_authorization

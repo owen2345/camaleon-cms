@@ -16,7 +16,8 @@ module CamaleonCms
     # hook_key: hook key
     # params: params for hook
     def hooks_run(hook_key, params = nil)
-      PluginRoutes.enabled_apps(current_site).each do |plugin|
+      theme_slug = current_theme&.slug.presence || current_site.get_theme_slug
+      PluginRoutes.enabled_apps(current_site, theme_slug).each do |plugin|
         _do_hook(plugin, hook_key, params)
       end
 
@@ -28,7 +29,7 @@ module CamaleonCms
 
     # skip hook function with name: hook_function_name
     def hook_skip(hook_function_name)
-      @_hooks_skip << hook_function_name
+      hook_skip_list << hook_function_name
     end
 
     private
@@ -37,7 +38,7 @@ module CamaleonCms
       return if plugin.blank? || plugin['hooks'].blank? || plugin['hooks'][hook_key].blank?
 
       plugin['hooks'][hook_key].each do |hook|
-        next if @_hooks_skip.present? && @_hooks_skip.include?(hook)
+        next if hook_skip_list.include?(hook)
 
         begin
           if params.nil?
@@ -59,6 +60,15 @@ module CamaleonCms
           end
         end
       end
+    end
+
+    def hook_skip_list
+      state = camaleon_hooks_state
+      state[:hooks_skip] ||= []
+    end
+
+    def camaleon_hooks_state
+      CurrentRequest.hooks_helper_state ||= {}
     end
   end
 end

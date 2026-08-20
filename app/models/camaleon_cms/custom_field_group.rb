@@ -5,16 +5,22 @@ module CamaleonCms
     alias_attribute :site_id, :parent_id
 
     default_scope do
-      where("object_class != '_fields'")
-        .reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC")
+      where("object_class != '_fields'").reorder("#{CamaleonCms::CustomField.table_name}.field_order ASC")
     end
 
+    # Scope metas by object_class so a group's numeric id colliding with another model's id does
+    # not read the wrong meta rows (meta rows are keyed by both objectid and object_class).
+    # rubocop:disable Rails/InverseOf
     has_many :metas, -> { where(object_class: 'CustomFieldGroup') }, foreign_key: :objectid, dependent: :destroy
-    has_many :fields, -> { where(object_class: '_fields') }, class_name: 'CamaleonCms::CustomField',
-                                                             foreign_key: :parent_id, dependent: :destroy
-    belongs_to :site, foreign_key: :parent_id, required: false
+    # rubocop:enable Rails/InverseOf
 
-    validates_uniqueness_of :slug, scope: %i[object_class objectid parent_id]
+    has_many :fields, -> { where(object_class: '_fields') }, class_name: 'CamaleonCms::CustomField',
+                                                             foreign_key: :parent_id, dependent: :destroy,
+                                                             inverse_of: :custom_field_group
+    belongs_to :site, foreign_key: :parent_id, optional: true, inverse_of: :custom_field_groups
+    belongs_to :owner, polymorphic: true, foreign_key: :objectid, foreign_type: :object_class, optional: true
+
+    validates :slug, uniqueness: { scope: %i[object_class objectid parent_id] }
 
     before_validation :before_validating
 
@@ -52,9 +58,9 @@ module CamaleonCms
     end
     alias add_field add_manual_field
 
-    # return a field with slug = slug from current group
+    # return a field with slug = slug from the current group
     def get_field(slug)
-      fields.find_by(slug: slug)
+      fields.find_by_slug(slug) # rubocop:disable Rails/DynamicFindBy
     end
 
     # only used by form on admin panel (protected)
@@ -76,7 +82,7 @@ module CamaleonCms
           if id_val.present? && (field_item = fields.find_by(id: id_val)).present?
             # If this is an existing select_eval field (or the incoming data would
             # make it a select_eval) ensure the current actor has explicit
-            # permission. For updates we preserve the form-like behavior by
+            # permission. For updates, we preserve the form-like behaviour by
             # collecting an error-like non-persisted field in errors_saved and
             # skipping the update when unauthorized.
             existing_key = (field_item.options || {})[:field_key].to_s
@@ -94,7 +100,7 @@ module CamaleonCms
             # Check if the incoming options request creation of select_eval
             incoming_key = (options[:field_key] || item[:field_key]).to_s
             if incoming_key == 'select_eval' && !can?(:manage, :select_eval)
-              # Add an error-like non-persisted field to errors_saved to preserve behavior
+              # Add an error-like non-persisted field to errors_saved to preserve behaviour
               field_item = fields.new(item)
               field_item.errors.add(:base, 'Not authorized to create select_eval field')
               errors_saved << field_item
@@ -116,6 +122,11 @@ module CamaleonCms
     end
 
     # generate the caption for this group
+    # The caption is rendered with `raw` by admin/settings/custom_fields/index.html.erb, so every
+    # interpolated value is escaped here, at the source: `the_title` already returns an escaped
+    # SafeBuffer, and the plain attributes below are escaped explicitly. `object_class` is included
+    # because the placement check admits any class name paired with the current site's id, so it is
+    # attacker-settable text like the model names are.
     def get_caption
       caption = ''
       begin
@@ -126,16 +137,19 @@ module CamaleonCms
           caption = "Fields for Categories in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
         when 'PostType_PostTag'
           caption = "Fields for Post tags in <b>#{site.post_types.find(objectid).decorate.the_title}</b>"
-        when 'Widget::Main'
-          caption = "Fields for Widget <b>(#{CamaleonCms::Widget::Main.find(objectid).name.translate})</b>"
+        when 'Main'
+          widget_name = CamaleonCms::Widget::Main.find(objectid).name.translate
+          caption = "Fields for Widget <b>(#{ERB::Util.html_escape(widget_name)})</b>"
         when 'Theme'
-          caption = "Field settings for Theme <b>(#{begin
+          theme_name = begin
             site.themes.find(objectid).name
           rescue StandardError
             objectid
-          end})</b>"
+          end
+          caption = "Field settings for Theme <b>(#{ERB::Util.html_escape(theme_name)})</b>"
         when 'NavMenu'
-          caption = "Field settings for Menus <b>(#{CamaleonCms::NavMenu.find(objectid).name})</b>"
+          menu_name = CamaleonCms::NavMenu.find(objectid).name
+          caption = "Field settings for Menus <b>(#{ERB::Util.html_escape(menu_name)})</b>"
         when 'Site'
           caption = 'Field settings the site'
         when 'PostType'
@@ -144,12 +158,14 @@ module CamaleonCms
           p = CamaleonCms::Post.find(objectid).decorate
           caption = "Fields for content <b>(#{p.the_title})</b>"
         else # 'Plugin' or other class
-          caption = "Fields for <b>#{object_class}</b>"
+          caption = "Fields for <b>#{ERB::Util.html_escape(object_class)}</b>"
         end
       rescue StandardError => e
         Rails.logger.debug "Camaleon CMS - Menu Item Error: #{e.message} ==> Attrs: #{attributes}"
       end
-      caption
+      # rubocop:disable Rails/OutputSafety -- every interpolated value above is escaped at the source
+      caption.html_safe
+      # rubocop:enable Rails/OutputSafety
     end
 
     private
@@ -161,8 +177,9 @@ module CamaleonCms
     # auto save the default field values
     def auto_save_default_values(field, options)
       class_name = object_class.split('_').first
-      return unless %w[Post Category Plugin
-                       Theme].include?(class_name) && objectid && (options[:default_value].present? || options[:default_values].present?)
+      return unless %w[Post Category Plugin Theme].include?(class_name) &&
+                    objectid &&
+                    (options[:default_value].present? || options[:default_values].present?)
 
       owner = if class_name == 'Theme'
                 "CamaleonCms::#{class_name}".constantize.find(objectid) # owner model
@@ -170,13 +187,13 @@ module CamaleonCms
                 begin
                   "CamaleonCms::#{class_name}".constantize.find(objectid)
                 rescue StandardError
-                  "CamaleonCms::#{class_name}".constantize.find_by(slug: objectid)
+                  "CamaleonCms::#{class_name}".constantize.find_by_slug(objectid) # rubocop:disable Rails/DynamicFindBy
                 end
               end
       (options[:default_values] || [options[:default_value]] || []).each do |value|
         if owner.present?
-          owner.custom_field_values.create!(custom_field_id: field.id, custom_field_slug: field.slug,
-                                            value: fix_meta_value(value))
+          owner.custom_field_values
+               .create!(custom_field_id: field.id, custom_field_slug: field.slug, value: fix_meta_value(value))
         end
       end
     end

@@ -2,21 +2,19 @@ module CamaleonCms
   module PluginsHelper
     include CamaleonCms::SiteHelper
     # load all plugins + theme installed for current site
-    # METHOD IGNORED (is a partial solution to avoid load helpers and cache it for all sites)
-    # this method try to load helpers for each request without caching
+    # METHOD IGNORED (is a partial solution to avoid loading helpers and cache it for all sites)
+    # this method tries to load helpers for each request without caching
     def plugins_initialize(klass = nil)
       mod = Module.new
       PluginRoutes.enabled_apps(current_site).each do |plugin|
         next if plugin.blank? || plugin['helpers'].blank?
 
-        plugin['helpers'].each do |h|
-          mod.send :include, h.constantize
-        end
+        plugin['helpers'].each { |h| mod.send :include, h.constantize }
       end
       (klass || self).send :extend, mod
     end
 
-    # upgrade installed plugin in current site for a new version
+    # upgrade the installed plugin in the current site for a new version
     # plugin_key: key of the plugin
     # trigger hook "on_upgrade"
     # return model of the plugin
@@ -29,7 +27,7 @@ module CamaleonCms
       plugin_model
     end
 
-    # install a plugin for current site
+    # install a plugin for the current site
     # plugin_key: key of the plugin
     # return model of the plugin
     def plugin_install(plugin_key)
@@ -50,7 +48,7 @@ module CamaleonCms
       end
     end
 
-    # uninstall a plugin from current site
+    # uninstall a plugin from the current site
     # plugin_key: key of the plugin
     # return model of the plugin
     def plugin_uninstall(plugin_key)
@@ -66,7 +64,7 @@ module CamaleonCms
       plugin_model
     end
 
-    # remove a plugin from current site
+    # remove a plugin from the current site
     # plugin_key: key of the plugin
     # return model of the plugin removed
     # DEPRECATED: PLUGINS AND THEMES CANNOT BE DESTROYED
@@ -105,8 +103,10 @@ module CamaleonCms
     # return plugin full asset path
     # plugin_key: plugin name
     # asset: (String) asset name
-    # sample: <script src="<%= plugin_asset_path("admin.js") %>"></script> => /assets/plugins/my_plugin/admin-54505620f.js
-    # sample: <script src="<%= plugin_asset_path("admin.js", 'my_plugin') %>"></script> => /assets/plugins/my_plugin/admin-54505620f.js
+    # sample: <script src="<%= plugin_asset_path("admin.js") %>"></script> =>
+    #           /assets/plugins/my_plugin/admin-54505620f.js
+    # sample: <script src="<%= plugin_asset_path("admin.js", 'my_plugin') %>"></script> =>
+    #           /assets/plugins/my_plugin/admin-54505620f.js
     def plugin_asset_path(asset, plugin_key = nil)
       if plugin_key.present? && plugin_key.include?('/')
         return plugin_asset_url(plugin_key,
@@ -123,11 +123,12 @@ module CamaleonCms
     alias plugin_asset plugin_asset_path
     alias plugin_gem_asset plugin_asset_path
 
-    # return the full url for asset of current plugin:
+    # return the full url for asset of the current plugin:
     # asset: (String) asset name
     # plugin_key: (optional) plugin name, default (current plugin caller to this function)
     # sample:
-    #   plugin_asset_url("css/main.css") => return: https://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
+    #   plugin_asset_url("css/main.css") =>
+    #     return: https://myhost.com/assets/plugins/my_plugin/assets/css/main-54505620f.css
     def plugin_asset_url(asset, plugin_key = nil)
       key = plugin_key || self_plugin_key(1)
       p = PluginRoutes.plugin_info(key)['gem_mode'] ? "plugins/#{key}/#{asset}" : "plugins/#{key}/assets/#{asset}"
@@ -138,22 +139,22 @@ module CamaleonCms
       end
     end
 
-    # auto load all helpers of this plugin
+    # Autoload all helpers of this plugin
     def plugin_load_helpers(plugin)
       return if plugin.blank? || plugin['helpers'].blank?
 
       plugin['helpers'].each do |h|
         next if self.class.include?(h.constantize)
 
-        class_eval do
-          include h.constantize
-        end
+        class_eval { include h.constantize }
       rescue StandardError => e
-        Rails.logger.debug "Camaleon CMS - App loading error for #{h}: #{e.message}. Please check the plugins and themes presence"
+        Rails.logger.debug do
+          "Camaleon CMS - App loading error for #{h}: #{e.message}. Please check the plugins and themes presence"
+        end
       end
     end
 
-    # return plugin key for current plugin file (helper|controller|view)
+    # return the plugin key for the current plugin file (helper|controller|view)
     # index: internal control (ignored)
     def self_plugin_key(index = 0)
       f = caller[index]
@@ -175,9 +176,7 @@ module CamaleonCms
     # return the plugin model for current site calculated according to the file caller location
     def current_plugin(plugin_key = nil)
       _key = plugin_key || self_plugin_key(1)
-      cama_cache_fetch("current_plugin_#{_key}") do
-        current_site.get_plugin(_key)
-      end
+      cama_cache_fetch("current_plugin_#{_key}") { current_site.get_plugin(_key) }
     end
   end
 end

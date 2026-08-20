@@ -1,7 +1,7 @@
 # Testing Guide
 
 > **Important:** Always run the specs with `bin/rspec`.
-> Since this project is a gem, Rails commands like `rails routes` or `bin/rails zeitwerk:check` MUST be run from the `spec/dummy` folder. Use subshells to ensure you return to root: `(cd spec/dummy && bin/rails ...)`
+> Remember the gem quirk from `AGENTS.md` Ground Rules: run Rails commands from `spec/dummy` via a subshell.
 
 ## Running Tests
 
@@ -30,13 +30,33 @@ bundle exec rake app:db:test:prepare
 ## Test Helpers (`spec/support/common.rb`)
 
 ```ruby
-init_site              # creates @site and @post
-admin_sign_in          # authenticate admin user
-admin_sign_in(user, pass)
+init_site              # exposes the suite-wide shared site as @site (+ @post)
+init_site(fresh: true) # replaces it with a per-example site — only for specs
+                       # that need the slug to match the Capybara server host
+                       # (e.g. multi-site UI flows)
+admin_sign_in          # authenticate by setting the auth cookie (fast; verifies
+admin_sign_in(user, pass)  # the password and raises on mismatch)
+admin_form_sign_in     # authenticate through the real login form — use only in
+                       # specs that test the sign-in flow itself
 wait(2)                # wait for JS execution
 cama_root_relative_path # site URL helper
 confirm_dialog         # accept JS dialogs
 ```
+
+### Shared site (`spec/support/shared_site.rb`)
+
+Installing a Camaleon site costs ~0.6s, so one canonical site is installed
+per suite run (committed, outside the per-example transactions) and reused
+everywhere: `init_site`, `Cama::Site.first`, and the `post`/`post_type`/`user`
+factories all resolve to it by default. Example-level mutations roll back with
+the transaction. Only create additional sites when the test is about
+multi-site behavior; explicit `create(:site)` still installs a real site.
+
+Site installation already claims the default slugs — user roles `admin` /
+`editor` / `contributor` / `client`, post types `post` / `page` — and slugs are
+unique per parent and taxonomy, so reuse those records (e.g.
+`site.user_roles.find_by!(slug: 'admin')`) instead of creating same-slug
+duplicates.
 
 ## RSpec Conventions
 
@@ -74,7 +94,7 @@ end
 FactoryBot.define do
   factory :site, class: 'CamaleonCms::Site' do
     name { Faker::Name.unique.name }
-    slug { 'test-site' }
+    sequence(:slug) { |n| "test-site-#{n}" } # Capybara server host:port in feature specs
     description { Faker::Lorem.sentence }
 
     transient do
@@ -89,6 +109,10 @@ FactoryBot.define do
 end
 ```
 
+Factories that belong to a site (`post`, `post_type`, `user`) default to the
+suite-wide shared site (`CamaleonCms::Site.first`) instead of installing a new
+one; pass `site:` explicitly when the test needs a different site.
+
 ## Feature Spec Pattern (Admin UI Tests)
 
 ```ruby
@@ -99,7 +123,7 @@ require 'rails_helper'
 describe 'Posts workflows for Admin', :js do
   let(:post) { site.the_post('sample-post').decorate }
   let(:post_type_id) { site.post_types.where(slug: :post).pick(:id) }
-  let!(:site) { create(:site).decorate }
+  let!(:site) { CamaleonCms::Site.first.decorate }
 
   it 'Creates a new post' do
     admin_sign_in
@@ -129,7 +153,7 @@ it_behaves_like 'i18n value translation safety', described_class
 | Default | `spec/helpers/` | Helper method tests |
 
 ## Security Vulnerability Reproduction (PoC)
-Before fixing a reported vulnerability, you MUST attempt to reproduce it with a failing test. This proves the vulnerability is "Legit" and prevents regressions.
+Reproducing a reported vulnerability with a failing test before fixing it (required — see `AGENTS.md` Ground Rules) proves the vulnerability is "Legit" and prevents regressions.
 
 ### 1. Request Spec Template (for RCE, SQLi, XSS)
 Use a Request Spec to simulate the attack payload.

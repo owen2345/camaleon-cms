@@ -2,7 +2,7 @@ module CamaleonCms
   class Media < CamaleonRecord
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}media"
 
-    belongs_to :site, required: false
+    belongs_to :site, optional: true
     validates :name, uniqueness: {
       scope: %i[site_id is_folder folder_path is_public],
       message: 'Duplicates not allowed'
@@ -30,6 +30,12 @@ module CamaleonCms
       else
         where(folder_path: File.dirname(key), name: File.basename(key))
       end
+    end
+
+    # legacy public name (pre-rename callers); the media table has no `key` column, so
+    # without the alias this falls through to Rails' dynamic finder and raises
+    class << self
+      alias find_by_key by_key
     end
 
     # return all items of current folder

@@ -9,7 +9,7 @@ FactoryBot.define do
       site { nil }
     end
 
-    post_type { association :post_type, site: site || create(:site) }
+    post_type { association :post_type, site: site || CamaleonCms::Site.first || create(:site) }
     owner { association :user, site: site }
 
     factory :pending_post do
@@ -39,6 +39,9 @@ FactoryBot.define do
     end
 
     # data_options {} # all attrs in Post#set_setting()
-    # data_metas {thumb: <String thumb full url>, layout: <String layout name>, template: <String template name>, summary: <Text summary>, has_comments: <0|1>}
+    # data_metas {
+    #   thumb: <String thumb full url>, layout: <String layout name>, template: <String template name>,
+    #   summary: <Text summary>, has_comments: <0|1>
+    # }
   end
 end

@@ -3,9 +3,9 @@ module CamaleonCms
     # return current site or assign a site as a current site
     def current_site(site = nil)
       if site.present?
-        @current_site = site.decorate
-        CurrentRequest.site = @current_site
-        return @current_site
+        CurrentRequest.site = site.decorate
+        CurrentRequest.frontend_current_theme = nil
+        return CurrentRequest.site
       end
 
       if defined?($current_site)
@@ -13,10 +13,18 @@ module CamaleonCms
         return $current_site
       end
 
-      if defined?(@current_site) && @current_site.present?
-        CurrentRequest.site = @current_site
-        return @current_site
+      # Honor a caller-set @current_site (HtmlMailer and other background senders assign it) before the
+      # memoized CurrentRequest.site, so a delivery for another site resolves against that site rather
+      # than the request's. Restores 2.9.2; without it, multisite/background mail resolves the wrong site
+      # or raises NameError on `request` in a job. See regression audit M21. Read via
+      # instance_variable_get to match #current_theme and avoid Rails/HelperInstanceVariable.
+      caller_site = (instance_variable_get(:@current_site) if instance_variable_defined?(:@current_site))
+      if caller_site.present?
+        CurrentRequest.site = caller_site
+        return caller_site
       end
+
+      return CurrentRequest.site if CurrentRequest.site.present?
 
       if PluginRoutes.get_sites.size == 1
         site = begin
@@ -44,15 +52,27 @@ module CamaleonCms
         nil
       end
       if r[:site].blank?
-        Rails.logger.error 'Camaleon CMS - Please define your current site: $current_site = CamaleonCms::Site.first.decorate or map your domains: https://camaleon.website/documentation/category/139779-examples/how.html'.cama_log_style(:red)
+        Rails.logger.error(
+          'Camaleon CMS - Please define your current site: $current_site = CamaleonCms::Site.first.decorate or ' \
+            'map your domains: https://camaleon.website/documentation/category/139779-examples/how.html'
+            .cama_log_style(:red)
+        )
       end
-      @current_site = r[:site]
-      CurrentRequest.site = @current_site
+      CurrentRequest.site = r[:site]
+      CurrentRequest.frontend_current_theme = nil
+      CurrentRequest.site
     end
 
     # return current theme model for current site
     def current_theme
-      @_current_theme ||= current_site.get_theme.decorate
+      preview_theme = (instance_variable_get(:@_current_theme) if instance_variable_defined?(:@_current_theme))
+      return CurrentRequest.frontend_current_theme = preview_theme if preview_theme.present?
+
+      theme = CurrentRequest.frontend_current_theme
+      return theme if theme.present?
+
+      theme = current_site.get_theme.decorate
+      CurrentRequest.frontend_current_theme = theme
     end
 
     # get list templates files of current theme
@@ -121,7 +141,8 @@ module CamaleonCms
       # theme_model.destroy
     end
 
-    # add host + port to args of the current site visited (only if the request is coming from console or tasks i.e. not web browser)
+    # add host and port to args of the current site visited
+    # (only if the request is coming from console or tasks i.e. not web browser)
     # args: Hash
     # sample: {} will return {host: 'localhost', port: 3000}
     def cama_current_site_host_port(args)

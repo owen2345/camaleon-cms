@@ -9,11 +9,11 @@ def add_new_comment
   wait_for_ajax
   within 'form#new_comment' do
     fill_in 'comment_content', with: 'Test comment'
-    find('button[type="submit"]').click
+    click_button(type: 'submit')
   end
 end
 
-describe 'the Comments', :js do
+RSpec.describe 'the Comments', :js do
   init_site
 
   it 'Add Comment' do
@@ -28,7 +28,7 @@ describe 'the Comments', :js do
     visit "#{cama_root_relative_path}/admin/comments"
     within('#admin_content') do
       # verify post presence
-      expect(page).to have_content(get_content_attr('post', 'the_title', 'last').to_s)
+      expect(page).to have_text(get_content_attr('post', 'the_title', 'last').to_s)
 
       # access to list of comments
       first('.btn-default').click
@@ -46,7 +46,7 @@ describe 'the Comments', :js do
     end
     within '#new_comment' do
       fill_in 'comment_content', with: 'test answer comment'
-      find('button[type="submit"]').click
+      click_button(type: 'submit')
     end
     expect(page).to have_css('.alert-success')
   end

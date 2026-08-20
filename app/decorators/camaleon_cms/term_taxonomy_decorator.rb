@@ -4,8 +4,12 @@ module CamaleonCms
     delegate_all
 
     # return the title for current locale
+    # The name is HTML-escaped here (like PostDecorator#the_title) because taxonomy
+    # names are plain text yet are rendered through `raw`/`html_safe` sinks such as
+    # the breadcrumb builder and the nav menu, so escaping at the source prevents
+    # stored XSS via category/tag/post_type/site names.
     def the_title(locale = nil)
-      r = { title: object.name.translate(get_locale(locale)), object: object }
+      r = { title: h.h(object.name.to_s.translate(get_locale(locale))), object: object }
       begin
         h.hooks_run('taxonomy_the_title', r)
       rescue StandardError
@@ -26,12 +30,19 @@ module CamaleonCms
       h.do_shortcode(r[:content], self)
     end
 
+    # Same shape as PostDecorator#the_status: markup built by interpolation and rendered through
+    # `raw` at admin/search.html.erb. Only I18n strings reach it today, so there is nothing to
+    # exploit here -- escaping at the source is what keeps that true if the interpolated value ever
+    # changes.
     def the_status
-      if status.to_s.to_bool
-        "<span class='label label-success'> #{I18n.t('camaleon_cms.admin.button.actived')} </span>"
-      else
-        "<span class='label label-default'> #{I18n.t('camaleon_cms.admin.button.not_actived')} </span>"
-      end
+      color, label = if status.to_s.to_bool
+                       ['success', I18n.t('camaleon_cms.admin.button.actived')]
+                     else
+                       ['default', I18n.t('camaleon_cms.admin.button.not_actived')]
+                     end
+      # rubocop:disable Rails/OutputSafety -- only the escaped label is interpolated into fixed markup
+      "<span class='label label-#{color}'> #{h.h(label)} </span>".html_safe
+      # rubocop:enable Rails/OutputSafety
     end
 
     # return excerpt for this post type
@@ -67,7 +78,7 @@ module CamaleonCms
       return unless slug_or_id.is_a?(String)
 
       begin
-        object.posts.find_by(slug: slug_or_id).decorate
+        object.posts.find_by_slug(slug_or_id).decorate # rubocop:disable Rails/DynamicFindBy
       rescue StandardError
         nil
       end
@@ -97,7 +108,7 @@ module CamaleonCms
       return '' if h.cama_current_user.blank?
 
       attrs = { target: '_blank', style: 'font-size:11px !important;cursor:pointer;' }.merge(attrs)
-      h.link_to("&rarr; #{title || h.ct('edit', default: 'Edit')}".html_safe, the_edit_url, attrs)
+      h.link_to(h.safe_join(['→ ', title || h.ct('edit', default: 'Edit')]), the_edit_url, attrs)
     end
 
     # return the user owner of this item

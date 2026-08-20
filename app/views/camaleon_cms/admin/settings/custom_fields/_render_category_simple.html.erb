@@ -2,7 +2,7 @@
 def _render_category_option_html(item, pos = 0)
   category = item.decorate
   value = "Category_Post,#{category.id}" %>
-  <option value="<%= value %>" data-help="<%= "#{t('camaleon_cms.admin.settings.tooltip.add_custom_field_posts')}"+ category.the_title %>"><%=  "#{('—' * pos)} #{category.the_title}" %></option>
+  <option value="<%= value %>" data-help="<%= safe_join([t('camaleon_cms.admin.settings.tooltip.add_custom_field_posts'), category.the_title]) %>"><%= safe_join([('—' * pos), ' ', category.the_title]) %></option>
 <% end
 
    def _render_categories(categories, _level = 0)

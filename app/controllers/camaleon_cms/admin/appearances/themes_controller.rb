@@ -17,9 +17,13 @@ module CamaleonCms
 
         def load_data
           file = Rails.root.join('app', 'apps', 'themes', current_site.get_theme_slug, 'data.json')
-          @messages = load_file_content_to_db(file,
-                                              { post_types: 1, clear_post_type: 1, nav_menus: 1, clear_nav_menus: 1, slider_basic: 1, clear_slider_basic: 1,
-                                                theme_import: 1 })
+          @messages = load_file_content_to_db(
+            file,
+            {
+              post_types: 1, clear_post_type: 1, nav_menus: 1, clear_nav_menus: 1, slider_basic: 1,
+              clear_slider_basic: 1, theme_import: 1
+            }
+          )
         end
 
         def preview

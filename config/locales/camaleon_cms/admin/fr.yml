@@ -128,6 +128,7 @@ fr:
         message:
           success: 'Bienvenue !!!'
           fail: 'Nom ou mot de passe incorrect'
+          too_many_attempts: 'Trop de tentatives échouées. Veuillez réessayer plus tard.'
           forgot_url_incorrect: 'URL incorrecte'
           forgot_expired: 'Réinitialisation expirée.'
           hello: 'Bonjour'

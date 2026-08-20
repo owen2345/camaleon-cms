@@ -27,10 +27,10 @@ describe 'the User Roles', :js do
   it 'User Roles list' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/user_roles"
-    expect(page).to have_content('User Roles')
-    expect(page).to have_content('Administrator')
-    expect(page).to have_content('Editor')
-    expect(page).to have_content('Contributor')
+    expect(page).to have_text('User Roles')
+    expect(page).to have_text('Administrator')
+    expect(page).to have_text('Editor')
+    expect(page).to have_text('Contributor')
 
     create_role
     expect(page).to have_css('.alert-success')

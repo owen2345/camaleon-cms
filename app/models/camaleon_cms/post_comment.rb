@@ -6,16 +6,20 @@ module CamaleonCms
     extend CamaleonCms::NormalizeAttrs
 
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}comments"
-    # attr_accessible :user_id, :post_id, :content, :author, :author_email, :author_url, :author_IP, :approved, :agent, :agent, :typee, :comment_parent, :is_anonymous
+    # attr_accessible :user_id, :post_id, :content, :author, :author_email, :author_url, :author_IP, :approved, :agent,
+    #                 :agent, :typee, :comment_parent, :is_anonymous
     attr_accessor :is_anonymous
 
     # default_scope order('comments.created_at ASC')
     # approved: approved | pending | spam
 
-    has_many :children, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, dependent: :destroy
-    belongs_to :post, required: false
-    belongs_to :parent, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, required: false
-    belongs_to :user, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, required: false
+    has_many :children, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, dependent: :destroy,
+                        inverse_of: :parent
+
+    belongs_to :post, optional: true
+    belongs_to :parent, class_name: 'CamaleonCms::PostComment', foreign_key: :comment_parent, optional: true,
+                        inverse_of: :children
+    belongs_to :user, class_name: CamaManager.get_user_class_name.to_s, optional: true
 
     default_scope { order("#{CamaleonCms::PostComment.table_name}.created_at DESC") }
 
@@ -26,7 +30,7 @@ module CamaleonCms
     normalize_attrs(:content)
 
     validates :content, presence: true
-    validates_presence_of :author, :author_email, if: proc { |c| c.is_anonymous.present? }
+    validates :author, :author_email, presence: { if: proc { |c| c.is_anonymous.present? } }
     after_create :update_counter
     after_destroy :update_counter
 

@@ -71,7 +71,7 @@ module CamaleonCms
     def the_category(slug_or_id)
       return the_categories.where(id: slug_or_id).first if slug_or_id.is_a?(Integer)
 
-      the_categories.find_by(slug: slug_or_id) if slug_or_id.is_a?(String)
+      the_categories.find_by_slug(slug_or_id) if slug_or_id.is_a?(String) # rubocop:disable Rails/DynamicFindBy
     end
 
     # return all post_tags for the post_type (active_record) filtered by permissions + hidden posts + roles + etc...

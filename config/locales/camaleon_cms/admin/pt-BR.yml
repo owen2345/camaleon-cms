@@ -126,6 +126,7 @@ pt-BR:
         message:
           success: 'Bem-vindo!!!'
           fail: 'Usuário ou senha incorreta'
+          too_many_attempts: 'Muitas tentativas malsucedidas. Tente novamente mais tarde.'
           forgot_url_incorrect: 'URL incorreta'
           forgot_expired: 'Expirou o prazo para redefinir a senha.'
           hello: 'Olá'

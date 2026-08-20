@@ -1,9 +1,10 @@
 module CamaleonCms
   module Widget
     class Main < CamaleonCms::TermTaxonomy
-      normalize_attrs(:name)
+      def self.sti_name
+        'widget'
+      end
 
-      default_scope { where(taxonomy: :widget) }
       # attr_accessible :excerpt, :renderer
       # name: "title"
       # description: "content for this"
@@ -12,14 +13,17 @@ module CamaleonCms
       # excerpt: string for message
       # renderer: string (path to the template for render this widget)
 
-      has_many :metas, lambda {
-                         where(object_class: 'Widget::Main')
-                       }, class_name: 'CamaleonCms::Meta', foreign_key: :objectid, dependent: :destroy
-      belongs_to :owner, class_name: CamaManager.get_user_class_name, foreign_key: :user_id, optional: true
-      belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id
+      # inverse_of: false — custom `user_model` classes get only UserMethods, which
+      # defines no `widgets` collection the inverse could point at.
+      belongs_to :owner, class_name: CamaManager.get_user_class_name.to_s, foreign_key: :user_id, inverse_of: false,
+                         optional: true
+      belongs_to :site, class_name: 'CamaleonCms::Site', foreign_key: :parent_id, inverse_of: :widgets, optional: true
 
-      has_many :assigned, class_name: 'CamaleonCms::Widget::Assigned', foreign_key: :visibility, dependent: :destroy
+      has_many :assigned, class_name: 'CamaleonCms::Widget::Assigned', foreign_key: :visibility, dependent: :destroy,
+                          inverse_of: :widget
+
       before_save :check_excerpt
+
       def is_simple?
         status == 'simple'
       end

@@ -17,7 +17,10 @@ module CamaleonCms
 
     # render as html content all comments recursively
     # comments: collection of comments
-    def cama_comments_render_html(comments)
+    def cama_comments_render_html(comments, post_id = nil)
+      if post_id.nil? && respond_to?(:controller) && controller.respond_to?(:instance_variable_get)
+        post_id = controller.instance_variable_get(:@post)&.id
+      end
       comments.decorate.map do |comment|
         author = comment.the_author
         content_tag(:div, class: 'media') do
@@ -31,7 +34,10 @@ module CamaleonCms
               [
                 content_tag(:h4, class: 'media-heading') do
                   [
-                    author.the_name,
+                    # Escape the author name: User first_name/last_name are no longer sanitized at
+                    # save time and this heading is marked html_safe below, so a commenter-controlled
+                    # name would otherwise be injected as raw HTML into the moderator's page.
+                    ERB::Util.html_escape(author.the_name),
                     ' ',
                     content_tag(:small, comment.the_created_at),
                     ' ',
@@ -45,7 +51,7 @@ module CamaleonCms
                     content_tag(:div, class: 'pull-left') do
                       [
                         link_to(
-                          cama_admin_post_comment_answer_path(@post.id, comment.id),
+                          cama_admin_post_comment_answer_path(post_id, comment.id),
                           data: { comment_id: comment.id },
                           title: t('camaleon_cms.admin.comments.tooltip.reply_comment'),
                           class: 'btn btn-info reply btn-xs ajax_modal'
@@ -64,20 +70,26 @@ module CamaleonCms
                       [
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 'a' }),
+                          method: :patch,
                           title: t('camaleon_cms.admin.comments.tooltip.approved_comment'),
-                          class: "#{comment.approved == 'approved' ? 'hidden' : ''} btn btn-success approve btn-xs cama_ajax_request"
+                          class: "#{comment.approved == 'approved' ? 'hidden' : ''} " \
+                                 'btn btn-success approve btn-xs cama_ajax_request'
                         ) { content_tag(:span, '', class: 'fa fa-thumbs-o-up') },
                         ' ',
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 'p' }),
+                          method: :patch,
                           title: t('camaleon_cms.admin.comments.tooltip.comment_pending'),
-                          class: "#{comment.approved == 'pending' ? 'hidden' : ''} btn btn-primary pending btn-xs cama_ajax_request"
+                          class: "#{comment.approved == 'pending' ? 'hidden' : ''} " \
+                                 'btn btn-primary pending btn-xs cama_ajax_request'
                         ) { content_tag(:span, '', class: 'fa fa-warning') },
                         ' ',
                         link_to(
                           url_for({ action: :toggle_status, comment_id: comment.id, s: 's' }),
+                          method: :patch,
                           title: t('camaleon_cms.admin.comments.tooltip.comment_spam'),
-                          class: "#{comment.approved == 'spam' ? 'hidden' : ''} btn btn-danger spam btn-xs cama_ajax_request"
+                          class: "#{comment.approved == 'spam' ? 'hidden' : ''} " \
+                                 'btn btn-danger spam btn-xs cama_ajax_request'
                         ) { content_tag(:span, '', class: 'fa fa-bug') }
                       ].join.html_safe
                     end
@@ -85,7 +97,7 @@ module CamaleonCms
                 end,
                 content_tag(:hr),
                 content_tag(:div, '', class: 'clearfix'),
-                cama_comments_render_html(comment.children)
+                cama_comments_render_html(comment.children, post_id)
               ].join.html_safe
             end
           ].join.html_safe

@@ -6,7 +6,7 @@
         <li>
             <h3><a href="<%= ptype.the_url %>"><%= ptype.the_title %></a></h3>
             <% if ptype.manage_categories? %>
-                <%= raw(cama_sitemap_cats_generator(ptype.the_categories)) %>
+                <%= raw(cama_sitemap_cats_generator(ptype.the_categories, @r)) %>
             <% else %>
                 <ul>
                     <% ptype.the_posts.decorate.each do |post| next if @r[:skip_post_ids].include?(post.id) %>

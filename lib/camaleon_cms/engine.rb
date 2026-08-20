@@ -25,6 +25,7 @@ end
 
 $camaleon_engine_dir = File.expand_path('../..', __dir__)
 require File.join($camaleon_engine_dir, 'lib', 'plugin_routes').to_s
+require File.join($camaleon_engine_dir, 'lib', 'camaleon_cms', 'setup_token').to_s
 Dir[File.join($camaleon_engine_dir, 'lib', 'ext', '**', '*.rb')].sort.each { |f| require f }
 require 'draper'
 
@@ -41,6 +42,16 @@ module CamaleonCms
           # puts "- $current_site = CamaleonCms::Site.first.decorate"
         end
       end
+    end
+
+    # Security (audit 2026-08-11 M9): redact credential-bearing parameters from the Rails logs. The site
+    # settings form submits the SMTP password and S3 keys in the clear (options[email_pass],
+    # options[filesystem_s3_access_key], options[filesystem_s3_secret_key]), as do user passwords, the
+    # installer gate token (setup_token, matched by :token) and the stored password of a
+    # password-protected post (post[visibility_value]), and the engine set no filter. Appended (+=) so
+    # a host app's own filters are preserved.
+    initializer 'camaleon_cms.filter_parameters' do |app|
+      app.config.filter_parameters += %i[passw email_pass secret access_key token visibility_value]
     end
 
     initializer :append_migrations do |app|
@@ -60,7 +71,8 @@ module CamaleonCms
       app.config.encoding = 'utf-8'
 
       # add prefix url, like: https://localhost.com/blog/
-      # config.action_controller.relative_url_root = PluginRoutes.system_info["relative_url_root"] if PluginRoutes.system_info["relative_url_root"].present?
+      # config.action_controller.relative_url_root =
+      # PluginRoutes.system_info["relative_url_root"] if PluginRoutes.system_info["relative_url_root"].present?
 
       # multiple route files
       app.routes_reloader.paths.push(File.join(engine_dir, 'config', 'routes', 'admin.rb'))
@@ -71,13 +83,23 @@ module CamaleonCms
       app.config.eager_load_paths += %W[#{app.config.root}/app/apps/]
       if PluginRoutes.static_system_info['auto_include_migrations']
         PluginRoutes.all_plugins.each do |plugin|
-          app.config.paths['db/migrate'] << File.join(plugin['path'], 'migrate') if Dir.exist?(File.join(
-                                                                                                 plugin['path'], 'migrate'
-                                                                                               ))
-          app.config.paths['db/migrate'] << File.join(plugin['path'], 'db', 'migrate') if Dir.exist?(File.join(
-                                                                                                       plugin['path'], 'db', 'migrate'
-                                                                                                     ))
+          if Dir.exist?(File.join(plugin['path'], 'migrate'))
+            app.config.paths['db/migrate'] << File.join(plugin['path'], 'migrate')
+          end
+
+          if Dir.exist?(File.join(plugin['path'], 'db', 'migrate'))
+            app.config.paths['db/migrate'] << File.join(plugin['path'], 'db', 'migrate')
+          end
         end
+      end
+
+      # Security headers for SVG media files. ActionDispatch::Static is only in the host
+      # stack when public_file_server is enabled; anchoring on it unconditionally aborts
+      # boot on hosts that serve public/ from nginx/Apache.
+      if app.config.public_file_server.enabled
+        app.middleware.insert_before ::ActionDispatch::Static, CamaleonCms::MediaSecurityHeaders
+      else
+        app.middleware.use CamaleonCms::MediaSecurityHeaders
       end
 
       # Static files
@@ -89,6 +111,22 @@ module CamaleonCms
           app.config.paths['db/migrate'] << expanded_path
         end
       end
+    end
+
+    # Draw the route table at boot so the first request is never served against a half-built set
+    # of routes (see PluginRoutes.draw_routes_eagerly). Closes the development-mode window where
+    # the first request after a restart races the multi-site route draw; a no-op once drawn.
+    #
+    # Runs as a config.after_initialize callback, NOT as a named `initializer ... after:
+    # :set_routes_reloader_hook`. Anchoring a CamaleonCms::Engine initializer to that late Finisher
+    # hook adds a cross-cutting edge to Rails' initializer tsort that reorders the `append_assets_path`
+    # initializers and drops engine/host asset load paths from config.assets.paths -- gem-packaged
+    # plugin assets and core camaleon_cms images then raise AssetNotPrecompiledError and 500 the site
+    # (regression fixed here). after_initialize runs once the whole boot -- routes reloader, internal
+    # routes and every engine's asset path -- is assembled, so the draw still reflects the final route
+    # set without perturbing initializer ordering.
+    config.after_initialize do
+      PluginRoutes.draw_routes_eagerly
     end
 
     if defined?(FactoryBotRails)

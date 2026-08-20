@@ -53,7 +53,10 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
 
       expect(response).to have_http_status(:found)
       expect(group.reload.fields.where(slug: 'eval_blocked')).to be_empty
-      expected_custom = I18n.t('camaleon_cms.admin.custom_field.message.select_eval_admin_only', default: 'The "Select Eval" field type is restricted to administrators.')
+      expected_custom = I18n.t(
+        'camaleon_cms.admin.custom_field.message.select_eval_admin_only',
+        default: 'The "Select Eval" field type is restricted to administrators.'
+      )
       expect(flash[:error]).to satisfy do |msg|
         msg = msg.to_s
         msg.include?(expected_custom) || msg.include?('You are not authorized')
@@ -101,7 +104,10 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       expect(response).to have_http_status(:found)
 
       # and set an error message about select_eval restriction (either the custom message or the standard CanCan denial)
-      expected_custom = I18n.t('camaleon_cms.admin.custom_field.message.select_eval_admin_only', default: 'The "Select Eval" field type is restricted to administrators.')
+      expected_custom = I18n.t(
+        'camaleon_cms.admin.custom_field.message.select_eval_admin_only',
+        default: 'The "Select Eval" field type is restricted to administrators.'
+      )
       expect(flash[:error]).to satisfy do |msg|
         msg = msg.to_s
         msg.include?(expected_custom) || msg.include?('You are not authorized')
@@ -109,7 +115,29 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
     end
   end
 
-  describe 'GET /admin/settings/custom_fields/list' do
+  describe 'Site placement' do
+    # Site#get_field_groups matches object_class and objectid, so a Site group carrying another
+    # site's id would be stranded: unreachable from both sites' settings pages. The form only ever
+    # offers "Site,<current_site.id>", so the id is pinned rather than trusted.
+    it 'pins objectid to the current site when the placement class is Site' do
+      user = create(:user, role: 'admin', site: current_site)
+      sign_in_as(user, site: current_site)
+      other_site = create(:site, slug: 'other-placement-site', name: 'Other Placement Site')
+
+      post '/admin/settings/custom_fields', params: {
+        custom_field_group: { name: 'Pinned Group', assign_group: "Site,#{other_site.id}" },
+        fields: { '0' => { name: 'Pinned Field', slug: 'pinned-field' } },
+        field_options: { '0' => { field_key: 'text_box' } }
+      }
+
+      group = current_site.custom_field_groups.find_by(name: 'Pinned Group')
+      expect(group.objectid).to eq(current_site.id)
+      expect(current_site.get_field_groups).to include(group)
+      expect(other_site.get_field_groups).not_to include(group)
+    end
+  end
+
+  describe '/admin/settings/custom_fields/list' do
     let(:post_type) { current_site.post_types.create!(name: 'Test PT', slug: 'test-pt') }
     let(:my_post) { post_type.posts.create!(title: 'Test Post', slug: 'test-post') }
     let(:category) { post_type.categories.create!(name: 'Test Cat', slug: 'test-cat') }
@@ -133,7 +161,9 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       expect(group.fields.count).to eq(1)
 
       my_post.update_categories([])
-      get '/admin/settings/custom_fields/list', params: { post_type: post_type.id, post_id: my_post.id, categories: [category.id] }
+      # The category write is state-changing, so it is exercised through POST (a GET renders only).
+      post '/admin/settings/custom_fields/list',
+           params: { post_type: post_type.id, post_id: my_post.id, categories: [category.id] }
 
       expect(response.body).to include('Cat Group')
       expect(my_post.categories.reload).to include(category)
@@ -152,10 +182,57 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       other_group.add_field({ name: 'Other Field', slug: 'other-field' }, { field_key: 'text' })
 
       my_post.update_categories([])
-      get '/admin/settings/custom_fields/list', params: { post_type: post_type.id, post_id: my_post.id, categories: [other_category.id] }
+      post '/admin/settings/custom_fields/list',
+           params: { post_type: post_type.id, post_id: my_post.id, categories: [other_category.id] }
 
       expect(response.body).not_to include('Other Group')
       expect(my_post.categories.reload).to be_empty
+    end
+
+    # #list carries no before_action, so it is reachable by any signed-in user; the action authorizes
+    # against the resolved record itself (audit finding M6).
+    context 'when authorizing the caller against the record' do
+      let(:limited_user) do
+        role = current_site.user_roles.create!(name: 'No Posts', slug: 'no_posts')
+        role.set_meta("_manager_#{current_site.id}", {})
+        create(:user, role: role.slug, site: current_site)
+      end
+
+      it 'denies the POST category write for a user who cannot update the post, leaving categories intact' do
+        my_post.update_categories([category.id])
+        sign_in_as(limited_user, site: current_site)
+
+        post '/admin/settings/custom_fields/list',
+             params: { post_type: post_type.id, post_id: my_post.id, categories: [] }
+
+        expect(response).to redirect_to(cama_admin_dashboard_path)
+        expect(my_post.categories.reload.pluck(:id)).to eq([category.id])
+      end
+
+      it 'denies the GET render of a post the user cannot update' do
+        sign_in_as(limited_user, site: current_site)
+
+        get '/admin/settings/custom_fields/list', params: { post_type: post_type.id, post_id: my_post.id }
+
+        expect(response).to redirect_to(cama_admin_dashboard_path)
+      end
+
+      it 'denies the new-post render for a user who cannot create posts of that type' do
+        sign_in_as(limited_user, site: current_site)
+
+        get '/admin/settings/custom_fields/list', params: { post_type: post_type.id }
+
+        expect(response).to redirect_to(cama_admin_dashboard_path)
+      end
+
+      it 'still renders the new-post field groups for an authorized user' do
+        user = create(:user, role: 'admin', site: current_site)
+        sign_in_as(user, site: current_site)
+
+        get '/admin/settings/custom_fields/list', params: { post_type: post_type.id }
+
+        expect(response).to have_http_status(:ok)
+      end
     end
   end
 end

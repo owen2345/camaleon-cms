@@ -54,6 +54,10 @@ module CamaleonCms
         safe_can :post_tags, CamaleonCms::PostType do |pt|
           @roles_post_type[:manage_tags].to_i.include?(pt.id)
         end
+        safe_can :post_content_unfiltered_html, CamaleonCms::PostType do |pt|
+          ids_unfiltered = @roles_post_type[:post_content_unfiltered_html] || []
+          ids_unfiltered.to_i.include?(pt.id)
+        end
 
         safe_can :update, CamaleonCms::Post do |post|
           pt_id = post.post_type.id
@@ -84,12 +88,7 @@ module CamaleonCms
         end
 
         # others
-        %i[media comments themes widgets nav_menu plugins users settings custom_fields select_eval].each do |manager_key|
-          safe_can :manage, manager_key if @roles_manager[manager_key]
-        end
-        @roles_manager.try(:each) do |rol_manage_key, val_role|
-          safe_can :manage, rol_manage_key.to_sym if val_role.to_s.cama_true?
-        end
+        define_manage_rules
       end
       cannot :impersonate, CamaleonCms::User do |u|
         u.id == user.id
@@ -119,7 +118,7 @@ module CamaleonCms
     def safe_can(action, subject, &block)
       if block_given?
         can(action, subject) do |resource|
-          safely_false { block.call(resource) }
+          safely_false { yield(resource) }
         end
       else
         # No block: can(action, subject) does not evaluate user logic; safe to call directly.
@@ -133,6 +132,15 @@ module CamaleonCms
       yield
     rescue StandardError
       false
+    end
+
+    def define_manage_rules
+      %i[media comments themes widgets nav_menu plugins users settings custom_fields select_eval].each do |resource|
+        safe_can :manage, resource if @roles_manager[resource]
+      end
+      @roles_manager.each do |rol_manage_key, val_role|
+        safe_can :manage, rol_manage_key.to_sym if val_role.to_s.cama_true?
+      end
     end
   end
 end

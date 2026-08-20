@@ -67,7 +67,9 @@ module CamaleonCms
           nil
         end
       end
-      post = the_posts.find_by(slug: slug_or_id) if slug_or_id.is_a?(String) # id
+      # use find_by_slug (multi-language aware) so posts with localized slugs
+      # (e.g. "<!--:en-->sample-post<!--:-->...") are matched instead of returning nil
+      post = the_posts.find_by_slug(slug_or_id) if slug_or_id.is_a?(String) # rubocop:disable Rails/DynamicFindBy
       post&.decorate
     end
 
@@ -96,7 +98,7 @@ module CamaleonCms
       return unless slug_or_id.is_a?(String)
 
       begin
-        the_full_categories.find_by(slug: slug_or_id).decorate
+        the_full_categories.find_by_slug(slug_or_id).decorate # rubocop:disable Rails/DynamicFindBy
       rescue StandardError
         nil
       end
@@ -126,7 +128,7 @@ module CamaleonCms
       return unless slug_or_id.is_a?(String)
 
       begin
-        object.post_tags.find_by(slug: slug_or_id).decorate
+        object.post_tags.find_by_slug(slug_or_id).decorate # rubocop:disable Rails/DynamicFindBy
       rescue StandardError
         nil
       end
@@ -144,7 +146,7 @@ module CamaleonCms
       return unless id_or_username.is_a?(String)
 
       begin
-        object.users.find_by(username: id_or_username).decorate
+        object.users.find_by_username(id_or_username).decorate # rubocop:disable Rails/DynamicFindBy
       rescue StandardError
         nil
       end
@@ -165,14 +167,14 @@ module CamaleonCms
     def the_post_type(slug_or_id)
       if slug_or_id.is_a?(String)
         begin
-          return object.post_types.find_by(slug: slug_or_id).decorate
+          return object.post_types.find_by_slug(slug_or_id).decorate # rubocop:disable Rails/DynamicFindBy
         rescue StandardError
           nil
         end
       end
       if slug_or_id.is_a?(Array)
         begin
-          return object.post_types.find_by(slug: slug_or_id).decorate
+          return object.post_types.find_by_slug(slug_or_id).decorate # rubocop:disable Rails/DynamicFindBy
         rescue StandardError
           nil
         end
@@ -195,21 +197,25 @@ module CamaleonCms
       lan = object.get_languages
       return if lan.size < 2
 
-      res = ["<ul class='#{list_class}'>"]
-      lan.each do |lang|
-        path = "#{lang}.png"
-        label = (if block
-                   h.capture(lang, I18n.locale.to_s == lang.to_s,
-                             &block)
-                 else
-                   "<img src='#{h.asset_path("camaleon_cms/language/#{path}")}'/>"
-                 end)
-        res << "<li class='#{current_class if I18n.locale.to_s == lang.to_s}'> <a href='#{h.cama_url_to_fixed(
-          current_page ? 'url_for' : 'cama_root_url', { locale: lang, cama_set_language: lang }
-        )}'>#{label}</a> </li>"
+      h.content_tag(:ul, class: list_class) do
+        h.safe_join(lan.map do |lang|
+          label = if block
+                    h.capture(lang, I18n.locale.to_s == lang.to_s, &block)
+                  else
+                    h.tag.img(src: h.asset_path("camaleon_cms/language/#{lang}.png"))
+                  end
+
+          h.content_tag(:li, class: (current_class if I18n.locale.to_s == lang.to_s)) do
+            h.link_to(
+              label,
+              h.cama_url_to_fixed(
+                current_page ? 'url_for' : 'cama_root_url',
+                { locale: lang, cama_set_language: lang }
+              )
+            )
+          end
+        end)
       end
-      res << '</ul>'
-      res.join('').html_safe
     end
 
     # return Array of frontend languages configured for this site

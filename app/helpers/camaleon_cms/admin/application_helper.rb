@@ -34,7 +34,11 @@ module CamaleonCms
 
       # print code with auto copy
       def cama_shortcode_print(code)
-        content_tag(:input, nil, class: 'code_style', readonly: true, onmousedown: 'this.clicked = 1;', onfocus: 'if (!this.clicked) this.select(); else this.clicked = 2;', onclick: 'if (this.clicked == 2) this.select(); this.clicked = 0;', tabindex: '-1', value: code)
+        content_tag(
+          :input, nil, class: 'code_style', readonly: true, onmousedown: 'this.clicked = 1;',
+                       onfocus: 'if (!this.clicked) this.select(); else this.clicked = 2;',
+                       onclick: 'if (this.clicked == 2) this.select(); this.clicked = 0;', tabindex: '-1', value: code
+        )
       end
     end
   end

@@ -172,9 +172,37 @@ class PluginRoutes
       end
     end
 
+    # Draw the route table at boot so the first request is never served against a half-built set
+    # of routes. Production already eager-loads routes; this closes the development window where
+    # the first request after a restart races the (multi-site) draw. Guarded by db_installed? and
+    # rescued so boot never aborts when the DB is unavailable (migrations, asset precompile, or a
+    # fresh install before db:create).
+    def draw_routes_eagerly
+      return if Rails.application.config.eager_load # production draws routes at boot already
+      # Skip while a db: Rake task runs (db:migrate, db:schema:load, app:db:test:prepare, ...): it
+      # boots against a schema that is mid-change, so drawing here would query that schema -- and it
+      # never serves a request that could race the draw. Other non-server processes (console,
+      # workers) still draw: Rails exposes no reliable, version-stable "is this the web server?"
+      # signal, and the draw is otherwise bounded and safe (a single guarded, rescued, idempotent
+      # draw over long-stable columns), so scoping it further is not worth a fragile gate.
+      return if running_db_rake_task?
+      return unless db_installed?
+
+      Rails.application.reload_routes!
+    rescue ActiveRecord::ActiveRecordError => e
+      # Only swallow database-unavailability (migrations, asset precompile, a fresh install before
+      # db:create) so boot never aborts on it. A route-file syntax error, a raised constraint lambda
+      # or any other bug in the draw is NOT a boot-safety concern and must surface, not be logged and
+      # hidden here where nothing would ever redraw and reveal it.
+      Rails.logger&.warn("Camaleon CMS: skipped eager route draw at boot (#{e.class}: #{e.message})")
+      nil
+    end
+
     # Add a callable (Proc/Lambda) to run after routes reload; strings are not supported.
     def add_after_reload_routes(command)
-      after_reload_callbacks << (command.is_a?(String) ? raise(ArgumentError, 'Expected a callable (Proc/Lambda), not a String') : command)
+      raise(ArgumentError, 'Expected a callable (Proc/Lambda), not a String') if command.is_a?(String)
+
+      after_reload_callbacks << command
     end
 
     # return all enabled plugins []
@@ -209,7 +237,10 @@ class PluginRoutes
     # return all enabled themes (a theme is enabled if at least one site is assigned)
     def all_enabled_themes
       r = cache_variable('all_enabled_themes')
-      return r if r
+      # Do not treat an empty result as a cache hit (an empty [] is truthy): if a draw runs before
+      # the DB is ready, get_sites returns [] and this would otherwise cache [] permanently, matching
+      # the self-healing all_plugins/all_themes below rather than the sticky-empty behavior.
+      return r if r.present?
 
       res = get_sites.each_with_object([]) do |site, ary|
         i = theme_info(site.get_theme_slug)
@@ -221,9 +252,21 @@ class PluginRoutes
     # return all enabled plugins (a theme is enabled if at least one site has installed)
     def all_enabled_plugins
       r = cache_variable('all_enabled_plugins')
-      return r if r
+      return r if r.present? # an empty [] must not stick as a cache hit -- see all_enabled_themes
 
-      enabled_ps = get_sites.flat_map { |site| site.plugins.active.pluck(:slug) }
+      # Empty get_sites (the DB is not ready during early boot, or there simply are no sites) means
+      # no DB work: gate the batched query on it here, as one explicit early return, so the query
+      # never runs against a table that may not exist yet and aborts route loading. get_sites rescues
+      # to [] on any DB error, so this single guard keeps the whole draw path safe -- and any batched
+      # query added below inherits it, rather than each repeating a per-call emptiness check.
+      return [] if get_sites.empty?
+
+      # One query for every enabled plugin slug across all sites, rather than a
+      # `site.plugins.active.pluck` per site (the N+1 that dominated multi-site route drawing). A
+      # subquery over the site ids avoids marshaling every id into an IN(...) bind list, which can
+      # exceed SQLite's SQLITE_MAX_VARIABLE_NUMBER on very large multi-site installs; Postgres and
+      # MySQL handle either form.
+      enabled_ps = CamaleonCms::Plugin.active.where(parent_id: CamaleonCms::Site.select(:id)).distinct.pluck(:slug)
       res = all_plugins.each_with_object([]) do |plugin, ary|
         ary << plugin if enabled_ps.include?(plugin['key'])
       end
@@ -235,7 +278,7 @@ class PluginRoutes
       r = cache_variable('site_plugin_helpers')
       return r if r
 
-      res = enabled_apps(site).flat_map { |settings| settings['helpers'].presence }
+      res = enabled_apps(site).filter_map { |settings| settings['helpers'].presence }.flatten
       cache_variable('site_plugin_helpers', res)
     end
 
@@ -244,7 +287,7 @@ class PluginRoutes
       r = cache_variable('plugins_helper')
       return r if r
 
-      res = all_apps.flat_map { |settings| settings['helpers'].presence }
+      res = all_apps.filter_map { |settings| settings['helpers'].presence }.flatten
       cache_variable('plugins_helper', res.uniq)
     end
 
@@ -270,7 +313,17 @@ class PluginRoutes
 
     # return all sites registered for Plugin routes
     def get_sites
-      @all_sites ||= CamaleonCms::Site.order(id: :asc).all.to_a
+      # Eager-load metas and post_types so the per-site reads route drawing performs come from the
+      # loaded associations instead of one query per site: metas back the option/language/theme
+      # lookups (get_meta checks metas.loaded?), and post_types back the frontend post-type route
+      # loop. On large multi-site installs those N+1s are the bulk of cold-boot route-draw time --
+      # the window where the first request races a half-built table.
+      #
+      # The whole metas set is loaded on purpose, not a scoped subset: get_meta's loaded branch reads
+      # a key absent from the loaded records as unset, so preloading only _default/languages_site
+      # would make every other site meta read silently return its default. Site-level metas are few
+      # rows per site, so this bounded over-fetch is the safe trade against that correctness hazard.
+      @all_sites ||= CamaleonCms::Site.includes(:metas, :post_types).order(id: :asc).to_a
     rescue StandardError
       []
     end
@@ -283,7 +336,9 @@ class PluginRoutes
     # return all locales for all sites joined by |
     def all_locales
       r = cache_variable('site_all_locales')
-      return r if r
+      # A blank '' must not stick as a hit: an empty all_locales makes the frontend
+      # `locale: /#{all_locales}/` constraint an empty regex `//` that matches anything.
+      return r if r.present?
 
       res = get_sites.flat_map(&:get_languages)
       cache_variable('site_all_locales', res.uniq.join('|'))
@@ -440,6 +495,16 @@ class PluginRoutes
     end
 
     private
+
+    # True when this process is running a task in the `db:` Rake namespace (db:migrate,
+    # db:schema:load, ... or their engine-prefixed forms like app:db:test:prepare), whether launched
+    # through `rails` or `rake`. Rake.application is absent outside a Rake run (the web server,
+    # `rails console`, `rails runner`), so this is false there.
+    def running_db_rake_task?
+      return false unless defined?(Rake) && Rake.respond_to?(:application)
+
+      Rake.application.top_level_tasks.any? { |task| task.to_s.split(':').include?('db') }
+    end
 
     def anonymous_hooks
       @anonymous_hooks ||= {}

@@ -1,12 +1,25 @@
 module Plugins
   module VisibilityPost
     module VisibilityPostHelper
+      # Session key listing the post ids this session has unlocked by password (audit M2). Shared
+      # with FrontController#unlock, which writes it after a successful comparison.
+      SESSION_UNLOCKED_KEY = 'cama_visibility_unlocked_posts'.freeze
+
       # {content: object.content.translate(@_deco_locale), post: object}
       def plugin_visibility_post_the_content(args)
-        return unless args[:post].visibility == 'password'
-        return if params[:post_password].present? && params[:post_password] == args[:post].visibility_value
+        return unless _visibility_password_locked?(args[:post])
 
-        args[:content] = _password_form
+        args[:content] = _password_form(args[:post])
+      end
+
+      # {content: <excerpt computed by PostDecorator#the_excerpt>, post: object}
+      # Security (audit M1): the excerpt is derived from the post body (or its summary meta), so it
+      # must honor the same password gate as the content -- otherwise listings, search results and
+      # the RSS builders leak the body of a still-locked post through `the_excerpt`.
+      def plugin_visibility_post_the_excerpt(args)
+        return unless _visibility_password_locked?(args[:post])
+
+        args[:content] = ct('password_protected_excerpt', default: 'This content is password protected.')
       end
 
       def plugin_visibility_on_active(_plugin); end
@@ -77,17 +90,36 @@ module Plugins
 
       private
 
-      def _password_form
-        "<form class='col-md-6 protected_form well'>
+      # Security (audit M1): single lock predicate for password-protected posts, shared by the
+      # content and excerpt gates so every derived representation of the body agrees on whether
+      # the post is unlocked. Security (audit M2): unlocked state lives in the session, written
+      # only by FrontController#unlock over POST -- a password in the query string no longer
+      # unlocks anything.
+      def _visibility_password_locked?(post)
+        return false unless post.visibility == 'password'
+
+        !Array(session[SESSION_UNLOCKED_KEY]).include?(post.id)
+      end
+
+      # Security (audit M2): the prompt posts to the plugin unlock endpoint with a password-type
+      # input, instead of the old method-less form (GET: password in URLs, logs and referrers)
+      # with a text-type input.
+      def _password_form(post)
+        error_msg = ct('wrong_password', default: 'Wrong password, please try again.')
+        error_html = flash[:cama_visibility_post_error] ? "<div class='alert alert-danger'>#{error_msg}</div>" : ''
+        unlock_action = plugins_visibility_post_unlock_path(post_id: post.id)
+        "<form method='post' action='#{unlock_action}' class='col-md-6 protected_form well'>
+        <input type='hidden' name='authenticity_token' value='#{form_authenticity_token}' />
         <h4>#{ct('proceted_article', default: 'Protected article')}</h4>
+        #{error_html}
         <div class='control-group'>
           <label class='control-label'>#{t('camaleon_cms.admin.post_type.enter_password')}:</label>
-          <input type='text' name='post_password' value='' class='form-control' />
+          <input type='password' name='post_password' value='' class='form-control' />
         </div>
         <div class='control-group'>
           <button class='btn btn-primary' type='submit'>#{ct('submit')}</button>
         </div>
-    <form>"
+    </form>"
       end
 
       def save_visibility(post)
@@ -99,57 +131,85 @@ module Plugins
 
       def form_html(post)
         append_asset_libraries({ 'plugin_visibility' => { js: [plugin_asset_path('js/form.js')] } })
-        "
-    <div class='form-group'>
-                  <label class='control-label'>#{t('camaleon_cms.admin.post_type.published_date')}</label>
-                  <div id='published_from' data-locale='#{current_locale}' class='input-group date'>
-                      <input type='text' name='post[published_at]' data-format='yyyy-MM-dd hh:mm:ss' class='form-control ' value='#{@post[:published_at]}' />
-                      <span class='add-on input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span>
-                  </div>
-    </div><!-- calendar for published at -->
 
-    <div id='panel-post-visibility' class='form-group'>
+        html = []
+        html << tag.div(class: 'form-group') do
+          tag.label(t('camaleon_cms.admin.post_type.published_date'), class: 'control-label') +
+            tag.div(id: 'published_from', data: { locale: current_locale }, class: 'input-group date') do
+              tag.input(
+                name: 'post[published_at]', data: { format: 'yyyy-MM-dd hh:mm:ss' },
+                class: 'form-control ', value: @post[:published_at]
+              ) +
+                tag.span(class: 'add-on input-group-addon') { tag.span(class: 'glyphicon glyphicon-calendar') }
+            end
+        end
 
-      <label class='control-label'>#{t('camaleon_cms.admin.table.visibility')}: <span class='visibility_label'></span></label> -
+        html << tag.div(id: 'panel-post-visibility', class: 'form-group') do
+          tag.label(class: 'control-label') do
+            "#{t('camaleon_cms.admin.table.visibility')}: ".html_safe + tag.span(class: 'visibility_label')
+          end << ' - ' <<
+            tag.a(href: '#') { tag.span(t('camaleon_cms.admin.button.edit'), 'aria-hidden': 'true') } <<
+            tag.div(class: 'panel-options hidden') do
+              public_checked = post.visibility.blank? || post.visibility == 'public'
+              private_checked = post.visibility == 'private'
+              password_checked = post.visibility == 'password'
 
-      <a class='edit-visibility' href='#'><span aria-hidden='true'>#{t('camaleon_cms.admin.button.edit')}</span></a>
+              result = []
+              result << tag.label(style: 'display: block;') do
+                tag.input(
+                  name: 'post[visibility]', class: 'radio', type: 'radio', value: 'public', checked: public_checked
+                ) + " #{t('camaleon_cms.admin.table.public')}"
+              end
+              result << tag.div
 
-      <div class='panel-options hidden'>
+              result << tag.label(style: 'display: block;') do
+                tag.input(
+                  name: 'post[visibility]', class: 'radio', type: 'radio', value: 'private', checked: private_checked
+                ) + " #{t('camaleon_cms.admin.table.private')}"
+              end
 
-        <label style='display: block;'><input type='radio' name='post[visibility]' claass='radio' value='public' #{if post.visibility.blank? || post.visibility == 'public'
-                                                                                                                     "checked=''"
-                                                                                                                   end}> #{t('camaleon_cms.admin.table.public')}</label>
-        <div></div>
+              result << tag.div(style: 'padding-left: 20px;') { groups_list(post) }
 
-        <label style='display: block;'><input type='radio' name='post[visibility]' claass='radio' value='private' #{if post.visibility == 'private'
-                                                                                                                      "checked=''"
-                                                                                                                    end}> #{t('camaleon_cms.admin.table.private')}</label>
-        <div style='padding-left: 20px;'>#{groups_list(post)}</div>
+              result << tag.label(style: 'display: block;') do
+                tag.input(
+                  name: 'post[visibility]', class: 'radio', type: 'radio',
+                  value: 'password', checked: password_checked
+                ) + " #{t('camaleon_cms.admin.table.password_protection')}"
+              end
 
-        <label style='display: block;'><input type='radio' name='post[visibility]' claass='radio' value='password' #{if post.visibility == 'password'
-                                                                                                                       "checked=''"
-                                                                                                                     end}> #{t('camaleon_cms.admin.table.password_protection')}</label>
-        <div><input type='text' class='form-control password_field_value' name='post[visibility_value]' value='#{if post.visibility == 'password'
-                                                                                                                   post.visibility_value
-                                                                                                                 end}'></div>
+              result << tag.div do
+                tag.input(
+                  name: 'post[visibility_value]', class: 'form-control password_field_value', type: 'text',
+                  value: post.visibility == 'password' ? post.visibility_value : nil
+                )
+              end
 
-        <p>
-          <a class='lnk_hide' href='#'>#{t('camaleon_cms.admin.table.hide')}</a>
-        </p>
-      </div>
-    </div>"
+              result << tag.p { tag.a(t('camaleon_cms.admin.table.hide'), class: 'lnk_hide', href: '#') }
+
+              safe_join(result)
+            end
+        end
+
+        safe_join(html)
       end
 
       def groups_list(post)
-        res = []
-        current_groups = []
-        current_groups = post.visibility_value.split(',') if post.visibility == 'private'
+        current_groups = post.visibility == 'private' && post.visibility_value ? post.visibility_value.split(',') : []
+        elements = []
         current_site.user_roles.each do |role|
-          res << "<label><input type='checkbox' name='post_private_groups[]' class='visibility_private_group_item' value='#{role.slug}' #{if current_groups.include?(role.slug.to_s)
-                                                                                                                                            "checked=''"
-                                                                                                                                          end}> #{role.name}</label><br>"
+          checked = current_groups.include?(role.slug.to_s)
+          input = tag.input(
+            type: 'checkbox',
+            name: 'post_private_groups[]',
+            class: 'visibility_private_group_item',
+            value: role.slug,
+            checked: checked
+          )
+          label = tag.label { safe_join([input, " #{role.name}"]) }
+          elements << label
+          elements << tag.br
         end
-        res.join('')
+        safe_join(elements)
       end
     end
   end

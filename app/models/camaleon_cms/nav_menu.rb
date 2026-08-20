@@ -1,13 +1,15 @@
 module CamaleonCms
   class NavMenu < CamaleonCms::TermTaxonomy
-    normalize_attrs(:name, :description)
+    normalize_attrs(:description)
 
-    default_scope { where(taxonomy: :nav_menu).order(id: :asc) }
+    # deterministic external iteration order (2.9.2 parity); render paths reorder(:term_order)
+    default_scope { order(id: :asc) }
+
     alias_attribute :site_id, :parent_id
 
     has_many :children, class_name: 'CamaleonCms::NavMenuItem', foreign_key: :parent_id, dependent: :destroy,
                         inverse_of: :parent
-    belongs_to :site, foreign_key: :parent_id, inverse_of: :nav_menus, required: false
+    belongs_to :site, foreign_key: :parent_id, inverse_of: :nav_menus, optional: true
 
     # add menu item for current menu
     # value: (Hash) is a hash object that contains label, type, link

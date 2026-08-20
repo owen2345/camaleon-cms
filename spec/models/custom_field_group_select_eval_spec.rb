@@ -58,7 +58,9 @@ RSpec.describe CamaleonCms::CustomFieldGroup, type: :model do
 
     group = site.custom_field_groups.create!(name: 'G4', slug: '_g4', object_class: 'Theme', objectid: theme.id)
     set_current(user: user, site: site)
-    field = group.add_field({ name: 'Updatable', slug: 'updatable' }, { field_key: 'select_eval', command: 'initial_command' })
+    field = group
+            .add_field({ name: 'Updatable',
+                         slug: 'updatable' }, { field_key: 'select_eval', command: 'initial_command' })
     expect(field).to be_present
 
     # Remove explicit select_eval permission from the role (still has general custom_fields)
@@ -82,7 +84,8 @@ RSpec.describe CamaleonCms::CustomFieldGroup, type: :model do
 
     site = Cama::Site.first
     theme = site.themes.first
-    group = site.custom_field_groups.create!(name: 'G_NoContext', slug: '_g_nocontext', object_class: 'Theme', objectid: theme.id)
+    group = site.custom_field_groups
+                .create!(name: 'G_NoContext', slug: '_g_nocontext', object_class: 'Theme', objectid: theme.id)
 
     expect { group.add_field({ name: 'X', slug: 'x' }, { field_key: 'select_eval', command: 'dangerous' }) }
       .to raise_error(CanCan::AccessDenied)

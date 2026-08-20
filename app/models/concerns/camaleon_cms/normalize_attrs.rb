@@ -9,17 +9,11 @@ module CamaleonCms
           args.each do |attr|
             next unless new_record? || attribute_changed?(attr)
 
-            self[attr] = ActionController::Base.helpers.sanitize(
-              __send__(attr)&.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
-            )&.gsub(CamaleonRecord::TRANSLATION_TAG_RESTORE_REGEX, CamaleonRecord::TRANSLATION_TAG_RESTORE_MAP)
+            self[attr] = CamaleonRecord.cama_sanitize_translatable(__send__(attr))
           end
         end
       else
-        normalizes(*args, with: lambda { |field|
-          ActionController::Base.helpers.sanitize(
-            field.gsub(CamaleonRecord::TRANSLATION_TAG_HIDE_REGEX, CamaleonRecord::TRANSLATION_TAG_HIDE_MAP)
-          ).gsub(CamaleonRecord::TRANSLATION_TAG_RESTORE_REGEX, CamaleonRecord::TRANSLATION_TAG_RESTORE_MAP)
-        })
+        normalizes(*args, with: ->(field) { CamaleonRecord.cama_sanitize_translatable(field) })
       end
     end
   end

@@ -24,27 +24,34 @@ module Plugins
       private
 
       def plugin_authoring_form_html(post)
-        "
-    <div class='form-group'>
-      <label class='control-label'>#{t('camaleon_cms.admin.table.author')}</label>
-      <select id='post_user_id' #{if can?(:edit_other,
-                                          post.post_type) && (can?(:edit_publish,
-                                                                   post.post_type) || !post.published?)
-                                    ''
-                                  else
-                                    'disabled'
-                                  end} name='post[user_id]' class='form-control select valid' aria-invalid='false'>#{plugin_authoring_authors_list(post)}</select>
-    </div>
-    "
+        disabled = !(can?(:edit_other, post.post_type) && (can?(:edit_publish, post.post_type) || !post.published?))
+
+        label = tag.label(t('camaleon_cms.admin.table.author'), class: 'control-label')
+        select = content_tag(
+          :select,
+          safe_join(plugin_authoring_authors_list(post)),
+          id: 'post_user_id', name: 'post[user_id]',
+          class: 'form-control select valid',
+          disabled: disabled,
+          'aria-invalid' => 'false'
+        )
+
+        tag.div(safe_join([label, select]), class: 'form-group')
       end
 
       def plugin_authoring_authors_list(post)
         author_id = post.new_record? ? cama_current_user.id : post.author.id
-        ret = ''
-        current_site.users.where('role <> ?', 'client').order(:username).each do |user|
-          ret += "<option value='#{user.id}' #{user.id.eql?(author_id) ? 'selected' : ''}>#{user.username.titleize}#{user.fullname.eql?(user.username.titleize) ? '' : " (#{user.fullname})"}</option>"
+
+        current_site.users.where('role <> ?', 'client').order(:username).map do |user|
+          selected = user.id == author_id
+          titleized_username = user.username.titleize
+          display = if user.fullname == titleized_username
+                      titleized_username
+                    else
+                      "#{titleized_username} (#{user.fullname})"
+                    end
+          tag.option(display, value: user.id, selected: selected)
         end
-        ret
       end
     end
   end

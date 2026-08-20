@@ -9,13 +9,13 @@ describe 'the Users', :js do
   it 'Users list' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/users"
-    expect(page).to have_content('List Users')
+    expect(page).to have_text('List Users')
 
     # create user
     within '#admin_content' do
       click_link 'Add User'
     end
-    expect(page).to have_content('Create User')
+    expect(page).to have_text('Create User')
     within '#user_form' do
       fill_in 'user[first_name]', with: 'Test'
       fill_in 'user[last_name]', with: 'Test Last name'
@@ -28,11 +28,14 @@ describe 'the Users', :js do
     end
     screenshot_and_save_page
     expect(page).to have_css('.alert-success')
-    expect(page).to have_content('tester')
+    expect(page).to have_text('tester')
   end
 
   it 'Users login new user' do # rubocop:disable RSpec/NoExpectationExample
-    admin_sign_in(uname, 'tester123')
+    # the user created via the UI in the example above rolled back with its
+    # transaction, so create the credentials this example actually verifies
+    create(:user_admin, username: uname, email: uemail, password: 'tester123', password_confirmation: 'tester123')
+    admin_form_sign_in(uname, 'tester123')
   end
 
   it 'Users Edit' do

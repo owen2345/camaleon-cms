@@ -72,11 +72,26 @@ module CamaleonCms
           p = params.permit(:post_type, :post_id)
           cat_ids = current_site.full_categories.where(id: params[:categories]).pluck(:id)
           if p[:post_id].present? && (post = current_site.the_post(p[:post_id].to_i)).present?
-            post.update_categories(cat_ids)
+            # The action carries no before_action, so authorize against the resolved post: a caller who
+            # cannot update it may neither read its custom-field values (GET) nor rewrite its categories
+            # (POST). This scopes an otherwise any-signed-in-user endpoint to the post's own editors.
+            authorize! :update, post
+            # The category write is state-changing, so it runs only on a POST — the sole verb on this
+            # route that protect_from_forgery verifies, because Rails exempts HEAD from CSRF checks
+            # just like GET (an `unless request.get?` guard would let a CSRF-exempt HEAD through). A GET
+            # or HEAD renders the current fields without mutating the post. Otherwise a bare
+            # GET .../custom_fields/list?post_id=N (CSRF through a top-level navigation, which carries
+            # the SameSite=Lax auth cookie) wipes the post's categories, because an omitted `categories`
+            # param resolves to [] and update_categories then deletes them all (audit finding M6).
+            post.update_categories(cat_ids) if request.post?
             args = {}
           else
+            # The render-only branch builds a new post of the requested type; gate it on the ability to
+            # create posts of that type so the field-group structure is not disclosed to other roles.
+            post_type = current_site.the_post_type(p[:post_type].to_i)
+            authorize! :create_post, post_type if post_type
             post = CamaleonCms::Post.new
-            post.taxonomy_id = current_site.the_post_type(p[:post_type].to_i)&.id
+            post.taxonomy_id = post_type&.id
             args = { cat_ids: cat_ids }
           end
           render partial: 'camaleon_cms/admin/settings/custom_fields/render',
@@ -89,7 +104,52 @@ module CamaleonCms
         def set_post_data
           @post_data = params.require(:custom_field_group).permit(:name, :description, :assign_group, :caption)
           @post_data[:object_class], @post_data[:objectid] = @post_data.delete(:assign_group).to_s.split(',')
+          # A Site placement has exactly one legal target, and the form only ever offers
+          # "Site,<current_site.id>". Pinning it keeps a crafted objectid from producing a group that
+          # Site#get_field_groups can never return, which would leave it stranded and unreachable.
+          @post_data[:objectid] = current_site.id if @post_data[:object_class] == 'Site'
           @caption = @post_data.delete(:caption)
+          reject_foreign_placement unless placement_owned_by_current_site?
+        end
+
+        # A group's placement (object_class + objectid) decides which record's admin page renders it,
+        # and those reads are not scoped by the owning site. Without this check a user who can manage
+        # custom fields on one site could stamp a group with another site's theme, menu or post type
+        # id and have it render there -- invisible in that site's own field group list, which is
+        # scoped by parent_id, so its administrators could neither find nor delete it.
+        def placement_owned_by_current_site?
+          object_class = @post_data[:object_class].to_s
+          objectid = @post_data[:objectid].to_s
+          return false if object_class.blank? || objectid !~ /\A\d+\z/
+
+          owned_placement_ids(object_class).include?(objectid.to_i)
+        end
+
+        # Every "other" option the form emits is "<Class>,<current_site.id>" -- Site, the configured
+        # user model, and any model contributed through the custom_field_custom_models hook. Keying
+        # the default arm on the id rather than on an allow-list of class names admits those hook
+        # models without this controller having to know their names.
+        def owned_placement_ids(object_class)
+          case object_class
+          when 'PostType', 'PostType_Post', 'PostType_Category', 'PostType_PostTag'
+            current_site.post_types.pluck(:id)
+          when 'Theme' then current_site.themes.pluck(:id)
+          when 'NavMenu' then current_site.nav_menus.pluck(:id)
+          when 'Plugin' then current_site.plugins.pluck(:id)
+          when 'Post' then current_site.posts.pluck(:id)
+          when 'Category', 'Category_Post' then current_site.full_categories.pluck(:id)
+          else [current_site.id]
+          end
+        end
+
+        def reject_foreign_placement
+          @field_group ||= current_site.custom_field_groups.new(@post_data.except(:object_class, :objectid))
+          @field_group.errors.add(
+            :base,
+            t('camaleon_cms.admin.custom_field.message.invalid_placement',
+              default: 'Select where to display this group. The selected target does not belong to this site.')
+          )
+          render 'form'
         end
 
         def validate_role
@@ -115,8 +175,8 @@ module CamaleonCms
           return {} if params[:field_options].blank?
 
           params.require(:field_options).permit(params[:field_options].keys.index_with do
-            [:field_key, :multiple, :required, :translate, :default_value, :dimension, :width, :height, :class, :placeholder,
-             { default_values: [], multiple_options: %i[title value default] }]
+            [:field_key, :multiple, :required, :translate, :default_value, :dimension, :width, :height, :class,
+             :placeholder, { default_values: [], multiple_options: %i[title value default] }]
           end).to_h
         end
 
@@ -125,15 +185,17 @@ module CamaleonCms
           errors_saved, _all_fields = group.add_fields(permitted_fields, permitted_field_options)
           group.set_option('caption', @caption)
           if errors_saved.present?
-            flash[:error] = "<b>#{t('camaleon_cms.errors_found_msg', default: 'Several errors were found, please check.')}</b><br>#{errors_saved.map do |field|
-                                                                                                                                      "#{field.name}: " + field.errors.messages.map do |k, v|
-                                                                                                                                                            "#{k.to_s.titleize}: #{v.join('|')}"
-                                                                                                                                                          end.join(', ').to_s
-                                                                                                                                    end.join('<br>')}"
+            errors_found_msg = t('camaleon_cms.errors_found_msg', default: 'Several errors were found, please check.')
+            errors_saved_all_text = errors_saved.map do |field|
+              "#{field.name}: " + field.errors.messages.map do |k, v|
+                "#{k.to_s.titleize}: #{v.join('|')}"
+              end.join(', ').to_s
+            end.join('<br>')
+            flash[:error] = "<b>#{errors_found_msg}</b><br>#{errors_saved_all_text}"
+            false
           else
             flash[:notice] = t('camaleon_cms.admin.custom_field.message.custom_updated')
           end
-          true
         end
       end
     end

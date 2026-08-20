@@ -72,9 +72,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
       'dimension' => ''
     }.with_indifferent_access
     if res['file_type'] == 'image' && File.extname(res['name']).downcase != '.gif'
-      res['thumb'] =
-        version_path(res['url']).sub('.svg',
-                                     '.jpg')
+      res['thumb'] = version_path(res['url']).sub(SVG_EXT_PATTERN, '.jpg')
     end
     res['key'] = File.join(res['folder_path'], res['name'])
     @aws_settings[:aws_file_read_settings].call(res, s3_file)
@@ -100,14 +98,20 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     end
 
     s3_file = bucket.object(key.slice(1..-1))
+    # Security (audit 2026-08-11 M5): a private-mode upload must be owner-only. Storing it 'public-read'
+    # (like a public file) left it world-readable at a guessable s3://bucket/private/<name> URL,
+    # bypassing the download_private_file gate. That gate fetches via the authenticated S3 API, so a
+    # 'private' ACL does not affect legitimate serving.
+    acl = is_private_uploader? ? 'private' : 'public-read'
     s3_file.upload_file(
-      uploaded_io_or_file_path.is_a?(String) ? uploaded_io_or_file_path : uploaded_io_or_file_path.path, @aws_settings[:aws_file_upload_settings].call({ acl: 'public-read' })
+      uploaded_io_or_file_path.is_a?(String) ? uploaded_io_or_file_path : uploaded_io_or_file_path.path,
+      @aws_settings[:aws_file_upload_settings].call({ acl: acl })
     )
     res = cache_item(file_parse(s3_file)) unless args[:is_thumb]
     res
   end
 
-  # add new folder to AWS with :key
+  # Add a new folder to AWS with :key
   def add_folder(key)
     return { error: 'Invalid folder path' } unless valid_folder_path?(key)
 
@@ -118,7 +122,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     cache_item(file_parse(s3_file))
   end
 
-  # delete a folder in AWS with :key
+  # Delete a folder in AWS with :key
   def delete_folder(key)
     return { error: 'Invalid folder path' } unless valid_folder_path?(key)
 
@@ -128,7 +132,7 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     get_media_collection.by_key(key).take.destroy
   end
 
-  # delete a file in AWS with :key
+  # Delete the `:key` file in AWS
   def delete_file(key)
     return { error: 'Invalid file path' } unless valid_folder_path?(key)
 
@@ -143,7 +147,24 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     get_media_collection.by_key(key).take.destroy
   end
 
-  # initialize a bucket with AWS configurations
+  # Security (audit 2026-08-11 M5 follow-up): uploads stored before the private-ACL fix kept a
+  # world-readable ACL under the private prefix. Sweep them back to owner-only and return the count.
+  # The prefix mirrors setup_private_folder -- <inner_folder>/private/ -- normalized exactly like
+  # add_file keys (leading slash added by cama_fix_media_key, then stripped for S3), with a trailing
+  # slash so a sibling folder such as private_x is not swept.
+  def repair_private_acls!
+    inner_folder = @aws_settings['inner_folder'].to_s
+    inner_folder = "#{inner_folder}/#{PRIVATE_DIRECTORY}" unless is_private_uploader?
+    prefix = "#{inner_folder.cama_fix_media_key.slice(1..-1)}/"
+    repaired = 0
+    bucket.objects(prefix: prefix).each do |object|
+      object.acl.put(acl: 'private')
+      repaired += 1
+    end
+    repaired
+  end
+
+  # Initialize a bucket with AWS configurations
   # return: (AWS Bucket object)
   def bucket
     @bucket ||= lambda {

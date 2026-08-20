@@ -47,7 +47,7 @@ module CamaleonCms
           if @site.save
             save_metas(@site)
             site_after_install(@site, @site.get_theme_slug)
-            flash[:notice] = t('camaleon_cms.admin.sites.message.created')
+            flash[:notice] = site_created_notice(@site)
             redirect_to action: :index
           else
             new
@@ -86,6 +86,29 @@ module CamaleonCms
 
         def site_params
           params.require(:site).permit(:name, :slug, :description)
+        end
+
+        # When creating an additional site provisions a fresh administrator (only when users are not
+        # shared across sites), surface its generated password once to the authenticated creator, with
+        # a copy control. Otherwise a plain confirmation. See harden-installer-default-admin.
+        def site_created_notice(site)
+          password = site.generated_admin_password
+          return t('camaleon_cms.admin.sites.message.created') if password.blank?
+
+          # rubocop:disable Style/FormatStringToken -- Rails i18n interpolation requires %{...} syntax
+          message = t(
+            'camaleon_cms.admin.sites.message.created_with_admin',
+            password: password,
+            default: 'Site created. New administrator password: %{password}. Change it after signing in.'
+          )
+          # rubocop:enable Style/FormatStringToken
+          copy = helpers.tag.button(
+            t('camaleon_cms.admin.installer.copy', default: 'Copy'),
+            type: 'button',
+            class: 'btn btn-xs btn-default',
+            onclick: "navigator.clipboard&&navigator.clipboard.writeText('#{password}')"
+          )
+          helpers.safe_join([message, ' ', copy])
         end
       end
     end

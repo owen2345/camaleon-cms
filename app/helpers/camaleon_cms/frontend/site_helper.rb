@@ -9,48 +9,48 @@ module CamaleonCms
       # return current url visited as path
       # http://localhost:9001/category/cat-post-2  => /category/cat-post-2
       def site_current_path
-        @_site_current_path ||= site_current_url.sub(cama_root_url(locale: nil), '/')
+        CurrentRequest.frontend_site_current_path ||= site_current_url.sub(cama_root_url(locale: nil), '/')
       end
 
       # **************** section is a? ****************#
       # check if current section visited is home page
       def is_home?
-        @cama_visited_home.present?
+        camaleon_frontend_visited_state(:frontend_visited_home).present?
       end
 
       # check if current section visited is for post
       def is_page?
-        @cama_visited_post.present?
+        camaleon_frontend_visited_state(:frontend_visited_post).present?
       end
 
       # check if current section visited is for ajax
       def is_ajax?
-        @cama_visited_ajax.present?
+        camaleon_frontend_visited_state(:frontend_visited_ajax).present?
       end
 
       # check if current section visited is for search
       def is_search?
-        @cama_visited_search.present?
+        camaleon_frontend_visited_state(:frontend_visited_search).present?
       end
 
       # check if current section visited is for post type
       def is_post_type?
-        @cama_visited_post_type.present?
+        camaleon_frontend_visited_state(:frontend_visited_post_type).present?
       end
 
       # check if current section visited is for post tag
       def is_post_tag?
-        @cama_visited_tag.present?
+        camaleon_frontend_visited_state(:frontend_visited_tag).present?
       end
 
       # check if current section visited is for category
       def is_category?
-        @cama_visited_category.present?
+        camaleon_frontend_visited_state(:frontend_visited_category).present?
       end
 
       # check if visited page is user profile (frontend)
       def is_profile?
-        @cama_visited_profile == true
+        camaleon_frontend_visited_state(:frontend_visited_profile) == true
       end
 
       # **************** end section is a? ****************#
@@ -60,9 +60,29 @@ module CamaleonCms
       # seo_attrs: Custom attributes for seo in Hash format
       # show_seo: (Boolean) control to append or not the seo attributes
       def the_head(seo_attrs = {}, _show_seo = true)
-        js = "<script>var ROOT_URL = '#{cama_root_url}'; var LANGUAGE = '#{I18n.locale}'; </script>".html_safe
-        js += cama_draw_pre_asset_contents
-        "#{csrf_meta_tag || ''}\n#{display_meta_tags(cama_the_seo(seo_attrs))}\n#{js}\n#{cama_draw_custom_assets}"
+        js = javascript_tag("var ROOT_URL = #{cama_root_url.to_json}; var LANGUAGE = #{I18n.locale.to_s.to_json};")
+        safe_join(
+          [
+            csrf_meta_tag.presence,
+            display_meta_tags(cama_the_seo(seo_attrs)).presence,
+            js,
+            cama_draw_pre_asset_contents.presence,
+            cama_draw_custom_assets.presence
+          ].compact,
+          "\n"
+        )
+      end
+
+      private
+
+      def camaleon_frontend_visited_state(current_request_attr)
+        value = CurrentRequest.public_send(current_request_attr)
+        return value unless value.nil?
+
+        # Fall back to a legacy @cama_visited_* ivar a plugin front controller may have set directly;
+        # core writes both stores, so stock flows never reach here. Regression M20.
+        legacy_ivar = CamaleonCms::FrontendVisitedStateConcern::LEGACY_VISITED_IVAR_BY_ATTR[current_request_attr]
+        instance_variable_get(legacy_ivar) if legacy_ivar && instance_variable_defined?(legacy_ivar)
       end
     end
   end

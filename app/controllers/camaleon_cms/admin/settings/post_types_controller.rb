@@ -50,7 +50,10 @@ module CamaleonCms
         private
 
         def set_data_term
-          data_term = params.require(:post_type).permit(:name, :slug, :description, :parent_id)
+          # parent_id is the post type's site_id (alias_attribute). It is set from the site association
+          # on create and must never be reassigned, so it is not accepted from the request; otherwise a
+          # settings manager could re-home the post type onto another site (audit finding H8).
+          data_term = params.require(:post_type).permit(:name, :slug, :description)
           data_term[:data_options] = params[:meta].present? ? post_type_meta_params : {}
           @data_term = data_term
         end

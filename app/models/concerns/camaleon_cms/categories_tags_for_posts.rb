@@ -67,6 +67,18 @@ module CamaleonCms
       update_counts('categories')
     end
 
+    # Unassign this post from categories with ids: categories_id
+    # categories_id: (Array) array of category ids to unassign from this post, sample: [1,2,3]
+    def unassign_category(categories_id)
+      categories_id = [categories_id] if categories_id.is_a?(Integer)
+      # a loaded (stale) categories association would hide the removed ids from the
+      # counter refresh below — check_default_category loads it on every save
+      categories.reset
+      rescue_extra_data
+      term_relationships.where(term_taxonomy_id: categories_id).destroy_all
+      update_counts('categories')
+    end
+
     # Update the quantity of posts assigned for tags and categories assigned to this post
     def update_extra_data
       rescue_extra_data

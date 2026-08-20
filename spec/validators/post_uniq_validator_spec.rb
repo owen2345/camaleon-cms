@@ -28,6 +28,38 @@ RSpec.describe CamaleonCms::PostUniqValidator, type: :model do
       end
     end
 
+    context 'when the slug duplicates a published post of the same post type' do
+      it 'registers a base error' do
+        create(:post, post_type: post_type, slug: 'taken-slug', status: 'published')
+        duplicate = build(:post, post_type: post_type, slug: 'taken-slug')
+
+        expect(validate_post(duplicate))
+          .to contain_exactly(a_string_matching(I18n.t('camaleon_cms.admin.post.message.requires_different_slug')))
+      end
+    end
+
+    context 'when the slug duplicates a published post of another post type in the same site' do
+      it 'registers a base error (uniqueness is site-wide, not per post type)' do
+        other_type = create(:post_type, slug: 'other-pt', site: @site)
+        create(:post, post_type: other_type, slug: 'shared-slug', status: 'published')
+        duplicate = build(:post, post_type: post_type, slug: 'shared-slug')
+
+        expect(validate_post(duplicate))
+          .to contain_exactly(a_string_matching(I18n.t('camaleon_cms.admin.post.message.requires_different_slug')))
+      end
+    end
+
+    context 'when the parent chain loops back to the post' do
+      it 'registers a recursive-hierarchy error' do
+        post_type.set_option(:has_parent_structure, true)
+        page = create(:post, post_type: post_type, slug: 'loop-page')
+        page.post_parent = page.id
+
+        expect(validate_post(page))
+          .to include(I18n.t('camaleon_cms.admin.post.message.recursive_hierarchy', default: 'Parent Post Recursive'))
+      end
+    end
+
     context 'with SQL injection attempts in slug' do
       it 'does not execute injected SQL - boolean based' do
         create(:post, post_type: post_type, slug: 'legit-slug', status: 'published')

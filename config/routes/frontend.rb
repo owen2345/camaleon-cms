@@ -29,11 +29,12 @@ Rails.application.routes.draw do
           multilingual_segment = PluginRoutes.all_translations('routes.category', default: 'category')
           request.params[:category_id].match(/[0-9]+/) && request.params[:label_cat].in?(multilingual_segment)
         }
-        get ':post_type_title/:label_cat/:category_id-:title/:slug' => :post, as: 'post_of_category_post_type', constraints: lambda { |request|
-          multilingual_segment = PluginRoutes.all_translations('routes.category', default: 'category')
-          request.params[:post_type_title].match(/^(?!(#{PluginRoutes.all_locales})$)[\w.-]+$/) &&
-            request.params[:category_id].match(/[0-9]+/) && request.params[:label_cat].in?(multilingual_segment)
-        }
+        get ':post_type_title/:label_cat/:category_id-:title/:slug' => :post, as: 'post_of_category_post_type',
+            constraints: lambda { |request|
+              multilingual_segment = PluginRoutes.all_translations('routes.category', default: 'category')
+              request.params[:post_type_title].match(/^(?!(#{PluginRoutes.all_locales})$)[\w.-]+$/) &&
+                request.params[:category_id].match(/[0-9]+/) && request.params[:label_cat].in?(multilingual_segment)
+            }
         get ':label/:post_tag_id-:title' => :post_tag, as: 'post_tag', constraints: lambda { |request|
           multilingual_segment = PluginRoutes.all_translations('routes.tag', default: 'tag')
           request.params[:post_tag_id].match(/[0-9]+/) && request.params[:label].in?(multilingual_segment)
@@ -44,12 +45,14 @@ Rails.application.routes.draw do
         }
         get ':label/:post_tag_slug' => :post_tag, as: 'post_tag_simple', constraints: lambda { |request|
           multilingual_segment = PluginRoutes.all_translations('routes.tag', default: 'tag')
-          request.params[:post_tag_slug].match(%r{[a-zA-Z0-9_=\s\-/]+}) && request.params[:label].in?(multilingual_segment)
+          request.params[:post_tag_slug].match(%r{[a-zA-Z0-9_=\s\-/]+}) &&
+            request.params[:label].in?(multilingual_segment)
         }
-        get ':label/:user_id-:user_name' => :profile, as: :profile, defaults: { label: 'profile' }, constraints: lambda { |request|
-          multilingual_segment = PluginRoutes.all_translations('routes.profile', default: 'profile') | %w[profile]
-          request.params[:user_id].match(/[0-9]+/) && request.params[:label].in?(multilingual_segment)
-        }
+        get ':label/:user_id-:user_name' => :profile, as: :profile, defaults: { label: 'profile' },
+            constraints: lambda { |request|
+              multilingual_segment = PluginRoutes.all_translations('routes.profile', default: 'profile') | %w[profile]
+              request.params[:user_id].match(/[0-9]+/) && request.params[:label].in?(multilingual_segment)
+            }
         get ':label' => :search, as: :search, defaults: { label: 'search' }, constraints: lambda { |request|
           multilingual_segment = PluginRoutes.all_translations('routes.search', default: 'search') | %w[search]
           request.params[:label].in?(multilingual_segment)
@@ -71,11 +74,14 @@ Rails.application.routes.draw do
         # post types
         controller 'camaleon_cms/frontend' do
           PluginRoutes.get_sites.each do |s|
-            s.post_types.pluck(:slug, :id).each do |pt_slug, pt_id|
-              get ':post_type_slug' => :post_type, as: "post_type_#{pt_id}", post_type_id: pt_id, constraints: lambda { |request|
-                multilingual_segment = PluginRoutes.all_translations("routes.post_types.#{pt_slug}", default: pt_slug)
-                request.params[:post_type_slug].in?(multilingual_segment)
-              }
+            # get_sites eager-loads :post_types, so map in memory instead of a per-site pluck query.
+            s.post_types.map { |pt| [pt.slug, pt.id] }.each do |pt_slug, pt_id|
+              get ':post_type_slug' => :post_type, as: "post_type_#{pt_id}", post_type_id: pt_id,
+                  constraints: lambda { |request|
+                    multilingual_segment =
+                      PluginRoutes.all_translations("routes.post_types.#{pt_slug}", default: pt_slug)
+                    request.params[:post_type_slug].in?(multilingual_segment)
+                  }
             end
           end
         end

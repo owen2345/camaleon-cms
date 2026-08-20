@@ -4,26 +4,13 @@ rescue LoadError
   puts 'You must `gem install bundler` and `bundle install` to run rake tasks'
 end
 
-require 'rdoc/task'
-
-RDoc::Task.new(:rdoc) do |rdoc|
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'CamaleonCms'
-  rdoc.options << '--line-numbers'
-  rdoc.rdoc_files.include('README.rdoc')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-end
-
 APP_RAKEFILE = File.expand_path('spec/dummy/Rakefile', __dir__)
 load 'rails/tasks/engine.rake'
 
-load 'rails/tasks/statistics.rake'
+# Deliberately no Bundler::GemHelper.install_tasks: its `rake release` would tag `v<version>` and
+# push a gem that none of the release checks had seen. Releases go through the Release workflow —
+# see docs/releasing.md, which also covers building and publishing by hand.
 
-Bundler::GemHelper.install_tasks
-
-Dir[File.join(File.dirname(__FILE__), 'tasks/**/*.rake')].each { |f| load f }
-
-require 'rspec/core'
 require 'rspec/core/rake_task'
 
 desc 'Run all specs in spec directory (excluding plugin specs)'

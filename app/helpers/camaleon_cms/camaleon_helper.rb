@@ -8,27 +8,11 @@ module CamaleonCms
       return '' unless cama_current_user.admin?
 
       attrs = { target: '_blank', style: 'font-size:11px !important;cursor:pointer;' }.merge(attrs)
-      ActionController::Base.helpers.link_to("&rarr; #{title || ct('edit', default: 'Edit')}".html_safe, url, attrs)
-    end
-
-    # execute controller action and return response
-    # NON USED
-    def cama_requestAction(controller, action, params = {})
-      controller.class_eval do
-        def params=(params)
-          @params = params
-        end
-
-        def params
-          @params
-        end
-      end
-      c = controller.new
-      c.request = @_request
-      c.response = @_response
-      c.params = params
-      c.send(action)
-      c.response.body
+      link_to(
+        safe_join(['→ ', title || ct('edit', default: 'Edit')]),
+        url,
+        attrs
+      )
     end
 
     # theme common translation text
@@ -44,21 +28,37 @@ module CamaleonCms
       I18n.translate("camaleon_cms.common.#{key}", **args)
     end
 
+    # Public compatibility API for plugins such as camaleon-ecommerce, which use
+    # this predicate to switch from visitor pricing/locale behavior to admin mode.
+    # This still matters while previewing frontend content from admin, for example
+    # a theme preview that renders ecommerce helpers before the request reaches the
+    # public frontend controller stack.
+    def cama_is_admin_request?
+      respond_to?(:cama_get_i18n_frontend) && cama_get_i18n_frontend.present?
+    end
+
     # generate loop categories html sitemap links
     # this is a helper for sitemap generator to print categories, sub categories and post contents in html list format
-    def cama_sitemap_cats_generator(cats)
+    def cama_sitemap_cats_generator(cats, skip_config = {})
+      skip_config = {} unless skip_config.is_a?(Hash)
+      # merge! alone is not enough: an on_render_sitemap hook that sets one of these keys to nil
+      # overwrites the default with nil and brings back the very nil.include? crash the defaults
+      # exist to prevent. compact drops those before they win.
+      skip_config = { skip_cat_ids: [], skip_post_ids: [] }.merge!(skip_config.compact)
       res = []
       cats.decorate.each do |cat|
-        next if @r[:skip_cat_ids].include?(cat.id)
+        next if skip_config[:skip_cat_ids].include?(cat.id)
 
         res_posts = []
         cat.the_posts.decorate.each do |post|
-          next if @r[:skip_post_ids].include?(post.id)
+          next if skip_config[:skip_post_ids].include?(post.id)
 
-          res_posts << "<li><a href='#{post.the_url}'>#{post.the_title}</a></li>"
+          post_href = ERB::Util.html_escape(post.the_url)
+          res_posts << "<li><a href='#{post_href}'>#{post.the_title}</a></li>"
         end
-        res << "<li><h4><a href='#{cat.the_url}'>#{cat.the_title}</a></h4><ul>#{res_posts.join('')}</ul></li>"
-        res << cama_sitemap_cats_generator(cat.the_categories)
+        cat_href = ERB::Util.html_escape(cat.the_url)
+        res << "<li><h4><a href='#{cat_href}'>#{cat.the_title}</a></h4><ul>#{res_posts.join('')}</ul></li>"
+        res << cama_sitemap_cats_generator(cat.the_categories, skip_config)
       end
       res.join('')
     end
@@ -81,8 +81,12 @@ module CamaleonCms
     end
 
     # function that converts string into plural format
+    # `SafeBuffer#pluralize` returns a plain String, so callers composing the result with other
+    # markup lose the safe flag before they can use it. The safeness of the input is propagated --
+    # never added, so an unsafe input stays unsafe and no caller becomes less safe than before.
     def cama_pluralize_text(text)
-      text.try(:pluralize)
+      res = text.try(:pluralize)
+      text.try(:html_safe?) ? res.try(:html_safe) : res
     end
   end
 end

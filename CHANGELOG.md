@@ -2,37 +2,250 @@
 
 ## Unreleased
 
-- **Security fix:** Fix two unprotected redirects via `params[:return_to]` in `sessions_controller.rb` and `session_helper.rb` [#1168](https://github.com/owen2345/camaleon-cms/pull/1168)
-  - Both used `params[:return_to]` directly in `redirect_to`, allowing open redirect attacks
-  - Fixed by routing through the existing `safe_redirect_url` helper
-  - Added tests in `spec/requests/security/open_redirect_session_spec.rb`
-- **Security, style, and cleanup:** Rubocop fixes part 1 [#1168](https://github.com/owen2345/camaleon-cms/pull/1168)
-  - Fixed `Style/IfUnlessModifier`, `Rails/Output`, `Rails/FilePath`, `Performance/InefficientHashSearch`, `Performance/RedundantMerge`, `Performance/StringReplacement`, `Rails/Presence`, `RSpecRails/HttpStatus`, `Rails/DynamicFindBy`, `Rails/FindEach`, `Rails/SkipsModelValidations`, `Rails/Time`, `Rails/Date`, `Rails/ApplicationRecord`, `Rails/Blank`
-  - Removed dead code: `cama_draw_timer`, `all_locales_for_routes`, `cama_get_options_html_from_items`, `cama_parse_for_thumb_name`
-  - Set `TargetRailsVersion` to `6.1` in `.rubocop.yml`
-- **Security fix:** Bump gems — Nokogiri to 1.19.3, action_text-trix, aws-sdk, puma, rubyzip, selenium-webdriver, sqlite3, Bundler 2.7.2 [#1170](https://github.com/owen2345/camaleon-cms/pull/1170)
-  - Nokogiri fixes: CSS selector tokenizer regexp backtracking, XSLT memory leak
-  - puma fix: `prune_bundler` was stripping user-configured `BUNDLE_*` env vars on re-exec
-  - DOMPurify upgraded to 3.4.2 in action_text-trix
+## [2.9.3](https://github.com/owen2345/camaleon-cms/tree/2.9.3) (2026-08-16)
 
-- **Fix:** Decorator locale resolution and language context mixing (fixes issue #233), [#1166](https://github.com/owen2345/camaleon-cms/pull/1166)
-  - **Phase 1:** Fix locale accessibility and language context mixing
-    - Move `cama_get_i18n_frontend` helper to parent CamaleonController so both frontend and admin decorators can access correct locale
-    - Move `@cama_i18n_frontend` initialization to FrontendController.init_frontent (after language switching logic)
-    - Fix AdminSessionsController to NOT read frontend's `session[:cama_current_language]` (prevents breadcrumb showing wrong language when switching frontend→admin)
-  - **Phase 2:** Simplify to rely on I18n.locale alone
-    - Remove redundant `@cama_i18n_frontend` instance variable (it just mirrored I18n.locale)
-    - Simplify decorator priority chain to 3 levels: explicit > @_deco_locale > I18n.locale
-    - Cleaner code: removed try-rescue overhead, direct I18n.locale fallback
-  - Result: Decorators now correctly use site's frontend language in frontend context, admin language in admin context
-  - Add 8 comprehensive locale resolution tests
-  - All 388 specs pass, RuboCop: 0 violations
-- **Bug fix:** Fix thread-safety issues with `PluginRoutes.reload` causing persistent 500 errors, [#1163](https://github.com/owen2345/camaleon-cms/pull/1163)
-  - Remove unnecessary `PluginRoutes.reload` from `plugins#index` and `themes#index` actions
-  - Refactor class variables (`@@`) to class instance variables (`@`) with `Monitor` for thread-safe route reloading and cache access
-  - Fix `return` in blocks by using `find` instead of `each`
-  - Add 27 tests for `PluginRoutes`, `plugins`, and `themes` controllers
-- **Optimize PluginRoutes.draw_gems and apps_dir methods** Micro-optimizations for memory consumption and performance, [#1164](https://github.com/owen2345/camaleon-cms/pull/1164)
+> **Upgrading to 2.9.3?** Required operator actions, the post-upgrade maintenance tasks (with copy-paste commands), behaviour changes, and notes for theme/plugin developers are collected in **[docs/upgrading-to-2.9.3.md](docs/upgrading-to-2.9.3.md)**. Breaking changes are flagged inline below.
+
+- **Bug fix:** The post editor could load with an empty body on a cold server when the edit form was opened in a background browser tab, and saving then overwrote the post with the empty body; the editor now restores the server-rendered content when it initializes empty. [#1273](https://github.com/owen2345/camaleon-cms/pull/1273).
+
+- **Performance fix:** On installs with many sites, the first request after a server (re)start could 404 or be served against a still-building route table. Route drawing no longer scales with the number of sites, it is drawn at boot in development so no request is served mid-draw, and admin responses now send `Cache-Control: no-store`. [#1272](https://github.com/owen2345/camaleon-cms/pull/1272).
+
+- **Security fix:** A role holding only the `media` permission could set any same-site user's avatar — including an administrator's — via `media#crop` with `saved_avatar`, gated only by `:manage, :media`. Writing another user's avatar now requires `:manage, :users`; a caller may still set their own with the media permission alone. Completes the media-crop finding (cross-site half shipped in #1267). Reported by Guilherme Facini. [#1271](https://github.com/owen2345/camaleon-cms/pull/1271).
+  - **Breaking change:** a role with `:manage, :media` but not `:manage, :users` can no longer set other users' avatars via crop. Grant `:manage, :users` to a role that needs to manage other users' avatars.
+
+- **Security fix:** The upload scan chose its ruleset from the filename, so identical bytes were refused as `x.svg` yet stored as `x.html`. The ruleset now follows how the file renders: markup is parsed and `on*` attributes rejected by shape, `.svgz` decompressed under a bounded read, and executable scripts require `media_unfiltered_upload`. Reported by Guilherme Facini. [#1269](https://github.com/owen2345/camaleon-cms/pull/1269). [Upgrade notes](docs/upgrading-to-2.9.3.md#media--uploads).
+  - **Breaking change:** a role without `media_unfiltered_upload` can no longer upload `.js`, `.mjs`, `.cjs`, `.wasm` or `.swf` files. Grant that permission to a role that needs them.
+
+- **Release process:** Releases are now cut by a manually-started **Release** GitHub Actions workflow that verifies, builds, and publishes the gem, then tags the commit and creates the GitHub release from this file's section; `lib/camaleon_cms/version.rb` is the single source of truth. Procedure: [docs/releasing.md](docs/releasing.md). [#1268](https://github.com/owen2345/camaleon-cms/pull/1268).
+
+- **Security fix:** Low-severity hardening bundle — the captcha challenge is drawn from a CSPRNG; `save_comment` fails closed on crafted input and no longer follows an off-host `Referer`; the media crop avatar target is resolved within the current site; and `front_cache` keys its cache on a lossless digest (no URL collisions) and skips malformed path patterns. [#1267](https://github.com/owen2345/camaleon-cms/pull/1267). [Upgrade notes](docs/upgrading-to-2.9.3.md#no-action-needed-front_cache).
+
+- **Security fix:** Four medium admin hardenings — `media#upload` no longer skips CSRF (the uploader now sends the token); draft custom-field options are confined to the post type's registered slugs; the nav-menu reorder resolves its destination through the current site; and the email-confirmation token is consumed on use. [#1266](https://github.com/owen2345/camaleon-cms/pull/1266). [Upgrade notes](docs/upgrading-to-2.9.3.md#admin-routes--external-integrations).
+
+- **Security fix:** The remaining destructive admin endpoints no longer answer GET (audit M6): nav-menu item delete requires DELETE, the legacy `appearances/widgets` delete routes no longer admit GET, and `media/crop` accepts only POST. A routing audit spec enforces that no mutation-named admin route answers GET/HEAD. [#1265](https://github.com/owen2345/camaleon-cms/pull/1265). [Upgrade notes](docs/upgrading-to-2.9.3.md#admin-routes--external-integrations).
+
+- **Security fix:** Destructive admin actions no longer ride GET links (which Rails' CSRF protection exempts): trashing/restoring posts, comment moderation, plugin toggle/upgrade, impersonation, test email, theme sample-data import, and logout now act only over PATCH/POST. [#1264](https://github.com/owen2345/camaleon-cms/pull/1264). [Upgrade notes](docs/upgrading-to-2.9.3.md#admin-routes--external-integrations).
+
+- **Security fix:** Post content from untrusted authors is rejected on save when it contains disallowed HTML, instead of being silently sanitized: the save fails with an error naming the remedy, and stored content always equals authored content. Admins and roles holding `post_content_unfiltered_html` are unaffected; `unfiltered_content!` opts server-side pipelines out. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263). [Upgrade notes](docs/upgrading-to-2.9.3.md#content--editing).
+
+- **Security fix:** Unlocking a password-protected post now happens over POST with a session-side unlock and a constant-time comparison. The prompt used to submit over GET as plain text (exposing the password in URLs, history, logs and `Referer`) and compared with `==`; the query-string parameter no longer unlocks anything. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263). [Upgrade notes](docs/upgrading-to-2.9.3.md#sessions--login).
+
+- **Security fix:** Password-protected posts no longer leak their body through excerpts. `the_excerpt` (listings, search, RSS) was still derived from the body; a locked post's excerpt is now a neutral notice, and such posts are excluded from the `front_cache` page cache. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
+- **Security fix:** The admin auth cookie is now `HttpOnly` and `Secure` (over SSL), and logging out rotates the server-side `auth_token`. The bearer token was previously readable by JavaScript and sent in the clear, and a cookie copied before logout stayed valid. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263). [Upgrade notes](docs/upgrading-to-2.9.3.md#sessions--login).
+
+- **Security fix:** `field_attrs` custom-field values are now gated at save like editor values and rendered verbatim, closing a second stored-XSS path. The gate scans the decoded members of any JSON shape, so markup hidden by unicode escaping is refused like literal markup; nothing is sanitized. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
+- **Security fix:** Dangerous custom-field values (rich-text `editor`, URL types) are rejected on save instead of stored, closing a stored-XSS path. A value an untrusted author may not write (scripts, event handlers, embeds, `javascript:` URLs) is refused with an error naming the field; trusted authors are unaffected. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263). [Upgrade notes](docs/upgrading-to-2.9.3.md#audit-tasks--read-only-recommended-for-every-install).
+
+- **Security fix:** Passwords must now be at least 8 characters (NIST-aligned, length-only), applied whenever a password is set; a profile update that leaves the password untouched is unaffected. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
+- **Security fix:** The forgot-password endpoint no longer reveals whether an email is registered, nor floods an inbox: it returns one neutral message either way and sends at most one reset email per account per 5-minute window. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
+- **Security fix:** Admin login no longer leaks whether a username exists through response timing — a missing username now spends one bcrypt comparison too, closing a username-enumeration oracle. [#1263](https://github.com/owen2345/camaleon-cms/pull/1263).
+
+- **Security fix:** Two admin endpoints now enforce authorization. `AdminController#search` scoped nothing, so any admin-area user could enumerate every post title/slug in every status; it now scopes results to the caller's authorized post types, categories and tags. `Posts::DraftsController#index` now requires `:posts` authorization. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+- **Security fix:** The admin post index no longer leaks another post type's posts through a taxonomy filter. `?taxonomy=category|post_tag` replaced the scope with the taxonomy owner's site-wide posts; the filter is now resolved within the authorized post type (a foreign id 404s) and intersected with its posts. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+- **Security fix:** Credential parameters are now filtered from the Rails logs. The engine set no `config.filter_parameters`, so SMTP/S3 secrets, user and protected-post passwords, and token parameters were logged in cleartext on hosts without their own filter. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262).
+
+- **Security fix:** Private uploads to S3 are now stored with an owner-only (`private`) ACL instead of `public-read`, which left a private file world-readable at a guessable `s3://bucket/private/<name>` URL. Public uploads are unchanged. [#1262](https://github.com/owen2345/camaleon-cms/pull/1262). [Upgrade notes](docs/upgrading-to-2.9.3.md#re-apply-the-private-acl-to-s3-uploads--awss3-installs).
+
+- **Fix:** The upload content scanner now accepts embedded raster images encoded as `data:image/*` URIs (e.g. an Inkscape/Figma SVG with `<image xlink:href="data:image/png;base64,…">`), previously rejected as false positives. Dangerous `data:` URIs and `javascript:`/`vbscript:` remain blocked. [#1261](https://github.com/owen2345/camaleon-cms/pull/1261).
+
+- **Security fix:** The uploaded-SVG scanner now rejects uppercase/mixed-case event-handler attributes (e.g. `ONCLICK`), and no longer raises on an SVG declaring a non-UTF-8 encoding — such a file is scanned normally instead of failing the upload. [#1261](https://github.com/owen2345/camaleon-cms/pull/1261).
+
+- **Security fix:** The uploaded-SVG scanner now catches blocked URI schemes hiding a TAB/LF/CR gap inside the scheme name (e.g. `java&#9;script:`), which a browser strips back before executing. Both scheme checks now share `ContentSecurity`'s gap-tolerant pattern and entity normalization. [#1261](https://github.com/owen2345/camaleon-cms/pull/1261).
+
+- **Security fix:** `sort_by_field` no longer interpolates its sort-direction argument into the SQL `ORDER BY`. It is a public API, so a user-controlled direction could 500 or append attacker-chosen `ORDER BY` terms (a blind ordering oracle); the direction is now whitelisted to `ASC`/`DESC` and the value column ordered as a quoted identifier. [#1260](https://github.com/owen2345/camaleon-cms/pull/1260). [Upgrade notes](docs/upgrading-to-2.9.3.md#public-api-changes).
+
+- **Fix:** `sort_by_field` and `filter_by_field` no longer append phantom unsaved records to the collection — class discovery now uses the relation's `klass` instead of `build`. [#1260](https://github.com/owen2345/camaleon-cms/pull/1260).
+
+- **Change:** The `user_before_register` hook now fires during registration (previously a silent no-op), after the register captcha passes; a handler can veto a signup by setting `r[:stop_process]`. [#1259](https://github.com/owen2345/camaleon-cms/pull/1259). [Upgrade notes](docs/upgrading-to-2.9.3.md#hooks--extension-points).
+
+- **Security fix:** Closed an open redirect in the admin session flows. `safe_redirect_url` treated a parsed-host-blank URL such as `return_to=///evil.com` as same-origin; it now follows a host-blank destination only when it is a genuine same-origin path, and a host-matching absolute URL only over `http`/`https`. [#1258](https://github.com/owen2345/camaleon-cms/pull/1258). [Upgrade notes](docs/upgrading-to-2.9.3.md#hooks--extension-points).
+
+- **Fix:** The `user_before_register` hook now fires during account registration — it was dispatched in a form that resolved to a no-op, so a listening plugin never ran. [#1258](https://github.com/owen2345/camaleon-cms/pull/1258).
+
+- **Security fix:** Only an admin may control an admin account. Holding `:manage, :users` let a non-admin mint or strip the `admin` role, or reset an admin's password/email to hijack the account; granting/removing `admin` and changing an existing admin's password, email or username now require being an admin (audit H10). [#1257](https://github.com/owen2345/camaleon-cms/pull/1257).
+
+- **Security fix:** Admin login is now brute-force throttled per client IP. The "under attack" decision was per-session, so dropping the session cookie each request evaded the captcha (H1); the bundled `attack` plugin also keyed on the session id and inserted a row per request (H2). Failures are now counted per IP in the cache, with a captcha then an HTTP 429 lockout. [#1256](https://github.com/owen2345/camaleon-cms/pull/1256). [Upgrade notes](docs/upgrading-to-2.9.3.md#sessions--login).
+
+- **Security fix:** The captcha is now a single, single-use challenge of bounded length. `GET /captcha?len=` fed its length straight into generation (a huge value tied up the worker; `1` shrank the answer to a letter), and every issued answer accumulated in the session and was accepted forever (H3/H4). The length is clamped and a solved captcha is consumed. [#1255](https://github.com/owen2345/camaleon-cms/pull/1255). [Upgrade notes](docs/upgrading-to-2.9.3.md#hooks--extension-points).
+
+- **Fix:** Saving a frontend comment no longer 500s when the client sends no `User-Agent` header; it is recorded nil-safely without mutating the request string in place. [#1255](https://github.com/owen2345/camaleon-cms/pull/1255).
+
+- **Security fix:** Ending admin impersonation now requires the impersonating admin's password. The Logout link previously restored the stashed admin cookie for whoever held the session, so an admin who walked away mid-impersonation on a shared browser let the next occupant become admin. [#1254](https://github.com/owen2345/camaleon-cms/pull/1254).
+
+- **Security fix:** The session is now reset on a genuine sign-in and on logout. The impersonation stash outlived the admin on a shared browser, so a later user inherited it and was handed the admin's cookie on logout (audit H6); `login_user`/`cama_logout_user` now `reset_session`. [#1253](https://github.com/owen2345/camaleon-cms/pull/1253). [Upgrade notes](docs/upgrading-to-2.9.3.md#hooks--extension-points).
+
+- **Security fix:** The admin custom-fields "list" endpoint no longer writes a post's categories on a GET request — with `categories` omitted it deleted every category relationship, reachable by CSRF. The write now runs only on a CSRF-verified POST, and the endpoint authorizes the caller against the resolved record (audit M6). [#1252](https://github.com/owen2345/camaleon-cms/pull/1252).
+
+- **Fix:** The admin `confirm_email` route now accepts PATCH — its `via:` list carried `path` (a typo for `patch`), so a PATCH request fell through to the "invalid route" handler. [#1252](https://github.com/owen2345/camaleon-cms/pull/1252).
+
+- **Security fix:** Foreign keys that carry a record's tenancy are no longer mass-assignable across sites. A post type's, category's or tag's `parent_id`, and a widget assignment's `sidebar_id`/`widget_id`, were reassignable via hidden fields; these are now dropped from the permits or validated against the current scope (audit H8/H9). [#1251](https://github.com/owen2345/camaleon-cms/pull/1251).
+
+- **Security fix:** The admin user-list and account-creation actions now require `:manage, :users` even when the caller injects their own `?user_id=`. The `validate_role` self-exemption was short-circuiting the capability check on these collection actions, exposing the full user table and account creation (audit H7). [#1250](https://github.com/owen2345/camaleon-cms/pull/1250).
+
+- **Security fix:** The breadcrumb, HTML sitemap, and default theme's taxonomy links now HTML-escape the post/category URL they interpolate into an `href`, closing a stored-XSS via a slug that closes the attribute (audit H11). [#1249](https://github.com/owen2345/camaleon-cms/pull/1249). [Upgrade notes](docs/upgrading-to-2.9.3.md#content--editing).
+
+- **Fix:** Administrator password reset works again. On Rails 7.1+ `has_secure_password` generated a `password_reset_token` method that shadowed Camaleon's same-named column, so every reset dead-ended on "URL incorrect". Reset links now resolve, expire, are single-use, and confined to the account's own site. [#1248](https://github.com/owen2345/camaleon-cms/pull/1248). [Upgrade notes](docs/upgrading-to-2.9.3.md#administrator-password-reset-restored).
+
+- **Security fix:** The installer no longer publishes a default administrator password and can no longer be run by an anonymous visitor on a fresh deploy (audit C1). New sites mint `admin` with a random password shown once, and the first-run installer is gated by a setup token from `CAMALEON_SETUP_TOKEN`. [#1246](https://github.com/owen2345/camaleon-cms/pull/1246). [Upgrade notes](docs/upgrading-to-2.9.3.md#installer-setup-token-breaking-for-scripted-installs).
+
+- **Fix:** The captcha tag now honors a caller-supplied image style and string-keyed input attributes, and the admin "no categories/tags created" message shows a translated label instead of the raw slug. Regression audit L14/L15/L17. [#1245](https://github.com/owen2345/camaleon-cms/pull/1245). [Upgrade notes](docs/upgrading-to-2.9.3.md#constants--modules-moved-or-removed).
+
+- **Fix:** A failed avatar crop now shows an error instead of silently blanking the saved avatar; the theme generator and the repair rake tasks print progress to the terminal (via a shared `CamaleonCms::TaskReporter`). Regression audit L3/L16/L11/L18. [#1244](https://github.com/owen2345/camaleon-cms/pull/1244). [Upgrade notes](docs/upgrading-to-2.9.3.md#content--editing).
+
+- **Security fix:** SVG uploads and `/media/` SVG responses are now matched by extension case-insensitively, so an uppercase-extension SVG (`image.SVG`) is scanned by the SVG parser and served with the `nosniff` / `script-src 'none'` headers like a lowercase one. Regression audit L5/L6. [#1243](https://github.com/owen2345/camaleon-cms/pull/1243).
+
+- **Fix:** The admin media browser paginates at the database again instead of loading a folder's entire media list into memory per page view; sites with large media folders load the manager far faster. Regression audit M27. [#1242](https://github.com/owen2345/camaleon-cms/pull/1242).
+
+- **Security fix:** An uploader without `media_unfiltered_upload` could use a `before_upload` hook to substitute bytes the scanner never saw; the pipeline now re-scans substituted content for untrusted uploaders. Also: a blank/`0` "Max file size" no longer rejects every upload, and the content scan folds its event-handler patterns into one pass. Regression audit N2/M26/M24/M25. [#1241](https://github.com/owen2345/camaleon-cms/pull/1241).
+
+- **Security fix:** The two admin theme-settings paths that still saved custom-field values raw now go through the same allowed-slugs filter as every other admin custom-field save (added in 2.9.2), closing a mass-assignment gap reachable by any role with the theme-settings capability. [#1240](https://github.com/owen2345/camaleon-cms/pull/1240). [Upgrade notes](docs/upgrading-to-2.9.3.md#admin--editing-workflow).
+
+- **Fix:** An admin custom-field save whose submitted slugs were all unregistered under the target scope wiped the object's stored values; the filter now drops those empty groups, so the save is a no-op instead. [#1240](https://github.com/owen2345/camaleon-cms/pull/1240).
+
+- **Fix:** User custom fields work again for host apps configuring a namespaced `user_model` (e.g. `'Admin::User'`): the settings form, edit page, and save filter now derive the demodulized scope name, so submitted user field values are no longer silently discarded (broken since 2.9.2). Regression audit N5. [#1239](https://github.com/owen2345/camaleon-cms/pull/1239). [Upgrade notes](docs/upgrading-to-2.9.3.md#re-key-user-field-groups--namespaced-user_model-installs).
+
+- **Fix:** The `object_class` scope naming for metas, custom fields, and field groups returns to the demodulized 2.9.2 contract (`'Main'`, `'User'`), reverting an unreleased rename that stranded existing rows; the bulk-delete cascade on definition associations is also removed. Regression audit M9/M8/N4. [#1238](https://github.com/owen2345/camaleon-cms/pull/1238). [Upgrade notes](docs/upgrading-to-2.9.3.md#data-scope-note-unreleased-tracking-installs-only).
+
+- **Fix:** Three legacy model-API surfaces restored: `Media.find_by_key` (alias of `by_key`), `Post#unassign_category` (with reliable counter refresh), and the default ascending-id ordering on `NavMenu`/`NavMenuItem`. Regression audit M5/M6/M10/M4/M11. [#1237](https://github.com/owen2345/camaleon-cms/pull/1237).
+
+- **Removed:** The `ActiveRecordExtras` mixin and its `update_or_create`, `update_or_create!` and `assign_or_new` methods. Use the Rails idiom (`find_or_initialize_by(...).tap { … save }`); the 2026-08 ecosystem sweep found no external caller. Regression audit M4. [Upgrade notes](docs/upgrading-to-2.9.3.md#constants--modules-moved-or-removed).
+
+- **Fix:** Three session-adjacent regressions: the admin login/register/forgot pages render in the site's language again (with `?locale=` honored); same-host `return_to` is followed regardless of host case; and malformed `?user_id[]=` / `?locale[]=` requests no longer 500. Regression audit M15/M17/M14. [#1236](https://github.com/owen2345/camaleon-cms/pull/1236).
+
+- **Security fix:** Draft autosaves could be forged to parent a new draft under an arbitrary post, and an edit-own-only user was locked out of autosaving their own post. `post_parent` is now create-only (derived from the validated `post_id`), and draft buffers are per-user, authorized against the post being edited. Regression audit M12/M13. [#1235](https://github.com/owen2345/camaleon-cms/pull/1235). [Upgrade notes](docs/upgrading-to-2.9.3.md#admin--editing-workflow).
+
+- **Fix:** Restores seven admin and frontend runtime-compatibility contracts broken by the `CurrentRequest` and admin-menu refactors (2-arg `post_type_list_taxonomy`, signed-out `cama_current_user` memoization, quote-safe admin menu `data-*`, and more). Regression audit M16/M18–M20/M22/M23. [#1234](https://github.com/owen2345/camaleon-cms/pull/1234).
+
+- **Fix:** On multisite installs, background and cross-site email (password reset, email confirmation, admin notifications) raised `NameError` and sent nothing — `SiteHelper#current_site` stopped honoring the `@current_site` that `HtmlMailer` sets. Single-site installs were unaffected. [#1233](https://github.com/owen2345/camaleon-cms/pull/1233).
+
+- **Docs:** Codified the security-capability-gating rule — a security-sensitive action is admin-only by default and gated for non-admins by a dedicated, off-by-default, fail-closed permission — as an OpenSpec capability, a `docs/security/permissions.md` section, and a `docs/ai/criteria.md` checkpoint. [#1231](https://github.com/owen2345/camaleon-cms/pull/1231).
+
+- **Docs:** Removed the defunct Autocomplete plugin from the README plugin list and example Gemfile, and recorded the external plugin/theme binding surface as the `ecosystem-plugin-bindings` OpenSpec capability with a `docs/ai/ecosystem.md` inventory. [#1229](https://github.com/owen2345/camaleon-cms/pull/1229).
+
+- **Security fix:** A `media`-only user could upload an SVG the ruleset accepted, then re-crop it under an `.html` name to have the identical bytes served as `text/html`, unscanned. Scanning is now gated on a new `media_unfiltered_upload` role permission. Also fixes seven defects found reviewing #1223–#1227. [#1228](https://github.com/owen2345/camaleon-cms/pull/1228). [Upgrade notes](docs/upgrading-to-2.9.3.md#media--uploads).
+
+- **Fix:** Validating a post without an explicit slug raised `FrozenError` instead of reporting `Slug can't be blank`, so creating posts programmatically was impossible. `String#translations` no longer memoizes on a frozen receiver. Long-standing, not a regression. [#1227](https://github.com/owen2345/camaleon-cms/pull/1227).
+
+- **Fix:** The upload hardening in #1198–#1211 rejected legitimate work: uploads staged outside `public/`/temp failed, animated SVGs and re-crops of stored files were refused, and prose with a word before a colon tripped the scheme detector. Trusted callers can widen roots per call, animation elements are accepted, and scheme detection matches the browser rule. [#1226](https://github.com/owen2345/camaleon-cms/pull/1226). [Upgrade notes](docs/upgrading-to-2.9.3.md#uploads-server-side-callers).
+
+- **Fix:** Save-time post-content sanitization (#1206) destroyed legitimate markup for untrusted authors and sanitized every programmatic save; untrusted `Post#content` now keeps structural, non-executable markup while stripping scripts and handlers. Also restores activation of the bundled `camaleon_first` theme. (Superseded by the reject-on-save gate in #1263.) [#1225](https://github.com/owen2345/camaleon-cms/pull/1225). [Upgrade notes](docs/upgrading-to-2.9.3.md#uploads-server-side-callers).
+
+- **Fix:** Fallout from the native-STI conversion (#1173): rows with custom `taxonomy`/`post_class` raised `SubclassNotFound`; deleting a user orphaned their comments and destroyed their widgets; and wrong `inverse_of` declarations made `.owner` raise. All restored to 2.9.2 behavior. [#1224](https://github.com/owen2345/camaleon-cms/pull/1224). [Upgrade notes](docs/upgrading-to-2.9.3.md#reassign-orphaned-comments--pre-release-master-trackers-only).
+
+- **Fix:** Six high-severity regressions introduced after 2.9.2, each pinned by a reproducing spec: engine boot on nginx/Apache static hosts, a plugin/theme config without a `helpers` key, `GET /search` 500, mixed-case PostgreSQL search, `/sitemap.html` crashes, and case-sensitive login/reset. [#1223](https://github.com/owen2345/camaleon-cms/pull/1223).
+
+- **Fix:** Slug-uniqueness validation was silently inert on Rails 7.0+ — `UniqValidator`/`PostUniqValidator` pushed onto `errors[:base]`, which modern Rails discards, so duplicate slugs and recursive page hierarchies saved without complaint. Errors are registered with `errors.add` again. [#1222](https://github.com/owen2345/camaleon-cms/pull/1222). [Upgrade notes](docs/upgrading-to-2.9.3.md#content--editing).
+
+- **Tests:** Feature specs now sign in by setting the auth cookie instead of driving the login form, and the sign-in actually verifies credentials; the form-driven flow lives on in `admin_form_sign_in`. [#1221](https://github.com/owen2345/camaleon-cms/pull/1221).
+
+- **Tests:** The suite installs a single shared Camaleon site per run instead of before nearly every example, cutting a local full run from ~18 minutes to ~5; `init_site(fresh: true)` keeps a per-example site for multi-site UI specs. [#1220](https://github.com/owen2345/camaleon-cms/pull/1220).
+
+- **Fix:** Admin headings and tooltips showed raw HTML entities instead of the characters they encode, so a site named `Ben & Jerry's` read `Ben &amp; Jerry&#39;s`. Affected site settings, the post edit form, the sites form, and the categories/tags indexes. [#1219](https://github.com/owen2345/camaleon-cms/pull/1219). [Upgrade notes](docs/upgrading-to-2.9.3.md#public-api-changes).
+
+- **Security fix:** Stored XSS in two server-generated fragments. `PostDecorator#the_status` and `CustomFieldGroup#get_caption` built markup by interpolation and were rendered through `raw` without escaping the spliced values; both now escape and return a `SafeBuffer`. Thanks, Enrik Mustafa, for pressing the re-check. [#1218](https://github.com/owen2345/camaleon-cms/pull/1218). [Upgrade notes](docs/upgrading-to-2.9.3.md#content--editing).
+
+- **Security fix:** Cross-site custom field group injection. The custom-fields controller wrote the submitted `assign_group` placement without checking ownership, so a manager on one site could stamp a group with another site's placement id and render it there, invisible to that site's admins (multi-site installs only). [#1217](https://github.com/owen2345/camaleon-cms/pull/1217). [Upgrade notes](docs/upgrading-to-2.9.3.md#cross-site-custom-field-groups-multi-site).
+
+- **Fix:** The site settings form rendered every custom field group in the site, not just the site's own, so required fields on other content types blocked submit and were discarded anyway. `Site` now reads placement (`object_class`/`objectid`) instead of tenancy (`parent_id`). Reported as [#1124](https://github.com/owen2345/camaleon-cms/issues/1124). [#1216](https://github.com/owen2345/camaleon-cms/pull/1216). [Upgrade notes](docs/upgrading-to-2.9.3.md#public-api-changes).
+
+- **Security fix:** HTML injection in `Hash#to_attr_format` and the bundled `cama_contact_form` plugin. `to_attr_format` used a Ruby string escape (inert in HTML) and interpolated attribute *names* verbatim; the contact form built markup by raw interpolation, so visitor input and form fields could inject script into the same-origin admin. Requires `cama_contact_form` 0.1.12. [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) — thanks, Amir Aliu and Enrik Mustafa.
+
+  **Breaking changes**
+
+  - **The contact form refuses unsafe content instead of rewriting it** — content is stored and delivered verbatim, or the save is refused and the author told which setting to fix. An author holding `contact_form_unfiltered_html` is unaffected; a visitor's submission is refused whole. Ordinary writing (`Tom & Jerry`, `<br/>`, `Fish & Chips <today>`) still passes.
+  - **`to_attr_format`** emits `&quot;` where it emitted `\"`, and drops pairs whose key is not a valid HTML attribute name. A plugin relying on the old output to inject markup will stop working.
+  - **`to_attr_url_format`** emits `value.to_s.inspect`; it did not escape backslashes before. No callers in this repo.
+  - **The role editor** gains "Allow unfiltered HTML in contact forms" (off for every role but `admin`), and now renders an `admin` role's permissions as held and locked, matching `can :manage, :all`.
+  - **#1206's permission is renamed** `allow_unfiltered_html` → `post_content_unfiltered_html`. No migration: #1206 has not shipped in any release.
+  - **The `cama_contact_form` dependency is raised to `~> 0.1.12`** (dropping the vulnerable 0.1.0 from its range); `bundle update camaleon_cms` is enough.
+
+- **Security bumps** picked up while re-resolving `cama_contact_form`: rails 8.1.3 → 8.1.3.1, concurrent-ruby, erb, json, net-imap; Bundler 2.7.2 → 4.0.17, with both CI workflows pinning `rubygems: 4.0.17` to match. [#1215](https://github.com/owen2345/camaleon-cms/pull/1215).
+
+- **Developer tooling:** Document when an OpenSpec change is archived — on the branch as part of the PR, not post-merge. `AGENTS.md` and `docs/ai/workflows.md` Phase 4 now say so. [#1214](https://github.com/owen2345/camaleon-cms/pull/1214).
+
+- **Developer tooling:** Correct the skip-ci guidance in `docs/ai/workflows.md` — the marker is a per-push decision (omit until the PR has had one full check run), not an unconditional rule for the Phase 4 changelog commit. [#1214](https://github.com/owen2345/camaleon-cms/pull/1214).
+
+- **Fix:** Report an unresolvable target in `Admin::UsersController#updated_ajax` in the action's own error format instead of an HTML error page, and switch the failure paths from `render inline:` (an ERB-injection sink on the `422` path) to `render plain:`. Not a security fix. [#1214](https://github.com/owen2345/camaleon-cms/pull/1214).
+
+- **Developer tooling:** Capture the target-user resolution invariant for `Admin::UsersController` as the `user-target-resolution` OpenSpec capability and close the regression-coverage gap it exposed (new request specs for `update`/`destroy`/`impersonate`). No behavior change. [#1214](https://github.com/owen2345/camaleon-cms/pull/1214).
+
+- **Security fix:** Close a user-existence oracle left by the profile IDOR fix in #1197 — `profile` authorized against the loaded record, so a nonexistent id 500ed while an existing one 302ed. Authorization is now decided from the request parameter before loading, and any bad `user_id` redirects with "Not found user." instead of 500ing. [#1213](https://github.com/owen2345/camaleon-cms/pull/1213).
+
+- **Refactor:** De-duplicate the two uploader entry points (`RuntimeUploaderConcern` and `UploaderHelper`, 349 byte-identical lines) into shared `UploaderPipeline`/`UploaderImageProcessing`/`UploaderSupport` modules. Both entry points keep their full public API, so host apps, plugins and themes are unaffected. [#1212](https://github.com/owen2345/camaleon-cms/pull/1212).
+
+- **Security fix:** Prevent rejected media uploads from persisting in the web-served staging directory — a rejected `data:` payload was still written to `public/tmp/<site_id>/` and served same-origin. Content is now scanned before staging, and staged files are removed on any failure. [#1211](https://github.com/owen2345/camaleon-cms/pull/1211) — thanks, Lukman Azri. [Upgrade notes](docs/upgrading-to-2.9.3.md#clear-the-upload-staging-directory).
+
+- **Developer tooling:** Restructure the `AGENTS.md` docs tree for progressive disclosure — remove superseded process docs, consolidate reference docs, and add a `CLAUDE.md` import shim. [#1208](https://github.com/owen2345/camaleon-cms/pull/1208).
+
+- **Developer tooling:** Add OpenSpec skills for Claude. [#1207](https://github.com/owen2345/camaleon-cms/pull/1207).
+
+- **Security fix:** Fix stored XSS via unsanitized post content — add server-side sanitization to `Post#content` at save with role-based allowlisting, so untrusted contributors cannot inject scripts into `raw @post.the_content`. Also fixes `normalize_attrs` data loss on plain-text fields (e.g. `Name <user@domain.com>`). (Later superseded by the reject-on-save gate in #1263.) [#1206](https://github.com/owen2345/camaleon-cms/pull/1206) — thanks, Theodosis Paidakis.
+
+- **Security fix:** Add defense-in-depth URL validation to the crop action — validate user-supplied HTTP/HTTPS URLs before the temporary upload pipeline, via a shared `cama_upload_url_error` helper. Same-site URLs are checked for path traversal only; remote URLs get full SSRF validation pinned to the validated IP to defeat DNS rebinding. [#1203](https://github.com/owen2345/camaleon-cms/pull/1203) — thanks, Theodosis Paidakis.
+
+- **Security fix:** Fix path traversal bypass in file upload guards — canonicalize paths with `File.expand_path` before prefix validation at all four sinks, compare site URLs by host+port, and harden the `data:` branch against `name`-based traversal. Also bumps `loofah` and `rails-html-sanitizer`. [#1201](https://github.com/owen2345/camaleon-cms/pull/1201) — thanks, Jose Rivas (Zero Trust Offsec).
+
+- **Security fix:** Fix SVG stored XSS via Nokogiri parse-based detection — replace the regex denylist with an XML parser that resolves entities, blocks `script`/`on*`/`javascript:`/`data:`/embed, and disables XXE. Add Rack middleware serving `/media/` SVGs with `nosniff` and `script-src 'none'`. [#1199](https://github.com/owen2345/camaleon-cms/pull/1199) — thanks, Jose Rivas (Zero Trust Offsec).
+
+- **Security fix:** Fix arbitrary server-side file read via media upload — validate the path prefix before `File.open` in `upload_file` and `cama_tmp_upload`, coerce nil `formats` to `'*'`, and handle crop errors gracefully. [#1198](https://github.com/owen2345/camaleon-cms/pull/1198) — thanks, Jose Rivas (Zero Trust Offsec).
+
+- **Security fix:** Fix profile IDOR in `Admin::UsersController#profile` — add an inline `authorize!` check when viewing another user, so low-privilege users can no longer enumerate arbitrary accounts. [#1197](https://github.com/owen2345/camaleon-cms/pull/1197) — thanks, Neo Andrew.
+
+- **Security fix:** Fix improper authorization in the draft autosave endpoint — scope draft lookups to post type, add `authorize!` checks before draft mutations, and validate `post_parent` against a real post. [#1196](https://github.com/owen2345/camaleon-cms/pull/1196) — thanks, Enrik Mustafa and Óscar Uribe.
+
+- **Security fix:** Prevent an SVG XSS bypass via missing animation event handlers (`onbegin`/`onend`/`onrepeat`) in the upload content filter, and DRY `UNSAFE_EVENT_PATTERNS` into the shared `CamaleonCms::ContentSecurity` module. [#1195](https://github.com/owen2345/camaleon-cms/pull/1195) — thanks, Mohamed Almuhaya.
+
+- **Fix:** Restore legacy widget assignments, configured navigation order, and frontend plugin controller helper compatibility. [#1194](https://github.com/owen2345/camaleon-cms/pull/1194).
+
+- **Developer tooling:** Add the OpenSpec planning workflow and agent guidance. [#1193](https://github.com/owen2345/camaleon-cms/pull/1193).
+
+- **Security bumps:** Bump json, puma to 8.0.2, rubocop to 1.88.1, zeitwerk to 2.8.2 and other development gems, fixing all new Rubocop offenses. [#1186](https://github.com/owen2345/camaleon-cms/pull/1186).
+
+- **Security fix:** Prevent account takeover in `Admin::UsersController#updated_ajax` by unifying target-user lookup and authorization. [#1185](https://github.com/owen2345/camaleon-cms/pull/1185) — thanks, Lukman Azri.
+
+- **Fix:** Restore TinyMCE editor icons in development — `sprockets-rails` >= 3.5's asset-url post-processor rewrote the skin's relative font urls to an invalid root path; a `TinymceSkinSafeAssetUrlProcessor` now expands them to full logical paths for the skin only. [#1183](https://github.com/owen2345/camaleon-cms/pull/1183).
+
+- **Fix:** Restore `object_class` scoping on `CustomField#metas` and `CustomFieldGroup#metas` — a #1173 regression dropped the scope, so a colliding numeric id read the wrong `_default` meta (visible as the theme-settings editor field rendering as a plain text box). [#1183](https://github.com/owen2345/camaleon-cms/pull/1183).
+
+- **Refactor:** Finalize the Phase 6G runtime-concern decomposition — runtime concerns now `include` their helper modules (single source of truth) while keeping back-compat ivars for templates/plugins; restores several controller-context helpers, per-site theme view overrides, legacy-thumbnail fallbacks, plugin template lookup, Sprockets-4 asset precompilation, and localized-slug lookups. [#1183](https://github.com/owen2345/camaleon-cms/pull/1183).
+
+- **Fix & Refactor:** Phase 5 — restore theme preview rendering (preview theme state, legacy ivars, preview hook dispatch, auto-created preview menus) and refactor the nav-menu helper onto request-scoped `CurrentRequest` state. [#1181](https://github.com/owen2345/camaleon-cms/pull/1181).
+
+- **Refactor:** Replace Phase 4 session/shortcode/comment helper instance-variable state with request-scoped `CurrentRequest` state, preserving controller/view compatibility. [#1179](https://github.com/owen2345/camaleon-cms/pull/1179).
+
+- **Refactor:** Replace Phase 3 admin/menu/taxonomy helper instance-variable state with `CurrentRequest`-backed state, keeping legacy taxonomy-list compatibility. [#1178](https://github.com/owen2345/camaleon-cms/pull/1178).
+
+- **Refactor:** Replace Phase 2 frontend helper context (content, SEO, site helpers) with `CurrentRequest`-backed state. [#1177](https://github.com/owen2345/camaleon-cms/pull/1177).
+
+- **Refactor:** Replace Phase 1 helper instance-variable state (content, hooks, html, theme helpers) with `CurrentRequest`-backed state. [#1176](https://github.com/owen2345/camaleon-cms/pull/1176).
+
+- **Fix:** Restore admin preview locale compatibility for decorators and plugin helpers removed by #1166, preserving theme previews and admin-rendered frontend flows. [#1175](https://github.com/owen2345/camaleon-cms/pull/1175).
+
+- **Security fix:** Fix Rails OutputSafety sinks while preserving menu and asset rendering — escape untrusted HTML in attack responses, media crop output, edit-link labels, hierarchy titles, and select options. [#1174](https://github.com/owen2345/camaleon-cms/pull/1174).
+
+- **Refactor:** Implement native Rails STI for term taxonomies and posts, and add polymorphic `owner` associations for metas and custom-field records. [#1173](https://github.com/owen2345/camaleon-cms/pull/1173).
+
+- **Style & tooling:** Add RuboCop plugin gems (performance, rails, capybara, factory_bot, rake, rspec_rails), fix hundreds of offenses across 92 files, and set the maximum line length to 120. [#1167](https://github.com/owen2345/camaleon-cms/pull/1167).
+
+- **Style & testability:** Refactor HTML in Ruby code to Rails tags (`content_tag`, `tag`, `link_to`, `safe_join`) across 12 files, and add factories and specs for nav menus, the captcha helper, and `fix_post_order`. [#1172](https://github.com/owen2345/camaleon-cms/pull/1172).
+
+- **Security fix:** Fix two unprotected redirects via `params[:return_to]` in `sessions_controller.rb` and `session_helper.rb` by routing through the existing `safe_redirect_url` helper. [#1168](https://github.com/owen2345/camaleon-cms/pull/1168).
+
+- **Security, style, and cleanup:** Rubocop fixes part 1 — style/performance/rails offenses, dead-code removal, and `TargetRailsVersion` set to `6.1`. [#1168](https://github.com/owen2345/camaleon-cms/pull/1168).
+
+- **Security fix:** Bump gems — Nokogiri to 1.19.3, action_text-trix, aws-sdk, puma, rubyzip, selenium-webdriver, sqlite3, Bundler 2.7.2. [#1170](https://github.com/owen2345/camaleon-cms/pull/1170).
+
+- **Fix:** Decorator locale resolution and language context mixing (fixes issue #233) — move `cama_get_i18n_frontend` to the parent controller and rely on `I18n.locale`, so decorators use the site's frontend language in frontend context and the admin language in admin context. [#1166](https://github.com/owen2345/camaleon-cms/pull/1166).
+
+- **Bug fix:** Fix thread-safety issues with `PluginRoutes.reload` causing persistent 500 errors — remove the reload from `plugins#index`/`themes#index` and guard route reloading/cache access with a `Monitor`. [#1163](https://github.com/owen2345/camaleon-cms/pull/1163).
+
+- **Optimize `PluginRoutes.draw_gems` and `apps_dir`** — micro-optimizations for memory consumption and performance. [#1164](https://github.com/owen2345/camaleon-cms/pull/1164).
 
 ## [2.9.2](https://github.com/owen2345/camaleon-cms/tree/2.9.2) (2026-05-01)
 

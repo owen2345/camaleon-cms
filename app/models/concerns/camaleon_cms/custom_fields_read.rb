@@ -35,21 +35,29 @@ module CamaleonCms
       when 'Post'
         if term_relationships.empty? && args[:cat_ids].nil?
           CamaleonCms::CustomFieldGroup.where(
-            '(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)', id || -1, class_name, post_type.id, "PostType_#{class_name}"
+            '(objectid = ? AND object_class = ?) OR (objectid = ? AND object_class = ?)',
+            id || -1, class_name, post_type.id, "PostType_#{class_name}"
           )
         else
           cat_ids = categories.map(&:id)
           cat_ids += args[:cat_ids] unless args[:cat_ids].nil?
           cat_ids += CamaleonCms::Category.find(cat_ids).map { |category| _category_parents_ids(category) }.flatten.uniq
-          CamaleonCms::CustomFieldGroup.where("(objectid = ? AND object_class = ?) OR
-                                               (objectid = ? AND object_class = ?) OR
-                                               (objectid IN (?) AND object_class = ?)",
-                                              id || -1, class_name,
-                                              post_type.id, "PostType_#{class_name}",
-                                              cat_ids, "Category_#{class_name}")
+          CamaleonCms::CustomFieldGroup.where(
+            "(objectid = ? AND object_class = ?) OR
+             (objectid = ? AND object_class = ?) OR
+             (objectid IN (?) AND object_class = ?)",
+            id || -1, class_name, post_type.id, "PostType_#{class_name}", cat_ids, "Category_#{class_name}"
+          )
         end
       when 'NavMenuItem'
         main_menu.custom_field_groups
+      when 'Site'
+        # Site overrides `custom_field_groups` to mean "every group this site owns" (foreign key
+        # parent_id), unlike the object_class + objectid association every other model receives from
+        # CommonRelationships. Scoping by placement here keeps groups meant for post types, themes or
+        # menus off the site settings form, where their required fields blocked the submit and their
+        # values were discarded on save anyway.
+        custom_field_groups.where(object_class: 'Site', objectid: id)
       when 'PostType'
         case args[:kind]
         when 'all'
@@ -69,7 +77,9 @@ module CamaleonCms
     # return collections CustomFieldGroup
     # site: site object
     def get_user_field_groups(site)
-      site.custom_field_groups.where(object_class: self.class.to_s.parseCamaClass)
+      # Demodulized to match the association scope and the placement the settings form stores
+      # ('User' for a host Admin::User); parseCamaClass still strips a Draper Decorator suffix.
+      site.custom_field_groups.where(object_class: self.class.to_s.parseCamaClass.demodulize)
     end
 
     # get custom field value
@@ -117,12 +127,12 @@ module CamaleonCms
     #   puts res[0]['my_slug1'].first ==> "val 1"
     def get_fields_grouped(field_keys)
       res = []
-      custom_field_values.where(custom_field_slug: field_keys).order(group_number: :asc).group_by(&:group_number).each_value do |group_fields|
-        group = {}
-        field_keys.each do |field_key|
-          _tmp = []
-          group_fields.each { |field| _tmp << field.value if field_key == field.custom_field_slug }
-          group[field_key] = _tmp if _tmp.present?
+      custom_field_values.where(custom_field_slug: field_keys)
+                         .order(group_number: :asc).group_by(&:group_number).each_value do |group_fields|
+        group = field_keys.each_with_object({}) do |field_key, hsh|
+          _tmp = group_fields
+                 .each_with_object([]) { |field, ary| ary << field.value if field_key == field.custom_field_slug }
+          hsh[field_key] = _tmp if _tmp.present?
         end
         res << group
       end
@@ -131,7 +141,8 @@ module CamaleonCms
 
     # return all values
     # {key1: "single value", key2: [multiple, values], key3: value4} if include_options = false
-    # {key1: {values: "single value", options: {a:1, b: 4}}, key2: {values: [multiple, values], options: {a=1, b=2} }} if include_options = true
+    # {key1: {values: "single value", options: {a:1, b: 4}}, key2: {values: [multiple, values], options: {a=1, b=2} }}
+    # if include_options = true
     def get_field_values_hash(include_options = false)
       fields = {}
       custom_field_values.to_a.uniq.each do |field_value|
@@ -159,9 +170,10 @@ module CamaleonCms
         custom_field = field_value.custom_field
         # if custom_field.options[:show_frontend].to_s.to_bool
         values = custom_field.values.where(objectid: id).pluck(:value)
-        fields[field_value.custom_field_slug] =
-          custom_field.attributes.merge(options: custom_field.cama_options,
-                                        values: custom_field.cama_options[:multiple].to_s.to_bool ? values : values.first)
+        fields[field_value.custom_field_slug] = custom_field.attributes.merge(
+          options: custom_field.cama_options,
+          values: custom_field.cama_options[:multiple].to_s.to_bool ? values : values.first
+        )
         # end
       end
       fields.to_sym
@@ -179,10 +191,11 @@ module CamaleonCms
     #     post_type.add_custom_field_group(values, kind = "Category")
     # Note 2: If you need add fields for only the Post_type, you have to use options or metas
     # return: CustomFieldGroup object
-    # kind: argument only for PostType model: (Post | Category | PostTag), default => Post. If kind = "" this will add group for all post_types
+    # kind: argument only for PostType model: (Post | Category | PostTag), default => Post.
+    # If kind = "" this will add group for all post_types
     def add_custom_field_group(values, kind = 'Post')
       values = values.with_indifferent_access
-      group = get_field_groups(kind).find_by(slug: values[:slug])
+      group = get_field_groups(kind).find_by_slug(values[:slug]) # rubocop:disable Rails/DynamicFindBy
       unless group
         site = _cama_get_field_site
         values[:parent_id] = site.id if site.present?
@@ -202,7 +215,7 @@ module CamaleonCms
     # more details in add_manual_field(item, options) from custom field groups
     # kind: argument only for PostType model: (Post | Category | PostTag), default => Post
     def add_custom_field_to_default_group(item, options, kind = 'Post')
-      g = get_field_groups(kind).find_by(slug: '_default')
+      g = get_field_groups(kind).find_by_slug('_default') # rubocop:disable Rails/DynamicFindBy
       g ||= add_custom_field_group({ name: 'Default Field Group', slug: '_default' }, kind)
       g.add_manual_field(item, options)
     end
@@ -210,13 +223,8 @@ module CamaleonCms
 
     # return field object for current model
     def get_field_object(slug)
-      CamaleonCms::CustomField.where(
-        slug: slug,
-        parent_id: get_field_groups.pluck(:id)
-      ).first || CamaleonCms::CustomField.where(
-        slug: slug,
-        parent_id: get_field_groups({ include_parent: true })
-      ).first
+      CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups.pluck(:id)).first ||
+        CamaleonCms::CustomField.where(slug: slug, parent_id: get_field_groups({ include_parent: true })).first
     end
 
     # save all fields sent from browser (reservated for browser request)
@@ -229,15 +237,41 @@ module CamaleonCms
       return if datas.blank?
 
       ActiveRecord::Base.transaction do
+        # A value identical to one already stored is not newly authored, so it must not be re-gated on
+        # an unrelated edit (audit M8): the admin form round-trips every value and this method
+        # delete/recreates them all, so without this skip a single pre-gate dangerous value would fail
+        # the whole save and brick every later edit -- the trap Post#reject_untrusted_dangerous_content
+        # avoids via content_changed?. Snapshot the stored pairs before clearing; skip the gate for any
+        # recreated value that matches one.
+        previously_stored = custom_field_values.pluck(:custom_field_slug, :value).to_set
         custom_field_values.delete_all
         datas.each_value do |fields_data|
           fields_data.each do |field_key, values|
             next if values[:values].blank?
 
+            # Resolve the field id from the trusted slug, not the client-supplied values[:id]: a
+            # forged custom_field_id points the row at a different field definition, and the
+            # scan-and-reject gate keys off custom_field.options[:field_key] -- so a forged non-gated
+            # id would slip markup past the gate for a gated (editor/uri/field_attrs) slug. Fall back
+            # to values[:id] only when the slug names no field here (trusted/internal callers that
+            # pass slugs outside this object's registered groups; permitted browser payloads never do).
+            field_id = get_field_object(field_key)&.id || fallback_field_id_for(field_key) || values[:id]
+            group_number = [values[:group_number].to_i, 0].max
+
             order_value = -1
-            (values[:values].is_a?(Hash) || values[:values].is_a?(ActionController::Parameters) ? values[:values].values : values[:values]).each do |value|
-              custom_field_values.create!({ custom_field_id: values[:id], custom_field_slug: field_key,
-                                            value: fix_meta_value(value), term_order: order_value += 1, group_number: values[:group_number] || 0 })
+            (
+              if values[:values].is_a?(Hash) || values[:values].is_a?(ActionController::Parameters)
+                values[:values].values
+              else
+                values[:values]
+              end
+            ).each do |value|
+              row = custom_field_values.new(
+                custom_field_id: field_id, custom_field_slug: field_key,
+                value: fix_meta_value(value), term_order: order_value += 1, group_number: group_number
+              )
+              row.unfiltered_value! if previously_stored.include?([field_key.to_s, row.value])
+              row.save!
             end
           end
         end
@@ -247,8 +281,10 @@ module CamaleonCms
     # Update the value for the field with slug _key
     # Sample: my_posy.update_field_value('sub_title', 'Test Sub Title')
     def update_field_value(key, value = nil, group_number = 0)
+      # Route through validations so the scan-and-reject gate applies (audit M5): update_column
+      # skipped it, letting a dangerous value an untrusted caller supplies reach the frontend verbatim.
       custom_field_values.find_by(custom_field_slug: key, group_number: group_number)
-                         &.update_column(:value, value) # rubocop:disable Rails/SkipsModelValidations
+                         &.update(value: value)
     rescue StandardError
       nil
     end
@@ -263,17 +299,21 @@ module CamaleonCms
 
     # Set custom field values for current model (support for multiple group values)
     # key: (string required) slug of the custom field
-    # value: (array | string) array: array of values for multiple values support, string: uniq value for the custom field
+    # value: (array | string) array: array of values for multiple values support,
+    #                         string: uniq value for the custom field
     # args:
     #   field_id: (integer optional) identifier of the custom field
     #   order: order or position of the field value
     #   group_number: number of the group (only for custom field group with is_repeat enabled)
-    #   clear: (boolean, default true) if true, will remove previous values and set these values, if not will append values
+    #   clear: (boolean, default true) if true, will remove previous values and set these values,
+    #                                  if not will append values
     # return false if the was not saved because there is not present the field with slug: key
     # sample: my_post.set_field_value('subtitle', 'Sub Title')
-    # sample: my_post.set_field_value('subtitle', ['Sub Title1', 'Sub Title2']) # set values for a field (for fields that support multiple values)
+    # sample: set values for a field (for fields that support multiple values)
+    # my_post.set_field_value('subtitle', ['Sub Title1', 'Sub Title2'])
     # sample: my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1})
-    # sample: my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1, group_number: 1}) # add field values for fields in group 1
+    # sample: add field values for fields in group 1
+    # my_post.set_field_value('subtitle', 'Sub Title', {group_number: 1, group_number: 1})
     def set_field_value(key, value, args = {})
       args = { order: 0, group_number: 0, field_id: nil, clear: true }.merge!(args)
       if args[:field_id].blank?
@@ -283,24 +323,40 @@ module CamaleonCms
           nil
         end
       end
+      args[:field_id] ||= fallback_field_id_for(key)
+
       raise ArgumentError, "There is no custom field configured for #{key}" if args[:field_id].blank?
 
-      if args[:clear]
-        custom_field_values.where({ custom_field_slug: key,
-                                    group_number: args[:group_number] }).delete_all
-      end
-      v = { custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),
-            term_order: args[:order], group_number: args[:group_number] }
-      if value.is_a?(Array)
-        value.each do |val|
-          custom_field_values.create!(v.merge({ value: fix_meta_value(val) }))
+      v = {
+        custom_field_id: args[:field_id], custom_field_slug: key, value: fix_meta_value(value),
+        term_order: args[:order], group_number: args[:group_number]
+      }
+      # Atomic (audit M7): clear the previous value and write the new one in one transaction, so a
+      # value the scan-and-reject gate refuses (create! -> RecordInvalid) rolls the delete back and
+      # the previously stored value survives instead of being destroyed.
+      ActiveRecord::Base.transaction do
+        if args[:clear]
+          custom_field_values.where({ custom_field_slug: key, group_number: args[:group_number] }).delete_all
         end
-      else
-        custom_field_values.create!(v)
+        if value.is_a?(Array)
+          value.each { |val| custom_field_values.create!(v.merge({ value: fix_meta_value(val) })) }
+        else
+          custom_field_values.create!(v)
+        end
       end
     end
 
     private
+
+    def fallback_field_id_for(key)
+      return unless self.class.to_s.parseCamaClass == 'Post'
+      return unless respond_to?(:post_type_id) && post_type_id.present?
+
+      group_ids = CamaleonCms::CustomFieldGroup.where(object_class: 'PostType_Post', objectid: post_type_id).pluck(:id)
+      return if group_ids.blank?
+
+      CamaleonCms::CustomField.where(slug: key, parent_id: group_ids).pick(:id)
+    end
 
     def fix_meta_value(value)
       return value.to_json if value.is_a?(ActionController::Parameters)

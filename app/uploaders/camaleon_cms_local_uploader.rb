@@ -32,6 +32,17 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     { error: 'File not found' }
   end
 
+  # Repairs legacy thumbnail URLs (see #cama_compat_legacy_thumb) for one rendered page of
+  # media items. The cache (media DB records) may still hold thumb URLs computed from the
+  # source extension (sample: ".jpg") while the on-disk thumbnail is a legacy ".png"; without
+  # this the admin media browser would render 404 thumbnails for such files. Applied by the
+  # media controller to the paginated page only — #objects stays a lazy relation so the browser
+  # paginates at the database instead of materializing (and stat-ing) the whole folder.
+  def cama_prepare_browser_page(items)
+    items.each { |item| cama_fix_legacy_thumb_item(item) }
+    items
+  end
+
   def file_parse(key)
     file_path = File.join(@root_folder, key)
     url_path = file_path.sub(Rails.root.join('public').to_s, '')
@@ -41,16 +52,13 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
       'folder_path' => File.dirname(key),
       'url' => if is_dir
                  ''
+               elsif is_private_uploader?
+                 url_path.sub("#{@root_folder}/", '')
                else
-                 (if is_private_uploader?
-                    url_path.sub("#{@root_folder}/",
-                                 '')
-                  else
-                    File.join(
-                      @current_site.decorate.the_url(as_path: true, locale: false,
-                                                     skip_relative_url_root: true), url_path
-                    )
-                  end)
+                 File.join(
+                   @current_site.decorate.the_url(as_path: true, locale: false,
+                                                  skip_relative_url_root: true), url_path
+                 )
                end,
       'is_folder' => is_dir,
       'file_size' => is_dir ? 0 : File.size(file_path).round(2),
@@ -60,11 +68,16 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     }.with_indifferent_access
     res['key'] = File.join(res['folder_path'], res['name'])
     if res['file_type'] == 'image' && File.extname(file_path).downcase != '.gif'
-      res['thumb'] =
-        (is_private_uploader? ? "/admin/media/download_private_file?file=#{version_path(key).slice(1..-1)}" : version_path(res['url']))
+      res['thumb'] = if is_private_uploader?
+                       "/admin/media/download_private_file?file=#{version_path(key).slice(1..-1)}"
+                     else
+                       version_path(res['url'])
+                     end
     end
     if res['file_type'] == 'image'
-      res['thumb'].sub! '.svg', '.jpg'
+      res['thumb'].sub!(SVG_EXT_PATTERN, '.jpg')
+      res['thumb'] = cama_compat_legacy_thumb(res['thumb'], version_path(key).sub(SVG_EXT_PATTERN, '.jpg'),
+                                              res['url'])
       im = MiniMagick::Image.open(file_path)
       res['dimension'] = begin
         "#{im[:width]}x#{im[:height]}"
@@ -109,7 +122,7 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     f
   end
 
-  # remove an existent folder
+  # Remove an existent folder
   def delete_folder(key)
     return { error: 'Invalid folder path' } if key.include?('..')
 
@@ -118,7 +131,7 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     get_media_collection.by_key(key).take.destroy
   end
 
-  # remove an existent file
+  # Remove an existent file
   def delete_file(key)
     return { error: 'Invalid file path' } if key.include?('..')
 
@@ -128,8 +141,52 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     get_media_collection.by_key(key).take.destroy
   end
 
-  # convert a real file path into file key
+  # Convert a real file path into a file key
   def parse_key(file_path)
     file_path.sub(@root_folder, '').cama_fix_media_key
+  end
+
+  private
+
+  # Applies the legacy-thumbnail fallback (see #cama_compat_legacy_thumb) to a
+  # single cached media item in place, so the admin media browser renders the
+  # on-disk ".png" thumbnail instead of a 404ing ".jpg" one. No-op for folders,
+  # non-image files and items without a thumb.
+  # item: (CamaleonCms::Media | Hash) cached media object
+  def cama_fix_legacy_thumb_item(item)
+    return if item['is_folder'] || item['file_type'] != 'image' || item['thumb'].blank?
+
+    thumb_key = version_path(File.join(item['folder_path'].to_s, item['name'].to_s))
+    item['thumb'] = cama_compat_legacy_thumb(item['thumb'], thumb_key, item['url'])
+  end
+
+  # Backwards-compatibility for legacy thumbnails.
+  # Older Camaleon releases stored raster thumbnails as PNG regardless of the
+  # source extension (sample: "photo.jpg" => "thumb/photo-jpg.png"). The thumb
+  # URL is normally derived from the source extension, so for such legacy files
+  # the computed (sample: ".jpg") thumb URL would 404. Resolution order when the
+  # computed thumb is missing on disk:
+  #   1. a ".png" sibling exists  => point the thumb at the PNG;
+  #   2. no thumbnail exists at all (sample: ".ico" favicons are never
+  #      thumbnailed) => fall back to the original file url so the browser does
+  #      not request a 404 thumb (the original lives one level above /thumb).
+  # Otherwise the computed thumb url is returned unchanged (new uploads, PNG
+  # sources and S3 are unaffected).
+  # thumb_url: (String) computed public/private thumb url
+  # thumb_key: (String) computed thumb media key (relative to @root_folder)
+  # original_url: (String) url of the original (non-thumb) file
+  def cama_compat_legacy_thumb(thumb_url, thumb_key, original_url = nil)
+    return thumb_url if thumb_url.blank?
+
+    ext = File.extname(thumb_key)
+    return thumb_url if ext.blank?
+    return thumb_url if file_exists?(File.join(@root_folder, thumb_key))
+
+    unless ext.casecmp?('.png')
+      png_key = thumb_key.sub(/#{Regexp.escape(ext)}\z/, '.png')
+      return thumb_url.sub(/#{Regexp.escape(ext)}\z/, '.png') if file_exists?(File.join(@root_folder, png_key))
+    end
+
+    original_url.presence || thumb_url
   end
 end

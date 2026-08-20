@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
-describe 'Admin AJAX select_eval permission enforcement', :js do
+RSpec.describe 'Admin AJAX select_eval permission enforcement', :js do
   init_site
 
   let(:site) { Cama::Site.first }
@@ -15,7 +17,7 @@ describe 'Admin AJAX select_eval permission enforcement', :js do
 
     # The toggle endpoint is now a no-op; ensure it does not expose admin errors
     # and that the site option remains unchanged (default false)
-    expect(page).not_to have_content('Error')
+    expect(page).to have_no_text('Error') # rubocop:disable Capybara/RSpec/NegationMatcherAfterVisit
     site.reload
     expect(site.get_option('show_select_eval_in_ui')).to be_falsey
   end

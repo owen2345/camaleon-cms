@@ -27,7 +27,7 @@ module CamaleonCms
                    .where.not(id: record.id)
                    .where.not(status: %i[draft draft_child trash])
       unless posts.empty?
-        record.errors[:base] <<
+        message =
           if slug_array.size > 1
             "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}: #{posts.pluck(:slug).map do |slug|
               record.slug.to_s.translations.map do |lng, r_slug|
@@ -37,14 +37,15 @@ module CamaleonCms
           else
             "#{I18n.t('camaleon_cms.admin.post.message.requires_different_slug')}: #{record.slug} "
           end
+        record.errors.add(:base, message)
       end
 
       # avoid recursive page parent
       return unless record.post_parent.present? && ptype.manage_hierarchy? &&
                     record.parents.cama_pluck(:id).include?(record.id)
 
-      record.errors[:base] << I18n.t('camaleon_cms.admin.post.message.recursive_hierarchy',
-                                     default: 'Parent Post Recursive')
+      record.errors.add(:base, I18n.t('camaleon_cms.admin.post.message.recursive_hierarchy',
+                                      default: 'Parent Post Recursive'))
     end
   end
 end

@@ -12,8 +12,8 @@ describe 'the Site Settings SideBar options', :js do
 
     it 'is capturing main site options in the Settings Form' do
       visit "#{cama_root_relative_path}/admin/settings/site"
-      expect(page).to have_content('Basic Information')
-      expect(page).to have_content('Configuration')
+      expect(page).to have_text('Basic Information')
+      expect(page).to have_text('Configuration')
       within '#site_settings_form' do
         fill_in 'site_name', with: 'New site title'
         fill_in 'site_description', with: 'Site description'
@@ -38,7 +38,7 @@ describe 'the Site Settings SideBar options', :js do
     it 'has a Tiny MCE form' do
       visit "#{cama_root_relative_path}/admin/settings/theme"
 
-      expect(page).to have_content('Footer message')
+      expect(page).to have_text('Footer message')
       expect(webfont_icon_fetch_status('fa fa-cog', 'fontawesome-webfont', 'woff2')).to be(200)
 
       within '#theme_settings_form' do

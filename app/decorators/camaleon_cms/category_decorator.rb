@@ -19,7 +19,8 @@ module CamaleonCms
       h.edit_cama_admin_post_type_category_url(object.post_type.id, object)
     end
 
-    # return all children categories for the current category (active_record) filtered by permissions + hidden posts + roles + etc...
+    # return all children categories for the current
+    # category (active_record) filtered by permissions + hidden posts + roles + etc...
     # in return object, you can add custom where's or pagination like here:
     # https://edgeguides.rubyonrails.org/active_record_querying.html
     def the_categories
@@ -30,7 +31,7 @@ module CamaleonCms
     def the_category(slug_or_id)
       return object.categories.where(id: slug_or_id).first if slug_or_id.is_a?(Integer)
 
-      object.categories.find_by(slug: slug_or_id) if slug_or_id.is_a?(String)
+      object.categories.find_by_slug(slug_or_id) if slug_or_id.is_a?(String) # rubocop:disable Rails/DynamicFindBy
     end
 
     # ---------------------

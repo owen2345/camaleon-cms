@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe 'the Media', :js do
+RSpec.describe 'the Media', :js do
   init_site
 
   it 'list media' do
@@ -16,10 +16,10 @@ describe 'the Media', :js do
     wait_for_ajax
     within '#add_folder_form' do
       fill_in 'folder', with: 'test_folder_created_by_testing'
-      find('button[type="submit"]').click
+      click_button(type: 'submit')
       wait_for_ajax
     end
-    expect(page).to have_content('test_folder_created_by_testing')
+    expect(page).to have_text('test_folder_created_by_testing')
 
     within '#cama_media_gallery' do
       # access into inner folder
@@ -29,7 +29,7 @@ describe 'the Media', :js do
 
       within '#cama_media_external' do
         fill_in 'remote_file', with: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Jpegvergroessert.jpg'
-        find('button[type="submit"]').click
+        click_button(type: 'submit')
         wait_for_ajax
       end
     end
@@ -46,7 +46,9 @@ describe 'the Media', :js do
     wait_for_ajax
 
     # delete folder
-    page.execute_script('$(\'#cama_media_gallery .folder_item[data-key="test_folder_created_by_testing"] .del_folder\').click()')
+    page.execute_script(
+      '$(\'#cama_media_gallery .folder_item[data-key="test_folder_created_by_testing"] .del_folder\').click()'
+    )
     confirm_dialog
     wait_for_ajax
   end

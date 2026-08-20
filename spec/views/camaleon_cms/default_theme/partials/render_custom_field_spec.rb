@@ -15,7 +15,8 @@ RSpec.describe 'camaleon_cms/default_theme/partials/_render_custom_field', type:
   end
 
   it 'renders translated labels for safe t(...) keys' do
-    render partial: 'camaleon_cms/default_theme/partials/render_custom_field', locals: { fields: fields.deep_dup.tap { |h| h[:secure_checkbox][:name] = 't(admin.my_text)' } }
+    render partial: 'camaleon_cms/default_theme/partials/render_custom_field',
+           locals: { fields: fields.deep_dup.tap { |h| h[:secure_checkbox][:name] = 't(admin.my_text)' } }
 
     expect(rendered_label).to eq('My Text')
   end
@@ -24,7 +25,8 @@ RSpec.describe 'camaleon_cms/default_theme/partials/_render_custom_field', type:
     payload = "t(Kernel.system('echo pwned'))"
 
     expect(Kernel).not_to receive(:system)
-    render partial: 'camaleon_cms/default_theme/partials/render_custom_field', locals: { fields: fields.deep_dup.tap { |h| h[:secure_checkbox][:name] = payload } }
+    render partial: 'camaleon_cms/default_theme/partials/render_custom_field',
+           locals: { fields: fields.deep_dup.tap { |h| h[:secure_checkbox][:name] = payload } }
 
     expect(rendered_label).to eq(payload)
   end

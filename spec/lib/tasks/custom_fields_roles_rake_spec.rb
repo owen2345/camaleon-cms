@@ -19,6 +19,10 @@ RSpec.describe 'custum_fields_roles Rake task', type: :task do
 
     before { task.reenable }
 
+    it 'reports progress on stdout for the operator running it' do
+      expect { task.invoke }.to output(/Backfilling custom_fields manager permission/).to_stdout
+    end
+
     it 'adds custom_fields permission when manager meta is missing' do
       site = create(:site)
       role = site.user_roles.create!(name: 'Needs Backfill', slug: 'needs_backfill')
@@ -79,9 +83,14 @@ RSpec.describe 'custum_fields_roles Rake task', type: :task do
 
     before { task.reenable }
 
+    it 'reports a summary on stdout for the operator running it' do
+      expect { task.invoke }.to output(/Summary:/).to_stdout
+    end
+
     it 'adds select_eval permission for admin roles with term_group -1' do
-      site = create(:site)
-      role = site.user_roles.create!(name: 'Admin Role', slug: 'admin', term_group: -1)
+      # slugs are unique per parent, so the scenarios below reuse the shared
+      # site's default admin role instead of creating a second admin-slugged one
+      role = CamaleonCms::UserRole.find_by!(slug: 'admin', term_group: -1)
       key = "_manager_#{role.parent_id}"
       role.set_meta(key, { themes: 1 })
 
@@ -93,8 +102,7 @@ RSpec.describe 'custum_fields_roles Rake task', type: :task do
     end
 
     it 'skips admin roles that already have select_eval permission' do
-      site = create(:site)
-      role = site.user_roles.create!(name: 'Configured Admin', slug: 'admin', term_group: -1)
+      role = CamaleonCms::UserRole.find_by!(slug: 'admin', term_group: -1)
       key = "_manager_#{role.parent_id}"
       role.set_meta(key, { select_eval: 1, users: 1 })
 
@@ -107,11 +115,14 @@ RSpec.describe 'custum_fields_roles Rake task', type: :task do
     end
 
     it 'does not update roles outside the admin term_group -1 scope' do
-      site = create(:site)
-      admin_editable = site.user_roles.create!(name: 'Editable Admin', slug: 'admin', term_group: nil)
-      editor_role = site.user_roles.create!(name: 'Editor', slug: 'editor', term_group: -1)
+      admin_editable = CamaleonCms::UserRole.find_by!(slug: 'admin').tap { |r| r.update!(term_group: nil) }
+      editor_role = CamaleonCms::UserRole.find_by!(slug: 'editor')
       admin_key = "_manager_#{admin_editable.parent_id}"
       editor_key = "_manager_#{editor_role.parent_id}"
+      # the default roles carry installed metas; the scenario needs roles
+      # without select_eval to prove the task leaves them alone
+      admin_editable.set_meta(admin_key, {})
+      editor_role.set_meta(editor_key, {})
 
       task.invoke
 
@@ -120,9 +131,11 @@ RSpec.describe 'custum_fields_roles Rake task', type: :task do
     end
 
     it 'continues processing remaining admin roles when one update fails' do
+      # the admin scope is stubbed below, so the fixtures only need to be two
+      # distinct roles — duplicate admin slugs under one parent are now invalid
       site = create(:site)
-      broken_role = site.user_roles.create!(name: 'Broken Admin', slug: 'admin', term_group: -1)
-      healthy_role = site.user_roles.create!(name: 'Healthy Admin', slug: 'admin', term_group: -1)
+      broken_role = site.user_roles.create!(name: 'Broken Admin', slug: 'broken-admin', term_group: -1)
+      healthy_role = site.user_roles.create!(name: 'Healthy Admin', slug: 'healthy-admin', term_group: -1)
       broken_key = "_manager_#{broken_role.parent_id}"
       healthy_key = "_manager_#{healthy_role.parent_id}"
 

@@ -1,6 +1,6 @@
 module CamaleonCms
   class Plugin < CamaleonCms::TermTaxonomy
-    normalize_attrs(:name, :description)
+    normalize_attrs(:description)
 
     # attrs:
     #   term_group => status active (1, nil)
@@ -9,9 +9,8 @@ module CamaleonCms
 
     attr_accessor :error
 
-    belongs_to :site, foreign_key: :parent_id, required: false
+    belongs_to :site, foreign_key: :parent_id, optional: true, inverse_of: :plugins
 
-    default_scope { where(taxonomy: :plugin) }
     scope :active, -> { where(term_group: 1) }
 
     before_validation :set_default

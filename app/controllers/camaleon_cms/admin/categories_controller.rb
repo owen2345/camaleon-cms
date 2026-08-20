@@ -7,6 +7,7 @@ module CamaleonCms
 
       before_action :set_post_type
       before_action :set_category, only: %w[show edit update destroy]
+      before_action :validate_category_parent, only: %w[create update]
 
       def index
         @categories = @post_type.categories
@@ -51,8 +52,11 @@ module CamaleonCms
 
       # return html category list used to reload categories list in post editor form
       def list
-        render inline: post_type_html_inputs(@post_type, 'categories', 'categories',
-                                             @post_type.get_option('has_single_category', false) ? 'radio' : 'checkbox', params[:categories] || [], 'categorychecklist', true)
+        render inline: post_type_html_inputs(
+          @post_type, 'categories', 'categories',
+          @post_type.get_option('has_single_category', false) ? 'radio' : 'checkbox',
+          params[:categories] || [], 'categorychecklist', true
+        )
       end
 
       def destroy
@@ -61,6 +65,17 @@ module CamaleonCms
       end
 
       private
+
+      # The parent dropdown offers the post type itself or one of its own categories. A parent_id naming
+      # anything else would re-home the category under another post type or site, so it is rejected
+      # (audit finding H8). full_categories is scoped to this post type's site and id.
+      def validate_category_parent
+        submitted = params.dig(:category, :parent_id)
+        return if submitted.blank? || submitted.to_s == @post_type.id.to_s
+        return if @post_type.full_categories.exists?(id: submitted)
+
+        raise CanCan::AccessDenied, t('camaleon_cms.admin.post_type.message.error')
+      end
 
       # define parent post type
       def set_post_type

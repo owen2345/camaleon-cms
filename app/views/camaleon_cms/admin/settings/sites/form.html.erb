@@ -5,7 +5,7 @@
         <div class="col-md-8 col-md-offset-2">
           <div class="panel panel-default">
             <div class="panel-heading">
-                <h4><span class="fa fa-cog"></span> <%= @site.new_record? ? t('camaleon_cms.admin.page_title.new_site') : "#{t('camaleon_cms.admin.page_title.edit_site')}: #{@site.the_title} "%> </h4>
+                <h4><span class="fa fa-cog"></span> <%= @site.new_record? ? t('camaleon_cms.admin.page_title.new_site') : safe_join([t('camaleon_cms.admin.page_title.edit_site'), ': ', @site.the_title, ' ']) %> </h4>
             </div>
             <div class="panel-body">
               <%= render partial: 'layouts/camaleon_cms/admin/form_error', locals: {data: @site} %>

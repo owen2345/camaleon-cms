@@ -62,11 +62,13 @@ module CamaleonCms
       end
 
       def save_theme
-        current_theme.set_field_values(params[:theme_fields]) if params[:theme_fields].present?
+        current_theme.set_field_values(cama_permitted_field_options('Theme', param_key: :theme_fields))
         current_theme.set_options(params[:theme_option]) if params[:theme_option].present?
         current_theme.set_metas(params[:theme_meta]) if params[:theme_meta].present?
         current_theme.set_field_values(cama_permitted_field_options('Theme'))
-        hook_run(current_theme.settings, 'on_theme_settings', current_theme) # permit to save extra/custom values by this hook
+
+        # permit saving extra/custom values by this hook
+        hook_run(current_theme.settings, 'on_theme_settings', current_theme)
         flash[:notice] = t('camaleon_cms.admin.message.updated_success', default: 'Theme updated successfully')
         redirect_to action: :theme
       end
@@ -77,7 +79,7 @@ module CamaleonCms
         CamaleonCms::HtmlMailer.sender(params[:email], 'Test', data).deliver_now
         head :ok
       rescue StandardError => e
-        render plain: e.message, status: 502
+        render plain: e.message, status: :bad_gateway
       end
 
       private

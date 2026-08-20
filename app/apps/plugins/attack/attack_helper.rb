@@ -36,9 +36,9 @@ module Plugins
       end
 
       def attack_app_before_load
-        cache_ban = Rails.cache.read(cama_get_session_id)
+        cache_ban = Rails.cache.read(attack_ban_cache_key)
         if cache_ban.present? # render banned message if it was banned
-          render html: cache_ban.html_safe, layout: false
+          render html: cache_ban.to_s, layout: false
           return
         end
 
@@ -48,11 +48,23 @@ module Plugins
 
       private
 
+      # Throttle and ban on the client IP, not the session id (audit finding H2). A cookieless /
+      # cookie-rotating request presented a fresh session id every time, so the per-key counter never
+      # accumulated: the throttle never tripped and its per-request DB insert ran unbounded. Keying on
+      # the IP makes the count accumulate, trip the limit, and stop inserting.
+      def attack_client_key
+        request.remote_ip.to_s
+      end
+
+      def attack_ban_cache_key
+        "plugins_attack_ban:#{attack_client_key}"
+      end
+
       def attack_check_request
         return unless current_site
 
         config = current_site.get_meta('attack_config')
-        query = current_site.attack.where(browser_key: cama_get_session_id, path: attack_request_key)
+        query = current_site.attack.where(browser_key: attack_client_key, path: attack_request_key)
         return if config.blank?
 
         # clear past requests
@@ -70,9 +82,9 @@ module Plugins
         if request.post? || request.patch?
           r = query.where(created_at: config[:post][:sec].to_i.seconds.ago..Time.zone.now)
           if r.count > config[:post][:max].to_i
-            Rails.cache.write(cama_get_session_id, config[:msg], expires_in: config[:ban].to_i.minutes)
+            Rails.cache.write(attack_ban_cache_key, config[:msg], expires_in: config[:ban].to_i.minutes)
             # Email administrator with request info (ip, browser, if logged, then send user info
-            render html: config[:msg].html_safe
+            render html: config[:msg].to_s
             return
           end
 
@@ -80,8 +92,8 @@ module Plugins
         else
           r = query.where(created_at: config[:get][:sec].to_i.seconds.ago..Time.zone.now)
           if r.count > config[:get][:max].to_i
-            Rails.cache.write(cama_get_session_id, config[:msg], expires_in: config[:ban].to_i.minutes)
-            render html: config[:msg].html_safe
+            Rails.cache.write(attack_ban_cache_key, config[:msg], expires_in: config[:ban].to_i.minutes)
+            render html: config[:msg].to_s
             return
           end
         end

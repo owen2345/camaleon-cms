@@ -13,17 +13,17 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <% @_shortcodes.each do |code| %>
+                    <% shortcodes_list.each do |code| %>
                         <tr>
                             <td>
                                 <code>[<%= code %>]</code>
                             </td>
-                            <td class="col_descr"><%= @_shortcodes_descr[code] %></td>
+                            <td class="col_descr"><%= shortcodes_descriptions[code] %></td>
                         </tr>
                     <% end %>
                     </tbody>
                 </table>
-                <%= content_tag("div", t('camaleon_cms.admin.message.data_found_list'), class: "alert alert-warning") if @_shortcodes.empty? %>
+                <%= content_tag("div", t('camaleon_cms.admin.message.data_found_list'), class: "alert alert-warning") if shortcodes_list.empty? %>
             </div>
         </div>
     </div>
