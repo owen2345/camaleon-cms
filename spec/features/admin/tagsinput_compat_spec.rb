@@ -9,8 +9,8 @@ require 'rails_helper'
 #   * source may be an array, a function invoked as source({term}, response) or a URL string fetched
 #     with a `term` parameter; autocomplete.minLength maps to Awesomplete minChars
 #   * for a REMOTE (function/URL) source the server's results are shown verbatim, in order (no
-#     FILTER_CONTAINS re-match / length re-sort), fetched as JSON, debounced (~300ms) with the
-#     in-flight request aborted and out-of-order responses dropped
+#     FILTER_CONTAINS re-match / length re-sort), fetched as JSON, with the in-flight request
+#     aborted and out-of-order responses dropped (a fetch per keystroke)
 #   * addTag/removeTag/tagExist/importTags and the onAddTag/onRemoveTag/onChange callbacks keep
 #     working, Enter commits typed text, backspace removes the last tag
 describe 'jQuery tagsInput vendored source', :js do
@@ -83,9 +83,8 @@ describe 'jQuery tagsInput vendored source', :js do
     JS
   end
 
-  # Set up the remote (function + URL) sources and fire their inputs. The debounced fetch runs after
-  # this returns, so a Capybara wait must follow before remote_read. The jQuery.get stub stays active
-  # (stored on window) across that wait.
+  # Set up the remote (function + URL) sources and fire their inputs, then read after a wait so an
+  # async response has resolved. The jQuery.get stub stays active (stored on window) across the wait.
   def remote_setup
     page.execute_script(<<~JS)
       window.__ts = { fnArg: null, getUrl: null, getParams: null, origGet: jQuery.get };
@@ -153,7 +152,7 @@ describe 'jQuery tagsInput vendored source', :js do
 
     sync = sync_probe
     remote_setup
-    wait(1) # remote sources are debounced ~300ms
+    wait(1) # let the async fetch resolve
     remote = remote_read
 
     failures = sync.merge(remote).reject { |_check, value| value == true }

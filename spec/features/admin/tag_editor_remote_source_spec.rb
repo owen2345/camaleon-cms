@@ -29,7 +29,7 @@ RSpec.describe 'Tag editor remote autocomplete source', :js do
       window.camaTeInput.val('nyc').trigger('input');
     JS
 
-    wait(1) # the request is debounced ~300ms
+    wait(1) # let the async fetch resolve
 
     result = page.evaluate_script(<<~JS)
       (function(){

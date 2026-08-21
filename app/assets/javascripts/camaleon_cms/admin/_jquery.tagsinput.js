@@ -317,24 +317,22 @@
 					});
 						$(data.fake_input).data('awesomplete', aw);
 						if (is_remote) {
-							// debounce + abort + drop out-of-order responses, like jQuery UI autocomplete
-							// (delay 300, xhr.abort, requestIndex); fetch JSON regardless of content-type
-							var reqSeq = 0, reqTimer = null, reqXhr = null;
+							// sequence-guard + abort so a stale/out-of-order response cannot overwrite a
+							// newer one (jQuery UI's requestIndex + xhr.abort); fetch JSON regardless of
+							// content-type. A fetch fires per keystroke, the established contract.
+							var reqSeq = 0, reqXhr = null;
 							var applyResults = function(seq, results) {
 								if (seq === reqSeq && Array.isArray(results)) { aw.list = results; aw.evaluate(); }
 							};
 							$(data.fake_input).on('input', function() {
 								var term = $(this).val();
-								if (reqTimer) clearTimeout(reqTimer);
-								reqTimer = setTimeout(function() {
-									var seq = ++reqSeq;
-									if (source_type === 'function') {
-										aco.source({term: term}, function(results) { applyResults(seq, results); });
-									} else {
-										if (reqXhr && reqXhr.abort) reqXhr.abort();
-										reqXhr = $.get(aco.source, {term: term}, undefined, 'json').done(function(results) { applyResults(seq, results); });
-									}
-								}, aco.delay != null ? aco.delay : 300);
+								var seq = ++reqSeq;
+								if (source_type === 'function') {
+									aco.source({term: term}, function(results) { applyResults(seq, results); });
+								} else {
+									if (reqXhr && reqXhr.abort) reqXhr.abort();
+									reqXhr = $.get(aco.source, {term: term}, undefined, 'json').done(function(results) { applyResults(seq, results); });
+								}
 							});
 						}
 						$(data.fake_input)[0].addEventListener('awesomplete-selectcomplete', function(ev) {
