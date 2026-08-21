@@ -1,5 +1,6 @@
 /* Awesomplete - Lea Verou - MIT license */
-/* Vendored verbatim from npm awesomplete@1.1.7 (awesomplete.css).
+/* Vendored from npm awesomplete@1.1.7 (awesomplete.css): identical except the
+ * trailing sourceMappingURL comment, dropped because no .map is vendored.
  * Theme overrides live in _awesomplete_theme.css, loaded after this file. */
 
 .awesomplete [hidden] {

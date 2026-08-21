@@ -25,7 +25,8 @@
 	   `autocomplete_url` or `autocomplete.source` may be an array, a function
 	   invoked as source({term}, response) or a URL string fetched with a
 	   `term` parameter; `autocomplete.minLength` is honored alongside
-	   `minChars`.
+	   `minChars`. An `autocomplete.select` callback is not wired (the replaced
+	   bundle never wired it either; the tag editor adapter does).
 	3. The upstream `min-height` holder style line is dropped to keep the
 	   styling parity of the bundle it replaces (height is set anyway).
 
@@ -294,11 +295,13 @@
 					if (typeof Awesomplete !== 'undefined') {
 						var source_type = typeof aco.source;
 						var is_remote = source_type === 'function' || source_type === 'string';
-						var aw = new Awesomplete($(data.fake_input)[0], {
-							list: is_remote ? [] : (aco.source || []),
-							minChars: aco.minChars || aco.minLength || 1,
-							maxItems: aco.maxItems || 10
-						});
+					var aw = new Awesomplete($(data.fake_input)[0], {
+						list: is_remote ? [] : (aco.source || []),
+						// explicit minChars/minLength of 0 (show all on input) must not
+						// fall through to the default, so compare against null
+						minChars: aco.minChars != null ? aco.minChars : (aco.minLength != null ? aco.minLength : 1),
+						maxItems: aco.maxItems || 10
+					});
 						$(data.fake_input).data('awesomplete', aw);
 						if (source_type === 'function') {
 							$(data.fake_input).on('input', function() {
