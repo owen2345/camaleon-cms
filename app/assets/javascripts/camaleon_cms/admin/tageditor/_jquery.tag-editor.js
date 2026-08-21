@@ -100,6 +100,14 @@
             }
 
             ed.click(function(e, closest_tag){
+                // The Awesomplete dropdown lives inside ed. Clicking a suggestion fires
+                // awesomplete-selectcomplete, whose handler synchronously blurs + destroys the input,
+                // detaching the clicked node BEFORE this bubbled click reaches ed. Ignore that
+                // detached-target click so it does not slip past the tag guard below (its target is
+                // no longer inside a .tag-editor-tag) and append a phantom input. The 200ms follow-up
+                // trigger fires with ed itself as target (connected), so it still opens the next input.
+                // (PR #1169 review.)
+                if (e.target && e.target.isConnected === false) return;
                 // don't create new tag when clicking on delete buttons or existing tags
                 if ($(e.target).closest('.tag-editor-delete, .tag-editor-tag').length) return;
                 var d, dist = 99999, loc;

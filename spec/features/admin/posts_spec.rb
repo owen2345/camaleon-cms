@@ -238,6 +238,32 @@ RSpec.describe 'Posts workflows for Admin', :js do
     end
   end
 
+  # Regression (PR #1169 review finding #5, TE-CLICK-PHANTOM): the Awesomplete dropdown lives inside
+  # the editor, so a REAL mouse click on a suggestion bubbled to ed's click handler after
+  # selectcomplete had already detached the clicked node, defeating the tag guard and appending a
+  # phantom input -- which the 200ms follow-up then removed, leaving the editor with no open input.
+  # (The synthetic-event spec above cannot see this: no real click bubbles.)
+  it 'keeps an input open after picking a suggestion with a real click' do
+    post.update_tags('ruby,rails,alpha')
+    post.update_tags('alpha') # post keeps 'alpha'; ruby/rails remain as autocomplete suggestions
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    within('#form-post') do
+      find('.tag-editor').click # open a new-tag input at the end
+      find('.tag-editor .tag-editor-tag.active input').send_keys('ru')
+      find('.awesomplete li', text: 'ruby').click # REAL click on the suggestion
+      wait(1) # the follow-up input opens from a 200ms setTimeout
+
+      expect(page).to have_css('.tag-editor .tag-editor-tag', text: 'ruby')     # suggestion committed
+      expect(page).to have_css('.tag-editor .tag-editor-tag', text: 'alpha')    # original kept
+      expect(page).to have_css('.tag-editor .tag-editor-tag.active input')      # an input stays open
+      # no empty phantom pill left behind: exactly the two real tags
+      expect(page).to have_css('.tag-editor .tag-editor-tag:not(.active)', count: 2)
+    end
+  end
+
   # Regression: every tag activation created a new Awesomplete instance that was never
   # destroyed, accumulating instances and detached DOM in Awesomplete.all forever.
   # Covers both blur paths: commit (input markup replaced) and empty-tag removal
