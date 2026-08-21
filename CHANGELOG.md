@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Upgrade:** jQuery is upgraded from 2.x to 3.7.1; the admin manifests now require `jquery3` and the gemspec floors `jquery-rails >= 4.6.1`. The jQuery UI bundle is removed from the admin — `$.fn.sortable` and `$.fn.disableSelection` are re-provided by a SortableJS-backed compatibility shim, and jQuery UI autocomplete is replaced by Awesomplete — but the other jQuery UI widgets are withdrawn. [#1169](https://github.com/owen2345/camaleon-cms/pull/1169).
+  - **Breaking change (theme/plugin developers):** an admin plugin or theme that called a jQuery UI widget other than `sortable`/`disableSelection` (`draggable`, `droppable`, `resizable`, `dialog`, `datepicker`, `autocomplete`, …) must now bundle jQuery UI itself. The README-listed `camaleon_editor` grid editor (`$.fn.draggable`, and `ui.helper`/`ui.placeholder` in sortable callbacks) is such a consumer — disposition: **withdrawn**. A host that requires `//= require jquery2` in its own manifest must switch it to `jquery3`.
+
 - **Bug fix:** Destroying a `term_taxonomy` row whose taxonomy value maps to no model — typically one left behind by a removed or renamed plugin — raised `NameError`, which also blocked `Site#destroy` for any site owning such a row. Both now complete normally. [#1287](https://github.com/owen2345/camaleon-cms/pull/1287).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#deleting-legacy-taxonomy-rows-no-longer-crashes).
 
