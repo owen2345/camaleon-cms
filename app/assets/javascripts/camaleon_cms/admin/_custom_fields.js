@@ -272,24 +272,3 @@ function load_upload_video_field(thiss) {
         }
     });
 }
-
-// Dynamically adjust icon contrast on colored panel headers
-function cama_fix_panel_icon_contrast() {
-    $('.panel-heading .panel-controls').each(function() {
-        var heading = $(this).closest('.panel-heading')[0];
-        if (!heading) return;
-        var bg = heading.style.backgroundColor || getComputedStyle(heading).backgroundColor;
-        var match = bg && bg.match(/\d+/g);
-        if (match && match.length >= 3) {
-            var luma = 0.299 * parseInt(match[0]) + 0.587 * parseInt(match[1]) + 0.114 * parseInt(match[2]);
-            var links = $(this).find('a');
-            if (luma > 150) {
-                links.addClass('panel-controls-light');
-            } else {
-                links.removeClass('panel-controls-light');
-            }
-        }
-    });
-}
-
-$(document).ready(function() { cama_fix_panel_icon_contrast(); });
