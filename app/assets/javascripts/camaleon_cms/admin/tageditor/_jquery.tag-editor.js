@@ -190,7 +190,9 @@
                         var awList = is_remote ? [] : (aco.source || []);
                         var aw = new Awesomplete(input[0], {
                             list: awList,
-                            minChars: aco.minChars || aco.minLength || 1,
+                            // explicit minChars/minLength of 0 (show all on input) must not
+                            // fall through to the default, so compare against null
+                            minChars: aco.minChars != null ? aco.minChars : (aco.minLength != null ? aco.minLength : 1),
                             maxItems: aco.maxItems || 10,
                             // suggest only tags not already in the editor; tag_list holds
                             // committed tags only (the open input's text is not in it)
@@ -208,8 +210,11 @@
                         } else if (source_type === 'string') {
                             input.on('input', function() {
                                 $.get(aco.source, {term: input.val()}).done(function(results) {
-                                    aw.list = results;
-                                    aw.evaluate();
+                                    // ignore non-array responses (error pages, JSON objects)
+                                    if (Array.isArray(results)) {
+                                        aw.list = results;
+                                        aw.evaluate();
+                                    }
                                 });
                             });
                         }
