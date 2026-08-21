@@ -25,8 +25,8 @@
 	   `autocomplete_url` or `autocomplete.source` may be an array, a function
 	   invoked as source({term}, response) or a URL string fetched with a
 	   `term` parameter; `autocomplete.minLength` is honored alongside
-	   `minChars`. An `autocomplete.select` callback is not wired (the replaced
-	   bundle never wired it either; the tag editor adapter does).
+	   `minChars`. An `autocomplete.select` callback is wired: it receives
+	   (event, {item: {value, label}}) and returning false prevents the tag add.
 	3. The upstream `min-height` holder style line is dropped to keep the
 	   styling parity of the bundle it replaces (height is set anyway).
 
@@ -278,6 +278,14 @@
 						$(event.data.fake_input).val('');
 					}
 					$(event.data.fake_input).css('color','#000000');
+					// unclip the holder so the Awesomplete dropdown can overflow it
+					$(event.data.holder).addClass('tagsinput-editing');
+				});
+
+				$(data.fake_input).bind('blur',data,function(event) {
+					// re-clip the holder when the field loses focus (Awesomplete keeps focus on a
+					// suggestion mousedown, so this does not fire mid-selection)
+					$(event.data.holder).removeClass('tagsinput-editing');
 				});
 
 				var autocomplete_enabled =
@@ -330,6 +338,10 @@
 							});
 						}
 						$(data.fake_input)[0].addEventListener('awesomplete-selectcomplete', function(ev) {
+							// jQuery-UI select contract: select(event, {item: {value, label}}); returning
+							// false prevents the default value-set (here, adding the tag).
+							if (typeof aco.select === 'function' &&
+								aco.select(ev, {item: {value: ev.text.value, label: ev.text.label || ev.text.value}}) === false) return;
 							$(data.real_input).addTag(ev.text.value,{focus:true,unique:(settings.unique)});
 						});
 					}
