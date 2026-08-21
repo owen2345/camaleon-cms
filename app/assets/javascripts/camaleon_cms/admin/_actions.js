@@ -1,4 +1,9 @@
 var onReadyOrChanged = function(){
+    // Bind the AdminLTE sidebar tree at DOM ready. AdminLTE 2.4 only activates it on window.load,
+    // so a click on an expandable parent before load would otherwise fall through its (now href="#")
+    // anchor with no toggle. The Tree plugin guards against double-init, so the load-time Data API
+    // becomes a no-op. (PR #1169 review.)
+    if ($.fn.tree) $('[data-widget="tree"]').tree();
     // initialize all validations for forms
     init_form_validations();
     setTimeout(page_actions, 1000);

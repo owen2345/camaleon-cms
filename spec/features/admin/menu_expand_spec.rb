@@ -79,4 +79,23 @@ RSpec.describe 'Sidebar menu expand', :js do
       expect(active_nested[:class]).not_to include('menu-open')
     end
   end
+
+  # Regression (PR #1169 review, TREE-ON-LOAD): AdminLTE 2.4 binds the sidebar tree only on
+  # window.load, while expandable parents are pure toggles. If those anchors carry href="" a click
+  # before the tree binds reloads the current page (discarding in-progress edits); they must be
+  # href="#" (a no-op fragment), and the tree must be bound eagerly so the toggle works at once.
+  it 'renders expandable parents as non-navigating toggles and binds the tree eagerly' do
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/"
+
+    raw_hrefs = page.evaluate_script(
+      "Array.prototype.map.call(document.querySelectorAll('.sidebar .treeview[data-key] > a')," \
+      " function(a){ return a.getAttribute('href'); })"
+    )
+    expect(raw_hrefs).not_to be_empty
+    expect(raw_hrefs).to all(eq('#'))
+
+    tree_bound = page.evaluate_script("!!(window.jQuery && jQuery('[data-widget=\"tree\"]').data('lte.tree'))")
+    expect(tree_bound).to be(true)
+  end
 end
