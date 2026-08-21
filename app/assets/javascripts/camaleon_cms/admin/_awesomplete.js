@@ -1,6 +1,6 @@
 // Awesomplete - Lea Verou - MIT license
 // Source: https://github.com/LeaVerou/awesomplete v1.1.7
-// Copied from node_modules/awesomplete/awesomplete.js
+// Vendored verbatim from npm awesomplete@1.1.7 (awesomplete.js); pinned in package.json
 
 (function () {
 

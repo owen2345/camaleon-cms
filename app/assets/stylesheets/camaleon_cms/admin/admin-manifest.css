@@ -18,6 +18,7 @@
  *= require ./introjs/introjs.min
  *= require ./tageditor/_jquery.tag-editor
  *= require ./_awesomplete
+ *= require ./_awesomplete_theme
 
  *= require ./uploader/uploader_manifest
  *= require ./_bootstrap-select
