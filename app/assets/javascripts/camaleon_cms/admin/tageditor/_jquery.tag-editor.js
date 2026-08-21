@@ -215,26 +215,23 @@
                                 }
                         });
                         if (is_remote) {
-                            // Debounce, abort the in-flight request, and drop out-of-order responses,
-                            // like the jQuery UI autocomplete this replaces (delay 300, xhr.abort,
-                            // requestIndex). Fetch as JSON so the endpoint's content-type does not matter.
-                            var reqSeq = 0, reqTimer = null, reqXhr = null;
+                            // Sequence-guard and abort so a stale/out-of-order response cannot overwrite
+                            // a newer one (jQuery UI's requestIndex + xhr.abort). Fetch as JSON so the
+                            // endpoint's content-type does not matter. A fetch fires per keystroke, the
+                            // established contract downstream callers rely on.
+                            var reqSeq = 0, reqXhr = null;
                             var applyResults = function(seq, results) {
                                 if (seq === reqSeq && Array.isArray(results)) { aw.list = results; aw.evaluate(); }
                             };
                             input.on('input', function() {
                                 var term = input.val();
-                                if (reqTimer) clearTimeout(reqTimer);
-                                reqTimer = setTimeout(function() {
-                                    var seq = ++reqSeq;
-                                    if (source_type === 'function') {
-                                        aco.source({term: term}, function(results) { applyResults(seq, results); });
-                                    } else {
-                                        if (reqXhr && reqXhr.abort) reqXhr.abort();
-                                        reqXhr = $.get(aco.source, {term: term}, undefined, 'json')
-                                            .done(function(results) { applyResults(seq, results); });
-                                    }
-                                }, aco.delay != null ? aco.delay : 300);
+                                var seq = ++reqSeq;
+                                if (source_type === 'function') {
+                                    aco.source({term: term}, function(results) { applyResults(seq, results); });
+                                } else {
+                                    if (reqXhr && reqXhr.abort) reqXhr.abort();
+                                    reqXhr = $.get(aco.source, {term: term}, undefined, 'json').done(function(results) { applyResults(seq, results); });
+                                }
                             });
                         }
                         input[0].addEventListener('awesomplete-selectcomplete', function(e) {
