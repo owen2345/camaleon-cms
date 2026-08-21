@@ -300,26 +300,33 @@
 						// explicit minChars/minLength of 0 (show all on input) must not
 						// fall through to the default, so compare against null
 						minChars: aco.minChars != null ? aco.minChars : (aco.minLength != null ? aco.minLength : 1),
-						maxItems: aco.maxItems || 10
+						maxItems: aco.maxItems || 10,
+						// jQuery UI autoFocus: preselect the first suggestion so Enter commits it
+						autoFirst: !!aco.autoFocus,
+						// a remote source is already ranked/filtered by the server: keep its order and set
+						sort: is_remote ? false : undefined,
+						filter: is_remote ? function() { return true; } : Awesomplete.FILTER_CONTAINS
 					});
 						$(data.fake_input).data('awesomplete', aw);
-						if (source_type === 'function') {
+						if (is_remote) {
+							// debounce + abort + drop out-of-order responses, like jQuery UI autocomplete
+							// (delay 300, xhr.abort, requestIndex); fetch JSON regardless of content-type
+							var reqSeq = 0, reqTimer = null, reqXhr = null;
+							var applyResults = function(seq, results) {
+								if (seq === reqSeq && Array.isArray(results)) { aw.list = results; aw.evaluate(); }
+							};
 							$(data.fake_input).on('input', function() {
-								var field = $(this);
-								aco.source({term: field.val()}, function(results) {
-									aw.list = results;
-									aw.evaluate();
-								});
-							});
-						} else if (source_type === 'string') {
-							$(data.fake_input).on('input', function() {
-								var field = $(this);
-								$.get(aco.source, {term: field.val()}).done(function(results) {
-									if (Array.isArray(results)) {
-										aw.list = results;
-										aw.evaluate();
+								var term = $(this).val();
+								if (reqTimer) clearTimeout(reqTimer);
+								reqTimer = setTimeout(function() {
+									var seq = ++reqSeq;
+									if (source_type === 'function') {
+										aco.source({term: term}, function(results) { applyResults(seq, results); });
+									} else {
+										if (reqXhr && reqXhr.abort) reqXhr.abort();
+										reqXhr = $.get(aco.source, {term: term}, undefined, 'json').done(function(results) { applyResults(seq, results); });
 									}
-								});
+								}, aco.delay != null ? aco.delay : 300);
 							});
 						}
 						$(data.fake_input)[0].addEventListener('awesomplete-selectcomplete', function(ev) {
