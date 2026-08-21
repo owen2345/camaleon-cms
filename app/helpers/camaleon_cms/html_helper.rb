@@ -134,14 +134,14 @@ module CamaleonCms
       libs[:datepicker] = { js: [] }
       libs[:datetimepicker] = { js: [], css: [] }
       libs[:tinymce] =
-        { js: %w[camaleon_cms/admin/tinymce/tinymce.min camaleon_cms/admin/tinymce/plugins/filemanager/plugin.min],
-          css: ['camaleon_cms/admin/tinymce/skins/lightgray/content.min'] }
-      libs[:form_ajax] = { js: ['camaleon_cms/admin/form/jquery.form'] }
+        { js: %w[tinymce-jquery camaleon_cms/admin/tinymce/plugins/filemanager/plugin.min],
+          css: ['tinymce/skins/lightgray/content.min'] }
+      libs[:form_ajax] = { js: ['camaleon_cms/admin/uploader/_jquery.form'] }
       libs[:cropper] = {} # loaded by default
       libs[:post] =
         { js: %w[camaleon_cms/admin/_jquery.tagsinput camaleon_cms/admin/_post],
           css: ['camaleon_cms/admin/_jquery.tagsinput'] }
-      libs[:multiselect] = { js: ['camaleon_cms/admin/bootstrap-select.js'] }
+      libs[:multiselect] = { js: ['camaleon_cms/admin/_bootstrap-select'] }
       libs[:validate] = { js: ['camaleon_cms/admin/jquery.validate'] }
       libs[:nav_menu] =
         { css: ['camaleon_cms/admin/nestable/jquery.nestable'],
