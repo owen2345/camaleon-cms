@@ -8,7 +8,7 @@ function init_profile_form(){
             var form2 = $(this.currentForm);
             $.post(form2.attr("action"), form2.serialize(), function (res) {
                 form2.flash_message(res);
-            }).complete(function () {
+            }).always(function () {
                 hideLoading();
             });
             return false;
