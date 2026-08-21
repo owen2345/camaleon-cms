@@ -2,21 +2,35 @@
 
 require 'rails_helper'
 
-# Source guard (PR #1169 review, JOIN-PROMOTION): the frontend listing actions build
-# @posts with preload(:metas). If they go back to eager_load(:metas), any theme call to
-# verify_front_visibility merges its includes into one multi-way LEFT JOIN (row
-# explosion + COUNT over the same join). Behavior specs cannot see this: in-repo views
-# never call the helper, so the merged query never runs here -- the guard watches the
-# only place the regression can start. @categories/@post_tags keep single-association
-# eager_loads on purpose (no merge partner) and are out of scope.
-RSpec.describe CamaleonCms::FrontendController do
-  it 'builds @posts with preload, not eager_load' do
-    source = File.read(CamaleonCms::Engine.root.join('app/controllers/camaleon_cms/frontend_controller.rb'))
+# Behavior guard (PR #1169 review, JOIN-PROMOTION): the frontend listing actions paginate
+# `<taxonomy>.the_posts`, which runs through verify_front_visibility -> Post.with_eager. The
+# paginated relation the controller hands the view must never be `eager_loading?` -- a multi-way
+# LEFT JOIN whose filtered join loads partial associations and whose COUNT/pluck duplicate rows.
+# This replaces the earlier source-text regex guard, which failed on benign rewrites yet passed on
+# a real `.eager_load`/`.references` promotion; `eager_loading?` on the actual relation is the
+# property that matters. (verify_front_visibility itself is exercised in the frontend
+# application_helper spec; here the focus is the paginated listing wrapper the actions build.)
+RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
+  let!(:site) { create(:site).decorate }
+  let(:post_type) { site.the_post_type('post').decorate }
 
-    listing = /the_posts\.paginate\([^)]*\)\.(preload|eager_load)\(:metas\)/m
-    shapes = source.scan(listing).flatten
+  before do
+    helper.current_site(site)
+    allow(helper).to receive(:hooks_run)
+  end
 
-    expect(shapes).not_to include('eager_load')
-    expect(shapes).to eq(%w[preload preload preload])
+  it 'builds a non-eager-loading paginated listing relation' do
+    relation = helper.verify_front_visibility(post_type.the_posts.paginate(page: 1, per_page: 5))
+
+    expect(relation.eager_loading?).to be(false)
+    expect(relation.to_sql.scan(/LEFT OUTER JOIN/i).size).to be <= 1
+  end
+
+  it 'keeps the relation non-eager-loading even if a caller chains a category join filter' do
+    relation = helper.verify_front_visibility(post_type.the_posts)
+                     .joins(:categories)
+                     .where(CamaleonCms::TermRelationship.table_name => { term_taxonomy_id: [0] })
+
+    expect(relation.eager_loading?).to be(false)
   end
 end

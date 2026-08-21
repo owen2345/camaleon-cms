@@ -86,11 +86,12 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
       allow(helper).to receive(:hooks_run)
     end
 
-    # Regression (PR #1169 review, JOIN-PROMOTION): the frontend listing actions pass a
-    # preloading relation (preload(:metas)) and the helper adds the with_eager includes.
-    # When either side used eager_load, Rails merged includes into ONE multi-way LEFT
-    # JOIN (metas x categories x post_type.metas x term_relationships), exploding rows
-    # and running the will_paginate COUNT over the same join. Preloads stay separate.
+    # Regression (PR #1169 review, JOIN-PROMOTION): the helper adds the with_eager preloads,
+    # which must never merge into a join. When with_eager was an `includes` (or a listing used
+    # eager_load), Rails collapsed it into ONE multi-way LEFT JOIN (metas x categories x
+    # post_type.metas x term_relationships), exploding rows and running the will_paginate COUNT
+    # over the same join. Preloads stay separate. (This example still passes a stray preload(:metas)
+    # to prove the helper tolerates an already-preloading relation.)
     it 'does not promote the listing relation into a joined query' do
       relation = post_type.the_posts.paginate(page: 1, per_page: 5).preload(:metas)
 
