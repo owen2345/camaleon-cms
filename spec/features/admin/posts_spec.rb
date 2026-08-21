@@ -150,6 +150,158 @@ RSpec.describe 'Posts workflows for Admin', :js do
     end
   end
 
+  # Regression: SortableJS's filter for the spacer/edit input ran with the default
+  # preventOnFilter, preventDefaulting mousedown on the input -- so clicking inside an
+  # edited tag could not place the caret or select text.
+  it 'places the caret when clicking inside an edited tag input' do
+    post.update_tags('alpha,beta')
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    within('#form-post') do
+      find('.tag-editor .tag-editor-tag', text: 'alpha').click
+      find('.tag-editor .tag-editor-tag.active input')
+
+      prevented = page.evaluate_script(<<~JS)
+        (function() {
+          var input = document.querySelector('.tag-editor .tag-editor-tag.active input');
+          var ev = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+          input.dispatchEvent(ev);
+          return ev.defaultPrevented;
+        })()
+      JS
+      expect(prevented).to be false
+    end
+  end
+
+  # Regression: the SortableJS init ran unconditionally and threw a ReferenceError when
+  # SortableJS was not bundled (custom downstream manifests), aborting the construction
+  # of every other tag editor in the same jQuery collection.
+  it 'builds the editor even when SortableJS is not loaded' do
+    post.update_tags('alpha,beta')
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    result = page.evaluate_script(<<~JS)
+      (function() {
+        var orig = window.Sortable;
+        window.Sortable = undefined;
+        try {
+          var $field = $('<input class="tageditor-guard-probe" value="one,two">').appendTo('body');
+          $field.tagEditor({ initialTags: [] });
+          var built = $field.next('.tag-editor').find('.tag-editor-tag').length >= 2;
+          $field.tagEditor('destroy');
+          return { err: null, built: built };
+        } catch (e) {
+          return { err: e.message, built: false };
+        } finally {
+          window.Sortable = orig;
+        }
+      })()
+    JS
+    expect(result['err']).to be_nil
+    expect(result['built']).to be true
+  end
+
+  # Regression: after picking an autocomplete suggestion the follow-up input opened at
+  # the END of the tag list -- activeTag.next('li') looked for li siblings of a div.
+  # Pre-jQuery-3 it resolved via closest('li') and opened right after the edited tag.
+  it 'opens the follow-up input right after the edited tag on suggestion select' do
+    post.update_tags('alpha,beta,gamma')
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    within('#form-post') do
+      find('.tag-editor .tag-editor-tag', text: 'alpha').click
+      find('.tag-editor .tag-editor-tag.active input')
+
+      page.execute_script(<<~JS)
+        (function() {
+          var input = document.querySelector('.tag-editor .tag-editor-tag.active input');
+          input.dispatchEvent(new CustomEvent('awesomplete-selectcomplete', { bubbles: true }));
+        })()
+      JS
+      wait(1) # the follow-up input opens from a 200ms setTimeout
+
+      position = page.evaluate_script(<<~JS)
+        (function() {
+          var activeLi = jQuery('.tag-editor .tag-editor-tag.active').closest('li')[0];
+          return jQuery('.tag-editor li').index(activeLi);
+        })()
+      JS
+      # li layout: [min-height dummy, alpha, beta, gamma] -- the follow-up input must
+      # open on beta (right after alpha), not after the last tag (index 4)
+      expect(position).to eq(2)
+    end
+  end
+
+  # Regression: every tag activation created a new Awesomplete instance that was never
+  # destroyed, accumulating instances and detached DOM in Awesomplete.all forever.
+  # Covers both blur paths: commit (input markup replaced) and empty-tag removal
+  # (input li removed -- jQuery's cleanData wipes the element data there, so the
+  # instance must be released before the removal).
+  it 'releases the autocomplete instance when a tag input closes' do
+    post.update_tags('alpha,beta')
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    within('#form-post') do
+      before = page.evaluate_script('window.Awesomplete.all.length')
+
+      # commit cycles: open each tag for editing, close it with Escape
+      2.times do
+        %w[alpha beta].each do |tag|
+          find('.tag-editor .tag-editor-tag', text: tag).click
+          find('.tag-editor .tag-editor-tag.active input')
+          find('.tag-editor .tag-editor-tag.active input').send_keys(:escape)
+          wait(1)
+        end
+      end
+
+      # empty-tag removal path: clear the input, blur via another form field
+      find('.tag-editor .tag-editor-tag', text: 'alpha').click
+      find('.tag-editor .tag-editor-tag.active input')
+      page.execute_script("document.querySelector('.tag-editor .tag-editor-tag.active input').value = ''")
+      fill_in 'post_title', with: 'blur the tag input'
+      wait(1)
+
+      after = page.evaluate_script('window.Awesomplete.all.length')
+      expect(after).to eq(before)
+    end
+  end
+
+  # Regression: the dropdown overflow escape hatch used :has(), which browsers without
+  # support (Firefox ESR < 121) drop silently -- the Awesomplete dropdown was clipped
+  # invisible. Overflow is now unclipped via classes toggled on activation/commit.
+  it 'unclips the tag editor for the dropdown via editing classes, not :has()' do
+    post.update_tags('alpha,beta')
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    within('#form-post') do
+      expect(page).to have_no_css('.tag-editor.tag-editor-editing')
+      find('.tag-editor .tag-editor-tag', text: 'alpha').click
+      find('.tag-editor .tag-editor-tag.active input')
+      expect(page).to have_css('.tag-editor.tag-editor-editing')
+      expect(page).to have_css('.tag-editor li.tag-editor-editing')
+
+      fill_in 'post_title', with: 'blur the tag input' # moves focus, commits the tag
+      expect(page).to have_no_css('.tag-editor.tag-editor-editing')
+      expect(page).to have_no_css('.tag-editor li.tag-editor-editing')
+    end
+
+    # guard the source against reintroducing :has() (invisible to our Chrome-based specs)
+    css = File.read(CamaleonCms::Engine.root.join(
+                      'app/assets/stylesheets/camaleon_cms/admin/tageditor/_jquery.tag-editor.css.scss'
+                    ))
+    expect(css).not_to include(':has(')
+  end
+
   describe 'when visibility post plugin is enabled' do
     it 'correctly fetches the assets' do
       plugin_install('visibility_post')

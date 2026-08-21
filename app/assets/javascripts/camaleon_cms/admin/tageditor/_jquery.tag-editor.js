@@ -174,6 +174,10 @@
                     var left_percent = Math.abs(($(this).offset().left - e.pageX)/$(this).width()), caret_pos = parseInt(tag.length*left_percent),
                         input = $(this).html('<input type="text" maxlength="'+o.maxLength+'" value="'+tag+'">').addClass('active').find('input');
                         input.data('old_tag', tag).tagEditorInput();
+                    // unclip the editor while an input is open so the Awesomplete dropdown
+                    // can overflow it (classes, not :has() -- unsupported in older browsers)
+                    $(this).closest('li').addClass('tag-editor-editing');
+                    ed.addClass('tag-editor-editing');
                     if (o.autocomplete) {
                         var aco = $.extend({}, o.autocomplete);
                         // Store user provided select callback
@@ -203,7 +207,9 @@
                             var activeTag = $('.active', ed);
                             activeTag.find('input').blur();
                             setTimeout(function(){
-                                ed.trigger('click', [activeTag.next('li').find('.tag-editor-tag')]);
+                                // open the follow-up input right after the edited tag
+                                // (activeTag is a div inside its li -- next('li') from the li)
+                                ed.trigger('click', [activeTag.closest('li').next('li').find('.tag-editor-tag')]);
                             }, 200);
                         });
                         input.data('awesomplete', aw);
@@ -236,9 +242,18 @@
                 update_globals();
             }
 
+            // helper: release the input's Awesomplete instance. Must run BEFORE the
+            // input's markup is removed/replaced -- jQuery's cleanData wipes the
+            // element data (including this reference) on removal, leaking the
+            // instance into Awesomplete.all for the whole page lifetime.
+            function destroy_awesomplete(input){
+                var aw = input.data('awesomplete');
+                if (aw) { aw.destroy(); input.removeData('awesomplete'); }
+            }
+
             ed.on('blur', 'input', function(e){
                 e.stopPropagation();
-                var input = $(this), old_tag = input.data('old_tag'), tag = input.val().replace(/ +/, ' ').replace(o.dregex, o.delimiter[0]).trim();
+                var input = $(this), li = input.closest('li'), old_tag = input.data('old_tag'), tag = input.val().replace(/ +/, ' ').replace(o.dregex, o.delimiter[0]).trim();
                 if (!tag) {
                     if (old_tag && o.beforeTagDelete(el, ed, tag_list, old_tag) === false) {
                         input.val(old_tag).focus();
@@ -246,7 +261,8 @@
                         update_globals();
                         return;
                     }
-                    try { input.closest('li').remove(); } catch(e){}
+                    destroy_awesomplete(input);
+                    try { li.remove(); } catch(e){}
                     if (old_tag) update_globals();
                 }
                 else if (tag.indexOf(o.delimiter[0])>=0) { split_cleanup(input); return; }
@@ -257,7 +273,11 @@
                     if (o.removeDuplicates)
                         $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).html() == tag) $(this).closest('li').remove(); });
                 }
+                destroy_awesomplete(input);
                 input.closest('.tag-editor-tag').html(tag).removeClass('active');
+                // dropdown closed: restore the clipping that contains the floated pills
+                li.removeClass('tag-editor-editing');
+                if (!$('.tag-editor-tag.active', ed).length) ed.removeClass('tag-editor-editing');
                 if (tag != old_tag) update_globals();
                 set_placeholder();
             });
@@ -357,11 +377,15 @@
             }
             update_globals(true); // true -> no onChange callback
 
-            // init sortable
-            if (o.sortable) new Sortable(ed[0], {
+            // init sortable (skip silently when SortableJS is not bundled -- e.g. custom
+            // downstream manifests; a ReferenceError here would kill sibling editors too)
+            if (o.sortable && window.Sortable) new Sortable(ed[0], {
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 filter: '.tag-editor-spacer, input',
+                // without this SortableJS preventDefaults mousedown on the filter targets,
+                // which kills caret placement and text selection in the edit input
+                preventOnFilter: false,
                 onEnd: function(){ update_globals(); }
             });
         });
