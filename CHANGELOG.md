@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Upgrade:** jQuery is upgraded from 2.x to 3.7.1; the admin manifests now require `jquery3` and the gemspec floors `jquery-rails >= 4.6.1`. The jQuery UI bundle is removed from the admin — `$.fn.sortable` and `$.fn.disableSelection` are re-provided by a SortableJS-backed compatibility shim, and jQuery UI autocomplete is replaced by Awesomplete — but the other jQuery UI widgets are withdrawn. [#1169](https://github.com/owen2345/camaleon-cms/pull/1169).
+  - **Breaking change (theme/plugin developers):** an admin plugin or theme that called a jQuery UI widget other than `sortable`/`disableSelection` (`draggable`, `droppable`, `resizable`, `dialog`, `datepicker`, `autocomplete`, …) must now bundle jQuery UI itself. The README-listed `camaleon_editor` grid editor (`$.fn.draggable`, and `ui.helper`/`ui.placeholder` in sortable callbacks) is such a consumer — disposition: **withdrawn**. A host that requires `//= require jquery2` in its own manifest must switch it to `jquery3`.
+
 ## [2.9.3](https://github.com/owen2345/camaleon-cms/tree/2.9.3) (2026-08-16)
 
 > **Upgrading to 2.9.3?** Required operator actions, the post-upgrade maintenance tasks (with copy-paste commands), behaviour changes, and notes for theme/plugin developers are collected in **[docs/upgrading-to-2.9.3.md](docs/upgrading-to-2.9.3.md)**. Breaking changes are flagged inline below.
