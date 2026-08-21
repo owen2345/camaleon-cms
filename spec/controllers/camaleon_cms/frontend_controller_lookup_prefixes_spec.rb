@@ -18,8 +18,8 @@ RSpec.describe CamaleonCms::FrontendController do
     it 'calls verify_front_visibility from an inheriting plugin-style controller' do
       plugin_controller = plugin_controller_class.new
       relation = double
-      # verify_front_visibility eager-loads metas/categories before scoping visibility.
-      allow(relation).to receive_messages(includes: relation, visible_frontend: :visible)
+      # verify_front_visibility eager-loads via the with_eager scope before scoping visibility.
+      allow(relation).to receive_messages(with_eager: relation, visible_frontend: :visible)
       allow(plugin_controller).to receive(:hooks_run)
 
       expect { plugin_controller.verify_front_visibility(relation) }.not_to raise_error

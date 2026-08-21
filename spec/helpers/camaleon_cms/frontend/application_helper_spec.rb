@@ -78,4 +78,49 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
       expect(helper.the_title).to eq(post.the_title)
     end
   end
+
+  describe '#verify_front_visibility' do
+    let(:post_type) { site.the_post_type('post').decorate }
+
+    before do
+      allow(helper).to receive(:hooks_run)
+    end
+
+    # Regression (PR #1169 review, JOIN-PROMOTION): the frontend listing actions pass a
+    # preloading relation (preload(:metas)) and the helper adds the with_eager includes.
+    # When either side used eager_load, Rails merged includes into ONE multi-way LEFT
+    # JOIN (metas x categories x post_type.metas x term_relationships), exploding rows
+    # and running the will_paginate COUNT over the same join. Preloads stay separate.
+    it 'does not promote the listing relation into a joined query' do
+      relation = post_type.the_posts.paginate(page: 1, per_page: 5).preload(:metas)
+
+      filtered = helper.verify_front_visibility(relation)
+
+      expect(filtered.eager_load_values).to be_empty
+
+      queries = []
+      subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+        queries << payload[:sql]
+      end
+      begin
+        expect(filtered.to_a).to be_present
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+      # the_posts is a has_many :through ordered by term_relationships.term_order, so
+      # loading it may use ONE join to the join table (pre-existing) -- the promotion
+      # under test merges several associations into ONE query (3+ joins)
+      promoted = queries.select { |sql| sql.scan(/LEFT OUTER JOIN/i).size > 1 }
+      expect(promoted).to be_empty
+    end
+
+    it 'hides non-published posts through the visibility scope' do
+      draft = post_type.the_posts.where(status: 'published').first
+      draft.update(status: 'draft')
+
+      filtered = helper.verify_front_visibility(post_type.the_posts)
+
+      expect(filtered.pluck(:id)).not_to include(draft.id)
+    end
+  end
 end
