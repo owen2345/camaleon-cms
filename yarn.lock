@@ -219,6 +219,7 @@ __metadata:
     eslint-plugin-import: "npm:^2.25.2"
     eslint-plugin-n: "npm:^15.0.0"
     eslint-plugin-promise: "npm:^6.0.0"
+    jquery-tags-input: "npm:1.3.5"
     sortablejs: "npm:1.15.7"
   languageName: unknown
   linkType: soft
@@ -1032,6 +1033,13 @@ __metadata:
   version: 2.0.0
   resolution: "isexe@npm:2.0.0"
   checksum: 10c0/228cfa503fadc2c31596ab06ed6aa82c9976eec2bfd83397e7eaf06d0ccf42cd1dfd6743bf9aeb01aebd4156d009994c5f76ea898d2832c1fe342da923ca457d
+  languageName: node
+  linkType: hard
+
+"jquery-tags-input@npm:1.3.5":
+  version: 1.3.5
+  resolution: "jquery-tags-input@npm:1.3.5"
+  checksum: 10c0/542523937451d22ba322982519552094ac2b32834adbb1c58c5d5c66321f57e82ac9af76c39615b02a8bae3de3ff0404cf05ec6471254267b0c6bcc84f1ec8b5
   languageName: node
   linkType: hard
 

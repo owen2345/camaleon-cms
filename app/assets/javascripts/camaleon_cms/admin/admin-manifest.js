@@ -47,7 +47,7 @@
 //= require camaleon_cms/admin/tinymce/plugins/filemanager/plugin.min
 
 // post
-//= require camaleon_cms/admin/_jquery.tagsinput.min
+//= require camaleon_cms/admin/_jquery.tagsinput
 //= require camaleon_cms/admin/_post
 
 //= require camaleon_cms/admin/_posttype
