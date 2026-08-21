@@ -17,7 +17,6 @@ jQuery(function($){
       hideLoading();
       var li = $('<li class="item">' + html + '</li>');
       $content_fields.append(li);
-      cama_fix_panel_icon_contrast();
       cama_custom_field_set_slug(li);
       var title_field = li.find("input.text-title");
       title_field.val(title_field.val() + '-' + (slugger_count ++));
