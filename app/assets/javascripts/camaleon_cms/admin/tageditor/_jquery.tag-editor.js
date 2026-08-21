@@ -202,28 +202,39 @@
                             // fall through to the default, so compare against null
                             minChars: aco.minChars != null ? aco.minChars : (aco.minLength != null ? aco.minLength : 1),
                             maxItems: aco.maxItems || 10,
-                            // suggest only tags not already in the editor; tag_list holds
-                            // committed tags only (the open input's text is not in it)
-                            filter: function(text, value) {
-                                return Awesomplete.FILTER_CONTAINS(text, value) && tag_list.indexOf(text.value) === -1;
-                            }
+                            // jQuery UI autoFocus: preselect the first suggestion so Enter commits it
+                            autoFirst: !!aco.autoFocus,
+                            // A remote (function/URL) source is already ranked and filtered by the
+                            // server, so keep its order and set -- only drop tags already in the
+                            // editor. An array source is contains-matched client-side as before.
+                            sort: is_remote ? false : undefined,
+                            filter: is_remote
+                                ? function(text) { return tag_list.indexOf(text.value) === -1; }
+                                : function(text, value) {
+                                    return Awesomplete.FILTER_CONTAINS(text, value) && tag_list.indexOf(text.value) === -1;
+                                }
                         });
-                        if (source_type === 'function') {
+                        if (is_remote) {
+                            // Debounce, abort the in-flight request, and drop out-of-order responses,
+                            // like the jQuery UI autocomplete this replaces (delay 300, xhr.abort,
+                            // requestIndex). Fetch as JSON so the endpoint's content-type does not matter.
+                            var reqSeq = 0, reqTimer = null, reqXhr = null;
+                            var applyResults = function(seq, results) {
+                                if (seq === reqSeq && Array.isArray(results)) { aw.list = results; aw.evaluate(); }
+                            };
                             input.on('input', function() {
-                                aco.source({term: input.val()}, function(results) {
-                                    aw.list = results;
-                                    aw.evaluate();
-                                });
-                            });
-                        } else if (source_type === 'string') {
-                            input.on('input', function() {
-                                $.get(aco.source, {term: input.val()}).done(function(results) {
-                                    // ignore non-array responses (error pages, JSON objects)
-                                    if (Array.isArray(results)) {
-                                        aw.list = results;
-                                        aw.evaluate();
+                                var term = input.val();
+                                if (reqTimer) clearTimeout(reqTimer);
+                                reqTimer = setTimeout(function() {
+                                    var seq = ++reqSeq;
+                                    if (source_type === 'function') {
+                                        aco.source({term: term}, function(results) { applyResults(seq, results); });
+                                    } else {
+                                        if (reqXhr && reqXhr.abort) reqXhr.abort();
+                                        reqXhr = $.get(aco.source, {term: term}, undefined, 'json')
+                                            .done(function(results) { applyResults(seq, results); });
                                     }
-                                });
+                                }, aco.delay != null ? aco.delay : 300);
                             });
                         }
                         input[0].addEventListener('awesomplete-selectcomplete', function(e) {
