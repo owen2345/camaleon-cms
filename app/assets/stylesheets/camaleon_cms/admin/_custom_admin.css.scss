@@ -48,8 +48,12 @@
       overflow: hidden;
     }
 
-    // Make panel-controls icons visible on colored panel backgrounds
-    &.panel-primary, &.panel-success, &.panel-warning, &.panel-info, &.panel-danger {
+    // panel-primary is the only variant with a dark heading, so its controls need white icons; the
+    // pastel success/info/warning/danger headings keep the default (dark) icons. This replaces a
+    // runtime luma scan (cama_fix_panel_icon_contrast) that painted every variant white then toggled
+    // a .panel-controls-light class back to dark -- an equal-specificity fight that also restyled
+    // every plain panel's controls admin-wide and greyed the .text-danger delete icon. (PR #1169.)
+    &.panel-primary {
       .panel-heading .panel-controls a {
         color: #fff;
         border-color: rgba(255, 255, 255, 0.5);
@@ -57,19 +61,6 @@
           background-color: rgba(255, 255, 255, 0.2);
           color: #fff;
         }
-      }
-    }
-
-    // Light background panels: use dark icons instead of white
-    .panel-heading .panel-controls a.panel-controls-light {
-      color: #555;
-      border-color: rgba(0, 0, 0, 0.25);
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.1);
-        color: #333;
-      }
-      .fa {
-        color: #555;
       }
     }
 
