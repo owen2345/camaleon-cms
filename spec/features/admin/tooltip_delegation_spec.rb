@@ -20,7 +20,7 @@ RSpec.describe 'Admin tooltip delegation', :js do
       ".appendTo('body');"
     )
 
-    find('#cama-late-tip').hover
+    find_by_id('cama-late-tip').hover
 
     expect(page).to have_css('.tooltip .tooltip-inner', text: 'Late tip')
   end
