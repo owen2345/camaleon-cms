@@ -224,7 +224,7 @@ function cama_init_post(obj) {
         }).responseText;
 
         $form.find(".tagsinput").tagEditor({
-            autocomplete: {delay: 0, position: {collision: 'flip'}, source: $.parseJSON(post_tags)},
+            autocomplete: {source: $.parseJSON(post_tags)},
             forceLowercase: false,
             placeholder: I18n("button.add_tag") + '...'
         });
