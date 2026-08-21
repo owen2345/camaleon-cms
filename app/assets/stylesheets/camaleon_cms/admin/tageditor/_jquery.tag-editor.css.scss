@@ -3,8 +3,11 @@
     list-style-type: none; padding: 0 5px 0 0; margin: 0; overflow: hidden; border: 1px solid #eee; cursor: text;
     font: normal 14px sans-serif; color: #555; background: #fff;
 }
-/* allow autocomplete dropdown to overflow when editing */
-.tag-editor:has(.tag-editor-tag.active) { overflow: visible; }
+/* allow autocomplete dropdown to overflow while an input is open; the
+   tag-editor-editing class is toggled from the tag-editor script on
+   activation/commit -- the :has pseudo-class is not used because browsers
+   without support for it silently left the dropdown clipped */
+.tag-editor.tag-editor-editing { overflow: visible; }
 
 /* core styles usually need no change */
 .tag-editor li { display: block; float: left; overflow: hidden; margin: 3px 0; line-height: 1.5; }
@@ -40,5 +43,5 @@
 .tag-editor .tag-editor-tag.active+.tag-editor-delete { visibility: hidden; }
 .tag-editor .tag-editor-tag.active .awesomplete { float: none; overflow: visible; }
 .tag-editor .tag-editor-tag.active .awesomplete ul { overflow: auto; max-height: 200px; }
-.tag-editor li:has(.tag-editor-tag.active) { overflow: visible; position: relative; z-index: 100; }
+.tag-editor li.tag-editor-editing { overflow: visible; position: relative; z-index: 100; }
 
