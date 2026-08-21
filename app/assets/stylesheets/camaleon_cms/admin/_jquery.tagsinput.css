@@ -9,6 +9,12 @@ div.tagsinput {
     -webkit-border-radius: 3px;
     border-radius: 3px;
 }
+/* While the field is focused, let the Awesomplete dropdown escape the fixed-height, overflow-y:auto
+   holder instead of being clipped/scrolled inside it (jQuery UI's menu floated over the page). The
+   class is toggled from the tagsInput script on the fake input's focus/blur. (PR #1169 review.) */
+div.tagsinput.tagsinput-editing {
+    overflow: visible;
+}
 div.tagsinput span.tag {
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
