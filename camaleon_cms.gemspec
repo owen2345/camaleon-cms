@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'draper', '>= 4.0.2'
   s.add_dependency 'font-awesome-rails'
   s.add_dependency 'ipaddress'
-  s.add_dependency 'jquery-rails'
+  s.add_dependency 'jquery-rails', '>= 4.6.1'
   s.add_dependency 'meta-tags', '~> 2.0'
   s.add_dependency 'mini_magick'
   s.add_dependency 'non-digest-assets', '~> 2.6'

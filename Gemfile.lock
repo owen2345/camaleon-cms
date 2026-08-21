@@ -13,7 +13,7 @@ PATH
       draper (>= 4.0.2)
       font-awesome-rails
       ipaddress
-      jquery-rails
+      jquery-rails (>= 4.6.1)
       meta-tags (~> 2.0)
       mini_magick
       net-http
