@@ -26,6 +26,10 @@ module CamaleonCms
     # add new assignations
     # cats: (Array) array of category ids assigned for this post, sample: [1, 2, 3]
     def update_categories(cats = [])
+      # a loaded (stale) categories association would keep exposing removed ids to
+      # get_field_groups -- the edit form eager-loads categories (the_post includes)
+      # before this destroys a relationship
+      categories.reset
       rescue_extra_data
       cats = cats.to_i
       old_categories = categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")
