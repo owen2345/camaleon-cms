@@ -884,7 +884,7 @@ throw new Error('AdminLTE requires jQuery')
     var parentLi     = link.parent();
     var isOpen       = parentLi.hasClass(ClassName.open);
 
-    if (treeviewMenu.length === 0) {
+    if (!parentLi.is(Selector.treeview)) {
       return;
     }
 

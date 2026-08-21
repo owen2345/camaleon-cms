@@ -52,4 +52,31 @@ RSpec.describe 'Sidebar menu expand', :js do
       end
     end
   end
+
+  # Regression (PR #1169 review, APPJS-VENDOR/LTE-CSS-VENDOR): nested menu parents
+  # (post types inside Contents) carried the dead class xn-openable instead of the
+  # canonical AdminLTE treeview. The vendored app.js had to deviate (length guard) to
+  # not break, nested submenus could not toggle, and the init-time marking of active
+  # nested branches (Tree: .treeview.active -> menu-open) never fired.
+  it 'expands nested submenus and pre-opens the active branch' do
+    post_type_id = @site.post_types.where(slug: :post).pick(:id)
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts"
+    wait(2)
+
+    within '.sidebar' do
+      nested = all('.treeview-menu li.treeview')
+      expect(nested.size).to be > 0
+      expect(nested.map { |item| item[:class] }.join(' ')).not_to include('xn-openable')
+
+      # the visited page's ancestor post-type item is marked menu-open on init
+      active_nested = find('.treeview-menu li.treeview.active')
+      expect(active_nested[:class]).to include('menu-open')
+
+      # clicking its header (the first link, before its expanded submenu) collapses it
+      active_nested.first('a').click
+      wait(1)
+      expect(active_nested[:class]).not_to include('menu-open')
+    end
+  end
 end

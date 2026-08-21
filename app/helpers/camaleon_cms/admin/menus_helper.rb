@@ -331,7 +331,9 @@ module CamaleonCms
         content_tag(:ul, class: 'treeview-menu') do
           safe_join(items.each_with_index.map do |item, index|
             css_class = +"item_#{index + 1} "
-            css_class << 'xn-openable ' if item.key?(:items)
+            # canonical AdminLTE class: the sidebar Tree plugin binds expansion to
+            # .treeview items and marks active ones menu-open on init
+            css_class << 'treeview ' if item.key?(:items)
             css_class << 'active ' if is_active_menu(item[:key], menu_parents)
             css_class.strip!
             data_attrs = parse_datas(item[:datas])
