@@ -6,8 +6,11 @@
 /* allow autocomplete dropdown to overflow while an input is open; the
    tag-editor-editing class is toggled from the tag-editor script on
    activation/commit -- the :has pseudo-class is not used because browsers
-   without support for it silently left the dropdown clipped */
-.tag-editor.tag-editor-editing { overflow: visible; }
+   without support for it silently left the dropdown clipped.
+   display: flow-root keeps a block-formatting context so the float-only tag
+   pills still give the box its height -- otherwise overflow:visible alone drops
+   the BFC and the bordered box collapses to a 2px line while editing. */
+.tag-editor.tag-editor-editing { overflow: visible; display: flow-root; }
 
 /* core styles usually need no change */
 .tag-editor li { display: block; float: left; overflow: hidden; margin: 3px 0; line-height: 1.5; }
