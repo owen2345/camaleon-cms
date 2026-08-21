@@ -302,6 +302,72 @@ RSpec.describe 'Posts workflows for Admin', :js do
     expect(css).not_to include(':has(')
   end
 
+  # Regression (PR #1169 review, TE-ACO-CONTRACT): the Awesomplete adapter must keep
+  # the jQuery-UI autocomplete option contract for downstream tagEditor callers:
+  # function sources are invoked with a {term: ...} request object, string sources
+  # are fetched as url?term= (a URL handed to Awesomplete directly throws a
+  # DOMException), minLength maps onto minChars, and select receives ui.item with
+  # both value and label.
+  it 'keeps the jQuery-UI autocomplete option contract' do
+    post.update_tags('')
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    result = evaluate_script(<<~JS)
+      (function() {
+        var out = {sourceTerm: null, minChars: null, selectItem: null, threw: false,
+                   getUrl: null, getTerm: null};
+        // tagEditor builds its .tag-editor list as a sibling AFTER the field
+        function openProbe(id, opts) {
+          var $field = $('<input id="' + id + '">').appendTo('body');
+          $field.tagEditor($.extend({initialTags: ['seed']}, {autocomplete: opts}));
+          var ed = $field.next('.tag-editor');
+          window.getSelection().removeAllRanges();
+          ed.trigger('click', [ed.find('.tag-editor-tag').first()]);
+          return {field: $field, ed: ed};
+        }
+        try {
+          var probe = openProbe('te-contract-fn', {
+            minLength: 2,
+            source: function(req, cb) {
+              out.sourceTerm = (req instanceof Object && typeof req.term === 'string') ? req.term : null;
+              cb(['alpha']);
+            },
+            select: function(e, ui) { out.selectItem = ui.item; }
+          });
+          var input = probe.ed.find('.tag-editor-tag.active input');
+          out.minChars = input.data('awesomplete').minChars;
+          input.val('al').trigger('input');
+          var ev = new CustomEvent('awesomplete-selectcomplete');
+          ev.text = {value: 'alpha', label: 'Alpha'};
+          input[0].dispatchEvent(ev);
+          probe.field.tagEditor('destroy');
+        } catch (err) { out.threw = err.name + ': ' + err.message; }
+
+        try {
+          var origGet = $.get;
+          $.get = function(url, params) {
+            out.getUrl = url; out.getTerm = params && params.term;
+            return {done: function(cb) { cb(['x']); return this; }};
+          };
+          var probe2 = openProbe('te-contract-url', {source: '/suggestions'});
+          probe2.ed.find('.tag-editor-tag.active input').val('al').trigger('input');
+          $.get = origGet;
+          probe2.field.tagEditor('destroy');
+        } catch (err) { out.threw = out.threw || (err.name + ': ' + err.message); }
+        return out;
+      })()
+    JS
+
+    expect(result['threw']).to be_falsey
+    expect(result['sourceTerm']).to eq('al')
+    expect(result['minChars']).to eq(2)
+    expect(result['selectItem']).to include('value' => 'alpha', 'label' => 'Alpha')
+    expect(result['getUrl']).to eq('/suggestions')
+    expect(result['getTerm']).to eq('al')
+  end
+
   describe 'when visibility post plugin is enabled' do
     it 'correctly fetches the assets' do
       plugin_install('visibility_post')

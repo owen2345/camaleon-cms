@@ -182,10 +182,15 @@
                         var aco = $.extend({}, o.autocomplete);
                         // Store user provided select callback
                         var ac_select = 'select' in aco ? o.autocomplete.select : '';
-                        var awList = (typeof aco.source === 'function') ? [] : (aco.source || []);
+                        // jQuery-UI autocomplete contract: source may be an array,
+                        // a function (invoked with a {term: ...} request object) or
+                        // a URL string returning a bare array for the typed term
+                        var source_type = typeof aco.source;
+                        var is_remote = source_type === 'function' || source_type === 'string';
+                        var awList = is_remote ? [] : (aco.source || []);
                         var aw = new Awesomplete(input[0], {
                             list: awList,
-                            minChars: aco.minChars || 1,
+                            minChars: aco.minChars || aco.minLength || 1,
                             maxItems: aco.maxItems || 10,
                             // suggest only tags not already in the editor; tag_list holds
                             // committed tags only (the open input's text is not in it)
@@ -193,16 +198,23 @@
                                 return Awesomplete.FILTER_CONTAINS(text, value) && tag_list.indexOf(text.value) === -1;
                             }
                         });
-                        if (typeof aco.source === 'function') {
+                        if (source_type === 'function') {
                             input.on('input', function() {
-                                aco.source(input.val(), function(results) {
+                                aco.source({term: input.val()}, function(results) {
+                                    aw.list = results;
+                                    aw.evaluate();
+                                });
+                            });
+                        } else if (source_type === 'string') {
+                            input.on('input', function() {
+                                $.get(aco.source, {term: input.val()}).done(function(results) {
                                     aw.list = results;
                                     aw.evaluate();
                                 });
                             });
                         }
                         input[0].addEventListener('awesomplete-selectcomplete', function(e) {
-                            if (ac_select) ac_select(e, {item: {value: e.text.value}});
+                            if (ac_select) ac_select(e, {item: {value: e.text.value, label: e.text.label || e.text.value}});
                             // confirm the selected tag immediately (simulate blur)
                             var activeTag = $('.active', ed);
                             activeTag.find('input').blur();
