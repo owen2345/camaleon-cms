@@ -12,6 +12,7 @@
 //
 //= require jquery3
 //= require camaleon_cms/admin/_sortable
+//= require camaleon_cms/admin/_jquery_ui_compat
 //= require camaleon_cms/admin/_awesomplete
 //= require camaleon_cms/admin/_data
 //= require camaleon_cms/bootstrap.min
