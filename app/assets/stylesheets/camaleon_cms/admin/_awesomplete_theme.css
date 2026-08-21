@@ -1,0 +1,58 @@
+/* Camaleon admin theme overrides for the Awesomplete 1.1.7 dropdown
+ * (flattened AdminLTE look: skin-blue #3c8dbc highlights, opacity fade
+ * instead of the scale pop, no pointer triangle). Loaded after the
+ * verbatim _awesomplete.css so the vendor file stays refreshable. */
+
+@supports (transform: scale(0)) {
+  .awesomplete > ul {
+    border-radius: 4px;
+    margin: 2px 0 0;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.15);
+    box-shadow: 0 2px 4px rgba(0,0,0,.15);
+    transition: opacity .15s ease;
+  }
+
+  .awesomplete > ul:before { display: none; }
+
+  .awesomplete > ul[hidden],
+  .awesomplete > ul:empty {
+    opacity: 0;
+    display: block;
+    visibility: hidden;
+    transform: none;
+  }
+}
+
+.awesomplete > ul > li {
+  position: relative;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.awesomplete > ul > li:hover {
+  background: #3c8dbc;
+  color: #fff;
+}
+
+.awesomplete > ul > li[aria-selected="true"] {
+  background: #3c8dbc;
+  color: #fff;
+}
+
+.awesomplete mark {
+  background: rgba(60,141,188,0.1);
+  color: inherit;
+  padding: 0;
+}
+
+.awesomplete li:hover mark {
+  background: transparent;
+  color: #fff;
+}
+
+.awesomplete li[aria-selected="true"] mark {
+  background: transparent;
+  color: #fff;
+}
