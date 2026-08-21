@@ -4,6 +4,14 @@ var onReadyOrChanged = function(){
     // anchor with no toggle. The Tree plugin guards against double-init, so the load-time Data API
     // becomes a no-op. (PR #1169 review.)
     if ($.fn.tree) $('[data-widget="tree"]').tree();
+    // Restore AdminLTE 2.3's body-delegated Bootstrap tooltip: 2.4 dropped it, so a tooltip trigger
+    // inserted later via AJAX (e.g. cama_contact_form's field rows) no longer got a tooltip. Bind
+    // once, lazily, for every current and future [data-toggle="tooltip"]. Bootstrap reuses an
+    // element's existing instance, so this does not double-init the ones page_actions eager-inits.
+    if (!window.cama_tooltip_delegated) {
+        window.cama_tooltip_delegated = true;
+        $(document.body).tooltip({ selector: "[data-toggle='tooltip']:not(.skip_tooltip)", container: 'body' });
+    }
     // initialize all validations for forms
     init_form_validations();
     setTimeout(page_actions, 1000);
