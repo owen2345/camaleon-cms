@@ -65,7 +65,7 @@ describe 'jQuery UI sortable compat shim', :js do
           return $.extend({ item: item, from: list, to: list, oldIndex: 0, newIndex: 1 }, extra);
         };
         instance.options.onStart.call(instance, evt({}));
-        instance.options.onUpdate.call(instance, evt({}));
+        instance.options.onSort.call(instance, evt({})); // jQuery UI `update` maps to onSort
         instance.options.onEnd.call(instance, evt({}));
         out.start_contract = seen.start === true;
         out.update_contract = seen.update === true;
@@ -81,7 +81,8 @@ describe 'jQuery UI sortable compat shim', :js do
         $list.sortable('enable');
         out.enabled = window.Sortable.get(list).options.disabled === false;
         out.option_get = $list.sortable('option', 'handle') === '.drag-handle';
-        out.to_array = JSON.stringify($list.sortable('toArray')) === '["a","b","c"]';
+        // jQuery UI toArray returns element ids, not SortableJS's data-id/hash
+        out.to_array = JSON.stringify($list.sortable('toArray')) === '["probe_a","probe_b","probe_c"]';
         out.serialize = $list.sortable('serialize') === 'probe[]=a&probe[]=b&probe[]=c';
         out.instance_method = $list.sortable('instance') === window.Sortable.get(list);
         var destroyed = $list.sortable('destroy');
@@ -110,5 +111,64 @@ describe 'jQuery UI sortable compat shim', :js do
     failures = result.reject { |_check, value| value == true }
     expect(failures).to be_empty,
                         "compat shim checks that did not pass: #{failures.keys.join(', ')}"
+  end
+
+  # PR #1169 review finding #10 -- contract points the first probe missed: form-control cancel,
+  # leading-combinator items, the object-form option setter, and connectWith selector resolution.
+  def contract_result
+    page.evaluate_script(<<~JS)
+      (function() {
+        var out = {};
+        var $list = $('<ul id="c-list"><li id="post_1">1</li><li id="post_2">2</li></ul>').appendTo('body');
+
+        // cancel defaults to form controls, mapped to a non-preventing filter
+        $list.sortable({ update: function(){} });
+        var inst = window.Sortable.get($list[0]);
+        out.filter_excludes_inputs = typeof inst.options.filter === 'string' && inst.options.filter.indexOf('input') !== -1;
+        out.filter_non_preventing = inst.options.preventOnFilter === false;
+        out.update_maps_to_onsort = typeof inst.options.onSort === 'function';
+        $list.sortable('destroy');
+
+        // a leading child-combinator in items must not break draggable/toArray/serialize
+        $list.sortable({ items: ' > li' });
+        out.items_leading_combinator = JSON.stringify($list.sortable('toArray')) === '["post_1","post_2"]';
+        var ok = true; try { $list.sortable('serialize'); } catch (e) { ok = false; }
+        out.serialize_no_throw = ok;
+        $list.sortable('destroy');
+
+        // object-form option setter actually applies
+        $list.sortable({ handle: '.h' });
+        $list.sortable('option', { disabled: true });
+        out.option_object_form = window.Sortable.get($list[0]).options.disabled === true;
+        $list.sortable('destroy');
+
+        // connectWith: mutual selectors connect (put resolves the source's selector); a list with no
+        // connectWith rejects foreign items
+        var $a = $('<ul id="cw_a"><li>a</li></ul>').appendTo('body');
+        var $b = $('<ul id="cw_b"><li>b</li></ul>').appendTo('body');
+        var $c = $('<ul id="cw_c"><li>c</li></ul>').appendTo('body');
+        $a.sortable({ connectWith: '#cw_b' });
+        $b.sortable({ connectWith: '#cw_a' });
+        $c.sortable({});
+        var ia = window.Sortable.get($a[0]), ib = window.Sortable.get($b[0]), ic = window.Sortable.get($c[0]);
+        out.connect_same_group = ia.options.group.name === ib.options.group.name;
+        out.b_accepts_a = ib.options.group.checkPut(ib, ia, null, null) === true;
+        out.plain_rejects_a = ic.options.group.checkPut(ic, ia, null, null) === false;
+
+        $list.remove(); $a.remove(); $b.remove(); $c.remove();
+        return out;
+      })()
+    JS
+  end
+
+  it 'honors cancel, leading-combinator items, the object option setter, and connectWith' do
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin"
+    wait(2)
+
+    result = contract_result
+    failures = result.reject { |_check, value| value == true }
+    expect(failures).to be_empty,
+                        "compat shim contract checks that did not pass: #{failures.keys.join(', ')}"
   end
 end
