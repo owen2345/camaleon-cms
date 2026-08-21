@@ -218,24 +218,10 @@ margin: 5px 10px 5px 0px;
           color: #bbb;
         }
       }
+      // dt/dd skeleton shared with .quick-info (see admin/_custom_admin.css.scss);
+      // only the monospaced link style is local to the media details
       .p_meta{
-        font-size: 12px;
-        color: #555;
-        dt{
-          float: left;
-          clear: left;
-          width: auto;
-          font-weight: 600;
-          color: #333;
-          margin-right: 4px;
-          &:after { content: ":"; }
-        }
         dd{
-          margin-left: 0;
-          margin-bottom: 6px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
           a{
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
             font-size: 11px;
