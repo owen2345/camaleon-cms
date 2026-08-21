@@ -1,6 +1,8 @@
 // Awesomplete - Lea Verou - MIT license
 // Source: https://github.com/LeaVerou/awesomplete v1.1.7
-// Vendored verbatim from npm awesomplete@1.1.7 (awesomplete.js); pinned in package.json
+// Vendored from npm awesomplete@1.1.7 (awesomplete.js); pinned in package.json.
+// Identical except: five commented-out screen-reader status lines inside goto()
+// and the trailing newline are absent (both omissions predate the pin header).
 
 (function () {
 
