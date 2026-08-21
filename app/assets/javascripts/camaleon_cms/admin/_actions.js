@@ -32,12 +32,22 @@ function init_intro(){
         disableInteraction: true,
         buttonClass: 'btn'
     }).oncomplete(finish).onexit(finish).onbeforechange(function(ele) {
-        if($(ele).hasClass("treeview") && !$(ele).hasClass("active")) $(ele).children("a").click();
-        if($(ele).is("li")){
-            var tree = $(ele).closest("ul");
-            if(!tree.hasClass("menu-open")) tree.prev("a").click();
-        }
+        cama_intro_reveal_menu(ele);
     }).start();
+}
+
+// Reveal the sidebar menu branch a given intro step lives in, so the highlighted item is visible.
+// AdminLTE 2.4 marks the EXPANDED PARENT LI `menu-open` (2.3 marked the ul.treeview-menu), so the
+// "is this submenu already open?" test must read the parent li -- reading the ul (as before) is
+// always false under 2.4, which re-clicked the toggle and COLLAPSED the branch the step points at.
+// (PR #1169 review.) Kept as a named function so the reveal logic is unit-testable.
+function cama_intro_reveal_menu(ele){
+    var $ele = $(ele);
+    if($ele.hasClass("treeview") && !$ele.hasClass("active")) $ele.children("a").click();
+    if($ele.is("li")){
+        var tree = $ele.closest("ul");
+        if(!tree.parent("li").hasClass("menu-open")) tree.prev("a").click();
+    }
 }
 
 // basic and common actions
