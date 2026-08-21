@@ -47,6 +47,11 @@ module CamaleonCms
     # add new assignations
     # tags: (String) tags name separated by commas, sample: "Tag1,Tag two,tag new"
     def update_tags(tags)
+      # a loaded (stale) post_tags proxy would keep removed tags for rescue_extra_data / update_counts
+      # (corrupting tag counts) and for any hook or decorator reading post.the_tags after this writes
+      # term_relationships directly. Use the association explicitly -- `post_tags` is reassigned as a
+      # local below, so a bare `post_tags` here would be that (nil) local, not the association.
+      association(:post_tags).reset
       rescue_extra_data
       tags = tags.split(',').strip
       post_tags = post_type.post_tags
@@ -64,6 +69,11 @@ module CamaleonCms
     # categories_id: (Array) array of category ids assigned for this post, sample: [1,2,3]
     def assign_category(categories_id)
       categories_id = [categories_id] if categories_id.is_a?(Integer)
+      # a loaded (stale) categories proxy would keep the old set for rescue_extra_data / update_counts
+      # and for any hook or decorator reading post.categories after this writes term_relationships
+      # directly. the_post preloads categories (with_eager), and check_default_category loads them on
+      # every save, so the proxy is routinely loaded before this runs. Same reset the sibling writers do.
+      categories.reset
       rescue_extra_data
       categories_id.each do |key|
         term_relationships.where(term_taxonomy_id: key).first_or_create!
