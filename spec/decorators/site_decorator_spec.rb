@@ -50,5 +50,16 @@ RSpec.describe CamaleonCms::SiteDecorator do
 
       expect(decorator.the_post('plain-slug').id).to eq(post.id)
     end
+
+    it 'does not preload the listing associations for a single-post lookup' do
+      create(:post, site: site, slug: 'plain-slug')
+
+      result = decorator.the_post('plain-slug')
+
+      # a one-row lookup must stay cheap: with_eager (metas/categories/post_type) is a
+      # listing concern and must not be charged here (PR review, WITH-EAGER single-record)
+      expect(result.object.association(:metas).loaded?).to be(false)
+      expect(result.object.association(:categories).loaded?).to be(false)
+    end
   end
 end

@@ -250,7 +250,8 @@ module CamaleonCms
     # @param parent: parent decorated model, like: (PostType *default), Category, PostTag, Site
     # @samples: my_post.the_next_post(), my_post.the_next_post(@category), my_post.the_next_post(current_site)
     def the_next_post(parent = nil)
-      (parent.presence || the_post_type).the_posts.where(
+      # eager: false -- next/prev resolve a single sibling used only for its title/url
+      h.verify_front_visibility((parent.presence || the_post_type).posts, eager: false).where(
         post_order_predicate_gt(object.post_order, object.created_at)
       ).where.not(id: object.id).take.try(:decorate)
     end
@@ -259,9 +260,10 @@ module CamaleonCms
     # @param parent: parent decorated model, like: (PostType *default), Category, PostTag, Site
     # @samples: my_post.the_prev_post(), my_post.the_prev_post(@category), my_post.the_prev_post(current_site)
     def the_prev_post(parent = nil)
-      (parent.presence || the_post_type).the_posts
-        .where(post_order_predicate_lt(object.post_order, object.created_at))
-        .where.not(id: object.id).reorder(post_order: :asc, created_at: :asc).last.try(:decorate)
+      # eager: false -- next/prev resolve a single sibling used only for its title/url
+      h.verify_front_visibility((parent.presence || the_post_type).posts, eager: false)
+       .where(post_order_predicate_lt(object.post_order, object.created_at))
+       .where.not(id: object.id).reorder(post_order: :asc, created_at: :asc).last.try(:decorate)
     end
 
     # return the title with hierarchy prefixed

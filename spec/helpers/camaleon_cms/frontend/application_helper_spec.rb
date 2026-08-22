@@ -123,5 +123,13 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
 
       expect(filtered.pluck(:id)).not_to include(draft.id)
     end
+
+    it 'preloads listing associations by default but skips them when eager: false' do
+      raw = post_type.posts # undecorated relation, no preloads yet
+
+      expect(helper.verify_front_visibility(raw).preload_values)
+        .to include(:metas, :categories, post_type: :metas)
+      expect(helper.verify_front_visibility(raw, eager: false).preload_values).to be_empty
+    end
   end
 end

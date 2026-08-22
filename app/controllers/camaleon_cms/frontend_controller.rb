@@ -198,13 +198,15 @@ module CamaleonCms
     # post_or_slug_or_id: slug_post | id post | post object
     # from_url: true/false => true (true, permit eval hooks "on_render_post")
     def render_post(post_or_slug_or_id, from_url = false, status = nil, force_visit = false)
+      # eager: false -- rendering one post must not pay the listing preloads (with_eager)
+      visible_posts = verify_front_visibility(current_site.posts, eager: false)
       @post = case post_or_slug_or_id
               when String # slug
                 # find_by_slug is multi-language aware (matches localized slugs like
                 # "<!--:en-->sample-post<!--:-->..."), unlike find_by(slug:)
-                current_site.the_posts.find_by_slug(post_or_slug_or_id) # rubocop:disable Rails/DynamicFindBy
+                visible_posts.find_by_slug(post_or_slug_or_id) # rubocop:disable Rails/DynamicFindBy
               when Integer # id
-                current_site.the_posts.where(id: post_or_slug_or_id).first
+                visible_posts.where(id: post_or_slug_or_id).first
               else # model
                 post_or_slug_or_id
               end
