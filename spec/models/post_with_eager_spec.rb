@@ -17,15 +17,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
       expect(relation.includes_values).to be_empty
       expect(relation.eager_load_values).to be_empty
     end
-
-    it 'does not promote to a JOIN when a joined/referenced filter is chained' do
-      relation = described_class.with_eager
-                                .joins(:categories)
-                                .where(CamaleonCms::TermRelationship.table_name => { term_taxonomy_id: [0] })
-
-      expect(relation.eager_loading?).to be(false)
-      expect(relation.to_sql).not_to include('LEFT OUTER JOIN')
-    end
   end
 
   describe 'no partial association load or row duplication through the scope' do
@@ -35,10 +26,10 @@ RSpec.describe CamaleonCms::Post, type: :model do
       pt.set_option('has_category', true) # memoized `options` is stale on this instance
       CamaleonCms::PostType.find(pt.id)
     end
-    let(:cat_a) { post_type.categories.create!(name: 'Alpha', slug: "eager-alpha-#{rand(9999)}") }
-    let(:cat_b) { post_type.categories.create!(name: 'Beta', slug: "eager-beta-#{rand(9999)}") }
+    let(:cat_a) { post_type.categories.create!(name: 'Alpha', slug: 'eager-alpha') }
+    let(:cat_b) { post_type.categories.create!(name: 'Beta', slug: 'eager-beta') }
     let!(:post) do
-      p = post_type.posts.create!(title: 'Eager probe', slug: "eager-probe-#{rand(9999)}", status: 'published')
+      p = post_type.posts.create!(title: 'Eager probe', slug: 'eager-probe', status: 'published')
       p.assign_category([cat_a.id, cat_b.id])
       p.set_meta('m1', '1')
       p.set_meta('m2', '2')

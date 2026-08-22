@@ -15,10 +15,10 @@ RSpec.describe CamaleonCms::Post, type: :model do
     pt.set_option('has_tags', true)
     CamaleonCms::PostType.find(pt.id)
   end
-  let(:cat_a) { post_type.categories.create!(name: 'Alpha', slug: "stale-a-#{rand(9999)}") }
-  let(:cat_b) { post_type.categories.create!(name: 'Beta', slug: "stale-b-#{rand(9999)}") }
+  let(:cat_a) { post_type.categories.create!(name: 'Alpha', slug: 'stale-a') }
+  let(:cat_b) { post_type.categories.create!(name: 'Beta', slug: 'stale-b') }
   let(:post) do
-    post_type.posts.create!(title: 'Stale probe', slug: "stale-probe-#{rand(9999)}", status: 'published')
+    post_type.posts.create!(title: 'Stale probe', slug: 'stale-probe', status: 'published')
   end
 
   it 'assign_category reflects the new category through a loaded proxy' do
@@ -41,7 +41,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
   end
 
   it 'exposes the auto-assigned default category right after create (not a stale empty set)' do
-    fresh = post_type.posts.create!(title: 'Default probe', slug: "default-probe-#{rand(9999)}",
+    fresh = post_type.posts.create!(title: 'Default probe', slug: 'default-probe',
                                     status: 'published')
 
     expect(fresh.categories.map(&:id)).to include(post_type.default_category.id)
