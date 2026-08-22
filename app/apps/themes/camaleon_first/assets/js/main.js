@@ -10,7 +10,7 @@
 // Read Sprockets README (https://github.com/sstephenson/sprockets#sprockets-directives) for details
 // about supported directives.
 //
-//= require jquery2
+//= require jquery3
 //= require camaleon_cms/bootstrap.min.js
 //= require ./modernizr.custom
 //= require ./magnific.min

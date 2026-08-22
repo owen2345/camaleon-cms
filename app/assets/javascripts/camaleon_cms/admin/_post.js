@@ -195,7 +195,7 @@ function cama_init_post(obj) {
         var panel_scroll = $("#form-post > #post_right_bar");
         var fixed_position = panel_scroll.children(":first");
         var fixed_offset_top = panel_scroll.offset().top;
-        $(window).scroll(function () {
+        $(window).on('scroll', function () {
             if ($(window).width() < 1024) {
                 fixed_position.css({position: "", width: ""});
                 panel_scroll.css("padding-top", "");
@@ -208,7 +208,7 @@ function cama_init_post(obj) {
                 fixed_position.css({position: "", width: "auto"});
                 panel_scroll.css("padding-top", "")
             }
-        }).resize(function () {
+        }).on('resize', function () {
             if ($(window).width() >= 1024) {
                 panel_scroll.show();
             }
@@ -224,7 +224,7 @@ function cama_init_post(obj) {
         }).responseText;
 
         $form.find(".tagsinput").tagEditor({
-            autocomplete: {delay: 0, position: {collision: 'flip'}, source: $.parseJSON(post_tags)},
+            autocomplete: {delay: 0, position: {collision: 'flip'}, source: JSON.parse(post_tags)},
             forceLowercase: false,
             placeholder: I18n("button.add_tag") + '...'
         });

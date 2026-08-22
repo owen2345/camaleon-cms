@@ -78,7 +78,7 @@ jQuery(function($){
                 tabs_content.push(clone.parent());
                 TRANSLATOR_counter++;
                 // Auto Update Translates
-                clone.bind('change change_in',function(){
+                clone.on('change change_in',function(){
                     var r = [];
                     for(var l in inputs){
                         r.push("<!--:"+l+"-->"+inputs[l].val()+"<!--:-->");
@@ -107,7 +107,7 @@ jQuery(function($){
 
             // encode translation
             // remove tabs added by translation
-            ele.bind("trans_integrate", function(){
+            ele.on("trans_integrate", function(){
                 var r = [];
                 for(var l in inputs){
                     r.push("<!--:"+l+"-->"+inputs[l].val()+"<!--:-->");
