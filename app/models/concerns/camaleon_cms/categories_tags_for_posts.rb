@@ -88,8 +88,6 @@ module CamaleonCms
 
     private
 
-    @cats_before = []
-    @tags_before = []
     # save as a cache previous categories and tags assigned for this post
     def rescue_extra_data
       # Every writer mutates term_relationships directly, which does NOT invalidate an already-loaded
