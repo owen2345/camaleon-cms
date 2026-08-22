@@ -49,14 +49,16 @@ RSpec.describe CamaleonCms::Post, type: :model do
     expect(fresh.categories.map(&:id)).to include(post_type.default_category.id)
   end
 
-  it 'keeps tag counts correct across an add-then-remove on the same loaded instance' do
-    post.update_tags('alpha,beta')
+  it 'keeps tag counts correct when the proxy was loaded before the tag was added' do
+    # load the (empty) proxy BEFORE the tag exists -- the corruption only shows when the stale
+    # target predates the tag, so update_counts never revisits it. (An add-then-remove that loads
+    # the proxy after both tags exist passes even without the reset.)
     post.post_tags.load
-
     post.update_tags('alpha')
+    post.update_tags('') # remove all tags
 
-    beta = post_type.post_tags.find_by(name: 'beta')
-    expect(beta.reload.count).to eq(0)
+    alpha = post_type.post_tags.find_by(name: 'alpha')
+    expect(alpha.reload.count).to eq(0)
   end
 
   it 'resets the term_relationships source proxy, not only the derived categories/tags proxies' do
