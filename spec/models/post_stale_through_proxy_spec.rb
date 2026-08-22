@@ -58,4 +58,16 @@ RSpec.describe CamaleonCms::Post, type: :model do
     beta = post_type.post_tags.find_by(name: 'beta')
     expect(beta.reload.count).to eq(0)
   end
+
+  it 'resets the term_relationships source proxy, not only the derived categories/tags proxies' do
+    post.assign_category([cat_a.id])
+    post.term_relationships.load # a loaded source proxy (through-preload or a prior read)
+
+    post.update_categories([]) # destroys the relationship via the term_relationships scope
+
+    # writers mutate term_relationships directly, so a loaded source proxy would stay stale unless
+    # rescue_extra_data resets it too
+    expect(post.term_relationships).to be_empty
+    expect(post.categories).to be_empty
+  end
 end

@@ -30,8 +30,8 @@ RSpec.describe CamaleonCms::Post, type: :model do
     end
 
     it 'drops the removed category from get_field_groups despite a loaded association' do
-      # the edit form eager-loads categories (the_post includes), leaving the
-      # association loaded before update_categories destroys a relationship
+      # the_post preloads categories (with_eager), so a loaded proxy is routine before
+      # update_categories destroys a relationship
       post.categories.load
       post.update_categories([category_a.id])
 

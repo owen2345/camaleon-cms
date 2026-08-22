@@ -26,10 +26,6 @@ module CamaleonCms
     # add new assignations
     # cats: (Array) array of category ids assigned for this post, sample: [1, 2, 3]
     def update_categories(cats = [])
-      # a loaded (stale) categories association would keep exposing removed ids to
-      # get_field_groups -- the edit form eager-loads categories (the_post includes)
-      # before this destroys a relationship
-      categories.reset
       rescue_extra_data
       cats = cats.to_i
       old_categories = categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")
@@ -47,11 +43,6 @@ module CamaleonCms
     # add new assignations
     # tags: (String) tags name separated by commas, sample: "Tag1,Tag two,tag new"
     def update_tags(tags)
-      # a loaded (stale) post_tags proxy would keep removed tags for rescue_extra_data / update_counts
-      # (corrupting tag counts) and for any hook or decorator reading post.the_tags after this writes
-      # term_relationships directly. Use the association explicitly -- `post_tags` is reassigned as a
-      # local below, so a bare `post_tags` here would be that (nil) local, not the association.
-      association(:post_tags).reset
       rescue_extra_data
       tags = tags.split(',').strip
       post_tags = post_type.post_tags
@@ -69,11 +60,6 @@ module CamaleonCms
     # categories_id: (Array) array of category ids assigned for this post, sample: [1,2,3]
     def assign_category(categories_id)
       categories_id = [categories_id] if categories_id.is_a?(Integer)
-      # a loaded (stale) categories proxy would keep the old set for rescue_extra_data / update_counts
-      # and for any hook or decorator reading post.categories after this writes term_relationships
-      # directly. the_post preloads categories (with_eager), and check_default_category loads them on
-      # every save, so the proxy is routinely loaded before this runs. Same reset the sibling writers do.
-      categories.reset
       rescue_extra_data
       categories_id.each do |key|
         term_relationships.where(term_taxonomy_id: key).first_or_create!
@@ -85,9 +71,6 @@ module CamaleonCms
     # categories_id: (Array) array of category ids to unassign from this post, sample: [1,2,3]
     def unassign_category(categories_id)
       categories_id = [categories_id] if categories_id.is_a?(Integer)
-      # a loaded (stale) categories association would hide the removed ids from the
-      # counter refresh below — check_default_category loads it on every save
-      categories.reset
       rescue_extra_data
       term_relationships.where(term_taxonomy_id: categories_id).destroy_all
       update_counts('categories')
@@ -105,8 +88,21 @@ module CamaleonCms
     @tags_before = []
     # save as a cache previous categories and tags assigned for this post
     def rescue_extra_data
+      # Every writer mutates term_relationships directly, which does NOT invalidate an already-loaded
+      # categories/post_tags/term_relationships proxy -- and the_post preloads categories/post_tags via
+      # with_eager, so the proxy is routinely loaded before a write. Reset here, the single point every
+      # writer (and update_extra_data) calls first, so the snapshots below and every later
+      # pluck/empty?/count read the database rather than a stale in-memory target.
+      reset_term_proxies
       @cats_before = categories.pluck(:id) if manage_categories?
       @tags_before = post_tags.pluck(:id) if manage_tags?
+    end
+
+    # drop any loaded category/tag/term_relationship cache so a write starts from DB truth
+    def reset_term_proxies
+      categories.reset
+      post_tags.reset
+      term_relationships.reset
     end
 
     # Update the quantity of posts assigned for tags and categories assigned to this post
