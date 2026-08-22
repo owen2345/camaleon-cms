@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Performance fix:** Frontend post listings and menus no longer issue N+1 queries for post `metas`, `categories` and post-type `metas` — a `Post.with_eager` `preload` scope loads them up front, and stale association caches are reset after category/tag mutations. [#1275](https://github.com/owen2345/camaleon-cms/pull/1275).
+
 ## [2.9.3](https://github.com/owen2345/camaleon-cms/tree/2.9.3) (2026-08-16)
 
 > **Upgrading to 2.9.3?** Required operator actions, the post-upgrade maintenance tasks (with copy-paste commands), behaviour changes, and notes for theme/plugin developers are collected in **[docs/upgrading-to-2.9.3.md](docs/upgrading-to-2.9.3.md)**. Breaking changes are flagged inline below.
