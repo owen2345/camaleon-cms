@@ -27,7 +27,10 @@ module CamaleonCms
     # cats: (Array) array of category ids assigned for this post, sample: [1, 2, 3]
     def update_categories(cats = [])
       rescue_extra_data
-      cats = cats.to_i
+      # uniq: duplicate ids (e.g. a crafted `categories[]=5&categories[]=5`) would otherwise create
+      # duplicate term_relationships rows, which duplicate the post in category/tag listings and
+      # inflate will_paginate's total_entries (there is no unique index on the join table)
+      cats = cats.to_i.uniq
       # reuse the snapshot rescue_extra_data just took instead of plucking the same set again
       old_categories = manage_categories? ? @cats_before : categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")
       delete_categories = old_categories - cats

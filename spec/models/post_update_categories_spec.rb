@@ -25,5 +25,12 @@ RSpec.describe CamaleonCms::Post, type: :model do
       expect(plucks_before_write).to eq(2)
       expect(post.categories.reload.pluck(:id)).to contain_exactly(cat_a.id, cat_b.id)
     end
+
+    it 'does not create duplicate term_relationships for repeated category ids' do
+      post.update_categories([cat_a.id, cat_a.id])
+
+      expect(post.term_relationships.where(term_taxonomy_id: cat_a.id).count).to eq(1)
+      expect(post.categories.reload.pluck(:id)).to contain_exactly(cat_a.id)
+    end
   end
 end
