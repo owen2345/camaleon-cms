@@ -86,33 +86,19 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
       allow(helper).to receive(:hooks_run)
     end
 
-    # Regression (PR #1169 review, JOIN-PROMOTION): the helper adds the with_eager preloads,
-    # which must never merge into a join. When with_eager was an `includes` (or a listing used
-    # eager_load), Rails collapsed it into ONE multi-way LEFT JOIN (metas x categories x
-    # post_type.metas x term_relationships), exploding rows and running the will_paginate COUNT
-    # over the same join. Preloads stay separate. (This example still passes a stray preload(:metas)
-    # to prove the helper tolerates an already-preloading relation.)
+    # The with_eager preloads must stay separate queries, never merge into a join. When with_eager
+    # was an `includes` (or a listing used eager_load), a later chained join/where collapsed it into
+    # ONE multi-way LEFT JOIN, exploding rows and running the will_paginate COUNT over that join.
     it 'does not promote the listing relation into a joined query' do
-      relation = post_type.the_posts.paginate(page: 1, per_page: 5).preload(:metas)
+      filtered = helper.verify_front_visibility(post_type.posts.paginate(page: 1, per_page: 5))
 
-      filtered = helper.verify_front_visibility(relation)
-
+      expect(filtered.eager_loading?).to be(false)
       expect(filtered.eager_load_values).to be_empty
 
-      queries = []
-      subscriber = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
-        queries << payload[:sql]
-      end
-      begin
-        expect(filtered.to_a).to be_present
-      ensure
-        ActiveSupport::Notifications.unsubscribe(subscriber)
-      end
-      # the_posts is a has_many :through ordered by term_relationships.term_order, so
-      # loading it may use ONE join to the join table (pre-existing) -- the promotion
-      # under test merges several associations into ONE query (3+ joins)
-      promoted = queries.select { |sql| sql.scan(/LEFT OUTER JOIN/i).size > 1 }
-      expect(promoted).to be_empty
+      # The only LEFT OUTER JOIN a preload issues is the :categories through-association joining
+      # term_taxonomy for Category's STI condition -- exactly one join; a promotion adds more.
+      joins = sql_queries(matching: /LEFT OUTER JOIN/i) { expect(filtered.to_a).to be_present }
+      expect(joins).to all(satisfy { |sql| sql.scan(/LEFT OUTER JOIN/i).size <= 1 })
     end
 
     it 'hides non-published posts through the visibility scope' do
