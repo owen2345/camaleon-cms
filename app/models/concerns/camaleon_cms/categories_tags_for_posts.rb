@@ -27,8 +27,12 @@ module CamaleonCms
     # cats: (Array) array of category ids assigned for this post, sample: [1, 2, 3]
     def update_categories(cats = [])
       rescue_extra_data
-      cats = cats.to_i
-      old_categories = categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")
+      # uniq: duplicate ids (e.g. a crafted `categories[]=5&categories[]=5`) would otherwise create
+      # duplicate term_relationships rows, which duplicate the post in category/tag listings and
+      # inflate will_paginate's total_entries (there is no unique index on the join table)
+      cats = cats.to_i.uniq
+      # reuse the snapshot rescue_extra_data just took instead of plucking the same set again
+      old_categories = manage_categories? ? @cats_before : categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")
       delete_categories = old_categories - cats
       news_categories = cats - old_categories
       term_relationships.where('term_taxonomy_id in (?)', delete_categories).destroy_all if delete_categories.present?
@@ -71,9 +75,6 @@ module CamaleonCms
     # categories_id: (Array) array of category ids to unassign from this post, sample: [1,2,3]
     def unassign_category(categories_id)
       categories_id = [categories_id] if categories_id.is_a?(Integer)
-      # a loaded (stale) categories association would hide the removed ids from the
-      # counter refresh below — check_default_category loads it on every save
-      categories.reset
       rescue_extra_data
       term_relationships.where(term_taxonomy_id: categories_id).destroy_all
       update_counts('categories')
@@ -87,12 +88,23 @@ module CamaleonCms
 
     private
 
-    @cats_before = []
-    @tags_before = []
     # save as a cache previous categories and tags assigned for this post
     def rescue_extra_data
+      # Every writer mutates term_relationships directly, which does NOT invalidate an already-loaded
+      # categories/post_tags/term_relationships proxy -- and the_post preloads categories/post_tags via
+      # with_eager, so the proxy is routinely loaded before a write. Reset here, the single point every
+      # writer (and update_extra_data) calls first, so the snapshots below and every later
+      # pluck/empty?/count read the database rather than a stale in-memory target.
+      reset_term_proxies
       @cats_before = categories.pluck(:id) if manage_categories?
       @tags_before = post_tags.pluck(:id) if manage_tags?
+    end
+
+    # drop any loaded category/tag/term_relationship cache so a write starts from DB truth
+    def reset_term_proxies
+      categories.reset
+      post_tags.reset
+      term_relationships.reset
     end
 
     # Update the quantity of posts assigned for tags and categories assigned to this post

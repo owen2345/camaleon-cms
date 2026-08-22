@@ -31,19 +31,18 @@ module Plugins
            (params[:action] == 'index' && params[:controller] == 'camaleon_cms/frontend' && @caches[:home].present?)
           @_plugin_do_cache = true
         elsif params[:action] == 'post' && params[:controller] == 'camaleon_cms/frontend' && params[:draft_id].blank?
-          if (post = current_site.the_posts.find_by_slug(params[:slug])) # rubocop:disable Rails/DynamicFindBy
-            post = post.decorate
-            # Never cache non-public posts. A password-protected post is unlocked per session (visibility_post
-            # audit M2), but the page cache is keyed on the URL alone, so caching an unlocked render would
-            # serve the protected body to visitors who never entered the password. Private posts are already
-            # excluded; password posts must be too.
-            if post.can_visit? && !%w[private password].include?(post.visibility)
-              if (@caches[:skip_posts] || []).include?(post.id.to_s)
-                @_plugin_do_cache = false
-              elsif (@caches[:post_types] || []).include?(post.post_type_id.to_s) ||
-                    (@caches[:posts] || []).include?(post.id.to_s)
-                @_plugin_do_cache = true
-              end
+          # the_post is a single-record lookup (eager: false) -- no listing preloads for one post
+          # Never cache non-public posts. A password-protected post is unlocked per session (visibility_post
+          # audit M2), but the page cache is keyed on the URL alone, so caching an unlocked render would
+          # serve the protected body to visitors who never entered the password. Private posts are already
+          # excluded; password posts must be too.
+          if (post = current_site.the_post(params[:slug])) && post.can_visit? && !%w[private
+                                                                                     password].include?(post.visibility)
+            if (@caches[:skip_posts] || []).include?(post.id.to_s)
+              @_plugin_do_cache = false
+            elsif (@caches[:post_types] || []).include?(post.post_type_id.to_s) ||
+                  (@caches[:posts] || []).include?(post.id.to_s)
+              @_plugin_do_cache = true
             end
           end
         end

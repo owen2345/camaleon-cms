@@ -40,7 +40,7 @@ module CamaleonCms
       mark_frontend_category_visited(@category)
       @children = @category.children.no_empty.decorate
       @posts = @category.the_posts.paginate(page: params[:page],
-                                            per_page: current_site.front_per_page).eager_load(:metas)
+                                            per_page: current_site.front_per_page)
       category_slug = @category.the_slug
 
       # specific template category with specific slug within a post-type
@@ -78,7 +78,7 @@ module CamaleonCms
       CurrentRequest.frontend_object = @object
       mark_frontend_post_type_visited(@post_type)
       @posts = @post_type.the_posts.paginate(page: params[:page],
-                                             per_page: current_site.front_per_page).eager_load(:metas)
+                                             per_page: current_site.front_per_page)
       @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
       @post_tags = @post_type.post_tags.eager_load(:metas)
       post_type_slug = "post_types/#{@post_type.the_slug}"
@@ -105,7 +105,7 @@ module CamaleonCms
       CurrentRequest.frontend_object = @object
       mark_frontend_tag_visited(@post_tag)
       @posts = @post_tag.the_posts.paginate(page: params[:page],
-                                            per_page: current_site.front_per_page).eager_load(:metas)
+                                            per_page: current_site.front_per_page)
       slug_post_tag = "post_types/#{@post_type.the_slug}/post_tag"
       r_file = lookup_context.template_exists?(slug_post_tag) ? slug_post_tag : 'post_tag'
       layout_ = lookup_context.template_exists?('layouts/post_tag') ? 'post_tag' : nil
@@ -198,13 +198,15 @@ module CamaleonCms
     # post_or_slug_or_id: slug_post | id post | post object
     # from_url: true/false => true (true, permit eval hooks "on_render_post")
     def render_post(post_or_slug_or_id, from_url = false, status = nil, force_visit = false)
+      # eager: false -- rendering one post must not pay the listing preloads (with_eager)
+      visible_posts = verify_front_visibility(current_site.posts, eager: false)
       @post = case post_or_slug_or_id
               when String # slug
                 # find_by_slug is multi-language aware (matches localized slugs like
                 # "<!--:en-->sample-post<!--:-->..."), unlike find_by(slug:)
-                current_site.the_posts.find_by_slug(post_or_slug_or_id) # rubocop:disable Rails/DynamicFindBy
+                visible_posts.find_by_slug(post_or_slug_or_id) # rubocop:disable Rails/DynamicFindBy
               when Integer # id
-                current_site.the_posts.where(id: post_or_slug_or_id).first
+                visible_posts.where(id: post_or_slug_or_id).first
               else # model
                 post_or_slug_or_id
               end

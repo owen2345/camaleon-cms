@@ -35,12 +35,12 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
 
   def cache_decision_for(visibility)
     decorated = double('post', can_visit?: true, visibility: visibility, id: 9, post_type_id: 5) # rubocop:disable RSpec/VerifiedDoubles
-    posts = double('the_posts') # rubocop:disable RSpec/VerifiedDoubles
-    allow(posts).to receive(:find_by_slug).and_return(double('record', decorate: decorated)) # rubocop:disable RSpec/VerifiedDoubles
     site = double('site') # rubocop:disable RSpec/VerifiedDoubles
     allow(site).to receive(:get_option).with('refresh_cache').and_return(false)
     allow(site).to receive(:get_meta).with('front_cache_elements').and_return(caches)
-    allow(site).to receive(:the_posts).and_return(posts)
+    # front_cache resolves the post through the single-record the_post (eager: false), which returns
+    # the decorated post directly
+    allow(site).to receive(:the_post).with('p').and_return(decorated)
     allow(Rails.env).to receive_messages(development?: false, test?: false)
 
     host = harness_class.new

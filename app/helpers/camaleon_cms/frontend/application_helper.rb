@@ -8,8 +8,13 @@ module CamaleonCms
 
       # add where conditionals to filter private/hidden/expired/drafts/unpublished
       # note: only for post records
-      def verify_front_visibility(active_record)
+      # eager: collection listings (the_posts/the_contents) preload metas, categories, post_tags and
+      # the post-type metas up front to avoid N+1. Single-record lookups (the_post, render_post,
+      # the_next_post/the_prev_post) pass eager: false so a one-row find is not charged the listing
+      # preloads it never reads.
+      def verify_front_visibility(active_record, eager: true)
         active_record = active_record.visible_frontend
+        active_record = active_record.with_eager if eager
         r = { active_record: active_record }
         hooks_run('filter_post', r)
         r[:active_record]

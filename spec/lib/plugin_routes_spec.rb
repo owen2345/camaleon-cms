@@ -172,21 +172,7 @@ RSpec.describe PluginRoutes do
   end
 
   # ---- cold-boot route-draw performance + eager draw (fix/cold-boot-route-draw) ----
-
-  # Collect the SQL a block issues, optionally only statements matching `matching`.
-  def sql_queries(matching: nil)
-    queries = []
-    sub = ActiveSupport::Notifications.subscribe('sql.active_record') do |*args|
-      payload = args.last
-      next if payload[:name].to_s.match?(/SCHEMA|TRANSACTION/i)
-
-      queries << payload[:sql] if matching.nil? || payload[:sql].match?(matching)
-    end
-    yield
-    queries
-  ensure
-    ActiveSupport::Notifications.unsubscribe(sub)
-  end
+  # sql_queries(matching:) is provided by spec/support/sql_queries.rb
 
   describe '.get_sites' do
     before { described_class.instance_variable_set(:@all_sites, nil) }

@@ -53,23 +53,25 @@ module CamaleonCms
     # slug_or_id: (Array) array of post ids, return multiple posts
     # return post model or nil
     def the_post(slug_or_id)
+      # eager: false -- a single-record lookup must not pay the listing preloads (with_eager)
+      rel = h.verify_front_visibility(object.posts, eager: false)
       if slug_or_id.is_a?(Integer)
         post = begin
-          the_posts.find(slug_or_id)
+          rel.find(slug_or_id)
         rescue StandardError
           nil
         end
       end
       if slug_or_id.is_a?(Array)
         post = begin
-          the_posts.find(slug_or_id)
+          rel.find(slug_or_id)
         rescue StandardError
           nil
         end
       end
       # use find_by_slug (multi-language aware) so posts with localized slugs
       # (e.g. "<!--:en-->sample-post<!--:-->...") are matched instead of returning nil
-      post = the_posts.find_by_slug(slug_or_id) if slug_or_id.is_a?(String) # rubocop:disable Rails/DynamicFindBy
+      post = rel.find_by_slug(slug_or_id) if slug_or_id.is_a?(String) # rubocop:disable Rails/DynamicFindBy
       post&.decorate
     end
 

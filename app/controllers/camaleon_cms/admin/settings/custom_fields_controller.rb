@@ -84,6 +84,9 @@ module CamaleonCms
             # the SameSite=Lax auth cookie) wipes the post's categories, because an omitted `categories`
             # param resolves to [] and update_categories then deletes them all (audit finding M6).
             post.update_categories(cat_ids) if request.post?
+            # An existing post renders its OWN saved categories' field groups (update_categories now
+            # resets the association, so the read is fresh). Do NOT union the request's categories[]
+            # in here, or a read-only GET would render field groups for categories the post lacks.
             args = {}
           else
             # The render-only branch builds a new post of the requested type; gate it on the ability to
@@ -92,6 +95,7 @@ module CamaleonCms
             authorize! :create_post, post_type if post_type
             post = CamaleonCms::Post.new
             post.taxonomy_id = post_type&.id
+            # A new post has no saved categories, so pass the requested ids to preview their field groups.
             args = { cat_ids: cat_ids }
           end
           render partial: 'camaleon_cms/admin/settings/custom_fields/render',

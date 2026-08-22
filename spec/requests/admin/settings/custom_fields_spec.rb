@@ -169,6 +169,30 @@ RSpec.describe 'CustomFields create/update permissions', type: :request do
       expect(my_post.categories.reload).to include(category)
     end
 
+    it 'does not union the request categories into an existing post GET render' do
+      user = create(:user, role: 'admin', site: current_site)
+      sign_in_as(user, site: current_site)
+
+      cat_b = post_type.categories.create!(name: 'Cat B', slug: 'test-cat-b')
+      group_a = current_site.custom_field_groups.create!(
+        name: 'Group A', slug: 'cf-group-a', object_class: 'Category_Post', objectid: category.id
+      )
+      group_a.add_field({ name: 'A Field', slug: 'a-field' }, { field_key: 'text' })
+      group_b = current_site.custom_field_groups.create!(
+        name: 'Group B', slug: 'cf-group-b', object_class: 'Category_Post', objectid: cat_b.id
+      )
+      group_b.add_field({ name: 'B Field', slug: 'b-field' }, { field_key: 'text' })
+      my_post.update_categories([category.id]) # the post is assigned to Cat A only
+
+      # a read-only GET requesting Cat B must render only the post's own (Cat A) field groups
+      get '/admin/settings/custom_fields/list',
+          params: { post_type: post_type.id, post_id: my_post.id, categories: [cat_b.id] }
+
+      expect(response.body).to include('Group A')
+      expect(response.body).not_to include('Group B')
+      expect(my_post.categories.reload.pluck(:id)).to contain_exactly(category.id)
+    end
+
     it 'ignores categories parameter from another site' do
       user = create(:user, role: 'admin', site: current_site)
       sign_in_as(user, site: current_site)

@@ -29,6 +29,11 @@ accept POST so a legitimate, CSRF-verified caller can still perform the write.
 - **WHEN** a signed-in user sends `HEAD /admin/settings/custom_fields/list?post_id=<ID>` (HEAD is CSRF-exempt like GET)
 - **THEN** the post's category relationships are unchanged
 
+#### Scenario: A GET renders only the existing post's own categories' field groups
+
+- **WHEN** a signed-in user sends `GET /admin/settings/custom_fields/list?post_id=<ID>&categories[]=<OTHER>` for an existing post that is not assigned category `OTHER`
+- **THEN** the rendered field groups are those of the post's own saved categories only, not category `OTHER`'s — the read-only verb does not union the request's `categories` into the render
+
 #### Scenario: A POST performs the category write
 
 - **WHEN** a signed-in user sends `POST /admin/settings/custom_fields/list` with `post_id=<ID>` and a `categories` list of the post type's own categories
