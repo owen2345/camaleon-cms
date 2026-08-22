@@ -85,6 +85,7 @@ module CamaleonCms
     attr_accessor :show_title_with_parent
 
     before_create :fix_post_order, if: ->(p) { p.post_order.blank? || p.post_order == 0 }
+    before_save :set_published_at_on_publish
 
     # return all parents for current page hierarchy ordered bottom to top
     def parents
@@ -343,6 +344,19 @@ module CamaleonCms
     def fix_post_order
       last_post = post_type.posts.where.not(id: nil).last
       self.post_order = last_post.present? ? (last_post.post_order || 0) + 1 : 1
+    end
+
+    # Stamp the publish time at the moment a post becomes published without an explicit date --
+    # the admin Publish action, or any save that transitions the status to 'published'. Keyed to
+    # the status change (or the record being born published), not to every save, so a post created
+    # as a draft keeps a nil published_at until it is actually published, a caller-supplied date
+    # (e.g. a scheduled post) is preserved, and later edits of an already-published post keep the
+    # original date.
+    def set_published_at_on_publish
+      return unless status == 'published' && published_at.blank?
+      return unless new_record? || will_save_change_to_status?
+
+      self.published_at = Time.current.utc
     end
   end
 end
