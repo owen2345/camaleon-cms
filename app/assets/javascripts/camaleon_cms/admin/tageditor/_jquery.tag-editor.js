@@ -7,7 +7,7 @@
 
 (function($){
     // auto grow input (stackoverflow.com/questions/931207)
-    $.fn.tagEditorInput=function(){var t=" ",e=$(this),n=parseInt(e.css("fontSize")),i=$("<span/>").css({position:"absolute",top:-9999,left:-9999,width:"auto",fontSize:e.css("fontSize"),fontFamily:e.css("fontFamily"),fontWeight:e.css("fontWeight"),letterSpacing:e.css("letterSpacing"),whiteSpace:"nowrap"}),s=function(){if(t!==(t=e.val())){i.html(t.replace(/&/g,"&amp;").replace(/\s/g,"&nbsp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"));var s=i.width()+n;20>s&&(s=20),s!=e.width()&&e.width(s)}};return i.insertAfter(e),e.bind("keyup keydown focus",s)};
+    $.fn.tagEditorInput=function(){var t=" ",e=$(this),n=parseInt(e.css("fontSize")),i=$("<span/>").css({position:"absolute",top:-9999,left:-9999,width:"auto",fontSize:e.css("fontSize"),fontFamily:e.css("fontFamily"),fontWeight:e.css("fontWeight"),letterSpacing:e.css("letterSpacing"),whiteSpace:"nowrap"}),s=function(){if(t!==(t=e.val())){i.html(t.replace(/&/g,"&amp;").replace(/\s/g,"&nbsp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"));var s=i.width()+n;20>s&&(s=20),s!=e.width()&&e.width(s)}};return i.insertAfter(e),e.on("keyup keydown focus",s)};
 
     // plugin with val as parameter for public methods
     $.fn.tagEditor = function(options, val, blur){
@@ -54,7 +54,7 @@
                 } catch(e){ el = 0; }
                 if (el && el.hasClass('tag-editor')) {
                     var tags = [], splits = sel.toString().split(el.prev().data('options').dregex);
-                    for (i=0; i<splits.length; i++){ var tag = $.trim(splits[i]); if (tag) tags.push(tag); }
+                    for (i=0; i<splits.length; i++){ var tag = splits[i].trim(); if (tag) tags.push(tag); }
                     $('.tag-editor-tag', el).each(function(){
                         if (~$.inArray($(this).html(), tags)) $(this).closest('li').find('.tag-editor-delete').click();
                     });
@@ -89,7 +89,7 @@
             function update_globals(init){
                 var old_tags = tag_list.toString();
                 tag_list = $('.tag-editor-tag:not(.deleted)', ed).map(function(i, e) {
-                    var val = $.trim($(this).hasClass('active') ? $(this).find('input').val() : $(e).text());
+                    var val = $(this).hasClass('active') ? $(this).find('input').val().trim() : $(e).text().trim();
                     if (val) return val;
                 }).get();
                 ed.data('tags', tag_list);
@@ -100,6 +100,16 @@
             }
 
             ed.click(function(e, closest_tag){
+                // The Awesomplete dropdown lives inside ed. Clicking a suggestion fires
+                // awesomplete-selectcomplete, whose handler synchronously blurs + destroys the input,
+                // detaching the clicked node BEFORE this bubbled click reaches ed. Ignore that
+                // detached-target click so it does not slip past the tag guard below (its target is
+                // no longer inside a .tag-editor-tag) and append a phantom input. The 200ms follow-up
+                // trigger fires with ed itself as target (connected), so it still opens the next input.
+                // (PR #1169 review.)
+                if (e.target && e.target.isConnected === false) return;
+                // don't create new tag when clicking on delete buttons or existing tags
+                if ($(e.target).closest('.tag-editor-delete, .tag-editor-tag').length) return;
                 var d, dist = 99999, loc;
 
                 // do not create tag when user selects tags by text selection
@@ -107,10 +117,12 @@
 
                 if (o.maxTags && ed.data('tags').length >= o.maxTags) { ed.find('input').blur(); return false; }
 
-                blur_result = true
+                // commit any open input: its blur handler runs synchronously and flips
+                // blur_result to false when beforeTagDelete vetoes the pending change
+                blur_result = true;
                 $('input:focus', ed).blur();
                 if (!blur_result) return false;
-                blur_result = true
+                blur_result = true;
 
                 // always remove placeholder on click
                 $('.placeholder', ed).remove();
@@ -169,16 +181,74 @@
                     // guess cursor position in text input
                     var left_percent = Math.abs(($(this).offset().left - e.pageX)/$(this).width()), caret_pos = parseInt(tag.length*left_percent),
                         input = $(this).html('<input type="text" maxlength="'+o.maxLength+'" value="'+tag+'">').addClass('active').find('input');
-                        input.data('old_tag', tag).tagEditorInput().focus().caret(caret_pos);
+                        input.data('old_tag', tag).tagEditorInput();
+                    // unclip the editor while an input is open so the Awesomplete dropdown
+                    // can overflow it (classes, not :has() -- unsupported in older browsers)
+                    $(this).closest('li').addClass('tag-editor-editing');
+                    ed.addClass('tag-editor-editing');
                     if (o.autocomplete) {
                         var aco = $.extend({}, o.autocomplete);
-                        // extend user provided autocomplete select method
-                        var ac_select = 'select'  in aco ? o.autocomplete.select : '';
-                        aco.select = function(e, ui){ if (ac_select) ac_select(e, ui); setTimeout(function(){
-                            ed.trigger('click', [$('.active', ed).find('input').closest('li').next('li').find('.tag-editor-tag')]);
-                        }, 20); };
-                        input.autocomplete(aco);
+                        // Store user provided select callback
+                        var ac_select = 'select' in aco ? o.autocomplete.select : '';
+                        // jQuery-UI autocomplete contract: source may be an array,
+                        // a function (invoked with a {term: ...} request object) or
+                        // a URL string returning a bare array for the typed term
+                        var source_type = typeof aco.source;
+                        var is_remote = source_type === 'function' || source_type === 'string';
+                        var awList = is_remote ? [] : (aco.source || []);
+                        var aw = new Awesomplete(input[0], {
+                            list: awList,
+                            // explicit minChars/minLength of 0 (show all on input) must not
+                            // fall through to the default, so compare against null
+                            minChars: aco.minChars != null ? aco.minChars : (aco.minLength != null ? aco.minLength : 1),
+                            maxItems: aco.maxItems || 10,
+                            // jQuery UI autoFocus: preselect the first suggestion so Enter commits it
+                            autoFirst: !!aco.autoFocus,
+                            // A remote (function/URL) source is already ranked and filtered by the
+                            // server, so keep its order and set -- only drop tags already in the
+                            // editor. An array source is contains-matched client-side as before.
+                            sort: is_remote ? false : undefined,
+                            filter: is_remote
+                                ? function(text) { return tag_list.indexOf(text.value) === -1; }
+                                : function(text, value) {
+                                    return Awesomplete.FILTER_CONTAINS(text, value) && tag_list.indexOf(text.value) === -1;
+                                }
+                        });
+                        if (is_remote) {
+                            // Sequence-guard and abort so a stale/out-of-order response cannot overwrite
+                            // a newer one (jQuery UI's requestIndex + xhr.abort). Fetch as JSON so the
+                            // endpoint's content-type does not matter. A fetch fires per keystroke, the
+                            // established contract downstream callers rely on.
+                            var reqSeq = 0, reqXhr = null;
+                            var applyResults = function(seq, results) {
+                                if (seq === reqSeq && Array.isArray(results)) { aw.list = results; aw.evaluate(); }
+                            };
+                            input.on('input', function() {
+                                var term = input.val();
+                                var seq = ++reqSeq;
+                                if (source_type === 'function') {
+                                    aco.source({term: term}, function(results) { applyResults(seq, results); });
+                                } else {
+                                    if (reqXhr && reqXhr.abort) reqXhr.abort();
+                                    reqXhr = $.get(aco.source, {term: term}, undefined, 'json').done(function(results) { applyResults(seq, results); });
+                                }
+                            });
+                        }
+                        input[0].addEventListener('awesomplete-selectcomplete', function(e) {
+                            if (ac_select) ac_select(e, {item: {value: e.text.value, label: e.text.label || e.text.value}});
+                            // confirm the selected tag immediately (simulate blur)
+                            var activeTag = $('.active', ed);
+                            activeTag.find('input').blur();
+                            setTimeout(function(){
+                                // open the follow-up input right after the edited tag
+                                // (activeTag is a div inside its li -- next('li') from the li)
+                                ed.trigger('click', [activeTag.closest('li').next('li').find('.tag-editor-tag')]);
+                            }, 200);
+                        });
+                        input.data('awesomplete', aw);
                     }
+                    // focus after Awesomplete wraps the input (which can steal focus)
+                    input.focus().caret(caret_pos);
                 }
                 return false;
             });
@@ -188,7 +258,7 @@
                 var li = input.closest('li'), sub_tags = input.val().replace(/ +/, ' ').split(o.dregex), old_tag = input.data('old_tag');
                 var old_tags = tag_list.slice(0), exceeded = false; // copy tag_list
                 for (var i=0; i<sub_tags.length; i++) {
-                    tag = $.trim(sub_tags[i]).slice(0, o.maxLength);
+                    tag = sub_tags[i].trim().slice(0, o.maxLength);
                     if (tag) {
                         if (o.forceLowercase) tag = tag.toLowerCase();
                         tag = o.beforeTagSave(el, ed, old_tags, old_tag, tag) || tag;
@@ -205,9 +275,18 @@
                 update_globals();
             }
 
+            // helper: release the input's Awesomplete instance. Must run BEFORE the
+            // input's markup is removed/replaced -- jQuery's cleanData wipes the
+            // element data (including this reference) on removal, leaking the
+            // instance into Awesomplete.all for the whole page lifetime.
+            function destroy_awesomplete(input){
+                var aw = input.data('awesomplete');
+                if (aw) { aw.destroy(); input.removeData('awesomplete'); }
+            }
+
             ed.on('blur', 'input', function(e){
                 e.stopPropagation();
-                var input = $(this), old_tag = input.data('old_tag'), tag = $.trim(input.val().replace(/ +/, ' ').replace(o.dregex, o.delimiter[0]));
+                var input = $(this), li = input.closest('li'), old_tag = input.data('old_tag'), tag = input.val().replace(/ +/, ' ').replace(o.dregex, o.delimiter[0]).trim();
                 if (!tag) {
                     if (old_tag && o.beforeTagDelete(el, ed, tag_list, old_tag) === false) {
                         input.val(old_tag).focus();
@@ -215,7 +294,8 @@
                         update_globals();
                         return;
                     }
-                    try { input.closest('li').remove(); } catch(e){}
+                    destroy_awesomplete(input);
+                    try { li.remove(); } catch(e){}
                     if (old_tag) update_globals();
                 }
                 else if (tag.indexOf(o.delimiter[0])>=0) { split_cleanup(input); return; }
@@ -226,7 +306,11 @@
                     if (o.removeDuplicates)
                         $('.tag-editor-tag:not(.active)', ed).each(function(){ if ($(this).html() == tag) $(this).closest('li').remove(); });
                 }
-                input.parent().html(tag).removeClass('active');
+                destroy_awesomplete(input);
+                input.closest('.tag-editor-tag').html(tag).removeClass('active');
+                // dropdown closed: restore the clipping that contains the floated pills
+                li.removeClass('tag-editor-editing');
+                if (!$('.tag-editor-tag.active', ed).length) ed.removeClass('tag-editor-editing');
                 if (tag != old_tag) update_globals();
                 set_placeholder();
             });
@@ -288,7 +372,7 @@
                     }
                 }
                 // del key
-                else if (e.which == 46 && (!$.trim($t.val()) || ($t.caret() == $t.val().length))) {
+                else if (e.which == 46 && (!$t.val().trim() || ($t.caret() == $t.val().length))) {
                     var next_tag = $t.closest('li').next('li').find('.tag-editor-tag');
                     if (next_tag.length) next_tag.click().find('input').caret(0);
                     else if ($t.val()) ed.click();
@@ -296,6 +380,9 @@
                 }
                 // enter key
                 else if (e.which == 13) {
+                    // let Awesomplete handle Enter if dropdown is open with a selection
+                    var aw = $t.data('awesomplete');
+                    if (aw && aw.opened && aw.selected) return;
                     ed.trigger('click', [$t.closest('li').next('li').find('.tag-editor-tag')]);
                     return false;
                 }
@@ -314,7 +401,7 @@
             var tags = o.initialTags.length ? o.initialTags : el.val().split(o.dregex);
             for (var i=0; i<tags.length; i++) {
                 if (o.maxTags && i >= o.maxTags) break;
-                var tag = $.trim(tags[i].replace(/ +/, ' '));
+                var tag = tags[i].replace(/ +/, ' ').trim();
                 if (tag) {
                     if (o.forceLowercase) tag = tag.toLowerCase();
                     tag_list.push(tag);
@@ -323,10 +410,16 @@
             }
             update_globals(true); // true -> no onChange callback
 
-            // init sortable
-            if (o.sortable && $.fn.sortable) ed.sortable({
-                distance: 5, cancel: '.tag-editor-spacer, input', helper: 'clone',
-                update: function(){ update_globals(); }
+            // init sortable (skip silently when SortableJS is not bundled -- e.g. custom
+            // downstream manifests; a ReferenceError here would kill sibling editors too)
+            if (o.sortable && window.Sortable) new Sortable(ed[0], {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                filter: '.tag-editor-spacer, input',
+                // without this SortableJS preventDefaults mousedown on the filter targets,
+                // which kills caret placement and text selection in the edit input
+                preventOnFilter: false,
+                onEnd: function(){ update_globals(); }
             });
         });
     };
@@ -341,8 +434,8 @@
         removeDuplicates: true,
         clickDelete: false,
         animateDelete: 175,
-        sortable: true, // jQuery UI sortable
-        autocomplete: null, // options dict for jQuery UI autocomplete
+        sortable: true, // SortableJS draggable reorder
+        autocomplete: null, // options dict for Awesomplete autocomplete
 
         // callbacks
         onChange: function(){},

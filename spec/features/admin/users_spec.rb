@@ -73,6 +73,10 @@ describe 'the Users', :js do
     end
     wait_for_ajax
     expect(page).to have_css('.alert-success')
+    # Regression (jQuery 3): the submitHandler chained .complete() on the jqXHR -- removed in
+    # jQuery 3 -- so hideLoading() never ran and the full-screen loading overlay stayed up
+    # forever after a successful password change. .always() is the jQuery 3 callback.
+    expect(page).to have_no_css('#cama_custom_loading', wait: 3)
   end
 
   it 'Users destroy' do
