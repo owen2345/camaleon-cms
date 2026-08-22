@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- **Performance fix:** Frontend post listings and menus no longer issue N+1 queries for post `metas`, `categories` and post-type `metas` — a `Post.with_eager` `preload` scope loads them up front, and stale association caches are reset after category/tag mutations. [#1275](https://github.com/owen2345/camaleon-cms/pull/1275).
+- **Performance fix:** Frontend post listings no longer issue N+1 queries for post `metas`, `categories`, `post_tags` and post-type `metas` — a `Post.with_eager` `preload` scope loads them up front on the listing paths (single-post lookups stay lean), and stale association caches are reset after category/tag mutations. [#1275](https://github.com/owen2345/camaleon-cms/pull/1275).
+  - **Notes for theme/plugin developers:** frontend listings (`the_posts`/`the_contents`) now `preload` these associations instead of joining `metas`. A view that filters or sorts `@posts` on a `metas` column must chain `.joins(:metas)` / `.eager_load(:metas)` itself, and a column-narrowed `select` on `the_posts` must keep `taxonomy_id` (or use `pluck`).
 
 ## [2.9.3](https://github.com/owen2345/camaleon-cms/tree/2.9.3) (2026-08-16)
 
