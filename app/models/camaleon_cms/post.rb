@@ -81,7 +81,7 @@ module CamaleonCms
     # set per post, and whose `pluck`/`count` duplicate rows. `preload` issues separate queries and is
     # never merged into a join, so the association is always loaded whole and the relation never
     # promotes. (PR #1169 review, JOIN-PROMOTION.)
-    scope :with_eager, -> { preload(:metas, :categories, post_type: :metas) }
+    scope :with_eager, -> { preload(:metas, :categories, :post_tags, post_type: :metas) }
 
     validates_with CamaleonCms::PostUniqValidator
     attr_accessor :show_title_with_parent

@@ -114,7 +114,7 @@ RSpec.describe CamaleonCms::Frontend::ApplicationHelper, type: :helper do
       raw = post_type.posts # undecorated relation, no preloads yet
 
       expect(helper.verify_front_visibility(raw).preload_values)
-        .to include(:metas, :categories, post_type: :metas)
+        .to include(:metas, :categories, :post_tags, post_type: :metas)
       expect(helper.verify_front_visibility(raw, eager: false).preload_values).to be_empty
     end
   end

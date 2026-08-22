@@ -14,7 +14,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
     it 'is preload-shaped (never includes/eager_load)' do
       relation = described_class.with_eager
 
-      expect(relation.preload_values).to include(:metas, :categories, post_type: :metas)
+      expect(relation.preload_values).to include(:metas, :categories, :post_tags, post_type: :metas)
       expect(relation.includes_values).to be_empty
       expect(relation.eager_load_values).to be_empty
     end
@@ -62,6 +62,15 @@ RSpec.describe CamaleonCms::Post, type: :model do
     it 'does not duplicate rows in pluck for a post with several metas and categories' do
       expect(post_type.posts.with_eager.where(id: post.id).pluck(:id)).to eq([post.id])
       expect(post_type.posts.with_eager.where(id: post.id).count).to eq(1)
+    end
+
+    it 'preloads post_tags so a listing reads tags from memory, not per post' do
+      post.update_tags('eager-tag-a,eager-tag-b')
+
+      loaded = post_type.posts.with_eager.to_a.find { |r| r.id == post.id }
+
+      expect(loaded.association(:post_tags).loaded?).to be(true)
+      expect(loaded.post_tags.map(&:name)).to include('eager-tag-a', 'eager-tag-b')
     end
   end
 end
