@@ -40,7 +40,7 @@ module CamaleonCms
       mark_frontend_category_visited(@category)
       @children = @category.children.no_empty.decorate
       @posts = @category.the_posts.paginate(page: params[:page],
-                                            per_page: current_site.front_per_page).eager_load(:metas)
+                                            per_page: current_site.front_per_page)
       category_slug = @category.the_slug
 
       # specific template category with specific slug within a post-type
@@ -78,7 +78,7 @@ module CamaleonCms
       CurrentRequest.frontend_object = @object
       mark_frontend_post_type_visited(@post_type)
       @posts = @post_type.the_posts.paginate(page: params[:page],
-                                             per_page: current_site.front_per_page).eager_load(:metas)
+                                             per_page: current_site.front_per_page)
       @categories = @post_type.categories.no_empty.eager_load(:metas).decorate
       @post_tags = @post_type.post_tags.eager_load(:metas)
       post_type_slug = "post_types/#{@post_type.the_slug}"
@@ -105,7 +105,7 @@ module CamaleonCms
       CurrentRequest.frontend_object = @object
       mark_frontend_tag_visited(@post_tag)
       @posts = @post_tag.the_posts.paginate(page: params[:page],
-                                            per_page: current_site.front_per_page).eager_load(:metas)
+                                            per_page: current_site.front_per_page)
       slug_post_tag = "post_types/#{@post_type.the_slug}/post_tag"
       r_file = lookup_context.template_exists?(slug_post_tag) ? slug_post_tag : 'post_tag'
       layout_ = lookup_context.template_exists?('layouts/post_tag') ? 'post_tag' : nil
