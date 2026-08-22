@@ -2,13 +2,11 @@
 
 require 'rails_helper'
 
-# Regression (PR #1169 review finding #9, STALE-PROXY-SIBLINGS): every writer in
-# CategoriesTagsForPosts mutates term_relationships directly, which does NOT invalidate an
-# already-loaded categories/post_tags through-proxy; `pluck` on a loaded proxy then reads memory.
-# update_categories/unassign_category reset the proxy, but assign_category, update_tags and the
-# after_save check_default_category did not, so post.categories / post.the_tags kept serving the
-# stale set (and tag counts corrupted) after a save. the_post now preloads categories (with_eager),
-# so the proxy is routinely loaded before these writers run.
+# Regression: every writer in CategoriesTagsForPosts mutates term_relationships directly, which does
+# NOT invalidate an already-loaded categories/post_tags through-proxy; `pluck` on a loaded proxy then
+# reads memory. rescue_extra_data (which every writer calls first) resets the proxies, so
+# post.categories / post.the_tags no longer serve a stale set -- or corrupt tag counts -- after a
+# save. the_post preloads categories (with_eager), so the proxy is routinely loaded before a write.
 RSpec.describe CamaleonCms::Post, type: :model do
   let(:site) { create(:site) }
   let(:post_type) do

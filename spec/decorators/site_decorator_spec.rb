@@ -57,7 +57,7 @@ RSpec.describe CamaleonCms::SiteDecorator do
       result = decorator.the_post('plain-slug')
 
       # a one-row lookup must stay cheap: with_eager (metas/categories/post_type) is a
-      # listing concern and must not be charged here (PR review, WITH-EAGER single-record)
+      # listing concern and must not be charged for a single-record find
       expect(result.object.association(:metas).loaded?).to be(false)
       expect(result.object.association(:categories).loaded?).to be(false)
     end

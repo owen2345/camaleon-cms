@@ -74,13 +74,11 @@ module CamaleonCms
     scope :drafts, -> { where(status: %w[draft draft_child]) }
     scope :pending, -> { where(status: 'pending') }
     scope :latest, -> { reorder(created_at: :desc) }
-    # `preload`, not `includes`: every frontend listing runs `the_posts` through this scope, and a
-    # caller that later chains `joins`/`eager_load`/a hash-`where` on one of these tables (e.g.
-    # PostDecorator#the_related_posts joins :categories) would make an `includes` relation flip to
-    # `eager_loading?` -- one multi-way LEFT JOIN whose filtered join then loads a PARTIAL categories
-    # set per post, and whose `pluck`/`count` duplicate rows. `preload` issues separate queries and is
-    # never merged into a join, so the association is always loaded whole and the relation never
-    # promotes. (PR #1169 review, JOIN-PROMOTION.)
+    # `preload`, not `includes`: frontend listings run `the_posts` through this scope. If it were
+    # `includes`, a caller that later chains a join/`eager_load`/hash-`where` on one of these tables
+    # (e.g. PostDecorator#the_related_posts joins :categories) would flip the relation to
+    # `eager_loading?` -- one multi-way LEFT JOIN that loads a PARTIAL categories set per post and
+    # duplicates rows in `pluck`/`count`. `preload` issues separate queries, never merged into a join.
     scope :with_eager, -> { preload(:metas, :categories, :post_tags, post_type: :metas) }
 
     validates_with CamaleonCms::PostUniqValidator

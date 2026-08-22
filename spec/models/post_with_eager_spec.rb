@@ -7,8 +7,7 @@ require 'rails_helper'
 # an `includes` relation flips to `eager_loading?` the moment a caller chains a join/reference on
 # one of the eager-loaded tables (PostDecorator#the_related_posts joins :categories), collapsing
 # into one multi-way LEFT JOIN that loads a PARTIAL categories set per post and duplicates rows in
-# pluck/count. `preload` runs separate queries and never merges into a join. (PR #1169 review,
-# JOIN-PROMOTION / WITH-EAGER-DEAD.)
+# pluck/count. `preload` runs separate queries and never merges into a join.
 RSpec.describe CamaleonCms::Post, type: :model do
   describe '.with_eager' do
     it 'is preload-shaped (never includes/eager_load)' do

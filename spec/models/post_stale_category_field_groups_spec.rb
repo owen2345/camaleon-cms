@@ -2,12 +2,11 @@
 
 require 'rails_helper'
 
-# Regression (PR #1169 review, STALE-UNION): unchecking a category in the post form
-# destroys the term relationship in update_categories, but a LOADED categories
-# association on the post still contained the removed id. get_field_groups unions
-# categories.map(&:id) with the passed ids, so the removed category's field groups
-# kept rendering in the edit form after the update. update_categories now resets the
-# association, the same fix unassign_category already carries.
+# Regression: unchecking a category in the post form destroys the term relationship in
+# update_categories, but a LOADED categories association on the post still contained the removed id.
+# get_field_groups unions categories.map(&:id) with the passed ids, so the removed category's field
+# groups kept rendering in the edit form after the update. rescue_extra_data (called by every writer)
+# now resets the association, so the read is fresh.
 RSpec.describe CamaleonCms::Post, type: :model do
   describe '#get_field_groups after update_categories' do
     let!(:site) { create(:site) }
