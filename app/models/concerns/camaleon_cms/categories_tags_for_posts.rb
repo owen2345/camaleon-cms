@@ -28,7 +28,8 @@ module CamaleonCms
     def update_categories(cats = [])
       rescue_extra_data
       cats = cats.to_i
-      old_categories = categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")
+      # reuse the snapshot rescue_extra_data just took instead of plucking the same set again
+      old_categories = manage_categories? ? @cats_before : categories.pluck("#{CamaleonCms::TermTaxonomy.table_name}.id")
       delete_categories = old_categories - cats
       news_categories = cats - old_categories
       term_relationships.where('term_taxonomy_id in (?)', delete_categories).destroy_all if delete_categories.present?
