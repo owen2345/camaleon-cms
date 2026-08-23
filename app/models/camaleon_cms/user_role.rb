@@ -199,6 +199,21 @@ module CamaleonCms
                      'active content there. Site-wide, unlike the per-post-type "Allow unfiltered HTML in post ' \
                      'content" permission.'
           ).to_s
+        },
+        {
+          key: 'content_shortcodes',
+          label: I18n.t('camaleon_cms.admin.users.roles_values.content_shortcodes',
+                        default: 'Allow shortcodes in content').to_s,
+          color: 'danger',
+          description: I18n.t(
+            'camaleon_cms.admin.users.tool_tip.content_shortcodes',
+            default: 'Permit users with this role to publish shortcodes in content that the CMS expands at ' \
+                     'render: post content, custom-field values, taxonomy content and widget descriptions. A ' \
+                     'shortcode makes theme/plugin code emit arbitrary HTML/JS on the page, which the ' \
+                     'content scan cannot judge. Without it, a save carrying a registered shortcode is refused ' \
+                     'rather than cleaned up. Site-wide, and an end-run around the per-post-type "Allow ' \
+                     'unfiltered HTML in post content" permission.'
+          ).to_s
         }
       ]
     }.freeze

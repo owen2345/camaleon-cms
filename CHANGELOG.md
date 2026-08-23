@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Security fix:** Shortcodes in authored content are now gated behind a default-off `content_shortcodes` role permission. A save carrying a registered shortcode is refused (never sanitized) for a non-admin lacking it, across post content, custom-field values, taxonomy content and widget descriptions. Detection is precise and fails closed; admins, stored content and rendering are unaffected. [#1277](https://github.com/owen2345/camaleon-cms/pull/1277).
+  - **Breaking change:** a non-administrator role without `content_shortcodes` can no longer publish shortcode-bearing content on any of those surfaces. Grant the permission (Settings → User Roles → *Allow shortcodes in content*) to roles that author shortcodes.
+  - **Notes for upgraders:** a shortcode is gated only if its name is declared to the boot registry. Core declares its own; a theme/plugin registering shortcodes must declare their names through the DSL from its own boot (request-independently), e.g. `CamaleonCms::ShortcodeRegistry.register('redirect', 'my_slider')`. Rendering is untouched — the render-time `shortcode_add` handler stays as-is.
+
 - **Bug fix:** Publishing a post without an explicit date saved it `published` with a nil `published_at` — undated, and raising in themes that format the publish date. `CamaleonCms::Post` now stamps `published_at` (UTC) when a post becomes `published` without one; supplied/scheduled dates and already-published posts are untouched, and existing undated posts are not backfilled. [#1276](https://github.com/owen2345/camaleon-cms/pull/1276).
 
 - **Performance fix:** Frontend post listings no longer issue N+1 queries for post `metas`, `categories`, `post_tags` and post-type `metas` — a `Post.with_eager` `preload` scope loads them up front on the listing paths (single-post lookups stay lean), and stale association caches are reset after category/tag mutations. [#1275](https://github.com/owen2345/camaleon-cms/pull/1275).

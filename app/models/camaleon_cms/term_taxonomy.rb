@@ -2,6 +2,7 @@ module CamaleonCms
   class TermTaxonomy < CamaleonRecord
     include CamaleonCms::Metas
     include CamaleonCms::CustomFieldsRead
+    include CamaleonCms::ContentShortcodeGate
 
     extend CamaleonCms::NormalizeAttrs
 
@@ -72,6 +73,11 @@ module CamaleonCms
     # validates
     validates :name, :taxonomy, presence: true
     validates_with CamaleonCms::UniqValidator
+    # A taxonomy/widget description is expanded by do_shortcode at render
+    # (TermTaxonomyDecorator#the_content, shortcode_templates/widget.html.erb); STI-covers every
+    # subclass (post types, categories, tags, widgets, sidebars). Gate authorship behind
+    # content_shortcodes -- benign descriptions pass without ever building an Ability.
+    gate_content_shortcodes :description
 
     # relations
     has_many :term_relationships, class_name: 'CamaleonCms::TermRelationship',

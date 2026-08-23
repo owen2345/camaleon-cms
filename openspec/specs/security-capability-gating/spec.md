@@ -7,10 +7,10 @@ through a dedicated permission that is off by default, seeded onto no role, and 
 by upgraded installations without a migration. The gate is an authorization decision on the acting
 user — never a filesystem path, output filename, client flag or other proxy signal — and it fails
 closed: no request context, or a failure while evaluating the permission, resolves to untrusted.
-States as a checkable rule the convention the four existing permissions
+States as a checkable rule the convention the five existing permissions
 (`post_content_unfiltered_html`, `contact_form_unfiltered_html`, `media_unfiltered_upload`,
-`select_eval`) already follow, so a new dangerous capability must conform to it and cite it rather
-than ship ungated, gate by a proxy, or fail open.
+`select_eval`, `content_shortcodes`) already follow, so a new dangerous capability must conform to it
+and cite it rather than ship ungated, gate by a proxy, or fail open.
 ## Requirements
 ### Requirement: Security-sensitive actions are gated by a default-off role permission
 Any action or method that presents a security threat SHALL be permitted for a non-administrator role
@@ -20,7 +20,7 @@ not-granted without a migration. Administrators SHALL satisfy the check through 
 without the permission being present in role meta.
 
 Conformant examples: `post_content_unfiltered_html`, `contact_form_unfiltered_html`,
-`media_unfiltered_upload`, `select_eval`.
+`media_unfiltered_upload`, `select_eval`, `content_shortcodes`.
 
 #### Scenario: An administrator performs the action
 - **WHEN** a user with the `admin` role performs a gated security-sensitive action

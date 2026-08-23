@@ -1,6 +1,7 @@
 module CamaleonCms
   class Post < CamaleonCms::PostDefault
     include CamaleonCms::CategoriesTagsForPosts
+    include CamaleonCms::ContentShortcodeGate
 
     # Structural, non-executable markup that long-form post content legitimately uses but the
     # sanitizer default drops. Superset of the default so upstream security additions are inherited.
@@ -39,6 +40,9 @@ module CamaleonCms
     default_scope -> { where(post_class: 'Post').order(post_order: :asc, created_at: :desc) }
 
     validate :reject_untrusted_dangerous_content, on: %i[create update]
+    # Shortcodes in post content are expanded by do_shortcode at render (PostDecorator#the_content),
+    # an end-run around post_content_unfiltered_html; gate authorship behind content_shortcodes.
+    gate_content_shortcodes :content
 
     # DEPRECATED
     has_many :post_relationships, class_name: 'CamaleonCms::PostRelationship', foreign_key: :objectid,

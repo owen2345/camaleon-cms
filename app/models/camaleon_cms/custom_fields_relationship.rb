@@ -1,5 +1,7 @@
 module CamaleonCms
   class CustomFieldsRelationship < CamaleonRecord
+    include CamaleonCms::ContentShortcodeGate
+
     self.table_name = "#{PluginRoutes.static_system_info['db_prefix']}custom_fields_relationships"
 
     # attr_accessible :objectid, :custom_field_id, :term_order, :value, :object_class,
@@ -24,6 +26,11 @@ module CamaleonCms
     GATED_FIELD_KEYS = (MARKUP_FIELD_KEYS + JSON_MARKUP_FIELD_KEYS + URI_FIELD_KEYS).freeze
 
     validate :reject_untrusted_dangerous_value
+    # Any custom-field value is expanded by do_shortcode at render (CustomFieldsConcern#the_field
+    # and friends), regardless of field type, so gate a shortcode in ANY value behind
+    # content_shortcodes -- broader than the HTML gate above, which only covers markup/URI field
+    # types.
+    gate_content_shortcodes :value
 
     after_save :set_parent_slug
     after_save :update_model_owner # TODO: convert this model into polymorphic
