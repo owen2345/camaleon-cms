@@ -287,6 +287,9 @@ en:
         new_site: 'New Site'
         edit_site: 'Edit Site'
         update: 'Update'
+      shortcodes:
+        message:
+          rejected: "This content contains a shortcode that your role is not allowed to publish. Remove the shortcode, or ask an administrator for the shortcode-content permission."
       post:
         add_tag: 'Add a Tag'
         clone: 'Clone'
