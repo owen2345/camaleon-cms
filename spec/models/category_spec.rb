@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'shared_specs/sanitize_attrs'
 
 RSpec.describe CamaleonCms::Category, type: :model do

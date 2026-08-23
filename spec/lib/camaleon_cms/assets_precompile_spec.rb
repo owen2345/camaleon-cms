@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'camaleon_cms/assets_precompile'
 require 'tmpdir'
 

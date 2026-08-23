@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'rake'
 
 RSpec.describe 'orphaned_comments Rake task', type: :task do

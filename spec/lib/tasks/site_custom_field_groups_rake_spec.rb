@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'rake'
 
 RSpec.describe 'site_custom_field_groups Rake task', type: :task do

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'rake'
 
 RSpec.describe 'custum_fields_roles Rake task', type: :task do

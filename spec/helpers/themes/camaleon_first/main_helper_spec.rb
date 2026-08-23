@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require Rails.root.join('app/apps/themes/camaleon_first/main_helper')
 
 RSpec.describe Themes::CamaleonFirst::MainHelper, type: :helper do
