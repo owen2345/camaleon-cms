@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Regression: every writer in CategoriesTagsForPosts mutates term_relationships directly, which does
 # NOT invalidate an already-loaded categories/post_tags through-proxy; `pluck` on a loaded proxy then
 # reads memory. rescue_extra_data (which every writer calls first) resets the proxies, so

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::PostDecorator do
   let(:post) { create(:post, title: title) }
   let(:decorator) { post.decorate }

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Regression: cama_register_user fired its pre-hook via hook_run('user_before_register', r). hook_run's
 # first argument is the target app, so the hook name was treated as a plugin and the call silently no-op'd
 # (hook_run also never dispatches anonymous hooks) — a user_before_register handler never ran. It must

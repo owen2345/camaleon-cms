@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::Post, type: :model do
   describe 'validating a post with no slug' do
     let(:post_type) { CamaleonCms::Site.first.post_types.find_by(slug: 'post') }

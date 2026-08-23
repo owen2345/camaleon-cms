@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # updated_ajax answers its other failure paths with a status and a short text body — 400 for a
 # missing password parameter, 422 for a validation error. A target that cannot be resolved has to
 # be reported the same way rather than falling through to the framework's HTML error page, so the

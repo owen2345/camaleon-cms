@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M12): two admin endpoints ran with no authorization.
 #   * AdminController#search queried current_site.posts with no status filter and no permission check,
 #     so any admin-area user (e.g. a client) could enumerate every post title/slug in every status.

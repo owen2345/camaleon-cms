@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'User deletion content reassignment', type: :model do
   let(:site) { CamaleonCms::Site.first }
   let(:post_type) { site.post_types.find_by(slug: 'post') }

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Regression coverage for https://github.com/owen2345/camaleon-cms/issues/1124
 #
 # A custom field group carries two independent foreign keys: `parent_id` (which site owns it) and

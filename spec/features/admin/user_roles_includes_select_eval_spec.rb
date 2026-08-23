@@ -1,5 +1,3 @@
-require 'rails_helper'
-
 describe 'User Roles UI includes select_eval permission', :js do
   init_site
 

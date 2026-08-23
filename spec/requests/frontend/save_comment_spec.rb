@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # save_comment records request.user_agent. It used to call force_encoding on it directly,
 # which 500'd for clients that send no User-Agent header at all (curl, bots, API clients)
 # and mutated the header string in place when one was present — raising FrozenError on a

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M15): the User model only validated password presence (on create) and the
 # 72-byte bcrypt maximum, so a one-character password was accepted. A minimum length is now enforced
 # whenever a password is set, without forcing a password on an update that leaves it untouched.

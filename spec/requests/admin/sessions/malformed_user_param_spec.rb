@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # A scalar `user` param (`?user=foo`) is not a form submission; every session action must treat it
 # as an empty submission instead of raising (String has no `permit`/`[]=` — previously a 500 on
 # login, on the forgot send-email branch, and on register). Login and register re-render; forgot

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_render.html.erb', type: :view do
   let(:site) { instance_double(CamaleonCms::Site) }
   let(:post_types_relation) { instance_double(ActiveRecord::Relation) }

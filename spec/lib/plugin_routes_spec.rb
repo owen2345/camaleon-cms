@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe PluginRoutes do
   describe '.add_after_reload_routes' do
     after do

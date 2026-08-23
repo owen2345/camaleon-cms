@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (scan-and-reject policy): a `field_attrs` value is gated at save
 # (CustomFieldsRelationship scans the decoded JSON members), so the partial renders the stored
 # attr/value pair verbatim -- stored values always equal authored values. This spec pins the

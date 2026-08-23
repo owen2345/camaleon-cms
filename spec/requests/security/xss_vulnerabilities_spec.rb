@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'Security: XSS Vulnerabilities Fixes', type: :request do
   init_site
 

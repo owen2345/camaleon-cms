@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # The open-redirect policy is same-host-only by default, but legitimate off-site post-login/registration
 # redirects (SSO, payment providers) can be permitted two ways, both fail-closed:
 #   1. an admin/plugin allowlist of trusted hosts (redirect_allowed_hosts option + safe_redirect_hosts hook)

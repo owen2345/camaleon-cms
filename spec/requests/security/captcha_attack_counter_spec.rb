@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Once the login key is under attack, solving a captcha used to reset the attack counter
 # even when the password was wrong — one solve bought another window of captcha-free
 # guesses. The counter must survive a captcha solve and clear only when the login itself

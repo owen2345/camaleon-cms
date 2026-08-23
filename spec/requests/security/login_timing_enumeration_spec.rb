@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M14): login_post ran `@user&.authenticate`, so a missing username skipped
 # bcrypt entirely and answered far faster than a wrong password for a real username -- a timing oracle
 # for valid usernames. The controller now spends one bcrypt comparison on the missing-username branch

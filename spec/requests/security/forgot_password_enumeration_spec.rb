@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M13): the forgot-password endpoint returned a distinct message when the
 # email matched an account versus not (a user-enumeration oracle), and re-sent a reset email on every
 # request (a mail-bomb of a known inbox). It now answers with one neutral message either way, and

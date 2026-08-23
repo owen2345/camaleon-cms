@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'User registration mass assignment protection', type: :request do
   init_site
 

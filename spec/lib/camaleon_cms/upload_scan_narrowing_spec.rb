@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::ContentSecurity do
   let(:scanner) { Class.new { include CamaleonCms::UploaderContentSecurity }.new }
 

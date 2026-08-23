@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Reproduces the reported symptom of https://github.com/owen2345/camaleon-cms/issues/1124:
 # a required field belonging to another content type is rendered on the site settings form with
 # `class="required"`, so jQuery validation refuses to submit until it is filled in. The block is

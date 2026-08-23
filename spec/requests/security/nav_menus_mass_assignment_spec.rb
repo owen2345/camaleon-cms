@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'Security: Nav Menus Mass Assignment', type: :request do
   let(:site) { CamaleonCms::Site.first }
   let(:admin) { create(:user_admin, site: nil) }

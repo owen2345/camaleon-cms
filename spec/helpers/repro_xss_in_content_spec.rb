@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Originally the reproduction for stored XSS in post content (a script stored in `content` emitted
 # on the frontend). Under the scan-and-reject policy the protection lives at the storage gate: an
 # untrusted save carrying the payload is refused outright, stored content always equals authored

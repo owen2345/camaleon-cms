@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 include CamaleonCms::PluginsHelper
 
 # Security (audit 2026-08-11 M2): the password-post prompt was a method-less form (GET) with a

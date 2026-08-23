@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # N2: before_upload fires AFTER the content scan and can rebind settings[:uploaded_io], so a
 # handler could launder blocked bytes past the scanner. For an untrusted uploader the pipeline
 # must re-scan the substituted IO. Exercised directly against upload_file through a minimal

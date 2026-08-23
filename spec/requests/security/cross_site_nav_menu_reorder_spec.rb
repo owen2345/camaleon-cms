@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M10): NavMenusController#reorder_items took the destination menu FK
 # straight from params[:nav_menu_id] and wrote it as each item's parent_id. The items themselves are
 # looked up through current_site, but the destination was not, so a manager of one site could re-home

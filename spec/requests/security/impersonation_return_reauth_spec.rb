@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Returning from impersonation to the admin account must require the admin's own
 # password (H6 residual). session_switch_user stashes the admin's auth cookie in
 # session[:parent_auth_token], and returning restores it. Because the impersonated

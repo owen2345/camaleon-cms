@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M8): the drafts controller passed params[:field_options] straight to
 # set_field_values, so a caller could write custom_field_values with attacker-chosen slugs, ids and
 # group numbers -- keys never registered on the post type. #1235 confined drafts to the caller's own

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # When creating an additional site provisions a fresh administrator (users not shared across
 # sites), the generated password must be surfaced exactly once to the authenticated creator —
 # and never invented when no admin was minted. The shipped test config shares users across

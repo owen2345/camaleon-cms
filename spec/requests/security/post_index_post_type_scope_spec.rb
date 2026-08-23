@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M11): the admin post index authorizes `:posts` on the post type named in
 # the URL, but a taxonomy filter (`?taxonomy=category|post_tag&taxonomy_id=...`) replaced the
 # post-type-scoped relation with the taxonomy owner's own posts -- site-scoped but not

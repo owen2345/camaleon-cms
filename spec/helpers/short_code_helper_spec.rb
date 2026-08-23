@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 def shortcode_tests
   before do
     helper.shortcodes_init

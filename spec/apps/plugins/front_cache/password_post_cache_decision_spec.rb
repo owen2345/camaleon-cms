@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Audit M2 — a password-protected post must not be page-cached.
 #
 # front_cache keys its page cache on the URL alone. A password post is unlocked per session

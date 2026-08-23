@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::FrontendController do
   describe 'frontend application helper compatibility' do
     let(:controller) { described_class.new }

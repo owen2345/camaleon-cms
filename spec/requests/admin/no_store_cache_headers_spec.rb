@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Admin responses must never be served from a browser or shared cache: they are per-user and
 # dynamic, and a cached render can otherwise reappear after a server restart until a manual reload
 # (the cold-boot blank-editor symptom). AdminController sends `Cache-Control: no-store` on every

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit): cama_permitted_field_options resolved the payload with `params.require` and then
 # called `#keys`/`#permit` on it, so a non-hash `field_options` (a scalar `field_options=foo`, or an
 # array) raised NoMethodError -> 500. Every set_field_values caller shares the helper, so the same

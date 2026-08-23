@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Regression: the confirm_email route declared `via: %i[get post path]` — `path` is not an HTTP verb
 # (a typo for `patch`, the verb its `forgot`/`register` siblings accept), so a PATCH fell through to the
 # admin catch-all "Invalid route" handler instead of reaching the action.

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit Low): save_comment is a public, unauthenticated endpoint. A POST naming a
 # non-existent post id reached `current_site.posts.find_by(id: ...).decorate` on nil (NoMethodError
 # → 500), and the anonymous branch indexed `params[:post_comment]` without a nil-guard. Crafted

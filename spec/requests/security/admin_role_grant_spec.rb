@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # H10 — holding :manage, :users must not be a path to controlling admin accounts. role_grantor? only
 # checked for the :manage, :users capability, so a non-admin user manager could set role: 'admin' on a
 # created or edited account (admin? is exactly role == 'admin'), minting an admin and escalating

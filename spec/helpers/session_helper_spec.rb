@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::SessionHelper, type: :helper do
   include described_class
 

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::AdminController do
   # Regression M19, controller half: the insert methods preserving store identity is pinned in
   # menus_helper_spec, but the alias itself lives in admin_init_actions — master shipped

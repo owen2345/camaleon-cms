@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # create a new post type
 def create_post_type
   visit "#{cama_root_relative_path}/admin/settings/post_types"

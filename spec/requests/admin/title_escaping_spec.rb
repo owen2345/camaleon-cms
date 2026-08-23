@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # `PostDecorator#the_title` and `TermTaxonomyDecorator#the_title` return an already-escaped
 # SafeBuffer (#1206, #1143). Interpolating one into a plain Ruby string drops the safe flag, and the
 # ERB sink then escapes it a second time, so an administrator reads `Ben &amp; Jerry&#39;s` instead

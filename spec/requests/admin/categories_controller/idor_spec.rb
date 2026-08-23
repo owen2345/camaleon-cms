@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::Admin::CategoriesController, '#set_category', type: :request do
   let(:site) { CamaleonCms::Site.first }
   let(:post_type_a) { create(:post_type, site: site) }

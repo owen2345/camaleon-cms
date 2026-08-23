@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # File-based token semantics for the installer gate: created with 0600 permissions from the first
 # byte, adopted (not clobbered) when losing a creation race, and removed once setup completes.
 # See openspec/specs/installer-access-control/spec.md.

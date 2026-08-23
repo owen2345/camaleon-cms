@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 describe 'Custom field translation (safe)', :js do
   init_site
 

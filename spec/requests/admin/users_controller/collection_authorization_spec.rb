@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # H7: validate_role's self-exemption (?user_id == the caller) is only meaningful for member actions
 # that resolve a single target user. The collection actions (index/new/create) resolve no such target,
 # so a self-referential ?user_id= must not exempt them from the :manage, :users capability check.

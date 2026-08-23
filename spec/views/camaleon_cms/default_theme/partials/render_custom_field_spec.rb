@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'camaleon_cms/default_theme/partials/_render_custom_field', type: :view do
   let(:field_name) { 'Field Name' }
   let(:fields) do

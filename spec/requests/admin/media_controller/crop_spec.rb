@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
   init_site
 

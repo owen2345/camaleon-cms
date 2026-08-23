@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
 require 'shared_specs/sanitize_attrs'
 
 RSpec.describe CamaleonCms::PostType, type: :model do

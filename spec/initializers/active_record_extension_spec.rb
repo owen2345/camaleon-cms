@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11, Tier-2 #8): CollectionProxy#sort_by_field interpolated its `order`
 # argument straight into the SQL ORDER BY clause (`.reorder("...value #{order}")`). sort_by_field is
 # a documented public API themes and plugins call as `collection.sort_by_field(key, params[:order])`,

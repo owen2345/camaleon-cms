@@ -1,5 +1,3 @@
-require 'rails_helper'
-
 RSpec.describe 'routes for Post Types', type: :routing do
   init_site
 

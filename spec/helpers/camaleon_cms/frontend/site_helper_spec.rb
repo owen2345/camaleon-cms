@@ -1,5 +1,3 @@
-require 'rails_helper'
-
 # Regression audit M20: the frontend readers ignored the legacy @object / @cama_visited_* ivars, so a
 # plugin front controller that set them (the 2.9.2 way) before rendering got nil-backed the_title /
 # is_home? / SEO helpers. Core writes both CurrentRequest and the ivar, so stock flows never reach the

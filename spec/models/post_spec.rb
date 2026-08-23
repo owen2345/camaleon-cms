@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 include CamaleonCms::Frontend::ApplicationHelper
 
 RSpec.describe 'PostDecorator' do

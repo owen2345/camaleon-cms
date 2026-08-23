@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::CamaleonHelper, type: :helper do
   describe '#cama_pluralize_text' do
     # `SafeBuffer#pluralize` returns a plain String, so the safe flag is gone before the call site

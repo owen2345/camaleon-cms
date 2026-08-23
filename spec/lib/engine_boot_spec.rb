@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
 require 'open3'
 
 RSpec.describe CamaleonCms::Engine do

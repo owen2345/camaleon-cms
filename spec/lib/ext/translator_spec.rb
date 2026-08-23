@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe String do
   describe '#translations' do
     # Ruby 3.4's nil.to_s returns a frozen (and globally shared) empty string, and every

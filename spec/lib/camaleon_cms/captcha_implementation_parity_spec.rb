@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Guards the contract that both captcha entry points -- CamaleonCms::RuntimeCaptchaImageConcern
 # (the controller stack serving GET /captcha) and CamaleonCms::CaptchaHelper (views and the
 # runtime helper surface) -- resolve challenge/image generation to one shared implementation,

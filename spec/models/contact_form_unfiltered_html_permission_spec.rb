@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # `contact_form_unfiltered_html` is the manager-family grant that exempts the contact-form plugin's
 # four markup-by-contract settings from save-time sanitization. It is deliberately separate from the
 # post-type grant `post_content_unfiltered_html`, which governs `Post#content`: the names are similar

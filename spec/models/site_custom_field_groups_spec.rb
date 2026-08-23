@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # A custom field group carries tenancy in `parent_id` (which site owns it) and placement in
 # `object_class` + `objectid` (which record's admin page displays it). `Site#get_field_groups` must
 # read placement -- reading tenancy is what produced https://github.com/owen2345/camaleon-cms/issues/1124.

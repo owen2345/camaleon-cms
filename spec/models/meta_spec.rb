@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::Meta, type: :model do
   describe 'value preservation' do
     it 'preserves angle brackets in Meta#value' do

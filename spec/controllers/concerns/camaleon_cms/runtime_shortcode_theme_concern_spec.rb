@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # The concern copy of shortcode_asset_reference / resolve_shortcode_theme_asset must stay in lockstep
 # with the CamaleonCms::ShortCodeHelper twin. Two drifts had crept in (regression L17): the concern
 # assigned the locals its rescue branch uses after the resolve call instead of first, and its path

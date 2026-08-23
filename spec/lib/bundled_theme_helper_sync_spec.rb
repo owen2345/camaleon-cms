@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Every bundled theme exists twice: once as gem content under app/apps/themes, and once as a
 # copy the dummy app actually loads under spec/dummy/app/apps/themes. The asset trees diverge on
 # purpose (the dummy app carries no images), but the Ruby helpers are duplicated verbatim and

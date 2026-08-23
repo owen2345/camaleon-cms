@@ -1,5 +1,3 @@
-require 'rails_helper'
-
 describe 'CamaleonCms::HtmlMailer' do
   before do
     @site = CamaleonCms::Site.first.decorate

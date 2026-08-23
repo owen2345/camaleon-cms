@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'Admin custom fields form: users placement option', type: :request do
   init_site
 

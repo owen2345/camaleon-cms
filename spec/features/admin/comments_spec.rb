@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # add a new comment for a post
 def add_new_comment
   visit "#{cama_root_relative_path}/admin/posts/#{@site.posts.last.id}/comments"

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Guards the three frontend listing actions (category / post_type / post_tag). They paginate
 # `<taxonomy>.the_posts`, which runs through verify_front_visibility -> Post.with_eager. The guard
 # lives at the request level -- exercising the real controller relation the view iterates -- so that

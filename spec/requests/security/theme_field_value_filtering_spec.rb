@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # save_theme wrote two custom-field payloads straight into set_field_values without the 2.9.2
 # allowed-slugs filter every sibling admin save uses: the `theme_fields` param, and the
 # `field_options` the bundled `new` theme's on_theme_settings hook re-saved raw (its redirect to

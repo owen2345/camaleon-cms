@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::UploaderContentSecurity do
   # Minimal host for the concern: file_content_unsafe? only needs the module.
   let(:scanner) { Class.new { include CamaleonCms::UploaderContentSecurity }.new }

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit Low): the captcha challenge string was built with Kernel#rand, a Mersenne-Twister
 # PRNG whose future output is predictable from observed samples — so an attacker who has seen a few
 # challenges could anticipate the next. The challenge now draws from SecureRandom (a CSPRNG).

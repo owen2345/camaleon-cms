@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # M6: `custom_fields#list` is a read-named action routed as GET, but it also writes — it calls
 # `post.update_categories(params[:categories])`. With `categories` omitted, that resolves to `[]` and
 # `update_categories` destroys every one of the post's category relationships. Because CSRF protection

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # The select_eval partial uses instance_eval on the stored command.
 # Security is enforced at the controller level via the :custom_fields role permission
 # (CamaleonCms::Admin::Settings::CustomFieldsController#validate_role).

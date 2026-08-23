@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M3): the auth_token cookie was set in the plain jar with no HttpOnly or
 # Secure flag, and logout deleted the cookie without rotating the server-side token, so a copied cookie
 # stayed valid after logout. The cookie is now HttpOnly and Secure-over-SSL, and logout rotates the

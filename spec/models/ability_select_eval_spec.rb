@@ -1,5 +1,3 @@
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::Ability, type: :model do
   init_site
 

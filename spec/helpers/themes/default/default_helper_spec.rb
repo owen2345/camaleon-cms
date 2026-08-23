@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe Themes::Default::DefaultHelper do
   # `included` calls `helper_method`, which a plain class lacks; the module rescues that, so a bare
   # includer exercises the helper methods in isolation.
