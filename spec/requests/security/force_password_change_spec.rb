@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # A newly provisioned administrator is minted with a random password and a must-change marker
 # (see harden-installer-default-admin). The admin panel must funnel such an account to the
 # change-password screen until it sets its own password.

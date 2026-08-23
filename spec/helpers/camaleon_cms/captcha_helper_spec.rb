@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 describe CamaleonCms::CaptchaHelper do
   subject(:helper_instance) { plain_class.new }
 

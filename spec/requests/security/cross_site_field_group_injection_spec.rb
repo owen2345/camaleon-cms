@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # A custom field group carries tenancy in `parent_id` (which site owns it) and placement in
 # `object_class` + `objectid` (which record's admin page displays it). Placement reads are not
 # scoped by site, so a group stamped with another site's placement ids renders on that site's admin

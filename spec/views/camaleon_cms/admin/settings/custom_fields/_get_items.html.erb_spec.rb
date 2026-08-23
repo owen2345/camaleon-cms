@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'camaleon_cms/admin/settings/custom_fields/_get_items.html.erb', type: :view do
   let(:field_elements) do
     {

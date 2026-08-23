@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # The canonical helper resolves params[:user_id] before params[:id]. These specs pin which value
 # wins on each route family, from the perspective of a caller entitled to manage users.
 #

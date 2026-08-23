@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # M26: a stored filesystem_max_size of 0 (blank/zeroed setting) must not reject every upload.
 # cama_size_limit_error is the single gate every caller — core and cama_contact_form's
 # maximum: pass-through — flows through, so the fix lands here.

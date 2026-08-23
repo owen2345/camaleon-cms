@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (object-level authorization + tenancy): media#crop writes a user's avatar from
 # `saved_avatar`. Two boundaries govern that target:
 #   * Object level: writing ANOTHER user's avatar is a user-management write, so it requires

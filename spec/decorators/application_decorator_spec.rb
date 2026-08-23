@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::SiteDecorator, type: :model do
   %i[post_type post site user].each do |klass|
     describe 'Marshal compatibility' do

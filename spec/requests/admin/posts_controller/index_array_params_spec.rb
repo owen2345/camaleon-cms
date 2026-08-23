@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Crafted array/hash query params 500ed the admin post index for a fully authorized user:
 #   ?q[]=x                                 -> Array#downcase NoMethodError
 #   ?s[]=published                         -> no status case matches, then Array#to_sym NoMethodError

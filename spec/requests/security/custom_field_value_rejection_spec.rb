@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M17, scan-and-reject policy): an `editor` custom-field value reaches
 # the frontend verbatim, so the admin save path must refuse -- not rewrite -- a value an untrusted
 # author is not permitted to write. This drives the real posts controller as a non-admin role with

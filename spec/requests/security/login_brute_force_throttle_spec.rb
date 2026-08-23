@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # H1 — admin login has no real brute-force protection. The "under attack" decision is a per-session
 # counter (session["cama_captcha_login"]), so an attacker who drops their session cookie each request
 # always looks fresh, never triggers the captcha, and can guess passwords without limit. The throttle

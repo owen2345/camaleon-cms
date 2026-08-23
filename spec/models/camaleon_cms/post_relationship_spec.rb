@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::PostRelationship, type: :model do
   it 'allows destroying a post with legacy post_relationship rows' do
     post = create(:post)

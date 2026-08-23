@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # H8: `parent_id` doubles as the tenancy foreign key on taxonomies. For a post type it *is* `site_id`
 # (`alias_attribute :site_id, :parent_id`); for a category it is the parent category or the owning
 # post type; for a post tag it is the owning post type. It was mass-assignable on the term `update`

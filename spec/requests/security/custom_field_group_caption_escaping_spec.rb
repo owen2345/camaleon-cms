@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # `CustomFieldGroup#get_caption` builds a caption in the *model* by string interpolation, and
 # `admin/settings/custom_fields/index.html.erb` renders it with `raw`. The `the_title` interpolations
 # were escaped by #1206, but the plain model attributes it splices in were not, so a user who can

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # M24: media-manager (controller) upload errors must run the on_translation hook. The controller
 # chain carries `ct` (restored by #1223), so the concern's cama_uploader_ct routes through it;
 # a non-controller includer (no ct) keeps the I18n default.

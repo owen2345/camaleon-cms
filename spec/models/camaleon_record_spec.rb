@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonRecord, type: :model do
   describe '.polymorphic_class_for' do
     it 'resolves legacy user polymorphic names' do

@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-
-require 'rails_helper'
 require 'rake'
 
 # The upload rules apply at upload time, so files stored before them are never re-examined. This

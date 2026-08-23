@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe ActionView::LookupContext do
   let(:lookup_context) { described_class.new(ActionController::Base.view_paths) }
   let(:view_paths) { instance_double(ActionView::PathSet) }

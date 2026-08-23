@@ -1,5 +1,3 @@
-require 'rails_helper'
-
 # Regression audit M21: #1177 dropped the caller-set @current_site branch from
 # SiteHelper#current_site. Background senders (HtmlMailer, jobs) assign @current_site but had it
 # ignored; on a multisite install, resolution then fell through to the request-based branch and

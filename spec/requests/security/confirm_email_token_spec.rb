@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M16): the password-reset path clears its token on use, but
 # SessionsController#confirm_email marked the email valid and left confirm_email_token in place, so
 # the same confirmation link stayed live indefinitely. Impact is small (it only re-marks an

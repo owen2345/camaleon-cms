@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Regression: sprockets-rails >= 3.5 registers `Sprockets::Rails::AssetUrlProcessor`, which rewrites
 # relative `url(...)` references in CSS to digested asset paths. TinyMCE's bundled skin references its
 # icon font with directory-relative urls (e.g. `url('fonts/tinymce.woff')`). Sprockets resolves

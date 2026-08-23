@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Audit M14 — logout must not rotate the impersonated user's token.
 #
 # cama_logout_user rotates cama_current_user's auth_token so a copied cookie cannot be replayed (M3).

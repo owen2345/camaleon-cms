@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Reproduces audit finding C1: the installer publishes a known default admin
 # password on a permanently public page, and the installer itself is
 # unauthenticated on a fresh deploy. See

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Unit-drives the middleware with a plain downstream app so the emitted header-key casing is
 # asserted exactly (Rack 3 / Falcon require lowercase keys; Puma tolerates mixed case, which is
 # why the request-level spec did not catch the mixed-case regression). Also pins the

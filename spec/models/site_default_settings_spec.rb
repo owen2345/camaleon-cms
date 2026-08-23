@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::SiteDefaultSettings, type: :model do
   describe 'default role seeding of post_content_unfiltered_html' do
     let(:site) { create(:site) }

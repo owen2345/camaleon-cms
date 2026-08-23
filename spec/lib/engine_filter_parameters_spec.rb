@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M9): the engine appends credential-bearing parameter names to
 # config.filter_parameters, so the site-settings SMTP password and S3 keys (submitted as
 # options[email_pass] / options[filesystem_s3_access_key] / options[filesystem_s3_secret_key]) and user

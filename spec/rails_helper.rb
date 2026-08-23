@@ -1,7 +1,11 @@
+# Force the test environment before Rails boots -- spec_helper (required just below) loads the dummy
+# app's environment. An exported RAILS_ENV must never point the suite, whose before(:suite) purges
+# every table, at a development or production database, so assign with `=`, not `||=`: an exported
+# value must not win.
+ENV['RAILS_ENV'] = 'test'
+
 require 'spec_helper'
 
-ENV['RAILS_ENV'] ||= 'test'
-# require_relative '../config/environment'
 # Prevent database truncation if the environment is production
 abort('The Rails environment is running in production mode!') if Rails.env.production?
 # Uncomment the line below in case you have `--require rails_helper` in the `.rspec` file

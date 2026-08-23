@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # The with_eager scope carries the eager-loading contract for every frontend post listing
 # (verify_front_visibility applies it). It MUST stay preload-shaped, never includes/eager_load:
 # an `includes` relation flips to `eager_loading?` the moment a caller chains a join/reference on

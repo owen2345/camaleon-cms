@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Placement reads resolve `object_class` + `objectid` with no `parent_id` filter, so a group's
 # owning site never enters the query. That is what makes a mis-stamped group render on a site that
 # does not own it, and why the repair task re-homes such rows rather than the read path filtering

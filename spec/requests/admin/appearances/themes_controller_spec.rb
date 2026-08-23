@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'Admin::Appearances::ThemesController', type: :request do
   init_site
   let(:admin_user) do

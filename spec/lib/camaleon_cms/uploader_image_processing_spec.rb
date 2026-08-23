@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Unit-drives the SVG→JPG rename convention with real ImageMagick conversions (CI installs
 # ImageMagick). The upload pipeline preserves the client's extension case, so an uppercase
 # `logo.SVG` must take the same convert-to-JPEG path as `logo.svg`; the previous case-sensitive

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 describe 'Posttype frontend', :js do
   before do
     @site = CamaleonCms::Site.first.decorate

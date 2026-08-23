@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Regression: meta rows are keyed by both `objectid` and `object_class`. When a CustomField's
 # numeric id collides with another model's id (e.g. a Post), an unscoped `metas` association
 # leaks the other model's metas, so `get_option('field_key')` returns the wrong value and the

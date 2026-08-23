@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::PostType, type: :model do
   it 'persists values for fields added through post type groups' do
     post_type = create(:post_type, data_options: { has_category: false, has_picture: false })

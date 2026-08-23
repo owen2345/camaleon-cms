@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (scan-and-reject policy, 2026-08-13): post content an untrusted author is not permitted
 # to write is refused with a validation error -- never sanitized or rewritten -- so stored content
 # always equals authored content and the frontend renders it verbatim. Trusted savers (admins, or a

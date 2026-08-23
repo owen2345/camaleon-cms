@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M7): media#upload no longer skips CSRF, so the multipart uploader (which
 # posts outside jquery_ujs' ajax prefilter) must attach the token itself as an authenticity_token
 # form field. The request spec proves the server rejects a token-less upload; this feature spec

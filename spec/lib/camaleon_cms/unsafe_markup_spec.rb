@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Unit coverage for the shared scan-and-reject detector. These reproduce three review findings:
 # a data-*/aria-* attribute smuggling entity-encoded markup past the gate (M1), a mis-encoded value
 # crashing the gate instead of yielding a verdict (M9), and the over-size ceiling / message (M16).

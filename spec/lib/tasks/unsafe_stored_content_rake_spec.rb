@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-
-require 'rails_helper'
 require 'rake'
 
 # Audit M13: the scan_content task must report field_attrs values, not only editor/URI values, so an

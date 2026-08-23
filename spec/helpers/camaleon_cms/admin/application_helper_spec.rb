@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 describe 'CamaleonCms::Admin::ApplicationHelper' do
   describe '#cama_shortcode_print' do
     it 'returns an input tag with auto-select JS attributes' do

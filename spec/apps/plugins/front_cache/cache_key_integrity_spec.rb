@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit Low): front_cache keyed its page cache on `uri.parameterize`, which lowercases and
 # collapses every run of non-alphanumerics to a single '-'. Distinct URLs therefore share a cache
 # entry, so a visitor to one cacheable URL can be served the cached body of another. The key is now a

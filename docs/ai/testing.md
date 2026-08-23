@@ -60,10 +60,12 @@ duplicates.
 
 ## RSpec Conventions
 
+Specs do not `require 'rails_helper'` themselves — `.rspec` (`--require rails_helper`) loads it for
+every spec, and `rails_helper` forces `RAILS_ENV=test` before the app boots. Start a spec at the
+magic comment:
+
 ```ruby
 # frozen_string_literal: true
-
-require 'rails_helper'
 
 RSpec.describe CamaleonCms::Site, type: :model do
   it_behaves_like 'sanitize attrs', model: described_class, attrs_to_sanitize: %i[name description]
@@ -118,8 +120,6 @@ one; pass `site:` explicitly when the test needs a different site.
 ```ruby
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 describe 'Posts workflows for Admin', :js do
   let(:post) { site.the_post('sample-post').decorate }
   let(:post_type_id) { site.post_types.where(slug: :post).pick(:id) }
@@ -159,8 +159,6 @@ Reproducing a reported vulnerability with a failing test before fixing it (requi
 Use a Request Spec to simulate the attack payload.
 ```ruby
 # spec/requests/security/repro_<name>_spec.rb
-require 'rails_helper'
-
 RSpec.describe "Security Reproduction: <Brief Name>", type: :request do
   let(:attacker_payload) { " <PAYLOAD_HERE> " } # e.g., "'); DROP TABLE users; --"
 

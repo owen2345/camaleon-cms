@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M17, scan-and-reject policy): the frontend renders an `editor`
 # custom-field value verbatim and URI-type values into href/src, so a value an untrusted author may
 # not write is refused on save -- never rewritten. Trusted authors (admins, or a role holding

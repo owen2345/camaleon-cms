@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 describe 'the signin process', :js do
   let(:post_type_id) { @site.post_types.where(slug: :page).pick(:id) }
 

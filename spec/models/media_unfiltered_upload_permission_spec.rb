@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # `media_unfiltered_upload` is the manager-family grant that exempts an uploader from the
 # malicious-content scan. It is the third member of the unfiltered-content family, after the
 # per-post-type `post_content_unfiltered_html` and the manager-level `contact_form_unfiltered_html`

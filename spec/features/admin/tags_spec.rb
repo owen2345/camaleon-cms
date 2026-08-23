@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # create a new post tag
 def create_tag
   visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/post_tags"

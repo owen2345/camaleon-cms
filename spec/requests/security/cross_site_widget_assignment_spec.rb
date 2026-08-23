@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # H9: a widget assignment is loaded scoped to the current site's sidebar (the route's :sidebar_id runs
 # through current_site.sidebars.find), but assign#update mass-assigned `sidebar_id` (post_parent) and
 # `widget_id` (visibility) straight from the request body. A widget manager could therefore re-point

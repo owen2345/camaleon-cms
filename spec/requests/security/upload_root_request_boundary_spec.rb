@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # The allowed-root set may only be widened by application code. These pin that a request cannot
 # reach it, so the crop sink (which passes params[:cp_img_path] into the path argument) keeps
 # validating against the default roots.

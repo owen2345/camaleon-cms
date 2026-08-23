@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # H2 — the attack throttle used to key on cama_get_session_id, so a cookieless / cookie-rotating
 # request presented a fresh id every time: the per-key counter never accumulated, the throttle never
 # tripped, and its per-request DB insert ran unbounded. It now keys on the client IP.

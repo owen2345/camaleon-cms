@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # The boot-time canonical registry of shortcode NAMES that makes precise save-time detection
 # possible: the per-request CurrentRequest.shortcodes list is empty at an admin save, so the gate
 # consults this process-wide set instead. Detection mirrors the engine's cama_reg_shortcode regex

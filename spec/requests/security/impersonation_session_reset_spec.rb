@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # H6 — Impersonation residue must not escalate a later login to admin.
 #
 # session_switch_user stashes the admin's raw auth cookie in

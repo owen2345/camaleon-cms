@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::UploaderPathSecurity do
   let(:subject_class) { Class.new { include CamaleonCms::UploaderPathSecurity }.new }
   let(:root) { Rails.public_path.join('tmp', 'purge_spec').to_s }

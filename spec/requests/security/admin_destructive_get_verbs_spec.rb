@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 include CamaleonCms::PluginsHelper
 
 # Security (audit 2026-08-11 M6, follow-up to #1252): state-changing admin endpoints were plain GET

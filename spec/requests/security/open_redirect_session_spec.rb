@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'Security: Open Redirect in SessionHelper', type: :request do
   let(:site) { CamaleonCms::Site.first }
   let(:user) { create(:user, site: site, password: 'password', password_confirmation: 'password') }

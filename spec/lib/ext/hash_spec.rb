@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe Hash do
   # Both methods carry a `gsub('"', '\"')`, which escapes for a Ruby string literal rather than for
   # the context each method actually emits. A backslash escapes nothing in HTML, so the quote still

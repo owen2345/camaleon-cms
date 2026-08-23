@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit M6): the admin-action-verb-safety capability requires that a state-changing admin
 # endpoint is never reachable over a CSRF-exempt verb (GET/HEAD). The converted endpoints are
 # pinned one-by-one in spec/requests/security/admin_destructive_get_verbs_spec.rb; this walks the

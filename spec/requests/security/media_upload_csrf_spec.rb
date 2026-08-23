@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (audit 2026-08-11 M7): media#upload carried
 # `skip_before_action :verify_authenticity_token, only: :upload`, so a forged cross-site POST could
 # drive a signed-in admin's browser to upload arbitrary files with no CSRF token. The skip is gone;

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 def create_site
   visit "#{cama_root_relative_path}/admin/settings/sites"
   expect(page).to have_text('List Sites')

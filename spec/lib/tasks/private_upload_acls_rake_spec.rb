@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-
-require 'rails_helper'
 require 'rake'
 
 RSpec.describe 'private_upload_acls Rake task', type: :task do

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Security (gate-content-shortcodes): a shortcode in authored content triggers theme/plugin code
 # that emits arbitrary HTML/JS at render, which the save-time content scan cannot judge (the
 # shortcode registry is populated per frontend request, output is dynamic, and after expansion the

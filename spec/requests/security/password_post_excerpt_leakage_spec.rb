@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 include CamaleonCms::PluginsHelper
 
 # Security (audit 2026-08-11 M1): the visibility_post password gate covered only `the_content`, while

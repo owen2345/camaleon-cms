@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Guards the contract that both uploader entry points -- CamaleonCms::RuntimeUploaderConcern
 # (controllers) and CamaleonCms::UploaderHelper (views, ActiveJobs, standalone objects) --
 # resolve to one shared implementation, so an upload fix cannot land in one and not the other.

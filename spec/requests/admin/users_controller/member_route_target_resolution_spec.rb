@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # The member routes (/admin/users/:id) carry the path segment in params[:id], which makes
 # params[:user_id] the injectable key here — the mirror image of the nested updated_ajax route,
 # where the path segment lands in params[:user_id] and params[:id] is the injectable one.

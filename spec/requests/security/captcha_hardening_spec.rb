@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # H4 — an unauthenticated GET /captcha?len= must not build an unbounded image, and
 # H3 — the session must hold only a single active challenge (the accumulation of every
 # issued answer, combined with an attacker-shrinkable length, made the captcha bypassable).

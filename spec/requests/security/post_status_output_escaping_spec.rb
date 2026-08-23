@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # `PostDecorator#the_status` maps the five canonical statuses to I18n labels and falls through to the
 # raw column value for anything else, building its markup by string interpolation. Three admin views
 # render the result through `raw`, so a status that is not canonical is emitted as live markup.

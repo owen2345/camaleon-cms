@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::TermTaxonomyDecorator do
   describe '#the_title' do
     it 'HTML-escapes the taxonomy name to prevent stored XSS in raw sinks (breadcrumb, nav menu)' do

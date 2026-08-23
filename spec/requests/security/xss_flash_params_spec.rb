@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'Security: XSS via params[:info] in flash messages', type: :request do
   let(:site) { CamaleonCms::Site.first }
   let(:admin_role) { site.user_roles.find_by!(slug: 'admin') }

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # `set_default_user_roles` writes every `ROLES` key into the admin role's `_post_type_` and
 # `_manager_` metas, but only when the site is created. A key added to `ROLES` afterwards is
 # therefore absent from those metas on every site seeded earlier, and the role editor used to render

@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-
-require 'rails_helper'
 require 'camaleon_cms/assets_precompile'
 require 'tmpdir'
 

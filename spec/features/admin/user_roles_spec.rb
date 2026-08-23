@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # create a new user role
 def create_role
   visit "#{cama_root_relative_path}/admin/user_roles"

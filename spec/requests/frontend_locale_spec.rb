@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # The frontend resolves its locale from ?locale=, the session language (set via
 # ?cama_set_language=), and the site's languages. A non-scalar value for either
 # param must degrade to the fallback chain instead of crashing the request.

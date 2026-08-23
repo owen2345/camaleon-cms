@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe 'STI discriminator compatibility', type: :model do
   let(:conn) { ActiveRecord::Base.connection }
 

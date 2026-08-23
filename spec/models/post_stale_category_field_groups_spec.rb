@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Regression: unchecking a category in the post form destroys the term relationship in
 # update_categories, but a LOADED categories association on the post still contained the removed id.
 # get_field_groups unions categories.map(&:id) with the passed ids, so the removed category's field

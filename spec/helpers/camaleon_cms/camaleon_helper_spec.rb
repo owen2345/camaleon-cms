@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 RSpec.describe CamaleonCms::CamaleonHelper, type: :helper do
   describe '#cama_is_admin_request?' do
     it 'returns true when the admin compatibility helper exposes a frontend locale' do

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Whether an upload is scanned is an authorization question. Before `media_unfiltered_upload` it
 # was answered by a filesystem predicate: any source already under `Rails.public_path` skipped the
 # scan, on the reasoning that those bytes are already served. That holds for the bytes but not for

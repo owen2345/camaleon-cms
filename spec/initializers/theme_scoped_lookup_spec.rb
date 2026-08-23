@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Pins the deliberate #1183 isolation (regression audit M30, kept by maintainer decision
 # 2026-08-09): when an explicit `render prefixes:` list is ENTIRELY theme-scoped, the lookup is
 # restricted to those prefixes and the controller/global `self.prefixes` are NOT merged, so a

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # Regression: on Rails 7.1+ has_secure_password generates a `password_reset_token` instance method that
 # shadows Camaleon's same-named DB column. The mailer emitted the method's signed token while
 # SessionsController#forgot looked the account up by the column, so every emitted reset link

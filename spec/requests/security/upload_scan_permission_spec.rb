@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
-
 # The module-level contract is pinned in spec/lib/camaleon_cms/upload_scan_permission_spec.rb.
 # This pins it where it actually matters: through the real controller, with the real request
 # context that AdminController populates, for both sides of the grant.
