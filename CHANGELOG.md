@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Security fix:** The bundled `front_cache` plugin ran `Rails.cache.clear` on every POST/PATCH request, emptying the shared cache store and resetting every cache-based counter — including the per-IP login brute-force counter, silently defeating it. Invalidation now bumps the version folded into its own page-cache keys (any store) and physically deletes only the site's own entries where the store supports it. [#1279](https://github.com/owen2345/camaleon-cms/pull/1279).
+  - **Breaking change:** the *Invalidate the cache instead of deleting it* checkbox is removed from the front_cache settings — invalidate-only is now the only behavior, and a stored `invalidate_only` value is ignored.
+
 - **Bug fix:** The engine no longer force-requires `factory_bot_rails` nor appends its `spec/factories` to the application's factory paths — a host app loading the gem from a path/git checkout while defining its own same-named factory (e.g. `:site`) crashed at boot with `FactoryBot::DuplicateDefinitionError`. Released-gem installs never received the factories (`spec/` is not packaged). [#1280](https://github.com/owen2345/camaleon-cms/pull/1280).
   - **Notes for plugin developers:** a camaleon-backed test harness that used the engine's factories from a checkout must now set `FactoryBot.definition_file_paths` itself (see `docs/ai/testing.md`).
 
