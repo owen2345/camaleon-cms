@@ -118,6 +118,52 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     end
   end
 
+  describe '#front_cache_front_before_load' do
+    # Fuller harness for the serve path (the pattern of password_post_cache_decision_spec).
+    let(:serve_harness_class) do
+      Class.new do
+        include Plugins::FrontCache::FrontCacheHelper
+        attr_accessor :current_site, :request, :response, :flash
+
+        def signin?
+          false
+        end
+
+        def form_authenticity_token
+          'tok'
+        end
+
+        def hooks_run(*); end
+
+        def render(*); end
+
+        def front_cache_plugin_cache_key
+          'k'
+        end
+      end
+    end
+    let(:serve_host) do
+      allow(site).to receive(:get_option).with('refresh_cache').and_return(false)
+      allow(Rails.env).to receive_messages(development?: false, test?: false)
+      serve_harness_class.new.tap do |h|
+        h.current_site = site
+        h.request = double('request', get?: true) # rubocop:disable RSpec/VerifiedDoubles
+        h.response = double('response', headers: {}) # rubocop:disable RSpec/VerifiedDoubles
+        h.flash = {}
+      end
+    end
+
+    it 'reads the stored page exactly once when serving it (no exist?-then-get window)' do
+      host.send(:front_cache_plugin_cache_create, 'k', 'cached body')
+      allow(store).to receive(:read).and_call_original
+
+      serve_host.front_cache_front_before_load
+
+      expect(store).to have_received(:read).once
+      expect(serve_host.response.headers['PLUGIN_FRONT_CACHE']).to eq('TRUE')
+    end
+  end
+
   describe '#front_cache_purge_stored_pages (the explicit admin "Clean cache" action)' do
     it "removes the site's stored pages but not another site's, nor entries it does not own" do
       host.send(:front_cache_plugin_cache_create, 'key', 'cached body')

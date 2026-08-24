@@ -24,8 +24,8 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
         'k'
       end
 
-      def front_cache_exist?(_key)
-        false
+      def front_cache_get(_key)
+        nil
       end
     end
   end

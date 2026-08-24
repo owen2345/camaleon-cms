@@ -19,10 +19,14 @@ module Plugins
 
         cache_key = front_cache_plugin_cache_key
         @caches = current_site.get_meta('front_cache_elements')
-        if flash.keys.blank? && front_cache_exist?(cache_key) # recover cache item
+        # Single read: the old exist?-then-get pair issued two store reads, and an entry vanishing
+        # between them (a concurrent admin purge, TTL expiry) left .gsub running on nil — a
+        # visitor-facing 500.
+        cached_body = flash.keys.blank? ? front_cache_get(cache_key) : nil
+        if cached_body # recover cache item
           Rails.logger.info "Camaleon CMS - readed cache: #{front_cache_plugin_get_path(cache_key)}"
           response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE'
-          args = { data: front_cache_get(cache_key).gsub('{{form_authenticity_token}}', form_authenticity_token) }
+          args = { data: cached_body.gsub('{{form_authenticity_token}}', form_authenticity_token) }
           hooks_run('front_cache_reading_cache', args)
           # rubocop:disable Rails/OutputSafety -- This replays a trusted cached page body that was already rendered by Rails.
           render html: args[:data].html_safe
