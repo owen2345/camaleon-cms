@@ -24,7 +24,8 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     end
   end
   let(:store) { ActiveSupport::Cache::MemoryStore.new }
-  let(:meta) { { paths: [], posts: [], post_types: [], skip_posts: [], home: true } }
+  # the settings hash: only ever read (never written) by the invalidation paths under test
+  let(:meta) { { paths: [] } }
   let(:versions) { { 'front_cache_counter' => nil } }
   let(:site) do
     site = double('site', id: 1) # rubocop:disable RSpec/VerifiedDoubles -- decorated site quacks many classes
@@ -201,9 +202,11 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
 
   describe '#front_cache_post_requests' do
     def run_request_lifecycle(counter_key)
-      # the per-IP counter pattern of CamaleonCms::CaptchaHelper#cama_captcha_increment_attack
-      counted = Rails.cache.increment(counter_key, 1, expires_in: 15.minutes, raw: true)
-      Rails.cache.write(counter_key, 1, expires_in: 15.minutes, raw: true) if counted.nil?
+      # the per-IP counter pattern of CamaleonCms::CaptchaHelper#cama_captcha_increment_attack,
+      # sharing its real rolling window so the two cannot drift apart silently
+      window = CamaleonCms::CaptchaHelper::CAMA_ATTACK_WINDOW
+      counted = Rails.cache.increment(counter_key, 1, expires_in: window, raw: true)
+      Rails.cache.write(counter_key, 1, expires_in: window, raw: true) if counted.nil?
       host.front_cache_post_requests
     end
 

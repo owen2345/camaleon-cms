@@ -9,7 +9,9 @@ module Plugins
       FRONT_CACHE_EXPIRATION = 1.week
       # cache all pages configured in this plugin's settings for public users
       def front_cache_front_before_load
-        if current_site.get_option('refresh_cache') # clear cache every restart server unless option checked in settings
+        # invalidate the site's cached pages on the first request after a (re)start, unless
+        # preserve_cache_on_restart is checked in the plugin settings
+        if current_site.get_option('refresh_cache')
           front_cache_clean unless current_site.get_meta('front_cache_elements')[:preserve_cache_on_restart]
           current_site.set_option('refresh_cache', false)
         end
