@@ -10,10 +10,10 @@
 # lockout. Invalidation now bumps the cache_counter version folded into every page-cache key
 # (store-agnostic) and physically deletes only this site's own `pages/…` entries, best-effort.
 #
-# These specs drive the helper on a harness class against a real MemoryStore because request specs
-# cannot observe cross-request Rails.cache: the per-request LocalCache hides one request's writes
-# from the next. Per-request lifecycles are simulated with with_local_cache and the assertions read
-# the underlying store.
+# These specs drive the helper on a harness class against a real MemoryStore and assert on the
+# underlying store. (MemoryStore#with_local_cache exists only since Rails 8.1.2, so the per-request
+# LocalCache is not simulated here — it is write-through, so it does not change what the store
+# holds between simulated requests.)
 RSpec.describe Plugins::FrontCache::FrontCacheHelper do
   let(:harness_class) do
     Class.new do
@@ -91,12 +91,10 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
 
   describe '#front_cache_post_requests' do
     def run_request_lifecycle(counter_key)
-      store.with_local_cache do
-        # the exact per-IP counter pattern of CamaleonCms::CaptchaHelper#cama_captcha_increment_attack
-        counted = Rails.cache.increment(counter_key, 1, expires_in: 15.minutes, raw: true)
-        Rails.cache.write(counter_key, 1, expires_in: 15.minutes, raw: true) if counted.nil?
-        host.front_cache_post_requests
-      end
+      # the per-IP counter pattern of CamaleonCms::CaptchaHelper#cama_captcha_increment_attack
+      counted = Rails.cache.increment(counter_key, 1, expires_in: 15.minutes, raw: true)
+      Rails.cache.write(counter_key, 1, expires_in: 15.minutes, raw: true) if counted.nil?
+      host.front_cache_post_requests
     end
 
     it 'lets a per-IP counter accumulate across POST request lifecycles while pages are invalidated' do
