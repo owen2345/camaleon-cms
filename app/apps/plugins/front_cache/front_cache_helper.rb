@@ -107,19 +107,32 @@ module Plugins
         front_cache_clean
       end
 
-      # clear all frontend cache items
+      # invalidate all cached pages of the current site
       def front_cache_clean
         @caches = current_site.get_meta('front_cache_elements')
-        if @caches[:invalidate_only]
-          @caches[:cache_counter] += 1
-        else
-          Rails.cache.clear
-          @caches[:cache_counter] = 0
-        end
+        # Security: never Rails.cache.clear — the store is shared, and clearing it on every POST also
+        # destroyed unrelated entries such as the per-IP login brute-force counter (CaptchaHelper),
+        # silently defeating it. Bumping the version folded into every page-cache key
+        # (front_cache_plugin_get_path) retires all of this site's pages on any store; .to_i heals a
+        # legacy meta whose counter was never initialized.
+        @caches[:cache_counter] = @caches[:cache_counter].to_i + 1
         current_site.set_meta('front_cache_elements', @caches)
+        front_cache_delete_retired_entries
       end
 
       private
+
+      # Best-effort physical reclamation of this site's own retired page entries — every generation,
+      # so each clean also sweeps orphans (crashes, the pre-2017 nil-counter namespace `pages//…`).
+      # Anchored Regexp, not a glob string: FileStore/MemoryStore treat a String matcher as an
+      # unanchored regex, so 'pages/0/1/*' would also match site 11. MemCacheStore raises
+      # NotImplementedError and RedisCacheStore accepts only glob Strings (ArgumentError); those
+      # stores fall back to the version bump plus their own eviction.
+      def front_cache_delete_retired_entries
+        Rails.cache.delete_matched(%r{\Apages/[^/]*/#{current_site.id}/})
+      rescue NotImplementedError, ArgumentError
+        nil
+      end
 
       def front_cache_exist?(key)
         !Rails.cache.read(front_cache_plugin_get_path(key)).nil?

@@ -19,7 +19,6 @@ module Plugins
             cache_login: params[:cache][:cache_login],
             home: params[:cache][:home],
             preserve_cache_on_restart: params[:cache][:preserve_cache_on_restart],
-            invalidate_only: params[:cache][:invalidate_only],
             cache_counter: current_site.get_meta('front_cache_elements')[:cache_counter] || 0
           }
         )
