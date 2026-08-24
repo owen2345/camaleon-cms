@@ -62,32 +62,33 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
       expect(host.send(:front_cache_exist?, 'key')).to be false
     end
 
-    it 'physically removes the retired page entries of the site' do
-      host.send(:front_cache_plugin_cache_create, 'key', 'cached body')
-      expect(store.read('pages/0/1/key')).to eq('cached body')
+    it 'overwrites the retired entry in place when the page is re-cached (one entry per URL)' do
+      host.send(:front_cache_plugin_cache_create, 'key', 'old body')
+      expect(store.read('cama_front_cache/1/key', version: 0)).to eq('old body')
 
       host.front_cache_clean
+      host.send(:front_cache_plugin_cache_create, 'key', 'new body')
 
-      expect(store.read('pages/0/1/key')).to be_nil
+      # the single physical entry now holds only the new generation
+      expect(store.read('cama_front_cache/1/key', version: 0)).to be_nil
+      expect(store.read('cama_front_cache/1/key', version: 1)).to eq('new body')
     end
 
     it 'does not touch the page cache of another site, including one whose id shares a digit prefix' do
-      store.write('pages/0/11/other-site-key', 'other site body')
+      store.write('cama_front_cache/11/other-site-key', 'other site body')
 
       host.front_cache_clean
 
-      expect(store.read('pages/0/11/other-site-key')).to eq('other site body')
+      expect(store.read('cama_front_cache/11/other-site-key')).to eq('other site body')
     end
 
-    [NotImplementedError, ArgumentError].each do |error_class|
-      it "still invalidates without clearing when the store rejects matcher deletion with #{error_class}" do
-        allow(store).to receive(:delete_matched).and_raise(error_class)
-        store.write('unrelated-entry', 'kept')
+    it 'performs no store enumeration on the request path' do
+      allow(store).to receive(:delete_matched)
 
-        expect { host.front_cache_clean }.not_to raise_error
-        expect(stored_version).to eq(1)
-        expect(store.read('unrelated-entry')).to eq('kept')
-      end
+      host.front_cache_clean
+
+      expect(store).not_to have_received(:delete_matched)
+      expect(stored_version).to eq(1)
     end
 
     it 'starts from version zero on a site that has never invalidated' do
@@ -103,6 +104,41 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
 
       expect(site).not_to have_received(:set_meta).with('front_cache_elements', anything)
       expect(stored_version).to eq(1)
+    end
+  end
+
+  describe '#front_cache_purge_stored_pages (the explicit admin "Clean cache" action)' do
+    it "removes the site's stored pages but not another site's, nor entries it does not own" do
+      host.send(:front_cache_plugin_cache_create, 'key', 'cached body')
+      store.write('cama_front_cache/11/other-site-key', 'other site body')
+      store.write('cama_captcha_attack:1:203.0.113.9:login', 3, raw: true)
+
+      host.send(:front_cache_purge_stored_pages)
+
+      expect(store.read('cama_front_cache/1/key', version: 0)).to be_nil
+      expect(store.read('cama_front_cache/11/other-site-key')).to eq('other site body')
+      expect(store.read('cama_captcha_attack:1:203.0.113.9:login', raw: true).to_i).to eq(3)
+    end
+
+    it 'purges on a store configured with a namespace (key_matcher composes a leading ^)' do
+      namespaced = ActiveSupport::Cache::MemoryStore.new(namespace: 'app1')
+      allow(Rails).to receive(:cache).and_return(namespaced)
+      host.send(:front_cache_plugin_cache_create, 'key', 'cached body')
+      expect(namespaced.read('cama_front_cache/1/key', version: 0)).to eq('cached body')
+
+      host.send(:front_cache_purge_stored_pages)
+
+      expect(namespaced.read('cama_front_cache/1/key', version: 0)).to be_nil
+    end
+
+    [NotImplementedError, ArgumentError, RuntimeError].each do |error_class|
+      it "logs and continues when the store raises #{error_class}" do
+        allow(store).to receive(:delete_matched).and_raise(error_class)
+        allow(Rails.logger).to receive(:warn)
+
+        expect { host.send(:front_cache_purge_stored_pages) }.not_to raise_error
+        expect(Rails.logger).to have_received(:warn).with(/front_cache purge skipped/)
+      end
     end
   end
 

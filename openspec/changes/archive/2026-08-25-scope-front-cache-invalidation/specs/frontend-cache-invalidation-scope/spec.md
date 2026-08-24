@@ -32,8 +32,8 @@ including their remaining TTL semantics.
 
 Invalidation SHALL make every page previously cached for the site unservable from the cache
 (subsequent lookups miss and pages are re-cached fresh), regardless of which cache store backs
-`Rails.cache`. This SHALL be achieved by a mechanism available on every store (a version component
-folded into the page-cache key), not by an operation only some stores support.
+`Rails.cache`. This SHALL be achieved by a mechanism available on every store (a version compared
+on every page-cache read), not by an operation only some stores support.
 
 #### Scenario: A cached page is not served after invalidation
 
@@ -45,20 +45,36 @@ folded into the page-cache key), not by an operation only some stores support.
 - **WHEN** the configured cache store does not support matcher-based deletion
 - **THEN** invalidation neither raises nor clears the store, and previously cached pages still miss
 
-### Requirement: Physical cleanup removes only the site's own retired entries
+### Requirement: Stored page entries are bounded and purged only site-scoped, off the request path
 
-Where the cache store supports matcher-based deletion, invalidation SHALL physically delete the
-retired page entries of the invalidating site only — entries belonging to other sites on the same
-install, and entries outside front_cache's page namespace, SHALL NOT be deleted. On stores without
-that support, retired entries are left to the store's expiry/eviction.
+Stored page entries SHALL be bounded at one entry per cached URL: re-caching a page after an
+invalidation SHALL overwrite the retired entry in place rather than accumulating an entry per
+invalidation. A physical purge of stored entries SHALL run only on the explicit admin clean action —
+never on the per-request invalidation path, which SHALL perform no store enumeration. The purge
+SHALL delete only entries under front_cache's own distinctive, site-scoped key namespace (including
+when the store is configured with a `namespace:` option), SHALL NOT delete entries of other sites or
+of other cache users, and SHALL be best-effort: a store that cannot enumerate keys leaves entries to
+its own expiry/eviction without breaking the admin action.
 
-#### Scenario: The site's stale page entries are reclaimed
+#### Scenario: A re-cached page overwrites its retired entry
 
-- **WHEN** front_cache invalidation runs on a store that supports matcher-based deletion
-- **THEN** the site's previously cached page entries are removed from the underlying store
+- **WHEN** a page is cached, the site invalidates, and the page is cached again
+- **THEN** the store holds a single entry for that page, containing only the new body
+
+#### Scenario: The admin clean action purges the site's stored pages
+
+- **WHEN** the admin clean action runs on a store that supports matcher-based deletion — with or
+  without a configured store `namespace:`
+- **THEN** the site's stored page entries are removed from the underlying store
 
 #### Scenario: Another site's page cache is untouched
 
 - **WHEN** two sites (including sites whose ids share a digit prefix, such as 1 and 11) have cached
-  pages and one site invalidates
+  pages and one site invalidates or purges
 - **THEN** the other site's cached page entries remain in the store
+
+#### Scenario: A store error during the purge does not break the admin action
+
+- **WHEN** the store raises on matcher-based deletion (unsupported or store-specific errors)
+- **THEN** the purge is skipped with a logged warning and the action completes; the version bump has
+  already retired the pages

@@ -110,57 +110,62 @@ module Plugins
       def front_cache_clean
         # Security: never Rails.cache.clear — the store is shared, and clearing it on every POST also
         # destroyed unrelated entries such as the per-IP login brute-force counter (CaptchaHelper),
-        # silently defeating it. Bumping the version folded into every page-cache key
-        # (front_cache_plugin_get_path) retires all of this site's pages on any store.
+        # silently defeating it. Bumping the version compared on every page-cache read (ActiveSupport
+        # `version:`) retires all of this site's pages on any store, with no store enumeration.
         #
         # The version lives in its own meta key, apart from the front_cache_elements settings hash:
         # save_settings rewrites that hash wholesale from an earlier read, so a version stored inside
         # it could be reverted by a settings save racing a concurrent bump — and a reverted version
-        # resurrects a retired generation as servable on stores where retired entries are not
-        # physically deleted.
+        # resurrects a retired generation as servable.
         current_site.set_meta('front_cache_counter', front_cache_version + 1)
-        front_cache_delete_retired_entries
       end
 
       private
 
       # Current page-cache version of the site. `.to_i` covers a site that has never invalidated
-      # (missing meta) as version 0.
+      # (missing meta) as version 0 — it must never be nil: an entry written with `version: nil`
+      # would match ANY requested version and become immune to invalidation.
       def front_cache_version
         current_site.get_meta('front_cache_counter').to_i
       end
 
-      # Best-effort physical reclamation of this site's own retired page entries — every generation,
-      # so each clean also sweeps orphans (crashes, the pre-2017 nil-counter namespace `pages//…`).
-      # Anchored Regexp, not a glob string: FileStore/MemoryStore treat a String matcher as an
-      # unanchored regex, so 'pages/0/1/*' would also match site 11. MemCacheStore raises
-      # NotImplementedError and RedisCacheStore accepts only glob Strings (ArgumentError); those
-      # stores fall back to the version bump plus their own eviction.
-      def front_cache_delete_retired_entries
-        Rails.cache.delete_matched(%r{\Apages/[^/]*/#{current_site.id}/})
-      rescue NotImplementedError, ArgumentError
-        nil
+      # Physically remove every stored page entry of the current site. Only the explicit admin
+      # "Clean cache" action calls this — per-request invalidation is the version bump alone, so the
+      # request path never pays a store walk. The pattern is ^-anchored on purpose: with a store
+      # :namespace, ActiveSupport's key_matcher recognizes only a leading ^ (composing /^ns:<rest>/);
+      # any other source becomes /^ns:.*<source>/, where \A can never match, silently deleting
+      # nothing. Keys are single-line, so ^ cannot over-match. Best-effort: delete_matched is
+      # optional store API (MemCacheStore raises NotImplementedError, RedisCacheStore accepts only
+      # glob Strings, third-party stores raise their own classes) and the version bump has already
+      # retired the pages, so any store error is logged and swallowed.
+      def front_cache_purge_stored_pages
+        Rails.cache.delete_matched(%r{^cama_front_cache/#{current_site.id}/})
+      rescue StandardError, NotImplementedError => e
+        Rails.logger.warn "Camaleon CMS - front_cache purge skipped: #{e.class}: #{e.message}"
       end
 
       def front_cache_exist?(key)
-        !Rails.cache.read(front_cache_plugin_get_path(key)).nil?
+        !front_cache_get(key).nil?
       end
 
       def front_cache_get(key)
-        Rails.cache.read(front_cache_plugin_get_path(key))
+        Rails.cache.read(front_cache_plugin_get_path(key), version: front_cache_version)
       end
 
+      # One entry per URL: the version is stored inside the entry, so re-caching a page after an
+      # invalidation overwrites the retired body in place on every store — storage is bounded at one
+      # entry per cached URL instead of one per URL per invalidation.
       def front_cache_plugin_cache_create(key, content)
-        Rails.cache.write(front_cache_plugin_get_path(key), content)
+        Rails.cache.write(front_cache_plugin_get_path(key), content, version: front_cache_version)
       end
 
-      # return the physical path of cache directory
+      # return the cache key of a stored page
       # key: (string, optional) the key of the cached page
       def front_cache_plugin_get_path(key = nil)
         if key.nil?
-          "pages/#{front_cache_version}/#{current_site.id}"
+          "cama_front_cache/#{current_site.id}"
         else
-          "pages/#{front_cache_version}/#{current_site.id}/#{key}"
+          "cama_front_cache/#{current_site.id}/#{key}"
         end
       end
 

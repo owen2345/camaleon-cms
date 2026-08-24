@@ -28,6 +28,7 @@ module Plugins
       def clean_cache
         flash[:notice] = t('plugin.front_cache.message.cache_destroyed').to_s
         front_cache_clean
+        front_cache_purge_stored_pages
         redirect_to(request.referer || '/admin/plugins')
       end
     end
