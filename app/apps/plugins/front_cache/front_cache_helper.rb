@@ -78,8 +78,7 @@ module Plugins
             post_types: [current_site.post_types.where(slug: 'page').first.id],
             skip_posts: [],
             home: true,
-            cache_login: true,
-            cache_counter: 0
+            cache_login: true
           }
         )
       end
@@ -109,18 +108,27 @@ module Plugins
 
       # invalidate all cached pages of the current site
       def front_cache_clean
-        @caches = current_site.get_meta('front_cache_elements')
         # Security: never Rails.cache.clear — the store is shared, and clearing it on every POST also
         # destroyed unrelated entries such as the per-IP login brute-force counter (CaptchaHelper),
         # silently defeating it. Bumping the version folded into every page-cache key
-        # (front_cache_plugin_get_path) retires all of this site's pages on any store; .to_i heals a
-        # legacy meta whose counter was never initialized.
-        @caches[:cache_counter] = @caches[:cache_counter].to_i + 1
-        current_site.set_meta('front_cache_elements', @caches)
+        # (front_cache_plugin_get_path) retires all of this site's pages on any store.
+        #
+        # The version lives in its own meta key, apart from the front_cache_elements settings hash:
+        # save_settings rewrites that hash wholesale from an earlier read, so a version stored inside
+        # it could be reverted by a settings save racing a concurrent bump — and a reverted version
+        # resurrects a retired generation as servable on stores where retired entries are not
+        # physically deleted.
+        current_site.set_meta('front_cache_counter', front_cache_version + 1)
         front_cache_delete_retired_entries
       end
 
       private
+
+      # Current page-cache version of the site. `.to_i` covers a site that has never invalidated
+      # (missing meta) as version 0.
+      def front_cache_version
+        current_site.get_meta('front_cache_counter').to_i
+      end
 
       # Best-effort physical reclamation of this site's own retired page entries — every generation,
       # so each clean also sweeps orphans (crashes, the pre-2017 nil-counter namespace `pages//…`).
@@ -150,9 +158,9 @@ module Plugins
       # key: (string, optional) the key of the cached page
       def front_cache_plugin_get_path(key = nil)
         if key.nil?
-          "pages/#{@caches[:cache_counter]}/#{current_site.id}"
+          "pages/#{front_cache_version}/#{current_site.id}"
         else
-          "pages/#{@caches[:cache_counter]}/#{current_site.id}/#{key}"
+          "pages/#{front_cache_version}/#{current_site.id}/#{key}"
         end
       end
 

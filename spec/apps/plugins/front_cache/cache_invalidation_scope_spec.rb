@@ -24,14 +24,23 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     end
   end
   let(:store) { ActiveSupport::Cache::MemoryStore.new }
-  let(:meta) { { paths: [], posts: [], post_types: [], skip_posts: [], home: true, cache_counter: 0 } }
+  let(:meta) { { paths: [], posts: [], post_types: [], skip_posts: [], home: true } }
+  let(:versions) { { 'front_cache_counter' => nil } }
   let(:site) do
     site = double('site', id: 1) # rubocop:disable RSpec/VerifiedDoubles -- decorated site quacks many classes
     allow(site).to receive(:get_meta).with('front_cache_elements').and_return(meta)
     allow(site).to receive(:set_meta).with('front_cache_elements', anything) { |_key, value| meta.replace(value) }
+    allow(site).to receive(:get_meta).with('front_cache_counter') { versions['front_cache_counter'] }
+    allow(site).to receive(:set_meta).with('front_cache_counter', anything) do |_key, value|
+      versions['front_cache_counter'] = value
+    end
     site
   end
   let(:host) { harness_class.new.tap { |h| h.current_site = site } }
+
+  def stored_version
+    versions['front_cache_counter']
+  end
 
   before { allow(Rails).to receive(:cache).and_return(store) }
 
@@ -45,7 +54,6 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     end
 
     it 'still invalidates the cached pages of the site' do
-      host.instance_variable_set(:@caches, meta)
       host.send(:front_cache_plugin_cache_create, 'key', 'cached body')
       expect(host.send(:front_cache_exist?, 'key')).to be true
 
@@ -55,8 +63,8 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     end
 
     it 'physically removes the retired page entries of the site' do
-      host.instance_variable_set(:@caches, meta)
       host.send(:front_cache_plugin_cache_create, 'key', 'cached body')
+      expect(store.read('pages/0/1/key')).to eq('cached body')
 
       host.front_cache_clean
 
@@ -77,17 +85,24 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
         store.write('unrelated-entry', 'kept')
 
         expect { host.front_cache_clean }.not_to raise_error
-        expect(meta[:cache_counter]).to eq(1)
+        expect(stored_version).to eq(1)
         expect(store.read('unrelated-entry')).to eq('kept')
       end
     end
 
-    it 'heals a legacy meta whose cache counter was never initialized' do
-      meta[:cache_counter] = nil
+    it 'starts from version zero on a site that has never invalidated' do
+      expect(stored_version).to be_nil
 
       host.front_cache_clean
 
-      expect(meta[:cache_counter]).to eq(1)
+      expect(stored_version).to eq(1)
+    end
+
+    it 'never writes the settings meta, so a settings save cannot revert the version' do
+      host.front_cache_clean
+
+      expect(site).not_to have_received(:set_meta).with('front_cache_elements', anything)
+      expect(stored_version).to eq(1)
     end
   end
 
@@ -106,7 +121,7 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
       2.times { run_request_lifecycle(counter_key) }
 
       expect(store.read(counter_key, raw: true).to_i).to eq(2)
-      expect(meta[:cache_counter]).to eq(2)
+      expect(stored_version).to eq(2)
     end
 
     it 'does not invalidate on GET requests' do
@@ -114,7 +129,7 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
 
       host.front_cache_post_requests
 
-      expect(meta[:cache_counter]).to eq(0)
+      expect(stored_version).to be_nil
     end
   end
 end

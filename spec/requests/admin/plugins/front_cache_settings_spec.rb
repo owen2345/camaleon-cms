@@ -37,6 +37,18 @@ RSpec.describe 'Plugin Front Cache Settings', type: :request do
       expect(response).to redirect_to(%r{front_cache/settings})
       expect(flash[:notice]).to be_present
     end
+
+    it 'cannot revert the invalidation version: the save only advances it (via its own POST bump)' do
+      sign_in_as(admin_user, site: current_site)
+      current_site.set_meta('front_cache_counter', 7)
+
+      post '/admin/plugins/front_cache/settings', params: { cache: { paths: ['/test'], home: '1' } }
+
+      # The settings POST itself triggers the admin_before_load invalidation bump (7 -> 8); the
+      # save must not write the version back (the old wholesale settings write could revert a
+      # concurrent bump, resurrecting a retired generation as servable).
+      expect(current_site.get_meta('front_cache_counter')).to eq(8)
+    end
   end
 
   context 'when user does NOT have plugins management permission' do
