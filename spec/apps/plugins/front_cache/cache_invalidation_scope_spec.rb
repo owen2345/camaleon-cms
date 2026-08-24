@@ -5,10 +5,12 @@
 # front_cache_post_requests is hooked on front_before_load AND admin_before_load, and on every
 # POST/PATCH it called front_cache_clean, which (unless the opt-in invalidate_only mode was set) ran
 # Rails.cache.clear — emptying the SHARED cache store. Every Rails.cache-based counter was destroyed
-# on each POST: core's per-IP login brute-force counter (CaptchaHelper, login-brute-force-protection)
-# was reset by the very failed-login POST it was counting, silently defeating the captcha gate and
-# lockout. Invalidation now bumps the cache_counter version folded into every page-cache key
-# (store-agnostic) and physically deletes only this site's own `pages/…` entries, best-effort.
+# on each such POST. The login POST itself runs no front_cache hook (SessionsController inherits
+# CamaleonController, which fires only session_before_load) — but any unauthenticated frontend POST
+# (a comment, a contact form) or any admin POST wiped the per-IP login brute-force counter
+# (CaptchaHelper, login-brute-force-protection), so an attacker could reset their own counter
+# between login attempts with one cheap frontend POST, silently defeating the captcha gate and
+# lockout.
 #
 # These specs drive the helper on a harness class against a real MemoryStore and assert on the
 # underlying store. (MemoryStore#with_local_cache exists only since Rails 8.1.2, so the per-request

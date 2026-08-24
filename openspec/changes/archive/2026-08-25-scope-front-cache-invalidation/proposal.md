@@ -3,10 +3,13 @@
 The bundled front_cache plugin hooks `front_cache_post_requests` on both `front_before_load` and
 `admin_before_load`, and on every POST/PATCH it calls `front_cache_clean`, which in its default mode
 runs `Rails.cache.clear` — wiping the entire cache store, not just front_cache's own page entries.
-Every Rails.cache-based counter in core and other plugins is destroyed on each POST while front_cache
-is active: verified empirically, this resets core's per-IP login brute-force counter
-(`login-brute-force-protection`) on every failed-login POST, silently defeating the captcha gate and
-hard lockout, and likewise defeats the cama_contact_form submission throttle. The opt-in
+Every Rails.cache-based counter in core and other plugins is destroyed on each such POST while
+front_cache is active. This defeats core's per-IP login brute-force counter
+(`login-brute-force-protection`) — not via the login POST itself, which runs no front_cache hook
+(SessionsController inherits CamaleonController and fires only `session_before_load`), but via any
+interleaved POST: an attacker resets their own counter with one cheap unauthenticated frontend POST
+(comment, contact form) between login attempts, silently defeating the captcha gate and hard
+lockout. It likewise defeats the cama_contact_form submission throttle. The opt-in
 `invalidate_only` mode (version-counter folded into cache keys) already avoids the nuke and is the
 store-agnostic invalidation path.
 

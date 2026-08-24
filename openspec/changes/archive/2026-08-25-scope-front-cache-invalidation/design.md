@@ -51,12 +51,15 @@ site's pages); per-entry TTLs; tracking individual page keys in a registry (reje
    languages). A stored value is simply never read again; `save_settings` rewrites the meta wholesale
    on next save. `preserve_cache_on_restart` keeps its meaning (skip the restart-time clean).
 
-4. **Spec-level reproduction at the unit boundary, not via request specs** — per the established
-   pitfall, request specs cannot observe cross-request `Rails.cache` (per-request LocalCache), so the
-   reproducing specs drive `front_cache_clean` / `front_cache_post_requests` on a harness class (the
-   pattern of the existing front_cache specs) against a real `ActiveSupport::Cache::MemoryStore`,
-   simulating per-request lifecycles with `store.with_local_cache { ... }` where accumulation across
-   requests is the point.
+4. **Spec-level reproduction at the unit boundary** — the reproducing specs drive
+   `front_cache_clean` / `front_cache_post_requests` on a harness class (the pattern of the existing
+   front_cache specs) against a real `ActiveSupport::Cache::MemoryStore`, asserting on the
+   underlying store. *Post-review correction:* this decision originally justified the unit boundary
+   with "request specs cannot observe cross-request `Rails.cache` (per-request LocalCache)" — that
+   premise is false: LocalCache is write-through and flushed per request, and this repo's own
+   `spec/requests/security/login_brute_force_throttle_spec.rb` observes the per-IP counter
+   accumulate across POSTs in a request spec. The unit harness stands on its own merits (fast,
+   store-explicit); request-level coverage of cross-request cache behavior is available when needed.
 
 ## Risks / Trade-offs
 
