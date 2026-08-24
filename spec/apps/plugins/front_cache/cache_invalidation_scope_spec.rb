@@ -91,6 +91,17 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
       expect(stored_version).to eq(1)
     end
 
+    it 'bounds every stored page with an expiration' do
+      allow(store).to receive(:write).and_call_original
+
+      host.send(:front_cache_plugin_cache_create, 'key', 'cached body')
+
+      expect(store).to have_received(:write).with(
+        'cama_front_cache/1/key', 'cached body',
+        hash_including(expires_in: described_class::FRONT_CACHE_EXPIRATION)
+      )
+    end
+
     it 'starts from version zero on a site that has never invalidated' do
       expect(stored_version).to be_nil
 

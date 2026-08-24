@@ -1,6 +1,12 @@
 module Plugins
   module FrontCache
     module FrontCacheHelper
+      # Upper bound on any stored page's life. Stores whose purge is rescued away (RedisCacheStore
+      # and MemCacheStore reject the matcher) would otherwise keep retired or never-revisited
+      # entries forever — and Redis's default maxmemory-policy is noeviction, so TTL-less bodies
+      # would grow until the shared store refuses writes. An expired entry is an ordinary miss: the
+      # page is re-rendered and re-cached.
+      FRONT_CACHE_EXPIRATION = 1.week
       # cache all pages configured in this plugin's settings for public users
       def front_cache_front_before_load
         if current_site.get_option('refresh_cache') # clear cache every restart server unless option checked in settings
@@ -156,7 +162,8 @@ module Plugins
       # invalidation overwrites the retired body in place on every store — storage is bounded at one
       # entry per cached URL instead of one per URL per invalidation.
       def front_cache_plugin_cache_create(key, content)
-        Rails.cache.write(front_cache_plugin_get_path(key), content, version: front_cache_version)
+        Rails.cache.write(front_cache_plugin_get_path(key), content,
+                          version: front_cache_version, expires_in: FRONT_CACHE_EXPIRATION)
       end
 
       # return the cache key of a stored page
