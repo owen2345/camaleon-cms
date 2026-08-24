@@ -7,8 +7,9 @@ be scoped to the entries front_cache itself owns and must never empty the shared
 ## Requirements
 ### Requirement: Invalidating the page cache never clears the shared cache store
 
-front_cache invalidation (triggered by any POST/PATCH request while the plugin is active, by the
-admin "Clean cache" action, or by the on-restart refresh) SHALL NOT clear the shared `Rails.cache`
+front_cache invalidation (triggered by any content-changing request — POST, PUT, PATCH or
+DELETE — while the plugin is active, by the admin "Clean cache" action, or by the on-restart
+refresh) SHALL NOT clear the shared `Rails.cache`
 store and SHALL NOT delete any cache entry it does not own. Entries written by other components —
 for example the per-IP login brute-force counter — SHALL survive front_cache invalidation unchanged,
 including their remaining TTL semantics.
@@ -18,6 +19,11 @@ including their remaining TTL semantics.
 - **WHEN** an unrelated cache counter (such as a per-IP failed-login counter) holds a value and a
   POST request triggers front_cache invalidation
 - **THEN** the counter still holds the same value in the underlying store
+
+#### Scenario: A DELETE retires the cache like a POST
+
+- **WHEN** a DELETE request (for example a permanent post deletion) runs while the plugin is active
+- **THEN** the site's cached pages are invalidated
 
 #### Scenario: A counter accumulates across successive POST lifecycles
 

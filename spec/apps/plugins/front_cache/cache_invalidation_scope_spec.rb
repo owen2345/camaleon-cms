@@ -208,7 +208,7 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     end
 
     it 'lets a per-IP counter accumulate across POST request lifecycles while pages are invalidated' do
-      host.request = instance_double(ActionDispatch::Request, post?: true, patch?: false)
+      host.request = instance_double(ActionDispatch::Request, post?: true, put?: false, patch?: false, delete?: false)
       counter_key = 'cama_captcha_attack:1:203.0.113.9:login'
 
       2.times { run_request_lifecycle(counter_key) }
@@ -218,11 +218,22 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     end
 
     it 'does not invalidate on GET requests' do
-      host.request = instance_double(ActionDispatch::Request, post?: false, patch?: false)
+      host.request = instance_double(ActionDispatch::Request, post?: false, put?: false, patch?: false, delete?: false)
 
       host.front_cache_post_requests
 
       expect(stored_version).to be_nil
+    end
+
+    %i[put? delete?].each do |verb|
+      it "invalidates on #{verb.to_s.chomp('?').upcase} requests (a deleted post must not stay cached)" do
+        predicates = { post?: false, put?: false, patch?: false, delete?: false }.merge(verb => true)
+        host.request = instance_double(ActionDispatch::Request, predicates)
+
+        host.front_cache_post_requests
+
+        expect(stored_version).to eq(1)
+      end
     end
   end
 end

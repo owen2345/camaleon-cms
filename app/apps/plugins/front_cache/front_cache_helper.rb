@@ -109,9 +109,11 @@ module Plugins
         arg[:links] << link_to(t('plugin.front_cache.clean_cache'), admin_plugins_front_cache_clean_path)
       end
 
-      # save as cache all post requests
+      # invalidate the page cache on any content-changing request. PUT and DELETE count: a permanent
+      # post deletion rides DELETE (Rack::MethodOverride makes request.post? false for
+      # _method=delete forms), and without a bump the deleted page kept being served from cache.
       def front_cache_post_requests
-        return unless request.post? || request.patch?
+        return unless request.post? || request.put? || request.patch? || request.delete?
 
         front_cache_clean
       end
