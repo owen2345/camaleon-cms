@@ -84,23 +84,20 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     end
 
     it 'performs no store enumeration on the request path' do
-      allow(store).to receive(:delete_matched)
+      expect(store).not_to receive(:delete_matched)
 
       host.front_cache_clean
 
-      expect(store).not_to have_received(:delete_matched)
       expect(stored_version).to eq(1)
     end
 
     it 'bounds every stored page with an expiration' do
-      allow(store).to receive(:write).and_call_original
-
-      host.send(:front_cache_plugin_cache_create, 'key', 'cached body')
-
-      expect(store).to have_received(:write).with(
+      expect(store).to receive(:write).with(
         'cama_front_cache/1/key', 'cached body',
         hash_including(expires_in: described_class::FRONT_CACHE_EXPIRATION)
-      )
+      ).and_call_original
+
+      host.send(:front_cache_plugin_cache_create, 'key', 'cached body')
     end
 
     it 'starts from version zero on a site that has never invalidated' do
@@ -112,9 +109,10 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     end
 
     it 'never writes the settings meta, so a settings save cannot revert the version' do
+      expect(site).not_to receive(:set_meta).with('front_cache_elements', anything)
+
       host.front_cache_clean
 
-      expect(site).not_to have_received(:set_meta).with('front_cache_elements', anything)
       expect(stored_version).to eq(1)
     end
   end
@@ -156,11 +154,10 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
 
     it 'reads the stored page exactly once when serving it (no exist?-then-get window)' do
       host.send(:front_cache_plugin_cache_create, 'k', 'cached body')
-      allow(store).to receive(:read).and_call_original
+      expect(store).to receive(:read).once.and_call_original
 
       serve_host.front_cache_front_before_load
 
-      expect(store).to have_received(:read).once
       expect(serve_host.response.headers['PLUGIN_FRONT_CACHE']).to eq('TRUE')
     end
   end
@@ -192,10 +189,9 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     [NotImplementedError, ArgumentError, RuntimeError].each do |error_class|
       it "logs and continues when the store raises #{error_class}" do
         allow(store).to receive(:delete_matched).and_raise(error_class)
-        allow(Rails.logger).to receive(:warn)
+        expect(Rails.logger).to receive(:warn).with(/front_cache purge skipped/)
 
         expect { host.send(:front_cache_purge_stored_pages) }.not_to raise_error
-        expect(Rails.logger).to have_received(:warn).with(/front_cache purge skipped/)
       end
     end
   end
