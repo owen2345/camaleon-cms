@@ -31,5 +31,5 @@
   `(cd spec/dummy && bin/rails zeitwerk:check)`.
 - [x] 3.2 CHANGELOG.md entry (≤500 chars, newest-first) describing the fix and the removed
   `invalidate_only` checkbox.
-- [ ] 3.3 `/opsx:verify` the change, then `/opsx:archive` on the branch before merge (archive commit
+- [x] 3.3 `/opsx:verify` the change, then `/opsx:archive` on the branch before merge (archive commit
   is part of the PR).
