@@ -92,6 +92,13 @@ end
 
 ## Factory Bot Conventions
 
+Factories live in `spec/factories/` and are loaded by `spec/rails_helper.rb`, which sets
+`FactoryBot.definition_file_paths` to that directory explicitly and calls `FactoryBot.reload`
+(Rails.root is `spec/dummy`, so factory_bot_rails' root-relative defaults find nothing). The engine
+does NOT inject its factories into applications that load the gem — a host app or plugin harness
+that wants them must point `FactoryBot.definition_file_paths` at them itself (the cama_contact_form
+harness does exactly this with its own factories).
+
 ```ruby
 FactoryBot.define do
   factory :site, class: 'CamaleonCms::Site' do
