@@ -11,11 +11,11 @@ be scoped to the entries front_cache itself owns and must never empty the shared
 ### Requirement: Invalidating the page cache never clears the shared cache store
 
 front_cache invalidation (triggered by any content-changing request — POST, PUT, PATCH or
-DELETE — while the plugin is active, by the admin "Clean cache" action, or by the on-restart
-refresh) SHALL NOT clear the shared `Rails.cache`
-store and SHALL NOT delete any cache entry it does not own. Entries written by other components —
-for example the per-IP login brute-force counter — SHALL survive front_cache invalidation unchanged,
-including their remaining TTL semantics.
+DELETE, other than a draft-buffer save which changes no published output — while the plugin is
+active, by the admin "Clean cache" action, or by the on-restart refresh) SHALL NOT clear the shared
+`Rails.cache` store and SHALL NOT delete any cache entry it does not own. Entries written by other
+components — for example the per-IP login brute-force counter — SHALL survive front_cache
+invalidation unchanged, including their remaining TTL semantics.
 
 #### Scenario: A security counter survives a POST-triggered invalidation
 
@@ -27,6 +27,11 @@ including their remaining TTL semantics.
 
 - **WHEN** a DELETE request (for example a permanent post deletion) runs while the plugin is active
 - **THEN** the site's cached pages are invalidated
+
+#### Scenario: A draft-buffer save does not invalidate
+
+- **WHEN** a draft autosave writes a private draft buffer (which is never published output)
+- **THEN** the site's cached pages are NOT invalidated
 
 #### Scenario: A counter accumulates across successive POST lifecycles
 
@@ -84,3 +89,14 @@ its own expiry/eviction without breaking the admin action.
 - **WHEN** the store raises on matcher-based deletion (unsupported or store-specific errors)
 - **THEN** the purge is skipped with a logged warning and the action completes; the version bump has
   already retired the pages
+
+### Requirement: A missing settings configuration fails closed
+
+front_cache runs on every frontend request. When its settings meta is absent (never seeded, or
+removed), the plugin SHALL degrade to caching nothing rather than raise, so an unconfigured or
+partially-installed plugin cannot take the public site down with a request-time error.
+
+#### Scenario: A frontend request with no settings meta does not error
+
+- **WHEN** a frontend request is served while the plugin's settings meta is absent
+- **THEN** the request completes without error and no page is cached
