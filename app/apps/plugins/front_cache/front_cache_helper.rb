@@ -120,6 +120,10 @@ module Plugins
       # _method=delete forms), and without a bump the deleted page kept being served from cache.
       def front_cache_post_requests
         return unless request.post? || request.put? || request.patch? || request.delete?
+        # A draft autosave (posts/drafts) writes a private draft_child buffer, never published
+        # output, so it must not retire the public page cache — otherwise an open editor's
+        # per-minute autosave keeps the whole site's cache from ever warming.
+        return if params[:controller].to_s.end_with?('posts/drafts')
 
         front_cache_clean
       end

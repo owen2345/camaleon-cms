@@ -20,7 +20,7 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
   let(:harness_class) do
     Class.new do
       include Plugins::FrontCache::FrontCacheHelper
-      attr_accessor :current_site, :request
+      attr_accessor :current_site, :request, :params
     end
   end
   let(:store) { ActiveSupport::Cache::MemoryStore.new }
@@ -206,6 +206,8 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
   end
 
   describe '#front_cache_post_requests' do
+    before { host.params = { controller: 'camaleon_cms/frontend' } }
+
     def run_request_lifecycle(counter_key)
       # the per-IP counter pattern of CamaleonCms::CaptchaHelper#cama_captcha_increment_attack,
       # sharing its real rolling window so the two cannot drift apart silently
@@ -242,6 +244,15 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
 
         expect(stored_version).to eq(1)
       end
+    end
+
+    it 'does not invalidate on a draft autosave (a draft_child buffer is not published output)' do
+      host.request = instance_double(ActionDispatch::Request, post?: true, put?: false, patch?: false, delete?: false)
+      host.params = { controller: 'camaleon_cms/admin/posts/drafts', action: 'update' }
+
+      host.front_cache_post_requests
+
+      expect(stored_version).to be_nil
     end
   end
 end
