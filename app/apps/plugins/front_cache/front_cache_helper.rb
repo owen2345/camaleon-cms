@@ -12,7 +12,7 @@ module Plugins
         # invalidate the site's cached pages on the first request after a (re)start, unless
         # preserve_cache_on_restart is checked in the plugin settings
         if current_site.get_option('refresh_cache')
-          front_cache_clean unless current_site.get_meta('front_cache_elements')[:preserve_cache_on_restart]
+          front_cache_clean unless (current_site.get_meta('front_cache_elements') || {})[:preserve_cache_on_restart]
           current_site.set_option('refresh_cache', false)
         end
 
@@ -20,7 +20,10 @@ module Plugins
         return if signin? || Rails.env.development? || Rails.env.test? || !request.get?
 
         cache_key = front_cache_plugin_cache_key
-        @caches = current_site.get_meta('front_cache_elements')
+        # Fail closed on a missing settings meta: front_cache runs on every frontend request, so an
+        # absent front_cache_elements (never seeded, or hand-deleted) must degrade to "cache nothing"
+        # rather than raise NoMethodError and 500 the whole public site.
+        @caches = current_site.get_meta('front_cache_elements') || {}
         # Single read: the old exist?-then-get pair issued two store reads, and an entry vanishing
         # between them (a concurrent admin purge, TTL expiry) left .gsub running on nil — a
         # visitor-facing 500.
@@ -38,7 +41,8 @@ module Plugins
 
         @_plugin_do_cache = false
         # cache paths and home page
-        if @caches[:paths].include?(request.original_url) || @caches[:paths].include?(request.path_info) ||
+        paths = @caches[:paths] || []
+        if paths.include?(request.original_url) || paths.include?(request.path_info) ||
            front_cache_plugin_match_path_patterns?(request.original_url, request.path_info) ||
            (params[:action] == 'index' && params[:controller] == 'camaleon_cms/frontend' && @caches[:home].present?)
           @_plugin_do_cache = true

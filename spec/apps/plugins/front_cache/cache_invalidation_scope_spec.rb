@@ -122,7 +122,7 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
     let(:serve_harness_class) do
       Class.new do
         include Plugins::FrontCache::FrontCacheHelper
-        attr_accessor :current_site, :request, :response, :flash
+        attr_accessor :current_site, :request, :response, :flash, :params
 
         def signin?
           false
@@ -159,6 +159,15 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
       serve_host.front_cache_front_before_load
 
       expect(serve_host.response.headers['PLUGIN_FRONT_CACHE']).to eq('TRUE')
+    end
+
+    it 'fails closed (caches nothing, does not raise) when the settings meta is missing' do
+      allow(site).to receive(:get_meta).with('front_cache_elements').and_return(nil)
+      serve_host.request = double('request', get?: true, original_url: 'http://x/a', path_info: '/a') # rubocop:disable RSpec/VerifiedDoubles
+      serve_host.params = { action: 'index', controller: 'camaleon_cms/frontend' }
+
+      expect { serve_host.front_cache_front_before_load }.not_to raise_error
+      expect(serve_host.instance_variable_get(:@_plugin_do_cache)).to be_falsey
     end
   end
 
