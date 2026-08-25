@@ -12,10 +12,7 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
   # real accessors (so partial-double verification is satisfied), and the two cache-path helpers are
   # overridden to avoid the real ones touching Rails.cache / request internals we do not model here.
   let(:harness_class) do
-    Class.new do
-      include Plugins::FrontCache::FrontCacheHelper
-      attr_accessor :current_site, :request, :response, :params, :flash
-
+    front_cache_host_class(:current_site, :request, :response, :params, :flash) do
       def signin?
         false
       end

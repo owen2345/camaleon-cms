@@ -17,12 +17,7 @@
 # LocalCache is not simulated here — it is write-through, so it does not change what the store
 # holds between simulated requests.)
 RSpec.describe Plugins::FrontCache::FrontCacheHelper do
-  let(:harness_class) do
-    Class.new do
-      include Plugins::FrontCache::FrontCacheHelper
-      attr_accessor :current_site, :request, :params
-    end
-  end
+  let(:harness_class) { front_cache_host_class(:current_site, :request, :params) }
   let(:store) { ActiveSupport::Cache::MemoryStore.new }
   # the settings hash: only ever read (never written) by the invalidation paths under test
   let(:meta) { { paths: [] } }
@@ -116,10 +111,7 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
   describe '#front_cache_front_before_load' do
     # Fuller harness for the serve path (the pattern of password_post_cache_decision_spec).
     let(:serve_harness_class) do
-      Class.new do
-        include Plugins::FrontCache::FrontCacheHelper
-        attr_accessor :current_site, :request, :response, :flash, :params
-
+      front_cache_host_class(:current_site, :request, :response, :flash, :params) do
         def signin?
           false
         end
