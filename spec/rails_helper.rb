@@ -14,6 +14,14 @@ abort('The Rails environment is running in production mode!') if Rails.env.produ
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
 
+# This suite's factories live in the engine repo, but Rails.root is spec/dummy, so factory_bot_rails'
+# root-relative defaults find nothing. Point factory_bot here explicitly and reload — the engine no
+# longer injects its spec/factories into the host app (that auto-append aborted the boot of any host
+# defining a same-named factory, and the packaged gem does not ship spec/ anyway). Same pattern as
+# the cama_contact_form harness.
+FactoryBot.definition_file_paths = [File.expand_path('factories', __dir__)]
+FactoryBot.reload
+
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
 # run as spec files by default. This means that files in spec/support that end

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** The engine no longer force-requires `factory_bot_rails` nor appends its `spec/factories` to the application's factory paths — a host app loading the gem from a path/git checkout while defining its own same-named factory (e.g. `:site`) crashed at boot with `FactoryBot::DuplicateDefinitionError`. Released-gem installs never received the factories (`spec/` is not packaged). [#1280](https://github.com/owen2345/camaleon-cms/pull/1280).
+  - **Notes for plugin developers:** a camaleon-backed test harness that used the engine's factories from a checkout must now set `FactoryBot.definition_file_paths` itself (see `docs/ai/testing.md`).
+
 - **Testing:** Specs are now bootstrapped through `rails_helper` — `.rspec` uses `--require rails_helper`, so individual specs no longer `require 'rails_helper'` — and `rails_helper` forces `RAILS_ENV=test` before the app boots, so an exported `RAILS_ENV` can never point the suite (whose `before(:suite)` purges every table) at a development or production database. Development-only. [#1278](https://github.com/owen2345/camaleon-cms/pull/1278).
 
 - **Testing:** The contact-form security specs (content rejection, output escaping, gate soundness, and the admin feature spec) moved to the `cama_contact_form` plugin, which now has its own camaleon_cms-backed harness and owns the code they exercise. The `contact_form_unfiltered_html` permission-model spec stays here, where the permission is defined. Development-only; no shipped code changed. [#1278](https://github.com/owen2345/camaleon-cms/pull/1278) · pairs with [cama_contact_form#73](https://github.com/owen2345/cama_contact_form/pull/73), which adds the moved specs.
