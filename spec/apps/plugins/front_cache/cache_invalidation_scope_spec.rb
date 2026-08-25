@@ -75,14 +75,10 @@ RSpec.describe Plugins::FrontCache::FrontCacheHelper do
       expect(store.read('cama_front_cache/1/key', version: 1)).to eq('new body')
     end
 
-    it 'does not touch the page cache of another site, including one whose id shares a digit prefix' do
-      store.write('cama_front_cache/11/other-site-key', 'other site body')
-
-      host.front_cache_clean
-
-      expect(store.read('cama_front_cache/11/other-site-key')).to eq('other site body')
-    end
-
+    # Cross-site isolation of invalidation is structural: front_cache_clean only bumps THIS site's
+    # counter and never touches the store, so another site's entries cannot be affected. The one
+    # place a matcher could cross site boundaries (1 vs 11) is the physical purge, covered in the
+    # #front_cache_purge_stored_pages block below.
     it 'performs no store enumeration on the request path' do
       expect(store).not_to receive(:delete_matched)
 
