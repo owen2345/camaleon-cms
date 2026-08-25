@@ -18,9 +18,7 @@ module Plugins
             skip_posts: params[:cache][:skip_posts] || [],
             cache_login: params[:cache][:cache_login],
             home: params[:cache][:home],
-            preserve_cache_on_restart: params[:cache][:preserve_cache_on_restart],
-            invalidate_only: params[:cache][:invalidate_only],
-            cache_counter: current_site.get_meta('front_cache_elements')[:cache_counter] || 0
+            preserve_cache_on_restart: params[:cache][:preserve_cache_on_restart]
           }
         )
         flash[:notice] = t('plugin.front_cache.message.settings_saved').to_s
@@ -30,6 +28,7 @@ module Plugins
       def clean_cache
         flash[:notice] = t('plugin.front_cache.message.cache_destroyed').to_s
         front_cache_clean
+        front_cache_purge_stored_pages
         redirect_to(request.referer || '/admin/plugins')
       end
     end

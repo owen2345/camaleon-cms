@@ -61,11 +61,6 @@
             <%= check_box_tag("cache[preserve_cache_on_restart]", 1, @caches[:preserve_cache_on_restart]) %>
         </div>
 
-        <div class="form-group">
-            <label><%= t('plugin.front_cache.invalidate_only') %></label><br>
-            <%= check_box_tag("cache[invalidate_only]", 1, @caches[:invalidate_only]) %>
-        </div>
-
         <!--<div class="form-group">-->
             <!--<label><%#= t('plugin.front_cache.message.enabled_cache_inner_content_logged_users') %></label><br>-->
             <!--<%#= check_box_tag("cache[cache_login]", 1, @caches[:cache_login]) %>-->

@@ -1,10 +1,18 @@
 module Plugins
   module FrontCache
     module FrontCacheHelper
+      # Upper bound on any stored page's life. Stores whose purge is rescued away (RedisCacheStore
+      # and MemCacheStore reject the matcher) would otherwise keep retired or never-revisited
+      # entries forever — and Redis's default maxmemory-policy is noeviction, so TTL-less bodies
+      # would grow until the shared store refuses writes. An expired entry is an ordinary miss: the
+      # page is re-rendered and re-cached.
+      FRONT_CACHE_EXPIRATION = 1.week
       # cache all pages configured in this plugin's settings for public users
       def front_cache_front_before_load
-        if current_site.get_option('refresh_cache') # clear cache every restart server unless option checked in settings
-          front_cache_clean unless current_site.get_meta('front_cache_elements')[:preserve_cache_on_restart]
+        # invalidate the site's cached pages on the first request after a (re)start, unless
+        # preserve_cache_on_restart is checked in the plugin settings
+        if current_site.get_option('refresh_cache')
+          front_cache_clean unless (current_site.get_meta('front_cache_elements') || {})[:preserve_cache_on_restart]
           current_site.set_option('refresh_cache', false)
         end
 
@@ -12,11 +20,18 @@ module Plugins
         return if signin? || Rails.env.development? || Rails.env.test? || !request.get?
 
         cache_key = front_cache_plugin_cache_key
-        @caches = current_site.get_meta('front_cache_elements')
-        if flash.keys.blank? && front_cache_exist?(cache_key) # recover cache item
+        # Fail closed on a missing settings meta: front_cache runs on every frontend request, so an
+        # absent front_cache_elements (never seeded, or hand-deleted) must degrade to "cache nothing"
+        # rather than raise NoMethodError and 500 the whole public site.
+        @caches = current_site.get_meta('front_cache_elements') || {}
+        # Single read: the old exist?-then-get pair issued two store reads, and an entry vanishing
+        # between them (a concurrent admin purge, TTL expiry) left .gsub running on nil — a
+        # visitor-facing 500.
+        cached_body = flash.keys.blank? ? front_cache_get(cache_key) : nil
+        if cached_body # recover cache item
           Rails.logger.info "Camaleon CMS - readed cache: #{front_cache_plugin_get_path(cache_key)}"
           response.headers['PLUGIN_FRONT_CACHE'] = 'TRUE'
-          args = { data: front_cache_get(cache_key).gsub('{{form_authenticity_token}}', form_authenticity_token) }
+          args = { data: cached_body.gsub('{{form_authenticity_token}}', form_authenticity_token) }
           hooks_run('front_cache_reading_cache', args)
           # rubocop:disable Rails/OutputSafety -- This replays a trusted cached page body that was already rendered by Rails.
           render html: args[:data].html_safe
@@ -26,7 +41,8 @@ module Plugins
 
         @_plugin_do_cache = false
         # cache paths and home page
-        if @caches[:paths].include?(request.original_url) || @caches[:paths].include?(request.path_info) ||
+        paths = @caches[:paths] || []
+        if paths.include?(request.original_url) || paths.include?(request.path_info) ||
            front_cache_plugin_match_path_patterns?(request.original_url, request.path_info) ||
            (params[:action] == 'index' && params[:controller] == 'camaleon_cms/frontend' && @caches[:home].present?)
           @_plugin_do_cache = true
@@ -78,8 +94,7 @@ module Plugins
             post_types: [current_site.post_types.where(slug: 'page').first.id],
             skip_posts: [],
             home: true,
-            cache_login: true,
-            cache_counter: 0
+            cache_login: true
           }
         )
       end
@@ -100,46 +115,80 @@ module Plugins
         arg[:links] << link_to(t('plugin.front_cache.clean_cache'), admin_plugins_front_cache_clean_path)
       end
 
-      # save as cache all post requests
+      # invalidate the page cache on any content-changing request. PUT and DELETE count: a permanent
+      # post deletion rides DELETE (Rack::MethodOverride makes request.post? false for
+      # _method=delete forms), and without a bump the deleted page kept being served from cache.
       def front_cache_post_requests
-        return unless request.post? || request.patch?
+        return unless request.post? || request.put? || request.patch? || request.delete?
+        # A draft autosave (posts/drafts) writes a private draft_child buffer, never published
+        # output, so it must not retire the public page cache — otherwise an open editor's
+        # per-minute autosave keeps the whole site's cache from ever warming.
+        return if params[:controller].to_s.end_with?('posts/drafts')
 
         front_cache_clean
       end
 
-      # clear all frontend cache items
+      # invalidate all cached pages of the current site
       def front_cache_clean
-        @caches = current_site.get_meta('front_cache_elements')
-        if @caches[:invalidate_only]
-          @caches[:cache_counter] += 1
-        else
-          Rails.cache.clear
-          @caches[:cache_counter] = 0
-        end
-        current_site.set_meta('front_cache_elements', @caches)
+        # Security: never Rails.cache.clear — the store is shared, and clearing it on every POST also
+        # destroyed unrelated entries such as the per-IP login brute-force counter (CaptchaHelper),
+        # silently defeating it. Bumping the version compared on every page-cache read (ActiveSupport
+        # `version:`) retires all of this site's pages on any store, with no store enumeration.
+        #
+        # The version lives in its own meta key, apart from the front_cache_elements settings hash:
+        # save_settings rewrites that hash wholesale from an earlier read, so a version stored inside
+        # it could be reverted by a settings save racing a concurrent bump — and a reverted version
+        # resurrects a retired generation as servable.
+        current_site.set_meta('front_cache_counter', front_cache_version + 1)
       end
 
       private
 
+      # Current page-cache version of the site. `.to_i` covers a site that has never invalidated
+      # (missing meta) as version 0 — it must never be nil: an entry written with `version: nil`
+      # would match ANY requested version and become immune to invalidation.
+      def front_cache_version
+        current_site.get_meta('front_cache_counter').to_i
+      end
+
+      # Physically remove every stored page entry of the current site. Only the explicit admin
+      # "Clean cache" action calls this — per-request invalidation is the version bump alone, so the
+      # request path never pays a store walk. The pattern is ^-anchored on purpose: with a store
+      # :namespace, ActiveSupport's key_matcher recognizes only a leading ^ (composing /^ns:<rest>/);
+      # any other source becomes /^ns:.*<source>/, where \A can never match, silently deleting
+      # nothing. Keys are single-line, so ^ cannot over-match. Best-effort: delete_matched is
+      # optional store API (MemCacheStore raises NotImplementedError, RedisCacheStore accepts only
+      # glob Strings, third-party stores raise their own classes) and the version bump has already
+      # retired the pages, so any store error is logged and swallowed.
+      def front_cache_purge_stored_pages
+        Rails.cache.delete_matched(%r{^cama_front_cache/#{current_site.id}/})
+      rescue StandardError, NotImplementedError => e
+        Rails.logger.warn "Camaleon CMS - front_cache purge skipped: #{e.class}: #{e.message}"
+      end
+
       def front_cache_exist?(key)
-        !Rails.cache.read(front_cache_plugin_get_path(key)).nil?
+        !front_cache_get(key).nil?
       end
 
       def front_cache_get(key)
-        Rails.cache.read(front_cache_plugin_get_path(key))
+        Rails.cache.read(front_cache_plugin_get_path(key), version: front_cache_version)
       end
 
+      # One entry per URL: the version is stored inside the entry, so re-caching a page after an
+      # invalidation overwrites the retired body in place on every store — storage is bounded at one
+      # entry per cached URL instead of one per URL per invalidation.
       def front_cache_plugin_cache_create(key, content)
-        Rails.cache.write(front_cache_plugin_get_path(key), content)
+        Rails.cache.write(front_cache_plugin_get_path(key), content,
+                          version: front_cache_version, expires_in: FRONT_CACHE_EXPIRATION)
       end
 
-      # return the physical path of cache directory
+      # return the cache key of a stored page
       # key: (string, optional) the key of the cached page
       def front_cache_plugin_get_path(key = nil)
         if key.nil?
-          "pages/#{@caches[:cache_counter]}/#{current_site.id}"
+          "cama_front_cache/#{current_site.id}"
         else
-          "pages/#{@caches[:cache_counter]}/#{current_site.id}/#{key}"
+          "cama_front_cache/#{current_site.id}/#{key}"
         end
       end
 

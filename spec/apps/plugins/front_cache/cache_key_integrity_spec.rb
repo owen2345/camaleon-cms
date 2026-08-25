@@ -6,12 +6,7 @@
 # lossless digest. Separately, admin-configured path patterns were compiled with `Regexp.new` on
 # every request with no rescue, so a malformed pattern raised (500).
 RSpec.describe Plugins::FrontCache::FrontCacheHelper do
-  let(:harness_class) do
-    Class.new do
-      include Plugins::FrontCache::FrontCacheHelper
-      attr_accessor :request
-    end
-  end
+  let(:harness_class) { front_cache_host_class(:request) }
   let(:host) { harness_class.new }
 
   describe '#front_cache_plugin_cache_key' do
