@@ -1,26 +1,31 @@
 # Change Log
 
-## Unreleased
+## [2.9.4](https://github.com/owen2345/camaleon-cms/tree/2.9.4) (2026-08-25)
+
+> **Upgrading to 2.9.4?** The one action for every install is `bundle update camaleon_cms`; required grants, behaviour changes, and notes for theme/plugin developers are collected in **[docs/upgrading-to-2.9.4.md](docs/upgrading-to-2.9.4.md)**. Breaking changes are flagged inline below.
 
 - **Security fix:** The bundled `front_cache` plugin ran `Rails.cache.clear` on every POST/PATCH, wiping every cache-based counter in the shared store — an attacker could reset the per-IP login brute-force counter with one interleaved frontend POST. Pages are now cached per site under versioned keys (one entry per URL, one-week TTL, any store); invalidation bumps the version and never touches entries the plugin does not own. [#1279](https://github.com/owen2345/camaleon-cms/pull/1279).
   - **Breaking change:** the *Invalidate the cache instead of deleting it* checkbox is removed from the front_cache settings — versioned invalidation is now the only behavior, and a stored `invalidate_only` value is ignored. PUT and DELETE requests now invalidate the page cache like POST/PATCH; draft autosaves (`posts/drafts`) no longer invalidate it (a draft is not published content); and the admin *Clean cache* action also physically purges the site's stored pages.
-  - **Notes for theme/plugin developers:** third-party `Rails.cache` entries are no longer implicitly wiped on every POST — a fragment cached without its own invalidation now lives until its own TTL. Operators on FileStore can reclaim pre-upgrade `pages/…` files with a one-time cache clear (`rails runner 'Rails.cache.clear'`).
+  - [Upgrade notes](docs/upgrading-to-2.9.4.md#front_cache-page-caching).
+
+- **Security fix (dependency):** Raises the bundled `cama_contact_form` floor to `~> 0.1.13`, which validates the contact-form auto-reply recipient (CF-1): the optional confirmation email previously went to a visitor-controlled address, turning a site into an email relay from its own From address. 0.1.13 also routes the plugin's markup gate through `CamaleonCms::UnsafeMarkup` and gates its `forms` shortcode. [cama_contact_form#76](https://github.com/owen2345/cama_contact_form/pull/76).
+  - [Upgrade notes](docs/upgrading-to-2.9.4.md#pick-up-the-dependency-and-security-fixes).
 
 - **Bug fix:** The engine no longer force-requires `factory_bot_rails` nor appends its `spec/factories` to the application's factory paths — a host app loading the gem from a path/git checkout while defining its own same-named factory (e.g. `:site`) crashed at boot with `FactoryBot::DuplicateDefinitionError`. Released-gem installs never received the factories (`spec/` is not packaged). [#1280](https://github.com/owen2345/camaleon-cms/pull/1280).
-  - **Notes for plugin developers:** a camaleon-backed test harness that used the engine's factories from a checkout must now set `FactoryBot.definition_file_paths` itself (see `docs/ai/testing.md`).
+  - [Upgrade notes](docs/upgrading-to-2.9.4.md#test-harnesses-using-the-engines-factories).
 
 - **Testing:** Specs are now bootstrapped through `rails_helper` — `.rspec` uses `--require rails_helper`, so individual specs no longer `require 'rails_helper'` — and `rails_helper` forces `RAILS_ENV=test` before the app boots, so an exported `RAILS_ENV` can never point the suite (whose `before(:suite)` purges every table) at a development or production database. Development-only. [#1278](https://github.com/owen2345/camaleon-cms/pull/1278).
 
-- **Testing:** The contact-form security specs (content rejection, output escaping, gate soundness, and the admin feature spec) moved to the `cama_contact_form` plugin, which now has its own camaleon_cms-backed harness and owns the code they exercise. The `contact_form_unfiltered_html` permission-model spec stays here, where the permission is defined. Development-only; no shipped code changed. [#1278](https://github.com/owen2345/camaleon-cms/pull/1278) · pairs with [cama_contact_form#73](https://github.com/owen2345/cama_contact_form/pull/73), which adds the moved specs.
+- **Testing:** The contact-form security specs moved to the `cama_contact_form` plugin, which now has its own camaleon_cms-backed harness and owns the code they exercise; the `contact_form_unfiltered_html` permission-model spec stays here, where the permission is defined. Development-only; no shipped code changed. [#1278](https://github.com/owen2345/camaleon-cms/pull/1278) · pairs with [cama_contact_form#73](https://github.com/owen2345/cama_contact_form/pull/73).
 
 - **Security fix:** Shortcodes in authored content are now gated behind a default-off `content_shortcodes` role permission. A save carrying a registered shortcode is refused (never sanitized) for a non-admin lacking it, across post content, custom-field values, taxonomy content and widget descriptions. Detection is precise and fails closed; admins, stored content and rendering are unaffected. [#1277](https://github.com/owen2345/camaleon-cms/pull/1277).
   - **Breaking change:** a non-administrator role without `content_shortcodes` can no longer publish shortcode-bearing content on any of those surfaces. Grant the permission (Settings → User Roles → *Allow shortcodes in content*) to roles that author shortcodes.
-  - **Notes for upgraders:** a shortcode is gated only if its name is declared to the boot registry. Core declares its own; a theme/plugin registering shortcodes must declare their names through the DSL from its own boot (request-independently), e.g. `CamaleonCms::ShortcodeRegistry.register('redirect', 'my_slider')`. Rendering is untouched — the render-time `shortcode_add` handler stays as-is.
+  - [Upgrade notes](docs/upgrading-to-2.9.4.md#shortcodes-in-authored-content-are-gated).
 
 - **Bug fix:** Publishing a post without an explicit date saved it `published` with a nil `published_at` — undated, and raising in themes that format the publish date. `CamaleonCms::Post` now stamps `published_at` (UTC) when a post becomes `published` without one; supplied/scheduled dates and already-published posts are untouched, and existing undated posts are not backfilled. [#1276](https://github.com/owen2345/camaleon-cms/pull/1276).
 
 - **Performance fix:** Frontend post listings no longer issue N+1 queries for post `metas`, `categories`, `post_tags` and post-type `metas` — a `Post.with_eager` `preload` scope loads them up front on the listing paths (single-post lookups stay lean), and stale association caches are reset after category/tag mutations. [#1275](https://github.com/owen2345/camaleon-cms/pull/1275).
-  - **Notes for theme/plugin developers:** frontend listings (`the_posts`/`the_contents`) now `preload` these associations instead of joining `metas`. A view that filters or sorts `@posts` on a `metas` column must chain `.joins(:metas)` / `.eager_load(:metas)` itself, and a column-narrowed `select` on `the_posts` must keep `taxonomy_id` (or use `pluck`).
+  - [Upgrade notes](docs/upgrading-to-2.9.4.md#frontend-listings-preload-their-associations).
 
 ## [2.9.3](https://github.com/owen2345/camaleon-cms/tree/2.9.3) (2026-08-16)
 

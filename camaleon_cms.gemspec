@@ -26,9 +26,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'addressable'
   s.add_dependency 'bcrypt'
   s.add_dependency 'breadcrumbs_on_rails'
-  # 0.1.12 or newer: every earlier release carries the contact-form output-escaping vulnerability,
-  # and `~> 0.1.0` would have kept resolving 0.1.0 for anyone whose lock already named it.
-  s.add_dependency 'cama_contact_form', '~> 0.1.12'
+  # 0.1.13 or newer: earlier releases carry the contact-form output-escaping vulnerability, and
+  # pre-0.1.13 also lacks the auto-reply recipient-validation fix (CF-1). `~> 0.1.0` would have kept
+  # resolving 0.1.0 for anyone whose lock already named it.
+  s.add_dependency 'cama_contact_form', '~> 0.1.13'
   s.add_dependency 'cama_meta_tag'
   s.add_dependency 'cancancan', '>= 2.0', '< 4'
   s.add_dependency 'dartsass-sprockets'
