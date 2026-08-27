@@ -109,8 +109,8 @@ GEM
       public_suffix (>= 2.0.2, < 8.0)
     ast (2.4.3)
     aws-eventstream (1.4.0)
-    aws-partitions (1.1265.0)
-    aws-sdk-core (3.252.0)
+    aws-partitions (1.1282.0)
+    aws-sdk-core (3.254.1)
       aws-eventstream (~> 1, >= 1.3.0)
       aws-partitions (~> 1, >= 1.992.0)
       aws-sigv4 (~> 1.9)
@@ -118,11 +118,11 @@ GEM
       bigdecimal
       jmespath (~> 1, >= 1.6.1)
       logger
-    aws-sdk-kms (1.129.0)
-      aws-sdk-core (~> 3, >= 3.248.0)
+    aws-sdk-kms (1.130.0)
+      aws-sdk-core (~> 3, >= 3.254.0)
       aws-sigv4 (~> 1.5)
-    aws-sdk-s3 (1.226.0)
-      aws-sdk-core (~> 3, >= 3.248.0)
+    aws-sdk-s3 (1.229.0)
+      aws-sdk-core (~> 3, >= 3.254.1)
       aws-sdk-kms (~> 1)
       aws-sigv4 (~> 1.5)
     aws-sigv4 (1.12.1)
@@ -132,7 +132,7 @@ GEM
     bigdecimal (4.1.2)
     binding_of_caller (2.0.0)
       debug_inspector (>= 1.2.0)
-    brakeman (8.0.5)
+    brakeman (8.0.6)
       racc
     breadcrumbs_on_rails (4.1.0)
       railties (>= 5.0)
@@ -196,13 +196,13 @@ GEM
       railties (>= 3.2, < 9.0)
     globalid (1.4.0)
       activesupport (>= 6.1)
-    google-protobuf (4.35.1-arm64-darwin)
+    google-protobuf (4.36.0-arm64-darwin)
       bigdecimal
       rake (~> 13.3)
-    google-protobuf (4.35.1-x86_64-darwin)
+    google-protobuf (4.36.0-x86_64-darwin)
       bigdecimal
       rake (~> 13.3)
-    google-protobuf (4.35.1-x86_64-linux-gnu)
+    google-protobuf (4.36.0-x86_64-linux-gnu)
       bigdecimal
       rake (~> 13.3)
     i18n (1.15.2)
@@ -242,7 +242,7 @@ GEM
     meta-tags (2.23.0)
       actionpack (>= 6.0.0)
     method_source (1.1.0)
-    mini_magick (5.3.1)
+    mini_magick (5.3.3)
       logger
     mini_mime (1.1.5)
     minitest (6.0.6)
@@ -256,7 +256,7 @@ GEM
       net-protocol
     net-pop (0.1.2)
       net-protocol
-    net-protocol (0.2.2)
+    net-protocol (0.3.0)
       timeout
     net-smtp (0.5.1)
       net-protocol
@@ -272,7 +272,7 @@ GEM
       mutex_m (~> 0.3.0)
       sprockets (~> 4.0)
     parallel (2.1.0)
-    parser (3.3.11.1)
+    parser (3.3.12.0)
       ast (~> 2.4.1)
       racc
     pp (0.6.4)
@@ -377,8 +377,8 @@ GEM
     rspec-support (3.13.7)
     rspec_junit_formatter (0.6.0)
       rspec-core (>= 2, < 4, != 2.12.0)
-    rubocop (1.88.1)
-      json (~> 2.3)
+    rubocop (1.90.0)
+      json (>= 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
       parallel (>= 1.10)
@@ -397,15 +397,15 @@ GEM
     rubocop-factory_bot (2.28.0)
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
-    rubocop-performance (1.26.1)
+    rubocop-performance (1.27.0)
       lint_roller (~> 1.1)
-      rubocop (>= 1.75.0, < 2.0)
+      rubocop (>= 1.89.0, < 2.0)
       rubocop-ast (>= 1.47.1, < 2.0)
-    rubocop-rails (2.35.5)
+    rubocop-rails (2.37.0)
       activesupport (>= 4.2.0)
       lint_roller (~> 1.1)
       rack (>= 1.1)
-      rubocop (>= 1.75.0, < 2.0)
+      rubocop (>= 1.89.0, < 2.0)
       rubocop-ast (>= 1.44.0, < 2.0)
     rubocop-rake (0.7.1)
       lint_roller (~> 1.1)
@@ -420,12 +420,12 @@ GEM
       rubocop-rspec (~> 3.5)
     ruby-progressbar (1.13.0)
     ruby2_keywords (0.0.5)
-    rubyzip (3.4.1)
-    sass-embedded (1.101.0-arm64-darwin)
+    rubyzip (3.5.0)
+    sass-embedded (1.103.1-arm64-darwin)
       google-protobuf (~> 4.31)
-    sass-embedded (1.101.0-x86_64-darwin)
+    sass-embedded (1.103.1-x86_64-darwin)
       google-protobuf (~> 4.31)
-    sass-embedded (1.101.0-x86_64-linux-gnu)
+    sass-embedded (1.103.1-x86_64-linux-gnu)
       google-protobuf (~> 4.31)
     sassc-embedded (1.80.9)
       sass-embedded (~> 1.80)
@@ -436,8 +436,8 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 4.0)
       websocket (~> 1.0)
-    sprockets (4.2.2)
-      concurrent-ruby (~> 1.0)
+    sprockets (4.4.1)
+      concurrent-ruby (~> 1.1)
       logger
       rack (>= 2.2.4, < 4)
     sprockets-rails (3.5.2)
@@ -449,7 +449,7 @@ GEM
     sqlite3 (2.9.6-x86_64-linux-gnu)
     tempfile (0.3.1)
     thor (1.5.0)
-    tilt (2.7.0)
+    tilt (2.9.0)
     timeout (0.6.1)
     tinymce-rails (4.9.11.1)
       railties (>= 3.1.1)
@@ -511,4 +511,4 @@ DEPENDENCIES
   sqlite3
 
 BUNDLED WITH
-  4.0.17
+  4.0.19

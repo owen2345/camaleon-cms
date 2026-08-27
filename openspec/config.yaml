@@ -1,7 +1,7 @@
 schema: spec-driven
 
 context: |
-  Camaleon CMS is a Ruby 3.4.9 and Rails 8.1 CMS engine.
+  Camaleon CMS is a Ruby and Rails CMS engine.
   Use RSpec via bin/rspec. Run Rails commands from spec/dummy.
   AGENTS.md and its linked docs are the authoritative source for branching,
   implementation, testing, security, and verification requirements.

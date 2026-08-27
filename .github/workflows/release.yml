@@ -61,7 +61,7 @@ jobs:
       - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b
         with:
           ruby-version: .tool-versions
-          rubygems: 4.0.17
+          rubygems: 4.0.19
 
       # Everything that can invalidate the release is checked here, before anything is published.
       - name: Verify the release is publishable
@@ -287,7 +287,7 @@ jobs:
       - uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b
         with:
           ruby-version: .tool-versions
-          rubygems: 4.0.17 # the same toolchain that built the gem also pushes it
+          rubygems: 4.0.19
 
       - uses: actions/download-artifact@v8
         with:

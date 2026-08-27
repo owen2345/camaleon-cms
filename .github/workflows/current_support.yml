@@ -27,10 +27,7 @@ jobs:
         with:
           bundler-cache: true
           ruby-version: ${{ matrix.ruby }}
-          # Matched pair: RubyGems ships Bundler at the same version, and `BUNDLED WITH` in
-          # Gemfile.lock is 4.0.17. Leaving this at 3.7.2 would ask a RubyGems that ships Bundler 2.x
-          # to run a lock pinned to Bundler 4. Needs Ruby >= 3.2, which is this matrix's floor.
-          rubygems: 4.0.17
+          rubygems: 4.0.19
 
       - name: Migrate DB
         run: bin/rake app:db:migrate
