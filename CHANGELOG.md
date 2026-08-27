@@ -1,5 +1,9 @@
 # Change Log
 
+## Unreleased
+
+- **Tooling:** The checked-in OpenSpec agent instructions (`/opsx:*` prompts and skills for the four integrations) are regenerated with OpenSpec 1.11.0. Development-only. [#1282](https://github.com/owen2345/camaleon-cms/pull/1282).
+
 ## [2.9.4](https://github.com/owen2345/camaleon-cms/tree/2.9.4) (2026-08-25)
 
 > **Upgrading to 2.9.4?** The one action for every install is `bundle update camaleon_cms`; required grants, behaviour changes, and notes for theme/plugin developers are collected in **[docs/upgrading-to-2.9.4.md](docs/upgrading-to-2.9.4.md)**. Breaking changes are flagged inline below.
