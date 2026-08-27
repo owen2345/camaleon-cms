@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** Ruby 3.4.10 for development and for the Release job, both of which read `.tool-versions`; RubyGems/Bundler 4.0.19 there, in the two CI matrix workflows and in `BUNDLED WITH`, plus the transitive development bumps that came with it. The CI Ruby/Rails matrices are unchanged, and `openspec/config.yaml` no longer restates the Ruby and Rails versions. Development-only; the gem's supported ranges are unchanged. [#1283](https://github.com/owen2345/camaleon-cms/pull/1283).
+
 - **Tooling:** The checked-in OpenSpec agent instructions (`/opsx:*` prompts and skills for the four integrations) are regenerated with OpenSpec 1.11.0. Development-only. [#1282](https://github.com/owen2345/camaleon-cms/pull/1282).
 
 ## [2.9.4](https://github.com/owen2345/camaleon-cms/tree/2.9.4) (2026-08-25)
