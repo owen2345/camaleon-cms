@@ -6,7 +6,7 @@ PATH
       aws-sdk-s3 (~> 1)
       bcrypt
       breadcrumbs_on_rails
-      cama_contact_form (~> 0.1.13)
+      cama_contact_form (~> 0.1.14)
       cama_meta_tag
       cancancan (>= 2.0, < 4)
       dartsass-sprockets
@@ -142,7 +142,7 @@ GEM
       thor (~> 1.0)
     byebug (13.0.0)
       reline (>= 0.6.0)
-    cama_contact_form (0.1.13)
+    cama_contact_form (0.1.14)
       rails
       recaptcha (>= 5.0)
     cama_meta_tag (1.7.2)
