@@ -7,7 +7,9 @@ Prevent stored XSS via post content by refusing to save dangerous content from u
 preserving raw HTML capability for trusted roles (admins and roles with the
 `post_content_unfiltered_html` permission). Stored content therefore always equals authored
 content, which is what makes rendering it with `raw @post.the_content` safe.
+
 ## Requirements
+
 ### Requirement: post_content_unfiltered_html permission key exists in the role system
 
 The system SHALL define a `post_content_unfiltered_html` key in `UserRole::ROLES[:post_type]` that
@@ -185,3 +187,29 @@ that would otherwise be refused by the fail-closed default.
 - **THEN** no `unfiltered_content=` writer SHALL exist to receive it (mass assignment raises
   `UnknownAttributeError` rather than enabling the opt-out)
 
+### Requirement: Untrusted authors' dangerous post tag names are rejected at save time
+
+When a post save submits tag names, each submitted name SHALL be scanned with the shared
+unsafe-markup detector under the same allowlist and the same trust gate as post content. For an
+author without the unfiltered-content trust, a save containing any dangerous tag name SHALL be
+refused with a validation error; names MUST NOT be sanitized, stripped, or otherwise transformed.
+Saves that submit no tag names, trusted authors' saves, and previously stored tag names are
+unaffected.
+
+#### Scenario: Dangerous tag name refused for an untrusted author
+
+- **WHEN** an untrusted author saves a post whose submitted tags include a name containing
+  markup the detector flags (for example `<img src=x onerror=alert(1)>`)
+- **THEN** the save is refused with a validation error, no tag is created or associated, and the
+  submitted name is stored nowhere
+
+#### Scenario: Plain tag names save normally
+
+- **WHEN** an untrusted author saves a post with ordinary tag names (including multi-word names)
+- **THEN** the save succeeds and the names are stored verbatim
+
+#### Scenario: Trusted authors are not gated
+
+- **WHEN** an author with the unfiltered-content trust saves a post with a tag name the detector
+  would flag
+- **THEN** the save succeeds unchanged, consistent with the content-level trust gate
