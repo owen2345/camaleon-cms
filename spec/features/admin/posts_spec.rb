@@ -394,6 +394,31 @@ RSpec.describe 'Posts workflows for Admin', :js do
     expect(result['getTerm']).to eq('al')
   end
 
+  # Covers the shared TinyMCE drag helpers in _custom_fields.js (deduped from the two
+  # Sortable inits): dragging a row must detach the editors inside it (SortableJS moves
+  # the DOM, which breaks a live editor) and re-attach them on drop. The handlers are
+  # driven directly with the {item: <dragged element>} shape SortableJS passes, because
+  # emulating a real HTML5 drag headlessly is unreliable.
+  it 'detaches and restores TinyMCE editors around a drag' do
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait(2)
+
+    result = page.evaluate_script(<<~JS)
+      (function() {
+        var evt = { item: document.querySelector('#form-post') };
+        var before = !!tinymce.get('post_content');
+        cama_detach_editors_for_drag(evt);
+        var detached = tinymce.get('post_content') == null;
+        var marked = document.querySelector('#post_content').classList.contains('cama_restore_editor');
+        cama_restore_editors_after_drag(evt);
+        var restored = !!tinymce.get('post_content');
+        return { before: before, detached: detached, marked: marked, restored: restored };
+      })()
+    JS
+    expect(result).to eq('before' => true, 'detached' => true, 'marked' => true, 'restored' => true)
+  end
+
   describe 'when visibility post plugin is enabled' do
     it 'correctly fetches the assets' do
       plugin_install('visibility_post')

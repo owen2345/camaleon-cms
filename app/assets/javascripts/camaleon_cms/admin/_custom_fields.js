@@ -1,3 +1,16 @@
+// fix tinymce: an editor breaks when its textarea moves in the DOM, so detach editors inside
+// the dragged item on drag start and re-attach them on drop (shared by both Sortable lists)
+function cama_detach_editors_for_drag(evt) {
+    $(evt.item).find('.mce-panel').each(function () {
+        tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
+    });
+}
+function cama_restore_editors_after_drag(evt) {
+    $(evt.item).find('.cama_restore_editor').each(function () {
+        tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
+    });
+}
+
 // build custom field groups with values recovered from DB received in field_values
 function build_custom_field_group(field_values, group_id, fields_data, is_repeat, field_name_group){
     if(field_values.length == 0) field_values = [{}];
@@ -22,17 +35,10 @@ function build_custom_field_group(field_values, group_id, fields_data, is_repeat
 
     if(is_repeat){
         new Sortable(group_panel_body[0], { handle: ".move.fa-arrows", draggable: "> .custom_sortable_grouped", animation: 150,
+            onStart: cama_detach_editors_for_drag,
             onEnd: function(evt) {
-                // fix tinymce: restore editors after drop
-                $(evt.item).find('.cama_restore_editor').each(function () {
-                    tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
-                });
+                cama_restore_editors_after_drag(evt);
                 group_panel.trigger('update_custom_group_number');
-            },
-            onStart: function(evt) { // fix tinymce
-                $(evt.item).find('.mce-panel').each(function () {
-                    tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
-                });
             }});
         group_panel.find('.btn.duplicate_cutom_group').click(add_group);
         group_panel_body.on('click', '.header-field-grouped .del', function(){ if(confirm(I18n("msg.delete_item"))) $(this).closest('.custom_sortable_grouped').fadeOut('slow', function(){ $(this).remove(); group_panel.trigger('update_custom_group_number'); }); return false; });
@@ -97,16 +103,8 @@ function cama_build_custom_field(panel, field_data, values){
         panel.find('.field_multiple_btn .btn').click(function () { add_field(field_data.default_value); return false; });
         panel.on('click', '.actions .fa-times', function () { if(confirm(I18n("msg.delete_item"))) $(this).closest('.editor-custom-fields').remove(); return false; });
         new Sortable($sortable[0], { handle: ".fa-arrows", draggable: "> .editor-custom-fields", animation: 150,
-            onStart: function(evt) { // fix tinymce
-                $(evt.item).find('.mce-panel').each(function () {
-                    tinymce.execCommand('mceRemoveEditor', false, $(this).next().addClass('cama_restore_editor').attr('id'));
-                });
-            },
-            onEnd: function(evt) { // fix tinymce
-                $(evt.item).find('.cama_restore_editor').each(function () {
-                    tinymce.execCommand('mceAddEditor', true, $(this).attr('id'));
-                });
-            }
+            onStart: cama_detach_editors_for_drag,
+            onEnd: cama_restore_editors_after_drag
         });
     }
 }
