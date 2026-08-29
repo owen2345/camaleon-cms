@@ -74,7 +74,6 @@ jQuery(function($){
             $(this).prepend(td_new);
         });
 
-        var startPos = null;
         new Sortable($table.find('tbody')[0], {
             animation: 150,
             handle: ".moved",
@@ -83,12 +82,11 @@ jQuery(function($){
             onSort: function(evt) {
                 if(options.on_change) options.on_change();
             },
-            onStart: function(evt) {
-                startPos = evt.oldIndex;
-            },
             onEnd: function(evt) {
+                // evt is per-drag, so the toast decision survives another drag
+                // starting before this response arrives
                 $.post(options.url, $table.find("input" ).serialize(), function(res){
-                    if(startPos != evt.newIndex){
+                    if(evt.oldIndex != evt.newIndex){
                         if(options.on_success) options.on_success({res: res, item: $(evt.item)})
                     }
                 }).fail(function() {
