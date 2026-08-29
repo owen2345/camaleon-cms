@@ -18,6 +18,8 @@ describe 'the Custom Fields', :js do
       page.execute_script(script_string)
 
       wait 2
+      # the available-fields box keeps its compact Bootstrap sizing class
+      expect(page).to have_css('#content-items-default.form-group.input-group-sm')
       all('#content-items-default a').each(&:click)
       wait_for_ajax
       first('button[type="submit"]').click

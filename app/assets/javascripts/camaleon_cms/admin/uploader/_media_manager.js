@@ -31,11 +31,13 @@ window.cama_init_media = function(mediaPanel) {
     mediaInfoTabInfo.click()
     let tpl =
       "<div class='p_thumb'></div>" +
-        "<dl class='p_meta'>" +
-        "<dt>" + I18n('button.name') + "</dt><dd>" + data.name + '</dd>' +
-        "<dt>" + I18n('button.url') + "</dt><dd><a target='_blank' href='" + data.url + "'>" + data.url + '</a></dd>' +
-        '<dt>' + I18n('button.size') + "</dt><dd>" + window.camaHumanFileSize(parseFloat(data.file_size)) + '</dd>' +
-        '</dl>'
+        "<div class='p_label'><b>" + I18n('button.name') + ': </b><br> <span>' + data.name + '</span></div>' +
+        "<div class='p_body'>" +
+        "<div style='overflow: auto'><b>" +
+        I18n('button.url') + ":</b><br> <a target='_blank' href='" + data.url + "'>" + data.url + '</a></div>' +
+        '<div><b>' + I18n('button.size') + ':</b> <span>' +
+        window.camaHumanFileSize(parseFloat(data.file_size)) + '</span></div>' +
+        '</div>'
 
     if (window.callback_media_uploader) {
       if (
@@ -66,8 +68,8 @@ window.cama_init_media = function(mediaPanel) {
       const drawImage = function() {
         const ww = parseInt(data.dimension.split('x')[0])
         const hh = parseInt(data.dimension.split('x')[1])
-        mediaInfo.find('.p_meta').append(
-          '<dt>' + I18n('button.dimension') + "</dt><dd>" + ww + 'x' + hh + '</dd>'
+        mediaInfo.find('.p_body').append(
+          "<div class='cdimension'><b>" + I18n('button.dimension') + ': </b><span>' + ww + 'x' + hh + '</span></div>'
         )
 
         if (mediaPanel.attr('data-dimension')) { // verify dimensions
@@ -75,13 +77,13 @@ window.cama_init_media = function(mediaPanel) {
           btn.prop('disabled', true)
           const _ww = parseInt(mediaPanel.attr('data-dimension').split('x')[0]) || ww
           const _hh = parseInt(mediaPanel.attr('data-dimension').split('x')[1]) || hh
-          mediaInfo.find('.p_meta dd:last')
+          mediaInfo.find('.cdimension')
             .append("<span style='color: black'> ==> " + mediaPanel.attr('data-dimension') + '</span>')
 
           if ((_ww === ww) && (_hh === hh))
             return btn.prop('disabled', false)
           else {
-            mediaInfo.find('.p_meta dd:last').css('color', 'red')
+            mediaInfo.find('.cdimension').css('color', 'red')
             const cut = $("<button class='btn btn-info pull-right'><i class='fa fa-crop'></i> " +
                           I18n('button.auto_crop') + '</button>').click(function() {
               const cropName = data.name.split('.')

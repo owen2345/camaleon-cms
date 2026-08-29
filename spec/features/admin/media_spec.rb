@@ -50,4 +50,21 @@ RSpec.describe 'the Media', :js do
     confirm_dialog
     wait_for_ajax
   end
+
+  it 'shows the details of a selected file' do
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/media"
+    attach_file('file_upload[]', "#{CAMALEON_CMS_ROOT}/spec/support/fixtures/rails.png", make_visible: true)
+    wait_for_ajax
+
+    # The freshly uploaded file is auto-selected; its details keep the original
+    # p_label/p_body markup, and the dimension row keeps the cdimension class
+    # the crop-verification flow re-finds.
+    within '.media_file_info' do
+      expect(page).to have_css('.p_label', text: 'rails.png')
+      expect(page).to have_css(".p_body a[href$='rails.png']")
+      expect(page).to have_css('.p_body', text: 'Size')
+      expect(page).to have_css('.cdimension', text: 'Dimension')
+    end
+  end
 end

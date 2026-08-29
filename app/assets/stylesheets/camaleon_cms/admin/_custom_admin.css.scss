@@ -3,12 +3,12 @@
   border: 1px solid #bbb;
   border-radius: 50%;
   color: #656d78;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   float: left;
   height: #{$radio}px;
+  line-height: #{$radio - 3}px;
   margin-left: 3px;
+  text-align: center;
   transition: all 200ms ease 0s;
   width: #{$radio}px;
 }
@@ -27,9 +27,8 @@
         float: right;
         list-style: outside none none;
         position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
+        right: 26px;
+        top: 5px;
         li {
           float: left;
           a {
@@ -40,8 +39,7 @@
       > .btn{
         position: absolute;
         right: 26px;
-        top: 50%;
-        transform: translateY(-50%);
+        top: 14px;
       }
     }
     .panel-footer {
@@ -409,47 +407,4 @@ label.error, span.error{
       }
     }
   }
-}
-
-//************** Shared dl/dt/dd meta panel skeleton
-// Used by the user Quick Info panel (.quick-info wrapper) and the media
-// manager details (dl.p_meta); each keeps only its local deltas below and
-// in uploader/_uploadfile.css.scss (monospaced link values there).
-.quick-info dl,
-dl.p_meta {
-  margin: 12px 0 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-.quick-info dt,
-dl.p_meta dt {
-  float: left;
-  clear: left;
-  width: auto;
-  margin: 0;
-  padding: 4px 8px 4px 0;
-  font-weight: 600;
-  color: #555;
-  font-size: 12px;
-
-  &:after {
-    content: ":";
-  }
-}
-
-.quick-info dd,
-dl.p_meta dd {
-  margin: 0 0 6px;
-  padding: 4px 0;
-  color: #333;
-  font-size: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-//************** Quick Info panel (user edit)
-.quick-info dd {
-  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
 }

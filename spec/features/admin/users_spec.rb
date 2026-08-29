@@ -54,6 +54,22 @@ describe 'the Users', :js do
     expect(page).to have_css('.alert-success')
   end
 
+  it 'Users edit shows the quick info panel' do
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/users"
+    within '#admin_content' do
+      all('.btn-default')[1].click
+    end
+    # The sidebar keeps the admin's stock form-horizontal layout: an intro
+    # paragraph plus label/value form-group rows.
+    within find('h3', text: 'Quick Info').ancestor('.panel') do
+      expect(page).to have_text('Some quick info about this user')
+      expect(page).to have_css('.form-group-separated .form-group', count: 2)
+      expect(page).to have_text('Last visit')
+      expect(page).to have_text('Registration')
+    end
+  end
+
   it 'Users Update Pass' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/users"

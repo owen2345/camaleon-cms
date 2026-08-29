@@ -202,40 +202,25 @@ margin: 5px 10px 5px 0px;
     margin-bottom: 15px;
     .media_file_info{
       .p_thumb{
-        text-align: center;
-        margin-bottom: 12px;
-        padding: 8px;
-        background: #fafafa;
-        border-radius: 6px;
-        border: 1px solid #eee;
         img{
           max-width: 100%;
-          max-height: 120px;
-          border-radius: 4px;
+          max-height: 100px;
         }
         i{
-          font-size: 80px;
-          color: #bbb;
+          font-size: 120px;
         }
       }
-      // dt/dd skeleton shared with .quick-info (see admin/_custom_admin.css.scss);
-      // only the monospaced link style is local to the media details
-      .p_meta{
-        dd{
-          a{
-            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-            font-size: 11px;
-            color: #337ab7;
-            word-break: break-all;
-            white-space: normal;
-          }
+      .p_label {
+        span {
+          overflow: auto;
+          max-width: 100%;
+          display: inline-block;
         }
       }
       .p_footer{
-        border-top: 1px solid #eee;
+        border-top: 1px solid #ccc;
         margin-top: 12px;
         padding-top: 10px;
-        text-align: center;
       }
     }
     .cama_media_fileuploader{
