@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security:** Floors the bundled `cama_contact_form` dependency at `~> 0.1.14`, the release that completes its contact-form security series (output escaping, auto-reply recipient validation, a submission throttle, an attachment-count cap, upload-scan coverage, an e-mail tracking-pixel block, and response-file-cleanup confinement). An install still resolving 0.1.13 moves up on `bundle update`; drop-in, no config or API change. [#1284](https://github.com/owen2345/camaleon-cms/pull/1284).
+
 - **Tooling:** Ruby 3.4.10 for development and for the Release job, both of which read `.tool-versions`; RubyGems/Bundler 4.0.19 there, in the two CI matrix workflows and in `BUNDLED WITH`, plus the transitive development bumps that came with it. The CI Ruby/Rails matrices are unchanged, and `openspec/config.yaml` no longer restates the Ruby and Rails versions. Development-only; the gem's supported ranges are unchanged. [#1283](https://github.com/owen2345/camaleon-cms/pull/1283).
 
 - **Tooling:** The checked-in OpenSpec agent instructions (`/opsx:*` prompts and skills for the four integrations) are regenerated with OpenSpec 1.11.0. Development-only. [#1282](https://github.com/owen2345/camaleon-cms/pull/1282).
@@ -14,7 +16,7 @@
   - **Breaking change:** the *Invalidate the cache instead of deleting it* checkbox is removed from the front_cache settings — versioned invalidation is now the only behavior, and a stored `invalidate_only` value is ignored. PUT and DELETE requests now invalidate the page cache like POST/PATCH; draft autosaves (`posts/drafts`) no longer invalidate it (a draft is not published content); and the admin *Clean cache* action also physically purges the site's stored pages.
   - [Upgrade notes](docs/upgrading-to-2.9.4.md#front_cache-page-caching).
 
-- **Security fix (dependency):** Raises the bundled `cama_contact_form` floor to `~> 0.1.13`, which validates the contact-form auto-reply recipient (CF-1): the optional confirmation email previously went to a visitor-controlled address, turning a site into an email relay from its own From address. 0.1.13 also routes the plugin's markup gate through `CamaleonCms::UnsafeMarkup` and gates its `forms` shortcode. [cama_contact_form#76](https://github.com/owen2345/cama_contact_form/pull/76).
+- **Security fix (dependency):** Raises the bundled `cama_contact_form` floor to `~> 0.1.13`, which validates the contact-form auto-reply recipient: the optional confirmation email previously went to a visitor-controlled address, turning a site into an email relay from its own From address. 0.1.13 also routes the plugin's markup gate through `CamaleonCms::UnsafeMarkup` and gates its `forms` shortcode. [cama_contact_form#76](https://github.com/owen2345/cama_contact_form/pull/76).
   - [Upgrade notes](docs/upgrading-to-2.9.4.md#pick-up-the-dependency-and-security-fixes).
 
 - **Bug fix:** The engine no longer force-requires `factory_bot_rails` nor appends its `spec/factories` to the application's factory paths — a host app loading the gem from a path/git checkout while defining its own same-named factory (e.g. `:site`) crashed at boot with `FactoryBot::DuplicateDefinitionError`. Released-gem installs never received the factories (`spec/` is not packaged). [#1280](https://github.com/owen2345/camaleon-cms/pull/1280).
