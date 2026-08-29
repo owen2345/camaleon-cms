@@ -26,11 +26,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'addressable'
   s.add_dependency 'bcrypt'
   s.add_dependency 'breadcrumbs_on_rails'
-  # 0.1.14 or newer: this is the release that completes the contact-form security series -- output
-  # escaping, auto-reply recipient validation, a per-IP submission throttle, an attachment-count
-  # cap, verified upload-scan coverage, an e-mail tracking-pixel block, and confinement of the
-  # response file cleanup. A looser pin would keep resolving an older, partially-fixed release for
-  # anyone whose lock already named one.
   s.add_dependency 'cama_contact_form', '~> 0.1.14'
   s.add_dependency 'cama_meta_tag'
   s.add_dependency 'cancancan', '>= 2.0', '< 4'
