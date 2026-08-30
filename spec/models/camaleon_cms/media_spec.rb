@@ -100,4 +100,17 @@ RSpec.describe CamaleonCms::Media, type: :model do
       expect { orphan.destroy! }.not_to raise_error
     end
   end
+
+  describe 'is_public validation' do
+    it 'rejects a NULL is_public' do
+      expect do
+        site.public_media.create!(name: 'x', folder_path: '/', is_folder: true, is_public: nil)
+      end.to raise_error(ActiveRecord::RecordInvalid)
+    end
+
+    it 'accepts explicit true and false' do
+      expect(site.public_media.new(name: 'pub', folder_path: '/', is_folder: true, is_public: true)).to be_valid
+      expect(site.public_media.new(name: 'priv', folder_path: '/', is_folder: true, is_public: false)).to be_valid
+    end
+  end
 end

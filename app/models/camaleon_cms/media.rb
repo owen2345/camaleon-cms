@@ -7,6 +7,10 @@ module CamaleonCms
       scope: %i[site_id is_folder folder_path is_public],
       message: 'Duplicates not allowed'
     }
+    # A NULL is_public matches neither the public_media nor the private_media scope,
+    # so such a row is invisible to both listings and skipped by the site's
+    # dependent: :destroy, orphaning it and its children. Force an explicit boolean.
+    validates :is_public, inclusion: { in: [true, false] }
     scope :only_folder, -> { where(is_folder: true) }
     scope :only_file, -> { where(is_folder: false) }
     default_scope { order(is_folder: :asc, name: :asc) }
