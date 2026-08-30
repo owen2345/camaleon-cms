@@ -77,6 +77,14 @@ class CamaleonCmsUploader
   end
 
   # return the media collection for current situation
+  #
+  # NOTE: the branches read inverted — a private uploader resolves to public_media
+  # (is_public: true) and vice versa — so stored is_public is the opposite of the
+  # row's real visibility. This is self-consistent today (every reader and writer of
+  # media rows goes through this same method, and access control keys off
+  # is_private_uploader? directly, not off the stored flag), so it must NOT be swapped
+  # on its own: flipping the ternary without a data migration that inverts every
+  # existing row would mislabel all stored media. Fix the flag and the data together.
   def get_media_collection
     is_private_uploader? ? @current_site.public_media : @current_site.private_media
   end
