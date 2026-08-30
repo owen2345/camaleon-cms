@@ -1,6 +1,6 @@
 ## Purpose
 
-Define the security requirements for validating file upload source paths. The system MUST canonicalize string paths before validating them against allowed directory prefixes, preventing path traversal bypasses where `../` segments after an allowed prefix resolve to arbitrary filesystem locations.
+Define the security requirements for validating file upload source paths. The system MUST canonicalize string paths before validating them against allowed directory prefixes, preventing path traversal bypasses where `../` segments after an allowed prefix resolve to arbitrary filesystem locations. The same canonicalize-then-contain rule governs media folder deletion targets, so a delete cannot escape the media root or resolve to the root itself.
 
 ## Requirements
 
@@ -103,3 +103,17 @@ When converting a URL to a local filesystem path, the system SHALL compare host 
 
 - **WHEN** a user provides `http://evil.com?url=http://site.com/path`
 - **THEN** the substring match does NOT trigger URL-to-path conversion (host comparison fails)
+
+### Requirement: Folder deletion is contained to the media root
+
+The system SHALL resolve a media folder-delete target with `File.expand_path` and require it to start with the media root followed by the path separator before removing it. A key that resolves to the media root itself (e.g. `/.`) or escapes it SHALL be refused, so a folder delete cannot recursively remove the whole upload directory.
+
+#### Scenario: A folder key resolving to the media root is refused
+
+- **WHEN** a user with media permission requests deletion of a folder whose key resolves to the media root (e.g. `/.`)
+- **THEN** the expanded target equals the root rather than a path below it, the delete is refused with an error, and the upload directory is left intact
+
+#### Scenario: A genuine subfolder is still deleted
+
+- **WHEN** a user deletes an existing folder below the media root (e.g. `/docs`)
+- **THEN** the expanded target starts with the root followed by the separator, and the folder is removed
