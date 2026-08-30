@@ -41,7 +41,11 @@ module CamaleonCms
     # return all items of current folder
     def items
       coll = is_public ? site.public_media : site.private_media
-      coll.where(folder_path: "#{folder_path}/#{name}".cama_fix_media_key)
+      coll = coll.where(folder_path: "#{folder_path}/#{name}".cama_fix_media_key)
+      # A name that collapses under cama_fix_media_key (e.g. '.') resolves the
+      # children path back to this row's own folder_path, so a folder can select
+      # itself and destroy would recurse forever: never treat self as a child.
+      persisted? ? coll.where.not(id: id) : coll
     end
 
     private
