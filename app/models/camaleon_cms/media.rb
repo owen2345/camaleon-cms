@@ -40,6 +40,11 @@ module CamaleonCms
 
     # return all items of current folder
     def items
+      # site is optional and unconstrained by a foreign key, so an orphan row (nil or
+      # dangling site) must not raise here — otherwise before_destroy could never run
+      # and the orphan would be undeletable through the model.
+      return self.class.none unless site
+
       coll = is_public ? site.public_media : site.private_media
       children_path = "#{folder_path}/#{name}".cama_fix_media_key
       # A folder's children live strictly below its own path. A name that collapses
@@ -58,6 +63,8 @@ module CamaleonCms
 
     # recover folder or file format
     def create_parent_folders
+      return unless site
+
       coll = is_public ? site.public_media : site.private_media
       _p = []
       folder_path.split('/').each do |f_name|

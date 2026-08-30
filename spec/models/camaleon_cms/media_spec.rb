@@ -91,4 +91,13 @@ RSpec.describe CamaleonCms::Media, type: :model do
       expect(site.public_media.exists?(name: 'a', folder_path: '/')).to be true
     end
   end
+
+  describe 'a folder row without a site' do
+    it 'can be saved and destroyed without raising' do
+      orphan = described_class.new(name: 'orphan', folder_path: '/', is_folder: true, site: nil)
+
+      expect { orphan.save! }.not_to raise_error
+      expect { orphan.destroy! }.not_to raise_error
+    end
+  end
 end
