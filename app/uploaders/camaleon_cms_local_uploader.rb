@@ -129,11 +129,17 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
 
   # Remove an existent folder
   def delete_folder(key)
-    return { error: 'Invalid folder path' } if key.include?('..')
+    return { error: 'Invalid folder path' } unless valid_folder_path?(key)
 
-    folder = File.join(@root_folder, key)
-    FileUtils.rm_rf(folder) if Dir.exist? folder
-    get_media_collection.by_key(key).take.destroy
+    # Resolve the target and require it to stay strictly below the media root, so a
+    # key such as '/.' (which expands back to the root) or any escape cannot make
+    # rm_rf wipe the whole upload directory.
+    folder = File.expand_path(File.join(@root_folder, key))
+    root = File.expand_path(@root_folder)
+    return { error: 'Invalid folder path' } unless folder.start_with?("#{root}/")
+
+    FileUtils.rm_rf(folder) if Dir.exist?(folder)
+    get_media_collection.by_key(key).take&.destroy
   end
 
   # Remove an existent file
