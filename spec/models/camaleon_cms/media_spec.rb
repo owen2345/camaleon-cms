@@ -80,4 +80,15 @@ RSpec.describe CamaleonCms::Media, type: :model do
       expect(described_class.exists?(child.id)).to be true
     end
   end
+
+  describe '#create_parent_folders' do
+    it 'does not mint blank-name folder rows from doubled slashes in the path' do
+      record = site.public_media.new(name: 'b', folder_path: '/a//b', is_folder: true)
+
+      record.send(:create_parent_folders)
+
+      expect(site.public_media.where(name: '').exists?).to be false
+      expect(site.public_media.exists?(name: 'a', folder_path: '/')).to be true
+    end
+  end
 end

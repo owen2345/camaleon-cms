@@ -61,6 +61,11 @@ module CamaleonCms
       coll = is_public ? site.public_media : site.private_media
       _p = []
       folder_path.split('/').each do |f_name|
+        # A blank segment (doubled or trailing slash in folder_path) is not a real
+        # folder; creating a row for it would mint a nameless folder whose own
+        # children path collapses back onto its parent.
+        next if f_name.blank?
+
         _path = "/#{_p.join('/')}".cama_fix_media_key
         if "#{_path}/#{f_name}".cama_fix_media_key != '/'
           coll.only_folder.where(name: f_name,
