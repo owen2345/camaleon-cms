@@ -149,7 +149,10 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     file = File.join(@root_folder, key)
     FileUtils.rm(file) if File.exist? file
     @instance.hooks_run('after_delete', key)
-    get_media_collection.by_key(key).take.destroy
+    # The cache row can legitimately be absent (cleared cache, or a row written under the
+    # pre-fix inverted mapping sitting in the opposite collection); the file is already
+    # removed above, so a missing row must not turn the request into a 500.
+    get_media_collection.by_key(key).take&.destroy
   end
 
   # Convert a real file path into a file key

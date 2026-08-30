@@ -64,6 +64,23 @@ RSpec.describe CamaleonCmsAwsUploader do
     end
   end
 
+  describe 'deletes with no cache row (missing row tolerance)' do
+    let(:s3_object_collection) { instance_double(Aws::S3::ObjectSummary::Collection, delete: true) }
+    let(:s3_object) { instance_double(Aws::S3::Object, delete: true) }
+
+    it '#delete_folder does not raise when the folder has no cache row' do
+      allow(bucket).to receive(:objects).with(prefix: 'ghost/').and_return(s3_object_collection)
+
+      expect { uploader.delete_folder('/ghost') }.not_to raise_error
+    end
+
+    it '#delete_file does not raise when the file has no cache row' do
+      allow(bucket).to receive(:object).with('ghost.txt').and_return(s3_object)
+
+      expect { uploader.delete_file('/ghost.txt') }.not_to raise_error
+    end
+  end
+
   describe '#repair_private_acls!' do
     # Security (audit 2026-08-11 M5 follow-up): objects uploaded before the private-ACL fix stayed
     # world-readable; the sweep re-applies the owner-only ACL under the private prefix, including a

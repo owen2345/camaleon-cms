@@ -34,6 +34,28 @@ RSpec.describe CamaleonCmsLocalUploader do
     end
   end
 
+  describe '#delete_file (missing cache row tolerance)' do
+    # A plain stub, not an rspec double: the uploader is materialized inside the `around`
+    # hook (outside the example's mock space), where doubles cannot be created.
+    let(:hook_instance) { Class.new { def hooks_run(*args); end }.new }
+    let(:uploader) { described_class.new({ current_site: current_site }, hook_instance) }
+
+    around do |example|
+      Dir.mktmpdir do |dir|
+        uploader.instance_variable_set(:@root_folder, dir)
+        example.run
+      end
+    end
+
+    it 'removes the file without raising when no cache row exists for the key' do
+      file = File.join(uploader.instance_variable_get(:@root_folder), 'stale.txt')
+      File.write(file, 'data')
+
+      expect { uploader.delete_file('/stale.txt') }.not_to raise_error
+      expect(File.exist?(file)).to be false
+    end
+  end
+
   describe '#add_file (key normalization)' do
     let(:root_folder) { uploader.instance_variable_get(:@root_folder) }
 

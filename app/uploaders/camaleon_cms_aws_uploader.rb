@@ -129,7 +129,9 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
     key = "#{@aws_settings['inner_folder']}/#{key}" if @aws_settings['inner_folder'].present?
     key = key.cama_fix_media_key
     bucket.objects(prefix: key.slice(1..-1) << '/').delete
-    get_media_collection.by_key(key).take.destroy
+    # The S3 objects are already gone; a missing cache row (cleared cache, or a row from the
+    # pre-fix inverted mapping in the opposite collection) must not 500 the request.
+    get_media_collection.by_key(key).take&.destroy
   end
 
   # Delete the `:key` file in AWS
@@ -144,7 +146,8 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
       ''
     end
     @instance.hooks_run('after_delete', key)
-    get_media_collection.by_key(key).take.destroy
+    # Same tolerance as delete_folder: the S3 delete already ran; no cache row, no crash.
+    get_media_collection.by_key(key).take&.destroy
   end
 
   # Security (audit 2026-08-11 M5 follow-up): uploads stored before the private-ACL fix kept a
