@@ -70,4 +70,14 @@ RSpec.describe CamaleonCms::Media, type: :model do
       expect(partial.items.to_a).not_to include(folder)
     end
   end
+
+  describe '#delete_folder_items' do
+    it 'does not destroy real rows when an unsaved folder instance is destroyed' do
+      child = site.public_media.create!(name: 'real.txt', folder_path: '/docs', is_folder: false)
+
+      site.public_media.new(name: 'docs', folder_path: '/', is_folder: true).destroy
+
+      expect(described_class.exists?(child.id)).to be true
+    end
+  end
 end

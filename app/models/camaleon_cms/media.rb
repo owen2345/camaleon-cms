@@ -72,7 +72,10 @@ module CamaleonCms
 
     # return all children items
     def delete_folder_items
-      items.destroy_all if is_folder
+      # Rails runs before_destroy on unsaved records too. Such an instance owns no
+      # persisted children, so cascading would destroy real rows that merely share
+      # its computed path; only a persisted folder has children to remove.
+      items.destroy_all if is_folder && persisted?
     end
   end
 end
