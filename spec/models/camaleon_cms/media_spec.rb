@@ -3,16 +3,25 @@
 RSpec.describe CamaleonCms::Media, type: :model do
   let(:site) { Cama::Site.first }
 
+  # Persist a row the canonical-position validation would now reject, to simulate
+  # the pre-validation (legacy / externally-written) data the destroy and listing
+  # guards must still handle.
+  def persist_legacy(attrs)
+    record = site.public_media.new(attrs)
+    record.save!(validate: false)
+    record
+  end
+
   describe '#destroy' do
     it 'destroys a folder whose items path resolves to its own path without recursing' do
-      folder = site.public_media.create!(name: '.', folder_path: '/.', is_folder: true)
+      folder = persist_legacy(name: '.', folder_path: '/.', is_folder: true)
 
       expect { folder.destroy! }.not_to raise_error
       expect(described_class.exists?(folder.id)).to be false
     end
 
     it 'destroys a root folder whose name collapses to the root path without recursing' do
-      folder = site.public_media.create!(name: '/', folder_path: '/', is_folder: true)
+      folder = persist_legacy(name: '/', folder_path: '/', is_folder: true)
 
       expect { folder.destroy! }.not_to raise_error
       expect(described_class.exists?(folder.id)).to be false
@@ -28,7 +37,7 @@ RSpec.describe CamaleonCms::Media, type: :model do
     end
 
     it 'does not destroy sibling rows when a degenerate root folder is removed' do
-      junk = site.public_media.create!(name: '/', folder_path: '/', is_folder: true)
+      junk = persist_legacy(name: '/', folder_path: '/', is_folder: true)
       sibling_folder = site.public_media.create!(name: 'docs', folder_path: '/', is_folder: true)
       sibling_file = site.public_media.create!(name: 'a.txt', folder_path: '/', is_folder: false)
       nested = site.public_media.create!(name: 'b.txt', folder_path: '/docs', is_folder: false)
@@ -41,8 +50,8 @@ RSpec.describe CamaleonCms::Media, type: :model do
     end
 
     it 'destroys mutually-aliasing degenerate rows without recursing or wiping siblings' do
-      row_a = site.public_media.create!(name: '/', folder_path: '/', is_folder: true)
-      row_b = site.public_media.create!(name: './', folder_path: '/', is_folder: true)
+      row_a = persist_legacy(name: '/', folder_path: '/', is_folder: true)
+      row_b = persist_legacy(name: './', folder_path: '/', is_folder: true)
       sibling = site.public_media.create!(name: 'keep.txt', folder_path: '/', is_folder: false)
 
       expect { row_a.destroy! }.not_to raise_error
@@ -51,8 +60,8 @@ RSpec.describe CamaleonCms::Media, type: :model do
     end
 
     it 'destroys a cross-path aliasing pair without recursing' do
-      row_a = site.public_media.create!(name: '..', folder_path: '/.', is_folder: true)
-      row_b = site.public_media.create!(name: '.', folder_path: '/..', is_folder: true)
+      row_a = persist_legacy(name: '..', folder_path: '/.', is_folder: true)
+      row_b = persist_legacy(name: '.', folder_path: '/..', is_folder: true)
 
       expect { row_a.destroy! }.not_to raise_error
       expect { row_b.destroy! }.not_to raise_error
@@ -61,7 +70,7 @@ RSpec.describe CamaleonCms::Media, type: :model do
 
   describe '#items' do
     it 'excludes the folder itself even when loaded without its id column' do
-      folder = site.public_media.create!(name: '.', folder_path: '/.', is_folder: true)
+      folder = persist_legacy(name: '.', folder_path: '/.', is_folder: true)
 
       partial = site.public_media.select(:name, :folder_path, :is_public, :is_folder, :site_id)
                     .find_by(name: '.', folder_path: '/.')
@@ -111,6 +120,30 @@ RSpec.describe CamaleonCms::Media, type: :model do
     it 'accepts explicit true and false' do
       expect(site.public_media.new(name: 'pub', folder_path: '/', is_folder: true, is_public: true)).to be_valid
       expect(site.public_media.new(name: 'priv', folder_path: '/', is_folder: true, is_public: false)).to be_valid
+    end
+  end
+
+  describe 'canonical position validation' do
+    it 'rejects a name that collapses under the media key' do
+      expect(site.public_media.new(name: '.', folder_path: '/', is_folder: true)).to be_invalid
+      expect(site.public_media.new(name: '..', folder_path: '/', is_folder: true)).to be_invalid
+      expect(site.public_media.new(name: '/', folder_path: '/', is_folder: true)).to be_invalid
+    end
+
+    it 'rejects a name containing a path separator that aliases another folder' do
+      expect(site.public_media.new(name: 'b/', folder_path: '/a', is_folder: true)).to be_invalid
+    end
+
+    it 'rejects a non-canonical folder_path' do
+      expect(site.public_media.new(name: 'x', folder_path: '/a//b', is_folder: false)).to be_invalid
+      expect(site.public_media.new(name: 'x', folder_path: '/.', is_folder: false)).to be_invalid
+      expect(site.public_media.new(name: 'x', folder_path: '/a/', is_folder: false)).to be_invalid
+    end
+
+    it 'accepts normal folders and files' do
+      expect(site.public_media.new(name: 'docs', folder_path: '/', is_folder: true)).to be_valid
+      expect(site.public_media.new(name: 'a.txt', folder_path: '/docs', is_folder: false)).to be_valid
+      expect(site.public_media.new(name: 'file.tar.gz', folder_path: '/a/b', is_folder: false)).to be_valid
     end
   end
 end

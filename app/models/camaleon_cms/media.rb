@@ -11,6 +11,11 @@ module CamaleonCms
     # so such a row is invisible to both listings and skipped by the site's
     # dependent: :destroy, orphaning it and its children. Force an explicit boolean.
     validates :is_public, inclusion: { in: [true, false] }
+    # Reject rows that cannot hold a canonical position rather than storing a name or
+    # path that aliases another row: a name of '.', '..', '' or one containing '/'
+    # collapses under cama_fix_media_key, and a non-canonical folder_path ('/.', '/a//b',
+    # a trailing slash) points a row at a place the media browser addresses differently.
+    validate :canonical_media_position
     scope :only_folder, -> { where(is_folder: true) }
     scope :only_file, -> { where(is_folder: false) }
     default_scope { order(is_folder: :asc, name: :asc) }
@@ -64,6 +69,28 @@ module CamaleonCms
     end
 
     private
+
+    def canonical_media_position
+      errors.add(:name, 'is not a valid media name') unless valid_media_segment?(name)
+      errors.add(:folder_path, 'must be a canonical media path') unless canonical_media_folder?(folder_path)
+    end
+
+    # A single, non-collapsing path component: present, no separator, not '.'/'..'.
+    def valid_media_segment?(value)
+      value = value.to_s
+      value.present? && !value.include?('/') && value != '.' && value != '..'
+    end
+
+    # An absolute path whose every segment is a valid segment and which carries no
+    # doubled or trailing slash (so it equals how the browser addresses it).
+    def canonical_media_folder?(path)
+      path = path.to_s
+      return false unless path.start_with?('/')
+      return true if path == '/'
+      return false if path.end_with?('/')
+
+      path.split('/').drop(1).all? { |segment| valid_media_segment?(segment) }
+    end
 
     # recover folder or file format
     def create_parent_folders
