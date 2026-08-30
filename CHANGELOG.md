@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- **Bug fix:** A media folder whose name collapses in the stored path (production data held a scanner-created folder named `.`) resolved its children query back to itself, so deleting it recursed until `SystemStackError`. `Media#items` now excludes the folder's own row; such folders delete cleanly and real children are still destroyed with their folder. [#1285](https://github.com/owen2345/camaleon-cms/pull/1285).
+- **Security fix:** The local uploader's delete-folder action guarded only against `..`, so a folder key that resolves to the media root (e.g. `/.`) let a user with media permission recursively delete the site's entire upload directory from disk. Folder deletion is now contained to the media root. [#1285](https://github.com/owen2345/camaleon-cms/pull/1285).
+
+- **Bug fix:** Deleting a media folder whose stored name or path collapses (production data held a scanner-created folder named `.`) no longer crashes with `SystemStackError` or silently deletes sibling media; such non-canonical names and paths are now refused at save, and the local uploader normalizes storage keys like the S3 uploader. [#1285](https://github.com/owen2345/camaleon-cms/pull/1285).
 
 - **Security:** Floors the bundled `cama_contact_form` dependency at `~> 0.1.14`, the release that completes its contact-form security series (output escaping, auto-reply recipient validation, a submission throttle, an attachment-count cap, upload-scan coverage, an e-mail tracking-pixel block, and response-file-cleanup confinement). An install still resolving 0.1.13 moves up on `bundle update`; drop-in, no config or API change. [#1284](https://github.com/owen2345/camaleon-cms/pull/1284).
 
