@@ -41,11 +41,17 @@ module CamaleonCms
     # return all items of current folder
     def items
       coll = is_public ? site.public_media : site.private_media
-      coll = coll.where(folder_path: "#{folder_path}/#{name}".cama_fix_media_key)
-      # A name that collapses under cama_fix_media_key (e.g. '.') resolves the
-      # children path back to this row's own folder_path, so a folder can select
-      # itself and destroy would recurse forever: never treat self as a child.
-      persisted? ? coll.where.not(id: id) : coll
+      children_path = "#{folder_path}/#{name}".cama_fix_media_key
+      # A folder's children live strictly below its own path. A name that collapses
+      # under cama_fix_media_key (e.g. '.', '/', '..') resolves children_path back to
+      # this row's own folder_path or an ancestor, which would make the folder select
+      # its own siblings: destroy would then wipe them, or two such rows would select
+      # each other and recurse forever. Descend only into a genuine sub-path, which
+      # also makes cycles impossible (path depth would have to strictly increase).
+      prefix = folder_path == '/' ? '/' : "#{folder_path}/"
+      return coll.none unless children_path != folder_path && children_path.start_with?(prefix)
+
+      coll.where(folder_path: children_path)
     end
 
     private
