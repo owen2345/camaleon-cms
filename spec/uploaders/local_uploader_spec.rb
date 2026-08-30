@@ -151,7 +151,7 @@ RSpec.describe CamaleonCmsLocalUploader do
     let(:collection) { uploader.send(:get_media_collection) }
 
     it 'returns a lazy ActiveRecord relation, not a materialized array' do
-      collection.create!(name: 'a.jpg', folder_path: '/', is_folder: false, is_public: false,
+      collection.create!(name: 'a.jpg', folder_path: '/', is_folder: false,
                          file_type: 'image', url: '/media/1/a.jpg', thumb: '')
 
       res = uploader.objects('/')
@@ -170,7 +170,7 @@ RSpec.describe CamaleonCmsLocalUploader do
     after { FileUtils.rm_rf(thumb_dir) }
 
     def create_image_media(thumb)
-      collection.create!(name: 'photo.jpg', folder_path: '/', is_folder: false, is_public: false,
+      collection.create!(name: 'photo.jpg', folder_path: '/', is_folder: false,
                          file_type: 'image', url: '/media/1/photo.jpg', thumb: thumb)
     end
 
@@ -193,7 +193,7 @@ RSpec.describe CamaleonCmsLocalUploader do
     end
 
     it 'falls back to the original file url for a cached item with no thumbnail on disk (favicon)' do
-      collection.create!(name: 'favicon.ico', folder_path: '/', is_folder: false, is_public: false,
+      collection.create!(name: 'favicon.ico', folder_path: '/', is_folder: false,
                          file_type: 'image', url: '/media/1/favicon.ico',
                          thumb: '/media/1/thumb/favicon-ico.ico')
 

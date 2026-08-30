@@ -32,7 +32,7 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#index', type: :request do
       FileUtils.mkdir_p(thumb_dir)
       File.write(File.join(thumb_dir, 'photo-jpg.png'), 'x') # only the legacy .png exists on disk
       uploader.send(:get_media_collection).create!(
-        name: 'photo.jpg', folder_path: '/', is_folder: false, is_public: false,
+        name: 'photo.jpg', folder_path: '/', is_folder: false,
         file_type: 'image', url: '/media/1/photo.jpg', thumb: '/media/1/thumb/photo-jpg.jpg'
       )
 

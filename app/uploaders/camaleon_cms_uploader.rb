@@ -78,15 +78,14 @@ class CamaleonCmsUploader
 
   # return the media collection for current situation
   #
-  # NOTE: the branches read inverted — a private uploader resolves to public_media
-  # (is_public: true) and vice versa — so stored is_public is the opposite of the
-  # row's real visibility. This is self-consistent today (every reader and writer of
-  # media rows goes through this same method, and access control keys off
-  # is_private_uploader? directly, not off the stored flag), so it must NOT be swapped
-  # on its own: flipping the ternary without a data migration that inverts every
-  # existing row would mislabel all stored media. Fix the flag and the data together.
+  # The uploader mode maps to the collection whose is_public value matches the file's
+  # real visibility: private mode → private_media (is_public: false), public mode →
+  # public_media (is_public: true). Access control keys off is_private_uploader? and the
+  # storage path, not off this flag. Rows written before this mapping was corrected hold
+  # the inverted value; the one-time `camaleon_cms:backfill_media_is_public` rake task
+  # realigns them, and MUST be run right after deploying this code on an existing install.
   def get_media_collection
-    is_private_uploader? ? @current_site.public_media : @current_site.private_media
+    is_private_uploader? ? @current_site.private_media : @current_site.public_media
   end
 
   # convert current string path into file version_path, sample:
