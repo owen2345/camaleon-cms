@@ -7,6 +7,15 @@ module CamaleonCms
       scope: %i[site_id is_folder folder_path is_public],
       message: 'Duplicates not allowed'
     }
+    # A NULL is_public matches neither the public_media nor the private_media scope,
+    # so such a row is invisible to both listings and skipped by the site's
+    # dependent: :destroy, orphaning it and its children. Force an explicit boolean.
+    validates :is_public, inclusion: { in: [true, false] }
+    # Reject rows that cannot hold a canonical position rather than storing a name or
+    # path that aliases another row: a name of '.', '..', '' or one containing '/'
+    # collapses under cama_fix_media_key, and a non-canonical folder_path ('/.', '/a//b',
+    # a trailing slash) points a row at a place the media browser addresses differently.
+    validate :canonical_media_position
     scope :only_folder, -> { where(is_folder: true) }
     scope :only_file, -> { where(is_folder: false) }
     default_scope { order(is_folder: :asc, name: :asc) }
@@ -40,17 +49,61 @@ module CamaleonCms
 
     # return all items of current folder
     def items
+      # site is optional and unconstrained by a foreign key, so an orphan row (nil or
+      # dangling site) must not raise here — otherwise before_destroy could never run
+      # and the orphan would be undeletable through the model.
+      return self.class.none unless site
+
       coll = is_public ? site.public_media : site.private_media
-      coll.where(folder_path: "#{folder_path}/#{name}".cama_fix_media_key)
+      children_path = "#{folder_path}/#{name}".cama_fix_media_key
+      # A folder's children live strictly below its own path. A name that collapses
+      # under cama_fix_media_key (e.g. '.', '/', '..') resolves children_path back to
+      # this row's own folder_path or an ancestor, which would make the folder select
+      # its own siblings: destroy would then wipe them, or two such rows would select
+      # each other and recurse forever. Descend only into a genuine sub-path, which
+      # also makes cycles impossible (path depth would have to strictly increase).
+      prefix = folder_path == '/' ? '/' : "#{folder_path}/"
+      return coll.none unless children_path != folder_path && children_path.start_with?(prefix)
+
+      coll.where(folder_path: children_path)
     end
 
     private
 
+    def canonical_media_position
+      errors.add(:name, 'is not a valid media name') unless valid_media_segment?(name)
+      errors.add(:folder_path, 'must be a canonical media path') unless canonical_media_folder?(folder_path)
+    end
+
+    # A single, non-collapsing path component: present, no separator, not '.'/'..'.
+    def valid_media_segment?(value)
+      value = value.to_s
+      value.present? && !value.include?('/') && value != '.' && value != '..'
+    end
+
+    # An absolute path whose every segment is a valid segment and which carries no
+    # doubled or trailing slash (so it equals how the browser addresses it).
+    def canonical_media_folder?(path)
+      path = path.to_s
+      return false unless path.start_with?('/')
+      return true if path == '/'
+      return false if path.end_with?('/')
+
+      path.split('/').drop(1).all? { |segment| valid_media_segment?(segment) }
+    end
+
     # recover folder or file format
     def create_parent_folders
+      return unless site
+
       coll = is_public ? site.public_media : site.private_media
       _p = []
       folder_path.split('/').each do |f_name|
+        # A blank segment (doubled or trailing slash in folder_path) is not a real
+        # folder; creating a row for it would mint a nameless folder whose own
+        # children path collapses back onto its parent.
+        next if f_name.blank?
+
         _path = "/#{_p.join('/')}".cama_fix_media_key
         if "#{_path}/#{f_name}".cama_fix_media_key != '/'
           coll.only_folder.where(name: f_name,
@@ -62,7 +115,10 @@ module CamaleonCms
 
     # return all children items
     def delete_folder_items
-      items.destroy_all if is_folder
+      # Rails runs before_destroy on unsaved records too. Such an instance owns no
+      # persisted children, so cascading would destroy real rows that merely share
+      # its computed path; only a persisted folder has children to remove.
+      items.destroy_all if is_folder && persisted?
     end
   end
 end

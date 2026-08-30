@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Security fix:** A media folder-delete whose key resolved to the media root (e.g. `/.`) let a media-permission user delete the site's entire upload directory from disk; deletion is now contained to the media root. The same change stops folders whose stored name or path collapses (e.g. one named `.`) from crashing with `SystemStackError` or deleting sibling media on destroy, and refuses such non-canonical names and paths at save. [#1285](https://github.com/owen2345/camaleon-cms/pull/1285).
+
 - **Security:** Floors the bundled `cama_contact_form` dependency at `~> 0.1.14`, the release that completes its contact-form security series (output escaping, auto-reply recipient validation, a submission throttle, an attachment-count cap, upload-scan coverage, an e-mail tracking-pixel block, and response-file-cleanup confinement). An install still resolving 0.1.13 moves up on `bundle update`; drop-in, no config or API change. [#1284](https://github.com/owen2345/camaleon-cms/pull/1284).
 
 - **Tooling:** Ruby 3.4.10 for development and for the Release job, both of which read `.tool-versions`; RubyGems/Bundler 4.0.19 there, in the two CI matrix workflows and in `BUNDLED WITH`, plus the transitive development bumps that came with it. The CI Ruby/Rails matrices are unchanged, and `openspec/config.yaml` no longer restates the Ruby and Rails versions. Development-only; the gem's supported ranges are unchanged. [#1283](https://github.com/owen2345/camaleon-cms/pull/1283).
