@@ -94,6 +94,7 @@ Other consequences to plan for:
     - **NO** Test failure/example counts.
     - **NO** Verification logs/commands.
     - **NO** Commit SHAs or history references.
+    - **NO** evolution narrative — describe the PR's net what/why/how as it now stands; when commits are added later, integrate their substance into the description, never append follow-up or review-history sections.
     - **REQUIRED:** One sentence on **User-Visible Impact** (or state "None").
     - **REQUIRED:** A "What and Why" summary.
 
@@ -108,7 +109,7 @@ Other consequences to plan for:
     - **Security fix:** Fix mass assignment and open redirect vulnerabilities in SitesController, [#1152](https://github.com/owen2345/camaleon-cms/pull/1152)
     ```
 
-    **🔴 Keep the entry short. The PR description is where the reasoning lives.** The changelog is read by someone deciding whether an upgrade affects them — not by someone auditing your analysis. A lead paragraph carrying the PR link is the whole entry for most changes; it **MUST NOT exceed 500 characters**, and the PR link and any reporter credit count toward that limit. Do not restate the root cause, the code path, the attack mechanics, or the design rationale — every one of those is already in the PR body, one click away through the link you just added.
+    **🔴 Keep the entry short. The PR description is where the reasoning lives.** The changelog is read by someone deciding whether an upgrade affects them — not by someone auditing your analysis. A lead paragraph carrying the PR link is the whole entry for most changes; the **entire entry — every paragraph included — MUST NOT exceed 500 characters**, and the PR link and any reporter credit count toward that limit. Do not restate the root cause, the code path, the attack mechanics, or the design rationale — every one of those is already in the PR body, one click away through the link you just added.
 
     Keep a **Breaking changes** list in the changelog entry — a short list, *only* for what the reader must act on or will observe (behavior that changed, output that moved, a dependency floor that was raised, data that is or is not rewritten). Two to four bullets, one or two sentences each. If a bullet explains *why* rather than *what changed for the reader*, delete it.
 
