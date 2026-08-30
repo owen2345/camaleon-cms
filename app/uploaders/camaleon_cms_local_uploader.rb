@@ -92,6 +92,11 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
   def add_file(uploaded_io_or_file_path, key, args = {})
     args = { same_name: false, is_thumb: false }.merge(args)
     res = nil
+    # Normalize the key the same way the AWS uploader does, so the persisted
+    # folder_path is canonical (leading slash, no './' or '..' segments). Without
+    # this a folder like '/./.' or a slash-less 'temporal' is stored verbatim,
+    # producing invisible or self-aliasing media rows.
+    key = key.cama_fix_media_key
     key = search_new_key(key) unless args[:same_name]
 
     if @instance # private hook to upload files by different way, add file data into result_data

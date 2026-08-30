@@ -6,6 +6,32 @@ RSpec.describe CamaleonCmsLocalUploader do
   let(:current_site) { Cama::Site.first.decorate }
   let(:uploader) { described_class.new(current_site: current_site) }
 
+  describe '#add_file (key normalization)' do
+    let(:root_folder) { uploader.instance_variable_get(:@root_folder) }
+
+    def upload(key)
+      io = Tempfile.new(['src', '.txt'])
+      io.write('data')
+      io.rewind
+      uploader.add_file(io, key, same_name: true)
+    ensure
+      io.close
+    end
+
+    after do
+      FileUtils.rm_f(File.join(root_folder, 'x.txt'))
+      FileUtils.rm_rf(File.join(root_folder, 'temporal'))
+    end
+
+    it 'stores a canonical folder_path for a dot-segment key' do
+      expect(upload('/./x.txt')['folder_path']).to eq('/')
+    end
+
+    it 'forces a leading slash for a key without one' do
+      expect(upload('temporal/x.txt')['folder_path']).to eq('/temporal')
+    end
+  end
+
   context 'with an invalid path containing path traversal characters' do
     describe '#add_folder' do
       it 'returns an error' do
