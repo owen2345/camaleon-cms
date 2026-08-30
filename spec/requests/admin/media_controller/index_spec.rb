@@ -21,6 +21,14 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#index', type: :request do
       expect(response).to have_http_status(:ok)
     end
 
+    # A folder param with no cache row (stale bookmark, cleared cache) must render an empty
+    # listing; it used to 500 (objects returned nil and the controller paginated it).
+    it 'renders an empty listing for an unknown folder param' do
+      get '/admin/media', params: { folder: '/no-such-folder' }
+
+      expect(response).to have_http_status(:ok)
+    end
+
     # End-to-end guard for the M27 page seam (#1242): the legacy-thumb repair mutates the record
     # in place on the paginated relation, and the view iterates the same loaded page. If that
     # mutation stopped reaching the view (e.g. the seam returned a fresh array), the rendered

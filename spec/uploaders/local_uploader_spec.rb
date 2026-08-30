@@ -181,6 +181,16 @@ RSpec.describe CamaleonCmsLocalUploader do
       expect(res).to be_a(ActiveRecord::Relation)
       expect(res).to respond_to(:limit)
     end
+
+    it 'returns an empty relation, not nil, for a folder key with no cache row' do
+      collection.create!(name: 'a.jpg', folder_path: '/', is_folder: false,
+                         file_type: 'image', url: '/media/1/a.jpg', thumb: '')
+
+      res = uploader.objects('/no-such-folder')
+
+      expect(res).to be_a(ActiveRecord::Relation)
+      expect(res).to be_empty
+    end
   end
 
   describe '#cama_prepare_browser_page (legacy thumbnail fallback, applied to the rendered page)' do

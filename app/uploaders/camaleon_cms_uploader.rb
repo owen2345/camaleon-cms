@@ -28,7 +28,9 @@ class CamaleonCmsUploader
               ''].include?(prefix)
             get_media_collection.where(folder_path: '/')
           else
-            get_media_collection.by_key(prefix).take.try(:items)
+            # An unknown folder key (stale bookmark, cleared cache, bogus param) must yield an
+            # empty listing, not nil — the controller paginates the result directly.
+            get_media_collection.by_key(prefix).take.try(:items) || get_media_collection.none
           end
     # Private hook to recover custom files to include into the current list where
     # data can be modified to add custom{files, folders}.
