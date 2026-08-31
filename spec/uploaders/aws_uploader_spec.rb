@@ -64,6 +64,26 @@ RSpec.describe CamaleonCmsAwsUploader do
     end
   end
 
+  describe '#search_new_key (bucket collision without a cache row)' do
+    let(:existing_object) { instance_double(Aws::S3::Object, exists?: true) }
+    let(:free_object) { instance_double(Aws::S3::Object, exists?: false) }
+
+    it 'renames the key when the bucket already holds an uncached object at it' do
+      allow(bucket).to receive(:object).with('notes.txt').and_return(existing_object)
+      allow(bucket).to receive(:object).with('notes_1.txt').and_return(free_object)
+
+      expect(uploader.search_new_key('/notes.txt')).to eq('/notes_1.txt')
+    end
+
+    it 'treats a failing existence check as absent (pre-existing cache-only behavior)' do
+      failing = instance_double(Aws::S3::Object)
+      allow(failing).to receive(:exists?).and_raise(Aws::S3::Errors::ServiceError.new(nil, 'denied'))
+      allow(bucket).to receive(:object).with('notes.txt').and_return(failing)
+
+      expect(uploader.search_new_key('/notes.txt')).to eq('/notes.txt')
+    end
+  end
+
   describe 'deletes with no cache row (missing row tolerance)' do
     let(:s3_object_collection) { instance_double(Aws::S3::ObjectSummary::Collection, delete: true) }
     let(:s3_object) { instance_double(Aws::S3::Object, delete: true) }

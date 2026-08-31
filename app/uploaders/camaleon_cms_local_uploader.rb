@@ -162,6 +162,12 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
 
   private
 
+  # Collision detection for search_new_key must consult the disk, not just the cache: an
+  # on-disk file with no cache row would otherwise be truncated by add_file's 'wb' write.
+  def stored_file_exists?(key)
+    file_exists?(File.join(@root_folder, key))
+  end
+
   # Applies the legacy-thumbnail fallback (see #cama_compat_legacy_thumb) to a
   # single cached media item in place, so the admin media browser renders the
   # on-disk ".png" thumbnail instead of a 404ing ".jpg" one. No-op for folders,

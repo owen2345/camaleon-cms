@@ -82,6 +82,26 @@ RSpec.describe CamaleonCmsLocalUploader do
     end
   end
 
+  describe '#add_file (on-disk collision without a cache row)' do
+    let(:root_folder) { uploader.instance_variable_get(:@root_folder) }
+
+    after do
+      FileUtils.rm_f(File.join(root_folder, 'notes.txt'))
+      FileUtils.rm_f(File.join(root_folder, 'notes_1.txt'))
+    end
+
+    it 'renames the upload instead of silently truncating the uncached file' do
+      existing = File.join(root_folder, 'notes.txt')
+      File.write(existing, 'original bytes')
+
+      res = uploader.add_file(StringIO.new('new bytes'), '/notes.txt')
+
+      expect(File.read(existing)).to eq('original bytes')
+      expect(res['name']).to eq('notes_1.txt')
+      expect(File.read(File.join(root_folder, 'notes_1.txt'))).to eq('new bytes')
+    end
+  end
+
   context 'with an invalid path containing path traversal characters' do
     describe '#add_folder' do
       it 'returns an error' do

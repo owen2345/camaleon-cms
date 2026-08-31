@@ -182,4 +182,17 @@ class CamaleonCmsAwsUploader < CamaleonCmsUploader
 
     { endpoint: @aws_endpoint }
   end
+
+  private
+
+  # Collision detection for search_new_key must consult the bucket, not just the cache: an
+  # S3 object with no cache row would otherwise be replaced by add_file's upload. The key
+  # arrives already inner_folder-prefixed (add_file prefixes before searching), addressed
+  # exactly like add_file addresses the object. A HEAD failure is treated as absent —
+  # the pre-existing cache-only behavior.
+  def stored_file_exists?(key)
+    bucket.object(key.cama_fix_media_key.slice(1..-1)).exists?
+  rescue StandardError
+    false
+  end
 end

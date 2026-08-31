@@ -158,10 +158,10 @@ class CamaleonCmsUploader
   # sample: search_new_key("my_file/file.txt")
   def search_new_key(key)
     _key = key
-    if get_media_collection.by_key(key).any?
+    if media_key_taken?(_key)
       (1..999).each do |i|
         _key = key.cama_add_postfix_file_name("_#{i}")
-        break unless get_media_collection.by_key(_key).any?
+        break unless media_key_taken?(_key)
       end
     end
     _key
@@ -192,6 +192,20 @@ class CamaleonCmsUploader
   end
 
   private
+
+  # A key is taken when the cache says so OR the storage actually holds a file there. The
+  # cache alone is not enough: it can be stale (cleared, mid-rebuild, or holding rows written
+  # under the pre-fix inverted collection mapping), and a missed collision lets add_file
+  # silently overwrite the stored bytes at the same key.
+  def media_key_taken?(key)
+    get_media_collection.by_key(key).any? || stored_file_exists?(key)
+  end
+
+  # Storage-level existence for a media key; subclasses that own real storage override this.
+  # The base class has no storage, so it can only consult the cache.
+  def stored_file_exists?(_key)
+    false
+  end
 
   def cache_key
     "cama_media_cache#{'_private' if is_private_uploader?}"
