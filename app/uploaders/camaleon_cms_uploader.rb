@@ -90,8 +90,9 @@ class CamaleonCmsUploader
   # real visibility: private mode → private_media (is_public: false), public mode →
   # public_media (is_public: true). Access control keys off is_private_uploader? and the
   # storage path, not off this flag. Rows written before this mapping was corrected hold
-  # the inverted value; the one-time `camaleon_cms:backfill_media_is_public` rake task
-  # realigns them, and MUST be run right after deploying this code on an existing install.
+  # the inverted value; the `camaleon_cms:repair_media_visibility` rake task rebuilds the
+  # cache from storage (convergent, safe to re-run) and MUST be run right after deploying
+  # this code on an existing install, before further media activity.
   def get_media_collection
     is_private_uploader? ? @current_site.private_media : @current_site.public_media
   end
