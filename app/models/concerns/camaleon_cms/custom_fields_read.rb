@@ -378,7 +378,7 @@ module CamaleonCms
       # CommonRelationships — only their subclasses receive it via the inherited hook — so a
       # row whose stored type maps to no subclass instantiates without custom_field_groups;
       # such records own no groups, so there is nothing to destroy.
-      elsif respond_to?(:custom_field_groups) && get_field_groups.present?
+      elsif respond_to?(:custom_field_groups)
         get_field_groups.destroy_all
       end
     end
