@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** Destroying a `term_taxonomy` row whose taxonomy value maps to no model — typically one left behind by a removed or renamed plugin — raised `NameError`, which also blocked `Site#destroy` for any site owning such a row. Both now complete normally. [#1287](https://github.com/owen2345/camaleon-cms/pull/1287).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#deleting-legacy-taxonomy-rows-no-longer-crashes).
+
 - **Bug fix:** Media rows stored `is_public` inverted — `site.public_media` returned the site's private files and vice versa; uploads now store the flag matching real visibility, plus stale-cache hardening. [#1286](https://github.com/owen2345/camaleon-cms/pull/1286).
   - **Notes for upgraders:** run `bundle exec rake camaleon_cms:repair_media_visibility` right after deploying — [upgrade notes](docs/upgrading-to-2.9.5.md#media-visibility-repair).
 
