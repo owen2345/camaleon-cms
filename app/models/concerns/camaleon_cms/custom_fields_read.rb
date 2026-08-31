@@ -374,7 +374,11 @@ module CamaleonCms
         get_field_groups('Category').destroy_all
         get_field_groups('PostTag').destroy_all
       elsif ['NavMenuItem'].include?(class_name) # menu items doesn't include field groups
-      elsif get_field_groups.present?
+      # STI base classes (TermTaxonomy, PostDefault) include this concern without
+      # CommonRelationships — only their subclasses receive it via the inherited hook — so a
+      # row whose stored type maps to no subclass instantiates without custom_field_groups;
+      # such records own no groups, so there is nothing to destroy.
+      elsif respond_to?(:custom_field_groups)
         get_field_groups.destroy_all
       end
     end

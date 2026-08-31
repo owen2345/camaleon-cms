@@ -2,8 +2,9 @@
 
 Version `2.9.5` is a bug-fix and security release. It corrects the long-standing inversion of the
 media `is_public` flag (with a repair task for existing installs and hardening around stale media
-caches), contains media folder deletion to the media root, and raises the bundled
-`cama_contact_form` floor to the release that completes its security series.
+caches), contains media folder deletion to the media root, lets sites carrying taxonomy rows from
+a removed plugin be deleted again, and raises the bundled `cama_contact_form` floor to the release
+that completes its security series.
 
 **Your stored files are never touched by upgrading.** One change in this release does rewrite
 database rows: the media *cache* table (which mirrors your storage) is purged and rebuilt by the
@@ -18,6 +19,7 @@ what theme/plugin developers should know.
 | --- | --- |
 | **Any install** | `bundle update camaleon_cms`, deploy, then **immediately** run the [media visibility repair](#media-visibility-repair) |
 | Reads `site.public_media` / `site.private_media` or `media.is_public` **directly** (reports, plugins, exports) | Those now return what their names say — drop any compensating inversion ([details](#notes-for-theme--plugin-developers)) |
+| Hit `NameError: undefined local variable or method custom_field_groups` deleting a site or taxonomy row | Nothing — retry the delete after upgrading ([details](#deleting-legacy-taxonomy-rows-no-longer-crashes)) |
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.14` |
 
 ---
@@ -72,6 +74,18 @@ the media root; folders whose stored name or path collapses (e.g. one named `.`)
 with `SystemStackError` or delete sibling media on destroy, and such non-canonical names and
 paths are refused at save. No operator action; you may observe the save-time refusal if something
 was creating such folders programmatically.
+
+---
+
+## Deleting legacy taxonomy rows no longer crashes
+
+A `term_taxonomy` row whose `taxonomy` value matches no model — typically left behind by a plugin
+that was removed or that renamed its taxonomy, such as `ecommerce_coupon` — loads as the base
+`CamaleonCms::TermTaxonomy` by design. Destroying one raised `NameError: undefined local variable
+or method custom_field_groups` (the identifier's quoting in the message varies by Ruby version),
+which also aborted **`Site#destroy`** for any site owning such a row: the site could not be
+deleted at all. Both now complete normally. No operator action, and
+nothing to repair — simply retry the delete. Rows that map to a real model are unaffected.
 
 ---
 
