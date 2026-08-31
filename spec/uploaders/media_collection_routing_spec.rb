@@ -19,16 +19,6 @@ RSpec.describe 'media collection routing (is_public integrity)' do # rubocop:dis
     uploader.send(:get_media_collection).find_by(name: name, folder_path: '/')
   end
 
-  describe '#get_media_collection maps mode to the matching-visibility collection' do
-    it 'routes a private uploader to private_media (is_public: false)' do
-      expect(private_uploader.send(:get_media_collection).new.is_public).to be false
-    end
-
-    it 'routes a public uploader to public_media (is_public: true)' do
-      expect(public_uploader.send(:get_media_collection).new.is_public).to be true
-    end
-  end
-
   describe 'stored is_public reflects real visibility' do
     it 'persists a privately uploaded file as is_public: false' do
       row = cache_file(private_uploader, 'secret.pdf')
@@ -47,18 +37,30 @@ RSpec.describe 'media collection routing (is_public integrity)' do # rubocop:dis
     end
   end
 
-  describe 'visibility associations return the collection their name denotes' do
-    it 'keeps public and private files in their own association' do
-      cache_file(public_uploader, 'logo.png')
-      cache_file(private_uploader, 'secret.pdf')
+  # Production never constructs a private uploader: the media controller builds a public
+  # Local/Aws uploader and switches it with enable_private_mode! per request. The routing
+  # contract must hold across that transition, not just for uploaders born private.
+  describe 'the enable_private_mode! transition (the production private path)' do
+    let(:uploader) { CamaleonCmsLocalUploader.new({ current_site: site }, nil) }
 
-      public_names = site.public_media.where(folder_path: '/').pluck(:name)
-      private_names = site.private_media.where(folder_path: '/').pluck(:name)
+    it 'routes to private_media after the switch and persists is_public: false' do
+      uploader.enable_private_mode!
 
-      expect(public_names).to include('logo.png')
-      expect(public_names).not_to include('secret.pdf')
-      expect(private_names).to include('secret.pdf')
-      expect(private_names).not_to include('logo.png')
+      row = cache_file(uploader, 'switched.pdf')
+
+      expect(row.is_public).to be false
+      expect(site.private_media.where(name: 'switched.pdf', folder_path: '/')).to exist
+      expect(site.public_media.where(name: 'switched.pdf', folder_path: '/')).not_to exist
+    end
+
+    it 'routes back to public_media after disable_private_mode!' do
+      uploader.enable_private_mode!
+      uploader.disable_private_mode!
+
+      row = cache_file(uploader, 'switched-back.png')
+
+      expect(row.is_public).to be true
+      expect(site.public_media.where(name: 'switched-back.png', folder_path: '/')).to exist
     end
   end
 end
