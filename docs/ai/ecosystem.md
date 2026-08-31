@@ -28,8 +28,8 @@ Before removing, renaming or hardening a public API, search this file for it. Th
 |---|---|---|---|
 | `cama_contact_form` | Gemfile, unpinned | 2026-08 | `admin_menu_append_menu_item` with a pre-rendered `datas` string; `cama_tmp_upload` into `public/contact_form/<site_id>` with no `formats`, from an unauthenticated endpoint; `cama_send_email` with `attachments`/`extra_data`; own copies of the content-safety patterns |
 | `camaleon-cms-seo` (`cama_meta_tag`) | no | 2023-07 | `seo` hook reading `@cama_visited_post` and `is_page?`/`is_category?`/`is_post_type?`; `set_multiple_options(params[:options].permit!.to_h)` from six save hooks; `plugin_view` at both arities; runtime probe for Camaleon ≤ 2.3.6 |
-| `camaleon-ecommerce` | `>= 2.4` | 2024-08 | **Two-arg `post_type_list_taxonomy`** (live-broken on master); **HTML in an admin menu title** (`span`/`small` + order count); unvalidated `params[:return_to]` and `request.referer` into `login_user`; `email_late` writing a PDF to disk inline; `I18n.locale` mutated mid-request without `ensure`; meta scopes `currencies` and `_setting_ecommerce`; raw `object_class` string on `CamaleonCms::Meta` |
-| `camaleon_editor` | no | 2024-08 | **Unloadable as published** — includes `PluginCamaleonEditorPrivateHelper`, defined nowhere; all six declared hooks have no handler |
+| `camaleon-ecommerce` | `>= 2.4` | 2024-08 | **Two-arg `post_type_list_taxonomy`** (live-broken on master); **HTML in an admin menu title** (`span`/`small` + order count); unvalidated `params[:return_to]` and `request.referer` into `login_user`; `email_late` writing a PDF to disk inline; `I18n.locale` mutated mid-request without `ensure`; meta scopes `currencies` and `_setting_ecommerce`; raw `object_class` string on `CamaleonCms::Meta`; front `cart.js` chains `jqXHR.complete()/.error()` (removed in jQuery 3) — broken on a bundled theme by #1169's jquery2→jquery3 move |
+| `camaleon_editor` | no | 2024-08 | **Unloadable as published** — includes `PluginCamaleonEditorPrivateHelper`, defined nowhere; all six declared hooks have no handler. Also `grid-editor.js` calls jQuery UI `$.fn.draggable({connectToSortable})` and reads `ui.helper`/`ui.placeholder` in sortable callbacks — **withdrawn** by #1169's jQuery UI removal (bundle jQuery UI downstream) |
 | `cama_subscriber` | no | 2024-06 | `admin_menu_insert_menu_before` with nested `items`; three `cama_send_email` calls with `from`/`cc_to` (array)/`template`/`layout_name`; `CamaleonCms::Site.class_eval`; `CamaleonCms::Metas` on its own model; `all_locales` in a route constraint. Also calls `Rails.application.secrets`, removed in Rails 7.2 |
 | `camaleon_sitemap_customizer` | `~> 2.0` | 2022-01 | `on_render_sitemap` accumulating into all four skip lists and overriding `args[:render]` — matches the contract #1223 restored; six post/plugin hooks; ActiveJob ping |
 | `camaleon_image_optimizer` | `~> 2.0` | **2025-07** | `before_upload` only — rewrites the file in place and rebinds `settings[:uploaded_io]`, **after** the content scan; re-fires on the crop path's re-entry into `upload_file` |
@@ -68,6 +68,16 @@ Before removing, renaming or hardening a public API, search this file for it. Th
 
 Changes that look free from inside this repository and are not:
 
+- **Removing jQuery UI from the admin bundle** (#1169) leaves only `$.fn.sortable`/`disableSelection`
+  (a SortableJS shim) and Awesomplete for autocomplete. `camaleon_editor`'s grid editor calls
+  `$.fn.draggable` and reads `ui.helper`/`ui.placeholder`, with no jQuery UI of its own — disposition:
+  **withdrawn** (a host must bundle jQuery UI). The other widgets (datepicker/dialog/resizable/…) have
+  no surveyed consumer; `camaleon-ecommerce`'s `.datepicker()` is bootstrap-datepicker, not jQuery UI.
+- **Moving the bundled frontend themes to jQuery 3** (#1169: `default`/`new`/`camaleon_first` and the
+  theme generator now require `jquery3`, no jquery-migrate) breaks a plugin/theme script using a
+  jQuery-2 API removed in 3.x. `camaleon-ecommerce`'s `cart.js` chains `jqXHR.complete()/.error()`, so
+  its checkout falls through to a native submit on a bundled theme (already inert over HTTPS — it loads
+  jquery-validate over `http://`). External themes pinning their own `jquery`/`jquery2` are unaffected.
 - **Escaping admin menu titles** breaks `camaleon-ecommerce`'s Orders entry.
 - **Filtering the menu `datas` value** must tolerate a pre-rendered single-quoted attribute string —
   the current filter truncates values at an embedded quote, which already breaks the engine's own

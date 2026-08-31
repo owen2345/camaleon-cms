@@ -1,9 +1,24 @@
-jQuery(document).on("ready page:changed", function(){
+var onReadyOrChanged = function(){
+    // Bind the AdminLTE sidebar tree at DOM ready. AdminLTE 2.4 only activates it on window.load,
+    // so a click on an expandable parent before load would otherwise fall through its (now href="#")
+    // anchor with no toggle. The Tree plugin guards against double-init, so the load-time Data API
+    // becomes a no-op. (PR #1169 review.)
+    if ($.fn.tree) $('[data-widget="tree"]').tree();
+    // Restore AdminLTE 2.3's body-delegated Bootstrap tooltip: 2.4 dropped it, so a tooltip trigger
+    // inserted later via AJAX (e.g. cama_contact_form's field rows) no longer got a tooltip. Bind
+    // once, lazily, for every current and future [data-toggle="tooltip"]. Bootstrap reuses an
+    // element's existing instance, so this does not double-init the ones page_actions eager-inits.
+    if (!window.cama_tooltip_delegated) {
+        window.cama_tooltip_delegated = true;
+        $(document.body).tooltip({ selector: "[data-toggle='tooltip']:not(.skip_tooltip)", container: 'body' });
+    }
     // initialize all validations for forms
     init_form_validations();
     setTimeout(page_actions, 1000);
     if(!$("body").attr("data-intro")) setTimeout(init_intro, 500);
-});
+};
+jQuery(onReadyOrChanged);
+jQuery(document).on("page:changed", onReadyOrChanged);
 
 // show admin intro presentation
 function init_intro(){
@@ -25,12 +40,22 @@ function init_intro(){
         disableInteraction: true,
         buttonClass: 'btn'
     }).oncomplete(finish).onexit(finish).onbeforechange(function(ele) {
-        if($(ele).hasClass("treeview") && !$(ele).hasClass("active")) $(ele).children("a").click();
-        if($(ele).is("li")){
-            var tree = $(ele).closest("ul");
-            if(!tree.hasClass("menu-open")) tree.prev("a").click();
-        }
+        cama_intro_reveal_menu(ele);
     }).start();
+}
+
+// Reveal the sidebar menu branch a given intro step lives in, so the highlighted item is visible.
+// AdminLTE 2.4 marks the EXPANDED PARENT LI `menu-open` (2.3 marked the ul.treeview-menu), so the
+// "is this submenu already open?" test must read the parent li -- reading the ul (as before) is
+// always false under 2.4, which re-clicked the toggle and COLLAPSED the branch the step points at.
+// (PR #1169 review.) Kept as a named function so the reveal logic is unit-testable.
+function cama_intro_reveal_menu(ele){
+    var $ele = $(ele);
+    if($ele.hasClass("treeview") && !$ele.hasClass("active")) $ele.children("a").click();
+    if($ele.is("li")){
+        var tree = $ele.closest("ul");
+        if(!tree.parent("li").hasClass("menu-open")) tree.prev("a").click();
+    }
 }
 
 // basic and common actions

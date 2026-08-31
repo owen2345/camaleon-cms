@@ -10,10 +10,12 @@
 // Read Sprockets README (https://github.com/rails/sprockets) for details
 // about supported directives.
 //
-//= require jquery2
+//= require jquery3
+//= require camaleon_cms/admin/_sortable
+//= require camaleon_cms/admin/_jquery_ui_compat
+//= require camaleon_cms/admin/_awesomplete
 //= require camaleon_cms/admin/_data
 //= require camaleon_cms/bootstrap.min
-//= require camaleon_cms/admin/_jquery-ui.min
 //= require camaleon_cms/admin/jquery.validate
 
 // date picker
@@ -45,7 +47,7 @@
 //= require camaleon_cms/admin/tinymce/plugins/filemanager/plugin.min
 
 // post
-//= require camaleon_cms/admin/_jquery.tagsinput.min
+//= require camaleon_cms/admin/_jquery.tagsinput
 //= require camaleon_cms/admin/_post
 
 //= require camaleon_cms/admin/_posttype

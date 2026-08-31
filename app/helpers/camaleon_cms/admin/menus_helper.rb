@@ -261,7 +261,11 @@ module CamaleonCms
             class: css_class.presence, data: { key: menu[:key] }.merge!(data_attrs.presence || {})
           ) do
             safe_join([
-              content_tag(:a, href: menu[:url]) do
+              # An expandable parent is a toggle, not a destination: emit href="#", never the empty
+              # url it carries. AdminLTE's Tree preventDefaults it once bound, and before the Tree is
+              # bound (it activates on window.load) an early click on "#" only adds a fragment, whereas
+              # href="" reloads the current page and discards in-progress edits. (PR #1169 review.)
+              content_tag(:a, href: (menu.key?(:items) ? '#' : menu[:url])) do
                 safe_join([
                   content_tag(:i, nil, class: "fa fa-#{menu[:icon]}"),
                   ' ',
@@ -331,7 +335,9 @@ module CamaleonCms
         content_tag(:ul, class: 'treeview-menu') do
           safe_join(items.each_with_index.map do |item, index|
             css_class = +"item_#{index + 1} "
-            css_class << 'xn-openable ' if item.key?(:items)
+            # canonical AdminLTE class: the sidebar Tree plugin binds expansion to
+            # .treeview items and marks active ones menu-open on init
+            css_class << 'treeview ' if item.key?(:items)
             css_class << 'active ' if is_active_menu(item[:key], menu_parents)
             css_class.strip!
             data_attrs = parse_datas(item[:datas])
@@ -341,7 +347,7 @@ module CamaleonCms
               data: { key: item[:key] }.merge!(data_attrs.presence || {})
             ) do
               safe_join([
-                content_tag(:a, href: item[:url]) do
+                content_tag(:a, href: (item.key?(:items) ? '#' : item[:url])) do
                   safe_join([
                     content_tag(:i, nil, class: "fa fa-#{item[:icon]}"),
                     ' ',

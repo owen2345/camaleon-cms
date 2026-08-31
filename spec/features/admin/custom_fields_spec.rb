@@ -18,6 +18,8 @@ describe 'the Custom Fields', :js do
       page.execute_script(script_string)
 
       wait 2
+      # the available-fields box keeps its compact Bootstrap sizing class
+      expect(page).to have_css('#content-items-default.form-group.input-group-sm')
       all('#content-items-default a').each(&:click)
       wait_for_ajax
       first('button[type="submit"]').click
@@ -109,5 +111,41 @@ describe 'the Custom Fields', :js do
     # also assert the group was persisted in the database (avoids flaky UI assertions)
     group = @site.custom_field_groups.find_by(name: 'Allowed Group')
     expect(group).to be_present
+  end
+
+  it 'reports the reorder outcome of the drag that finished, not of the latest drag' do
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/settings/custom_fields"
+
+    # Direct-drive the reorder table's Sortable handlers with a stubbed $.post so a
+    # second drag can begin before the first reorder request resolves. Each drag's
+    # toast must be decided by that drag's own start/end positions.
+    result = page.evaluate_script(<<~JS)
+      (function() {
+        var out = { alerts: [] };
+        var tbody = document.querySelector('#table_custom_groups tbody');
+        var instance = window.Sortable.get(tbody);
+        $.fn.alert = function(o) { out.alerts.push(o.type || 'success'); };
+        var pending = [];
+        $.post = function(url, data, done) { pending.push(done); return { fail: function() { return this; } }; };
+
+        if (instance.options.onStart) instance.options.onStart.call(instance, { oldIndex: 0, item: tbody.children[0] });
+        instance.options.onEnd.call(instance, { oldIndex: 0, newIndex: 2, item: tbody.children[0] });
+        // a second drag begins before the first response arrives, dropping back where it started
+        if (instance.options.onStart) instance.options.onStart.call(instance, { oldIndex: 2, item: tbody.children[1] });
+        pending[0]({});
+        out.toastsAfterFirst = out.alerts.length;
+        instance.options.onEnd.call(instance, { oldIndex: 2, newIndex: 2, item: tbody.children[1] });
+        pending[1]({});
+        out.toastsTotal = out.alerts.length;
+        return out;
+      })()
+    JS
+
+    # the completed move (0 -> 2) gets its success toast even though another drag
+    # started meanwhile; the no-op drop (2 -> 2) stays silent
+    expect(result['toastsAfterFirst']).to eq(1)
+    expect(result['toastsTotal']).to eq(1)
+    expect(result['alerts']).to eq(['success'])
   end
 end

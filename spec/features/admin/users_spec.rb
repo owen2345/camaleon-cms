@@ -54,6 +54,22 @@ describe 'the Users', :js do
     expect(page).to have_css('.alert-success')
   end
 
+  it 'Users edit shows the quick info panel' do
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/users"
+    within '#admin_content' do
+      all('.btn-default')[1].click
+    end
+    # The sidebar keeps the admin's stock form-horizontal layout: an intro
+    # paragraph plus label/value form-group rows.
+    within find('h3', text: 'Quick Info').ancestor('.panel') do
+      expect(page).to have_text('Some quick info about this user')
+      expect(page).to have_css('.form-group-separated .form-group', count: 2)
+      expect(page).to have_text('Last visit')
+      expect(page).to have_text('Registration')
+    end
+  end
+
   it 'Users Update Pass' do
     admin_sign_in
     visit "#{cama_root_relative_path}/admin/users"
@@ -71,6 +87,10 @@ describe 'the Users', :js do
     end
     wait_for_ajax
     expect(page).to have_css('.alert-success')
+    # Regression (jQuery 3): the submitHandler chained .complete() on the jqXHR -- removed in
+    # jQuery 3 -- so hideLoading() never ran and the full-screen loading overlay stayed up
+    # forever after a successful password change. .always() is the jQuery 3 callback.
+    expect(page).to have_no_css('#cama_custom_loading', wait: 3)
   end
 
   it 'Users destroy' do

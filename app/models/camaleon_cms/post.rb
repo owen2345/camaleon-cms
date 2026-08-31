@@ -44,6 +44,8 @@ module CamaleonCms
     # an end-run around post_content_unfiltered_html; gate authorship behind content_shortcodes.
     gate_content_shortcodes :content
 
+    validate :reject_untrusted_dangerous_tags, on: %i[create update]
+
     # DEPRECATED
     has_many :post_relationships, class_name: 'CamaleonCms::PostRelationship', foreign_key: :objectid,
                                   dependent: :destroy, inverse_of: :post
@@ -335,6 +337,27 @@ module CamaleonCms
       )
         errors.add(:content, cama_content_rejection_message('content_rejected'))
       end
+    end
+
+    # Security (scan-and-reject policy): a post tag name is a plain-text label, but the tag editor and
+    # the tagsInput plugin render suggestion labels (post_tags#list -> pluck('name')) through an
+    # innerHTML sink, so a stored tag name carrying markup executes in the admin post form of every
+    # other author. Refuse a dangerous tag name at save with a validation error -- never sanitize --
+    # so the stored name equals the authored name and can be rendered verbatim. `data_tags` is the
+    # comma-separated tag string the post form submits; it is only present on the tag-editing path,
+    # and the same trust gate (unfiltered_content opt-out / post_content_unfiltered_html) applies as
+    # for content. Pre-gate stored tag names are left untouched (reject, don't transform).
+    def reject_untrusted_dangerous_tags
+      return if data_tags.nil?
+      return if unfiltered_content
+      return if trusted_for_unfiltered_html?
+
+      dangerous = data_tags.to_s.split(',').map(&:strip).reject(&:blank?).any? do |name|
+        CamaleonCms::UnsafeMarkup.unsafe_html?(
+          name, tags: CONTENT_ALLOWED_TAGS, attributes: CONTENT_ALLOWED_ATTRIBUTES
+        )
+      end
+      errors.add(:base, cama_content_rejection_message('tags_rejected')) if dangerous
     end
 
     # Only en.yml carries these keys while the process locale follows the current admin/site

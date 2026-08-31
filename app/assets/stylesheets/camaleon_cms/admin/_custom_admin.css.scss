@@ -46,6 +46,22 @@
       overflow: hidden;
     }
 
+    // panel-primary is the only variant with a dark heading, so its controls need white icons; the
+    // pastel success/info/warning/danger headings keep the default (dark) icons. This replaces a
+    // runtime luma scan (cama_fix_panel_icon_contrast) that painted every variant white then toggled
+    // a .panel-controls-light class back to dark -- an equal-specificity fight that also restyled
+    // every plain panel's controls admin-wide and greyed the .text-danger delete icon. (PR #1169.)
+    &.panel-primary {
+      .panel-heading .panel-controls a {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.5);
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.2);
+          color: #fff;
+        }
+      }
+    }
+
   }
 
   // label size
@@ -199,6 +215,13 @@
   }
 }
 
+// SortableJS ghost placeholder during drag-and-drop
+.sortable-ghost {
+  opacity: 0.4;
+  background: #f4f4f4;
+  border: 1px dashed #ddd;
+}
+
 //************** Main Header && intro js custom
 #main-header{
   z-index: 4;
@@ -305,6 +328,22 @@ label.error, span.error{
 
 
 //************** Appearance
+
+// nav menus: selector row — select fills space, buttons right-aligned
+.cama-menu-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  select.form-control {
+    flex: 1 1 auto;
+  }
+
+  .cama-menu-actions {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
 
 // themes: index page
 .theme-card {
