@@ -36,6 +36,16 @@ RSpec.describe 'STI discriminator compatibility', type: :model do
       expect(record.reload.taxonomy).to eq('custom_tax')
     end
 
+    # The plain lifecycle contract covers column attributes only; the meta and custom-field
+    # APIs come from CommonRelationships, which the root never gains, so a meta payload must
+    # fail loudly rather than be silently dropped.
+    it 'raises when saving a root with a meta payload' do
+      record = CamaleonCms::TermTaxonomy.new(taxonomy: 'custom_tax', name: 'Custom With Payload')
+      record.data_options = { color: 'red' }
+
+      expect { record.save! }.to raise_error(NameError, /metas/)
+    end
+
     it 'still resolves built-in values to their subclasses' do
       category = CamaleonCms::Category.first
 
