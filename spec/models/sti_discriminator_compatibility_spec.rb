@@ -89,5 +89,16 @@ RSpec.describe 'STI discriminator compatibility', type: :model do
       expect(record).to be_instance_of(CamaleonCms::PostDefault)
       expect(record.post_class).to eq('External::Unknown')
     end
+
+    # Raw insert + find is deliberate: PostDefault.new resolves to CamaleonCms::Post through the
+    # post_class column default, so only a found row exercises the true root's destroy chain.
+    it 'destroys a row with an unknown post_class cleanly' do
+      id = insert_row(table, post_class: 'External::Unknown', title: 'Doomed Foreign Post', status: 'published')
+      record = CamaleonCms::PostDefault.find(id)
+      expect(record).to be_instance_of(CamaleonCms::PostDefault)
+
+      expect { record.destroy! }.not_to raise_error
+      expect(CamaleonCms::PostDefault.exists?(id)).to be(false)
+    end
   end
 end

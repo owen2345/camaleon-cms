@@ -75,6 +75,12 @@ Code handling unmapped rows SHALL work with column attributes only.
 - **WHEN** a `CamaleonCms::Site` with a child `term_taxonomy` row of that kind is destroyed
 - **THEN** the site and the child row are deleted through the `dependent: :destroy` cascade
 
+#### Scenario: Destroying a posts row whose post_class maps to no subclass
+
+- **WHEN** a `posts` row whose `post_class` matches no loaded class is loaded through the base
+  `CamaleonCms::PostDefault` and destroyed
+- **THEN** the row is deleted and no `NameError` is raised
+
 ### Requirement: A discriminator resolving to a non-descendant class is treated as unknown
 
 If a discriminator value camelizes to the name of a class that is not a descendant of the STI
