@@ -43,6 +43,27 @@ The base-class fallback SHALL NOT change resolution for known values: built-in t
 - **WHEN** a row with `taxonomy == 'category'` is loaded through `TermTaxonomy.find`
 - **THEN** the instance is a `CamaleonCms::Category`
 
+### Requirement: STI root instances support the full record lifecycle
+
+A record instantiated as the STI root because its discriminator maps to no known class SHALL be
+readable, savable and destroyable. Model code shared between the root and its subclasses SHALL NOT
+assume associations that only subclasses receive: `CamaleonCms::TermTaxonomy` and
+`CamaleonCms::PostDefault` include `CustomFieldsRead` themselves but gain `CommonRelationships`
+(and therefore `custom_field_groups`, `custom_field_values`, `metas`, `custom_fields`) only through
+their `inherited` hook, so root instances respond to neither. Such records own no custom field
+groups, so lifecycle callbacks SHALL skip that teardown rather than raise.
+
+#### Scenario: Destroying a row whose taxonomy maps to no subclass
+
+- **WHEN** a `term_taxonomy` row whose `taxonomy` is a value no loaded class claims (e.g.
+  `ecommerce_coupon`, left by a plugin whose model now stores a different `sti_name`) is destroyed
+- **THEN** the row is deleted and no `NameError` is raised
+
+#### Scenario: Destroying a site that owns such a row
+
+- **WHEN** a `CamaleonCms::Site` with a child `term_taxonomy` row of that kind is destroyed
+- **THEN** the site and the child row are deleted through the `dependent: :destroy` cascade
+
 ### Requirement: A discriminator resolving to a non-descendant class is treated as unknown
 
 If a discriminator value camelizes to the name of a class that is not a descendant of the STI
