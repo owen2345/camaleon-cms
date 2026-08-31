@@ -149,7 +149,10 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
     file = File.join(@root_folder, key)
     FileUtils.rm(file) if File.exist? file
     @instance.hooks_run('after_delete', key)
-    get_media_collection.by_key(key).take.destroy
+    # The cache row can legitimately be absent (cleared cache, or a row written under the
+    # pre-fix inverted mapping sitting in the opposite collection); the file is already
+    # removed above, so a missing row must not turn the request into a 500.
+    get_media_collection.by_key(key).take&.destroy
   end
 
   # Convert a real file path into a file key
@@ -158,6 +161,12 @@ class CamaleonCmsLocalUploader < CamaleonCmsUploader
   end
 
   private
+
+  # Collision detection for search_new_key must consult the disk, not just the cache: an
+  # on-disk file with no cache row would otherwise be truncated by add_file's 'wb' write.
+  def stored_file_exists?(key)
+    file_exists?(File.join(@root_folder, key))
+  end
 
   # Applies the legacy-thumbnail fallback (see #cama_compat_legacy_thumb) to a
   # single cached media item in place, so the admin media browser renders the

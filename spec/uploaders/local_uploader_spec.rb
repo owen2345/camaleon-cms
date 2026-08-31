@@ -34,6 +34,40 @@ RSpec.describe CamaleonCmsLocalUploader do
     end
   end
 
+  describe '#clear_cache (purges both visibility collections)' do
+    it 'destroys cached rows of both visibilities, whichever mode the uploader is in' do
+      current_site.public_media.create!(name: 'pub.txt', folder_path: '/', is_folder: false)
+      current_site.private_media.create!(name: 'priv.txt', folder_path: '/', is_folder: false)
+
+      uploader.clear_cache
+
+      expect(current_site.public_media.count).to eq(0)
+      expect(current_site.private_media.count).to eq(0)
+    end
+  end
+
+  describe '#delete_file (missing cache row tolerance)' do
+    # A plain stub, not an rspec double: the uploader is materialized inside the `around`
+    # hook (outside the example's mock space), where doubles cannot be created.
+    let(:hook_instance) { Class.new { def hooks_run(*args); end }.new }
+    let(:uploader) { described_class.new({ current_site: current_site }, hook_instance) }
+
+    around do |example|
+      Dir.mktmpdir do |dir|
+        uploader.instance_variable_set(:@root_folder, dir)
+        example.run
+      end
+    end
+
+    it 'removes the file without raising when no cache row exists for the key' do
+      file = File.join(uploader.instance_variable_get(:@root_folder), 'stale.txt')
+      File.write(file, 'data')
+
+      expect { uploader.delete_file('/stale.txt') }.not_to raise_error
+      expect(File.exist?(file)).to be false
+    end
+  end
+
   describe '#add_file (key normalization)' do
     let(:root_folder) { uploader.instance_variable_get(:@root_folder) }
 
@@ -57,6 +91,26 @@ RSpec.describe CamaleonCmsLocalUploader do
 
     it 'forces a leading slash for a key without one' do
       expect(upload('temporal/x.txt')['folder_path']).to eq('/temporal')
+    end
+  end
+
+  describe '#add_file (on-disk collision without a cache row)' do
+    let(:root_folder) { uploader.instance_variable_get(:@root_folder) }
+
+    after do
+      FileUtils.rm_f(File.join(root_folder, 'notes.txt'))
+      FileUtils.rm_f(File.join(root_folder, 'notes_1.txt'))
+    end
+
+    it 'renames the upload instead of silently truncating the uncached file' do
+      existing = File.join(root_folder, 'notes.txt')
+      File.write(existing, 'original bytes')
+
+      res = uploader.add_file(StringIO.new('new bytes'), '/notes.txt')
+
+      expect(File.read(existing)).to eq('original bytes')
+      expect(res['name']).to eq('notes_1.txt')
+      expect(File.read(File.join(root_folder, 'notes_1.txt'))).to eq('new bytes')
     end
   end
 
@@ -151,13 +205,23 @@ RSpec.describe CamaleonCmsLocalUploader do
     let(:collection) { uploader.send(:get_media_collection) }
 
     it 'returns a lazy ActiveRecord relation, not a materialized array' do
-      collection.create!(name: 'a.jpg', folder_path: '/', is_folder: false, is_public: false,
+      collection.create!(name: 'a.jpg', folder_path: '/', is_folder: false,
                          file_type: 'image', url: '/media/1/a.jpg', thumb: '')
 
       res = uploader.objects('/')
 
       expect(res).to be_a(ActiveRecord::Relation)
       expect(res).to respond_to(:limit)
+    end
+
+    it 'returns an empty relation, not nil, for a folder key with no cache row' do
+      collection.create!(name: 'a.jpg', folder_path: '/', is_folder: false,
+                         file_type: 'image', url: '/media/1/a.jpg', thumb: '')
+
+      res = uploader.objects('/no-such-folder')
+
+      expect(res).to be_a(ActiveRecord::Relation)
+      expect(res).to be_empty
     end
   end
 
@@ -170,7 +234,7 @@ RSpec.describe CamaleonCmsLocalUploader do
     after { FileUtils.rm_rf(thumb_dir) }
 
     def create_image_media(thumb)
-      collection.create!(name: 'photo.jpg', folder_path: '/', is_folder: false, is_public: false,
+      collection.create!(name: 'photo.jpg', folder_path: '/', is_folder: false,
                          file_type: 'image', url: '/media/1/photo.jpg', thumb: thumb)
     end
 
@@ -193,7 +257,7 @@ RSpec.describe CamaleonCmsLocalUploader do
     end
 
     it 'falls back to the original file url for a cached item with no thumbnail on disk (favicon)' do
-      collection.create!(name: 'favicon.ico', folder_path: '/', is_folder: false, is_public: false,
+      collection.create!(name: 'favicon.ico', folder_path: '/', is_folder: false,
                          file_type: 'image', url: '/media/1/favicon.ico',
                          thumb: '/media/1/thumb/favicon-ico.ico')
 

@@ -45,6 +45,24 @@ Cama::PostType # = CamaleonCms::PostType
 - `CamaleonRecord` is the base class for Camaleon CMS ActiveRecord models (inherits from `ActiveRecord::Base`).
 - Always specify `class_name` and `foreign_key` explicitly on associations.
 
+### The media table is a rebuildable cache
+
+Every column on a `CamaleonCms::Media` row is derived from storage by the uploaders'
+`browser_files`/`file_parse`; nothing on a row is user-authored. Consequences:
+
+- **Never repair media rows by transforming them in place** — purge and let the cache rebuild
+  from storage (that is what `clear_cache`, lazy rebuild on browse, and
+  `rake camaleon_cms:repair_media_visibility` all rely on). An in-place transform cannot know
+  which rows are already correct; see the archived
+  `2026-08-31-correct-media-is-public-flag` change's `design.md` for the full argument.
+- `media.is_public` and `Site#public_media` / `Site#private_media` mean what they say (since
+  #1286): the uploader's mode maps to the collection whose `is_public` matches the file's real
+  visibility. Access control never reads the stored flag — it keys off `is_private_uploader?`
+  and the storage path.
+- Uploaders reach private mode via `enable_private_mode!` on a public-constructed instance (the
+  controller path); constructing with `private: true` skips `setup_private_folder` and leaves the
+  storage root public — do not use it outside base-class tests.
+
 ## Decorators (Draper)
 
 Located in `app/decorators/`:

@@ -109,6 +109,18 @@ Changes that look free from inside this repository and are not:
   `crop_url` to `media#actions`, and the only crop-adjacent ecosystem file is `camaleon_website`'s
   vendored `croppic.js`, never instantiated (and it would POST).
 
+- **Correcting the media `is_public` semantics** (#1286) is invisible to every surveyed consumer:
+  none reads `media.is_public` or `Site#public_media`/`#private_media` directly (the two plugins
+  touching private media go through `CamaleonCmsLocalUploader.private_file_path`, and access
+  control keys off the uploader mode, not the flag). An *unsurveyed* consumer reading them
+  directly was getting inverted answers on every install since 2018 — after the
+  `camaleon_cms:repair_media_visibility` run it gets correct ones, and a compensating inversion
+  must be dropped (called out in `docs/upgrading-to-2.9.5.md`). The same change's hardening is
+  behavior downstream can observe: `add_file` without `same_name: true` now renames on a
+  storage-level collision even when no cache row exists; `objects(prefix)` returns an empty
+  relation instead of `nil` for an unknown folder; `clear_cache` purges both visibility
+  collections.
+
 - **Requiring a CSRF token on `media#upload`** (M7) is invisible to every surveyed consumer: no
   repository POSTs to core's `media#upload` with its own transport. `camaleon_editor` reaches uploads
   through core's own `input_upload_field` → `upload_filemanager` → the same `uploadFile` instance, so

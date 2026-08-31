@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** Media rows stored `is_public` inverted — `site.public_media` returned the site's private files and vice versa; uploads now store the flag matching real visibility, plus stale-cache hardening. [#1286](https://github.com/owen2345/camaleon-cms/pull/1286).
+  - **Notes for upgraders:** run `bundle exec rake camaleon_cms:repair_media_visibility` right after deploying — [upgrade notes](docs/upgrading-to-2.9.5.md#media-visibility-repair).
+
 - **Security fix:** A media folder-delete whose key resolved to the media root (e.g. `/.`) let a media-permission user delete the site's entire upload directory from disk; deletion is now contained to the media root. The same change stops folders whose stored name or path collapses (e.g. one named `.`) from crashing with `SystemStackError` or deleting sibling media on destroy, and refuses such non-canonical names and paths at save. [#1285](https://github.com/owen2345/camaleon-cms/pull/1285).
 
 - **Security:** Floors the bundled `cama_contact_form` dependency at `~> 0.1.14`, the release that completes its contact-form security series (output escaping, auto-reply recipient validation, a submission throttle, an attachment-count cap, upload-scan coverage, an e-mail tracking-pixel block, and response-file-cleanup confinement). An install still resolving 0.1.13 moves up on `bundle update`; drop-in, no config or API change. [#1284](https://github.com/owen2345/camaleon-cms/pull/1284).

@@ -28,7 +28,9 @@ class CamaleonCmsUploader
               ''].include?(prefix)
             get_media_collection.where(folder_path: '/')
           else
-            get_media_collection.by_key(prefix).take.try(:items)
+            # An unknown folder key (stale bookmark, cleared cache, bogus param) must yield an
+            # empty listing, not nil — the controller paginates the result directly.
+            get_media_collection.by_key(prefix).take.try(:items) || get_media_collection.none
           end
     # Private hook to recover custom files to include into the current list where
     # data can be modified to add custom{files, folders}.
@@ -51,8 +53,14 @@ class CamaleonCmsUploader
   end
 
   # clean cached of files structure saved into DB
+  #
+  # Purges BOTH visibility collections, not just the current mode's: every media row is a
+  # rebuildable cache of storage, and the stale rows an admin is clearing can sit in either
+  # collection (rows written under the pre-fix inverted mapping live in the opposite one).
+  # Each collection rebuilds from storage on its next browse.
   def clear_cache
-    get_media_collection.destroy_all
+    @current_site.public_media.destroy_all
+    @current_site.private_media.destroy_all
   end
 
   # search for folders or files that includes search_text in their names
@@ -78,15 +86,15 @@ class CamaleonCmsUploader
 
   # return the media collection for current situation
   #
-  # NOTE: the branches read inverted — a private uploader resolves to public_media
-  # (is_public: true) and vice versa — so stored is_public is the opposite of the
-  # row's real visibility. This is self-consistent today (every reader and writer of
-  # media rows goes through this same method, and access control keys off
-  # is_private_uploader? directly, not off the stored flag), so it must NOT be swapped
-  # on its own: flipping the ternary without a data migration that inverts every
-  # existing row would mislabel all stored media. Fix the flag and the data together.
+  # The uploader mode maps to the collection whose is_public value matches the file's
+  # real visibility: private mode → private_media (is_public: false), public mode →
+  # public_media (is_public: true). Access control keys off is_private_uploader? and the
+  # storage path, not off this flag. Rows written before this mapping was corrected hold
+  # the inverted value; the `camaleon_cms:repair_media_visibility` rake task rebuilds the
+  # cache from storage (convergent, safe to re-run) and MUST be run right after deploying
+  # this code on an existing install, before further media activity.
   def get_media_collection
-    is_private_uploader? ? @current_site.public_media : @current_site.private_media
+    is_private_uploader? ? @current_site.private_media : @current_site.public_media
   end
 
   # convert current string path into file version_path, sample:
@@ -157,10 +165,10 @@ class CamaleonCmsUploader
   # sample: search_new_key("my_file/file.txt")
   def search_new_key(key)
     _key = key
-    if get_media_collection.by_key(key).any?
+    if media_key_taken?(_key)
       (1..999).each do |i|
         _key = key.cama_add_postfix_file_name("_#{i}")
-        break unless get_media_collection.by_key(_key).any?
+        break unless media_key_taken?(_key)
       end
     end
     _key
@@ -191,6 +199,20 @@ class CamaleonCmsUploader
   end
 
   private
+
+  # A key is taken when the cache says so OR the storage actually holds a file there. The
+  # cache alone is not enough: it can be stale (cleared, mid-rebuild, or holding rows written
+  # under the pre-fix inverted collection mapping), and a missed collision lets add_file
+  # silently overwrite the stored bytes at the same key.
+  def media_key_taken?(key)
+    get_media_collection.by_key(key).any? || stored_file_exists?(key)
+  end
+
+  # Storage-level existence for a media key; subclasses that own real storage override this.
+  # The base class has no storage, so it can only consult the cache.
+  def stored_file_exists?(_key)
+    false
+  end
 
   def cache_key
     "cama_media_cache#{'_private' if is_private_uploader?}"

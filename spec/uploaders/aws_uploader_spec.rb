@@ -64,6 +64,43 @@ RSpec.describe CamaleonCmsAwsUploader do
     end
   end
 
+  describe '#search_new_key (bucket collision without a cache row)' do
+    let(:existing_object) { instance_double(Aws::S3::Object, exists?: true) }
+    let(:free_object) { instance_double(Aws::S3::Object, exists?: false) }
+
+    it 'renames the key when the bucket already holds an uncached object at it' do
+      allow(bucket).to receive(:object).with('notes.txt').and_return(existing_object)
+      allow(bucket).to receive(:object).with('notes_1.txt').and_return(free_object)
+
+      expect(uploader.search_new_key('/notes.txt')).to eq('/notes_1.txt')
+    end
+
+    it 'treats a failing existence check as absent (pre-existing cache-only behavior)' do
+      failing = instance_double(Aws::S3::Object)
+      allow(failing).to receive(:exists?).and_raise(Aws::S3::Errors::ServiceError.new(nil, 'denied'))
+      allow(bucket).to receive(:object).with('notes.txt').and_return(failing)
+
+      expect(uploader.search_new_key('/notes.txt')).to eq('/notes.txt')
+    end
+  end
+
+  describe 'deletes with no cache row (missing row tolerance)' do
+    let(:s3_object_collection) { instance_double(Aws::S3::ObjectSummary::Collection, delete: true) }
+    let(:s3_object) { instance_double(Aws::S3::Object, delete: true) }
+
+    it '#delete_folder does not raise when the folder has no cache row' do
+      allow(bucket).to receive(:objects).with(prefix: 'ghost/').and_return(s3_object_collection)
+
+      expect { uploader.delete_folder('/ghost') }.not_to raise_error
+    end
+
+    it '#delete_file does not raise when the file has no cache row' do
+      allow(bucket).to receive(:object).with('ghost.txt').and_return(s3_object)
+
+      expect { uploader.delete_file('/ghost.txt') }.not_to raise_error
+    end
+  end
+
   describe '#repair_private_acls!' do
     # Security (audit 2026-08-11 M5 follow-up): objects uploaded before the private-ACL fix stayed
     # world-readable; the sweep re-applies the owner-only ACL under the private prefix, including a
