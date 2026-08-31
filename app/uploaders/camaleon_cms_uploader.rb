@@ -53,8 +53,14 @@ class CamaleonCmsUploader
   end
 
   # clean cached of files structure saved into DB
+  #
+  # Purges BOTH visibility collections, not just the current mode's: every media row is a
+  # rebuildable cache of storage, and the stale rows an admin is clearing can sit in either
+  # collection (rows written under the pre-fix inverted mapping live in the opposite one).
+  # Each collection rebuilds from storage on its next browse.
   def clear_cache
-    get_media_collection.destroy_all
+    @current_site.public_media.destroy_all
+    @current_site.private_media.destroy_all
   end
 
   # search for folders or files that includes search_text in their names

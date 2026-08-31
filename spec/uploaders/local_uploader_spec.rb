@@ -34,6 +34,18 @@ RSpec.describe CamaleonCmsLocalUploader do
     end
   end
 
+  describe '#clear_cache (purges both visibility collections)' do
+    it 'destroys cached rows of both visibilities, whichever mode the uploader is in' do
+      current_site.public_media.create!(name: 'pub.txt', folder_path: '/', is_folder: false)
+      current_site.private_media.create!(name: 'priv.txt', folder_path: '/', is_folder: false)
+
+      uploader.clear_cache
+
+      expect(current_site.public_media.count).to eq(0)
+      expect(current_site.private_media.count).to eq(0)
+    end
+  end
+
   describe '#delete_file (missing cache row tolerance)' do
     # A plain stub, not an rspec double: the uploader is materialized inside the `around`
     # hook (outside the example's mock space), where doubles cannot be created.
