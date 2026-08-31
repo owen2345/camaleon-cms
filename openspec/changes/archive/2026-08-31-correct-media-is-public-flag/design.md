@@ -35,59 +35,66 @@ wrong one — or both — reintroduces the bug:
 - **Flip the ternary only (chosen):** private uploader → `private_media` → `is_public: false`.
   Scope `public_media` keeps returning `is_public: true` = genuinely public rows. Consumer bug
   fixed. ✅
-- **Flip the scopes only:** `public_media -> where(is_public: false)`. The stored values would come
-  out right (private = false), but `site.public_media` would now *return private files* — the
-  association name would contradict its contents, i.e. the exact consumer-facing bug we are
-  fixing, just relocated. ❌
-- **Flip the ternary AND the scopes:** the two inversions cancel. A private uploader → (flipped)
-  `private_media` → (flipped) `where(is_public: true)` → stores `is_public: true` again. Back to
-  today's inverted data. ❌
+- **Flip the scopes only:** the stored values would come out right, but `site.public_media` would
+  return private files — the exact consumer-facing bug, relocated. ❌
+- **Flip the ternary AND the scopes:** the two inversions cancel; back to inverted data. ❌
 
 So: **ternary flips, scopes and `Media` stay untouched.**
 
-## Back-fill: why a guarded one-shot
+## Repairing existing rows: purge-and-rebuild, not a flip
 
-The code correction changes future writes; existing rows still hold the inverted value. A private
-file stored as `is_public: true` is, after the fix, invisible to the private uploader (which now
-reads `is_public: false`) and shows up under `public_media`. Correcting the data means inverting
-`is_public` on every existing row exactly once.
+Every column on a media row (`name`, `folder_path`, `is_public`, `is_folder`, `file_size`,
+`file_type`, `dimension`, `url`, `thumb`) is derived from storage by the uploaders'
+`browser_files`/`file_parse`; nothing on the row is user-authored. The media table is a
+**rebuildable cache**, and the codebase already treats it as one (`clear_cache` destroys rows and
+the next browse rebuilds them). The repair therefore does not transform rows in place — the
+`camaleon_cms:repair_media_visibility` rake task purges cached rows (in batches, so no
+table-length transaction) and lets the cache rebuild from storage through the corrected routing,
+which derives each flag from where the file actually lives. Local sites rebuild their public
+collection eagerly in the task; private collections and cloud-storage (AWS) sites rebuild lazily
+on their next media browse.
 
-- **Rake task, not a migration** — repo convention: data back-fills live in `lib/tasks/*.rake`; a
-  migration would force a `schema.rb` regeneration for a pure data change.
-- **Exactly once** — the operation is `is_public = NOT is_public`, which is its own inverse; a
-  second run silently re-breaks the data. It cannot self-detect completion (a corrected `false`
-  and a never-touched-but-correct `false` are identical), so it needs an external marker.
-- **Marker** — a meta key `media_is_public_backfill_v1` on the first site
-  (`Site.reorder(id: :asc).first`, Camaleon's conventional global-settings holder). The flip and
-  the marker write share one `ActiveRecord::Base.transaction`, so they commit together or not at
-  all: an interrupted run leaves no marker and re-runs safely; a completed run is a no-op. The
-  marker is read straight off the `metas` relation (`.where(key:).exists?`), bypassing the
-  meta-value cache so a rolled-back run in a shared cache store can never poison the guard.
-- **`v1` suffix** — reserves room for a future, differently-keyed data correction without
-  colliding with this one.
+An in-place inversion (`is_public = NOT is_public` behind a run-once marker) was considered and
+rejected — it fails four independent ways:
 
-### NULL handling
+1. **It corrupts rows that are already correct.** A blind flip cannot distinguish pre-fix rows
+   from rows written correctly after the fix deploys (uploads in the deploy window) or rows
+   written directly through the visibility associations by plugins/imports, which never passed
+   through the inverted router. No timestamp cutoff can recover writer provenance.
+2. **Raw SQL inversion is unsafe on legacy data.** Rails wrote SQLite booleans as `'t'`/`'f'`
+   before 6.0; SQLite coerces both strings to 0, so `NOT is_public` turns both into 1 — mangling,
+   not inverting.
+3. **A self-inverse operation makes every guard failure destructive.** A run-once marker is
+   check-then-act (concurrent runs double-flip), lives on a deletable row (the first site's metas
+   are `dependent: :destroy`), and never arms on an empty database — each failure re-runs the
+   flip over correct data. Purge-and-rebuild is **convergent**: re-running it, concurrently or on
+   an already-correct database, reproduces the same correct state, so it needs no guard at all.
+4. **A flip preserves garbage.** Duplicate or phantom rows (e.g. minted by a deploy-window
+   re-scan) survive an UPDATE; the purge removes them and the rebuild recreates only what storage
+   actually holds.
 
-`is_public: NULL` is only reachable for rows written before PR #1285 added
-`validates :is_public, inclusion: { in: [true, false] }`. `NOT NULL` evaluates to `NULL` on
-Postgres, MySQL and SQLite, so a blanket `update_all('is_public = NOT is_public')` already leaves
-those rows alone. A NULL row is invisible to both collections and is a distinct orphaning problem
-(out of scope here); the back-fill neither fixes nor worsens it.
+`is_public: NULL` rows (pre-validation legacy data) are simply purged with everything else and
+recreated validly by the rebuild — the orphaning concern disappears rather than being deferred.
 
-## Deploy ordering (operator-facing)
+## Deploy ordering and the window (operator-facing)
 
-1. Deploy the code (ternary fix).
-2. Immediately run `bundle exec rake camaleon_cms:backfill_media_is_public`.
+1. Deploy the code (ternary fix plus the stale-cache hardening below).
+2. Immediately run `bundle exec rake camaleon_cms:repair_media_visibility`, before further media
+   activity.
 
-Between (1) and (2) the media browser mislabels existing files (private files list as public and
-vice versa). This is a **listing** artifact only: file serving and authorization read the uploader
-mode and storage path, never `is_public`, so nothing becomes readable that was not before. The
-window is closed by running the task. This ordering is the reason the change ships as its own
-reviewed unit with maintainer sign-off rather than as a drive-by one-liner.
+Between (1) and (2), pre-fix rows sit in the opposite collection from where the corrected code
+looks. This window is **not** cosmetic: browsing can trigger a re-scan that duplicates rows,
+same-named uploads could overwrite stored files, and deletes could crash or miss their row. The
+change hardens each of those paths independently of the task — upload collision checks now
+consult storage, not just the cache; deletes tolerate a missing cache row; an unknown folder
+renders an empty listing; the admin clear-cache purges both visibility collections — and the
+repair task itself heals any rows damaged during the window, because it rebuilds from storage
+rather than trusting what the window wrote. The instruction to run the task immediately stands:
+hardening narrows the window's blast radius, the task closes it.
 
 ## Ecosystem note
 
 `is_public` and the two associations are public surface; an external plugin or theme could read
 them. Any such consumer today receives inverted answers, so it is either relying on the bug or
-already working around it. Fixing the semantics is correct; the CHANGELOG calls it out so
-downstream authors can drop any compensating inversion.
+already working around it. Fixing the semantics is correct; the PR description calls the
+corrected semantics out so downstream authors can drop any compensating inversion.

@@ -41,24 +41,28 @@ read of either association SHALL NOT return files of the opposite visibility.
 - **THEN** `site.public_media` includes the public file and excludes the private file
 - **AND** `site.private_media` includes the private file and excludes the public file
 
-### Requirement: A one-time back-fill corrects existing rows exactly once
+### Requirement: A convergent repair derives stored flags from storage
 
-The system SHALL provide a rake task `camaleon_cms:backfill_media_is_public` that inverts
-`is_public` on every existing non-NULL media row so pre-fix data matches the corrected semantics,
-within a single transaction, guarded so that a second invocation makes no change.
+The system SHALL provide a rake task `camaleon_cms:repair_media_visibility` that purges cached
+media rows and rebuilds the cache from storage through the corrected routing, so every rebuilt
+row's `is_public` derives from where the file actually lives. The repair SHALL be convergent:
+it SHALL NOT transform any row in place, SHALL NOT rely on a run-once guard, and re-running it —
+including on an already-correct database — SHALL reproduce the same correct state and never turn
+a correct flag into a wrong one.
 
-#### Scenario: Back-fill inverts pre-fix rows
+#### Scenario: Pre-fix rows are replaced by storage-derived rows
 
-- **WHEN** the back-fill runs against media rows persisted with the pre-fix (inverted) flag
-- **THEN** each non-NULL row's `is_public` is inverted so it matches the file's real visibility
+- **WHEN** the repair runs against media rows persisted with the pre-fix (inverted) flag
+- **THEN** the cached rows are purged and the rebuilt rows carry the `is_public` value matching
+  each file's real storage location
 
-#### Scenario: Re-running the back-fill is a no-op
+#### Scenario: Re-running the repair converges
 
-- **WHEN** the back-fill has already completed and is invoked again
-- **THEN** no media row's `is_public` changes
-- **AND** the task reports that the back-fill already ran
+- **WHEN** the repair has already completed and is invoked again
+- **THEN** the resulting rows are identical to the first run's, with no duplicates
+- **AND** no correct flag is inverted
 
-#### Scenario: A NULL is_public row is left unchanged
+#### Scenario: A phantom row is removed
 
-- **WHEN** the back-fill encounters a row whose `is_public` is NULL
-- **THEN** that row's `is_public` remains NULL
+- **WHEN** the repair encounters a cached row whose file no longer exists in storage
+- **THEN** the row is purged and not recreated by the rebuild
