@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- **Bug fix:** Media rows stored their `is_public` flag inverted — `get_media_collection` routed the private uploader to `public_media` and the public uploader to `private_media`. Nothing user-visible broke (access control keys off the uploader mode and storage path, not off the flag), but `site.public_media` returned the site's *private* files and any direct reader of `is_public` got the opposite of the truth. Routing now stores `is_public` to match real visibility. [#1286](https://github.com/owen2345/camaleon-cms/pull/1286).
-  - **Action required (existing installs):** after upgrading, run `bundle exec rake camaleon_cms:backfill_media_is_public` once to realign existing rows (idempotent — a second run is a no-op). Until it runs, existing media lists under the opposite collection in the media browser; this is a listing artifact only — file serving and access control are unchanged.
+- **Bug fix:** Media rows stored `is_public` inverted — `site.public_media` returned the site's private files and vice versa; uploads now store the flag matching real visibility, plus stale-cache hardening. [#1286](https://github.com/owen2345/camaleon-cms/pull/1286).
+  - **Notes for upgraders:** run `bundle exec rake camaleon_cms:repair_media_visibility` right after deploying, before further media activity; it rebuilds the media cache from storage and is safe to re-run.
 
 - **Security fix:** A media folder-delete whose key resolved to the media root (e.g. `/.`) let a media-permission user delete the site's entire upload directory from disk; deletion is now contained to the media root. The same change stops folders whose stored name or path collapses (e.g. one named `.`) from crashing with `SystemStackError` or deleting sibling media on destroy, and refuses such non-canonical names and paths at save. [#1285](https://github.com/owen2345/camaleon-cms/pull/1285).
 
