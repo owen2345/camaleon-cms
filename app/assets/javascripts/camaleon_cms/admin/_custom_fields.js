@@ -64,7 +64,7 @@ function cama_build_custom_field(panel, field_data, values){
         if(!$field.find('.group-input-fields-content').hasClass('cama_skip_cf_rename_multiple')) {
             field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) });
         }
-        if(field_data.disabled){
+        if(field_data.is_disabled){
             field.find('input, textarea, select').prop('readonly', true).filter('select').click(function(){ return false; }).focus(function(){ $(this).blur(); });
             field.find('.btn').addClass('disabled').unbind().click(function(){ return false; });
         }

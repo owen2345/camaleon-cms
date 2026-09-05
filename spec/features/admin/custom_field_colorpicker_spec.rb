@@ -80,6 +80,16 @@ describe 'the colorpicker custom field', :js do
     expect(page.evaluate_script(%(jQuery("[data-field-key=tags] input:checked").val()))).to eq("Bob's tag")
   end
 
+  it 'renders a disabled field readonly' do
+    # The render partial emits the flag as is_disabled; the JS tested field_data.disabled, so
+    # the readonly branch never ran and a locked field was fully editable.
+    @post.add_field({ 'name' => 'Locked', 'slug' => 'locked' }, { 'field_key' => 'text_box', 'disabled' => 'true' })
+    @post.set_field_value('locked', 'frozen')
+    visit_post_edit
+
+    expect(page.evaluate_script("jQuery('[data-field-key=locked] .input-value').prop('readonly')")).to be(true)
+  end
+
   it 'warns when a render callback breaks instead of dying silently' do
     visit_post_edit
 
