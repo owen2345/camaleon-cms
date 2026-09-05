@@ -117,7 +117,11 @@ function custom_field_colorpicker($field) {
 }
 function custom_field_colorpicker_val($field, value) {
     if ($field) {
-        $field.find(".my-colorpicker").attr('data-color', value || '').colorpicker();
+        // Prime jQuery's data cache with the string form as well: the colorpicker reads
+        // data('color'), and reading it from the attribute alone coerces numeric-looking values
+        // to Numbers, which the widget's colour parser cannot take - the throw would abort the
+        // rendering of every custom field after this one.
+        $field.find(".my-colorpicker").attr('data-color', value || '').data('color', String(value || '')).colorpicker();
     }
 }
 function custom_field_checkbox_val($field, values) {
