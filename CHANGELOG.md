@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Bug fix:** A colorpicker custom field whose saved value is not a colour (the field accepts free text) crashed the picker while the edit form rendered, breaking that field and every custom field after it; the picker now receives the value as a string and falls back to its default colour. [#1288](https://github.com/owen2345/camaleon-cms/pull/1288).
+
 - **Bug fix:** Destroying a `term_taxonomy` row whose taxonomy value maps to no model — typically one left behind by a removed or renamed plugin — raised `NameError`, which also blocked `Site#destroy` for any site owning such a row. Both now complete normally. [#1287](https://github.com/owen2345/camaleon-cms/pull/1287).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#deleting-legacy-taxonomy-rows-no-longer-crashes).
 
