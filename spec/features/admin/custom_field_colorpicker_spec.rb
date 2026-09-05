@@ -80,6 +80,28 @@ describe 'the colorpicker custom field', :js do
     expect(page.evaluate_script(%(jQuery("[data-field-key=tags] input:checked").val()))).to eq("Bob's tag")
   end
 
+  it 'falls back to hex when the colour format is unrecognised' do
+    # data-color-format rides the same coercing data() read; an unknown format left this.format
+    # undefined - surviving init (previewColor rescues) but throwing on the first close, so the
+    # picked colour was never written back.
+    visit_post_edit
+
+    result = page.evaluate_script(<<~JS)
+      (function(){
+        var f = jQuery('<div><div class="input-group color my-colorpicker" data-color="#fff" data-color-format="123">' +
+                       '<input type="text"><span class="input-group-addon"><i></i></span></div></div>');
+        custom_field_colorpicker_val(f, '#00ff00');
+        var picker = f.find('.my-colorpicker').data('colorpicker');
+        try {
+          picker.setValue('#0000ff');
+          picker.hide();
+        } catch(e){ return 'threw: ' + e; }
+        return f.find('input').val();
+      })()
+    JS
+    expect(result).to eq('#0000ff')
+  end
+
   it 'renders a disabled field readonly' do
     # The render partial emits the flag as is_disabled; the JS tested field_data.disabled, so
     # the readonly branch never ran and a locked field was fully editable.

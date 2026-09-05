@@ -133,7 +133,7 @@
 	var Colorpicker = function(element, options){
 		this.element = $(element);
 		var format = options.format||this.element.data('color-format')||'hex';
-		this.format = CPGlobal.translateFormats[format];
+		this.format = CPGlobal.translateFormats[format] || CPGlobal.translateFormats.hex; // unknown or coerced formats fall back instead of leaving format undefined (hide() calls it uncaught)
 		this.isInput = this.element.is('input');
 		this.component = this.element.is('.color') ? this.element.find('.input-group-addon') : false;
 		
