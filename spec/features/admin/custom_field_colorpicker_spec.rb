@@ -52,6 +52,30 @@ describe 'the colorpicker custom field', :js do
     expect(page.evaluate_script("jQuery('.my-colorpicker i')[0].style.backgroundColor")).to eq('rgb(0, 255, 0)')
   end
 
+  it 'tolerates coercible or missing data-color through the plain initialiser too' do
+    # custom_field_colorpicker is a public global themes can name in data-callback-render; it
+    # crashed on the same coercion, and harder - markup without data-color gave undefined.
+    visit_post_edit
+
+    initialised = page.evaluate_script(<<~JS)
+      (function(){
+        function widget(attrs){
+          return jQuery('<div><div class="input-group color my-colorpicker"' + attrs +
+                        '><input type="text"><span class="input-group-addon"><i></i></span></div></div>');
+        }
+        var no_attr = widget('');
+        var coercible = widget(' data-color="2"');
+        try {
+          custom_field_colorpicker(no_attr);
+          custom_field_colorpicker(coercible);
+        } catch(e){ return String(e); }
+        return !!no_attr.find('.my-colorpicker').data('colorpicker') &&
+               !!coercible.find('.my-colorpicker').data('colorpicker');
+      })()
+    JS
+    expect(initialised).to be(true)
+  end
+
   it 'keeps the markup default white when the field has no stored value' do
     # An empty value used to overwrite the template's data-color="#fff", and the widget's
     # no-match default is red - every unset field showed a red swatch.

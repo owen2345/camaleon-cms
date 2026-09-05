@@ -112,7 +112,9 @@ function cama_build_custom_field(panel, field_data, values){
 
 function custom_field_colorpicker($field) {
     if ($field) {
-        $field.find(".my-colorpicker").colorpicker();
+        // Same hardening as the _val variant: prime the data cache from whatever the markup
+        // carries, so a coercible or missing data-color cannot crash the widget's constructor.
+        custom_field_colorpicker_val($field, $field.find(".my-colorpicker").attr('data-color'));
     }
 }
 function custom_field_colorpicker_val($field, value) {
