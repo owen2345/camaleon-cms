@@ -80,6 +80,23 @@ describe 'the colorpicker custom field', :js do
     expect(page.evaluate_script(%(jQuery("[data-field-key=tags] input:checked").val()))).to eq("Bob's tag")
   end
 
+  it 'repaints when re-rendered with a new value' do
+    # The bare colorpicker() call is a no-op on an element whose widget already exists, so a
+    # second _val call updated both storage channels while the swatch kept the old colour.
+    visit_post_edit
+
+    swatch = page.evaluate_script(<<~JS)
+      (function(){
+        var f = jQuery('<div><div class="input-group color my-colorpicker" data-color="#fff">' +
+                       '<input type="text"><span class="input-group-addon"><i></i></span></div></div>');
+        custom_field_colorpicker_val(f, '#ff0000');
+        custom_field_colorpicker_val(f, '#00ff00');
+        return f.find('i')[0].style.backgroundColor;
+      })()
+    JS
+    expect(swatch).to eq('rgb(0, 255, 0)')
+  end
+
   it 'falls back to hex when the colour format is unrecognised' do
     # data-color-format rides the same coercing data() read; an unknown format left this.format
     # undefined - surviving init (previewColor rescues) but throwing on the first close, so the

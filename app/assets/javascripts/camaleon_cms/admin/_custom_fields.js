@@ -139,6 +139,9 @@ function custom_field_colorpicker_val($field, value) {
         var $cp = $field.find(".my-colorpicker");
         var color = value == null || value === '' ? String($cp.attr('data-color') || '') : String(value);
         $cp.attr('data-color', color).data('color', color).colorpicker();
+        // A re-render with a new value must repaint: the bare colorpicker() call is a no-op on
+        // an element whose widget already exists.
+        $cp.colorpicker('update');
     }
 }
 function custom_field_checkbox_val($field, values) {
