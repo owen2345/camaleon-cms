@@ -27,6 +27,9 @@ jQuery(function($){
         // language(optional): get translation value for this language
         // return a hash of translations
         get_translations = function(text, language){
+            // values reach here through jQuery's data(), which preserves JSON types; this
+            // parser needs a string
+            if(text != null && typeof text != 'string') text = String(text);
             var translations_per_locale = {};
             var res = "";
             if(!text || text.trim().search("<!--") != 0){ // not translated string

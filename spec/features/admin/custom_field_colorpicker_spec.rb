@@ -80,6 +80,22 @@ describe 'the colorpicker custom field', :js do
     expect(page.evaluate_script(%(jQuery("[data-field-key=tags] input:checked").val()))).to eq("Bob's tag")
   end
 
+  it 'decodes a non-string translated value without crashing' do
+    # Values reach the translator through jQuery's data(), which preserves JSON types - a
+    # plugin-set numeric or boolean default on a translatable select threw text.trim is not a
+    # function.
+    visit_post_edit
+
+    ok = page.evaluate_script(<<~JS)
+      (function(){
+        if (typeof get_translations != 'function') return 'helper not loaded';
+        try { get_translations(1); get_translations(true); } catch(e){ return 'threw: ' + e; }
+        return true;
+      })()
+    JS
+    expect(ok).to be(true)
+  end
+
   it 'initialises on themed markup missing the swatch internals' do
     # An empty jQuery match is truthy, so markup with class "color" but no addon - or an addon
     # without the inner <i> - dereferenced undefined in the constructor and aborted the render.
