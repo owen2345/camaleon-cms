@@ -144,15 +144,15 @@ function custom_field_colorpicker_val($field, value) {
 function custom_field_checkbox_val($field, values) {
     if(values == "t") values = 1; // fix for values saved as true
     if ($field) {
-        $field.find('input[value="' + values + '"]').prop('checked', true);
+        // match by property, not a concatenated selector: option values are admin-entered free
+        // text, and a quote in one made the selector throw
+        $field.find('input').filter(function(){ return this.value == values; }).prop('checked', true);
     }
 }
 function custom_field_checkboxs_val($field, values) {
     if ($field) {
-        var selector = values.map(function (value) {
-            return "input[value='" + value + "']"
-        }).join(',');
-        $field.find(selector).prop('checked', true);
+        var vals = ($.isArray(values) ? values : [values]).map(String);
+        $field.find('input').filter(function(){ return vals.indexOf(this.value) != -1; }).prop('checked', true);
     }
 }
 function custom_field_date($field) {
@@ -200,7 +200,7 @@ function custom_field_field_attrs_val($field, value) {
 function custom_field_radio_val($field, value) {
     if ($field) {
         $field.find('input').prop('checked', false);
-        $field.find("input[value='" + value + "']").prop('checked', true);
+        $field.find('input').filter(function(){ return this.value == value; }).prop('checked', true);
     }
 }
 function custom_field_text_area($field) {

@@ -65,6 +65,19 @@ describe 'the colorpicker custom field', :js do
 
     expect(page).to have_css('.my-colorpicker', count: 1)
     expect(page.evaluate_script("jQuery('[data-field-key=tail] .input-value').val()")).to eq('after the radio')
+    # and the stored option is actually selected, not merely tolerated
+    expect(page.evaluate_script(%(jQuery("[data-field-key=pick] input:checked").val()))).to eq("Bob's pick")
+  end
+
+  it 'checks a checkboxes option whose value holds a quote' do
+    @post.add_field({ 'name' => 'Tags', 'slug' => 'tags' },
+                    { 'field_key' => 'checkboxes',
+                      'multiple_options' => [{ 'title' => 'Bobs', 'value' => "Bob's tag" },
+                                             { 'title' => 'Plain', 'value' => 'plain' }] })
+    @post.set_field_value('tags', "Bob's tag")
+    visit_post_edit
+
+    expect(page.evaluate_script(%(jQuery("[data-field-key=tags] input:checked").val()))).to eq("Bob's tag")
   end
 
   it 'warns when a render callback breaks instead of dying silently' do
