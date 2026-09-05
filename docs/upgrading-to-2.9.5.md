@@ -21,6 +21,7 @@ what theme/plugin developers should know.
 | Reads `site.public_media` / `site.private_media` or `media.is_public` **directly** (reports, plugins, exports) | Those now return what their names say — drop any compensating inversion ([details](#notes-for-theme--plugin-developers)) |
 | Hit `NameError: undefined local variable or method custom_field_groups` deleting a site or taxonomy row | Nothing — retry the delete after upgrading ([details](#deleting-legacy-taxonomy-rows-no-longer-crashes)) |
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.14` |
+| Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
 
 ---
 
@@ -101,6 +102,25 @@ throttle, an attachment-count cap, upload-scan coverage, an e-mail tracking-pixe
 response-file-cleanup confinement). Drop-in; no config or API change.
 
 ---
+
+## Audit custom-field values after a colorpicker crash
+
+A colorpicker custom field accepts free text, and a saved non-colour value (for example a bare
+number) crashed the admin edit form's field rendering on 2.9.4 and earlier. The damage was wider
+than the broken picker: the crash aborted the rendering of every custom field registered after it,
+and **saving the record in that state silently blanked those unrendered fields' stored values**
+(the save replaces all of a record's field values with what the form posts, and the broken form
+posted empties).
+
+**Action:** if any of your colorpicker custom fields ever held a non-colour value, review records
+of that post type that were edited and saved while on an affected version — their *other*
+custom-field values may have been emptied and need re-entering. Rendering now survives bad values,
+and a picker that is opened but not used no longer rewrites the field on close.
+
+Separately, the per-kind field options in the custom-fields settings — colorpicker **Color
+Format**, the date field's date-vs-datetime toggle, image **versions**, file **formats**, and the
+posts field's post-type filter — were silently discarded on every save. They persist now, but any
+choice made before this release was never stored: reopen the field group and pick them again.
 
 ## Notes for theme & plugin developers
 
