@@ -80,6 +80,28 @@ describe 'the colorpicker custom field', :js do
     expect(page.evaluate_script(%(jQuery("[data-field-key=tags] input:checked").val()))).to eq("Bob's tag")
   end
 
+  it 'initialises on themed markup missing the swatch internals' do
+    # An empty jQuery match is truthy, so markup with class "color" but no addon - or an addon
+    # without the inner <i> - dereferenced undefined in the constructor and aborted the render.
+    visit_post_edit
+
+    ok = page.evaluate_script(<<~JS)
+      (function(){
+        var no_addon = jQuery('<div><div class="input-group color my-colorpicker" data-color="#fff">' +
+                              '<input type="text"></div></div>');
+        var no_icon = jQuery('<div><div class="input-group color my-colorpicker" data-color="#fff">' +
+                             '<input type="text"><span class="input-group-addon"></span></div></div>');
+        try {
+          custom_field_colorpicker_val(no_addon, '#00ff00');
+          custom_field_colorpicker_val(no_icon, '#00ff00');
+        } catch(e){ return 'threw: ' + e; }
+        return !!no_addon.find('.my-colorpicker').data('colorpicker') &&
+               !!no_icon.find('.my-colorpicker').data('colorpicker');
+      })()
+    JS
+    expect(ok).to be(true)
+  end
+
   it 'repaints when re-rendered with a new value' do
     # The bare colorpicker() call is a no-op on an element whose widget already exists, so a
     # second _val call updated both storage channels while the swatch kept the old colour.

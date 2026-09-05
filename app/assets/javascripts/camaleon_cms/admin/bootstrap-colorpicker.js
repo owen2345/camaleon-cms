@@ -136,6 +136,7 @@
 		this.format = CPGlobal.translateFormats[format] || CPGlobal.translateFormats.hex; // unknown or coerced formats fall back instead of leaving format undefined (hide() calls it uncaught)
 		this.isInput = this.element.is('input');
 		this.component = this.element.is('.color') ? this.element.find('.input-group-addon') : false;
+		if (this.component && !this.component.length) this.component = false; // an empty match is no component
 		
 		this.picker = $(CPGlobal.template)
 							.appendTo('body')
@@ -160,10 +161,11 @@
 			this.alpha = this.picker.find('.colorpicker-alpha')[0].style;
 		}
 		
-		if (this.component){
+		if (this.component && this.element.find('i').length){
 			this.picker.find('.colorpicker-color').hide();
 			this.preview = this.element.find('i')[0].style;
 		} else {
+			// no swatch icon in the markup: preview inside the popup instead of crashing
 			this.preview = this.picker.find('div:last')[0].style;
 		}
 		
