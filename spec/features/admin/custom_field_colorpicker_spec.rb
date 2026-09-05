@@ -52,6 +52,31 @@ describe 'the colorpicker custom field', :js do
     expect(page.evaluate_script("jQuery('.my-colorpicker i')[0].style.backgroundColor")).to eq('rgb(0, 255, 0)')
   end
 
+  it 'does not overwrite the stored value when the picker is opened and closed untouched' do
+    # hide() used to write the picker's formatted colour into the input unconditionally, so just
+    # looking at the picker turned a stored non-colour value (or a blank) into #ff0000.
+    @post.set_field_value('tint', '2')
+    visit_post_edit
+    expect(page).to have_css('.my-colorpicker', count: 1)
+
+    page.find('.my-colorpicker .input-group-addon').click
+    page.execute_script('jQuery(document).trigger("mousedown")')
+
+    expect(page.find('.my-colorpicker input').value).to eq('2')
+  end
+
+  it 'still writes the colour back when one was actually picked' do
+    @post.set_field_value('tint', '2')
+    visit_post_edit
+    expect(page).to have_css('.my-colorpicker', count: 1)
+
+    page.execute_script(%(jQuery('.my-colorpicker').data('colorpicker').setValue('#00ff00');))
+    page.find('.my-colorpicker .input-group-addon').click
+    page.execute_script('jQuery(document).trigger("mousedown")')
+
+    expect(page.find('.my-colorpicker input').value).to eq('#00ff00')
+  end
+
   # Everything jQuery's data() coerces to a non-string crashed identically: numbers, booleans,
   # null, and JSON objects/arrays.
   ['true', 'null', '{"a":1}'].each do |stored|

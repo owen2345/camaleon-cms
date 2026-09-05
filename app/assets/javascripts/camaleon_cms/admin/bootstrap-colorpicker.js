@@ -169,6 +169,9 @@
 		
 		this.base = this.picker.find('div:first')[0].style;
 		this.update();
+		// Track whether a colour was actually chosen: hide() must not write the formatted
+		// default back over a value the user never touched.
+		this.colorpicked = false;
 	};
 	
 	Colorpicker.prototype = {
@@ -204,6 +207,7 @@
 		},
 		
 		setValue: function(newColor) {
+			this.colorpicked = true;
 			this.color = new Color(newColor);
 			this.picker.find('i')
 				.eq(0).css({left: this.color.value.s*100, top: 100 - this.color.value.b*100}).end()
@@ -223,11 +227,13 @@
 				$(document).off({
 					'mousedown': this.hide
 				});
-				if (this.component){
-					this.element.find('input').prop('value', this.format.call(this));
+				if (this.colorpicked) {
+					if (this.component){
+						this.element.find('input').prop('value', this.format.call(this));
+					}
+					this.element.data('color', this.format.call(this));
 				}
-				this.element.data('color', this.format.call(this));
-			} else {
+			} else if (this.colorpicked) {
 				this.element.prop('value', this.format.call(this));
 			}
 			this.element.trigger({
@@ -326,6 +332,7 @@
 			if (this.slider.callTop) {
 				this.color[this.slider.callTop].call(this.color, top/100);
 			}
+			this.colorpicked = true;
 			this.previewColor();
 			this.element.trigger({
 				type: 'changeColor',
