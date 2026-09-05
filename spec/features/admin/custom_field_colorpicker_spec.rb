@@ -9,17 +9,17 @@ describe 'the colorpicker custom field', :js do
   init_site
 
   before do
-    post_type = @site.post_types.create!(name: 'Colored', slug: 'colored', description: 'x')
-    @colored_post = post_type.add_post(title: 'Tinted', slug: 'tinted', content: 'x')
-    @colored_post.add_field(
-      { 'name' => 'Tint', 'slug' => 'tint' }, { 'field_key' => 'colorpicker', 'translate' => false }
-    )
-    @colored_post.set_field_value('tint', '2')
+    @post.add_field({ 'name' => 'Tint', 'slug' => 'tint' }, { 'field_key' => 'colorpicker' })
+    @post.set_field_value('tint', '2')
+  end
+
+  def visit_post_edit
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{@post.post_type.id}/posts/#{@post.id}/edit"
   end
 
   it 'initialises the picker even when the saved value is not a colour string' do
-    admin_sign_in
-    visit "#{cama_root_relative_path}/admin/post_type/#{@colored_post.post_type.id}/posts/#{@colored_post.id}/edit"
+    visit_post_edit
 
     expect(page).to have_css('.my-colorpicker')
     initialised = page.evaluate_script(<<~JS)
