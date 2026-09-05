@@ -117,11 +117,17 @@ function custom_field_colorpicker($field) {
 }
 function custom_field_colorpicker_val($field, value) {
     if ($field) {
-        // Prime jQuery's data cache with the string form as well: the colorpicker reads
-        // data('color'), and reading it from the attribute alone coerces numeric-looking values
-        // to Numbers, which the widget's colour parser cannot take - the throw would abort the
-        // rendering of every custom field after this one.
-        $field.find(".my-colorpicker").attr('data-color', value || '').data('color', String(value || '')).colorpicker();
+        // The widget reads its colour through jQuery's data(), which coerces numeric-looking
+        // attribute values to Numbers the colour parser cannot take; priming the data cache with
+        // the string form is what prevents that (a throw here aborts every later jQuery-ready
+        // handler, not just this group's fields). The attribute write only keeps the DOM
+        // inspectable - it is never read back once the cache is set. A field with no stored
+        // value keeps the markup's declared default (data-color="#fff"). This must receive the
+        // per-instance clone: priming the shared template would leak the first value's colour
+        // into every later instance.
+        var $cp = $field.find(".my-colorpicker");
+        var color = value == null || value === '' ? String($cp.attr('data-color') || '') : String(value);
+        $cp.attr('data-color', color).data('color', color).colorpicker();
     }
 }
 function custom_field_checkbox_val($field, values) {

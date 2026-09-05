@@ -52,6 +52,30 @@ describe 'the colorpicker custom field', :js do
     expect(page.evaluate_script("jQuery('.my-colorpicker i')[0].style.backgroundColor")).to eq('rgb(0, 255, 0)')
   end
 
+  it 'keeps the markup default white when the field has no stored value' do
+    # An empty value used to overwrite the template's data-color="#fff", and the widget's
+    # no-match default is red - every unset field showed a red swatch.
+    visit_post_edit
+
+    expect(page).to have_css('.my-colorpicker', count: 1)
+    expect(initialised_picker_count).to eq(1)
+    expect(page.evaluate_script("jQuery('.my-colorpicker i')[0].style.backgroundColor")).to eq('rgb(255, 255, 255)')
+  end
+
+  it 'preserves a falsy-but-real value like a numeric 0 default' do
+    visit_post_edit
+
+    preserved = page.evaluate_script(<<~JS)
+      (function(){
+        var f = jQuery('<div><div class="input-group color my-colorpicker" data-color="#fff">' +
+                       '<input type="text"><span class="input-group-addon"><i></i></span></div></div>');
+        custom_field_colorpicker_val(f, 0);
+        return f.find('.my-colorpicker').data('color');
+      })()
+    JS
+    expect(preserved).to eq('0')
+  end
+
   it 'does not overwrite the stored value when the picker is opened and closed untouched' do
     # hide() used to write the picker's formatted colour into the input unconditionally, so just
     # looking at the picker turned a stored non-colour value (or a blank) into #ff0000.
