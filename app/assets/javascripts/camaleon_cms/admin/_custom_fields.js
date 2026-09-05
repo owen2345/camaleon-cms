@@ -64,7 +64,7 @@ function cama_build_custom_field(panel, field_data, values){
         if(!$field.find('.group-input-fields-content').hasClass('cama_skip_cf_rename_multiple')) {
             field.find('input, textarea, select').each(function(){ $(this).attr('name', $(this).attr('name').replace('[]', '['+field_counter+']')) });
         }
-        if(field_data.disabled){
+        if(field_data.is_disabled){
             field.find('input, textarea, select').prop('readonly', true).filter('select').click(function(){ return false; }).focus(function(){ $(this).blur(); });
             field.find('.btn').addClass('disabled').unbind().click(function(){ return false; });
         }
@@ -75,7 +75,16 @@ function cama_build_custom_field(panel, field_data, values){
             field.find('.input-value').val(value).trigger('change', {field_rendered: true}).data('value', value);
         }
         $sortable.append(field);
-        if(callback) window[callback](field, value);
+        // A render callback failure must degrade its own field, not the page: a throw here
+        // escapes the jQuery-ready handler and aborts every custom field and initialiser
+        // registered after it.
+        if(callback){
+            if (typeof window[callback] === 'function') {
+                try { window[callback](field, value); } catch(e){ console.warn('custom field render callback ' + callback + ' failed', e); }
+            } else {
+                console.warn('custom field render callback ' + callback + ' is not defined');
+            }
+        }
         field_counter ++;
     }
     if(field_data.kind != 'checkbox' && values.length <= 0) {
@@ -112,26 +121,41 @@ function cama_build_custom_field(panel, field_data, values){
 
 function custom_field_colorpicker($field) {
     if ($field) {
-        $field.find(".my-colorpicker").colorpicker();
+        // Same hardening as the _val variant: prime the data cache from whatever the markup
+        // carries, so a coercible or missing data-color cannot crash the widget's constructor.
+        custom_field_colorpicker_val($field, $field.find(".my-colorpicker").attr('data-color'));
     }
 }
 function custom_field_colorpicker_val($field, value) {
     if ($field) {
-        $field.find(".my-colorpicker").attr('data-color', value || '').colorpicker();
+        // The widget reads its colour through jQuery's data(), which coerces numeric-looking
+        // attribute values to Numbers the colour parser cannot take; priming the data cache with
+        // the string form is what prevents that (a throw here aborts every later jQuery-ready
+        // handler, not just this group's fields). The attribute write only keeps the DOM
+        // inspectable - it is never read back once the cache is set. A field with no stored
+        // value keeps the markup's declared default (data-color="#fff"). This must receive the
+        // per-instance clone: priming the shared template would leak the first value's colour
+        // into every later instance.
+        var $cp = $field.find(".my-colorpicker");
+        var color = value == null || value === '' ? String($cp.attr('data-color') || '') : String(value);
+        $cp.attr('data-color', color).data('color', color).colorpicker();
+        // A re-render with a new value must repaint: the bare colorpicker() call is a no-op on
+        // an element whose widget already exists.
+        $cp.colorpicker('update');
     }
 }
 function custom_field_checkbox_val($field, values) {
     if(values == "t") values = 1; // fix for values saved as true
     if ($field) {
-        $field.find('input[value="' + values + '"]').prop('checked', true);
+        // match by property, not a concatenated selector: option values are admin-entered free
+        // text, and a quote in one made the selector throw
+        $field.find('input').filter(function(){ return this.value == values; }).prop('checked', true);
     }
 }
 function custom_field_checkboxs_val($field, values) {
     if ($field) {
-        var selector = values.map(function (value) {
-            return "input[value='" + value + "']"
-        }).join(',');
-        $field.find(selector).prop('checked', true);
+        var vals = ($.isArray(values) ? values : [values]).map(String);
+        $field.find('input').filter(function(){ return vals.indexOf(this.value) != -1; }).prop('checked', true);
     }
 }
 function custom_field_date($field) {
@@ -179,7 +203,7 @@ function custom_field_field_attrs_val($field, value) {
 function custom_field_radio_val($field, value) {
     if ($field) {
         $field.find('input').prop('checked', false);
-        $field.find("input[value='" + value + "']").prop('checked', true);
+        $field.find('input').filter(function(){ return this.value == value; }).prop('checked', true);
     }
 }
 function custom_field_text_area($field) {

@@ -178,9 +178,13 @@ module CamaleonCms
         def permitted_field_options
           return {} if params[:field_options].blank?
 
+          # Every per-kind extra option the settings panels offer (custom_fields_helper) must be
+          # listed here or it is silently stripped on save. :command (select_eval) is deliberately
+          # not permitted.
           params.require(:field_options).permit(params[:field_options].keys.index_with do
             [:field_key, :multiple, :required, :translate, :default_value, :dimension, :width, :height, :class,
-             :placeholder, { default_values: [], multiple_options: %i[title value default] }]
+             :placeholder, :color_format, :type_date, :formats, :versions, :panel_hidden,
+             { default_values: [], multiple_options: %i[title value default], post_types: [] }]
           end).to_h
         end
 

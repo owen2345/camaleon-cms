@@ -133,9 +133,10 @@
 	var Colorpicker = function(element, options){
 		this.element = $(element);
 		var format = options.format||this.element.data('color-format')||'hex';
-		this.format = CPGlobal.translateFormats[format];
+		this.format = CPGlobal.translateFormats[format] || CPGlobal.translateFormats.hex; // unknown or coerced formats fall back instead of leaving format undefined (hide() calls it uncaught)
 		this.isInput = this.element.is('input');
 		this.component = this.element.is('.color') ? this.element.find('.input-group-addon') : false;
+		if (this.component && !this.component.length) this.component = false; // an empty match is no component
 		
 		this.picker = $(CPGlobal.template)
 							.appendTo('body')
@@ -160,15 +161,19 @@
 			this.alpha = this.picker.find('.colorpicker-alpha')[0].style;
 		}
 		
-		if (this.component){
+		if (this.component && this.element.find('i').length){
 			this.picker.find('.colorpicker-color').hide();
 			this.preview = this.element.find('i')[0].style;
 		} else {
+			// no swatch icon in the markup: preview inside the popup instead of crashing
 			this.preview = this.picker.find('div:last')[0].style;
 		}
 		
 		this.base = this.picker.find('div:first')[0].style;
 		this.update();
+		// Track whether a colour was actually chosen: hide() must not write the formatted
+		// default back over a value the user never touched.
+		this.colorpicked = false;
 	};
 	
 	Colorpicker.prototype = {
@@ -204,6 +209,7 @@
 		},
 		
 		setValue: function(newColor) {
+			this.colorpicked = true;
 			this.color = new Color(newColor);
 			this.picker.find('i')
 				.eq(0).css({left: this.color.value.s*100, top: 100 - this.color.value.b*100}).end()
@@ -223,11 +229,13 @@
 				$(document).off({
 					'mousedown': this.hide
 				});
-				if (this.component){
-					this.element.find('input').prop('value', this.format.call(this));
+				if (this.colorpicked) {
+					if (this.component){
+						this.element.find('input').prop('value', this.format.call(this));
+					}
+					this.element.data('color', this.format.call(this));
 				}
-				this.element.data('color', this.format.call(this));
-			} else {
+			} else if (this.colorpicked) {
 				this.element.prop('value', this.format.call(this));
 			}
 			this.element.trigger({
@@ -326,6 +334,7 @@
 			if (this.slider.callTop) {
 				this.color[this.slider.callTop].call(this.color, top/100);
 			}
+			this.colorpicked = true;
 			this.previewColor();
 			this.element.trigger({
 				type: 'changeColor',

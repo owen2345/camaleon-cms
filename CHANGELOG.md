@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** A colorpicker custom field whose saved value was not a colour crashed the edit form's field rendering, and saving then silently blanked the record's other custom-field values. Rendering now survives bad values and broken field callbacks, an opened-but-unused picker no longer overwrites the field, and the per-kind field options (colour format, date type, image versions, file formats, post-type filter) persist on save. [#1288](https://github.com/owen2345/camaleon-cms/pull/1288).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#audit-custom-field-values-after-a-colorpicker-crash).
+
 - **Bug fix:** Destroying a `term_taxonomy` row whose taxonomy value maps to no model — typically one left behind by a removed or renamed plugin — raised `NameError`, which also blocked `Site#destroy` for any site owning such a row. Both now complete normally. [#1287](https://github.com/owen2345/camaleon-cms/pull/1287).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#deleting-legacy-taxonomy-rows-no-longer-crashes).
 
