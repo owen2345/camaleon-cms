@@ -52,6 +52,42 @@ describe 'the colorpicker custom field', :js do
     expect(page.evaluate_script("jQuery('.my-colorpicker i')[0].style.backgroundColor")).to eq('rgb(0, 255, 0)')
   end
 
+  it 'renders the fields after a radio whose option value holds a quote' do
+    # The radio render callback splices its stored value into a jQuery selector; a quote used to
+    # throw a selector syntax error and abort every field after it - the same cascade the
+    # colorpicker fix closed, through another door.
+    @post.add_field({ 'name' => 'Pick', 'slug' => 'pick' },
+                    { 'field_key' => 'radio', 'multiple_options' => [{ 'title' => 'Bobs', 'value' => "Bob's pick" }] })
+    @post.set_field_value('pick', "Bob's pick")
+    @post.add_field({ 'name' => 'Tail', 'slug' => 'tail' }, { 'field_key' => 'text_box' })
+    @post.set_field_value('tail', 'after the radio')
+    visit_post_edit
+
+    expect(page).to have_css('.my-colorpicker', count: 1)
+    expect(page.evaluate_script("jQuery('[data-field-key=tail] .input-value').val()")).to eq('after the radio')
+  end
+
+  it 'warns when a render callback breaks instead of dying silently' do
+    visit_post_edit
+
+    warned = page.evaluate_script(<<~JS)
+      (function(){
+        var warns = [];
+        var original = console.warn;
+        console.warn = function(){ warns.push(String(arguments[0])); };
+        window.cama_broken_callback = function(){ throw new Error('boom'); };
+        var panel = jQuery('<div><div class="group-input-fields-content" data-callback-render="cama_broken_callback">' +
+                           '<input class="input-value" name="x[values][]"></div></div>');
+        try {
+          cama_build_custom_field(panel, { kind: 'text_box', default_value: '' }, ['v']);
+        } catch(e){ console.warn = original; return 'threw: ' + e; }
+        console.warn = original;
+        return warns.length > 0;
+      })()
+    JS
+    expect(warned).to be(true)
+  end
+
   it 'tolerates coercible or missing data-color through the plain initialiser too' do
     # custom_field_colorpicker is a public global themes can name in data-callback-render; it
     # crashed on the same coercion, and harder - markup without data-color gave undefined.

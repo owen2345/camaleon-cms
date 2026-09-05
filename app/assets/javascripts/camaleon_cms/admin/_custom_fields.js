@@ -75,7 +75,16 @@ function cama_build_custom_field(panel, field_data, values){
             field.find('.input-value').val(value).trigger('change', {field_rendered: true}).data('value', value);
         }
         $sortable.append(field);
-        if(callback) window[callback](field, value);
+        // A render callback failure must degrade its own field, not the page: a throw here
+        // escapes the jQuery-ready handler and aborts every custom field and initialiser
+        // registered after it.
+        if(callback){
+            if (typeof window[callback] === 'function') {
+                try { window[callback](field, value); } catch(e){ console.warn('custom field render callback ' + callback + ' failed', e); }
+            } else {
+                console.warn('custom field render callback ' + callback + ' is not defined');
+            }
+        }
         field_counter ++;
     }
     if(field_data.kind != 'checkbox' && values.length <= 0) {
