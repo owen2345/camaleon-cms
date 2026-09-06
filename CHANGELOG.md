@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** Slim `AGENTS.md`, the agent entry point `CLAUDE.md` imports, to what the Claude 5 context-engineering guidance says belongs there: a one-line repo description plus codebase gotchas, at about half the previous size. Generic behaviour rules, the OpenSpec command list and the quick-reference lines that `docs/ai/reference.md` owns are dropped. Development-only. [#1289](https://github.com/owen2345/camaleon-cms/pull/1289).
+
 - **Bug fix:** A colorpicker custom field whose saved value was not a colour crashed the edit form's field rendering, and saving then silently blanked the record's other custom-field values. Rendering now survives bad values and broken field callbacks, an opened-but-unused picker no longer overwrites the field, and the per-kind field options (colour format, date type, image versions, file formats, post-type filter) persist on save. [#1288](https://github.com/owen2345/camaleon-cms/pull/1288).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#audit-custom-field-values-after-a-colorpicker-crash).
 
