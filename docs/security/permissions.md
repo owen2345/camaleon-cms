@@ -236,9 +236,9 @@ Security notes
 Camaleon restricts the HTML a role may store, and three permissions lift that restriction. **They are different permissions with similar names**, they
 do not all live in the same family, and holding one does not grant the others. All three are introduced in 2.9.3.
 
-They also work differently, which matters when you are deciding who to grant them to. Post content is **sanitized**: an untrusted author's save
-succeeds and the disallowed markup is quietly removed. Contact forms and uploads are **refused**: an untrusted author's save or upload does not happen
-at all. Nothing in a contact form or an uploaded file is ever rewritten.
+All three work the same way: without the permission, an untrusted author's save or upload is **refused** outright, and nothing is ever
+rewritten — the remedy rule above. (Post content was sanitized rather than refused before
+[#1263](https://github.com/owen2345/camaleon-cms/pull/1263).)
 
 | | `post_content_unfiltered_html` | `contact_form_unfiltered_html` | `media_unfiltered_upload` |
 |---|---|---|---|
@@ -246,7 +246,7 @@ at all. Nothing in a contact form or an uploaded file is ever rewritten.
 | Role meta | `_post_type_<site_id>` | `_manager_<site_id>` | `_manager_<site_id>` |
 | Scope | per post type | all contact forms on the site | all uploads on the site |
 | Checked as | `can?(:post_content_unfiltered_html, post_type)` | `can?(:manage, :contact_form_unfiltered_html)` | `can?(:manage, :media_unfiltered_upload)` |
-| Without it | `Post#content` is sanitized on save | the save is refused; nothing is stored | the upload is refused; nothing is stored |
+| Without it | the save is refused; nothing is stored | the save is refused; nothing is stored | the upload is refused; nothing is stored |
 | Covers | `Post#content` | every contact-form value that reaches the page | every upload, whatever its source |
 | Introduced in | [#1206](https://github.com/owen2345/camaleon-cms/pull/1206) | [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) | [#1228](https://github.com/owen2345/camaleon-cms/pull/1228) |
 
@@ -256,9 +256,10 @@ administrator who views the affected page or opens the affected file. Grant them
 
 ### `post_content_unfiltered_html` — raw HTML in post content
 
-Without this permission, `Post#content` is sanitized at save time with `CamaleonRecord.cama_sanitize_translatable`, which strips `<script>`,
-`<iframe>`, event-handler attributes such as `onerror`/`onload`, and `javascript:` URLs, while preserving ordinary formatting. With it, content is
-stored exactly as submitted.
+Without this permission, a `Post#content` save carrying disallowed markup — `<script>`, `<iframe>`, event-handler attributes such as
+`onerror`/`onload`, `javascript:` URLs — is refused with an error naming the remedy (`Post#reject_untrusted_dangerous_content`, judged by
+`CamaleonCms::UnsafeMarkup` against the post's allowed tags and attributes); ordinary formatting passes. With it, content is stored exactly as
+submitted. `Post#unfiltered_content!` opts a trusted server-side pipeline out per record.
 
 The permission is granted per post type, so a role may hold it for one post type and not another.
 
@@ -414,7 +415,8 @@ As with `select_eval`, the Admin role's checkboxes may appear unchecked in the U
 ### Background jobs and console usage
 
 All three checks read the acting user and site from `CurrentRequest` and **fail closed**: when either is missing, the caller is treated as untrusted
-regardless of any role's permissions — post content is sanitized, a contact-form save is refused, and an upload is scanned. Saves and uploads from
+regardless of any role's permissions — a post-content save carrying disallowed markup is refused, a contact-form save is refused, and an
+upload is scanned. Saves and uploads from
 background jobs, rake tasks, or the console therefore get the untrusted treatment by default. To save raw HTML or upload an unscanned file from those
 contexts, set the request context first, as shown in the `select_eval` section above:
 
