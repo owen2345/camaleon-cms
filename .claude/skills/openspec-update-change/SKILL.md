@@ -7,7 +7,7 @@ compatibility: Requires openspec CLI.
 metadata:
   author: openspec
   version: "1.0"
-  generatedBy: "1.11.0"
+  generatedBy: "1.12.0"
 ---
 
 Revise a change's existing planning artifacts and keep them coherent. Never edit code.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** The checked-in OpenSpec agent instructions (`/opsx:*` prompts and skills for the four integrations) are regenerated with OpenSpec 1.12.0. Development-only. [#1290](https://github.com/owen2345/camaleon-cms/pull/1290).
+
 - **Tooling:** Rightsize the agent docs for the Claude 5 generation: `AGENTS.md` keeps a one-line repo description plus codebase gotchas, and the docs it routes to (`docs/ai/workflows.md`, `testing.md`, `reference.md`, `criteria.md`) drop generic advice, duplicated rules and stale claims in favour of pointers to real code; `docs/security/permissions.md` no longer says post content is sanitized. Development-only. [#1289](https://github.com/owen2345/camaleon-cms/pull/1289).
 
 - **Bug fix:** A colorpicker custom field whose saved value was not a colour crashed the edit form's field rendering, and saving then silently blanked the record's other custom-field values. Rendering now survives bad values and broken field callbacks, an opened-but-unused picker no longer overwrites the field, and the per-kind field options (colour format, date type, image versions, file formats, post-type filter) persist on save. [#1288](https://github.com/owen2345/camaleon-cms/pull/1288).
