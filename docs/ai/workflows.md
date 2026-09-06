@@ -1,124 +1,79 @@
 # Workflows
 
-## Phase 1: Branch Initialization (MANDATORY)
+## Phase 1: Branch Initialization
 
 Before writing any code:
 
-1. Ensure you are on the latest `master`.
-2. Create a new branch: `git checkout -b <type>/<brief-description>` using the prefixes from `AGENTS.md` (`feature/`, `fix/`, `security/`).
-3. *Protocol:* Announce the branch name to the user immediately.
-4. If this is a security fix, follow the **Vulnerability Triage Protocol** (Phase 2A) before writing the fix.
+1. Start from the latest `master`.
+2. `git checkout -b <type>/<brief-description>` with the prefixes from `AGENTS.md` (`feature/`, `fix/`, `security/`), and tell the user the branch name.
+3. For a security fix, run the Vulnerability Triage Protocol (Phase 2A) before writing the fix.
 
 ---
 
 ## Phase 2: Execution
 
-### A. Vulnerability Triage Protocol (Hypothesis-Driven)
-**Objective:** Verify that a reported vulnerability is "Legit" (exploitable or present in our specific context) before acting.
+### A. Vulnerability Triage Protocol
 
-1.  **Step 1: Proof of Presence:** Do not assume the report is correct.
-    - **For Dependency Reports:** Run `bundle exec bundle-audit check`. Does the reported gem/version match our `Gemfile.lock`?
-    - **For Code/Static Reports:** Run `bin/brakeman -z --only-files <file_path>`. Does Brakeman flag the specific line mentioned?
-    - **Manual Grep:** If no tool finds it, `grep -r` the codebase for the vulnerable pattern.
-2.  **Step 2: Legitimacy Verdict:** State your finding to the user. You must pick one:
-    - ✅ **Legit:** "Confirmed. We are using version X; version Y is required." or "Confirmed. Brakeman flags this as a High risk SQLi."
-    - ❌ **False Positive:** "The report is for a library we don't use." or "The code pattern exists but is in a test-only file not reachable in production."
-    - ⚠️ **Unverifiable:** "I see the code, but my tools cannot confirm the risk. I recommend a deeper manual audit."
-3.  **Step 3: Authorization to Proceed:** ONLY if the verdict is ✅ Legit:
-    - Write a failing test that reproduces the risk before applying the fix (rule in `AGENTS.md`; spec templates in `docs/ai/testing.md`, "Security Vulnerability Reproduction").
+Verify that a reported vulnerability is present and exploitable in this codebase before acting on it.
+
+1. **Proof of presence.** Do not assume the report is correct. Dependency report: `bundle exec bundle-audit check` — does the gem and version match `Gemfile.lock`? Code or static report: `bin/brakeman -z --only-files <file_path>` — does Brakeman flag the line? Otherwise grep the codebase for the pattern.
+2. **Verdict**, stated to the user as one of: ✅ **Legit** (present in our context, with the evidence), ❌ **False positive** (a library we do not use, a pattern only in test-only code, …), ⚠️ **Unverifiable** (the tools cannot confirm the risk; recommend a manual audit).
+3. **Only on ✅ Legit**, write the failing reproduction first (rule in `AGENTS.md`; shape in `docs/ai/testing.md`, "Security Vulnerability Reproduction"), then the fix.
 
 ### B. Development
-The spec-coverage and security-fix testing rules are stated in `AGENTS.md`. Test commands, helpers, and conventions live in `docs/ai/testing.md`.
 
-**Security remedies are rejections, not transforms.** When a fix must stop dangerous content from an untrusted user, the remedy is a save-time refusal with an error naming the problem — never sanitizing, stripping, or escaping-away what the author wrote. Stored content must always equal authored content, so the frontend may render it verbatim. Do not add render-time sanitization either. Trusted skips (admins, the relevant dedicated permission), fail-closed defaults, and explicit server-side opt-outs (`unfiltered_content!`-style bang methods) follow `docs/security/permissions.md`; the shared detector for authored markup is `CamaleonCms::UnsafeMarkup`. Pre-existing stored data is reported (`rake camaleon_cms:security:scan_content` for authored content, `rake camaleon_cms:security:scan_uploads` for stored media), never rewritten. Positions the platform already escapes by default (plain `<%= %>` output of non-markup values) are not "escaping as a remedy" — they simply carry no gate.
-
-Two boundaries on that rule, both of which have been crossed by proposals that read as reasonable:
-
-- **The save-time decision is the only lever.** Content that passes is stored *and served* verbatim — no response header, CSP, content-disposition or separate origin constrains what a stored file does in the browser. A response header transforms nothing and acts after the save, so it slips past the letter of "reject, don't transform" while breaking it. Test any proposed control by asking whether it would constrain a *trusted* user's content; if it would, it is out.
-- **Prefer the scan; a permission gate is the last resort.** Where content can be judged, the scan judges it — refusing a whole file type or format by permission is wrong there. A gate is the remedy only where no scan can reach a verdict at all (uploaded JavaScript). Never a substitute for scanning where scanning works.
+The spec-coverage, reproduce-first and reject-don't-transform rules are in `AGENTS.md`. The full security model — the gating rule, the remedy rule, and the pieces that implement them (`CamaleonCms::UnsafeMarkup`, model-level gates, `unfiltered_content!`-style opt-outs, the `camaleon_cms:security:scan_*` audit tasks) — is `docs/security/permissions.md`; read it before touching content saves, uploads, or a permission.
 
 ### C. Refactoring Protocol
-- **Step-0 cleanup:** Before any structural refactor of a file larger than 300 LOC, first remove dead code (unused methods, unused requires, debug output) and commit that cleanup separately, before the real refactor.
-- **Phased execution:** Do not attempt large multi-file refactors in one pass. Break the work into explicit phases touching no more than 5 files each; run verification and wait for explicit approval before starting the next phase.
+
+- **Step-0 cleanup:** before a structural refactor of a file over 300 LOC, remove dead code (unused methods, unused requires, debug output) in its own commit first.
+- **Phased execution:** no large multi-file refactor in one pass. Phases touch at most 5 files each; run verification and wait for explicit approval between phases.
 
 ### D. CI Parity
-Before pushing, your code must pass the key commands listed in `AGENTS.md` (security scan, lint, specs, zeitwerk check). Auto-correct only what you touched.
+
+Before pushing, the four commands in `AGENTS.md` pass. Auto-correct only what you touched.
 
 ---
 
 ## Phase 3: Commit Guidelines
 
-**🔴 MANDATORY: `[skip ci]` for Non-Code Commits**
+Whether a push skips CI is decided **per push, not per commit**: GitHub reads the marker off the head commit of the push, and a marked head suppresses every workflow for that push, including the `pull_request` event when the PR is opened at that tip. When invoked, the marker is the literal token on its own line at the end of the message:
 
-Before EVERY commit, check: **Does this commit contain ONLY documentation, changelog, or config changes with NO code changes?**
-
-If YES, you MUST format the commit message as:
 ```
 <commit subject>
 
 [skip ci]
 ```
 
-**Examples of commits requiring `[skip ci]`:**
-- Documentation updates (`.md` files, README, docs/)
-- Changelog entries (`CHANGELOG.md`)
-- Configuration files with no code path changes
-- Comment-only changes
+It matches anywhere in the message, so a commit that merely explains the directive skips CI too — write "skip-ci directive" in prose unless you are invoking it.
 
-**⚠️ The marker is per-push, not per-commit.** GitHub evaluates it against the **head commit of the push**, so a `[skip ci]` commit at the tip suppresses every workflow for that push — including the `pull_request` event when the PR is opened at that tip. Push three commits ending on a docs-only one and *nothing* runs, for any of them.
+A commit is **docs-only** when it touches only documentation (`.md` files, `README.md`, `docs/`), `CHANGELOG.md`, `openspec/`, comments, or config with no code path.
 
-**First: is the *entire PR* docs-only?** If every commit on the branch touches only documentation, specs (`openspec/`), `CHANGELOG.md`, or config with no code paths, mark **every** commit `[skip ci]` — including the first — so the PR runs no CI at all. Such a tree gives the code matrix nothing to validate, and `master` carries **no branch protection** (no required status checks), so a PR with zero runs still merges. This is the primary path for a documentation-, spec-, or changelog-only PR, and it overrides the one-run rule below. *(It depends on `master` staying unprotected: if a required-status-check rule is ever added, a PR with no run would be unmergeable and this carve-out must be revisited — re-check with `gh api repos/owen2345/camaleon-cms/branches/master --jq '.protected'`.)*
-
-**Otherwise** — the PR includes a code change in some commit — decide the marker per push, not per commit, by answering one question:
-
-> Has this PR already had a full check run on an earlier push?
-
-- **No** — omit the marker on that push, *even if the push itself is docs-only*, and say why in the message. A mixed PR must get one full check run over its code, and a push whose head carries the marker produces none. This is the case when the branch has no PR yet, or when every push so far has been docs-only.
-- **Yes** — include the marker. A second run on a docs-only change revalidates nothing. CI validates the tree at the head commit, and a `CHANGELOG.md` edit does not change any tree the earlier run already covered.
-
-**The Phase 4 changelog commit is normally in the "Yes" branch.** It lands after the PR exists, which means an earlier push already opened the PR and triggered CI. Omitting the marker there duplicates the entire matrix to validate a Markdown edit. Do not read "the changelog commit lands last" as a reason to omit the marker — *lands last* is not the condition; *no run yet* is.
-
-Other consequences to plan for:
-
-- **Including the marker moves the PR head without triggering a run.** The passing checks stay attached to the previous SHA. Before merge, check whether branch protection requires checks on the head commit, and re-trigger only if it does — `master` currently has none, so no re-trigger is needed.
-- **If you have already pushed a docs-only commit without the marker**, cancel the now-stale runs on the *previous* SHA, not the new ones. The PR head has moved, so the new runs are the ones that count for merge.
-- **The marker matches anywhere in the message, including the body.** A commit that merely *explains* the directive will skip CI too. Write "skip-ci directive" in prose rather than the literal token — unless you are actually invoking it, in which case it belongs on its own line as shown above.
-- **Never mark a release PR.** The Release workflow refuses to publish a commit that has no successful `current_support.yml` and `audit.yml` runs recorded against it, and a marker on the head of the push to `master` produces none. A version bump is a code change, so the rule above already lands a release PR in the "omit the marker" branch — keep it there. See `docs/releasing.md`.
+1. **The entire PR is docs-only** (every commit on the branch): mark **every** commit, including the first, so the PR runs no CI at all — this overrides rule 2. `master` carries no branch protection, so a PR with zero runs still merges; if a required-status-check rule is ever added this carve-out must go (check with `gh api repos/owen2345/camaleon-cms/branches/master --jq '.protected'`).
+2. **The PR contains a code change somewhere.** For each push ask: *has this PR already had a full check run on an earlier push?*
+   - **No** (no PR yet, or every push so far was docs-only): omit the marker, even on a docs-only push, and say why in the message. A mixed PR gets one full run over its code, and a marked head produces none.
+   - **Yes**: include it. CI validates the tree at the head commit, and a changelog edit changes no tree an earlier run covered. The Phase 4 changelog commit lands after the PR exists, so it is normally this case — *lands last* is not the condition, *no run yet* is.
+3. **Consequences to plan for.** A marked push moves the PR head without a run and leaves the passing checks on the previous SHA; fine while `master` has no required checks, re-trigger only if that changes. If you pushed a docs-only commit *without* the marker by mistake, cancel the now-stale runs on the *previous* SHA, not the new ones.
+4. **Never mark a release PR.** The Release workflow refuses a commit with no successful `current_support.yml` and `audit.yml` runs, and a version bump is a code change anyway. See `docs/releasing.md`.
 
 ---
 
 ## Phase 4: PR Submission & Maintenance
 
-1.  **PR Protocol:** Generate a description following these STRICT negative constraints:
-    - **NO** `Files Changed` section.
-    - **NO** Test failure/example counts.
-    - **NO** Verification logs/commands.
-    - **NO** Commit SHAs or history references.
-    - **NO** evolution narrative — describe the PR's net what/why/how as it now stands; when commits are added later, integrate their substance into the description, never append follow-up or review-history sections.
-    - **REQUIRED:** One sentence on **User-Visible Impact** (or state "None").
-    - **REQUIRED:** A "What and Why" summary.
+1. **PR description.** Required: a **What and Why** summary and one sentence of **User-Visible Impact** (or "None"). Not allowed: a Files Changed section, test or example counts, verification logs or commands, commit SHAs or history references, and any evolution narrative — describe the PR's net what/why/how as it now stands, and when commits are added later fold their substance into the description instead of appending follow-up or review-history sections.
 
-2.  **Metadata Maintenance:** If you change setup, test, or CI commands, you are **REQUIRED** to update:
-    - `AGENTS.md`
-    - `docs/ai/testing.md` (if applicable)
-    - `README.md`
-    *All updates must be part of the same PR.*
+2. **Metadata maintenance.** A change to setup, test, or CI commands updates `AGENTS.md`, `docs/ai/testing.md` (if applicable) and `README.md` in the same PR.
 
-3.  **Changelog:** After creating the PR, you MUST generate and commit a changelog entry referencing the PR:
+3. **Changelog.** After creating the PR, commit an entry under `## Unreleased` that links it:
+
     ```
     - **Security fix:** Fix mass assignment and open redirect vulnerabilities in SitesController, [#1152](https://github.com/owen2345/camaleon-cms/pull/1152)
     ```
 
-    **🔴 Keep the entry short. The PR description is where the reasoning lives.** The changelog is read by someone deciding whether an upgrade affects them — not by someone auditing your analysis. A lead paragraph carrying the PR link is the whole entry for most changes; the **entire entry — every paragraph included — MUST NOT exceed 500 characters**, and the PR link and any reporter credit count toward that limit. Do not restate the root cause, the code path, the attack mechanics, or the design rationale — every one of those is already in the PR body, one click away through the link you just added.
+    The entry is a lookup target for someone deciding whether an upgrade affects them, not a narrative; the reasoning lives in the PR description. The **entire entry must not exceed 500 characters**, PR link and reporter credit included, and it does not restate the root cause, the code path, the attack mechanics or the design rationale. Keep a **Breaking changes** list inline only for what the reader must act on or will observe: two to four bullets, one or two sentences each, *what changed for the reader*, never *why*.
 
-    Keep a **Breaking changes** list in the changelog entry — a short list, *only* for what the reader must act on or will observe (behavior that changed, output that moved, a dependency floor that was raised, data that is or is not rewritten). Two to four bullets, one or two sentences each. If a bullet explains *why* rather than *what changed for the reader*, delete it.
+    Everything else an upgrader must do or know lives in the release's upgrade guide, `docs/upgrading-to-<version>.md`: operator actions with copy-paste commands, observable behavior changes, notes for theme and plugin developers. Each released version's CHANGELOG section carries a single banner linking the guide (see the `## [2.9.3] …` section), and every entry whose notes moved ends with a link to its guide section anchor, e.g. `[Upgrade notes](docs/upgrading-to-<version>.md#sessions--login)`. Mid-cycle, before the guide exists, draft an upgrader note inline under a **Notes for upgraders** bullet; the release step consolidates those (`docs/releasing.md` Step 1). Once `docs/upgrading-to-<version>.md` exists mid-cycle, new and existing unreleased entries put their detail there and keep only the one-line action plus the anchor link. Before committing, re-read the entry as someone who has never seen the PR: anything that would not change what they do belongs in the PR description or the upgrade guide instead.
 
-    **Everything else an upgrader must do or know lives in the release's upgrade guide, `docs/upgrading-to-<version>.md` — not spelled out in the changelog entries.** That guide is the runbook: audience-organized (operator actions with copy-paste commands, observable behavior changes, notes for theme/plugin developers). Each released version's CHANGELOG section carries a **single banner** linking the guide (see the `## [2.9.3] …` section for the shape), and every entry whose upgrader notes were moved ends with a link to the specific guide section anchor — e.g. `[Upgrade notes](docs/upgrading-to-<version>.md#sessions--login)` — so the entry stays terse while a reader can jump straight to what they must do. When a PR mid-cycle must record an upgrader note before the version's guide exists, draft it inline under a **Notes for upgraders** bullet; the release step consolidates those into the guide, keeps the Breaking changes inline, and adds the banner and the per-entry anchor links (`docs/releasing.md` Step 1). A mid-cycle guide may also be started early (maintainer's call) — once `docs/upgrading-to-<version>.md` exists, new and existing unreleased entries put their detail in the guide and keep only the one-line action plus the section-anchor link inline; the release step then only extends the guide and adds the banner.
+4. **Archive the OpenSpec change before merge.** If the work was planned with OpenSpec, run `/opsx:archive` on the branch and commit the result as part of the PR: it syncs the delta specs into `openspec/specs/<capability>/spec.md` and moves the change to `openspec/changes/archive/YYYY-MM-DD-<name>/`. `master` never carries a completed-but-unarchived change, and every box in `tasks.md`, the archive task included, is checked before the branch merges.
 
-    The entry is a lookup target, not a narrative. Before committing it, re-read it as someone who has never seen the PR and ask what they would do differently — anything that does not change their answer belongs in the PR description (for reasoning) or the upgrade guide (for upgrade steps) instead.
-
-4.  **Archive the OpenSpec change — before merge, not after.** If the work was planned with OpenSpec, run `/opsx:archive` **on the branch** and commit the result as part of the PR. This syncs the change's delta specs into `openspec/specs/<capability>/spec.md` and moves the change to `openspec/changes/archive/YYYY-MM-DD-<name>/`.
-
-    Archiving is **not** a post-merge step. `master` must never carry a completed-but-unarchived change, and every box in `tasks.md` — including the archive task itself — must be checked before the branch merges. See PR [#1213](https://github.com/owen2345/camaleon-cms/pull/1213), where the archive commit precedes the merge commit on the branch.
-
-5.  **Quality Gate:** Before completion, self-audit against `docs/ai/criteria.md`.
+5. **Quality gate.** Self-audit against `docs/ai/criteria.md` before completion.
