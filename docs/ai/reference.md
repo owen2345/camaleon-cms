@@ -1,186 +1,44 @@
 # Code Reference and Conventions for Camaleon CMS
 
-Load this file when reading or writing application code.
+Load this file when reading or writing application code. Version floors are in `AGENTS.md`; test conventions in `docs/ai/testing.md`.
 
-## Baseline
+## Layout
 
-- Ruby version target: infer from `.tool-versions`.
-- Rails version target: infer from `Gemfile` and `Gemfile.lock`.
-- Test framework: `rspec-rails` (see `docs/ai/testing.md`).
-- Secrets: follow [`docs/ai/secrets.md`](./secrets.md) for what counts as a secret and how to handle it.
+- `app/apps/plugins/` and `app/apps/themes/` hold the plugins and themes bundled with the gem; most of the ecosystem lives in separate gems (`docs/ai/ecosystem.md`).
+- `spec/dummy/` is the host Rails app for specs and for Rails commands; `Rails.root` in specs points there.
+- Routes are split under `config/routes/` (`admin.rb`, `frontend.rb`) and joined by `config/routes.rb`.
 
 ## Namespacing
 
-Modules and classes are namespaced under `CamaleonCms`. The codebase defines `Cama::*` aliases for convenience:
+Everything is under `CamaleonCms::`. `config/initializers/model_alias.rb` defines the `Cama::*` shortcuts (`Cama::Site`, `Cama::Post`, `Cama::PostType`, …) and, when the host app sets `user_model`, replaces `CamaleonCms::User` with the host's class plus `CamaleonCms::UserMethods` — never assume `CamaleonCms::User` is the engine's own model.
 
-```ruby
-# Defined in config/initializers/model_alias.rb
-Cama::Site     # = CamaleonCms::Site
-Cama::Post     # = CamaleonCms::Post
-Cama::Category # = CamaleonCms::Category
-Cama::PostType # = CamaleonCms::PostType
-```
+## Models and data
 
-## Key Paths
+- `CamaleonRecord` is the base class for the engine's ActiveRecord models. Give every association an explicit `class_name` and `foreign_key`.
+- Data backfills and repairs are Rake tasks under `lib/tasks/` (`camaleon_cms:` namespace, e.g. `media_visibility_repair.rake`), never migrations: the schema has not changed since 2018 (`db/migrate/`, mirrored by `spec/dummy/db/schema.rb`, SQLite in tests), a migration would regenerate that `schema.rb`, and the engine appends its migrations to every host app's `db:migrate` — an operator runs a task deliberately and can re-run it.
+- **The media table is a rebuildable cache.** Every `CamaleonCms::Media` column is derived from storage by the uploaders' `browser_files`/`file_parse`; nothing on a row is user-authored. Never repair rows by transforming them in place — purge and let the cache rebuild from storage, which is what `clear_cache`, lazy rebuild on browse and `rake camaleon_cms:repair_media_visibility` all rely on (an in-place transform cannot know which rows are already correct; the archived `2026-08-31-correct-media-is-public-flag` change's `design.md` has the argument). `media.is_public` and `Site#public_media`/`#private_media` mean what they say since #1286; access control never reads the stored flag — it keys off `is_private_uploader?` and the storage path. Uploaders reach private mode via `enable_private_mode!` on a public-constructed instance (the controller path); constructing with `private: true` skips `setup_private_folder` and leaves the storage root public, so keep it to base-class tests.
 
-| Path | Purpose |
-|------|---------|
-| `spec/dummy/` | Test Rails application |
-| `spec/support/` | Test helpers and shared configuration |
-| `spec/factories/` | FactoryBot factory definitions |
-| `app/apps/plugins/` | Plugins |
-| `app/apps/themes/` | Themes |
-| `config/routes/` | Split route files |
-| `config/locales/` | Translation files |
+## Decorators
 
-## Environment Variables
+Draper decorators live in `app/decorators/camaleon_cms/`; the presentation methods views and themes call are prefixed `the_` (`the_title`, `the_url`, `the_content`, …). Admin pages render frontend decorators and plugin helpers during preview flows, so keep the `cama_get_i18n_frontend` / `cama_is_admin_request?` compatibility path when changing locale behavior around admin previews — theme previews render plugins such as `camaleon-ecommerce`.
 
-| Variable | Purpose |
-|----------|---------|
-| `RAILS_ENV` | Rails environment (test, development, production) |
-| `DISABLE_DATABASE_ENVIRONMENT_CHECK` | Skip DB environment check |
+## Hooks
 
-## Models
+`hooks_run('hook_name', args)` dispatches to handlers registered in a plugin's or theme's `config/config.json`: the helper class under `"helpers"`, the hook-to-method map under `"hooks"` (`app/apps/plugins/authoring_post/config/config.json` is a complete example). A handler receives one `args` hash and communicates back by mutating it in place; the caller reads it afterwards (`hooks_run('safe_redirect_hosts', r)`, then `r[:hosts]`). `PluginRoutes.add_anonymous_hook(name, ->(args) { … })` registers one without a manifest; there is no `HooksManager.add_listener`. The 130-hook inventory and the session/auth contracts are in `docs/hooks.md`.
 
-- `CamaleonRecord` is the base class for Camaleon CMS ActiveRecord models (inherits from `ActiveRecord::Base`).
-- Always specify `class_name` and `foreign_key` explicitly on associations.
+## Public API compatibility
 
-### The media table is a rebuildable cache
+Kept on purpose for external plugins and themes; check `docs/ai/ecosystem.md` before removing any of it:
 
-Every column on a `CamaleonCms::Media` row is derived from storage by the uploaders'
-`browser_files`/`file_parse`; nothing on a row is user-authored. Consequences:
-
-- **Never repair media rows by transforming them in place** — purge and let the cache rebuild
-  from storage (that is what `clear_cache`, lazy rebuild on browse, and
-  `rake camaleon_cms:repair_media_visibility` all rely on). An in-place transform cannot know
-  which rows are already correct; see the archived
-  `2026-08-31-correct-media-is-public-flag` change's `design.md` for the full argument.
-- `media.is_public` and `Site#public_media` / `Site#private_media` mean what they say (since
-  #1286): the uploader's mode maps to the collection whose `is_public` matches the file's real
-  visibility. Access control never reads the stored flag — it keys off `is_private_uploader?`
-  and the storage path.
-- Uploaders reach private mode via `enable_private_mode!` on a public-constructed instance (the
-  controller path); constructing with `private: true` skips `setup_private_folder` and leaves the
-  storage root public — do not use it outside base-class tests.
-
-## Decorators (Draper)
-
-Located in `app/decorators/`:
-
-```ruby
-module CamaleonCms
-  class PostDecorator < CamaleonCms::ApplicationDecorator
-    delegate_all
-
-    def the_title
-      "#{object.title} - #{site.name}"
-    end
-  end
-end
-```
-
-Common decorator methods:
-
-```ruby
-@object.decorate       # Returns decorated object
-@object.the_title      # Decorated title
-@object.the_url        # Decorated URL
-@object.the_next_post  # Next post in sequence
-@object.the_prev_post  # Previous post in sequence
-```
-
-- Admin pages can render frontend decorators and plugin helpers during preview flows.
-- Preserve the `cama_get_i18n_frontend` / `cama_is_admin_request?` compatibility path when changing locale behavior around admin previews, especially for theme previews that render plugins such as `camaleon-ecommerce`.
-
-## Controllers
-
-Dynamic layout based on request type:
-
-```ruby
-layout proc { |_controller|
-  params[:cama_ajax_request].present? ? 'camaleon_cms/admin/_ajax' : 'camaleon_cms/admin'
-}
-```
-
-Exception handling:
-
-```ruby
-rescue_from CanCan::AccessDenied do |exception|
-  flash[:error] = "Error: #{exception.message}"
-  redirect_to cama_admin_dashboard_path
-end
-```
-
-## Hook System
-
-Camaleon CMS provides a hook system for plugin extensibility:
-
-```ruby
-# Trigger a hook (engine side). Handlers receive one `args` hash and mutate it in place;
-# the caller reads the mutated hash back after the call.
-hooks_run('admin_before_load')
-hooks_run('safe_redirect_hosts', r) # r[:hosts] is read back afterwards
-```
-
-Register a handler (in a plugin/theme) by mapping the hook to a helper method in `config/config.json`:
-
-```json
-"helpers": ["Plugins::MyPlugin::MainHelper"],
-"hooks":   { "admin_before_load": ["my_before_load"] }
-```
-
-```ruby
-# in Plugins::MyPlugin::MainHelper — the handler mutates the single `args` hash
-def my_before_load(args)
-  args[:links] << link_to('My link', root_url)
-end
-```
-
-`PluginRoutes.add_anonymous_hook('admin_before_load', ->(args) { ... })` registers one programmatically
-without a manifest. (There is no `HooksManager.add_listener`.)
-
-Common hook points (full 130-hook inventory and the session/auth contracts in [docs/hooks.md](../hooks.md)):
-`app_before_load`/`app_after_load`, `admin_before_load`/`admin_after_load`,
-`front_before_load`/`front_after_load`, `after_login`, `user_registered`, `on_render_post`,
-`before_upload`, `on_active`/`on_inactive`.
-
-## Routes
-
-Routes are split by scope in `config/routes/`:
-- `config/routes/admin.rb`
-- `config/routes/frontend.rb`
-- `config/routes.rb`
-
-## Plugin System
-
-Plugins live in `app/apps/plugins/` and can:
-- Add controllers (frontend and admin)
-- Add helpers
-- Add routes
-- Hook into lifecycle events
-- Add migrations
-
-Compatibility notes:
-- `CamaleonHelper#cama_is_admin_request?` is still a public plugin API. Keep it available for admin-rendered frontend flows such as theme preview pages that call plugin helpers like `camaleon-ecommerce`, where the plugin must detect admin preview mode instead of visitor/frontend mode.
-- Frontend visited-state compatibility ivars (`@cama_visited_post`, `@cama_visited_category`, etc.) are still assigned by `FrontendVisitedStateConcern` for ecosystem compatibility, but are deprecated in favor of `CurrentRequest.frontend_visited_*`.
-- Controller `@current_site` assignment is retained for legacy theme template rendering compatibility; new code should read site context from `current_site`/`CurrentRequest.site` instead of template-level ivar coupling.
-- `ThemeHelper#theme_view` still accepts the legacy second argument for compatibility, but this call shape is deprecated; pass the view name as the first argument.
+- `CamaleonHelper#cama_is_admin_request?` — admin-rendered frontend flows (theme previews calling plugin helpers) detect admin mode with it.
+- The frontend visited-state ivars (`@cama_visited_post`, `@cama_visited_category`, …) are still assigned by `FrontendVisitedStateConcern`; new code reads `CurrentRequest.frontend_visited_*`.
+- Controller `@current_site` stays assigned for legacy theme templates; new code reads `current_site` / `CurrentRequest.site`.
+- `ThemeHelper#theme_view` still accepts the legacy second argument; pass the view name first.
 
 ## Authorization
 
-- Roles and permissions managed via `CamaleonCms::UserRole` and CanCanCan's `Ability` class
-- Admins have all permissions by default
-- Permissions are defined per site
+Roles and permissions are `CamaleonCms::UserRole` plus CanCanCan's `Ability`, defined per site; admins pass every check. Anything security-sensitive follows the gating and remedy rules in `docs/security/permissions.md`.
 
-## Assets and Test Database
+## Style beyond RuboCop
 
-- Uses **Dart Sass** via `dartsass-sprockets`
-- Tests use SQLite; schema in `spec/dummy/db/schema.rb`
-- Migrations run from both `db/migrate/` AND `spec/dummy/db/migrate/`
-
-## Style Idioms (beyond RuboCop)
-
-Formatting is enforced by RuboCop (`bin/rubocop -A`). Additional idioms:
-- Prefer `defined?` checks for memoization
-- Avoid mutation of method parameters
-- Use `dup` when needing a mutable copy
+Prefer `defined?` checks for memoization, do not mutate method parameters, and `dup` when a mutable copy is needed.

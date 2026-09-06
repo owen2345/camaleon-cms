@@ -1,192 +1,35 @@
 # Testing Guide
 
-> **Important:** Always run the specs with `bin/rspec`.
-> Remember the gem quirk from `AGENTS.md` Ground Rules: run Rails commands from `spec/dummy` via a subshell.
+Run specs with `bin/rspec` (it forces `RAILS_ENV=test` and boots `spec/dummy`); `bin/rspec spec/path_spec.rb:12` runs one example. Rails commands go through `spec/dummy` in a subshell (`AGENTS.md` Ground rules).
 
-## Running Tests
+## Database
 
-```bash
-# All specs
-bin/rspec
+`rails_helper` keeps the SQLite test schema current from `spec/dummy/db/schema.rb` (`maintain_test_schema!`); `bundle exec rake app:db:test:prepare` rebuilds it by hand.
 
-# Single spec file
-bin/rspec spec/models/site_spec.rb
-
-# Specific spec by line number
-bin/rspec spec/models/site_spec.rb:12
-
-# Specs matching a pattern
-bin/rspec spec/models/
-bin/rspec spec/features/admin/
-```
-
-## Database Setup
-
-```bash
-bundle exec rake app:db:migrate
-bundle exec rake app:db:test:prepare
-```
-
-## Test Helpers (`spec/support/common.rb`)
+## Helpers (`spec/support/common.rb`)
 
 ```ruby
 init_site              # exposes the suite-wide shared site as @site (+ @post)
-init_site(fresh: true) # replaces it with a per-example site — only for specs
-                       # that need the slug to match the Capybara server host
-                       # (e.g. multi-site UI flows)
-admin_sign_in          # authenticate by setting the auth cookie (fast; verifies
-admin_sign_in(user, pass)  # the password and raises on mismatch)
-admin_form_sign_in     # authenticate through the real login form — use only in
-                       # specs that test the sign-in flow itself
-wait(2)                # wait for JS execution
-cama_root_relative_path # site URL helper
+init_site(fresh: true) # a per-example site, only when the slug must match the
+                       # Capybara server host (multi-site UI flows)
+admin_sign_in          # sets the auth cookie directly (fast; verifies the password)
+admin_form_sign_in     # the real login form; only for specs of the sign-in flow
+wait(2)                # wait for JS
+cama_root_relative_path
 confirm_dialog         # accept JS dialogs
 ```
 
-### Shared site (`spec/support/shared_site.rb`)
+### The shared site (`spec/support/shared_site.rb`)
 
-Installing a Camaleon site costs ~0.6s, so one canonical site is installed
-per suite run (committed, outside the per-example transactions) and reused
-everywhere: `init_site`, `Cama::Site.first`, and the `post`/`post_type`/`user`
-factories all resolve to it by default. Example-level mutations roll back with
-the transaction. Only create additional sites when the test is about
-multi-site behavior; explicit `create(:site)` still installs a real site.
+Installing a site costs ~0.6s, so one canonical site is installed per suite run, committed outside the per-example transactions, and reused everywhere: `init_site`, `Cama::Site.first` and the `post`/`post_type`/`user` factories resolve to it, and example-level mutations roll back. Create another site only when the test is about multi-site behavior (`create(:site)` installs a real one). Installation already claims the default slugs — roles `admin`/`editor`/`contributor`/`client`, post types `post`/`page` — and slugs are unique per parent and taxonomy, so reuse those records (`site.user_roles.find_by!(slug: 'admin')`) instead of creating same-slug duplicates.
 
-Site installation already claims the default slugs — user roles `admin` /
-`editor` / `contributor` / `client`, post types `post` / `page` — and slugs are
-unique per parent and taxonomy, so reuse those records (e.g.
-`site.user_roles.find_by!(slug: 'admin')`) instead of creating same-slug
-duplicates.
+## Conventions
 
-## RSpec Conventions
+- A spec starts at the `# frozen_string_literal: true` magic comment: `.rspec` requires `rails_helper` for every file, so no spec requires it itself. Spec type is inferred from the directory (`spec/models`, `spec/requests`, `spec/features`, `spec/helpers`).
+- Factories live in `spec/factories/`; `rails_helper` points FactoryBot at them explicitly because `Rails.root` is `spec/dummy` and the default lookup finds nothing. The engine does not inject them into host apps — a host or plugin harness that wants them sets `FactoryBot.definition_file_paths` itself, as the cama_contact_form harness does. Site-owned factories default to the shared site; pass `site:` for another. `spec/factories/site.rb` shows the install-on-create pattern.
+- Shared examples live in `spec/shared_specs/`: `it_behaves_like 'sanitize attrs', model: described_class, attrs_to_sanitize: %i[name description]` and `it_behaves_like 'i18n value translation safety', described_class`.
+- Feature specs are tagged `:js`, call `init_site` and `admin_sign_in`, then `visit "#{cama_root_relative_path}/admin/…"`; `spec/features/admin/categories_spec.rb` is a compact example. Request specs (`spec/requests/`) are preferred over controller specs.
 
-Specs do not `require 'rails_helper'` themselves — `.rspec` (`--require rails_helper`) loads it for
-every spec, and `rails_helper` forces `RAILS_ENV=test` before the app boots. Start a spec at the
-magic comment:
+## Security Vulnerability Reproduction
 
-```ruby
-# frozen_string_literal: true
-
-RSpec.describe CamaleonCms::Site, type: :model do
-  it_behaves_like 'sanitize attrs', model: described_class, attrs_to_sanitize: %i[name description]
-
-  describe 'check metas relationships' do
-    let!(:site) { create(:site).decorate }
-
-    it 'creates metas with correct object_class' do
-      front_cache_elements = site.metas.where(key: 'front_cache_elements').first
-      expect(front_cache_elements.object_class).to eql('Site')
-    end
-  end
-end
-```
-
-**Guidelines:**
-- Use `described_class` instead of hardcoding class names
-- Use `let!` when data is needed for all examples in a describe block
-- Use factories: `create(:site)`, `create(:post)`, `create(:post_type)`
-- Use `decorate` when testing Draper-decorated methods
-- Use `init_site` helper in feature specs
-- Use shared examples (`spec/shared_specs/`) for common behavior
-- Use `:js` tag for feature specs requiring JavaScript: `RSpec.describe 'Posts', :js do`
-
-## Factory Bot Conventions
-
-Factories live in `spec/factories/` and are loaded by `spec/rails_helper.rb`, which sets
-`FactoryBot.definition_file_paths` to that directory explicitly and calls `FactoryBot.reload`
-(Rails.root is `spec/dummy`, so factory_bot_rails' root-relative defaults find nothing). The engine
-does NOT inject its factories into applications that load the gem — a host app or plugin harness
-that wants them must point `FactoryBot.definition_file_paths` at them itself (the cama_contact_form
-harness does exactly this with its own factories).
-
-```ruby
-FactoryBot.define do
-  factory :site, class: 'CamaleonCms::Site' do
-    name { Faker::Name.unique.name }
-    sequence(:slug) { |n| "test-site-#{n}" } # Capybara server host:port in feature specs
-    description { Faker::Lorem.sentence }
-
-    transient do
-      theme { 'default' }
-      skip_intro { true }
-    end
-
-    after(:create) do |site, evaluator|
-      site_after_install(site, evaluator.theme)
-    end
-  end
-end
-```
-
-Factories that belong to a site (`post`, `post_type`, `user`) default to the
-suite-wide shared site (`CamaleonCms::Site.first`) instead of installing a new
-one; pass `site:` explicitly when the test needs a different site.
-
-## Feature Spec Pattern (Admin UI Tests)
-
-```ruby
-# frozen_string_literal: true
-
-describe 'Posts workflows for Admin', :js do
-  let(:post) { site.the_post('sample-post').decorate }
-  let(:post_type_id) { site.post_types.where(slug: :post).pick(:id) }
-  let!(:site) { CamaleonCms::Site.first.decorate }
-
-  it 'Creates a new post' do
-    admin_sign_in
-    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/new"
-    wait(2)
-    # ... test steps
-  end
-end
-```
-
-## Shared Examples
-
-Located in `spec/shared_specs/`:
-
-```ruby
-it_behaves_like 'sanitize attrs', model: described_class, attrs_to_sanitize: %i[name description]
-it_behaves_like 'i18n value translation safety', described_class
-```
-
-## Test Types
-
-| Type | Location | Description |
-|------|----------|-------------|
-| `type: :model` | `spec/models/` | Unit tests for models |
-| `type: :request` | `spec/requests/` | HTTP request tests |
-| `type: :feature` | `spec/features/` | Browser-based UI tests |
-| Default | `spec/helpers/` | Helper method tests |
-
-## Security Vulnerability Reproduction (PoC)
-Reproducing a reported vulnerability with a failing test before fixing it (required — see `AGENTS.md` Ground Rules) proves the vulnerability is "Legit" and prevents regressions.
-
-### 1. Request Spec Template (for RCE, SQLi, XSS)
-Use a Request Spec to simulate the attack payload.
-```ruby
-# spec/requests/security/repro_<name>_spec.rb
-RSpec.describe "Security Reproduction: <Brief Name>", type: :request do
-  let(:attacker_payload) { " <PAYLOAD_HERE> " } # e.g., "'); DROP TABLE users; --"
-
-  it "demonstrates the vulnerability" do
-    # 1. Execute the action with the payload
-    get "/vulnerable_path", params: { input: attacker_payload }
-
-    # 2. Assert failure (The test should FAIL if the vulnerability is present)
-    # For XSS: expect(response.body).not_to include("<script>")
-    # For SQLi: expect { subject }.not_to change { User.count }
-    # For RCE: expect(File.exist?("/tmp/rce_proof")).to be false
-  end
-end
-```
-
-### 2. Dependency Audit Check
-If the vulnerability is a gem dependency (CVE):
-- Run: `bundle exec bundle-audit check --update`
-- **Verification:** The output must explicitly list the CVE provided in the prompt. If not found, the report is likely a "False Positive" for this repo version.
-
-### 3. Static Analysis (Brakeman) Triage
-To isolate the specific file and line:
-- Run: `bin/brakeman -z --only-files path/to/file.rb`
-- **Legitimacy Rule:** If Brakeman does not flag the line with the exact error type (e.g., "High Confidence SQL Injection"), you must ask the user for clarification before proceeding.
+A vulnerability fix starts with a failing spec that reproduces it (`AGENTS.md` Ground rules); whether the report is legit is decided first by the triage protocol in `docs/ai/workflows.md` Phase 2A. Reproductions live in `spec/requests/security/`, driven through the real endpoint so the request context the permission decision reads is the real one. `repro_markup_and_script_upload_scanning_spec.rb` is the model: state the gap in the header comment, exercise it as the attacker would, and assert the safe outcome so the spec fails while the vulnerability is present.
