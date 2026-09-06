@@ -211,10 +211,10 @@ maintained by hand against a renderer whose contexts the *author* could move.
 - [x] 10.2 Plugin committed on `security/reject-unsafe-content`, [PR #65](https://github.com/owen2345/cama_contact_form/pull/65) opened, merged and released — `cama_contact_form` 0.1.12 is on RubyGems
 - [x] 10.3 Better than repointing at a tag: the override is removed from all six Gemfiles outright, and `camaleon_cms.gemspec` raises the dependency to `~> 0.1.12`. Left at `~> 0.1.0` the range would still have admitted the vulnerable 0.1.0
 - [x] 10.4 Local Bundler override removed (`bundle config unset local.cama_contact_form && rm -rf .bundle`); `Gemfile.lock` re-resolved and now carries no git source. `.bundle/` stays gitignored
-- [ ] 10.5 Amend/extend the Camaleon commit — the pushed branch predates the rejection design — and update the [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) body
-- [ ] 10.6 `openspec archive fix-contact-form-output-escaping -y` on the branch, before merge
+- [x] 10.5 Amend/extend the Camaleon commit — the pushed branch predates the rejection design — and update the [#1215](https://github.com/owen2345/camaleon-cms/pull/1215) body
+- [x] 10.6 `openspec archive fix-contact-form-output-escaping -y` on the branch, before merge
 - [x] 10.7 Full gate: `bin/rspec`, `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` — all green, see 9b.16
-- [ ] 10.8 Re-confirm against the `2.9.2` tag that neither `allow_unfiltered_html` nor `post_unfiltered_html` appears, so the D8 rename still needs no migration
+- [x] 10.8 Re-confirm against the `2.9.2` tag that neither `allow_unfiltered_html` nor `post_unfiltered_html` appears, so the D8 rename still needs no migration
 
 ## 11. Superseded releases
 
