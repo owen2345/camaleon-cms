@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Docs:** Capture the custom-field behaviors fixed in #1288 — the admin edit form's per-field render isolation and colorpicker value handling, and the settings save keeping every per-kind field option — as the `custom-field-render-resilience` and `custom-field-option-persistence` OpenSpec capabilities. No behavior change. [#1291](https://github.com/owen2345/camaleon-cms/pull/1291).
+
 - **Tooling:** The checked-in OpenSpec agent instructions (`/opsx:*` prompts and skills for the four integrations) are regenerated with OpenSpec 1.12.0. Development-only. [#1290](https://github.com/owen2345/camaleon-cms/pull/1290).
 
 - **Tooling:** Rightsize the agent docs for the Claude 5 generation: `AGENTS.md` keeps a one-line repo description plus codebase gotchas, and the docs it routes to (`docs/ai/workflows.md`, `testing.md`, `reference.md`, `criteria.md`) drop generic advice, duplicated rules and stale claims in favour of pointers to real code; `docs/security/permissions.md` no longer says post content is sanitized. Development-only. [#1289](https://github.com/owen2345/camaleon-cms/pull/1289).
