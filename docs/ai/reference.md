@@ -44,6 +44,10 @@ Cama::PostType # = CamaleonCms::PostType
 
 - `CamaleonRecord` is the base class for Camaleon CMS ActiveRecord models (inherits from `ActiveRecord::Base`).
 - Always specify `class_name` and `foreign_key` explicitly on associations.
+- Data backfills and repairs are Rake tasks under `lib/tasks/` (`camaleon_cms:` namespace, e.g.
+  `media_visibility_repair.rake`), never migrations: the schema has not changed since 2018, a migration
+  would regenerate `spec/dummy/db/schema.rb`, and the engine appends its migrations to every host app's
+  `db:migrate` — an operator runs a task deliberately and can re-run it.
 
 ### The media table is a rebuildable cache
 
