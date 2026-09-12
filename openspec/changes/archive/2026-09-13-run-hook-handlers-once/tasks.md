@@ -19,5 +19,5 @@
 ## 5. Verify and close out
 
 - [x] 5.1 `bin/rspec`, `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` all pass (verify: exit codes)
-- [ ] 5.2 Run `/opsx:verify` and address its findings
-- [ ] 5.3 Run `/opsx:archive` on the branch and commit the archive in the PR (verify: `openspec/specs/hook-handler-dispatch/spec.md` exists, change moved under `openspec/changes/archive/`)
+- [x] 5.2 Run `/opsx:verify` and address its findings
+- [x] 5.3 Run `/opsx:archive` on the branch and commit the archive in the PR (verify: `openspec/specs/hook-handler-dispatch/spec.md` exists, change moved under `openspec/changes/archive/`)
