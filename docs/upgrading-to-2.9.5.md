@@ -3,8 +3,8 @@
 Version `2.9.5` is a bug-fix and security release. It corrects the long-standing inversion of the
 media `is_public` flag (with a repair task for existing installs and hardening around stale media
 caches), contains media folder deletion to the media root, lets sites carrying taxonomy rows from
-a removed plugin be deleted again, and raises the bundled `cama_contact_form` floor to the release
-that completes its security series.
+a removed plugin be deleted again, and raises the bundled `cama_contact_form` floor to `~> 0.1.15`, which
+includes the release that completes its security series.
 
 **Your stored files are never touched by upgrading.** One change in this release does rewrite
 database rows: the media *cache* table (which mirrors your storage) is purged and rebuilt by the
@@ -20,7 +20,7 @@ what theme/plugin developers should know.
 | **Any install** | `bundle update camaleon_cms`, deploy, then **immediately** run the [media visibility repair](#media-visibility-repair) |
 | Reads `site.public_media` / `site.private_media` or `media.is_public` **directly** (reports, plugins, exports) | Those now return what their names say — drop any compensating inversion ([details](#notes-for-theme--plugin-developers)) |
 | Hit `NameError: undefined local variable or method custom_field_groups` deleting a site or taxonomy row | Nothing — retry the delete after upgrading ([details](#deleting-legacy-taxonomy-rows-no-longer-crashes)) |
-| Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.14` |
+| Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
 
 ---
@@ -96,10 +96,11 @@ nothing to repair — simply retry the delete. Rows that map to a real model are
 bundle update camaleon_cms
 ```
 
-This raises the bundled `cama_contact_form` floor to `~> 0.1.14`, the release completing its
-contact-form security series (output escaping, auto-reply recipient validation, a submission
-throttle, an attachment-count cap, upload-scan coverage, an e-mail tracking-pixel block, and
-response-file-cleanup confinement). Drop-in; no config or API change.
+This raises the bundled `cama_contact_form` floor to `~> 0.1.15`. That covers 0.1.14, the release
+completing its contact-form security series (output escaping, auto-reply recipient validation, a
+submission throttle, an attachment-count cap, upload-scan coverage, an e-mail tracking-pixel block,
+and response-file-cleanup confinement), and 0.1.15, whose plugin config now parses under json gem 3.
+Drop-in; no config or API change.
 
 ---
 
