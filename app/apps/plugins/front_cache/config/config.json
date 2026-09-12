@@ -16,6 +16,5 @@
     "app_before_load": ["front_cache_before_load"],
     "plugin_options":["front_cache_plugin_options"],
     "front_after_load": ["front_cache_front_after_load"]
-    //here you can add all your hooks (read documentation)
   }
 }
