@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'shared_specs/hook_handler_dispatch'
+
 RSpec.describe CamaleonCms::HooksHelper do
   let(:helper_class) do
     Class.new do
@@ -40,5 +42,9 @@ RSpec.describe CamaleonCms::HooksHelper do
 
     expect(CurrentRequest.hooks_helper_state[:hooks_skip]).to include('custom_hook')
     expect(helper.instance_variable_get(:@_hooks_skip)).to include('custom_hook')
+  end
+
+  describe '#_do_hook' do
+    it_behaves_like 'a hook handler dispatcher', described_class
   end
 end

@@ -40,25 +40,19 @@ module CamaleonCms
       plugin['hooks'][hook_key].each do |hook|
         next if hook_skip_list.include?(hook)
 
-        begin
-          if params.nil?
-            send(hook)
-          else
-            send(hook, params)
-          end
-          Rails.logger.debug "Camaleon CMS - Hook \"#{hook_key}\" executed from dependency #{begin
-            plugin['key']
-          rescue StandardError
-            ''
-          end}".cama_log_style(:light_blue)
-        rescue StandardError
-          plugin_load_helpers(plugin)
-          if params.nil?
-            send(hook)
-          else
-            send(hook, params)
-          end
+        # Same dispatch as HookLifecycleConcern#_do_hook: helpers included on demand, an undefined
+        # handler skipped with a warning, the handler run exactly once with its failure left to the
+        # caller.
+        plugin_load_helpers(plugin) unless respond_to?(hook, true)
+        unless respond_to?(hook, true)
+          Rails.logger.warn "Camaleon CMS - Hook \"#{hook_key}\": #{plugin['key']} registers #{hook}, " \
+                            'which none of its helpers defines; skipped'
+          next
         end
+
+        params.nil? ? send(hook) : send(hook, params)
+        executed = "Camaleon CMS - Hook \"#{hook_key}\" executed from dependency #{plugin['key']}"
+        Rails.logger.debug executed.cama_log_style(:light_blue)
       end
     end
 
