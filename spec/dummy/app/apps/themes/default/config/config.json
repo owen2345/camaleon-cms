@@ -14,6 +14,5 @@
       "theme_default_settings"
     ],
     "on_active": ["theme_default_on_install"]
-    //"on_inactive": ["camaleon_first_on_uninstall_theme"]
   }
 }

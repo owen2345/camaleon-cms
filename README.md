@@ -135,7 +135,7 @@ https://camaleon.website/store/plugins
   ```bash
   rails generate camaleon_cms:install
   ```
-* (Optional) Before continue you can configure your CMS settings in (my_app/config/system.json), [here](config/system.json) you can see the full settings.
+* (Optional) Before continue you can configure your CMS settings in (my_app/config/system.json), [here](docs/installation.md#configuration-settings) you can see the full settings.
 * Create database structure
   ```bash
   rake camaleon_cms:generate_migrations
