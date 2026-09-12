@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** A plugin hook handler that failed was run a second time by the dispatcher, repeating any side effect it had already performed; a handler now runs once per dispatch and its error reaches the caller. A handler none of a plugin's helpers defines is skipped with a logged warning in views as it already was in controllers. [#1296](https://github.com/owen2345/camaleon-cms/pull/1296).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#hook-handlers-run-once-per-dispatch).
+
 - **Tooling:** The Audit workflow runs RuboCop with its default formatter instead of `-f github`, so the job log lists the offenses and the summary. Development-only. [#1293](https://github.com/owen2345/camaleon-cms/pull/1293).
 
 - **Docs:** Capture the custom-field behaviors fixed in #1288 — the admin edit form's per-field render isolation and colorpicker value handling, and the settings save keeping every per-kind field option — as the `custom-field-render-resilience` and `custom-field-option-persistence` OpenSpec capabilities. No behavior change. [#1291](https://github.com/owen2345/camaleon-cms/pull/1291).

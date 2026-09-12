@@ -132,6 +132,14 @@ associations, negated the flag), **drop the compensation** — after the repair 
 stored flag matches real visibility. If you read them uncompensated, your feature starts
 returning the right rows.
 
+### Hook handlers run once per dispatch
+
+A handler registered for a hook now runs exactly once when the hook fires, and an error it raises
+reaches the code that fired the hook; the dispatcher no longer rescues the failure, reloads the
+plugin's helpers and runs the handler again, so a handler that fails after a side effect no longer
+repeats it. A handler that none of the plugin's helper modules defines is skipped with a logged
+warning in views as it already was in controllers, instead of raising.
+
 ### Uploader behavior changes
 
 - `search_new_key` (and therefore `add_file` without `same_name: true`) now treats a file present
