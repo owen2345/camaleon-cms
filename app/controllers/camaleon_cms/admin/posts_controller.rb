@@ -269,7 +269,27 @@ module CamaleonCms
         malformed = malformed_container_refusals
         return malformed if malformed.any?
 
-        status_refusals + %i[meta options].flat_map { |group| group_refusals(group) }
+        status_refusals + summary_refusals + %i[meta options].flat_map { |group| group_refusals(group) }
+      end
+
+      # `meta[summary]` is content: the default theme renders the excerpt through `raw`, and a theme
+      # without its own list partial falls back to it. Post#reject_untrusted_dangerous_content gates only
+      # the content column (a meta row never passes through a model validation), so the summary is held
+      # to the same detector, allowlist and messages here, for a user without the unfiltered-content
+      # permission. Refused, never rewritten; a permission holder's summary is stored as written.
+      def summary_refusals
+        meta = params[:meta]
+        summary = meta[:summary] if cama_hash_param?(meta)
+        return [] if summary.blank? || can?(:post_content_unfiltered_html, @post_type)
+
+        if CamaleonCms::UnsafeMarkup.too_large?(summary)
+          ["meta[summary] #{cama_post_message('content_too_large')}"]
+        elsif CamaleonCms::UnsafeMarkup.unsafe_html?(summary, tags: CamaleonCms::Post::CONTENT_ALLOWED_TAGS,
+                                                              attributes: CamaleonCms::Post::CONTENT_ALLOWED_ATTRIBUTES)
+          ["meta[summary] #{cama_post_message('content_rejected')}"]
+        else
+          []
+        end
       end
 
       # A submitted status is one the editor offers, exactly: `Published` or `published ` is refused,
