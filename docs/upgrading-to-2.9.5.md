@@ -3,9 +3,8 @@
 Version `2.9.5` is a bug-fix and security release. It corrects the long-standing inversion of the
 media `is_public` flag (with a repair task for existing installs and hardening around stale media
 caches), contains media folder deletion to the media root, lets sites carrying taxonomy rows from
-a removed plugin be deleted again, makes the bundled JSON configs load under json gem 3, and raises
-the bundled `cama_contact_form` floor to `~> 0.1.15`, which includes the release that completes its
-security series.
+a removed plugin be deleted again, and raises the bundled `cama_contact_form` floor to the release
+that completes its security series.
 
 **Your stored files are never touched by upgrading.** One change in this release does rewrite
 database rows: the media *cache* table (which mirrors your storage) is purged and rebuilt by the
@@ -22,7 +21,6 @@ what theme/plugin developers should know.
 | Reads `site.public_media` / `site.private_media` or `media.is_public` **directly** (reports, plugins, exports) | Those now return what their names say — drop any compensating inversion ([details](#notes-for-theme--plugin-developers)) |
 | Hit `NameError: undefined local variable or method custom_field_groups` deleting a site or taxonomy row | Nothing — retry the delete after upgrading ([details](#deleting-legacy-taxonomy-rows-no-longer-crashes)) |
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
-| Keeps comments in `config/system.json` or in a theme or plugin config you maintain | Remove them before your bundle resolves json gem 3 ([details](#json-configs-must-be-plain-json)) |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
 
 ---
@@ -98,11 +96,16 @@ nothing to repair — simply retry the delete. Rows that map to a real model are
 bundle update camaleon_cms
 ```
 
-This raises the bundled `cama_contact_form` floor to `~> 0.1.15`. That covers 0.1.14, the release
-completing its contact-form security series (output escaping, auto-reply recipient validation, a
-submission throttle, an attachment-count cap, upload-scan coverage, an e-mail tracking-pixel block,
-and response-file-cleanup confinement), and 0.1.15, whose plugin config now parses under json gem 3.
-Drop-in; no config or API change.
+- **`cama_contact_form` `~> 0.1.15`** covers 0.1.14, the release completing its contact-form security
+  series (output escaping, auto-reply recipient validation, a submission throttle, an
+  attachment-count cap, upload-scan coverage, an e-mail tracking-pixel block, and
+  response-file-cleanup confinement). Drop-in; no config or API change.
+- **`cama_meta_tag` `>= 1.7.3`** saves only its six SEO options from the category and post type
+  forms. A theme or plugin that adds its own `options[...]` inputs to those forms must save them from
+  its own hooks.
+- **json stays below 3.** Every released Rails fails under json gem 3 in ActiveSupport's JSON
+  encoding or decoding, so camaleon_cms requires json `< 3`. The update moves a bundle that already
+  resolved json 3 back to 2.x; a gem that requires json 3 cannot be bundled with this release.
 
 ---
 
@@ -127,26 +130,6 @@ choice made before this release was never stored: reopen the field group and pic
 
 ---
 
-## JSON configs must be plain JSON
-
-The json gem 3.0 no longer accepts comments in JSON by default. Camaleon parses `config/system.json`
-and every plugin and theme config with `JSON.parse` at boot, so a file with a `//` or `/* */`
-comment raises `JSON::ParserError` and the app does not start. The configs bundled with the gem,
-its generator templates, `cama_contact_form` 0.1.15 and `cama_meta_tag` 1.7.3 are now plain JSON.
-
-**Action, before your bundle resolves json 3.x:** remove the comments from your app's
-`config/system.json` (`rails generate camaleon_cms:install` wrote them on every earlier version),
-and from the configs of any theme or plugin you maintain. Each setting is described in
-[Configuration settings](installation.md#configuration-settings).
-
-json 3.x may still not be usable with your Rails version, for a reason outside Camaleon: under
-json 3 `ActiveSupport::JSON.decode` (session cookies, JSON request params) raises on Rails 8.1.3.1
-and the 7.1/7.2 series (fixed in [rails/rails#58601](https://github.com/rails/rails/pull/58601),
-not in a release as of 8.1.3.1). Until a Rails release carries the fix, keep `gem "json", "< 3"`
-in your Gemfile if your bundle would otherwise resolve 3.x.
-
----
-
 ## Notes for theme & plugin developers
 
 ### `public_media` / `private_media` / `is_public` now mean what they say
@@ -166,12 +149,6 @@ returning the right rows.
 - `objects(prefix)` returns an empty relation instead of `nil` for an unknown folder key; code
   that branched on `nil` should branch on `.empty?`.
 - `clear_cache` purges both visibility collections for the site, not just the current mode's.
-
-### Configs must be plain JSON
-
-A comment in `config/config.json`, `config/camaleon_plugin.json` or `config/camaleon_theme.json`
-stops every host app that installs your gem from booting under json gem 3. Remove the comments and
-release ([details](#json-configs-must-be-plain-json)).
 
 ---
 
