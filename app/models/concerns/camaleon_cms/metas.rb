@@ -63,7 +63,8 @@ module CamaleonCms
     # if meta not exist, or its value == "", return default
     def get_meta(key, default = nil)
       key_str = key.is_a?(Symbol) ? key.to_s : key
-      cama_fetch_cache("meta_#{key_str}") do
+      # memoize what the record stores, '' for no value, and apply each call's own default outside the memo
+      cached = cama_fetch_cache("meta_#{key_str}") do
         option = if metas.loaded?
                    metas.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
                  else
@@ -83,8 +84,9 @@ module CamaleonCms
             option.value
           end
         end
-        res == '' ? default : res
+        res
       end
+      cached == '' ? default : cached
     end
 
     # delete meta
