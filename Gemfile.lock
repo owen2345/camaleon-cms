@@ -7,7 +7,7 @@ PATH
       bcrypt
       breadcrumbs_on_rails
       cama_contact_form (~> 0.1.15)
-      cama_meta_tag
+      cama_meta_tag (>= 1.7.3)
       cancancan (>= 2.0, < 4)
       dartsass-sprockets
       draper (>= 4.0.2)
@@ -145,8 +145,8 @@ GEM
     cama_contact_form (0.1.15)
       rails
       recaptcha (>= 5.0)
-    cama_meta_tag (1.7.2)
-      rails (>= 4.1.0)
+    cama_meta_tag (1.7.3)
+      rails
     cancancan (3.6.1)
     capybara (3.40.0)
       addressable

@@ -132,19 +132,18 @@ choice made before this release was never stored: reopen the field group and pic
 The json gem 3.0 no longer accepts comments in JSON by default. Camaleon parses `config/system.json`
 and every plugin and theme config with `JSON.parse` at boot, so a file with a `//` or `/* */`
 comment raises `JSON::ParserError` and the app does not start. The configs bundled with the gem,
-its generator templates and `cama_contact_form` 0.1.15 are now plain JSON.
+its generator templates, `cama_contact_form` 0.1.15 and `cama_meta_tag` 1.7.3 are now plain JSON.
 
 **Action, before your bundle resolves json 3.x:** remove the comments from your app's
 `config/system.json` (`rails generate camaleon_cms:install` wrote them on every earlier version),
 and from the configs of any theme or plugin you maintain. Each setting is described in
 [Configuration settings](installation.md#configuration-settings).
 
-json 3.x is not usable with this release yet, for reasons outside Camaleon: the bundled
-`cama_meta_tag` 1.7.2 still ships a commented config, and under json 3 `ActiveSupport::JSON.decode`
-(session cookies, JSON request params) raises on Rails 8.1.3.1 and the 7.1/7.2 series (fixed in
-[rails/rails#58601](https://github.com/rails/rails/pull/58601), not in a release as of 8.1.3.1).
-Until both are fixed, keep `gem "json", "< 3"` in your Gemfile if your bundle would otherwise
-resolve 3.x.
+json 3.x may still not be usable with your Rails version, for a reason outside Camaleon: under
+json 3 `ActiveSupport::JSON.decode` (session cookies, JSON request params) raises on Rails 8.1.3.1
+and the 7.1/7.2 series (fixed in [rails/rails#58601](https://github.com/rails/rails/pull/58601),
+not in a release as of 8.1.3.1). Until a Rails release carries the fix, keep `gem "json", "< 3"`
+in your Gemfile if your bundle would otherwise resolve 3.x.
 
 ---
 
