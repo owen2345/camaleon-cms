@@ -14,6 +14,11 @@ RSpec.shared_examples 'a hook handler dispatcher' do |dispatcher|
         raise 'handler failed'
       end
 
+      def handler_calling_missing_super(args)
+        args[:ran] = args.fetch(:ran, 0) + 1
+        super
+      end
+
       def other_handler(args)
         args[:others] = args.fetch(:others, 0) + 1
       end
@@ -31,6 +36,18 @@ RSpec.shared_examples 'a hook handler dispatcher' do |dispatcher|
 
     it 'runs it once and lets the failure reach the caller' do
       expect { host.hook_run(plugin, 'probe_hook', args) }.to raise_error('handler failed')
+      expect(args[:ran]).to eq(1)
+    end
+  end
+
+  # A NoMethodError naming the handler is what a rescue narrowed to missing handlers would take for a
+  # helper not yet loaded; raised from the handler's own code, it still reaches the caller after one run.
+  context 'with a handler whose own code raises NoMethodError naming it' do
+    let(:handlers) { ['handler_calling_missing_super'] }
+
+    it 'runs it once and lets that NoMethodError reach the caller' do
+      expect { host.hook_run(plugin, 'probe_hook', args) }
+        .to raise_error(NoMethodError, /handler_calling_missing_super/)
       expect(args[:ran]).to eq(1)
     end
   end
