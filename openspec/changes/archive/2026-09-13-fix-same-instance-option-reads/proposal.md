@@ -51,6 +51,8 @@ None.
 - **Code:** `app/models/concerns/camaleon_cms/metas.rb`: `options`, and the comment of the writers'
   private helper.
 - **Tests:** `spec/models/meta_spec.rb`.
+- **Docs:** `docs/ai/ecosystem.md` (the `camaleon-ecommerce` binding), a note for theme and plugin
+  developers in `docs/upgrading-to-2.9.5.md`, and `CHANGELOG.md`.
 - **Engine:** it reads `options[...]` directly in 30+ places, among them `PostType#manage_categories?`,
   `Site` and the custom field views. On the writing instance these now find either key type too.
 - **Plugins and themes:**

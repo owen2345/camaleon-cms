@@ -25,7 +25,7 @@
 ## 3. Verification and delivery
 
 - [x] 3.1 Run the CI-parity commands from `AGENTS.md` and verify all four pass: `bin/rspec`, `bin/rubocop` (auto-correct only touched files), `bin/brakeman --no-pager` and `(cd spec/dummy && bin/rails zeitwerk:check)`.
-- [ ] 3.2 Commit the specs, fix and docs, push `fix/same-instance-option-reads`, and open the PR with a What and Why summary and a User-Visible Impact sentence (`docs/ai/workflows.md` Phase 4). Verify the PR's CI run starts.
-- [ ] 3.3 Add a `CHANGELOG.md` entry under `## Unreleased` linking the PR, and verify it is at most 500 characters.
-- [ ] 3.4 Run `/opsx:verify` and address its findings.
-- [ ] 3.5 Run `/opsx:archive` on the branch, syncing both requirements into `openspec/specs/meta-storage-integrity/spec.md`. Commit it with the changelog entry, using the skip-ci directive once the PR has had a full run (`docs/ai/workflows.md` Phase 3), and verify every box in this file is checked.
+- [x] 3.2 Commit the specs, fix and docs, push `fix/same-instance-option-reads`, and open the PR with a What and Why summary and a User-Visible Impact sentence (`docs/ai/workflows.md` Phase 4). Verify the PR's CI run starts.
+- [x] 3.3 Add a `CHANGELOG.md` entry under `## Unreleased` linking the PR, with its detail in a note under "Notes for theme & plugin developers" in `docs/upgrading-to-2.9.5.md`, and verify the entry, its upgrade-notes link included, is at most 500 characters.
+- [x] 3.4 Run `/opsx:verify` and address its findings.
+- [x] 3.5 Run `/opsx:archive` on the branch, syncing both requirements into `openspec/specs/meta-storage-integrity/spec.md`. Commit it with the changelog entry, using the skip-ci directive once the PR has had a full run (`docs/ai/workflows.md` Phase 3), and verify every box in this file is checked.
