@@ -15,6 +15,13 @@ RSpec.describe CamaleonCms::PostType, type: :model do
     described_class.find(post_type.id)
   end
 
+  # A value stored without passing the save-time check: written before the check existed, or naming
+  # the decorator of a plugin since removed.
+  def store_decorator_option(value)
+    meta = post_type.metas.find_by!(key: '_default')
+    meta.update!(value: JSON.parse(meta.value).merge(option => value).to_json)
+  end
+
   describe 'storing the option' do
     it 'accepts a post decorator subclass and decorates the posts with it' do
       post_type.set_option(option, 'ProbePostDecorator')
@@ -45,6 +52,14 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to be_nil
     end
 
+    it 'refuses a name that cannot be loaded the same way, dropping the memoized value' do
+      expect { post_type.set_option(option, 'ENV::X') }
+        .to raise_error(ActiveRecord::RecordInvalid, /cama_post_decorator_class.*'ENV::X'/)
+
+      expect(post_type.options.keys.map(&:to_s)).not_to include(option)
+      expect(stored_post_type.get_option(option)).to be_nil
+    end
+
     it 'refuses it through set_options and set_multiple_options, with a symbol key too' do
       expect { post_type.set_options(option.to_sym => 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
       expect { post_type.set_multiple_options(option => 'Object', 'has_tags' => true) }
@@ -71,9 +86,7 @@ RSpec.describe CamaleonCms::PostType, type: :model do
 
   describe '#post_decorator_class' do
     it 'ignores a stored value that is not a post decorator, warns, and leaves it stored' do
-      # A value stored before the option was checked at save.
-      meta = post_type.metas.find_by!(key: '_default')
-      meta.update!(value: JSON.parse(meta.value).merge(option => 'Object').to_json)
+      store_decorator_option('Object')
       allow(Rails.logger).to receive(:warn)
       expect(Rails.logger).to receive(:warn).with(/cama_post_decorator_class 'Object'/)
 
@@ -81,8 +94,35 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to eq('Object')
     end
 
+    it 'ignores a stored name that cannot be loaded, and warns' do
+      store_decorator_option('ENV::X')
+      allow(Rails.logger).to receive(:warn)
+      expect(Rails.logger).to receive(:warn).with(/cama_post_decorator_class 'ENV::X'/)
+
+      expect(stored_post_type.post_decorator_class).to eq(CamaleonCms::PostDecorator)
+    end
+
     it 'is the default for a post without a post type' do
       expect(CamaleonCms::Post.new.decorator_class).to eq(CamaleonCms::PostDecorator)
+    end
+  end
+
+  describe '.decorator_class_for' do
+    it 'is nil for a name through a constant that is not a class or module' do
+      expect(described_class.decorator_class_for('ENV::X')).to be_nil
+      expect(described_class.decorator_class_for('RUBY_VERSION::X')).to be_nil
+    end
+
+    it 'is nil for a decorator whose file fails to load' do
+      # Loading the decorator raises for another constant, which safe_constantize re-raises.
+      namespace = Module.new do
+        def self.const_missing(_name)
+          raise NameError.new('uninitialized constant MissingProbeConstant', :MissingProbeConstant)
+        end
+      end
+      stub_const('ProbeDecorators', namespace)
+
+      expect(described_class.decorator_class_for('ProbeDecorators::BrokenDecorator')).to be_nil
     end
   end
 end

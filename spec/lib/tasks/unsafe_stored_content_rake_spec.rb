@@ -24,6 +24,12 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
 
   before { task.reenable }
 
+  # A decorator class option stored without passing the save-time check.
+  def store_decorator_option(target, value)
+    meta = target.metas.find_by!(key: '_default')
+    meta.update!(value: JSON.parse(meta.value).merge('cama_post_decorator_class' => value).to_json)
+  end
+
   it 'flags a stored field_attrs value that would fail the gate' do
     field = group.add_manual_field({ name: 'Specs', slug: 'scan_specs' }, { field_key: 'field_attrs' })
     post_record.set_field_value('scan_specs', { attr: 'a', value: 'ok' }.to_json, field_id: field.id)
@@ -46,11 +52,17 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
   # A post type's decorator class option is checked at save; a value stored before the check is
   # ignored at render and listed here (OpenSpec: post-decorator-class-integrity).
   it 'flags a post type whose stored decorator class is not a post decorator' do
-    meta = post_type.metas.find_by!(key: '_default')
-    meta.update!(value: JSON.parse(meta.value).merge('cama_post_decorator_class' => 'Object').to_json)
+    store_decorator_option(post_type, 'Object')
 
     expect { task.invoke }
       .to output(/Post type id=#{post_type.id}.*cama_post_decorator_class 'Object'/m).to_stdout
+  end
+
+  it 'lists a stored decorator name that cannot be loaded and finishes the scan' do
+    store_decorator_option(post_type, 'ENV::X')
+
+    expect { task.invoke }
+      .to output(/Post type id=#{post_type.id} .*cama_post_decorator_class 'ENV::X'.*Done\./m).to_stdout
   end
 
   it 'does not flag a post type whose decorator class is a post decorator' do

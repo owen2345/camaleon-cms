@@ -175,10 +175,14 @@ module CamaleonCms
     DECORATOR_CLASS_OPTION = 'cama_post_decorator_class'.freeze
 
     # The class the decorator option names when it is a CamaleonCms::PostDecorator subclass, else
-    # nil. One resolver for the save-time check, the read and the security scan, so they agree.
+    # nil, also for a name that cannot be loaded: safe_constantize still raises for a path through a
+    # constant that is not a module ('ENV::X') and for a decorator file that fails to load. One resolver
+    # for the save-time check, the read and the security scan, so they agree.
     def self.decorator_class_for(value)
       klass = value.to_s.safe_constantize
       klass if klass.is_a?(Class) && klass <= CamaleonCms::PostDecorator
+    rescue StandardError, ScriptError
+      nil
     end
 
     # The decorator for this post type's posts: the class its option names, or the default when the
