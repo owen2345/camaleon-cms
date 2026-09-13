@@ -51,6 +51,39 @@ RSpec.describe 'Security: post type default template/layout options', type: :req
     end
   end
 
+  # On create the check runs before the post type exists; it is computed for the post type under
+  # creation, as the create form computed the offered lists, so a hook that reads the post type it is
+  # handed offers the same list to both and does not raise.
+  describe 'a non-admin settings manager creating a post type' do
+    before { sign_in_as(settings_manager, site: @site) }
+
+    def create_post_type(meta)
+      post '/admin/settings/post_types', params: { post_type: { name: 'Portfolio', slug: 'portfolio' }, meta: meta }
+      @site.post_types.find_by(slug: 'portfolio')
+    end
+
+    it 'may choose a default template a hook offers for the post type under creation' do
+      hook = ->(args) { args[:tempates] << "template_#{args[:post_type].slug}" }
+      PluginRoutes.add_anonymous_hook('post_get_list_templates', hook, 'post_type_view_options_spec')
+
+      created = create_post_type(default_template: 'template_portfolio')
+
+      expect(response).to redirect_to(action: :index)
+      expect(flash[:error]).to be_blank
+      expect(created.get_option('default_template')).to eq('template_portfolio')
+    ensure
+      PluginRoutes.remove_anonymous_hook('post_get_list_templates', 'post_type_view_options_spec')
+    end
+
+    it 'cannot create one with a default template the editor does not offer' do
+      created = create_post_type(default_template: admin_view)
+
+      expect(response).to redirect_to(action: :index)
+      expect(flash[:error]).to include('meta[default_template]')
+      expect(created).to be_nil
+    end
+  end
+
   describe 'an administrator' do
     before { sign_in_as(admin, site: @site) }
 

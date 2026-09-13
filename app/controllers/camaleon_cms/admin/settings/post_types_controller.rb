@@ -60,10 +60,14 @@ module CamaleonCms
           meta = params[:meta]
           return unless cama_hash_param?(meta)
 
+          # On create the post type does not exist yet: the lists are computed for the record under
+          # creation (set_data_term ran first), as the create form computed them, so a hook that reads
+          # the post type it is handed offers the same list here and does not see nil.
+          post_type = @post_type || current_site.post_types.new(@data_term)
           refusals = DEFAULT_VIEW_LISTERS.filter_map do |field, lister|
             next unless meta.key?(field)
 
-            cama_unoffered_view_choice_refusal("meta[#{field}]", meta[field], lister, @post_type)
+            cama_unoffered_view_choice_refusal("meta[#{field}]", meta[field], lister, post_type)
           end
           return if refusals.empty?
 
