@@ -143,13 +143,14 @@ returning the right rows.
 
 ### `cama_post_decorator_class` must name a post decorator
 
-A post type's decorator class option is loaded as code, so it now has to name a subclass of
-`CamaleonCms::PostDecorator`. Any other value is refused at save with an error naming the option
-and the value, whoever writes it and however it is written, and a value stored before this
-release that fails the check is ignored (the posts decorate with the default) and logged rather
-than loaded. A decorator inheriting from `CamaleonCms::PostDecorator`, as camaleon-ecommerce's
-does, is unaffected. `bundle exec rake camaleon_cms:security:scan_content` lists the post types
-whose stored value is ignored.
+A post type's decorator class option is loaded as code, so a write that sets or changes it now has
+to name a subclass of `CamaleonCms::PostDecorator`: any other value is refused at save with an
+error naming the option, whoever writes it. A value already stored that fails the check (written
+before this release, left behind by a removed plugin, or imported) is ignored instead: the posts
+decorate with the default, a warning is logged once per request, and saving the post type's other
+options keeps working. A decorator inheriting from `CamaleonCms::PostDecorator`, as
+camaleon-ecommerce's does, is unaffected. `bundle exec rake camaleon_cms:security:scan_content`
+lists the post types whose stored value is ignored.
 
 ### Uploader behavior changes
 
