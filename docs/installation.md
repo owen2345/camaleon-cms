@@ -38,8 +38,8 @@ camaleon.website points here.)
    ```
 
 5. *(Optional)* Configure your CMS in `config/system.json` before continuing (see
-   [config/system.json](../config/system.json) for the full settings). `users_share_sites` in
-   particular can only be changed before installation.
+   [Configuration settings](#configuration-settings)). `users_share_sites` in particular can only be
+   changed before installation.
 
 6. **Create the database structure:**
 
@@ -90,6 +90,35 @@ camaleon.website points here.)
    u.update(password: "your-new-password", password_confirmation: "your-new-password")
    u.delete_meta("must_change_password") # optional: skip the forced-change prompt
    ```
+
+## Configuration settings
+
+Your app's `config/system.json` overrides the defaults in the gem's own
+[`config/system.json`](../config/system.json), which holds each setting's default value. Restart the
+server after changing it.
+
+| Setting | Meaning |
+| --- | --- |
+| `default_template` | Theme assigned to new sites. |
+| `default_layout` | Default layout for frontend pages. |
+| `default_plugins` | Plugins installed on every new site. |
+| `hooks` | System-level hooks, in the same shape as a plugin's `hooks` ([mechanism](hooks.md#mechanism)). |
+| `helpers` | Helper classes defining the system hooks' handlers, as in a plugin's `helpers`. |
+| `skip_format_url` | Omit the `.html` extension from frontend URLs. |
+| `available_languages` | Languages offered on the frontend; any [rails-i18n](https://github.com/svenfuchs/rails-i18n) locale. |
+| `admin_available_languages` | Languages offered in the admin panel. |
+| `default_user_role` | Role given to new users. |
+| `users_share_sites` | `true` shares users across all sites; `false` assigns each user to a single site. Change it only before installation. |
+| `db_prefix` | Prefix for Camaleon's database table names. The install generator sets `"cama_"`. |
+| `cama_users_db_table` | Table of the built-in user model (when `user_model` is empty), instead of `<db_prefix>users`. |
+| `relative_url_root` | URL prefix when the app is served under a path: `"blog"` serves `http://localhost:3000/blog/`. |
+| `admin_path_name` | URL segment of the admin panel: `"sekret"` serves it at `http://localhost:3000/sekret/`. |
+| `user_model` | Class name of a custom user model, for example one managed by Devise. |
+| `media_slug_folder` | Name each site's upload folder after its slug instead of its id. |
+| `auto_include_migrations` | Load the migrations of Camaleon and its plugins automatically. With `false` (the install generator's value), copy them with `rake camaleon_cms:generate_migrations`. |
+
+A `config/system.json` generated before 2.9.5 may also contain `share_sessions`, which Camaleon
+ignores.
 
 ## Production notes
 

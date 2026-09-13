@@ -26,6 +26,5 @@
     "plugin_options":[
       "attack_plugin_options"
     ]
-    //here you can add all your hooks (read documentation)
   }
 }

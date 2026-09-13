@@ -26,8 +26,8 @@ class PluginRoutes
       gem_settings = File.join($camaleon_engine_dir, 'config', 'system.json')
       app_settings = Rails.root.join('config/system.json')
 
-      settings.merge!(JSON.parse(File.read(gem_settings))) if File.exist?(gem_settings)
-      settings.merge!(JSON.parse(File.read(app_settings))) if File.exist?(app_settings)
+      settings.merge!(parse_config(gem_settings)) if File.exist?(gem_settings)
+      settings.merge!(parse_config(app_settings)) if File.exist?(app_settings)
 
       # custom settings
       settings['key'] = 'system'
@@ -371,7 +371,7 @@ class PluginRoutes
         config = File.join(path, 'config', 'config.json')
         next if entries.include?(entry) || !File.directory?(path) || !File.exist?(config)
 
-        p = JSON.parse(File.read(config))
+        p = parse_config(config)
         p = begin
           p.with_indifferent_access
         rescue StandardError
@@ -402,7 +402,7 @@ class PluginRoutes
         config = File.join(path, 'config', 'config.json')
         next if entries.include?(entry) || !File.directory?(path) || !File.exist?(config)
 
-        p = JSON.parse(File.read(config))
+        p = parse_config(config)
         p = begin
           p.with_indifferent_access
         rescue StandardError
@@ -430,7 +430,7 @@ class PluginRoutes
         config = File.join(path, 'config', 'camaleon_plugin.json')
         next unless File.exist?(config)
 
-        p = JSON.parse(File.read(config))
+        p = parse_config(config)
         p = begin
           p.with_indifferent_access
         rescue StandardError
@@ -453,7 +453,7 @@ class PluginRoutes
         config = File.join(path, 'config', 'camaleon_theme.json')
         next unless File.exist?(config)
 
-        p = JSON.parse(File.read(config))
+        p = parse_config(config)
         p = begin
           p.with_indifferent_access
         rescue StandardError
@@ -495,6 +495,12 @@ class PluginRoutes
     end
 
     private
+
+    # parse a system, plugin or theme config the way json 2 read it: comments are ignored and a repeated
+    # key keeps its last value (json 3 rejects both by default)
+    def parse_config(path)
+      JSON.parse(File.read(path), allow_comments: true, allow_duplicate_key: true)
+    end
 
     # True when this process is running a task in the `db:` Rake namespace (db:migrate,
     # db:schema:load, ... or their engine-prefixed forms like app:db:test:prepare), whether launched

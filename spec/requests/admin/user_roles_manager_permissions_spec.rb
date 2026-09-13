@@ -134,10 +134,10 @@ RSpec.describe 'Admin::UserRolesController permission rendering', type: :request
       patch "/admin/user_roles/#{editable_admin.id}",
             params: { user_role: { name: 'Editable Admin', slug: 'admin', description: 'x' } }
 
-      # Asserted key-agnostically: `get_meta` yields indifferent access when it parses stored JSON,
-      # but the raw hash as written when the value is still cached in this process.
-      stored = editable_admin.reload.get_meta("_manager_#{@site.id}")
-      expect(stored.to_h.transform_keys(&:to_s)).to eq('themes' => 1)
+      # Read a freshly loaded role, so the assertion sees what the save stored rather than the value
+      # cached on `editable_admin` in `before`.
+      stored = CamaleonCms::UserRole.find(editable_admin.id).get_meta("_manager_#{@site.id}")
+      expect(stored).to eq('themes' => 1)
     end
 
     it 'still saves the role attributes themselves' do

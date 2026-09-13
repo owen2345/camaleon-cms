@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** camaleon_cms requires json `< 3`, since no released Rails works with json 3, and raises the bundled floors to `cama_contact_form` `~> 0.1.15` and `cama_meta_tag` `>= 1.7.3`. The shipped JSON configs are plain JSON, and config loading keeps accepting comments. Meta and option writes no longer store a key twice or update a row that reads skip. [#1292](https://github.com/owen2345/camaleon-cms/pull/1292).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#pick-up-the-dependency-fix).
+
 - **Tooling:** The Audit workflow runs RuboCop with its default formatter instead of `-f github`, so the job log lists the offenses and the summary. Development-only. [#1293](https://github.com/owen2345/camaleon-cms/pull/1293).
 
 - **Docs:** Capture the custom-field behaviors fixed in #1288 — the admin edit form's per-field render isolation and colorpicker value handling, and the settings save keeping every per-kind field option — as the `custom-field-render-resilience` and `custom-field-option-persistence` OpenSpec capabilities. No behavior change. [#1291](https://github.com/owen2345/camaleon-cms/pull/1291).

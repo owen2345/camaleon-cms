@@ -26,8 +26,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'addressable'
   s.add_dependency 'bcrypt'
   s.add_dependency 'breadcrumbs_on_rails'
-  s.add_dependency 'cama_contact_form', '~> 0.1.14'
-  s.add_dependency 'cama_meta_tag'
+  s.add_dependency 'cama_contact_form', '~> 0.1.15'
+  s.add_dependency 'cama_meta_tag', '>= 1.7.3'
   s.add_dependency 'cancancan', '>= 2.0', '< 4'
   s.add_dependency 'dartsass-sprockets'
   s.add_dependency 'draper', '>= 4.0.2'
@@ -43,6 +43,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'will_paginate-bootstrap'
 
   # Standard library default gems used explicitly
+  # json 3 breaks the JSON encoding and decoding of every released Rails, so stay on 2.x until Rails supports it
+  s.add_dependency 'json', '< 3'
   s.add_dependency 'net-http'
   s.add_dependency 'tempfile'
 

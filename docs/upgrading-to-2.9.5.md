@@ -20,7 +20,7 @@ what theme/plugin developers should know.
 | **Any install** | `bundle update camaleon_cms`, deploy, then **immediately** run the [media visibility repair](#media-visibility-repair) |
 | Reads `site.public_media` / `site.private_media` or `media.is_public` **directly** (reports, plugins, exports) | Those now return what their names say — drop any compensating inversion ([details](#notes-for-theme--plugin-developers)) |
 | Hit `NameError: undefined local variable or method custom_field_groups` deleting a site or taxonomy row | Nothing — retry the delete after upgrading ([details](#deleting-legacy-taxonomy-rows-no-longer-crashes)) |
-| Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.14` |
+| Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
 
 ---
@@ -96,10 +96,16 @@ nothing to repair — simply retry the delete. Rows that map to a real model are
 bundle update camaleon_cms
 ```
 
-This raises the bundled `cama_contact_form` floor to `~> 0.1.14`, the release completing its
-contact-form security series (output escaping, auto-reply recipient validation, a submission
-throttle, an attachment-count cap, upload-scan coverage, an e-mail tracking-pixel block, and
-response-file-cleanup confinement). Drop-in; no config or API change.
+- **`cama_contact_form` `~> 0.1.15`** covers 0.1.14, the release completing its contact-form security
+  series (output escaping, auto-reply recipient validation, a submission throttle, an
+  attachment-count cap, upload-scan coverage, an e-mail tracking-pixel block, and
+  response-file-cleanup confinement). Drop-in; no config or API change.
+- **`cama_meta_tag` `>= 1.7.3`** saves only its six SEO options from the category and post type
+  forms. A theme or plugin that adds its own `options[...]` inputs to those forms must save them from
+  its own hooks.
+- **json stays below 3.** Every released Rails fails under json gem 3 in ActiveSupport's JSON
+  encoding or decoding, so camaleon_cms requires json `< 3`. The update moves a bundle that already
+  resolved json 3 back to 2.x; a gem that requires json 3 cannot be bundled with this release.
 
 ---
 
@@ -121,6 +127,8 @@ Separately, the per-kind field options in the custom-fields settings — colorpi
 Format**, the date field's date-vs-datetime toggle, image **versions**, file **formats**, and the
 posts field's post-type filter — were silently discarded on every save. They persist now, but any
 choice made before this release was never stored: reopen the field group and pick them again.
+
+---
 
 ## Notes for theme & plugin developers
 

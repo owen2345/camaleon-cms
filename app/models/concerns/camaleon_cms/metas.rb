@@ -11,6 +11,21 @@ module CamaleonCms
       before_update :fix_save_metas_options_no_changed
     end
 
+    # JSON for a Hash or Array value, with one entry per key however each key was written: a String key
+    # replaces its Symbol twin, at any depth (json 3 refuses to generate both, json 2 stored both)
+    def self.generate_json(value)
+      JSON.generate(indifferent_json_value(value))
+    end
+
+    def self.indifferent_json_value(value)
+      case value
+      when Hash then value.with_indifferent_access
+      when Array then value.map { |item| indifferent_json_value(item) }
+      else value
+      end
+    end
+    private_class_method :indifferent_json_value
+
     # Add meta with value or Update meta with key: key
     # return true or false
     def set_meta(key, value)
@@ -18,9 +33,17 @@ module CamaleonCms
 
       # Check if the parent object has been saved to the database yet
       if persisted?
-        # Safe to use database-driven lookups and updates
-        meta_record = metas.find_or_create_by(key: key.to_s)
-        meta_record.update(value: fixed_value)
+        # A meta built before the first save is still pending during the after_create callbacks, and the
+        # metas autosave inserts it afterwards: update it instead of adding a second row for the key.
+        # Otherwise update the lowest id when a key has several rows: the one get_meta reads.
+        pending_record = metas.target.find { |m| m.new_record? && m.key == key.to_s }
+        if pending_record
+          pending_record.value = fixed_value
+        elsif (meta_record = metas.where(key: key.to_s).order(:id).first)
+          meta_record.update(value: fixed_value)
+        else
+          metas.create(key: key.to_s, value: fixed_value)
+        end
       else
         # In-Memory Fallback: Find an existing unsaved item in the array collection,
         # or build a brand new unsaved record on the association.
@@ -41,11 +64,16 @@ module CamaleonCms
     def get_meta(key, default = nil)
       key_str = key.is_a?(Symbol) ? key.to_s : key
       cama_fetch_cache("meta_#{key_str}") do
-        option = metas.loaded? ? metas.find { |m| m.key == key_str } : metas.where(key: key_str).first
+        option = if metas.loaded?
+                   metas.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
+                 else
+                   metas.where(key: key_str).first
+                 end
         res = ''
         if option.present?
           value = begin
-            JSON.parse(option.value)
+            # a key an older write stored twice keeps its last value, as json 2 read it
+            JSON.parse(option.value, allow_duplicate_key: true)
           rescue StandardError
             option.value
           end
@@ -67,7 +95,7 @@ module CamaleonCms
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
     def options(meta_key = '_default')
-      get_meta(meta_key, {})
+      get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
     end
     alias cama_options options
 
@@ -79,7 +107,7 @@ module CamaleonCms
     def set_option(key, value = nil, meta_key = '_default')
       return if key.nil?
 
-      data = cama_options(meta_key)
+      data = writable_options(meta_key)
       data[key] = fix_meta_var(value)
       set_meta(meta_key, data)
       value
@@ -101,7 +129,7 @@ module CamaleonCms
     def delete_option(key, meta_key = '_default')
       return if key.nil?
 
-      values = cama_options(meta_key)
+      values = writable_options(meta_key)
       key = key.to_sym
       values.delete(key) if values.key?(key)
       set_meta(meta_key, values)
@@ -112,7 +140,7 @@ module CamaleonCms
     def set_options(h = {}, meta_key = '_default')
       return if h.blank?
 
-      data = cama_options(meta_key)
+      data = writable_options(meta_key)
       PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
       end
@@ -154,12 +182,19 @@ module CamaleonCms
 
     private
 
+    # the options hash the option writers update: indifferent, as a stored one is parsed, so a String
+    # key replaces its Symbol twin instead of being stored beside it
+    def writable_options(meta_key)
+      data = cama_options(meta_key)
+      data.is_a?(ActiveSupport::HashWithIndifferentAccess) ? data : data.with_indifferent_access
+    end
+
     # fix to parse value
     def fix_meta_value(value)
       changed_value = if value.is_a?(ActionController::Parameters)
                         value.to_json
                       elsif value.is_a?(Array) || value.is_a?(Hash)
-                        JSON.generate(value)
+                        CamaleonCms::Metas.generate_json(value)
                       else
                         value
                       end

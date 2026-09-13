@@ -38,4 +38,77 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(loaded.get_meta(:languages_site)).to eq(%w[en es])
     end
   end
+
+  describe 'options and hash metas on the instance that wrote them' do
+    # A post type's after_create writes its defaults with Symbol keys; a String-keyed set_option on
+    # that instance must replace :has_category, not add "has_category" beside it (json 3 refuses to
+    # generate the duplicate, json 2 stored both).
+    it 'stores a String-keyed option once after Symbol-keyed defaults' do
+      post_type = create(:post_type)
+      post_type.set_option('has_category', true)
+
+      stored = post_type.metas.find_by!(key: '_default').value
+      expect(stored.scan('"has_category"').size).to eq(1)
+      expect(post_type.get_option(:has_category)).to be(true)
+      expect(CamaleonCms::PostType.find(post_type.id).get_option(:has_category)).to be(true)
+    end
+
+    it 'deletes an option whichever key type wrote it' do
+      post = create(:post)
+      post.set_meta('_default', { 'color' => 'red' }.merge(size: 'xl'))
+      post.delete_option(:color)
+      post.delete_option('size')
+
+      expect(CamaleonCms::Post.find(post.id).options).to be_empty
+    end
+
+    it 'reads the first String-keyed option of a record back by Symbol' do
+      post = create(:post)
+      post.set_option('has_picture', false)
+
+      expect(post.get_option(:has_picture)).to be(false)
+    end
+
+    it 'stores a hash meta with one entry per key however each key was written' do
+      post_type = create(:post_type)
+      post_type.set_meta('probe_settings', { sec: 20 }.merge('sec' => 30))
+      post_type.set_meta('probe_rows', [{ sec: 20 }.merge('sec' => 30)])
+
+      expect(post_type.metas.find_by!(key: 'probe_settings').value.scan('"sec"').size).to eq(1)
+      expect(post_type.metas.find_by!(key: 'probe_rows').value.scan('"sec"').size).to eq(1)
+      expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe_settings')).to eq('sec' => 30)
+    end
+
+    # Plugins read back the hash they passed to set_meta on the same instance: their own object, with
+    # their own keys, until the record is loaded again.
+    it 'keeps the hash a caller passed to set_meta' do
+      settings = { color: 'red' }
+      post_type = create(:post_type)
+      post_type.set_meta('probe_settings', settings)
+
+      expect(post_type.get_meta('probe_settings')).to equal(settings)
+    end
+  end
+
+  describe 'a stored meta that repeats a key' do
+    # Older writes stored a key twice (json 2 allowed it). A read keeps the last value, as json 2 did,
+    # instead of warning under json 2 and failing to parse under json 3.
+    around do |example|
+      deprecated = Warning[:deprecated]
+      Warning[:deprecated] = true
+      example.run
+    ensure
+      Warning[:deprecated] = deprecated
+    end
+
+    it 'reads the last value of the repeated key without a warning' do
+      post_type = create(:post_type)
+      post_type.metas.find_by!(key: '_default').update!(value: '{"has_category":false,"has_category":true}')
+      stored = CamaleonCms::PostType.find(post_type.id)
+
+      has_category = nil
+      expect { has_category = stored.get_option(:has_category) }.not_to output(/duplicate key/).to_stderr
+      expect(has_category).to be(true)
+    end
+  end
 end
