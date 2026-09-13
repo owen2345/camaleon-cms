@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Bug fix:** `reload` drops a record's memoized meta and option reads, so reads after it return the stored values, and copies made with `dup` no longer share them, so an option set on one copy no longer shows on another. [#1301](https://github.com/owen2345/camaleon-cms/pull/1301).
+
 - **Bug fix:** `current_site` no longer reads the `$current_site` global, which left a server's processes serving stale site settings; the error logged when no site matches a request points to domain mapping instead. [#1300](https://github.com/owen2345/camaleon-cms/pull/1300).
   - **Breaking change:** a `$current_site` assignment has no effect, and the `camaleon_cms:generate_thumbnails` task is removed.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-current_site-global-is-no-longer-read).
