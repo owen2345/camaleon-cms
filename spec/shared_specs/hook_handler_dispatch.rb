@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 # What a registered hook handler can expect from a dispatcher (OpenSpec: hook-handler-dispatch):
-# it runs once per dispatch and a failure inside it reaches the caller; its plugin's helper is
-# included first when it is not yet defined; a handler no helper defines is skipped with a warning.
-# The dispatchers used to rescue any failure, reload the helpers and run the handler again.
+# its plugin's helpers are included before it runs, it runs once per dispatch, and a failure inside
+# it reaches the caller, as does a handler nothing defines. The dispatchers used to rescue any
+# failure, reload the helpers and run the handler again.
 RSpec.shared_examples 'a hook handler dispatcher' do |dispatcher|
   let(:host_class) do
     Class.new do
@@ -88,15 +88,34 @@ RSpec.shared_examples 'a hook handler dispatcher' do |dispatcher|
     end
   end
 
+  # Nothing is checked before the call, so a handler nothing defines fails the dispatch as a failing
+  # handler does, and a hook that gates content fails closed instead of losing its gate.
   context 'with a handler no helper defines' do
     let(:handlers) { %w[missing_handler other_handler] }
 
-    it 'skips it with a warning and runs the next handler' do
-      allow(Rails.logger).to receive(:warn)
-      expect(Rails.logger).to receive(:warn).with(/probe_hook.*probe.*missing_handler/)
+    it 'raises NoMethodError for it and runs no later handler' do
+      expect { host.hook_run(plugin, 'probe_hook', args) }.to raise_error(NoMethodError, /missing_handler/)
+      expect(args).not_to have_key(:others)
+    end
+  end
 
-      expect { host.hook_run(plugin, 'probe_hook', args) }.not_to raise_error
-      expect(args[:others]).to eq(1)
+  context 'with a handler its helper answers through method_missing' do
+    let(:handlers) { ['answered_handler'] }
+    let(:helper_module) do
+      Module.new do
+        # Deliberately without respond_to_missing?: the dispatcher calls a handler, it does not ask.
+        def method_missing(name, *arguments) # rubocop:disable Style/MissingRespondToMissing
+          return super unless name == :answered_handler
+
+          arguments.first[:ran] = arguments.first.fetch(:ran, 0) + 1
+        end
+      end
+    end
+
+    it 'runs it once' do
+      host.hook_run(plugin, 'probe_hook', args)
+
+      expect(args[:ran]).to eq(1)
     end
   end
 end

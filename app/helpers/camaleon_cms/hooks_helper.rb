@@ -43,14 +43,8 @@ module CamaleonCms
       plugin['hooks'][hook_key].each do |hook|
         next if hook_skip_list.include?(hook)
 
-        # A handler that stays undefined is skipped rather than failing the request. The handler
-        # itself runs exactly once: a failure inside it is the caller's to see, never retried.
-        unless respond_to?(hook, true)
-          Rails.logger.warn "Camaleon CMS - Hook \"#{hook_key}\": #{plugin['key']} registers #{hook}, " \
-                            'which none of its helpers defines; skipped'
-          next
-        end
-
+        # Each handler is called exactly once and nothing is rescued: a failure inside it, or a handler
+        # nothing defines (NoMethodError), is the caller's to see, so a hook that gates content fails closed.
         params.nil? ? send(hook) : send(hook, params)
         executed = "Camaleon CMS - Hook \"#{hook_key}\" executed from dependency #{plugin['key']}"
         Rails.logger.debug executed.cama_log_style(:light_blue)
