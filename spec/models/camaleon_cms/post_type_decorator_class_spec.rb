@@ -60,13 +60,34 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to be_nil
     end
 
-    it 'refuses it through set_options and set_multiple_options, with a symbol key too' do
+    it 'refuses it through set_options and set_multiple_options' do
       expect { post_type.set_options(option.to_sym => 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
       expect { post_type.set_multiple_options(option => 'Object', 'has_tags' => true) }
         .to raise_error(ActiveRecord::RecordInvalid)
 
       expect(stored_post_type.get_option(option)).to be_nil
       expect(stored_post_type.get_option('has_tags')).to be(false)
+    end
+
+    it 'refuses it through set_meta however the options are passed' do
+      params = ActionController::Parameters.new(option => 'Object', 'has_tags' => true)
+
+      expect { post_type.set_meta('_default', params) }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { post_type.set_meta('_default', { option => 'Object' }.to_json) }
+        .to raise_error(ActiveRecord::RecordInvalid)
+      # With both key forms the one written last is stored, so that is the one checked.
+      expect { post_type.set_meta('_default', { option => '', option.to_sym => 'Object' }) }
+        .to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(stored_post_type.get_option(option)).to be_nil
+      expect(stored_post_type.get_option('has_tags')).to be(false)
+    end
+
+    it 'accepts the key form written last when both are passed' do
+      options = post_type.options.to_h.merge(option.to_sym => 'Object', option => 'ProbePostDecorator')
+      post_type.set_meta('_default', options)
+
+      expect(stored_post_type.get_option(option)).to eq('ProbePostDecorator')
     end
 
     it 'accepts a blank value, which clears it' do

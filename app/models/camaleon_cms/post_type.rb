@@ -200,11 +200,12 @@ module CamaleonCms
       end
     end
 
-    # Every way of writing an option (set_option, set_options and its alias, the data_options save
-    # callback) ends here with the whole `_default` hash, so this is where the decorator option is
-    # held to the allowlist.
+    # Every way of writing an option (set_option, set_options and its alias, delete_option, the
+    # data_options save callback, a direct set_meta) ends here with the whole `_default` options, as a
+    # Hash, ActionController::Parameters or a JSON string, so this is where the decorator option is held
+    # to the allowlist.
     def set_meta(key, value)
-      reject_unknown_decorator_class!(key, value) if key.to_s == '_default' && value.is_a?(Hash)
+      reject_unknown_decorator_class!(key, value) if key.to_s == '_default'
       super
     end
 
@@ -215,19 +216,29 @@ module CamaleonCms
       true
     end
 
-    # Refuses, loudly, an options hash whose decorator option names no post decorator, unless the write
-    # leaves the stored value as it is: a value stored without passing the check (before it existed, or
-    # a removed plugin's decorator) is ignored at read, not a reason to refuse unrelated writes. The
+    # Refuses, loudly, options whose decorator option names no post decorator, unless the write leaves
+    # the stored value as it is: a value stored without passing the check (before it existed, or a
+    # removed plugin's decorator) is ignored at read, not a reason to refuse unrelated writes. The
     # writers mutate the memoized options before calling set_meta, so the memo is dropped to keep the
     # record reading what is stored.
     def reject_unknown_decorator_class!(key, options)
-      value = options[DECORATOR_CLASS_OPTION] || options[DECORATOR_CLASS_OPTION.to_sym]
+      value = decorator_class_option_in(options)
       return if self.class.decorator_class_for(value) || value.to_s == stored_decorator_class_option.to_s
 
       cama_remove_cache("meta_#{key}")
       errors.add(:base, "#{DECORATOR_CLASS_OPTION} must name a subclass of CamaleonCms::PostDecorator, " \
                         "got '#{value}'")
       raise ActiveRecord::RecordInvalid, self
+    end
+
+    # The decorator option of `options` as get_meta will read it back once set_meta stores them, whatever
+    # form the writer passed: the key form written last in a Hash, the parameters' value, the JSON's.
+    def decorator_class_option_in(options)
+      stored = fix_meta_value(options)
+      stored = JSON.parse(stored, allow_duplicate_key: true) if stored.is_a?(String)
+      stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
+    rescue JSON::ParserError
+      nil
     end
 
     # The decorator option as the database holds it before the write under check, from the row get_meta
