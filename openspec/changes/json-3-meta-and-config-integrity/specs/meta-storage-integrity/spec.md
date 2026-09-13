@@ -20,6 +20,12 @@ twice. The writing instance SHALL read the option back by either key type, as a 
 - **THEN** the stored options hold `has_category` once
 - **AND** both the same instance and a reloaded post type read it as the new value
 
+#### Scenario: An option is deleted by the other key type
+
+- **WHEN** a record's options hold `color` under a String key and `size` under a Symbol key, and `color`
+  is deleted with a Symbol key and `size` with a String key
+- **THEN** a reloaded record holds no options
+
 #### Scenario: A record's first option is written with a String key
 
 - **WHEN** a record with no stored options sets an option with a String key

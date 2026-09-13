@@ -18,10 +18,23 @@ Camaleon SHALL accept `//` and `/* */` comments and repeated keys when it parses
 The last value of a repeated key SHALL win. This SHALL hold on every supported json version, without json
 deprecation warnings.
 
-#### Scenario: A host theme config written by an older generator
+#### Scenario: A host system config written by an older generator
 
-- **WHEN** an app theme's `config/config.json` contains a comment and repeats its `name` key
-- **THEN** the theme loads with the last `name` value
+- **WHEN** the host's `config/system.json` contains a comment and repeats a setting
+- **THEN** the system settings hold that setting's last value
+- **AND** no warning is emitted
+
+#### Scenario: An app plugin or theme config with comments
+
+- **WHEN** an app plugin's or an app theme's `config/config.json` contains a comment and repeats a key
+- **THEN** the plugin or theme loads with that key's last value
+- **AND** no warning is emitted
+
+#### Scenario: A plugin or theme gem config with comments
+
+- **WHEN** an installed gem's `config/camaleon_plugin.json` or `config/camaleon_theme.json` contains a
+  comment and repeats a key
+- **THEN** the gem's plugin or theme loads with that key's last value
 - **AND** no warning is emitted
 
 ### Requirement: Shipped JSON configs are plain JSON

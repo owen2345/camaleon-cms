@@ -338,39 +338,88 @@ RSpec.describe PluginRoutes do
     end
   end
 
-  describe '.all_themes' do
-    # Hosts keep the commented theme configs older install generators copied, and json 2 read a repeated
-    # key without complaint. Configs still load that way, without json 2's deprecation warnings and
-    # without the parse errors json 3 raises for both.
-    let(:apps_dir) { Dir.mktmpdir }
+  describe 'config loading' do
+    # Hosts keep the commented configs older install generators wrote, plugin and theme gems ship commented
+    # configs their hosts cannot edit, and json 2 read a repeated key without complaint. Every config still
+    # loads that way, without json 2's deprecation warnings and without the parse errors json 3 raises.
+    let(:config_dir) { Dir.mktmpdir }
     let(:cache) { described_class.send(:cache) }
 
     around do |example|
-      cached_themes = cache.delete('all_themes')
+      cached = cache.dup
+      cache.clear
       deprecated = Warning[:deprecated]
       Warning[:deprecated] = true
       example.run
     ensure
       Warning[:deprecated] = deprecated
-      cache.delete('all_themes')
-      cache['all_themes'] = cached_themes if cached_themes
-      FileUtils.remove_entry(apps_dir)
+      cache.replace(cached)
+      FileUtils.remove_entry(config_dir)
     end
 
-    it 'loads a theme config with a comment and a repeated key, without warnings' do
-      FileUtils.mkdir_p(File.join(apps_dir, 'themes/probe/config'))
-      File.write(File.join(apps_dir, 'themes/probe/config/config.json'), <<~JSON)
+    def write_config(relative_path, key, first_value, last_value)
+      path = File.join(config_dir, relative_path)
+      FileUtils.mkdir_p(File.dirname(path))
+      File.write(path, <<~JSON)
         {
           // a comment an older generator wrote
-          "name": "Old name",
-          "name": "Probe"
+          "#{key}": "#{first_value}",
+          "#{key}": "#{last_value}"
         }
       JSON
-      allow(described_class).to receive_messages(apps_dir: apps_dir, get_gem_themes: [])
+    end
+
+    def stub_installed_gem(name)
+      probe_gem = instance_double(Gem::Specification, name: name, gem_dir: config_dir, description: name,
+                                                      version: Gem::Version.new('1.0.0'))
+      allow(Gem::Specification).to receive(:each_with_object) do |memo, &block|
+        [probe_gem].each_with_object(memo, &block)
+      end
+    end
+
+    it 'loads the host system config' do
+      write_config('config/system.json', 'admin_path_name', 'old', 'sekret')
+      allow(Rails).to receive(:root).and_return(Pathname.new(config_dir))
+
+      settings = nil
+      expect { settings = described_class.static_system_info }.not_to output(/comment|duplicate key/).to_stderr
+      expect(settings['admin_path_name']).to eq('sekret')
+    end
+
+    it 'loads an app plugin config' do
+      write_config('plugins/probe/config/config.json', 'title', 'Old title', 'Probe')
+      allow(described_class).to receive_messages(apps_dir: config_dir, get_gem_plugins: [])
+
+      plugins = nil
+      expect { plugins = described_class.all_plugins }.not_to output(/comment|duplicate key/).to_stderr
+      expect(plugins.find { |plugin| plugin['key'] == 'probe' }).to include('title' => 'Probe')
+    end
+
+    it 'loads an app theme config' do
+      write_config('themes/probe/config/config.json', 'name', 'Old name', 'Probe')
+      allow(described_class).to receive_messages(apps_dir: config_dir, get_gem_themes: [])
 
       themes = nil
       expect { themes = described_class.all_themes }.not_to output(/comment|duplicate key/).to_stderr
       expect(themes.find { |theme| theme['key'] == 'probe' }).to include('name' => 'Probe')
+    end
+
+    it 'loads a plugin gem config' do
+      write_config('config/camaleon_plugin.json', 'title', 'Old title', 'Probe plugin')
+      stub_installed_gem('probe_plugin')
+
+      plugins = nil
+      expect { plugins = described_class.get_gem_plugins }.not_to output(/comment|duplicate key/).to_stderr
+      expect(plugins).to contain_exactly(include('key' => 'probe_plugin', 'title' => 'Probe plugin'))
+    end
+
+    it 'loads a theme gem config' do
+      write_config('config/camaleon_theme.json', 'name', 'Old name', 'Probe theme')
+      stub_installed_gem('probe_theme')
+
+      themes = nil
+      expect { themes = described_class.get_gem_themes }.not_to output(/comment|duplicate key/).to_stderr
+      expect(themes).to contain_exactly(include('key' => 'probe_theme', 'name' => 'Probe theme'))
     end
   end
 end

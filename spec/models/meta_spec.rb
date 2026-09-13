@@ -53,6 +53,15 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::PostType.find(post_type.id).get_option(:has_category)).to be(true)
     end
 
+    it 'deletes an option whichever key type wrote it' do
+      post = create(:post)
+      post.set_meta('_default', { 'color' => 'red' }.merge(size: 'xl'))
+      post.delete_option(:color)
+      post.delete_option('size')
+
+      expect(CamaleonCms::Post.find(post.id).options).to be_empty
+    end
+
     it 'reads the first String-keyed option of a record back by Symbol' do
       post = create(:post)
       post.set_option('has_picture', false)
