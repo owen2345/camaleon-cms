@@ -6,33 +6,22 @@
 # (e.g. `meta[_%{x}]`, which the field-name rule refuses) raised I18n::MissingInterpolationArgument --
 # a 500 instead of the refusal. The fallback must be interpolated once.
 RSpec.describe 'Security: refusal message under a non-English admin locale', type: :request do
-  init_site
+  include_context 'with the post editor'
 
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:post_type) { current_site.post_types.where(slug: 'post').first }
-  let(:editor) { create(:user, role: 'editor', site: current_site) }
-  let!(:published_post) do
-    create(:post, post_type: post_type, owner: editor, slug: 'published-post', status: 'published')
-  end
   # A key whose name carries a format token; a literal key, not a template.
   let(:reserved_key) { '_%{x}' } # rubocop:disable Style/FormatStringToken
   let(:expected_message) do
     "meta[#{reserved_key}] is not a field name Camaleon CMS accepts: use letters, digits, underscores, dashes and dots."
   end
 
-  before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
-    current_site.set_option('_admin_theme', 'es') # admin language with no translation for the refusal keys
-  end
+  before { current_site.set_option('_admin_theme', 'es') } # admin language with no translation for the refusal keys
 
   after { I18n.locale = :en }
 
   it 'refuses a placeholder-bearing key without raising' do
     sign_in_as(editor, site: current_site)
 
-    patch "/admin/post_type/#{post_type.id}/posts/#{published_post.id}",
-          params: { post: { title: 'Changed title', content: 'body', status: 'published' },
-                    meta: { reserved_key => '1' } }
+    update_published_post(meta: { reserved_key => '1' })
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include(expected_message)

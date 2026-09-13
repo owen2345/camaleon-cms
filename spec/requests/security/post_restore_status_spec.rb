@@ -5,20 +5,11 @@
 # the publish permission could store `options[status_default]=published` through the post save and
 # then restore the post to publish it.
 RSpec.describe 'Security: post restore status', type: :request do
-  init_site
-
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:post_type) { current_site.post_types.where(slug: 'post').first }
-  let(:editor) { create(:user, role: 'editor', site: current_site) }
-  let(:contributor) { create(:user, role: 'contributor', site: current_site) }
-
-  before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
-  end
+  include_context 'with the post editor'
 
   def post_owned_by(user, status:, status_default: nil)
-    record = post_type.posts.create!(title: "Post of #{user.username}", slug: "post-#{user.id}-#{status}",
-                                     content: 'body', user_id: user.id, status: status)
+    record = create(:post, post_type: post_type, owner: user, title: "Post of #{user.username}",
+                           slug: "post-#{user.id}-#{status}", status: status)
     record.set_option('status_default', status_default) if status_default
     record
   end
@@ -59,8 +50,7 @@ RSpec.describe 'Security: post restore status', type: :request do
   it 'restores a missing or unrecognised stored status as pending' do
     sign_in_as(editor, site: current_site)
     unrecognised = post_owned_by(editor, status: 'trash', status_default: 'bogus')
-    missing = post_type.posts.create!(title: 'No stored status', slug: 'no-stored-status', content: 'body',
-                                      user_id: editor.id, status: 'trash')
+    missing = create(:post, post_type: post_type, owner: editor, slug: 'no-stored-status', status: 'trash')
 
     restore(unrecognised)
     restore(missing)

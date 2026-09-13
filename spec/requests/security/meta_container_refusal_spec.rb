@@ -7,16 +7,9 @@
 # container that is not a set of fields, and an admin save answers with a message instead of a 500.
 # The post save keeps refusing such a container before any write, now for `field_options` too.
 RSpec.describe 'Security: meta and option containers outside the post save', type: :request do
-  init_site
+  include_context 'with the post editor'
 
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:admin) { create(:user, role: 'admin', site: current_site) }
-  let(:post_type) { current_site.post_types.where(slug: 'post').first }
-
-  before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
-    sign_in_as(admin, site: current_site)
-  end
+  before { sign_in_as(admin, site: current_site) }
 
   def refused
     I18n.t('camaleon_cms.admin.message.malformed_fields')

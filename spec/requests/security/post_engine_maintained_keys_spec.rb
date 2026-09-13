@@ -6,34 +6,10 @@
 # other key, so a request could replace the options hash (breaking the public page) or plant the
 # status that `restore` later writes into the post.
 RSpec.describe 'Security: engine-maintained post metas and options', type: :request do
-  init_site
-
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:post_type) { current_site.post_types.where(slug: 'post').first }
-  let(:admin) { create(:user, role: 'admin', site: current_site) }
-  let(:editor) { create(:user, role: 'editor', site: current_site) }
-  let(:contributor) { create(:user, role: 'contributor', site: current_site) }
-  let!(:published_post) do
-    create(:post, post_type: post_type, owner: admin, title: 'Published post', slug: 'published-post',
-                  status: 'published')
-  end
-
-  before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
-  end
+  include_context 'with the post editor'
 
   def refusal(key)
     I18n.t('camaleon_cms.admin.post.message.reserved_key', key: key)
-  end
-
-  def update_published_post(meta: {}, options: {})
-    patch "/admin/post_type/#{post_type.id}/posts/#{published_post.id}",
-          params: { post: { title: 'Changed title', content: 'body', status: 'published' },
-                    meta: meta, options: options }
-  end
-
-  def stored_post
-    CamaleonCms::Post.find(published_post.id)
   end
 
   it 'refuses a submitted options hash, even from an administrator, and keeps the page working' do

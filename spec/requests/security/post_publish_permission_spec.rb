@@ -12,16 +12,7 @@
 # status on update was written as `''` (dropping the post from every tab); it now leaves the current
 # status alone, as an absent one does.
 RSpec.describe 'Security: post publish permission', type: :request do
-  init_site
-
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:post_type) { current_site.post_types.where(slug: 'post').first }
-  let(:editor) { create(:user, role: 'editor', site: current_site) }
-  let(:contributor) { create(:user, role: 'contributor', site: current_site) }
-
-  before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
-  end
+  include_context 'with the post editor'
 
   def create_post(user, params)
     sign_in_as(user, site: current_site)

@@ -11,28 +11,12 @@
 # MySQL, so `meta[Template]` / `meta[VISITS]` must be matched against the same fields as their canonical
 # spelling.
 RSpec.describe 'Security: post meta/options request containers', type: :request do
-  init_site
+  include_context 'with the post editor'
 
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:post_type) { current_site.post_types.where(slug: 'post').first }
-  let(:admin) { create(:user, role: 'admin', site: current_site) }
-  let(:editor) { create(:user, role: 'editor', site: current_site) }
-  let(:admin_view) { 'camaleon_cms/admin/settings/site' }
-  let!(:published_post) do
-    create(:post, post_type: post_type, owner: admin, slug: 'published-post', status: 'published')
-  end
-
-  before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
-    published_post.set_option('kept', 'yes')
-  end
+  before { published_post.set_option('kept', 'yes') }
 
   def malformed(group)
     I18n.t('camaleon_cms.admin.post.message.malformed_group', group: group)
-  end
-
-  def stored_post
-    CamaleonCms::Post.find(published_post.id)
   end
 
   def json_headers

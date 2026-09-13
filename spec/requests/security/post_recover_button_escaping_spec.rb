@@ -5,16 +5,9 @@
 # already stored (legacy data, or a server-side write) must not break out of the JS string, so it is
 # escaped for the JavaScript context.
 RSpec.describe 'Security: recover button draft_status escaping', type: :request do
-  init_site
+  include_context 'with the post editor'
 
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:post_type) { current_site.post_types.where(slug: 'post').first }
-  let(:admin) { create(:user, role: 'admin', site: current_site) }
   let(:payload) { "x');alert(document.domain);//" }
-
-  before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
-  end
 
   it 'escapes a stored draft_status in the Recover button onclick' do
     parent = create(:post, post_type: post_type, owner: admin, status: 'published')

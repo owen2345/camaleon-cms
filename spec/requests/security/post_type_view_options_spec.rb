@@ -43,10 +43,13 @@ RSpec.describe 'Security: post type default template/layout options', type: :req
       expect(stored_option('default_layout')).to be_blank
     end
 
-    it 'may clear the option with a blank value' do
+    it 'may clear a stored option with a blank value' do
+      post_type.set_option('default_template', 'template_prior')
+
       save_post_type(default_template: '')
 
-      expect(flash[:error]).to be_blank
+      expect(response).to redirect_to(action: :index)
+      expect(flash[:notice]).to be_present
       expect(stored_option('default_template')).to be_blank
     end
   end

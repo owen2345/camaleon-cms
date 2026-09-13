@@ -9,30 +9,12 @@
 # user without `post_content_unfiltered_html`, stored as written for a permission holder, and never
 # rewritten.
 RSpec.describe 'Security: post summary scan', type: :request do
-  init_site
+  include_context 'with the post editor'
 
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:post_type) { current_site.post_types.where(slug: 'post').first }
-  let(:admin) { create(:user, role: 'admin', site: current_site) }
-  let(:editor) { create(:user, role: 'editor', site: current_site) }
   let(:script) { '<p>Intro</p><script>alert("summary")</script>' }
-  let!(:published_post) do
-    create(:post, post_type: post_type, owner: admin, title: 'Published post', slug: 'published-post',
-                  status: 'published')
-  end
-
-  before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
-  end
 
   def update_summary(summary)
-    patch "/admin/post_type/#{post_type.id}/posts/#{published_post.id}",
-          params: { post: { title: 'Changed title', content: 'body', status: 'published' },
-                    meta: { summary: summary } }
-  end
-
-  def stored_post
-    CamaleonCms::Post.find(published_post.id)
+    update_published_post(meta: { summary: summary })
   end
 
   def rejection(key)

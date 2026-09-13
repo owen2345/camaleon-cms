@@ -6,17 +6,11 @@
 # from params[:keywords] (always nil) while checking params[:options], so it refused options it never
 # stored. Create now stores params[:options] like update, and both check before any write.
 RSpec.describe 'Security: draft save refusals', type: :request do
-  init_site
+  include_context 'with the post editor'
 
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:post_type) { current_site.post_types.where(slug: 'post').first }
-  let(:editor) { create(:user, role: 'editor', site: current_site) }
   let!(:parent) { create(:post, post_type: post_type, owner: editor, status: 'published') }
 
-  before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
-    sign_in_as(editor, site: current_site)
-  end
+  before { sign_in_as(editor, site: current_site) }
 
   def create_draft(extra = {})
     post "/admin/post_type/#{post_type.id}/drafts",
@@ -70,7 +64,6 @@ RSpec.describe 'Security: draft save refusals', type: :request do
     end
 
     it "leaves another user's buffer alone" do
-      admin = create(:user, role: 'admin', site: current_site)
       buffer = new_post_buffer(admin)
 
       create_from(buffer, 'composed-post-2')

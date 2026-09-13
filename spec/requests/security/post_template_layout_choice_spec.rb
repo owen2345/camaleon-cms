@@ -6,35 +6,10 @@
 # The public page renders any template the view lookup finds, so a non-admin could point a post at an
 # admin view -- a 500 on every visit -- or dress the public page in the admin layout.
 RSpec.describe 'Security: post template and layout choices', type: :request do
-  init_site
-
-  let(:current_site) { Cama::Site.first.decorate }
-  let(:post_type) { current_site.post_types.where(slug: 'post').first }
-  let(:admin) { create(:user, role: 'admin', site: current_site) }
-  let(:editor) { create(:user, role: 'editor', site: current_site) }
-  let(:contributor) { create(:user, role: 'contributor', site: current_site) }
-  let(:admin_view) { 'camaleon_cms/admin/settings/site' }
-  let!(:published_post) do
-    create(:post, post_type: post_type, owner: admin, title: 'Published post', slug: 'published-post',
-                  status: 'published')
-  end
-
-  before do
-    allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site)
-  end
+  include_context 'with the post editor'
 
   def refusal(field)
     I18n.t('camaleon_cms.admin.post.message.value_not_offered', field: field)
-  end
-
-  def update_published_post(meta: {}, options: {})
-    patch "/admin/post_type/#{post_type.id}/posts/#{published_post.id}",
-          params: { post: { title: 'Changed title', content: 'body', status: 'published' },
-                    meta: meta, options: options }
-  end
-
-  def stored_post
-    CamaleonCms::Post.find(published_post.id)
   end
 
   describe 'a non-admin' do
@@ -60,7 +35,7 @@ RSpec.describe 'Security: post template and layout choices', type: :request do
       expect(stored_post.get_meta('layout')).to be_blank
     end
 
-    it 'saves an offered layout, a blank template and a template a plugin hook offers' do
+    it 'saves an offered layout and a template a plugin hook offers' do
       hook = ->(args) { args[:tempates] << 'template_from_plugin' }
       PluginRoutes.add_anonymous_hook('post_get_list_templates', hook, 'template_choice_spec')
 
