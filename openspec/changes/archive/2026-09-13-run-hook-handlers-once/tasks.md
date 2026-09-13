@@ -21,3 +21,14 @@
 - [x] 5.1 `bin/rspec`, `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` all pass (verify: exit codes)
 - [x] 5.2 Run `/opsx:verify` and address its findings
 - [x] 5.3 Run `/opsx:archive` on the branch and commit the archive in the PR (verify: `openspec/specs/hook-handler-dispatch/spec.md` exists, change moved under `openspec/changes/archive/`)
+
+## 6. Review fixes (each spec fails before its fix)
+
+- [x] 6.1 `HookLifecycleConcern` includes `HooksHelper` and drops its copies of `hook_run`, `hooks_run`, `hook_skip` and `_do_hook` (verify: the shared examples pass for both modules)
+- [x] 6.2 The helper spec's own setup sits in a context of its own, and the shared examples call the public `hook_run`, count runs through `args` and share a default helper module (verify: the dispatch specs pass, `bin/rubocop`)
+- [x] 6.3 A handler whose own code raises `NoMethodError` naming it runs once (verify: the example fails against a rescue narrowed to that error)
+- [x] 6.4 `plugin_load_helpers` includes a helper into an object once however often it runs (verify: `spec/helpers/camaleon_cms/plugins_helper_spec.rb` fails before the fix)
+- [x] 6.5 A plugin's helpers are included before its handlers run (verify: a handler named `format`, and `spec/requests/security/password_post_excerpt_leakage_spec.rb` run on its own, fail before the fix)
+- [x] 6.6 A handler nothing defines raises `NoMethodError` and a handler served by `method_missing` runs, on both paths (verify: the shared examples fail before the fix)
+- [x] 6.7 `docs/hooks.md`, `docs/upgrading-to-2.9.5.md`, `docs/ai/ecosystem.md` and the changelog entry match the behavior (verify: entry under 500 characters)
+- [x] 6.8 `bin/rspec`, `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` all pass (verify: exit codes)
