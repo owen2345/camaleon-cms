@@ -302,6 +302,7 @@ en:
           content_too_large: 'is too large to store; please shorten it.'
           value_not_offered: '%{field} names a template or layout the post editor does not offer.'
           reserved_key: '%{key} is maintained by Camaleon CMS and cannot be submitted.'
+          key_not_a_field_name: '%{key} is not a field name Camaleon CMS accepts: use letters, digits, underscores, dashes and dots.'
           malformed_group: '%{group} must be submitted as a set of fields.'
           restore_not_in_trash: 'The %{post_type} is not in the trash.'
           created: 'The %{post_type} has been created.'

@@ -15,6 +15,14 @@ module CamaleonCms
                    'default_layout' => :cama_get_list_layouts_files }
       }.freeze
 
+      # A meta or option key a save accepts is an ASCII word. The store resolves a key under the
+      # database's collation, and MySQL's defaults fold more than case: accents on every default
+      # collation (`témplate` = `template`) and compatibility variants on the UCA ones (`＿default` =
+      # `_default`), while `utf8mb4_0900_ai_ci` is NO PAD (a trailing space is not ignored there). No
+      # request-side folding reproduces that, and every field the editor and the surveyed plugins use is
+      # an ASCII word, so any other key is refused instead of folded.
+      FIELD_NAME_FORMAT = /\A[A-Za-z0-9_.-]+\z/
+
       add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.contents')
 
       before_action :set_post_type, except: [:ajax]
@@ -279,14 +287,16 @@ module CamaleonCms
       end
 
       # One pass over a group's submitted pairs. Each key is folded the way the store resolves it, then
-      # refused as engine-maintained (for everyone) or, for a non-admin, as a template or layout the
-      # editor does not offer. The two key sets are disjoint, so a key gets at most one refusal.
+      # refused as not a field name or as engine-maintained (for everyone) or, for a non-admin, as a
+      # template or layout the editor does not offer. A key gets at most one refusal.
       def group_refusals(group)
         listers = OFFERED_CHOICE_FIELDS[group]
         submitted_group_pairs(group).filter_map do |key, value|
           canonical = canonical_key(key)
           field = "#{group}[#{key}]"
-          if reserved_key?(group, canonical)
+          if !canonical.match?(FIELD_NAME_FORMAT)
+            cama_post_message('key_not_a_field_name', key: field)
+          elsif reserved_key?(group, canonical)
             cama_post_message('reserved_key', key: field)
           elsif !cama_current_user.admin? && (lister = listers[canonical]) &&
                 !cama_offered_view_choice?(value, lister, @post_type)
@@ -310,9 +320,10 @@ module CamaleonCms
         submitted.is_a?(ActionController::Parameters) ? submitted.to_unsafe_h : {}
       end
 
-      # Fold a submitted key the way the metas store resolves it. `set_meta`/`get_meta` look a row up
-      # with `where(key:)`, which on MySQL's default collation matches case- and trailing-space-variants,
-      # so `meta[Template]` would update the `template` row; match it against the same field either way.
+      # Fold a submitted key the way the metas store resolves an ASCII one. `set_meta`/`get_meta` look a
+      # row up with `where(key:)`, which on MySQL's default collations matches case variants (and, on the
+      # PAD SPACE ones, trailing-space variants), so `meta[Template]` would update the `template` row;
+      # match it against the same field either way. Wider folding is refused up front (FIELD_NAME_FORMAT).
       def canonical_key(key)
         key.to_s.strip.downcase
       end

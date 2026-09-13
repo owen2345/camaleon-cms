@@ -120,6 +120,65 @@ RSpec.describe 'Security: post meta/options request containers', type: :request 
     end
   end
 
+  # The store resolves a key under the database's collation: MySQL's defaults also fold accents
+  # (`témplate` = `template` under general_ci, unicode_ci and 0900_ai_ci) and, on the UCA ones,
+  # compatibility variants (`＿default` = `_default`), which no request-side folding reproduces. A key
+  # that is not an ASCII word cannot be a spelling of a field the editor offers, so it is refused.
+  describe 'a key that is not an ASCII word' do
+    def not_a_field_name(key)
+      I18n.t('camaleon_cms.admin.post.message.key_not_a_field_name', key: key)
+    end
+
+    it 'refuses an accented template key from an editor' do
+      sign_in_as(editor, site: current_site)
+
+      patch "/admin/post_type/#{post_type.id}/posts/#{published_post.id}",
+            params: { post: { title: 'Changed title', content: 'body', status: 'published' },
+                      meta: { 'témplate' => admin_view } }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(not_a_field_name('meta[témplate]'))
+      expect(stored_post.get_meta('template')).to be_blank
+      expect(stored_post.get_meta('témplate')).to be_blank
+      expect(stored_post.title).to eq(published_post.title)
+    end
+
+    it 'refuses a fullwidth underscore options key and keeps the options hash' do
+      sign_in_as(editor, site: current_site)
+
+      patch "/admin/post_type/#{post_type.id}/posts/#{published_post.id}",
+            params: { post: { title: 'Changed title', content: 'body', status: 'published' },
+                      meta: { '＿default' => 'replaced' } }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(not_a_field_name('meta[＿default]'))
+      expect(stored_post.get_option('kept')).to eq('yes')
+    end
+
+    it 'refuses an accented counter key from an administrator' do
+      sign_in_as(admin, site: current_site)
+
+      patch "/admin/post_type/#{post_type.id}/posts/#{published_post.id}",
+            params: { post: { title: 'Changed title', content: 'body', status: 'published' },
+                      options: { 'vísits' => '9999' } }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(not_a_field_name('options[vísits]'))
+      expect(stored_post.title).to eq(published_post.title)
+    end
+
+    it 'still stores an ASCII key with a dot, a dash and digits' do
+      sign_in_as(editor, site: current_site)
+
+      patch "/admin/post_type/#{post_type.id}/posts/#{published_post.id}",
+            params: { post: { title: 'Changed title', content: 'body', status: 'published' },
+                      meta: { 'plugin.field-2' => 'v' } }
+
+      expect(response).to have_http_status(:found)
+      expect(stored_post.get_meta('plugin.field-2')).to eq('v')
+    end
+  end
+
   describe 'a blank template value' do
     before { sign_in_as(editor, site: current_site) }
 
