@@ -28,8 +28,10 @@ ancestry on a class name read from the database.
 
 **Non-Goals:**
 
-- A permission. No role can be trusted with an arbitrary class name; the check is validity, and
-  `security-capability-gating` makes a permission the last resort.
+- A permission. The option is configuration, and a class outside the `CamaleonCms::PostDecorator`
+  hierarchy cannot work as a post decorator for any role, administrators included, so the check is
+  validity rather than a capability to grant; `security-capability-gating` makes a permission the last
+  resort.
 - Changing which hooks run after a save or when (a separate change).
 - Repairing stored values; the scan reports them.
 - Checking rows written around `set_meta`, such as an importer creating `CamaleonCms::Meta` rows
