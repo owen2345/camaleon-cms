@@ -30,13 +30,16 @@ function cama_init_post(obj) {
                 data: data,
                 success: function (res) {
                     if (res.error) {
-                        $.fn.alert({type: 'error', title: res.error.join(", "), icon: "times"})
+                        // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
+                        // refusal names the submitted key), and do NOT run the success callback -- it would
+                        // navigate away (discarding the unsaved edits) or open a stale preview.
+                        $.fn.alert({type: 'error', title: $('<div>').text(res.error.join(", ")).html(), icon: "times"})
                     } else {
                         if (res._drafts_path) _drafts_path = res._drafts_path
                         post_draft_id = res.draft.id
                         $("#post_draft_id").val(post_draft_id);
+                        if (callback) callback(res);
                     }
-                    if (callback) callback(res);
                 },
                 dataType: 'json',
                 async: false
