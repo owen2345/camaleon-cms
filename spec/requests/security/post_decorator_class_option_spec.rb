@@ -14,20 +14,16 @@ RSpec.describe 'the post decorator class option written by a post type save hook
   let(:settings_manager) { create(:user, role: settings_role.slug, site: @site) }
   let(:option) { 'cama_post_decorator_class' }
 
-  before do
-    settings_role.set_meta("_manager_#{@site.id}", { 'settings' => 1 })
-    @hook_ids = []
-  end
+  before { settings_role.set_meta("_manager_#{@site.id}", { 'settings' => 1 }) }
 
-  after { @hook_ids.each { |id| PluginRoutes.remove_anonymous_hook('updated_post_type', id) } }
+  after { PluginRoutes.remove_anonymous_hook('updated_post_type', 'decorator-save-hook') }
 
   # A save hook storing the given class name as the saved post type's decorator, torn down after the
   # example: what a plugin hook writing request params amounts to.
   def hook_storing_decorator(class_name)
-    id = "decorator-#{class_name.parameterize}"
-    @hook_ids << id
     PluginRoutes.add_anonymous_hook('updated_post_type',
-                                    ->(args) { args[:post_type].set_options(option => class_name) }, id)
+                                    ->(args) { args[:post_type].set_options(option => class_name) },
+                                    'decorator-save-hook')
   end
 
   def save_post_type
