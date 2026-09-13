@@ -89,7 +89,10 @@ module CamaleonCms
 
     # delete meta
     def delete_meta(key)
-      metas.where(key: key).destroy_all
+      key_str = key.to_s
+      # the metas held in memory too: get_meta reads loaded metas, and saving the record stores built ones
+      metas.destroy(*metas.target.select { |m| m.key == key_str })
+      metas.where(key: key_str).destroy_all
       cama_remove_cache("meta_#{key}")
     end
 

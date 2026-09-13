@@ -42,6 +42,22 @@ caller passed, with the caller's own keys, until the record is loaded again.
 - **WHEN** a hash with Symbol keys is written with `set_meta`
 - **THEN** `get_meta` on the same instance returns that same hash object
 
+### Requirement: delete_meta removes the key from memory as well as storage
+
+`delete_meta` SHALL remove the key's stored rows and the metas the record holds in memory for it, whether
+loaded or not yet saved. `get_meta` on the same instance SHALL then return the default, and saving the
+record SHALL NOT store the deleted meta.
+
+#### Scenario: A meta deleted from eager-loaded metas
+
+- **WHEN** a site loaded with its metas deletes a meta
+- **THEN** the same instance and a freshly loaded site read the default for that key
+
+#### Scenario: A meta deleted before it is saved
+
+- **WHEN** a meta set on an unsaved user, or built on a saved post, is deleted and the record is saved
+- **THEN** no row is stored for that key
+
 ### Requirement: Hash and Array values are stored with one entry per key
 
 A Hash or Array value written as a meta or as a custom-field value SHALL be stored as JSON with one entry
