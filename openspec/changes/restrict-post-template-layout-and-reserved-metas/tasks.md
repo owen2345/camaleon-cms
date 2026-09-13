@@ -17,7 +17,7 @@
 - [x] 3.1 In `docs/security/permissions.md`, add the post editor's write rule to "The pieces that implement the rule": offered templates and layouts for non-admins, engine-maintained keys refused for everyone, and restore re-checking the publish right. Verify the section reads consistently with `security-capability-gating`.
 - [x] 3.2 Add a hardening entry to `docs/ai/ecosystem.md` saying a plugin that submits a post template or layout must register it through `post_get_list_templates`/`post_get_list_layouts`, that engine-maintained keys can no longer be submitted, and that no surveyed consumer is affected. Verify every consumer named in the proposal is listed.
 - [x] 3.3 Add a section to `docs/upgrading-to-2.9.5.md` with an at-a-glance row, the restore behavior change (non-publishers' posts return as `pending`), and a theme and plugin developer note about registering templates through the hooks. Verify the anchor resolves from the table.
-- [ ] 3.4 After the PR exists, add a `CHANGELOG.md` entry under `## Unreleased` (at most 500 characters) linking the PR and the upgrade-guide anchor, following `docs/ai/workflows.md` Phase 3 for the skip-ci decision. Verify the entry length.
+- [x] 3.4 After the PR exists, add a `CHANGELOG.md` entry under `## Unreleased` (at most 500 characters) linking the PR and the upgrade-guide anchor, following `docs/ai/workflows.md` Phase 3 for the skip-ci decision. Verify the entry length.
 
 ## 4. Verification and wrap-up
 
@@ -26,5 +26,5 @@
 - [x] 4.3 Run `bin/brakeman --no-pager` and confirm it reports 0 warnings.
 - [x] 4.4 Run `(cd spec/dummy && bin/rails zeitwerk:check)` and confirm "All is good".
 - [x] 4.5 Run `openspec validate restrict-post-template-layout-and-reserved-metas --strict` and confirm it passes.
-- [ ] 4.6 Mark NEW-2 `✅ FIXED (#<PR>)` in the local `SECURITY-AUDIT-2026-08-11.md` after the PR exists. Verify the marker placement matches the NEW-1 heading convention.
+- [x] 4.6 Mark NEW-2 `✅ FIXED (#<PR>)` in the local `SECURITY-AUDIT-2026-08-11.md` after the PR exists. Verify the marker placement matches the NEW-1 heading convention.
 - [ ] 4.7 Before merge, archive the change with `/opsx:archive` on the branch and commit the archived change and the synced `openspec/specs/post-editor-write-integrity/spec.md`. Verify `openspec list --json` shows no active change.
