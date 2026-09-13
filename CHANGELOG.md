@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Bug fix:** `data_options` and `data_metas` are written only by the save they are given to, so a later save of the same record no longer reverts options or metas changed since, and a post type created with `data_metas` stores them at creation instead of on its first update. [#1299](https://github.com/owen2345/camaleon-cms/pull/1299).
+
 - **Bug fix:** `delete_meta` also removes the metas a record holds in memory, so a record with eager-loaded metas no longer reads the deleted value back, and a meta set with `set_meta` and deleted before the record's save is no longer stored by that save. It takes a single key: an Array is no longer matched as a set. [#1298](https://github.com/owen2345/camaleon-cms/pull/1298).
 
 - **Security fix:** A non-admin's post save is refused for a template or layout the editor does not offer, a non-ASCII meta key, a status outside published/pending/draft, or a summary the content scan refuses; engine-maintained metas and options are refused from anyone, and `restore` no longer publishes for a user without the publish permission. [#1297](https://github.com/owen2345/camaleon-cms/pull/1297).
