@@ -33,7 +33,9 @@ module CamaleonCms
         end
       end
 
-      cama_set_cache("meta_#{key}", value)
+      # cache a hash the way get_meta parses it from the database, so a later String-keyed write
+      # replaces a Symbol key instead of adding a duplicate
+      cama_set_cache("meta_#{key}", value.is_a?(Hash) ? value.with_indifferent_access : value)
     end
 
     # return value of meta with key: key,

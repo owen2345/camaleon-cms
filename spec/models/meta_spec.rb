@@ -38,4 +38,27 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(loaded.get_meta(:languages_site)).to eq(%w[en es])
     end
   end
+
+  describe 'hash metas read back on the instance that wrote them' do
+    # A fresh load parses a stored hash into an indifferent hash, so the instance that wrote it must
+    # read it back the same way. A post type's after_create writes its defaults with Symbol keys; a
+    # String-keyed set_option on that instance must replace :has_category, not add "has_category"
+    # beside it (json 3 refuses to generate the duplicate, json 2 stored both).
+    it 'stores a String-keyed option once after Symbol-keyed defaults' do
+      post_type = create(:post_type)
+      post_type.set_option('has_category', true)
+
+      stored = post_type.metas.find_by!(key: '_default').value
+      expect(stored.scan('"has_category"').size).to eq(1)
+      expect(post_type.get_option(:has_category)).to be(true)
+      expect(CamaleonCms::PostType.find(post_type.id).get_option(:has_category)).to be(true)
+    end
+
+    it 'returns the hash a fresh load returns' do
+      post_type = create(:post_type)
+      post_type.set_meta('probe_settings', { color: 'red' })
+
+      expect(post_type.get_meta('probe_settings')).to eq(CamaleonCms::PostType.find(post_type.id).get_meta('probe_settings'))
+    end
+  end
 end

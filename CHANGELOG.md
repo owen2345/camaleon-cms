@@ -5,6 +5,8 @@
 - **Bug fix:** The gem's own JSON configs (`config/system.json`, the bundled plugins and themes, the generator templates) no longer carry comments, which json gem 3.0 rejects at boot, and the bundled plugins' floors rise to `cama_contact_form` `~> 0.1.15` and `cama_meta_tag` `>= 1.7.3`, whose configs are fixed too. Host apps must remove comments from their own `config/system.json`. [#1292](https://github.com/owen2345/camaleon-cms/pull/1292).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#json-configs-must-be-plain-json).
 
+- **Bug fix:** A hash meta, such as a record's options, now reads back on the instance that wrote it with indifferent keys, as a fresh load returns it. A String-keyed `set_option` after Symbol-keyed options (a new post type's defaults) replaces the value instead of storing the key twice, which json gem 3 refuses to generate. [#1292](https://github.com/owen2345/camaleon-cms/pull/1292).
+
 - **Tooling:** The Audit workflow runs RuboCop with its default formatter instead of `-f github`, so the job log lists the offenses and the summary. Development-only. [#1293](https://github.com/owen2345/camaleon-cms/pull/1293).
 
 - **Docs:** Capture the custom-field behaviors fixed in #1288 — the admin edit form's per-field render isolation and colorpicker value handling, and the settings save keeping every per-kind field option — as the `custom-field-render-resilience` and `custom-field-option-persistence` OpenSpec capabilities. No behavior change. [#1291](https://github.com/owen2345/camaleon-cms/pull/1291).
