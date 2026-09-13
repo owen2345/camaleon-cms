@@ -300,6 +300,9 @@ en:
         message:
           content_rejected: 'contains HTML that is not allowed for your role (for example scripts, event handlers or embeds). Remove it, or ask an administrator for the unfiltered-content permission.'
           content_too_large: 'is too large to store; please shorten it.'
+          value_not_offered: '%{field} names a template or layout the post editor does not offer.'
+          reserved_key: '%{key} is maintained by Camaleon CMS and cannot be submitted.'
+          restore_not_in_trash: 'The %{post_type} is not in the trash.'
           created: 'The %{post_type} has been created.'
           updated: 'The %{post_type} has been updated.'
           deleted: 'The %{post_type} has been removed.'

@@ -3,6 +3,22 @@ module CamaleonCms
     class PostsController < CamaleonCms::AdminController
       include CamaleonCms::Admin::CustomFieldsConcern
 
+      # Metas and options the engine maintains itself, never taken from a request: `_`-prefixed metas
+      # (`_default` holds the post's whole options hash), the visit and comment counters, and the statuses
+      # `trash` and the drafts buffer remember.
+      RESERVED_META_KEYS = %w[visits comments_count].freeze
+      RESERVED_OPTION_KEYS = %w[status_default draft_status].freeze
+
+      # The template and layout values a post save can carry, each with the list the post editor offers
+      # for it. A non-admin may submit only an offered value, or a blank one.
+      OFFERED_CHOICE_FIELDS = {
+        meta: { template: :templates, layout: :layouts },
+        options: { default_template: :templates, default_layout: :layouts }
+      }.freeze
+
+      # The statuses a restored post can return to.
+      RESTORABLE_STATUSES = %w[published pending draft].freeze
+
       add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.contents')
 
       before_action :set_post_type, except: [:ajax]
@@ -165,8 +181,13 @@ module CamaleonCms
       def restore
         @post = @post_type.posts.find(params[:post_id])
         authorize! :update, @post
+        unless @post.status == 'trash'
+          flash[:error] = cama_post_message('restore_not_in_trash', post_type: @post_type.decorate.the_title)
+          return redirect_to action: :index, s: params[:s]
+        end
+
         # rubocop:disable Rails/SkipsModelValidations
-        @post.update_column(:status, @post.options[:status_default] || 'pending')
+        @post.update_column(:status, restorable_status(@post.options[:status_default]))
         # rubocop:enable Rails/SkipsModelValidations
         @post.update_extra_data
         hooks_run('restored_post', { post: @post, post_type: @post_type })
@@ -210,7 +231,17 @@ module CamaleonCms
       # Wrapping the whole sequence in one transaction rolls the parent save back with the refused
       # value, and the RecordInvalid propagates to AdminController's rescue_from (flash + redirect
       # back) with nothing persisted. Returns true on success, false on a parent validation failure.
+      #
+      # The request's metas and options are checked first (post_params_refusals): a refused save writes
+      # nothing, and the form re-renders with the submitted values and the refusals as errors.
       def save_post_with_fields(post, update_attrs = nil)
+        refusals = post_params_refusals
+        if refusals.any?
+          post.assign_attributes(update_attrs) if update_attrs
+          refusals.each { |message| post.errors.add(:base, message) }
+          return false
+        end
+
         ActiveRecord::Base.transaction do
           saved = update_attrs ? post.update(update_attrs) : post.save
           raise ActiveRecord::Rollback unless saved
@@ -220,6 +251,71 @@ module CamaleonCms
           post.set_options(params[:options])
           true
         end
+      end
+
+      # The refusals for the metas and options this request carries: a key the engine maintains, for
+      # everyone, and for a non-admin a template or layout the post editor does not offer. Any other key
+      # is stored as submitted -- plugins and themes add their own fields to the post editor.
+      def post_params_refusals
+        refusals = reserved_param_refusals
+        refusals.concat(unoffered_choice_refusals) unless cama_current_user.admin?
+        refusals
+      end
+
+      def reserved_param_refusals
+        fields = submitted_param_keys(:meta).select { |key| key.start_with?('_') || RESERVED_META_KEYS.include?(key) }
+                                            .map { |key| "meta[#{key}]" }
+        fields += submitted_param_keys(:options).select { |key| RESERVED_OPTION_KEYS.include?(key) }
+                                                .map { |key| "options[#{key}]" }
+        fields.map { |field| cama_post_message('reserved_key', key: field) }
+      end
+
+      def unoffered_choice_refusals
+        OFFERED_CHOICE_FIELDS.flat_map do |group, fields|
+          submitted = params[group]
+          next [] unless submitted.respond_to?(:key?)
+
+          fields.filter_map do |field, list|
+            next unless submitted.key?(field)
+            next if offered_post_choice?(submitted[field], list)
+
+            cama_post_message('value_not_offered', field: "#{group}[#{field}]")
+          end
+        end
+      end
+
+      # A blank value, or one of the names the post editor offers (a Hash or an Array is neither).
+      def offered_post_choice?(value, list)
+        return false unless value.is_a?(String)
+
+        value.blank? || offered_post_choices(list).include?(value)
+      end
+
+      # The theme's post templates or layouts as the editor lists them, hooks included; once per request.
+      def offered_post_choices(list)
+        @offered_post_choices ||= {}
+        @offered_post_choices[list] ||= if list == :templates
+                                          cama_get_list_template_files(@post_type).map(&:to_s)
+                                        else
+                                          cama_get_list_layouts_files(@post_type).map(&:to_s)
+                                        end
+      end
+
+      def submitted_param_keys(group)
+        submitted = params[group]
+        submitted.respond_to?(:keys) ? submitted.keys.map(&:to_s) : []
+      end
+
+      # The status a trashed post returns to: the one it had when a post can hold it and the acting user
+      # may give it -- the publish rule get_post_data applies -- otherwise pending.
+      def restorable_status(previous)
+        status = RESTORABLE_STATUSES.include?(previous.to_s) ? previous.to_s : 'pending'
+        status == 'published' && cannot?(:publish_post, @post_type) ? 'pending' : status
+      end
+
+      def cama_post_message(key, **vars)
+        full_key = "camaleon_cms.admin.post.message.#{key}"
+        I18n.t(full_key, **vars, default: I18n.t(full_key, locale: :en, **vars))
       end
 
       # define post type parent
