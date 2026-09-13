@@ -43,6 +43,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'will_paginate-bootstrap'
 
   # Standard library default gems used explicitly
+  # json 3 breaks the JSON encoding and decoding of every released Rails, so stay on 2.x until Rails supports it
+  s.add_dependency 'json', '< 3'
   s.add_dependency 'net-http'
   s.add_dependency 'tempfile'
 

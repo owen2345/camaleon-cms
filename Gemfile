@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'json', '< 3'
 gem 'non-digest-assets', '2.6.0'
 gem 'rails', '~> 8.1.0'
 gem 'selenium-webdriver'

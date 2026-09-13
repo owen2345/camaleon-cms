@@ -14,6 +14,7 @@ PATH
       font-awesome-rails
       ipaddress
       jquery-rails
+      json (< 3)
       meta-tags (~> 2.0)
       mini_magick
       net-http
@@ -488,6 +489,7 @@ DEPENDENCIES
   capybara-screenshot
   factory_bot_rails
   faker
+  json (< 3)
   non-digest-assets (= 2.6.0)
   pry-rescue
   pry-stack_explorer
