@@ -57,17 +57,13 @@ module CamaleonCms
         # held to the offered list too -- otherwise it is the unchecked route to the same admin-view sink
         # that PostsController closes for a post's own meta. Administrators are not restricted.
         def refuse_unoffered_view_options
-          return if cama_current_user.admin?
-
           meta = params[:meta]
           return unless cama_hash_param?(meta)
 
-          refusals = { 'default_template' => :cama_get_list_template_files,
-                       'default_layout' => :cama_get_list_layouts_files }.filter_map do |field, lister|
+          refusals = DEFAULT_VIEW_LISTERS.filter_map do |field, lister|
             next unless meta.key?(field)
-            next if cama_offered_view_choice?(meta[field], lister, @post_type)
 
-            cama_t('camaleon_cms.admin.post.message.value_not_offered', field: "meta[#{field}]")
+            cama_unoffered_view_choice_refusal("meta[#{field}]", meta[field], lister, @post_type)
           end
           return if refusals.empty?
 

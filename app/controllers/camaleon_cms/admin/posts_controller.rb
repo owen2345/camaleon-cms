@@ -4,16 +4,12 @@ module CamaleonCms
       include CamaleonCms::Admin::CustomFieldsConcern
       include CamaleonCms::Admin::PostViewChoicesConcern
 
-      # The template and layout fields a post save can carry, each with the helper that lists what the
-      # post editor offers for it. A non-admin may submit only an offered value, or a blank one. Keys are
-      # the canonical (folded) field names: a submitted key is folded the same way before it is matched,
-      # so a case- or space-variant cannot slip a value past the check into the row the store resolves it
-      # to.
-      OFFERED_CHOICE_FIELDS = {
-        meta: { 'template' => :cama_get_list_template_files, 'layout' => :cama_get_list_layouts_files },
-        options: { 'default_template' => :cama_get_list_template_files,
-                   'default_layout' => :cama_get_list_layouts_files }
-      }.freeze
+      # The template and layout fields a post save can carry (PostViewChoicesConcern), by param group: a
+      # post's own template and layout metas, and the default template and layout options it falls back
+      # to. A non-admin may submit only an offered value, or a blank one. A submitted key is folded
+      # before it is matched, so a case- or space-variant cannot slip a value past the check into the row
+      # the store resolves it to.
+      OFFERED_CHOICE_FIELDS = { meta: POST_VIEW_LISTERS, options: DEFAULT_VIEW_LISTERS }.freeze
 
       # A meta or option key a save accepts is an ASCII word. The store resolves a key under the
       # database's collation, and MySQL's defaults fold more than case: accents on every default
@@ -349,9 +345,8 @@ module CamaleonCms
             cama_post_message('key_not_a_field_name', key: field)
           elsif reserved_key?(group, canonical)
             cama_post_message('reserved_key', key: field)
-          elsif !cama_current_user.admin? && (lister = listers[canonical]) &&
-                !cama_offered_view_choice?(value, lister, @post_type)
-            cama_post_message('value_not_offered', field: field)
+          elsif (lister = listers[canonical])
+            cama_unoffered_view_choice_refusal(field, value, lister, @post_type)
           end
         end
       end
@@ -391,10 +386,6 @@ module CamaleonCms
       # update and restore paths, so a non-publisher cannot reach `published` through any of them.
       def publish_or_pending(status)
         status.to_s == 'published' && cannot?(:publish_post, @post_type) ? 'pending' : status
-      end
-
-      def cama_post_message(key, **vars)
-        cama_t("camaleon_cms.admin.post.message.#{key}", vars)
       end
 
       # define post type parent

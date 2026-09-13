@@ -85,6 +85,42 @@ RSpec.describe 'Security: post template and layout choices', type: :request do
       PluginRoutes.remove_anonymous_hook('post_get_list_templates', 'template_choice_spec')
     end
 
+    # The editor's select derives an option's value as Rails' option_text_and_value does: trailing Hash
+    # elements are HTML attributes, a two-element entry is [text, value], a grouped entry offers its
+    # inner entries. The check derives the value the same way, or it refuses what the editor offered.
+    it 'saves a template a hook offers with HTML attributes, as a bare value with attributes, or grouped' do
+      hook = lambda do |args|
+        args[:tempates] << ['Landing page', 'template_landing', { 'data-preview' => '1' }]
+        args[:tempates] << ['template_y', { class: 'y' }]
+        args[:tempates] << ['Grouped', ['template_g1', %w[Second template_g2]]]
+      end
+      PluginRoutes.add_anonymous_hook('post_get_list_templates', hook, 'template_choice_spec')
+
+      %w[template_landing template_y template_g1 template_g2].each do |template|
+        update_published_post(meta: { template: template })
+
+        expect(response).to have_http_status(:found)
+        expect(stored_post.get_meta('template')).to eq(template)
+      end
+    ensure
+      PluginRoutes.remove_anonymous_hook('post_get_list_templates', 'template_choice_spec')
+    end
+
+    # options_for_select renders a String verbatim, so its values are unknowable: it offers nothing.
+    it 'treats a pre-rendered option list as offering nothing, without raising' do
+      hook = ->(args) { args[:tempates] = '<option value="template_x">X</option>' }
+      PluginRoutes.add_anonymous_hook('post_get_list_templates', hook, 'template_choice_spec')
+
+      update_published_post(meta: { template: 'template_x' })
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(refusal('meta[template]'))
+
+      update_published_post(meta: { template: '' })
+      expect(response).to have_http_status(:found)
+    ensure
+      PluginRoutes.remove_anonymous_hook('post_get_list_templates', 'template_choice_spec')
+    end
+
     it 'saves a blank template and layout' do
       update_published_post(meta: { template: '', layout: '' })
 
