@@ -40,9 +40,9 @@ module CamaleonCms
       plugin['hooks'][hook_key].each do |hook|
         next if hook_skip_list.include?(hook)
 
-        # Same dispatch as HookLifecycleConcern#_do_hook: helpers included on demand, an undefined
-        # handler skipped with a warning, the handler run exactly once with its failure left to the
-        # caller.
+        # A plugin's helpers are included on demand, so a handler not yet defined loads them first;
+        # one that stays undefined is skipped rather than failing the request. The handler itself
+        # runs exactly once: a failure inside it is the caller's to see, never retried.
         plugin_load_helpers(plugin) unless respond_to?(hook, true)
         unless respond_to?(hook, true)
           Rails.logger.warn "Camaleon CMS - Hook \"#{hook_key}\": #{plugin['key']} registers #{hook}, " \
