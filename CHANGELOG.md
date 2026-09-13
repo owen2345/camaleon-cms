@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** On a record object, `get_meta` for a meta with no value (no row, or a stored empty string) returns the default each read passes, instead of the one an earlier read passed or a caller changed in place, and `set_meta(key, '')` reads back as that default, as after a reload. [#1303](https://github.com/owen2345/camaleon-cms/pull/1303).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#get_meta-returns-each-calls-own-default).
+
 - **Bug fix:** With `auto_include_migrations` on, a host app whose path only shares the engine root as a prefix (a plugin checked out as `camaleon-cms-seo` beside `camaleon-cms`, core sourced as a path gem) gets the core migrations; it was mistaken for the engine's own dummy app and silently got none. [#1306](https://github.com/owen2345/camaleon-cms/pull/1306)
 
 - **Tooling:** CI runs the suites of `cama_contact_form`, `camaleon-cms-seo`, `camaleon_editor` and the `florsan` host app against the core commit under test, each as its own advisory check on the pull request, so a core change that breaks one of them shows before release. No tokens involved, so it runs on fork PRs too. Development-only. [#1305](https://github.com/owen2345/camaleon-cms/pull/1305).

@@ -38,13 +38,13 @@ does.
 A value written with `set_meta` SHALL be returned by `get_meta` on the same instance as the object the
 caller passed, with the caller's own keys, until the record is loaded again or an option writer on that
 instance stores its own indifferent hash, which `get_meta` returns from then on, the caller's hash left
-as passed. A record not yet saved SHALL keep it until its first save, after which the instance reads what
-it stored. When the value is
-the record's options, `options` and `get_option` on that instance SHALL find an option by a String key
-or its Symbol twin, as a freshly loaded record does, whether the caller passed a plain Hash, request
-parameters or a JSON string. The copy `options` returns SHALL share nothing with the caller's value, its
-nested hashes included, and SHALL carry no default of the caller's hash, so a missing option reads nil as
-after a reload.
+as passed. An empty string SHALL be the exception: `get_meta` SHALL read it as a meta with no value and
+return the caller's default, as a reloaded record does. A record not yet saved SHALL keep it until its
+first save, after which the instance reads what it stored. When the value is the record's options,
+`options` and `get_option` on that instance SHALL find an option by a String key or its Symbol twin, as a
+freshly loaded record does, whether the caller passed a plain Hash, request parameters or a JSON string.
+The copy `options` returns SHALL share nothing with the caller's value, its nested hashes included, and
+SHALL carry no default of the caller's hash, so a missing option reads nil as after a reload.
 
 #### Scenario: A plugin reads back the hash it wrote
 
@@ -55,6 +55,11 @@ after a reload.
 
 - **WHEN** a hash is written with `set_meta` on an unsaved post type and the post type is saved
 - **THEN** the same instance reads the stored hash by its keys, no longer the caller's object
+
+#### Scenario: A meta written as an empty string
+
+- **WHEN** a meta is written with `set_meta` as an empty string and read with a default
+- **THEN** the same instance and a reloaded record return that default
 
 #### Scenario: Options a caller passed to set_meta as a plain Hash
 
@@ -161,6 +166,40 @@ failure and no json deprecation warning.
 - **WHEN** a record's stored options hold `has_category` twice, `false` and then `true`
 - **THEN** reading the option returns `true`
 - **AND** no duplicate-key warning is emitted
+
+### Requirement: Each read of a meta with no value returns its caller's default
+
+When a record has no row for a meta, or the meta's stored value is an empty string, each `get_meta` call
+SHALL return the default passed to that call. It SHALL NOT return a default an earlier call passed, or a
+change a caller made to that default in place. This SHALL hold whether the record's metas are eager-loaded
+or read from the database. Reading the meta again on the same instance SHALL NOT query the database again
+until the meta is written or deleted.
+
+#### Scenario: A missing meta read with different defaults
+
+- **WHEN** a post with no `gallery` meta reads it without a default and then with an empty array as the
+  default
+- **THEN** the first read returns nil and the second returns an empty array
+- **AND** the same two reads return the same values on a freshly loaded post and on a post loaded with its
+  metas eager-loaded
+
+#### Scenario: A default changed in place
+
+- **WHEN** a caller appends to the empty array returned as a missing meta's default, without writing it
+  with `set_meta`, and the meta is read again with an empty array as the default
+- **THEN** the later read returns an empty array
+
+#### Scenario: A meta stored as an empty string
+
+- **WHEN** a record's stored value for a meta is an empty string, and the meta is read without a default
+  and then with a default
+- **THEN** the first read returns nil and the second returns that default
+
+#### Scenario: Repeated reads of a missing meta
+
+- **WHEN** a post loaded without its metas reads a missing meta three times: with no default, with an empty
+  array and with an empty hash
+- **THEN** one database query reads the post's metas
 
 ### Requirement: Writes and reads agree on a key with several rows
 
