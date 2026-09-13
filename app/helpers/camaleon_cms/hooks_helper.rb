@@ -37,28 +37,17 @@ module CamaleonCms
     def _do_hook(plugin, hook_key, params = nil)
       return if plugin.blank? || plugin['hooks'].blank? || plugin['hooks'][hook_key].blank?
 
+      # The plugin's helpers are included before any of its handlers runs, not only when respond_to?
+      # misses one: the host may already answer a handler's name with a method of its own.
+      plugin_load_helpers(plugin)
       plugin['hooks'][hook_key].each do |hook|
         next if hook_skip_list.include?(hook)
 
-        begin
-          if params.nil?
-            send(hook)
-          else
-            send(hook, params)
-          end
-          Rails.logger.debug "Camaleon CMS - Hook \"#{hook_key}\" executed from dependency #{begin
-            plugin['key']
-          rescue StandardError
-            ''
-          end}".cama_log_style(:light_blue)
-        rescue StandardError
-          plugin_load_helpers(plugin)
-          if params.nil?
-            send(hook)
-          else
-            send(hook, params)
-          end
-        end
+        # Each handler is called exactly once and nothing is rescued: a failure inside it, or a handler
+        # nothing defines (NoMethodError), is the caller's to see, so a hook that gates content fails closed.
+        params.nil? ? send(hook) : send(hook, params)
+        executed = "Camaleon CMS - Hook \"#{hook_key}\" executed from dependency #{plugin['key']}"
+        Rails.logger.debug executed.cama_log_style(:light_blue)
       end
     end
 

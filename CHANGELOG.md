@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** A failing plugin hook handler was run a second time by the dispatcher, repeating its side effects; a handler now runs once per dispatch and its error reaches the caller. A handler none of a plugin's helpers defines now raises `NoMethodError` in controllers as in views (2.9.3 and 2.9.4 skipped it there). [#1296](https://github.com/owen2345/camaleon-cms/pull/1296).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#hook-handlers-run-once-per-dispatch).
+
 - **Security fix:** A post type's `cama_post_decorator_class` option must name a `CamaleonCms::PostDecorator` subclass: other values are refused at save, a stored one is ignored, and the `scan_content` task lists it. [#1295](https://github.com/owen2345/camaleon-cms/pull/1295).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#cama_post_decorator_class-must-name-a-post-decorator).
 

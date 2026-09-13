@@ -54,6 +54,14 @@ Every registered handler runs in turn on the same `args`, so ordering across plu
 a handler should add to or adjust `args`, not assume it is the only one. There is no
 `HooksManager.add_listener` (a stale example named it; it does not exist).
 
+**What a handler can expect from the dispatcher** (`openspec/specs/hook-handler-dispatch/spec.md`): its
+plugin's helper modules are included before it runs, so a handler one of them defines is called even
+where the controller or view already has a method of that name. It runs exactly once per dispatch, and
+an error it raises reaches the code that fired the hook unchanged, so a handler that fails after a side
+effect never has that side effect repeated. Nothing is looked up before the call: a handler served by
+`method_missing` runs, and a handler that nothing defines raises `NoMethodError` the same way, on the
+controller and the view dispatch paths alike.
+
 ## Session & authentication hooks
 
 The hooks around login, registration and the post-auth redirect — including the two that gate off-site

@@ -1,25 +1,12 @@
 module CamaleonCms
+  # Controller side of hook dispatch. The dispatch itself lives in HooksHelper (single source of
+  # truth), so the controller and view paths cannot drift apart; this concern adds the controller
+  # lifecycle runners and overrides the two pieces a controller does differently: the skip list
+  # honours a legacy @_hooks_skip ivar, and a plugin's helpers are included into the controller class.
   module HookLifecycleConcern
     extend ActiveSupport::Concern
 
-    def hook_run(plugin, hook_key, params = nil)
-      _do_hook(plugin, hook_key, params)
-    end
-
-    def hooks_run(hook_key, params = nil)
-      theme_slug = current_theme&.slug.presence || current_site.get_theme_slug
-      PluginRoutes.enabled_apps(current_site, theme_slug).each do |plugin|
-        _do_hook(plugin, hook_key, params)
-      end
-
-      PluginRoutes.get_anonymous_hooks(hook_key).each do |_hook|
-        _hook.call(params)
-      end
-    end
-
-    def hook_skip(hook_function_name)
-      hook_skip_list << hook_function_name
-    end
+    include CamaleonCms::HooksHelper
 
     private
 
@@ -42,36 +29,6 @@ module CamaleonCms
       run_hook_lifecycle('app_after_load')
     end
 
-    def _do_hook(plugin, hook_key, params = nil)
-      return if plugin.blank? || plugin['hooks'].blank? || plugin['hooks'][hook_key].blank?
-
-      plugin['hooks'][hook_key].each do |hook|
-        next if hook_skip_list.include?(hook)
-
-        begin
-          if params.nil?
-            send(hook)
-          else
-            send(hook, params)
-          end
-          Rails.logger.debug "Camaleon CMS - Hook \"#{hook_key}\" executed from dependency #{begin
-            plugin['key']
-          rescue StandardError
-            ''
-          end}".cama_log_style(:light_blue)
-        rescue StandardError
-          plugin_load_helpers(plugin)
-          next unless respond_to?(hook, true)
-
-          if params.nil?
-            send(hook)
-          else
-            send(hook, params)
-          end
-        end
-      end
-    end
-
     def hook_skip_list
       state = camaleon_hooks_state
       return state[:hooks_skip] if state[:hooks_skip]
@@ -81,10 +38,6 @@ module CamaleonCms
       # shared view helper stays ivar-free.
       existing_hooks_skip = @_hooks_skip
       state[:hooks_skip] = existing_hooks_skip.is_a?(Array) ? existing_hooks_skip : []
-    end
-
-    def camaleon_hooks_state
-      CurrentRequest.hooks_helper_state ||= {}
     end
 
     def plugin_load_helpers(plugin)

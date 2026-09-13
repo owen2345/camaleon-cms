@@ -23,6 +23,7 @@ what theme/plugin developers should know.
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
 | Sets `cama_post_decorator_class` on a post type (a plugin or theme decorator) | It must name a `CamaleonCms::PostDecorator` subclass; the scan task lists stored values that are now ignored ([details](#cama_post_decorator_class-must-name-a-post-decorator)) |
+| Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
 
 ---
 
@@ -151,6 +152,23 @@ decorate with the default, a warning is logged once per request, and saving the 
 options keeps working. A decorator inheriting from `CamaleonCms::PostDecorator`, as
 camaleon-ecommerce's does, is unaffected. `bundle exec rake camaleon_cms:security:scan_content`
 lists the post types whose stored value is ignored.
+
+### Hook handlers run once per dispatch
+
+A handler registered for a hook now runs exactly once when the hook fires, and an error it raises
+reaches the code that fired the hook; the dispatcher no longer rescues the failure, reloads the
+plugin's helpers and runs the handler again, so a handler that fails after a side effect no longer
+repeats it. The plugin's helper modules are included before its handlers run, so a handler one of
+them defines is called even where the controller or view already has a method of that name.
+
+A handler that none of the plugin's helper modules defines now raises `NoMethodError` when its hook
+fires from a controller, as it always has in views and as it did on controllers through 2.9.2; 2.9.3
+and 2.9.4 skipped it there silently. A hook that gates content, such as `filter_post` or
+`post_can_visit`, therefore fails instead of serving what its missing handler would have held back.
+If a plugin or theme manifest (`config.json`, `camaleon_plugin.json`) names a handler its helpers
+do not define, define the method or remove the entry. camaleon-ecommerce's manifest names an
+undefined `ecommerce_on_upgrade`, so its **Upgrade** button in the plugins list raises until that
+entry goes; the plugin itself keeps working.
 
 ### Uploader behavior changes
 

@@ -80,6 +80,10 @@ Changes that look free from inside this repository and are not:
   one of them open (`cama_external_menu`).
 - **Moving mail to a background job** breaks `camaleon-ecommerce`'s `email_late` PDF path and drops
   its mid-request locale.
+- **Raising for a hook handler nothing defines** on the controller path (#1296), as views always have
+  and controllers did through 2.9.2, breaks `camaleon-ecommerce`'s plugin **Upgrade** action: its
+  manifest maps `on_upgrade` to `ecommerce_on_upgrade`, which no file defines, and 2.9.3 and 2.9.4
+  skipped that silently. The plugin keeps working; only the upgrade action raises.
 - **Renaming gem-side assets** breaks `camaleon_website`'s production precompile.
 - **Host-checking `login_user`'s `redirect_url` and the session flows' `return_to`** (#1258) drops an
   off-site post-login/registration redirect. Surveyed consumers that feed these: `camaleon-ecommerce`
