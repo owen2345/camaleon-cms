@@ -337,4 +337,40 @@ RSpec.describe PluginRoutes do
       expect(described_class.send(:running_db_rake_task?)).to be(false)
     end
   end
+
+  describe '.all_themes' do
+    # Hosts keep the commented theme configs older install generators copied, and json 2 read a repeated
+    # key without complaint. Configs still load that way, without json 2's deprecation warnings and
+    # without the parse errors json 3 raises for both.
+    let(:apps_dir) { Dir.mktmpdir }
+    let(:cache) { described_class.send(:cache) }
+
+    around do |example|
+      cached_themes = cache.delete('all_themes')
+      deprecated = Warning[:deprecated]
+      Warning[:deprecated] = true
+      example.run
+    ensure
+      Warning[:deprecated] = deprecated
+      cache.delete('all_themes')
+      cache['all_themes'] = cached_themes if cached_themes
+      FileUtils.remove_entry(apps_dir)
+    end
+
+    it 'loads a theme config with a comment and a repeated key, without warnings' do
+      FileUtils.mkdir_p(File.join(apps_dir, 'themes/probe/config'))
+      File.write(File.join(apps_dir, 'themes/probe/config/config.json'), <<~JSON)
+        {
+          // a comment an older generator wrote
+          "name": "Old name",
+          "name": "Probe"
+        }
+      JSON
+      allow(described_class).to receive_messages(apps_dir: apps_dir, get_gem_themes: [])
+
+      themes = nil
+      expect { themes = described_class.all_themes }.not_to output(/comment|duplicate key/).to_stderr
+      expect(themes.find { |theme| theme['key'] == 'probe' }).to include('name' => 'Probe')
+    end
+  end
 end
