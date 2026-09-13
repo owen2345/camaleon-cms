@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Bug fix:** `data_options` and `data_metas` are written only by the save they are given to, so a later save of the same record no longer reverts options or metas changed since, and a post type created with `data_metas` stores them at creation instead of on its first update. [#1299](https://github.com/owen2345/camaleon-cms/pull/1299).
+
 - **Bug fix:** camaleon_cms requires json `< 3`, since no released Rails works with json 3, and raises the bundled floors to `cama_contact_form` `~> 0.1.15` and `cama_meta_tag` `>= 1.7.3`. The shipped JSON configs are plain JSON, and config loading keeps accepting comments. Meta and option writes no longer store a key twice or update a row that reads skip. [#1292](https://github.com/owen2345/camaleon-cms/pull/1292).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#pick-up-the-dependency-fix).
 
