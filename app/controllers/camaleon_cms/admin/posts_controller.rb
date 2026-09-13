@@ -119,6 +119,10 @@ module CamaleonCms
           nil
         end
         @post = @post_type.posts.new(post_data)
+        # The request is checked before the create_post hook, so a hook that writes cannot land before a
+        # refusal; the refused form re-renders through `new`, whose authorization is on the post type.
+        return new if refuse_post_save(@post)
+
         r = { post: @post, post_type: @post_type }
         hooks_run('create_post', r)
         @post = r[:post]
@@ -134,12 +138,8 @@ module CamaleonCms
       end
 
       def edit
-        add_breadcrumb I18n.t('camaleon_cms.admin.button.edit')
         authorize! :update, @post
-        @post_form_extra_settings = []
-        r = { post: @post, post_type: @post_type, extra_settings: @post_form_extra_settings, render: 'form' }
-        hooks_run('edit_post', r)
-        render r[:render]
+        render_post_form
       end
 
       def update
@@ -157,6 +157,12 @@ module CamaleonCms
           @post.status = publish_or_pending('published') if post_data[:status].blank?
         end
         authorize! :update, @post
+        # Checked after the request's own authorization and before the update_post hook (see #create).
+        # A refused or failed update re-renders the form on that authorization: it is not re-run against
+        # the post with the submitted attributes assigned, where a right that rests on the stored status
+        # (edit_publish) would fail and send the user to the dashboard instead of showing the refusal.
+        return render_post_form if refuse_post_save(@post, post_data)
+
         r = { post: @post, post_type: @post_type }
         hooks_run('update_post', r)
         @post = r[:post]
@@ -167,7 +173,7 @@ module CamaleonCms
           flash[:notice] = t('camaleon_cms.admin.post.message.updated', post_type: @post_type.decorate.the_title)
           redirect_to action: :edit, id: @post.id
         else
-          edit
+          render_post_form
         end
       end
 
@@ -233,6 +239,29 @@ module CamaleonCms
 
       private
 
+      # The edit form for @post, for `edit` and for a refused or failed update. It carries no
+      # authorization of its own: `edit` authorizes before calling it, and an update was authorized
+      # against the record as stored before the submitted attributes were assigned.
+      def render_post_form
+        add_breadcrumb I18n.t('camaleon_cms.admin.button.edit')
+        @post_form_extra_settings = []
+        r = { post: @post, post_type: @post_type, extra_settings: @post_form_extra_settings, render: 'form' }
+        hooks_run('edit_post', r)
+        render r[:render]
+      end
+
+      # The request's metas, options and status are checked before the save hooks and before any write
+      # (post_params_refusals). With refusals, the submitted values are assigned to the post for the
+      # re-rendered form and the refusals added as its errors; returns true when the save is refused.
+      def refuse_post_save(post, update_attrs = nil)
+        refusals = post_params_refusals
+        return false if refusals.empty?
+
+        post.assign_attributes(update_attrs) if update_attrs
+        refusals.each { |message| post.errors.add(:base, message) }
+        true
+      end
+
       # Persist the post together with its metas, field values and options atomically (audit M10).
       # Before this, the parent was saved and its metas committed before set_field_values ran, so a
       # field value the scan-and-reject gate refused (CustomFieldsRelationship RecordInvalid) left a
@@ -240,17 +269,7 @@ module CamaleonCms
       # Wrapping the whole sequence in one transaction rolls the parent save back with the refused
       # value, and the RecordInvalid propagates to AdminController's rescue_from (flash + redirect
       # back) with nothing persisted. Returns true on success, false on a parent validation failure.
-      #
-      # The request's metas and options are checked first (post_params_refusals): a refused save writes
-      # nothing, and the form re-renders with the submitted values and the refusals as errors.
       def save_post_with_fields(post, update_attrs = nil)
-        refusals = post_params_refusals
-        if refusals.any?
-          post.assign_attributes(update_attrs) if update_attrs
-          refusals.each { |message| post.errors.add(:base, message) }
-          return false
-        end
-
         ActiveRecord::Base.transaction do
           saved = update_attrs ? post.update(update_attrs) : post.save
           raise ActiveRecord::Rollback unless saved
