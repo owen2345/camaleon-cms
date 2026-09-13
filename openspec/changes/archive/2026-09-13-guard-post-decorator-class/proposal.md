@@ -14,13 +14,15 @@ consumer, so every writer, present and future, is covered.
 
 - A post type's `cama_post_decorator_class` option is held to an allowlist for everyone,
   administrators included: a value that does not name a subclass of `CamaleonCms::PostDecorator` is
-  refused at save with an error naming the option and the value, and the stored options are left as
-  they were. A blank value clears it.
+  refused at save with an error naming the option, and the value when it is a class name, and the
+  stored options are left as they were. A blank value clears it, and a write that leaves a stored
+  value unchanged is not refused for it.
 - A post decorates with the named class only when it is such a subclass; otherwise, including a
   stored value written before this change, it decorates with the default decorator and the ignored
-  value is logged. A bad stored value can no longer take every page of the type down.
+  value is logged once per request. A bad stored value can no longer take every page of the type
+  down.
 - `rake camaleon_cms:security:scan_content` also lists post types whose stored decorator option
-  would be refused today.
+  would be refused today, and post types whose options cannot be read.
 - The admin panel surfaces the refusal of an option written by a post type save hook as a flash
   error instead of a server error.
 
@@ -29,7 +31,7 @@ consumer, so every writer, present and future, is covered.
 ### New Capabilities
 
 - `post-decorator-class-integrity`: what a post type's decorator class option may name, how a
-  refusal surfaces, how a post resolves its decorator, and how stored values that predate the check
+  refusal surfaces, how a post resolves its decorator, and how stored values the check would refuse
   are reported.
 
 ### Modified Capabilities
@@ -45,7 +47,8 @@ that writes the option, names a `CamaleonCms::PostDecorator` subclass and keeps 
 - Code: `app/models/camaleon_cms/post_type.rb` (the check and the decorator resolution),
   `app/models/camaleon_cms/post.rb` (`decorator_class` delegates to the post type),
   `app/controllers/camaleon_cms/admin_controller.rb` (the refusal as a flash error),
-  `lib/tasks/unsafe_stored_content.rake` (the report).
+  `lib/tasks/unsafe_stored_content.rake` (the report), `app/models/current_request.rb` (the warnings
+  logged in a request), `config/locales/camaleon_cms/admin/en.yml` (the refusal text).
 - Specs: a request reproduction under `spec/requests/security/`, a model spec for the option, and
   the scan task spec.
 - Docs: `docs/security/permissions.md`, `docs/upgrading-to-2.9.5.md`, `CHANGELOG.md`.

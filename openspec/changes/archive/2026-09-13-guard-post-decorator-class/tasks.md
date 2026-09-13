@@ -26,3 +26,16 @@
 - [x] 5.1 `bin/rspec`, `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` all pass (verify: exit codes)
 - [x] 5.2 Run `/opsx:verify` and address its findings
 - [x] 5.3 Run `/opsx:archive` on the branch and commit the archive in the PR (verify: `openspec/specs/post-decorator-class-integrity/spec.md` exists, change moved under `openspec/changes/archive/`)
+
+## 6. Review fixes (each spec fails before its fix)
+
+- [x] 6.1 `PostType.decorator_class_for` answers no class for a name that cannot be loaded and the default decorator for a blank value (verify: model and scan specs for `ENV::X`, a decorator that fails to load and a blank option)
+- [x] 6.2 The check refuses a value only when it differs from the stored one (verify: model specs for a stored refused value; the request spec saving such a post type)
+- [x] 6.3 The check reads the option from the options as `set_meta` stores them (verify: model specs for parameters, JSON and both key forms)
+- [x] 6.4 The refusal quotes the value only when it is a class name, cut short, from an en.yml key (verify: request specs for markup and an overlong name)
+- [x] 6.5 A decorator option in `data_options` is checked as a validation (verify: model specs for `update`, `update!` and `create` inside a transaction)
+- [x] 6.6 The ignored-value warning is logged once per request and quotes the value with `inspect`, and `Post#decorator_class` logs a failed lookup (verify: model and request specs)
+- [x] 6.7 `scan_content` preloads metas and lists a post type whose options cannot be read without ending (verify: scan spec)
+- [x] 6.8 A refusal also resets a loaded metas association (verify: model spec keeping earlier writes)
+- [x] 6.9 `docs/security/permissions.md`, `docs/upgrading-to-2.9.5.md` and the changelog entry match the behavior (verify: entry under 500 characters)
+- [x] 6.10 `bin/rspec`, `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` all pass (verify: exit codes)
