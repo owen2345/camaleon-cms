@@ -52,8 +52,9 @@ ancestry on a class name read from the database.
    and tax every meta write.
 2. **The refusal adds an error on the post type and raises `ActiveRecord::RecordInvalid`.** In the
    admin panel that reaches the existing rescue, extended to `PostType` records, which flashes the
-   message and redirects back; in code (the console, a plugin's install hook) the raise names the
-   option. A value passed in `data_options` is written by the save callbacks after the INSERT, where
+   message and redirects back for a submitted save; a refusal that comes while serving a GET or HEAD
+   request is raised again instead, since a redirect would only reach another page that refuses. In
+   code (the console, a plugin's install hook) the raise names the option. A value passed in `data_options` is written by the save callbacks after the INSERT, where
    ActiveRecord's `save` would turn the raise into `false` and an enclosing transaction would keep the
    row, so the same check also runs as a validation: the save is refused before anything is written,
    and `create!` and `update!` raise. The error quotes the value only when it is a class name, cut to

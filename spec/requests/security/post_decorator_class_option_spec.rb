@@ -86,6 +86,19 @@ RSpec.describe 'the post decorator class option written by a post type save hook
     expect(flash[:error].length).to be < 400
   end
 
+  # A refusal raised while serving a page is no save the user submitted: redirecting would land on a
+  # page that refuses again, round and round, so it is raised, as before the check existed.
+  it 'raises a refusal that comes while serving a page instead of redirecting' do
+    PluginRoutes.add_anonymous_hook('admin_before_load', lambda { |_args|
+      CamaleonCms::PostType.find(post_type.id).set_option(option, 'Object')
+    }, 'decorator-before-load')
+    sign_in_as(create(:user_admin, site: @site), site: @site)
+
+    expect { get '/admin/dashboard' }.to raise_error(ActiveRecord::RecordInvalid, /cama_post_decorator_class/)
+  ensure
+    PluginRoutes.remove_anonymous_hook('admin_before_load', 'decorator-before-load')
+  end
+
   # A value stored without passing the check (before it existed, or a removed plugin's decorator) is
   # ignored at read; it is no reason to refuse the next save of the post type's settings.
   it 'saves a post type whose stored decorator option the check would refuse' do

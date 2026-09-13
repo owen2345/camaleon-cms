@@ -80,7 +80,9 @@ options are passed in. A write that leaves a stored value unchanged SHALL NOT be
 When a hook run after an admin post type save writes a value the check refuses, the admin panel
 SHALL answer with a redirect carrying the refusal as a flash error rather than a server error. The
 post type's own attributes, saved before the hook ran, remain saved. The flash SHALL quote the value
-only when it is a class name, cut short, and SHALL NOT echo any other value.
+only when it is a class name, cut short, and SHALL NOT echo any other value. A refusal that comes
+while the admin panel serves a GET or HEAD request is no submitted save and SHALL be raised, not
+redirected.
 
 #### Scenario: A hook stores a rejected value
 
@@ -100,6 +102,13 @@ only when it is a class name, cut short, and SHALL NOT echo any other value.
 
 - **WHEN** an administrator saves the settings of such a post type
 - **THEN** the save SHALL succeed and the stored value SHALL remain
+
+#### Scenario: A refusal while serving a page
+
+- **WHEN** a value the check refuses is written while the admin panel serves a GET or HEAD request,
+  such as by a hook run before every admin page
+- **THEN** the refusal SHALL be raised rather than redirected, so no page redirects to another that
+  refuses again
 
 ### Requirement: A post resolves its decorator safely
 

@@ -38,4 +38,5 @@
 - [x] 6.7 `scan_content` preloads metas and lists a post type whose options cannot be read without ending (verify: scan spec)
 - [x] 6.8 A refusal also resets a loaded metas association (verify: model spec keeping earlier writes)
 - [x] 6.9 `docs/security/permissions.md`, `docs/upgrading-to-2.9.5.md` and the changelog entry match the behavior (verify: entry under 500 characters)
-- [x] 6.10 `bin/rspec`, `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` all pass (verify: exit codes)
+- [x] 6.10 A refusal that comes while the admin panel serves a GET or HEAD request is raised, not redirected (verify: request spec for an `admin_before_load` hook)
+- [x] 6.11 `bin/rspec`, `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)` all pass (verify: exit codes)
