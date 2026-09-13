@@ -29,6 +29,10 @@ module CamaleonCms
             @post_draft = @post_type.posts.new(@post_data)
             @post_draft.user_id = cama_current_user.id
           end
+          # A draft save is held to the same meta and option rules as the post save (see PostsController).
+          refusals = post_params_refusals
+          return render(json: { error: refusals }) if refusals.any?
+
           r = { post: @post_draft, post_type: @post_type }
           hooks_run('create_post_draft', r)
           if @post_draft.save(validate: false)
@@ -50,6 +54,9 @@ module CamaleonCms
         def update
           @post_draft = @post_type.posts.drafts.where(user_id: cama_current_user.id).find(params[:id])
           authorize! :update, @post_draft.parent || @post_draft
+          refusals = post_params_refusals
+          return render(json: { error: refusals }) if refusals.any?
+
           @post_draft.attributes = @post_data
           r = { post: @post_draft, post_type: @post_type }
           hooks_run('update_post_draft', r)

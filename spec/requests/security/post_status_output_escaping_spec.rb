@@ -94,23 +94,16 @@ RSpec.describe 'Security: post status output escaping', type: :request do
     end
   end
 
-  # `set_options` iterates the submitted hash with no key allow-list, so `options[:status_default]`
-  # is attacker-settable, and `restore` writes it back with `update_column` -- skipping validations
-  # and callbacks. `trash` stamps `status_default` with the status it is replacing, so the payload
-  # has to be planted after trashing; `restore` then hands it straight to the column. This is why a
-  # model `inclusion:` validation on `status` would not have closed the hole.
-  describe 'the options[:status_default] -> trash -> update -> restore path' do
+  # `restore` used to write a post's stored `status_default` straight into the column with
+  # `update_column`, skipping validations and callbacks, and the post save stored a submitted
+  # `options[status_default]`. The save now refuses that key and `restore` returns only a canonical
+  # status (see post_restore_status_spec.rb), but a non-canonical status already in the column --
+  # planted here with `update_column` -- must still render inert in the listing.
+  describe 'a non-canonical status already in the column' do
     before { sign_in_as(admin, site: current_site) }
 
-    it 'writes the payload into the column and still renders it inert' do
-      patch "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}/trash"
-      patch "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}", params: {
-        post: { title: poisoned_post.title, slug: poisoned_post.slug, status: 'trash' },
-        options: { status_default: payload }
-      }
-      patch "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}/restore"
-
-      expect(poisoned_post.reload.status).to eq(payload)
+    it 'renders it inert in the admin listing' do
+      poison_status!
 
       get "/admin/post_type/#{post_type.id}/posts", params: { s: 'all' }
 
