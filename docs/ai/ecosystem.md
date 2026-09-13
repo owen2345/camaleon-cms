@@ -138,6 +138,17 @@ Changes that look free from inside this repository and are not:
   `cama_permitted_field_options` allow-list core uses, so freshly generated plugins no longer ship
   the pre-M8 unfiltered save.
 
+- **Applying `get_meta`'s default per call** is invisible to the surveyed consumers but one. A read of a
+  meta with no value (no row, or a stored `''`) used to return the default the instance's first read
+  passed, with any in-place changes a caller made to it; each read now gets its own default, as on a
+  freshly loaded record, and `set_meta(key, '')` reads as the default on the writing instance too. The
+  consumers that change a returned default in place keep it in a variable and write it back with
+  `set_meta`: `camaleon_website`'s store plugin (`scores`, `downloads`) and notification plugin
+  (`sites`), and `camaleon-ecommerce`'s shipping prices (`@prices`). The exception is
+  `camaleon-ecommerce`'s `LegacyOrder#payment_method` (`get_meta("payment")[:payment_id]`): on an order
+  without a `payment` meta it raised unless `shipping_method` had read the meta with `{}` first, and it
+  now raises either way, as on a freshly loaded order.
+
 ## APIs with no surveyed consumer
 
 Safe to change on the engine's own merits, citing this file: `update_or_create` / `update_or_create!`

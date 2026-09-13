@@ -22,6 +22,7 @@ what theme/plugin developers should know.
 | Hit `NameError: undefined local variable or method custom_field_groups` deleting a site or taxonomy row | Nothing — retry the delete after upgrading ([details](#deleting-legacy-taxonomy-rows-no-longer-crashes)) |
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
+| Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta` | Write the change with `set_meta` ([details](#get_meta-returns-each-calls-own-default)) |
 
 ---
 
@@ -131,6 +132,18 @@ choice made before this release was never stored: reopen the field group and pic
 ---
 
 ## Notes for theme & plugin developers
+
+### `get_meta` returns each call's own default
+
+A read of a meta with no value — no row, or a stored empty string — returns the default passed to that
+call. Before, a record memoized the default of its first read of that meta, so later reads on the same
+instance got that default, with any in-place changes a caller made to it, while a freshly loaded record
+returned their own.
+
+- A later read of the same instance does not see a default you changed in place: write the change with
+  `set_meta`, as the option writers already do.
+- `set_meta(key, '')` reads back as the caller's default on the writing instance, as it already did after
+  a reload.
 
 ### `public_media` / `private_media` / `is_public` now mean what they say
 
