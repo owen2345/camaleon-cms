@@ -60,7 +60,8 @@ module CamaleonCms
         res = ''
         if option.present?
           value = begin
-            JSON.parse(option.value)
+            # a key an older write stored twice keeps its last value, as json 2 read it
+            JSON.parse(option.value, allow_duplicate_key: true)
           rescue StandardError
             option.value
           end

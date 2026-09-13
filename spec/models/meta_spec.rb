@@ -80,4 +80,26 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(post_type.get_meta('probe_settings')).to equal(settings)
     end
   end
+
+  describe 'a stored meta that repeats a key' do
+    # Older writes stored a key twice (json 2 allowed it). A read keeps the last value, as json 2 did,
+    # instead of warning under json 2 and failing to parse under json 3.
+    around do |example|
+      deprecated = Warning[:deprecated]
+      Warning[:deprecated] = true
+      example.run
+    ensure
+      Warning[:deprecated] = deprecated
+    end
+
+    it 'reads the last value of the repeated key without a warning' do
+      post_type = create(:post_type)
+      post_type.metas.find_by!(key: '_default').update!(value: '{"has_category":false,"has_category":true}')
+      stored = CamaleonCms::PostType.find(post_type.id)
+
+      has_category = nil
+      expect { has_category = stored.get_option(:has_category) }.not_to output(/duplicate key/).to_stderr
+      expect(has_category).to be(true)
+    end
+  end
 end
