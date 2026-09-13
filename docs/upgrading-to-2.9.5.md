@@ -28,6 +28,7 @@ what theme/plugin developers should know.
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
+| Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta` | Write the change with `set_meta` ([details](#get_meta-returns-each-calls-own-default)) |
 
 ---
 
@@ -321,6 +322,18 @@ always did.
   hash on each read instead of `nil` or `''`, `get_option` and the option writers no longer raise, and a
   change made to that empty hash without an option writer is neither read back nor stored. Code that
   branched on `options.nil?` should branch on `.empty?`.
+
+### `get_meta` returns each call's own default
+
+A read of a meta with no value — no row, or a stored empty string — returns the default passed to that
+call. Before, a record memoized the default of its first read of that meta, so later reads on the same
+instance got that default, with any in-place changes a caller made to it, while a freshly loaded record
+returned their own.
+
+- A later read of the same instance does not see a default you changed in place: write the change with
+  `set_meta`, as the option writers already do.
+- `set_meta(key, '')` reads back as the caller's default on the writing instance, as it already did after
+  a reload.
 
 ---
 
