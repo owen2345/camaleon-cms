@@ -94,8 +94,16 @@ module CamaleonCms
     end
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
+    # A String key and its Symbol twin read the same option, as in a reloaded record's parsed options: a plain
+    # Hash a caller passed to set_meta reads through an indifferent copy, leaving the caller's hash as passed,
+    # and nil or '' reads as no options, as a record with no stored options does. Anything else, request
+    # parameters included, is returned as it is.
     def options(meta_key = '_default')
-      get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
+      data = get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
+      return ActiveSupport::HashWithIndifferentAccess.new if data.nil? || data == ''
+      return data.with_indifferent_access if data.is_a?(Hash) && !data.is_a?(ActiveSupport::HashWithIndifferentAccess)
+
+      data
     end
     alias cama_options options
 
@@ -182,8 +190,9 @@ module CamaleonCms
 
     private
 
-    # the options hash the option writers update: indifferent, as a stored one is parsed, so a String
-    # key replaces its Symbol twin instead of being stored beside it
+    # the options hash the option writers update in place: the indifferent hash options returns, so a String
+    # key replaces its Symbol twin instead of being stored beside it. A value options returns as it is (request
+    # parameters, stored options that are not a hash) raises here instead of being written into
     def writable_options(meta_key)
       data = cama_options(meta_key)
       data.is_a?(ActiveSupport::HashWithIndifferentAccess) ? data : data.with_indifferent_access

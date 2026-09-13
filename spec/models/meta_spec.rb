@@ -88,6 +88,57 @@ RSpec.describe CamaleonCms::Meta, type: :model do
 
       expect(post_type.get_meta('probe_settings')).to equal(settings)
     end
+
+    # set_meta keeps a caller's plain Hash as passed, keys and all; options and get_option read it by
+    # either key type, as a reloaded record reads the options it parses.
+    it 'reads options a caller passed to set_meta as a plain Hash by either key type' do
+      passed = { 'color' => 'red', size: 'xl' }
+      post_type = create(:post_type)
+      post_type.set_meta('_default', passed)
+
+      expect([post_type.options[:color], post_type.options['size']]).to eq(%w[red xl])
+      expect([post_type.get_option(:color), post_type.get_option('size')]).to eq(%w[red xl])
+      expect(post_type.get_meta('_default')).to equal(passed)
+      expect(passed.keys).to eq(['color', :size])
+      reloaded = CamaleonCms::PostType.find(post_type.id)
+      expect([reloaded.options[:color], reloaded.get_option('size')]).to eq(%w[red xl])
+    end
+
+    # camaleon-ecommerce passes its params[:options] to set_meta('_default', ...) and reads them back with
+    # get_option.
+    it 'reads options a caller passed to set_meta as request parameters by either key type' do
+      post_type = create(:post_type)
+      post_type.set_meta('_default', ActionController::Parameters.new('color' => 'red'))
+
+      expect([post_type.options[:color], post_type.options['color']]).to eq(%w[red red])
+      expect([post_type.get_option(:color), post_type.get_option('color')]).to eq(%w[red red])
+    end
+
+    # get_meta caches the default of a first read of a missing meta, so reading a record's options with
+    # get_meta and no default leaves them nil on that instance. They read as none and take a write.
+    it 'reads and writes the nil options a get_meta read without a default left' do
+      post = create(:post)
+      expect(post.get_meta('_default')).to be_nil
+
+      expect(post.options).to eq({})
+      expect(post.get_option(:color, 'none')).to eq('none')
+      post.set_option('color', 'red')
+      expect(post.get_option(:color)).to eq('red')
+      expect(CamaleonCms::Post.find(post.id).get_option(:color)).to eq('red')
+    end
+
+    [nil, ''].each do |passed|
+      it "reads and writes options set_meta wrote as #{passed.inspect} as none" do
+        post = create(:post)
+        post.set_meta('_default', passed)
+        reloaded = CamaleonCms::Post.find(post.id)
+
+        expect([post.options, reloaded.options]).to all(eq({}))
+        expect([post.get_option(:color, 'none'), reloaded.get_option(:color, 'none')]).to eq(%w[none none])
+        reloaded.set_option('color', 'red')
+        expect(CamaleonCms::Post.find(post.id).get_option(:color)).to eq('red')
+      end
+    end
   end
 
   describe 'a stored meta that repeats a key' do
