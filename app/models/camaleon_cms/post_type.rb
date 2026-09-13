@@ -29,6 +29,8 @@ module CamaleonCms
                  if: proc { |obj| obj.destroyed_by_association.blank? && obj.saved_change_to_attribute?(:slug) }
     before_update :default_category
 
+    validate :refuse_unknown_decorator_class_in_data_options
+
     # check if current post type manage categories
     def manage_categories?
       options[:has_category] || options[:has_single_category]
@@ -227,11 +229,26 @@ module CamaleonCms
     # record reading what is stored.
     def reject_unknown_decorator_class!(key, options)
       value = decorator_class_option_in(options)
-      return if self.class.decorator_class_for(value) || value.to_s == stored_decorator_class_option.to_s
+      return if decorator_class_option_acceptable?(value)
 
       cama_remove_cache("meta_#{key}")
       errors.add(:base, decorator_class_refusal_message(value))
       raise ActiveRecord::RecordInvalid, self
+    end
+
+    # A decorator option passed in data_options is written by the save callbacks, after the INSERT, where
+    # ActiveRecord's save would turn the refusal into false and an enclosing transaction would keep the
+    # row; checked as a validation, the save is refused before anything is written.
+    def refuse_unknown_decorator_class_in_data_options
+      return if data_options.blank?
+
+      value = decorator_class_option_in(data_options)
+      errors.add(:base, decorator_class_refusal_message(value)) unless decorator_class_option_acceptable?(value)
+    end
+
+    # Blank, a post decorator, or the value already stored.
+    def decorator_class_option_acceptable?(value)
+      self.class.decorator_class_for(value) || value.to_s == stored_decorator_class_option.to_s
     end
 
     # The refusal names the option, and the value when it is a class name, cut short so the flash

@@ -140,6 +140,41 @@ RSpec.describe CamaleonCms::PostType, type: :model do
     end
   end
 
+  describe 'a decorator option passed to a save' do
+    it 'fails the update before anything is written' do
+      record = stored_post_type
+
+      expect(record.update(name: 'Renamed probe', data_options: { option => 'Object' })).to be(false)
+      expect(record.errors[:base].first).to include(option).and include('Object')
+      expect(stored_post_type.name).not_to eq('Renamed probe')
+      expect(stored_post_type.get_option(option)).to be_nil
+    end
+
+    it 'raises from update! as any invalid record does' do
+      expect { stored_post_type.update!(data_options: { option => 'Object' }) }
+        .to raise_error(ActiveRecord::RecordInvalid, /cama_post_decorator_class/)
+    end
+
+    it 'creates no post type, even inside an enclosing transaction' do
+      site = post_type.site
+      created = nil
+      ActiveRecord::Base.transaction do
+        created = site.post_types.create(name: 'Probe decorator', slug: 'probe-decorator-type',
+                                         data_options: { option => 'Object' })
+      end
+
+      expect(created).not_to be_persisted
+      expect(created.errors[:base].first).to include(option)
+      expect(site.post_types.where(slug: 'probe-decorator-type')).not_to exist
+    end
+
+    it 'accepts a post decorator' do
+      expect(stored_post_type.update(data_options: { option => 'ProbePostDecorator' })).to be(true)
+
+      expect(stored_post_type.get_option(option)).to eq('ProbePostDecorator')
+    end
+  end
+
   describe '#post_decorator_class' do
     it 'ignores a stored value that is not a post decorator, warns, and leaves it stored' do
       store_decorator_option('Object')
