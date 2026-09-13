@@ -96,6 +96,19 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
     _key = "cama_cache_#{self.class.name}_#{id}_#{key}"
   end
 
+  # A copy starts with its own empty cache: copies are new records, and sharing the original's would let
+  # them read each other's values under their common nil-id keys
+  def initialize_dup(other)
+    @cama_cache_vars = nil
+    super
+  end
+
+  # the cached values were read from the state reload replaces
+  def reload(*)
+    @cama_cache_vars = nil
+    super
+  end
+
   # Return the current user for this thread/request context.
   # Uses ActiveSupport::CurrentAttributes (CurrentRequest.user)
   def current_user
