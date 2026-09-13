@@ -174,6 +174,10 @@ module CamaleonCms
     # listed by `rake camaleon_cms:security:scan_content`.
     DECORATOR_CLASS_OPTION = 'cama_post_decorator_class'.freeze
 
+    # A class name, which holds nothing but word characters and "::", so a refusal can quote it back.
+    DECORATOR_CLASS_NAME_FORMAT = /\A(?:::)?[A-Z]\w*(?:::[A-Z]\w*)*\z/
+    private_constant :DECORATOR_CLASS_NAME_FORMAT
+
     # The decorator class the option names: CamaleonCms::PostDecorator for a blank option, the named
     # class when it is a CamaleonCms::PostDecorator subclass, else nil, also for a name that cannot be
     # loaded: safe_constantize still raises for a path through a constant that is not a module ('ENV::X')
@@ -226,9 +230,19 @@ module CamaleonCms
       return if self.class.decorator_class_for(value) || value.to_s == stored_decorator_class_option.to_s
 
       cama_remove_cache("meta_#{key}")
-      errors.add(:base, "#{DECORATOR_CLASS_OPTION} must name a subclass of CamaleonCms::PostDecorator, " \
-                        "got '#{value}'")
+      errors.add(:base, decorator_class_refusal_message(value))
       raise ActiveRecord::RecordInvalid, self
+    end
+
+    # The refusal names the option, and the value when it is a class name, cut short so the flash
+    # carrying it fits the session cookie; the admin panel renders that flash raw, so any other value is
+    # described, never echoed. Only en.yml carries the keys, so fall back to English.
+    def decorator_class_refusal_message(value)
+      name = value.to_s
+      suffix = name.match?(DECORATOR_CLASS_NAME_FORMAT) ? '' : '_not_a_class_name'
+      full_key = "camaleon_cms.admin.post_type.message.decorator_class_refused#{suffix}"
+      args = { option: DECORATOR_CLASS_OPTION, value: name.truncate(100) }
+      I18n.t(full_key, **args, default: I18n.t(full_key, **args, locale: :en))
     end
 
     # The decorator option of `options` as get_meta will read it back once set_meta stores them, whatever

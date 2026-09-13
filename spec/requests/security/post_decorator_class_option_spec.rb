@@ -60,6 +60,32 @@ RSpec.describe 'the post decorator class option written by a post type save hook
     expect_refused('Object')
   end
 
+  # The admin flash is rendered raw, so the refusal quotes a value only when it is a class name, and
+  # never at a length the session cookie cannot hold.
+  it 'does not echo a refused value that is not a class name' do
+    payload = '<img src=x onerror=alert(1)>'
+    hook_storing_decorator(payload)
+    sign_in_as(create(:user_admin, site: @site), site: @site)
+
+    save_post_type
+
+    expect(flash[:error]).to include(option)
+    expect(flash[:error]).not_to include('<img')
+    follow_redirect!
+    expect(response.body).not_to include(payload)
+  end
+
+  it 'answers an overlong refused class name with the flash refusal' do
+    hook_storing_decorator("Probe#{'x' * 5000}")
+    sign_in_as(create(:user_admin, site: @site), site: @site)
+
+    save_post_type
+
+    expect(response).to have_http_status(:found)
+    expect(flash[:error]).to include(option)
+    expect(flash[:error].length).to be < 400
+  end
+
   # A value stored without passing the check (before it existed, or a removed plugin's decorator) is
   # ignored at read; it is no reason to refuse the next save of the post type's settings.
   it 'saves a post type whose stored decorator option the check would refuse' do
