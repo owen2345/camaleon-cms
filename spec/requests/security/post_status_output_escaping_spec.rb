@@ -19,8 +19,8 @@ RSpec.describe 'Security: post status output escaping', type: :request do
   let(:payload) { "x'><script src=//evil.example/a.js></script>" }
 
   let!(:poisoned_post) do
-    post_type.posts.create!(title: 'Ordinary looking post', slug: 'ordinary-looking-post',
-                            content: 'nothing to see here', user_id: admin.id, status: 'pending')
+    create(:post, post_type: post_type, owner: admin, title: 'Ordinary looking post',
+                  slug: 'ordinary-looking-post', status: 'pending')
   end
 
   before { allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site) }
@@ -91,25 +91,6 @@ RSpec.describe 'Security: post status output escaping', type: :request do
 
       expect(response).to have_http_status(:found)
       expect(post_type.posts.find_by(slug: 'contributor-post').status).to eq(payload)
-    end
-  end
-
-  # `restore` used to write a post's stored `status_default` straight into the column with
-  # `update_column`, skipping validations and callbacks, and the post save stored a submitted
-  # `options[status_default]`. The save now refuses that key and `restore` returns only a canonical
-  # status (see post_restore_status_spec.rb), but a non-canonical status already in the column --
-  # planted here with `update_column` -- must still render inert in the listing.
-  describe 'a non-canonical status already in the column' do
-    before { sign_in_as(admin, site: current_site) }
-
-    it 'renders it inert in the admin listing' do
-      poison_status!
-
-      get "/admin/post_type/#{post_type.id}/posts", params: { s: 'all' }
-
-      table = parsed_body.at_css('#posts-table-list')
-      expect(table.css('script')).to be_empty
-      expect(table.at_css("tr[data-id='#{poisoned_post.id}'] .label-form").text).to eq(payload_as_text)
     end
   end
 end

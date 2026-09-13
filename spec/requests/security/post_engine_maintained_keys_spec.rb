@@ -14,8 +14,8 @@ RSpec.describe 'Security: engine-maintained post metas and options', type: :requ
   let(:editor) { create(:user, role: 'editor', site: current_site) }
   let(:contributor) { create(:user, role: 'contributor', site: current_site) }
   let!(:published_post) do
-    post_type.posts.create!(title: 'Published post', slug: 'published-post', content: 'body',
-                            user_id: admin.id, status: 'published')
+    create(:post, post_type: post_type, owner: admin, title: 'Published post', slug: 'published-post',
+                  status: 'published')
   end
 
   before do

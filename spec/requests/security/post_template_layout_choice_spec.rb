@@ -15,8 +15,8 @@ RSpec.describe 'Security: post template and layout choices', type: :request do
   let(:contributor) { create(:user, role: 'contributor', site: current_site) }
   let(:admin_view) { 'camaleon_cms/admin/settings/site' }
   let!(:published_post) do
-    post_type.posts.create!(title: 'Published post', slug: 'published-post', content: 'body',
-                            user_id: admin.id, status: 'published')
+    create(:post, post_type: post_type, owner: admin, title: 'Published post', slug: 'published-post',
+                  status: 'published')
   end
 
   before do
@@ -101,11 +101,8 @@ RSpec.describe 'Security: post template and layout choices', type: :request do
     end
   end
 
-  describe 'a contributor with the post type templates switched off' do
-    before do
-      post_type.set_option('has_template', false)
-      sign_in_as(contributor, site: current_site)
-    end
+  describe 'a contributor' do
+    before { sign_in_as(contributor, site: current_site) }
 
     it 'cannot set a default template the editor does not offer' do
       post "/admin/post_type/#{post_type.id}/posts",
@@ -114,6 +111,16 @@ RSpec.describe 'Security: post template and layout choices', type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(refusal('options[default_template]'))
+      expect(post_type.posts.find_by(slug: 'contributor-post')).to be_nil
+    end
+
+    it 'cannot set a default layout the editor does not offer' do
+      post "/admin/post_type/#{post_type.id}/posts",
+           params: { post: { title: 'Contributor post', slug: 'contributor-post', content: 'body' },
+                     options: { default_layout: 'camaleon_cms/admin' } }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(refusal('options[default_layout]'))
       expect(post_type.posts.find_by(slug: 'contributor-post')).to be_nil
     end
   end
