@@ -60,6 +60,16 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(post.get_option(:has_picture)).to be(false)
     end
 
+    it 'stores a hash meta with one entry per key however each key was written' do
+      post_type = create(:post_type)
+      post_type.set_meta('probe_settings', { sec: 20 }.merge('sec' => 30))
+      post_type.set_meta('probe_rows', [{ sec: 20 }.merge('sec' => 30)])
+
+      expect(post_type.metas.find_by!(key: 'probe_settings').value.scan('"sec"').size).to eq(1)
+      expect(post_type.metas.find_by!(key: 'probe_rows').value.scan('"sec"').size).to eq(1)
+      expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe_settings')).to eq('sec' => 30)
+    end
+
     # Plugins read back the hash they passed to set_meta on the same instance: their own object, with
     # their own keys, until the record is loaded again.
     it 'keeps the hash a caller passed to set_meta' do

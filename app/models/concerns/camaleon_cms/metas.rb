@@ -11,6 +11,21 @@ module CamaleonCms
       before_update :fix_save_metas_options_no_changed
     end
 
+    # JSON for a Hash or Array value, with one entry per key however each key was written: a String key
+    # replaces its Symbol twin, at any depth (json 3 refuses to generate both, json 2 stored both)
+    def self.generate_json(value)
+      JSON.generate(indifferent_json_value(value))
+    end
+
+    def self.indifferent_json_value(value)
+      case value
+      when Hash then value.with_indifferent_access
+      when Array then value.map { |item| indifferent_json_value(item) }
+      else value
+      end
+    end
+    private_class_method :indifferent_json_value
+
     # Add meta with value or Update meta with key: key
     # return true or false
     def set_meta(key, value)
@@ -166,7 +181,7 @@ module CamaleonCms
       changed_value = if value.is_a?(ActionController::Parameters)
                         value.to_json
                       elsif value.is_a?(Array) || value.is_a?(Hash)
-                        JSON.generate(value)
+                        CamaleonCms::Metas.generate_json(value)
                       else
                         value
                       end

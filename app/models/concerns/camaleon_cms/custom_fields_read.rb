@@ -360,7 +360,7 @@ module CamaleonCms
 
     def fix_meta_value(value)
       return value.to_json if value.is_a?(ActionController::Parameters)
-      return JSON.generate(value) if value.is_a?(Array) || value.is_a?(Hash)
+      return CamaleonCms::Metas.generate_json(value) if value.is_a?(Array) || value.is_a?(Hash)
 
       value
     end
