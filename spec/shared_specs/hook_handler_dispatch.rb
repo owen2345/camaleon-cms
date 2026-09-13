@@ -21,13 +21,13 @@ RSpec.shared_examples 'a hook handler dispatcher' do |dispatcher|
   end
   let(:host) { host_class.new }
   let(:args) { {} }
+  let(:helper_module) { Module.new }
   let(:plugin) { { 'key' => 'probe', 'helpers' => ['ProbeHookHelper'], 'hooks' => { 'probe_hook' => handlers } } }
 
   before { stub_const('ProbeHookHelper', helper_module) }
 
   context 'with a handler that fails after a side effect' do
     let(:handlers) { ['failing_handler'] }
-    let(:helper_module) { Module.new }
 
     it 'runs it once and lets the failure reach the caller' do
       expect { host.hook_run(plugin, 'probe_hook', args) }.to raise_error('handler failed')
@@ -54,7 +54,6 @@ RSpec.shared_examples 'a hook handler dispatcher' do |dispatcher|
 
   context 'with a handler no helper defines' do
     let(:handlers) { %w[missing_handler other_handler] }
-    let(:helper_module) { Module.new }
 
     it 'skips it with a warning and runs the next handler' do
       allow(Rails.logger).to receive(:warn)
