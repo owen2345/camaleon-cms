@@ -22,6 +22,7 @@ what theme/plugin developers should know.
 | Hit `NameError: undefined local variable or method custom_field_groups` deleting a site or taxonomy row | Nothing — retry the delete after upgrading ([details](#deleting-legacy-taxonomy-rows-no-longer-crashes)) |
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
+| Sets `$current_site` in an initializer or other server code | Remove it and map your domains to your sites ([details](#resolving-the-site-on-a-server)) |
 
 ---
 
@@ -127,6 +128,21 @@ Separately, the per-kind field options in the custom-fields settings — colorpi
 Format**, the date field's date-vs-datetime toggle, image **versions**, file **formats**, and the
 posts field's post-type filter — were silently discarded on every save. They persist now, but any
 choice made before this release was never stored: reopen the field group and pick them again.
+
+---
+
+## Resolving the site on a server
+
+When no site matched a request, earlier releases logged advice to set
+`$current_site = CamaleonCms::Site.first.decorate`. A server that follows it serves every request of a
+process from that one site record, and a record keeps the options and metas it has read in memory. The
+process then never sees site settings saved by another worker, a console or a job, it keeps serving
+cached pages that other workers' `front_cache` invalidations retired, and its threads update one shared
+options hash. The log now points to domain mapping instead.
+
+**Action:** if your app sets `$current_site` in an initializer or other server code, remove it and map
+your domains to your sites ([how](https://camaleon.website/documentation/category/139779-examples/how.html)).
+Consoles, scripts and rake tasks can keep setting it.
 
 ---
 
