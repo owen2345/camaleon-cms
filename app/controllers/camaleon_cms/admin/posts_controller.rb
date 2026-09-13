@@ -367,8 +367,7 @@ module CamaleonCms
       end
 
       def cama_post_message(key, **vars)
-        full_key = "camaleon_cms.admin.post.message.#{key}"
-        I18n.t(full_key, **vars, default: I18n.t(full_key, locale: :en, **vars))
+        cama_t("camaleon_cms.admin.post.message.#{key}", vars)
       end
 
       # define post type parent
