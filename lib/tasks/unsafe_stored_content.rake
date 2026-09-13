@@ -38,16 +38,22 @@ namespace :camaleon_cms do
       end
 
       # A post type's decorator class option is loaded as code and held to CamaleonCms::PostDecorator
-      # subclasses at save (PostType#set_meta); a value stored before that check is ignored at render
-      # and listed here, through the same resolver the check uses.
+      # subclasses at save (PostType#set_meta); a stored value that names no loadable post decorator
+      # (written before that check, left by a removed plugin, imported) is ignored at render and listed
+      # here, through the same resolver the check uses. A post type whose options cannot be read is
+      # listed too, so one bad row does not end the scan.
       option = CamaleonCms::PostType::DECORATOR_CLASS_OPTION
       CamaleonCms::PostType.unscoped.find_each do |post_type|
         value = post_type.get_option(option)
         next if CamaleonCms::PostType.decorator_class_for(value)
 
         flagged += 1
-        report.call "✗ Post type id=#{post_type.id} '#{post_type.slug}': #{option} '#{value}' names no " \
-                    'CamaleonCms::PostDecorator subclass and is ignored'
+        report.call "✗ Post type id=#{post_type.id} '#{post_type.slug}': #{option} '#{value}' is not a " \
+                    'loadable CamaleonCms::PostDecorator subclass and is ignored'
+      rescue StandardError => e
+        flagged += 1
+        report.call "✗ Post type id=#{post_type.id} '#{post_type.slug}': options could not be read " \
+                    "(#{e.class}); review its _default meta"
       end
 
       report.call "Done. #{flagged} stored item(s) would be rejected by today's gates."

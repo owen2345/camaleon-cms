@@ -65,6 +65,17 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
       .to output(/Post type id=#{post_type.id} .*cama_post_decorator_class 'ENV::X'.*Done\./m).to_stdout
   end
 
+  it 'lists a post type whose options cannot be read and scans the post types after it' do
+    unreadable = create(:post_type, data_options: { has_category: false })
+    later = create(:post_type, data_options: { has_category: false })
+    unreadable.metas.find_by!(key: '_default').update!(value: '[]')
+    store_decorator_option(later, 'Object')
+
+    expect { task.invoke }
+      .to output(/Post type id=#{unreadable.id} .*could not be read.*Post type id=#{later.id} .*'Object'.*Done\./m)
+      .to_stdout
+  end
+
   it 'does not flag a post type whose decorator class is a post decorator' do
     post_type.set_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator')
 
