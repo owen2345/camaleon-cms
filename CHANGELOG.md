@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** When no site matches a request, the error log no longer advises pinning the site in `$current_site`, which leaves a server's processes reading stale site settings; it points to domain mapping instead. [#1300](https://github.com/owen2345/camaleon-cms/pull/1300).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#resolving-the-site-on-a-server).
+
 - **Bug fix:** `data_options` and `data_metas` are written once, by the first save that completes, so a later save of the same instance no longer reverts options or metas changed since, and a post type created with `data_metas` stores them at creation. They read `nil` once written and are queued again if that save is rolled back. [#1299](https://github.com/owen2345/camaleon-cms/pull/1299). [Upgrade notes](docs/upgrading-to-2.9.5.md#data_options-and-data_metas-are-written-once)
 
 - **Bug fix:** `delete_meta` also removes the metas a record holds in memory, so a record with eager-loaded metas no longer reads the deleted value back, and a meta set with `set_meta` and deleted before the record's save is no longer stored by that save. It takes a single key: an Array is no longer matched as a set. [#1298](https://github.com/owen2345/camaleon-cms/pull/1298).
