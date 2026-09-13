@@ -77,14 +77,14 @@ The escaped output MUST remain byte-identical to the current output for values t
 
 ### Requirement: The post status column MUST NOT be trusted as canonical by rendering code
 
-Three writers reach `posts.status` without model validation — `PostsController#trash` and `#restore` via `update_column`, and `DraftsController` via `save(validate: false)`. Rendering code SHALL therefore treat the column as untrusted input regardless of any validation applied at the model or controller layer.
+`posts.status` is written without model validation — `PostsController#trash` via `update_column`, and `DraftsController` via `save(validate: false)` — and a non-canonical value may already be stored from before request validation was added. Rendering code SHALL therefore treat the column as untrusted input regardless of any validation applied at the model or controller layer.
 
 #### Scenario: A status poisoned through the restore path still renders inert
 
-- **WHEN** a user stores a script payload in `options[:status_default]` on a post
-- **AND** the post is trashed and then restored, writing the payload to `status` via `update_column`
+- **WHEN** a post's `status` column holds a script payload (planted before this change through the old `options[:status_default]` restore path, now closed, or by any non-validating writer)
 - **AND** an administrator opens the post list with `s=all`
 - **THEN** the response contains no `<script>` element inside `#posts-table-list`
+- **AND** the payload is present as escaped text in the row's status label
 
 ### Requirement: Link fragments built by helpers and rendered through `raw` MUST escape their interpolated URL
 

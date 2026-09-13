@@ -27,4 +27,4 @@
 - [x] 4.4 Run `(cd spec/dummy && bin/rails zeitwerk:check)` and confirm "All is good".
 - [x] 4.5 Run `openspec validate restrict-post-template-layout-and-reserved-metas --strict` and confirm it passes.
 - [x] 4.6 After the PR exists, record the fix against the corresponding finding in the local security audit notes (not tracked in the repo), matching the existing marker convention.
-- [ ] 4.7 Before merge, archive the change with `/opsx:archive` on the branch and commit the archived change and the synced `openspec/specs/post-editor-write-integrity/spec.md`. Verify `openspec list --json` shows no active change.
+- [x] 4.7 Before merge, archive the change with `/opsx:archive` on the branch and commit the archived change and the synced `openspec/specs/post-editor-write-integrity/spec.md`. Verify `openspec list --json` shows no active change.
