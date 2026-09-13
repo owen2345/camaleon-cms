@@ -193,12 +193,8 @@ module CamaleonCms
           return redirect_to action: :index, s: params[:s]
         end
 
-        # A corrupt or legacy `_default` (not a Hash) makes options[...] raise; read the stored status
-        # only when options is a hash, otherwise restore to the default status.
-        stored_options = @post.options
-        previous_status = stored_options.is_a?(Hash) ? stored_options[:status_default] : nil
         # rubocop:disable Rails/SkipsModelValidations
-        @post.update_column(:status, restorable_status(previous_status))
+        @post.update_column(:status, restorable_status(@post.get_option('status_default')))
         # rubocop:enable Rails/SkipsModelValidations
         @post.update_extra_data
         hooks_run('restored_post', { post: @post, post_type: @post_type })

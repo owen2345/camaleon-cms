@@ -94,8 +94,11 @@ module CamaleonCms
     end
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
+    # A stored row that is not a JSON object (legacy or corrupt data) reads as no options, so every
+    # reader and writer works on the record; the row is replaced the next time an option is written.
     def options(meta_key = '_default')
-      get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
+      stored = get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
+      stored.is_a?(Hash) ? stored : ActiveSupport::HashWithIndifferentAccess.new
     end
     alias cama_options options
 

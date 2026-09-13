@@ -92,4 +92,22 @@ RSpec.describe 'Security: post restore status', type: :request do
 
     expect(record.reload.status).to eq('pending')
   end
+
+  # The same row must not break the paths around restore: trash writes status_default into it, and the
+  # edit page and the public page read the post's options (manage_template?, get_template).
+  it 'trashes, edits and renders a post whose options were corrupted' do
+    sign_in_as(editor, site: current_site)
+    record = post_owned_by(editor, status: 'published')
+    record.set_meta('_default', 'corrupt')
+
+    get "/admin/post_type/#{post_type.id}/posts/#{record.id}/edit"
+    expect(response).to have_http_status(:ok)
+
+    get "/#{record.slug}"
+    expect(response).to have_http_status(:ok)
+
+    patch "/admin/post_type/#{post_type.id}/posts/#{record.id}/trash"
+    expect(record.reload.status).to eq('trash')
+    expect(CamaleonCms::Post.find(record.id).get_option('status_default')).to eq('published')
+  end
 end
