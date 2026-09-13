@@ -102,6 +102,18 @@ RSpec.describe 'the post decorator class option written by a post type save hook
     expect(stored.get_option(option)).to eq('Object')
   end
 
+  it 'renders a post whose post type stores a decorator option the check would refuse' do
+    meta = post_type.metas.find_by!(key: '_default')
+    meta.update!(value: JSON.parse(meta.value).merge(option => 'Object').to_json)
+    warnings = []
+    allow(Rails.logger).to receive(:warn) { |message| warnings << message }
+
+    get @post.the_url(as_path: true), headers: { 'HTTP_HOST' => @site.slug }
+
+    expect(response).to have_http_status(:ok)
+    expect(warnings.grep(/cama_post_decorator_class/).size).to eq(1)
+  end
+
   it 'stores a post decorator' do
     hook_storing_decorator('CamaleonCms::PostDecorator')
     sign_in_as(settings_manager, site: @site)

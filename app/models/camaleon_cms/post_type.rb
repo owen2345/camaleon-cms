@@ -195,13 +195,12 @@ module CamaleonCms
     end
 
     # The decorator for this post type's posts: the class its option names, or the default when the
-    # option is blank or names no post decorator. Such a stored value predates the save-time check;
-    # it is logged and reported, never rewritten.
+    # option is blank or names no loadable post decorator. Such a stored value (written before the
+    # save-time check, left by a removed plugin, imported) is logged and reported, never rewritten.
     def post_decorator_class
       value = get_option(DECORATOR_CLASS_OPTION)
       self.class.decorator_class_for(value) || begin
-        Rails.logger.warn("Camaleon CMS - post type #{id} (#{slug}): #{DECORATOR_CLASS_OPTION} '#{value}' " \
-                          'names no CamaleonCms::PostDecorator subclass; decorating with the default')
+        warn_ignored_decorator_class(value)
         CamaleonCms::PostDecorator
       end
     end
@@ -249,6 +248,18 @@ module CamaleonCms
     # Blank, a post decorator, or the value already stored.
     def decorator_class_option_acceptable?(value)
       self.class.decorator_class_for(value) || value.to_s == stored_decorator_class_option.to_s
+    end
+
+    # Once per request (or per console or task thread) for each post type and value: every decorated post
+    # asks for the decorator, and one line says what a line per post would. The value is quoted with
+    # inspect, so a stored newline cannot forge log lines.
+    def warn_ignored_decorator_class(value)
+      warned = CurrentRequest.post_decorator_warnings ||= Set.new
+      return unless warned.add?([id, value.to_s])
+
+      Rails.logger.warn("Camaleon CMS - post type #{id} (#{slug}): #{DECORATOR_CLASS_OPTION} " \
+                        "#{value.to_s.truncate(200).inspect} is not a loadable CamaleonCms::PostDecorator " \
+                        'subclass; decorating with the default')
     end
 
     # The refusal names the option, and the value when it is a class name, cut short so the flash

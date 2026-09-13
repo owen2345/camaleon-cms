@@ -19,5 +19,6 @@ class CurrentRequest < ActiveSupport::CurrentAttributes
             :frontend_visited_post_type, :frontend_visited_tag, :frontend_visited_category,
             :frontend_visited_profile, :frontend_user,
             :admin_menu_items, :custom_field_elements, :extra_models_for_fields,
-            :shortcodes, :shortcodes_template, :shortcodes_descr
+            :shortcodes, :shortcodes_template, :shortcodes_descr,
+            :post_decorator_warnings
 end

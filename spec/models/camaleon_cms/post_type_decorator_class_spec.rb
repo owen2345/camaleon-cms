@@ -179,7 +179,7 @@ RSpec.describe CamaleonCms::PostType, type: :model do
     it 'ignores a stored value that is not a post decorator, warns, and leaves it stored' do
       store_decorator_option('Object')
       allow(Rails.logger).to receive(:warn)
-      expect(Rails.logger).to receive(:warn).with(/cama_post_decorator_class 'Object'/)
+      expect(Rails.logger).to receive(:warn).with(/cama_post_decorator_class "Object"/)
 
       expect(stored_post_type.post_decorator_class).to eq(CamaleonCms::PostDecorator)
       expect(stored_post_type.get_option(option)).to eq('Object')
@@ -188,9 +188,24 @@ RSpec.describe CamaleonCms::PostType, type: :model do
     it 'ignores a stored name that cannot be loaded, and warns' do
       store_decorator_option('ENV::X')
       allow(Rails.logger).to receive(:warn)
-      expect(Rails.logger).to receive(:warn).with(/cama_post_decorator_class 'ENV::X'/)
+      expect(Rails.logger).to receive(:warn).with(/cama_post_decorator_class "ENV::X"/)
 
       expect(stored_post_type.post_decorator_class).to eq(CamaleonCms::PostDecorator)
+    end
+
+    it 'warns once per request for a post type and value, not once per decorated post' do
+      store_decorator_option("Object\nforged line")
+      warnings = []
+      allow(Rails.logger).to receive(:warn) { |message| warnings << message }
+      posts = Array.new(3) { create(:post, post_type: post_type) }
+
+      CamaleonCms::Post.where(id: posts.map(&:id)).includes(:post_type).find_each(&:decorate)
+      CamaleonCms::Post.find(posts.first.id).decorate
+      expect(warnings.grep(/cama_post_decorator_class/)).to contain_exactly(include('"Object\nforged line"'))
+
+      CurrentRequest.reset
+      CamaleonCms::Post.find(posts.first.id).decorate
+      expect(warnings.grep(/cama_post_decorator_class/).size).to eq(2)
     end
 
     it 'is the default for a post without a post type' do
