@@ -174,11 +174,14 @@ module CamaleonCms
     # listed by `rake camaleon_cms:security:scan_content`.
     DECORATOR_CLASS_OPTION = 'cama_post_decorator_class'.freeze
 
-    # The class the decorator option names when it is a CamaleonCms::PostDecorator subclass, else
-    # nil, also for a name that cannot be loaded: safe_constantize still raises for a path through a
-    # constant that is not a module ('ENV::X') and for a decorator file that fails to load. One resolver
-    # for the save-time check, the read and the security scan, so they agree.
+    # The decorator class the option names: CamaleonCms::PostDecorator for a blank option, the named
+    # class when it is a CamaleonCms::PostDecorator subclass, else nil, also for a name that cannot be
+    # loaded: safe_constantize still raises for a path through a constant that is not a module ('ENV::X')
+    # and for a decorator file that fails to load. One resolver for the save-time check, the read and the
+    # security scan, so they agree.
     def self.decorator_class_for(value)
+      return CamaleonCms::PostDecorator if value.blank?
+
       klass = value.to_s.safe_constantize
       klass if klass.is_a?(Class) && klass <= CamaleonCms::PostDecorator
     rescue StandardError, ScriptError
@@ -190,8 +193,6 @@ module CamaleonCms
     # it is logged and reported, never rewritten.
     def post_decorator_class
       value = get_option(DECORATOR_CLASS_OPTION)
-      return CamaleonCms::PostDecorator if value.blank?
-
       self.class.decorator_class_for(value) || begin
         Rails.logger.warn("Camaleon CMS - post type #{id} (#{slug}): #{DECORATOR_CLASS_OPTION} '#{value}' " \
                           'names no CamaleonCms::PostDecorator subclass; decorating with the default')
@@ -219,7 +220,7 @@ module CamaleonCms
     # reading what is stored.
     def reject_unknown_decorator_class!(key, options)
       value = options[DECORATOR_CLASS_OPTION] || options[DECORATOR_CLASS_OPTION.to_sym]
-      return if value.blank? || self.class.decorator_class_for(value)
+      return if self.class.decorator_class_for(value)
 
       cama_remove_cache("meta_#{key}")
       errors.add(:base, "#{DECORATOR_CLASS_OPTION} must name a subclass of CamaleonCms::PostDecorator, " \

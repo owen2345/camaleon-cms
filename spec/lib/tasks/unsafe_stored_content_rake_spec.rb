@@ -70,4 +70,10 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
 
     expect { task.invoke }.not_to output(/Post type id=#{post_type.id}/m).to_stdout
   end
+
+  it 'does not flag a post type whose decorator option is blank' do
+    store_decorator_option(post_type, '')
+
+    expect { task.invoke }.not_to output(/Post type id=#{post_type.id} /).to_stdout
+  end
 end

@@ -43,7 +43,7 @@ namespace :camaleon_cms do
       option = CamaleonCms::PostType::DECORATOR_CLASS_OPTION
       CamaleonCms::PostType.unscoped.find_each do |post_type|
         value = post_type.get_option(option)
-        next if value.blank? || CamaleonCms::PostType.decorator_class_for(value)
+        next if CamaleonCms::PostType.decorator_class_for(value)
 
         flagged += 1
         report.call "✗ Post type id=#{post_type.id} '#{post_type.slug}': #{option} '#{value}' names no " \

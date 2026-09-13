@@ -108,6 +108,12 @@ RSpec.describe CamaleonCms::PostType, type: :model do
   end
 
   describe '.decorator_class_for' do
+    it 'is the default decorator for a blank value, for the check, the read and the scan alike' do
+      ['', ' ', nil, false].each do |blank|
+        expect(described_class.decorator_class_for(blank)).to eq(CamaleonCms::PostDecorator)
+      end
+    end
+
     it 'is nil for a name through a constant that is not a class or module' do
       expect(described_class.decorator_class_for('ENV::X')).to be_nil
       expect(described_class.decorator_class_for('RUBY_VERSION::X')).to be_nil
