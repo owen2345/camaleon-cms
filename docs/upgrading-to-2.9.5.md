@@ -21,6 +21,7 @@ what theme/plugin developers should know.
 | Reads `site.public_media` / `site.private_media` or `media.is_public` **directly** (reports, plugins, exports) | Those now return what their names say — drop any compensating inversion ([details](#notes-for-theme--plugin-developers)) |
 | Hit `NameError: undefined local variable or method custom_field_groups` deleting a site or taxonomy row | Nothing — retry the delete after upgrading ([details](#deleting-legacy-taxonomy-rows-no-longer-crashes)) |
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
+| Has plugins or themes that submit post template or layout values, or non-publishers who restore trashed posts | Offer templates through the hooks; a non-publisher's restored post now returns as pending ([details](#post-templates-reserved-keys-and-restore)) |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
 
 ---
@@ -109,6 +110,26 @@ bundle update camaleon_cms
 
 ---
 
+## Post templates, reserved keys and restore
+
+The admin post save and its draft autosave stored every `meta[...]` and `options[...]` key a request
+carried. A non-admin could point a post at any view the template lookup finds, and an admin view
+broke that post's public page. Anyone could replace the post's whole options hash with `meta[_default]`.
+A contributor without the publish permission could store `options[status_default]=published` and
+restore the post to publish it.
+
+- A non-admin's template or layout value must be blank or one the post editor offers. An
+  administrator's is stored as written.
+- Keys the engine maintains itself are refused from any request: `_`-prefixed metas, `visits`,
+  `comments_count`, `status_default` and `draft_status`.
+- `restore` acts only on trashed posts, and returns a post to `published` only for a user holding the
+  post type's publish permission; anyone else's restored post comes back `pending`.
+
+Either refusal names the field and saves nothing. No operator action is needed, and values stored
+before the upgrade are left as they are.
+
+---
+
 ## Audit custom-field values after a colorpicker crash
 
 A colorpicker custom field accepts free text, and a saved non-colour value (for example a bare
@@ -149,6 +170,13 @@ returning the right rows.
 - `objects(prefix)` returns an empty relation instead of `nil` for an unknown folder key; code
   that branched on `nil` should branch on `.empty?`.
 - `clear_cache` purges both visibility collections for the site, not just the current mode's.
+
+### Post template and layout values
+
+A plugin or theme that submits its own post template or layout name must offer it through the
+`post_get_list_templates` or `post_get_list_layouts` hook, or a non-admin's save is refused
+([details](#post-templates-reserved-keys-and-restore)). Every other `meta[...]`/`options[...]` field
+is still stored as submitted.
 
 ---
 

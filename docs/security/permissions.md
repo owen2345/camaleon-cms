@@ -85,6 +85,16 @@ The pieces that implement the rule:
   mass assignment).
 - **Uploads already follow the rule** (`svg-upload-sanitization`, `upload-content-security`: scan
   and refuse, with `media_unfiltered_upload` as the trusted skip).
+- **The post editor's metas and options** are refused the same way, though they are configuration
+  rather than content (`post-editor-write-integrity`). The check sits in `PostsController`, which the
+  drafts save shares, not on the model. The offered lists come from the theme and the
+  `post_get_list_templates`/`post_get_list_layouts` hooks, and the engine writes the reserved keys
+  itself. A non-admin's `meta[template]`, `meta[layout]`, `options[default_template]` and
+  `options[default_layout]` must be blank or one the editor offers. The keys the engine maintains
+  (`_`-prefixed metas, `visits`, `comments_count`, `status_default`, `draft_status`) are refused from
+  any request, administrators included. Either refusal names the field and stores nothing. Separately,
+  `restore` returns a trashed post only to `published`, `pending` or `draft`, and to `published` only
+  for a user holding the post type's publish permission.
 
 The rule is codified as a requirement in `openspec/specs/security-capability-gating/spec.md`.
 
