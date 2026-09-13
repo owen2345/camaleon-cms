@@ -88,6 +88,23 @@ or finds it among eager-loaded metas.
 - **WHEN** a record with two rows for a key is read once with its metas eager-loaded and once without
 - **THEN** both reads return the same row's value
 
+### Requirement: A copied or reloaded record does not reuse memoized reads
+
+A record's memoized meta and option reads SHALL belong to that instance and the state it loaded. A copy
+made with `dup` SHALL start without the original's memoized reads, so copies do not read each other's
+writes, and `reload` SHALL drop them, so reads after it return the stored values.
+
+#### Scenario: Two copies of a post
+
+- **WHEN** two copies are made of a post whose options were read, and one copy sets an option
+- **THEN** the other copy does not read that option
+
+#### Scenario: A post reloaded after another instance's write
+
+- **WHEN** a post reads a meta, another instance of the post writes a new value, and the first post is
+  reloaded
+- **THEN** the reloaded post reads the new value
+
 ### Requirement: A meta built before the first save is not duplicated on create
 
 A meta set on a record before its first save SHALL be stored as one row. Options or metas saved while the

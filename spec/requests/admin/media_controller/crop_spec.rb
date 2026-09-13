@@ -49,8 +49,8 @@ RSpec.describe CamaleonCms::Admin::MediaController, '#crop', type: :request do
       post '/admin/media/crop', params: { saved_avatar: admin_user.id }
 
       expect(response.body).to eq('Potentially malicious content found!')
-      # Read through a fresh record: set_meta/get_meta memoize per instance and reload does not clear
-      # that cache, so admin_user.reload.get_meta would echo the setup value and never see a bad write.
+      # Read through a fresh record: set_meta/get_meta memoize per instance, so admin_user.get_meta
+      # would echo the setup value and never see a bad write.
       expect(CamaleonCms::User.find(admin_user.id).get_meta('avatar')).to eq('/uploads/existing.jpg')
     end
   end
