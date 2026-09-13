@@ -23,8 +23,6 @@ consumer, so every writer, present and future, is covered.
   would be refused today.
 - The admin panel surfaces the refusal of an option written by a post type save hook as a flash
   error instead of a server error.
-- `docs/ai/ecosystem.md` records camaleon-cms-seo's current binding: its hooks store only its six
-  SEO options.
 
 ## Capabilities
 
@@ -50,7 +48,6 @@ that writes the option, names a `CamaleonCms::PostDecorator` subclass and keeps 
   `lib/tasks/unsafe_stored_content.rake` (the report).
 - Specs: a request reproduction under `spec/requests/security/`, a model spec for the option, and
   the scan task spec.
-- Docs: `docs/security/permissions.md`, `docs/upgrading-to-2.9.5.md`, `docs/ai/ecosystem.md`,
-  `CHANGELOG.md`.
+- Docs: `docs/security/permissions.md`, `docs/upgrading-to-2.9.5.md`, `CHANGELOG.md`.
 - Plugins and themes: one that stores a class outside the decorator hierarchy now gets an error at
   save instead of a later crash at render; none was found in the ecosystem survey.

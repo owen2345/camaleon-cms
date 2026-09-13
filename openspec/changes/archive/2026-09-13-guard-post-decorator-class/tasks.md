@@ -19,8 +19,7 @@
 
 - [x] 4.1 `docs/security/permissions.md`: a section for the option under the existing security sections (verify: section present, cites this capability)
 - [x] 4.2 `docs/upgrading-to-2.9.5.md`: a note for theme and plugin developers and the operator scan step (verify: sections present, anchors resolve)
-- [x] 4.3 `docs/ai/ecosystem.md`: refresh the camaleon-cms-seo row for its PR #53 binding (verify: row text)
-- [x] 4.4 `CHANGELOG.md` entry under Unreleased after the PR exists, under 500 characters, linking the upgrade notes (verify: `docs/ai/workflows.md` Phase 4.3)
+- [x] 4.3 `CHANGELOG.md` entry under Unreleased after the PR exists, under 500 characters, linking the upgrade notes (verify: `docs/ai/workflows.md` Phase 4.3)
 
 ## 5. Verify and close out
 
