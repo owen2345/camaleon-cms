@@ -4,12 +4,6 @@ module CamaleonCms
       include CamaleonCms::Admin::CustomFieldsConcern
       include CamaleonCms::Admin::PostViewChoicesConcern
 
-      # Metas and options the engine maintains itself, never taken from a request: `_`-prefixed metas
-      # (`_default` holds the post's whole options hash), the visit and comment counters, and the statuses
-      # `trash` and the drafts buffer remember.
-      RESERVED_META_KEYS = %w[visits comments_count].freeze
-      RESERVED_OPTION_KEYS = %w[status_default draft_status].freeze
-
       # The template and layout fields a post save can carry, each with the helper that lists what the
       # post editor offers for it. A non-admin may submit only an offered value, or a blank one. Keys are
       # the canonical (folded) field names: a submitted key is folded the same way before it is matched,
@@ -20,10 +14,6 @@ module CamaleonCms
         options: { 'default_template' => :cama_get_list_template_files,
                    'default_layout' => :cama_get_list_layouts_files }
       }.freeze
-
-      # The statuses a restored post can return to. `draft_child` is included so a trashed autosave
-      # buffer comes back as its parent's buffer, not a standalone post that collides with the parent.
-      RESTORABLE_STATUSES = %w[published pending draft draft_child].freeze
 
       add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.contents')
 
@@ -291,8 +281,8 @@ module CamaleonCms
       end
 
       def reserved_param_refusals
-        reserved_group_refusals(:meta, RESERVED_META_KEYS) { |key| key.start_with?('_') } +
-          reserved_group_refusals(:options, RESERVED_OPTION_KEYS)
+        reserved_group_refusals(:meta, CamaleonCms::Post::ENGINE_META_KEYS) { |key| key.start_with?('_') } +
+          reserved_group_refusals(:options, CamaleonCms::Post::ENGINE_OPTION_KEYS)
       end
 
       def reserved_group_refusals(group, reserved_keys)
@@ -338,7 +328,7 @@ module CamaleonCms
       # The status a trashed post returns to: the one it had when that is a status a post may be restored
       # to and the acting user may set it, otherwise pending.
       def restorable_status(previous)
-        status = RESTORABLE_STATUSES.include?(previous.to_s) ? previous.to_s : 'pending'
+        status = CamaleonCms::Post::RESTORABLE_STATUSES.include?(previous.to_s) ? previous.to_s : 'pending'
         publish_or_pending(status)
       end
 

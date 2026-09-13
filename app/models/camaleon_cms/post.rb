@@ -20,6 +20,21 @@ module CamaleonCms
     CONTENT_ALLOWED_ATTRIBUTES = (ActionController::Base.helpers.sanitizer_vendor.safe_list_sanitizer
                                     .allowed_attributes.to_a + SANITIZE_EXTRA_ATTRIBUTES).uniq.freeze
 
+    # The statuses a post can hold, the ones the post editor lets an author submit, and the ones a
+    # trashed post may return to. `draft_child` is restorable so a trashed autosave buffer comes back
+    # as its parent's buffer, not a standalone post that collides with the parent; `trash` is left by
+    # its own action. The admin post save holds a submitted status to EDITOR_STATUSES.
+    STATUSES = %w[published pending draft draft_child trash].freeze
+    EDITOR_STATUSES = %w[published pending draft].freeze
+    RESTORABLE_STATUSES = (STATUSES - %w[trash]).freeze
+
+    # Metas and options the engine maintains itself and never takes from a request: the visit and
+    # comment counters (`increment_visits!`, PostComment), and the statuses `trash` and the drafts
+    # buffer remember (`status_default`, `draft_status`). `_`-prefixed metas (`_default` holds the
+    # whole options hash) are engine-owned too, by prefix.
+    ENGINE_META_KEYS = %w[visits comments_count].freeze
+    ENGINE_OPTION_KEYS = %w[status_default draft_status].freeze
+
     # Opt-out for trusted server-side pipelines (imports, seeds, plugin code) that would otherwise
     # be sanitized by the fail-closed default. Exposed as a reader plus a bang enabler and NO
     # `unfiltered_content=` writer, so `assign_attributes`/mass assignment cannot reach it — only
