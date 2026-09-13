@@ -261,9 +261,7 @@ module CamaleonCms
         malformed = malformed_container_refusals
         return malformed if malformed.any?
 
-        refusals = reserved_param_refusals
-        refusals.concat(unoffered_choice_refusals) unless cama_current_user.admin?
-        refusals
+        %i[meta options].flat_map { |group| group_refusals(group) }
       end
 
       # `set_metas`/`set_options` iterate whatever `meta`/`options` is with `|key, value|`, so an array
@@ -274,48 +272,42 @@ module CamaleonCms
       def malformed_container_refusals
         %i[meta options].filter_map do |group|
           submitted = params[group]
-          next if submitted.nil? || hash_param?(submitted)
+          next if submitted.nil? || cama_hash_param?(submitted)
 
           cama_post_message('malformed_group', group: group.to_s)
         end
       end
 
-      def reserved_param_refusals
-        reserved_group_refusals(:meta, CamaleonCms::Post::ENGINE_META_KEYS) { |key| key.start_with?('_') } +
-          reserved_group_refusals(:options, CamaleonCms::Post::ENGINE_OPTION_KEYS)
-      end
-
-      def reserved_group_refusals(group, reserved_keys)
-        submitted_group_pairs(group).filter_map do |key, _value|
+      # One pass over a group's submitted pairs. Each key is folded the way the store resolves it, then
+      # refused as engine-maintained (for everyone) or, for a non-admin, as a template or layout the
+      # editor does not offer. The two key sets are disjoint, so a key gets at most one refusal.
+      def group_refusals(group)
+        listers = OFFERED_CHOICE_FIELDS[group]
+        submitted_group_pairs(group).filter_map do |key, value|
           canonical = canonical_key(key)
-          next unless reserved_keys.include?(canonical) || (block_given? && yield(canonical))
-
-          cama_post_message('reserved_key', key: "#{group}[#{key}]")
-        end
-      end
-
-      def unoffered_choice_refusals
-        OFFERED_CHOICE_FIELDS.flat_map do |group, fields|
-          submitted_group_pairs(group).filter_map do |key, value|
-            lister = fields[canonical_key(key)]
-            next if lister.nil? || cama_offered_view_choice?(value, lister, @post_type)
-
-            cama_post_message('value_not_offered', field: "#{group}[#{key}]")
+          field = "#{group}[#{key}]"
+          if reserved_key?(group, canonical)
+            cama_post_message('reserved_key', key: field)
+          elsif !cama_current_user.admin? && (lister = listers[canonical]) &&
+                !cama_offered_view_choice?(value, lister, @post_type)
+            cama_post_message('value_not_offered', field: field)
           end
         end
       end
 
-      # The submitted key/value pairs of a `meta`/`options` group, or [] when it is absent or not a hash.
-      def submitted_group_pairs(group)
-        submitted = params[group]
-        return [] unless hash_param?(submitted)
-
-        hash = submitted.respond_to?(:to_unsafe_h) ? submitted.to_unsafe_h : submitted
-        hash.to_a.map { |key, value| [key.to_s, value] }
+      def reserved_key?(group, canonical)
+        case group
+        when :meta then canonical.start_with?('_') || CamaleonCms::Post::ENGINE_META_KEYS.include?(canonical)
+        when :options then CamaleonCms::Post::ENGINE_OPTION_KEYS.include?(canonical)
+        else false
+        end
       end
 
-      def hash_param?(value)
-        value.is_a?(ActionController::Parameters) || value.is_a?(Hash)
+      # The submitted key/value pairs of a `meta`/`options` group (String keys), or {} when it is absent.
+      # A present non-hash container was refused before this runs.
+      def submitted_group_pairs(group)
+        submitted = params[group]
+        submitted.is_a?(ActionController::Parameters) ? submitted.to_unsafe_h : {}
       end
 
       # Fold a submitted key the way the metas store resolves it. `set_meta`/`get_meta` look a row up

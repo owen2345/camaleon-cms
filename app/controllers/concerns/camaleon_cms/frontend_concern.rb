@@ -49,7 +49,7 @@ module CamaleonCms
       # symbol key raises TypeError (500). Coerce anything not hash-shaped to an empty hash so every
       # post_comment[...] read below is safe.
       post_comment = params[:post_comment]
-      post_comment = {} unless post_comment.is_a?(ActionController::Parameters) || post_comment.is_a?(Hash)
+      post_comment = {} unless cama_hash_param?(post_comment)
 
       if user.present?
         comment_data[:author] = user.fullname

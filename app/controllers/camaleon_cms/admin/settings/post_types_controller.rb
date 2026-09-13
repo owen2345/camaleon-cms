@@ -60,7 +60,7 @@ module CamaleonCms
           return if cama_current_user.admin?
 
           meta = params[:meta]
-          return unless meta.respond_to?(:key?)
+          return unless cama_hash_param?(meta)
 
           refusals = { 'default_template' => :cama_get_list_template_files,
                        'default_layout' => :cama_get_list_layouts_files }.filter_map do |field, lister|
