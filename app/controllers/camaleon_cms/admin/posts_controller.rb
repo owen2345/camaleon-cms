@@ -9,11 +9,13 @@ module CamaleonCms
       RESERVED_META_KEYS = %w[visits comments_count].freeze
       RESERVED_OPTION_KEYS = %w[status_default draft_status].freeze
 
-      # The template and layout values a post save can carry, each with the list the post editor offers
-      # for it. A non-admin may submit only an offered value, or a blank one.
+      # The template and layout fields a post save can carry, each with the list the post editor offers
+      # for it. A non-admin may submit only an offered value, or a blank one. Keys are the canonical
+      # (folded) field names: a submitted key is folded the same way before it is matched, so a case- or
+      # space-variant cannot slip a value past the check into the row the store resolves it to.
       OFFERED_CHOICE_FIELDS = {
-        meta: { template: :templates, layout: :layouts },
-        options: { default_template: :templates, default_layout: :layouts }
+        meta: { 'template' => :templates, 'layout' => :layouts },
+        options: { 'default_template' => :templates, 'default_layout' => :layouts }
       }.freeze
 
       # The statuses a restored post can return to.
@@ -257,38 +259,60 @@ module CamaleonCms
       # everyone, and for a non-admin a template or layout the post editor does not offer. Any other key
       # is stored as submitted -- plugins and themes add their own fields to the post editor.
       def post_params_refusals
+        malformed = malformed_container_refusals
+        return malformed if malformed.any?
+
         refusals = reserved_param_refusals
         refusals.concat(unoffered_choice_refusals) unless cama_current_user.admin?
         refusals
       end
 
+      # `set_metas`/`set_options` iterate whatever `meta`/`options` is with `|key, value|`, so an array
+      # of pairs (`meta[]=x`, or a JSON body `{"meta":[["template","..."]]}`) would be written key by
+      # key while answering neither `keys` nor `key?` -- slipping past the checks below, and an array
+      # `options` reaches `set_options`' `to_sym` and 500s. Refuse a present-but-not-hash container up
+      # front, so nothing is read from it or written.
+      def malformed_container_refusals
+        %i[meta options].filter_map do |group|
+          submitted = params[group]
+          next if submitted.nil? || hash_param?(submitted)
+
+          cama_post_message('malformed_group', group: group.to_s)
+        end
+      end
+
       def reserved_param_refusals
-        fields = submitted_param_keys(:meta).select { |key| key.start_with?('_') || RESERVED_META_KEYS.include?(key) }
-                                            .map { |key| "meta[#{key}]" }
-        fields += submitted_param_keys(:options).select { |key| RESERVED_OPTION_KEYS.include?(key) }
-                                                .map { |key| "options[#{key}]" }
-        fields.map { |field| cama_post_message('reserved_key', key: field) }
+        reserved_group_refusals(:meta, RESERVED_META_KEYS) { |key| key.start_with?('_') } +
+          reserved_group_refusals(:options, RESERVED_OPTION_KEYS)
+      end
+
+      def reserved_group_refusals(group, reserved_keys)
+        submitted_group_pairs(group).filter_map do |key, _value|
+          canonical = canonical_key(key)
+          next unless reserved_keys.include?(canonical) || (block_given? && yield(canonical))
+
+          cama_post_message('reserved_key', key: "#{group}[#{key}]")
+        end
       end
 
       def unoffered_choice_refusals
         OFFERED_CHOICE_FIELDS.flat_map do |group, fields|
-          submitted = params[group]
-          next [] unless submitted.respond_to?(:key?)
+          submitted_group_pairs(group).filter_map do |key, value|
+            list = fields[canonical_key(key)]
+            next if list.nil? || offered_post_choice?(value, list)
 
-          fields.filter_map do |field, list|
-            next unless submitted.key?(field)
-            next if offered_post_choice?(submitted[field], list)
-
-            cama_post_message('value_not_offered', field: "#{group}[#{field}]")
+            cama_post_message('value_not_offered', field: "#{group}[#{key}]")
           end
         end
       end
 
-      # A blank value, or one of the names the post editor offers (a Hash or an Array is neither).
+      # A blank value (nil, empty or whitespace -- the editor submits blank when nothing is chosen), or
+      # one of the names the post editor offers. A Hash or an Array in this position is never offered.
       def offered_post_choice?(value, list)
+        return true if value.blank?
         return false unless value.is_a?(String)
 
-        value.blank? || offered_post_choices(list).include?(value)
+        offered_post_choices(list).include?(value)
       end
 
       # The theme's post templates or layouts as the editor lists them, hooks included; once per request.
@@ -301,9 +325,24 @@ module CamaleonCms
                                         end
       end
 
-      def submitted_param_keys(group)
+      # The submitted key/value pairs of a `meta`/`options` group, or [] when it is absent or not a hash.
+      def submitted_group_pairs(group)
         submitted = params[group]
-        submitted.respond_to?(:keys) ? submitted.keys.map(&:to_s) : []
+        return [] unless hash_param?(submitted)
+
+        hash = submitted.respond_to?(:to_unsafe_h) ? submitted.to_unsafe_h : submitted
+        hash.to_a.map { |key, value| [key.to_s, value] }
+      end
+
+      def hash_param?(value)
+        value.is_a?(ActionController::Parameters) || value.is_a?(Hash)
+      end
+
+      # Fold a submitted key the way the metas store resolves it. `set_meta`/`get_meta` look a row up
+      # with `where(key:)`, which on MySQL's default collation matches case- and trailing-space-variants,
+      # so `meta[Template]` would update the `template` row; match it against the same field either way.
+      def canonical_key(key)
+        key.to_s.strip.downcase
       end
 
       # The status a trashed post returns to: the one it had when a post can hold it and the acting user
