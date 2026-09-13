@@ -168,11 +168,59 @@ module CamaleonCms
       get_option('has_parent_structure', false)
     end
 
+    # The option naming the decorator class of this post type's posts (Post#decorator_class). It is
+    # loaded as code, so it may name only a CamaleonCms::PostDecorator subclass: any other value is
+    # refused at save, for every writer, and one stored before the check is ignored at read and
+    # listed by `rake camaleon_cms:security:scan_content`.
+    DECORATOR_CLASS_OPTION = 'cama_post_decorator_class'.freeze
+
+    # The class the decorator option names when it is a CamaleonCms::PostDecorator subclass, else
+    # nil. One resolver for the save-time check, the read and the security scan, so they agree.
+    def self.decorator_class_for(value)
+      klass = value.to_s.safe_constantize
+      klass if klass.is_a?(Class) && klass <= CamaleonCms::PostDecorator
+    end
+
+    # The decorator for this post type's posts: the class its option names, or the default when the
+    # option is blank or names no post decorator. Such a stored value predates the save-time check;
+    # it is logged and reported, never rewritten.
+    def post_decorator_class
+      value = get_option(DECORATOR_CLASS_OPTION)
+      return CamaleonCms::PostDecorator if value.blank?
+
+      self.class.decorator_class_for(value) || begin
+        Rails.logger.warn("Camaleon CMS - post type #{id} (#{slug}): #{DECORATOR_CLASS_OPTION} '#{value}' " \
+                          'names no CamaleonCms::PostDecorator subclass; decorating with the default')
+        CamaleonCms::PostDecorator
+      end
+    end
+
+    # Every way of writing an option (set_option, set_options and its alias, the data_options save
+    # callback) ends here with the whole `_default` hash, so this is where the decorator option is
+    # held to the allowlist.
+    def set_meta(key, value)
+      reject_unknown_decorator_class!(key, value) if key.to_s == '_default' && value.is_a?(Hash)
+      super
+    end
+
     private
 
     # skip save_metas_options callback after save changes (inherit from taxonomy) to call from here manually
     def save_metas_options_skip
       true
+    end
+
+    # Refuses, loudly, an options hash whose decorator option names no post decorator. The writers
+    # mutate the memoized options before calling set_meta, so the memo is dropped to keep the record
+    # reading what is stored.
+    def reject_unknown_decorator_class!(key, options)
+      value = options[DECORATOR_CLASS_OPTION] || options[DECORATOR_CLASS_OPTION.to_sym]
+      return if value.blank? || self.class.decorator_class_for(value)
+
+      cama_remove_cache("meta_#{key}")
+      errors.add(:base, "#{DECORATOR_CLASS_OPTION} must name a subclass of CamaleonCms::PostDecorator, " \
+                        "got '#{value}'")
+      raise ActiveRecord::RecordInvalid, self
     end
 
     # assign default roles for this post type

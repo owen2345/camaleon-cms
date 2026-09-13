@@ -287,15 +287,15 @@ module CamaleonCms
       get_meta('comments_count', 0).to_i
     end
 
-    # manage the custom decorators for posts
+    # The decorator for this post: the one its post type names through the cama_post_decorator_class
+    # option, held to CamaleonCms::PostDecorator subclasses (PostType#post_decorator_class), or the
+    # default for a post without a post type.
     # sample: my_post_type.set_option('cama_post_decorator_class', 'ProductDecorator')
     # Sample: https://github.com/owen2345/camaleon-ecommerce/tree/master/app/decorators/
     def decorator_class
-      begin
-        post_type.get_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator')
-      rescue StandardError
-        'CamaleonCms::PostDecorator'
-      end.constantize
+      post_type&.post_decorator_class || CamaleonCms::PostDecorator
+    rescue StandardError
+      CamaleonCms::PostDecorator
     end
 
     private

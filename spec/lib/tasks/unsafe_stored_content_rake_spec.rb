@@ -42,4 +42,20 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
 
     expect { task.invoke }.not_to output(/id=#{row.id}.*would be rejected/m).to_stdout
   end
+
+  # A post type's decorator class option is checked at save; a value stored before the check is
+  # ignored at render and listed here (OpenSpec: post-decorator-class-integrity).
+  it 'flags a post type whose stored decorator class is not a post decorator' do
+    meta = post_type.metas.find_by!(key: '_default')
+    meta.update!(value: JSON.parse(meta.value).merge('cama_post_decorator_class' => 'Object').to_json)
+
+    expect { task.invoke }
+      .to output(/Post type id=#{post_type.id}.*cama_post_decorator_class 'Object'/m).to_stdout
+  end
+
+  it 'does not flag a post type whose decorator class is a post decorator' do
+    post_type.set_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator')
+
+    expect { task.invoke }.not_to output(/Post type id=#{post_type.id}/m).to_stdout
+  end
 end
