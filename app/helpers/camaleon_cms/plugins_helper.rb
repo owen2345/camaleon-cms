@@ -144,9 +144,12 @@ module CamaleonCms
       return if plugin.blank? || plugin['helpers'].blank?
 
       plugin['helpers'].each do |h|
-        next if self.class.include?(h.constantize)
+        helper = h.constantize
+        # The module goes into this object's singleton class (ActiveSupport's Kernel#class_eval), which
+        # is_a? sees and self.class.include? does not: a helper already here is not included again.
+        next if is_a?(helper)
 
-        class_eval { include h.constantize }
+        class_eval { include helper }
       rescue StandardError => e
         Rails.logger.debug do
           "Camaleon CMS - App loading error for #{h}: #{e.message}. Please check the plugins and themes presence"
