@@ -21,7 +21,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
     let(:site) { create(:site) }
     let(:post_type) do
       pt = create(:post_type, site: site)
-      pt.set_option('has_category', true) # memoized `options` is stale on this instance
+      pt.set_option('has_category', true)
       CamaleonCms::PostType.find(pt.id)
     end
     let(:cat_a) { post_type.categories.create!(name: 'Alpha', slug: 'eager-alpha') }
