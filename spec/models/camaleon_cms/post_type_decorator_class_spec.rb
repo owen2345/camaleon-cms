@@ -90,6 +90,17 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to eq('ProbePostDecorator')
     end
 
+    it 'keeps earlier writes when a later one is refused on a record with its metas loaded' do
+      record = described_class.includes(:metas).find(post_type.id)
+      record.set_option('has_tags', true)
+      expect { record.set_option(option, 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
+
+      record.set_option('has_seo', false)
+
+      expect(stored_post_type.get_option('has_tags')).to be(true)
+      expect(stored_post_type.get_option('has_seo')).to be(false)
+    end
+
     it 'accepts a blank value, which clears it' do
       post_type.set_option(option, 'ProbePostDecorator')
       post_type.set_option(option, '')
