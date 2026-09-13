@@ -73,6 +73,18 @@ RSpec.describe 'Security: post template and layout choices', type: :request do
       PluginRoutes.remove_anonymous_hook('post_get_list_templates', 'template_choice_spec')
     end
 
+    it 'saves a template a plugin hook offers as a [label, value] pair' do
+      hook = ->(args) { args[:tempates] << ['Landing page', 'template_landing'] }
+      PluginRoutes.add_anonymous_hook('post_get_list_templates', hook, 'template_choice_spec')
+
+      update_published_post(meta: { template: 'template_landing' })
+
+      expect(response).to have_http_status(:found)
+      expect(stored_post.get_meta('template')).to eq('template_landing')
+    ensure
+      PluginRoutes.remove_anonymous_hook('post_get_list_templates', 'template_choice_spec')
+    end
+
     it 'saves a blank template and layout' do
       update_published_post(meta: { template: '', layout: '' })
 

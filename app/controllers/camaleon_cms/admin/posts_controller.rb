@@ -9,13 +9,15 @@ module CamaleonCms
       RESERVED_META_KEYS = %w[visits comments_count].freeze
       RESERVED_OPTION_KEYS = %w[status_default draft_status].freeze
 
-      # The template and layout fields a post save can carry, each with the list the post editor offers
-      # for it. A non-admin may submit only an offered value, or a blank one. Keys are the canonical
-      # (folded) field names: a submitted key is folded the same way before it is matched, so a case- or
-      # space-variant cannot slip a value past the check into the row the store resolves it to.
+      # The template and layout fields a post save can carry, each with the helper that lists what the
+      # post editor offers for it. A non-admin may submit only an offered value, or a blank one. Keys are
+      # the canonical (folded) field names: a submitted key is folded the same way before it is matched,
+      # so a case- or space-variant cannot slip a value past the check into the row the store resolves it
+      # to.
       OFFERED_CHOICE_FIELDS = {
-        meta: { 'template' => :templates, 'layout' => :layouts },
-        options: { 'default_template' => :templates, 'default_layout' => :layouts }
+        meta: { 'template' => :cama_get_list_template_files, 'layout' => :cama_get_list_layouts_files },
+        options: { 'default_template' => :cama_get_list_template_files,
+                   'default_layout' => :cama_get_list_layouts_files }
       }.freeze
 
       # The statuses a restored post can return to. `draft_child` is included so a trashed autosave
@@ -304,8 +306,8 @@ module CamaleonCms
       def unoffered_choice_refusals
         OFFERED_CHOICE_FIELDS.flat_map do |group, fields|
           submitted_group_pairs(group).filter_map do |key, value|
-            list = fields[canonical_key(key)]
-            next if list.nil? || offered_post_choice?(value, list)
+            lister = fields[canonical_key(key)]
+            next if lister.nil? || offered_post_choice?(value, lister)
 
             cama_post_message('value_not_offered', field: "#{group}[#{key}]")
           end
@@ -314,21 +316,20 @@ module CamaleonCms
 
       # A blank value (nil, empty or whitespace -- the editor submits blank when nothing is chosen), or
       # one of the names the post editor offers. A Hash or an Array in this position is never offered.
-      def offered_post_choice?(value, list)
+      def offered_post_choice?(value, lister)
         return true if value.blank?
         return false unless value.is_a?(String)
 
-        offered_post_choices(list).include?(value)
+        offered_post_choices(lister).include?(value)
       end
 
       # The theme's post templates or layouts as the editor lists them, hooks included; once per request.
-      def offered_post_choices(list)
-        @offered_post_choices ||= {}
-        @offered_post_choices[list] ||= if list == :templates
-                                          cama_get_list_template_files(@post_type).map(&:to_s)
-                                        else
-                                          cama_get_list_layouts_files(@post_type).map(&:to_s)
-                                        end
+      # An entry the editor's `select` renders as a `[label, value]` pair (or a Hash) submits its value,
+      # so the list is reduced to the values a chosen option would send.
+      def offered_post_choices(lister)
+        cama_cache_fetch("offered_post_#{lister}") do
+          send(lister, @post_type).to_a.map { |entry| (entry.is_a?(Array) ? entry.last : entry).to_s }
+        end
       end
 
       # The submitted key/value pairs of a `meta`/`options` group, or [] when it is absent or not a hash.
