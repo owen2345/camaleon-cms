@@ -28,12 +28,11 @@ module CamaleonCms
           if @draft_parent_post.present?
             @post_draft = @post_type.posts.drafts.where(post_parent: @draft_parent_post.id,
                                                         user_id: cama_current_user.id).first
-            if @post_draft.present?
-              @post_draft.set_option('draft_status', @post_draft.status)
-              @post_draft.attributes = @post_data
-            end
           end
-          if @post_draft.blank?
+          if @post_draft
+            @post_draft.set_option('draft_status', @post_draft.status)
+            @post_draft.attributes = @post_data
+          else
             @post_draft = @post_type.posts.new(@post_data)
             @post_draft.user_id = cama_current_user.id
           end

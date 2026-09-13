@@ -15,7 +15,18 @@ module CamaleonCms
       DEFAULT_VIEW_LISTERS = { 'default_template' => :cama_get_list_template_files,
                                'default_layout' => :cama_get_list_layouts_files }.freeze
 
+      included do
+        helper_method :cama_post_view_list
+      end
+
       private
+
+      # The list a lister returns for `post_type`, as the editor renders it: memoized per request per
+      # lister, so the check and the re-rendered form's selects share one theme glob and one hook
+      # dispatch (one post type per request).
+      def cama_post_view_list(lister, post_type)
+        cama_cache_fetch("post_view_list_#{lister}") { send(lister, post_type) }
+      end
 
       # The refusal message for `field` (as the request names it) holding `value`, when the acting user
       # is not an administrator and `value` is not blank or offered by `lister` for `post_type`; nil
@@ -41,7 +52,7 @@ module CamaleonCms
       # per request per lister.
       def cama_offered_view_choices(lister, post_type)
         cama_cache_fetch("offered_post_#{lister}") do
-          list = send(lister, post_type)
+          list = cama_post_view_list(lister, post_type)
           list.is_a?(String) ? [] : Array(list).flat_map { |entry| cama_view_choice_values(entry) }
         end
       end

@@ -380,15 +380,14 @@ module CamaleonCms
       # The status a trashed post returns to: the one it had when that is a status a post may be restored
       # to and the acting user may set it, otherwise pending.
       def restorable_status(previous)
-        status = CamaleonCms::Post::RESTORABLE_STATUSES.include?(previous.to_s) ? previous.to_s : 'pending'
-        publish_or_pending(status)
+        publish_or_pending(CamaleonCms::Post::RESTORABLE_STATUSES.include?(previous) ? previous : 'pending')
       end
 
       # Downgrade a would-be `published` status to `pending` for a user who cannot publish this post
       # type, leaving every other status untouched. The single source of the publish rule for the create,
       # update and restore paths, so a non-publisher cannot reach `published` through any of them.
       def publish_or_pending(status)
-        status.to_s == 'published' && cannot?(:publish_post, @post_type) ? 'pending' : status
+        status == 'published' && cannot?(:publish_post, @post_type) ? 'pending' : status
       end
 
       # define post type parent
