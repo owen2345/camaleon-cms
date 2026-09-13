@@ -33,9 +33,14 @@ module CamaleonCms
 
       # Check if the parent object has been saved to the database yet
       if persisted?
-        # Safe to use database-driven lookups and updates
-        meta_record = metas.find_or_create_by(key: key.to_s)
-        meta_record.update(value: fixed_value)
+        # Safe to use database-driven lookups and updates. When a key has several rows, update the
+        # lowest id: the one get_meta reads.
+        meta_record = metas.where(key: key.to_s).order(:id).first
+        if meta_record
+          meta_record.update(value: fixed_value)
+        else
+          metas.create(key: key.to_s, value: fixed_value)
+        end
       else
         # In-Memory Fallback: Find an existing unsaved item in the array collection,
         # or build a brand new unsaved record on the association.
@@ -56,7 +61,11 @@ module CamaleonCms
     def get_meta(key, default = nil)
       key_str = key.is_a?(Symbol) ? key.to_s : key
       cama_fetch_cache("meta_#{key_str}") do
-        option = metas.loaded? ? metas.find { |m| m.key == key_str } : metas.where(key: key_str).first
+        option = if metas.loaded?
+                   metas.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
+                 else
+                   metas.where(key: key_str).first
+                 end
         res = ''
         if option.present?
           value = begin
