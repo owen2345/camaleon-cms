@@ -43,7 +43,7 @@ namespace :camaleon_cms do
       # here, through the same resolver the check uses. A post type whose options cannot be read is
       # listed too, so one bad row does not end the scan.
       option = CamaleonCms::PostType::DECORATOR_CLASS_OPTION
-      CamaleonCms::PostType.unscoped.find_each do |post_type|
+      CamaleonCms::PostType.unscoped.preload(:metas).find_each do |post_type|
         value = post_type.get_option(option)
         next if CamaleonCms::PostType.decorator_class_for(value)
 
