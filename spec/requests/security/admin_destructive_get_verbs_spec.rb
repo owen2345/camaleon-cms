@@ -255,9 +255,9 @@ RSpec.describe 'Security: destructive admin actions are not reachable over GET (
       admin_user.set_meta('avatar', '/uploads/existing.jpg')
     end
 
-    # set_meta/get_meta memoize per instance (cama_fetch_cache), which reload does not clear, so
-    # read through a fresh record -- an instance-cached read would mask the controller's write and
-    # turn the GET example into a false green.
+    # set_meta/get_meta memoize per instance (cama_fetch_cache), so read through a fresh record -- a
+    # read on the memoized admin_user would mask the controller's write and turn the GET example into
+    # a false green.
     def stored_avatar
       CamaleonCms::User.find(admin_user.id).get_meta('avatar')
     end
