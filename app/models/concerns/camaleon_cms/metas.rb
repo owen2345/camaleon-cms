@@ -109,11 +109,18 @@ module CamaleonCms
     end
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
-    # A stored row that is not a JSON object (legacy or corrupt data) reads as no options, so every
-    # reader and writer works on the record; the row is replaced the next time an option is written.
+    # A String key and its Symbol twin read the same option, as in a freshly loaded record's parsed
+    # options: a plain Hash a caller passed to set_meta reads through an indifferent copy, leaving the
+    # caller's hash as passed, and request parameters read as they are. A stored row that is not a JSON
+    # object (legacy or corrupt data), nil or '' reads as no options, so every reader and writer works
+    # on the record; the row is replaced the next time an option is written.
     def options(meta_key = '_default')
-      stored = get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
-      stored.is_a?(Hash) ? stored : ActiveSupport::HashWithIndifferentAccess.new
+      data = get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
+      case data
+      when ActiveSupport::HashWithIndifferentAccess, ActionController::Parameters then data
+      when Hash then data.with_indifferent_access
+      else ActiveSupport::HashWithIndifferentAccess.new
+      end
     end
     alias cama_options options
 
@@ -301,8 +308,9 @@ module CamaleonCms
       @created_record_metas_in_memory == true
     end
 
-    # the options hash the option writers update: indifferent, as a stored one is parsed, so a String
-    # key replaces its Symbol twin instead of being stored beside it
+    # the options hash the option writers update in place: the indifferent hash options returns, so a
+    # String key replaces its Symbol twin instead of being stored beside it; request parameters, which
+    # options returns as they are, raise here instead of being written into
     def writable_options(meta_key)
       data = cama_options(meta_key)
       data.is_a?(ActiveSupport::HashWithIndifferentAccess) ? data : data.with_indifferent_access
