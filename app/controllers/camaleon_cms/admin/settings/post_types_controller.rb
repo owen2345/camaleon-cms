@@ -2,8 +2,11 @@ module CamaleonCms
   module Admin
     module Settings
       class PostTypesController < CamaleonCms::Admin::SettingsController
+        include CamaleonCms::Admin::PostViewChoicesConcern
+
         before_action :set_post_type, only: %i[show edit update destroy]
         before_action :set_data_term, only: %i[create update]
+        before_action :refuse_unoffered_view_options, only: %i[create update]
 
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.content_groups'), :cama_admin_settings_post_types_path
 
@@ -48,6 +51,29 @@ module CamaleonCms
         end
 
         private
+
+        # A post's blank template/layout falls back to the post type's `default_template`/
+        # `default_layout`, which the frontend renders the same way, so a non-admin's post type option is
+        # held to the offered list too -- otherwise it is the unchecked route to the same admin-view sink
+        # that PostsController closes for a post's own meta. Administrators are not restricted.
+        def refuse_unoffered_view_options
+          return if cama_current_user.admin?
+
+          meta = params[:meta]
+          return unless meta.respond_to?(:key?)
+
+          refusals = { 'default_template' => :cama_get_list_template_files,
+                       'default_layout' => :cama_get_list_layouts_files }.filter_map do |field, lister|
+            next unless meta.key?(field)
+            next if cama_offered_view_choice?(meta[field], lister, @post_type)
+
+            cama_t('camaleon_cms.admin.post.message.value_not_offered', field: "meta[#{field}]")
+          end
+          return if refusals.empty?
+
+          flash[:error] = refusals.to_sentence
+          redirect_to action: :index
+        end
 
         def set_data_term
           # parent_id is the post type's site_id (alias_attribute). It is set from the site association

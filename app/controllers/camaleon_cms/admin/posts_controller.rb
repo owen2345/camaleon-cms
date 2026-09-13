@@ -2,6 +2,7 @@ module CamaleonCms
   module Admin
     class PostsController < CamaleonCms::AdminController
       include CamaleonCms::Admin::CustomFieldsConcern
+      include CamaleonCms::Admin::PostViewChoicesConcern
 
       # Metas and options the engine maintains itself, never taken from a request: `_`-prefixed metas
       # (`_default` holds the post's whole options hash), the visit and comment counters, and the statuses
@@ -307,28 +308,10 @@ module CamaleonCms
         OFFERED_CHOICE_FIELDS.flat_map do |group, fields|
           submitted_group_pairs(group).filter_map do |key, value|
             lister = fields[canonical_key(key)]
-            next if lister.nil? || offered_post_choice?(value, lister)
+            next if lister.nil? || cama_offered_view_choice?(value, lister, @post_type)
 
             cama_post_message('value_not_offered', field: "#{group}[#{key}]")
           end
-        end
-      end
-
-      # A blank value (nil, empty or whitespace -- the editor submits blank when nothing is chosen), or
-      # one of the names the post editor offers. A Hash or an Array in this position is never offered.
-      def offered_post_choice?(value, lister)
-        return true if value.blank?
-        return false unless value.is_a?(String)
-
-        offered_post_choices(lister).include?(value)
-      end
-
-      # The theme's post templates or layouts as the editor lists them, hooks included; once per request.
-      # An entry the editor's `select` renders as a `[label, value]` pair (or a Hash) submits its value,
-      # so the list is reduced to the values a chosen option would send.
-      def offered_post_choices(lister)
-        cama_cache_fetch("offered_post_#{lister}") do
-          send(lister, @post_type).to_a.map { |entry| (entry.is_a?(Array) ? entry.last : entry).to_s }
         end
       end
 
