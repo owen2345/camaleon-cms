@@ -37,13 +37,14 @@ module CamaleonCms
     def _do_hook(plugin, hook_key, params = nil)
       return if plugin.blank? || plugin['hooks'].blank? || plugin['hooks'][hook_key].blank?
 
+      # The plugin's helpers are included before any of its handlers runs, not only when respond_to?
+      # misses one: the host may already answer a handler's name with a method of its own.
+      plugin_load_helpers(plugin)
       plugin['hooks'][hook_key].each do |hook|
         next if hook_skip_list.include?(hook)
 
-        # A plugin's helpers are included on demand, so a handler not yet defined loads them first;
-        # one that stays undefined is skipped rather than failing the request. The handler itself
-        # runs exactly once: a failure inside it is the caller's to see, never retried.
-        plugin_load_helpers(plugin) unless respond_to?(hook, true)
+        # A handler that stays undefined is skipped rather than failing the request. The handler
+        # itself runs exactly once: a failure inside it is the caller's to see, never retried.
         unless respond_to?(hook, true)
           Rails.logger.warn "Camaleon CMS - Hook \"#{hook_key}\": #{plugin['key']} registers #{hook}, " \
                             'which none of its helpers defines; skipped'

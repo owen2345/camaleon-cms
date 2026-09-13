@@ -69,6 +69,25 @@ RSpec.shared_examples 'a hook handler dispatcher' do |dispatcher|
     end
   end
 
+  # respond_to? cannot tell whether a plugin's helper still has to be included: the host may already
+  # answer the name, as Kernel#format does here and Draper's HelperProxy does once it forwarded it.
+  context 'with a handler named like a method the host already answers' do
+    let(:handlers) { ['format'] }
+    let(:helper_module) do
+      Module.new do
+        def format(args)
+          args[:ran] = args.fetch(:ran, 0) + 1
+        end
+      end
+    end
+
+    it "includes the plugin's helper first and runs its method" do
+      host.hook_run(plugin, 'probe_hook', args)
+
+      expect(args[:ran]).to eq(1)
+    end
+  end
+
   context 'with a handler no helper defines' do
     let(:handlers) { %w[missing_handler other_handler] }
 
