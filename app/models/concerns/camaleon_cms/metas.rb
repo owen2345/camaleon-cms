@@ -33,9 +33,7 @@ module CamaleonCms
         end
       end
 
-      # cache a hash the way get_meta parses it from the database, so a later String-keyed write
-      # replaces a Symbol key instead of adding a duplicate
-      cama_set_cache("meta_#{key}", value.is_a?(Hash) ? value.with_indifferent_access : value)
+      cama_set_cache("meta_#{key}", value)
     end
 
     # return value of meta with key: key,
@@ -69,7 +67,7 @@ module CamaleonCms
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
     def options(meta_key = '_default')
-      get_meta(meta_key, {})
+      get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
     end
     alias cama_options options
 
@@ -81,7 +79,7 @@ module CamaleonCms
     def set_option(key, value = nil, meta_key = '_default')
       return if key.nil?
 
-      data = cama_options(meta_key)
+      data = writable_options(meta_key)
       data[key] = fix_meta_var(value)
       set_meta(meta_key, data)
       value
@@ -103,7 +101,7 @@ module CamaleonCms
     def delete_option(key, meta_key = '_default')
       return if key.nil?
 
-      values = cama_options(meta_key)
+      values = writable_options(meta_key)
       key = key.to_sym
       values.delete(key) if values.key?(key)
       set_meta(meta_key, values)
@@ -114,7 +112,7 @@ module CamaleonCms
     def set_options(h = {}, meta_key = '_default')
       return if h.blank?
 
-      data = cama_options(meta_key)
+      data = writable_options(meta_key)
       PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
       end
@@ -155,6 +153,13 @@ module CamaleonCms
     end
 
     private
+
+    # the options hash the option writers update: indifferent, as a stored one is parsed, so a String
+    # key replaces its Symbol twin instead of being stored beside it
+    def writable_options(meta_key)
+      data = cama_options(meta_key)
+      data.is_a?(ActiveSupport::HashWithIndifferentAccess) ? data : data.with_indifferent_access
+    end
 
     # fix to parse value
     def fix_meta_value(value)

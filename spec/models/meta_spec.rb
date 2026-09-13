@@ -39,11 +39,10 @@ RSpec.describe CamaleonCms::Meta, type: :model do
     end
   end
 
-  describe 'hash metas read back on the instance that wrote them' do
-    # A fresh load parses a stored hash into an indifferent hash, so the instance that wrote it must
-    # read it back the same way. A post type's after_create writes its defaults with Symbol keys; a
-    # String-keyed set_option on that instance must replace :has_category, not add "has_category"
-    # beside it (json 3 refuses to generate the duplicate, json 2 stored both).
+  describe 'options and hash metas on the instance that wrote them' do
+    # A post type's after_create writes its defaults with Symbol keys; a String-keyed set_option on
+    # that instance must replace :has_category, not add "has_category" beside it (json 3 refuses to
+    # generate the duplicate, json 2 stored both).
     it 'stores a String-keyed option once after Symbol-keyed defaults' do
       post_type = create(:post_type)
       post_type.set_option('has_category', true)
@@ -54,11 +53,21 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::PostType.find(post_type.id).get_option(:has_category)).to be(true)
     end
 
-    it 'returns the hash a fresh load returns' do
-      post_type = create(:post_type)
-      post_type.set_meta('probe_settings', { color: 'red' })
+    it 'reads the first String-keyed option of a record back by Symbol' do
+      post = create(:post)
+      post.set_option('has_picture', false)
 
-      expect(post_type.get_meta('probe_settings')).to eq(CamaleonCms::PostType.find(post_type.id).get_meta('probe_settings'))
+      expect(post.get_option(:has_picture)).to be(false)
+    end
+
+    # Plugins read back the hash they passed to set_meta on the same instance: their own object, with
+    # their own keys, until the record is loaded again.
+    it 'keeps the hash a caller passed to set_meta' do
+      settings = { color: 'red' }
+      post_type = create(:post_type)
+      post_type.set_meta('probe_settings', settings)
+
+      expect(post_type.get_meta('probe_settings')).to equal(settings)
     end
   end
 end
