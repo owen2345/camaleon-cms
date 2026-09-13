@@ -22,7 +22,6 @@ Three facts shape the fix:
 - **Category options:** unchanged (storage only; see proposal).
 - **Stored values:** no render-time filtering of a stored template or layout. The frontend's existing `template_exists?` lookup stays as it is, and nothing already stored is rewritten or migrated.
 - **Server-side writers:** calls to `set_meta`/`set_option` from the engine, plugins or themes stay unrestricted.
-- **Malformed containers:** a `meta`/`options` param that is not a hash keeps today's behavior. That is pre-existing and not part of this threat.
 
 ## Decisions
 
@@ -55,7 +54,7 @@ Checking up front means nothing has to be rolled back.
 ### D5. `restore`
 
 - **Trash only:** a post whose status is not `trash` gets a flash error and a redirect, with nothing written.
-- **Status rule:** the stored `status_default` is kept only when it is `published`, `pending` or `draft`; anything else becomes `pending`. `published` becomes `pending` when `cannot?(:publish_post, @post_type)`.
+- **Status rule:** the stored `status_default` is kept only when it is `published`, `pending`, `draft` or the `draft_child` autosave buffer (which comes back as a buffer, not a standalone post); anything else becomes `pending`. `published` becomes `pending` when `cannot?(:publish_post, @post_type)`.
 - **Write path unchanged:** it keeps `update_column` and `update_extra_data`, as today.
 
 ### D6. The existing status-escaping spec

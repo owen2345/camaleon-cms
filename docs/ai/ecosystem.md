@@ -155,11 +155,31 @@ Changes that look free from inside this repository and are not:
     install — a server-side write, unaffected by a check on request params.
 
   A plugin that submits a post template or layout of its own must offer it through
-  `post_get_list_templates`/`post_get_list_layouts` (a handler may add a `[label, value]` pair, whose
-  value is what the check accepts); no surveyed repository submits one. The same offered-list check
-  applies to a non-admin's post type `default_template`/`default_layout` in `PostTypesController`.
-  `restore` now acts only on trashed posts and returns a non-publisher's `published` post as `pending`
-  (a `draft_child` buffer comes back as a buffer); no surveyed repository calls it.
+  `post_get_list_templates`/`post_get_list_layouts` (a handler may add a plain name, a `[label, value]`
+  pair, a pair followed by HTML attributes or a grouped list, exactly the shapes Rails' `select`
+  renders; the check accepts the value the select would submit); no surveyed repository submits one.
+  On post type create the hooks receive the post type under creation, never nil. The same offered-list
+  check applies to a non-admin's post type `default_template`/`default_layout` in
+  `PostTypesController`. `restore` now acts only on trashed posts and returns a non-publisher's
+  `published` post as `pending` (a `draft_child` buffer comes back as a buffer); no surveyed
+  repository calls it.
+
+  Three further rules on the same save, none of which a surveyed consumer trips: a `meta`/`options`
+  key must be an ASCII word (every surveyed field is one); a submitted `post[status]` must be one the
+  editor offers (`published`, `pending`, `draft`); and `meta[summary]` is scanned like `content` for a
+  user without `post_content_unfiltered_html` (a theme partial rendering `the_excerpt` through `raw`
+  stays safe because what is stored passed the scan). The check now runs before the
+  `create_post`/`update_post` hooks, so a hook that writes to the post runs only for an accepted save.
+
+- **`set_metas`/`set_options` refuse a container that is not a set of fields** (a Hash or request
+  parameters), raising `CamaleonCms::Metas::InvalidContainer`; `nil` and blank stay no-ops. Every
+  surveyed caller (the bundled plugins, the generated plugin template, the themes' install hooks)
+  passes a Hash or `params[...]`. A plugin controller under `AdminController` gets the flash-and-back
+  handling for free.
+
+- **`cama_t`'s English fallback** is looked up with the caller's `scope`, `separator`, `raise` and
+  `throw` (as before 2.9.5) and without the interpolation values, so it is interpolated once; the
+  options hash a caller passes is not modified.
 
 ## APIs with no surveyed consumer
 

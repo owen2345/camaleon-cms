@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Security fix:** A non-admin's post save is refused when it names a template or layout the post editor does not offer. Engine-maintained post metas and options (`_default`, the counters, `status_default`, `draft_status`) can no longer be submitted by anyone, and `restore` no longer lets a user without the publish permission publish a post. [#1297](https://github.com/owen2345/camaleon-cms/pull/1297).
+- **Security fix:** A non-admin's post save is refused for a template or layout the editor does not offer, a non-ASCII meta key, a status outside published/pending/draft, or a summary the content scan refuses; engine-maintained metas and options are refused from anyone, and `restore` no longer publishes for a user without the publish permission. [#1297](https://github.com/owen2345/camaleon-cms/pull/1297).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#post-templates-reserved-keys-and-restore).
 
 - **Bug fix:** A failing plugin hook handler was run a second time by the dispatcher, repeating its side effects; a handler now runs once per dispatch and its error reaches the caller. A handler none of a plugin's helpers defines now raises `NoMethodError` in controllers as in views (2.9.3 and 2.9.4 skipped it there). [#1296](https://github.com/owen2345/camaleon-cms/pull/1296).
