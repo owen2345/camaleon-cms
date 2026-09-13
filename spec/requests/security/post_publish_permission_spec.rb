@@ -5,6 +5,12 @@
 # posts.status column defaults to `published`, so a create that omitted `post[status]` published
 # anyway, and updating a post already in `draft` set `published` unconditionally when the status was
 # left blank. The publish rule now runs on every status a save would give a post.
+#
+# The rule compares the exact literal, and the column is stored verbatim: `post[status]=Published`
+# (or `published `) reached the column, where MySQL's case-insensitive collation lists it among the
+# published posts. A submitted status must now be exactly one the editor offers. A present-but-empty
+# status on update was written as `''` (dropping the post from every tab); it now leaves the current
+# status alone, as an absent one does.
 RSpec.describe 'Security: post publish permission', type: :request do
   init_site
 
@@ -44,6 +50,65 @@ RSpec.describe 'Security: post publish permission', type: :request do
             params: { post: { title: 'Own draft', content: 'body' } }
 
       expect(draft.reload.status).to eq('pending')
+    end
+  end
+
+  describe 'a status outside the editor set' do
+    def not_offered
+      I18n.t('camaleon_cms.admin.post.message.status_not_offered', field: 'post[status]')
+    end
+
+    it 'refuses a case variant from a contributor and creates nothing' do
+      record = create_post(contributor, { title: 'Variant', slug: 'variant', content: 'body', status: 'Published' })
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(not_offered)
+      expect(record).to be_nil
+    end
+
+    it 'refuses a trailing-space variant and a payload from an editor, storing nothing' do
+      published = create(:post, post_type: post_type, owner: editor, slug: 'editor-published', status: 'published')
+      sign_in_as(editor, site: current_site)
+
+      ['published ', "x'><script src=//evil.example/a.js></script>"].each do |status|
+        patch "/admin/post_type/#{post_type.id}/posts/#{published.id}",
+              params: { post: { title: 'Changed', content: 'body', status: status } }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include(not_offered)
+      end
+      expect(published.reload.status).to eq('published')
+      expect(published.title).not_to eq('Changed')
+    end
+  end
+
+  describe 'a blank status on update' do
+    it 'keeps a published post published' do
+      published = create(:post, post_type: post_type, owner: editor, slug: 'stays-published', status: 'published')
+      sign_in_as(editor, site: current_site)
+
+      patch "/admin/post_type/#{post_type.id}/posts/#{published.id}",
+            params: { post: { title: 'Changed', content: 'body', status: '' } }
+
+      expect(response).to have_http_status(:found)
+      expect(published.reload.status).to eq('published')
+      expect(published.title).to eq('Changed')
+    end
+
+    it 'promotes a draft through the publish rule, as omitting the status does' do
+      editor_draft = create(:post, post_type: post_type, owner: editor, slug: 'editor-empty', status: 'draft')
+      contributor_draft = create(:post, post_type: post_type, owner: contributor, slug: 'contrib-empty',
+                                        status: 'draft')
+
+      sign_in_as(editor, site: current_site)
+      patch "/admin/post_type/#{post_type.id}/posts/#{editor_draft.id}",
+            params: { post: { title: 'Editor draft', content: 'body', status: '' } }
+      expect(editor_draft.reload.status).to eq('published')
+
+      sign_in_as(contributor, site: current_site)
+      patch "/admin/post_type/#{post_type.id}/posts/#{contributor_draft.id}",
+            params: { post: { title: 'Contributor draft', content: 'body', status: '' } }
+      expect(contributor_draft.reload.status).to eq('pending')
     end
   end
 

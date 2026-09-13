@@ -269,7 +269,19 @@ module CamaleonCms
         malformed = malformed_container_refusals
         return malformed if malformed.any?
 
-        %i[meta options].flat_map { |group| group_refusals(group) }
+        status_refusals + %i[meta options].flat_map { |group| group_refusals(group) }
+      end
+
+      # A submitted status is one the editor offers, exactly: `Published` or `published ` is refused,
+      # not folded, because the column stores it verbatim and MySQL's case-insensitive collation would
+      # list it among the published posts while every Ruby check calls it unpublished. A blank status
+      # is not a submission (get_post_data decides what it means).
+      def status_refusals
+        post = params[:post]
+        status = post[:status] if cama_hash_param?(post)
+        return [] if status.blank? || CamaleonCms::Post::EDITOR_STATUSES.include?(status)
+
+        [cama_post_message('status_not_offered', field: 'post[status]')]
       end
 
       # `set_metas`/`set_options` iterate whatever `meta`/`options` is with `|key, value|`, so an array
@@ -375,10 +387,13 @@ module CamaleonCms
                       :visibility_value, :post_order, :published_at
                     ).to_h
         post_data[:user_id] = cama_current_user.id if is_create
-        # On create a blank status takes the column default ('published'), so make it explicit before the
-        # publish rule runs; on update a blank status means "leave the current status", so it is left be.
+        # A blank status (absent, or an empty select value) means "leave the current status" on update, so
+        # it is dropped before the write rather than written as ''; on create it takes the column default
+        # ('published'), made explicit so the publish rule runs on it. A present status was already held
+        # to the editor's set by status_refusals.
+        post_data.delete(:status) if !is_create && post_data[:status].blank?
         post_data[:status] = 'published' if is_create && post_data[:status].blank?
-        post_data[:status] = publish_or_pending(post_data[:status]) if post_data[:status].present?
+        post_data[:status] = publish_or_pending(post_data[:status]) if post_data.key?(:status)
         post_data[:data_tags] = params[:tags].to_s
         post_data[:data_categories] = params[:categories] || []
         post_data
