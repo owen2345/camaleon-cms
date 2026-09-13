@@ -44,6 +44,42 @@ RSpec.describe 'Security: draft save refusals', type: :request do
     expect(buffer.get_option('seo_title')).to eq('SEO')
   end
 
+  # The create form names the buffer a new post was composed from (post[draft_id]); create read it
+  # from the permitted attributes, where it never was, so the buffer outlived the post it became.
+  describe 'the new-post buffer on create' do
+    def new_post_buffer(user)
+      sign_in_as(user, site: current_site)
+      post "/admin/post_type/#{post_type.id}/drafts", params: { post: { title: 'New post draft' } }
+      post_type.posts.drafts.where(post_parent: nil, user_id: user.id).order(:id).last
+    end
+
+    def create_from(buffer, slug)
+      sign_in_as(editor, site: current_site)
+      post "/admin/post_type/#{post_type.id}/posts",
+           params: { post: { title: 'Composed post', slug: slug, content: 'body', draft_id: buffer.id } }
+    end
+
+    it "destroys the author's own parentless buffer once the post exists" do
+      buffer = new_post_buffer(editor)
+
+      create_from(buffer, 'composed-post')
+
+      expect(response).to have_http_status(:found)
+      expect(post_type.posts.find_by(slug: 'composed-post')).to be_present
+      expect(CamaleonCms::Post.unscoped.find_by(id: buffer.id)).to be_nil
+    end
+
+    it "leaves another user's buffer alone" do
+      admin = create(:user, role: 'admin', site: current_site)
+      buffer = new_post_buffer(admin)
+
+      create_from(buffer, 'composed-post-2')
+
+      expect(response).to have_http_status(:found)
+      expect(CamaleonCms::Post.unscoped.find_by(id: buffer.id)).to be_present
+    end
+  end
+
   it 'refuses a reserved option on a draft update and stores nothing' do
     create_draft
     buffer_id = buffer.id

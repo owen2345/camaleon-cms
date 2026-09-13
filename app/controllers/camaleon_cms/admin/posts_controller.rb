@@ -109,11 +109,6 @@ module CamaleonCms
       def create
         authorize! :create_post, @post_type
         post_data = get_post_data(true)
-        begin
-          CamaleonCms::Post.drafts.find(post_data[:draft_id]).destroy
-        rescue StandardError
-          nil
-        end
         @post = @post_type.posts.new(post_data)
         # The request is checked before the create_post hook, so a hook that writes cannot land before a
         # refusal; the refused form re-renders through `new`, whose authorization is on the post type.
@@ -123,6 +118,7 @@ module CamaleonCms
         hooks_run('create_post', r)
         @post = r[:post]
         if save_post_with_fields(@post)
+          discard_new_post_draft
           flash[:notice] = t('camaleon_cms.admin.post.message.created', post_type: @post_type.decorate.the_title)
           r = { post: @post, post_type: @post_type }
           hooks_run('created_post', r)
@@ -230,6 +226,17 @@ module CamaleonCms
       end
 
       private
+
+      # The form names the draft buffer a new post was composed from (post[draft_id], not a post
+      # attribute); once the post exists that buffer is done with. Only the current user's own
+      # parentless buffer of this post type is destroyed: a buffer under a parent belongs to that post's
+      # edit flow, and another user's buffer is theirs.
+      def discard_new_post_draft
+        draft_id = params[:post][:draft_id] if cama_hash_param?(params[:post])
+        return if draft_id.blank?
+
+        @post_type.posts.drafts.where(post_parent: nil, user_id: cama_current_user.id).find_by(id: draft_id)&.destroy
+      end
 
       # The edit form for @post, for `edit` and for a refused or failed update. It carries no
       # authorization of its own: `edit` authorizes before calling it, and an update was authorized
