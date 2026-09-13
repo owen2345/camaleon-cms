@@ -150,8 +150,9 @@ module CamaleonCms
           @post = @post.parent
           delete_drafts = true
         elsif @post.draft?
-          # This is a normal draft (post whose status was set to 'draft')
-          @post.status = 'published' if post_data[:status].blank?
+          # This is a normal draft (post whose status was set to 'draft'): publishing it on save is held
+          # to the same publish rule as an explicit status.
+          @post.status = publish_or_pending('published') if post_data[:status].blank?
         end
         authorize! :update, @post
         r = { post: @post, post_type: @post_type }
@@ -345,11 +346,18 @@ module CamaleonCms
         key.to_s.strip.downcase
       end
 
-      # The status a trashed post returns to: the one it had when a post can hold it and the acting user
-      # may give it -- the publish rule get_post_data applies -- otherwise pending.
+      # The status a trashed post returns to: the one it had when that is a status a post may be restored
+      # to and the acting user may set it, otherwise pending.
       def restorable_status(previous)
         status = RESTORABLE_STATUSES.include?(previous.to_s) ? previous.to_s : 'pending'
-        status == 'published' && cannot?(:publish_post, @post_type) ? 'pending' : status
+        publish_or_pending(status)
+      end
+
+      # Downgrade a would-be `published` status to `pending` for a user who cannot publish this post
+      # type, leaving every other status untouched. The single source of the publish rule for the create,
+      # update and restore paths, so a non-publisher cannot reach `published` through any of them.
+      def publish_or_pending(status)
+        status.to_s == 'published' && cannot?(:publish_post, @post_type) ? 'pending' : status
       end
 
       def cama_post_message(key, **vars)
@@ -386,7 +394,10 @@ module CamaleonCms
                       :visibility_value, :post_order, :published_at
                     ).to_h
         post_data[:user_id] = cama_current_user.id if is_create
-        post_data[:status] = 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
+        # On create a blank status takes the column default ('published'), so make it explicit before the
+        # publish rule runs; on update a blank status means "leave the current status", so it is left be.
+        post_data[:status] = 'published' if is_create && post_data[:status].blank?
+        post_data[:status] = publish_or_pending(post_data[:status]) if post_data[:status].present?
         post_data[:data_tags] = params[:tags].to_s
         post_data[:data_categories] = params[:categories] || []
         post_data
