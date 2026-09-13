@@ -30,6 +30,8 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
     meta.update!(value: JSON.parse(meta.value).merge('cama_post_decorator_class' => value).to_json)
   end
 
+  # Every id in the report patterns ends at a word boundary, so a line about another record whose id
+  # starts with the same digits neither satisfies nor breaks an expectation.
   it 'flags a stored field_attrs value that would fail the gate' do
     field = group.add_manual_field({ name: 'Specs', slug: 'scan_specs' }, { field_key: 'field_attrs' })
     post_record.set_field_value('scan_specs', { attr: 'a', value: 'ok' }.to_json, field_id: field.id)
@@ -38,7 +40,7 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
     row.update_column(:value, { attr: 'a', value: '<script>alert(1)</script>' }.to_json) # rubocop:disable Rails/SkipsModelValidations
 
     expect { task.invoke }
-      .to output(/Custom-field value id=#{row.id}.*field_attrs.*would be rejected/m).to_stdout
+      .to output(/Custom-field value id=#{row.id}\b.*field_attrs.*would be rejected/m).to_stdout
   end
 
   it 'does not flag a benign field_attrs value' do
@@ -46,7 +48,7 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
     post_record.set_field_value('scan_ok', { attr: 'a', value: 'plain' }.to_json, field_id: field.id)
     row = post_record.custom_field_values.find_by(custom_field_slug: 'scan_ok')
 
-    expect { task.invoke }.not_to output(/id=#{row.id}.*would be rejected/m).to_stdout
+    expect { task.invoke }.not_to output(/Custom-field value id=#{row.id}\b.*would be rejected/).to_stdout
   end
 
   # A post type's decorator class option is checked at save; a value stored before the check is
@@ -55,14 +57,14 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
     store_decorator_option(post_type, 'Object')
 
     expect { task.invoke }
-      .to output(/Post type id=#{post_type.id}.*cama_post_decorator_class 'Object'/m).to_stdout
+      .to output(/Post type id=#{post_type.id}\b.*cama_post_decorator_class 'Object'/).to_stdout
   end
 
   it 'lists a stored decorator name that cannot be loaded and finishes the scan' do
     store_decorator_option(post_type, 'ENV::X')
 
     expect { task.invoke }
-      .to output(/Post type id=#{post_type.id} .*cama_post_decorator_class 'ENV::X'.*Done\./m).to_stdout
+      .to output(/Post type id=#{post_type.id}\b.*cama_post_decorator_class 'ENV::X'.*Done\./m).to_stdout
   end
 
   it 'lists a post type whose options cannot be read and scans the post types after it' do
@@ -72,19 +74,19 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
     store_decorator_option(later, 'Object')
 
     expect { task.invoke }
-      .to output(/Post type id=#{unreadable.id} .*could not be read.*Post type id=#{later.id} .*'Object'.*Done\./m)
+      .to output(/Post type id=#{unreadable.id}\b.*could not be read.*Post type id=#{later.id}\b.*'Object'.*Done\./m)
       .to_stdout
   end
 
   it 'does not flag a post type whose decorator class is a post decorator' do
     post_type.set_option('cama_post_decorator_class', 'CamaleonCms::PostDecorator')
 
-    expect { task.invoke }.not_to output(/Post type id=#{post_type.id}/m).to_stdout
+    expect { task.invoke }.not_to output(/Post type id=#{post_type.id}\b/).to_stdout
   end
 
   it 'does not flag a post type whose decorator option is blank' do
     store_decorator_option(post_type, '')
 
-    expect { task.invoke }.not_to output(/Post type id=#{post_type.id} /).to_stdout
+    expect { task.invoke }.not_to output(/Post type id=#{post_type.id}\b/).to_stdout
   end
 end
