@@ -75,12 +75,17 @@ module CamaleonCms
     end
 
     # return normal translation with default value with translation of english
-    # The English fallback is looked up without the interpolation vars, so it stays a raw template and
-    # the single `I18n.t(key, **args)` below interpolates it once. Interpolating it here as well would
-    # fold the vars into the string and then re-interpolate them -- raising MissingInterpolationArgument
-    # when a var value itself contains a `%{...}` token.
+    # The English fallback is looked up with the caller's lookup options (scope, separator, raise, throw)
+    # and without the interpolation vars, so it is the translation the caller named and stays a raw
+    # template that the single `I18n.t(key, **args)` below interpolates once. Interpolating it here as
+    # well would fold the vars into the string and then re-interpolate them -- raising
+    # MissingInterpolationArgument when a var value itself contains a `%{...}` token. The caller's hash
+    # is not modified.
     def cama_t(key, args = {})
-      args[:default] = I18n.t(key, locale: :en) if args[:default].blank?
+      if args[:default].blank?
+        fallback = I18n.t(key, **args.slice(:scope, :separator, :raise, :throw), locale: :en)
+        args = args.merge(default: fallback)
+      end
       I18n.t(key, **args)
     end
 
