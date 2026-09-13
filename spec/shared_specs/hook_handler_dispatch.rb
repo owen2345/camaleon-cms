@@ -35,7 +35,7 @@ RSpec.shared_examples 'a hook handler dispatcher' do |dispatcher|
     let(:helper_module) { Module.new }
 
     it 'runs it once and lets the failure reach the caller' do
-      expect { host.send(:_do_hook, plugin, 'probe_hook', {}) }.to raise_error('handler failed')
+      expect { host.hook_run(plugin, 'probe_hook', {}) }.to raise_error('handler failed')
       expect(host.runs).to eq(1)
     end
   end
@@ -53,7 +53,7 @@ RSpec.shared_examples 'a hook handler dispatcher' do |dispatcher|
     it 'includes the helper and runs the handler once' do
       args = {}
 
-      host.send(:_do_hook, plugin, 'probe_hook', args)
+      host.hook_run(plugin, 'probe_hook', args)
 
       expect(args[:ran]).to eq(1)
     end
@@ -67,7 +67,7 @@ RSpec.shared_examples 'a hook handler dispatcher' do |dispatcher|
       allow(Rails.logger).to receive(:warn)
       expect(Rails.logger).to receive(:warn).with(/probe_hook.*probe.*missing_handler/)
 
-      expect { host.send(:_do_hook, plugin, 'probe_hook', {}) }.not_to raise_error
+      expect { host.hook_run(plugin, 'probe_hook', {}) }.not_to raise_error
       expect(host.others).to eq(1)
     end
   end
