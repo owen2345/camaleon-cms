@@ -60,6 +60,22 @@ RSpec.describe 'the post decorator class option written by a post type save hook
     expect_refused('Object')
   end
 
+  # A value stored without passing the check (before it existed, or a removed plugin's decorator) is
+  # ignored at read; it is no reason to refuse the next save of the post type's settings.
+  it 'saves a post type whose stored decorator option the check would refuse' do
+    meta = post_type.metas.find_by!(key: '_default')
+    meta.update!(value: JSON.parse(meta.value).merge(option => 'Object').to_json)
+    sign_in_as(create(:user_admin, site: @site), site: @site)
+
+    patch "/admin/settings/post_types/#{post_type.id}",
+          params: { post_type: { name: 'Renamed posts', slug: post_type.slug }, meta: { has_tags: '1' } }
+
+    expect(response).to redirect_to('/admin/settings/post_types')
+    stored = CamaleonCms::PostType.find(post_type.id)
+    expect(stored.name).to eq('Renamed posts')
+    expect(stored.get_option(option)).to eq('Object')
+  end
+
   it 'stores a post decorator' do
     hook_storing_decorator('CamaleonCms::PostDecorator')
     sign_in_as(settings_manager, site: @site)

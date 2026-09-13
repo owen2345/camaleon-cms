@@ -84,6 +84,41 @@ RSpec.describe CamaleonCms::PostType, type: :model do
     end
   end
 
+  describe 'a stored value the check would refuse' do
+    before { store_decorator_option('Object') }
+
+    it 'does not block writing or deleting other options, and stays stored' do
+      stored_post_type.set_option('has_tags', true)
+      stored_post_type.delete_option('has_seo')
+
+      expect(stored_post_type.get_option('has_tags')).to be(true)
+      expect(stored_post_type.options).not_to have_key('has_seo')
+      expect(stored_post_type.get_option(option)).to eq('Object')
+    end
+
+    it 'does not block saving the post type with data_options' do
+      expect(stored_post_type.update(name: 'Renamed probe', data_options: { has_tags: true })).to be(true)
+
+      expect(stored_post_type.name).to eq('Renamed probe')
+      expect(stored_post_type.get_option('has_tags')).to be(true)
+    end
+
+    it 'still refuses changing it to another value the check refuses' do
+      expect { stored_post_type.set_option(option, 'String') }
+        .to raise_error(ActiveRecord::RecordInvalid, /'String'/)
+
+      expect(stored_post_type.get_option(option)).to eq('Object')
+    end
+
+    it 'accepts replacing it with a post decorator or clearing it' do
+      stored_post_type.set_option(option, 'ProbePostDecorator')
+      expect(stored_post_type.get_option(option)).to eq('ProbePostDecorator')
+
+      stored_post_type.set_option(option, '')
+      expect(stored_post_type.post_decorator_class).to eq(CamaleonCms::PostDecorator)
+    end
+  end
+
   describe '#post_decorator_class' do
     it 'ignores a stored value that is not a post decorator, warns, and leaves it stored' do
       store_decorator_option('Object')

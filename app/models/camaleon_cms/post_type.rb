@@ -215,17 +215,31 @@ module CamaleonCms
       true
     end
 
-    # Refuses, loudly, an options hash whose decorator option names no post decorator. The writers
-    # mutate the memoized options before calling set_meta, so the memo is dropped to keep the record
-    # reading what is stored.
+    # Refuses, loudly, an options hash whose decorator option names no post decorator, unless the write
+    # leaves the stored value as it is: a value stored without passing the check (before it existed, or
+    # a removed plugin's decorator) is ignored at read, not a reason to refuse unrelated writes. The
+    # writers mutate the memoized options before calling set_meta, so the memo is dropped to keep the
+    # record reading what is stored.
     def reject_unknown_decorator_class!(key, options)
       value = options[DECORATOR_CLASS_OPTION] || options[DECORATOR_CLASS_OPTION.to_sym]
-      return if self.class.decorator_class_for(value)
+      return if self.class.decorator_class_for(value) || value.to_s == stored_decorator_class_option.to_s
 
       cama_remove_cache("meta_#{key}")
       errors.add(:base, "#{DECORATOR_CLASS_OPTION} must name a subclass of CamaleonCms::PostDecorator, " \
                         "got '#{value}'")
       raise ActiveRecord::RecordInvalid, self
+    end
+
+    # The decorator option as the database holds it before the write under check, from the row get_meta
+    # reads; nil for a record not saved yet or an options row that is not a JSON object.
+    def stored_decorator_class_option
+      return unless persisted?
+
+      row = metas.where(key: '_default').order(:id).first
+      stored = JSON.parse(row.value, allow_duplicate_key: true) if row&.value.present?
+      stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
+    rescue JSON::ParserError
+      nil
     end
 
     # assign default roles for this post type
