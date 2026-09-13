@@ -91,7 +91,7 @@ describe 'Posts workflows for Admin', :js do
       expect(page).to have_no_css('b')
     end
     expect(page).to have_current_path(%r{/posts/new}, ignore_query: true)
-    expect(find('#post_title', visible: :all).value).to eq('Unsaved title')
+    expect(find_by_id('post_title', visible: :all).value).to eq('Unsaved title')
   end
 
   describe 'when visibility post plugin is enabled' do
