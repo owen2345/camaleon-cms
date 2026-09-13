@@ -26,5 +26,5 @@
 - [x] 4.3 Run `bin/brakeman --no-pager` and confirm it reports 0 warnings.
 - [x] 4.4 Run `(cd spec/dummy && bin/rails zeitwerk:check)` and confirm "All is good".
 - [x] 4.5 Run `openspec validate restrict-post-template-layout-and-reserved-metas --strict` and confirm it passes.
-- [x] 4.6 Mark NEW-2 `✅ FIXED (#<PR>)` in the local `SECURITY-AUDIT-2026-08-11.md` after the PR exists. Verify the marker placement matches the NEW-1 heading convention.
+- [x] 4.6 After the PR exists, record the fix against the corresponding finding in the local security audit notes (not tracked in the repo), matching the existing marker convention.
 - [ ] 4.7 Before merge, archive the change with `/opsx:archive` on the branch and commit the archived change and the synced `openspec/specs/post-editor-write-integrity/spec.md`. Verify `openspec list --json` shows no active change.

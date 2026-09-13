@@ -92,9 +92,16 @@ The pieces that implement the rule:
   itself. A non-admin's `meta[template]`, `meta[layout]`, `options[default_template]` and
   `options[default_layout]` must be blank or one the editor offers. The keys the engine maintains
   (`_`-prefixed metas, `visits`, `comments_count`, `status_default`, `draft_status`) are refused from
-  any request, administrators included. Either refusal names the field and stores nothing. Separately,
-  `restore` returns a trashed post only to `published`, `pending` or `draft`, and to `published` only
-  for a user holding the post type's publish permission.
+  any request, administrators included. A `meta`/`options` param that is not a set of fields (an array
+  of pairs) is refused up front, since the writers would otherwise store it key by key past a
+  hash-shaped check, and keys are matched folded because the store resolves them case-insensitively on
+  MySQL. Either refusal names the field and stores nothing. The non-admin's post type
+  `default_template`/`default_layout` (which a post falls back to, reaching the same render sink) is
+  held to the same offered list. Separately, the publish rule — a would-be `published` becomes
+  `pending` for a user who cannot publish — runs on create, update and restore alike, so a non-publisher
+  cannot reach `published` by omitting the status or through restore; `restore` acts only on a trashed
+  post and returns it to a status a post may be restored to (`published`, `pending`, `draft`, or the
+  `draft_child` buffer), `published` only for a holder of the publish permission.
 
 The rule is codified as a requirement in `openspec/specs/security-capability-gating/spec.md`.
 

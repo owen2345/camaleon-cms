@@ -144,17 +144,22 @@ Changes that look free from inside this repository and are not:
 
 - **Holding a post save's `meta[...]`/`options[...]` to the editor's choices** does not affect any
   surveyed consumer. The check covers only template and layout values (non-admins) and the keys the
-  engine maintains (`_`-prefixed metas, `visits`, `comments_count`, `status_default`, `draft_status`).
-  Every other key is still stored as submitted, so these are unaffected:
+  engine maintains (`_`-prefixed metas, `visits`, `comments_count`, `status_default`, `draft_status`);
+  it also refuses a `meta`/`options` param that is not a set of fields (an array of pairs), which no
+  editor form or surveyed consumer submits. Every other key is still stored as submitted, so these are
+  unaffected:
   - `camaleon-cms-seo`'s `options[seo_*]` and `camaleon_sitemap_customizer`'s `options[hide_in_sitemap]`;
   - the `meta[product_specifications]` field in `cama-ecommerce-theme`, `camaleon-cms-efashion` and
     `camaleon_website`'s `e_shop`;
-  - `camaleon_website`'s `sky` theme, which only reads `default_template`.
+  - `camaleon_website`'s `sky`, `cv` and `camaleon_cms` themes, which write `default_template` on
+    install — a server-side write, unaffected by a check on request params.
 
   A plugin that submits a post template or layout of its own must offer it through
-  `post_get_list_templates`/`post_get_list_layouts`; no surveyed repository submits one. `restore`
-  now acts only on trashed posts and returns a non-publisher's post as `pending`; no surveyed
-  repository calls it.
+  `post_get_list_templates`/`post_get_list_layouts` (a handler may add a `[label, value]` pair, whose
+  value is what the check accepts); no surveyed repository submits one. The same offered-list check
+  applies to a non-admin's post type `default_template`/`default_layout` in `PostTypesController`.
+  `restore` now acts only on trashed posts and returns a non-publisher's `published` post as `pending`
+  (a `draft_child` buffer comes back as a buffer); no surveyed repository calls it.
 
 ## APIs with no surveyed consumer
 

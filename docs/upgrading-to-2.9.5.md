@@ -21,7 +21,7 @@ what theme/plugin developers should know.
 | Reads `site.public_media` / `site.private_media` or `media.is_public` **directly** (reports, plugins, exports) | Those now return what their names say — drop any compensating inversion ([details](#notes-for-theme--plugin-developers)) |
 | Hit `NameError: undefined local variable or method custom_field_groups` deleting a site or taxonomy row | Nothing — retry the delete after upgrading ([details](#deleting-legacy-taxonomy-rows-no-longer-crashes)) |
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
-| Has plugins or themes that submit post template or layout values, or non-publishers who restore trashed posts | Offer templates through the hooks; a non-publisher's restored post now returns as pending ([details](#post-templates-reserved-keys-and-restore)) |
+| Has plugins or themes that submit post template or layout values, or relies on a non-publisher reaching `published` | Offer templates through the hooks; a user without the publish permission now stays at `pending` on create, update and restore ([details](#post-templates-reserved-keys-and-restore)) |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
 | Sets `cama_post_decorator_class` on a post type (a plugin or theme decorator) | It must name a `CamaleonCms::PostDecorator` subclass; the scan task lists stored values that are now ignored ([details](#cama_post_decorator_class-must-name-a-post-decorator)) |
 | Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
@@ -121,11 +121,16 @@ A contributor without the publish permission could store `options[status_default
 restore the post to publish it.
 
 - A non-admin's template or layout value must be blank or one the post editor offers. An
-  administrator's is stored as written.
+  administrator's is stored as written. The same offered-list rule applies to a post type's
+  `default_template`/`default_layout` for a non-admin, since a post falls back to it.
 - Keys the engine maintains itself are refused from any request: `_`-prefixed metas, `visits`,
-  `comments_count`, `status_default` and `draft_status`.
-- `restore` acts only on trashed posts, and returns a post to `published` only for a user holding the
-  post type's publish permission; anyone else's restored post comes back `pending`.
+  `comments_count`, `status_default` and `draft_status`. A `meta`/`options` value that is not a set of
+  fields (an array of pairs) is refused too.
+- A user without the publish permission can no longer reach `published` on any path: not by omitting
+  the status on create (the column default), not on a blank-status draft update, and not through
+  `restore`. `restore` acts only on trashed posts and returns a post to the status it had when that is
+  a status a post may be restored to (`published` only for a publisher; a `draft_child` autosave buffer
+  comes back as a buffer, not a standalone post).
 
 Either refusal names the field and saves nothing. No operator action is needed, and values stored
 before the upgrade are left as they are.

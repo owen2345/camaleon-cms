@@ -9,7 +9,8 @@ Three facts shape the fix:
 
 - **The offered lists need request context.** They come from `SiteHelper#cama_get_list_template_files`/`#cama_get_list_layouts_files`: the current theme's `views/template_*` and `views/layouts/*`, passed through the `post_get_list_templates`/`post_get_list_layouts` hooks. `SiteHelper` is already included into controllers through `RequestContextConcern`, so the controller can call the same methods the editor's selects use.
 - **`restore` trusts the stored option.** It writes `@post.options[:status_default]` straight into the column with `update_column`, and checks only `authorize! :update`.
-- **`create`/`update` already guard publishing.** `get_post_data` downgrades `published` to `pending` for a user who `cannot?(:publish_post, @post_type)`.
+- **`create`/`update` guard only a submitted `published`.** `get_post_data` downgrades a submitted `status=published` to `pending` for a user who `cannot?(:publish_post, @post_type)`, but the `posts.status` column defaults to `published` (a create that omits the status) and the draft-promotion branch sets `published` unconditionally. The publish rule therefore has to run on every status a save would give a post, not only a submitted one, so all three paths share one `publish_or_pending` helper.
+- **The writers iterate any container.** `set_metas`/`set_options` walk `params[:meta]`/`params[:options]` with `|key, value|`, so a non-hash container (an array of pairs, `meta[]=x`) is written key by key while answering neither `keys` nor `key?`; a check that reads the params as a hash has to refuse a non-hash container up front, or it is bypassed. The store also resolves a meta key with `where(key:)`, case-insensitively on MySQL, so keys are matched folded.
 
 ## Goals / Non-Goals
 
