@@ -1,5 +1,4 @@
 {
-  "share_sessions": true,
   "default_user_role": "client",
   "users_share_sites": true,
   "db_prefix": "cama_",

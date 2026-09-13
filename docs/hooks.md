@@ -25,6 +25,10 @@ it (BSD/macOS `grep`; on GNU `grep` `[[:space:]]` works too):
 "hooks":   { "after_login": ["my_after_login"] }
 ```
 
+A plugin shipped as a gem declares them in `config/camaleon_plugin.json` instead, whose `"key"` must be
+the name of the plugin's folders (`app/views/plugins/my_plugin` → `"my_plugin"`): Camaleon finds a gem
+plugin's settings, views and assets by that key.
+
 **Handle** it by defining that method in the helper. A handler takes a single `args` value — a Hash for
 most hooks — and communicates back by **mutating it in place**:
 
