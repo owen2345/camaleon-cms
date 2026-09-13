@@ -34,6 +34,7 @@ _None._
 
 - `post-editor-write-integrity`: the reserved-key requirement gains the key-name rule; the template/layout requirement gains the option-shape and post-type-create behavior; the restore/publish requirement gains the submitted-status rule and the blank-status-on-update behavior; new requirements cover the refused-save path (before hooks, no re-authorization), the new-post draft buffer, and the scan task's listing.
 - `meta-storage-integrity`: a non-Hash options row reads as empty; `set_metas`/`set_options` refuse a container that is not a set of fields.
+- `post-decorator-class-integrity`: a post type whose options row is not a JSON object decorates with the default without a lookup failure (the row reads as no options).
 - `post-content-sanitization`: the summary meta is held to the content scan when a user without the permission saves it.
 - `generated-markup-escaping`: the status-column requirement's rationale names the writers that still bypass validation now that a submitted status is held to the editor's set; the scenario is retitled to what it exercises.
 - `frontend-controller-helper-compatibility`: `cama_t`'s English fallback honors the lookup options the caller passes.
