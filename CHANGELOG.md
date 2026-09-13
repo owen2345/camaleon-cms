@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** On the record object that wrote its options with `set_meta`, `options` and `get_option` read an option by a String key or its Symbol twin, as a reloaded record does, and options that are nil or an empty string read as empty and accept writes instead of raising. [#1302](https://github.com/owen2345/camaleon-cms/pull/1302).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#options-read-by-either-key-type-on-the-instance-that-wrote-them).
+
 - **Bug fix:** camaleon_cms requires json `< 3`, since no released Rails works with json 3, and raises the bundled floors to `cama_contact_form` `~> 0.1.15` and `cama_meta_tag` `>= 1.7.3`. The shipped JSON configs are plain JSON, and config loading keeps accepting comments. Meta and option writes no longer store a key twice or update a row that reads skip. [#1292](https://github.com/owen2345/camaleon-cms/pull/1292).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#pick-up-the-dependency-fix).
 
