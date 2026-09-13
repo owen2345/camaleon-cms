@@ -29,6 +29,8 @@ module CamaleonCms
                  if: proc { |obj| obj.destroyed_by_association.blank? && obj.saved_change_to_attribute?(:slug) }
     before_update :default_category
 
+    validate :refuse_unknown_decorator_class_in_data_options
+
     # check if current post type manage categories
     def manage_categories?
       options[:has_category] || options[:has_single_category]
@@ -168,11 +170,131 @@ module CamaleonCms
       get_option('has_parent_structure', false)
     end
 
+    # The option naming the decorator class of this post type's posts (Post#decorator_class). It is
+    # loaded as code, so it may name only a CamaleonCms::PostDecorator subclass: any other value is
+    # refused at save, for every writer, and one stored before the check is ignored at read and
+    # listed by `rake camaleon_cms:security:scan_content`.
+    DECORATOR_CLASS_OPTION = 'cama_post_decorator_class'.freeze
+
+    # A class name, which holds nothing but word characters and "::", so a refusal can quote it back.
+    DECORATOR_CLASS_NAME_FORMAT = /\A(?:::)?[A-Z]\w*(?:::[A-Z]\w*)*\z/
+    private_constant :DECORATOR_CLASS_NAME_FORMAT
+
+    # The decorator class the option names: CamaleonCms::PostDecorator for a blank option, the named
+    # class when it is a CamaleonCms::PostDecorator subclass, else nil, also for a name that cannot be
+    # loaded: safe_constantize still raises for a path through a constant that is not a module ('ENV::X')
+    # and for a decorator file that fails to load. One resolver for the save-time check, the read and the
+    # security scan, so they agree.
+    def self.decorator_class_for(value)
+      return CamaleonCms::PostDecorator if value.blank?
+
+      klass = value.to_s.safe_constantize
+      klass if klass.is_a?(Class) && klass <= CamaleonCms::PostDecorator
+    rescue StandardError, ScriptError
+      nil
+    end
+
+    # The decorator for this post type's posts: the class its option names, or the default when the
+    # option is blank or names no loadable post decorator. Such a stored value (written before the
+    # save-time check, left by a removed plugin, imported) is logged and reported, never rewritten.
+    def post_decorator_class
+      value = get_option(DECORATOR_CLASS_OPTION)
+      self.class.decorator_class_for(value) || begin
+        warn_ignored_decorator_class(value)
+        CamaleonCms::PostDecorator
+      end
+    end
+
+    # Every way of writing an option (set_option, set_options and its alias, delete_option, the
+    # data_options save callback, a direct set_meta) ends here with the whole `_default` options, as a
+    # Hash, ActionController::Parameters or a JSON string, so this is where the decorator option is held
+    # to the allowlist.
+    def set_meta(key, value)
+      reject_unknown_decorator_class!(key, value) if key.to_s == '_default'
+      super
+    end
+
     private
 
     # skip save_metas_options callback after save changes (inherit from taxonomy) to call from here manually
     def save_metas_options_skip
       true
+    end
+
+    # Refuses, loudly, options whose decorator option names no post decorator, unless the write leaves
+    # the stored value as it is: a value stored without passing the check (before it existed, or a
+    # removed plugin's decorator) is ignored at read, not a reason to refuse unrelated writes. The
+    # writers mutate the memoized options before calling set_meta, and set_meta updates a row it queries
+    # itself rather than a loaded metas association, so both are dropped to keep the record reading what
+    # is stored.
+    def reject_unknown_decorator_class!(key, options)
+      value = decorator_class_option_in(options)
+      return if decorator_class_option_acceptable?(value)
+
+      cama_remove_cache("meta_#{key}")
+      metas.reset if metas.loaded?
+      errors.add(:base, decorator_class_refusal_message(value))
+      raise ActiveRecord::RecordInvalid, self
+    end
+
+    # A decorator option passed in data_options is written by the save callbacks, after the INSERT, where
+    # ActiveRecord's save would turn the refusal into false and an enclosing transaction would keep the
+    # row; checked as a validation, the save is refused before anything is written.
+    def refuse_unknown_decorator_class_in_data_options
+      return if data_options.blank?
+
+      value = decorator_class_option_in(data_options)
+      errors.add(:base, decorator_class_refusal_message(value)) unless decorator_class_option_acceptable?(value)
+    end
+
+    # Blank, a post decorator, or the value already stored.
+    def decorator_class_option_acceptable?(value)
+      self.class.decorator_class_for(value) || value.to_s == stored_decorator_class_option.to_s
+    end
+
+    # Once per request (or per console or task thread) for each post type and value: every decorated post
+    # asks for the decorator, and one line says what a line per post would. The value is quoted with
+    # inspect, so a stored newline cannot forge log lines.
+    def warn_ignored_decorator_class(value)
+      warned = CurrentRequest.post_decorator_warnings ||= Set.new
+      return unless warned.add?([id, value.to_s])
+
+      Rails.logger.warn("Camaleon CMS - post type #{id} (#{slug}): #{DECORATOR_CLASS_OPTION} " \
+                        "#{value.to_s.truncate(200).inspect} is not a loadable CamaleonCms::PostDecorator " \
+                        'subclass; decorating with the default')
+    end
+
+    # The refusal names the option, and the value when it is a class name, cut short so the flash
+    # carrying it fits the session cookie; the admin panel renders that flash raw, so any other value is
+    # described, never echoed. Only en.yml carries the keys, so fall back to English.
+    def decorator_class_refusal_message(value)
+      name = value.to_s
+      suffix = name.match?(DECORATOR_CLASS_NAME_FORMAT) ? '' : '_not_a_class_name'
+      full_key = "camaleon_cms.admin.post_type.message.decorator_class_refused#{suffix}"
+      args = { option: DECORATOR_CLASS_OPTION, value: name.truncate(100) }
+      I18n.t(full_key, **args, default: I18n.t(full_key, **args, locale: :en))
+    end
+
+    # The decorator option of `options` as get_meta will read it back once set_meta stores them, whatever
+    # form the writer passed: the key form written last in a Hash, the parameters' value, the JSON's.
+    def decorator_class_option_in(options)
+      stored = fix_meta_value(options)
+      stored = JSON.parse(stored, allow_duplicate_key: true) if stored.is_a?(String)
+      stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
+    rescue JSON::ParserError
+      nil
+    end
+
+    # The decorator option as the database holds it before the write under check, from the row get_meta
+    # reads; nil for a record not saved yet or an options row that is not a JSON object.
+    def stored_decorator_class_option
+      return unless persisted?
+
+      row = metas.where(key: '_default').order(:id).first
+      stored = JSON.parse(row.value, allow_duplicate_key: true) if row&.value.present?
+      stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
+    rescue JSON::ParserError
+      nil
     end
 
     # assign default roles for this post type

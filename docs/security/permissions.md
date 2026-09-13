@@ -524,3 +524,24 @@ end
 
 An empty or unset `redirect_allowed_hosts`, with no plugin handling `safe_redirect_hosts` and no hook setting `allow_external_redirect`, is the default
 strict same-host posture.
+
+## Security: Post decorator class option
+
+Not a role permission either, but a validity rule that applies to every writer, administrators included. A post type's
+`cama_post_decorator_class` option names the class `Post#decorator_class` loads to decorate every post of the type, and post type options are
+written by plugin and theme save hooks as well as by core. Every option writer (`set_option`, `set_options`, `delete_option`, `data_options`
+and a direct `set_meta`, whatever form the options arrive in) ends in `CamaleonCms::PostType#set_meta`, which holds the option to an
+allowlist: a write that sets or changes it must name a subclass of `CamaleonCms::PostDecorator`, or it is refused with an error naming the
+option, and the value when it is a class name (the admin panel shows the refusal of a submitted save as a flash error, and raises one that
+comes while serving a page, where a redirect would only reach another page that refuses; a value passed in `data_options` fails the save as
+a validation, before anything is written). A blank value clears it, and a write that leaves a stored value unchanged is not refused for it.
+A post resolves its decorator through `PostType#post_decorator_class`: the named class when it passes the same check, otherwise the default,
+with a warning naming the ignored value once per request. Rows written around `set_meta`, such as an importer creating `CamaleonCms::Meta`
+rows directly, are not checked at save; the read and the audit below still cover them. Nothing stored is rewritten. The convention is
+specified as `openspec/specs/post-decorator-class-integrity/spec.md`.
+
+### Auditing
+
+`bundle exec rake camaleon_cms:security:scan_content` lists, next to the content today's gates would refuse, every post type whose stored
+decorator option names no loadable post decorator (written before the check, left behind by a removed plugin, or imported) and every post
+type whose options cannot be read. Clear such a value or point it at a post decorator by hand.

@@ -340,6 +340,8 @@ en:
           created: 'Saved'
           updated: 'Updated'
           deleted: 'Deleted'
+          decorator_class_refused: "%{option} must name a subclass of CamaleonCms::PostDecorator, got '%{value}'"
+          decorator_class_refused_not_a_class_name: '%{option} must name a subclass of CamaleonCms::PostDecorator; the value given is not a class name'
           no_created_html: '<br> No %{taxonomy} found'
         pending: 'Pending'
         permit_comments: 'Allow Comments?'

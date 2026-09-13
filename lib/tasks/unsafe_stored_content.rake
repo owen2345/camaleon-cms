@@ -4,9 +4,11 @@ namespace :camaleon_cms do
   namespace :security do
     # The scan-and-reject gates refuse dangerous content at save time but never rewrite what is
     # already stored (nothing is ever rewritten under this model). This task lists the stored
-    # content that would fail today's gates -- post content and gated custom-field values -- so an
-    # operator can review and clean it up by hand. Read-only: it changes nothing.
-    desc 'List stored post content and custom-field values that would fail the scan-and-reject gates'
+    # content that would fail today's gates -- post content, gated custom-field values and post type
+    # decorator class options -- so an operator can review and clean it up by hand. Read-only: it
+    # changes nothing.
+    desc 'List stored post content, custom-field values and post type decorator classes that would fail ' \
+         'the scan-and-reject gates'
     task scan_content: :environment do
       report = CamaleonCms::TaskReporter
       report.call 'Scanning stored content against the scan-and-reject gates (read-only)...'
@@ -33,6 +35,25 @@ namespace :camaleon_cms do
         flagged += 1
         report.call "✗ Custom-field value id=#{row.id} field='#{row.custom_field_slug}' " \
                     "(#{field_key}) on #{row.object_class} ##{row.objectid}: value would be rejected"
+      end
+
+      # A post type's decorator class option is loaded as code and held to CamaleonCms::PostDecorator
+      # subclasses at save (PostType#set_meta); a stored value that names no loadable post decorator
+      # (written before that check, left by a removed plugin, imported) is ignored at render and listed
+      # here, through the same resolver the check uses. A post type whose options cannot be read is
+      # listed too, so one bad row does not end the scan.
+      option = CamaleonCms::PostType::DECORATOR_CLASS_OPTION
+      CamaleonCms::PostType.unscoped.preload(:metas).find_each do |post_type|
+        value = post_type.get_option(option)
+        next if CamaleonCms::PostType.decorator_class_for(value)
+
+        flagged += 1
+        report.call "✗ Post type id=#{post_type.id} '#{post_type.slug}': #{option} '#{value}' is not a " \
+                    'loadable CamaleonCms::PostDecorator subclass and is ignored'
+      rescue StandardError => e
+        flagged += 1
+        report.call "✗ Post type id=#{post_type.id} '#{post_type.slug}': options could not be read " \
+                    "(#{e.class}); review its _default meta"
       end
 
       report.call "Done. #{flagged} stored item(s) would be rejected by today's gates."

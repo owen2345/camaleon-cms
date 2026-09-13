@@ -22,6 +22,7 @@ what theme/plugin developers should know.
 | Hit `NameError: undefined local variable or method custom_field_groups` deleting a site or taxonomy row | Nothing — retry the delete after upgrading ([details](#deleting-legacy-taxonomy-rows-no-longer-crashes)) |
 | Uses the **contact form** | The same bundle update raises `cama_contact_form` to `~> 0.1.15` |
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
+| Sets `cama_post_decorator_class` on a post type (a plugin or theme decorator) | It must name a `CamaleonCms::PostDecorator` subclass; the scan task lists stored values that are now ignored ([details](#cama_post_decorator_class-must-name-a-post-decorator)) |
 
 ---
 
@@ -140,6 +141,17 @@ associations, negated the flag), **drop the compensation** — after the repair 
 stored flag matches real visibility. If you read them uncompensated, your feature starts
 returning the right rows.
 
+### `cama_post_decorator_class` must name a post decorator
+
+A post type's decorator class option is loaded as code, so a write that sets or changes it now has
+to name a subclass of `CamaleonCms::PostDecorator`: any other value is refused at save with an
+error naming the option, whoever writes it. A value already stored that fails the check (written
+before this release, left behind by a removed plugin, or imported) is ignored instead: the posts
+decorate with the default, a warning is logged once per request, and saving the post type's other
+options keeps working. A decorator inheriting from `CamaleonCms::PostDecorator`, as
+camaleon-ecommerce's does, is unaffected. `bundle exec rake camaleon_cms:security:scan_content`
+lists the post types whose stored value is ignored.
+
 ### Uploader behavior changes
 
 - `search_new_key` (and therefore `add_file` without `same_name: true`) now treats a file present
@@ -158,3 +170,5 @@ returning the right rows.
 2. Immediately run `bundle exec rake camaleon_cms:repair_media_visibility` (safe to re-run).
 3. If you maintain a theme or plugin reading the media associations or flag directly, drop any
    compensating inversion.
+4. Run `bundle exec rake camaleon_cms:security:scan_content` (read-only); it now also lists post
+   types whose stored decorator class option is ignored, so you can clear or correct them.
