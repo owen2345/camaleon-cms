@@ -258,6 +258,7 @@ en:
         you_must_upload_image: 'You must upload an image'
         you_must_upload_video: 'You must upload an video'
         so_their_data_has_not_been_saved: 'So their data has not been saved'
+        malformed_fields: 'The submitted settings could not be read as a set of fields, so none of them was saved.'
         no_response_fields: 'No response fields '
         quick_info: 'Some quick info about this user'
         was_inactivated: 'was inactivated.'

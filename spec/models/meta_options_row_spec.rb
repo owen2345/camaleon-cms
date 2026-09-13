@@ -44,4 +44,29 @@ RSpec.describe CamaleonCms::Metas, type: :model do
       expect(reload(record).get_meta('_default')).to eq('corrupt')
     end
   end
+
+  describe 'a container that is not a set of fields' do
+    it 'is refused by set_metas and writes nothing' do
+      expect { record.set_metas([%w[planted v]]) }.to raise_error(CamaleonCms::Metas::InvalidContainer)
+      expect(reload(record).get_meta('planted')).to be_nil
+    end
+
+    it 'is refused by set_options and writes nothing' do
+      expect { record.set_options(%w[status_default]) }.to raise_error(CamaleonCms::Metas::InvalidContainer)
+      expect { record.set_options('status_default=published') }.to raise_error(CamaleonCms::Metas::InvalidContainer)
+      expect(reload(record).get_option('status_default')).to be_nil
+    end
+
+    it 'still accepts a hash, request parameters, nil and blank' do
+      record.set_metas(nil)
+      record.set_metas({})
+      record.set_options(nil)
+      record.set_options([])
+      record.set_metas('a' => '1')
+      record.set_options(ActionController::Parameters.new(b: '2'))
+
+      expect(reload(record).get_meta('a')).to eq(1)
+      expect(reload(record).get_option('b')).to eq(2)
+    end
+  end
 end

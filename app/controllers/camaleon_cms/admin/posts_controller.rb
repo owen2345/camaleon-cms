@@ -315,13 +315,13 @@ module CamaleonCms
         [cama_post_message('status_not_offered', field: 'post[status]')]
       end
 
-      # `set_metas`/`set_options` iterate whatever `meta`/`options` is with `|key, value|`, so an array
-      # of pairs (`meta[]=x`, or a JSON body `{"meta":[["template","..."]]}`) would be written key by
-      # key while answering neither `keys` nor `key?` -- slipping past the checks below, and an array
-      # `options` reaches `set_options`' `to_sym` and 500s. Refuse a present-but-not-hash container up
-      # front, so nothing is read from it or written.
+      # A `meta`, `options` or `field_options` param that is present but not a set of fields (an array
+      # of pairs such as `meta[]=x`, a JSON `{"meta":[["template","..."]]}`, a scalar) answers neither
+      # `keys` nor `key?`, so the checks below would skip it; the writers refuse it too
+      # (Metas::InvalidContainer), but the post save names it up front, before anything is read or
+      # written, and holds field_options to the same rule instead of silently dropping it.
       def malformed_container_refusals
-        %i[meta options].filter_map do |group|
+        %i[meta options field_options].filter_map do |group|
           submitted = params[group]
           next if submitted.nil? || cama_hash_param?(submitted)
 
