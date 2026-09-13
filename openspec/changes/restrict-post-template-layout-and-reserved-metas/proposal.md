@@ -24,6 +24,7 @@ The admin post save stores every submitted `meta[...]` and `options[...]` key as
 - `post-editor-write-integrity`: which request-supplied post metas and options a save accepts (theme-offered templates and layouts, no engine-maintained keys), and which status a restore may give a post.
 
 ### Modified Capabilities
+- `generated-markup-escaping`: the "post status column MUST NOT be trusted" scenario used the `options[status_default] -> trash -> restore` path this change closes; its scenario now plants the non-canonical status directly, and the requirement (rendering treats the column as untrusted) is unchanged.
 
 ## Impact
 
