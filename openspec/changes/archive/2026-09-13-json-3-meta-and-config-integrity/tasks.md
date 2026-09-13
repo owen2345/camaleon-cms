@@ -22,7 +22,7 @@
 
 ## 5. Close out
 
-- [ ] 5.1 Run `bin/rubocop`, `bin/brakeman --no-pager` and `(cd spec/dummy && bin/rails zeitwerk:check)`, push the branch, and verify the PR #1292 CI matrix passes
-- [ ] 5.2 Update the PR #1292 description so it covers the net change
-- [ ] 5.3 Run `/opsx:verify` and address its findings
-- [ ] 5.4 Run `/opsx:archive` on the branch before merge, syncing both capabilities into `openspec/specs/`, and commit the archive in the PR
+- [x] 5.1 Run `bin/rubocop`, `bin/brakeman --no-pager` and `(cd spec/dummy && bin/rails zeitwerk:check)`, push the branch, and verify the PR #1292 CI matrix passes
+- [x] 5.2 Update the PR #1292 description so it covers the net change
+- [x] 5.3 Run `/opsx:verify` and address its findings
+- [x] 5.4 Run `/opsx:archive` on the branch before merge, syncing both capabilities into `openspec/specs/`, and commit the archive in the PR
