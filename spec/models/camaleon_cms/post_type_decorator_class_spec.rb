@@ -211,6 +211,16 @@ RSpec.describe CamaleonCms::PostType, type: :model do
     it 'is the default for a post without a post type' do
       expect(CamaleonCms::Post.new.decorator_class).to eq(CamaleonCms::PostDecorator)
     end
+
+    it 'is the default for a post whose post type options cannot be read, logging why' do
+      post = create(:post, post_type: post_type)
+      post_type.metas.find_by!(key: '_default').update!(value: '[]')
+      warnings = []
+      allow(Rails.logger).to receive(:warn) { |message| warnings << message }
+
+      expect(CamaleonCms::Post.find(post.id).decorator_class).to eq(CamaleonCms::PostDecorator)
+      expect(warnings).to include(match(/post #{post.id}: decorator lookup failed \(NoMethodError/))
+    end
   end
 
   describe '.decorator_class_for' do

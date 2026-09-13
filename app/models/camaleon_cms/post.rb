@@ -289,12 +289,15 @@ module CamaleonCms
 
     # The decorator for this post: the one its post type names through the cama_post_decorator_class
     # option, held to CamaleonCms::PostDecorator subclasses (PostType#post_decorator_class), or the
-    # default for a post without a post type.
+    # default for a post without a post type. A lookup that fails (an options row that is not a JSON
+    # object, a failing query) falls back to the default too, and logs why.
     # sample: my_post_type.set_option('cama_post_decorator_class', 'ProductDecorator')
     # Sample: https://github.com/owen2345/camaleon-ecommerce/tree/master/app/decorators/
     def decorator_class
       post_type&.post_decorator_class || CamaleonCms::PostDecorator
-    rescue StandardError
+    rescue StandardError => e
+      Rails.logger.warn("Camaleon CMS - post #{id}: decorator lookup failed (#{e.class}: " \
+                        "#{e.message.to_s.truncate(200)}); decorating with the default")
       CamaleonCms::PostDecorator
     end
 
