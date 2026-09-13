@@ -132,8 +132,12 @@ restore the post to publish it.
   a status a post may be restored to (`published` only for a publisher; a `draft_child` autosave buffer
   comes back as a buffer, not a standalone post).
 
-Either refusal names the field and saves nothing. No operator action is needed, and values stored
-before the upgrade are left as they are.
+Either refusal names the field and saves nothing. Values stored before the upgrade are left as they
+are, and a template or layout pointing at an admin view keeps breaking that post's public page until
+it is cleared by hand: run `bundle exec rake camaleon_cms:security:scan_content` (read-only), which
+now also lists posts and post types whose template, layout or default view is not a view of the site's
+theme (a plugin hook may still offer it), options rows that are not JSON objects, and post summaries
+the content scan would refuse.
 
 ---
 
