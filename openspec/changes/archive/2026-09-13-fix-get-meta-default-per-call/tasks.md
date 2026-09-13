@@ -29,9 +29,9 @@
 
 ## 4. Verification and delivery
 
-- [ ] 4.1 Rebase on `master` if any of `fix/same-instance-option-reads`, #1298, #1299 or #1301 has merged, resolving conflicts in `metas.rb` and in `openspec/specs/meta-storage-integrity/spec.md`. If `fix-same-instance-option-reads` is already archived, add a MODIFIED delta to this change that trims "a get_meta read without a default left nil" from its requirement "Options that are nil or empty read and write as none". Verify that `bin/rspec spec/models` passes after the rebase.
+- [x] 4.1 Rebase on `master` if any of `fix/same-instance-option-reads`, #1298, #1299 or #1301 has merged, resolving conflicts in `metas.rb` and in `openspec/specs/meta-storage-integrity/spec.md`. If `fix-same-instance-option-reads` is already archived, add a MODIFIED delta to this change that trims "a get_meta read without a default left nil" from its requirement "Options that are nil or empty read and write as none". Verify that `bin/rspec spec/models` passes after the rebase.
 - [x] 4.2 Run the CI-parity commands from `AGENTS.md` and verify all four pass: `bin/rspec`, `bin/rubocop -A` on touched files followed by a full `bin/rubocop` with no offenses, `bin/brakeman --no-pager`, and `(cd spec/dummy && bin/rails zeitwerk:check)`.
-- [ ] 4.3 Commit the specs, fix and docs, push `fix/get-meta-default-per-call`, and open the PR with a What and Why summary and a User-Visible Impact sentence (`docs/ai/workflows.md` Phase 4). Verify that the PR's CI run starts.
-- [ ] 4.4 Add a `CHANGELOG.md` entry under `## Unreleased` that links the PR and the upgrade-guide anchor. Verify that it is at most 500 characters.
-- [ ] 4.5 Run `/opsx:verify` and address its findings.
-- [ ] 4.6 Run `/opsx:archive` on the branch, syncing both requirement changes into `openspec/specs/meta-storage-integrity/spec.md`. Commit the result together with the changelog entry, using the skip-ci directive once the PR has had a full run (`docs/ai/workflows.md` Phase 3). Verify that every box in this file is checked.
+- [x] 4.3 Commit the specs, fix and docs, push `fix/get-meta-default-per-call`, and open the PR with a What and Why summary and a User-Visible Impact sentence (`docs/ai/workflows.md` Phase 4). Verify that the PR's CI run starts.
+- [x] 4.4 Add a `CHANGELOG.md` entry under `## Unreleased` that links the PR and the upgrade-guide anchor. Verify that it is at most 500 characters.
+- [x] 4.5 Run `/opsx:verify` and address its findings.
+- [x] 4.6 Run `/opsx:archive` on the branch, syncing both requirement changes into `openspec/specs/meta-storage-integrity/spec.md`. Commit the result together with the changelog entry, using the skip-ci directive once the PR has had a full run (`docs/ai/workflows.md` Phase 3). Verify that every box in this file is checked.
