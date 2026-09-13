@@ -33,10 +33,13 @@ module CamaleonCms
 
       # Check if the parent object has been saved to the database yet
       if persisted?
-        # Safe to use database-driven lookups and updates. When a key has several rows, update the
-        # lowest id: the one get_meta reads.
-        meta_record = metas.where(key: key.to_s).order(:id).first
-        if meta_record
+        # A meta built before the first save is still pending during the after_create callbacks, and the
+        # metas autosave inserts it afterwards: update it instead of adding a second row for the key.
+        # Otherwise update the lowest id when a key has several rows: the one get_meta reads.
+        pending_record = metas.target.find { |m| m.new_record? && m.key == key.to_s }
+        if pending_record
+          pending_record.value = fixed_value
+        elsif (meta_record = metas.where(key: key.to_s).order(:id).first)
           meta_record.update(value: fixed_value)
         else
           metas.create(key: key.to_s, value: fixed_value)
