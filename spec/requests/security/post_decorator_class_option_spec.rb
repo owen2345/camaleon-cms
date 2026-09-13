@@ -30,11 +30,9 @@ RSpec.describe 'the post decorator class option written by a post type save hook
                                     ->(args) { args[:post_type].set_options(option => class_name) }, id)
   end
 
-  # The bundled cama_meta_tag plugin's own post type save hook reads params[:options] unguarded until
-  # its 1.7.2 successor, so the save carries one of its fields.
   def save_post_type
     patch "/admin/settings/post_types/#{post_type.id}",
-          params: { post_type: { name: post_type.name, slug: post_type.slug }, options: { 'seo_title' => '' } }
+          params: { post_type: { name: post_type.name, slug: post_type.slug } }
   end
 
   def expect_refused(class_name)
