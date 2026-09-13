@@ -8,7 +8,9 @@ installed sites or the request host — so a caller with no request can pin the 
 caller-set slot sits above the memoized site on purpose: a mailer or background delivery on a
 multisite install has no request to fall back on, and an in-request delivery for another site must
 resolve against the site the sender assigned, not the request's. Assigning `@current_site` writes
-through to `CurrentRequest.site`.
+through to `CurrentRequest.site`. The `$current_site` global holds one site record, with the options and
+metas it memoizes, for the whole process: it suits a console or a task, while a server resolves its
+site per request, so the error logged when no site matches does not recommend the global.
 
 ## Requirements
 ### Requirement: current_site honors a caller-set @current_site before the memoized site

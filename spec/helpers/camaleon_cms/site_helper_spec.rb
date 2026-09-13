@@ -40,6 +40,29 @@ describe CamaleonCms::SiteHelper do
     end
   end
 
+  describe '#current_site when no site matches the request' do
+    # A site held in a global serves every request of a server process from one record and the options it
+    # memoized, so the logged advice must not recommend $current_site.
+    subject(:helper_object) do
+      Class.new do
+        include CamaleonCms::SiteHelper
+
+        def request
+          ActionDispatch::TestRequest.create('HTTP_HOST' => 'unmapped.example')
+        end
+      end.new
+    end
+
+    it 'logs domain-mapping advice without recommending the $current_site global' do
+      messages = []
+      allow(Rails.logger).to receive(:error) { |message| messages << message }
+
+      expect(helper_object.current_site).to be_nil
+      expect(messages).to contain_exactly(a_string_including('139779-examples/how.html'))
+      expect(messages.first).not_to include('$current_site')
+    end
+  end
+
   describe 'HtmlMailer on a multisite install (real-world M21 symptom)' do
     it 'builds the message without raising when there is no request' do
       mail = CamaleonCms::HtmlMailer.sender('test@gmail.com', 'test', current_site: site.id,
