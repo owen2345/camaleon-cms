@@ -173,11 +173,10 @@ module CamaleonCms
     # )
     def save_metas_options
       set_multiple_options(data_options)
-      return if data_metas.blank?
-
-      data_metas.each do |key, val|
-        set_meta(key, val)
-      end
+      data_metas.each { |key, val| set_meta(key, val) } if data_metas.present?
+      # written: a later save of this instance must not write them again over newer values
+      self.data_options = nil
+      self.data_metas = nil
     end
 
     private

@@ -98,3 +98,26 @@ second row with the same key.
 
 - **WHEN** a new post gets an option before its first save and is saved with creation-time options
 - **THEN** the post has one options row, holding both values
+
+### Requirement: Options and metas given to a save are written by that save only
+
+Options and metas assigned through `data_options` and `data_metas` SHALL be written by the record's next
+save, and a later save of the same instance SHALL NOT write them again. A post type SHALL write its
+`data_metas` when it is created, as other records do.
+
+#### Scenario: A post type updated after an option write
+
+- **WHEN** a post type created with `has_category` in `data_options` sets `has_category` to `false` and is
+  then renamed
+- **THEN** a freshly loaded post type reads `has_category` as `false`
+
+#### Scenario: A post updated after new option and meta writes
+
+- **WHEN** a post created or updated with `data_options` and `data_metas` writes new values for those keys
+  and is then updated again
+- **THEN** a freshly loaded post reads the new values
+
+#### Scenario: A post type created with data_metas
+
+- **WHEN** a post type is created with `data_metas`
+- **THEN** a freshly loaded post type reads those metas

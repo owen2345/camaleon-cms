@@ -178,11 +178,12 @@ module CamaleonCms
     # assign default roles for this post type
     # define default settings for this post type
     def set_default_site_user_roles
-      set_multiple_options(
-        { has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false,
-          has_picture: true, has_template: true, has_seo: true, not_deleted: false, has_layout: false,
-          default_layout: '' }.merge(PluginRoutes.fixActionParameter(data_options || {}).to_sym)
-      )
+      self.data_options = {
+        has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false,
+        has_picture: true, has_template: true, has_seo: true, not_deleted: false, has_layout: false,
+        default_layout: ''
+      }.merge(PluginRoutes.fixActionParameter(data_options || {}).to_sym)
+      save_metas_options
       site.set_default_user_roles(self)
       default_category
     end
