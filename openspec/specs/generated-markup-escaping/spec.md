@@ -79,7 +79,7 @@ The escaped output MUST remain byte-identical to the current output for values t
 
 `posts.status` is written without model validation — `PostsController#trash` via `update_column`, and `DraftsController` via `save(validate: false)` — and a non-canonical value may already be stored from before request validation was added. Rendering code SHALL therefore treat the column as untrusted input regardless of any validation applied at the model or controller layer.
 
-#### Scenario: A status poisoned through the restore path still renders inert
+#### Scenario: A non-canonical status stored in the column still renders inert
 
 - **WHEN** a post's `status` column holds a script payload (planted before this change through the old `options[:status_default]` restore path, now closed, or by any non-validating writer)
 - **AND** an administrator opens the post list with `s=all`

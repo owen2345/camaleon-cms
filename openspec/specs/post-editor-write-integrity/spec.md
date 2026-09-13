@@ -16,7 +16,7 @@ A post save or draft save by a user who is not an administrator SHALL be refused
 - **THEN** the save is refused with an error naming the template field
 - **AND** the post's stored template, title and other metas are unchanged, and its public page renders as before
 
-#### Scenario: Non-admin sets a default template while the post type has templates switched off
+#### Scenario: Non-admin sets a default template outside the offered list
 
 - **WHEN** a contributor saves a post with `options[default_template]` set to a name the editor does not offer
 - **THEN** the save is refused and no option is stored
