@@ -52,9 +52,12 @@ module CamaleonCms
         nil
       end
       if r[:site].blank?
+        # Not $current_site: a site held in a global serves every request of the process from one record and
+        # the options it memoized, so other processes' writes never reach it
         Rails.logger.error(
-          'Camaleon CMS - Please define your current site: $current_site = CamaleonCms::Site.first.decorate or ' \
-            'map your domains: https://camaleon.website/documentation/category/139779-examples/how.html'
+          'Camaleon CMS - No site matches this request: map your domains to your sites ' \
+            '(https://camaleon.website/documentation/category/139779-examples/how.html), ' \
+            'or pass the site with current_site(site) outside a request'
             .cama_log_style(:red)
         )
       end

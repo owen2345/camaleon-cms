@@ -26,6 +26,7 @@ what theme/plugin developers should know.
 | Sets `cama_post_decorator_class` on a post type (a plugin or theme decorator) | It must name a `CamaleonCms::PostDecorator` subclass; the scan task lists stored values that are now ignored ([details](#cama_post_decorator_class-must-name-a-post-decorator)) |
 | Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
+| Sets `$current_site` in an initializer or other server code | Remove it and map your domains to your sites ([details](#resolving-the-site-on-a-server)) |
 
 ---
 
@@ -171,6 +172,21 @@ Separately, the per-kind field options in the custom-fields settings — colorpi
 Format**, the date field's date-vs-datetime toggle, image **versions**, file **formats**, and the
 posts field's post-type filter — were silently discarded on every save. They persist now, but any
 choice made before this release was never stored: reopen the field group and pick them again.
+
+---
+
+## Resolving the site on a server
+
+When no site matched a request, earlier releases logged advice to set
+`$current_site = CamaleonCms::Site.first.decorate`. A server that follows it serves every request of a
+process from that one site record, and a record keeps the options and metas it has read in memory. The
+process then never sees site settings saved by another worker, a console or a job, it keeps serving
+cached pages that other workers' `front_cache` invalidations retired, and its threads update one shared
+options hash. The log now points to domain mapping instead.
+
+**Action:** if your app sets `$current_site` in an initializer or other server code, remove it and map
+your domains to your sites ([how](https://camaleon.website/documentation/category/139779-examples/how.html)).
+Consoles, scripts and rake tasks can keep setting it.
 
 ---
 
