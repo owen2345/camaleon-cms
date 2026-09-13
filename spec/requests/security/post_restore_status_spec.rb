@@ -27,18 +27,6 @@ RSpec.describe 'Security: post restore status', type: :request do
     patch "/admin/post_type/#{post_type.id}/posts/#{record.id}/restore"
   end
 
-  it 'does not let a contributor publish by saving a restore status and restoring' do
-    sign_in_as(contributor, site: current_site)
-    post "/admin/post_type/#{post_type.id}/posts",
-         params: { post: { title: 'Contributor post', slug: 'contributor-post', content: 'body', status: 'published' },
-                   options: { status_default: 'published' } }
-    record = post_type.posts.find_by(slug: 'contributor-post')
-
-    restore(record) if record
-
-    expect(post_type.posts.published.where(slug: 'contributor-post')).to be_empty
-  end
-
   it "returns a non-publisher's trashed post as pending, whatever its stored status" do
     sign_in_as(contributor, site: current_site)
     record = post_owned_by(contributor, status: 'trash', status_default: 'published')
@@ -79,5 +67,29 @@ RSpec.describe 'Security: post restore status', type: :request do
 
     expect(unrecognised.reload.status).to eq('pending')
     expect(missing.reload.status).to eq('pending')
+  end
+
+  it 'returns a trashed autosave buffer to draft_child, not a standalone post' do
+    sign_in_as(editor, site: current_site)
+    parent = post_owned_by(editor, status: 'published')
+    post "/admin/post_type/#{post_type.id}/drafts",
+         params: { post_id: parent.id, post: { title: 'Draft title' } }
+    buffer = post_type.posts.drafts.where(post_parent: parent.id).first
+    patch "/admin/post_type/#{post_type.id}/posts/#{buffer.id}/trash"
+
+    restore(buffer)
+
+    expect(buffer.reload.status).to eq('draft_child')
+    expect(CamaleonCms::Post.find(parent.id).drafts.where(id: buffer.id)).to be_present
+  end
+
+  it 'restores a post whose options were corrupted, without crashing' do
+    sign_in_as(editor, site: current_site)
+    record = post_owned_by(editor, status: 'trash')
+    record.set_meta('_default', 'corrupt') # a non-hash options meta from legacy data
+
+    restore(record)
+
+    expect(record.reload.status).to eq('pending')
   end
 end

@@ -18,8 +18,9 @@ module CamaleonCms
         options: { 'default_template' => :templates, 'default_layout' => :layouts }
       }.freeze
 
-      # The statuses a restored post can return to.
-      RESTORABLE_STATUSES = %w[published pending draft].freeze
+      # The statuses a restored post can return to. `draft_child` is included so a trashed autosave
+      # buffer comes back as its parent's buffer, not a standalone post that collides with the parent.
+      RESTORABLE_STATUSES = %w[published pending draft draft_child].freeze
 
       add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.contents')
 
@@ -184,13 +185,17 @@ module CamaleonCms
       def restore
         @post = @post_type.posts.find(params[:post_id])
         authorize! :update, @post
-        unless @post.status == 'trash'
+        unless @post.trash?
           flash[:error] = cama_post_message('restore_not_in_trash', post_type: @post_type.decorate.the_title)
           return redirect_to action: :index, s: params[:s]
         end
 
+        # A corrupt or legacy `_default` (not a Hash) makes options[...] raise; read the stored status
+        # only when options is a hash, otherwise restore to the default status.
+        stored_options = @post.options
+        previous_status = stored_options.is_a?(Hash) ? stored_options[:status_default] : nil
         # rubocop:disable Rails/SkipsModelValidations
-        @post.update_column(:status, restorable_status(@post.options[:status_default]))
+        @post.update_column(:status, restorable_status(previous_status))
         # rubocop:enable Rails/SkipsModelValidations
         @post.update_extra_data
         hooks_run('restored_post', { post: @post, post_type: @post_type })
