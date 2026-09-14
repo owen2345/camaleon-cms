@@ -8,7 +8,8 @@ RSpec.describe CamaleonRecord do
 
   describe '#dup' do
     it 'keeps an option written on one copy out of another' do
-      post = create(:post)
+      post = build(:post, post_type: post_type)
+      # materializes the memo on the original: copies of a record that has read nothing build their own
       post.get_option('has_comments')
       first_copy = post.dup
       second_copy = post.dup
@@ -21,8 +22,9 @@ RSpec.describe CamaleonRecord do
 
   describe '#reload' do
     it 'reads a meta written through another instance since the last read' do
-      post = create(:post)
+      post = create(:post, post_type: post_type)
       post.set_meta('subtitle', 'old')
+      post.get_meta('subtitle')
       CamaleonCms::Post.find(post.id).set_meta('subtitle', 'new')
 
       expect(post.reload.get_meta('subtitle')).to eq('new')
