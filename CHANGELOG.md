@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Bug fix:** `delete_meta` also removes the metas a record holds in memory, so a record with eager-loaded metas no longer reads the deleted value back, and a meta set before the record's save is no longer stored by that save. [#1298](https://github.com/owen2345/camaleon-cms/pull/1298).
+- **Bug fix:** `delete_meta` also removes the metas a record holds in memory, so a record with eager-loaded metas no longer reads the deleted value back, and a meta set with `set_meta` and deleted before the record's save is no longer stored by that save. It takes a single key: an Array is no longer matched as a set. [#1298](https://github.com/owen2345/camaleon-cms/pull/1298).
 
 - **Security fix:** A non-admin's post save is refused for a template or layout the editor does not offer, a non-ASCII meta key, a status outside published/pending/draft, or a summary the content scan refuses; engine-maintained metas and options are refused from anyone, and `restore` no longer publishes for a user without the publish permission. [#1297](https://github.com/owen2345/camaleon-cms/pull/1297).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#post-templates-reserved-keys-and-restore).
