@@ -41,6 +41,25 @@ RSpec.describe CamaleonCms::Metas do
     expect(CamaleonCms::Post.find(post.id).options).to include('has_comments' => true, 'has_summary' => false)
   end
 
+  it 'writes the queues of a created record without looking its metas up' do
+    lookups = []
+    subscription = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+      next unless payload[:sql].start_with?('SELECT') && payload[:sql].include?('"metas"')
+
+      binds = payload[:type_casted_binds].to_a
+      lookups << payload[:sql] if binds.include?('Post') && (binds & %w[_default subtitle icon]).any?
+    end
+
+    post = create(:post, post_type: shared_post_type, data_options: { has_comments: true },
+                         data_metas: { subtitle: 'first', icon: 'star' })
+
+    ActiveSupport::Notifications.unsubscribe(subscription)
+    expect(lookups).to be_empty
+    stored = CamaleonCms::Post.find(post.id)
+    expect(stored.get_option(:has_comments)).to be(true)
+    expect(stored.metas.where(key: %w[subtitle icon _default]).count).to eq(3)
+  end
+
   it 'writes the data_metas of a post type into the meta built before its first save' do
     post_type = build(:post_type, data_metas: { icon_color: 'red' })
     post_type.set_meta('icon_color', 'blue')
@@ -86,8 +105,9 @@ RSpec.describe CamaleonCms::Metas do
   end
 
   describe 'a save rolled back after it wrote them' do
-    it 'queues them again for the next save of the instance' do
+    it 'queues them again for the next save of the instance, with the metas set before it' do
       post_type = build(:post_type, data_options: { has_category: true }, data_metas: { icon_color: 'red' })
+      post_type.set_meta('note', 'kept')
       allow(PluginRoutes).to receive(:reload).and_raise('routes failed') # a later after_create
       expect { post_type.save! }.to raise_error('routes failed')
       allow(PluginRoutes).to receive(:reload).and_call_original
@@ -97,7 +117,8 @@ RSpec.describe CamaleonCms::Metas do
       stored = CamaleonCms::PostType.find(post_type.id)
       expect(stored.get_option(:has_category)).to be(true)
       expect(stored.get_meta('icon_color')).to eq('red')
-      expect(stored.metas.where(key: 'icon_color').count).to eq(1)
+      expect(stored.get_meta('note')).to eq('kept')
+      expect(stored.metas.group(:key).count).to eq('_default' => 1, 'icon_color' => 1, 'note' => 1)
     end
 
     it 'queues the values given to an update whose transaction is rolled back' do

@@ -75,8 +75,8 @@ module CamaleonCms
     def get_meta(key, default = nil)
       key_str = key.is_a?(Symbol) ? key.to_s : key
       cama_fetch_cache("meta_#{key_str}") do
-        option = if metas.loaded?
-                   metas.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
+        option = if metas.loaded? || created_record_metas_in_memory?
+                   metas.target.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
                  else
                    metas.where(key: key_str).first
                  end
@@ -191,11 +191,17 @@ module CamaleonCms
       # The metas scope memoized before the INSERT names no owner, so a write would miss the row the
       # write before it created; the metas autosave rebuilds it too, but runs after this callback.
       metas.proxy_association.reset_scope if previously_new_record?
+      # While the creating save writes the queues, every row of the record is in memory: the metas
+      # built before the save and the rows this write creates, since nothing else has written for an
+      # id this INSERT assigned. Reads and lookups take them from there instead of querying.
+      @created_record_metas_in_memory = previously_new_record?
       set_metas(data_metas)
       set_options(data_options)
-      @written_metas_options = [data_options, data_metas, current_transaction_state]
+      @written_metas_options = [data_options, data_metas, current_transaction_state, previously_new_record?]
       self.data_options = nil
       self.data_metas = nil
+    ensure
+      @created_record_metas_in_memory = false
     end
 
     private
@@ -211,12 +217,29 @@ module CamaleonCms
     # back, so the next save of this instance writes them; values queued since are kept, and a rollback
     # of a later transaction leaves the write, which stands, consumed.
     def requeue_metas_options
-      options, metas, state = @written_metas_options
+      options, metas, state, created = @written_metas_options
       return unless state&.rolledback?
 
       @written_metas_options = nil
       self.data_options = options if data_options.blank?
       self.data_metas = metas if data_metas.blank?
+      forget_rolled_back_metas(created)
+    end
+
+    # The rows the rolled-back transaction wrote are gone while the metas in memory still claim them.
+    # A record whose creation was rolled back had every meta of its written there: they are built again,
+    # so the next save stores them (the record's own state is restored after this callback, so the
+    # write remembers whether it created the record). A record that existed keeps its earlier rows, so
+    # its metas and the values cached from them are dropped and read again on demand.
+    def forget_rolled_back_metas(created)
+      if created
+        built = metas.target.map { |meta| { key: meta.key, value: meta.value } }
+        metas.reset
+        built.each { |attributes| metas.build(attributes) }
+      else
+        metas.reset
+        @cama_cache_vars = nil
+      end
     end
 
     def forget_written_metas_options
@@ -236,14 +259,19 @@ module CamaleonCms
       raise InvalidContainer, "metas and options must be a set of fields, not #{container.class}"
     end
 
-    # The stored row a write updates: the lowest id among the key's rows, taken from the loaded metas
-    # when they are loaded and from the database otherwise, as get_meta takes the row it reads.
+    # The stored row a write updates: the lowest id among the key's rows, taken from the metas in
+    # memory when they are loaded or complete, and from the database otherwise, as get_meta takes the
+    # row it reads.
     def stored_meta_row(key_str)
-      if metas.loaded?
+      if metas.loaded? || created_record_metas_in_memory?
         metas.target.select { |m| m.persisted? && m.key == key_str }.min_by { |m| m.id.to_i }
       else
         metas.where(key: key_str).order(:id).first
       end
+    end
+
+    def created_record_metas_in_memory?
+      @created_record_metas_in_memory == true
     end
 
     # the options hash the option writers update: indifferent, as a stored one is parsed, so a String
