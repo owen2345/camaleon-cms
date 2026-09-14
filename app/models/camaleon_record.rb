@@ -69,6 +69,11 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
     @cama_cache_vars.delete(cama_build_cache_key(key))
   end
 
+  # drop every value memoized on this instance
+  def cama_clear_cache
+    @cama_cache_vars = nil
+  end
+
   # fetch the cache value for this key
   def cama_fetch_cache(key)
     @cama_cache_vars ||= {}
@@ -99,13 +104,13 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
   # A copy starts with its own empty cache: copies are new records, and sharing the original's would let
   # them read each other's values under their common nil-id keys
   def initialize_dup(other)
-    @cama_cache_vars = nil
+    cama_clear_cache
     super
   end
 
   # the cached values were read from the state reload replaces
   def reload(*)
-    @cama_cache_vars = nil
+    cama_clear_cache
     super
   end
 

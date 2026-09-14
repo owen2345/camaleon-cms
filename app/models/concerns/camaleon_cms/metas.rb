@@ -249,7 +249,7 @@ module CamaleonCms
         built.each { |attributes| metas.build(attributes) }
       else
         metas.reset
-        @cama_cache_vars = nil
+        cama_clear_cache
       end
     end
 

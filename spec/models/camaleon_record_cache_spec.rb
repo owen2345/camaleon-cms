@@ -26,4 +26,17 @@ RSpec.describe CamaleonRecord do
       expect(post.reload.get_meta('subtitle')).to eq('new')
     end
   end
+
+  describe '#cama_clear_cache' do
+    it 'drops every value the instance memoized' do
+      post = build(:post)
+      post.cama_fetch_cache('probe') { 'first' }
+      post.cama_set_cache('other', 'set')
+
+      post.cama_clear_cache
+
+      expect(post.cama_get_cache('other')).to be_nil
+      expect(post.cama_fetch_cache('probe') { 'second' }).to eq('second')
+    end
+  end
 end
