@@ -63,8 +63,8 @@ RSpec.describe CamaleonCms::CustomFieldGroup, type: :model do
 
     # Remove explicit select_eval permission from the role (still has general custom_fields)
     role.set_meta("_manager_#{site.id}", { custom_fields: 1 })
-    # Reset ability cache to reflect updated role meta
-    group.reset_ability
+    # reload rebuilds the ability from the updated role meta
+    group.reload
     # ensure CurrentRequest reflects current user/site (ability will read role meta)
     set_current(user: user, site: site)
 

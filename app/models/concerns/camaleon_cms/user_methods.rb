@@ -76,6 +76,11 @@ module CamaleonCms
       @_user_role ||= site.user_roles.where(slug: role).first
     end
 
+    # the role was read from the state reload replaces
+    def reload(options = nil)
+      super.tap { @_user_role = nil }
+    end
+
     # Assign a new site for the current user
     def assign_site(site)
       update_column(:site_id, site.id) # rubocop:disable Rails/SkipsModelValidations

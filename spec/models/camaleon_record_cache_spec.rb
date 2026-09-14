@@ -43,6 +43,32 @@ RSpec.describe CamaleonRecord do
 
       post.lock!
     end
+
+    describe 'the permission state read from the record' do
+      let(:site) { CamaleonCms::Site.first }
+
+      after { CurrentRequest.reset }
+
+      it 'rebuilds the ability from the role metas stored since' do
+        role = site.user_roles.create!(name: 'Probe', slug: "probe_#{SecureRandom.hex(3)}")
+        user = create(:user, role: role.slug, site: site)
+        set_current(user: user, site: site)
+        expect(user.can?(:manage, :custom_fields)).to be(false)
+
+        role.set_meta("_manager_#{site.id}", { custom_fields: 1 })
+
+        expect(user.reload.can?(:manage, :custom_fields)).to be(true)
+      end
+
+      it 'reads the role assigned to a user since' do
+        user = create(:user, role: 'contributor', site: site)
+        expect(user.get_role(site).slug).to eq('contributor')
+
+        CamaleonCms::User.find(user.id).update!(role: 'editor')
+
+        expect(user.reload.get_role(site).slug).to eq('editor')
+      end
+    end
   end
 
   describe '#cama_clear_cache' do

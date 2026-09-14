@@ -108,10 +108,14 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
     super
   end
 
-  # The cached values were read from the state reload replaces, so they go once it is replaced: a reload
-  # that fails leaves the record, and what it memoized from it, as they were.
+  # The cached values were read from the state reload replaces, so they go once it is replaced, and so
+  # does the ability, whose role metas may have changed since; a reload that fails leaves the record, and
+  # what it memoized from it, as they were.
   def reload(options = nil)
-    super.tap { cama_clear_cache }
+    super.tap do
+      cama_clear_cache
+      @ability = nil
+    end
   end
 
   # Return the current user for this thread/request context.
@@ -130,15 +134,9 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
     ability.can?(*args)
   end
 
+  # Memoized for the request, as building it queries the role and its metas; reload rebuilds it.
   def ability
-    # Memoize Ability per request to avoid repeated DB queries and object instantiation.
-    # In tests that modify role meta mid-request, call reset_ability to invalidate cache.
     @ability ||= CamaleonCms::Ability.new(current_user, current_site)
-  end
-
-  # Reset cached ability instance (useful in tests when role meta changes)
-  def reset_ability
-    @ability = nil
   end
 
   # current_site memoized from the CurrentRequest.site

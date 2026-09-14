@@ -319,8 +319,8 @@ CurrentRequest.site = site
 
 1. **Stale ability cache in tests:**
    ```ruby
-   # Reset cached ability after changing role meta
-   model.reset_ability
+   # reload rebuilds the ability after a role meta change
+   model.reload
    ```
 
 2. **Wrong site_id in role meta:**
