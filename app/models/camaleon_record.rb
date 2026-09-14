@@ -108,10 +108,10 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
     super
   end
 
-  # the cached values were read from the state reload replaces
-  def reload(*)
-    cama_clear_cache
-    super
+  # The cached values were read from the state reload replaces, so they go once it is replaced: a reload
+  # that fails leaves the record, and what it memoized from it, as they were.
+  def reload(options = nil)
+    super.tap { cama_clear_cache }
   end
 
   # Return the current user for this thread/request context.

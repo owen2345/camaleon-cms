@@ -4,6 +4,8 @@
 # memo, and with it their common nil-id keys, so one copy's option write showed in the others; reload kept
 # the values read before it.
 RSpec.describe CamaleonRecord do
+  let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
+
   describe '#dup' do
     it 'keeps an option written on one copy out of another' do
       post = create(:post)
@@ -24,6 +26,22 @@ RSpec.describe CamaleonRecord do
       CamaleonCms::Post.find(post.id).set_meta('subtitle', 'new')
 
       expect(post.reload.get_meta('subtitle')).to eq('new')
+    end
+
+    it 'keeps the memo when the reload fails' do
+      post = create(:post, post_type: post_type)
+      post.set_meta('subtitle', 'old')
+      CamaleonCms::Post.find(post.id).destroy
+
+      expect { post.reload }.to raise_error(ActiveRecord::RecordNotFound)
+      expect(post.get_meta('subtitle')).to eq('old')
+    end
+
+    it 'passes the lock option on to the record lookup' do
+      post = create(:post, post_type: post_type)
+      expect(post).to receive(:_find_record).with(hash_including(lock: true)).and_call_original
+
+      post.lock!
     end
   end
 
