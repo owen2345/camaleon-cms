@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rake'
-
 RSpec.describe 'private_upload_acls Rake task', type: :task do
   before(:all) do # rubocop:disable RSpec/BeforeAfterAll
     # Another rake spec's load_tasks may already have registered this task; clear it first so this

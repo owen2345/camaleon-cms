@@ -1,15 +1,11 @@
 # frozen_string_literal: true
 
-require 'rake'
-
 # The scan_content task must report every stored value today's gates would refuse -- field_attrs
 # values as well as editor/URI values, post summaries, templates and layouts outside the site's
 # theme, options rows that are not JSON objects -- so an operator cleaning up pre-gate data is not
 # handed a false all-clear. Nothing stored is rewritten; listing is the only remedy for history.
 RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
-  before(:all) do # rubocop:disable RSpec/BeforeAfterAll
-    Rails.application.load_tasks
-  end
+  before(:all) { Rails.application.load_tasks } # rubocop:disable RSpec/BeforeAfterAll
 
   after(:all) do # rubocop:disable RSpec/BeforeAfterAll
     Rake::Task['camaleon_cms:security:scan_content'].clear
@@ -24,7 +20,10 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
                                           objectid: post_type.id, site: site)
   end
 
-  before { task.reenable }
+  before do
+    task.reenable
+    allow(Rails.env).to receive(:test?).and_return(false)
+  end
 
   # A decorator class option stored without passing the save-time check.
   def store_decorator_option(target, value)

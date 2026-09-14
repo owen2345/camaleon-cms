@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
-require 'rake'
-
 RSpec.describe 'orphaned_comments Rake task', type: :task do
-  before(:all) do # rubocop:disable RSpec/BeforeAfterAll
-    Rails.application.load_tasks
-  end
+  before(:all) { Rails.application.load_tasks } # rubocop:disable RSpec/BeforeAfterAll
 
   after(:all) do # rubocop:disable RSpec/BeforeAfterAll
     Rake::Task['camaleon_cms:reassign_orphaned_comments'].clear
@@ -17,8 +13,7 @@ RSpec.describe 'orphaned_comments Rake task', type: :task do
     let(:post_type) { site.post_types.find_by(slug: 'post') }
     let(:author) { create(:user) }
     let(:post_record) do
-      post_type.add_post(title: 'Orphan fixture', slug: 'orphan-fixture-post', content: 'body',
-                         user_id: author.id)
+      post_type.add_post(title: 'Orphan fixture', slug: 'orphan-fixture-post', content: 'body', user_id: author.id)
     end
 
     before { task.reenable }

@@ -1,13 +1,9 @@
 # frozen_string_literal: true
 
-require 'rake'
-
 # The upload rules apply at upload time, so files stored before them are never re-examined. This
 # task is the read-only way an operator sees what is already sitting under the media root.
 RSpec.describe 'camaleon_cms:security:scan_uploads Rake task', type: :task do
-  before(:all) do # rubocop:disable RSpec/BeforeAfterAll
-    Rails.application.load_tasks
-  end
+  before(:all) { Rails.application.load_tasks } # rubocop:disable RSpec/BeforeAfterAll
 
   after(:all) do # rubocop:disable RSpec/BeforeAfterAll
     Rake::Task['camaleon_cms:security:scan_uploads'].clear
@@ -20,6 +16,7 @@ RSpec.describe 'camaleon_cms:security:scan_uploads Rake task', type: :task do
   before do
     task.reenable
     FileUtils.mkdir_p(media_root)
+    allow(Rails.env).to receive(:test?).and_return(false)
   end
 
   after { FileUtils.rm_rf(media_root) }

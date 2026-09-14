@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'rake'
-
 RSpec.describe 'media_visibility_repair Rake task', type: :task do
   before(:all) do # rubocop:disable RSpec/BeforeAfterAll
     # Another rake spec's load_tasks may already have registered this task; clear it first so this
@@ -35,6 +33,7 @@ RSpec.describe 'media_visibility_repair Rake task', type: :task do
       # ...and a phantom row for a file that no longer exists in storage.
       site.public_media.create!(name: 'phantom.txt', folder_path: '/', is_folder: false)
 
+      allow(Rails.env).to receive(:test?).and_return(false)
       expect { task.invoke }.to output(/purged 2 cached media row/).to_stdout
 
       expect(site.public_media.where(name: 'logo.txt', folder_path: '/')).to exist
@@ -58,6 +57,7 @@ RSpec.describe 'media_visibility_repair Rake task', type: :task do
       site.set_option('filesystem_type', 'aws')
       site.public_media.create!(name: 'stale.txt', folder_path: '/', is_folder: false)
 
+      allow(Rails.env).to receive(:test?).and_return(false)
       expect { task.invoke }.to output(/1 cloud-storage site/).to_stdout
 
       expect(CamaleonCms::Media.count).to eq(0)
