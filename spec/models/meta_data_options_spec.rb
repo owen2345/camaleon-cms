@@ -80,6 +80,50 @@ RSpec.describe CamaleonCms::Metas do
     expect(CamaleonCms::PostType.find(post_type.id).get_option(:has_seo)).to be(true)
   end
 
+  describe 'a save rolled back after it wrote them' do
+    it 'queues them again for the next save of the instance' do
+      post_type = build(:post_type, data_options: { has_category: true }, data_metas: { icon_color: 'red' })
+      allow(PluginRoutes).to receive(:reload).and_raise('routes failed') # a later after_create
+      expect { post_type.save! }.to raise_error('routes failed')
+      allow(PluginRoutes).to receive(:reload).and_call_original
+
+      post_type.save!
+
+      stored = CamaleonCms::PostType.find(post_type.id)
+      expect(stored.get_option(:has_category)).to be(true)
+      expect(stored.get_meta('icon_color')).to eq('red')
+      expect(stored.metas.where(key: 'icon_color').count).to eq(1)
+    end
+
+    it 'queues the values given to an update whose transaction is rolled back' do
+      post = create(:post)
+      ActiveRecord::Base.transaction(requires_new: true) do
+        post.update!(data_options: { has_comments: true }, data_metas: { subtitle: 'first' })
+        raise ActiveRecord::Rollback
+      end
+      expect(CamaleonCms::Post.find(post.id).get_meta('subtitle')).to be_nil
+
+      post.save!
+
+      stored = CamaleonCms::Post.find(post.id)
+      expect(stored.get_option(:has_comments)).to be(true)
+      expect(stored.get_meta('subtitle')).to eq('first')
+    end
+
+    it 'leaves them written when a later save of the instance is rolled back' do
+      post = create(:post, data_options: { has_comments: true })
+      post.set_option(:has_comments, false)
+      ActiveRecord::Base.transaction(requires_new: true) do
+        post.update!(title: 'Renamed')
+        raise ActiveRecord::Rollback
+      end
+
+      post.update!(title: 'Renamed again')
+
+      expect(CamaleonCms::Post.find(post.id).get_option(:has_comments)).to be(false)
+    end
+  end
+
   it 'writes data_options given to an update once' do
     post = create(:post)
     post.update!(data_options: { has_comments: true })

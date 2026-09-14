@@ -17,6 +17,9 @@ module CamaleonCms
       before_save   :refuse_invalid_queued_containers
       after_create  :save_metas_options, unless: :save_metas_options_skip
       before_update :fix_save_metas_options_no_changed
+      # a write undone with its transaction is queued again for the next save
+      after_rollback :requeue_metas_options
+      after_commit :forget_written_metas_options
     end
 
     # JSON for a Hash or Array value, with one entry per key however each key was written: a String key
@@ -200,11 +203,35 @@ module CamaleonCms
       metas.proxy_association.reset_scope if previously_new_record?
       set_metas(data_metas)
       set_options(data_options)
+      @written_metas_options = [data_options, data_metas, current_transaction_state]
       self.data_options = nil
       self.data_metas = nil
     end
 
     private
+
+    # The state of the transaction running now, if any: the one a write belongs to, whose rollback
+    # undoes it. Its state is marked rolled back with the outermost transaction's too.
+    def current_transaction_state
+      transaction = self.class.connection.current_transaction
+      transaction.state if transaction.respond_to?(:state)
+    end
+
+    # Refill data_options and data_metas from the last write when the transaction that ran it is rolled
+    # back, so the next save of this instance writes them; values queued since are kept, and a rollback
+    # of a later transaction leaves the write, which stands, consumed.
+    def requeue_metas_options
+      options, metas, state = @written_metas_options
+      return unless state&.rolledback?
+
+      @written_metas_options = nil
+      self.data_options = options if data_options.blank?
+      self.data_metas = metas if data_metas.blank?
+    end
+
+    def forget_written_metas_options
+      @written_metas_options = nil
+    end
 
     # A data_options or data_metas value that is present but not a set of fields is refused before the
     # INSERT or UPDATE, with the writers' error, so no row is left behind it; a blank one is ignored.
