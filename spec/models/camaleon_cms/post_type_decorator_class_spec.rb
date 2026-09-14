@@ -179,6 +179,24 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(site.post_types.where(slug: 'probe-decorator-type')).not_to exist
     end
 
+    it 'refuses the option passed as the _default meta the same way' do
+      site = post_type.site
+      created = nil
+      ActiveRecord::Base.transaction do
+        created = site.post_types.create(name: 'Probe decorator meta', slug: 'probe-decorator-meta',
+                                         data_metas: { '_default' => { option => 'Object' } })
+      end
+
+      expect(created).not_to be_persisted
+      expect(created.errors[:base].first).to include(option).and include('Object')
+      expect(site.post_types.where(slug: 'probe-decorator-meta')).not_to exist
+
+      record = stored_post_type
+      expect(record.update(name: 'Renamed probe', data_metas: { _default: { option => 'Object' } })).to be(false)
+      expect(record.errors[:base].first).to include(option)
+      expect(stored_post_type.get_option(option)).to be_nil
+    end
+
     it 'accepts a post decorator' do
       expect(stored_post_type.update(data_options: { option => 'ProbePostDecorator' })).to be(true)
 

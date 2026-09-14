@@ -30,7 +30,7 @@ module CamaleonCms
                  if: proc { |obj| obj.destroyed_by_association.blank? && obj.saved_change_to_attribute?(:slug) }
     before_update :default_category
 
-    validate :refuse_unknown_decorator_class_in_data_options
+    validate :refuse_unknown_decorator_class_in_queued_options
 
     # check if current post type manage categories
     def manage_categories?
@@ -227,14 +227,24 @@ module CamaleonCms
       raise ActiveRecord::RecordInvalid, self
     end
 
-    # A decorator option passed in data_options is written by the save callbacks, after the INSERT, where
-    # ActiveRecord's save would turn the refusal into false and an enclosing transaction would keep the
-    # row; checked as a validation, the save is refused before anything is written.
-    def refuse_unknown_decorator_class_in_data_options
-      return if data_options.blank?
+    # A decorator option passed in data_options, or in the `_default` meta of data_metas, is written by
+    # the save callbacks, after the INSERT, where ActiveRecord's save would turn the refusal into false
+    # and an enclosing transaction would keep the row; checked as a validation, the save is refused
+    # before anything is written.
+    def refuse_unknown_decorator_class_in_queued_options
+      [data_options, queued_default_meta].each do |queued|
+        next if queued.blank?
 
-      value = decorator_class_option_in(data_options)
-      errors.add(:base, decorator_class_refusal_message(value)) unless decorator_class_option_acceptable?(value)
+        value = decorator_class_option_in(queued)
+        errors.add(:base, decorator_class_refusal_message(value)) unless decorator_class_option_acceptable?(value)
+      end
+    end
+
+    # The `_default` meta queued in data_metas, whichever key type names it: the options row itself.
+    def queued_default_meta
+      return unless data_metas.is_a?(Hash) || data_metas.is_a?(ActionController::Parameters)
+
+      PluginRoutes.fixActionParameter(data_metas).with_indifferent_access[:_default]
     end
 
     # Blank, a post decorator, or the value already stored.
