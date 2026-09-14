@@ -151,14 +151,12 @@ Security/Eval:
 # Configuration parameters: AllowedVariables.
 Style/GlobalVars:
   Exclude:
-    - 'app/helpers/camaleon_cms/site_helper.rb'
     - 'app/mailers/camaleon_cms/html_mailer.rb'
     - 'lib/camaleon_cms/engine.rb'
     - 'lib/generators/camaleon_cms/gem_plugin_generator.rb'
     - 'lib/generators/camaleon_cms/install_generator.rb'
     - 'lib/generators/camaleon_cms/theme_generator.rb'
     - 'lib/plugin_routes.rb'
-    - 'lib/tasks/camaleon_cms/camaleon_tasks.rake'
     - 'lib/tasks/camaleon_cms/rspec_test.rake'
 
 # Offense count: 41

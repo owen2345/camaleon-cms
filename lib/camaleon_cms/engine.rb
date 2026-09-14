@@ -25,15 +25,6 @@ module CamaleonCms
     config.generators do |g|
       g.test_framework :rspec
     end
-    config.before_initialize do |app|
-      if app.respond_to?(:console)
-        app.console do
-          # puts "******** Camaleon CMS: ********"
-          # puts "- include CamaleonCms::SiteHelper"
-          # puts "- $current_site = CamaleonCms::Site.first.decorate"
-        end
-      end
-    end
 
     # Security (audit 2026-08-11 M9): redact credential-bearing parameters from the Rails logs. The site
     # settings form submits the SMTP password and S3 keys in the clear (options[email_pass],
