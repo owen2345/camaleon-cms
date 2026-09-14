@@ -22,6 +22,7 @@ module CamaleonCms
     scope :hidden_menu, -> { where(term_group: -1) }
 
     before_destroy :destroy_field_groups
+    after_create :fill_default_options
     after_create :set_default_site_user_roles
     after_create :refresh_routes
     after_destroy :refresh_routes
@@ -57,21 +58,15 @@ module CamaleonCms
       get_option('has_seo', get_option('has_keywords', true))
     end
 
-    # assign settings for this post type
-    # default values: {
-    #   has_category: false,
-    #   has_tags: false,
-    #   has_summary: true,
-    #   has_content: true,
-    #   has_comments: false,
-    #   has_picture: true,
-    #   has_template: true,
-    #   has_seo: true,
-    #   not_deleted: false,
-    #   has_layout: false,
-    #   default_layout: '',
-    #   contents_route_format: 'post'
-    # }
+    # The options every post type is created with; the ones given to its creation win over them.
+    # contents_route_format and has_parent_structure default in their readers instead.
+    DEFAULT_OPTIONS = {
+      has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false,
+      has_picture: true, has_template: true, has_seo: true, not_deleted: false, has_layout: false,
+      default_layout: ''
+    }.freeze
+
+    # assign settings for this post type (the keys and their defaults: DEFAULT_OPTIONS)
     def set_settings(settings = {})
       settings.each do |key, val|
         set_option(key, val)
@@ -216,11 +211,6 @@ module CamaleonCms
 
     private
 
-    # skip save_metas_options callback after save changes (inherit from taxonomy) to call from here manually
-    def save_metas_options_skip
-      true
-    end
-
     # Refuses, loudly, options whose decorator option names no post decorator, unless the write leaves
     # the stored value as it is: a value stored without passing the check (before it existed, or a
     # removed plugin's decorator) is ignored at read, not a reason to refuse unrelated writes. The
@@ -297,15 +287,16 @@ module CamaleonCms
       nil
     end
 
-    # assign default roles for this post type
-    # define default settings for this post type
+    # The options the creation left unset get their DEFAULT_OPTIONS value. The Metas concern's
+    # after_create has written data_options and data_metas by now, as for every other record, over
+    # the options set on the record before its first save; this runs after it and before
+    # set_default_site_user_roles reads has_category.
+    def fill_default_options
+      set_options(DEFAULT_OPTIONS.reject { |key, _value| options.key?(key) })
+    end
+
+    # assign default roles for this post type and its default category
     def set_default_site_user_roles
-      self.data_options = {
-        has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false,
-        has_picture: true, has_template: true, has_seo: true, not_deleted: false, has_layout: false,
-        default_layout: ''
-      }.merge(PluginRoutes.fixActionParameter(data_options || {}).to_sym)
-      save_metas_options
       site.set_default_user_roles(self)
       default_category
     end

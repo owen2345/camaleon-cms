@@ -21,6 +21,16 @@ RSpec.describe CamaleonCms::Metas do
     expect(CamaleonCms::PostType.find(post_type.id).get_meta('icon_color')).to eq('red')
   end
 
+  it 'writes the data_metas of a post type into the meta built before its first save' do
+    post_type = build(:post_type, data_metas: { icon_color: 'red' })
+    post_type.set_meta('icon_color', 'blue')
+
+    post_type.save!
+
+    expect(post_type.metas.find { |m| m.key == 'icon_color' }.value).to eq('red')
+    expect(post_type.metas.where(key: 'icon_color').pluck(:value)).to eq(['red'])
+  end
+
   it 'keeps later writes when a post created with data_options and data_metas is updated' do
     post = create(:post, data_options: { has_comments: true }, data_metas: { subtitle: 'first' })
     post.set_option(:has_comments, false)
