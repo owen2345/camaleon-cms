@@ -13,8 +13,13 @@ module CamaleonCms
       attr_accessor :data_options
       attr_accessor :data_metas
 
-      after_create  :save_metas_options, unless: :save_metas_options_skip
-      before_update :fix_save_metas_options_no_changed
+      # refused before any statement, as the writers refuse it after the row would have been written
+      before_save   :refuse_invalid_queued_containers
+      after_create  :save_metas_options
+      before_update :save_metas_options
+      # a write undone with its transaction is queued again for the next save
+      after_rollback :requeue_metas_options
+      after_commit :forget_written_metas_options
     end
 
     # JSON for a Hash or Array value, with one entry per key however each key was written: a String key
@@ -45,7 +50,7 @@ module CamaleonCms
         pending_record = metas.target.find { |m| m.new_record? && m.key == key.to_s }
         if pending_record
           pending_record.value = fixed_value
-        elsif (meta_record = metas.where(key: key.to_s).order(:id).first)
+        elsif (meta_record = stored_meta_row(key.to_s))
           meta_record.update(value: fixed_value)
         else
           metas.create(key: key.to_s, value: fixed_value)
@@ -70,8 +75,8 @@ module CamaleonCms
     def get_meta(key, default = nil)
       key_str = key.is_a?(Symbol) ? key.to_s : key
       cama_fetch_cache("meta_#{key_str}") do
-        option = if metas.loaded?
-                   metas.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
+        option = if metas.loaded? || created_record_metas_in_memory?
+                   metas.target.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
                  else
                    metas.where(key: key_str).first
                  end
@@ -175,36 +180,98 @@ module CamaleonCms
       end
     end
 
-    # permit to skip save_metas_options in specific models
-    def save_metas_options_skip
-      false
-    end
-
-    # fix to save options and metas when a model was not changed
-    def fix_save_metas_options_no_changed
-      save_metas_options # unless self.changed?
-    end
-
-    # Save all settings for this post type - received in data_options and data_metas attribute (options and metas)
-    # sample:
-    # Site.first.post_types.create(
-    #   {name: "owen", slug: "my_post_type", data_options: { has_category: true, default_layout: "my_layout" }}
-    # )
+    # Write the metas and options a record was given in data_metas and data_options, then clear them:
+    # a later save of this instance must not write them again over values set since. The metas go
+    # first, so that a `_default` meta, which is the options row itself, does not replace the options
+    # written after it; they merge into it instead.
+    # sample: Site.first.post_types.create(name: 'Catalog', slug: 'catalog', data_options: { has_category: true })
     def save_metas_options
-      set_multiple_options(data_options)
-      return if data_metas.blank?
+      return if data_options.blank? && data_metas.blank?
 
-      data_metas.each do |key, val|
-        set_meta(key, val)
-      end
+      # The metas scope memoized before the INSERT names no owner, so a write would miss the row the
+      # write before it created; the metas autosave rebuilds it too, but runs after this callback.
+      metas.proxy_association.reset_scope if previously_new_record?
+      # While the creating save writes the queues, every row of the record is in memory: the metas
+      # built before the save and the rows this write creates, since nothing else has written for an
+      # id this INSERT assigned. Reads and lookups take them from there instead of querying.
+      @created_record_metas_in_memory = previously_new_record?
+      set_metas(data_metas)
+      set_options(data_options)
+      @written_metas_options = [data_options, data_metas, current_transaction_state, previously_new_record?]
+      self.data_options = nil
+      self.data_metas = nil
+    ensure
+      @created_record_metas_in_memory = false
     end
 
     private
+
+    # The state of the transaction running now, if any: the one a write belongs to, whose rollback
+    # undoes it. Its state is marked rolled back with the outermost transaction's too.
+    def current_transaction_state
+      transaction = self.class.connection.current_transaction
+      transaction.state if transaction.respond_to?(:state)
+    end
+
+    # Refill data_options and data_metas from the last write when the transaction that ran it is rolled
+    # back, so the next save of this instance writes them; values queued since are kept, and a rollback
+    # of a later transaction leaves the write, which stands, consumed.
+    def requeue_metas_options
+      options, metas, state, created = @written_metas_options
+      return unless state&.rolledback?
+
+      @written_metas_options = nil
+      self.data_options = options if data_options.blank?
+      self.data_metas = metas if data_metas.blank?
+      forget_rolled_back_metas(created)
+    end
+
+    # The rows the rolled-back transaction wrote are gone while the metas in memory still claim them.
+    # A record whose creation was rolled back had every meta of its written there: they are built again,
+    # so the next save stores them (the record's own state is restored after this callback, so the
+    # write remembers whether it created the record). A record that existed keeps its earlier rows, so
+    # its metas and the values cached from them are dropped and read again on demand.
+    def forget_rolled_back_metas(created)
+      if created
+        built = metas.target.map { |meta| { key: meta.key, value: meta.value } }
+        metas.reset
+        built.each { |attributes| metas.build(attributes) }
+      else
+        metas.reset
+        @cama_cache_vars = nil
+      end
+    end
+
+    def forget_written_metas_options
+      @written_metas_options = nil
+    end
+
+    # A data_options or data_metas value that is present but not a set of fields is refused before the
+    # INSERT or UPDATE, with the writers' error, so no row is left behind it; a blank one is ignored.
+    def refuse_invalid_queued_containers
+      refuse_invalid_container!(data_options) if data_options.present?
+      refuse_invalid_container!(data_metas) if data_metas.present?
+    end
 
     def refuse_invalid_container!(container)
       return if container.is_a?(Hash) || container.is_a?(ActionController::Parameters)
 
       raise InvalidContainer, "metas and options must be a set of fields, not #{container.class}"
+    end
+
+    # The stored row a write updates: the lowest id among the key's rows, taken from the metas in
+    # memory when they are loaded or complete, and from the database otherwise, as get_meta takes the
+    # row it reads.
+    def stored_meta_row(key_str)
+      if metas.loaded? || created_record_metas_in_memory?
+        metas.target.select { |m| m.persisted? && m.key == key_str }.min_by { |m| m.id.to_i }
+      else
+        metas.where(key: key_str).order(:id).first
+      end
+    end
+
+    def created_record_metas_in_memory?
+      @created_record_metas_in_memory == true
     end
 
     # the options hash the option writers update: indifferent, as a stored one is parsed, so a String

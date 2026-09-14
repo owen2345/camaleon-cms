@@ -11,17 +11,19 @@ namespace :camaleon_cms do
   # should temporarily restore the historical value while running the task.
   desc 'Re-key user custom field groups stored under a namespaced user_model name'
   task demodulize_user_field_groups: :environment do
+    report = CamaleonCms::TaskReporter
+
     configured = PluginRoutes.static_system_info['user_model'].presence.to_s
     demodulized = configured.demodulize
 
     if configured.blank? || configured == demodulized
-      puts 'Nothing to re-key: the configured user model is not namespaced.'
+      report.call 'Nothing to re-key: the configured user model is not namespaced.'
       next
     end
 
     count = CamaleonCms::CustomField.unscoped
                                     .where(object_class: configured)
                                     .update_all(object_class: demodulized) # rubocop:disable Rails/SkipsModelValidations
-    puts "Re-keyed #{count} user field group(s) from '#{configured}' to '#{demodulized}'."
+    report.call "Re-keyed #{count} user field group(s) from '#{configured}' to '#{demodulized}'."
   end
 end

@@ -181,6 +181,13 @@ Changes that look free from inside this repository and are not:
   `throw` (as before 2.9.5) and without the interpolation values, so it is interpolated once; the
   options hash a caller passes is not modified.
 
+- **Clearing `data_options`/`data_metas` once a save has written them** (#1299) is invisible to every
+  surveyed consumer: none reads the accessors back after a save (`cama_subscriber` includes
+  `CamaleonCms::Metas` on its own model and reads `get_option`; `camaleon-cms-seo`'s post type save
+  handlers write with `set_multiple_options`). The same change removed the concern's
+  `save_metas_options_skip` and `fix_save_metas_options_no_changed` hooks, which no surveyed
+  repository overrides or calls.
+
 ## APIs with no surveyed consumer
 
 Safe to change on the engine's own merits, citing this file: `update_or_create` / `update_or_create!`

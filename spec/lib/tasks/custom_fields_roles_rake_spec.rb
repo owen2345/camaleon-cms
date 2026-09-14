@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
-require 'rake'
-
 RSpec.describe 'custum_fields_roles Rake task', type: :task do
-  before(:all) do # rubocop:disable RSpec/BeforeAfterAll
-    Rails.application.load_tasks
-  end
+  before(:all) { Rails.application.load_tasks } # rubocop:disable RSpec/BeforeAfterAll
 
   after(:all) do # rubocop:disable RSpec/BeforeAfterAll
     Rake::Task['camaleon_cms:backfill_custom_fields_permission'].clear
@@ -19,6 +15,8 @@ RSpec.describe 'custum_fields_roles Rake task', type: :task do
     before { task.reenable }
 
     it 'reports progress on stdout for the operator running it' do
+      allow(Rails.env).to receive(:test?).and_return(false)
+
       expect { task.invoke }.to output(/Backfilling custom_fields manager permission/).to_stdout
     end
 
@@ -83,6 +81,8 @@ RSpec.describe 'custum_fields_roles Rake task', type: :task do
     before { task.reenable }
 
     it 'reports a summary on stdout for the operator running it' do
+      allow(Rails.env).to receive(:test?).and_return(false)
+
       expect { task.invoke }.to output(/Summary:/).to_stdout
     end
 

@@ -22,6 +22,7 @@ module CamaleonCms
     scope :hidden_menu, -> { where(term_group: -1) }
 
     before_destroy :destroy_field_groups
+    after_create :fill_default_options
     after_create :set_default_site_user_roles
     after_create :refresh_routes
     after_destroy :refresh_routes
@@ -29,7 +30,7 @@ module CamaleonCms
                  if: proc { |obj| obj.destroyed_by_association.blank? && obj.saved_change_to_attribute?(:slug) }
     before_update :default_category
 
-    validate :refuse_unknown_decorator_class_in_data_options
+    validate :refuse_unknown_decorator_class_in_queued_options
 
     # check if current post type manage categories
     def manage_categories?
@@ -57,21 +58,15 @@ module CamaleonCms
       get_option('has_seo', get_option('has_keywords', true))
     end
 
-    # assign settings for this post type
-    # default values: {
-    #   has_category: false,
-    #   has_tags: false,
-    #   has_summary: true,
-    #   has_content: true,
-    #   has_comments: false,
-    #   has_picture: true,
-    #   has_template: true,
-    #   has_seo: true,
-    #   not_deleted: false,
-    #   has_layout: false,
-    #   default_layout: '',
-    #   contents_route_format: 'post'
-    # }
+    # The options every post type is created with; the ones given to its creation win over them.
+    # contents_route_format and has_parent_structure default in their readers instead.
+    DEFAULT_OPTIONS = {
+      has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false,
+      has_picture: true, has_template: true, has_seo: true, not_deleted: false, has_layout: false,
+      default_layout: ''
+    }.freeze
+
+    # assign settings for this post type (the keys and their defaults: DEFAULT_OPTIONS)
     def set_settings(settings = {})
       settings.each do |key, val|
         set_option(key, val)
@@ -216,11 +211,6 @@ module CamaleonCms
 
     private
 
-    # skip save_metas_options callback after save changes (inherit from taxonomy) to call from here manually
-    def save_metas_options_skip
-      true
-    end
-
     # Refuses, loudly, options whose decorator option names no post decorator, unless the write leaves
     # the stored value as it is: a value stored without passing the check (before it existed, or a
     # removed plugin's decorator) is ignored at read, not a reason to refuse unrelated writes. The
@@ -237,14 +227,25 @@ module CamaleonCms
       raise ActiveRecord::RecordInvalid, self
     end
 
-    # A decorator option passed in data_options is written by the save callbacks, after the INSERT, where
-    # ActiveRecord's save would turn the refusal into false and an enclosing transaction would keep the
-    # row; checked as a validation, the save is refused before anything is written.
-    def refuse_unknown_decorator_class_in_data_options
-      return if data_options.blank?
+    # A decorator option passed in data_options, or in the `_default` meta of data_metas, is written by
+    # the save callbacks, after the INSERT, where ActiveRecord's save would turn the refusal into false
+    # and an enclosing transaction would keep the row; checked as a validation, the save is refused
+    # before anything is written. The stored value, which a queued value may leave unchanged, is
+    # looked up once, and only for a value that names no post decorator.
+    def refuse_unknown_decorator_class_in_queued_options
+      queued = [data_options, queued_default_meta].reject(&:blank?).map { |options| decorator_class_option_in(options) }
+      unresolved = queued.reject { |value| self.class.decorator_class_for(value) }
+      return if unresolved.empty?
 
-      value = decorator_class_option_in(data_options)
-      errors.add(:base, decorator_class_refusal_message(value)) unless decorator_class_option_acceptable?(value)
+      stored = stored_decorator_class_option.to_s
+      unresolved.each { |value| errors.add(:base, decorator_class_refusal_message(value)) unless value.to_s == stored }
+    end
+
+    # The `_default` meta queued in data_metas, whichever key type names it: the options row itself.
+    def queued_default_meta
+      return unless data_metas.is_a?(Hash) || data_metas.is_a?(ActionController::Parameters)
+
+      PluginRoutes.fixActionParameter(data_metas).with_indifferent_access[:_default]
     end
 
     # Blank, a post decorator, or the value already stored.
@@ -297,14 +298,16 @@ module CamaleonCms
       nil
     end
 
-    # assign default roles for this post type
-    # define default settings for this post type
+    # The options the creation left unset get their DEFAULT_OPTIONS value. The Metas concern's
+    # after_create has written data_options and data_metas by now, as for every other record, over
+    # the options set on the record before its first save; this runs after it and before
+    # set_default_site_user_roles reads has_category.
+    def fill_default_options
+      set_options(DEFAULT_OPTIONS.reject { |key, _value| options.key?(key) })
+    end
+
+    # assign default roles for this post type and its default category
     def set_default_site_user_roles
-      set_multiple_options(
-        { has_category: false, has_tags: false, has_summary: true, has_content: true, has_comments: false,
-          has_picture: true, has_template: true, has_seo: true, not_deleted: false, has_layout: false,
-          default_layout: '' }.merge(PluginRoutes.fixActionParameter(data_options || {}).to_sym)
-      )
       site.set_default_user_roles(self)
       default_category
     end

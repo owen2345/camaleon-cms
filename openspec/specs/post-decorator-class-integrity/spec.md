@@ -65,10 +65,10 @@ options are passed in. A write that leaves a stored value unchanged SHALL NOT be
 
 #### Scenario: A value passed to a save
 
-- **WHEN** a post type is created or updated with the option set in `data_options` to a value the
-  check refuses
-- **THEN** the save SHALL fail as a validation carrying the error, before anything is written, and
-  `create!` and `update!` SHALL raise
+- **WHEN** a post type is created or updated with the option set to a value the check refuses, in
+  `data_options` or in the `_default` meta of `data_metas`
+- **THEN** the save SHALL fail as a validation carrying the error, before anything is written, also
+  inside an enclosing transaction, and `create!` and `update!` SHALL raise
 
 #### Scenario: A refused write on a record with its metas loaded
 

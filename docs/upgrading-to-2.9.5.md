@@ -25,6 +25,7 @@ what theme/plugin developers should know.
 | Has colorpicker custom fields that ever held free text | Review affected records — sibling field values may have been blanked ([details](#audit-custom-field-values-after-a-colorpicker-crash)) |
 | Sets `cama_post_decorator_class` on a post type (a plugin or theme decorator) | It must name a `CamaleonCms::PostDecorator` subclass; the scan task lists stored values that are now ignored ([details](#cama_post_decorator_class-must-name-a-post-decorator)) |
 | Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
+| Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
 
 ---
 
@@ -231,6 +232,28 @@ renders, and on post type create it receives the post type under creation. Every
 `set_metas`/`set_options` now raise `CamaleonCms::Metas::InvalidContainer` for a container that is not
 a Hash or request parameters (blank stays a no-op); `cama_t` honors `scope:`/`raise:` in its English
 fallback again.
+
+### `data_options` and `data_metas` are written once
+
+A record's `data_options` and `data_metas` are written by the first save that completes and then read
+`nil`, so a later save of the same instance no longer writes them again over options or metas set
+since; a copy taken with `dup` after that save carries none of them. A save rolled back after writing
+them (a later callback raising, an enclosing transaction rolled back) queues them again for the next
+save of the instance; a record whose creation was rolled back also stores the metas set before that
+save when it is saved again, and a record that already existed drops its loaded metas and cached
+values, reading them again on demand. A `created_post_type` or `updated_post_type` handler that read the submitted
+options from `args[:post_type].data_options` now gets `nil`: read the stored ones with `options` or
+`get_option`.
+
+A post type's `data_metas` are stored at creation rather than on its first update; its default options
+fill in under the options set on the record before its first save and under the ones given. A
+`_default` meta given in `data_metas`, the options row itself, merges with `data_options` instead of
+replacing them, on every record, and a `cama_post_decorator_class` value in it is validated like one
+given in `data_options`. A `data_options` or `data_metas` value that is not a Hash or request
+parameters raises `CamaleonCms::Metas::InvalidContainer` before the row is written. The
+`save_metas_options_skip` and `fix_save_metas_options_no_changed` methods of `CamaleonCms::Metas` are
+removed: the concern's `after_create` and `before_update` call `save_metas_options` directly, and no
+surveyed plugin or theme overrides either.
 
 ---
 

@@ -7,6 +7,8 @@ module CamaleonCms
   # no-op. Shared so the reporting rule cannot drift between the repair tasks.
   module TaskReporter
     def self.call(msg)
+      return if Rails.env.test?
+
       Rails.logger.info(msg)
       puts msg # rubocop:disable Rails/Output -- terminal output for the operator is the point
     end

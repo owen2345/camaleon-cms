@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
-require 'rake'
-
 RSpec.describe 'user_field_groups Rake task', type: :task do
-  before(:all) do # rubocop:disable RSpec/BeforeAfterAll
-    Rails.application.load_tasks
-  end
+  before(:all) { Rails.application.load_tasks } # rubocop:disable RSpec/BeforeAfterAll
 
   after(:all) do # rubocop:disable RSpec/BeforeAfterAll
     Rake::Task['camaleon_cms:demodulize_user_field_groups'].clear
@@ -32,6 +28,8 @@ RSpec.describe 'user_field_groups Rake task', type: :task do
     it 're-keys a group placement stored under the configured qualified name, idempotently' do
       stub_user_model('Admin::User')
       group = create_group(object_class: 'Admin::User', objectid: site.id, parent_id: site.id)
+
+      allow(Rails.env).to receive(:test?).and_return(false)
 
       # Operators run this once from a console; the summary must land on stdout, not in the log.
       expect { task.invoke }.to output(/Re-keyed 1 user field group\(s\) from 'Admin::User' to 'User'/).to_stdout
@@ -72,6 +70,8 @@ RSpec.describe 'user_field_groups Rake task', type: :task do
 
     it 'is a no-op when the configured user model is not namespaced' do
       stray = create_group(object_class: 'Admin::User', objectid: site.id, parent_id: site.id)
+
+      allow(Rails.env).to receive(:test?).and_return(false)
 
       expect { task.invoke }.to output(/Nothing to re-key/).to_stdout
 
