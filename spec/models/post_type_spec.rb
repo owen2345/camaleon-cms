@@ -32,7 +32,8 @@ RSpec.describe CamaleonCms::PostType, type: :model do
     end
 
     it 'stores request parameters once, over their defaults' do
-      params = ActionController::Parameters.new('has_category' => 'true', 'has_picture' => 'false', 'default_layout' => 'x')
+      params = ActionController::Parameters.new('has_category' => 'true', 'has_picture' => 'false',
+                                                'default_layout' => 'x')
       post_type = create(:post_type, data_options: params)
 
       options = stored_options(post_type)

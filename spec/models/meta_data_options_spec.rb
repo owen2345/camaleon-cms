@@ -24,7 +24,8 @@ RSpec.describe CamaleonCms::Metas do
   end
 
   it 'merges the options given with a _default meta into it' do
-    post_type = create(:post_type, data_options: { has_category: true }, data_metas: { '_default' => { 'has_tags' => true } })
+    post_type = create(:post_type, data_options: { has_category: true },
+                                   data_metas: { '_default' => { 'has_tags' => true } })
 
     expect(post_type.manage_categories?).to be(true)
     expect(post_type.categories.where(slug: 'uncategorized')).to exist
@@ -34,7 +35,8 @@ RSpec.describe CamaleonCms::Metas do
     expect(stored.get_option(:has_category)).to be(true)
     expect(stored.get_option(:has_seo)).to be(true)
 
-    post = create(:post, post_type: shared_post_type, data_options: { has_comments: true }, data_metas: { '_default' => { 'has_summary' => false } })
+    post = create(:post, post_type: shared_post_type, data_options: { has_comments: true },
+                         data_metas: { '_default' => { 'has_summary' => false } })
 
     expect(CamaleonCms::Post.find(post.id).options).to include('has_comments' => true, 'has_summary' => false)
   end
@@ -50,7 +52,8 @@ RSpec.describe CamaleonCms::Metas do
   end
 
   it 'keeps later writes when a post created with data_options and data_metas is updated' do
-    post = create(:post, post_type: shared_post_type, data_options: { has_comments: true }, data_metas: { subtitle: 'first' })
+    post = create(:post, post_type: shared_post_type, data_options: { has_comments: true },
+                         data_metas: { subtitle: 'first' })
     post.set_option(:has_comments, false)
     post.set_meta('subtitle', 'second')
 
@@ -63,7 +66,7 @@ RSpec.describe CamaleonCms::Metas do
 
   it 'refuses a data_options or data_metas container that is not a set of fields before the row is written' do
     post_type = build(:post_type, data_options: '{"has_category": true}')
-    post = build(:post, post_type: shared_post_type, data_metas: [['subtitle', 'x']])
+    post = build(:post, post_type: shared_post_type, data_metas: [%w[subtitle x]])
 
     ActiveRecord::Base.transaction do
       expect { post_type.save }.to raise_error(CamaleonCms::Metas::InvalidContainer, /String/)
