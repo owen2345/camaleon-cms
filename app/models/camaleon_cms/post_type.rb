@@ -230,14 +230,15 @@ module CamaleonCms
     # A decorator option passed in data_options, or in the `_default` meta of data_metas, is written by
     # the save callbacks, after the INSERT, where ActiveRecord's save would turn the refusal into false
     # and an enclosing transaction would keep the row; checked as a validation, the save is refused
-    # before anything is written.
+    # before anything is written. The stored value, which a queued value may leave unchanged, is
+    # looked up once, and only for a value that names no post decorator.
     def refuse_unknown_decorator_class_in_queued_options
-      [data_options, queued_default_meta].each do |queued|
-        next if queued.blank?
+      queued = [data_options, queued_default_meta].reject(&:blank?).map { |options| decorator_class_option_in(options) }
+      unresolved = queued.reject { |value| self.class.decorator_class_for(value) }
+      return if unresolved.empty?
 
-        value = decorator_class_option_in(queued)
-        errors.add(:base, decorator_class_refusal_message(value)) unless decorator_class_option_acceptable?(value)
-      end
+      stored = stored_decorator_class_option.to_s
+      unresolved.each { |value| errors.add(:base, decorator_class_refusal_message(value)) unless value.to_s == stored }
     end
 
     # The `_default` meta queued in data_metas, whichever key type names it: the options row itself.

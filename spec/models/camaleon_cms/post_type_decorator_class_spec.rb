@@ -197,6 +197,21 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to be_nil
     end
 
+    it 'looks the stored value up once for a refused value in both queues' do
+      record = stored_post_type
+      lookups = 0
+      subscription = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+        lookups += 1 if payload[:sql].start_with?('SELECT') && payload[:type_casted_binds].to_a.include?('_default')
+      end
+
+      saved = record.update(data_options: { option => 'Object' }, data_metas: { '_default' => { option => 'String' } })
+
+      ActiveSupport::Notifications.unsubscribe(subscription)
+      expect(saved).to be(false)
+      expect(record.errors[:base].size).to eq(2)
+      expect(lookups).to eq(1)
+    end
+
     it 'accepts a post decorator' do
       expect(stored_post_type.update(data_options: { option => 'ProbePostDecorator' })).to be(true)
 
