@@ -86,6 +86,19 @@ RSpec.describe CamaleonRecord do
 
         expect(user.reload.get_role(site).slug).to eq('editor')
       end
+
+      it "checks a post's permissions against the request's user and site" do
+        role = site.user_roles.create!(name: 'Probe', slug: "probe_#{SecureRandom.hex(3)}")
+        user = create(:user, role: role.slug, site: site)
+        set_current(user: user, site: site)
+        post = create(:post, post_type: post_type)
+        expect(post.current_user).to eq(user)
+        expect(post.can?(:manage, :custom_fields)).to be(false)
+
+        role.set_meta("_manager_#{site.id}", { custom_fields: 1 })
+
+        expect(post.reload.can?(:manage, :custom_fields)).to be(true)
+      end
     end
   end
 

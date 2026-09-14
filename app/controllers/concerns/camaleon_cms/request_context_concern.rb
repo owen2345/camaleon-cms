@@ -38,9 +38,10 @@ module CamaleonCms
       prepend_view_path(Rails.root.join(views_dir).to_s)
     end
 
+    # the request's user and site go to CurrentRequest, where every record reads them
     def sync_runtime_defaults
-      CamaleonCms::PostDefault.current_user = cama_current_user
-      CamaleonCms::PostDefault.current_site = current_site
+      CurrentRequest.user = cama_current_user
+      CurrentRequest.site = current_site
     end
 
     def assign_template_compatibility_state

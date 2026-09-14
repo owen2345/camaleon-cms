@@ -51,8 +51,6 @@ module CamaleonCms
 
     # attr_accessible :data_options
     # attr_accessible :data_metas
-    cattr_accessor :current_user
-    cattr_accessor :current_site
 
     has_many :children, -> { where(post_class: 'PostDefault') },
              class_name: 'CamaleonCms::PostDefault', foreign_key: :post_parent, dependent: :destroy, inverse_of: :parent
