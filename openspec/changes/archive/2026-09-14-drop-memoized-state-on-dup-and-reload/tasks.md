@@ -9,7 +9,8 @@
 - [x] 2.3 `reload(options = nil)` drops the memo after `super`, forwards the lock option and rebuilds the ability and the user role (verify: `spec/models/camaleon_record_cache_spec.rb` reload examples; `grep -rn reset_ability app spec docs` is empty)
 - [x] 2.4 A boolean reads back as the boolean and the hashes in a stored array by either key type (verify: `spec/models/meta_spec.rb` round-trip examples)
 - [x] 2.5 `Site#get_languages` reads through the meta memo (verify: `spec/models/site_spec.rb` languages examples)
-- [x] 2.6 The memo specs read before they reload, explain the priming read, and build on the shared post type; the options-row spec reads through `reload` (verify: the two spec files)
+- [x] 2.6 A post reads the request's user and site from `CurrentRequest`; the `PostDefault` class attributes are gone (verify: `spec/controllers/concerns/camaleon_cms/request_context_concern_spec.rb`, the post permission example in `spec/models/camaleon_record_cache_spec.rb`; `grep -rn "cattr_accessor :current" app` is empty)
+- [x] 2.7 The memo specs read before they reload, explain the priming read, and build on the shared post type; the options-row spec reads through `reload` (verify: the two spec files)
 
 ## 3. Documentation
 

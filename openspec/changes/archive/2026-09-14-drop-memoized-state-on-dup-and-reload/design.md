@@ -42,8 +42,11 @@ under-described. This change records those decisions.
 4. **The ability and the user role go with the reload.** Both are request memos built from stored
    inputs (the role row and its metas); `reload` rebuilds them and `reset_ability`, whose only purpose
    was that invalidation in specs, is removed. `current_user` and `current_site` stay: they come from
-   the request, not the record. (`PostDefault`'s `cattr_accessor :current_user` shadows the record
-   memo on posts, so a post's `can?` answers false; out of scope, noted for a follow-up.)
+   the request, not the record. `PostDefault` kept both in class attributes as well, one value for
+   every request of the process, which the request-context concern assigned and nothing read; on a
+   post they shadowed the record memo, so a post's `can?` answered false outside a request. They are
+   removed and the concern resolves the request's user and site into `CurrentRequest`, where every
+   record reads them.
 5. **Languages read through the meta memo.** `Site#get_languages` maps the meta read each time, so
    it follows every reset and write the memo does; the map is negligible next to the hash lookup.
 6. **Booleans stored as JSON literals.** The stored form of a value is computed in one place

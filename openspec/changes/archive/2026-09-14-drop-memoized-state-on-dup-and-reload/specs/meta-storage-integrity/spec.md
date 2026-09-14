@@ -10,7 +10,9 @@ read each other's writes. `reload` SHALL drop them once it has replaced the reco
 after it return the stored values, and SHALL leave them when it fails; it SHALL also rebuild the
 record's ability and a user's role, whose stored inputs may have changed since. A refresh of the
 `metas` association alone (`metas.reload`, `metas.reset`) does not drop them; `cama_clear_cache` drops
-them on demand. A site's languages SHALL follow its languages meta as any other meta read does.
+them on demand. A site's languages SHALL follow its languages meta as any other meta read does. A post
+SHALL read the request's user and site from `CurrentRequest` as every record does, not from a class
+attribute.
 
 #### Scenario: Two copies of a post
 
@@ -42,6 +44,12 @@ them on demand. A site's languages SHALL follow its languages meta as any other 
 
 - **WHEN** a user's role is granted a permission through another instance and the user is reloaded
 - **THEN** the user's permission check reflects the grant
+
+#### Scenario: Permissions checked on a post
+
+- **WHEN** a post checks a permission for the request's user, whose role is then granted it through
+  another instance, and the post is reloaded
+- **THEN** the first check answers false and the check after the reload answers true
 
 #### Scenario: A user's role after a reload
 
