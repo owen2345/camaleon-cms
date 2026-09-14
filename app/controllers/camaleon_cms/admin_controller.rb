@@ -19,6 +19,16 @@ module CamaleonCms
       flash[:error] = record.errors.full_messages.to_sentence
       redirect_back fallback_location: cama_admin_dashboard_path
     end
+    # A meta or options container that is not a set of fields (an array of pairs, a scalar) is refused
+    # by the writers themselves (Metas::InvalidContainer), so every admin save that passes request
+    # params to set_metas/set_options answers the same way: named in a flash on a submitted save,
+    # raised while serving a page, as for RecordInvalid above.
+    rescue_from CamaleonCms::Metas::InvalidContainer do |exception|
+      raise exception if request.get? || request.head?
+
+      flash[:error] = cama_t('camaleon_cms.admin.message.malformed_fields')
+      redirect_back fallback_location: cama_admin_dashboard_path
+    end
     # layout 'camaleon_cms/admin'
     # Admin responses are user-specific and must never be served from a browser or shared cache;
     # without this a stale render (e.g. an editor that failed to initialize on a cold boot) can

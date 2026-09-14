@@ -1,0 +1,100 @@
+# frozen_string_literal: true
+
+# A post's blank template/layout falls back to its post type's `default_template` / `default_layout`,
+# which the frontend renders through the same `template_exists?` lookup. PostsController holds a
+# non-admin's `meta[template]` to the offered list, but the post type option -- writable by a non-admin
+# settings manager through `post_type_meta_params` -- was stored unchecked, an open route to the same
+# admin-view sink. It is now held to the offered list too; administrators are not restricted.
+RSpec.describe 'Security: post type default template/layout options', type: :request do
+  init_site
+
+  let(:post_type) { @site.post_types.find_by(slug: 'post') }
+  let(:admin) { create(:user, role: 'admin', site: @site) }
+  let(:settings_role) { @site.user_roles.create!(name: 'Settings manager', slug: 'settings-mgr-views') }
+  let(:settings_manager) { create(:user, role: settings_role.slug, site: @site) }
+  let(:admin_view) { 'camaleon_cms/admin/settings/site' }
+
+  before { settings_role.set_meta("_manager_#{@site.id}", { 'settings' => 1 }) }
+
+  def save_post_type(meta)
+    patch "/admin/settings/post_types/#{post_type.id}",
+          params: { post_type: { name: post_type.name, slug: post_type.slug }, meta: meta }
+  end
+
+  def stored_option(key)
+    CamaleonCms::PostType.find(post_type.id).get_option(key)
+  end
+
+  describe 'a non-admin settings manager' do
+    before { sign_in_as(settings_manager, site: @site) }
+
+    it 'cannot set a default_template the editor does not offer' do
+      save_post_type(default_template: admin_view)
+
+      expect(response).to redirect_to(action: :index)
+      expect(flash[:error]).to include('meta[default_template]')
+      expect(stored_option('default_template')).to be_blank
+    end
+
+    it 'cannot set a default_layout the editor does not offer' do
+      save_post_type(default_layout: 'camaleon_cms/admin')
+
+      expect(flash[:error]).to include('meta[default_layout]')
+      expect(stored_option('default_layout')).to be_blank
+    end
+
+    it 'may clear a stored option with a blank value' do
+      post_type.set_option('default_template', 'template_prior')
+
+      save_post_type(default_template: '')
+
+      expect(response).to redirect_to(action: :index)
+      expect(flash[:notice]).to be_present
+      expect(stored_option('default_template')).to be_blank
+    end
+  end
+
+  # On create the check runs before the post type exists; it is computed for the post type under
+  # creation, as the create form computed the offered lists, so a hook that reads the post type it is
+  # handed offers the same list to both and does not raise.
+  describe 'a non-admin settings manager creating a post type' do
+    before { sign_in_as(settings_manager, site: @site) }
+
+    def create_post_type(meta)
+      post '/admin/settings/post_types', params: { post_type: { name: 'Portfolio', slug: 'portfolio' }, meta: meta }
+      @site.post_types.find_by(slug: 'portfolio')
+    end
+
+    it 'may choose a default template a hook offers for the post type under creation' do
+      hook = ->(args) { args[:tempates] << "template_#{args[:post_type].slug}" }
+      PluginRoutes.add_anonymous_hook('post_get_list_templates', hook, 'post_type_view_options_spec')
+
+      created = create_post_type(default_template: 'template_portfolio')
+
+      expect(response).to redirect_to(action: :index)
+      expect(flash[:error]).to be_blank
+      expect(created.get_option('default_template')).to eq('template_portfolio')
+    ensure
+      PluginRoutes.remove_anonymous_hook('post_get_list_templates', 'post_type_view_options_spec')
+    end
+
+    it 'cannot create one with a default template the editor does not offer' do
+      created = create_post_type(default_template: admin_view)
+
+      expect(response).to redirect_to(action: :index)
+      expect(flash[:error]).to include('meta[default_template]')
+      expect(created).to be_nil
+    end
+  end
+
+  describe 'an administrator' do
+    before { sign_in_as(admin, site: @site) }
+
+    it 'may set a default_template outside the offered list' do
+      save_post_type(default_template: admin_view)
+
+      expect(flash[:error]).to be_blank
+      expect(stored_option('default_template')).to eq(admin_view)
+    end
+  end
+end

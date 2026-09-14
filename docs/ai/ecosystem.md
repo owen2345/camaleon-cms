@@ -142,6 +142,45 @@ Changes that look free from inside this repository and are not:
   `cama_permitted_field_options` allow-list core uses, so freshly generated plugins no longer ship
   the pre-M8 unfiltered save.
 
+- **Holding a post save's `meta[...]`/`options[...]` to the editor's choices** does not affect any
+  surveyed consumer. The check covers only template and layout values (non-admins) and the keys the
+  engine maintains (`_`-prefixed metas, `visits`, `comments_count`, `status_default`, `draft_status`);
+  it also refuses a `meta`/`options` param that is not a set of fields (an array of pairs), which no
+  editor form or surveyed consumer submits. Every other key is still stored as submitted, so these are
+  unaffected:
+  - `camaleon-cms-seo`'s `options[seo_*]` and `camaleon_sitemap_customizer`'s `options[hide_in_sitemap]`;
+  - the `meta[product_specifications]` field in `cama-ecommerce-theme`, `camaleon-cms-efashion` and
+    `camaleon_website`'s `e_shop`;
+  - `camaleon_website`'s `sky`, `cv` and `camaleon_cms` themes, which write `default_template` on
+    install — a server-side write, unaffected by a check on request params.
+
+  A plugin that submits a post template or layout of its own must offer it through
+  `post_get_list_templates`/`post_get_list_layouts` (a handler may add a plain name, a `[label, value]`
+  pair, a pair followed by HTML attributes or a grouped list, exactly the shapes Rails' `select`
+  renders; the check accepts the value the select would submit); no surveyed repository submits one.
+  On post type create the hooks receive the post type under creation, never nil. The same offered-list
+  check applies to a non-admin's post type `default_template`/`default_layout` in
+  `PostTypesController`. `restore` now acts only on trashed posts and returns a non-publisher's
+  `published` post as `pending` (a `draft_child` buffer comes back as a buffer); no surveyed
+  repository calls it.
+
+  Three further rules on the same save, none of which a surveyed consumer trips: a `meta`/`options`
+  key must be an ASCII word (every surveyed field is one); a submitted `post[status]` must be one the
+  editor offers (`published`, `pending`, `draft`); and `meta[summary]` is scanned like `content` for a
+  user without `post_content_unfiltered_html` (a theme partial rendering `the_excerpt` through `raw`
+  stays safe because what is stored passed the scan). The check now runs before the
+  `create_post`/`update_post` hooks, so a hook that writes to the post runs only for an accepted save.
+
+- **`set_metas`/`set_options` refuse a container that is not a set of fields** (a Hash or request
+  parameters), raising `CamaleonCms::Metas::InvalidContainer`; `nil` and blank stay no-ops. Every
+  surveyed caller (the bundled plugins, the generated plugin template, the themes' install hooks)
+  passes a Hash or `params[...]`. A plugin controller under `AdminController` gets the flash-and-back
+  handling for free.
+
+- **`cama_t`'s English fallback** is looked up with the caller's `scope`, `separator`, `raise` and
+  `throw` (as before 2.9.5) and without the interpolation values, so it is interpolated once; the
+  options hash a caller passes is not modified.
+
 ## APIs with no surveyed consumer
 
 Safe to change on the engine's own merits, citing this file: `update_or_create` / `update_or_create!`

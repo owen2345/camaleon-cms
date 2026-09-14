@@ -1,0 +1,103 @@
+# frozen_string_literal: true
+
+# `restore` wrote the post's stored `status_default` straight into its status, whatever that value was
+# and whatever the post's state, checking only that the user may update the post. A contributor without
+# the publish permission could store `options[status_default]=published` through the post save and
+# then restore the post to publish it.
+RSpec.describe 'Security: post restore status', type: :request do
+  include_context 'with the post editor'
+
+  def post_owned_by(user, status:, status_default: nil)
+    record = create(:post, post_type: post_type, owner: user, title: "Post of #{user.username}",
+                           slug: "post-#{user.id}-#{status}", status: status)
+    record.set_option('status_default', status_default) if status_default
+    record
+  end
+
+  def restore(record)
+    patch "/admin/post_type/#{post_type.id}/posts/#{record.id}/restore"
+  end
+
+  it "returns a non-publisher's trashed post as pending, whatever its stored status" do
+    sign_in_as(contributor, site: current_site)
+    record = post_owned_by(contributor, status: 'trash', status_default: 'published')
+
+    restore(record)
+
+    expect(record.reload.status).to eq('pending')
+  end
+
+  it "returns a publisher's trashed post to its published status" do
+    sign_in_as(editor, site: current_site)
+    record = post_owned_by(editor, status: 'trash', status_default: 'published')
+
+    restore(record)
+
+    expect(record.reload.status).to eq('published')
+  end
+
+  it 'leaves a post outside the trash untouched and says so' do
+    sign_in_as(editor, site: current_site)
+    record = post_owned_by(editor, status: 'pending', status_default: 'published')
+
+    restore(record)
+
+    expect(record.reload.status).to eq('pending')
+    expect(flash[:error]).to eq(I18n.t('camaleon_cms.admin.post.message.restore_not_in_trash',
+                                       post_type: post_type.decorate.the_title))
+  end
+
+  it 'restores a missing or unrecognised stored status as pending' do
+    sign_in_as(editor, site: current_site)
+    unrecognised = post_owned_by(editor, status: 'trash', status_default: 'bogus')
+    missing = create(:post, post_type: post_type, owner: editor, slug: 'no-stored-status', status: 'trash')
+
+    restore(unrecognised)
+    restore(missing)
+
+    expect(unrecognised.reload.status).to eq('pending')
+    expect(missing.reload.status).to eq('pending')
+  end
+
+  it 'returns a trashed autosave buffer to draft_child, not a standalone post' do
+    sign_in_as(editor, site: current_site)
+    parent = post_owned_by(editor, status: 'published')
+    post "/admin/post_type/#{post_type.id}/drafts",
+         params: { post_id: parent.id, post: { title: 'Draft title' } }
+    buffer = post_type.posts.drafts.where(post_parent: parent.id).first
+    patch "/admin/post_type/#{post_type.id}/posts/#{buffer.id}/trash"
+
+    restore(buffer)
+
+    expect(buffer.reload.status).to eq('draft_child')
+    expect(CamaleonCms::Post.find(parent.id).drafts.where(id: buffer.id)).to be_present
+  end
+
+  it 'restores a post whose options were corrupted, without crashing' do
+    sign_in_as(editor, site: current_site)
+    record = post_owned_by(editor, status: 'trash')
+    record.set_meta('_default', 'corrupt') # a non-hash options meta from legacy data
+
+    restore(record)
+
+    expect(record.reload.status).to eq('pending')
+  end
+
+  # The same row must not break the paths around restore: trash writes status_default into it, and the
+  # edit page and the public page read the post's options (manage_template?, get_template).
+  it 'trashes, edits and renders a post whose options were corrupted' do
+    sign_in_as(editor, site: current_site)
+    record = post_owned_by(editor, status: 'published')
+    record.set_meta('_default', 'corrupt')
+
+    get "/admin/post_type/#{post_type.id}/posts/#{record.id}/edit"
+    expect(response).to have_http_status(:ok)
+
+    get "/#{record.slug}"
+    expect(response).to have_http_status(:ok)
+
+    patch "/admin/post_type/#{post_type.id}/posts/#{record.id}/trash"
+    expect(record.reload.status).to eq('trash')
+    expect(CamaleonCms::Post.find(record.id).get_option('status_default')).to eq('published')
+  end
+end

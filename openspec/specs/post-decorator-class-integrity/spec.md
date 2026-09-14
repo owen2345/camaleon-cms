@@ -115,11 +115,11 @@ redirected.
 
 A post SHALL decorate with the class named by its post type's option when that class is a
 `CamaleonCms::PostDecorator` subclass, and with `CamaleonCms::PostDecorator` otherwise: a blank
-option, a post without a post type, a post type whose options cannot be read, or a stored value the
-check would refuse (written before the check, left by a removed plugin, or imported). A stored value
-that is ignored SHALL be logged as a warning naming the post type and the value, once per request for
-each post type and value, and SHALL NOT be rewritten. A lookup that fails SHALL be logged with the
-error.
+option, a post without a post type, a post type whose options row is not a JSON object (which reads as
+no options), or a stored value the check would refuse (written before the check, left by a removed
+plugin, or imported). A stored value that is ignored SHALL be logged as a warning naming the post type
+and the value, once per request for each post type and value, and SHALL NOT be rewritten. A lookup
+that fails SHALL be logged with the error.
 
 #### Scenario: A stored value the check would refuse
 
@@ -136,7 +136,8 @@ error.
 #### Scenario: Options that cannot be read
 
 - **WHEN** a post's post type has an options row that is not a JSON object
-- **THEN** the post SHALL decorate with the default decorator and the failure SHALL be logged
+- **THEN** the post SHALL decorate with the default decorator without a lookup failure, and the row
+  is reported by the scan task
 
 ### Requirement: Stored values that would be refused are reported
 

@@ -14,7 +14,7 @@ module CamaleonCms
         # so treat it as empty instead of calling #keys/#permit on it. Guarding here rather than
         # `params.require` avoids a NoMethodError -> 500 an authenticated caller could trigger with a
         # malformed param (the same crash every set_field_values caller shared).
-        return {} unless field_options.is_a?(ActionController::Parameters)
+        return {} unless cama_hash_param?(field_options) && field_options.respond_to?(:permit)
 
         allowed_keys = cama_custom_field_allowed_slugs(object_class)
         return {} if allowed_keys.blank?

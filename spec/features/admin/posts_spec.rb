@@ -73,6 +73,27 @@ describe 'Posts workflows for Admin', :js do
     end
   end
 
+  # A refused draft save must keep the editor open -- the success callback navigated to the post
+  # list with a "draft saved" notice, dropping the unsaved edits -- and show the refusal as text, since
+  # the alert's title is written into an HTML sink and a refusal names the submitted key. The key here
+  # fails the field-name rule for every role, so an administrator drives it.
+  it 'keeps the editor open and shows a refused draft save as text' do
+    admin_sign_in
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/new"
+    wait(2)
+
+    page.execute_script(%q($('#form-post').append('<input type="hidden" name="meta[_<b>x</b>]" value="1">')))
+    fill_in 'post_title', with: 'Unsaved title'
+    click_link 'Save Draft'
+
+    within('#cama_alert_modal') do
+      expect(page).to have_text('meta[_<b>x</b>] is not a field name')
+      expect(page).to have_no_css('b')
+    end
+    expect(page).to have_current_path(%r{/posts/new}, ignore_query: true)
+    expect(find_by_id('post_title', visible: :all).value).to eq('Unsaved title')
+  end
+
   describe 'when visibility post plugin is enabled' do
     it 'correctly fetches the assets' do
       plugin_install('visibility_post')

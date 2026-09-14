@@ -2,6 +2,22 @@ module CamaleonCms
   module Admin
     class PostsController < CamaleonCms::AdminController
       include CamaleonCms::Admin::CustomFieldsConcern
+      include CamaleonCms::Admin::PostViewChoicesConcern
+
+      # The template and layout fields a post save can carry (PostViewChoicesConcern), by param group: a
+      # post's own template and layout metas, and the default template and layout options it falls back
+      # to. A non-admin may submit only an offered value, or a blank one. A submitted key is folded
+      # before it is matched, so a case- or space-variant cannot slip a value past the check into the row
+      # the store resolves it to.
+      OFFERED_CHOICE_FIELDS = { meta: POST_VIEW_LISTERS, options: DEFAULT_VIEW_LISTERS }.freeze
+
+      # A meta or option key a save accepts is an ASCII word. The store resolves a key under the
+      # database's collation, and MySQL's defaults fold more than case: accents on every default
+      # collation (`témplate` = `template`) and compatibility variants on the UCA ones (`＿default` =
+      # `_default`), while `utf8mb4_0900_ai_ci` is NO PAD (a trailing space is not ignored there). No
+      # request-side folding reproduces that, and every field the editor and the surveyed plugins use is
+      # an ASCII word, so any other key is refused instead of folded.
+      FIELD_NAME_FORMAT = /\A[A-Za-z0-9_.-]+\z/
 
       add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.contents')
 
@@ -93,16 +109,16 @@ module CamaleonCms
       def create
         authorize! :create_post, @post_type
         post_data = get_post_data(true)
-        begin
-          CamaleonCms::Post.drafts.find(post_data[:draft_id]).destroy
-        rescue StandardError
-          nil
-        end
         @post = @post_type.posts.new(post_data)
+        # The request is checked before the create_post hook, so a hook that writes cannot land before a
+        # refusal; the refused form re-renders through `new`, whose authorization is on the post type.
+        return new if refuse_post_save(@post)
+
         r = { post: @post, post_type: @post_type }
         hooks_run('create_post', r)
         @post = r[:post]
         if save_post_with_fields(@post)
+          discard_new_post_draft
           flash[:notice] = t('camaleon_cms.admin.post.message.created', post_type: @post_type.decorate.the_title)
           r = { post: @post, post_type: @post_type }
           hooks_run('created_post', r)
@@ -114,12 +130,8 @@ module CamaleonCms
       end
 
       def edit
-        add_breadcrumb I18n.t('camaleon_cms.admin.button.edit')
         authorize! :update, @post
-        @post_form_extra_settings = []
-        r = { post: @post, post_type: @post_type, extra_settings: @post_form_extra_settings, render: 'form' }
-        hooks_run('edit_post', r)
-        render r[:render]
+        render_post_form
       end
 
       def update
@@ -132,10 +144,17 @@ module CamaleonCms
           @post = @post.parent
           delete_drafts = true
         elsif @post.draft?
-          # This is a normal draft (post whose status was set to 'draft')
-          @post.status = 'published' if post_data[:status].blank?
+          # This is a normal draft (post whose status was set to 'draft'): publishing it on save is held
+          # to the same publish rule as an explicit status.
+          @post.status = publish_or_pending('published') if post_data[:status].blank?
         end
         authorize! :update, @post
+        # Checked after the request's own authorization and before the update_post hook (see #create).
+        # A refused or failed update re-renders the form on that authorization: it is not re-run against
+        # the post with the submitted attributes assigned, where a right that rests on the stored status
+        # (edit_publish) would fail and send the user to the dashboard instead of showing the refusal.
+        return render_post_form if refuse_post_save(@post, post_data)
+
         r = { post: @post, post_type: @post_type }
         hooks_run('update_post', r)
         @post = r[:post]
@@ -146,7 +165,7 @@ module CamaleonCms
           flash[:notice] = t('camaleon_cms.admin.post.message.updated', post_type: @post_type.decorate.the_title)
           redirect_to action: :edit, id: @post.id
         else
-          edit
+          render_post_form
         end
       end
 
@@ -165,8 +184,13 @@ module CamaleonCms
       def restore
         @post = @post_type.posts.find(params[:post_id])
         authorize! :update, @post
+        unless @post.trash?
+          flash[:error] = cama_post_message('restore_not_in_trash', post_type: @post_type.decorate.the_title)
+          return redirect_to action: :index, s: params[:s]
+        end
+
         # rubocop:disable Rails/SkipsModelValidations
-        @post.update_column(:status, @post.options[:status_default] || 'pending')
+        @post.update_column(:status, restorable_status(@post.get_option('status_default')))
         # rubocop:enable Rails/SkipsModelValidations
         @post.update_extra_data
         hooks_run('restored_post', { post: @post, post_type: @post_type })
@@ -203,6 +227,40 @@ module CamaleonCms
 
       private
 
+      # The form names the draft buffer a new post was composed from (post[draft_id], not a post
+      # attribute); once the post exists that buffer is done with. Only the current user's own
+      # parentless buffer of this post type is destroyed: a buffer under a parent belongs to that post's
+      # edit flow, and another user's buffer is theirs.
+      def discard_new_post_draft
+        draft_id = params[:post][:draft_id] if cama_hash_param?(params[:post])
+        return if draft_id.blank?
+
+        @post_type.posts.drafts.where(post_parent: nil, user_id: cama_current_user.id).find_by(id: draft_id)&.destroy
+      end
+
+      # The edit form for @post, for `edit` and for a refused or failed update. It carries no
+      # authorization of its own: `edit` authorizes before calling it, and an update was authorized
+      # against the record as stored before the submitted attributes were assigned.
+      def render_post_form
+        add_breadcrumb I18n.t('camaleon_cms.admin.button.edit')
+        @post_form_extra_settings = []
+        r = { post: @post, post_type: @post_type, extra_settings: @post_form_extra_settings, render: 'form' }
+        hooks_run('edit_post', r)
+        render r[:render]
+      end
+
+      # The request's metas, options and status are checked before the save hooks and before any write
+      # (post_params_refusals). With refusals, the submitted values are assigned to the post for the
+      # re-rendered form and the refusals added as its errors; returns true when the save is refused.
+      def refuse_post_save(post, update_attrs = nil)
+        refusals = post_params_refusals
+        return false if refusals.empty?
+
+        post.assign_attributes(update_attrs) if update_attrs
+        refusals.each { |message| post.errors.add(:base, message) }
+        true
+      end
+
       # Persist the post together with its metas, field values and options atomically (audit M10).
       # Before this, the parent was saved and its metas committed before set_field_values ran, so a
       # field value the scan-and-reject gate refused (CustomFieldsRelationship RecordInvalid) left a
@@ -220,6 +278,116 @@ module CamaleonCms
           post.set_options(params[:options])
           true
         end
+      end
+
+      # The refusals for the metas and options this request carries: a key the engine maintains, for
+      # everyone, and for a non-admin a template or layout the post editor does not offer. Any other key
+      # is stored as submitted -- plugins and themes add their own fields to the post editor.
+      def post_params_refusals
+        malformed = malformed_container_refusals
+        return malformed if malformed.any?
+
+        status_refusals + summary_refusals + %i[meta options].flat_map { |group| group_refusals(group) }
+      end
+
+      # `meta[summary]` is content: the default theme renders the excerpt through `raw`, and a theme
+      # without its own list partial falls back to it. Post#reject_untrusted_dangerous_content gates only
+      # the content column (a meta row never passes through a model validation), so the summary is held
+      # to the same detector, allowlist and messages here, for a user without the unfiltered-content
+      # permission. Refused, never rewritten; a permission holder's summary is stored as written.
+      def summary_refusals
+        meta = params[:meta]
+        summary = meta[:summary] if cama_hash_param?(meta)
+        return [] if summary.blank? || can?(:post_content_unfiltered_html, @post_type)
+
+        if CamaleonCms::UnsafeMarkup.too_large?(summary)
+          ["meta[summary] #{cama_post_message('content_too_large')}"]
+        elsif CamaleonCms::UnsafeMarkup.unsafe_html?(summary, tags: CamaleonCms::Post::CONTENT_ALLOWED_TAGS,
+                                                              attributes: CamaleonCms::Post::CONTENT_ALLOWED_ATTRIBUTES)
+          ["meta[summary] #{cama_post_message('content_rejected')}"]
+        else
+          []
+        end
+      end
+
+      # A submitted status is one the editor offers, exactly: `Published` or `published ` is refused,
+      # not folded, because the column stores it verbatim and MySQL's case-insensitive collation would
+      # list it among the published posts while every Ruby check calls it unpublished. A blank status
+      # is not a submission (get_post_data decides what it means).
+      def status_refusals
+        post = params[:post]
+        status = post[:status] if cama_hash_param?(post)
+        return [] if status.blank? || CamaleonCms::Post::EDITOR_STATUSES.include?(status)
+
+        [cama_post_message('status_not_offered', field: 'post[status]')]
+      end
+
+      # A `meta`, `options` or `field_options` param that is present but not a set of fields (an array
+      # of pairs such as `meta[]=x`, a JSON `{"meta":[["template","..."]]}`, a scalar) answers neither
+      # `keys` nor `key?`, so the checks below would skip it; the writers refuse it too
+      # (Metas::InvalidContainer), but the post save names it up front, before anything is read or
+      # written, and holds field_options to the same rule instead of silently dropping it.
+      def malformed_container_refusals
+        %i[meta options field_options].filter_map do |group|
+          submitted = params[group]
+          next if submitted.nil? || cama_hash_param?(submitted)
+
+          cama_post_message('malformed_group', group: group.to_s)
+        end
+      end
+
+      # One pass over a group's submitted pairs. Each key is folded the way the store resolves it, then
+      # refused as not a field name or as engine-maintained (for everyone) or, for a non-admin, as a
+      # template or layout the editor does not offer. A key gets at most one refusal.
+      def group_refusals(group)
+        listers = OFFERED_CHOICE_FIELDS[group]
+        submitted_group_pairs(group).filter_map do |key, value|
+          canonical = canonical_key(key)
+          field = "#{group}[#{key}]"
+          if !canonical.match?(FIELD_NAME_FORMAT)
+            cama_post_message('key_not_a_field_name', key: field)
+          elsif reserved_key?(group, canonical)
+            cama_post_message('reserved_key', key: field)
+          elsif (lister = listers[canonical])
+            cama_unoffered_view_choice_refusal(field, value, lister, @post_type)
+          end
+        end
+      end
+
+      def reserved_key?(group, canonical)
+        case group
+        when :meta then canonical.start_with?('_') || CamaleonCms::Post::ENGINE_META_KEYS.include?(canonical)
+        when :options then CamaleonCms::Post::ENGINE_OPTION_KEYS.include?(canonical)
+        else false
+        end
+      end
+
+      # The submitted key/value pairs of a `meta`/`options` group (String keys), or {} when it is absent.
+      # A present non-hash container was refused before this runs.
+      def submitted_group_pairs(group)
+        submitted = params[group]
+        submitted.is_a?(ActionController::Parameters) ? submitted.to_unsafe_h : {}
+      end
+
+      # Fold a submitted key the way the metas store resolves an ASCII one. `set_meta`/`get_meta` look a
+      # row up with `where(key:)`, which on MySQL's default collations matches case variants (and, on the
+      # PAD SPACE ones, trailing-space variants), so `meta[Template]` would update the `template` row;
+      # match it against the same field either way. Wider folding is refused up front (FIELD_NAME_FORMAT).
+      def canonical_key(key)
+        key.to_s.strip.downcase
+      end
+
+      # The status a trashed post returns to: the one it had when that is a status a post may be restored
+      # to and the acting user may set it, otherwise pending.
+      def restorable_status(previous)
+        publish_or_pending(CamaleonCms::Post::RESTORABLE_STATUSES.include?(previous) ? previous : 'pending')
+      end
+
+      # Downgrade a would-be `published` status to `pending` for a user who cannot publish this post
+      # type, leaving every other status untouched. The single source of the publish rule for the create,
+      # update and restore paths, so a non-publisher cannot reach `published` through any of them.
+      def publish_or_pending(status)
+        status == 'published' && cannot?(:publish_post, @post_type) ? 'pending' : status
       end
 
       # define post type parent
@@ -251,7 +419,13 @@ module CamaleonCms
                       :visibility_value, :post_order, :published_at
                     ).to_h
         post_data[:user_id] = cama_current_user.id if is_create
-        post_data[:status] = 'pending' if post_data[:status] == 'published' && cannot?(:publish_post, @post_type)
+        # A blank status (absent, or an empty select value) means "leave the current status" on update, so
+        # it is dropped before the write rather than written as ''; on create it takes the column default
+        # ('published'), made explicit so the publish rule runs on it. A present status was already held
+        # to the editor's set by status_refusals.
+        post_data.delete(:status) if !is_create && post_data[:status].blank?
+        post_data[:status] = 'published' if is_create && post_data[:status].blank?
+        post_data[:status] = publish_or_pending(post_data[:status]) if post_data.key?(:status)
         post_data[:data_tags] = params[:tags].to_s
         post_data[:data_categories] = params[:categories] || []
         post_data

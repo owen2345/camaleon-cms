@@ -12,30 +12,39 @@ module CamaleonCms
         end
 
         def create
+          # A draft buffer is an artifact of editing its parent post — authorize that post,
+          # and only ever touch the current user's own buffer.
           if @draft_parent_post.present?
-            # A draft buffer is an artifact of editing its parent post — authorize that post,
-            # and only ever touch the current user's own buffer
             authorize! :update, @draft_parent_post
-            @post_draft = @post_type.posts.drafts.where(post_parent: @draft_parent_post.id,
-                                                        user_id: cama_current_user.id).first
-            if @post_draft.present?
-              @post_draft.set_option('draft_status', @post_draft.status)
-              @post_draft.attributes = @post_data
-            end
           else
             authorize! :create_post, @post_type
           end
-          if @post_draft.blank?
+
+          # A draft save is held to the same meta and option rules as the post save (see PostsController),
+          # before anything is written -- the buffer lookup below persists draft_status through set_option.
+          refusals = post_params_refusals
+          return render(json: { error: refusals }) if refusals.any?
+
+          if @draft_parent_post.present?
+            @post_draft = @post_type.posts.drafts.where(post_parent: @draft_parent_post.id,
+                                                        user_id: cama_current_user.id).first
+          end
+          if @post_draft
+            @post_draft.set_option('draft_status', @post_draft.status)
+            @post_draft.attributes = @post_data
+          else
             @post_draft = @post_type.posts.new(@post_data)
             @post_draft.user_id = cama_current_user.id
           end
+
           r = { post: @post_draft, post_type: @post_type }
           hooks_run('create_post_draft', r)
           if @post_draft.save(validate: false)
             # Security (audit M8): confine field values to slugs actually registered on the post type,
             # like PostsController#save_post_with_fields -- raw params[:field_options] let a caller
-            # write custom_field_values with attacker-chosen slugs/ids/group numbers.
-            @post_draft.set_params(params[:meta], cama_permitted_field_options('PostType_Post'), @post_data[:keywords])
+            # write custom_field_values with attacker-chosen slugs/ids/group numbers. Options are stored
+            # from params[:options], as #update does (the check above reads the same params).
+            @post_draft.set_params(params[:meta], cama_permitted_field_options('PostType_Post'), params[:options])
             msg = { draft: { id: @post_draft.id },
                     _drafts_path: cama_admin_post_type_draft_path(@post_type.id, @post_draft) }
             r = { post: @post_draft, post_type: @post_type }
@@ -50,6 +59,9 @@ module CamaleonCms
         def update
           @post_draft = @post_type.posts.drafts.where(user_id: cama_current_user.id).find(params[:id])
           authorize! :update, @post_draft.parent || @post_draft
+          refusals = post_params_refusals
+          return render(json: { error: refusals }) if refusals.any?
+
           @post_draft.attributes = @post_data
           r = { post: @post_draft, post_type: @post_type }
           hooks_run('update_post_draft', r)

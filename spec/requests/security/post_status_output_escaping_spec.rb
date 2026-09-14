@@ -4,8 +4,9 @@
 # raw column value for anything else, building its markup by string interpolation. Three admin views
 # render the result through `raw`, so a status that is not canonical is emitted as live markup.
 #
-# `posts.status` is writable at contributor privilege -- `get_post_data` permits `:status`, the model
-# has no `inclusion:` validation, and the only guard rewrites the exact literal 'published'.
+# A submitted `post[status]` is now held to the statuses the editor offers, but the column is still
+# written without model validation by `trash`, `restore` and the drafts save, and a value stored before
+# that rule stays; rendering code therefore never trusts the column.
 #
 # `titleize` is not a mitigation: HTML tag and attribute names are case-insensitive and so are DNS
 # hostnames, so the titleized `<Script Src=//Evil.Example/A.Js>` loads and executes just the same.
@@ -19,8 +20,8 @@ RSpec.describe 'Security: post status output escaping', type: :request do
   let(:payload) { "x'><script src=//evil.example/a.js></script>" }
 
   let!(:poisoned_post) do
-    post_type.posts.create!(title: 'Ordinary looking post', slug: 'ordinary-looking-post',
-                            content: 'nothing to see here', user_id: admin.id, status: 'pending')
+    create(:post, post_type: post_type, owner: admin, title: 'Ordinary looking post',
+                  slug: 'ordinary-looking-post', status: 'pending')
   end
 
   before { allow_any_instance_of(CamaleonCms::AdminController).to receive(:current_site).and_return(current_site) }
@@ -73,8 +74,9 @@ RSpec.describe 'Security: post status output escaping', type: :request do
     end
   end
 
-  # The source. A role holding only `edit` on the post type gets `:create_post` but not
-  # `:publish_post`, which is the lowest privilege that can create content at all.
+  # The former source. A role holding only `edit` on the post type gets `:create_post` but not
+  # `:publish_post`, which is the lowest privilege that can create content at all; its submitted
+  # status is refused before anything is written.
   describe 'reaching the column at contributor privilege' do
     let(:contributor_role) { current_site.user_roles.find_by!(slug: 'contributor') }
     let(:contributor) { create(:user, role: contributor_role.slug, site: current_site) }
@@ -84,39 +86,14 @@ RSpec.describe 'Security: post status output escaping', type: :request do
       sign_in_as(contributor, site: current_site)
     end
 
-    it 'stores the submitted status verbatim' do
+    it 'refuses the submitted status and creates nothing' do
       post "/admin/post_type/#{post_type.id}/posts", params: {
         post: { title: 'Contributor post', slug: 'contributor-post', content: 'x', status: payload }
       }
 
-      expect(response).to have_http_status(:found)
-      expect(post_type.posts.find_by(slug: 'contributor-post').status).to eq(payload)
-    end
-  end
-
-  # `set_options` iterates the submitted hash with no key allow-list, so `options[:status_default]`
-  # is attacker-settable, and `restore` writes it back with `update_column` -- skipping validations
-  # and callbacks. `trash` stamps `status_default` with the status it is replacing, so the payload
-  # has to be planted after trashing; `restore` then hands it straight to the column. This is why a
-  # model `inclusion:` validation on `status` would not have closed the hole.
-  describe 'the options[:status_default] -> trash -> update -> restore path' do
-    before { sign_in_as(admin, site: current_site) }
-
-    it 'writes the payload into the column and still renders it inert' do
-      patch "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}/trash"
-      patch "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}", params: {
-        post: { title: poisoned_post.title, slug: poisoned_post.slug, status: 'trash' },
-        options: { status_default: payload }
-      }
-      patch "/admin/post_type/#{post_type.id}/posts/#{poisoned_post.id}/restore"
-
-      expect(poisoned_post.reload.status).to eq(payload)
-
-      get "/admin/post_type/#{post_type.id}/posts", params: { s: 'all' }
-
-      table = parsed_body.at_css('#posts-table-list')
-      expect(table.css('script')).to be_empty
-      expect(table.at_css("tr[data-id='#{poisoned_post.id}'] .label-form").text).to eq(payload_as_text)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('post[status]')
+      expect(post_type.posts.find_by(slug: 'contributor-post')).to be_nil
     end
   end
 end

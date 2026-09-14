@@ -2,6 +2,12 @@ module CamaleonCms
   module Metas
     extend ActiveSupport::Concern
 
+    # Raised by set_metas/set_options for a container that is present but not a set of fields (an
+    # array of pairs, a scalar). The writers iterate a container key by key, so such input would be
+    # stored pair by pair past every hash-shaped check, or raise deep inside on to_sym; it is refused
+    # up front and nothing is written.
+    class InvalidContainer < ArgumentError; end
+
     included do
       # options and metas auto save support
       attr_accessor :data_options
@@ -94,8 +100,11 @@ module CamaleonCms
     end
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
+    # A stored row that is not a JSON object (legacy or corrupt data) reads as no options, so every
+    # reader and writer works on the record; the row is replaced the next time an option is written.
     def options(meta_key = '_default')
-      get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
+      stored = get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
+      stored.is_a?(Hash) ? stored : ActiveSupport::HashWithIndifferentAccess.new
     end
     alias cama_options options
 
@@ -140,6 +149,7 @@ module CamaleonCms
     def set_options(h = {}, meta_key = '_default')
       return if h.blank?
 
+      refuse_invalid_container!(h)
       data = writable_options(meta_key)
       PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
@@ -151,7 +161,10 @@ module CamaleonCms
     # save multiple metas
     # sample: set_metas({name: 'Owen', email: 'owenperedo@gmail.com'})
     def set_metas(data_metas)
-      (data_metas.nil? ? {} : data_metas).each do |key, value|
+      return if data_metas.blank?
+
+      refuse_invalid_container!(data_metas)
+      data_metas.each do |key, value|
         set_meta(key, value)
       end
     end
@@ -181,6 +194,12 @@ module CamaleonCms
     end
 
     private
+
+    def refuse_invalid_container!(container)
+      return if container.is_a?(Hash) || container.is_a?(ActionController::Parameters)
+
+      raise InvalidContainer, "metas and options must be a set of fields, not #{container.class}"
+    end
 
     # the options hash the option writers update: indifferent, as a stored one is parsed, so a String
     # key replaces its Symbol twin instead of being stored beside it

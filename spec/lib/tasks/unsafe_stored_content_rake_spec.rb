@@ -2,8 +2,10 @@
 
 require 'rake'
 
-# Audit M13: the scan_content task must report field_attrs values, not only editor/URI values, so an
-# operator cleaning up pre-gate data is not handed a false all-clear for the subtlest field type.
+# The scan_content task must report every stored value today's gates would refuse -- field_attrs
+# values as well as editor/URI values, post summaries, templates and layouts outside the site's
+# theme, options rows that are not JSON objects -- so an operator cleaning up pre-gate data is not
+# handed a false all-clear. Nothing stored is rewritten; listing is the only remedy for history.
 RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
   before(:all) do # rubocop:disable RSpec/BeforeAfterAll
     Rails.application.load_tasks
@@ -88,5 +90,61 @@ RSpec.describe 'camaleon_cms:security:scan_content Rake task', type: :task do
     store_decorator_option(post_type, '')
 
     expect { task.invoke }.not_to output(/Post type id=#{post_type.id}\b/).to_stdout
+  end
+
+  # The post save holds a non-admin's template, layout and default views to the editor's lists; a
+  # value stored before that rule (an admin view, say) still renders and is listed here against the
+  # site's theme view files.
+  describe 'post templates, layouts and default views' do
+    it 'flags a post whose stored template is not a theme view' do
+      post_record.set_meta('template', 'camaleon_cms/admin/settings/site')
+
+      expect { task.invoke }
+        .to output(%r{Post id=#{post_record.id}\b.*template 'camaleon_cms/admin/settings/site' is not a view}).to_stdout
+    end
+
+    it 'flags a post whose default layout option is not a theme layout' do
+      post_record.set_option('default_layout', 'camaleon_cms/admin')
+
+      expect { task.invoke }
+        .to output(%r{Post id=#{post_record.id}\b.*default_layout 'camaleon_cms/admin' is not a view}).to_stdout
+    end
+
+    it 'does not flag a post whose layout is one of the theme layouts' do
+      post_record.set_meta('layout', 'index')
+
+      expect { task.invoke }.not_to output(/Post id=#{post_record.id}\b/).to_stdout
+    end
+
+    it 'flags a post type whose default template is not a theme view' do
+      post_type.set_option('default_template', 'camaleon_cms/admin/settings/site')
+
+      expect { task.invoke }
+        .to output(/Post type id=#{post_type.id}\b.*default_template 'camaleon_cms.*is not a view/).to_stdout
+    end
+  end
+
+  describe 'options rows and summaries' do
+    it 'lists a post whose options row is not an object and scans the posts after it' do
+      post_record.set_meta('_default', 'corrupt')
+      later = create(:post, post_type: post_type)
+      later.set_meta('template', 'camaleon_cms/admin/settings/site')
+
+      expect { task.invoke }
+        .to output(/Post id=#{post_record.id}\b.*options could not be read.*Post id=#{later.id}\b.*template.*Done\./m)
+        .to_stdout
+    end
+
+    it 'flags a summary the content scan would refuse' do
+      post_record.set_meta('summary', 'Intro <script>alert(1)</script>')
+
+      expect { task.invoke }.to output(/Post id=#{post_record.id}\b.*summary would be rejected/).to_stdout
+    end
+
+    it 'does not flag a summary within the content allowlist' do
+      post_record.set_meta('summary', 'Plain <b>bold</b> summary')
+
+      expect { task.invoke }.not_to output(/Post id=#{post_record.id}\b/).to_stdout
+    end
   end
 end

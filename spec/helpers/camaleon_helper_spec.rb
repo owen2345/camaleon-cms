@@ -23,6 +23,39 @@ RSpec.describe CamaleonCms::CamaleonHelper, type: :helper do
     end
   end
 
+  describe '#cama_t' do
+    # The helper resolves a key in the current locale with the English text as the default, so a key
+    # only en.yml carries still renders under another admin language. The fallback is looked up with
+    # the caller's lookup options and without the interpolation values, so it is the translation the
+    # caller named and is interpolated exactly once; the caller's options hash is left untouched.
+    before do
+      # I18n templates, not format strings, hence the template tokens.
+      translations = { deep: 'scoped EN %{n}', named: 'key %{key} refused', a: 'A EN', b: 'B EN' } # rubocop:disable Style/FormatStringToken
+      I18n.backend.store_translations(:en, cama_t_spec: translations)
+      I18n.locale = :de
+    end
+
+    it 'falls back to the scoped English text when the caller passes scope:' do
+      expect(helper.cama_t('deep', scope: 'cama_t_spec', n: 1)).to eq('scoped EN 1')
+    end
+
+    it 'raises for a key missing in every locale when the caller passes raise: true' do
+      expect { helper.cama_t('cama_t_spec.nowhere', raise: true) }.to raise_error(I18n::MissingTranslationData)
+    end
+
+    it 'inserts a value carrying a placeholder token verbatim, without raising' do
+      expect(helper.cama_t('cama_t_spec.named', key: 'meta[_%{x}]')).to eq('key meta[_%{x}] refused') # rubocop:disable Style/FormatStringToken
+    end
+
+    it 'leaves the options hash the caller passed untouched' do
+      options = { n: 1 }
+
+      expect(helper.cama_t('cama_t_spec.a', options)).to eq('A EN')
+      expect(helper.cama_t('cama_t_spec.b', options)).to eq('B EN')
+      expect(options).to eq({ n: 1 })
+    end
+  end
+
   describe '#cama_sitemap_cats_generator' do
     let(:site) { CamaleonCms::Site.first }
     let(:post_type) { site.post_types.find_by(slug: 'post') }

@@ -2,8 +2,11 @@ module CamaleonCms
   module Admin
     module Settings
       class PostTypesController < CamaleonCms::Admin::SettingsController
+        include CamaleonCms::Admin::PostViewChoicesConcern
+
         before_action :set_post_type, only: %i[show edit update destroy]
         before_action :set_data_term, only: %i[create update]
+        before_action :refuse_unoffered_view_options, only: %i[create update]
 
         add_breadcrumb I18n.t('camaleon_cms.admin.sidebar.content_groups'), :cama_admin_settings_post_types_path
 
@@ -48,6 +51,29 @@ module CamaleonCms
         end
 
         private
+
+        # A post's blank template/layout falls back to the post type's `default_template`/
+        # `default_layout`, which the frontend renders the same way, so a non-admin's post type option is
+        # held to the offered list too -- otherwise it is the unchecked route to the same admin-view sink
+        # that PostsController closes for a post's own meta. Administrators are not restricted.
+        def refuse_unoffered_view_options
+          meta = params[:meta]
+          return unless cama_hash_param?(meta)
+
+          # On create the post type does not exist yet: the lists are computed for the record under
+          # creation (set_data_term ran first), as the create form computed them, so a hook that reads
+          # the post type it is handed offers the same list here and does not see nil.
+          post_type = @post_type || current_site.post_types.new(@data_term)
+          refusals = DEFAULT_VIEW_LISTERS.filter_map do |field, lister|
+            next unless meta.key?(field)
+
+            cama_unoffered_view_choice_refusal("meta[#{field}]", meta[field], lister, post_type)
+          end
+          return if refusals.empty?
+
+          flash[:error] = refusals.to_sentence
+          redirect_to action: :index
+        end
 
         def set_data_term
           # parent_id is the post type's site_id (alias_attribute). It is set from the site association

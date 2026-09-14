@@ -70,6 +70,13 @@ module CamaleonCms
 
     private
 
+    # A request param that is a set of fields: the shape a nested `name[key]=value` form group or a JSON
+    # object arrives in. A scalar (`meta=foo`) or an array (`meta[]=x`) answers neither `keys` nor `key?`
+    # and indexes with a Symbol key raise, so every reader of a hash-shaped param guards with this.
+    def cama_hash_param?(value)
+      value.is_a?(ActionController::Parameters) || value.is_a?(Hash)
+    end
+
     def cama_before_actions
       # including all helpers (system, themes, plugins) for this site
       # PluginRoutes.enabled_apps(current_site, current_theme.slug).each{|plugin| plugin_load_helpers(plugin) }
