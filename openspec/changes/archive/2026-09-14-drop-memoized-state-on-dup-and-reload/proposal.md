@@ -20,9 +20,9 @@ or `f`, a String every reader took as present, and the hashes in a stored array 
   fails, and rebuilds the record's ability and a user's role. `cama_clear_cache` drops them on demand.
   **BREAKING**: `CamaleonRecord#reset_ability` is removed; `reload` replaces it.
 - A site's languages read through the meta memo, so a write, a reload and a copy keep them current.
-- A boolean is stored as its JSON literal and reads back as the boolean; the hashes in a stored array
-  read by either key type. **BREAKING**: a boolean `set_meta` writes is stored as `true`/`false`; a row
-  stored as `t`/`f` by an earlier release keeps reading as that String.
+- A boolean is stored as its JSON literal and reads back as the boolean, a row an earlier release
+  stored as `t`/`f` included, which is stored again as the literal on its first read; the hashes in a
+  stored array read by either key type.
 
 ## Capabilities
 

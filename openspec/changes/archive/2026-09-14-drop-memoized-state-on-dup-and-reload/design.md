@@ -48,10 +48,13 @@ under-described. This change records those decisions.
    it follows every reset and write the memo does; the map is negligible next to the hash lookup.
 6. **Booleans stored as JSON literals.** The stored form of a value is computed in one place
    (`Metas#fix_meta_value`; the `CustomFieldsRead` copy that every model resolved first is dropped)
-   and stores `true`/`false` where the text column would cast to `t`/`f`; reads parse them back.
-   Rows earlier releases stored as `t`/`f` keep reading as Strings: rewriting them is an operator
-   decision, documented in the upgrade guide. The hashes in a parsed array are made indifferent by
-   the same helper that already made a parsed hash indifferent.
+   and stores `true`/`false` where the text column would cast to `t`/`f`; reads parse them back. A
+   row an earlier release stored as `t`/`f` reads as the boolean and is stored again as the literal
+   on that read, by a column update that skips callbacks and is skipped, with the read unchanged,
+   where writes are prevented; a rake task was rejected as one more operator step for a repair a
+   read can do. A genuine one-letter `t`/`f` String meta reads as a boolean too, an accepted
+   ambiguity. The hashes in a parsed array are made indifferent by the same helper that already
+   made a parsed hash indifferent.
 
 ## Risks / Trade-offs
 

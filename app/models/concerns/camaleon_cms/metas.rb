@@ -8,6 +8,9 @@ module CamaleonCms
     # up front and nothing is written.
     class InvalidContainer < ArgumentError; end
 
+    # how the text column cast a boolean before booleans were stored as their JSON literal
+    LEGACY_BOOLEANS = { 't' => true, 'f' => false }.freeze
+
     included do
       # options and metas auto save support
       attr_accessor :data_options
@@ -82,12 +85,7 @@ module CamaleonCms
                  end
         res = ''
         if option.present?
-          value = begin
-            # a key an older write stored twice keeps its last value, as json 2 read it
-            JSON.parse(option.value, allow_duplicate_key: true)
-          rescue StandardError
-            option.value
-          end
+          value = stored_meta_value(option)
           res = begin
             CamaleonCms::Metas.indifferent_json_value(value)
           rescue StandardError
@@ -216,6 +214,24 @@ module CamaleonCms
     end
 
     private
+
+    # The value of a stored row: its JSON, or the text itself when it holds none (a key an older write
+    # stored twice keeps its last value, as json 2 read it). A boolean an earlier release stored as the
+    # column's 't' or 'f' reads as the boolean, and the row is stored again as its JSON literal so the
+    # next read parses it; where writes are prevented the row is left for a later read.
+    def stored_meta_value(option)
+      return JSON.parse(option.value, allow_duplicate_key: true) unless LEGACY_BOOLEANS.key?(option.value)
+
+      boolean = LEGACY_BOOLEANS.fetch(option.value)
+      begin
+        option.update_column(:value, boolean.to_s) # rubocop:disable Rails/SkipsModelValidations
+      rescue ActiveRecord::ActiveRecordError
+        nil
+      end
+      boolean
+    rescue StandardError
+      option.value
+    end
 
     # The state of the transaction running now, if any: the one a write belongs to, whose rollback
     # undoes it. Its state is marked rolled back with the outermost transaction's too.

@@ -148,5 +148,24 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(slides.first[:title]).to eq('a')
       expect(slides.first['title']).to eq('a')
     end
+
+    # earlier releases stored a boolean as the column's 't' or 'f'
+    it 'reads a boolean stored as the column cast and stores it again as the boolean' do
+      post = create(:post, post_type: post_type)
+      post.metas.create!(key: 'probe_legacy', value: 'f')
+
+      expect(CamaleonCms::Post.find(post.id).get_meta('probe_legacy', 'default')).to be(false)
+      expect(post.metas.find_by!(key: 'probe_legacy').value).to eq('false')
+    end
+
+    it 'reads such a boolean without storing it where writes are prevented' do
+      post = create(:post, post_type: post_type)
+      post.metas.create!(key: 'probe_legacy', value: 't')
+
+      ActiveRecord::Base.while_preventing_writes do
+        expect(CamaleonCms::Post.find(post.id).get_meta('probe_legacy')).to be(true)
+      end
+      expect(post.metas.find_by!(key: 'probe_legacy').value).to eq('t')
+    end
   end
 end

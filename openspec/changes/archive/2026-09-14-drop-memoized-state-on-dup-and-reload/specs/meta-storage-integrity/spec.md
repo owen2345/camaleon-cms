@@ -59,12 +59,19 @@ them on demand. A site's languages SHALL follow its languages meta as any other 
 A boolean written with `set_meta` SHALL be stored so that every read, on the writing instance, after a
 reload and on a freshly loaded record, returns the boolean rather than the text column's cast of it.
 The hashes inside a stored array SHALL read by either key type, as a stored hash does. A row an earlier
-release stored as `t` or `f` SHALL read as that String.
+release stored as `t` or `f` SHALL read as the boolean and SHALL be stored again as its JSON literal on
+that read, except where writes are prevented, where the row is left for a later read.
 
 #### Scenario: A false flag read after a reload
 
 - **WHEN** `set_meta` stores `false` and the record is reloaded or loaded again
 - **THEN** `get_meta` returns `false`, not the caller's default and not a String
+
+#### Scenario: A boolean stored by an earlier release
+
+- **WHEN** a row holds `f` and the record's meta is read
+- **THEN** `get_meta` returns `false` and the row holds `false`, unless writes are prevented, when only the
+  read happens
 
 #### Scenario: Hashes in a stored array
 
