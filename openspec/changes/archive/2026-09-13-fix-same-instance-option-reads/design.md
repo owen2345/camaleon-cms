@@ -25,7 +25,7 @@ See proposal.md, "Why". The approach is shaped by these constraints:
 **Goals:**
 
 - One conversion, in `options`, which `get_option` and the option writers already read through, so all
-  three agree with each other and with a reloaded record.
+  three agree with each other and with a freshly loaded record.
 - Options that are already an indifferent hash come back as the same object: reads copy nothing, and the
   writers keep updating them in place.
 
@@ -49,12 +49,13 @@ reaches every option read and write without changing either of them.
   change the nested values a read returns.
 - A plain Hash, or another Hash subclass, becomes an indifferent copy, not cached, so the caller's hash
   stays as passed. The first option write caches its copy through `set_meta`.
-- Nil or an empty string becomes a new empty indifferent hash, not cached. A reloaded record already
+- Nil or an empty string becomes a new empty indifferent hash, not cached. A freshly loaded record already
   reads a stored empty string as no options.
-- Any other value is returned as it is, so it fails in the option API as before.
+- Any other value, a stored row that is not a JSON object included, reads as empty options, as the
+  options-row requirement has had it since #1297.
 
 **The writers keep their conversion.** After `options`, it only meets the values `options` returns as
-they are: request parameters, and values that are not a hash. It fails on them as before.
+they are: request parameters. It fails on them as before.
 - Rejected, the writers updating whatever `options` returns: a write would change a stored string in
   place with `String#[]=` instead of failing.
 
@@ -75,6 +76,6 @@ what the defect does to options.
   passed to `set_meta` as a plain Hash take that path.
 - [Options stored as null now read as empty options and accept writes, where `options` returned nil and
   `get_option` and the writers raised] → A record with no options row already reads and writes that way.
-- [The writers still fail on request parameters a caller passed to `set_meta`, which a reloaded record
+- [The writers still fail on request parameters a caller passed to `set_meta`, which a freshly loaded record
   accepts] → No consumer found writes options after passing parameters. `camaleon-ecommerce` redirects
   right after its `set_meta`.

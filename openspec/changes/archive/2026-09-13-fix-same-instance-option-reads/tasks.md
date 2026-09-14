@@ -7,7 +7,7 @@
   Verify with `bin/rspec spec/models/meta_spec.rb` that the plain Hash example fails on the current code. The request-parameters example passes, because it pins reads `camaleon-ecommerce` relies on.
 - [x] 1.2 In the same block, add examples for "Options that are nil or empty read and write as none":
   - a `get_meta` read without a default on a post with no stored options, followed by `options`, `get_option` with a default and `set_option` on the same instance, checked there and after a reload;
-  - `set_meta` with nil and with an empty string, with `options` empty and `get_option` returning the default on the same instance and after a reload, and an option set on the reloaded post read by a post loaded afterwards.
+  - `set_meta` with nil and with an empty string, with `options` empty and `get_option` returning the default on the same instance and on a freshly loaded post, and an option set on the freshly loaded post read by a post loaded afterwards.
 
   Verify they fail on the current code.
 
@@ -17,7 +17,7 @@
   - an indifferent hash or request parameters as they are;
   - a plain Hash as an indifferent copy, not cached;
   - nil or an empty string as a new empty indifferent hash;
-  - any other value as it is.
+  - any other value as empty options, the #1297 options-row rule.
 
   Leave `get_option` and the writers' conversion unchanged, and update the comments of `options` and `writable_options` to match. Verify that the section 1 examples pass, and that `spec/models/meta_spec.rb`, `spec/models/meta_pending_create_spec.rb` and `spec/models/meta_duplicate_rows_spec.rb` pass.
 - [x] 2.2 In `docs/ai/ecosystem.md`, add to the `camaleon-ecommerce` row its `set_meta('_default', params[:options])` options, read back with `get_option`, after confirming them in that repository. Verify the table still renders one row per repository.

@@ -2,16 +2,16 @@
 
 ## Why
 
-On the instance that wrote a record's options, `options` and `get_option` can disagree with a reloaded
+On the instance that wrote a record's options, `options` and `get_option` can disagree with a freshly loaded
 record:
 
 - `set_meta` keeps the caller's own hash. If the caller put an option under a String key in a plain Hash,
-  `options[:key]` and `get_option` miss it on that instance. A reloaded record parses the stored options
+  `options[:key]` and `get_option` miss it on that instance. A freshly loaded record parses the stored options
   into an indifferent hash and finds it.
 - A record's options can be nil or an empty string. An earlier `get_meta` read without a default caches
   nil for a record that has none, and `set_meta` can write nil or an empty string. `options` then returns
   that value, and `get_option` and the option writers raise instead of treating the record as having no
-  options, as a reloaded record with no options row does.
+  options, as a freshly loaded record with no options row does.
 
 ## What Changes
 
@@ -22,8 +22,8 @@ record:
   - nil or an empty string as empty options.
 - `get_option` and the option writers (`set_option`, `set_options` and its alias `set_multiple_options`,
   `delete_option`) already read through `options`. On the writing instance they now find either key type,
-  as a reloaded record does, and treat nil or empty options as none.
-- Options stored as null read as empty options and accept writes after a reload too.
+  as a freshly loaded record does, and treat nil or empty options as none.
+- Options stored as null read as empty options and accept writes on a freshly loaded record too.
 - Unchanged: what `set_meta` caches and what `get_meta` returns.
 
 **Non-goals:**
@@ -32,8 +32,9 @@ record:
   only options, the default the first reader asked for is what later reads on the same instance return.
   Fixing it changes what every `get_meta` caller gets back and needs its own review. This change covers
   the nil options it can leave behind.
-- Stored options that are not a hash, such as a string or an array. They fail in the option API as before,
-  on the writing instance and after a reload alike.
+- Stored options that are not a JSON object, such as a string or an array: they read as empty options
+  and take a write, on the writing instance and on a freshly loaded record alike, as the options-row
+  requirement has had it since #1297.
 
 ## Capabilities
 
