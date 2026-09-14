@@ -9,6 +9,7 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       site = CamaleonCms::Site.first
       site.set_meta('retired_setting', 'old')
       loaded = CamaleonCms::Site.includes(:metas).find(site.id)
+      expect(loaded.metas).to be_loaded
 
       loaded.delete_meta('retired_setting')
 
@@ -24,7 +25,7 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(user.get_meta('slogan')).to be_nil
 
       user.save!
-      expect(user.class.find(user.id).get_meta('slogan')).to be_nil
+      expect(user.metas.where(key: 'slogan')).to be_empty
     end
 
     it 'does not store a pending meta deleted by a Symbol key' do
@@ -35,6 +36,19 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       post.save!
 
       expect(post.metas.where(key: 'subtitle')).to be_empty
+    end
+
+    it "leaves the record's other pending metas to be stored" do
+      user = build(:user)
+      user.set_meta('slogan', 'keep')
+      user.set_meta('tagline', 'drop')
+
+      user.delete_meta('tagline')
+      user.save!
+
+      stored = user.class.find(user.id)
+      expect(stored.get_meta('slogan')).to eq('keep')
+      expect(stored.metas.where(key: 'tagline')).to be_empty
     end
 
     it 'leaves a stored row an unsaved record holds to the record it belongs to' do
