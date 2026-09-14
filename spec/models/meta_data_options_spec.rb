@@ -4,10 +4,11 @@
 # assigned: every later save of the same instance wrote them again, over any value set since. A post type
 # also skipped its data_metas when it was created and wrote them on its first update instead.
 RSpec.describe CamaleonCms::Metas do
-  let(:site) { CamaleonCms::Site.first }
+  # the shared site's installed post type: a post created for it skips a post type's creation and route reload
+  let(:shared_post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
 
   it 'keeps a later option write when a post type created with data_options is updated' do
-    post_type = site.post_types.create!(name: 'Catalog', slug: 'catalog', data_options: { has_category: true })
+    post_type = create(:post_type, data_options: { has_category: true })
     post_type.set_option(:has_category, false)
 
     post_type.update!(name: 'Products')
@@ -17,7 +18,7 @@ RSpec.describe CamaleonCms::Metas do
   end
 
   it 'stores the data_metas a post type is created with' do
-    post_type = site.post_types.create!(name: 'Catalog', slug: 'catalog', data_metas: { icon_color: 'red' })
+    post_type = create(:post_type, data_metas: { icon_color: 'red' })
 
     expect(CamaleonCms::PostType.find(post_type.id).get_meta('icon_color')).to eq('red')
   end
@@ -33,7 +34,7 @@ RSpec.describe CamaleonCms::Metas do
     expect(stored.get_option(:has_category)).to be(true)
     expect(stored.get_option(:has_seo)).to be(true)
 
-    post = create(:post, data_options: { has_comments: true }, data_metas: { '_default' => { 'has_summary' => false } })
+    post = create(:post, post_type: shared_post_type, data_options: { has_comments: true }, data_metas: { '_default' => { 'has_summary' => false } })
 
     expect(CamaleonCms::Post.find(post.id).options).to include('has_comments' => true, 'has_summary' => false)
   end
@@ -49,7 +50,7 @@ RSpec.describe CamaleonCms::Metas do
   end
 
   it 'keeps later writes when a post created with data_options and data_metas is updated' do
-    post = create(:post, data_options: { has_comments: true }, data_metas: { subtitle: 'first' })
+    post = create(:post, post_type: shared_post_type, data_options: { has_comments: true }, data_metas: { subtitle: 'first' })
     post.set_option(:has_comments, false)
     post.set_meta('subtitle', 'second')
 
@@ -62,7 +63,7 @@ RSpec.describe CamaleonCms::Metas do
 
   it 'refuses a data_options or data_metas container that is not a set of fields before the row is written' do
     post_type = build(:post_type, data_options: '{"has_category": true}')
-    post = build(:post, data_metas: [['subtitle', 'x']])
+    post = build(:post, post_type: shared_post_type, data_metas: [['subtitle', 'x']])
 
     ActiveRecord::Base.transaction do
       expect { post_type.save }.to raise_error(CamaleonCms::Metas::InvalidContainer, /String/)
@@ -97,7 +98,7 @@ RSpec.describe CamaleonCms::Metas do
     end
 
     it 'queues the values given to an update whose transaction is rolled back' do
-      post = create(:post)
+      post = create(:post, post_type: shared_post_type)
       ActiveRecord::Base.transaction(requires_new: true) do
         post.update!(data_options: { has_comments: true }, data_metas: { subtitle: 'first' })
         raise ActiveRecord::Rollback
@@ -112,7 +113,7 @@ RSpec.describe CamaleonCms::Metas do
     end
 
     it 'leaves them written when a later save of the instance is rolled back' do
-      post = create(:post, data_options: { has_comments: true })
+      post = create(:post, post_type: shared_post_type, data_options: { has_comments: true })
       post.set_option(:has_comments, false)
       ActiveRecord::Base.transaction(requires_new: true) do
         post.update!(title: 'Renamed')
@@ -126,7 +127,7 @@ RSpec.describe CamaleonCms::Metas do
   end
 
   it 'writes data_options and data_metas given to an update once' do
-    post = create(:post)
+    post = create(:post, post_type: shared_post_type)
     post.update!(data_options: { has_comments: true }, data_metas: { subtitle: 'first' })
     stored = CamaleonCms::Post.find(post.id)
     expect(stored.get_option(:has_comments)).to be(true)
