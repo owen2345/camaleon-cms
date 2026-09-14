@@ -96,10 +96,13 @@ module CamaleonCms
     # delete meta
     def delete_meta(key)
       key_str = key.to_s
-      # the metas held in memory too: get_meta reads loaded metas, and saving the record stores built ones
-      metas.destroy(*metas.target.select { |m| m.key == key_str })
-      metas.where(key: key_str).destroy_all
-      cama_remove_cache("meta_#{key}")
+      # Through the association, so the loaded copies of the stored rows and the metas built but not yet
+      # saved leave the record too: get_meta reads loaded metas, and a save stores built ones. The stored
+      # rows an unsaved record holds belong to another record, and its query scope is empty, so only its
+      # built metas are dropped.
+      built = metas.target.select { |m| m.new_record? && m.key == key_str }
+      metas.destroy(*built, *metas.where(key: key_str))
+      cama_remove_cache("meta_#{key_str}")
     end
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}

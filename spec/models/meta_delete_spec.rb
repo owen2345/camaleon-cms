@@ -36,5 +36,16 @@ RSpec.describe CamaleonCms::Meta, type: :model do
 
       expect(post.metas.where(key: 'subtitle')).to be_empty
     end
+
+    it 'leaves a stored row an unsaved record holds to the record it belongs to' do
+      original = create(:post)
+      original.set_meta('subtitle', 'kept')
+      copy = CamaleonCms::Post.new(post_type: original.post_type)
+      copy.metas = original.metas.to_a
+
+      copy.delete_meta('subtitle')
+
+      expect(CamaleonCms::Post.find(original.id).get_meta('subtitle')).to eq('kept')
+    end
   end
 end
