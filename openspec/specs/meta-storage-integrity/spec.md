@@ -42,6 +42,35 @@ caller passed, with the caller's own keys, until the record is loaded again.
 - **WHEN** a hash with Symbol keys is written with `set_meta`
 - **THEN** `get_meta` on the same instance returns that same hash object
 
+### Requirement: delete_meta removes the key from memory as well as storage
+
+`delete_meta` SHALL remove the key's stored rows and the metas the record holds for it on its `metas`
+association: loaded copies of those rows, and metas built with `set_meta` and not yet saved. `get_meta` on
+that instance SHALL then return the default, and a save SHALL NOT store a deleted built meta. Metas for
+other keys, and a stored row an unsaved record holds for another record, SHALL remain. A meta queued in
+`data_metas` or `data_options` is out of scope: the next save writes it.
+
+#### Scenario: A meta deleted from eager-loaded metas
+
+- **WHEN** a site loaded with its metas deletes a meta
+- **THEN** the same instance and a freshly loaded site read the default for that key
+
+#### Scenario: A meta deleted before it is saved
+
+- **WHEN** a meta set with `set_meta` on an unsaved user, or built on a saved post, is deleted and the record
+  is saved
+- **THEN** no row is stored for that key
+
+#### Scenario: A sibling meta pending on the same record
+
+- **WHEN** an unsaved user with two metas set deletes one of them and is saved
+- **THEN** the other meta is stored
+
+#### Scenario: A stored row held by an unsaved record
+
+- **WHEN** an unsaved post holding another post's stored metas deletes one of their keys
+- **THEN** the other post still reads that meta
+
 ### Requirement: Hash and Array values are stored with one entry per key
 
 A Hash or Array value written as a meta or as a custom-field value SHALL be stored as JSON with one entry
