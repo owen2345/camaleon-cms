@@ -180,6 +180,17 @@ module CamaleonCms
       end
     end
 
+    # A copy is a new record with no write behind it: it starts without the record of the original's
+    # last write, which a rollback of that write's transaction would otherwise queue on the copy, and
+    # with queues of its own, so a value queued on one is not queued on the other.
+    def initialize_dup(other)
+      @written_metas_options = nil
+      @created_record_metas_in_memory = false
+      self.data_options = data_options.deep_dup
+      self.data_metas = data_metas.deep_dup
+      super
+    end
+
     # Write the metas and options a record was given in data_metas and data_options, then clear them:
     # a later save of this instance must not write them again over values set since. The metas go
     # first, so that a `_default` meta, which is the options row itself, does not replace the options
