@@ -13,6 +13,8 @@ module CamaleonCms
       attr_accessor :data_options
       attr_accessor :data_metas
 
+      # refused before any statement, as the writers refuse it after the row would have been written
+      before_save   :refuse_invalid_queued_containers
       after_create  :save_metas_options, unless: :save_metas_options_skip
       before_update :fix_save_metas_options_no_changed
     end
@@ -199,6 +201,13 @@ module CamaleonCms
     end
 
     private
+
+    # A data_options or data_metas value that is present but not a set of fields is refused before the
+    # INSERT or UPDATE, with the writers' error, so no row is left behind it; a blank one is ignored.
+    def refuse_invalid_queued_containers
+      refuse_invalid_container!(data_options) if data_options.present?
+      refuse_invalid_container!(data_metas) if data_metas.present?
+    end
 
     def refuse_invalid_container!(container)
       return if container.is_a?(Hash) || container.is_a?(ActionController::Parameters)

@@ -43,6 +43,27 @@ RSpec.describe CamaleonCms::Metas do
     expect(stored.get_meta('subtitle')).to eq('second')
   end
 
+  it 'refuses a data_options or data_metas container that is not a set of fields before the row is written' do
+    post_type = build(:post_type, data_options: '{"has_category": true}')
+    post = build(:post, data_metas: [['subtitle', 'x']])
+
+    ActiveRecord::Base.transaction do
+      expect { post_type.save }.to raise_error(CamaleonCms::Metas::InvalidContainer, /String/)
+      expect { post.save }.to raise_error(CamaleonCms::Metas::InvalidContainer, /Array/)
+    end
+
+    expect(post_type).not_to be_persisted
+    expect(post).not_to be_persisted
+    expect(CamaleonCms::PostType.where(slug: post_type.slug)).not_to exist
+    expect(CamaleonCms::Post.where(slug: post.slug)).not_to exist
+  end
+
+  it 'ignores a blank data_options container' do
+    post_type = create(:post_type, data_options: [])
+
+    expect(CamaleonCms::PostType.find(post_type.id).get_option(:has_seo)).to be(true)
+  end
+
   it 'writes data_options given to an update once' do
     post = create(:post)
     post.update!(data_options: { has_comments: true })
