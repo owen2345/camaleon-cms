@@ -13,7 +13,7 @@ Camaleon CMS is a Rails engine shipped as the `camaleon_cms` gem. Everything bel
 
 ## Verify before pushing
 
-`bin/rspec`, `bin/rubocop -A` (auto-correct only what you touched), `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`. All four, CI parity.
+`bin/rspec <the specs the PR adds or changes, plus the adjacent ones>`, `bin/rubocop -A` (auto-correct only what you touched), `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`. All four. Adjacent specs are those of the code the PR touches: the same model, concern, controller or helper, found by grepping `spec/` for the changed symbols. Run the whole suite only when the user asks for it or after a refactoring with a wide blast radius (a base class, a concern every model includes, a shared helper); CI runs it on every push.
 
 ## OpenSpec
 
