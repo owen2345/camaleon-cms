@@ -187,15 +187,19 @@ module CamaleonCms
       save_metas_options # unless self.changed?
     end
 
-    # Save all settings for this post type - received in data_options and data_metas attribute (options and metas)
-    # sample:
-    # Site.first.post_types.create(
-    #   {name: "owen", slug: "my_post_type", data_options: { has_category: true, default_layout: "my_layout" }}
-    # )
+    # Write the metas and options a record was given in data_metas and data_options, then clear them:
+    # a later save of this instance must not write them again over values set since. The metas go
+    # first, so that a `_default` meta, which is the options row itself, does not replace the options
+    # written after it; they merge into it instead.
+    # sample: Site.first.post_types.create(name: 'Catalog', slug: 'catalog', data_options: { has_category: true })
     def save_metas_options
-      set_multiple_options(data_options)
-      data_metas.each { |key, val| set_meta(key, val) } if data_metas.present?
-      # written: a later save of this instance must not write them again over newer values
+      return if data_options.blank? && data_metas.blank?
+
+      # The metas scope memoized before the INSERT names no owner, so a write would miss the row the
+      # write before it created; the metas autosave rebuilds it too, but runs after this callback.
+      metas.proxy_association.reset_scope if previously_new_record?
+      set_metas(data_metas)
+      set_options(data_options)
       self.data_options = nil
       self.data_metas = nil
     end

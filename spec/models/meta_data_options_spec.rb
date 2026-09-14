@@ -21,6 +21,22 @@ RSpec.describe CamaleonCms::Metas do
     expect(CamaleonCms::PostType.find(post_type.id).get_meta('icon_color')).to eq('red')
   end
 
+  it 'merges the options given with a _default meta into it' do
+    post_type = create(:post_type, data_options: { has_category: true }, data_metas: { '_default' => { 'has_tags' => true } })
+
+    expect(post_type.manage_categories?).to be(true)
+    expect(post_type.categories.where(slug: 'uncategorized')).to exist
+    expect(post_type.metas.where(key: '_default').count).to eq(1)
+    stored = CamaleonCms::PostType.find(post_type.id)
+    expect(stored.get_option(:has_tags)).to be(true)
+    expect(stored.get_option(:has_category)).to be(true)
+    expect(stored.get_option(:has_seo)).to be(true)
+
+    post = create(:post, data_options: { has_comments: true }, data_metas: { '_default' => { 'has_summary' => false } })
+
+    expect(CamaleonCms::Post.find(post.id).options).to include('has_comments' => true, 'has_summary' => false)
+  end
+
   it 'writes the data_metas of a post type into the meta built before its first save' do
     post_type = build(:post_type, data_metas: { icon_color: 'red' })
     post_type.set_meta('icon_color', 'blue')
