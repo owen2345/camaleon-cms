@@ -13,6 +13,7 @@ RSpec.describe CamaleonCms::Metas do
     post_type.update!(name: 'Products')
 
     expect(CamaleonCms::PostType.find(post_type.id).get_option(:has_category)).to be(false)
+    expect(post_type.get_option(:has_category)).to be(false)
   end
 
   it 'stores the data_metas a post type is created with' do
@@ -124,14 +125,33 @@ RSpec.describe CamaleonCms::Metas do
     end
   end
 
-  it 'writes data_options given to an update once' do
+  it 'writes data_options and data_metas given to an update once' do
     post = create(:post)
-    post.update!(data_options: { has_comments: true })
-    expect(CamaleonCms::Post.find(post.id).get_option(:has_comments)).to be(true)
+    post.update!(data_options: { has_comments: true }, data_metas: { subtitle: 'first' })
+    stored = CamaleonCms::Post.find(post.id)
+    expect(stored.get_option(:has_comments)).to be(true)
+    expect(stored.get_meta('subtitle')).to eq('first')
     post.set_option(:has_comments, false)
+    post.set_meta('subtitle', 'second')
 
     post.update!(title: 'Renamed')
 
-    expect(CamaleonCms::Post.find(post.id).get_option(:has_comments)).to be(false)
+    stored = CamaleonCms::Post.find(post.id)
+    expect(stored.get_option(:has_comments)).to be(false)
+    expect(stored.get_meta('subtitle')).to eq('second')
+    expect(post.get_option(:has_comments)).to be(false)
+    expect(post.get_meta('subtitle')).to eq('second')
+  end
+
+  it 'writes data_options given to a post type update once' do
+    post_type = create(:post_type)
+    post_type.update!(data_options: { has_tags: true })
+    expect(CamaleonCms::PostType.find(post_type.id).get_option(:has_tags)).to be(true)
+    post_type.set_option(:has_tags, false)
+
+    post_type.update!(name: 'Renamed')
+
+    expect(CamaleonCms::PostType.find(post_type.id).get_option(:has_tags)).to be(false)
+    expect(post_type.get_option(:has_tags)).to be(false)
   end
 end
