@@ -11,6 +11,7 @@
 - [x] 2.5 A save rolled back after the write queues the values again (verify: the rollback examples)
 - [x] 2.6 A write on a record with loaded metas takes the row from them (verify: `spec/models/meta_duplicate_rows_spec.rb`)
 - [x] 2.7 The two hooks are removed and the callbacks name save_metas_options (verify: `grep -rn save_metas_options_skip app` is empty)
+- [x] 2.8 A created record's metas are read and looked up in memory while its queues are written, and built again when that creation is rolled back (verify: `spec/models/meta_data_options_spec.rb` lookup and rollback examples)
 
 ## 3. Documentation
 

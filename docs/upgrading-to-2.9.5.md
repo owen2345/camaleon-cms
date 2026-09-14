@@ -239,7 +239,9 @@ A record's `data_options` and `data_metas` are written by the first save that co
 `nil`, so a later save of the same instance no longer writes them again over options or metas set
 since; a copy taken with `dup` after that save carries none of them. A save rolled back after writing
 them (a later callback raising, an enclosing transaction rolled back) queues them again for the next
-save of the instance. A `created_post_type` or `updated_post_type` handler that read the submitted
+save of the instance; a record whose creation was rolled back also stores the metas set before that
+save when it is saved again, and a record that already existed drops its loaded metas and cached
+values, reading them again on demand. A `created_post_type` or `updated_post_type` handler that read the submitted
 options from `args[:post_type].data_options` now gets `nil`: read the stored ones with `options` or
 `get_option`.
 

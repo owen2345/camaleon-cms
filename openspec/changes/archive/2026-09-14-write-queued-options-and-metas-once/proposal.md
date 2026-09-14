@@ -24,7 +24,9 @@ consumed them.
   `#fix_save_metas_options_no_changed` are removed; no surveyed plugin or theme uses either.
 - A queued container that is not a set of fields is refused before the row is written; a decorator
   option queued as the `_default` meta is validated like one in `data_options`.
-- A write on a record whose metas are loaded takes the row from them, as the read does.
+- A write on a record whose metas are loaded takes the row from them, as the read does, and a
+  record being created reads and looks its metas up in memory while its queues are written; a
+  rolled-back creation builds those metas again for the next save.
 
 ## Capabilities
 
