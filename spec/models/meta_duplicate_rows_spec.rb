@@ -26,6 +26,20 @@ RSpec.describe CamaleonCms::Meta, type: :model do
     expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe')).to eq('written')
   end
 
+  it 'updates the row that later reads return from eager-loaded metas, without querying for it' do
+    loaded = CamaleonCms::PostType.includes(:metas).find(post_type.id)
+    selects = []
+    subscription = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+      selects << payload[:sql] if payload[:sql].start_with?('SELECT') && payload[:sql].include?('"metas"')
+    end
+
+    loaded.set_meta('probe', 'written')
+
+    ActiveSupport::Notifications.unsubscribe(subscription)
+    expect(selects).to be_empty
+    expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe')).to eq('written')
+  end
+
   it 'reads the same row from eager-loaded metas as from the database' do
     expect(CamaleonCms::PostType.includes(:metas).find(post_type.id).get_meta('probe'))
       .to eq(CamaleonCms::PostType.find(post_type.id).get_meta('probe'))

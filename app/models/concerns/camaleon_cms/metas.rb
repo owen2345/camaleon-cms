@@ -50,7 +50,7 @@ module CamaleonCms
         pending_record = metas.target.find { |m| m.new_record? && m.key == key.to_s }
         if pending_record
           pending_record.value = fixed_value
-        elsif (meta_record = metas.where(key: key.to_s).order(:id).first)
+        elsif (meta_record = stored_meta_row(key.to_s))
           meta_record.update(value: fixed_value)
         else
           metas.create(key: key.to_s, value: fixed_value)
@@ -244,6 +244,16 @@ module CamaleonCms
       return if container.is_a?(Hash) || container.is_a?(ActionController::Parameters)
 
       raise InvalidContainer, "metas and options must be a set of fields, not #{container.class}"
+    end
+
+    # The stored row a write updates: the lowest id among the key's rows, taken from the loaded metas
+    # when they are loaded and from the database otherwise, as get_meta takes the row it reads.
+    def stored_meta_row(key_str)
+      if metas.loaded?
+        metas.target.select { |m| m.persisted? && m.key == key_str }.min_by { |m| m.id.to_i }
+      else
+        metas.where(key: key_str).order(:id).first
+      end
     end
 
     # the options hash the option writers update: indifferent, as a stored one is parsed, so a String
