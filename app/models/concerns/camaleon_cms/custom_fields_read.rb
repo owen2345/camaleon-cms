@@ -358,13 +358,6 @@ module CamaleonCms
       CamaleonCms::CustomField.where(slug: key, parent_id: group_ids).pick(:id)
     end
 
-    def fix_meta_value(value)
-      return value.to_json if value.is_a?(ActionController::Parameters)
-      return CamaleonCms::Metas.generate_json(value) if value.is_a?(Array) || value.is_a?(Hash)
-
-      value
-    end
-
     def _destroy_custom_field_groups
       class_name = self.class.to_s.parseCamaClass
       if %w[Category Post PostTag].include?(class_name)

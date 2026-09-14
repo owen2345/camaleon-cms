@@ -28,6 +28,7 @@ module CamaleonCms
       JSON.generate(indifferent_json_value(value))
     end
 
+    # a parsed Hash, or the Hashes in a parsed Array, read by either key type
     def self.indifferent_json_value(value)
       case value
       when Hash then value.with_indifferent_access
@@ -35,7 +36,6 @@ module CamaleonCms
       else value
       end
     end
-    private_class_method :indifferent_json_value
 
     # Add meta with value or Update meta with key: key
     # return true or false
@@ -89,7 +89,7 @@ module CamaleonCms
             option.value
           end
           res = begin
-            (value.is_a?(Hash) ? value.with_indifferent_access : value)
+            CamaleonCms::Metas.indifferent_json_value(value)
           rescue StandardError
             option.value
           end
@@ -292,7 +292,9 @@ module CamaleonCms
       data.is_a?(ActiveSupport::HashWithIndifferentAccess) ? data : data.with_indifferent_access
     end
 
-    # fix to parse value
+    # The stored form of a value: JSON for a container, and for a boolean its JSON literal, which reads
+    # back as the boolean where the text column would store 't' or 'f', a String every reader takes as
+    # present.
     def fix_meta_value(value)
       changed_value = if value.is_a?(ActionController::Parameters)
                         value.to_json
@@ -301,7 +303,8 @@ module CamaleonCms
                       else
                         value
                       end
-      fix_meta_var(changed_value)
+      changed_value = fix_meta_var(changed_value)
+      [true, false].include?(changed_value) ? changed_value.to_s : changed_value
     end
 
     # fix to detect type of the variable
