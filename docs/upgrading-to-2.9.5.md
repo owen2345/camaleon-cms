@@ -26,6 +26,7 @@ what theme/plugin developers should know.
 | Sets `cama_post_decorator_class` on a post type (a plugin or theme decorator) | It must name a `CamaleonCms::PostDecorator` subclass; the scan task lists stored values that are now ignored ([details](#cama_post_decorator_class-must-name-a-post-decorator)) |
 | Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
+| Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
 
 ---
 
@@ -171,6 +172,31 @@ Separately, the per-kind field options in the custom-fields settings — colorpi
 Format**, the date field's date-vs-datetime toggle, image **versions**, file **formats**, and the
 posts field's post-type filter — were silently discarded on every save. They persist now, but any
 choice made before this release was never stored: reopen the field group and pick them again.
+
+---
+
+## The `$current_site` global is no longer read
+
+`current_site` resolved the `$current_site` global ahead of everything but an explicit argument, and
+when no site matched a request the error log advised setting it to `CamaleonCms::Site.first.decorate`.
+A server that followed that advice served every request of a process from that one site record, and a
+record keeps the options and metas it has read in memory. The process then never saw site settings
+saved by another worker, a console or a job, it kept serving cached pages that other workers'
+`front_cache` invalidations retired, and its threads updated one shared options hash. The global is
+gone from the resolution order, and the log points to domain mapping instead.
+
+**Action:** search your app for `$current_site`. On a server, remove the assignment and map your
+domains to your sites ([how](https://camaleon.website/documentation/category/139779-examples/how.html)).
+In a console, a script or a rake task, pass the site instead; later `current_site` calls in that
+process return it:
+
+```ruby
+include CamaleonCms::SiteHelper
+current_site(CamaleonCms::Site.find(id))
+```
+
+The `camaleon_cms:generate_thumbnails` task, which set the global, is removed: it iterated a `fog`
+connection the uploader no longer opens, so it raised before reaching a file.
 
 ---
 

@@ -8,11 +8,6 @@ module CamaleonCms
         return CurrentRequest.site
       end
 
-      if defined?($current_site)
-        CurrentRequest.site = $current_site
-        return $current_site
-      end
-
       # Honor a caller-set @current_site (HtmlMailer and other background senders assign it) before the
       # memoized CurrentRequest.site, so a delivery for another site resolves against that site rather
       # than the request's. Restores 2.9.2; without it, multisite/background mail resolves the wrong site
@@ -53,8 +48,9 @@ module CamaleonCms
       end
       if r[:site].blank?
         Rails.logger.error(
-          'Camaleon CMS - Please define your current site: $current_site = CamaleonCms::Site.first.decorate or ' \
-            'map your domains: https://camaleon.website/documentation/category/139779-examples/how.html'
+          'Camaleon CMS - No site matches this request: map your domains to your sites ' \
+            '(https://camaleon.website/documentation/category/139779-examples/how.html), ' \
+            'or pass the site with current_site(site) outside a request'
             .cama_log_style(:red)
         )
       end

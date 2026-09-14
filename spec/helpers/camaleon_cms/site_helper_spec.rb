@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 # Regression audit M21: #1177 dropped the caller-set @current_site branch from
 # SiteHelper#current_site. Background senders (HtmlMailer, jobs) assign @current_site but had it
 # ignored; on a multisite install, resolution then fell through to the request-based branch and
 # raised NameError (no request in a mailer/job), so no mail was sent. These pin the restored
 # precedence and the multisite mailer symptom.
-describe CamaleonCms::SiteHelper do
+RSpec.describe CamaleonCms::SiteHelper do
   subject(:helper_object) { Class.new { include CamaleonCms::SiteHelper }.new }
 
   let(:site) { CamaleonCms::Site.first.decorate }
@@ -37,6 +39,26 @@ describe CamaleonCms::SiteHelper do
       CurrentRequest.site = instance_double(CamaleonCms::SiteDecorator).as_null_object
       helper_object.instance_variable_set(:@current_site, site)
       expect(helper_object.current_site).to eq(site)
+    end
+  end
+
+  describe '#current_site when no site matches the request' do
+    subject(:helper_object) do
+      Class.new do
+        include CamaleonCms::SiteHelper
+
+        def request
+          ActionDispatch::TestRequest.create('HTTP_HOST' => 'unmapped.example')
+        end
+      end.new
+    end
+
+    it 'returns nil and logs domain-mapping advice' do
+      messages = []
+      allow(Rails.logger).to receive(:error) { |message| messages << message }
+
+      expect(helper_object.current_site).to be_nil
+      expect(messages).to contain_exactly(a_string_including('139779-examples/how.html'))
     end
   end
 
