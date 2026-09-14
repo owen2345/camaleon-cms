@@ -15,8 +15,8 @@ module CamaleonCms
 
       # refused before any statement, as the writers refuse it after the row would have been written
       before_save   :refuse_invalid_queued_containers
-      after_create  :save_metas_options, unless: :save_metas_options_skip
-      before_update :fix_save_metas_options_no_changed
+      after_create  :save_metas_options
+      before_update :save_metas_options
       # a write undone with its transaction is queued again for the next save
       after_rollback :requeue_metas_options
       after_commit :forget_written_metas_options
@@ -178,16 +178,6 @@ module CamaleonCms
       data_metas.each do |key, value|
         set_meta(key, value)
       end
-    end
-
-    # permit to skip save_metas_options in specific models
-    def save_metas_options_skip
-      false
-    end
-
-    # fix to save options and metas when a model was not changed
-    def fix_save_metas_options_no_changed
-      save_metas_options # unless self.changed?
     end
 
     # Write the metas and options a record was given in data_metas and data_options, then clear them:
