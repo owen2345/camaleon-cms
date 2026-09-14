@@ -17,8 +17,8 @@ around that drain.
 
 - Changing what `set_meta` caches on the writing instance (the caller's object, pinned by the
   "set_meta keeps the caller's value" requirement; `options` reads are the subject of #1302).
-- Skipping the meta lookup for a just-created record: a `metas.reset` or a row created around the
-  association would then produce a second row for the key.
+- Trusting the metas in memory beyond the creating save's own write: after it, a `metas.reset` or a
+  row created around the association can leave them incomplete, so later writes query as before.
 
 ## Decisions
 
@@ -50,7 +50,12 @@ around that drain.
 6. **Validate the `_default` meta for the decorator option.** The post-INSERT refusal inside
    `after_create` turns into `false` from `save`, and a joined transaction swallows the rollback; the
    existing validation reads that meta too, whichever key type names it.
-7. **Remove the two hooks.** `save_metas_options_skip` had one overrider, the post type, and
+7. **Read and look up a created record's metas in memory while its queues are written.** Every row
+   the record has then is in the association target, so the per-key lookups and the options read go
+   there. A rolled-back creation leaves those metas claiming rows that are gone, so the rollback
+   builds them again (the record's own state is restored after the callback, so the write remembers
+   that it created the record); an existing record drops its loaded metas and cached values instead.
+8. **Remove the two hooks.** `save_metas_options_skip` had one overrider, the post type, and
    `fix_save_metas_options_no_changed` only forwarded; `docs/ai/ecosystem.md` records no consumer,
    and the removal is noted there and in the upgrade guide.
 

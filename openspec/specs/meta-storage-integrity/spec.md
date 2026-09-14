@@ -180,8 +180,8 @@ written, both accessors SHALL read `nil`. The metas SHALL be written before the 
 `_default` meta given in `data_metas` merges with `data_options` instead of replacing them. When the
 transaction that wrote them is rolled back, they SHALL be queued again for the record's next save,
 keeping any value queued since; a rollback of a later transaction of the instance SHALL leave them
-written. A post type SHALL write its `data_metas` when it is created and SHALL fill its default
-options in under the options set on the record before its first save and under the ones given.
+written. A post type SHALL fill its default options in under the options set on the record before
+its first save and under the ones given.
 
 #### Scenario: A post type updated after an option write
 
