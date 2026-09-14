@@ -12,20 +12,21 @@ or duplicate rows.
 
 Writing an option with `set_option`, `set_options` or `delete_option` SHALL treat a String key and its
 Symbol twin as the same option. A write SHALL replace the other type's entry rather than store the key
-twice. The writing instance SHALL read the option back by either key type, as a reloaded record does.
+twice. The writing instance SHALL read the option back by either key type, as a freshly loaded record
+does.
 
 #### Scenario: A String-keyed option after Symbol-keyed defaults
 
 - **WHEN** a post type, whose creation stored its default options with Symbol keys, sets `has_category`
   with a String key
 - **THEN** the stored options hold `has_category` once
-- **AND** both the same instance and a reloaded post type read it as the new value
+- **AND** both the same instance and a freshly loaded post type read it as the new value
 
 #### Scenario: An option is deleted by the other key type
 
 - **WHEN** a record's options hold `color` under a String key and `size` under a Symbol key, and `color`
   is deleted with a Symbol key and `size` with a String key
-- **THEN** a reloaded record holds no options
+- **THEN** a freshly loaded record holds no options
 
 #### Scenario: A record's first option is written with a String key
 
@@ -35,12 +36,18 @@ twice. The writing instance SHALL read the option back by either key type, as a 
 ### Requirement: set_meta keeps the caller's value on the writing instance
 
 A value written with `set_meta` SHALL be returned by `get_meta` on the same instance as the object the
-caller passed, with the caller's own keys, until the record is loaded again.
+caller passed, with the caller's own keys, until the record is loaded again. A record not yet saved
+SHALL keep it until its first save, after which the instance reads what it stored.
 
 #### Scenario: A plugin reads back the hash it wrote
 
 - **WHEN** a hash with Symbol keys is written with `set_meta`
 - **THEN** `get_meta` on the same instance returns that same hash object
+
+#### Scenario: A new record saved after the write
+
+- **WHEN** a hash is written with `set_meta` on an unsaved post type and the post type is saved
+- **THEN** the same instance reads the stored hash by its keys, no longer the caller's object
 
 ### Requirement: delete_meta removes the key from memory as well as storage
 
@@ -182,7 +189,8 @@ transaction that wrote them is rolled back, they SHALL be queued again for the r
 keeping any value queued since, and a record whose creation was rolled back SHALL store the metas
 built before that save too; a rollback of a later transaction of the instance SHALL leave them
 written. A post type SHALL fill its default options in under the options set on the record before
-its first save and under the ones given.
+its first save and under the ones given. A copy made with `dup` SHALL carry no record of the
+original's write and SHALL queue only values given to the copy.
 
 #### Scenario: A post type updated after an option write
 
@@ -231,3 +239,95 @@ its first save and under the ones given.
 - **WHEN** a post created with `data_options` sets an option, has a later update rolled back and is
   updated again
 - **THEN** a freshly loaded post reads the option set after the creation
+
+#### Scenario: A copy saved inside the rolled-back transaction of the original's write
+
+- **WHEN** a post created with `data_options` is copied, the copy is saved inside the same transaction,
+  and the transaction is rolled back
+- **THEN** the copy has nothing queued and a value queued on one of them is not queued on the other
+
+### Requirement: A copied or reloaded record does not reuse memoized values
+
+A value a record memoizes for the request through `cama_fetch_cache`, which is how its meta and option
+reads, a category's post type, a post's parents and a decorator's rendered fields are memoized, SHALL
+belong to that instance and the state it loaded. A copy made with `dup` SHALL start without the
+original's memoized values and, for an unsaved original, without its unsaved metas, so copies do not
+read each other's writes. `reload` SHALL drop them once it has replaced the record's state, so reads
+after it return the stored values, and SHALL leave them when it fails; it SHALL also rebuild the
+record's ability and a user's role, whose stored inputs may have changed since. A refresh of the
+`metas` association alone (`metas.reload`, `metas.reset`) does not drop them; `cama_clear_cache` drops
+them on demand. A site's languages SHALL follow its languages meta as any other meta read does. A post
+SHALL read the request's user and site from `CurrentRequest` as every record does, not from a class
+attribute.
+
+#### Scenario: Two copies of a post
+
+- **WHEN** two copies are made of a post whose options were read, and one copy sets an option
+- **THEN** the other copy does not read that option
+
+#### Scenario: A copy of an unsaved post
+
+- **WHEN** a meta is set on an unsaved post and the post is copied
+- **THEN** the copy reads no value for it and holds no meta
+
+#### Scenario: A post reloaded after another instance's write
+
+- **WHEN** a post writes and reads a meta, another instance of the post writes a new value, and the
+  first post is reloaded
+- **THEN** the reloaded post reads the new value
+
+#### Scenario: A derived value after a reload
+
+- **WHEN** a value memoized through `cama_fetch_cache` is read after the record is reloaded
+- **THEN** it is computed again
+
+#### Scenario: A reload that fails
+
+- **WHEN** a post's row was deleted elsewhere and the post is reloaded
+- **THEN** the reload raises and the post still reads the meta it memoized
+
+#### Scenario: Permissions after a reload
+
+- **WHEN** a user's role is granted a permission through another instance and the user is reloaded
+- **THEN** the user's permission check reflects the grant
+
+#### Scenario: Permissions checked on a post
+
+- **WHEN** a post checks a permission for the request's user, whose role is then granted it through
+  another instance, and the post is reloaded
+- **THEN** the first check answers false and the check after the reload answers true
+
+#### Scenario: A user's role after a reload
+
+- **WHEN** a user's role is changed through another instance and the user is reloaded
+- **THEN** the user reads the role assigned since
+
+#### Scenario: A site's languages after another instance's write
+
+- **WHEN** a site's languages are stored through another instance and the site is reloaded, or stored
+  on the site itself
+- **THEN** it reads the stored languages
+
+### Requirement: A boolean and the hashes in an array read back as written
+
+A boolean written with `set_meta` SHALL be stored so that every read, on the writing instance, after a
+reload and on a freshly loaded record, returns the boolean rather than the text column's cast of it.
+The hashes inside a stored array SHALL read by either key type, as a stored hash does. A row an earlier
+release stored as `t` or `f` SHALL read as the boolean and SHALL be stored again as its JSON literal on
+that read, except where writes are prevented, where the row is left for a later read.
+
+#### Scenario: A false flag read after a reload
+
+- **WHEN** `set_meta` stores `false` and the record is reloaded or loaded again
+- **THEN** `get_meta` returns `false`, not the caller's default and not a String
+
+#### Scenario: A boolean stored by an earlier release
+
+- **WHEN** a row holds `f` and the record's meta is read
+- **THEN** `get_meta` returns `false` and the row holds `false`, unless writes are prevented, when only the
+  read happens
+
+#### Scenario: Hashes in a stored array
+
+- **WHEN** an array of hashes with Symbol keys is stored and the record is reloaded
+- **THEN** each hash reads by its Symbol and by its String key

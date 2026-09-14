@@ -2,6 +2,10 @@
 
 Run specs with `bin/rspec` (it forces `RAILS_ENV=test` and boots `spec/dummy`); `bin/rspec spec/path_spec.rb:12` runs one example. Rails commands go through `spec/dummy` in a subshell (`AGENTS.md` Ground rules).
 
+## Which specs to run
+
+Run the specs the change adds or edits and the adjacent ones: the spec files of the model, concern, controller or helper the change touches, and whatever `grep -rln <changed symbol> spec/` finds. That is the pre-push check; CI runs the whole suite on every push. Run the whole suite locally only when the user asks for it or after a refactoring with a wide blast radius (a base class, a concern every model includes, a shared helper), and never two runs at once: the suite shares one SQLite database.
+
 ## Database
 
 `rails_helper` keeps the SQLite test schema current from `spec/dummy/db/schema.rb` (`maintain_test_schema!`); `bundle exec rake app:db:test:prepare` rebuilds it by hand.

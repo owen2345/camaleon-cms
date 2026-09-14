@@ -105,6 +105,31 @@ RSpec.describe CamaleonCms::Metas do
   end
 
   describe 'a save rolled back after it wrote them' do
+    # Ruby's dup copies every instance variable, so a copy saved inside the transaction of the
+    # original's write inherited the record of that write and, when the transaction was rolled back,
+    # queued the original's values on itself.
+    it 'does not queue the values on a copy saved inside the rolled-back transaction' do
+      copy = nil
+      ActiveRecord::Base.transaction(requires_new: true) do
+        post = create(:post, post_type: shared_post_type, data_options: { has_comments: true })
+        copy = post.dup
+        copy.slug = "#{post.slug}-copy"
+        copy.save!
+        raise ActiveRecord::Rollback
+      end
+
+      expect(copy.data_options).to be_blank
+      expect(copy.data_metas).to be_blank
+    end
+
+    it 'gives a copy queues of its own' do
+      post = build(:post, post_type: shared_post_type, data_options: { has_comments: true })
+      copy = post.dup
+      copy.data_options[:has_layout] = true
+
+      expect(post.data_options).to eq(has_comments: true)
+    end
+
     it 'queues them again for the next save of the instance, with the metas set before it' do
       post_type = build(:post_type, data_options: { has_category: true }, data_metas: { icon_color: 'red' })
       post_type.set_meta('note', 'kept')

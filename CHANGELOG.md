@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Bug fix:** Memoized meta and option reads and the ability no longer survive `reload`; `dup` copies share nothing with the original; a boolean meta reads as the boolean and a post reads the request's user and site. [#1301](https://github.com/owen2345/camaleon-cms/pull/1301).
+  - **Breaking change:** `reset_ability` and the `PostDefault.current_user`/`current_site` class attributes are removed.
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#reload-and-dup-drop-a-records-memoized-state).
+
 - **Bug fix:** `current_site` no longer reads the `$current_site` global, which left a server's processes serving stale site settings; the error logged when no site matches a request points to domain mapping instead. [#1300](https://github.com/owen2345/camaleon-cms/pull/1300).
   - **Breaking change:** a `$current_site` assignment has no effect, and the `camaleon_cms:generate_thumbnails` task is removed.
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-current_site-global-is-no-longer-read).

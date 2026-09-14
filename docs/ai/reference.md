@@ -38,8 +38,8 @@ Kept on purpose for external plugins and themes; check `docs/ai/ecosystem.md` be
 
 ## Authorization
 
-Roles and permissions are `CamaleonCms::UserRole` plus CanCanCan's `Ability`, defined per site; admins pass every check. Anything security-sensitive follows the gating and remedy rules in `docs/security/permissions.md`.
+Roles and permissions are `CamaleonCms::UserRole` plus CanCanCan's `Ability`, defined per site; admins pass every check. Anything security-sensitive follows the gating and remedy rules in `docs/security/permissions.md`. A record checks with `can?`, whose ability is built from the request's user and site (`CamaleonRecord#current_user`/`current_site`, read from `CurrentRequest`, never a class attribute) and rebuilt by `reload`.
 
 ## Style beyond RuboCop
 
-Prefer `defined?` checks for memoization, do not mutate method parameters, and `dup` when a mutable copy is needed.
+Prefer `defined?` checks for memoization, do not mutate method parameters, and `dup` when a mutable copy is needed. A value read from a record's stored state is memoized through `cama_fetch_cache`, which `reload`, `dup` and `cama_clear_cache` drop, not in an instance variable of its own.

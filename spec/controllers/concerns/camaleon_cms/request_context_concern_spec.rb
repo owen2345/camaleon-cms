@@ -31,6 +31,12 @@ RSpec.describe CamaleonCms::RequestContextConcern do
 
   let(:runtime) { runtime_class.new }
 
+  it "resolves the request's user and site into CurrentRequest, where records read them" do
+    runtime.send(:configure_runtime_request_context)
+
+    expect([CurrentRequest.user, CurrentRequest.site]).to eq(%i[user site])
+  end
+
   it 'assigns @current_site for legacy theme template compatibility' do
     runtime.send(:configure_runtime_request_context)
 

@@ -8,6 +8,9 @@ module CamaleonCms
     # up front and nothing is written.
     class InvalidContainer < ArgumentError; end
 
+    # how the text column cast a boolean before booleans were stored as their JSON literal
+    LEGACY_BOOLEANS = { 't' => true, 'f' => false }.freeze
+
     included do
       # options and metas auto save support
       attr_accessor :data_options
@@ -28,6 +31,7 @@ module CamaleonCms
       JSON.generate(indifferent_json_value(value))
     end
 
+    # a parsed Hash, or the Hashes in a parsed Array, read by either key type
     def self.indifferent_json_value(value)
       case value
       when Hash then value.with_indifferent_access
@@ -35,7 +39,6 @@ module CamaleonCms
       else value
       end
     end
-    private_class_method :indifferent_json_value
 
     # Add meta with value or Update meta with key: key
     # return true or false
@@ -82,14 +85,9 @@ module CamaleonCms
                  end
         res = ''
         if option.present?
-          value = begin
-            # a key an older write stored twice keeps its last value, as json 2 read it
-            JSON.parse(option.value, allow_duplicate_key: true)
-          rescue StandardError
-            option.value
-          end
+          value = stored_meta_value(option)
           res = begin
-            (value.is_a?(Hash) ? value.with_indifferent_access : value)
+            CamaleonCms::Metas.indifferent_json_value(value)
           rescue StandardError
             option.value
           end
@@ -180,6 +178,17 @@ module CamaleonCms
       end
     end
 
+    # A copy is a new record with no write behind it: it starts without the record of the original's
+    # last write, which a rollback of that write's transaction would otherwise queue on the copy, and
+    # with queues of its own, so a value queued on one is not queued on the other.
+    def initialize_dup(other)
+      @written_metas_options = nil
+      @created_record_metas_in_memory = false
+      self.data_options = data_options.deep_dup
+      self.data_metas = data_metas.deep_dup
+      super
+    end
+
     # Write the metas and options a record was given in data_metas and data_options, then clear them:
     # a later save of this instance must not write them again over values set since. The metas go
     # first, so that a `_default` meta, which is the options row itself, does not replace the options
@@ -205,6 +214,24 @@ module CamaleonCms
     end
 
     private
+
+    # The value of a stored row: its JSON, or the text itself when it holds none (a key an older write
+    # stored twice keeps its last value, as json 2 read it). A boolean an earlier release stored as the
+    # column's 't' or 'f' reads as the boolean, and the row is stored again as its JSON literal so the
+    # next read parses it; where writes are prevented the row is left for a later read.
+    def stored_meta_value(option)
+      return JSON.parse(option.value, allow_duplicate_key: true) unless LEGACY_BOOLEANS.key?(option.value)
+
+      boolean = LEGACY_BOOLEANS.fetch(option.value)
+      begin
+        option.update_column(:value, boolean.to_s) # rubocop:disable Rails/SkipsModelValidations
+      rescue ActiveRecord::ActiveRecordError
+        nil
+      end
+      boolean
+    rescue StandardError
+      option.value
+    end
 
     # The state of the transaction running now, if any: the one a write belongs to, whose rollback
     # undoes it. Its state is marked rolled back with the outermost transaction's too.
@@ -238,7 +265,7 @@ module CamaleonCms
         built.each { |attributes| metas.build(attributes) }
       else
         metas.reset
-        @cama_cache_vars = nil
+        cama_clear_cache
       end
     end
 
@@ -281,7 +308,9 @@ module CamaleonCms
       data.is_a?(ActiveSupport::HashWithIndifferentAccess) ? data : data.with_indifferent_access
     end
 
-    # fix to parse value
+    # The stored form of a value: JSON for a container, and for a boolean its JSON literal, which reads
+    # back as the boolean where the text column would store 't' or 'f', a String every reader takes as
+    # present.
     def fix_meta_value(value)
       changed_value = if value.is_a?(ActionController::Parameters)
                         value.to_json
@@ -290,7 +319,8 @@ module CamaleonCms
                       else
                         value
                       end
-      fix_meta_var(changed_value)
+      changed_value = fix_meta_var(changed_value)
+      [true, false].include?(changed_value) ? changed_value.to_s : changed_value
     end
 
     # fix to detect type of the variable

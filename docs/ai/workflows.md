@@ -31,7 +31,7 @@ The spec-coverage, reproduce-first and reject-don't-transform rules are in `AGEN
 
 ### D. CI Parity
 
-Before pushing, the four commands in `AGENTS.md` pass. Auto-correct only what you touched.
+Before pushing, the four commands in `AGENTS.md` pass, with `bin/rspec` scoped as it says: the PR's own and adjacent specs, the whole suite only on request or after a wide-blast refactoring. Auto-correct only what you touched.
 
 ---
 

@@ -27,6 +27,7 @@ what theme/plugin developers should know.
 | Runs a plugin or theme whose manifest names a hook handler its helpers don't define | That hook now raises `NoMethodError` on controllers too — define the handler or drop the entry; camaleon-ecommerce's **Upgrade** button is one such case ([details](#hook-handlers-run-once-per-dispatch)) |
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
+| Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
 
 ---
 
@@ -280,6 +281,29 @@ parameters raises `CamaleonCms::Metas::InvalidContainer` before the row is writt
 `save_metas_options_skip` and `fix_save_metas_options_no_changed` methods of `CamaleonCms::Metas` are
 removed: the concern's `after_create` and `before_update` call `save_metas_options` directly, and no
 surveyed plugin or theme overrides either.
+
+### `reload` and `dup` drop a record's memoized state
+
+A record memoizes its `get_meta` and `get_option` reads, and the values plugins memoize through
+`cama_fetch_cache`, for the request. `reload` now drops them once it has replaced the record's state,
+so reads after it return what is stored, and it rebuilds the record's ability and a user's role; a
+reload that fails leaves everything as it was. `cama_clear_cache` drops them on demand. A copy made
+with `dup` starts with no memoized values, no record of the original's last queued write and its own
+`data_options`/`data_metas`, so a rollback of the original's transaction no longer queues the
+original's values on the copy. `Site#get_languages` follows the `languages_site` meta like any other
+read. `CamaleonRecord#reset_ability` is removed: call `reload` where a spec or a plugin used it. The
+`CamaleonCms::PostDefault.current_user` and `current_site` class attributes are removed too: they held
+one value for every request of the process and hid the per-request user and site every other record
+reads, so a post's own `can?` answered `false` outside a request; a post now reads `CurrentRequest`
+like every record, and code that assigned them assigns `CurrentRequest.user`/`CurrentRequest.site`.
+
+Two read forms change. A boolean written with `set_meta` reads back as the boolean; earlier releases
+stored the text column's `t`/`f`, which every read returned as a String, so a `false` flag read as set
+once loaded again. A row stored that way is read as the boolean and stored again as `true`/`false` on
+its first read (a read where writes are prevented, on a replica for instance, leaves the row for a
+later one), so nothing needs rewriting; a plugin that compared such a read to `'t'` or `'f'` compares
+to the boolean now. The hashes inside a stored array now read by Symbol or String key, as a stored hash
+always did.
 
 ---
 

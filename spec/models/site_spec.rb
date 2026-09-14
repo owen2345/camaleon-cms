@@ -26,4 +26,30 @@ RSpec.describe CamaleonCms::Site, type: :model do
       expect(site.metas.where(object_class: 'UserRole')).to be_empty
     end
   end
+
+  # get_languages kept its own memo of the languages_site meta, outside the record's memoized reads, so
+  # a reload, a write on the same instance, and a copy all kept the list read first.
+  describe '#get_languages' do
+    let(:site) { create(:site) }
+
+    it 'reads the languages stored through another instance after a reload' do
+      expect(site.get_languages).not_to include(:fr)
+      described_class.find(site.id).set_meta('languages_site', %w[en fr])
+
+      expect(site.reload.get_languages).to eq(%i[en fr])
+    end
+
+    it 'reads the languages the same instance stores' do
+      site.get_languages
+      site.set_meta('languages_site', %w[en de])
+
+      expect(site.get_languages).to eq(%i[en de])
+    end
+
+    it 'gives each caller its own list' do
+      site.get_languages << :xx
+
+      expect(site.get_languages).not_to include(:xx)
+    end
+  end
 end

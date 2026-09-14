@@ -88,6 +88,19 @@ RSpec.describe CamaleonCms::Meta, type: :model do
 
       expect(post_type.get_meta('probe_settings')).to equal(settings)
     end
+
+    # The memo is keyed by the record's id, so what a new record memoized before its first save is not
+    # read after it: the saved record reads what it stored.
+    it 'reads the stored form once a new record is saved' do
+      settings = { color: 'red' }
+      post_type = build(:post_type)
+      post_type.set_meta('probe_settings', settings)
+      expect(post_type.get_meta('probe_settings')).to equal(settings)
+
+      post_type.save!
+
+      expect(post_type.get_meta('probe_settings')).to eq('color' => 'red')
+    end
   end
 
   describe 'a stored meta that repeats a key' do
@@ -109,6 +122,50 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       has_category = nil
       expect { has_category = stored.get_option(:has_category) }.not_to output(/duplicate key/).to_stderr
       expect(has_category).to be(true)
+    end
+  end
+
+  # set_meta memoizes the value the caller passed while the row stores it as text, so the writing instance
+  # answered with the caller's value and every other read, a reload's included, with the stored form: a
+  # boolean as the column's 't' or 'f', which every reader takes as present, and the hashes in an array
+  # with String keys only.
+  describe 'a value that the text column or JSON would change' do
+    let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
+
+    it 'stores a boolean so it reads back as the boolean' do
+      post = create(:post, post_type: post_type)
+      post.set_meta('probe_flag', false)
+
+      expect(post.reload.get_meta('probe_flag', 'default')).to be(false)
+      expect(CamaleonCms::Post.find(post.id).get_meta('probe_flag', 'default')).to be(false)
+    end
+
+    it 'reads the hashes in a stored array by either key type' do
+      post = create(:post, post_type: post_type)
+      post.set_meta('probe_slides', [{ title: 'a' }])
+
+      slides = post.reload.get_meta('probe_slides')
+      expect(slides.first[:title]).to eq('a')
+      expect(slides.first['title']).to eq('a')
+    end
+
+    # earlier releases stored a boolean as the column's 't' or 'f'
+    it 'reads a boolean stored as the column cast and stores it again as the boolean' do
+      post = create(:post, post_type: post_type)
+      post.metas.create!(key: 'probe_legacy', value: 'f')
+
+      expect(CamaleonCms::Post.find(post.id).get_meta('probe_legacy', 'default')).to be(false)
+      expect(post.metas.find_by!(key: 'probe_legacy').value).to eq('false')
+    end
+
+    it 'reads such a boolean without storing it where writes are prevented' do
+      post = create(:post, post_type: post_type)
+      post.metas.create!(key: 'probe_legacy', value: 't')
+
+      ActiveRecord::Base.while_preventing_writes do
+        expect(CamaleonCms::Post.find(post.id).get_meta('probe_legacy')).to be(true)
+      end
+      expect(post.metas.find_by!(key: 'probe_legacy').value).to eq('t')
     end
   end
 end

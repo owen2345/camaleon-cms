@@ -10,15 +10,11 @@ RSpec.describe CamaleonCms::Metas, type: :model do
   let(:post_type) { site.post_types.find_by(slug: 'post') }
   let(:record) { create(:post, post_type: post_type) }
 
-  def reload(post_record)
-    CamaleonCms::Post.find(post_record.id)
-  end
-
   describe 'an options row that is not a JSON object' do
     %w[corrupt [] 42].each do |stored|
       it "reads as empty when the row holds #{stored}" do
         record.set_meta('_default', stored)
-        stored_record = reload(record)
+        stored_record = record.reload
 
         expect(stored_record.options).to eq({})
         expect(stored_record.get_option('status_default', 'fallback')).to eq('fallback')
@@ -28,33 +24,33 @@ RSpec.describe CamaleonCms::Metas, type: :model do
 
     it 'takes a written option, starting from empty' do
       record.set_meta('_default', 'corrupt')
-      stored_record = reload(record)
+      stored_record = record.reload
 
       stored_record.set_option('status_default', 'published')
 
-      expect(reload(record).get_option('status_default')).to eq('published')
-      expect(reload(record).options.keys).to eq(['status_default'])
+      expect(record.reload.get_option('status_default')).to eq('published')
+      expect(record.reload.options.keys).to eq(['status_default'])
     end
 
     it 'leaves the row as it is until an option is written' do
       record.set_meta('_default', 'corrupt')
 
-      reload(record).options
+      record.reload.options
 
-      expect(reload(record).get_meta('_default')).to eq('corrupt')
+      expect(record.reload.get_meta('_default')).to eq('corrupt')
     end
   end
 
   describe 'a container that is not a set of fields' do
     it 'is refused by set_metas and writes nothing' do
       expect { record.set_metas([%w[planted v]]) }.to raise_error(CamaleonCms::Metas::InvalidContainer)
-      expect(reload(record).get_meta('planted')).to be_nil
+      expect(record.reload.get_meta('planted')).to be_nil
     end
 
     it 'is refused by set_options and writes nothing' do
       expect { record.set_options(%w[status_default]) }.to raise_error(CamaleonCms::Metas::InvalidContainer)
       expect { record.set_options('status_default=published') }.to raise_error(CamaleonCms::Metas::InvalidContainer)
-      expect(reload(record).get_option('status_default')).to be_nil
+      expect(record.reload.get_option('status_default')).to be_nil
     end
 
     it 'still accepts a hash, request parameters, nil and blank' do
@@ -65,8 +61,8 @@ RSpec.describe CamaleonCms::Metas, type: :model do
       record.set_metas('a' => '1')
       record.set_options(ActionController::Parameters.new(b: '2'))
 
-      expect(reload(record).get_meta('a')).to eq(1)
-      expect(reload(record).get_option('b')).to eq(2)
+      expect(record.reload.get_meta('a')).to eq(1)
+      expect(record.reload.get_option('b')).to eq(2)
     end
   end
 end
