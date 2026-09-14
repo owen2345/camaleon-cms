@@ -18,6 +18,15 @@ RSpec.describe CamaleonRecord do
 
       expect(second_copy.get_option('has_comments')).to be_nil
     end
+
+    it 'starts a copy of an unsaved record without its unsaved metas' do
+      post = build(:post, post_type: post_type)
+      post.set_meta('subtitle', 'draft')
+      copy = post.dup
+
+      expect(copy.get_meta('subtitle')).to be_nil
+      expect(copy.metas).to be_empty
+    end
   end
 
   describe '#reload' do
@@ -37,6 +46,13 @@ RSpec.describe CamaleonRecord do
 
       expect { post.reload }.to raise_error(ActiveRecord::RecordNotFound)
       expect(post.get_meta('subtitle')).to eq('old')
+    end
+
+    it 'drops every value memoized through cama_fetch_cache' do
+      post = create(:post, post_type: post_type)
+      post.cama_fetch_cache('probe') { 'first' }
+
+      expect(post.reload.cama_fetch_cache('probe') { 'second' }).to eq('second')
     end
 
     it 'passes the lock option on to the record lookup' do

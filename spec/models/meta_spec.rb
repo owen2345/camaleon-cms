@@ -88,6 +88,19 @@ RSpec.describe CamaleonCms::Meta, type: :model do
 
       expect(post_type.get_meta('probe_settings')).to equal(settings)
     end
+
+    # The memo is keyed by the record's id, so what a new record memoized before its first save is not
+    # read after it: the saved record reads what it stored.
+    it 'reads the stored form once a new record is saved' do
+      settings = { color: 'red' }
+      post_type = build(:post_type)
+      post_type.set_meta('probe_settings', settings)
+      expect(post_type.get_meta('probe_settings')).to equal(settings)
+
+      post_type.save!
+
+      expect(post_type.get_meta('probe_settings')).to eq('color' => 'red')
+    end
   end
 
   describe 'a stored meta that repeats a key' do
