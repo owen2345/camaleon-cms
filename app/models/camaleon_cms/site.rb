@@ -76,15 +76,11 @@ module CamaleonCms
 
     # return all languages configured by the admin
     # if it is empty, then return default locale
+    # read through the meta memo, which a write on this instance, a reload and a copy keep current
     def get_languages
-      return @_languages if defined?(@_languages)
-
-      l = get_meta('languages_site', [I18n.default_locale])
-      @_languages = begin
-        l.map(&:to_sym)
-      rescue StandardError
-        [I18n.default_locale.to_sym]
-      end
+      get_meta('languages_site', [I18n.default_locale]).map(&:to_sym)
+    rescue StandardError
+      [I18n.default_locale.to_sym]
     end
 
     # return current admin language configured for this site
