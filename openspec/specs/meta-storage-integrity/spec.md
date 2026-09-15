@@ -37,7 +37,10 @@ does.
 
 A value written with `set_meta` SHALL be returned by `get_meta` on the same instance as the object the
 caller passed, with the caller's own keys, until the record is loaded again. A record not yet saved
-SHALL keep it until its first save, after which the instance reads what it stored.
+SHALL keep it until its first save, after which the instance reads what it stored. When the value is
+the record's options, `options` and `get_option` on that instance SHALL find an option by a String key
+or its Symbol twin, as a freshly loaded record does, whether the caller passed a plain Hash or request
+parameters.
 
 #### Scenario: A plugin reads back the hash it wrote
 
@@ -48,6 +51,21 @@ SHALL keep it until its first save, after which the instance reads what it store
 
 - **WHEN** a hash is written with `set_meta` on an unsaved post type and the post type is saved
 - **THEN** the same instance reads the stored hash by its keys, no longer the caller's object
+
+#### Scenario: Options a caller passed to set_meta as a plain Hash
+
+- **WHEN** a post type's options are written with `set_meta` as a plain Hash holding `color` under a String
+  key and `size` under a Symbol key
+- **THEN** on the same instance, `options` and `get_option` read `color` by its Symbol key and `size` by
+  its String key
+- **AND** a freshly loaded post type reads the same values
+- **AND** `get_meta` on the same instance returns the hash the caller passed, with its own keys
+
+#### Scenario: Options a caller passed to set_meta as request parameters
+
+- **WHEN** a post type's options are written with `set_meta` as request parameters holding `color`
+- **THEN** on the same instance, `options` and `get_option` read `color` by its String key and by its
+  Symbol key
 
 ### Requirement: delete_meta removes the key from memory as well as storage
 
@@ -137,7 +155,7 @@ second row with the same key.
 
 ### Requirement: An options row that is not an object reads as empty
 
-When a record's stored options meta (`_default`, or another options meta key) holds a value that is not a JSON object, reading the options or an option SHALL return the empty set or the caller's default, and writing an option SHALL start from an empty set, so no reader or writer raises on the row. The stored row SHALL be left as it is until an option is written to it.
+When a record's stored options meta (`_default`, or another options meta key) holds a value that is not a JSON object, or the options the instance holds are nil or an empty string (an earlier `get_meta` read without a default left nil for a record with no stored options, or `set_meta` wrote nil or an empty string), reading the options or an option SHALL return the empty set or the caller's default, and writing an option SHALL start from an empty set, so no reader or writer raises, on the writing instance and on a freshly loaded record. The stored row SHALL be left as it is until an option is written to it.
 
 #### Scenario: Options are read from a string row
 
@@ -153,6 +171,20 @@ When a record's stored options meta (`_default`, or another options meta key) ho
 
 - **WHEN** a post's `_default` meta holds a string and its admin edit page, its public page and its trash action are requested
 - **THEN** each responds as for a post with no options
+
+#### Scenario: A get_meta read without a default on a record with no options
+
+- **WHEN** a post with no stored options has its options read with `get_meta` without a default, and then
+  its options are read and an option is set on the same instance
+- **THEN** `options` is empty and `get_option` returns the caller's default
+- **AND** the same instance and a freshly loaded post read the option that was set
+
+#### Scenario: Options written as nil or as an empty string
+
+- **WHEN** a post's options are written with `set_meta` as nil, or as an empty string
+- **THEN** `options` is empty and `get_option` returns the caller's default, on the same instance and on a
+  freshly loaded post
+- **AND** an option set on the freshly loaded post is read by a post loaded afterwards
 
 ### Requirement: Meta and option writers refuse a container that is not a set of fields
 
@@ -331,48 +363,3 @@ that read, except where writes are prevented, where the row is left for a later 
 
 - **WHEN** an array of hashes with Symbol keys is stored and the record is reloaded
 - **THEN** each hash reads by its Symbol and by its String key
-
-### Requirement: Option reads on the writing instance find either key type
-
-On the instance that wrote a record's options, `options` and `get_option` SHALL find an option by a String
-key or its Symbol twin, as a freshly loaded record does. This SHALL hold whatever the instance holds for the
-options: a hash the option writers updated, or a plain Hash or request parameters a caller passed to
-`set_meta`. `get_meta` on that instance SHALL still return the value the caller passed, with the caller's
-own keys.
-
-#### Scenario: Options a caller passed to set_meta as a plain Hash
-
-- **WHEN** a post type's options are written with `set_meta` as a plain Hash holding `color` under a String
-  key and `size` under a Symbol key
-- **THEN** on the same instance, `options` and `get_option` read `color` by its Symbol key and `size` by
-  its String key
-- **AND** a freshly loaded post type reads the same values
-- **AND** `get_meta` on the same instance returns the hash the caller passed, with its own keys
-
-#### Scenario: Options a caller passed to set_meta as request parameters
-
-- **WHEN** a post type's options are written with `set_meta` as request parameters holding `color`
-- **THEN** on the same instance, `options` and `get_option` read `color` by its String key and by its
-  Symbol key
-
-### Requirement: Options that are nil or empty read and write as none
-
-When the options a record holds are nil or an empty string, `options` SHALL return empty options,
-`get_option` SHALL return the caller's default, and the option writers SHALL start from empty options, on
-the writing instance and on a freshly loaded record. This SHALL hold whether an earlier `get_meta` read without a
-default left nil for a record with no stored options, or `set_meta` wrote nil or an empty string. Neither
-a read nor a write SHALL raise.
-
-#### Scenario: A get_meta read without a default on a record with no options
-
-- **WHEN** a post with no stored options has its options read with `get_meta` without a default, and then
-  its options are read and an option is set on the same instance
-- **THEN** `options` is empty and `get_option` returns the caller's default
-- **AND** the same instance and a freshly loaded post read the option that was set
-
-#### Scenario: Options written as nil or as an empty string
-
-- **WHEN** a post's options are written with `set_meta` as nil, or as an empty string
-- **THEN** `options` is empty and `get_option` returns the caller's default, on the same instance and on a
-  freshly loaded post
-- **AND** an option set on the freshly loaded post is read by a post loaded afterwards

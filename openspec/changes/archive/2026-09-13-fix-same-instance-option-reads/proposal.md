@@ -44,8 +44,10 @@ None.
 
 ### Modified Capabilities
 
-- `meta-storage-integrity`: adds requirements that `options` and `get_option` read the options the writing
-  instance holds by either key type, and that nil or empty options read and write as none.
+- `meta-storage-integrity`: extends `set_meta keeps the caller's value on the writing instance` so that
+  `options` and `get_option` read the options the writing instance holds by either key type, and `An
+  options row that is not an object reads as empty` so that nil or empty options read and write as none on
+  the writing instance too.
 
 ## Impact
 
