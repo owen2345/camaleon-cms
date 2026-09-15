@@ -38,8 +38,8 @@ does.
 A value written with `set_meta` SHALL be returned by `get_meta` on the same instance as the object the
 caller passed, with the caller's own keys, until the record is loaded again or an option writer on that
 instance stores its own indifferent hash, which `get_meta` returns from then on, the caller's hash left
-as passed. An empty string SHALL be the exception: `get_meta` SHALL read it as a meta with no value and
-return the caller's default, as a reloaded record does. A record not yet saved SHALL keep it until its
+as passed. Nil and an empty string SHALL be the exceptions: `get_meta` SHALL read them as a meta with no value
+and return the caller's default, as a reloaded record does. A record not yet saved SHALL keep it until its
 first save, after which the instance reads what it stored. When the value is the record's options,
 `options` and `get_option` on that instance SHALL find an option by a String key or its Symbol twin, as a
 freshly loaded record does, whether the caller passed a plain Hash, request parameters or a JSON string.
@@ -56,9 +56,9 @@ SHALL carry no default of the caller's hash, so a missing option reads nil as af
 - **WHEN** a hash is written with `set_meta` on an unsaved post type and the post type is saved
 - **THEN** the same instance reads the stored hash by its keys, no longer the caller's object
 
-#### Scenario: A meta written as an empty string
+#### Scenario: A meta written as nil or as an empty string
 
-- **WHEN** a meta is written with `set_meta` as an empty string and read with a default
+- **WHEN** a meta is written with `set_meta` as nil, or as an empty string, and read with a default
 - **THEN** the same instance and a reloaded record return that default
 
 #### Scenario: Options a caller passed to set_meta as a plain Hash
@@ -169,10 +169,11 @@ failure and no json deprecation warning.
 
 ### Requirement: Each read of a meta with no value returns its caller's default
 
-When a record has no row for a meta, or the meta's stored value is an empty string, each `get_meta` call
-SHALL return the default passed to that call. It SHALL NOT return a default an earlier call passed, or a
+When a record has no row for a meta, or the meta's stored value is null or an empty string, each `get_meta`
+call SHALL return the default passed to that call. It SHALL NOT return a default an earlier call passed, or a
 change a caller made to that default in place. This SHALL hold whether the record's metas are eager-loaded
-or read from the database. Reading the meta again on the same instance SHALL NOT query the database again
+or read from the database. `get_option` SHALL likewise return its default for an option whose value is
+null or an empty string. Reading the meta again on the same instance SHALL NOT query the database again
 until the meta is written or deleted.
 
 #### Scenario: A missing meta read with different defaults
@@ -194,6 +195,17 @@ until the meta is written or deleted.
 - **WHEN** a record's stored value for a meta is an empty string, and the meta is read without a default
   and then with a default
 - **THEN** the first read returns nil and the second returns that default
+
+#### Scenario: A meta stored as null
+
+- **WHEN** a record's stored value for a meta is null, and the meta is read with a default
+- **THEN** that default is returned, on the writing instance and on a freshly loaded record
+
+#### Scenario: An option stored as null
+
+- **WHEN** a record's options hold `color` as null and `size` as an empty string, and each is read with
+  `get_option` and a default
+- **THEN** both reads return that default, on the writing instance and on a freshly loaded record
 
 #### Scenario: Repeated reads of a missing meta
 
