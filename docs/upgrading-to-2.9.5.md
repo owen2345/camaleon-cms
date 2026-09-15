@@ -345,6 +345,9 @@ A value written with `set_meta` reads back on the writing object as a freshly lo
 - Your own object is left as passed, and a change made to it after the write is not read back. Code that
   compared a read to its own hash, or iterated its Symbol keys, on the writing object sees the stored form
   now, as it already did once the record was loaded again.
+- A meta with a stored value is memoized on the object and handed back as that one value: a change made to
+  it in place shows in later reads on that object, and in `options` for the `_default` row, but is not
+  stored until written with `set_meta`. Write changes with `set_meta` whether or not a row exists.
 
 ---
 
