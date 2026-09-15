@@ -222,6 +222,24 @@ a rolled-back write, `cama_clear_cache`), as the requirement on memoized values 
   array and with an empty hash, and then another missing meta
 - **THEN** the metas table is queried once for each of the two keys
 
+### Requirement: Decorator meta reads translate only strings
+
+`the_meta` and `the_option` on a decorated record SHALL return the meta or option read with an empty-string
+default, translated for the decoration locale when it is a String or an Array of Strings, and as read when
+it is a number, a boolean or a hash, on the writing instance and on a freshly loaded record alike.
+
+#### Scenario: A meta stored as a number
+
+- **WHEN** a post's `year` meta is written as `'2024'` and `the_meta('year')` is read on the writing post and
+  on a freshly loaded one
+- **THEN** both return `2024`
+
+#### Scenario: A translatable meta
+
+- **WHEN** a post's `greeting` meta holds an English and a Spanish translation and `the_meta('greeting')` is
+  read with the Spanish decoration locale
+- **THEN** it returns the Spanish text
+
 ### Requirement: Writes and reads agree on a key with several rows
 
 When a record holds more than one meta row for a key, a write SHALL update the row with the lowest id,
