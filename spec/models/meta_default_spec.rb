@@ -63,6 +63,16 @@ RSpec.describe CamaleonCms::Post, type: :model do
       expect(permissions[:edit]).to eq([post_type.id])
     end
 
+    # The memo holds what the record stores, so for a key with no row it holds nothing a caller could
+    # change or would take for a value.
+    it 'memoizes nil for a meta with no row, neither a default nor a frozen value' do
+      post = described_class.find(create(:post, post_type: post_type).id)
+      post.get_meta('gallery', [])
+
+      expect(metas_selects { post.get_meta('gallery', {}) }).to be_empty
+      expect(post.cama_get_cache('meta_gallery')).to be_nil
+    end
+
     it 'reads a missing meta from the database once per key' do
       post = described_class.find(create(:post, post_type: post_type).id)
 

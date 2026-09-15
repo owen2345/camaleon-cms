@@ -150,11 +150,12 @@ When a record's stored options meta (`_default`, or another options meta key) ho
 
 When a record has no row for a meta, or the meta's stored value is null or an empty string, each `get_meta`
 call SHALL return the default passed to that call. It SHALL NOT return a default an earlier call passed, or a
-change a caller made to that default in place. This SHALL hold whether the record's metas are eager-loaded
-or read from the database. `get_option` SHALL likewise return its default for an option whose value is
-null or an empty string. Reading the meta again on the same instance SHALL NOT query the database again
-until the meta is written or deleted on it, or the instance drops its memoized values (a reload, a copy,
-a rolled-back write, `cama_clear_cache`), as the requirement on memoized values states.
+change a caller made to that default in place, and what the instance memoizes for a key with no row SHALL
+be nil. This SHALL hold whether the record's metas are eager-loaded or read from the database. `get_option`
+SHALL likewise return its default for an option whose value is null or an empty string. Reading the meta
+again on the same instance SHALL NOT query the database again until the meta is written or deleted on it,
+or the instance drops its memoized values (a reload, a copy, a rolled-back write, `cama_clear_cache`), as
+the requirement on memoized values states.
 
 #### Scenario: A missing meta read with different defaults
 
@@ -192,6 +193,11 @@ a rolled-back write, `cama_clear_cache`), as the requirement on memoized values 
 - **WHEN** a post loaded without its metas reads a missing meta three times, with no default, with an empty
   array and with an empty hash, and then another missing meta
 - **THEN** the metas table is queried once for each of the two keys
+
+#### Scenario: What a read of a missing meta memoizes
+
+- **WHEN** a post loaded without its metas reads a missing meta with a default
+- **THEN** the value memoized for the key is nil, and a later read with another default issues no query
 
 ### Requirement: Decorator meta reads translate only strings
 
