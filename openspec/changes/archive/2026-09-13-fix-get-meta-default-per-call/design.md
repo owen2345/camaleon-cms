@@ -99,6 +99,10 @@ object is left as passed and never handed back.
   object; no writer stores options encoded twice. `PostType`'s decorator-option checks parse through the
   same helper.
 
+**`set_meta` returns the value passed**, as 2.9.4 did, not the form it memoizes: a caller that tests the
+result gets its own `'false'` or `'null'` back, not `false` or nil, and the option writers, which return
+what `set_meta` returns, return the options they wrote.
+
 **Return the caller's own default.** It is not copied or memoized. The option writers keep working because
 they pass the options they change to `set_meta`, which memoizes the stored form of that object.
 

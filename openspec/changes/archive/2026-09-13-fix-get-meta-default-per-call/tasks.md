@@ -51,3 +51,4 @@
 - [x] 5.11 Look a key up by its String form in `get_meta`, as `set_meta` stores it, and spec an Integer key read from eager-loaded metas and from the database.
 - [x] 5.12 Return the boolean `stored_meta_value` looks up for a legacy `'t'`/`'f'` row instead of deriving it again through `stored_form_of`.
 - [x] 5.13 Copy text that cannot open a JSON text without calling `JSON.parse` in `stored_form_of`, and spec such text read back unparsed, with the edge texts of the written-form table reading as before.
+- [x] 5.14 Return the value passed from `set_meta`, as 2.9.4 did, instead of the form it memoizes, so the option writers return the options they wrote; correct its comment and spec both return values.

@@ -23,6 +23,18 @@ RSpec.describe CamaleonCms::Post, type: :model do
       end
     end
 
+    # set_meta returns the value it was passed, as 2.9.4 did, whatever form a read returns for it, and the
+    # option writers return the options they wrote.
+    it 'returns the value passed, and the option writers the options they wrote' do
+      post = create(:post, post_type: post_type)
+      params = ActionController::Parameters.new(color: 'red')
+
+      expect([post.set_meta('probe', 'false'), post.set_meta('probe', 'null')]).to eq(%w[false null])
+      expect(post.set_meta('probe', params)).to equal(params)
+      expect(post.set_options(size: 'xl')).to eq(post.options)
+      expect(post.delete_option(:size)).to eq(post.options)
+    end
+
     it "reads a hash back by either key type, leaving the caller's hash as passed" do
       post = create(:post, post_type: post_type)
       passed = { color: 'red', sizes: [{ top: 'xl' }] }

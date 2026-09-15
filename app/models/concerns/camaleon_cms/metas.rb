@@ -47,8 +47,7 @@ module CamaleonCms
       end
     end
 
-    # Add meta with value or Update meta with key: key
-    # return true or false
+    # Adds the meta for key, or updates it, and returns the value passed
     def set_meta(key, value)
       fixed_value = fix_meta_value(value)
 
@@ -79,6 +78,7 @@ module CamaleonCms
 
       # memoize what a reload reads for the stored value, so the writing instance reads as a reloaded record
       cama_set_cache("meta_#{key}", stored_form_of(fixed_value))
+      value
     end
 
     # The value stored for key, as a freshly loaded record reads it, memoized per instance, nil for a key

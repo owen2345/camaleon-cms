@@ -46,7 +46,8 @@ what it stored. When the value is the record's options, `options` and `get_optio
 find an option by a String key or its Symbol twin, as a freshly loaded record does, whether the caller
 passed a plain Hash, request parameters or a JSON string. The hash `options` returns SHALL share nothing
 with the caller's value, its nested hashes included, and SHALL carry no default of the caller's hash, so a
-missing option reads nil as after a reload.
+missing option reads nil as after a reload. `set_meta` SHALL return the value passed, whatever form a read
+returns for it, and `set_options` and `delete_option` SHALL return the options they wrote.
 
 #### Scenario: A plugin reads back the hash it wrote
 
@@ -76,6 +77,13 @@ missing option reads nil as after a reload.
 
 - **WHEN** a meta is written with `set_meta` as nil, or as an empty string, and read with a default
 - **THEN** the same instance and a reloaded record return that default
+
+#### Scenario: What set_meta returns
+
+- **WHEN** `'false'`, `'null'` and request parameters are written with `set_meta`, and options with
+  `set_options` and `delete_option`
+- **THEN** `set_meta` returns the String `'false'`, the String `'null'` and the parameters object passed
+- **AND** the option writers return the options they wrote
 
 #### Scenario: Options a caller passed to set_meta as a plain Hash
 
