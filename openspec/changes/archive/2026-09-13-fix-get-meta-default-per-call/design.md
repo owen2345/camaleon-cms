@@ -169,6 +169,10 @@ second time for every options write.
 - [A caller reads a numeric or boolean String back on the writing instance as the String] → It reads the
   number or the boolean now, as it already did once the record was loaded again, and `the_meta` returns
   it as read.
+  - `camaleon-ecommerce`'s order-shipped email is the surveyed case: `OrderDecorator#the_url_tracking`
+    passes the consignment number written in the same request to `String#gsub` behind `rescue ''`, so an
+    all-digit number leaves the email's tracking URL empty, as the order page, which loads the order
+    again, already did. The plugin fix is `.to_s` on that read (`docs/ai/ecosystem.md`).
 - [Plugins outside the survey] → Breakage needs a read on the writing instance that depended on an earlier
   read's default, or on the caller's object coming back. The 2.9.5 upgrade guide describes both patterns
   for theme and plugin developers.

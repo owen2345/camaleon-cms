@@ -188,11 +188,17 @@ Changes that look free from inside this repository and are not:
   `save_metas_options_skip` and `fix_save_metas_options_no_changed` hooks, which no surveyed
   repository overrides or calls.
 
-- **Applying `get_meta`'s default per call, and memoizing in `set_meta` what a reload reads** (#1303) is
-  invisible to every surveyed consumer. A read of a meta with no value (no row, or a stored null or `''`)
-  used to return the default the instance's first read passed, with any in-place changes a caller made to
-  it, and a value written with `set_meta` was handed back as the caller's object; each read now gets its
-  own default and every read returns what a freshly loaded record reads. The consumers that change a
+- **Applying `get_meta`'s default per call, and memoizing in `set_meta` what a reload reads** (#1303)
+  changes one surveyed code path. A read of a meta with no value (no row, or a stored null or `''`) used to
+  return the default the instance's first read passed, with any in-place changes a caller made to it, and a
+  value written with `set_meta` was handed back as the caller's object; each read now gets its own default
+  and every read returns what a freshly loaded record reads. The changed path is `camaleon-ecommerce`'s
+  order-shipped email: `Admin::OrdersController#mark_shipped` calls `OrderDecorator#shipped!`, which writes
+  `set_meta('consignment_number', code)`, and the email it sends right after takes `tracking_url` from
+  `the_url_tracking`, which passes `object.get_meta("consignment_number")` to `String#gsub` behind a
+  `rescue ''`. An all-digit consignment number (USPS, FedEx) now reads back as an Integer on that instance
+  too, so `gsub` raises and the email's tracking URL is empty, as the customer's order page, which loads the
+  order again, already showed it; the plugin fix is `.to_s` on that read. The consumers that change a
   returned default in place keep it in a variable and write it back with `set_meta`: `camaleon_website`'s
   store plugin (`scores`, `downloads`) and notification plugin (`sites`), and `camaleon-ecommerce`'s
   shipping prices (`@prices`); none compares a read to the object it passed or reads its Symbol keys back
@@ -202,7 +208,7 @@ Changes that look free from inside this repository and are not:
   `get_meta("payment")` with no default and raised on an order without that meta unless `shipping_method`
   had memoized `{}` first; they now raise either way, and `shipping_method` no longer raises after them.
   Nothing in the plugin calls these methods (its only reference to the class is the 2016 order-data
-  migration, which reads columns and `metas`), so no surveyed code path changes.
+  migration, which reads columns and `metas`), so those reads change no code path.
 
 ## APIs with no surveyed consumer
 
