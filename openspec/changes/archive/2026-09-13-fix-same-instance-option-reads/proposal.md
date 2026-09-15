@@ -46,6 +46,9 @@ record:
   only options, the default the first reader asked for is what later reads on the same instance return.
   Fixing it changes what every `get_meta` caller gets back and needs its own review. This change covers
   the nil options it can leave behind.
+- Caching in `set_meta` what a reload reads, which would make every meta read on the writing instance
+  agree with a reload, options included: it changes the requirement that `get_meta` returns the object
+  the caller passed, a decision for its own change (design.md).
 - Stored options that are not a JSON object, such as a string or an array: they read as empty options
   and take a write, on the writing instance and on a freshly loaded record alike, as the options-row
   requirement has had it since #1297.

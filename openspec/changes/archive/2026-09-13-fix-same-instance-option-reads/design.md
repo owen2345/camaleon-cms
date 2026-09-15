@@ -91,6 +91,18 @@ That needs its own review. The callers found that change a returned default in p
 `set_meta` afterwards, so they would keep working. Meanwhile `options` asks for no default and treats nil
 as no options, so the defect does not reach option reads.
 
+**The root cause is left for its own change.** `set_meta` caches the value as passed while a reload
+returns the parsed stored form, so every other meta read on the writing instance still diverges from a
+reload: a hash under another key misses a Symbol read, the hashes in an array likewise, and a numeric or
+boolean string reads as the string where a reload reads the number or the boolean. Caching in `set_meta`
+what a reload reads would close every divergence at once and remove the conversion in `options`. It
+changes the `meta-storage-integrity` requirement that `get_meta` returns the object the caller passed,
+which was written when a partial fix caching an indifferent copy was reverted the same day, in #1292,
+citing comparisons, keyword splats and later mutations of the passed hash; the engine's own examples are
+the only reader of that identity found in the engine and in the plugin, theme and host repositories
+checked, where every hash read back from `get_meta` and changed is passed to `set_meta` again. Reopening
+that requirement is a decision for its own change.
+
 ## Risks / Trade-offs
 
 - [After `set_meta` with a plain Hash, a JSON string, nil or an empty string, `options` on that instance no
