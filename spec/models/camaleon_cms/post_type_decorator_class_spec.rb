@@ -101,6 +101,19 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option('has_seo')).to be(false)
     end
 
+    # A refused write changes no row, so the metas in memory stay: on an unsaved record they are the
+    # metas built for its first save.
+    it 'keeps the metas built on an unsaved record when a write is refused' do
+      record = build(:post_type)
+      record.set_meta('probe', 'built')
+      expect { record.set_option(option, 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
+
+      record.save!
+
+      expect(record.get_meta('probe')).to eq('built')
+      expect(described_class.find(record.id).get_meta('probe')).to eq('built')
+    end
+
     it 'accepts a blank value, which clears it' do
       post_type.set_option(option, 'ProbePostDecorator')
       post_type.set_option(option, '')
