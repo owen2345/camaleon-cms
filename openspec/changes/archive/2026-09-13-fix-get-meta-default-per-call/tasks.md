@@ -61,3 +61,4 @@
 - [x] 5.21 Fold the hash read-back example of `spec/models/meta_spec.rb` into the written-form one, which already covered the rest of it, keeping its indifferent-hash check and the key added to the caller's hash afterwards.
 - [x] 5.22 Record `camaleon-ecommerce`'s order-shipped email, whose tracking URL an all-digit consignment number read back as an Integer leaves empty, in the ecosystem survey, the design, the proposal and the upgrade guide, correcting the survey's claim that no consumer changes.
 - [x] 5.23 Count in `metas_selects` a SELECT behind leading whitespace or a query log comment, and no table whose name only starts with metas, with a spec of the helper.
+- [x] 5.24 Match a metas SELECT with two patterns, its opening and its table, through a pattern list `sql_queries` now takes, instead of one pattern bridging them with `.*` that ran back over the whole statement; spec the list and long statements.
