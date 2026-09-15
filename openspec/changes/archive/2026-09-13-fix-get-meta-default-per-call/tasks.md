@@ -29,9 +29,17 @@
 
 ## 4. Verification and delivery
 
-- [x] 4.1 Rebase on `master` if any of `fix/same-instance-option-reads`, #1298, #1299 or #1301 has merged, resolving conflicts in `metas.rb` and in `openspec/specs/meta-storage-integrity/spec.md`. If `fix-same-instance-option-reads` is already archived, add a MODIFIED delta to this change that trims "a get_meta read without a default left nil" from its requirement "Options that are nil or empty read and write as none". Verify that `bin/rspec spec/models` passes after the rebase.
+- [x] 4.1 Rebase on `master` once `fix/same-instance-option-reads`, #1298, #1299 and #1301 have merged, resolving conflicts in `metas.rb` and in `openspec/specs/meta-storage-integrity/spec.md`. The #1302 requirement, archived as "An options row that is not an object reads as empty", needs no trim: its clause about a no-default read stays true. Verify that `bin/rspec spec/models` passes after the rebase.
 - [x] 4.2 Run the CI-parity commands from `AGENTS.md` and verify all four pass: `bin/rspec`, `bin/rubocop -A` on touched files followed by a full `bin/rubocop` with no offenses, `bin/brakeman --no-pager`, and `(cd spec/dummy && bin/rails zeitwerk:check)`.
 - [x] 4.3 Commit the specs, fix and docs, push `fix/get-meta-default-per-call`, and open the PR with a What and Why summary and a User-Visible Impact sentence (`docs/ai/workflows.md` Phase 4). Verify that the PR's CI run starts.
 - [x] 4.4 Add a `CHANGELOG.md` entry under `## Unreleased` that links the PR and the upgrade-guide anchor. Verify that it is at most 500 characters.
 - [x] 4.5 Run `/opsx:verify` and address its findings.
 - [x] 4.6 Run `/opsx:archive` on the branch, syncing both requirement changes into `openspec/specs/meta-storage-integrity/spec.md`. Commit the result together with the changelog entry, using the skip-ci directive once the PR has had a full run (`docs/ai/workflows.md` Phase 3). Verify that every box in this file is checked.
+
+## 5. Review follow-ups
+
+- [x] 5.1 Read a meta stored as null as one with no value, for `get_meta` and `get_option`, through one predicate; spec the role-form row that made post type creation raise.
+- [x] 5.2 Memoize in `set_meta` what a reload reads (`stored_form_of`, shared with `get_meta` and `PostType`'s decorator-option checks); rewrite the identity examples, add `spec/models/meta_written_form_spec.rb`, and rename and rewrite the `set_meta` requirement.
+- [x] 5.3 Keep the metas in memory when `PostType` refuses a decorator-option write, with a spec for an unsaved post type.
+- [x] 5.4 Pin the eager-loaded branch and the per-key query profile, prove the blank write stores its row, share one metas-query counter, and create the spec's posts for the installed post type.
+- [x] 5.5 Qualify the requery clause of the new requirement, describe the `LegacyOrder` reads and the by-reference memo in the docs, and bring this archive up to the merged base.
