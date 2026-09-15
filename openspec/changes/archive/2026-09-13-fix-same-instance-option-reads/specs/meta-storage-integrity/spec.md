@@ -7,8 +7,9 @@ caller passed, with the caller's own keys, until the record is loaded again. A r
 SHALL keep it until its first save, after which the instance reads what it stored. When the value is
 the record's options, `options` and `get_option` on that instance SHALL find an option by a String key
 or its Symbol twin, as a freshly loaded record does, whether the caller passed a plain Hash, request
-parameters or a JSON string. The copy `options` returns SHALL carry no default of the caller's hash, so a
-missing option reads nil as after a reload.
+parameters or a JSON string. The copy `options` returns SHALL share nothing with the caller's value, its
+nested hashes included, and SHALL carry no default of the caller's hash, so a missing option reads nil as
+after a reload.
 
 #### Scenario: A plugin reads back the hash it wrote
 
@@ -52,6 +53,14 @@ missing option reads nil as after a reload.
   array for a missing key, and options are set and a missing option read on the same instance
 - **THEN** the missing option reads nil, on the read and in `manage_categories?`
 - **AND** a freshly loaded post type holds only the options written
+
+#### Scenario: A plain Hash with a nested indifferent hash
+
+- **WHEN** a post type's options are written with `set_meta` as a plain Hash holding an indifferent hash
+  under `theme` and one inside an array under `sizes`, and a nested option of each is changed on the hash
+  `options` returns
+- **THEN** the caller's hashes still hold their values
+- **AND** `get_meta` on the same instance returns the hash the caller passed
 
 ### Requirement: An options row that is not an object reads as empty
 

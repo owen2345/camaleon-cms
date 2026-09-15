@@ -58,7 +58,10 @@ reaches every option read and write without changing either of them.
   code read it as no options on the writing instance while a reload parsed it, so the next option write
   replaced the row.
 - A plain Hash, or another Hash subclass, becomes an indifferent copy, not cached, so the caller's hash
-  stays as passed. The first option write caches its copy through `set_meta`. The copy is built with
+  stays as passed. The first option write caches its copy through `set_meta`. The hash is `deep_dup`ed
+  first: an indifferent hash converts a nested plain Hash into a copy but keeps a nested indifferent hash
+  by reference (its `nested_under_indifferent_access` is `self`), inside an Array too, so without the
+  deep copy a write into such a nested option reached the caller's hash and `get_meta`. The copy is built with
   `HashWithIndifferentAccess.new.update`, which leaves a Hash default or default proc behind, where
   `with_indifferent_access` copies both: a missing option reads nil, as after a reload, and a default
   proc that stores what it returns cannot add keys the next write would store.
@@ -92,7 +95,7 @@ as no options, so the defect does not reach option reads.
 
 - [After `set_meta` with a plain Hash, a JSON string, nil or an empty string, `options` on that instance no
   longer returns the caller's value] → `get_meta` still does. A write into the hash `options` returns, made
-  without `set_meta`, no longer reaches a caller's plain Hash. No code in the engine or in the plugin,
+  without `set_meta`, no longer reaches a caller's plain Hash, nor do its nested hashes. No code in the engine or in the plugin,
   theme and host repositories checked does that.
 - [A caller's plain Hash is copied on each `options` read until an option is written] → Only options
   passed to `set_meta` as a plain Hash take that path.

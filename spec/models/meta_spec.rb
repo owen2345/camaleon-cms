@@ -136,6 +136,21 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(post_type.options).to eq(CamaleonCms::PostType.find(post_type.id).options)
     end
 
+    # An indifferent hash converts a nested plain Hash into a copy but keeps a nested indifferent hash by
+    # reference; the options copy shares neither with the caller's hash.
+    it 'copies a caller hash without sharing its nested hashes' do
+      post_type = create(:post_type)
+      theme = { color: 'red' }.with_indifferent_access
+      passed = { 'theme' => theme, 'sizes' => [{ 'top' => 'xl' }.with_indifferent_access] }
+      post_type.set_meta('_default', passed)
+
+      post_type.options[:theme][:color] = 'blue'
+      post_type.options[:sizes].first[:top] = 'm'
+
+      expect([theme[:color], passed['sizes'].first[:top]]).to eq(%w[red xl])
+      expect(post_type.get_meta('_default')).to equal(passed)
+    end
+
     # Hash#with_indifferent_access copies a Hash default and default proc along; the options copy carries
     # neither, so a missing option reads nil as after a reload and a storing default proc adds no keys.
     it 'copies a caller hash without its default' do

@@ -27,8 +27,8 @@ record:
   - request parameters a caller passed to `set_meta` as an indifferent copy, nested parameters included,
     leaving the parameters unpermitted;
   - a JSON string a caller passed to `set_meta` as an indifferent copy of the object it holds;
-  - a plain Hash a caller passed to `set_meta` as an indifferent copy, leaving the caller's hash
-    unchanged;
+  - a plain Hash a caller passed to `set_meta` as an indifferent copy that shares nothing with the
+    caller's hash, nested hashes included, and carries no Hash default;
   - nil, an empty string or a missing options row as a new empty hash on each read, so a change made to
     it without an option writer is neither read back nor stored.
 - `get_option` and the option writers (`set_option`, `set_options` and its alias `set_multiple_options`,
@@ -75,8 +75,8 @@ None.
   - After `set_meta` with a plain Hash, `options` on that instance returns an indifferent copy instead of
     the caller's hash; after nil or an empty string, it returns empty options. `get_meta` still returns
     the caller's value.
-  - A write into the hash `options` returns, made without `set_meta`, no longer reaches a caller's plain
-    Hash. No code in the engine or in the plugin, theme and host repositories checked does that.
+  - A write into the hash `options` returns, or into a hash nested in it, made without `set_meta`, no
+    longer reaches a caller's plain Hash. No code in the engine or in the plugin, theme and host repositories checked does that.
   - `camaleon-ecommerce` passes request parameters to `set_meta('_default', …)` and reads them back with
     `get_option`. On the merged code those reads found no options on the writing instance, since the
     options-row rule read anything but a Hash as an empty row; they read the options again, and a writer
