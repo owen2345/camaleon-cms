@@ -344,7 +344,8 @@ now returns what a freshly loaded record reads.
   it in place shows in later reads on that object, and in `options` for the `_default` row, but is not
   stored. Write changes with `set_meta` whether or not a row exists, as the option writers already do.
 - `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read, where
-  they raised on a loaded record; a String, or the Strings of an Array, still read through the locale.
+  they raised on a loaded record. A String still reads through the locale, and so does every item of an
+  Array, as a String whatever it holds: `[1, true]` reads as `['1', 'true']`, as it did before.
 
 ---
 

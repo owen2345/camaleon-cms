@@ -28,6 +28,19 @@ RSpec.describe CamaleonCms::MetasDecoratorMethods do
     expect(decorated(post).the_meta('greetings')).to eq(%w[Hola plain])
   end
 
+  # Array#translate reads every item as a String before the locale applies, so a number or a boolean in an
+  # Array reads as a String, unlike the same value stored on its own.
+  it 'reads every item of an Array meta or option as a String through the locale, whatever it holds' do
+    items = [translatable, 7, true]
+    post.set_meta('mixed', items)
+    post.set_option('mixed', items)
+    reloaded = CamaleonCms::Post.find(post.id)
+    read_as = %w[Hola 7 true]
+
+    expect([decorated(post).the_meta('mixed'), decorated(post).the_option('mixed')]).to eq([read_as, read_as])
+    expect([decorated(reloaded).the_meta('mixed'), decorated(reloaded).the_option('mixed')]).to eq([read_as, read_as])
+  end
+
   it 'returns an option stored as a number as read and translates a String option' do
     post.set_options(year: '2024', greeting: translatable)
     reloaded = CamaleonCms::Post.find(post.id)

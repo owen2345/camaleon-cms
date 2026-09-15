@@ -90,9 +90,13 @@ object is left as passed and never handed back.
 **Return the caller's own default.** It is not copied or memoized. The option writers keep working because
 they pass the options they change to `set_meta`, which memoizes the stored form of that object.
 
-**`the_meta` and `the_option` translate only what the locale applies to.** A String, or the Strings of an
-Array, read through the locale as before; a number, a boolean or a hash is returned as read, where the
-helpers raised on a loaded record and, with the writing instance reading the stored form, on it too.
+**`the_meta` and `the_option` translate only what the locale applies to.** A String reads through the
+locale as before, and so does an Array, item by item: `Array#translate` reads every item as a String, so a
+number or a boolean in an Array reads as a String. A number, a boolean or a hash stored on its own is
+returned as read, where the helpers raised on a loaded record and, with the writing instance reading the
+stored form, on it too.
+- Rejected, returning the items of an Array that are not Strings as read: `the_meta` already read them as
+  Strings on a loaded record, which themes may rely on, and an Array never raised.
 
 **A refused decorator-option write leaves the metas in memory.** `PostType#reject_unknown_decorator_class!`
 drops the options memo, which the writers changed before the write, and no longer resets the association:

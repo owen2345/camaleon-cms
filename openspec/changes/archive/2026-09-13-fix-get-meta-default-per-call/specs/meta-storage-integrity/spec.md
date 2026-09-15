@@ -150,8 +150,9 @@ a rolled-back write, `cama_clear_cache`), as the requirement on memoized values 
 ### Requirement: Decorator meta reads translate only strings
 
 `the_meta` and `the_option` on a decorated record SHALL return the meta or option read with an empty-string
-default, translated for the decoration locale when it is a String or an Array of Strings, and as read when
-it is a number, a boolean or a hash, on the writing instance and on a freshly loaded record alike.
+default: translated for the decoration locale when it is a String; when it is an Array, as an Array of its
+items each read as a String and translated, whatever the item holds; and as read when it is a number, a
+boolean or a hash; on the writing instance and on a freshly loaded record alike.
 
 #### Scenario: A meta stored as a number
 
@@ -164,4 +165,11 @@ it is a number, a boolean or a hash, on the writing instance and on a freshly lo
 - **WHEN** a post's `greeting` meta holds an English and a Spanish translation and `the_meta('greeting')` is
   read with the Spanish decoration locale
 - **THEN** it returns the Spanish text
+
+#### Scenario: An Array holding a number and a boolean
+
+- **WHEN** a post's `mixed` meta and option are written as an Array of a translatable String, `7` and
+  `true`, and read with `the_meta` and `the_option` with the Spanish decoration locale, on the writing post
+  and on a freshly loaded one
+- **THEN** each read returns the Spanish text, `'7'` and `'true'`
 

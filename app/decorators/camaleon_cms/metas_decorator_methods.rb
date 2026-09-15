@@ -1,7 +1,8 @@
 module CamaleonCms
   module MetasDecoratorMethods
-    # The meta value for key in this model: a String, or the Strings of an Array, read through the locale;
-    # a value stored as a number, a boolean or a hash, which the locale cannot apply to, as read
+    # The meta value for key in this model: a String read through the locale; an Array item by item, each
+    # item read as a String through the locale whatever it holds, so a number or a boolean in it reads as a
+    # String; and a value stored as a number, a boolean or a hash, which the locale cannot apply to, as read
     def the_meta(key)
       translate_read(object.get_meta(key, ''))
     end

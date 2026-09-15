@@ -38,7 +38,8 @@ Two neighbouring splits between the writing instance and a reloaded record were 
 - `PostType` leaves the metas in memory when it refuses a decorator-option write, so an unsaved post type
   keeps the metas built for its first save.
 - `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read
-  instead of raising; a String, or the Strings of an Array, still read through the locale.
+  instead of raising; a String still reads through the locale, and so does every item of an Array, as a
+  String whatever it holds.
 - Unchanged: what `set_meta` stores, and that a meta with a value is handed back as the one memoized
   object.
 
