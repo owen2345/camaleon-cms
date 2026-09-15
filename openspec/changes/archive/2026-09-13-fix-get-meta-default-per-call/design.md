@@ -51,8 +51,6 @@ See proposal.md, "Why". The approach is shaped by these constraints:
 - Copying or freezing the default a caller passes, or the stored value the memo holds: a meta with a value
   is handed back as the one memoized object, so a change made to it in place shows in later reads on the
   instance until a write or a reload.
-- Making `the_meta` tolerate a stored number or boolean: it translates the read, which only a String or an
-  Array can do, on the writing instance now as after a reload.
 
 ## Decisions
 
@@ -86,6 +84,10 @@ passed and never handed back.
 **Return the caller's own default.** It is not copied or memoized. The option writers keep working because
 they pass the options they change to `set_meta`, which memoizes the stored form of that object.
 
+**`the_meta` and `the_option` translate only what the locale applies to.** A String, or the Strings of an
+Array, read through the locale as before; a number, a boolean or a hash is returned as read, where the
+helpers raised on a loaded record and, with the writing instance reading the stored form, on it too.
+
 **A refused decorator-option write leaves the metas in memory.** `PostType#reject_unknown_decorator_class!`
 drops the options memo, which the writers changed before the write, and no longer resets the association:
 a refused write changes no row, and the reset discarded the metas an unsaved post type had built for its
@@ -113,8 +115,8 @@ first save while their memos kept answering.
   None found in the engine, beyond its own examples, or in the surveyed repositories (the #1292 and #1302
   surveys); every hash read from `get_meta` and changed is passed to `set_meta` again.
 - [A caller reads a numeric or boolean String back on the writing instance as the String] → It reads the
-  number or the boolean now, as it already did once the record was loaded again; `the_meta` raises on
-  either for such a value, as it did after a reload.
+  number or the boolean now, as it already did once the record was loaded again, and `the_meta` returns
+  it as read.
 - [Plugins outside the survey] → Breakage needs a read on the writing instance that depended on an earlier
   read's default, or on the caller's object coming back. The 2.9.5 upgrade guide describes both patterns
   for theme and plugin developers.

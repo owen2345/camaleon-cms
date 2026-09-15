@@ -36,12 +36,14 @@ Two neighbouring splits between the writing instance and a reloaded record were 
   empty string. The caller's object is left as passed and never handed back.
 - `PostType` leaves the metas in memory when it refuses a decorator-option write, so an unsaved post type
   keeps the metas built for its first save.
+- `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read
+  instead of raising; a String, or the Strings of an Array, still read through the locale.
 - Unchanged: what `set_meta` stores, and that a meta with a value is handed back as the one memoized
   object.
 
 **Non-goals:**
 
-- Copying the stored value a read returns, or making `the_meta` tolerate a stored number or boolean.
+- Copying the stored value a read returns.
 - How `delete_meta`, `data_options` saves, `dup` and `reload` handle the memo: #1298, #1299 and #1301,
   merged before this change.
 

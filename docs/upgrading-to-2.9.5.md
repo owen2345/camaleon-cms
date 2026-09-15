@@ -348,6 +348,8 @@ A value written with `set_meta` reads back on the writing object as a freshly lo
 - A meta with a stored value is memoized on the object and handed back as that one value: a change made to
   it in place shows in later reads on that object, and in `options` for the `_default` row, but is not
   stored until written with `set_meta`. Write changes with `set_meta` whether or not a row exists.
+- `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read, where
+  they raised on a loaded record; a String, or the Strings of an Array, still read through the locale.
 
 ---
 
