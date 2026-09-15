@@ -49,3 +49,4 @@
 - [x] 5.9 Remove the `options` branches that converted a String or a plain Hash `get_meta` returned, which only a row holding a JSON string could still reach, and spec such a row reading as empty options.
 - [x] 5.10 Memoize nil, not the concern's frozen `''`, for a key with no row, and spec what a missing meta's read memoizes.
 - [x] 5.11 Look a key up by its String form in `get_meta`, as `set_meta` stores it, and spec an Integer key read from eager-loaded metas and from the database.
+- [x] 5.12 Return the boolean `stored_meta_value` looks up for a legacy `'t'`/`'f'` row instead of deriving it again through `stored_form_of`.

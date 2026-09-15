@@ -216,17 +216,18 @@ module CamaleonCms
     private
 
     # The value a stored row reads as (stored_form_of). A boolean an earlier release stored as the column's
-    # 't' or 'f' is stored again as its JSON literal so the next read parses it; where writes are prevented
-    # the row is left for a later read.
+    # 't' or 'f' reads as the boolean and is stored again as its JSON literal so the next read parses it;
+    # where writes are prevented the row is left for a later read.
     def stored_meta_value(option)
-      if LEGACY_BOOLEANS.key?(option.value)
-        begin
-          option.update_column(:value, LEGACY_BOOLEANS.fetch(option.value).to_s) # rubocop:disable Rails/SkipsModelValidations
-        rescue ActiveRecord::ActiveRecordError
-          nil
-        end
+      return stored_form_of(option.value) unless LEGACY_BOOLEANS.key?(option.value)
+
+      boolean = LEGACY_BOOLEANS.fetch(option.value)
+      begin
+        option.update_column(:value, boolean.to_s) # rubocop:disable Rails/SkipsModelValidations
+      rescue ActiveRecord::ActiveRecordError
+        nil
       end
-      stored_form_of(option.value)
+      boolean
     end
 
     # What a read returns for the text a row holds, or for the value fix_meta_value produced for one: its
