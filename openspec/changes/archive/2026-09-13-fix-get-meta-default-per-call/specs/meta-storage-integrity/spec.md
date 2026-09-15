@@ -11,10 +11,12 @@ A value written with `set_meta` SHALL be returned by `get_meta` on the same inst
 loaded record reads it: a Hash, an Array or request parameters as the indifferent hash, or array, their
 JSON parses to; a String holding JSON as the value it holds; a numeric or boolean String as the number or
 the boolean; any other String as a plain String, not html_safe even when the caller's was; nil or an empty
-string as a meta with no value, so the caller's default is returned. The object the caller passed SHALL be
-left as passed and SHALL NOT be returned, so a change made to it after the write is not read. A record not
-yet saved SHALL read a written value the same way until its first save, after which the instance reads
-what it stored. When the value is the record's options, `options` and `get_option` on that instance SHALL
+string as a meta with no value, so the caller's default is returned. An object the caller passed SHALL be
+left as passed and SHALL NOT be returned by a read, so a change made to it after the write is not read,
+unless it is the Hash or the Array the instance handed out for that key: written back, that object SHALL
+take the stored form in place and remain the one the instance reads, so a hash `options` returned keeps
+reading every later option write on the instance. A record not yet saved SHALL read a written value the
+same way until its first save, after which the instance reads what it stored. When the value is the record's options, `options` and `get_option` on that instance SHALL
 find an option by a String key or its Symbol twin, as a freshly loaded record does, whether the caller
 passed a plain Hash, request parameters or a JSON string. The hash `options` returns SHALL share nothing
 with the caller's value, its nested hashes included, and SHALL carry no default of the caller's hash, so a
@@ -56,6 +58,19 @@ returns for it, and `set_options` and `delete_option` SHALL return the options t
   `set_options` and `delete_option`
 - **THEN** `set_meta` returns the String `'false'`, the String `'null'` and the parameters object passed
 - **AND** the option writers return the options they wrote
+
+#### Scenario: A hash options returned before option writes
+
+- **WHEN** a post type's options are read, and options are then set, set in bulk and deleted on the same
+  instance
+- **THEN** the hash read first is the one `options` returns, holding every write
+
+#### Scenario: A hash or a list read from the record and written back
+
+- **WHEN** a hash read with `get_meta` is changed and written back with `set_meta`, an option is set, and
+  the hash is written back again; and a list read with `get_meta` is changed and written back
+- **THEN** a freshly loaded post type holds both the change and the option
+- **AND** `get_meta` on the writing instance returns the list that was written back
 
 #### Scenario: Options a caller passed to set_meta as a plain Hash
 

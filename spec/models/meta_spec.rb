@@ -165,6 +165,44 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(passed).to eq('color' => 'red')
     end
 
+    # The options hash a record hands out is the one its option writers update, so a hash read before the
+    # writes keeps reading all of them on that instance, as it did in 2.9.4.
+    it 'keeps a hash options returned reading the options written after it' do
+      post_type = create(:post_type)
+      held = post_type.options
+
+      post_type.set_option('probe_a', 1)
+      post_type.set_options(probe_b: 2)
+      post_type.delete_option('has_tags')
+
+      expect(held).to equal(post_type.options)
+      expect([held[:probe_a], held[:probe_b], held.key?(:has_tags)]).to eq([1, 2, false])
+    end
+
+    # A hash read from the record, changed and written back stays the one the record reads, so writing it
+    # back again after another write stores that write too.
+    it 'stores a hash read from the record and written back whole, however often' do
+      post_type = create(:post_type)
+      held = post_type.get_meta('_default')
+      held[:probe_a] = 1
+      post_type.set_meta('_default', held)
+      post_type.set_option('probe_b', 2)
+      post_type.set_meta('_default', held)
+
+      expect(CamaleonCms::PostType.find(post_type.id).options.values_at(:probe_a, :probe_b)).to eq([1, 2])
+    end
+
+    it 'keeps a list read from the record and written back the one it reads' do
+      post = create(:post)
+      post.set_meta('probe_gallery', ['a.jpg'])
+      gallery = post.get_meta('probe_gallery')
+      gallery << 'b.jpg'
+      post.set_meta('probe_gallery', gallery)
+
+      expect(post.get_meta('probe_gallery')).to equal(gallery)
+      expect(CamaleonCms::Post.find(post.id).get_meta('probe_gallery')).to eq(%w[a.jpg b.jpg])
+    end
+
     # An indifferent hash converts a nested plain Hash into a copy but keeps a nested indifferent hash by
     # reference; the options copy shares neither with the caller's hash.
     it 'copies a caller hash without sharing its nested hashes' do
