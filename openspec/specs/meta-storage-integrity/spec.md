@@ -302,6 +302,12 @@ boolean or a hash; on the writing instance and on a freshly loaded record alike.
   and on a freshly loaded one
 - **THEN** each read returns the Spanish text, `'7'` and `'true'`
 
+#### Scenario: A meta and an option stored as a hash
+
+- **WHEN** a post's `settings` meta and option are written as a hash holding `color` and read with
+  `the_meta` and `the_option`, on the writing post and on a freshly loaded one
+- **THEN** each read returns an indifferent hash holding `color`
+
 ### Requirement: Writes and reads agree on a key with several rows
 
 When a record holds more than one meta row for a key, a write SHALL update the row with the lowest id,
