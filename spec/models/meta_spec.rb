@@ -123,8 +123,8 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       post_type = create(:post_type)
       post_type.set_meta('_default', ActionController::Parameters.new('color' => 'red'))
 
-      expect([post_type.options[:color], post_type.options['color']]).to eq(%w[red red])
-      expect([post_type.get_option(:color), post_type.get_option('color')]).to eq(%w[red red])
+      reads = [post_type.options[:color], post_type.options['color'], post_type.get_option(:color)]
+      expect(reads).to eq(%w[red red red])
     end
 
     # get_meta caches the default of a first read of a missing meta, so reading a record's options with

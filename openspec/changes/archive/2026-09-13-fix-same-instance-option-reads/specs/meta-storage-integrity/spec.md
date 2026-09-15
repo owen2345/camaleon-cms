@@ -31,8 +31,8 @@ parameters.
 #### Scenario: Options a caller passed to set_meta as request parameters
 
 - **WHEN** a post type's options are written with `set_meta` as request parameters holding `color`
-- **THEN** on the same instance, `options` and `get_option` read `color` by its String key and by its
-  Symbol key
+- **THEN** on the same instance, `options` reads `color` by its String key and by its Symbol key, and
+  `get_option` reads it
 
 ### Requirement: An options row that is not an object reads as empty
 

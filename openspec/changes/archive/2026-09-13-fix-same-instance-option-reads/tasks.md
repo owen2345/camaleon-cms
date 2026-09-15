@@ -2,7 +2,7 @@
 
 - [x] 1.1 In `spec/models/meta_spec.rb` ("options and hash metas on the instance that wrote them"), add examples for "Option reads on the writing instance find either key type":
   - a plain Hash holding a String `color` and a Symbol `size` passed to `set_meta`, read through `options` and `get_option` by the other key type on the same instance and after a reload, with `get_meta` still returning the caller's hash with its own keys;
-  - request parameters holding `color` passed to `set_meta`, read through `options` and `get_option` by both key types.
+  - request parameters holding `color` passed to `set_meta`, read through `options` by both key types and through `get_option`.
 
   Verify with `bin/rspec spec/models/meta_spec.rb` that the plain Hash example fails on the current code. The request-parameters example passes, because it pins reads `camaleon-ecommerce` relies on.
 - [x] 1.2 In the same block, add examples for "Options that are nil or empty read and write as none":
