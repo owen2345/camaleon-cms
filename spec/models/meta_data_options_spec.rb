@@ -41,6 +41,18 @@ RSpec.describe CamaleonCms::Metas do
     expect(CamaleonCms::Post.find(post.id).options).to include('has_comments' => true, 'has_summary' => false)
   end
 
+  # With no data_options, the `_default` meta is the plain Hash set_metas passed to set_meta when the
+  # defaults are filled in, which must find its String-keyed options by their Symbol key.
+  it 'fills the defaults in under a _default meta given alone in data_metas' do
+    post_type = create(:post_type, data_metas: { '_default' => { 'has_tags' => true } })
+
+    expect(post_type.manage_tags?).to be(true)
+    expect(post_type.metas.where(key: '_default').count).to eq(1)
+    stored = CamaleonCms::PostType.find(post_type.id)
+    expect(stored.get_option(:has_tags)).to be(true)
+    expect(stored.get_option(:has_seo)).to be(true)
+  end
+
   # set_metas yields the queued `_default` meta as request parameters when data_metas are; the defaults are
   # then filled in under them on the same instance.
   it 'fills the defaults in under a _default meta given as request parameters' do

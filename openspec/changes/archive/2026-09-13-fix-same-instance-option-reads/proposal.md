@@ -58,9 +58,10 @@ None.
 ### Modified Capabilities
 
 - `meta-storage-integrity`: extends `set_meta keeps the caller's value on the writing instance` so that
-  `options` and `get_option` read the options the writing instance holds by either key type, and `An
-  options row that is not an object reads as empty` so that nil or empty options read and write as none on
-  the writing instance too.
+  `options` and `get_option` read the options the writing instance holds by either key type, `An options
+  row that is not an object reads as empty` so that nil or empty options read and write as none on the
+  writing instance too, and `Options and metas given to a save are written once` with a post type created
+  with only a `_default` meta, as a Hash or as request parameters.
 
 ## Impact
 
@@ -70,7 +71,10 @@ None.
 - **Docs:** `docs/ai/ecosystem.md` (the `camaleon-ecommerce` binding), a note for theme and plugin
   developers in `docs/upgrading-to-2.9.5.md`, and `CHANGELOG.md`.
 - **Engine:** it reads `options[...]` directly in 30+ places, among them `PostType#manage_categories?`,
-  `Site` and the custom field views. On the writing instance these now find either key type too.
+  `Site` and the custom field views. On the writing instance these now find either key type too. A post
+  type created with a `_default` meta in `data_metas` and no `data_options` fills its defaults in under
+  the options that meta holds, whichever key type names them and whether it is a Hash or request
+  parameters; the merged code wrote the default over a String-keyed option and raised on parameters.
 - **Plugins and themes:**
   - After `set_meta` with a plain Hash, `options` on that instance returns an indifferent copy instead of
     the caller's hash; after nil or an empty string, it returns empty options. `get_meta` still returns

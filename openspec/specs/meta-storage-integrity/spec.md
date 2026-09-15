@@ -313,6 +313,20 @@ original's write and SHALL queue only values given to the copy.
   and the transaction is rolled back
 - **THEN** the copy has nothing queued and a value queued on one of them is not queued on the other
 
+#### Scenario: A post type created with only a `_default` meta
+
+- **WHEN** a post type is created with a `_default` meta holding `has_tags` under a String key in
+  `data_metas` and no `data_options`
+- **THEN** the same instance manages tags
+- **AND** a freshly loaded post type reads `has_tags` and its remaining defaults, from one options row
+
+#### Scenario: A post type created with a `_default` meta as request parameters
+
+- **WHEN** a post type is created with `data_metas` given as request parameters holding a `_default` meta
+  with `has_category`
+- **THEN** the same instance manages categories and has its default category
+- **AND** a freshly loaded post type reads `has_category` and its remaining defaults, from one options row
+
 ### Requirement: A copied or reloaded record does not reuse memoized values
 
 A value a record memoizes for the request through `cama_fetch_cache`, which is how its meta and option
