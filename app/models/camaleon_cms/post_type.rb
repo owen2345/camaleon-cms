@@ -214,15 +214,14 @@ module CamaleonCms
     # Refuses, loudly, options whose decorator option names no post decorator, unless the write leaves
     # the stored value as it is: a value stored without passing the check (before it existed, or a
     # removed plugin's decorator) is ignored at read, not a reason to refuse unrelated writes. The
-    # writers mutate the memoized options before calling set_meta, and set_meta updates a row it queries
-    # itself rather than a loaded metas association, so both are dropped to keep the record reading what
-    # is stored.
+    # writers change the memoized options before calling set_meta, so the memo is dropped to keep the
+    # record reading what is stored; the metas in memory are left alone, since a refused write changes no
+    # row and a reset would lose the metas built on an unsaved record for its first save.
     def reject_unknown_decorator_class!(key, options)
       value = decorator_class_option_in(options)
       return if decorator_class_option_acceptable?(value)
 
       cama_remove_cache("meta_#{key}")
-      metas.reset if metas.loaded?
       errors.add(:base, decorator_class_refusal_message(value))
       raise ActiveRecord::RecordInvalid, self
     end
@@ -279,11 +278,8 @@ module CamaleonCms
     # The decorator option of `options` as get_meta will read it back once set_meta stores them, whatever
     # form the writer passed: the key form written last in a Hash, the parameters' value, the JSON's.
     def decorator_class_option_in(options)
-      stored = fix_meta_value(options)
-      stored = JSON.parse(stored, allow_duplicate_key: true) if stored.is_a?(String)
+      stored = stored_form_of(fix_meta_value(options))
       stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
-    rescue JSON::ParserError
-      nil
     end
 
     # The decorator option as the database holds it before the write under check, from the row get_meta
@@ -291,11 +287,8 @@ module CamaleonCms
     def stored_decorator_class_option
       return unless persisted?
 
-      row = metas.where(key: '_default').order(:id).first
-      stored = JSON.parse(row.value, allow_duplicate_key: true) if row&.value.present?
+      stored = stored_form_of(metas.where(key: '_default').order(:id).first&.value)
       stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
-    rescue JSON::ParserError
-      nil
     end
 
     # The options the creation left unset get their DEFAULT_OPTIONS value. The Metas concern's

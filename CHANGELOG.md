@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Bug fix:** `get_meta` and `get_option` return each read's own default for a meta with no value (no row, null or `''`); a value written with `set_meta` reads back on the writing instance as a freshly loaded record reads it; `the_meta` and `the_option` return a stored number or boolean instead of raising. [#1303](https://github.com/owen2345/camaleon-cms/pull/1303).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#get_meta-and-set_meta-read-as-a-freshly-loaded-record).
+
 - **Bug fix:** On the record that wrote its options with `set_meta`, `options` and `get_option` read an option by a String key or its Symbol twin, as a freshly loaded record does, whether passed as a plain Hash, request parameters or a JSON string, and an option written on that object afterwards is stored beside them. [#1302](https://github.com/owen2345/camaleon-cms/pull/1302).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#options-read-by-either-key-type-on-the-instance-that-wrote-them).
 

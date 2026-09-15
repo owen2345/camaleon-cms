@@ -1,0 +1,175 @@
+## RENAMED Requirements
+
+- FROM: `### Requirement: set_meta keeps the caller's value on the writing instance`
+- TO: `### Requirement: set_meta reads back on the writing instance as a reloaded record does`
+
+## MODIFIED Requirements
+
+### Requirement: set_meta reads back on the writing instance as a reloaded record does
+
+A value written with `set_meta` SHALL be returned by `get_meta` on the same instance in the form a freshly
+loaded record reads it: a Hash, an Array or request parameters as the indifferent hash, or array, their
+JSON parses to; a String holding JSON as the value it holds; a numeric or boolean String as the number or
+the boolean; any other String as a plain String, not html_safe even when the caller's was; nil or an empty
+string as a meta with no value, so the caller's default is returned. The object the caller passed SHALL be
+left as passed and SHALL NOT be returned, so a change made to it after the write is not read. A record not
+yet saved SHALL read a written value the same way until its first save, after which the instance reads
+what it stored. When the value is the record's options, `options` and `get_option` on that instance SHALL
+find an option by a String key or its Symbol twin, as a freshly loaded record does, whether the caller
+passed a plain Hash, request parameters or a JSON string. The hash `options` returns SHALL share nothing
+with the caller's value, its nested hashes included, and SHALL carry no default of the caller's hash, so a
+missing option reads nil as after a reload.
+
+#### Scenario: A plugin reads back the hash it wrote
+
+- **WHEN** a hash with Symbol keys is written with `set_meta` and a key is then added to the caller's hash
+- **THEN** `get_meta` on the same instance returns an indifferent hash holding the values written, read by
+  either key type, not the caller's object, and without the key added afterwards
+
+#### Scenario: A string that stores as a number, a boolean or JSON
+
+- **WHEN** `'2024'`, `'false'` and `'[1, 2]'` are written with `set_meta`
+- **THEN** the same instance reads `2024`, `false` and `[1, 2]`, as a freshly loaded record does
+
+#### Scenario: A plugin reads back the text it wrote
+
+- **WHEN** a String holding no JSON is written with `set_meta` and the caller's String is then changed in
+  place
+- **THEN** `get_meta` on the same instance returns the text as written, not the caller's object
+- **AND** an html_safe String written the same way reads back as a plain String, as a freshly loaded
+  record reads it
+
+#### Scenario: A new record saved after the write
+
+- **WHEN** a hash is written with `set_meta` on an unsaved post type and the post type is saved
+- **THEN** the same instance reads the stored hash by its keys before and after the save
+
+#### Scenario: A meta written as nil or as an empty string
+
+- **WHEN** a meta is written with `set_meta` as nil, or as an empty string, and read with a default
+- **THEN** the same instance and a reloaded record return that default
+
+#### Scenario: Options a caller passed to set_meta as a plain Hash
+
+- **WHEN** a post type's options are written with `set_meta` as a plain Hash holding `color` under a String
+  key and `size` under a Symbol key
+- **THEN** on the same instance, `options` and `get_option` read `color` by its Symbol key and `size` by
+  its String key
+- **AND** a freshly loaded post type reads the same values
+- **AND** the caller's hash keeps its own keys, and `get_meta` on the same instance returns an indifferent
+  hash holding both values
+
+#### Scenario: An option written after set_meta
+
+- **WHEN** a post type's options are written with `set_meta` as a plain Hash and an option is then set on
+  the same instance
+- **THEN** `get_meta` on that instance returns the writer's hash, holding both, not the caller's hash
+- **AND** the caller's hash holds only what it passed
+
+#### Scenario: Options a caller passed to set_meta as request parameters
+
+- **WHEN** a post type's options are written with `set_meta` as request parameters holding `color` and a
+  nested `sizes`
+- **THEN** on the same instance, `options` reads `color` by its String key and by its Symbol key, and
+  `get_option` reads it
+- **AND** `options` is an indifferent hash whose `sizes` is a hash, and the parameters stay unpermitted
+- **AND** an option set on the same instance is stored beside `color` and `sizes`, and the instance reads
+  what a freshly loaded post type reads
+
+#### Scenario: Options a caller passed to set_meta as a JSON string
+
+- **WHEN** a post type's options are written with `set_meta` as a JSON string holding `has_tags`
+- **THEN** on the same instance, `options` and `get_option` read `has_tags`
+- **AND** an option set on the same instance is stored beside it, and the same instance and a freshly loaded
+  post type read both
+
+#### Scenario: A plain Hash with a default
+
+- **WHEN** a post type's options are written with `set_meta` as a Hash whose default proc stores an empty
+  array for a missing key, and options are set and a missing option read on the same instance
+- **THEN** the missing option reads nil, on the read and in `manage_categories?`
+- **AND** a freshly loaded post type holds only the options written
+
+#### Scenario: A plain Hash with a nested indifferent hash
+
+- **WHEN** a post type's options are written with `set_meta` as a plain Hash holding an indifferent hash
+  under `theme` and one inside an array under `sizes`, and a nested option of each is changed on the hash
+  `options` returns
+- **THEN** the caller's hashes still hold their values
+- **AND** `get_meta` on the same instance does not return the caller's hash
+
+## ADDED Requirements
+
+### Requirement: Each read of a meta with no value returns its caller's default
+
+When a record has no row for a meta, or the meta's stored value is null or an empty string, each `get_meta`
+call SHALL return the default passed to that call. It SHALL NOT return a default an earlier call passed, or a
+change a caller made to that default in place. This SHALL hold whether the record's metas are eager-loaded
+or read from the database. `get_option` SHALL likewise return its default for an option whose value is
+null or an empty string. Reading the meta again on the same instance SHALL NOT query the database again
+until the meta is written or deleted on it, or the instance drops its memoized values (a reload, a copy,
+a rolled-back write, `cama_clear_cache`), as the requirement on memoized values states.
+
+#### Scenario: A missing meta read with different defaults
+
+- **WHEN** a post with no `gallery` meta reads it without a default and then with an empty array as the
+  default
+- **THEN** the first read returns nil and the second returns an empty array
+- **AND** the same two reads return the same values on a post loaded with its metas eager-loaded, without
+  a query
+
+#### Scenario: A default changed in place
+
+- **WHEN** a caller appends to the empty array returned as a missing meta's default, without writing it
+  with `set_meta`, and the meta is read again with an empty array as the default
+- **THEN** the later read returns an empty array
+
+#### Scenario: A meta stored as an empty string
+
+- **WHEN** a record's stored value for a meta is an empty string, and the meta is read without a default
+  and then with a default
+- **THEN** the first read returns nil and the second returns that default
+
+#### Scenario: A meta stored as null
+
+- **WHEN** a record's stored value for a meta is null, and the meta is read with a default
+- **THEN** that default is returned, on the writing instance and on a freshly loaded record
+
+#### Scenario: An option stored as null
+
+- **WHEN** a record's options hold `color` as null and `size` as an empty string, and each is read with
+  `get_option` and a default
+- **THEN** both reads return that default, on the writing instance and on a freshly loaded record
+
+#### Scenario: Repeated reads of a missing meta
+
+- **WHEN** a post loaded without its metas reads a missing meta three times, with no default, with an empty
+  array and with an empty hash, and then another missing meta
+- **THEN** the metas table is queried once for each of the two keys
+
+### Requirement: Decorator meta reads translate only strings
+
+`the_meta` and `the_option` on a decorated record SHALL return the meta or option read with an empty-string
+default: translated for the decoration locale when it is a String; when it is an Array, as an Array of its
+items each read as a String and translated, whatever the item holds; and as read when it is a number, a
+boolean or a hash; on the writing instance and on a freshly loaded record alike.
+
+#### Scenario: A meta stored as a number
+
+- **WHEN** a post's `year` meta is written as `'2024'` and `the_meta('year')` is read on the writing post and
+  on a freshly loaded one
+- **THEN** both return `2024`
+
+#### Scenario: A translatable meta
+
+- **WHEN** a post's `greeting` meta holds an English and a Spanish translation and `the_meta('greeting')` is
+  read with the Spanish decoration locale
+- **THEN** it returns the Spanish text
+
+#### Scenario: An Array holding a number and a boolean
+
+- **WHEN** a post's `mixed` meta and option are written as an Array of a translatable String, `7` and
+  `true`, and read with `the_meta` and `the_option` with the Spanish decoration locale, on the writing post
+  and on a freshly loaded one
+- **THEN** each read returns the Spanish text, `'7'` and `'true'`
+

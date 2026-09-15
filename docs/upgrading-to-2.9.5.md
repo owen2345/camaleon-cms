@@ -28,6 +28,7 @@ what theme/plugin developers should know.
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
+| Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, or reads back the object it passed to `set_meta` on the same instance | Write changes with `set_meta`; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
 
 ---
 
@@ -313,14 +314,38 @@ always did.
   an `ActionController::Parameters` object. The copy carries no default your hash may have. An option
   written on that object afterwards is stored beside the options you passed. A post type created with a
   `_default` meta in `data_metas` keeps the options that meta holds under its defaults, whichever key type
-  names them. `get_meta` still returns the hash you passed until the first `set_option`, `set_options` or
-  `delete_option` on that object, which stores and returns its own indifferent hash and no longer writes
-  into your hash as 2.9.4 did; a change made to the hash `options` returns, or to a hash nested in it,
-  without an option writer, no longer reaches it.
+  names them. `get_meta` on that object returns that same indifferent copy, never the hash you passed, and
+  the option writers store and return their own hash instead of writing into yours as 2.9.4 did; a change
+  made to the hash `options` returns, or to a hash nested in it, without an option writer, no longer
+  reaches it.
 - Options that are nil, an empty string or absent read as empty options: `options` returns a new empty
   hash on each read instead of `nil` or `''`, `get_option` and the option writers no longer raise, and a
   change made to that empty hash without an option writer is neither read back nor stored. Code that
   branched on `options.nil?` should branch on `.empty?`.
+
+### `get_meta` and `set_meta` read as a freshly loaded record
+
+On the object that reads or writes a meta, 2.9.4 could return something a freshly loaded record would not:
+the default an earlier read had passed, or the very object you gave `set_meta`. Every read on that object
+now returns what a freshly loaded record reads.
+
+- A read of a meta with no value — no row, or a stored null or empty string — returns the default passed to
+  that call. Before, a record memoized the default of its first read of that meta, so later reads on the
+  same object got that default, with any in-place change you made to it, and a meta stored as null read as
+  nil whatever the default. `get_option` returns its default for an option stored as null, as it already
+  did for an empty string, and `set_meta(key, nil)` or `set_meta(key, '')` reads back as the default.
+- A value written with `set_meta` reads back as `set_meta` stores it: a Hash or request parameters as an
+  indifferent hash (`[:key]` and `['key']` alike), a JSON string as the value it holds, a numeric or
+  boolean String as the number or the boolean, and any other String as a plain String, so a view escapes an
+  `html_safe` String you wrote. Your own object is left as passed and never handed back, so a change made
+  to it after the write is not read; code that compared a read to its own hash, or iterated its Symbol
+  keys, on the writing object sees the stored form now, as it already did once the record was loaded again.
+- A meta with a stored value is memoized on the object and handed back as that one value: a change made to
+  it in place shows in later reads on that object, and in `options` for the `_default` row, but is not
+  stored. Write changes with `set_meta` whether or not a row exists, as the option writers already do.
+- `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read, where
+  they raised on a loaded record. A String still reads through the locale, and so does every item of an
+  Array, as a String whatever it holds: `[1, true]` reads as `['1', 'true']`, as it did before.
 
 ---
 
