@@ -4,9 +4,12 @@
 # read, so later reads on the same instance returned that default, or the caller's in-place changes to it,
 # instead of their own, while a freshly loaded record returned each read's own default.
 RSpec.describe CamaleonCms::Post, type: :model do
+  # the shared site's installed post type: a post created for it skips a post type's creation and route reload
+  let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
+
   describe '#get_meta for a meta with no value' do
     it 'returns the default each read passes', :aggregate_failures do
-      post = create(:post)
+      post = create(:post, post_type: post_type)
 
       [post, described_class.find(post.id), described_class.includes(:metas).find(post.id)].each do |record|
         expect(record.get_meta('gallery')).to be_nil
@@ -15,14 +18,14 @@ RSpec.describe CamaleonCms::Post, type: :model do
     end
 
     it 'does not return a default a caller changed in place' do
-      post = create(:post)
+      post = create(:post, post_type: post_type)
       post.get_meta('gallery', []) << 'photo.jpg'
 
       expect(post.get_meta('gallery', [])).to eq([])
     end
 
     it 'returns the default each read passes for a meta stored as an empty string' do
-      post = create(:post)
+      post = create(:post, post_type: post_type)
       post.metas.create!(key: 'gallery', value: '')
       stored = described_class.find(post.id)
 
@@ -31,7 +34,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
     end
 
     it 'returns the default each read passes for a meta stored as null' do
-      post = create(:post)
+      post = create(:post, post_type: post_type)
       post.metas.create!(key: 'gallery', value: nil)
       stored = described_class.find(post.id)
 
@@ -52,7 +55,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
     end
 
     it 'reads a missing meta from the database once' do
-      post = described_class.find(create(:post).id)
+      post = described_class.find(create(:post, post_type: post_type).id)
 
       queries = metas_selects do
         post.get_meta('gallery')
@@ -67,7 +70,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
   describe '#set_meta with nil or an empty string' do
     [nil, ''].each do |written|
       it "reads back #{written.inspect} as the default on the writing instance, as after a reload" do
-        post = create(:post)
+        post = create(:post, post_type: post_type)
         post.set_meta('gallery', written)
 
         expect(post.get_meta('gallery', [])).to eq([])
@@ -78,7 +81,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
 
   describe '#get_option for an option with no value' do
     it 'returns the default for an option stored as null, as for an empty string' do
-      post = create(:post)
+      post = create(:post, post_type: post_type)
       post.set_meta('_default', { color: nil, size: '' })
       stored = described_class.find(post.id)
 
