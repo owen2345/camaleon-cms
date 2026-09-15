@@ -101,6 +101,133 @@ RSpec.describe CamaleonCms::Meta, type: :model do
 
       expect(post_type.get_meta('probe_settings')).to eq('color' => 'red')
     end
+
+    # set_meta keeps a caller's plain Hash as passed, keys and all; options and get_option read it by
+    # either key type, as a reloaded record reads the options it parses.
+    it 'reads options a caller passed to set_meta as a plain Hash by either key type' do
+      passed = { 'color' => 'red', size: 'xl' }
+      post_type = create(:post_type)
+      post_type.set_meta('_default', passed)
+
+      expect([post_type.options[:color], post_type.options['size']]).to eq(%w[red xl])
+      expect([post_type.get_option(:color), post_type.get_option('size')]).to eq(%w[red xl])
+      expect(post_type.get_meta('_default')).to equal(passed)
+      expect(passed.keys).to eq(['color', :size])
+      reloaded = CamaleonCms::PostType.find(post_type.id)
+      expect([reloaded.options[:color], reloaded.get_option('size')]).to eq(%w[red xl])
+    end
+
+    # camaleon-ecommerce passes its params[:options] to set_meta('_default', ...) and reads them back with
+    # get_option. The instance reads them as a freshly loaded record parses them, an indifferent hash whose
+    # nested hashes are indifferent too, and an option written on it afterwards is stored beside them.
+    it 'reads and writes options a caller passed to set_meta as request parameters' do
+      post_type = create(:post_type)
+      params = ActionController::Parameters.new('color' => 'red', 'sizes' => { 'top' => 'xl' })
+      post_type.set_meta('_default', params)
+
+      reads = [post_type.options[:color], post_type.options['color'], post_type.get_option(:color)]
+      expect(reads).to eq(%w[red red red])
+      expect(post_type.options).to be_a(ActiveSupport::HashWithIndifferentAccess)
+      expect(post_type.options[:sizes].to_h).to eq('top' => 'xl')
+      expect(params).not_to be_permitted
+      post_type.set_option('size', 'xl')
+      stored = JSON.parse(post_type.metas.find_by!(key: '_default').value)
+      expect(stored).to eq('color' => 'red', 'sizes' => { 'top' => 'xl' }, 'size' => 'xl')
+      expect(post_type.options).to eq(CamaleonCms::PostType.find(post_type.id).options)
+    end
+
+    # The first option writer stores and caches its own indifferent copy, which get_meta returns from then
+    # on; the caller's hash is left as passed, where 2.9.4 wrote into it.
+    it 'returns the writer\'s hash from get_meta once an option is written after set_meta' do
+      passed = { 'color' => 'red' }
+      post_type = create(:post_type)
+      post_type.set_meta('_default', passed)
+
+      post_type.set_option('size', 'xl')
+
+      expect(post_type.get_meta('_default')).to eq('color' => 'red', 'size' => 'xl')
+      expect(post_type.get_meta('_default')).not_to equal(passed)
+      expect(passed).to eq('color' => 'red')
+    end
+
+    # An indifferent hash converts a nested plain Hash into a copy but keeps a nested indifferent hash by
+    # reference; the options copy shares neither with the caller's hash.
+    it 'copies a caller hash without sharing its nested hashes' do
+      post_type = create(:post_type)
+      theme = { color: 'red' }.with_indifferent_access
+      passed = { 'theme' => theme, 'sizes' => [{ 'top' => 'xl' }.with_indifferent_access] }
+      post_type.set_meta('_default', passed)
+
+      post_type.options[:theme][:color] = 'blue'
+      post_type.options[:sizes].first[:top] = 'm'
+
+      expect([theme[:color], passed['sizes'].first[:top]]).to eq(%w[red xl])
+      expect(post_type.get_meta('_default')).to equal(passed)
+    end
+
+    # Hash#with_indifferent_access copies a Hash default and default proc along; the options copy carries
+    # neither, so a missing option reads nil as after a reload and a storing default proc adds no keys.
+    it 'copies a caller hash without its default' do
+      post_type = create(:post_type)
+      passed = Hash.new { |hash, key| hash[key] = [] }.merge!('has_category' => false)
+      post_type.set_meta('_default', passed)
+
+      expect(post_type.options[:has_single_category]).to be_nil
+      expect(post_type).not_to be_manage_categories
+      post_type.set_option('has_tags', true)
+      post_type.options[:phantom]
+      post_type.set_option('has_seo', true)
+      expect(CamaleonCms::PostType.find(post_type.id).options.keys).to eq(%w[has_category has_tags has_seo])
+    end
+
+    # PostType#set_meta names a JSON string as one form the whole options row arrives in; the writing
+    # instance parses it as a freshly loaded record parses the row it stored.
+    it 'reads and writes options a caller passed to set_meta as a JSON string' do
+      post_type = create(:post_type)
+      post_type.set_meta('_default', { 'has_tags' => true }.to_json)
+
+      expect([post_type.options[:has_tags], post_type.get_option('has_tags')]).to eq([true, true])
+      post_type.set_option('has_seo', false)
+      expect(post_type.options).to eq('has_tags' => true, 'has_seo' => false)
+      expect(CamaleonCms::PostType.find(post_type.id).options).to eq('has_tags' => true, 'has_seo' => false)
+    end
+
+    # A record with no options row reads them as none, whether or not get_meta was asked for them first,
+    # and takes a write.
+    it 'reads and writes options as none on a record with no options row' do
+      post = create(:post)
+      expect(post.get_meta('_default')).to be_nil
+
+      expect(post.options).to eq({})
+      expect(post.get_option(:color, 'none')).to eq('none')
+      post.set_option('color', 'red')
+      expect(post.get_option(:color)).to eq('red')
+      expect(CamaleonCms::Post.find(post.id).get_option(:color)).to eq('red')
+    end
+
+    # The empty options of a record with no options row are a new hash on each read, not a memoized
+    # default: a change made to them without an option writer is neither read back nor stored.
+    it 'does not read back or store a change made to the empty options it returns' do
+      post = create(:post)
+      post.options[:color] = 'red'
+
+      expect(post.options[:color]).to be_nil
+      post.set_option('size', 'xl')
+      expect(CamaleonCms::Post.find(post.id).options).to eq('size' => 'xl')
+    end
+
+    [nil, ''].each do |passed|
+      it "reads and writes options set_meta wrote as #{passed.inspect} as none" do
+        post = create(:post)
+        post.set_meta('_default', passed)
+        reloaded = CamaleonCms::Post.find(post.id)
+
+        expect([post.options, reloaded.options]).to all(eq({}))
+        expect([post.get_option(:color, 'none'), reloaded.get_option(:color, 'none')]).to eq(%w[none none])
+        reloaded.set_option('color', 'red')
+        expect(CamaleonCms::Post.find(post.id).get_option(:color)).to eq('red')
+      end
+    end
   end
 
   describe 'a stored meta that repeats a key' do

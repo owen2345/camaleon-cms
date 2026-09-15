@@ -109,11 +109,23 @@ module CamaleonCms
     end
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
-    # A stored row that is not a JSON object (legacy or corrupt data) reads as no options, so every
-    # reader and writer works on the record; the row is replaced the next time an option is written.
+    # An indifferent hash, as a freshly loaded record parses its stored options, so a String key and its
+    # Symbol twin read the same option: the hash the option writers keep, as it is, or an indifferent copy
+    # of what a caller passed to set_meta, a plain Hash, request parameters or a JSON string, sharing
+    # nothing with the caller's value, its nested hashes included, and leaving a Hash default behind, so a
+    # missing option reads nil as after a reload. A value that is not a JSON object (no options row, a
+    # legacy or corrupt row, a string that holds none, nil, '') reads as a new empty hash on each read, so
+    # every reader and writer works on the record and a change made to that hash without a writer is not
+    # stored; the row, if any, is replaced the next time an option is written.
     def options(meta_key = '_default')
-      stored = get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
-      stored.is_a?(Hash) ? stored : ActiveSupport::HashWithIndifferentAccess.new
+      data = get_meta(meta_key)
+      data = parsed_json(data) if data.is_a?(String)
+      case data
+      when ActiveSupport::HashWithIndifferentAccess then data
+      when ActionController::Parameters then data.to_unsafe_h
+      when Hash then ActiveSupport::HashWithIndifferentAccess.new.update(data.deep_dup)
+      else ActiveSupport::HashWithIndifferentAccess.new
+      end
     end
     alias cama_options options
 
@@ -125,7 +137,7 @@ module CamaleonCms
     def set_option(key, value = nil, meta_key = '_default')
       return if key.nil?
 
-      data = writable_options(meta_key)
+      data = cama_options(meta_key)
       data[key] = fix_meta_var(value)
       set_meta(meta_key, data)
       value
@@ -147,7 +159,7 @@ module CamaleonCms
     def delete_option(key, meta_key = '_default')
       return if key.nil?
 
-      values = writable_options(meta_key)
+      values = cama_options(meta_key)
       key = key.to_sym
       values.delete(key) if values.key?(key)
       set_meta(meta_key, values)
@@ -159,7 +171,7 @@ module CamaleonCms
       return if h.blank?
 
       refuse_invalid_container!(h)
-      data = writable_options(meta_key)
+      data = cama_options(meta_key)
       PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
         data[key] = fix_meta_var(value)
       end
@@ -301,11 +313,12 @@ module CamaleonCms
       @created_record_metas_in_memory == true
     end
 
-    # the options hash the option writers update: indifferent, as a stored one is parsed, so a String
-    # key replaces its Symbol twin instead of being stored beside it
-    def writable_options(meta_key)
-      data = cama_options(meta_key)
-      data.is_a?(ActiveSupport::HashWithIndifferentAccess) ? data : data.with_indifferent_access
+    # The value a JSON string a caller passed to set_meta holds, parsed as a freshly loaded record parses
+    # the row it stored; nil for a string that holds no JSON
+    def parsed_json(text)
+      JSON.parse(text, allow_duplicate_key: true)
+    rescue JSON::ParserError
+      nil
     end
 
     # The stored form of a value: JSON for a container, and for a boolean its JSON literal, which reads
