@@ -42,10 +42,13 @@ RSpec.describe CamaleonCms::Post, type: :model do
       read = post.get_meta('probe')
 
       expect([read[:color], read['color'], read[:sizes].first['top']]).to eq(%w[red red xl])
+      expect(read).to be_a(ActiveSupport::HashWithIndifferentAccess)
       expect(read).not_to equal(passed)
       expect(passed.keys).to eq(%i[color sizes])
       passed[:color] = 'blue'
+      passed[:size] = 'm'
       expect(post.get_meta('probe')[:color]).to eq('red')
+      expect(post.get_meta('probe')).not_to have_key(:size)
       expect(described_class.find(post.id).get_meta('probe')).to eq(read)
     end
 

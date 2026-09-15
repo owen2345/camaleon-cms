@@ -89,21 +89,6 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe_settings')).to eq('sec' => 30)
     end
 
-    # Plugins read back the hash they passed to set_meta on the same instance as a freshly loaded record
-    # reads it: an indifferent copy, their own object left as passed.
-    it 'reads back the hash a caller passed to set_meta as a reloaded record does' do
-      settings = { color: 'red' }
-      post_type = create(:post_type)
-      post_type.set_meta('probe_settings', settings)
-      read = post_type.get_meta('probe_settings')
-
-      expect(read).to eq('color' => 'red')
-      expect(read).to be_a(ActiveSupport::HashWithIndifferentAccess)
-      expect(read).not_to equal(settings)
-      settings[:size] = 'xl'
-      expect(post_type.get_meta('probe_settings')).to eq('color' => 'red')
-    end
-
     # The memo is keyed by the record's id, so what a new record memoized before its first save is not
     # read after it: the saved record reads what it stored, which is what it read before the save.
     it 'reads the stored form once a new record is saved' do
