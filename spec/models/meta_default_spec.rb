@@ -8,13 +8,22 @@ RSpec.describe CamaleonCms::Post, type: :model do
   let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
 
   describe '#get_meta for a meta with no value' do
-    it 'returns the default each read passes', :aggregate_failures do
+    it 'returns the default each read passes' do
       post = create(:post, post_type: post_type)
 
-      [post, described_class.find(post.id), described_class.includes(:metas).find(post.id)].each do |record|
-        expect(record.get_meta('gallery')).to be_nil
-        expect(record.get_meta('gallery', [])).to eq([])
-      end
+      expect(post.get_meta('gallery')).to be_nil
+      expect(post.get_meta('gallery', [])).to eq([])
+    end
+
+    it 'returns the default each read passes from eager-loaded metas, without querying' do
+      loaded = described_class.includes(:metas).find(create(:post, post_type: post_type).id)
+      expect(loaded.metas).to be_loaded
+
+      reads = nil
+      selects = metas_selects { reads = [loaded.get_meta('gallery'), loaded.get_meta('gallery', [])] }
+
+      expect(reads).to eq([nil, []])
+      expect(selects).to be_empty
     end
 
     it 'does not return a default a caller changed in place' do

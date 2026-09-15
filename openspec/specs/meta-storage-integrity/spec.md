@@ -189,8 +189,8 @@ until the meta is written or deleted.
 - **WHEN** a post with no `gallery` meta reads it without a default and then with an empty array as the
   default
 - **THEN** the first read returns nil and the second returns an empty array
-- **AND** the same two reads return the same values on a freshly loaded post and on a post loaded with its
-  metas eager-loaded
+- **AND** the same two reads return the same values on a post loaded with its metas eager-loaded, without
+  a query
 
 #### Scenario: A default changed in place
 
