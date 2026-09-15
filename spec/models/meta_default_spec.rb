@@ -80,10 +80,12 @@ RSpec.describe CamaleonCms::Post, type: :model do
     [nil, ''].each do |written|
       it "reads back #{written.inspect} as the default on the writing instance, as after a reload" do
         post = create(:post, post_type: post_type)
+        post.set_meta('gallery', 'old.jpg')
         post.set_meta('gallery', written)
 
         expect(post.get_meta('gallery', [])).to eq([])
         expect(described_class.find(post.id).get_meta('gallery', [])).to eq([])
+        expect(post.metas.pluck(:key, :value)).to eq([['gallery', written]])
       end
     end
   end
