@@ -15,10 +15,6 @@ RSpec.describe 'Frontend listing eager loading', type: :request do
     post_type.posts.create!(title: "Listing #{slug}", slug: slug, status: 'published')
   end
 
-  def metas_query_count(&block)
-    sql_queries(matching: /FROM\s+["'`]?metas["'`]?/i, &block).size
-  end
-
   it 'renders the post_type, category and post_tag listings' do
     post = create_post('listing-render-probe')
     category = post_type.categories.first || post_type.categories.create!(name: 'Probe', slug: 'listing-probe-cat')
@@ -41,11 +37,11 @@ RSpec.describe 'Frontend listing eager loading', type: :request do
     create_post('listing-eager-1')
     path = post_type.the_url(as_path: true)
 
-    one_post_metas = metas_query_count { get path, headers: headers }
+    one_post_metas = metas_selects { get path, headers: headers }.size
     expect(response).to have_http_status(:ok)
 
     3.times { |i| create_post("listing-eager-more-#{i}") }
-    four_post_metas = metas_query_count { get path, headers: headers }
+    four_post_metas = metas_selects { get path, headers: headers }.size
     expect(response).to have_http_status(:ok)
 
     # with_eager batch-loads every listed post's metas in one query, so adding posts must not add
