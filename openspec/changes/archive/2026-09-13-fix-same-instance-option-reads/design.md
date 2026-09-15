@@ -10,7 +10,7 @@ See proposal.md, "Why". The approach is shaped by these constraints:
     or an empty string.
 - **One read path.** `options`, aliased `cama_options`, returns `get_meta` for the options meta.
   `get_option` reads through `cama_options` and converts only the key, to a Symbol. The option writers
-  read through it too, then convert what they got to an indifferent hash (`meta-storage-integrity`).
+  read through it too and update what they get in place (`meta-storage-integrity`).
 - **Public API.** Plugins and themes call `set_meta`, `get_meta`, `options`, `get_option` and the option
   writers directly (`docs/ai/ecosystem.md`):
   - `camaleon-ecommerce`'s coupon, tax rate, shipping method and payment method controllers pass
@@ -45,8 +45,13 @@ reaches every option read and write without changing either of them.
 
 **Convert each value by what reading it needs.**
 - An indifferent hash is returned as it is.
-- Request parameters are returned as they are. They already read by either key type, and a copy would
-  change the nested values a read returns.
+- Request parameters become an indifferent copy through `to_unsafe_h`, nested parameters included, so the
+  writing instance reads the shape a reload parses: `to_h` works, `==` compares with a loaded record's
+  options, and a nested option is a hash. `to_unsafe_h` leaves the caller's parameters unpermitted, where
+  `PluginRoutes.fixActionParameter` would permit them in place. The copy is not cached, as a plain Hash's.
+  - Rejected, returning them as they are: request parameters are neither a Hash nor Enumerable, `to_h`
+    raises on unpermitted parameters, a nested read returns parameters where a reload returns a hash, and
+    the writers cannot convert them.
 - A plain Hash, or another Hash subclass, becomes an indifferent copy, not cached, so the caller's hash
   stays as passed. The first option write caches its copy through `set_meta`.
 - Nil or an empty string becomes a new empty indifferent hash, not cached. A freshly loaded record already
@@ -54,10 +59,13 @@ reaches every option read and write without changing either of them.
 - Any other value, a stored row that is not a JSON object included, reads as empty options, as the
   options-row requirement has had it since #1297.
 
-**The writers keep their conversion.** After `options`, it only meets the values `options` returns as
-they are: request parameters. It fails on them as before.
-- Rejected, the writers updating whatever `options` returns: a write would change a stored string in
-  place with `String#[]=` instead of failing.
+**The writers update what `options` returns.** It is an indifferent hash for every value, so `set_option`,
+`set_options` and `delete_option` update it in place and store it with `set_meta`, which caches it. The
+private helper that converted it again is gone: after request parameters it raised `NoMethodError`, where
+2.9.4 wrote into the parameters through `Parameters#[]=` and the merged options-row rule (#1297) read
+them as no options and replaced the row with the written key.
+- Rejected, keeping the helper as a guard against writing into a value `options` returns as it is: no
+  such value is left, `options` returns nothing but an indifferent hash.
 
 **`get_meta`'s default cache is left for its own change.** For every meta, the default the first reader
 asked for is what later reads on the instance return. Fixing it changes what the `get_meta` callers get
@@ -76,6 +84,5 @@ what the defect does to options.
   passed to `set_meta` as a plain Hash take that path.
 - [Options stored as null now read as empty options and accept writes, where `options` returned nil and
   `get_option` and the writers raised] → A record with no options row already reads and writes that way.
-- [The writers still fail on request parameters a caller passed to `set_meta`, which a freshly loaded record
-  accepts] → No consumer found writes options after passing parameters. `camaleon-ecommerce` redirects
-  right after its `set_meta`.
+- [Request parameters are copied on each `options` read until an option is written] → `camaleon-ecommerce`
+  redirects right after its `set_meta`; the engine's own records read parsed options.

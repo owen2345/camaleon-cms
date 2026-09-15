@@ -30,9 +30,13 @@ parameters.
 
 #### Scenario: Options a caller passed to set_meta as request parameters
 
-- **WHEN** a post type's options are written with `set_meta` as request parameters holding `color`
+- **WHEN** a post type's options are written with `set_meta` as request parameters holding `color` and a
+  nested `sizes`
 - **THEN** on the same instance, `options` reads `color` by its String key and by its Symbol key, and
   `get_option` reads it
+- **AND** `options` is an indifferent hash whose `sizes` is a hash, and the parameters stay unpermitted
+- **AND** an option set on the same instance is stored beside `color` and `sizes`, and the instance reads
+  what a freshly loaded post type reads
 
 ### Requirement: An options row that is not an object reads as empty
 

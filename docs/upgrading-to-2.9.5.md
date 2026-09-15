@@ -307,10 +307,12 @@ always did.
 
 ### Options read by either key type on the instance that wrote them
 
-- After `set_meta` writes a record's options as a plain Hash, `options` on that same object returns an
-  indifferent copy, so `options[:key]` and `get_option` find a String or a Symbol key alike, as a
-  freshly loaded record already did. `get_meta` still returns the hash you passed; a change made to the hash
-  `options` returns, without calling `set_meta`, no longer reaches it.
+- After `set_meta` writes a record's options as a plain Hash or as request parameters, `options` on that
+  same object returns an indifferent copy, so `options[:key]` and `get_option` find a String or a Symbol
+  key alike, as a freshly loaded record already did, and a nested option is a hash, not an
+  `ActionController::Parameters` object. An option written on that object afterwards is stored beside the
+  options you passed. `get_meta` still returns the hash you passed; a change made to the hash `options`
+  returns, without calling `set_meta`, no longer reaches it.
 - Options that are nil or an empty string read as empty options: `options` returns an empty hash
   instead of `nil` or `''`, and `get_option` and the option writers no longer raise. Code that branched
   on `options.nil?` should branch on `.empty?`.

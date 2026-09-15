@@ -16,13 +16,17 @@ record:
 ## What Changes
 
 - `options` returns a record's options so that a String key and its Symbol twin read the same option:
-  - a hash with indifferent access, or request parameters a caller passed to `set_meta`, as it is;
+  - a hash with indifferent access as it is;
+  - request parameters a caller passed to `set_meta` as an indifferent copy, nested parameters included,
+    leaving the parameters unpermitted;
   - a plain Hash a caller passed to `set_meta` as an indifferent copy, leaving the caller's hash
     unchanged;
   - nil or an empty string as empty options.
 - `get_option` and the option writers (`set_option`, `set_options` and its alias `set_multiple_options`,
   `delete_option`) already read through `options`. On the writing instance they now find either key type,
-  as a freshly loaded record does, and treat nil or empty options as none.
+  as a freshly loaded record does, and treat nil or empty options as none. The writers update the hash
+  `options` returns in place, so an option written after request parameters is stored beside them; their
+  private conversion helper, which raised on request parameters, is gone.
 - Options stored as null read as empty options and accept writes on a freshly loaded record too.
 - Unchanged: what `set_meta` caches and what `get_meta` returns.
 
@@ -51,8 +55,8 @@ None.
 
 ## Impact
 
-- **Code:** `app/models/concerns/camaleon_cms/metas.rb`: `options`, and the comment of the writers'
-  private helper.
+- **Code:** `app/models/concerns/camaleon_cms/metas.rb`: `options`, and the option writers, which lose
+  their private conversion helper.
 - **Tests:** `spec/models/meta_spec.rb`.
 - **Docs:** `docs/ai/ecosystem.md` (the `camaleon-ecommerce` binding), a note for theme and plugin
   developers in `docs/upgrading-to-2.9.5.md`, and `CHANGELOG.md`.
@@ -65,4 +69,6 @@ None.
   - A write into the hash `options` returns, made without `set_meta`, no longer reaches a caller's plain
     Hash. No code in the engine or in the plugin, theme and host repositories checked does that.
   - `camaleon-ecommerce` passes request parameters to `set_meta('_default', …)` and reads them back with
-    `get_option`; those reads are unchanged.
+    `get_option`. On the merged code those reads found no options on the writing instance, since the
+    options-row rule read anything but a Hash as an empty row; they read the options again, and a writer
+    called after them stores its option beside them, as 2.9.4 did.

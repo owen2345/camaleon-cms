@@ -118,13 +118,22 @@ RSpec.describe CamaleonCms::Meta, type: :model do
     end
 
     # camaleon-ecommerce passes its params[:options] to set_meta('_default', ...) and reads them back with
-    # get_option.
-    it 'reads options a caller passed to set_meta as request parameters by either key type' do
+    # get_option. The instance reads them as a freshly loaded record parses them, an indifferent hash whose
+    # nested hashes are indifferent too, and an option written on it afterwards is stored beside them.
+    it 'reads and writes options a caller passed to set_meta as request parameters' do
       post_type = create(:post_type)
-      post_type.set_meta('_default', ActionController::Parameters.new('color' => 'red'))
+      params = ActionController::Parameters.new('color' => 'red', 'sizes' => { 'top' => 'xl' })
+      post_type.set_meta('_default', params)
 
       reads = [post_type.options[:color], post_type.options['color'], post_type.get_option(:color)]
       expect(reads).to eq(%w[red red red])
+      expect(post_type.options).to be_a(ActiveSupport::HashWithIndifferentAccess)
+      expect(post_type.options[:sizes].to_h).to eq('top' => 'xl')
+      expect(params).not_to be_permitted
+      post_type.set_option('size', 'xl')
+      stored = JSON.parse(post_type.metas.find_by!(key: '_default').value)
+      expect(stored).to eq('color' => 'red', 'sizes' => { 'top' => 'xl' }, 'size' => 'xl')
+      expect(post_type.options).to eq(CamaleonCms::PostType.find(post_type.id).options)
     end
 
     # get_meta caches the default of a first read of a missing meta, so reading a record's options with
