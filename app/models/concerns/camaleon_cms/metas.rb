@@ -240,9 +240,10 @@ module CamaleonCms
 
     # What a read returns for the text a row holds, or for the value fix_meta_value produced for one: its
     # JSON parsed, with the Hashes in it read by either key type at any depth (a key an older write stored
-    # twice keeps its last value, as json 2 read it), a legacy 't' or 'f' as the boolean, the text itself
-    # when it holds no JSON, and nil for a null row. set_meta memoizes this form, so the writing instance
-    # reads what a freshly loaded record reads.
+    # twice keeps its last value, as json 2 read it), a legacy 't' or 'f' as the boolean, a plain String copy
+    # of the text when it holds no JSON, and nil for a null row. set_meta memoizes this form, so the writing
+    # instance reads what a freshly loaded record reads: for text, the plain String the text column casts,
+    # neither the caller's object nor html_safe.
     def stored_form_of(stored)
       return if stored.nil?
 
@@ -250,7 +251,7 @@ module CamaleonCms
       parsed = LEGACY_BOOLEANS.fetch(text) { JSON.parse(text, allow_duplicate_key: true) }
       CamaleonCms::Metas.indifferent_json_value(parsed)
     rescue StandardError
-      text
+      String.new(text) if text
     end
 
     # The state of the transaction running now, if any: the one a write belongs to, whose rollback

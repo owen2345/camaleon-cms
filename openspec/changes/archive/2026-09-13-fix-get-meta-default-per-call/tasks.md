@@ -44,3 +44,4 @@
 - [x] 5.4 Pin the eager-loaded branch and the per-key query profile, prove the blank write stores its row, share one metas-query counter, and create the spec's posts for the installed post type.
 - [x] 5.5 Qualify the requery clause of the new requirement, describe the `LegacyOrder` reads and the by-reference memo in the docs, and bring this archive up to the merged base.
 - [x] 5.6 Return a meta or option stored as a number, a boolean or a hash from `the_meta` and `the_option` as read, with a decorator spec.
+- [x] 5.7 Memoize a plain String copy of text that holds no JSON, so `set_meta` hands back neither the caller's String nor an html_safe one; spec both in `spec/models/meta_written_form_spec.rb` and add the scenario to the `set_meta` requirement.

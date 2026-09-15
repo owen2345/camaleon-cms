@@ -32,8 +32,9 @@ Two neighbouring splits between the writing instance and a reloaded record were 
   the change takes `set_meta`, which a reloaded record already required.
 - `set_meta` memoizes what a reload reads for the value it stores, so the writing instance reads as a
   freshly loaded record for every input: an indifferent hash for a Hash or request parameters, the number
-  or the boolean for a numeric or boolean String, the value a JSON string holds, the default for nil or an
-  empty string. The caller's object is left as passed and never handed back.
+  or the boolean for a numeric or boolean String, the value a JSON string holds, a plain String for any
+  other text, the default for nil or an empty string. The caller's object is left as passed and never
+  handed back.
 - `PostType` leaves the metas in memory when it refuses a decorator-option write, so an unsaved post type
   keeps the metas built for its first save.
 - `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read
