@@ -59,3 +59,4 @@
 - [x] 5.19 Hand `PostType`'s decorator-option check the form `set_meta` is about to store through a private hook, instead of an override computing it a second time, and spec an options write parsing the options once.
 - [x] 5.20 Spec `the_meta` and `the_option` returning a meta and an option stored as a hash as read, on the writing post and a freshly loaded one, and add the scenario to the decorator requirement.
 - [x] 5.21 Fold the hash read-back example of `spec/models/meta_spec.rb` into the written-form one, which already covered the rest of it, keeping its indifferent-hash check and the key added to the caller's hash afterwards.
+- [x] 5.22 Record `camaleon-ecommerce`'s order-shipped email, whose tracking URL an all-digit consignment number read back as an Integer leaves empty, in the ecosystem survey, the design, the proposal and the upgrade guide, correcting the survey's claim that no consumer changes.

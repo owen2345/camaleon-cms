@@ -88,6 +88,9 @@ None.
   - `camaleon-ecommerce`'s deprecated, uncalled `LegacyOrder#payment_method` and `#payment` raise on an
     order without a `payment` meta whatever was read before; recorded as withdrawn behaviour in
     `docs/ai/ecosystem.md`.
+  - `camaleon-ecommerce`'s order-shipped email loses its tracking URL for an all-digit consignment number,
+    which now reads back as an Integer in the request that wrote it, as its order page already did;
+    recorded with the plugin's `.to_s` fix in `docs/ai/ecosystem.md`.
 - **`fix-same-instance-option-reads` (#1302):** merged before this change. Its requirement "An options row
   that is not an object reads as empty" gains a scenario for a row holding a JSON string whose text is an
   object; a no-default read leaves nil memoized, which `options` reads as no options.
