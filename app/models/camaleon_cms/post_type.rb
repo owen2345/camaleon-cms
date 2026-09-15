@@ -200,24 +200,24 @@ module CamaleonCms
       end
     end
 
-    # Every way of writing an option (set_option, set_options and its alias, delete_option, the
-    # data_options save callback, a direct set_meta) ends here with the whole `_default` options, as a
-    # Hash, ActionController::Parameters or a JSON string, so this is where the decorator option is held
-    # to the allowlist.
-    def set_meta(key, value)
-      reject_unknown_decorator_class!(value) if key.to_s == '_default'
-      super
-    end
-
     private
+
+    # Every way of writing an option (set_option, set_options and its alias, delete_option, the
+    # data_options save callback, a direct set_meta) stores the whole `_default` options through set_meta,
+    # which hands them here in the form it is about to store, whether they arrived as a Hash,
+    # ActionController::Parameters or a JSON string, so this is where the decorator option is held to the
+    # allowlist.
+    def check_meta_write(key, stored)
+      reject_unknown_decorator_class!(stored) if key == '_default'
+    end
 
     # Refuses, loudly, options whose decorator option names no post decorator, unless the write leaves
     # the stored value as it is: a value stored without passing the check (before it existed, or a
     # removed plugin's decorator) is ignored at read, not a reason to refuse unrelated writes. A refused
     # write changes no row: the option writers put back the options they changed, and the metas in memory
     # are left alone, since a reset would lose the metas built on an unsaved record for its first save.
-    def reject_unknown_decorator_class!(options)
-      value = decorator_class_option_in(options)
+    def reject_unknown_decorator_class!(stored)
+      value = decorator_class_option_of(stored)
       return if decorator_class_option_acceptable?(value)
 
       errors.add(:base, decorator_class_refusal_message(value))
