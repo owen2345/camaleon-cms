@@ -55,3 +55,4 @@
 - [x] 5.15 Keep the Hash or the Array an instance handed out memoized when it is written back, taking the stored form in place, so a hash `options` returned keeps reading later option writes; spec a held options hash, a hash written back twice and a written-back list.
 - [x] 5.16 Put back the options an option writer changed when its `set_meta` raises, refused or failed, instead of `PostType` dropping the memo, and spec a refused write read without a query and a failed write of each writer.
 - [x] 5.17 Read the decorator option out of a stored form of the options through one `PostType` helper, shared by the write check and the stored-value lookup.
+- [x] 5.18 Look the stored decorator option up through `stored_meta_row`, the row a write updates, and spec a refused write on a post type with loaded metas issuing no metas query.
