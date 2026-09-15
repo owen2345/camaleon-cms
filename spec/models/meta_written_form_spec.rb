@@ -11,7 +11,8 @@ RSpec.describe CamaleonCms::Post, type: :model do
   describe '#set_meta' do
     {
       '2024' => 2024, '1.5' => 1.5, 'true' => true, 'false' => false, '[1, 2]' => [1, 2],
-      'plain text' => 'plain text', :symbol => 'symbol', 7 => 7, true => true
+      'plain text' => 'plain text', :symbol => 'symbol', 7 => 7, true => true,
+      ' 42 ' => 42, '-5' => -5, 'NaN' => 'NaN', '<b>7</b>' => '<b>7</b>'
     }.each do |written, read|
       it "reads #{written.inspect} back as #{read.inspect} on the writing instance, as after a reload" do
         post = create(:post, post_type: post_type)
@@ -34,6 +35,19 @@ RSpec.describe CamaleonCms::Post, type: :model do
       passed[:color] = 'blue'
       expect(post.get_meta('probe')[:color]).to eq('red')
       expect(described_class.find(post.id).get_meta('probe')).to eq(read)
+    end
+
+    # No JSON text opens with a letter other than t, f or n, so such text is read as the text it is,
+    # without a parse that could only fail.
+    it 'reads back text that cannot hold JSON without parsing it' do
+      post = create(:post, post_type: post_type)
+      allow(JSON).to receive(:parse).and_call_original
+      expect(JSON).not_to receive(:parse).with('https://example.com/photo.jpg', any_args)
+
+      post.set_meta('probe', 'https://example.com/photo.jpg')
+      reads = [post.get_meta('probe'), described_class.find(post.id).get_meta('probe')]
+
+      expect(reads).to eq(%w[https://example.com/photo.jpg https://example.com/photo.jpg])
     end
 
     it "reads plain text back as a String of its own, leaving the caller's String as passed" do

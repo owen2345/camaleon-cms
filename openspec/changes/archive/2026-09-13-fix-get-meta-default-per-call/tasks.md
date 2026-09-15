@@ -50,3 +50,4 @@
 - [x] 5.10 Memoize nil, not the concern's frozen `''`, for a key with no row, and spec what a missing meta's read memoizes.
 - [x] 5.11 Look a key up by its String form in `get_meta`, as `set_meta` stores it, and spec an Integer key read from eager-loaded metas and from the database.
 - [x] 5.12 Return the boolean `stored_meta_value` looks up for a legacy `'t'`/`'f'` row instead of deriving it again through `stored_form_of`.
+- [x] 5.13 Copy text that cannot open a JSON text without calling `JSON.parse` in `stored_form_of`, and spec such text read back unparsed, with the edge texts of the written-form table reading as before.
