@@ -79,31 +79,36 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe_settings')).to eq('sec' => 30)
     end
 
-    # Plugins read back the hash they passed to set_meta on the same instance: their own object, with
-    # their own keys, until the record is loaded again.
-    it 'keeps the hash a caller passed to set_meta' do
+    # Plugins read back the hash they passed to set_meta on the same instance as a freshly loaded record
+    # reads it: an indifferent copy, their own object left as passed.
+    it 'reads back the hash a caller passed to set_meta as a reloaded record does' do
       settings = { color: 'red' }
       post_type = create(:post_type)
       post_type.set_meta('probe_settings', settings)
+      read = post_type.get_meta('probe_settings')
 
-      expect(post_type.get_meta('probe_settings')).to equal(settings)
+      expect(read).to eq('color' => 'red')
+      expect(read).to be_a(ActiveSupport::HashWithIndifferentAccess)
+      expect(read).not_to equal(settings)
+      settings[:size] = 'xl'
+      expect(post_type.get_meta('probe_settings')).to eq('color' => 'red')
     end
 
     # The memo is keyed by the record's id, so what a new record memoized before its first save is not
-    # read after it: the saved record reads what it stored.
+    # read after it: the saved record reads what it stored, which is what it read before the save.
     it 'reads the stored form once a new record is saved' do
       settings = { color: 'red' }
       post_type = build(:post_type)
       post_type.set_meta('probe_settings', settings)
-      expect(post_type.get_meta('probe_settings')).to equal(settings)
+      expect(post_type.get_meta('probe_settings')).to eq('color' => 'red')
 
       post_type.save!
 
       expect(post_type.get_meta('probe_settings')).to eq('color' => 'red')
     end
 
-    # set_meta keeps a caller's plain Hash as passed, keys and all; options and get_option read it by
-    # either key type, as a reloaded record reads the options it parses.
+    # set_meta leaves a caller's plain Hash as passed, keys and all; options, get_option and get_meta read
+    # it by either key type, as a reloaded record reads the options it parses.
     it 'reads options a caller passed to set_meta as a plain Hash by either key type' do
       passed = { 'color' => 'red', size: 'xl' }
       post_type = create(:post_type)
@@ -111,7 +116,7 @@ RSpec.describe CamaleonCms::Meta, type: :model do
 
       expect([post_type.options[:color], post_type.options['size']]).to eq(%w[red xl])
       expect([post_type.get_option(:color), post_type.get_option('size')]).to eq(%w[red xl])
-      expect(post_type.get_meta('_default')).to equal(passed)
+      expect(post_type.get_meta('_default')).to eq('color' => 'red', 'size' => 'xl')
       expect(passed.keys).to eq(['color', :size])
       reloaded = CamaleonCms::PostType.find(post_type.id)
       expect([reloaded.options[:color], reloaded.get_option('size')]).to eq(%w[red xl])
@@ -162,7 +167,7 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       post_type.options[:sizes].first[:top] = 'm'
 
       expect([theme[:color], passed['sizes'].first[:top]]).to eq(%w[red xl])
-      expect(post_type.get_meta('_default')).to equal(passed)
+      expect(post_type.get_meta('_default')).not_to equal(passed)
     end
 
     # Hash#with_indifferent_access copies a Hash default and default proc along; the options copy carries

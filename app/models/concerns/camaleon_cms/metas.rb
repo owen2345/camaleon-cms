@@ -72,7 +72,8 @@ module CamaleonCms
         end
       end
 
-      cama_set_cache("meta_#{key}", value)
+      # memoize what a reload reads for the stored value, so the writing instance reads as a reloaded record
+      cama_set_cache("meta_#{key}", stored_form_of(fixed_value))
     end
 
     # return value of meta with key: key,
@@ -88,12 +89,7 @@ module CamaleonCms
                  end
         next '' if option.blank?
 
-        value = stored_meta_value(option)
-        begin
-          CamaleonCms::Metas.indifferent_json_value(value)
-        rescue StandardError
-          option.value
-        end
+        stored_meta_value(option)
       end
       meta_value_absent?(cached) ? default : cached
     end
@@ -111,20 +107,19 @@ module CamaleonCms
     end
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
-    # An indifferent hash, as a freshly loaded record parses its stored options, so a String key and its
-    # Symbol twin read the same option: the hash the option writers keep, as it is, or an indifferent copy
-    # of what a caller passed to set_meta, a plain Hash, request parameters or a JSON string, sharing
-    # nothing with the caller's value, its nested hashes included, and leaving a Hash default behind, so a
-    # missing option reads nil as after a reload. A value that is not a JSON object (no options row, a
-    # legacy or corrupt row, a string that holds none, nil, '') reads as a new empty hash on each read, so
-    # every reader and writer works on the record and a change made to that hash without a writer is not
-    # stored; the row, if any, is replaced the next time an option is written.
+    # The indifferent hash the record's options parse to, on the writing instance as on a freshly loaded
+    # record, so a String key and its Symbol twin read the same option: the hash the option writers keep,
+    # as it is, or, for a stored JSON string that holds an object, an indifferent copy of that object,
+    # sharing nothing with it and leaving a Hash default behind, so a missing option reads nil. A value
+    # that is not a JSON object (no options row, a legacy or corrupt row, a string that holds none, nil)
+    # reads as a new empty hash on each read, so every reader and writer works on the record and a change
+    # made to that hash without a writer is not stored; the row, if any, is replaced the next time an
+    # option is written.
     def options(meta_key = '_default')
       data = get_meta(meta_key)
       data = parsed_json(data) if data.is_a?(String)
       case data
       when ActiveSupport::HashWithIndifferentAccess then data
-      when ActionController::Parameters then data.to_unsafe_h
       when Hash then ActiveSupport::HashWithIndifferentAccess.new.update(data.deep_dup)
       else ActiveSupport::HashWithIndifferentAccess.new
       end
@@ -229,22 +224,33 @@ module CamaleonCms
 
     private
 
-    # The value of a stored row: its JSON, or the text itself when it holds none (a key an older write
-    # stored twice keeps its last value, as json 2 read it). A boolean an earlier release stored as the
-    # column's 't' or 'f' reads as the boolean, and the row is stored again as its JSON literal so the
-    # next read parses it; where writes are prevented the row is left for a later read.
+    # The value a stored row reads as (stored_form_of). A boolean an earlier release stored as the column's
+    # 't' or 'f' is stored again as its JSON literal so the next read parses it; where writes are prevented
+    # the row is left for a later read.
     def stored_meta_value(option)
-      return JSON.parse(option.value, allow_duplicate_key: true) unless LEGACY_BOOLEANS.key?(option.value)
-
-      boolean = LEGACY_BOOLEANS.fetch(option.value)
-      begin
-        option.update_column(:value, boolean.to_s) # rubocop:disable Rails/SkipsModelValidations
-      rescue ActiveRecord::ActiveRecordError
-        nil
+      if LEGACY_BOOLEANS.key?(option.value)
+        begin
+          option.update_column(:value, LEGACY_BOOLEANS.fetch(option.value).to_s) # rubocop:disable Rails/SkipsModelValidations
+        rescue ActiveRecord::ActiveRecordError
+          nil
+        end
       end
-      boolean
+      stored_form_of(option.value)
+    end
+
+    # What a read returns for the text a row holds, or for the value fix_meta_value produced for one: its
+    # JSON parsed, with the Hashes in it read by either key type at any depth (a key an older write stored
+    # twice keeps its last value, as json 2 read it), a legacy 't' or 'f' as the boolean, the text itself
+    # when it holds no JSON, and nil for a null row. set_meta memoizes this form, so the writing instance
+    # reads what a freshly loaded record reads.
+    def stored_form_of(stored)
+      return if stored.nil?
+
+      text = stored.to_s
+      parsed = LEGACY_BOOLEANS.fetch(text) { JSON.parse(text, allow_duplicate_key: true) }
+      CamaleonCms::Metas.indifferent_json_value(parsed)
     rescue StandardError
-      option.value
+      text
     end
 
     # The state of the transaction running now, if any: the one a write belongs to, whose rollback
