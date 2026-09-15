@@ -28,6 +28,8 @@ Two neighbouring splits between the writing instance and a reloaded record were 
     passed to that call; `get_option` returns its default for a null option as for an empty string.
   - This holds whether the record's metas are eager-loaded or read from the database.
   - A missing meta still costs one database read per key per instance.
+  - A key is looked up by its String form, as `set_meta` stores it, so a key that is neither a String nor a
+    Symbol is found among eager-loaded metas too.
 - A later read on the same instance no longer returns a default that a caller changed in place. Storing
   the change takes `set_meta`, which a reloaded record already required.
 - `set_meta` memoizes what a reload reads for the value it stores, so the writing instance reads as a

@@ -37,6 +37,16 @@ RSpec.describe CamaleonCms::Meta, type: :model do
 
       expect(loaded.get_meta(:languages_site)).to eq(%w[en es])
     end
+
+    # set_meta stores a key by its String form, so a read finds it by that form among the loaded metas as
+    # the database lookup does, whatever object names the key.
+    it 'resolves a key that is neither a String nor a Symbol by the String set_meta stores' do
+      post = create(:post)
+      post.set_meta(2024, 'probe')
+
+      loaded = CamaleonCms::Post.includes(:metas).find(post.id)
+      expect([loaded.get_meta(2024), CamaleonCms::Post.find(post.id).get_meta(2024)]).to eq(%w[probe probe])
+    end
   end
 
   describe 'options and hash metas on the instance that wrote them' do

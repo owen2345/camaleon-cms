@@ -57,6 +57,9 @@ See proposal.md, "Why". The approach is shaped by these constraints:
 **Memoize the stored lookup and apply the default outside the memo.** The memoized block returns the parsed
 stored value, or nil when the key has no row. `get_meta` returns the caller's default when the memoized
 value has no value, and the memoized value otherwise.
+- The key is looked up by its String form, as `set_meta` and `delete_meta` name the row: a key that is
+  neither a String nor a Symbol was found by the database lookup, which casts it, and missed among
+  eager-loaded metas.
 - nil, not `''`, for a key with no row: a direct reader of the memo (`cama_get_cache`) gets nothing it could
   change or take for a value, where the concern's `''` literal is frozen and reads as an empty text.
 - One private predicate, `meta_value_absent?`, names "no value" for `get_meta` and `get_option`: nil or an

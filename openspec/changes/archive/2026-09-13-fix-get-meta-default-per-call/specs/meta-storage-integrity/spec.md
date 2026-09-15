@@ -225,3 +225,15 @@ boolean or a hash; on the writing instance and on a freshly loaded record alike.
   and on a freshly loaded one
 - **THEN** each read returns the Spanish text, `'7'` and `'true'`
 
+### Requirement: A meta is read by the String form of its key
+
+`get_meta` SHALL look a key up by its String form, as `set_meta` and `delete_meta` store and remove it,
+whatever object names the key, so a meta written with a key that is neither a String nor a Symbol reads
+back whether the record's metas are eager-loaded or read from the database.
+
+#### Scenario: A meta written with an Integer key
+
+- **WHEN** a post's meta is written with the key `2024` and read with the same key on a post loaded with its
+  metas eager-loaded and on one loaded without them
+- **THEN** both reads return the value written
+
