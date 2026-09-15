@@ -83,7 +83,7 @@ namespace :camaleon_cms do
       end
 
       # A post type's decorator class option is loaded as code and held to CamaleonCms::PostDecorator
-      # subclasses at save (PostType#set_meta); a stored value that names no loadable post decorator
+      # subclasses at save (PostType's set_meta check); a stored value that names no loadable post decorator
       # (written before that check, left by a removed plugin, imported) is ignored at render and listed
       # here, through the same resolver the check uses. A post type whose options cannot be read is
       # listed too, so one bad row does not end the scan.

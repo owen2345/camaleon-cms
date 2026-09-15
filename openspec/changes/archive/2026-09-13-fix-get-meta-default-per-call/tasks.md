@@ -56,3 +56,4 @@
 - [x] 5.16 Put back the options an option writer changed when its `set_meta` raises, refused or failed, instead of `PostType` dropping the memo, and spec a refused write read without a query and a failed write of each writer.
 - [x] 5.17 Read the decorator option out of a stored form of the options through one `PostType` helper, shared by the write check and the stored-value lookup.
 - [x] 5.18 Look the stored decorator option up through `stored_meta_row`, the row a write updates, and spec a refused write on a post type with loaded metas issuing no metas query.
+- [x] 5.19 Hand `PostType`'s decorator-option check the form `set_meta` is about to store through a private hook, instead of an override computing it a second time, and spec an options write parsing the options once.

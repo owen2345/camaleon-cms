@@ -137,6 +137,14 @@ built for its first save while their memos kept answering.
 - Rejected, writing on a copy of the options and memoizing it once stored: the hash `options` returned
   would stop being the one the writers update, which a hash held across writes reads.
 
+**`set_meta` hands the form it will store to a model check.** It computes the stored form once, before
+writing, and passes it with the key to a private `check_meta_write` hook, where `PostType` holds the
+decorator option to the allowlist. The post type no longer overrides `set_meta` to compute the same form a
+second time for every options write.
+- Rejected, reading the option from the value passed instead of its stored form: the key form written last
+  in a Hash, a JSON string and request parameters would each need their own reading, which the stored form
+  already settles.
+
 ## Risks / Trade-offs
 
 - [A caller changes a returned default in place and expects a later read on the same instance to see it

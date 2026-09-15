@@ -233,7 +233,7 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::PostType.find(post_type.id).options.keys).to eq(%w[has_category has_tags has_seo])
     end
 
-    # PostType#set_meta names a JSON string as one form the whole options row arrives in; the writing
+    # PostType's set_meta check names a JSON string as one form the whole options row arrives in; the writing
     # instance parses it as a freshly loaded record parses the row it stored.
     it 'reads and writes options a caller passed to set_meta as a JSON string' do
       post_type = create(:post_type)

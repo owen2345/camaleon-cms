@@ -50,6 +50,8 @@ module CamaleonCms
     # Adds the meta for key, or updates it, and returns the value passed
     def set_meta(key, value)
       fixed_value = fix_meta_value(value)
+      stored = stored_form_of(fixed_value)
+      check_meta_write(key.to_s, stored)
 
       # Check if the parent object has been saved to the database yet
       if persisted?
@@ -77,7 +79,7 @@ module CamaleonCms
       end
 
       # memoize what a reload reads for the stored value, so the writing instance reads as a reloaded record
-      memoize_written_meta(key, value, stored_form_of(fixed_value))
+      memoize_written_meta(key, value, stored)
       value
     end
 
@@ -248,6 +250,10 @@ module CamaleonCms
     rescue StandardError
       String.new(text) if text
     end
+
+    # Called by set_meta with the key, as a String, and the form a read returns for the value it is about to
+    # store, before anything is written; a model refuses a write by raising here. Nothing is refused here.
+    def check_meta_write(_key, _stored); end
 
     # The option writers change the options this instance holds and store them with set_meta, returning what
     # it returns. A write that raises, refused or failed, puts back the options as they were before the

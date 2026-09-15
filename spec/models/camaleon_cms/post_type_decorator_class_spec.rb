@@ -103,6 +103,15 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option('has_seo')).to be(false)
     end
 
+    # The check reads the decorator option from the form set_meta is about to store, so an options write
+    # parses the options it stores once.
+    it 'parses the options once for an options write' do
+      post_type.options
+      expect(JSON).to receive(:parse).once.and_call_original
+
+      post_type.set_option('has_tags', true)
+    end
+
     # The stored value a refusal compares with comes from the row a write updates, found among loaded metas
     # as every other lookup on them is.
     it 'looks the stored value up among loaded metas without querying' do
