@@ -11,10 +11,10 @@ record:
 - A JSON string passed to `set_meta`, a form `PostType#set_meta` names, read as no options on that
   instance while a freshly loaded record parsed it, so the next option write on that instance replaced
   the row and lost the options the string held.
-- A record's options can be nil or an empty string. An earlier `get_meta` read without a default caches
-  nil for a record that has none, and `set_meta` can write nil or an empty string. `options` then returns
-  that value, and `get_option` and the option writers raise instead of treating the record as having no
-  options, as a freshly loaded record with no options row does.
+- A record's options can be nil or an empty string: `set_meta` can write either, and `get_meta` reads a
+  stored null as nil. The merged options-row rule (#1297) already reads both as no options; 2.9.4
+  returned the value, and `get_option` and the option writers raised on it. This change pins that reading
+  on the writing instance and on a freshly loaded record.
 
 - For a record with no options row, `options` returned the empty hash it asked `get_meta` for as a
   default, which `get_meta` memoized, so a change made to that hash without an option writer was read
@@ -36,7 +36,8 @@ record:
   as a freshly loaded record does, and treat nil or empty options as none. The writers update the hash
   `options` returns in place, so an option written after request parameters is stored beside them; their
   private conversion helper, which raised on request parameters, is gone.
-- Options stored as null read as empty options and accept writes on a freshly loaded record too.
+- Options stored as null read as empty options and accept writes on a freshly loaded record too, as the
+  merged options-row rule has had it.
 - Unchanged: what `set_meta` caches and what `get_meta` returns.
 
 **Non-goals:**

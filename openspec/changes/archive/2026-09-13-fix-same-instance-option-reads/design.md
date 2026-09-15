@@ -100,7 +100,8 @@ as no options, so the defect does not reach option reads.
   theme and host repositories checked does that.
 - [A caller's plain Hash is copied on each `options` read until an option is written] → Only options
   passed to `set_meta` as a plain Hash take that path.
-- [Options stored as null now read as empty options and accept writes, where `options` returned nil and
-  `get_option` and the writers raised] → A record with no options row already reads and writes that way.
+- [Options stored as null, or memoized as nil or an empty string, read as empty options and accept writes]
+  → The merged options-row rule (#1297) already read them so; 2.9.4 returned the value, and the readers
+  and writers raised on it. This change pins it on the writing instance.
 - [Request parameters are copied on each `options` read until an option is written] → `camaleon-ecommerce`
   redirects right after its `set_meta`; the engine's own records read parsed options.
