@@ -166,7 +166,7 @@ second row with the same key.
 
 ### Requirement: An options row that is not an object reads as empty
 
-When a record's stored options meta (`_default`, or another options meta key) holds a value that is not a JSON object, or the options the instance holds are nil or an empty string (an earlier `get_meta` read without a default left nil for a record with no stored options, or `set_meta` wrote nil or an empty string), reading the options or an option SHALL return the empty set or the caller's default, and writing an option SHALL start from an empty set, so no reader or writer raises, on the writing instance and on a freshly loaded record. The stored row SHALL be left as it is until an option is written to it.
+When a record's stored options meta (`_default`, or another options meta key) holds a value that is not a JSON object, or the options the instance holds are nil or an empty string (a record with no options row, whether or not `get_meta` was asked for them first, or `set_meta` wrote nil or an empty string), reading the options or an option SHALL return the empty set or the caller's default, and writing an option SHALL start from an empty set, so no reader or writer raises, on the writing instance and on a freshly loaded record. The empty set `options` returns SHALL be a new hash on each read until an option is written, so a change made to it without an option writer is neither read back nor stored. The stored row SHALL be left as it is until an option is written to it.
 
 #### Scenario: Options are read from a string row
 
@@ -183,12 +183,19 @@ When a record's stored options meta (`_default`, or another options meta key) ho
 - **WHEN** a post's `_default` meta holds a string and its admin edit page, its public page and its trash action are requested
 - **THEN** each responds as for a post with no options
 
-#### Scenario: A get_meta read without a default on a record with no options
+#### Scenario: A record with no options row
 
-- **WHEN** a post with no stored options has its options read with `get_meta` without a default, and then
+- **WHEN** a post with no options row has its options read with `get_meta` without a default, and then
   its options are read and an option is set on the same instance
 - **THEN** `options` is empty and `get_option` returns the caller's default
 - **AND** the same instance and a freshly loaded post read the option that was set
+
+#### Scenario: A change made to the empty options of a record with no options row
+
+- **WHEN** a post with no options row has a key set on the hash `options` returns, and then an option is
+  set on the same instance
+- **THEN** the same instance does not read that key
+- **AND** a freshly loaded post holds only the option that was set
 
 #### Scenario: Options written as nil or as an empty string
 

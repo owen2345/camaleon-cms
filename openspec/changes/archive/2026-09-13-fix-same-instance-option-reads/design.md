@@ -5,9 +5,9 @@ See proposal.md, "Why". The approach is shaped by these constraints:
 - **Per-instance meta cache.**
   - `get_meta` caches each meta a record reads, including the default it returns for a missing meta.
   - `set_meta` caches the value its caller passed.
-  - So on the writing instance a record's options can be an indifferent hash (parsed from storage, the
-    `options` default, or kept by the option writers), a caller's plain Hash or request parameters, nil,
-    or an empty string.
+  - So on the writing instance a record's options can be an indifferent hash (parsed from storage or
+    kept by the option writers), a caller's plain Hash, request parameters or JSON string, nil, or an
+    empty string.
 - **One read path.** `options`, aliased `cama_options`, returns `get_meta` for the options meta.
   `get_option` reads through `cama_options` and converts only the key, to a Symbol. The option writers
   read through it too and update what they get in place (`meta-storage-integrity`).
@@ -59,8 +59,14 @@ reaches every option read and write without changing either of them.
   replaced the row.
 - A plain Hash, or another Hash subclass, becomes an indifferent copy, not cached, so the caller's hash
   stays as passed. The first option write caches its copy through `set_meta`.
-- Nil or an empty string becomes a new empty indifferent hash, not cached. A freshly loaded record already
-  reads a stored empty string as no options.
+- Nil, an empty string or a missing options row becomes a new empty indifferent hash on each read, not
+  cached, until the first option write caches the writer's hash through `set_meta`. `options` asks
+  `get_meta` for no default, so a record with no options row reads the same fresh hash whether or not
+  `get_meta` was asked for the options first. A freshly loaded record already reads a stored empty string
+  as no options.
+  - Rejected, passing an empty indifferent hash as the `get_meta` default: `get_meta` memoized it and
+    `options` returned it by identity, so a change made to it without an option writer was read back and
+    stored by the next write, where a record holding a plain Hash or nil dropped the same change.
 - Any other value, a stored row that is not a JSON object included, reads as empty options, as the
   options-row requirement has had it since #1297.
 
@@ -76,8 +82,8 @@ them as no options and replaced the row with the written key.
 asked for is what later reads on the instance return. Fixing it changes what the `get_meta` callers get
 back: about 100 in the engine and in the plugin, theme and host repositories checked, and more elsewhere.
 That needs its own review. The callers found that change a returned default in place pass it to
-`set_meta` afterwards, so they would keep working. Meanwhile `options` treating nil as no options covers
-what the defect does to options.
+`set_meta` afterwards, so they would keep working. Meanwhile `options` asks for no default and treats nil
+as no options, so the defect does not reach option reads.
 
 ## Risks / Trade-offs
 

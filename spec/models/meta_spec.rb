@@ -148,9 +148,9 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::PostType.find(post_type.id).options).to eq('has_tags' => true, 'has_seo' => false)
     end
 
-    # get_meta caches the default of a first read of a missing meta, so reading a record's options with
-    # get_meta and no default leaves them nil on that instance. They read as none and take a write.
-    it 'reads and writes the nil options a get_meta read without a default left' do
+    # A record with no options row reads them as none, whether or not get_meta was asked for them first,
+    # and takes a write.
+    it 'reads and writes options as none on a record with no options row' do
       post = create(:post)
       expect(post.get_meta('_default')).to be_nil
 
@@ -159,6 +159,17 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       post.set_option('color', 'red')
       expect(post.get_option(:color)).to eq('red')
       expect(CamaleonCms::Post.find(post.id).get_option(:color)).to eq('red')
+    end
+
+    # The empty options of a record with no options row are a new hash on each read, not a memoized
+    # default: a change made to them without an option writer is neither read back nor stored.
+    it 'does not read back or store a change made to the empty options it returns' do
+      post = create(:post)
+      post.options[:color] = 'red'
+
+      expect(post.options[:color]).to be_nil
+      post.set_option('size', 'xl')
+      expect(CamaleonCms::Post.find(post.id).options).to eq('size' => 'xl')
     end
 
     [nil, ''].each do |passed|

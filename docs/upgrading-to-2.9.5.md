@@ -313,9 +313,10 @@ always did.
   `ActionController::Parameters` object. An option written on that object afterwards is stored beside the
   options you passed. `get_meta` still returns the hash you passed; a change made to the hash `options`
   returns, without calling `set_meta`, no longer reaches it.
-- Options that are nil or an empty string read as empty options: `options` returns an empty hash
-  instead of `nil` or `''`, and `get_option` and the option writers no longer raise. Code that branched
-  on `options.nil?` should branch on `.empty?`.
+- Options that are nil, an empty string or absent read as empty options: `options` returns a new empty
+  hash on each read instead of `nil` or `''`, `get_option` and the option writers no longer raise, and a
+  change made to that empty hash without an option writer is neither read back nor stored. Code that
+  branched on `options.nil?` should branch on `.empty?`.
 
 ---
 

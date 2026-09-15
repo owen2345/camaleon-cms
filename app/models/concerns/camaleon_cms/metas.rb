@@ -112,11 +112,12 @@ module CamaleonCms
     # An indifferent hash, as a freshly loaded record parses its stored options, so a String key and its
     # Symbol twin read the same option: the hash the option writers keep, as it is, or an indifferent copy
     # of what a caller passed to set_meta, a plain Hash, request parameters or a JSON string, leaving the
-    # caller's value as passed. A value that is not a JSON object (a legacy or corrupt row, a string that
-    # holds none, nil, '') reads as no options, so every reader and writer works on the record; the row is
-    # replaced the next time an option is written.
+    # caller's value as passed. A value that is not a JSON object (no options row, a legacy or corrupt row,
+    # a string that holds none, nil, '') reads as a new empty hash on each read, so every reader and writer
+    # works on the record and a change made to that hash without a writer is not stored; the row, if any,
+    # is replaced the next time an option is written.
     def options(meta_key = '_default')
-      data = get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
+      data = get_meta(meta_key)
       data = parsed_json(data) if data.is_a?(String)
       case data
       when ActiveSupport::HashWithIndifferentAccess then data

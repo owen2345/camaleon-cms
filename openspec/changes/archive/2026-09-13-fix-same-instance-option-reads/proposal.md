@@ -16,6 +16,10 @@ record:
   that value, and `get_option` and the option writers raise instead of treating the record as having no
   options, as a freshly loaded record with no options row does.
 
+- For a record with no options row, `options` returned the empty hash it asked `get_meta` for as a
+  default, which `get_meta` memoized, so a change made to that hash without an option writer was read
+  back and stored by the next write, where the same change after a plain Hash or nil was dropped.
+
 ## What Changes
 
 - `options` returns a record's options so that a String key and its Symbol twin read the same option:
@@ -25,7 +29,8 @@ record:
   - a JSON string a caller passed to `set_meta` as an indifferent copy of the object it holds;
   - a plain Hash a caller passed to `set_meta` as an indifferent copy, leaving the caller's hash
     unchanged;
-  - nil or an empty string as empty options.
+  - nil, an empty string or a missing options row as a new empty hash on each read, so a change made to
+    it without an option writer is neither read back nor stored.
 - `get_option` and the option writers (`set_option`, `set_options` and its alias `set_multiple_options`,
   `delete_option`) already read through `options`. On the writing instance they now find either key type,
   as a freshly loaded record does, and treat nil or empty options as none. The writers update the hash

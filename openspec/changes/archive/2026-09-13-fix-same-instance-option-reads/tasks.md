@@ -6,7 +6,7 @@
 
   Verify with `bin/rspec spec/models/meta_spec.rb` that the plain Hash example fails on the current code. The request-parameters example passes, because it pins reads `camaleon-ecommerce` relies on.
 - [x] 1.2 In the same block, add examples for "Options that are nil or empty read and write as none":
-  - a `get_meta` read without a default on a post with no stored options, followed by `options`, `get_option` with a default and `set_option` on the same instance, checked there and after a reload;
+  - a post with no options row, its options read with `get_meta` without a default first, followed by `options`, `get_option` with a default and `set_option` on the same instance, checked there and after a reload;
   - `set_meta` with nil and with an empty string, with `options` empty and `get_option` returning the default on the same instance and on a freshly loaded post, and an option set on the freshly loaded post read by a post loaded afterwards.
 
   Verify they fail on the current code.
