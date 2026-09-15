@@ -33,6 +33,22 @@ does.
 - **WHEN** a record with no stored options sets an option with a String key
 - **THEN** the same instance reads that option back by its Symbol key
 
+### Requirement: An option write that raises leaves the options as stored
+
+When `set_option`, `set_options` or `delete_option` raises, because the write is refused or storing it
+fails, the options the instance holds SHALL be those it held before the call, so the instance reads what is
+stored without querying the database for it again.
+
+#### Scenario: A refused option write
+
+- **WHEN** a post type's option write is refused and its options are read again on the same instance
+- **THEN** they hold the options stored before the write, read without a metas query
+
+#### Scenario: A failed option write
+
+- **WHEN** storing an option set, set in bulk or deleted on a post raises
+- **THEN** the post's options are those stored before each write
+
 ### Requirement: set_meta reads back on the writing instance as a reloaded record does
 
 A value written with `set_meta` SHALL be returned by `get_meta` on the same instance in the form a freshly
