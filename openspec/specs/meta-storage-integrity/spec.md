@@ -182,7 +182,8 @@ call SHALL return the default passed to that call. It SHALL NOT return a default
 change a caller made to that default in place. This SHALL hold whether the record's metas are eager-loaded
 or read from the database. `get_option` SHALL likewise return its default for an option whose value is
 null or an empty string. Reading the meta again on the same instance SHALL NOT query the database again
-until the meta is written or deleted.
+until the meta is written or deleted on it, or the instance drops its memoized values (a reload, a copy,
+a rolled-back write, `cama_clear_cache`), as the requirement on memoized values states.
 
 #### Scenario: A missing meta read with different defaults
 
