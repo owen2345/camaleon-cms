@@ -307,15 +307,16 @@ always did.
 
 ### Options read by either key type on the instance that wrote them
 
-- After `set_meta` writes a record's options as a plain Hash, request parameters or a JSON string, `options`
-  on that same object returns an indifferent copy, so `options[:key]` and `get_option` find a String or a Symbol
-  key alike, as a freshly loaded record already did, and a nested option is a hash, not an
-  `ActionController::Parameters` object. The copy carries no default your hash may have. An option written
-  on that object afterwards is stored beside the options you passed. A post type created with a `_default`
-  meta in `data_metas` keeps the options that meta holds under its defaults, whichever key type names them. `get_meta` still returns the hash you passed until the first `set_option`, `set_options`
-  or `delete_option` on that object, which stores and returns its own indifferent hash and no longer
-  writes into your hash as 2.9.4 did; a change made to the hash `options` returns, or to a hash nested in
-  it, without an option writer, no longer reaches it.
+- After `set_meta` writes a record's options as a plain Hash, request parameters or a JSON string,
+  `options` on that same object returns an indifferent copy, so `options[:key]` and `get_option` find a
+  String or a Symbol key alike, as a freshly loaded record already did, and a nested option is a hash, not
+  an `ActionController::Parameters` object. The copy carries no default your hash may have. An option
+  written on that object afterwards is stored beside the options you passed. A post type created with a
+  `_default` meta in `data_metas` keeps the options that meta holds under its defaults, whichever key type
+  names them. `get_meta` still returns the hash you passed until the first `set_option`, `set_options` or
+  `delete_option` on that object, which stores and returns its own indifferent hash and no longer writes
+  into your hash as 2.9.4 did; a change made to the hash `options` returns, or to a hash nested in it,
+  without an option writer, no longer reaches it.
 - Options that are nil, an empty string or absent read as empty options: `options` returns a new empty
   hash on each read instead of `nil` or `''`, `get_option` and the option writers no longer raise, and a
   change made to that empty hash without an option writer is neither read back nor stored. Code that
