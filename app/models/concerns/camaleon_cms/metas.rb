@@ -86,16 +86,14 @@ module CamaleonCms
                  else
                    metas.where(key: key_str).first
                  end
-        res = ''
-        if option.present?
-          value = stored_meta_value(option)
-          res = begin
-            CamaleonCms::Metas.indifferent_json_value(value)
-          rescue StandardError
-            option.value
-          end
+        next '' if option.blank?
+
+        value = stored_meta_value(option)
+        begin
+          CamaleonCms::Metas.indifferent_json_value(value)
+        rescue StandardError
+          option.value
         end
-        res
       end
       cached == '' ? default : cached
     end
