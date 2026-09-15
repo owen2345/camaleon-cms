@@ -53,3 +53,4 @@
 - [x] 5.13 Copy text that cannot open a JSON text without calling `JSON.parse` in `stored_form_of`, and spec such text read back unparsed, with the edge texts of the written-form table reading as before.
 - [x] 5.14 Return the value passed from `set_meta`, as 2.9.4 did, instead of the form it memoizes, so the option writers return the options they wrote; correct its comment and spec both return values.
 - [x] 5.15 Keep the Hash or the Array an instance handed out memoized when it is written back, taking the stored form in place, so a hash `options` returned keeps reading later option writes; spec a held options hash, a hash written back twice and a written-back list.
+- [x] 5.16 Put back the options an option writer changed when its `set_meta` raises, refused or failed, instead of `PostType` dropping the memo, and spec a refused write read without a query and a failed write of each writer.

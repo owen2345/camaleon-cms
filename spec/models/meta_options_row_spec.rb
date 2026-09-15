@@ -52,6 +52,22 @@ RSpec.describe CamaleonCms::Metas, type: :model do
     end
   end
 
+  describe 'an option write that raises' do
+    # The writers change the options the record holds before storing them; a write that fails puts them
+    # back, so the record keeps reading what is stored.
+    it 'leaves the options the record holds as they were stored' do
+      record.set_option('status_default', 'published')
+      allow(record).to receive(:stored_meta_row).and_raise(ActiveRecord::StatementInvalid, 'write failed')
+
+      expect { record.set_option('status_default', 'draft') }.to raise_error(ActiveRecord::StatementInvalid)
+      expect { record.set_options(color: 'red') }.to raise_error(ActiveRecord::StatementInvalid)
+      expect { record.delete_option('status_default') }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(record.options).to eq(CamaleonCms::Post.find(record.id).options)
+      expect([record.get_option('status_default'), record.options.key?('color')]).to eq(['published', false])
+    end
+  end
+
   describe 'a container that is not a set of fields' do
     it 'is refused by set_metas and writes nothing' do
       expect { record.set_metas([%w[planted v]]) }.to raise_error(CamaleonCms::Metas::InvalidContainer)

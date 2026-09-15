@@ -130,9 +130,7 @@ module CamaleonCms
     def set_option(key, value = nil, meta_key = '_default')
       return if key.nil?
 
-      data = cama_options(meta_key)
-      data[key] = fix_meta_var(value)
-      set_meta(meta_key, data)
+      write_options(meta_key) { |data| data[key] = fix_meta_var(value) }
       value
     end
 
@@ -152,10 +150,8 @@ module CamaleonCms
     def delete_option(key, meta_key = '_default')
       return if key.nil?
 
-      values = cama_options(meta_key)
       key = key.to_sym
-      values.delete(key) if values.key?(key)
-      set_meta(meta_key, values)
+      write_options(meta_key) { |values| values.delete(key) if values.key?(key) }
     end
 
     # set multiple configurations
@@ -164,11 +160,11 @@ module CamaleonCms
       return if h.blank?
 
       refuse_invalid_container!(h)
-      data = cama_options(meta_key)
-      PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
-        data[key] = fix_meta_var(value)
+      write_options(meta_key) do |data|
+        PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
+          data[key] = fix_meta_var(value)
+        end
       end
-      set_meta(meta_key, data)
     end
     alias set_multiple_options set_options
 
@@ -251,6 +247,19 @@ module CamaleonCms
       CamaleonCms::Metas.indifferent_json_value(parsed)
     rescue StandardError
       String.new(text) if text
+    end
+
+    # The option writers change the options this instance holds and store them with set_meta, returning what
+    # it returns. A write that raises, refused or failed, puts back the options as they were before the
+    # change, so the instance keeps reading what is stored.
+    def write_options(meta_key)
+      data = cama_options(meta_key)
+      previous = data.dup
+      yield data
+      set_meta(meta_key, data)
+    rescue StandardError
+      data.replace(previous) if previous
+      raise
     end
 
     # Memoizes for key what a reload reads for the value written. The Hash or the Array this instance handed

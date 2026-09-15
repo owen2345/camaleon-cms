@@ -126,10 +126,14 @@ stored form, on it too.
 - Rejected, returning the items of an Array that are not Strings as read: `the_meta` already read them as
   Strings on a loaded record, which themes may rely on, and an Array never raised.
 
-**A refused decorator-option write leaves the metas in memory.** `PostType#reject_unknown_decorator_class!`
-drops the options memo, which the writers changed before the write, and no longer resets the association:
-a refused write changes no row, and the reset discarded the metas an unsaved post type had built for its
-first save while their memos kept answering.
+**An option write that raises leaves the options as stored.** The option writers change the options the
+instance holds and put them back when `set_meta` raises, whether `PostType` refuses the write or storing
+it fails, so the instance keeps reading what is stored without querying for it again.
+`PostType#reject_unknown_decorator_class!` therefore neither drops the options memo nor resets the
+association: a refused write changes no row, and the reset discarded the metas an unsaved post type had
+built for its first save while their memos kept answering.
+- Rejected, writing on a copy of the options and memoizing it once stored: the hash `options` returned
+  would stop being the one the writers update, which a hash held across writes reads.
 
 ## Risks / Trade-offs
 

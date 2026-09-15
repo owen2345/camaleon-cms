@@ -42,8 +42,9 @@ Two neighbouring splits between the writing instance and a reloaded record were 
   writes made after it.
 - `options` returns the indifferent hash `get_meta` memoizes or a new empty one; a row holding a JSON string,
   even one whose text is an object, reads as empty options.
-- `PostType` leaves the metas in memory when it refuses a decorator-option write, so an unsaved post type
-  keeps the metas built for its first save.
+- An option write that raises, refused by `PostType` or failed, puts back the options the instance holds,
+  so it keeps reading what is stored; `PostType` leaves the metas in memory when it refuses a write, so an
+  unsaved post type keeps the metas built for its first save.
 - `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read
   instead of raising; a String still reads through the locale, and so does every item of an Array, as a
   String whatever it holds.
