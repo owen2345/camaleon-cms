@@ -76,7 +76,7 @@ module CamaleonCms
     end
 
     # return value of meta with key: key,
-    # if meta not exist, or its value == "", return default
+    # if meta not exist, or its value is null or "", return default
     def get_meta(key, default = nil)
       key_str = key.is_a?(Symbol) ? key.to_s : key
       # memoize what the record stores, '' for no value, and apply each call's own default outside the memo
@@ -95,7 +95,7 @@ module CamaleonCms
           option.value
         end
       end
-      cached == '' ? default : cached
+      meta_value_absent?(cached) ? default : cached
     end
 
     # delete meta
@@ -147,14 +147,14 @@ module CamaleonCms
 
     # return configuration for current object
     # key: attribute name
-    # default: if the attribute doesn't exist, or its value == "", return default
+    # default: if the attribute doesn't exist, or its value is null or "", return default
     # return value for attribute
     def get_option(key = nil, default = nil, meta_key = '_default')
       values = cama_options(meta_key)
       return default if key.nil?
 
       key = key.to_sym
-      values.key?(key) && values[key] != '' ? values[key] : default
+      values.key?(key) && !meta_value_absent?(values[key]) ? values[key] : default
     end
 
     # delete attribute from configuration
@@ -313,6 +313,12 @@ module CamaleonCms
 
     def created_record_metas_in_memory?
       @created_record_metas_in_memory == true
+    end
+
+    # A meta or option with no value: no row or entry, one stored as null, or an empty string. Every read
+    # that takes a default returns it for these, on the writing instance and on a freshly loaded record.
+    def meta_value_absent?(value)
+      value.nil? || value == ''
     end
 
     # The value a JSON string a caller passed to set_meta holds, parsed as a freshly loaded record parses

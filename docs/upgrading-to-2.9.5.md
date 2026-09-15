@@ -325,15 +325,16 @@ always did.
 
 ### `get_meta` returns each call's own default
 
-A read of a meta with no value — no row, or a stored empty string — returns the default passed to that
-call. Before, a record memoized the default of its first read of that meta, so later reads on the same
+A read of a meta with no value — no row, or a stored null or empty string — returns the default passed to
+that call. Before, a record memoized the default of its first read of that meta, so later reads on the same
 instance got that default, with any in-place changes a caller made to it, while a freshly loaded record
 returned their own.
 
 - A later read of the same instance does not see a default you changed in place: write the change with
   `set_meta`, as the option writers already do.
-- `set_meta(key, '')` reads back as the caller's default on the writing instance, as it already did after
-  a reload.
+- `set_meta(key, nil)` and `set_meta(key, '')` read back as the caller's default on the writing instance, as
+  they already did after a reload; a meta stored as null read as nil before, whatever the default.
+- `get_option` returns its default for an option stored as null, as it already did for an empty string.
 
 ---
 
