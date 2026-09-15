@@ -54,7 +54,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
     it 'reads a missing meta from the database once' do
       post = described_class.find(create(:post).id)
 
-      queries = sql_queries(matching: /metas/) do
+      queries = metas_selects do
         post.get_meta('gallery')
         post.get_meta('gallery', [])
         post.get_meta('gallery', {})

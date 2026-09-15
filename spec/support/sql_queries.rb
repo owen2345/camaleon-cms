@@ -16,6 +16,12 @@ module SqlQueriesHelper
   ensure
     ActiveSupport::Notifications.unsubscribe(sub)
   end
+
+  # The SELECTs a block issues against the metas table, whatever the table name prefix: the shape every
+  # spec that pins how often a record's metas are read counts.
+  def metas_selects(&block)
+    sql_queries(matching: /\ASELECT\b.*\bFROM\s+["'`]?\w*metas["'`]?/im, &block)
+  end
 end
 
 RSpec.configure { |config| config.include SqlQueriesHelper }
