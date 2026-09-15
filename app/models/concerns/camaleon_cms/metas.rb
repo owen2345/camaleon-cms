@@ -77,7 +77,7 @@ module CamaleonCms
       end
 
       # memoize what a reload reads for the stored value, so the writing instance reads as a reloaded record
-      cama_set_cache("meta_#{key}", stored_form_of(fixed_value))
+      memoize_written_meta(key, value, stored_form_of(fixed_value))
       value
     end
 
@@ -251,6 +251,18 @@ module CamaleonCms
       CamaleonCms::Metas.indifferent_json_value(parsed)
     rescue StandardError
       String.new(text) if text
+    end
+
+    # Memoizes for key what a reload reads for the value written. The Hash or the Array this instance handed
+    # out for key, written back, takes that form in place and stays memoized, so every reference to it, the
+    # options the option writers update included, keeps reading the record; any other value is memoized as
+    # the stored form, and the caller's object is left as passed. A String memo is never changed in place,
+    # since it may carry the translations String#translate memoized on it.
+    def memoize_written_meta(key, written, stored)
+      memo_key = "meta_#{key}"
+      handed_out = written.equal?(cama_get_cache(memo_key)) && (written.is_a?(Hash) || written.is_a?(Array))
+      stored = written.replace(stored) if handed_out && stored.is_a?(written.class)
+      cama_set_cache(memo_key, stored)
     end
 
     # The state of the transaction running now, if any: the one a write belongs to, whose rollback

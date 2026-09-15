@@ -103,6 +103,18 @@ object is left as passed and never handed back.
 result gets its own `'false'` or `'null'` back, not `false` or nil, and the option writers, which return
 what `set_meta` returns, return the options they wrote.
 
+**A Hash or an Array the instance handed out stays the one it reads.** When the value written is the very
+object memoized for the key, the one `get_meta` or `options` returned, it takes the stored form in place
+and stays memoized. The option writers update that hash and write it, so a hash `options` returned keeps
+reading every later write on the instance, as in 2.9.4, and a hash read, written back, and written back
+again after another write stores that write too. Any other value is memoized as a fresh stored form, and
+the caller's own object is left as passed.
+- Rejected, taking the stored form in place for every Hash memo whatever was written: a hash read before
+  a write of another object would change under its reader, where 2.9.4 left it as read, so code comparing
+  the value before and after a write would see no change.
+- A String memo is left out: it may carry the translations `String#translate` memoized on it, which a
+  change in place would leave stale.
+
 **Return the caller's own default.** It is not copied or memoized. The option writers keep working because
 they pass the options they change to `set_meta`, which memoizes the stored form of that object.
 
