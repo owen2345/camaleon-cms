@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Bug fix:** `get_meta` and `get_option` return each read's own default for a meta with no value (no row, null or `''`); a value written with `set_meta` reads back on the writing instance as a freshly loaded record reads it; `the_meta` and `the_option` return a stored number or boolean instead of raising. [#1303](https://github.com/owen2345/camaleon-cms/pull/1303).
+- **Bug fix:** `get_meta` and `get_option` return each read's own default for a meta with no value (no row, null or `''`); a value written with `set_meta` reads back on the writing instance as a freshly loaded record reads it; `the_meta` and `the_option` return a stored number, boolean or hash instead of raising. [#1303](https://github.com/owen2345/camaleon-cms/pull/1303).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#get_meta-and-set_meta-read-as-a-freshly-loaded-record).
 
 - **Bug fix:** With `auto_include_migrations` on, a host app whose path only shares the engine root as a prefix (a plugin checked out as `camaleon-cms-seo` beside `camaleon-cms`, core sourced as a path gem) gets the core migrations; it was mistaken for the engine's own dummy app and silently got none. [#1306](https://github.com/owen2345/camaleon-cms/pull/1306)
