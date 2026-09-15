@@ -136,6 +136,21 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(post_type.options).to eq(CamaleonCms::PostType.find(post_type.id).options)
     end
 
+    # Hash#with_indifferent_access copies a Hash default and default proc along; the options copy carries
+    # neither, so a missing option reads nil as after a reload and a storing default proc adds no keys.
+    it 'copies a caller hash without its default' do
+      post_type = create(:post_type)
+      passed = Hash.new { |hash, key| hash[key] = [] }.merge!('has_category' => false)
+      post_type.set_meta('_default', passed)
+
+      expect(post_type.options[:has_single_category]).to be_nil
+      expect(post_type).not_to be_manage_categories
+      post_type.set_option('has_tags', true)
+      post_type.options[:phantom]
+      post_type.set_option('has_seo', true)
+      expect(CamaleonCms::PostType.find(post_type.id).options.keys).to eq(%w[has_category has_tags has_seo])
+    end
+
     # PostType#set_meta names a JSON string as one form the whole options row arrives in; the writing
     # instance parses it as a freshly loaded record parses the row it stored.
     it 'reads and writes options a caller passed to set_meta as a JSON string' do

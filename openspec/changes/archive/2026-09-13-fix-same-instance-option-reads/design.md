@@ -58,7 +58,10 @@ reaches every option read and write without changing either of them.
   code read it as no options on the writing instance while a reload parsed it, so the next option write
   replaced the row.
 - A plain Hash, or another Hash subclass, becomes an indifferent copy, not cached, so the caller's hash
-  stays as passed. The first option write caches its copy through `set_meta`.
+  stays as passed. The first option write caches its copy through `set_meta`. The copy is built with
+  `HashWithIndifferentAccess.new.update`, which leaves a Hash default or default proc behind, where
+  `with_indifferent_access` copies both: a missing option reads nil, as after a reload, and a default
+  proc that stores what it returns cannot add keys the next write would store.
 - Nil, an empty string or a missing options row becomes a new empty indifferent hash on each read, not
   cached, until the first option write caches the writer's hash through `set_meta`. `options` asks
   `get_meta` for no default, so a record with no options row reads the same fresh hash whether or not

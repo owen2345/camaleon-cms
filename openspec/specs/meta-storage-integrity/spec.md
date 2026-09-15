@@ -40,7 +40,8 @@ caller passed, with the caller's own keys, until the record is loaded again. A r
 SHALL keep it until its first save, after which the instance reads what it stored. When the value is
 the record's options, `options` and `get_option` on that instance SHALL find an option by a String key
 or its Symbol twin, as a freshly loaded record does, whether the caller passed a plain Hash, request
-parameters or a JSON string.
+parameters or a JSON string. The copy `options` returns SHALL carry no default of the caller's hash, so a
+missing option reads nil as after a reload.
 
 #### Scenario: A plugin reads back the hash it wrote
 
@@ -77,6 +78,13 @@ parameters or a JSON string.
 - **THEN** on the same instance, `options` and `get_option` read `has_tags`
 - **AND** an option set on the same instance is stored beside it, and the same instance and a freshly loaded
   post type read both
+
+#### Scenario: A plain Hash with a default
+
+- **WHEN** a post type's options are written with `set_meta` as a Hash whose default proc stores an empty
+  array for a missing key, and options are set and a missing option read on the same instance
+- **THEN** the missing option reads nil, on the read and in `manage_categories?`
+- **AND** a freshly loaded post type holds only the options written
 
 ### Requirement: delete_meta removes the key from memory as well as storage
 

@@ -112,7 +112,8 @@ module CamaleonCms
     # An indifferent hash, as a freshly loaded record parses its stored options, so a String key and its
     # Symbol twin read the same option: the hash the option writers keep, as it is, or an indifferent copy
     # of what a caller passed to set_meta, a plain Hash, request parameters or a JSON string, leaving the
-    # caller's value as passed. A value that is not a JSON object (no options row, a legacy or corrupt row,
+    # caller's value as passed and a Hash default behind, so a missing option reads nil as after a reload.
+    # A value that is not a JSON object (no options row, a legacy or corrupt row,
     # a string that holds none, nil, '') reads as a new empty hash on each read, so every reader and writer
     # works on the record and a change made to that hash without a writer is not stored; the row, if any,
     # is replaced the next time an option is written.
@@ -122,7 +123,7 @@ module CamaleonCms
       case data
       when ActiveSupport::HashWithIndifferentAccess then data
       when ActionController::Parameters then data.to_unsafe_h
-      when Hash then data.with_indifferent_access
+      when Hash then ActiveSupport::HashWithIndifferentAccess.new.update(data)
       else ActiveSupport::HashWithIndifferentAccess.new
       end
     end
