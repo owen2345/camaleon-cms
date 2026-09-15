@@ -80,7 +80,7 @@ module CamaleonCms
     # with no row. Each call applies its own default, outside the memo, when the meta has no value: no row,
     # or a stored null or empty string.
     def get_meta(key, default = nil)
-      key_str = key.is_a?(Symbol) ? key.to_s : key
+      key_str = key.to_s
       cached = cama_fetch_cache("meta_#{key_str}") do
         option = if metas.loaded? || created_record_metas_in_memory?
                    metas.target.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
