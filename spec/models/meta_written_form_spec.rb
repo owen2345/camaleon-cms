@@ -2,8 +2,9 @@
 
 # set_meta memoized the value as the caller passed it while a reload read the parsed stored form, so a
 # String that stores as a number, a boolean or JSON, and a Hash with Symbol keys, read differently on the
-# writing instance than on a freshly loaded record, and a plugin's own hash was handed back, so a change
-# made to it afterwards was read on that instance without a write.
+# writing instance than on a freshly loaded record, and a plugin's own hash or String was handed back, so a
+# change made to it afterwards was read on that instance without a write, and an html_safe String rendered
+# unescaped there until a reload.
 RSpec.describe CamaleonCms::Post, type: :model do
   let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
 
@@ -33,6 +34,26 @@ RSpec.describe CamaleonCms::Post, type: :model do
       passed[:color] = 'blue'
       expect(post.get_meta('probe')[:color]).to eq('red')
       expect(described_class.find(post.id).get_meta('probe')).to eq(read)
+    end
+
+    it "reads plain text back as a String of its own, leaving the caller's String as passed" do
+      post = create(:post, post_type: post_type)
+      passed = +'plain text'
+      post.set_meta('probe', passed)
+
+      expect(post.get_meta('probe')).not_to equal(passed)
+      passed << ' changed after the write'
+      expect(post.get_meta('probe')).to eq('plain text')
+      expect(described_class.find(post.id).get_meta('probe')).to eq('plain text')
+    end
+
+    it 'reads an html_safe String back as the plain String a reloaded record reads' do
+      post = create(:post, post_type: post_type)
+      post.set_meta('probe', ActiveSupport::SafeBuffer.new('<b>bold</b>'))
+      reloaded = described_class.find(post.id)
+
+      expect([post.get_meta('probe'), reloaded.get_meta('probe')]).to eq(['<b>bold</b>', '<b>bold</b>'])
+      expect([post.get_meta('probe').html_safe?, reloaded.get_meta('probe').html_safe?]).to eq([false, false])
     end
 
     it 'reads a JSON string back as the value it holds' do

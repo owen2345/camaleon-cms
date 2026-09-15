@@ -38,14 +38,15 @@ does.
 A value written with `set_meta` SHALL be returned by `get_meta` on the same instance in the form a freshly
 loaded record reads it: a Hash, an Array or request parameters as the indifferent hash, or array, their
 JSON parses to; a String holding JSON as the value it holds; a numeric or boolean String as the number or
-the boolean; nil or an empty string as a meta with no value, so the caller's default is returned. The
-object the caller passed SHALL be left as passed and SHALL NOT be returned, so a change made to it after
-the write is not read. A record not yet saved SHALL read a written value the same way until its first
-save, after which the instance reads what it stored. When the value is the record's options, `options`
-and `get_option` on that instance SHALL find an option by a String key or its Symbol twin, as a freshly
-loaded record does, whether the caller passed a plain Hash, request parameters or a JSON string. The
-hash `options` returns SHALL share nothing with the caller's value, its nested hashes included, and SHALL
-carry no default of the caller's hash, so a missing option reads nil as after a reload.
+the boolean; any other String as a plain String, not html_safe even when the caller's was; nil or an empty
+string as a meta with no value, so the caller's default is returned. The object the caller passed SHALL be
+left as passed and SHALL NOT be returned, so a change made to it after the write is not read. A record not
+yet saved SHALL read a written value the same way until its first save, after which the instance reads
+what it stored. When the value is the record's options, `options` and `get_option` on that instance SHALL
+find an option by a String key or its Symbol twin, as a freshly loaded record does, whether the caller
+passed a plain Hash, request parameters or a JSON string. The hash `options` returns SHALL share nothing
+with the caller's value, its nested hashes included, and SHALL carry no default of the caller's hash, so a
+missing option reads nil as after a reload.
 
 #### Scenario: A plugin reads back the hash it wrote
 
@@ -57,6 +58,14 @@ carry no default of the caller's hash, so a missing option reads nil as after a 
 
 - **WHEN** `'2024'`, `'false'` and `'[1, 2]'` are written with `set_meta`
 - **THEN** the same instance reads `2024`, `false` and `[1, 2]`, as a freshly loaded record does
+
+#### Scenario: A plugin reads back the text it wrote
+
+- **WHEN** a String holding no JSON is written with `set_meta` and the caller's String is then changed in
+  place
+- **THEN** `get_meta` on the same instance returns the text as written, not the caller's object
+- **AND** an html_safe String written the same way reads back as a plain String, as a freshly loaded
+  record reads it
 
 #### Scenario: A new record saved after the write
 

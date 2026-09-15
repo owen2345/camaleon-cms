@@ -336,10 +336,10 @@ now returns what a freshly loaded record reads.
   did for an empty string, and `set_meta(key, nil)` or `set_meta(key, '')` reads back as the default.
 - A value written with `set_meta` reads back as `set_meta` stores it: a Hash or request parameters as an
   indifferent hash (`[:key]` and `['key']` alike), a JSON string as the value it holds, a numeric or
-  boolean String as the number or the boolean. Your own object is left as passed and never handed back, so
-  a change made to it after the write is not read; code that compared a read to its own hash, or iterated
-  its Symbol keys, on the writing object sees the stored form now, as it already did once the record was
-  loaded again.
+  boolean String as the number or the boolean, and any other String as a plain String, so a view escapes an
+  `html_safe` String you wrote. Your own object is left as passed and never handed back, so a change made
+  to it after the write is not read; code that compared a read to its own hash, or iterated its Symbol
+  keys, on the writing object sees the stored form now, as it already did once the record was loaded again.
 - A meta with a stored value is memoized on the object and handed back as that one value: a change made to
   it in place shows in later reads on that object, and in `options` for the `_default` row, but is not
   stored. Write changes with `set_meta` whether or not a row exists, as the option writers already do.

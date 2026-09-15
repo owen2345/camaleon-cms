@@ -68,15 +68,21 @@ value has no value, and the memoized value otherwise.
 
 **`set_meta` memoizes what a reload reads.** One private helper, `stored_form_of`, gives the form a read
 returns for the text a row holds or for the value `fix_meta_value` produced: JSON parsed and read by
-either key type at any depth, a legacy `'t'`/`'f'` as the boolean, the text itself when it holds no JSON,
-nil for null. `get_meta` applies it to the row it reads and `set_meta` to the value it stores, so the
-writing instance and a freshly loaded record agree for every input, and the caller's object is left as
-passed and never handed back.
+either key type at any depth, a legacy `'t'`/`'f'` as the boolean, a plain String copy of the text when
+it holds no JSON, nil for null. `get_meta` applies it to the row it reads and `set_meta` to the value it
+stores, so the writing instance and a freshly loaded record agree for every input, and the caller's
+object is left as passed and never handed back.
 - Rejected, keeping the caller's object with `''` and nil as the exceptions: every coerced String
   (`'false'`, `'2024'`, `'null'`, `'[]'`) and every Symbol-keyed Hash kept the split, one exception per
   report.
 - Rejected, dropping the memo entry in `set_meta` so the next read re-reads the row: an unsaved record's
   built meta is not found by the query the read runs.
+- Rejected, returning the text itself when it holds no JSON: `fix_meta_value` passes a caller's plain
+  String through unchanged, so the memo was the caller's object and a change made to it after the write
+  was read.
+- Rejected, a `dup` of the text: it keeps an html_safe String html_safe, which renders unescaped on the
+  writing instance where a freshly loaded record reads a plain String. `String.new` copies the text as the
+  column casts it.
 - `options` no longer converts request parameters, since no read returns them; a stored JSON string that
   holds an object still reads as an indifferent copy of it. `PostType`'s decorator-option checks parse
   through the same helper.
