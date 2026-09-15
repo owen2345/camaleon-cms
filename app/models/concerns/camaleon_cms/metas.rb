@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module CamaleonCms
   module Metas
     extend ActiveSupport::Concern
@@ -10,6 +12,11 @@ module CamaleonCms
 
     # how the text column cast a boolean before booleans were stored as their JSON literal
     LEGACY_BOOLEANS = { 't' => true, 'f' => false }.freeze
+
+    # What a JSON text can open with, after its whitespace, on every supported json release: an object, an
+    # array, a string, a comment, a number, true, false or null. Text opening with anything else holds none.
+    JSON_TEXT_OPENING = %r{\A\s*[\[\{"/\-\dtfn]}
+    private_constant :JSON_TEXT_OPENING
 
     included do
       # options and metas auto save support
@@ -40,10 +47,11 @@ module CamaleonCms
       end
     end
 
-    # Add meta with value or Update meta with key: key
-    # return true or false
+    # Adds the meta for key, or updates it, and returns the value passed
     def set_meta(key, value)
       fixed_value = fix_meta_value(value)
+      stored = stored_form_of(fixed_value)
+      check_meta_write(key.to_s, stored)
 
       # Check if the parent object has been saved to the database yet
       if persisted?
@@ -70,30 +78,25 @@ module CamaleonCms
         end
       end
 
-      cama_set_cache("meta_#{key}", value)
+      # memoize what a reload reads for the stored value, so the writing instance reads as a reloaded record
+      memoize_written_meta(key, value, stored)
+      value
     end
 
-    # return value of meta with key: key,
-    # if meta not exist, or its value == "", return default
+    # The value stored for key, as a freshly loaded record reads it, memoized per instance, nil for a key
+    # with no row. Each call applies its own default, outside the memo, when the meta has no value: no row,
+    # or a stored null or empty string.
     def get_meta(key, default = nil)
-      key_str = key.is_a?(Symbol) ? key.to_s : key
-      cama_fetch_cache("meta_#{key_str}") do
+      key_str = key.to_s
+      cached = cama_fetch_cache("meta_#{key_str}") do
         option = if metas.loaded? || created_record_metas_in_memory?
                    metas.target.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
                  else
                    metas.where(key: key_str).first
                  end
-        res = ''
-        if option.present?
-          value = stored_meta_value(option)
-          res = begin
-            CamaleonCms::Metas.indifferent_json_value(value)
-          rescue StandardError
-            option.value
-          end
-        end
-        res == '' ? default : res
+        stored_meta_value(option) if option
       end
+      meta_value_absent?(cached) ? default : cached
     end
 
     # delete meta
@@ -109,23 +112,15 @@ module CamaleonCms
     end
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
-    # An indifferent hash, as a freshly loaded record parses its stored options, so a String key and its
-    # Symbol twin read the same option: the hash the option writers keep, as it is, or an indifferent copy
-    # of what a caller passed to set_meta, a plain Hash, request parameters or a JSON string, sharing
-    # nothing with the caller's value, its nested hashes included, and leaving a Hash default behind, so a
-    # missing option reads nil as after a reload. A value that is not a JSON object (no options row, a
-    # legacy or corrupt row, a string that holds none, nil, '') reads as a new empty hash on each read, so
-    # every reader and writer works on the record and a change made to that hash without a writer is not
-    # stored; the row, if any, is replaced the next time an option is written.
+    # The indifferent hash the record's options parse to, on the writing instance as on a freshly loaded
+    # record, so a String key and its Symbol twin read the same option: the hash get_meta memoizes, which
+    # the option writers update. A value that is not a JSON object (no options row, a legacy or corrupt row,
+    # a JSON string, even one whose text is an object, nil) reads as a new empty hash on each read, so every
+    # reader and writer works on the record and a change made to that hash without a writer is not stored;
+    # the row, if any, is replaced the next time an option is written.
     def options(meta_key = '_default')
       data = get_meta(meta_key)
-      data = parsed_json(data) if data.is_a?(String)
-      case data
-      when ActiveSupport::HashWithIndifferentAccess then data
-      when ActionController::Parameters then data.to_unsafe_h
-      when Hash then ActiveSupport::HashWithIndifferentAccess.new.update(data.deep_dup)
-      else ActiveSupport::HashWithIndifferentAccess.new
-      end
+      data.is_a?(ActiveSupport::HashWithIndifferentAccess) ? data : ActiveSupport::HashWithIndifferentAccess.new
     end
     alias cama_options options
 
@@ -137,32 +132,28 @@ module CamaleonCms
     def set_option(key, value = nil, meta_key = '_default')
       return if key.nil?
 
-      data = cama_options(meta_key)
-      data[key] = fix_meta_var(value)
-      set_meta(meta_key, data)
+      write_options(meta_key) { |data| data[key] = fix_meta_var(value) }
       value
     end
 
     # return configuration for current object
     # key: attribute name
-    # default: if the attribute doesn't exist, or its value == "", return default
+    # default: if the attribute doesn't exist, or its value is null or "", return default
     # return value for attribute
     def get_option(key = nil, default = nil, meta_key = '_default')
       values = cama_options(meta_key)
       return default if key.nil?
 
       key = key.to_sym
-      values.key?(key) && values[key] != '' ? values[key] : default
+      values.key?(key) && !meta_value_absent?(values[key]) ? values[key] : default
     end
 
     # delete attribute from configuration
     def delete_option(key, meta_key = '_default')
       return if key.nil?
 
-      values = cama_options(meta_key)
       key = key.to_sym
-      values.delete(key) if values.key?(key)
-      set_meta(meta_key, values)
+      write_options(meta_key) { |values| values.delete(key) if values.key?(key) }
     end
 
     # set multiple configurations
@@ -171,11 +162,11 @@ module CamaleonCms
       return if h.blank?
 
       refuse_invalid_container!(h)
-      data = cama_options(meta_key)
-      PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
-        data[key] = fix_meta_var(value)
+      write_options(meta_key) do |data|
+        PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
+          data[key] = fix_meta_var(value)
+        end
       end
-      set_meta(meta_key, data)
     end
     alias set_multiple_options set_options
 
@@ -227,12 +218,11 @@ module CamaleonCms
 
     private
 
-    # The value of a stored row: its JSON, or the text itself when it holds none (a key an older write
-    # stored twice keeps its last value, as json 2 read it). A boolean an earlier release stored as the
-    # column's 't' or 'f' reads as the boolean, and the row is stored again as its JSON literal so the
-    # next read parses it; where writes are prevented the row is left for a later read.
+    # The value a stored row reads as (stored_form_of). A boolean an earlier release stored as the column's
+    # 't' or 'f' reads as the boolean and is stored again as its JSON literal so the next read parses it;
+    # where writes are prevented the row is left for a later read.
     def stored_meta_value(option)
-      return JSON.parse(option.value, allow_duplicate_key: true) unless LEGACY_BOOLEANS.key?(option.value)
+      return stored_form_of(option.value) unless LEGACY_BOOLEANS.key?(option.value)
 
       boolean = LEGACY_BOOLEANS.fetch(option.value)
       begin
@@ -241,8 +231,53 @@ module CamaleonCms
         nil
       end
       boolean
+    end
+
+    # What a read returns for the text a row holds, or for the value fix_meta_value produced for one: its
+    # JSON parsed, with the Hashes in it read by either key type at any depth (a key an older write stored
+    # twice keeps its last value, as json 2 read it), a legacy 't' or 'f' as the boolean, a plain String copy
+    # of the text when it holds no JSON, taken without a parse when the text cannot open a JSON text, and nil
+    # for a null row. set_meta memoizes this form, so the writing instance reads what a freshly loaded record
+    # reads: for text, the plain String the text column casts, neither the caller's object nor html_safe.
+    def stored_form_of(stored)
+      return if stored.nil?
+
+      text = stored.to_s
+      return String.new(text) unless text.match?(JSON_TEXT_OPENING)
+
+      parsed = LEGACY_BOOLEANS.fetch(text) { JSON.parse(text, allow_duplicate_key: true) }
+      CamaleonCms::Metas.indifferent_json_value(parsed)
     rescue StandardError
-      option.value
+      String.new(text) if text
+    end
+
+    # Called by set_meta with the key, as a String, and the form a read returns for the value it is about to
+    # store, before anything is written; a model refuses a write by raising here. Nothing is refused here.
+    def check_meta_write(_key, _stored); end
+
+    # The option writers change the options this instance holds and store them with set_meta, returning what
+    # it returns. A write that raises, refused or failed, puts back the options as they were before the
+    # change, so the instance keeps reading what is stored.
+    def write_options(meta_key)
+      data = cama_options(meta_key)
+      previous = data.dup
+      yield data
+      set_meta(meta_key, data)
+    rescue StandardError
+      data.replace(previous) if previous
+      raise
+    end
+
+    # Memoizes for key what a reload reads for the value written. The Hash or the Array this instance handed
+    # out for key, written back, takes that form in place and stays memoized, so every reference to it, the
+    # options the option writers update included, keeps reading the record; any other value is memoized as
+    # the stored form, and the caller's object is left as passed. A String memo is never changed in place,
+    # since it may carry the translations String#translate memoized on it.
+    def memoize_written_meta(key, written, stored)
+      memo_key = "meta_#{key}"
+      handed_out = written.equal?(cama_get_cache(memo_key)) && (written.is_a?(Hash) || written.is_a?(Array))
+      stored = written.replace(stored) if handed_out && stored.is_a?(written.class)
+      cama_set_cache(memo_key, stored)
     end
 
     # The state of the transaction running now, if any: the one a write belongs to, whose rollback
@@ -313,12 +348,10 @@ module CamaleonCms
       @created_record_metas_in_memory == true
     end
 
-    # The value a JSON string a caller passed to set_meta holds, parsed as a freshly loaded record parses
-    # the row it stored; nil for a string that holds no JSON
-    def parsed_json(text)
-      JSON.parse(text, allow_duplicate_key: true)
-    rescue JSON::ParserError
-      nil
+    # A meta or option with no value: no row or entry, one stored as null, or an empty string. Every read
+    # that takes a default returns it for these, on the writing instance and on a freshly loaded record.
+    def meta_value_absent?(value)
+      value.nil? || value == ''
     end
 
     # The stored form of a value: JSON for a container, and for a boolean its JSON literal, which reads

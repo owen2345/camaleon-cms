@@ -39,8 +39,10 @@ RSpec.describe CamaleonCms::PostType, type: :model do
         .to raise_error(ActiveRecord::RecordInvalid, /cama_post_decorator_class.*'Object'/)
 
       expect(post_type.errors[:base].first).to include(option).and include('Object')
-      # The writer had already put the value into the memoized options; the refusal drops that memo.
-      expect(post_type.options.keys.map(&:to_s)).not_to include(option)
+      # The option writer puts back the options it changed, so the instance reads them without a query.
+      keys = nil
+      expect(metas_selects { keys = post_type.options.keys.map(&:to_s) }).to be_empty
+      expect(keys).not_to include(option)
       expect(stored_post_type.get_option(option)).to be_nil
       expect(stored_post_type.get_option('has_tags')).to be(true)
     end
@@ -52,7 +54,7 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to be_nil
     end
 
-    it 'refuses a name that cannot be loaded the same way, dropping the memoized value' do
+    it 'refuses a name that cannot be loaded the same way, leaving the options it holds as they were' do
       expect { post_type.set_option(option, 'ENV::X') }
         .to raise_error(ActiveRecord::RecordInvalid, /cama_post_decorator_class.*'ENV::X'/)
 
@@ -99,6 +101,41 @@ RSpec.describe CamaleonCms::PostType, type: :model do
 
       expect(stored_post_type.get_option('has_tags')).to be(true)
       expect(stored_post_type.get_option('has_seo')).to be(false)
+    end
+
+    # The check reads the decorator option from the form set_meta is about to store, so an options write
+    # parses the options it stores once.
+    it 'parses the options once for an options write' do
+      post_type.options
+      expect(JSON).to receive(:parse).once.and_call_original
+
+      post_type.set_option('has_tags', true)
+    end
+
+    # The stored value a refusal compares with comes from the row a write updates, found among loaded metas
+    # as every other lookup on them is.
+    it 'looks the stored value up among loaded metas without querying' do
+      record = described_class.includes(:metas).find(post_type.id)
+      record.options
+
+      selects = metas_selects do
+        expect { record.set_option(option, 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+
+      expect(selects).to be_empty
+    end
+
+    # A refused write changes no row, so the metas in memory stay: on an unsaved record they are the
+    # metas built for its first save.
+    it 'keeps the metas built on an unsaved record when a write is refused' do
+      record = build(:post_type)
+      record.set_meta('probe', 'built')
+      expect { record.set_option(option, 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
+
+      record.save!
+
+      expect(record.get_meta('probe')).to eq('built')
+      expect(described_class.find(record.id).get_meta('probe')).to eq('built')
     end
 
     it 'accepts a blank value, which clears it' do

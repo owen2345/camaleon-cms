@@ -37,6 +37,16 @@ RSpec.describe CamaleonCms::Meta, type: :model do
 
       expect(loaded.get_meta(:languages_site)).to eq(%w[en es])
     end
+
+    # set_meta stores a key by its String form, so a read finds it by that form among the loaded metas as
+    # the database lookup does, whatever object names the key.
+    it 'resolves a key that is neither a String nor a Symbol by the String set_meta stores' do
+      post = create(:post)
+      post.set_meta(2024, 'probe')
+
+      loaded = CamaleonCms::Post.includes(:metas).find(post.id)
+      expect([loaded.get_meta(2024), CamaleonCms::Post.find(post.id).get_meta(2024)]).to eq(%w[probe probe])
+    end
   end
 
   describe 'options and hash metas on the instance that wrote them' do
@@ -79,31 +89,21 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe_settings')).to eq('sec' => 30)
     end
 
-    # Plugins read back the hash they passed to set_meta on the same instance: their own object, with
-    # their own keys, until the record is loaded again.
-    it 'keeps the hash a caller passed to set_meta' do
-      settings = { color: 'red' }
-      post_type = create(:post_type)
-      post_type.set_meta('probe_settings', settings)
-
-      expect(post_type.get_meta('probe_settings')).to equal(settings)
-    end
-
     # The memo is keyed by the record's id, so what a new record memoized before its first save is not
-    # read after it: the saved record reads what it stored.
+    # read after it: the saved record reads what it stored, which is what it read before the save.
     it 'reads the stored form once a new record is saved' do
       settings = { color: 'red' }
       post_type = build(:post_type)
       post_type.set_meta('probe_settings', settings)
-      expect(post_type.get_meta('probe_settings')).to equal(settings)
+      expect(post_type.get_meta('probe_settings')).to eq('color' => 'red')
 
       post_type.save!
 
       expect(post_type.get_meta('probe_settings')).to eq('color' => 'red')
     end
 
-    # set_meta keeps a caller's plain Hash as passed, keys and all; options and get_option read it by
-    # either key type, as a reloaded record reads the options it parses.
+    # set_meta leaves a caller's plain Hash as passed, keys and all; options, get_option and get_meta read
+    # it by either key type, as a reloaded record reads the options it parses.
     it 'reads options a caller passed to set_meta as a plain Hash by either key type' do
       passed = { 'color' => 'red', size: 'xl' }
       post_type = create(:post_type)
@@ -111,7 +111,7 @@ RSpec.describe CamaleonCms::Meta, type: :model do
 
       expect([post_type.options[:color], post_type.options['size']]).to eq(%w[red xl])
       expect([post_type.get_option(:color), post_type.get_option('size')]).to eq(%w[red xl])
-      expect(post_type.get_meta('_default')).to equal(passed)
+      expect(post_type.get_meta('_default')).to eq('color' => 'red', 'size' => 'xl')
       expect(passed.keys).to eq(['color', :size])
       reloaded = CamaleonCms::PostType.find(post_type.id)
       expect([reloaded.options[:color], reloaded.get_option('size')]).to eq(%w[red xl])
@@ -150,6 +150,44 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(passed).to eq('color' => 'red')
     end
 
+    # The options hash a record hands out is the one its option writers update, so a hash read before the
+    # writes keeps reading all of them on that instance, as it did in 2.9.4.
+    it 'keeps a hash options returned reading the options written after it' do
+      post_type = create(:post_type)
+      held = post_type.options
+
+      post_type.set_option('probe_a', 1)
+      post_type.set_options(probe_b: 2)
+      post_type.delete_option('has_tags')
+
+      expect(held).to equal(post_type.options)
+      expect([held[:probe_a], held[:probe_b], held.key?(:has_tags)]).to eq([1, 2, false])
+    end
+
+    # A hash read from the record, changed and written back stays the one the record reads, so writing it
+    # back again after another write stores that write too.
+    it 'stores a hash read from the record and written back whole, however often' do
+      post_type = create(:post_type)
+      held = post_type.get_meta('_default')
+      held[:probe_a] = 1
+      post_type.set_meta('_default', held)
+      post_type.set_option('probe_b', 2)
+      post_type.set_meta('_default', held)
+
+      expect(CamaleonCms::PostType.find(post_type.id).options.values_at(:probe_a, :probe_b)).to eq([1, 2])
+    end
+
+    it 'keeps a list read from the record and written back the one it reads' do
+      post = create(:post)
+      post.set_meta('probe_gallery', ['a.jpg'])
+      gallery = post.get_meta('probe_gallery')
+      gallery << 'b.jpg'
+      post.set_meta('probe_gallery', gallery)
+
+      expect(post.get_meta('probe_gallery')).to equal(gallery)
+      expect(CamaleonCms::Post.find(post.id).get_meta('probe_gallery')).to eq(%w[a.jpg b.jpg])
+    end
+
     # An indifferent hash converts a nested plain Hash into a copy but keeps a nested indifferent hash by
     # reference; the options copy shares neither with the caller's hash.
     it 'copies a caller hash without sharing its nested hashes' do
@@ -162,7 +200,7 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       post_type.options[:sizes].first[:top] = 'm'
 
       expect([theme[:color], passed['sizes'].first[:top]]).to eq(%w[red xl])
-      expect(post_type.get_meta('_default')).to equal(passed)
+      expect(post_type.get_meta('_default')).not_to equal(passed)
     end
 
     # Hash#with_indifferent_access copies a Hash default and default proc along; the options copy carries
@@ -180,7 +218,7 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::PostType.find(post_type.id).options.keys).to eq(%w[has_category has_tags has_seo])
     end
 
-    # PostType#set_meta names a JSON string as one form the whole options row arrives in; the writing
+    # PostType's set_meta check names a JSON string as one form the whole options row arrives in; the writing
     # instance parses it as a freshly loaded record parses the row it stored.
     it 'reads and writes options a caller passed to set_meta as a JSON string' do
       post_type = create(:post_type)

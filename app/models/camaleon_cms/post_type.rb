@@ -200,29 +200,26 @@ module CamaleonCms
       end
     end
 
-    # Every way of writing an option (set_option, set_options and its alias, delete_option, the
-    # data_options save callback, a direct set_meta) ends here with the whole `_default` options, as a
-    # Hash, ActionController::Parameters or a JSON string, so this is where the decorator option is held
-    # to the allowlist.
-    def set_meta(key, value)
-      reject_unknown_decorator_class!(key, value) if key.to_s == '_default'
-      super
-    end
-
     private
+
+    # Every way of writing an option (set_option, set_options and its alias, delete_option, the
+    # data_options save callback, a direct set_meta) stores the whole `_default` options through set_meta,
+    # which hands them here in the form it is about to store, whether they arrived as a Hash,
+    # ActionController::Parameters or a JSON string, so this is where the decorator option is held to the
+    # allowlist.
+    def check_meta_write(key, stored)
+      reject_unknown_decorator_class!(stored) if key == '_default'
+    end
 
     # Refuses, loudly, options whose decorator option names no post decorator, unless the write leaves
     # the stored value as it is: a value stored without passing the check (before it existed, or a
-    # removed plugin's decorator) is ignored at read, not a reason to refuse unrelated writes. The
-    # writers mutate the memoized options before calling set_meta, and set_meta updates a row it queries
-    # itself rather than a loaded metas association, so both are dropped to keep the record reading what
-    # is stored.
-    def reject_unknown_decorator_class!(key, options)
-      value = decorator_class_option_in(options)
+    # removed plugin's decorator) is ignored at read, not a reason to refuse unrelated writes. A refused
+    # write changes no row: the option writers put back the options they changed, and the metas in memory
+    # are left alone, since a reset would lose the metas built on an unsaved record for its first save.
+    def reject_unknown_decorator_class!(stored)
+      value = decorator_class_option_of(stored)
       return if decorator_class_option_acceptable?(value)
 
-      cama_remove_cache("meta_#{key}")
-      metas.reset if metas.loaded?
       errors.add(:base, decorator_class_refusal_message(value))
       raise ActiveRecord::RecordInvalid, self
     end
@@ -279,23 +276,21 @@ module CamaleonCms
     # The decorator option of `options` as get_meta will read it back once set_meta stores them, whatever
     # form the writer passed: the key form written last in a Hash, the parameters' value, the JSON's.
     def decorator_class_option_in(options)
-      stored = fix_meta_value(options)
-      stored = JSON.parse(stored, allow_duplicate_key: true) if stored.is_a?(String)
-      stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
-    rescue JSON::ParserError
-      nil
+      decorator_class_option_of(stored_form_of(fix_meta_value(options)))
     end
 
-    # The decorator option as the database holds it before the write under check, from the row get_meta
-    # reads; nil for a record not saved yet or an options row that is not a JSON object.
+    # The decorator option as the database holds it before the write under check, from the row a write
+    # updates (stored_meta_row), found among the metas in memory when they are loaded; nil for a record not
+    # saved yet or an options row that is not a JSON object.
     def stored_decorator_class_option
       return unless persisted?
 
-      row = metas.where(key: '_default').order(:id).first
-      stored = JSON.parse(row.value, allow_duplicate_key: true) if row&.value.present?
+      decorator_class_option_of(stored_form_of(stored_meta_row('_default')&.value))
+    end
+
+    # The decorator option the stored form of a post type's options holds; nil when it is not a JSON object.
+    def decorator_class_option_of(stored)
       stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
-    rescue JSON::ParserError
-      nil
     end
 
     # The options the creation left unset get their DEFAULT_OPTIONS value. The Metas concern's

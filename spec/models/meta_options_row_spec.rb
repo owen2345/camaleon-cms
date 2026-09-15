@@ -23,6 +23,16 @@ RSpec.describe CamaleonCms::Metas, type: :model do
       end
     end
 
+    # A JSON string is not an object even when its text is one: the options read as empty rather than
+    # parsed a second time, as no writer stores them encoded twice.
+    it 'reads as empty when the row holds a JSON string whose text is an object' do
+      record.set_meta('_default', { 'status_default' => 'published' }.to_json.to_json)
+      stored_record = CamaleonCms::Post.find(record.id)
+
+      expect([record.options, stored_record.options]).to all(eq({}))
+      expect(stored_record.get_option('status_default', 'fallback')).to eq('fallback')
+    end
+
     it 'takes a written option, starting from empty' do
       record.set_meta('_default', 'corrupt')
       stored_record = record.reload
@@ -39,6 +49,22 @@ RSpec.describe CamaleonCms::Metas, type: :model do
       record.reload.options
 
       expect(record.reload.get_meta('_default')).to eq('corrupt')
+    end
+  end
+
+  describe 'an option write that raises' do
+    # The writers change the options the record holds before storing them; a write that fails puts them
+    # back, so the record keeps reading what is stored.
+    it 'leaves the options the record holds as they were stored' do
+      record.set_option('status_default', 'published')
+      allow(record).to receive(:stored_meta_row).and_raise(ActiveRecord::StatementInvalid, 'write failed')
+
+      expect { record.set_option('status_default', 'draft') }.to raise_error(ActiveRecord::StatementInvalid)
+      expect { record.set_options(color: 'red') }.to raise_error(ActiveRecord::StatementInvalid)
+      expect { record.delete_option('status_default') }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(record.options).to eq(CamaleonCms::Post.find(record.id).options)
+      expect([record.get_option('status_default'), record.options.key?('color')]).to eq(['published', false])
     end
   end
 
