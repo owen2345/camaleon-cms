@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Bug fix:** On the record object that wrote its options with `set_meta`, `options` and `get_option` read an option by a String key or its Symbol twin, as a freshly loaded record does, whether passed as a plain Hash or as request parameters, and an option written on that object afterwards is stored beside them. [#1302](https://github.com/owen2345/camaleon-cms/pull/1302).
+- **Bug fix:** On the record that wrote its options with `set_meta`, `options` and `get_option` read an option by a String key or its Symbol twin, as a freshly loaded record does, whether passed as a plain Hash, request parameters or a JSON string, and an option written on that object afterwards is stored beside them. [#1302](https://github.com/owen2345/camaleon-cms/pull/1302).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#options-read-by-either-key-type-on-the-instance-that-wrote-them).
 
 - **Bug fix:** Memoized meta and option reads and the ability no longer survive `reload`; `dup` copies share nothing with the original; a boolean meta reads as the boolean and a post reads the request's user and site. [#1301](https://github.com/owen2345/camaleon-cms/pull/1301).

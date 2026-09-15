@@ -14,6 +14,7 @@ RSpec.describe CamaleonCms::Metas, type: :model do
     %w[corrupt [] 42].each do |stored|
       it "reads as empty when the row holds #{stored}" do
         record.set_meta('_default', stored)
+        expect(record.options).to eq({})
         stored_record = record.reload
 
         expect(stored_record.options).to eq({})

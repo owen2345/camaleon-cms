@@ -307,8 +307,8 @@ always did.
 
 ### Options read by either key type on the instance that wrote them
 
-- After `set_meta` writes a record's options as a plain Hash or as request parameters, `options` on that
-  same object returns an indifferent copy, so `options[:key]` and `get_option` find a String or a Symbol
+- After `set_meta` writes a record's options as a plain Hash, request parameters or a JSON string, `options`
+  on that same object returns an indifferent copy, so `options[:key]` and `get_option` find a String or a Symbol
   key alike, as a freshly loaded record already did, and a nested option is a hash, not an
   `ActionController::Parameters` object. An option written on that object afterwards is stored beside the
   options you passed. `get_meta` still returns the hash you passed; a change made to the hash `options`

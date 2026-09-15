@@ -111,12 +111,13 @@ module CamaleonCms
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
     # An indifferent hash, as a freshly loaded record parses its stored options, so a String key and its
     # Symbol twin read the same option: the hash the option writers keep, as it is, or an indifferent copy
-    # of what a caller passed to set_meta, a plain Hash or request parameters, leaving the caller's value
-    # as passed. A stored row that is not a JSON object (legacy or corrupt data), nil or '' reads as no
-    # options, so every reader and writer works on the record; the row is replaced the next time an
-    # option is written.
+    # of what a caller passed to set_meta, a plain Hash, request parameters or a JSON string, leaving the
+    # caller's value as passed. A value that is not a JSON object (a legacy or corrupt row, a string that
+    # holds none, nil, '') reads as no options, so every reader and writer works on the record; the row is
+    # replaced the next time an option is written.
     def options(meta_key = '_default')
       data = get_meta(meta_key, ActiveSupport::HashWithIndifferentAccess.new)
+      data = parsed_json(data) if data.is_a?(String)
       case data
       when ActiveSupport::HashWithIndifferentAccess then data
       when ActionController::Parameters then data.to_unsafe_h
@@ -308,6 +309,14 @@ module CamaleonCms
 
     def created_record_metas_in_memory?
       @created_record_metas_in_memory == true
+    end
+
+    # The value a JSON string a caller passed to set_meta holds, parsed as a freshly loaded record parses
+    # the row it stored; nil for a string that holds no JSON
+    def parsed_json(text)
+      JSON.parse(text, allow_duplicate_key: true)
+    rescue JSON::ParserError
+      nil
     end
 
     # The stored form of a value: JSON for a container, and for a boolean its JSON literal, which reads

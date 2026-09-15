@@ -136,6 +136,18 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(post_type.options).to eq(CamaleonCms::PostType.find(post_type.id).options)
     end
 
+    # PostType#set_meta names a JSON string as one form the whole options row arrives in; the writing
+    # instance parses it as a freshly loaded record parses the row it stored.
+    it 'reads and writes options a caller passed to set_meta as a JSON string' do
+      post_type = create(:post_type)
+      post_type.set_meta('_default', { 'has_tags' => true }.to_json)
+
+      expect([post_type.options[:has_tags], post_type.get_option('has_tags')]).to eq([true, true])
+      post_type.set_option('has_seo', false)
+      expect(post_type.options).to eq('has_tags' => true, 'has_seo' => false)
+      expect(CamaleonCms::PostType.find(post_type.id).options).to eq('has_tags' => true, 'has_seo' => false)
+    end
+
     # get_meta caches the default of a first read of a missing meta, so reading a record's options with
     # get_meta and no default leaves them nil on that instance. They read as none and take a write.
     it 'reads and writes the nil options a get_meta read without a default left' do

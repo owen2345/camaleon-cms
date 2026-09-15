@@ -39,8 +39,8 @@ A value written with `set_meta` SHALL be returned by `get_meta` on the same inst
 caller passed, with the caller's own keys, until the record is loaded again. A record not yet saved
 SHALL keep it until its first save, after which the instance reads what it stored. When the value is
 the record's options, `options` and `get_option` on that instance SHALL find an option by a String key
-or its Symbol twin, as a freshly loaded record does, whether the caller passed a plain Hash or request
-parameters.
+or its Symbol twin, as a freshly loaded record does, whether the caller passed a plain Hash, request
+parameters or a JSON string.
 
 #### Scenario: A plugin reads back the hash it wrote
 
@@ -70,6 +70,13 @@ parameters.
 - **AND** `options` is an indifferent hash whose `sizes` is a hash, and the parameters stay unpermitted
 - **AND** an option set on the same instance is stored beside `color` and `sizes`, and the instance reads
   what a freshly loaded post type reads
+
+#### Scenario: Options a caller passed to set_meta as a JSON string
+
+- **WHEN** a post type's options are written with `set_meta` as a JSON string holding `has_tags`
+- **THEN** on the same instance, `options` and `get_option` read `has_tags`
+- **AND** an option set on the same instance is stored beside it, and the same instance and a freshly loaded
+  post type read both
 
 ### Requirement: delete_meta removes the key from memory as well as storage
 

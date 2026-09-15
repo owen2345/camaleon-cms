@@ -8,6 +8,9 @@ record:
 - `set_meta` keeps the caller's own hash. If the caller put an option under a String key in a plain Hash,
   `options[:key]` and `get_option` miss it on that instance. A freshly loaded record parses the stored options
   into an indifferent hash and finds it.
+- A JSON string passed to `set_meta`, a form `PostType#set_meta` names, read as no options on that
+  instance while a freshly loaded record parsed it, so the next option write on that instance replaced
+  the row and lost the options the string held.
 - A record's options can be nil or an empty string. An earlier `get_meta` read without a default caches
   nil for a record that has none, and `set_meta` can write nil or an empty string. `options` then returns
   that value, and `get_option` and the option writers raise instead of treating the record as having no
@@ -19,6 +22,7 @@ record:
   - a hash with indifferent access as it is;
   - request parameters a caller passed to `set_meta` as an indifferent copy, nested parameters included,
     leaving the parameters unpermitted;
+  - a JSON string a caller passed to `set_meta` as an indifferent copy of the object it holds;
   - a plain Hash a caller passed to `set_meta` as an indifferent copy, leaving the caller's hash
     unchanged;
   - nil or an empty string as empty options.

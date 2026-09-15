@@ -52,6 +52,11 @@ reaches every option read and write without changing either of them.
   - Rejected, returning them as they are: request parameters are neither a Hash nor Enumerable, `to_h`
     raises on unpermitted parameters, a nested read returns parameters where a reload returns a hash, and
     the writers cannot convert them.
+- A JSON string is parsed as `get_meta` parses the row it stored, a repeated key tolerated the same way,
+  and the object it holds is copied as a plain Hash is; a string that holds no JSON object reads as no
+  options. `PostType#set_meta` names the string as one form the options row arrives in, and the merged
+  code read it as no options on the writing instance while a reload parsed it, so the next option write
+  replaced the row.
 - A plain Hash, or another Hash subclass, becomes an indifferent copy, not cached, so the caller's hash
   stays as passed. The first option write caches its copy through `set_meta`.
 - Nil or an empty string becomes a new empty indifferent hash, not cached. A freshly loaded record already
@@ -76,8 +81,8 @@ what the defect does to options.
 
 ## Risks / Trade-offs
 
-- [After `set_meta` with a plain Hash, nil or an empty string, `options` on that instance no longer
-  returns the caller's value] → `get_meta` still does. A write into the hash `options` returns, made
+- [After `set_meta` with a plain Hash, a JSON string, nil or an empty string, `options` on that instance no
+  longer returns the caller's value] → `get_meta` still does. A write into the hash `options` returns, made
   without `set_meta`, no longer reaches a caller's plain Hash. No code in the engine or in the plugin,
   theme and host repositories checked does that.
 - [A caller's plain Hash is copied on each `options` read until an option is written] → Only options
