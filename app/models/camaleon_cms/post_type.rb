@@ -279,12 +279,13 @@ module CamaleonCms
       decorator_class_option_of(stored_form_of(fix_meta_value(options)))
     end
 
-    # The decorator option as the database holds it before the write under check, from the row get_meta
-    # reads; nil for a record not saved yet or an options row that is not a JSON object.
+    # The decorator option as the database holds it before the write under check, from the row a write
+    # updates (stored_meta_row), found among the metas in memory when they are loaded; nil for a record not
+    # saved yet or an options row that is not a JSON object.
     def stored_decorator_class_option
       return unless persisted?
 
-      decorator_class_option_of(stored_form_of(metas.where(key: '_default').order(:id).first&.value))
+      decorator_class_option_of(stored_form_of(stored_meta_row('_default')&.value))
     end
 
     # The decorator option the stored form of a post type's options holds; nil when it is not a JSON object.

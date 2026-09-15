@@ -103,6 +103,19 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option('has_seo')).to be(false)
     end
 
+    # The stored value a refusal compares with comes from the row a write updates, found among loaded metas
+    # as every other lookup on them is.
+    it 'looks the stored value up among loaded metas without querying' do
+      record = described_class.includes(:metas).find(post_type.id)
+      record.options
+
+      selects = metas_selects do
+        expect { record.set_option(option, 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+
+      expect(selects).to be_empty
+    end
+
     # A refused write changes no row, so the metas in memory stay: on an unsaved record they are the
     # metas built for its first save.
     it 'keeps the metas built on an unsaved record when a write is refused' do
