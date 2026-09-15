@@ -197,7 +197,10 @@ Changes that look free from inside this repository and are not:
   (`sites`), and `camaleon-ecommerce`'s shipping prices (`@prices`). The exception is
   `camaleon-ecommerce`'s `LegacyOrder#payment_method` (`get_meta("payment")[:payment_id]`): on an order
   without a `payment` meta it raised unless `shipping_method` had read the meta with `{}` first, and it
-  now raises either way, as on a freshly loaded order.
+  now raises either way, as on a freshly loaded order. `set_meta` memoizing what a reload reads, instead of
+  the caller's object, is likewise invisible: no surveyed consumer compares a read to the object it passed
+  or reads its Symbol keys back on the writing instance, and every hash read from `get_meta` and changed is
+  passed to `set_meta` again (the survey recorded for #1302).
 
 ## APIs with no surveyed consumer
 

@@ -28,7 +28,7 @@ what theme/plugin developers should know.
 | Has a plugin or theme that reads a saved record's `data_options`/`data_metas` back, or overrides `save_metas_options_skip` | They read `nil` once written and the hook is gone — read `options`/`get_meta` instead ([details](#data_options-and-data_metas-are-written-once)) |
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
-| Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta` | Write the change with `set_meta` ([details](#get_meta-returns-each-calls-own-default)) |
+| Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, or reads back the object it passed to `set_meta` on the same instance | Write changes with `set_meta`; a read returns what a reloaded record reads ([details](#get_meta-returns-each-calls-own-default)) |
 
 ---
 
@@ -314,10 +314,10 @@ always did.
   an `ActionController::Parameters` object. The copy carries no default your hash may have. An option
   written on that object afterwards is stored beside the options you passed. A post type created with a
   `_default` meta in `data_metas` keeps the options that meta holds under its defaults, whichever key type
-  names them. `get_meta` still returns the hash you passed until the first `set_option`, `set_options` or
-  `delete_option` on that object, which stores and returns its own indifferent hash and no longer writes
-  into your hash as 2.9.4 did; a change made to the hash `options` returns, or to a hash nested in it,
-  without an option writer, no longer reaches it.
+  names them. `get_meta` on that object returns that same indifferent copy, never the hash you passed, and
+  the option writers store and return their own hash instead of writing into yours as 2.9.4 did; a change
+  made to the hash `options` returns, or to a hash nested in it, without an option writer, no longer
+  reaches it.
 - Options that are nil, an empty string or absent read as empty options: `options` returns a new empty
   hash on each read instead of `nil` or `''`, `get_option` and the option writers no longer raise, and a
   change made to that empty hash without an option writer is neither read back nor stored. Code that
@@ -335,6 +335,16 @@ returned their own.
 - `set_meta(key, nil)` and `set_meta(key, '')` read back as the caller's default on the writing instance, as
   they already did after a reload; a meta stored as null read as nil before, whatever the default.
 - `get_option` returns its default for an option stored as null, as it already did for an empty string.
+
+A value written with `set_meta` reads back on the writing object as a freshly loaded record reads it, where
+2.9.4 handed back the object you passed:
+
+- A Hash or request parameters read as an indifferent hash (`[:key]` and `['key']` alike), a JSON string as
+  the value it holds, and a numeric or boolean String as the number or the boolean, as `set_meta` stores
+  them.
+- Your own object is left as passed, and a change made to it after the write is not read back. Code that
+  compared a read to its own hash, or iterated its Symbol keys, on the writing object sees the stored form
+  now, as it already did once the record was loaded again.
 
 ---
 

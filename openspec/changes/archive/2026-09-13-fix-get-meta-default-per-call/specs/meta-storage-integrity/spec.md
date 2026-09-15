@@ -1,27 +1,39 @@
+## RENAMED Requirements
+
+- FROM: `### Requirement: set_meta keeps the caller's value on the writing instance`
+- TO: `### Requirement: set_meta reads back on the writing instance as a reloaded record does`
+
 ## MODIFIED Requirements
 
-### Requirement: set_meta keeps the caller's value on the writing instance
+### Requirement: set_meta reads back on the writing instance as a reloaded record does
 
-A value written with `set_meta` SHALL be returned by `get_meta` on the same instance as the object the
-caller passed, with the caller's own keys, until the record is loaded again or an option writer on that
-instance stores its own indifferent hash, which `get_meta` returns from then on, the caller's hash left
-as passed. Nil and an empty string SHALL be the exceptions: `get_meta` SHALL read them as a meta with no value
-and return the caller's default, as a reloaded record does. A record not yet saved SHALL keep it until its
-first save, after which the instance reads what it stored. When the value is the record's options,
-`options` and `get_option` on that instance SHALL find an option by a String key or its Symbol twin, as a
-freshly loaded record does, whether the caller passed a plain Hash, request parameters or a JSON string.
-The copy `options` returns SHALL share nothing with the caller's value, its nested hashes included, and
-SHALL carry no default of the caller's hash, so a missing option reads nil as after a reload.
+A value written with `set_meta` SHALL be returned by `get_meta` on the same instance in the form a freshly
+loaded record reads it: a Hash, an Array or request parameters as the indifferent hash, or array, their
+JSON parses to; a String holding JSON as the value it holds; a numeric or boolean String as the number or
+the boolean; nil or an empty string as a meta with no value, so the caller's default is returned. The
+object the caller passed SHALL be left as passed and SHALL NOT be returned, so a change made to it after
+the write is not read. A record not yet saved SHALL read a written value the same way until its first
+save, after which the instance reads what it stored. When the value is the record's options, `options`
+and `get_option` on that instance SHALL find an option by a String key or its Symbol twin, as a freshly
+loaded record does, whether the caller passed a plain Hash, request parameters or a JSON string. The
+hash `options` returns SHALL share nothing with the caller's value, its nested hashes included, and SHALL
+carry no default of the caller's hash, so a missing option reads nil as after a reload.
 
 #### Scenario: A plugin reads back the hash it wrote
 
-- **WHEN** a hash with Symbol keys is written with `set_meta`
-- **THEN** `get_meta` on the same instance returns that same hash object
+- **WHEN** a hash with Symbol keys is written with `set_meta` and a key is then added to the caller's hash
+- **THEN** `get_meta` on the same instance returns an indifferent hash holding the values written, read by
+  either key type, not the caller's object, and without the key added afterwards
+
+#### Scenario: A string that stores as a number, a boolean or JSON
+
+- **WHEN** `'2024'`, `'false'` and `'[1, 2]'` are written with `set_meta`
+- **THEN** the same instance reads `2024`, `false` and `[1, 2]`, as a freshly loaded record does
 
 #### Scenario: A new record saved after the write
 
 - **WHEN** a hash is written with `set_meta` on an unsaved post type and the post type is saved
-- **THEN** the same instance reads the stored hash by its keys, no longer the caller's object
+- **THEN** the same instance reads the stored hash by its keys before and after the save
 
 #### Scenario: A meta written as nil or as an empty string
 
@@ -35,7 +47,8 @@ SHALL carry no default of the caller's hash, so a missing option reads nil as af
 - **THEN** on the same instance, `options` and `get_option` read `color` by its Symbol key and `size` by
   its String key
 - **AND** a freshly loaded post type reads the same values
-- **AND** `get_meta` on the same instance returns the hash the caller passed, with its own keys
+- **AND** the caller's hash keeps its own keys, and `get_meta` on the same instance returns an indifferent
+  hash holding both values
 
 #### Scenario: An option written after set_meta
 
@@ -74,7 +87,7 @@ SHALL carry no default of the caller's hash, so a missing option reads nil as af
   under `theme` and one inside an array under `sizes`, and a nested option of each is changed on the hash
   `options` returns
 - **THEN** the caller's hashes still hold their values
-- **AND** `get_meta` on the same instance returns the hash the caller passed
+- **AND** `get_meta` on the same instance does not return the caller's hash
 
 ## ADDED Requirements
 
