@@ -54,3 +54,4 @@
 - [x] 5.14 Return the value passed from `set_meta`, as 2.9.4 did, instead of the form it memoizes, so the option writers return the options they wrote; correct its comment and spec both return values.
 - [x] 5.15 Keep the Hash or the Array an instance handed out memoized when it is written back, taking the stored form in place, so a hash `options` returned keeps reading later option writes; spec a held options hash, a hash written back twice and a written-back list.
 - [x] 5.16 Put back the options an option writer changed when its `set_meta` raises, refused or failed, instead of `PostType` dropping the memo, and spec a refused write read without a query and a failed write of each writer.
+- [x] 5.17 Read the decorator option out of a stored form of the options through one `PostType` helper, shared by the write check and the stored-value lookup.

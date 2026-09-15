@@ -276,8 +276,7 @@ module CamaleonCms
     # The decorator option of `options` as get_meta will read it back once set_meta stores them, whatever
     # form the writer passed: the key form written last in a Hash, the parameters' value, the JSON's.
     def decorator_class_option_in(options)
-      stored = stored_form_of(fix_meta_value(options))
-      stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
+      decorator_class_option_of(stored_form_of(fix_meta_value(options)))
     end
 
     # The decorator option as the database holds it before the write under check, from the row get_meta
@@ -285,7 +284,11 @@ module CamaleonCms
     def stored_decorator_class_option
       return unless persisted?
 
-      stored = stored_form_of(metas.where(key: '_default').order(:id).first&.value)
+      decorator_class_option_of(stored_form_of(metas.where(key: '_default').order(:id).first&.value))
+    end
+
+    # The decorator option the stored form of a post type's options holds; nil when it is not a JSON object.
+    def decorator_class_option_of(stored)
       stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
     end
 
