@@ -35,6 +35,8 @@ Two neighbouring splits between the writing instance and a reloaded record were 
   or the boolean for a numeric or boolean String, the value a JSON string holds, a plain String for any
   other text, the default for nil or an empty string. The caller's object is left as passed and never
   handed back.
+- `options` returns the indifferent hash `get_meta` memoizes or a new empty one; a row holding a JSON string,
+  even one whose text is an object, reads as empty options.
 - `PostType` leaves the metas in memory when it refuses a decorator-option write, so an unsaved post type
   keeps the metas built for its first save.
 - `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read

@@ -108,21 +108,14 @@ module CamaleonCms
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
     # The indifferent hash the record's options parse to, on the writing instance as on a freshly loaded
-    # record, so a String key and its Symbol twin read the same option: the hash the option writers keep,
-    # as it is, or, for a stored JSON string that holds an object, an indifferent copy of that object,
-    # sharing nothing with it and leaving a Hash default behind, so a missing option reads nil. A value
-    # that is not a JSON object (no options row, a legacy or corrupt row, a string that holds none, nil)
-    # reads as a new empty hash on each read, so every reader and writer works on the record and a change
-    # made to that hash without a writer is not stored; the row, if any, is replaced the next time an
-    # option is written.
+    # record, so a String key and its Symbol twin read the same option: the hash get_meta memoizes, which
+    # the option writers update. A value that is not a JSON object (no options row, a legacy or corrupt row,
+    # a JSON string, even one whose text is an object, nil) reads as a new empty hash on each read, so every
+    # reader and writer works on the record and a change made to that hash without a writer is not stored;
+    # the row, if any, is replaced the next time an option is written.
     def options(meta_key = '_default')
       data = get_meta(meta_key)
-      data = parsed_json(data) if data.is_a?(String)
-      case data
-      when ActiveSupport::HashWithIndifferentAccess then data
-      when Hash then ActiveSupport::HashWithIndifferentAccess.new.update(data.deep_dup)
-      else ActiveSupport::HashWithIndifferentAccess.new
-      end
+      data.is_a?(ActiveSupport::HashWithIndifferentAccess) ? data : ActiveSupport::HashWithIndifferentAccess.new
     end
     alias cama_options options
 
@@ -326,14 +319,6 @@ module CamaleonCms
     # that takes a default returns it for these, on the writing instance and on a freshly loaded record.
     def meta_value_absent?(value)
       value.nil? || value == ''
-    end
-
-    # The value a JSON string a caller passed to set_meta holds, parsed as a freshly loaded record parses
-    # the row it stored; nil for a string that holds no JSON
-    def parsed_json(text)
-      JSON.parse(text, allow_duplicate_key: true)
-    rescue JSON::ParserError
-      nil
     end
 
     # The stored form of a value: JSON for a container, and for a boolean its JSON literal, which reads
