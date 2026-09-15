@@ -41,6 +41,18 @@ RSpec.describe CamaleonCms::MetasDecoratorMethods do
     expect([decorated(reloaded).the_meta('mixed'), decorated(reloaded).the_option('mixed')]).to eq([read_as, read_as])
   end
 
+  it 'returns a meta or option stored as a hash as read' do
+    post.set_meta('settings', { color: 'red' })
+    post.set_option('settings', { color: 'red' })
+    reloaded = CamaleonCms::Post.find(post.id)
+
+    [post, reloaded].each do |record|
+      reads = [decorated(record).the_meta('settings'), decorated(record).the_option('settings')]
+      expect(reads).to all(eq('color' => 'red'))
+      expect(reads.map { |read| read[:color] }).to eq(%w[red red])
+    end
+  end
+
   it 'returns an option stored as a number as read and translates a String option' do
     post.set_options(year: '2024', greeting: translatable)
     reloaded = CamaleonCms::Post.find(post.id)

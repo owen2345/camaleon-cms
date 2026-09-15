@@ -248,6 +248,12 @@ boolean or a hash; on the writing instance and on a freshly loaded record alike.
   and on a freshly loaded one
 - **THEN** each read returns the Spanish text, `'7'` and `'true'`
 
+#### Scenario: A meta and an option stored as a hash
+
+- **WHEN** a post's `settings` meta and option are written as a hash holding `color` and read with
+  `the_meta` and `the_option`, on the writing post and on a freshly loaded one
+- **THEN** each read returns an indifferent hash holding `color`
+
 ### Requirement: A meta is read by the String form of its key
 
 `get_meta` SHALL look a key up by its String form, as `set_meta` and `delete_meta` store and remove it,
