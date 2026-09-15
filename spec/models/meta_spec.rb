@@ -136,6 +136,20 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(post_type.options).to eq(CamaleonCms::PostType.find(post_type.id).options)
     end
 
+    # The first option writer stores and caches its own indifferent copy, which get_meta returns from then
+    # on; the caller's hash is left as passed, where 2.9.4 wrote into it.
+    it 'returns the writer\'s hash from get_meta once an option is written after set_meta' do
+      passed = { 'color' => 'red' }
+      post_type = create(:post_type)
+      post_type.set_meta('_default', passed)
+
+      post_type.set_option('size', 'xl')
+
+      expect(post_type.get_meta('_default')).to eq('color' => 'red', 'size' => 'xl')
+      expect(post_type.get_meta('_default')).not_to equal(passed)
+      expect(passed).to eq('color' => 'red')
+    end
+
     # An indifferent hash converts a nested plain Hash into a copy but keeps a nested indifferent hash by
     # reference; the options copy shares neither with the caller's hash.
     it 'copies a caller hash without sharing its nested hashes' do

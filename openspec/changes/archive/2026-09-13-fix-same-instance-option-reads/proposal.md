@@ -78,7 +78,8 @@ None.
 - **Plugins and themes:**
   - After `set_meta` with a plain Hash, `options` on that instance returns an indifferent copy instead of
     the caller's hash; after nil or an empty string, it returns empty options. `get_meta` still returns
-    the caller's value.
+    the caller's value until the first option write on that object, which stores and returns its own
+    indifferent hash instead of writing into the caller's, as 2.9.4 did.
   - A write into the hash `options` returns, or into a hash nested in it, made without `set_meta`, no
     longer reaches a caller's plain Hash. No code in the engine or in the plugin, theme and host repositories checked does that.
   - `camaleon-ecommerce` passes request parameters to `set_meta('_default', …)` and reads them back with

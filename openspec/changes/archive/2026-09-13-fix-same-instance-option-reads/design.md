@@ -94,7 +94,8 @@ as no options, so the defect does not reach option reads.
 ## Risks / Trade-offs
 
 - [After `set_meta` with a plain Hash, a JSON string, nil or an empty string, `options` on that instance no
-  longer returns the caller's value] → `get_meta` still does. A write into the hash `options` returns, made
+  longer returns the caller's value] → `get_meta` still does, until the first option write on that instance stores
+  and caches the writer's hash. A write into the hash `options` returns, made
   without `set_meta`, no longer reaches a caller's plain Hash, nor do its nested hashes. No code in the engine or in the plugin,
   theme and host repositories checked does that.
 - [A caller's plain Hash is copied on each `options` read until an option is written] → Only options

@@ -36,8 +36,10 @@ does.
 ### Requirement: set_meta keeps the caller's value on the writing instance
 
 A value written with `set_meta` SHALL be returned by `get_meta` on the same instance as the object the
-caller passed, with the caller's own keys, until the record is loaded again. A record not yet saved
-SHALL keep it until its first save, after which the instance reads what it stored. When the value is
+caller passed, with the caller's own keys, until the record is loaded again or an option writer on that
+instance stores its own indifferent hash, which `get_meta` returns from then on, the caller's hash left
+as passed. A record not yet saved SHALL keep it until its first save, after which the instance reads what
+it stored. When the value is
 the record's options, `options` and `get_option` on that instance SHALL find an option by a String key
 or its Symbol twin, as a freshly loaded record does, whether the caller passed a plain Hash, request
 parameters or a JSON string. The copy `options` returns SHALL share nothing with the caller's value, its
@@ -62,6 +64,13 @@ after a reload.
   its String key
 - **AND** a freshly loaded post type reads the same values
 - **AND** `get_meta` on the same instance returns the hash the caller passed, with its own keys
+
+#### Scenario: An option written after set_meta
+
+- **WHEN** a post type's options are written with `set_meta` as a plain Hash and an option is then set on
+  the same instance
+- **THEN** `get_meta` on that instance returns the writer's hash, holding both, not the caller's hash
+- **AND** the caller's hash holds only what it passed
 
 #### Scenario: Options a caller passed to set_meta as request parameters
 
