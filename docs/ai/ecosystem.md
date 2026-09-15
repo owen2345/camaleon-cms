@@ -188,19 +188,21 @@ Changes that look free from inside this repository and are not:
   `save_metas_options_skip` and `fix_save_metas_options_no_changed` hooks, which no surveyed
   repository overrides or calls.
 
-- **Applying `get_meta`'s default per call** is invisible to the surveyed consumers but one. A read of a
-  meta with no value (no row, or a stored `''`) used to return the default the instance's first read
-  passed, with any in-place changes a caller made to it; each read now gets its own default, as on a
-  freshly loaded record, and `set_meta(key, '')` reads as the default on the writing instance too. The
-  consumers that change a returned default in place keep it in a variable and write it back with
-  `set_meta`: `camaleon_website`'s store plugin (`scores`, `downloads`) and notification plugin
-  (`sites`), and `camaleon-ecommerce`'s shipping prices (`@prices`). The exception is
-  `camaleon-ecommerce`'s `LegacyOrder#payment_method` (`get_meta("payment")[:payment_id]`): on an order
-  without a `payment` meta it raised unless `shipping_method` had read the meta with `{}` first, and it
-  now raises either way, as on a freshly loaded order. `set_meta` memoizing what a reload reads, instead of
-  the caller's object, is likewise invisible: no surveyed consumer compares a read to the object it passed
-  or reads its Symbol keys back on the writing instance, and every hash read from `get_meta` and changed is
-  passed to `set_meta` again (the survey recorded for #1302).
+- **Applying `get_meta`'s default per call, and memoizing in `set_meta` what a reload reads** (#1303) is
+  invisible to every surveyed consumer. A read of a meta with no value (no row, or a stored null or `''`)
+  used to return the default the instance's first read passed, with any in-place changes a caller made to
+  it, and a value written with `set_meta` was handed back as the caller's object; each read now gets its
+  own default and every read returns what a freshly loaded record reads. The consumers that change a
+  returned default in place keep it in a variable and write it back with `set_meta`: `camaleon_website`'s
+  store plugin (`scores`, `downloads`) and notification plugin (`sites`), and `camaleon-ecommerce`'s
+  shipping prices (`@prices`); none compares a read to the object it passed or reads its Symbol keys back
+  on the writing instance, and every hash read from `get_meta` and changed is passed to `set_meta` again
+  (the survey recorded for #1302). The one read that relied on an earlier read's default is
+  `camaleon-ecommerce`'s deprecated `LegacyOrder`: `#payment_method` and `#payment` read
+  `get_meta("payment")` with no default and raised on an order without that meta unless `shipping_method`
+  had memoized `{}` first; they now raise either way, and `shipping_method` no longer raises after them.
+  Nothing in the plugin calls these methods (its only reference to the class is the 2016 order-data
+  migration, which reads columns and `metas`), so no surveyed code path changes.
 
 ## APIs with no surveyed consumer
 
