@@ -13,6 +13,11 @@ module CamaleonCms
     # how the text column cast a boolean before booleans were stored as their JSON literal
     LEGACY_BOOLEANS = { 't' => true, 'f' => false }.freeze
 
+    # What a JSON text can open with, after its whitespace, on every supported json release: an object, an
+    # array, a string, a comment, a number, true, false or null. Text opening with anything else holds none.
+    JSON_TEXT_OPENING = %r{\A\s*[\[\{"/\-\dtfn]}
+    private_constant :JSON_TEXT_OPENING
+
     included do
       # options and metas auto save support
       attr_accessor :data_options
@@ -233,13 +238,15 @@ module CamaleonCms
     # What a read returns for the text a row holds, or for the value fix_meta_value produced for one: its
     # JSON parsed, with the Hashes in it read by either key type at any depth (a key an older write stored
     # twice keeps its last value, as json 2 read it), a legacy 't' or 'f' as the boolean, a plain String copy
-    # of the text when it holds no JSON, and nil for a null row. set_meta memoizes this form, so the writing
-    # instance reads what a freshly loaded record reads: for text, the plain String the text column casts,
-    # neither the caller's object nor html_safe.
+    # of the text when it holds no JSON, taken without a parse when the text cannot open a JSON text, and nil
+    # for a null row. set_meta memoizes this form, so the writing instance reads what a freshly loaded record
+    # reads: for text, the plain String the text column casts, neither the caller's object nor html_safe.
     def stored_form_of(stored)
       return if stored.nil?
 
       text = stored.to_s
+      return String.new(text) unless text.match?(JSON_TEXT_OPENING)
+
       parsed = LEGACY_BOOLEANS.fetch(text) { JSON.parse(text, allow_duplicate_key: true) }
       CamaleonCms::Metas.indifferent_json_value(parsed)
     rescue StandardError
