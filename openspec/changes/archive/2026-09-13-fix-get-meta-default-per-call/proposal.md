@@ -83,5 +83,5 @@ None.
     order without a `payment` meta whatever was read before; recorded as withdrawn behaviour in
     `docs/ai/ecosystem.md`.
 - **`fix-same-instance-option-reads` (#1302):** merged before this change. Its requirement "An options row
-  that is not an object reads as empty" stays as it is: a no-default read leaves `''` memoized instead of
-  nil, and `options` reads both as no options.
+  that is not an object reads as empty" gains a scenario for a row holding a JSON string whose text is an
+  object; a no-default read leaves nil memoized, which `options` reads as no options.

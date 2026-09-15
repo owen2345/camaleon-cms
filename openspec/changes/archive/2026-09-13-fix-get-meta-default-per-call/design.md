@@ -55,8 +55,10 @@ See proposal.md, "Why". The approach is shaped by these constraints:
 ## Decisions
 
 **Memoize the stored lookup and apply the default outside the memo.** The memoized block returns the parsed
-stored value, or `''` when the key has no row. `get_meta` returns the caller's default when the memoized
+stored value, or nil when the key has no row. `get_meta` returns the caller's default when the memoized
 value has no value, and the memoized value otherwise.
+- nil, not `''`, for a key with no row: a direct reader of the memo (`cama_get_cache`) gets nothing it could
+  change or take for a value, where the concern's `''` literal is frozen and reads as an empty text.
 - One private predicate, `meta_value_absent?`, names "no value" for `get_meta` and `get_option`: nil or an
   empty string. No row, a null row, a stored `''`, `set_meta(key, nil)` and `set_meta(key, '')` all take
   that branch, and `options` already read them as no options.

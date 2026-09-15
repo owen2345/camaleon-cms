@@ -47,3 +47,4 @@
 - [x] 5.7 Memoize a plain String copy of text that holds no JSON, so `set_meta` hands back neither the caller's String nor an html_safe one; spec both in `spec/models/meta_written_form_spec.rb` and add the scenario to the `set_meta` requirement.
 - [x] 5.8 Describe `the_meta` and `the_option` reading every item of an Array as a String through the locale, in the decorator's comment, the upgrade guide, this change and the requirement, and spec an Array holding a number and a boolean.
 - [x] 5.9 Remove the `options` branches that converted a String or a plain Hash `get_meta` returned, which only a row holding a JSON string could still reach, and spec such a row reading as empty options.
+- [x] 5.10 Memoize nil, not the concern's frozen `''`, for a key with no row, and spec what a missing meta's read memoizes.
