@@ -63,16 +63,17 @@ RSpec.describe CamaleonCms::Post, type: :model do
       expect(permissions[:edit]).to eq([post_type.id])
     end
 
-    it 'reads a missing meta from the database once' do
+    it 'reads a missing meta from the database once per key' do
       post = described_class.find(create(:post, post_type: post_type).id)
 
       queries = metas_selects do
         post.get_meta('gallery')
         post.get_meta('gallery', [])
         post.get_meta('gallery', {})
+        post.get_meta('thumb')
       end
 
-      expect(queries.size).to eq(1)
+      expect(queries.size).to eq(2)
     end
   end
 

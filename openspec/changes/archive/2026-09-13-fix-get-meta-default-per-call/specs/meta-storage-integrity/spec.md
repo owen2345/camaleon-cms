@@ -133,6 +133,6 @@ until the meta is written or deleted.
 
 #### Scenario: Repeated reads of a missing meta
 
-- **WHEN** a post loaded without its metas reads a missing meta three times: with no default, with an empty
-  array and with an empty hash
-- **THEN** one database query reads the post's metas
+- **WHEN** a post loaded without its metas reads a missing meta three times, with no default, with an empty
+  array and with an empty hash, and then another missing meta
+- **THEN** the metas table is queried once for each of the two keys
