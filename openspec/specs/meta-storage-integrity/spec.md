@@ -325,6 +325,12 @@ When a record's stored options meta (`_default`, or another options meta key) ho
   freshly loaded post
 - **AND** an option set on the freshly loaded post is read by a post loaded afterwards
 
+#### Scenario: A row holding a JSON string whose text is an object
+
+- **WHEN** a post's `_default` meta holds a JSON string whose text is an object holding `status_default`
+- **THEN** `options` is empty and `get_option` returns the caller's default, on the writing instance and on
+  a freshly loaded post
+
 ### Requirement: Meta and option writers refuse a container that is not a set of fields
 
 `set_metas` and `set_options` SHALL accept only a set of fields (a Hash, or request parameters) or nothing. A container that is present but not a set of fields, such as an array of pairs or a scalar, SHALL raise an argument error and store nothing. A `data_options` or `data_metas` value that is present but not a set of fields SHALL be refused the same way before the record's row is written, so no row is left behind it; a blank one SHALL be ignored. An admin save that passes such a container from the request SHALL answer with an error message on the submitted form's page, not a server error, and SHALL store none of it.

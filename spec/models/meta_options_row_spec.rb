@@ -23,6 +23,16 @@ RSpec.describe CamaleonCms::Metas, type: :model do
       end
     end
 
+    # A JSON string is not an object even when its text is one: the options read as empty rather than
+    # parsed a second time, as no writer stores them encoded twice.
+    it 'reads as empty when the row holds a JSON string whose text is an object' do
+      record.set_meta('_default', { 'status_default' => 'published' }.to_json.to_json)
+      stored_record = CamaleonCms::Post.find(record.id)
+
+      expect([record.options, stored_record.options]).to all(eq({}))
+      expect(stored_record.get_option('status_default', 'fallback')).to eq('fallback')
+    end
+
     it 'takes a written option, starting from empty' do
       record.set_meta('_default', 'corrupt')
       stored_record = record.reload

@@ -83,9 +83,12 @@ object is left as passed and never handed back.
 - Rejected, a `dup` of the text: it keeps an html_safe String html_safe, which renders unescaped on the
   writing instance where a freshly loaded record reads a plain String. `String.new` copies the text as the
   column casts it.
-- `options` no longer converts request parameters, since no read returns them; a stored JSON string that
-  holds an object still reads as an indifferent copy of it. `PostType`'s decorator-option checks parse
-  through the same helper.
+- `options` returns the indifferent hash `get_meta` memoizes, or a new empty one, and converts nothing: no
+  read returns request parameters, a plain Hash or a JSON string any more, since `set_meta` memoizes them
+  parsed, so the branches that converted them are gone. A row holding a JSON string, even one whose text
+  is an object, reads as empty options, as the options-row requirement has every value that is not an
+  object; no writer stores options encoded twice. `PostType`'s decorator-option checks parse through the
+  same helper.
 
 **Return the caller's own default.** It is not copied or memoized. The option writers keep working because
 they pass the options they change to `set_meta`, which memoizes the stored form of that object.
