@@ -17,10 +17,11 @@ module SqlQueriesHelper
     ActiveSupport::Notifications.unsubscribe(sub)
   end
 
-  # The SELECTs a block issues against the metas table, whatever the table name prefix: the shape every
-  # spec that pins how often a record's metas are read counts.
+  # The SELECTs a block issues against the metas table, whatever the table name prefix and whatever
+  # whitespace or comment, such as a query log tag, precedes them: the shape every spec that pins how often
+  # a record's metas are read counts. A table whose name only starts with metas is not the metas table.
   def metas_selects(&block)
-    sql_queries(matching: /\ASELECT\b.*\bFROM\s+["'`]?\w*metas["'`]?/im, &block)
+    sql_queries(matching: %r{\A\s*(?:/\*.*?\*/\s*)*SELECT\b.*\bFROM\s+["'`]?\w*metas\b}im, &block)
   end
 end
 
