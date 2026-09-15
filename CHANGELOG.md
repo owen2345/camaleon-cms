@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Bug fix:** `get_meta` for a meta with no value (no row, or a stored null or empty string) returns the default each read passes, `get_option` does the same for a null option, and a value written with `set_meta` reads back on the writing instance as a freshly loaded record reads it: an indifferent hash for a Hash, the number or boolean for a numeric or boolean string, the default for nil or an empty string. [#1303](https://github.com/owen2345/camaleon-cms/pull/1303).
+- **Bug fix:** `get_meta` and `get_option` return each read's own default for a meta or option with no value (no row, or a stored null or empty string); a value written with `set_meta` reads back on the writing instance as a freshly loaded record reads it (an indifferent hash, the number or boolean a string stores as, the default for nil or `''`); `the_meta` and `the_option` return a stored number or boolean instead of raising. [#1303](https://github.com/owen2345/camaleon-cms/pull/1303).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#get_meta-returns-each-calls-own-default).
 
 - **Bug fix:** On the record that wrote its options with `set_meta`, `options` and `get_option` read an option by a String key or its Symbol twin, as a freshly loaded record does, whether passed as a plain Hash, request parameters or a JSON string, and an option written on that object afterwards is stored beside them. [#1302](https://github.com/owen2345/camaleon-cms/pull/1302).
