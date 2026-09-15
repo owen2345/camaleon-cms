@@ -76,11 +76,11 @@ module CamaleonCms
       cama_set_cache("meta_#{key}", stored_form_of(fixed_value))
     end
 
-    # return value of meta with key: key,
-    # if meta not exist, or its value is null or "", return default
+    # The value stored for key, as a freshly loaded record reads it, memoized per instance with '' standing
+    # for a key with no row. Each call applies its own default, outside the memo, when the meta has no
+    # value: no row, or a stored null or empty string.
     def get_meta(key, default = nil)
       key_str = key.is_a?(Symbol) ? key.to_s : key
-      # memoize what the record stores, '' for no value, and apply each call's own default outside the memo
       cached = cama_fetch_cache("meta_#{key_str}") do
         option = if metas.loaded? || created_record_metas_in_memory?
                    metas.target.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
