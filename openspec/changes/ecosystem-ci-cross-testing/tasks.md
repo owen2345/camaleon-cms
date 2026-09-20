@@ -11,17 +11,17 @@ repositories are edited by absolute path from the core working directory, their 
 - [x] 1.5 Restore the workspace (`git checkout Gemfile.lock spec/dummy/db/schema.rb`, plain `bundle install`) and verify `git status` shows only the intended `Gemfile` edit
 - [x] 1.6 Add `.github/workflows/core_compat.yml` per design Decisions 4 to 6 and 8 (`workflow_call` + `workflow_dispatch`, inputs `camaleon_cms_repository`, `camaleon_cms_ref`, `member_ref`; side-by-side checkouts; chromedriver; setup-ruby without bundler cache; `bundle lock`, print the lock diff, `actions/cache` on `vendor/bundle`, `bundle install`; DB prepare + migrate; `bundle exec rspec`); verify it parses with `ruby -ryaml` and, if `actionlint` is available, lints clean
 - [x] 1.7 Add a CHANGELOG entry (newest first, 500 characters at most) and run the repository's full `bin/rubocop`; verify 0 offenses
-- [ ] 1.8 After approval: commit, push the branch, open the PR (description per `docs/ai/workflows.md` Phase 4), link it from the changelog entry; verify the member's own CI is green on the PR
+- [x] 1.8 After approval: commit, push the branch, open the PR (description per `docs/ai/workflows.md` Phase 4), link it from the changelog entry; verify the member's own CI is green on the PR
 
 ## 2. Core workflow, proven against the pilot
 
 - [x] 2.1 Add `.github/workflows/ecosystem.yml` on `feature/ecosystem-ci-cross-testing`: `pull_request` + push to `master`, `permissions: contents: read`, per-ref concurrency with cancel-in-progress, one `cama_contact_form` job calling the pilot workflow at its feature branch with `member_ref` set to that branch, passing `github.repository` and `github.sha`; verify it parses with `ruby -ryaml`
-- [ ] 2.2 After approval: commit without a skip-ci marker (this PR's proof is its own run), push, open the core PR; verify a `cama_contact_form / …` check appears on the PR, that its log shows core checked out at the PR's merge commit and the member at its feature branch, and that the suite passes
-- [ ] 2.3 If the run is refused by the repository's Actions policy or fails in setup, fix the member workflow on its branch and re-run until green; record in `design.md` anything that contradicted a decision
+- [x] 2.2 After approval: commit without a skip-ci marker (this PR's proof is its own run), push, open the core PR; verify a `cama_contact_form / …` check appears on the PR, that its log shows core checked out at the PR's merge commit and the member at its feature branch, and that the suite passes
+- [x] 2.3 If the run is refused by the repository's Actions policy or fails in setup, fix the member workflow on its branch and re-run until green; record in `design.md` anything that contradicted a decision
 
 ## 3. Remaining members, from the proven template
 
-- [ ] 3.1 `camaleon-cms-seo`: repeat 1.1 to 1.7 on `feature/core-compat-workflow` (no chromedriver step); verify the local suite is green against core master and the lock is restored
+- [x] 3.1 `camaleon-cms-seo`: repeat 1.1 to 1.7 on `feature/core-compat-workflow` (no chromedriver step); verify the local suite is green against core master and the lock is restored
 - [ ] 3.2 `camaleon_editor`: repeat 1.1 to 1.7 (chromedriver step; clear `spec/dummy/tmp/cache` and `spec/dummy/public/assets` before the local run); verify the local suite is green against core master and the lock is restored
 - [ ] 3.3 `florsan`: repeat 1.1 to 1.7 from fresh `origin/main` (Postgres 16 service with the credentials its `ci.yml` uses, `bin/rails db:test:prepare` + `db:migrate` from the app root, `bin/rspec`; no chromedriver); verify the local suite is green against core master and the lock is restored
 - [ ] 3.4 After approval, one member at a time: commit, push, open its PR, add its job to core's `ecosystem.yml` at the member's feature branch, push core; verify that member's check appears on the core PR and passes, and that the other members' checks ran independently

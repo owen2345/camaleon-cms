@@ -132,8 +132,9 @@ ever added, these checks stay out of the required set, and `docs/ai/ecosystem.md
 does. Fork code already runs in core's own suite under the same read-only, secretless token, so the
 member runs add no new exposure.
 
-`ecosystem.yml` sets a concurrency group per ref with `cancel-in-progress`, so a force-push does not
-leave four stale member runs going. The member workflow sets none; the caller owns it.
+`ecosystem.yml` sets a concurrency group per ref and cancels in-progress runs on `pull_request` only,
+so a newer push to a PR does not leave four stale member runs going, while each commit on `master`
+keeps its own run as its record. The member workflow sets none; the caller owns it.
 
 A `[skip ci]` head commit suppresses this workflow like the others. No special case.
 
@@ -156,7 +157,8 @@ time, per the standing workflow rules.
   member's own CI catches that first; the check is advisory; the log shows the failure is not in code
   the core PR touched.
 - [`owen2345/camaleon-cms` may restrict which actions and reusable workflows can run; the setting is
-  not readable without admin] → The pilot run reveals it at once. `florsan`, under another owner, is
+  not readable without admin] → The pilot run showed a same-owner call (`owen2345/cama_contact_form`)
+  is allowed; a call across owners is still unproven until `florsan` is added. `florsan`, under another owner, is
   the likeliest to be refused; if so it is dropped from `ecosystem.yml` or the owner adjusts the policy.
 - [Conservative re-lock still moves a gem when core master requires it] → That is a true statement
   about core master and what a host app will hit on upgrade. The re-resolved lock is printed in the
