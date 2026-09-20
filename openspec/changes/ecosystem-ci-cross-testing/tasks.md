@@ -25,19 +25,19 @@ repositories are edited by absolute path from the core working directory, their 
 - [x] 3.2 `camaleon_editor`: repeat 1.1 to 1.7 (chromedriver step; clear `spec/dummy/tmp/cache` and `spec/dummy/public/assets` before the local run); verify the local suite is green against core master and the lock is restored
 - [x] 3.3 `florsan`: repeat 1.1 to 1.7 from fresh `origin/main` (Postgres 16 service with the credentials its `ci.yml` uses, `bin/rails db:test:prepare` + `db:migrate` from the app root, `bin/rspec`; no chromedriver); verify the local suite is green against core master and the lock is restored
 - [x] 3.4 After approval, one member at a time: commit, push, open its PR, add its job to core's `ecosystem.yml` at the member's feature branch, push core; verify that member's check appears on the core PR and passes, and that the other members' checks ran independently
-- [ ] 3.5 Remove the `workflow_dispatch` trigger from all four member workflows (design Decision 6: CodeQL cache-poisoning finding on `florsan`), say why in each workflow header, update the four PR descriptions; verify each file parses with `workflow_call` as its only trigger, that the four member checks still pass on the core PR, and that `florsan`'s CodeQL check turns green
+- [x] 3.5 Remove the `workflow_dispatch` trigger from all four member workflows (design Decision 6: CodeQL cache-poisoning finding on `florsan`), say why in each workflow header, update the four PR descriptions; verify each file parses with `workflow_call` as its only trigger, that the four member checks still pass on the core PR, and that `florsan`'s CodeQL check turns green
 
 ## 4. Core documentation
 
-- [ ] 4.1 `docs/ai/ecosystem.md`: add a cross-testing section listing the enrolled members, what a repository must provide to enroll (public, RSpec workflow, the three inputs, the Gemfile switch), that the checks are advisory and stay out of any future required set, and why `camaleon_website` is not enrolled; verify each spec requirement under "Enrollment is documented" is answered
-- [ ] 4.2 `docs/ai/testing.md`: add how to reproduce a red member check locally (`CAMALEON_CMS_PATH`, `bundle lock`, migrate, run, restore the lock); verify the commands are the ones that passed in 1.3 to 1.5
-- [ ] 4.3 Check `AGENTS.md`, `README.md` and `docs/releasing.md` for statements this change makes stale (the CI description, the Release workflow's required runs) and update only what is; verify with a grep for `current_support`, `workflows/` and `CI runs`
+- [x] 4.1 `docs/ai/ecosystem.md`: add a cross-testing section listing the enrolled members, what a repository must provide to enroll (public, RSpec workflow, the three inputs, the Gemfile switch), that the checks are advisory and stay out of any future required set, and why `camaleon_website` is not enrolled; verify each spec requirement under "Enrollment is documented" is answered
+- [x] 4.2 `docs/ai/testing.md`: add how to reproduce a red member check locally (`CAMALEON_CMS_PATH`, `bundle lock`, migrate, run, restore the lock); verify the commands are the ones that passed in 1.3 to 1.5
+- [x] 4.3 Check `AGENTS.md`, `README.md` and `docs/releasing.md` for statements this change makes stale (the CI description, the Release workflow's required runs) and update only what is; verify with a grep for `current_support`, `workflows/` and `CI runs`
 
 ## 5. Flip to default branches and finish
 
-- [ ] 5.1 Once the four member PRs are merged, point every `uses:` in `ecosystem.yml` at the member's default branch (`master`; `main` for `florsan`) and remove the `member_ref` inputs; verify with a grep that no feature-branch ref remains
+- [x] 5.1 Once the four member PRs are merged, point every `uses:` in `ecosystem.yml` at the member's default branch (`master`; `main` for `florsan`) and remove the `member_ref` inputs; verify with a grep that no feature-branch ref remains
 - [ ] 5.2 Push that commit without a skip-ci marker and verify all four member checks pass on the core PR from the default branches
 - [ ] 5.3 Add the core CHANGELOG entry under `## Unreleased` (Tooling, development-only, 500 characters at most, PR link); update the PR description to the net what/why
-- [ ] 5.4 Run core's pre-push checks: `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`; no specs are added because the change is CI configuration and docs only, and the PR says so; verify all three pass
+- [x] 5.4 Run core's pre-push checks: `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`; no specs are added because the change is CI configuration and docs only, and the PR says so; verify all three pass
 - [ ] 5.5 Run `/opsx:verify`, then `/opsx:archive` on the branch and commit the result; verify `openspec/specs/ecosystem-cross-testing/spec.md` exists and `openspec list --json` shows no active change
 - [ ] 5.6 Self-audit against `docs/ai/criteria.md`; update the `ecosystem-ci-cross-testing-plan` memory to reflect what shipped
