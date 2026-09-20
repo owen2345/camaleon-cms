@@ -30,10 +30,18 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Until the member's pull request is merged this calls its feature branch, and tests that branch.
+  # Until a member's pull request is merged its job calls the feature branch, and tests that branch.
   cama_contact_form:
     name: cama_contact_form
     uses: owen2345/cama_contact_form/.github/workflows/core_compat.yml@feature/core-compat-workflow
+    with:
+      camaleon_cms_repository: ${{ github.repository }}
+      camaleon_cms_ref: ${{ github.sha }}
+      member_ref: feature/core-compat-workflow
+
+  camaleon-cms-seo:
+    name: camaleon-cms-seo
+    uses: owen2345/camaleon-cms-seo/.github/workflows/core_compat.yml@feature/core-compat-workflow
     with:
       camaleon_cms_repository: ${{ github.repository }}
       camaleon_cms_ref: ${{ github.sha }}
