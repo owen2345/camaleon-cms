@@ -34,6 +34,23 @@ Installing a site costs ~0.6s, so one canonical site is installed per suite run,
 - Shared examples live in `spec/shared_specs/`: `it_behaves_like 'sanitize attrs', model: described_class, attrs_to_sanitize: %i[name description]` and `it_behaves_like 'i18n value translation safety', described_class`.
 - Feature specs are tagged `:js`, call `init_site` and `admin_sign_in`, then `visit "#{cama_root_relative_path}/admin/…"`; `spec/features/admin/categories_spec.rb` is a compact example. Request specs (`spec/requests/`) are preferred over controller specs.
 
+## Ecosystem member checks
+
+CI also runs four ecosystem members' suites against the commit under test (`<member> / RSpec` checks; what they are and what a red one means: `docs/ai/ecosystem.md`, "Continuous cross-testing"). To reproduce one locally, run the member's suite from a sibling checkout with `CAMALEON_CMS_PATH` pointing at this working tree. For a plugin:
+
+```bash
+cd ../cama_contact_form
+export RAILS_ENV=test CAMALEON_CMS_PATH=../camaleon-cms
+bundle lock && bundle install   # re-resolves camaleon_cms and what it newly requires, nothing else
+(cd spec/dummy && bundle exec rails db:test:prepare && bundle exec rails db:migrate)
+bin/rspec
+unset CAMALEON_CMS_PATH && git checkout Gemfile.lock spec/dummy/db/schema.rb && bundle install
+```
+
+The last line matters: the member's committed lock belongs to the released gem. `camaleon_editor` has `:js` specs, so clear `spec/dummy/tmp/cache` and `spec/dummy/public/assets` first. `florsan` is a host app on Postgres that copies the engines' migrations: run `bin/rails railties:install:migrations`, `bin/rails db:test:prepare` and `bin/rails db:migrate` from its root instead, and restore `db/schema.rb` (and delete any migration the first command copied) afterwards.
+
+One trap: the engine decides whether the host app is its own dummy by matching the host's path against the engine root without anchoring, so with core at `…/camaleon-cms` the dummy of `…/camaleon-cms-seo` is mistaken for core's and core's migrations silently drop out of its paths. CI is unaffected (the checkouts are `member/` and `camaleon_cms/`); locally, point `CAMALEON_CMS_PATH` at a checkout whose path is not a prefix of the member's, such as a `git worktree` elsewhere.
+
 ## Security Vulnerability Reproduction
 
 A vulnerability fix starts with a failing spec that reproduces it (`AGENTS.md` Ground rules); whether the report is legit is decided first by the triage protocol in `docs/ai/workflows.md` Phase 2A. Reproductions live in `spec/requests/security/`, driven through the real endpoint so the request context the permission decision reads is the real one. `repro_markup_and_script_upload_scanning_spec.rb` is the model: state the gap in the header comment, exercise it as the attacker would, and assert the safe outcome so the spec fails while the vulnerability is present.

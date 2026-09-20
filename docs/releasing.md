@@ -154,7 +154,10 @@ workflow again.
 
 Only `current_support.yml` (*Test supported versions*) and `audit.yml` (*Audit*) gate the release.
 `experimental_support.yml` tests Ruby head and Rails edge, which are expected to break for reasons
-that have nothing to do with a release, so it is not required.
+that have nothing to do with a release, so it is not required. Neither is `ecosystem.yml` (*Test
+ecosystem members*): those checks are advisory. A red one on the release commit still deserves a
+look before you publish, since it means a plugin or host app breaks against what you are about to
+ship (`docs/ai/ecosystem.md`, "Continuous cross-testing").
 
 The one failure that needs manual recovery is a job that fails *after* `gem push` succeeded — the
 gem is public, but the tag and release were never created. Do not re-run the workflow, it would

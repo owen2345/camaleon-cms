@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Tooling:** CI runs the suites of `cama_contact_form`, `camaleon-cms-seo`, `camaleon_editor` and the `florsan` host app against the core commit under test, each as its own advisory check on the pull request, so a core change that breaks one of them shows before release. No tokens involved, so it runs on fork PRs too. Development-only. [#1305](https://github.com/owen2345/camaleon-cms/pull/1305).
 - **Bug fix:** On the record that wrote its options with `set_meta`, `options` and `get_option` read an option by a String key or its Symbol twin, as a freshly loaded record does, whether passed as a plain Hash, request parameters or a JSON string, and an option written on that object afterwards is stored beside them. [#1302](https://github.com/owen2345/camaleon-cms/pull/1302).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#options-read-by-either-key-type-on-the-instance-that-wrote-them).
 
