@@ -54,3 +54,11 @@ jobs:
       camaleon_cms_repository: ${{ github.repository }}
       camaleon_cms_ref: ${{ github.sha }}
       member_ref: feature/core-compat-workflow
+
+  florsan:
+    name: florsan
+    uses: texpert/florsan/.github/workflows/core_compat.yml@feature/core-compat-workflow
+    with:
+      camaleon_cms_repository: ${{ github.repository }}
+      camaleon_cms_ref: ${{ github.sha }}
+      member_ref: feature/core-compat-workflow
