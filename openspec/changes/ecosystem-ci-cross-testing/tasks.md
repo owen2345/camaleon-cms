@@ -24,7 +24,8 @@ repositories are edited by absolute path from the core working directory, their 
 - [x] 3.1 `camaleon-cms-seo`: repeat 1.1 to 1.7 on `feature/core-compat-workflow` (no chromedriver step); verify the local suite is green against core master and the lock is restored
 - [x] 3.2 `camaleon_editor`: repeat 1.1 to 1.7 (chromedriver step; clear `spec/dummy/tmp/cache` and `spec/dummy/public/assets` before the local run); verify the local suite is green against core master and the lock is restored
 - [x] 3.3 `florsan`: repeat 1.1 to 1.7 from fresh `origin/main` (Postgres 16 service with the credentials its `ci.yml` uses, `bin/rails db:test:prepare` + `db:migrate` from the app root, `bin/rspec`; no chromedriver); verify the local suite is green against core master and the lock is restored
-- [ ] 3.4 After approval, one member at a time: commit, push, open its PR, add its job to core's `ecosystem.yml` at the member's feature branch, push core; verify that member's check appears on the core PR and passes, and that the other members' checks ran independently
+- [x] 3.4 After approval, one member at a time: commit, push, open its PR, add its job to core's `ecosystem.yml` at the member's feature branch, push core; verify that member's check appears on the core PR and passes, and that the other members' checks ran independently
+- [ ] 3.5 Remove the `workflow_dispatch` trigger from all four member workflows (design Decision 6: CodeQL cache-poisoning finding on `florsan`), say why in each workflow header, update the four PR descriptions; verify each file parses with `workflow_call` as its only trigger, that the four member checks still pass on the core PR, and that `florsan`'s CodeQL check turns green
 
 ## 4. Core documentation
 

@@ -77,22 +77,24 @@ readable repositories SHALL be enrolled.
 
 ### Requirement: An enrolled member exposes a callable core-compatibility workflow
 An enrolled member SHALL expose, on its default branch, a workflow that another repository's pipeline
-can call and that a maintainer can start by hand, accepting these inputs: `camaleon_cms_repository`
-(the `owner/name` of the core repository to test against), `camaleon_cms_ref` (the commit, branch or
-tag of core to test against) and `member_ref` (the member's own ref to test, defaulting to its default
-branch). The workflow SHALL run the member's own code at `member_ref`, never the calling repository's
+can call, accepting these inputs: `camaleon_cms_repository` (the `owner/name` of the core repository
+to test against), `camaleon_cms_ref` (the commit, branch or tag of core to test against) and
+`member_ref` (the member's own ref to test, defaulting to its default branch). The workflow SHALL run the member's own code at `member_ref`, never the calling repository's
 code, against core at the given repository and ref, and SHALL fail exactly when the member's suite
-fails or cannot be set up.
+fails or cannot be set up. The workflow SHALL NOT be startable by hand: a manual run executes in the
+member's default-branch context, where code checked out from a caller-supplied ref could write the
+shared Actions caches later runs restore, whereas a run called from a core pull request is confined
+to that pull request's cache scope.
 
 #### Scenario: Core calls the member's workflow
 - **WHEN** core's pipeline calls a member's workflow with core's repository and the commit under test
 - **THEN** the member's suite SHALL run from the member's default branch with `camaleon_cms` loaded
   from that commit
 
-#### Scenario: A maintainer checks a member against an arbitrary core ref
-- **WHEN** a maintainer starts the member's workflow by hand with a core branch name as
-  `camaleon_cms_ref`
-- **THEN** the member's suite SHALL run against the head of that core branch
+#### Scenario: A maintainer wants a member checked against an arbitrary core branch
+- **WHEN** a maintainer wants to know whether a member passes against a core branch
+- **THEN** opening a pull request for that branch in core, draft or not, SHALL run the member's
+  suite against it, and the member's workflow SHALL offer no manual trigger
 
 #### Scenario: A member branch is tested before it merges
 - **WHEN** the workflow is called with `member_ref` set to a member branch

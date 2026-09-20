@@ -117,12 +117,27 @@ own dummy app with an unanchored match of the host path against the engine root,
 at `…/camaleon-cms` beside a member at `…/camaleon-cms-seo` silently drops core's migrations from
 that member's paths. `docs/ai/testing.md` says how to avoid it; fixing the match is a separate change.
 
-### 6. Triggers on the member: `workflow_call` and `workflow_dispatch` only
+### 6. Trigger on the member: `workflow_call` only
 
-`workflow_dispatch` gives maintainers a manual "run this member against core ref X", useful before a
-release, and takes the same three inputs, so there is one code path. No `pull_request` trigger on the
-member side: there the inputs are empty and checkout would need a second, conditional code path to
-pick the member's PR commit. Left out until wanted (proposal non-goal).
+The first version also declared `workflow_dispatch` with the same three inputs, as a manual "run this
+member against core ref X". CodeQL flagged it on `florsan` (`actions/cache-poisoning/poisonable-step`,
+high), and rightly: a dispatched run executes in the member's default-branch context, the inputs are
+free-form, and the natural use is pointing it at a contributor's fork, whose code then runs during
+`bundle lock`, the database tasks and the suite. Any process in a job can obtain the runner's cache
+credential, which `permissions:` does not limit, so that code could plant default-branch-scoped cache
+entries that later runs in the member restore. No secret-bearing workflow in the members restores a
+cache today, so the present damage is a corrupted CI run, but one `bundler-cache: true` in a release
+workflow would turn it into a publishing compromise of a gem.
+
+The called path has no such reach: on a core pull request the run is a `pull_request` run in core,
+its cache writes are scoped to that pull request, the token is read-only and there are no secrets. So
+the manual trigger is removed rather than hardened (pinning the repository does not help, since
+`refs/pull/N/head` in it is still contributor code), each member's workflow header says why, and the
+manual need is met by opening a draft core pull request for the branch in question.
+
+No `pull_request` trigger on the member side either: there the inputs are empty and checkout would
+need a second, conditional code path to pick the member's PR commit. Left out until wanted (proposal
+non-goal).
 
 ### 7. Advisory by construction
 
