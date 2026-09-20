@@ -106,10 +106,16 @@ in the test environment: core's engine appends its migrations to the host's path
 `db:migrate` applies only what is newer. With nothing newer it is a no-op. The schema dump it triggers
 touches only the runner's workspace.
 
-To verify during apply, not assumed: that `db:migrate` runs cleanly from each plugin's `spec/dummy`.
-The plugins' `rails_helper` points the pending-migration check at an empty directory, which does not
-affect the rake task, but the dummy's migration paths have to include core's for the step to mean
-anything.
+Verified during apply: each plugin's dummy has core's `db/migrate` in its migration paths, and
+`db:migrate` from `spec/dummy` is a clean no-op that leaves `schema.rb` untouched. `florsan` differs:
+its `config/system.json` turns `auto_include_migrations` off and it keeps copies of the engines'
+migrations in its own `db/migrate`, so its compatibility run first copies whatever is missing with
+`railties:install:migrations` (a no-op when nothing is), then loads the schema and migrates.
+
+A local-only trap, not present in the runner's layout: the engine decides whether the host is its
+own dummy app with an unanchored match of the host path against the engine root, so a core checkout
+at `…/camaleon-cms` beside a member at `…/camaleon-cms-seo` silently drops core's migrations from
+that member's paths. `docs/ai/testing.md` says how to avoid it; fixing the match is a separate change.
 
 ### 6. Triggers on the member: `workflow_call` and `workflow_dispatch` only
 
