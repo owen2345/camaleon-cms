@@ -22,6 +22,42 @@ Before removing, renaming or hardening a public API, search this file for it. Th
 - **Hardening rather than removal** — check the "hardening hazards" section below first. The survey's
   clearest lesson is that removals are cheap here and hardening is not.
 
+## Continuous cross-testing
+
+Four members carry an RSpec suite of their own, and `.github/workflows/ecosystem.yml` runs each one
+against the core commit under test, on every pull request and every push to `master`: the plugins
+`cama_contact_form`, `camaleon-cms-seo` and `camaleon_editor`, and the host application `florsan`.
+Each shows on the core PR as its own check, `<member> / RSpec`, with the member's log. The contract is
+`openspec/specs/ecosystem-cross-testing/spec.md`; reproducing a red check locally is in
+`docs/ai/testing.md`.
+
+- **Advisory.** Nothing requires these checks to merge and the Release workflow does not read them. A
+  red one means the member breaks against this commit: fix core, or, when the break is intended,
+  record the consumer and its disposition as "How to use this" says and fix the member afterwards. If
+  `master` ever gets required status checks, these stay out of the set.
+- **How it works.** Each job calls `.github/workflows/core_compat.yml` in the member's repository. A
+  called workflow runs inside core's run, which is what puts the result on the core PR, and no token or
+  secret is involved, so it behaves the same for pull requests from forks.
+- **No manual trigger.** The member workflows declare `workflow_call` only. A dispatched run would
+  execute in the member's default-branch context with a free-form ref, where a fork's code could write
+  the Actions caches later runs restore. To try a member against a core branch by hand, open a draft
+  pull request for that branch.
+- **Enrolling another member** needs a public repository whose RSpec suite runs in CI, plus:
+  1. a `CAMALEON_CMS_PATH` switch in its Gemfile (set: `gem 'camaleon_cms', path:`; unset or empty:
+     the line it has today, so its committed lock stays valid);
+  2. a `core_compat.yml` taking `camaleon_cms_repository`, `camaleon_cms_ref` and `member_ref`, copied
+     from `cama_contact_form` (plugin with a `spec/dummy`) or `florsan` (host app with its own database
+     service and copied migrations). What must survive the copy: both checkouts name their repository
+     explicitly, because inside a called workflow `github.*` and a bare checkout mean core; the bundle
+     is re-resolved with `bundle lock` rather than installed frozen, so only `camaleon_cms` and what it
+     newly requires move; and core migrations newer than the member's schema are applied before the
+     suite;
+  3. one more literal job in `ecosystem.yml` (`uses:` takes neither an expression nor a matrix value)
+     and its name in the spec's enrolled-member list.
+- **Not enrolled.** `camaleon_website` is private and under a different owner than core, so calling it
+  needs a stored credential, which fork PRs never receive; it stays on local verification. Every other
+  repository below has no suite to run.
+
 ## Plugins
 
 | Repository | Declares `camaleon_cms` | Last activity | Binds to |
