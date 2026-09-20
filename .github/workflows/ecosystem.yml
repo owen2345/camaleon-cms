@@ -1,0 +1,40 @@
+# Runs the suite of each enrolled ecosystem member (plugins and host applications that live in their
+# own repositories) against the core commit under test, so a core change that breaks one of them
+# shows up here, on the pull request that makes it, instead of after a release.
+#
+# Each job calls the member's own "Core compatibility" workflow. A called workflow runs inside this
+# run, so its result is a check on this pull request and its log is read from here; no token or
+# secret is involved, which is why this works for pull requests from forks and why only public
+# repositories are enrolled. `github.sha` is the commit the other workflows test too: the merge
+# commit on a pull request, the pushed commit on master.
+#
+# These checks are advisory. Nothing requires them to merge, and the Release workflow does not look
+# at them; a red one means "this member breaks against this commit", to be fixed or recorded as
+# docs/ai/ecosystem.md describes. `uses:` takes neither an expression nor a matrix value, hence one
+# literal job per member. Enrolling another member: docs/ai/ecosystem.md.
+name: Test ecosystem members
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request: {}
+
+permissions:
+  contents: read
+
+# A newer push to a pull request supersedes the runs of the previous one. Runs on master are kept,
+# each being the record for its own commit.
+concurrency:
+  group: ecosystem-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Until the member's pull request is merged this calls its feature branch, and tests that branch.
+  cama_contact_form:
+    name: cama_contact_form
+    uses: owen2345/cama_contact_form/.github/workflows/core_compat.yml@feature/core-compat-workflow
+    with:
+      camaleon_cms_repository: ${{ github.repository }}
+      camaleon_cms_ref: ${{ github.sha }}
+      member_ref: feature/core-compat-workflow
