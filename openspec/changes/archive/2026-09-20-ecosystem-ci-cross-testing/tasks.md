@@ -36,8 +36,8 @@ repositories are edited by absolute path from the core working directory, their 
 ## 5. Flip to default branches and finish
 
 - [x] 5.1 Once the four member PRs are merged, point every `uses:` in `ecosystem.yml` at the member's default branch (`master`; `main` for `florsan`) and remove the `member_ref` inputs; verify with a grep that no feature-branch ref remains
-- [ ] 5.2 Push that commit without a skip-ci marker and verify all four member checks pass on the core PR from the default branches
-- [ ] 5.3 Add the core CHANGELOG entry under `## Unreleased` (Tooling, development-only, 500 characters at most, PR link); update the PR description to the net what/why
+- [x] 5.2 Push that commit without a skip-ci marker and verify all four member checks pass on the core PR from the default branches
+- [x] 5.3 Add the core CHANGELOG entry under `## Unreleased` (Tooling, development-only, 500 characters at most, PR link); update the PR description to the net what/why
 - [x] 5.4 Run core's pre-push checks: `bin/rubocop`, `bin/brakeman --no-pager`, `(cd spec/dummy && bin/rails zeitwerk:check)`; no specs are added because the change is CI configuration and docs only, and the PR says so; verify all three pass
-- [ ] 5.5 Run `/opsx:verify`, then `/opsx:archive` on the branch and commit the result; verify `openspec/specs/ecosystem-cross-testing/spec.md` exists and `openspec list --json` shows no active change
-- [ ] 5.6 Self-audit against `docs/ai/criteria.md`; update the `ecosystem-ci-cross-testing-plan` memory to reflect what shipped
+- [x] 5.5 Run `/opsx:verify`, then `/opsx:archive` on the branch and commit the result; verify `openspec/specs/ecosystem-cross-testing/spec.md` exists and `openspec list --json` shows no active change
+- [x] 5.6 Self-audit against `docs/ai/criteria.md`; update the `ecosystem-ci-cross-testing-plan` memory to reflect what shipped

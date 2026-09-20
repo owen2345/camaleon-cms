@@ -79,8 +79,9 @@ into `camaleon_cms/`, side by side, with `defaults.run.working-directory: member
 the member's tree was considered and dropped: side by side mirrors the maintainers' local layout and
 keeps the member's tree free of a second Rails root.
 
-The Gemfile switch is `gem 'camaleon_cms', path: ENV['CAMALEON_CMS_PATH']` when the variable is
-non-empty, else today's line. The workflow sets `CAMALEON_CMS_PATH: ../camaleon_cms`; Bundler resolves
+The Gemfile switch reads `ENV.fetch('CAMALEON_CMS_PATH', '')` into a local (the members' RuboCop
+rejects a bare `ENV[]`) and declares `gem 'camaleon_cms', path:` with it when it is non-empty, else
+today's line. The workflow sets `CAMALEON_CMS_PATH: ../camaleon_cms`; Bundler resolves
 `path:` relative to the Gemfile, which sidesteps `github.workspace` in job-level `env`.
 
 Install cannot use `bundler-cache: true`. With a lockfile present `ruby/setup-ruby` sets
