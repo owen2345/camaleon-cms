@@ -46,3 +46,11 @@ jobs:
       camaleon_cms_repository: ${{ github.repository }}
       camaleon_cms_ref: ${{ github.sha }}
       member_ref: feature/core-compat-workflow
+
+  camaleon_editor:
+    name: camaleon_editor
+    uses: owen2345/camaleon_editor/.github/workflows/core_compat.yml@feature/core-compat-workflow
+    with:
+      camaleon_cms_repository: ${{ github.repository }}
+      camaleon_cms_ref: ${{ github.sha }}
+      member_ref: feature/core-compat-workflow
