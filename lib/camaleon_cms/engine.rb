@@ -87,11 +87,21 @@ module CamaleonCms
       # Static files
       app.middleware.use ::ActionDispatch::Static, "#{root}/public"
 
-      # migrations checking
-      if PluginRoutes.static_system_info['auto_include_migrations'] && !(app.root.to_s.match root.to_s)
-        config.paths['db/migrate'].expanded.each do |expanded_path|
-          app.config.paths['db/migrate'] << expanded_path
-        end
+      append_engine_migrations(app)
+    end
+
+    # Puts the engine's own migrations on the host app's migration path when `auto_include_migrations`
+    # is on. Skipped for an app that lives inside the engine's tree (the engine's spec/dummy app): Rails'
+    # engine tasks (ENGINE_ROOT) and the spec helper already add them to its migration paths.
+    # Containment is decided on path components: a host that merely shares the engine root as a string
+    # prefix (a `camaleon-cms-seo` checkout beside `camaleon-cms`, with the core sourced as a path gem)
+    # is a regular host.
+    def append_engine_migrations(app)
+      return unless PluginRoutes.static_system_info['auto_include_migrations']
+      return if Pathname(app.root).ascend.include?(root)
+
+      config.paths['db/migrate'].expanded.each do |expanded_path|
+        app.config.paths['db/migrate'] << expanded_path
       end
     end
 
