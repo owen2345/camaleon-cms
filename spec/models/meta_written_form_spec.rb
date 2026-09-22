@@ -12,7 +12,9 @@ RSpec.describe CamaleonCms::Post, type: :model do
     {
       '2024' => 2024, '1.5' => 1.5, 'true' => true, 'false' => false, '[1, 2]' => [1, 2],
       'plain text' => 'plain text', :symbol => 'symbol', 7 => 7, true => true,
-      ' 42 ' => 42, '-5' => -5, 'NaN' => 'NaN', '<b>7</b>' => '<b>7</b>', 't' => 't', 'f' => 'f'
+      ' 42 ' => 42, '-5' => -5, 'NaN' => 'NaN', '<b>7</b>' => '<b>7</b>', 't' => 't', 'f' => 'f',
+      BigDecimal('19.99') => 19.99, Time.utc(2026, 9, 22, 10) => '2026-09-22 10:00:00 UTC',
+      Date.new(2026, 9, 22) => '2026-09-22'
     }.each do |written, read|
       it "reads #{written.inspect} back as #{read.inspect} on the writing instance, as after a reload" do
         post = create(:post, post_type: post_type)

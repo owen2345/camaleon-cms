@@ -339,11 +339,13 @@ now returns what a freshly loaded record reads.
   boolean String as the number or the boolean, and any other String as a plain String, so a view escapes an
   `html_safe` String you wrote. A one-letter `'t'` or `'f'` is stored as its JSON string (`"f"`) and reads
   back as that String, since a row holding the bare letter reads as the boolean an earlier release stored
-  that way. Your own object is left as passed and never handed back by a read
-  (`set_meta` still returns it), so a change made to it after the write is not read; code that compared a
-  read to its own hash, or iterated its Symbol keys, on the writing object sees the stored form now, as it
-  already did once the record was loaded again. Code that passes such a read to a String method, like a
-  tracking number of digits to `gsub`, calls `.to_s` on it first, as a loaded record already required.
+  that way. A value of another class reads back as a reload reads the text it is stored as: a `BigDecimal`
+  as a Float, and a `Time` or a `Date` as its String. Your own object is left as passed and never handed
+  back by a read (`set_meta` still returns it), so a change made to it after the write is not read; code
+  that compared a read to its own hash, or iterated its Symbol keys, on the writing object sees the stored
+  form now, as it already did once the record was loaded again. Code that passes such a read to a String
+  method, like a tracking number of digits to `gsub`, calls `.to_s` on it first, as a loaded record already
+  required.
 - A meta with a stored value is memoized on the object and handed back as that one value: a change made to
   it in place shows in later reads on that object, and in `options` for the `_default` row, but is not
   stored. Write changes with `set_meta` whether or not a row exists, as the option writers already do. A

@@ -11,8 +11,9 @@ A value written with `set_meta` SHALL be returned by `get_meta` on the same inst
 loaded record reads it: a Hash, an Array or request parameters as the indifferent hash, or array, their
 JSON parses to; a String holding JSON as the value it holds; a numeric or boolean String as the number or
 the boolean; a String `t` or `f`, stored as its JSON string, as that String; any other String as a plain
-String, not html_safe even when the caller's was; nil or an empty
-string as a meta with no value, so the caller's default is returned. An object the caller passed SHALL be
+String, not html_safe even when the caller's was; a value of another class, such as a BigDecimal, a Time
+or a Date, as its stored text reads, a BigDecimal as a Float and a Time or a Date as that text; nil or an
+empty string as a meta with no value, so the caller's default is returned. An object the caller passed SHALL be
 left as passed and SHALL NOT be returned by a read, so a change made to it after the write is not read,
 unless it is the Hash or the Array the instance handed out for that key: written back, that object SHALL
 take the stored form in place and remain the one the instance reads, so a hash `options` returned keeps
@@ -40,6 +41,11 @@ returns for it, and `set_options` and `delete_option` SHALL return the options t
 - **WHEN** `'t'` and `'f'` are written with `set_meta`
 - **THEN** the same instance and a freshly loaded record read the Strings `'t'` and `'f'`
 - **AND** a row an earlier release stored as the bare letter still reads as the boolean
+
+#### Scenario: A BigDecimal, a Time and a Date
+
+- **WHEN** a `BigDecimal`, a `Time` and a `Date` are written with `set_meta`
+- **THEN** the same instance reads a Float and two Strings, as a freshly loaded record does
 
 #### Scenario: A plugin reads back the text it wrote
 
