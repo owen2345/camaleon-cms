@@ -488,7 +488,9 @@ written, both accessors SHALL read `nil`. The metas SHALL be written before the 
 transaction that wrote them is rolled back, they SHALL be queued again for the record's next save,
 keeping any value queued since, and a record whose creation was rolled back SHALL store the metas
 built before that save too; a rollback of a later transaction of the instance SHALL leave them
-written. A post type SHALL fill its default options in under the options set on the record before
+written. A record whose creation is rolled back, whether or not it was given any, SHALL have the metas
+it holds built again for its next save and SHALL read them, not a value it memoized before or while it
+was created. A post type SHALL fill its default options in under the options set on the record before
 its first save and under the ones given. A copy made with `dup` SHALL carry no record of the
 original's write and SHALL queue only values given to the copy.
 
@@ -533,6 +535,19 @@ original's write and SHALL queue only values given to the copy.
   instance is saved again
 - **THEN** a freshly loaded record reads the queued values and the meta set before the creation, each
   stored once
+
+#### Scenario: The first update after a creation rolled back
+
+- **WHEN** a post created with a meta in `data_metas` has its first update, given a new value for that meta
+  in `data_metas`, rolled back, and is saved again
+- **THEN** it holds one row for the meta, and a freshly loaded post reads the new value
+
+#### Scenario: A creation rolled back after a meta was written twice
+
+- **WHEN** a post type sets a meta, is saved and sets the meta again inside a transaction that is rolled
+  back, and is saved again
+- **THEN** the value it reads after the rollback is the one it reads after that save, and the one a
+  freshly loaded post type reads
 
 #### Scenario: A later save of the instance rolled back
 

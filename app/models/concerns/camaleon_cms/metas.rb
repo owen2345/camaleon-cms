@@ -26,6 +26,7 @@ module CamaleonCms
 
       # refused before any statement, as the writers refuse it after the row would have been written
       before_save   :refuse_invalid_queued_containers
+      after_create  :remember_creating_transaction
       after_create  :save_metas_options
       before_update :save_metas_options
       # a write undone with its transaction is queued again for the next save
@@ -149,10 +150,11 @@ module CamaleonCms
     end
 
     # A copy is a new record with no write behind it: it starts without the record of the original's
-    # last write, which a rollback of that write's transaction would otherwise queue on the copy, and
+    # last write or creation, which a rollback of that transaction would otherwise apply to the copy, and
     # with queues of its own, so a value queued on one is not queued on the other.
     def initialize_dup(other)
       @written_metas_options = nil
+      @creating_transaction_state = nil
       @created_record_metas_in_memory = false
       self.data_options = data_options.deep_dup
       self.data_metas = data_metas.deep_dup
@@ -176,7 +178,7 @@ module CamaleonCms
       @created_record_metas_in_memory = previously_new_record?
       set_metas(data_metas)
       set_options(data_options)
-      @written_metas_options = [data_options, data_metas, current_transaction_state, previously_new_record?]
+      @written_metas_options = [data_options, data_metas, current_transaction_state]
       self.data_options = nil
       self.data_metas = nil
     ensure
@@ -327,24 +329,36 @@ module CamaleonCms
       transaction.state if transaction.respond_to?(:state)
     end
 
+    # The transaction that creates the record, whose rollback leaves it new again. The record's own state is
+    # restored only after the rollback callbacks, so they tell a rolled-back creation apart by it.
+    def remember_creating_transaction
+      @creating_transaction_state = current_transaction_state
+    end
+
     # Refill data_options and data_metas from the last write when the transaction that ran it is rolled
     # back, so the next save of this instance writes them; values queued since are kept, and a rollback
-    # of a later transaction leaves the write, which stands, consumed.
+    # of a later transaction leaves the write, which stands, consumed. The metas of a record whose creation
+    # is rolled back are built again whether or not it wrote any.
     def requeue_metas_options
-      options, metas, state, created = @written_metas_options
-      return unless state&.rolledback?
+      options, metas, state = @written_metas_options
+      created = @creating_transaction_state&.rolledback?
+      if state&.rolledback?
+        @written_metas_options = nil
+        self.data_options = options if data_options.blank?
+        self.data_metas = metas if data_metas.blank?
+      end
+      return unless created || state&.rolledback?
 
-      @written_metas_options = nil
-      self.data_options = options if data_options.blank?
-      self.data_metas = metas if data_metas.blank?
+      @creating_transaction_state = nil if created
       forget_rolled_back_metas(created)
     end
 
     # The rows the rolled-back transaction wrote are gone while the metas in memory still claim them.
     # A record whose creation was rolled back had every meta of its written there: they are built again,
-    # so the next save stores them (the record's own state is restored after this callback, so the
-    # write remembers whether it created the record). A record that existed keeps its earlier rows, so
-    # its metas and the values cached from them are dropped and read again on demand.
+    # so the next save stores them, and read, since the record is new again. A record that existed keeps
+    # its earlier rows, so its metas are dropped and read again on demand. Either way what the instance
+    # memoized is dropped: a record whose creation was rolled back takes back the id it had before the save,
+    # under which the values it memoized then would be read over the metas it holds.
     def forget_rolled_back_metas(created)
       if created
         built = metas.target.map { |meta| { key: meta.key, value: meta.value } }
@@ -352,12 +366,13 @@ module CamaleonCms
         built.each { |attributes| metas.build(attributes) }
       else
         metas.reset
-        cama_clear_cache
       end
+      cama_clear_cache
     end
 
     def forget_written_metas_options
       @written_metas_options = nil
+      @creating_transaction_state = nil
     end
 
     # A data_options or data_metas value that is present but not a set of fields is refused before the

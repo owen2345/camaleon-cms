@@ -171,6 +171,43 @@ RSpec.describe CamaleonCms::Metas do
       expect(stored.metas.group(:key).count).to eq('_default' => 1, 'icon_color' => 1, 'note' => 1)
     end
 
+    # A creation rolled back leaves the record new again, under the id it had before the save, so what it
+    # memoized before or while being created is dropped, and its metas, queued or not, are built again: it
+    # reads what its next save stores, where it read the value memoized before the save and a meta written
+    # twice in the transaction was left claiming a row that no longer exists, which the next save skipped.
+    it 'reads, once its creation is rolled back, the metas its next save stores' do
+      post_type = build(:post_type)
+      post_type.set_meta('probe', 'before the save')
+      ActiveRecord::Base.transaction(requires_new: true) do
+        post_type.save!
+        post_type.set_meta('probe', 'after the save')
+        raise ActiveRecord::Rollback
+      end
+      read = post_type.get_meta('probe')
+
+      post_type.save!
+
+      expect(read).to eq('before the save').or eq('after the save')
+      expect([post_type.get_meta('probe'), CamaleonCms::PostType.find(post_type.id).get_meta('probe')])
+        .to eq([read, read])
+    end
+
+    # previously_new_record? still holds during the first update after a create, so a write that took it to
+    # tell whether it created the record built a rolled-back first update's metas again as new ones, and the
+    # next save stored a second row beside each.
+    it 'stores a meta once when the first update after the creation is rolled back' do
+      post = create(:post, post_type: shared_post_type, data_metas: { subtitle: 'first' })
+      ActiveRecord::Base.transaction(requires_new: true) do
+        post.update!(data_metas: { subtitle: 'second' })
+        raise ActiveRecord::Rollback
+      end
+
+      post.save!
+
+      expect(post.metas.where(key: 'subtitle').count).to eq(1)
+      expect(CamaleonCms::Post.find(post.id).get_meta('subtitle')).to eq('second')
+    end
+
     it 'queues the values given to an update whose transaction is rolled back' do
       post = create(:post, post_type: shared_post_type)
       ActiveRecord::Base.transaction(requires_new: true) do

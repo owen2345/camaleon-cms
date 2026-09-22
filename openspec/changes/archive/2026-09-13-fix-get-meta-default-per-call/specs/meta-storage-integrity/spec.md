@@ -249,6 +249,102 @@ rolled back, SHALL read the metas built on it, which its next save stores.
   creation rolled back
 - **THEN** the unsaved post type reads that meta and that option
 
+### Requirement: Options and metas given to a save are written once
+
+Options and metas assigned through `data_options` and `data_metas` SHALL be written by the first save
+of the record that completes, and a later save of the same instance SHALL NOT write them again; once
+written, both accessors SHALL read `nil`. The metas SHALL be written before the options, so a
+`_default` meta given in `data_metas` merges with `data_options` instead of replacing them. When the
+transaction that wrote them is rolled back, they SHALL be queued again for the record's next save,
+keeping any value queued since, and a record whose creation was rolled back SHALL store the metas
+built before that save too; a rollback of a later transaction of the instance SHALL leave them
+written. A record whose creation is rolled back, whether or not it was given any, SHALL have the metas
+it holds built again for its next save and SHALL read them, not a value it memoized before or while it
+was created. A post type SHALL fill its default options in under the options set on the record before
+its first save and under the ones given. A copy made with `dup` SHALL carry no record of the
+original's write and SHALL queue only values given to the copy.
+
+#### Scenario: A post type updated after an option write
+
+- **WHEN** a post type created with `has_category` in `data_options` sets `has_category` to `false` and is
+  then renamed
+- **THEN** the same instance and a freshly loaded post type read `has_category` as `false`
+
+#### Scenario: A post updated after new option and meta writes
+
+- **WHEN** a post created or updated with `data_options` and `data_metas` writes new values for those keys
+  and is then updated again
+- **THEN** the same instance and a freshly loaded post read the new values
+
+#### Scenario: A post type created with data_metas
+
+- **WHEN** a post type is created with `data_metas`
+- **THEN** a freshly loaded post type reads those metas
+
+#### Scenario: A post type created with a `_default` meta and options
+
+- **WHEN** a post type is created with `has_category` in `data_options` and a `_default` meta holding
+  `has_tags`
+- **THEN** a freshly loaded post type reads both, its remaining defaults, and has its default category
+
+#### Scenario: An option set before a post type's first save
+
+- **WHEN** an unsaved post type given `data_options` sets one of the default options and is saved
+- **THEN** a freshly loaded post type reads the option it set, the options given and the remaining
+  defaults, from one options row
+
+#### Scenario: A meta built before a post type's first save
+
+- **WHEN** an unsaved post type given a meta in `data_metas` sets the same meta and is saved
+- **THEN** its loaded metas and a freshly loaded post type both read the value given in `data_metas`
+
+#### Scenario: A save rolled back after writing them
+
+- **WHEN** a post type's creation, with a meta set before it, raises in a later callback, or a post's
+  update given `data_options` and `data_metas` is rolled back by an enclosing transaction, and the
+  instance is saved again
+- **THEN** a freshly loaded record reads the queued values and the meta set before the creation, each
+  stored once
+
+#### Scenario: The first update after a creation rolled back
+
+- **WHEN** a post created with a meta in `data_metas` has its first update, given a new value for that meta
+  in `data_metas`, rolled back, and is saved again
+- **THEN** it holds one row for the meta, and a freshly loaded post reads the new value
+
+#### Scenario: A creation rolled back after a meta was written twice
+
+- **WHEN** a post type sets a meta, is saved and sets the meta again inside a transaction that is rolled
+  back, and is saved again
+- **THEN** the value it reads after the rollback is the one it reads after that save, and the one a
+  freshly loaded post type reads
+
+#### Scenario: A later save of the instance rolled back
+
+- **WHEN** a post created with `data_options` sets an option, has a later update rolled back and is
+  updated again
+- **THEN** a freshly loaded post reads the option set after the creation
+
+#### Scenario: A copy saved inside the rolled-back transaction of the original's write
+
+- **WHEN** a post created with `data_options` is copied, the copy is saved inside the same transaction,
+  and the transaction is rolled back
+- **THEN** the copy has nothing queued and a value queued on one of them is not queued on the other
+
+#### Scenario: A post type created with only a `_default` meta
+
+- **WHEN** a post type is created with a `_default` meta holding `has_tags` under a String key in
+  `data_metas` and no `data_options`
+- **THEN** the same instance manages tags
+- **AND** a freshly loaded post type reads `has_tags` and its remaining defaults, from one options row
+
+#### Scenario: A post type created with a `_default` meta as request parameters
+
+- **WHEN** a post type is created with `data_metas` given as request parameters holding a `_default` meta
+  with `has_category`
+- **THEN** the same instance manages categories and has its default category
+- **AND** a freshly loaded post type reads `has_category` and its remaining defaults, from one options row
+
 ## ADDED Requirements
 
 ### Requirement: Each read of a meta with no value returns its caller's default
