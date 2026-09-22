@@ -92,7 +92,9 @@ object is left as passed and never handed back.
 - Text that cannot open a JSON text is copied without a parse. No supported json release parses a text
   opening, after its whitespace, with anything but `[`, `{`, `"`, `/`, `-`, a digit, `t`, `f` or `n`, so the
   common text of URLs, names and markup no longer raises and rescues a parse failure on every write and
-  every read.
+  every read. The skip mirrors the json gem's grammar, so a spec holds it to the parser installed, for text
+  opening with any ASCII character or a Unicode space after any whitespace: a release that accepts another
+  opening fails it rather than reading such rows as text.
 - A value whose text is `'t'` or `'f'`, a String or a Symbol, is stored as its JSON string. The bare letter
   is how the text column cast a boolean before booleans were stored as their JSON literal, and a row holding
   it reads as that boolean, so the letter written alone read back as a boolean on the writing instance and,

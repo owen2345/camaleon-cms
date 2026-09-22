@@ -85,6 +85,25 @@ RSpec.describe CamaleonCms::Post, type: :model do
       expect(reads).to eq(%w[https://example.com/photo.jpg https://example.com/photo.jpg])
     end
 
+    # Which text can open a JSON text is the json gem's grammar, which the skip mirrors, so it is held to the
+    # parser installed: text opening with any ASCII character or a Unicode space, after any whitespace, reads
+    # as the value the parser finds in it, or as the text when the parser finds none.
+    it 'reads text as the installed json parser reads it, whatever it opens with' do
+      post = build(:post, post_type: post_type)
+      prefixes = ['', ' ', "\t", "\n", "\r", "\f", "\v", "\u00A0", "\uFEFF"]
+      openings = (0..127).map(&:chr) + ["\u00A0", "\uFEFF", "\u3000", '１']
+      rests = ['', '1', '{}', '[]', '"a"', 'rue', 'alse', 'ull', 'aN', 'nfinity', "/ c\n1", '* c */1', "\n1", ' 1']
+      texts = prefixes.product(openings, rests).map(&:join) - %w[t f]
+
+      expect(texts.reject { |text| post.send(:stored_form_of, text) == parser_read(text) }).to be_empty
+    end
+
+    def parser_read(text)
+      CamaleonCms::Metas.indifferent_json_value(JSON.parse(text, allow_duplicate_key: true))
+    rescue StandardError
+      text
+    end
+
     it "reads plain text back as a String of its own, leaving the caller's String as passed" do
       post = create(:post, post_type: post_type)
       passed = +'plain text'
