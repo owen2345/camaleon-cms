@@ -85,6 +85,18 @@ RSpec.describe CamaleonCms::Post, type: :model do
       expect([post.get_meta('probe').html_safe?, reloaded.get_meta('probe').html_safe?]).to eq([false, false])
     end
 
+    # The stored form takes the text of a value before it rescues a parse, so a value whose text cannot be
+    # taken raises its own error before the write is checked, instead of reading as a meta with no value.
+    it 'raises the error of a value whose text cannot be taken, before checking the write' do
+      post = create(:post, post_type: post_type)
+      unreadable = Object.new
+      unreadable.define_singleton_method(:to_s) { raise ArgumentError, 'no text' }
+      expect(post).not_to receive(:check_meta_write)
+
+      expect { post.set_meta('probe', unreadable) }.to raise_error(ArgumentError, 'no text')
+      expect(described_class.find(post.id).get_meta('probe')).to be_nil
+    end
+
     it 'reads a JSON string back as the value it holds' do
       post = create(:post, post_type: post_type)
       post.set_meta('probe', '{"color": "red"}')

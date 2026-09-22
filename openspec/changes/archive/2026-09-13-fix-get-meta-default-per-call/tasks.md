@@ -65,3 +65,4 @@
 - [x] 5.25 Name the key's String form once in `set_meta`, as `get_meta` does, for the pending-row, stored-row and built-row lookups, the check, the writes and the memo.
 - [x] 5.26 Make `LEGACY_BOOLEANS` a private constant of the metas concern, as `JSON_TEXT_OPENING` is; nothing outside the concern reads it.
 - [x] 5.27 Look a key's row up through one helper, `meta_row`, for `get_meta`'s read and, with `stored_only`, for the stored row a write updates and `PostType`'s stored decorator option, instead of two copies of the lookup.
+- [x] 5.28 Take the text of a value outside the rescue in `stored_form_of`, so a value whose text cannot be taken raises its own error before the write is checked instead of reading as no value; spec it in `spec/models/meta_written_form_spec.rb`.
