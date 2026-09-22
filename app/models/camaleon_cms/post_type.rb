@@ -218,7 +218,8 @@ module CamaleonCms
     # record for its first save.
     def reject_unknown_decorator_class!(stored)
       value = decorator_class_option_of(stored)
-      return if decorator_class_option_acceptable?(value)
+      # blank, a post decorator, or the value already stored
+      return if self.class.decorator_class_for(value) || value.to_s == stored_decorator_class_option.to_s
 
       errors.add(:base, decorator_class_refusal_message(value))
       raise ActiveRecord::RecordInvalid, self
@@ -243,11 +244,6 @@ module CamaleonCms
       return unless data_metas.is_a?(Hash) || data_metas.is_a?(ActionController::Parameters)
 
       PluginRoutes.fixActionParameter(data_metas).with_indifferent_access[:_default]
-    end
-
-    # Blank, a post decorator, or the value already stored.
-    def decorator_class_option_acceptable?(value)
-      self.class.decorator_class_for(value) || value.to_s == stored_decorator_class_option.to_s
     end
 
     # Once per request (or per console or task thread) for each post type and value: every decorated post

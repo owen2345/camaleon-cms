@@ -92,3 +92,4 @@
 - [x] 5.52 Hold `JSON_TEXT_OPENING` to the json parser installed with a spec reading text that opens with every ASCII character or a Unicode space, after any whitespace, as the parser reads it, so a json release that accepts another opening fails the suite instead of rows reading as text; note it in the design.
 - [x] 5.53 Return a finite Integer or Float from `stored_form_of` as it is, the form its text parses back to, instead of taking its text, matching it against `JSON_TEXT_OPENING` and parsing it on every write, a counter such as a post's visits included; spec a number written without a parse.
 - [x] 5.54 Test the memo a failed write re-reads with the `is_a?` checks the neighbouring helpers use, instead of building an Array of classes and a block for them.
+- [x] 5.55 Inline `PostType#decorator_class_option_acceptable?`, which only `reject_unknown_decorator_class!` called, into that method.
