@@ -292,19 +292,14 @@ module CamaleonCms
     # store it with set_meta. The options take the stored form only once it is stored, so a write that
     # raises, refused or failed, leaves them as they were and the instance keeps reading what is stored.
     # They return the options the instance reads afterwards, the hash `options` returns, on a first options
-    # write too.
+    # write too: the options handed out take in place the form set_meta memoized for the copy, and are
+    # memoized in its stead, so a hash `options` returned keeps reading every option write, unless it is
+    # frozen, when the stored form stays memoized.
     def write_options(meta_key)
       options = cama_options(meta_key)
       changed = options.deep_dup
       yield changed
       set_meta(meta_key, changed)
-      keep_written_options(meta_key, options)
-    end
-
-    # The options handed out take in place the form set_meta memoized for the options written, and are
-    # memoized in its stead, so a hash `options` returned keeps reading every option write; a frozen hash is
-    # left as it is, with the stored form memoized. Returns the options memoized.
-    def keep_written_options(meta_key, options)
       memo_key = "meta_#{meta_key}"
       stored = cama_get_cache(memo_key)
       return stored if options.frozen? || !stored.instance_of?(options.class)
@@ -312,16 +307,17 @@ module CamaleonCms
       cama_set_cache(memo_key, options.replace(stored))
     end
 
-    # Memoizes for key what a reload reads for the value written. The Hash or the Array this instance handed
-    # out for key, written back, takes that form in place and stays memoized, so every reference to it keeps
-    # reading the record; any other value, a frozen one among them, is memoized as the stored form, and the
-    # caller's object is left as passed. A String memo is never changed in place, since it may carry the
-    # translations String#translate memoized on it.
+    # Memoizes for key what a reload reads for the value written. When the value written is the Hash or the
+    # Array memoized for key, the one this instance handed out, the memo takes that form in place and stays
+    # memoized, so every reference to it keeps reading the record; otherwise, a frozen memo included, the
+    # stored form is memoized apart from the value written, which is left as passed. A String memo is never
+    # changed in place, since it may carry the translations String#translate memoized on it.
     def memoize_written_meta(key_str, written, stored)
       memo_key = "meta_#{key_str}"
-      handed_out = written.equal?(cama_get_cache(memo_key)) && (written.is_a?(Hash) || written.is_a?(Array))
-      stored = written.replace(stored) if handed_out && !written.frozen? && stored.is_a?(written.class)
-      cama_set_cache(memo_key, stored)
+      memo = cama_get_cache(memo_key)
+      in_place = memo.equal?(written) && (memo.is_a?(Hash) || memo.is_a?(Array)) && !memo.frozen? &&
+                 stored.is_a?(memo.class)
+      cama_set_cache(memo_key, in_place ? memo.replace(stored) : stored)
     end
 
     # The state of the transaction running now, if any: the one a write belongs to, whose rollback
