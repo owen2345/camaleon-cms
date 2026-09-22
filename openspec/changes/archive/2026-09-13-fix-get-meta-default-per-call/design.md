@@ -92,10 +92,12 @@ object is left as passed and never handed back.
   opening, after its whitespace, with anything but `[`, `{`, `"`, `/`, `-`, a digit, `t`, `f` or `n`, so the
   common text of URLs, names and markup no longer raises and rescues a parse failure on every write and
   every read.
-- A String `'t'` or `'f'` is stored as its JSON string. The bare letter is how the text column cast a
-  boolean before booleans were stored as their JSON literal, and a row holding it reads as that boolean,
-  so the letter written alone read back as a boolean on the writing instance and, loaded again, had its row
-  rewritten as the literal. Rows an earlier release stored keep reading as booleans.
+- A value whose text is `'t'` or `'f'`, a String or a Symbol, is stored as its JSON string. The bare letter
+  is how the text column cast a boolean before booleans were stored as their JSON literal, and a row holding
+  it reads as that boolean, so the letter written alone read back as a boolean on the writing instance and,
+  loaded again, had its row rewritten as the literal. The check reads the value's text, as the column
+  stores it, not its class: a Symbol is stored as its text too. Rows an earlier release stored keep reading
+  as booleans.
 - A value of another class is stored as the text the column casts it to, and reads back as that text
   does: a `BigDecimal` as a Float, rounded where it holds more digits than a Float, and a `Time` or a
   `Date` as its text. The writing instance kept the caller's object until a reload; it now reads what the

@@ -13,7 +13,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
       '2024' => 2024, '1.5' => 1.5, 'true' => true, 'false' => false, '[1, 2]' => [1, 2],
       'plain text' => 'plain text', :symbol => 'symbol', 7 => 7, true => true,
       ' 42 ' => 42, '-5' => -5, 'NaN' => 'NaN', '<b>7</b>' => '<b>7</b>', 't' => 't', 'f' => 'f',
-      BigDecimal('19.99') => 19.99, Time.utc(2026, 9, 22, 10) => '2026-09-22 10:00:00 UTC',
+      :t => 't', :f => 'f', BigDecimal('19.99') => 19.99, Time.utc(2026, 9, 22, 10) => '2026-09-22 10:00:00 UTC',
       Date.new(2026, 9, 22) => '2026-09-22'
     }.each do |written, read|
       it "reads #{written.inspect} back as #{read.inspect} on the writing instance, as after a reload" do
@@ -26,15 +26,17 @@ RSpec.describe CamaleonCms::Post, type: :model do
     end
 
     # The bare letter is how the text column cast a boolean before booleans were stored as their JSON literal,
-    # and a row holding it still reads as that boolean, so a one-letter String is stored as its JSON string.
-    it "stores a String 't' or 'f' as its JSON string, apart from the booleans stored as the letter" do
+    # and a row holding it still reads as that boolean, so a value whose text is one letter, a String or a
+    # Symbol, is stored as its JSON string.
+    it "stores a String or a Symbol 't' or 'f' as its JSON string, apart from the booleans stored as the letter" do
       post = create(:post, post_type: post_type)
       post.set_meta('probe', 'f')
+      post.set_meta('probe_symbol', :t)
       post.metas.create!(key: 'probe_legacy', value: 'f')
       reloaded = described_class.find(post.id)
 
-      expect(post.metas.find_by!(key: 'probe').value).to eq('"f"')
-      expect([reloaded.get_meta('probe'), reloaded.get_meta('probe_legacy')]).to eq(['f', false])
+      expect(post.metas.where(key: %w[probe probe_symbol]).order(:key).pluck(:value)).to eq(['"f"', '"t"'])
+      expect(%w[probe probe_symbol probe_legacy].map { |key| reloaded.get_meta(key) }).to eq(['f', 't', false])
     end
 
     # set_meta returns the value it was passed, as 2.9.4 did, whatever form a read returns for it, and the

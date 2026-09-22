@@ -10,7 +10,7 @@
 A value written with `set_meta` SHALL be returned by `get_meta` on the same instance in the form a freshly
 loaded record reads it: a Hash, an Array or request parameters as the indifferent hash, or array, their
 JSON parses to; a String holding JSON as the value it holds; a numeric or boolean String as the number or
-the boolean; a String `t` or `f`, stored as its JSON string, as that String; any other String as a plain
+the boolean; a String or a Symbol `t` or `f`, stored as its JSON string, as that String; any other String as a plain
 String, not html_safe even when the caller's was; a value of another class, such as a BigDecimal, a Time
 or a Date, as its stored text reads, a BigDecimal as a Float and a Time or a Date as that text; nil or an
 empty string as a meta with no value, so the caller's default is returned. An object the caller passed SHALL be
@@ -41,7 +41,7 @@ write, the hash `options` returns, on a record's first options write too.
 
 #### Scenario: A one-letter t or f
 
-- **WHEN** `'t'` and `'f'` are written with `set_meta`
+- **WHEN** `'t'` and `'f'` are written with `set_meta`, as Strings and as Symbols
 - **THEN** the same instance and a freshly loaded record read the Strings `'t'` and `'f'`
 - **AND** a row an earlier release stored as the bare letter still reads as the boolean
 
