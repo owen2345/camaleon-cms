@@ -241,7 +241,8 @@ module CamaleonCms
     # cannot be read either, the memo is dropped for the next read to take it.
     def reread_handed_out_meta(key_str, value)
       memo_key = "meta_#{key_str}"
-      return unless [Hash, Array, String].any? { |type| value.is_a?(type) } && value.equal?(cama_get_cache(memo_key))
+      memo = cama_get_cache(memo_key)
+      return unless value.equal?(memo) && (memo.is_a?(Hash) || memo.is_a?(Array) || memo.is_a?(String))
 
       memoize_written_meta(key_str, value, read_meta_row(key_str))
     rescue StandardError
