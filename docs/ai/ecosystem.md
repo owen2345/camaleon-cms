@@ -248,6 +248,9 @@ Changes that look free from inside this repository and are not:
   `shipping_method` had memoized `{}` first; they now raise either way, and `shipping_method` no longer
   raises after them. Nothing in the plugin calls these methods (its only reference to the class is the 2016
   order-data migration, which reads columns and `metas`), so those reads change no code path.
+  `PostType#set_settings` and `Post#set_settings` now write every setting in one `set_options` call, which
+  takes a Hash or request parameters, where they wrote one option per key of anything `each` yields pairs
+  from; the one surveyed caller, `camaleon_website`'s CV theme, passes Hashes.
 
 ## APIs with no surveyed consumer
 

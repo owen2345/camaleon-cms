@@ -66,11 +66,10 @@ module CamaleonCms
       default_layout: ''
     }.freeze
 
-    # assign settings for this post type (the keys and their defaults: DEFAULT_OPTIONS)
+    # assign settings for this post type (the keys and their defaults: DEFAULT_OPTIONS), in one options write
     def set_settings(settings = {})
-      settings.each do |key, val|
-        set_option(key, val)
-      end
+      set_options(settings)
+      settings
     end
 
     # set or update a setting for this post type
@@ -130,7 +129,7 @@ module CamaleonCms
       p = posts.new(args)
       p.slug = site.get_valid_post_slug(p.title.parameterize) if p.slug.blank?
       if p.save!
-        _settings.each { |k, v| p.set_setting(k, v) } if _settings.present?
+        p.set_settings(_settings) if _settings.present?
         p.set_position(_order_position) if _order_position.present?
         p.set_summary(_summary) if _summary.present?
         p.set_thumb(_thumb) if _thumb.present?

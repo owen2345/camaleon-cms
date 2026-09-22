@@ -353,6 +353,9 @@ now returns what a freshly loaded record reads.
   hash or list nested in it that a write leaves unchanged, keep reading the option writes made after it, as
   in 2.9.4; if that write is refused or fails, it reads what is
   stored again.
+- `set_settings` on a post type or a post writes every setting in one options write, through `set_options`,
+  instead of one per setting, so it takes what `set_options` takes, a Hash or request parameters, and a
+  setting a post type refuses leaves the others unwritten.
 - `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read, where
   they raised on a loaded record. A String still reads through the locale, and so does every item of an
   Array, as a String whatever it holds: `[1, true]` reads as `['1', 'true']`, as it did before.

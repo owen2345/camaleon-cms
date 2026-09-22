@@ -228,11 +228,10 @@ module CamaleonCms
       set_option(key, val)
     end
 
-    # assign multiple settings
+    # assign multiple settings, in one options write
     def set_settings(settings = {})
-      settings.each do |key, val|
-        set_setting(key, val)
-      end
+      set_options(settings)
+      settings
     end
 
     # put a new order position for this post

@@ -41,4 +41,29 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(options.keys).to match_array(described_class::DEFAULT_OPTIONS.keys.map(&:to_s))
     end
   end
+
+  # set_settings wrote one option at a time, each an options write storing the whole options row again; a
+  # post type's settings, and those add_post gives a post, are written at once.
+  describe 'settings' do
+    it 'stores the settings given to set_settings in one options write' do
+      post_type = create(:post_type)
+      expect(post_type).to receive(:set_meta).once.and_call_original
+
+      post_type.set_settings(has_tags: true, has_summary: false, default_layout: 'probe')
+
+      expect(described_class.find(post_type.id).options)
+        .to include('has_tags' => true, 'has_summary' => false, 'default_layout' => 'probe')
+    end
+
+    it 'stores the settings add_post gives a post in one options write' do
+      post = nil
+      updates = sql_queries(matching: /\bUPDATE\s+["'`]?\w*metas\b/i) do
+        post = installed_post_type.add_post(title: 'Settings probe', slug: 'settings-probe', content: 'body',
+                                            settings: { has_content: false, default_template: 'probe' })
+      end
+
+      expect(updates).to be_empty
+      expect(CamaleonCms::Post.find(post.id).options).to include('has_content' => false, 'default_template' => 'probe')
+    end
+  end
 end
