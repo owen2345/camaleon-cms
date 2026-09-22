@@ -195,10 +195,13 @@ second time for every options write.
 - [A caller reads a numeric or boolean String back on the writing instance as the String] → It reads the
   number or the boolean now, as it already did once the record was loaded again, and `the_meta` returns
   it as read.
-  - `camaleon-ecommerce`'s order-shipped email is the surveyed case: `OrderDecorator#the_url_tracking`
+  - `camaleon-ecommerce`'s order-shipped email would be the surveyed case: `OrderDecorator#the_url_tracking`
     passes the consignment number written in the same request to `String#gsub` behind `rescue ''`, so an
-    all-digit number leaves the email's tracking URL empty, as the order page, which loads the order
-    again, already did. The plugin fix is `.to_s` on that read (`docs/ai/ecosystem.md`).
+    all-digit number would leave the email's tracking URL empty. The plugin's `Order` inherits
+    `ActiveRecord::Base`, which lacks the memo helpers `CamaleonCms::Metas` calls (only `CamaleonRecord` has
+    had them since 2.7.0), so `shipped!` already raises `NoMethodError` before the email, with or without
+    this change; `.to_s` on that read is the fix once its models inherit `CamaleonRecord`
+    (`docs/ai/ecosystem.md`).
 - [Plugins outside the survey] → Breakage needs a read on the writing instance that depended on an earlier
   read's default, or on the caller's object coming back. The 2.9.5 upgrade guide describes both patterns
   for theme and plugin developers.
