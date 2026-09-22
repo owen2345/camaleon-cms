@@ -108,8 +108,10 @@ object is left as passed and never handed back.
   same helper.
 
 **`set_meta` returns the value passed**, as 2.9.4 did, not the form it memoizes: a caller that tests the
-result gets its own `'false'` or `'null'` back, not `false` or nil, and the option writers, which return
-what `set_meta` returns, return the options they wrote.
+result gets its own `'false'` or `'null'` back, not `false` or nil. The option writers return the hash
+`options` returns after the write, as 2.9.4's did: returning what `set_meta` returns handed back, on a
+record's first options write, the fresh hash they had filled rather than the one memoized from it, so a
+caller holding it missed every later write.
 
 **A Hash or an Array the instance handed out stays the one it reads.** When the value written is the very
 object memoized for the key, the one `get_meta` or `options` returned, it takes the stored form in place

@@ -72,3 +72,4 @@
 - [x] 5.32 Read the stored decorator option a refusal compares with from the database, not from loaded metas that may be older than the row; spec the one lookup on loaded metas and a corrected row refusing the value a stale instance still holds.
 - [x] 5.33 Rescue in `write_options` only the change and the write, so the options it puts back are always set and reading them first raises as it is.
 - [x] 5.34 Copy the options `write_options` puts back deep, so a nested value a writer changed in place is put back too; spec a failed write that changed one.
+- [x] 5.35 Return from `set_options` and `delete_option` the hash `options` returns after the write, not the fresh hash a record's first options write filled, and spec the identity and a later write read through it.

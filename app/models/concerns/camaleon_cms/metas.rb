@@ -258,9 +258,10 @@ module CamaleonCms
     # store, before anything is written; a model refuses a write by raising here. Nothing is refused here.
     def check_meta_write(_key, _stored); end
 
-    # The option writers change the options this instance holds and store them with set_meta, returning what
-    # it returns. A write that raises, refused or failed, puts back the options as they were before the
-    # change, down to their nested values, so the instance keeps reading what is stored.
+    # The option writers change the options this instance holds and store them with set_meta, and return the
+    # options the instance reads afterwards, the hash `options` returns, on a first options write too. A
+    # write that raises, refused or failed, puts back the options as they were before the change, down to
+    # their nested values, so the instance keeps reading what is stored.
     def write_options(meta_key)
       data = cama_options(meta_key)
       previous = data.deep_dup
@@ -271,6 +272,7 @@ module CamaleonCms
         data.replace(previous)
         raise
       end
+      cama_options(meta_key)
     end
 
     # Memoizes for key what a reload reads for the value written. The Hash or the Array this instance handed

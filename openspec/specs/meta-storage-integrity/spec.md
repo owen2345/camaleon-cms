@@ -67,7 +67,8 @@ find an option by a String key or its Symbol twin, as a freshly loaded record do
 passed a plain Hash, request parameters or a JSON string. The hash `options` returns SHALL share nothing
 with the caller's value, its nested hashes included, and SHALL carry no default of the caller's hash, so a
 missing option reads nil as after a reload. `set_meta` SHALL return the value passed, whatever form a read
-returns for it, and `set_options` and `delete_option` SHALL return the options they wrote.
+returns for it, and `set_options` and `delete_option` SHALL return the options the instance reads after the
+write, the hash `options` returns, on a record's first options write too.
 
 #### Scenario: A plugin reads back the hash it wrote
 
@@ -114,7 +115,8 @@ returns for it, and `set_options` and `delete_option` SHALL return the options t
 - **WHEN** `'false'`, `'null'` and request parameters are written with `set_meta`, and options with
   `set_options` and `delete_option`
 - **THEN** `set_meta` returns the String `'false'`, the String `'null'` and the parameters object passed
-- **AND** the option writers return the options they wrote
+- **AND** the option writers return the hash `options` returns afterwards, from a record's first options
+  write on
 
 #### Scenario: A hash options returned before option writes
 
