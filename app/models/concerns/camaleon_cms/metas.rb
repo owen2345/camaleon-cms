@@ -311,24 +311,27 @@ module CamaleonCms
       changed = options.deep_dup
       yield changed
       set_meta(meta_key, changed)
-      memo_key = "meta_#{meta_key}"
-      stored = cama_get_cache(memo_key)
-      return stored if options.frozen? || !stored.instance_of?(options.class)
-
-      cama_set_cache(memo_key, options.replace(stored))
+      key_str = meta_key.to_s
+      memoize_stored_form(key_str, options, cama_get_cache("meta_#{key_str}"))
     end
 
     # Memoizes for key what a reload reads for the value written. When the value written is the Hash or the
-    # Array memoized for key, the one this instance handed out, the memo takes that form in place and stays
-    # memoized, so every reference to it keeps reading the record; otherwise, a frozen memo included, the
-    # stored form is memoized apart from the value written, which is left as passed. A String memo is never
-    # changed in place, since it may carry the translations String#translate memoized on it.
+    # Array memoized for key, the one this instance handed out, it takes that form in place as
+    # memoize_stored_form has it; otherwise the stored form is memoized apart from the value written, which
+    # is left as passed.
     def memoize_written_meta(key_str, written, stored)
-      memo_key = "meta_#{key_str}"
-      memo = cama_get_cache(memo_key)
-      in_place = memo.equal?(written) && (memo.is_a?(Hash) || memo.is_a?(Array)) && !memo.frozen? &&
-                 stored.is_a?(memo.class)
-      cama_set_cache(memo_key, in_place ? memo.replace(stored) : stored)
+      memo = cama_get_cache("meta_#{key_str}")
+      memoize_stored_form(key_str, (memo if memo.equal?(written)), stored)
+    end
+
+    # Memoizes stored, the form a read returns for what key holds, in held, the Hash or the Array this
+    # instance handed out for key, which takes it in place and stays memoized, so every reference to it keeps
+    # reading the record; otherwise, a frozen one, one that stored does not fit or none held, stored itself.
+    # A String is never changed in place, since it may carry the translations String#translate memoized on
+    # it. Returns what it memoizes.
+    def memoize_stored_form(key_str, held, stored)
+      in_place = (held.is_a?(Hash) || held.is_a?(Array)) && !held.frozen? && stored.is_a?(held.class)
+      cama_set_cache("meta_#{key_str}", in_place ? held.replace(stored) : stored)
     end
 
     # The state of the transaction running now, if any: the one a write belongs to, whose rollback
