@@ -16,4 +16,25 @@ RSpec.describe CamaleonCms::Post, type: :model do
     expect(stored.get_option(:has_picture)).to be(false)
     expect(stored.get_option(:has_comments)).to be(true)
   end
+
+  # A record not saved yet has no stored rows, so the metas built on it are all it holds: they are read, not
+  # looked for in the database, which cannot hold them.
+  it 'reads the metas built on a record not saved yet' do
+    post = build(:post, post_type: post_type)
+    post.metas.build(key: 'subtitle', value: 'built')
+
+    expect(post.get_meta('subtitle', 'none')).to eq('built')
+  end
+
+  # A creation rolled back leaves the record unsaved, with the metas it wrote built again for its next save.
+  it 'reads the metas built again once its creation is rolled back' do
+    created = build(:post_type, data_metas: { icon_color: 'queued' }, data_options: { has_category: true })
+    ActiveRecord::Base.transaction(requires_new: true) do
+      created.save!
+      raise ActiveRecord::Rollback
+    end
+
+    expect(created).to be_new_record
+    expect([created.get_meta('icon_color', 'none'), created.get_option(:has_category, 'none')]).to eq(['queued', true])
+  end
 end

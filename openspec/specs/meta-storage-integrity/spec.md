@@ -389,12 +389,24 @@ back whether the record's metas are eager-loaded or read from the database.
 
 A meta set on a record before its first save SHALL be stored as one row. Options or metas saved while the
 record is created, such as creation-time options, SHALL update that pending meta rather than store a
-second row with the same key.
+second row with the same key. A record not saved yet, before its first save or once its creation is
+rolled back, SHALL read the metas built on it, which its next save stores.
 
 #### Scenario: Options set before and while creating a post
 
 - **WHEN** a new post gets an option before its first save and is saved with creation-time options
 - **THEN** the post has one options row, holding both values
+
+#### Scenario: A meta built on a record not saved yet
+
+- **WHEN** a meta is built on an unsaved post and read with a default
+- **THEN** the built value is returned
+
+#### Scenario: A creation rolled back
+
+- **WHEN** a post type created with a meta in `data_metas` and an option in `data_options` has its
+  creation rolled back
+- **THEN** the unsaved post type reads that meta and that option
 
 ### Requirement: An options row that is not an object reads as empty
 

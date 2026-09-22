@@ -374,11 +374,11 @@ module CamaleonCms
     end
 
     # The row of key a read takes: the lowest id among the key's stored rows, from the metas in memory when they
-    # are loaded or complete and from the database otherwise, or, for a key with no stored row among the metas
-    # in memory, a meta built and not saved yet. With stored_only, the stored row a write updates, leaving out
-    # a built meta, which a write sets in place.
+    # are loaded or complete, as those of a record not saved yet always are, and from the database otherwise,
+    # or, for a key with no stored row among the metas in memory, a meta built and not saved yet. With
+    # stored_only, the stored row a write updates, leaving out a built meta, which a write sets in place.
     def meta_row(key_str, stored_only: false)
-      if metas.loaded? || created_record_metas_in_memory?
+      if metas.loaded? || new_record? || created_record_metas_in_memory?
         rows = metas.target.select { |m| m.key == key_str }
         stored = rows.select(&:persisted?)
         (stored.empty? && !stored_only ? rows : stored).min_by { |m| m.id.to_i }
