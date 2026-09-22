@@ -349,8 +349,9 @@ now returns what a freshly loaded record reads.
 - A meta with a stored value is memoized on the object and handed back as that one value: a change made to
   it in place shows in later reads on that object, and in `options` for the `_default` row, but is not
   stored. Write changes with `set_meta` whether or not a row exists, as the option writers already do. A
-  hash or list you read and write back stays the one the object reads, so a hash `options` returned keeps
-  reading the option writes made after it, as in 2.9.4; if that write is refused or fails, it reads what is
+  hash or list you read and write back stays the one the object reads, so a hash `options` returned, and a
+  hash or list nested in it that a write leaves unchanged, keep reading the option writes made after it, as
+  in 2.9.4; if that write is refused or fails, it reads what is
   stored again.
 - `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read, where
   they raised on a loaded record. A String still reads through the locale, and so does every item of an

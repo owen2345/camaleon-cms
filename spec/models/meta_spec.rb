@@ -164,6 +164,37 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect([held[:probe_a], held[:probe_b], held.key?(:has_tags)]).to eq([1, 2, false])
     end
 
+    # An option write changes in the hash `options` returned only what it writes, as 2.9.4's did: a nested
+    # hash taken from it keeps reading the record across writes of other options, and a default set on it
+    # stays, where the whole hash was replaced by the stored form on every write.
+    it 'changes in a hash options returned only the options written' do
+      post_type = create(:post_type, data_options: { sizes: { 'top' => 'xl' } })
+      held = post_type.options
+      sizes = held[:sizes]
+      held.default = 'none'
+
+      post_type.set_option(:unrelated, 'value')
+
+      expect(held[:sizes]).to equal(sizes)
+      expect([held[:unrelated], held[:missing]]).to eq(%w[value none])
+      post_type.set_option(:sizes, { 'top' => 'm' })
+      expect([held[:sizes][:top], sizes[:top]]).to eq(%w[m xl])
+    end
+
+    it 'keeps in a hash read from the record and written back the values it holds unchanged' do
+      post = create(:post)
+      post.set_meta('probe', { 'inner' => { 'size' => 'xl' }, 'count' => 1 })
+      held = post.get_meta('probe')
+      inner = held[:inner]
+      held[:count] = 2
+
+      post.set_meta('probe', held)
+
+      expect(post.get_meta('probe')).to equal(held)
+      expect(held[:inner]).to equal(inner)
+      expect(CamaleonCms::Post.find(post.id).get_meta('probe')).to eq('inner' => { 'size' => 'xl' }, 'count' => 2)
+    end
+
     # A hash read from the record, changed and written back stays the one the record reads, so writing it
     # back again after another write stores that write too.
     it 'stores a hash read from the record and written back whole, however often' do

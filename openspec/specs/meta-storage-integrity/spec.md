@@ -66,9 +66,10 @@ or a Date, as its stored text reads, a BigDecimal as a Float and a Time or a Dat
 empty string as a meta with no value, so the caller's default is returned. An object the caller passed SHALL be
 left as passed and SHALL NOT be returned by a read, so a change made to it after the write is not read,
 unless it is the Hash or the Array the instance handed out for that key: written back, that object SHALL
-take the stored form in place and remain the one the instance reads, unless it is frozen, when the stored
-form SHALL be memoized apart from it, so a hash `options` returned keeps
-reading every later option write on the instance; when that write raises, refused or failed, the object
+take the stored form in place, keeping the values it holds unchanged and its default, and remain the one
+the instance reads, unless it is frozen, when the stored form SHALL be memoized apart from it, so a hash
+`options` returned, and a hash or list nested in it that a write leaves unchanged, keep reading every
+later option write on the instance; when that write raises, refused or failed, the object
 SHALL take the form the key's stored row reads as again. A record not yet saved SHALL read a written value the
 same way until its first save, after which the instance reads what it stored. When the value is the record's options, `options` and `get_option` on that instance SHALL
 find an option by a String key or its Symbol twin, as a freshly loaded record does, whether the caller
@@ -133,6 +134,13 @@ write, the hash `options` returns, on a record's first options write too.
 - **WHEN** a post type's options are read, and options are then set, set in bulk and deleted on the same
   instance
 - **THEN** the hash read first is the one `options` returns, holding every write
+
+#### Scenario: A nested option taken from the options before a write of another option
+
+- **WHEN** a post type's options are read, a nested hash is taken from them and a default set on them, and
+  another option is written
+- **THEN** the nested hash is still the one the options hold, and the default stays
+- **AND** a write of that nested option replaces it, leaving the hash taken before as it was
 
 #### Scenario: A hash or a list read from the record and written back
 

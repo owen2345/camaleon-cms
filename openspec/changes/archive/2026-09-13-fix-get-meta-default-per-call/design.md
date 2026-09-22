@@ -125,6 +125,11 @@ value is memoized as a fresh stored form, and the caller's own object is left as
 - Rejected, taking the stored form in place for every Hash memo whatever was written: a hash read before
   a write of another object would change under its reader, where 2.9.4 left it as read, so code comparing
   the value before and after a write would see no change.
+- It takes the stored form value by value: a value it already holds in its stored form stays, so a hash or
+  a list nested in it keeps reading the record across writes of other values, and a hash keeps its
+  default, as 2.9.4's option writers, which changed only the option they wrote, left them.
+- Rejected, `replace` with the stored form: every write swapped out every nested value, detaching a nested
+  hash a caller held across the write of another option, and dropped the hash's default.
 - A String memo is left out: it may carry the translations `String#translate` memoized on it, which a
   change in place would leave stale.
 - A frozen one cannot take the stored form in place: it is stored, and the stored form is memoized apart

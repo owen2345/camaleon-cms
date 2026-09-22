@@ -331,7 +331,31 @@ module CamaleonCms
     # it. Returns what it memoizes.
     def memoize_stored_form(key_str, held, stored)
       in_place = (held.is_a?(Hash) || held.is_a?(Array)) && !held.frozen? && stored.is_a?(held.class)
-      cama_set_cache("meta_#{key_str}", in_place ? held.replace(stored) : stored)
+      cama_set_cache("meta_#{key_str}", in_place ? take_stored_form(held, stored) : stored)
+    end
+
+    # Changes held in place to hold stored, keeping each value it already holds in its stored form, so a hash
+    # or a list taken from it keeps reading the record across writes of the other values, as 2.9.4's option
+    # writers, which changed only the option written, left them, and a hash keeps its default
+    def take_stored_form(held, stored)
+      if held.is_a?(Hash)
+        held.keep_if { |key, _value| stored.key?(key) }
+        stored.each { |key, value| held[key] = value unless held.key?(key) && same_stored_form?(held[key], value) }
+      else
+        held.replace(stored.each_with_index.map { |value, i| same_stored_form?(held[i], value) ? held[i] : value })
+      end
+      held
+    end
+
+    # Whether held is already value, in its stored form: the same class and value at every depth
+    def same_stored_form?(held, value)
+      return false unless held.instance_of?(value.class) && (!value.respond_to?(:size) || held.size == value.size)
+
+      case value
+      when Hash then value.all? { |key, item| held.key?(key) && same_stored_form?(held[key], item) }
+      when Array then value.each_index.all? { |i| same_stored_form?(held[i], value[i]) }
+      else held.eql?(value)
+      end
     end
 
     # The state of the transaction running now, if any: the one a write belongs to, whose rollback
