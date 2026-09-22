@@ -4,7 +4,7 @@
 # stored as a number or a boolean raised once the record was loaded again, and on the writing instance
 # too now that it reads the stored form.
 RSpec.describe CamaleonCms::MetasDecoratorMethods do
-  let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
+  let(:post_type) { installed_post_type }
   let(:post) { create(:post, post_type: post_type) }
   let(:translatable) { { en: 'Hello', es: 'Hola' }.to_translate }
 

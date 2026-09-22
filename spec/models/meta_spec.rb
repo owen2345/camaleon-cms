@@ -326,7 +326,7 @@ RSpec.describe CamaleonCms::Meta, type: :model do
   # boolean as the column's 't' or 'f', which every reader takes as present, and the hashes in an array
   # with String keys only.
   describe 'a value that the text column or JSON would change' do
-    let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
+    let(:post_type) { installed_post_type }
 
     it 'stores a boolean so it reads back as the boolean' do
       post = create(:post, post_type: post_type)

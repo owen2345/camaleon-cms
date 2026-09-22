@@ -4,8 +4,7 @@
 # assigned: every later save of the same instance wrote them again, over any value set since. A post type
 # also skipped its data_metas when it was created and wrote them on its first update instead.
 RSpec.describe CamaleonCms::Metas do
-  # the shared site's installed post type: a post created for it skips a post type's creation and route reload
-  let(:shared_post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
+  let(:shared_post_type) { installed_post_type }
 
   it 'keeps a later option write when a post type created with data_options is updated' do
     post_type = create(:post_type, data_options: { has_category: true })

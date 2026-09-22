@@ -4,8 +4,7 @@
 # read, so later reads on the same instance returned that default, or the caller's in-place changes to it,
 # instead of their own, while a freshly loaded record returned each read's own default.
 RSpec.describe CamaleonCms::Post, type: :model do
-  # the shared site's installed post type: a post created for it skips a post type's creation and route reload
-  let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
+  let(:post_type) { installed_post_type }
 
   describe '#get_meta for a meta with no value' do
     it 'returns the default each read passes' do

@@ -6,7 +6,7 @@
 # change made to it afterwards was read on that instance without a write, and an html_safe String rendered
 # unescaped there until a reload.
 RSpec.describe CamaleonCms::Post, type: :model do
-  let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
+  let(:post_type) { installed_post_type }
 
   describe '#set_meta' do
     {

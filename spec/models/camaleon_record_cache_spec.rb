@@ -4,7 +4,7 @@
 # memo, and with it their common nil-id keys, so one copy's option write showed in the others; reload kept
 # the values read before it.
 RSpec.describe CamaleonRecord do
-  let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
+  let(:post_type) { installed_post_type }
 
   describe '#dup' do
     it 'keeps an option written on one copy out of another' do
