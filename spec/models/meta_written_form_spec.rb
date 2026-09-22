@@ -104,6 +104,18 @@ RSpec.describe CamaleonCms::Post, type: :model do
       text
     end
 
+    # A number reads back as itself, so it is memoized without parsing its text back, as a counter such as a
+    # post's visits, written on every view, was.
+    it 'reads a number it writes back without parsing its text' do
+      post = create(:post, post_type: post_type)
+      expect(JSON).not_to receive(:parse)
+
+      post.set_meta('visits', 42)
+      post.set_meta('ratio', 0.5)
+
+      expect([post.get_meta('visits'), post.get_meta('ratio')]).to eq([42, 0.5])
+    end
+
     it "reads plain text back as a String of its own, leaving the caller's String as passed" do
       post = create(:post, post_type: post_type)
       passed = +'plain text'
