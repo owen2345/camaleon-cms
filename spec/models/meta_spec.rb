@@ -188,6 +188,21 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::Post.find(post.id).get_meta('probe_gallery')).to eq(%w[a.jpg b.jpg])
     end
 
+    # A list read from the record, changed in place and written back by a write that fails, reads what is
+    # stored again and stays the one the record reads, so the record does not read a change nothing stored.
+    it 'reads what is stored again into a list written back by a write that fails' do
+      post = create(:post)
+      post.set_meta('probe_gallery', ['a.jpg'])
+      gallery = post.get_meta('probe_gallery')
+      gallery << 'b.jpg'
+      allow(post).to receive(:write_meta_row).and_raise(ActiveRecord::StatementInvalid, 'write failed')
+
+      expect { post.set_meta('probe_gallery', gallery) }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(gallery).to eq(['a.jpg'])
+      expect(post.get_meta('probe_gallery')).to equal(gallery)
+    end
+
     # An indifferent hash converts a nested plain Hash into a copy but keeps a nested indifferent hash by
     # reference; the options copy shares neither with the caller's hash.
     it 'copies a caller hash without sharing its nested hashes' do

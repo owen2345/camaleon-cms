@@ -51,35 +51,7 @@ module CamaleonCms
     # Adds the meta for key, or updates it, and returns the value passed
     def set_meta(key, value)
       key_str = key.to_s
-      fixed_value = fix_meta_value(value)
-      stored = stored_form_of(fixed_value)
-      check_meta_write(key_str, stored)
-
-      # Check if the parent object has been saved to the database yet
-      if persisted?
-        # A meta built before the first save is still pending during the after_create callbacks, and the
-        # metas autosave inserts it afterwards: update it instead of adding a second row for the key.
-        # Otherwise update the lowest id when a key has several rows: the one get_meta reads.
-        pending_record = metas.target.find { |m| m.new_record? && m.key == key_str }
-        if pending_record
-          pending_record.value = fixed_value
-        elsif (meta_record = meta_row(key_str, stored_only: true))
-          meta_record.update(value: fixed_value)
-        else
-          metas.create(key: key_str, value: fixed_value)
-        end
-      else
-        # In-Memory Fallback: Find an existing unsaved item in the array collection,
-        # or build a brand new unsaved record on the association.
-        meta_record = metas.find { |m| m.key == key_str }
-
-        if meta_record
-          meta_record.value = fixed_value
-        else
-          metas.build(key: key_str, value: fixed_value)
-        end
-      end
-
+      stored = store_meta(key_str, value)
       # memoize what a reload reads for the stored value, so the writing instance reads as a reloaded record
       memoize_written_meta(key_str, value, stored)
       value
@@ -90,10 +62,7 @@ module CamaleonCms
     # or a stored null or empty string.
     def get_meta(key, default = nil)
       key_str = key.to_s
-      cached = cama_fetch_cache("meta_#{key_str}") do
-        option = meta_row(key_str)
-        stored_meta_value(option) if option
-      end
+      cached = cama_fetch_cache("meta_#{key_str}") { read_meta_row(key_str) }
       meta_value_absent?(cached) ? default : cached
     end
 
@@ -215,6 +184,67 @@ module CamaleonCms
     end
 
     private
+
+    # Checks and stores value for key, and returns the form a read returns for it. When the write raises,
+    # refused or failed, a value this instance handed out for key, changed in place and written back, reads
+    # what is stored again.
+    def store_meta(key_str, value)
+      fixed_value = fix_meta_value(value)
+      stored = stored_form_of(fixed_value)
+      check_meta_write(key_str, stored)
+      write_meta_row(key_str, fixed_value)
+      stored
+    rescue StandardError
+      reread_handed_out_meta(key_str, value)
+      raise
+    end
+
+    # Writes fixed_value, the stored form of a value, to the row of key
+    def write_meta_row(key_str, fixed_value)
+      # Check if the parent object has been saved to the database yet
+      if persisted?
+        # A meta built before the first save is still pending during the after_create callbacks, and the
+        # metas autosave inserts it afterwards: update it instead of adding a second row for the key.
+        # Otherwise update the lowest id when a key has several rows: the one get_meta reads.
+        pending_record = metas.target.find { |m| m.new_record? && m.key == key_str }
+        if pending_record
+          pending_record.value = fixed_value
+        elsif (meta_record = meta_row(key_str, stored_only: true))
+          meta_record.update(value: fixed_value)
+        else
+          metas.create(key: key_str, value: fixed_value)
+        end
+      else
+        # In-Memory Fallback: Find an existing unsaved item in the array collection,
+        # or build a brand new unsaved record on the association.
+        meta_record = metas.find { |m| m.key == key_str }
+
+        if meta_record
+          meta_record.value = fixed_value
+        else
+          metas.build(key: key_str, value: fixed_value)
+        end
+      end
+    end
+
+    # What the row of key reads as, nil for a key with no row
+    def read_meta_row(key_str)
+      option = meta_row(key_str)
+      stored_meta_value(option) if option
+    end
+
+    # A value this instance handed out for key, the memoized object itself, changed in place and written
+    # back by a write that raised, takes what the key's row reads as again, in place when it is a hash or a
+    # list, so the instance does not read a change nothing stored. When the row cannot be read either, the
+    # memo is dropped for the next read to take it.
+    def reread_handed_out_meta(key_str, value)
+      memo_key = "meta_#{key_str}"
+      return if value.frozen? || !value.equal?(cama_get_cache(memo_key))
+
+      memoize_written_meta(key_str, value, read_meta_row(key_str))
+    rescue StandardError
+      cama_remove_cache(memo_key)
+    end
 
     # The value a stored row reads as (stored_form_of). A boolean an earlier release stored as the column's
     # 't' or 'f' reads as the boolean and is stored again as its JSON literal so the next read parses it;

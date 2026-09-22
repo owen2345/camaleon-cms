@@ -17,7 +17,8 @@ empty string as a meta with no value, so the caller's default is returned. An ob
 left as passed and SHALL NOT be returned by a read, so a change made to it after the write is not read,
 unless it is the Hash or the Array the instance handed out for that key: written back, that object SHALL
 take the stored form in place and remain the one the instance reads, so a hash `options` returned keeps
-reading every later option write on the instance. A record not yet saved SHALL read a written value the
+reading every later option write on the instance; when that write raises, refused or failed, the object
+SHALL take the form the key's stored row reads as again. A record not yet saved SHALL read a written value the
 same way until its first save, after which the instance reads what it stored. When the value is the record's options, `options` and `get_option` on that instance SHALL
 find an option by a String key or its Symbol twin, as a freshly loaded record does, whether the caller
 passed a plain Hash, request parameters or a JSON string. The hash `options` returns SHALL share nothing
@@ -86,6 +87,13 @@ write, the hash `options` returns, on a record's first options write too.
   the hash is written back again; and a list read with `get_meta` is changed and written back
 - **THEN** a freshly loaded post type holds both the change and the option
 - **AND** `get_meta` on the writing instance returns the list that was written back
+
+#### Scenario: A hash handed out and written back by a refused write
+
+- **WHEN** a post type's options are read, changed in place and written back with `set_meta`, and the
+  write is refused
+- **THEN** the options the instance reads, the hash read among them, hold what is stored
+- **AND** a later option write on the instance is stored
 
 #### Scenario: Options a caller passed to set_meta as a plain Hash
 

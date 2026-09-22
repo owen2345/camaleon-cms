@@ -107,6 +107,20 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(held).to equal(post_type.options)
     end
 
+    # The options a post type handed out, changed in place and written back with set_meta, read what is stored
+    # again when the write is refused, so the refused value is not read and later option writes succeed.
+    it 'reads what is stored again into options it handed out whose write is refused' do
+      held = post_type.options
+      held[option] = 'Object'
+
+      expect { post_type.set_meta('_default', held) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(held).to equal(post_type.options)
+      expect(post_type.get_option(option)).to be_nil
+      post_type.set_option('has_tags', true)
+      expect(stored_post_type.get_option('has_tags')).to be(true)
+    end
+
     it 'keeps earlier writes when a later one is refused on a record with its metas loaded' do
       record = described_class.includes(:metas).find(post_type.id)
       record.set_option('has_tags', true)

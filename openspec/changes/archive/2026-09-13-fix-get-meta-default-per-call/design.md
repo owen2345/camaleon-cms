@@ -124,6 +124,12 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   the value before and after a write would see no change.
 - A String memo is left out: it may carry the translations `String#translate` memoized on it, which a
   change in place would leave stale.
+- When the write of that object raises, refused or failed, it takes the form the key's row reads as again,
+  in place, and stays memoized: the caller changed the memo itself before writing it, so without the
+  re-read the instance read a change nothing stored, and a post type whose refused decorator option
+  stayed in its options refused every later option write. A direct write-back is the only way the memo
+  holds a change before its write: the option writers write a copy. Where the row cannot be read either,
+  the memo is dropped for the next read.
 
 **Return the caller's own default.** It is not copied or memoized. The option writers keep working because
 they pass the options they change to `set_meta`, which memoizes the stored form of that object.
