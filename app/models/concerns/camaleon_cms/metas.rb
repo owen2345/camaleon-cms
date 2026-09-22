@@ -357,9 +357,10 @@ module CamaleonCms
       value.nil? || value == ''
     end
 
-    # The stored form of a value: JSON for a container, and for a boolean its JSON literal, which reads
-    # back as the boolean where the text column would store 't' or 'f', a String every reader takes as
-    # present.
+    # The stored form of a value: JSON for a container; for a boolean its JSON literal, which reads back as
+    # the boolean where the text column would store 't' or 'f', a String every reader takes as present; and
+    # for a String 't' or 'f' its JSON string, which reads back as the String, where the bare letter reads as
+    # the boolean an earlier release stored that way.
     def fix_meta_value(value)
       changed_value = if value.is_a?(ActionController::Parameters)
                         value.to_json
@@ -369,7 +370,9 @@ module CamaleonCms
                         value
                       end
       changed_value = fix_meta_var(changed_value)
-      [true, false].include?(changed_value) ? changed_value.to_s : changed_value
+      return changed_value.to_s if [true, false].include?(changed_value)
+
+      LEGACY_BOOLEANS.key?(changed_value) ? JSON.generate(changed_value) : changed_value
     end
 
     # fix to detect type of the variable

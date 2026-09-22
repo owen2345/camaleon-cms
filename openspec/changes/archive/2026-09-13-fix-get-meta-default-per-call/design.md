@@ -92,6 +92,10 @@ object is left as passed and never handed back.
   opening, after its whitespace, with anything but `[`, `{`, `"`, `/`, `-`, a digit, `t`, `f` or `n`, so the
   common text of URLs, names and markup no longer raises and rescues a parse failure on every write and
   every read.
+- A String `'t'` or `'f'` is stored as its JSON string. The bare letter is how the text column cast a
+  boolean before booleans were stored as their JSON literal, and a row holding it reads as that boolean,
+  so the letter written alone read back as a boolean on the writing instance and, loaded again, had its row
+  rewritten as the literal. Rows an earlier release stored keep reading as booleans.
 - `options` returns the indifferent hash `get_meta` memoizes, or a new empty one, and converts nothing: no
   read returns request parameters, a plain Hash or a JSON string any more, since `set_meta` memoizes them
   parsed, so the branches that converted them are gone. A row holding a JSON string, even one whose text

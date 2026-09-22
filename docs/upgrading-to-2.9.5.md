@@ -337,7 +337,9 @@ now returns what a freshly loaded record reads.
 - A value written with `set_meta` reads back as `set_meta` stores it: a Hash or request parameters as an
   indifferent hash (`[:key]` and `['key']` alike), a JSON string as the value it holds, a numeric or
   boolean String as the number or the boolean, and any other String as a plain String, so a view escapes an
-  `html_safe` String you wrote. Your own object is left as passed and never handed back by a read
+  `html_safe` String you wrote. A one-letter `'t'` or `'f'` is stored as its JSON string (`"f"`) and reads
+  back as that String, since a row holding the bare letter reads as the boolean an earlier release stored
+  that way. Your own object is left as passed and never handed back by a read
   (`set_meta` still returns it), so a change made to it after the write is not read; code that compared a
   read to its own hash, or iterated its Symbol keys, on the writing object sees the stored form now, as it
   already did once the record was loaded again. Code that passes such a read to a String method, like a
