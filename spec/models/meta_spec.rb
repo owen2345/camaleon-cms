@@ -332,5 +332,18 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       end
       expect(post.metas.find_by!(key: 'probe_legacy').value).to eq('t')
     end
+
+    # Storing the boolean again is a write made while reading, so whatever it raises leaves the row for a
+    # later read and the read returns the boolean.
+    it 'reads such a boolean when storing it again raises' do
+      post = create(:post, post_type: post_type)
+      post.metas.create!(key: 'probe_legacy', value: 't')
+      loaded = CamaleonCms::Post.includes(:metas).find(post.id)
+      legacy = loaded.metas.find { |meta| meta.key == 'probe_legacy' }
+      allow(legacy).to receive(:update_column).and_raise(FrozenError, 'frozen meta')
+
+      expect(loaded.get_meta('probe_legacy')).to be(true)
+      expect(post.metas.find_by!(key: 'probe_legacy').value).to eq('t')
+    end
   end
 end

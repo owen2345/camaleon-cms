@@ -218,14 +218,15 @@ module CamaleonCms
 
     # The value a stored row reads as (stored_form_of). A boolean an earlier release stored as the column's
     # 't' or 'f' reads as the boolean and is stored again as its JSON literal so the next read parses it;
-    # where writes are prevented the row is left for a later read.
+    # that write is made while reading, so where it fails, because writes are prevented or for any other
+    # reason, the row is left for a later read.
     def stored_meta_value(option)
       return stored_form_of(option.value) unless LEGACY_BOOLEANS.key?(option.value)
 
       boolean = LEGACY_BOOLEANS.fetch(option.value)
       begin
         option.update_column(:value, boolean.to_s) # rubocop:disable Rails/SkipsModelValidations
-      rescue ActiveRecord::ActiveRecordError
+      rescue StandardError
         nil
       end
       boolean

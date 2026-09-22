@@ -66,3 +66,4 @@
 - [x] 5.26 Make `LEGACY_BOOLEANS` a private constant of the metas concern, as `JSON_TEXT_OPENING` is; nothing outside the concern reads it.
 - [x] 5.27 Look a key's row up through one helper, `meta_row`, for `get_meta`'s read and, with `stored_only`, for the stored row a write updates and `PostType`'s stored decorator option, instead of two copies of the lookup.
 - [x] 5.28 Take the text of a value outside the rescue in `stored_form_of`, so a value whose text cannot be taken raises its own error before the write is checked instead of reading as no value; spec it in `spec/models/meta_written_form_spec.rb`.
+- [x] 5.29 Keep reading a legacy `'t'`/`'f'` row as the boolean when storing it again raises anything, not only a database error, as the method-level rescue the extraction of `stored_form_of` removed did; spec a repair that raises `FrozenError`.
