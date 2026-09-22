@@ -57,7 +57,7 @@ RSpec.describe CamaleonCms::Metas, type: :model do
     # back, so the record keeps reading what is stored.
     it 'leaves the options the record holds as they were stored' do
       record.set_option('status_default', 'published')
-      allow(record).to receive(:stored_meta_row).and_raise(ActiveRecord::StatementInvalid, 'write failed')
+      allow(record).to receive(:meta_row).and_raise(ActiveRecord::StatementInvalid, 'write failed')
 
       expect { record.set_option('status_default', 'draft') }.to raise_error(ActiveRecord::StatementInvalid)
       expect { record.set_options(color: 'red') }.to raise_error(ActiveRecord::StatementInvalid)

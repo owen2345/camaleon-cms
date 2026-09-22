@@ -63,7 +63,7 @@ module CamaleonCms
         pending_record = metas.target.find { |m| m.new_record? && m.key == key_str }
         if pending_record
           pending_record.value = fixed_value
-        elsif (meta_record = stored_meta_row(key_str))
+        elsif (meta_record = meta_row(key_str, stored_only: true))
           meta_record.update(value: fixed_value)
         else
           metas.create(key: key_str, value: fixed_value)
@@ -91,11 +91,7 @@ module CamaleonCms
     def get_meta(key, default = nil)
       key_str = key.to_s
       cached = cama_fetch_cache("meta_#{key_str}") do
-        option = if metas.loaded? || created_record_metas_in_memory?
-                   metas.target.select { |m| m.key == key_str }.min_by { |m| m.id.to_i }
-                 else
-                   metas.where(key: key_str).first
-                 end
+        option = meta_row(key_str)
         stored_meta_value(option) if option
       end
       meta_value_absent?(cached) ? default : cached
@@ -335,12 +331,12 @@ module CamaleonCms
       raise InvalidContainer, "metas and options must be a set of fields, not #{container.class}"
     end
 
-    # The stored row a write updates: the lowest id among the key's rows, taken from the metas in
-    # memory when they are loaded or complete, and from the database otherwise, as get_meta takes the
-    # row it reads.
-    def stored_meta_row(key_str)
+    # The row of key a read takes: the lowest id among the key's rows, from the metas in memory when they are
+    # loaded or complete, a meta built and not saved yet among them, and from the database otherwise. With
+    # stored_only, the stored row a write updates, leaving out a built meta, which a write sets in place.
+    def meta_row(key_str, stored_only: false)
       if metas.loaded? || created_record_metas_in_memory?
-        metas.target.select { |m| m.persisted? && m.key == key_str }.min_by { |m| m.id.to_i }
+        metas.target.select { |m| m.key == key_str && (!stored_only || m.persisted?) }.min_by { |m| m.id.to_i }
       else
         metas.where(key: key_str).order(:id).first
       end

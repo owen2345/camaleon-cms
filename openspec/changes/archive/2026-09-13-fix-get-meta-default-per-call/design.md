@@ -132,7 +132,7 @@ it fails, so the instance keeps reading what is stored without querying for it a
 `PostType#reject_unknown_decorator_class!` therefore neither drops the options memo nor resets the
 association: a refused write changes no row, and the reset discarded the metas an unsaved post type had
 built for its first save while their memos kept answering.
-- The value stored before the write, which a refusal compares with, comes from `stored_meta_row`, the row
+- The value stored before the write, which a refusal compares with, comes from `meta_row`, the row
   a write updates, so a check on a post type with loaded metas issues no query.
 - Rejected, writing on a copy of the options and memoizing it once stored: the hash `options` returned
   would stop being the one the writers update, which a hash held across writes reads.
