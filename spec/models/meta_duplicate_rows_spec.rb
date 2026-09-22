@@ -49,6 +49,16 @@ RSpec.describe CamaleonCms::Meta, type: :model do
     end
   end
 
+  # Among eager-loaded metas a built meta has no id, which ranked it before every stored row; it is read only
+  # for a key with no stored row.
+  it 'reads the stored row, not a meta built for the same key and not saved yet' do
+    loaded = CamaleonCms::PostType.includes(:metas).find(post_type.id)
+    loaded.metas.build(key: 'probe', value: 'built')
+    loaded.metas.build(key: 'probe_built', value: 'only built')
+
+    expect([loaded.get_meta('probe'), loaded.get_meta('probe_built')]).to eq(['first', 'only built'])
+  end
+
   it 'reads the same row from eager-loaded metas as from the database' do
     expect(CamaleonCms::PostType.includes(:metas).find(post_type.id).get_meta('probe'))
       .to eq(CamaleonCms::PostType.find(post_type.id).get_meta('probe'))

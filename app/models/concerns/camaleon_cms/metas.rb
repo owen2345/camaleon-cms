@@ -373,12 +373,15 @@ module CamaleonCms
       raise InvalidContainer, "metas and options must be a set of fields, not #{container.class}"
     end
 
-    # The row of key a read takes: the lowest id among the key's rows, from the metas in memory when they are
-    # loaded or complete, a meta built and not saved yet among them, and from the database otherwise. With
-    # stored_only, the stored row a write updates, leaving out a built meta, which a write sets in place.
+    # The row of key a read takes: the lowest id among the key's stored rows, from the metas in memory when they
+    # are loaded or complete and from the database otherwise, or, for a key with no stored row among the metas
+    # in memory, a meta built and not saved yet. With stored_only, the stored row a write updates, leaving out
+    # a built meta, which a write sets in place.
     def meta_row(key_str, stored_only: false)
       if metas.loaded? || created_record_metas_in_memory?
-        metas.target.select { |m| m.key == key_str && (!stored_only || m.persisted?) }.min_by { |m| m.id.to_i }
+        rows = metas.target.select { |m| m.key == key_str }
+        stored = rows.select(&:persisted?)
+        (stored.empty? && !stored_only ? rows : stored).min_by { |m| m.id.to_i }
       else
         metas.where(key: key_str).order(:id).first
       end

@@ -348,7 +348,7 @@ boolean or a hash; on the writing instance and on a freshly loaded record alike.
 When a record holds more than one meta row for a key, a write SHALL update the row with the lowest id,
 and a read SHALL return that same row. This SHALL hold whether the read loads the row from the database
 or finds it among eager-loaded metas. A meta built for the key on a saved record and not saved yet SHALL
-NOT take a write from the stored row.
+NOT take a write from the stored row, nor be read in its place.
 
 #### Scenario: A write reaches the row reads return
 
@@ -361,6 +361,12 @@ NOT take a write from the stored row.
 - **WHEN** a saved post type, loaded with its metas eager-loaded or without them, builds a meta for a key
   it stores, writes the key and is saved
 - **THEN** a freshly loaded post type reads the written value
+
+#### Scenario: A meta built for a key the record stores, read from eager-loaded metas
+
+- **WHEN** a post type loaded with its metas eager-loaded builds a meta for a key it stores and one for a
+  key it does not store
+- **THEN** a read of the first key returns the stored row's value, and a read of the second the built meta's
 
 #### Scenario: Eager-loaded and database reads agree
 
