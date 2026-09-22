@@ -32,22 +32,15 @@ RSpec.describe CamaleonCms::Post, type: :model do
       expect(post.get_meta('gallery', [])).to eq([])
     end
 
-    it 'returns the default each read passes for a meta stored as an empty string' do
-      post = create(:post, post_type: post_type)
-      post.metas.create!(key: 'gallery', value: '')
-      stored = described_class.find(post.id)
+    { '' => 'an empty string', nil => 'null' }.each do |value, stored_as|
+      it "returns the default each read passes for a meta stored as #{stored_as}" do
+        post = create(:post, post_type: post_type)
+        post.metas.create!(key: 'gallery', value: value)
+        stored = described_class.find(post.id)
 
-      expect(stored.get_meta('gallery')).to be_nil
-      expect(stored.get_meta('gallery', [])).to eq([])
-    end
-
-    it 'returns the default each read passes for a meta stored as null' do
-      post = create(:post, post_type: post_type)
-      post.metas.create!(key: 'gallery', value: nil)
-      stored = described_class.find(post.id)
-
-      expect(stored.get_meta('gallery')).to be_nil
-      expect(stored.get_meta('gallery', [])).to eq([])
+        expect(stored.get_meta('gallery')).to be_nil
+        expect(stored.get_meta('gallery', [])).to eq([])
+      end
     end
 
     # The admin role form stores a null post-type permission meta when only manager boxes are checked, and
