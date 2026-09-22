@@ -112,17 +112,30 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       post_type.set_option('has_tags', true)
     end
 
-    # The stored value a refusal compares with comes from the row a write updates, found among loaded metas
-    # as every other lookup on them is.
-    it 'looks the stored value up among loaded metas without querying' do
+    # The stored value a refusal compares with is read from the database, from the row a write updates, even
+    # when the metas are loaded: they may be older than the row. It is read only for a value the check refuses.
+    it 'reads the stored value from the database, with the metas loaded too' do
       record = described_class.includes(:metas).find(post_type.id)
       record.options
 
-      selects = metas_selects do
+      refused = metas_selects do
         expect { record.set_option(option, 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
       end
+      accepted = metas_selects { record.set_option(option, 'ProbePostDecorator') }
 
-      expect(selects).to be_empty
+      expect(refused.size).to eq(1)
+      expect(accepted).to be_empty
+    end
+
+    it 'refuses a value loaded metas still hold after the stored one was corrected' do
+      store_decorator_option('Object')
+      stale = described_class.includes(:metas).find(post_type.id)
+      stale.options
+      store_decorator_option('ProbePostDecorator')
+
+      expect { stale.set_option('has_tags', true) }
+        .to raise_error(ActiveRecord::RecordInvalid, /cama_post_decorator_class.*'Object'/)
+      expect(stored_post_type.get_option(option)).to eq('ProbePostDecorator')
     end
 
     # A refused write changes no row, so the metas in memory stay: on an unsaved record they are the

@@ -280,12 +280,14 @@ module CamaleonCms
     end
 
     # The decorator option as the database holds it before the write under check, from the row a write
-    # updates (meta_row with stored_only), found among the metas in memory when they are loaded; nil for a
-    # record not saved yet or an options row that is not a JSON object.
+    # updates, the lowest id, read from the database even when the metas are loaded: loaded metas may be
+    # older than the row, and a refused value they still hold would pass as unchanged and be stored over a
+    # correction. Only a value that names no post decorator is compared with it. nil for a record not saved
+    # yet or an options row that is not a JSON object.
     def stored_decorator_class_option
       return unless persisted?
 
-      decorator_class_option_of(stored_form_of(meta_row('_default', stored_only: true)&.value))
+      decorator_class_option_of(stored_form_of(metas.where(key: '_default').order(:id).pick(:value)))
     end
 
     # The decorator option the stored form of a post type's options holds; nil when it is not a JSON object.
