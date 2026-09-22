@@ -35,6 +35,20 @@ RSpec.describe CamaleonCms::Meta, type: :model do
     expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe')).to eq('written')
   end
 
+  # A meta built on a saved record for a key it stores is a second row waiting for the next save: a write still
+  # updates the stored row, which every later read takes, or it is lost once the built meta is saved beside it.
+  it 'updates the stored row, not a meta built for the same key and not saved yet' do
+    scopes = { 'eager-loaded' => CamaleonCms::PostType.includes(:metas), 'queried' => CamaleonCms::PostType }
+    scopes.each do |name, scope|
+      record = scope.find(post_type.id)
+      record.metas.build(key: 'probe', value: 'built')
+      record.set_meta('probe', "written on the #{name} record")
+      record.save!
+
+      expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe')).to eq("written on the #{name} record")
+    end
+  end
+
   it 'reads the same row from eager-loaded metas as from the database' do
     expect(CamaleonCms::PostType.includes(:metas).find(post_type.id).get_meta('probe'))
       .to eq(CamaleonCms::PostType.find(post_type.id).get_meta('probe'))
