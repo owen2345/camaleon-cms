@@ -264,11 +264,13 @@ module CamaleonCms
     def write_options(meta_key)
       data = cama_options(meta_key)
       previous = data.dup
-      yield data
-      set_meta(meta_key, data)
-    rescue StandardError
-      data.replace(previous) if previous
-      raise
+      begin
+        yield data
+        set_meta(meta_key, data)
+      rescue StandardError
+        data.replace(previous)
+        raise
+      end
     end
 
     # Memoizes for key what a reload reads for the value written. The Hash or the Array this instance handed
