@@ -121,6 +121,17 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option('has_tags')).to be(true)
     end
 
+    it 'reads what is stored again when options it handed out are frozen, written back and refused' do
+      held = post_type.options
+      held[option] = 'Object'
+      held.freeze
+
+      expect { post_type.set_meta('_default', held) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(post_type.get_option(option)).to be_nil
+      expect(held).not_to equal(post_type.options)
+    end
+
     it 'keeps earlier writes when a later one is refused on a record with its metas loaded' do
       record = described_class.includes(:metas).find(post_type.id)
       record.set_option('has_tags', true)

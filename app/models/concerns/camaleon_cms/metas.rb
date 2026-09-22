@@ -233,13 +233,13 @@ module CamaleonCms
       stored_meta_value(option) if option
     end
 
-    # A value this instance handed out for key, the memoized object itself, changed in place and written
-    # back by a write that raised, takes what the key's row reads as again, in place when it is a hash or a
-    # list, so the instance does not read a change nothing stored. When the row cannot be read either, the
-    # memo is dropped for the next read to take it.
+    # A value this instance handed out for key, the memoized hash, list or text itself, changed in place and
+    # written back by a write that raised, takes what the key's row reads as again, in place when it is a
+    # hash or a list that is not frozen, so the instance does not read a change nothing stored. When the row
+    # cannot be read either, the memo is dropped for the next read to take it.
     def reread_handed_out_meta(key_str, value)
       memo_key = "meta_#{key_str}"
-      return if value.frozen? || !value.equal?(cama_get_cache(memo_key))
+      return unless [Hash, Array, String].any? { |type| value.is_a?(type) } && value.equal?(cama_get_cache(memo_key))
 
       memoize_written_meta(key_str, value, read_meta_row(key_str))
     rescue StandardError
@@ -313,14 +313,14 @@ module CamaleonCms
     end
 
     # Memoizes for key what a reload reads for the value written. The Hash or the Array this instance handed
-    # out for key, written back, takes that form in place and stays memoized, so every reference to it, the
-    # options the option writers update included, keeps reading the record; any other value is memoized as
-    # the stored form, and the caller's object is left as passed. A String memo is never changed in place,
-    # since it may carry the translations String#translate memoized on it.
+    # out for key, written back, takes that form in place and stays memoized, so every reference to it keeps
+    # reading the record; any other value, a frozen one among them, is memoized as the stored form, and the
+    # caller's object is left as passed. A String memo is never changed in place, since it may carry the
+    # translations String#translate memoized on it.
     def memoize_written_meta(key_str, written, stored)
       memo_key = "meta_#{key_str}"
       handed_out = written.equal?(cama_get_cache(memo_key)) && (written.is_a?(Hash) || written.is_a?(Array))
-      stored = written.replace(stored) if handed_out && stored.is_a?(written.class)
+      stored = written.replace(stored) if handed_out && !written.frozen? && stored.is_a?(written.class)
       cama_set_cache(memo_key, stored)
     end
 

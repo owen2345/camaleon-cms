@@ -124,6 +124,8 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   the value before and after a write would see no change.
 - A String memo is left out: it may carry the translations `String#translate` memoized on it, which a
   change in place would leave stale.
+- A frozen one cannot take the stored form in place: it is stored, and the stored form is memoized apart
+  from it, where the change in place raised `FrozenError` after the row was written.
 - When the write of that object raises, refused or failed, it takes the form the key's row reads as again,
   in place, and stays memoized: the caller changed the memo itself before writing it, so without the
   re-read the instance read a change nothing stored, and a post type whose refused decorator option

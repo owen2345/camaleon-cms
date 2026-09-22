@@ -188,6 +188,22 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::Post.find(post.id).get_meta('probe_gallery')).to eq(%w[a.jpg b.jpg])
     end
 
+    # A frozen hash read from the record cannot take the stored form in place, so written back it is stored and
+    # the record memoizes the stored form apart from it.
+    it 'stores a frozen hash read from the record and written back' do
+      post = create(:post)
+      post.set_meta('probe', { color: 'red' })
+      held = post.get_meta('probe')
+      held[:color] = 'blue'
+      held.freeze
+
+      post.set_meta('probe', held)
+
+      expect(post.get_meta('probe')).to eq('color' => 'blue')
+      expect(post.get_meta('probe')).not_to equal(held)
+      expect(CamaleonCms::Post.find(post.id).get_meta('probe')).to eq('color' => 'blue')
+    end
+
     # A list read from the record, changed in place and written back by a write that fails, reads what is
     # stored again and stays the one the record reads, so the record does not read a change nothing stored.
     it 'reads what is stored again into a list written back by a write that fails' do

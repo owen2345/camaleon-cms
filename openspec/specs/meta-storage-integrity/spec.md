@@ -66,7 +66,8 @@ or a Date, as its stored text reads, a BigDecimal as a Float and a Time or a Dat
 empty string as a meta with no value, so the caller's default is returned. An object the caller passed SHALL be
 left as passed and SHALL NOT be returned by a read, so a change made to it after the write is not read,
 unless it is the Hash or the Array the instance handed out for that key: written back, that object SHALL
-take the stored form in place and remain the one the instance reads, so a hash `options` returned keeps
+take the stored form in place and remain the one the instance reads, unless it is frozen, when the stored
+form SHALL be memoized apart from it, so a hash `options` returned keeps
 reading every later option write on the instance; when that write raises, refused or failed, the object
 SHALL take the form the key's stored row reads as again. A record not yet saved SHALL read a written value the
 same way until its first save, after which the instance reads what it stored. When the value is the record's options, `options` and `get_option` on that instance SHALL
@@ -137,6 +138,11 @@ write, the hash `options` returns, on a record's first options write too.
   the hash is written back again; and a list read with `get_meta` is changed and written back
 - **THEN** a freshly loaded post type holds both the change and the option
 - **AND** `get_meta` on the writing instance returns the list that was written back
+
+#### Scenario: A frozen hash read from the record and written back
+
+- **WHEN** a hash read with `get_meta` is changed, frozen and written back with `set_meta`
+- **THEN** the write is stored without raising and the instance reads the stored form, not the frozen hash
 
 #### Scenario: A hash handed out and written back by a refused write
 
