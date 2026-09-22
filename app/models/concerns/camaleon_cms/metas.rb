@@ -49,37 +49,38 @@ module CamaleonCms
 
     # Adds the meta for key, or updates it, and returns the value passed
     def set_meta(key, value)
+      key_str = key.to_s
       fixed_value = fix_meta_value(value)
       stored = stored_form_of(fixed_value)
-      check_meta_write(key.to_s, stored)
+      check_meta_write(key_str, stored)
 
       # Check if the parent object has been saved to the database yet
       if persisted?
         # A meta built before the first save is still pending during the after_create callbacks, and the
         # metas autosave inserts it afterwards: update it instead of adding a second row for the key.
         # Otherwise update the lowest id when a key has several rows: the one get_meta reads.
-        pending_record = metas.target.find { |m| m.new_record? && m.key == key.to_s }
+        pending_record = metas.target.find { |m| m.new_record? && m.key == key_str }
         if pending_record
           pending_record.value = fixed_value
-        elsif (meta_record = stored_meta_row(key.to_s))
+        elsif (meta_record = stored_meta_row(key_str))
           meta_record.update(value: fixed_value)
         else
-          metas.create(key: key.to_s, value: fixed_value)
+          metas.create(key: key_str, value: fixed_value)
         end
       else
         # In-Memory Fallback: Find an existing unsaved item in the array collection,
         # or build a brand new unsaved record on the association.
-        meta_record = metas.find { |m| m.key == key.to_s }
+        meta_record = metas.find { |m| m.key == key_str }
 
         if meta_record
           meta_record.value = fixed_value
         else
-          metas.build(key: key.to_s, value: fixed_value)
+          metas.build(key: key_str, value: fixed_value)
         end
       end
 
       # memoize what a reload reads for the stored value, so the writing instance reads as a reloaded record
-      memoize_written_meta(key, value, stored)
+      memoize_written_meta(key_str, value, stored)
       value
     end
 
@@ -273,8 +274,8 @@ module CamaleonCms
     # options the option writers update included, keeps reading the record; any other value is memoized as
     # the stored form, and the caller's object is left as passed. A String memo is never changed in place,
     # since it may carry the translations String#translate memoized on it.
-    def memoize_written_meta(key, written, stored)
-      memo_key = "meta_#{key}"
+    def memoize_written_meta(key_str, written, stored)
+      memo_key = "meta_#{key_str}"
       handed_out = written.equal?(cama_get_cache(memo_key)) && (written.is_a?(Hash) || written.is_a?(Array))
       stored = written.replace(stored) if handed_out && stored.is_a?(written.class)
       cama_set_cache(memo_key, stored)
