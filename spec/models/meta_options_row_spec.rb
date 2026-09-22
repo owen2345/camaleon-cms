@@ -66,6 +66,18 @@ RSpec.describe CamaleonCms::Metas, type: :model do
       expect(record.options).to eq(CamaleonCms::Post.find(record.id).options)
       expect([record.get_option('status_default'), record.options.key?('color')]).to eq(['published', false])
     end
+
+    # A write that raises leaves the options as they were down to their nested values, whatever the writer
+    # changed in place.
+    it 'leaves a nested value a writer changed in place as it was stored' do
+      record.set_option('layout', { 'columns' => 2 })
+      allow(record).to receive(:meta_row).and_raise(ActiveRecord::StatementInvalid, 'write failed')
+
+      expect { record.send(:write_options, '_default') { |data| data[:layout][:columns] = 3 } }
+        .to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(record.get_option('layout')).to eq('columns' => 2)
+    end
   end
 
   describe 'a container that is not a set of fields' do

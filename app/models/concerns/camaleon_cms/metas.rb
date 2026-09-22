@@ -260,10 +260,10 @@ module CamaleonCms
 
     # The option writers change the options this instance holds and store them with set_meta, returning what
     # it returns. A write that raises, refused or failed, puts back the options as they were before the
-    # change, so the instance keeps reading what is stored.
+    # change, down to their nested values, so the instance keeps reading what is stored.
     def write_options(meta_key)
       data = cama_options(meta_key)
-      previous = data.dup
+      previous = data.deep_dup
       begin
         yield data
         set_meta(meta_key, data)
