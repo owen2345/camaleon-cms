@@ -63,3 +63,4 @@
 - [x] 5.23 Count in `metas_selects` a SELECT behind leading whitespace or a query log comment, and no table whose name only starts with metas, with a spec of the helper.
 - [x] 5.24 Match a metas SELECT with two patterns, its opening and its table, through a pattern list `sql_queries` now takes, instead of one pattern bridging them with `.*` that ran back over the whole statement; spec the list and long statements.
 - [x] 5.25 Name the key's String form once in `set_meta`, as `get_meta` does, for the pending-row, stored-row and built-row lookups, the check, the writes and the memo.
+- [x] 5.26 Make `LEGACY_BOOLEANS` a private constant of the metas concern, as `JSON_TEXT_OPENING` is; nothing outside the concern reads it.

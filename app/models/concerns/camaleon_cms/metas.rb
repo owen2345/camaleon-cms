@@ -12,6 +12,7 @@ module CamaleonCms
 
     # how the text column cast a boolean before booleans were stored as their JSON literal
     LEGACY_BOOLEANS = { 't' => true, 'f' => false }.freeze
+    private_constant :LEGACY_BOOLEANS
 
     # What a JSON text can open with, after its whitespace, on every supported json release: an object, an
     # array, a string, a comment, a number, true, false or null. Text opening with anything else holds none.
