@@ -87,7 +87,8 @@ object is left as passed and never handed back.
   was read.
 - Rejected, a `dup` of the text: it keeps an html_safe String html_safe, which renders unescaped on the
   writing instance where a freshly loaded record reads a plain String. `String.new` copies the text as the
-  column casts it.
+  column casts it, transcoded to UTF-8, which the database stores text in, so a String in another encoding
+  reads as a reload reads it.
 - Text that cannot open a JSON text is copied without a parse. No supported json release parses a text
   opening, after its whitespace, with anything but `[`, `{`, `"`, `/`, `-`, a digit, `t`, `f` or `n`, so the
   common text of URLs, names and markup no longer raises and rescues a parse failure on every write and

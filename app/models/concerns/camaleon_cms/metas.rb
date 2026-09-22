@@ -269,20 +269,29 @@ module CamaleonCms
     # twice keeps its last value, as json 2 read it), a legacy 't' or 'f' as the boolean, a plain String copy
     # of the text when it holds no JSON, taken without a parse when the text cannot open a JSON text, and nil
     # for a null row. set_meta memoizes this form, so the writing instance reads what a freshly loaded record
-    # reads: for text, the plain String the text column casts, neither the caller's object nor html_safe. The
-    # text is taken outside the rescue, so a value whose text cannot be taken raises its own error.
+    # reads: for text, the plain UTF-8 String the text column reads back, neither the caller's object nor
+    # html_safe. The text is taken outside the rescue, so a value whose text cannot be taken raises its own
+    # error.
     def stored_form_of(stored)
       stored_form_of_text(stored.to_s) unless stored.nil?
     end
 
-    # The form a read returns for text: the value its JSON holds, or a plain String copy of the text when it
-    # holds none, text that is not valid in its encoding included
+    # The form a read returns for text: the value its JSON holds, or the text as the column reads it back when
+    # it holds none, text that is not valid in its encoding included
     def stored_form_of_text(text)
-      return String.new(text) unless text.match?(JSON_TEXT_OPENING)
+      return column_text(text) unless text.match?(JSON_TEXT_OPENING)
 
       parsed = LEGACY_BOOLEANS.fetch(text) { JSON.parse(text, allow_duplicate_key: true) }
       CamaleonCms::Metas.indifferent_json_value(parsed)
     rescue StandardError
+      column_text(text)
+    end
+
+    # Text as the text column reads it back: a plain String copy, in UTF-8, the encoding the database stores
+    # text in, when it can be transcoded to it, and as it is otherwise, text the database refuses to store
+    def column_text(text)
+      String.new(text).encode!(Encoding::UTF_8)
+    rescue EncodingError
       String.new(text)
     end
 

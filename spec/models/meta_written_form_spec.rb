@@ -96,6 +96,17 @@ RSpec.describe CamaleonCms::Post, type: :model do
       expect(described_class.find(post.id).get_meta('probe')).to eq('plain text')
     end
 
+    # The database stores text in UTF-8, so text in another encoding reads back transcoded after a reload; the
+    # writing instance reads it the same way, not in the caller's encoding, which UTF-8 text cannot be joined to.
+    it 'reads text in another encoding back as the UTF-8 text a reloaded record reads' do
+      post = create(:post, post_type: post_type)
+      post.set_meta('probe', String.new("caf\xE9", encoding: Encoding::ISO_8859_1))
+
+      reads = [post.get_meta('probe'), described_class.find(post.id).get_meta('probe')]
+      expect(reads).to eq(%w[café café])
+      expect(reads.map(&:encoding)).to eq([Encoding::UTF_8, Encoding::UTF_8])
+    end
+
     it 'reads an html_safe String back as the plain String a reloaded record reads' do
       post = create(:post, post_type: post_type)
       post.set_meta('probe', ActiveSupport::SafeBuffer.new('<b>bold</b>'))

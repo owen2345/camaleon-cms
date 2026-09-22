@@ -11,7 +11,7 @@ A value written with `set_meta` SHALL be returned by `get_meta` on the same inst
 loaded record reads it: a Hash, an Array or request parameters as the indifferent hash, or array, their
 JSON parses to; a String holding JSON as the value it holds; a numeric or boolean String as the number or
 the boolean; a String or a Symbol `t` or `f`, stored as its JSON string, as that String; any other String as a plain
-String, not html_safe even when the caller's was; a value of another class, such as a BigDecimal, a Time
+String in UTF-8, not html_safe even when the caller's was; a value of another class, such as a BigDecimal, a Time
 or a Date, as its stored text reads, a BigDecimal as a Float and a Time or a Date as that text; nil or an
 empty string as a meta with no value, so the caller's default is returned. An object the caller passed SHALL be
 left as passed and SHALL NOT be returned by a read, so a change made to it after the write is not read,
@@ -57,6 +57,8 @@ write, the hash `options` returns, on a record's first options write too.
 - **THEN** `get_meta` on the same instance returns the text as written, not the caller's object
 - **AND** an html_safe String written the same way reads back as a plain String, as a freshly loaded
   record reads it
+- **AND** a String in another encoding reads back as the same text in UTF-8, as a freshly loaded record
+  reads it
 
 #### Scenario: A new record saved after the write
 

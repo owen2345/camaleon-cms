@@ -336,8 +336,8 @@ now returns what a freshly loaded record reads.
   did for an empty string, and `set_meta(key, nil)` or `set_meta(key, '')` reads back as the default.
 - A value written with `set_meta` reads back as `set_meta` stores it: a Hash or request parameters as an
   indifferent hash (`[:key]` and `['key']` alike), a JSON string as the value it holds, a numeric or
-  boolean String as the number or the boolean, and any other String as a plain String, so a view escapes an
-  `html_safe` String you wrote. A one-letter `'t'` or `'f'`, a String or a Symbol, is stored as its JSON
+  boolean String as the number or the boolean, and any other String as a plain String in UTF-8, so a view
+  escapes an `html_safe` String you wrote. A one-letter `'t'` or `'f'`, a String or a Symbol, is stored as its JSON
   string (`"f"`) and reads back as that String, since a row holding the bare letter reads as the boolean an
   earlier release stored that way. A value of another class reads back as a reload reads the text it is stored as: a `BigDecimal`
   as a Float, and a `Time` or a `Date` as its String. Your own object is left as passed and never handed
