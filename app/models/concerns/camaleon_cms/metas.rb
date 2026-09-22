@@ -258,21 +258,28 @@ module CamaleonCms
     # store, before anything is written; a model refuses a write by raising here. Nothing is refused here.
     def check_meta_write(_key, _stored); end
 
-    # The option writers change the options this instance holds and store them with set_meta, and return the
-    # options the instance reads afterwards, the hash `options` returns, on a first options write too. A
-    # write that raises, refused or failed, puts back the options as they were before the change, down to
-    # their nested values, so the instance keeps reading what is stored.
+    # The option writers change a copy of the options this instance holds, down to their nested values, and
+    # store it with set_meta. The options take the stored form only once it is stored, so a write that
+    # raises, refused or failed, leaves them as they were and the instance keeps reading what is stored.
+    # They return the options the instance reads afterwards, the hash `options` returns, on a first options
+    # write too.
     def write_options(meta_key)
-      data = cama_options(meta_key)
-      previous = data.deep_dup
-      begin
-        yield data
-        set_meta(meta_key, data)
-      rescue StandardError
-        data.replace(previous)
-        raise
-      end
-      cama_options(meta_key)
+      options = cama_options(meta_key)
+      changed = options.deep_dup
+      yield changed
+      set_meta(meta_key, changed)
+      keep_written_options(meta_key, options)
+    end
+
+    # The options handed out take in place the form set_meta memoized for the options written, and are
+    # memoized in its stead, so a hash `options` returned keeps reading every option write; a frozen hash is
+    # left as it is, with the stored form memoized. Returns the options memoized.
+    def keep_written_options(meta_key, options)
+      memo_key = "meta_#{meta_key}"
+      stored = cama_get_cache(memo_key)
+      return stored if options.frozen? || !stored.instance_of?(options.class)
+
+      cama_set_cache(memo_key, options.replace(stored))
     end
 
     # Memoizes for key what a reload reads for the value written. The Hash or the Array this instance handed

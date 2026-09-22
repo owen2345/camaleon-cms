@@ -114,11 +114,11 @@ record's first options write, the fresh hash they had filled rather than the one
 caller holding it missed every later write.
 
 **A Hash or an Array the instance handed out stays the one it reads.** When the value written is the very
-object memoized for the key, the one `get_meta` or `options` returned, it takes the stored form in place
-and stays memoized. The option writers update that hash and write it, so a hash `options` returned keeps
-reading every later write on the instance, as in 2.9.4, and a hash read, written back, and written back
-again after another write stores that write too. Any other value is memoized as a fresh stored form, and
-the caller's own object is left as passed.
+object memoized for the key, the one `get_meta` or `options` returned, it takes the stored form in place and
+stays memoized. The option writers write a copy of that hash, which takes the stored form in place once the
+copy is stored, so a hash `options` returned keeps reading every later write on the instance, as in 2.9.4,
+and a hash read, written back, and written back again after another write stores that write too. Any other
+value is memoized as a fresh stored form, and the caller's own object is left as passed.
 - Rejected, taking the stored form in place for every Hash memo whatever was written: a hash read before
   a write of another object would change under its reader, where 2.9.4 left it as read, so code comparing
   the value before and after a write would see no change.
@@ -136,9 +136,11 @@ stored form, on it too.
 - Rejected, returning the items of an Array that are not Strings as read: `the_meta` already read them as
   Strings on a loaded record, which themes may rely on, and an Array never raised.
 
-**An option write that raises leaves the options as stored.** The option writers change the options the
-instance holds and put them back when `set_meta` raises, whether `PostType` refuses the write or storing
-it fails, so the instance keeps reading what is stored without querying for it again.
+**An option write that raises leaves the options as stored.** The option writers change a deep copy of the
+options the instance holds and write it; once `set_meta` has stored it, the options handed out take the
+stored form in place and stay memoized. A write that raises, whether `PostType` refuses it or storing it
+fails, never changed them, so the instance keeps reading what is stored without querying for it again, and
+nothing that reads the options while the write is checked sees it.
 `PostType#reject_unknown_decorator_class!` therefore neither drops the options memo nor resets the
 association: a refused write changes no row, and the reset discarded the metas an unsaved post type had
 built for its first save while their memos kept answering.
@@ -148,7 +150,9 @@ built for its first save while their memos kept answering.
   only for a value that names no post decorator.
 - Rejected, reading it from loaded metas to spare that query: the check decides what may be loaded as
   code, and the query is made only on the way to a refusal or to an unchanged legacy value.
-- Rejected, writing on a copy of the options and memoizing it once stored: the hash `options` returned
+- Rejected, changing the options in place and putting them back when the write raises: the options showed
+  the write while it was checked, and the snapshot kept for the raise path cost a copy on every write.
+- Rejected, memoizing the stored form of the copy in place of the options: the hash `options` returned
   would stop being the one the writers update, which a hash held across writes reads.
 
 **`set_meta` hands the form it will store to a model check.** It computes the stored form once, before

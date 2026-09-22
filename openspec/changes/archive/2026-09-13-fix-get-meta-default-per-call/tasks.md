@@ -73,3 +73,4 @@
 - [x] 5.33 Rescue in `write_options` only the change and the write, so the options it puts back are always set and reading them first raises as it is.
 - [x] 5.34 Copy the options `write_options` puts back deep, so a nested value a writer changed in place is put back too; spec a failed write that changed one.
 - [x] 5.35 Return from `set_options` and `delete_option` the hash `options` returns after the write, not the fresh hash a record's first options write filled, and spec the identity and a later write read through it.
+- [x] 5.36 Build an option write on a deep copy of the options and have the options handed out take the stored form in place once it is stored, instead of changing them first and putting them back from a snapshot when the write raises; spec the options read while a refused write is checked, and add the scenario to the option-write requirement.

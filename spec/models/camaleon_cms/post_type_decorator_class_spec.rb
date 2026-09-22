@@ -92,6 +92,21 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to eq('ProbePostDecorator')
     end
 
+    # An option write changes a copy of the options, so the options the post type holds do not show a write
+    # before it is stored, not while its check runs either.
+    it 'does not show a write in the options it holds while checking it' do
+      held = post_type.options
+      seen = nil
+      allow(post_type).to receive(:check_meta_write).and_wrap_original do |check, *args|
+        seen = held.key?(option)
+        check.call(*args)
+      end
+
+      expect { post_type.set_option(option, 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(seen).to be(false)
+      expect(held).to equal(post_type.options)
+    end
+
     it 'keeps earlier writes when a later one is refused on a record with its metas loaded' do
       record = described_class.includes(:metas).find(post_type.id)
       record.set_option('has_tags', true)

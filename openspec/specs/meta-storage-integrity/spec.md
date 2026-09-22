@@ -37,7 +37,8 @@ does.
 
 When `set_option`, `set_options` or `delete_option` raises, because the write is refused or storing it
 fails, the options the instance holds SHALL be those it held before the call, so the instance reads what is
-stored without querying the database for it again.
+stored without querying the database for it again. They SHALL NOT show a write before it is stored, while
+it is checked included.
 
 #### Scenario: A refused option write
 
@@ -48,6 +49,11 @@ stored without querying the database for it again.
 
 - **WHEN** storing an option set, set in bulk or deleted on a post raises
 - **THEN** the post's options are those stored before each write
+
+#### Scenario: Options read while a write is checked
+
+- **WHEN** the options a post type holds are read while its option write is checked
+- **THEN** they do not show that write
 
 ### Requirement: set_meta reads back on the writing instance as a reloaded record does
 
