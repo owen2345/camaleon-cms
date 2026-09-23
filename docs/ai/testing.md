@@ -24,8 +24,8 @@ confirm_dialog         # accept JS dialogs
 ```
 
 `sql_queries(matching:) { … }` collects the SQL a block issues, only the statements matching a pattern, or every
-pattern of a list, when given, and `metas_selects { … }` the SELECTs against the metas table
-(`spec/support/sql_queries.rb`); count them to pin a query profile.
+pattern of a list, when given, `metas_selects { … }` the SELECTs against the metas table and `metas_updates { … }`
+the UPDATEs of it (`spec/support/sql_queries.rb`); count them to pin a query profile.
 
 ### The shared site (`spec/support/shared_site.rb`)
 

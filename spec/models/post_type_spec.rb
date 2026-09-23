@@ -57,7 +57,7 @@ RSpec.describe CamaleonCms::PostType, type: :model do
 
     it 'stores the settings add_post gives a post in one options write' do
       post = nil
-      updates = sql_queries(matching: /\bUPDATE\s+["'`]?\w*metas\b/i) do
+      updates = metas_updates do
         post = installed_post_type.add_post(title: 'Settings probe', slug: 'settings-probe', content: 'body',
                                             settings: { has_content: false, default_template: 'probe' })
       end

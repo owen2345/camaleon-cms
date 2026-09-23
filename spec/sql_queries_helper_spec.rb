@@ -2,7 +2,8 @@
 
 # The specs that pin how often a record's metas are read count with metas_selects, so it must count every
 # SELECT against the metas table, whatever its prefix and whatever Rails puts before the statement, such as
-# a query log comment, and nothing else, not even a table whose name only starts with metas.
+# a query log comment, and nothing else, not even a table whose name only starts with metas. metas_updates
+# holds the UPDATEs of the metas table to the same rule.
 RSpec.describe SqlQueriesHelper do
   def issue(statements)
     statements.each do |sql|
@@ -43,6 +44,19 @@ RSpec.describe SqlQueriesHelper do
     )
 
     expect(selects.size).to eq(1)
+  end
+
+  it 'counts an UPDATE of the metas table, however it is quoted, prefixed or introduced, and nothing else' do
+    updates = metas_updates do
+      issue(['UPDATE "metas" SET "value" = ? WHERE "metas"."id" = ?',
+             'UPDATE `cama_metas` SET `value` = ? WHERE `cama_metas`.`id` = ?',
+             "/*application:Dummy,controller:posts*/\n UPDATE \"metas\" SET \"value\" = ?",
+             'UPDATE "metastore" SET "value" = ?',
+             'UPDATE "posts" SET "title" = ? WHERE "posts"."id" IN (SELECT "objectid" FROM "metas")',
+             'SELECT "metas".* FROM "metas"'])
+    end
+
+    expect(updates.size).to eq(3)
   end
 
   it 'collects only the statements that match every pattern of a list' do
