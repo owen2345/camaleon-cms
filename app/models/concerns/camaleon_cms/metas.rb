@@ -270,7 +270,7 @@ module CamaleonCms
       memo = cama_get_cache(memo_key)
       return unless value.equal?(memo) && (hash_or_list?(memo) || memo.is_a?(String))
 
-      memoize_stored_form(key_str, memo, read_meta_row(key_str))
+      memoize_stored_form(memo_key, memo, read_meta_row(key_str))
     rescue StandardError
       cama_remove_cache(memo_key)
     end
@@ -341,8 +341,8 @@ module CamaleonCms
       changed = options.dup
       yield changed
       set_meta(meta_key, changed)
-      key_str = meta_key.to_s
-      memoize_stored_form(key_str, options, cama_get_cache(meta_memo_key(key_str)))
+      memo_key = meta_memo_key(meta_key.to_s)
+      memoize_stored_form(memo_key, options, cama_get_cache(memo_key))
     end
 
     # What an option writer gives the options for a value passed: a copy, since the options convert a list they
@@ -356,21 +356,23 @@ module CamaleonCms
     # memoize_stored_form has it; otherwise the stored form is memoized apart from the value written, which
     # is left as passed.
     def memoize_written_meta(key_str, written, stored)
-      memo = cama_get_cache(meta_memo_key(key_str))
-      memoize_stored_form(key_str, (memo if memo.equal?(written)), stored)
+      memo_key = meta_memo_key(key_str)
+      memo = cama_get_cache(memo_key)
+      memoize_stored_form(memo_key, (memo if memo.equal?(written)), stored)
     end
 
-    # Memoizes stored, the form a read returns for what key holds, in held, the Hash or the Array this
-    # instance handed out for key, which takes it in place and stays memoized, so every reference to it keeps
-    # reading the record; otherwise, a frozen one, one that stored does not fit or none held, stored itself.
+    # Memoizes under memo_key, the memo key of a key its caller has built once, stored, the form a read returns
+    # for what the key holds, in held, the Hash or the Array this instance handed out for the key, which takes it
+    # in place and stays memoized, so every reference to it keeps reading the record; otherwise, a frozen one, one
+    # that stored does not fit or none held, stored itself.
     # A held one that stored does not fit, when a re-read finds the row gone or holding another kind of value,
     # is emptied, so it reads nothing the record does not store. A String is never changed in place, since it
     # may carry the translations String#translate memoized on it. Returns what it memoizes.
-    def memoize_stored_form(key_str, held, stored)
+    def memoize_stored_form(memo_key, held, stored)
       in_place = hash_or_list?(held) && !held.frozen?
       fits = in_place && stored.is_a?(held.class)
       held.clear if in_place && !fits
-      cama_set_cache(meta_memo_key(key_str), fits ? take_stored_form(held, stored) : stored)
+      cama_set_cache(memo_key, fits ? take_stored_form(held, stored) : stored)
     end
 
     # Changes held in place to hold stored, keeping each value it already holds in its stored form, so a hash
@@ -502,10 +504,11 @@ module CamaleonCms
     # The memo of key takes what the key's row reads as again: a hash or a list the instance handed out in
     # place, anything else read again on demand
     def reread_meta_memo(key_str)
-      memo = cama_get_cache(meta_memo_key(key_str))
-      return cama_remove_cache(meta_memo_key(key_str)) unless hash_or_list?(memo)
+      memo_key = meta_memo_key(key_str)
+      memo = cama_get_cache(memo_key)
+      return cama_remove_cache(memo_key) unless hash_or_list?(memo)
 
-      memoize_stored_form(key_str, memo, read_meta_row(key_str))
+      memoize_stored_form(memo_key, memo, read_meta_row(key_str))
     end
 
     def forget_written_metas_options
