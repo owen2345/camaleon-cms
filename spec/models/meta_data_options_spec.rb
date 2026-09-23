@@ -266,4 +266,21 @@ RSpec.describe CamaleonCms::Metas do
     expect(CamaleonCms::PostType.find(post_type.id).get_option(:has_tags)).to be(false)
     expect(post_type.get_option(:has_tags)).to be(false)
   end
+
+  # previously_new_record? still holds during the first update after a create, and the update took it to
+  # read and write the record's rows among its metas in memory, as its creation does: a meta or options row
+  # another instance stored since was missed, and a second row written beside it, which no read takes.
+  it 'writes the first update after the creation to the rows another instance stored since' do
+    post = create(:post, post_type: shared_post_type)
+    other = CamaleonCms::Post.find(post.id)
+    other.set_meta('subtitle', 'other')
+    other.set_option(:has_layout, true)
+
+    post.update!(data_metas: { subtitle: 'mine' }, data_options: { has_comments: true })
+
+    expect(post.metas.where(key: %w[subtitle _default]).group(:key).count).to eq('subtitle' => 1, '_default' => 1)
+    stored = CamaleonCms::Post.find(post.id)
+    expect(stored.get_meta('subtitle')).to eq('mine')
+    expect(stored.options).to include('has_layout' => true, 'has_comments' => true)
+  end
 end

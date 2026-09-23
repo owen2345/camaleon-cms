@@ -27,7 +27,7 @@ module CamaleonCms
       # refused before any statement, as the writers refuse it after the row would have been written
       before_save   :refuse_invalid_queued_containers
       after_create  :remember_creating_transaction
-      after_create  :save_metas_options
+      after_create  :save_created_metas_options
       before_update :save_metas_options
       # a write undone with its transaction is queued again for the next save
       after_rollback :requeue_metas_options
@@ -172,20 +172,26 @@ module CamaleonCms
       # The metas scope memoized before the INSERT names no owner, so a write would miss the row the
       # write before it created; the metas autosave rebuilds it too, but runs after this callback.
       metas.proxy_association.reset_scope if previously_new_record?
-      # While the creating save writes the queues, every row of the record is in memory: the metas
-      # built before the save and the rows this write creates, since nothing else has written for an
-      # id this INSERT assigned. Reads and lookups take them from there instead of querying.
-      @created_record_metas_in_memory = previously_new_record?
       set_metas(data_metas)
       set_options(data_options)
       @written_metas_options = [data_options, data_metas, current_transaction_state]
       self.data_options = nil
       self.data_metas = nil
-    ensure
-      @created_record_metas_in_memory = false
     end
 
     private
+
+    # While the creating save writes the queues, every row of the record is in memory: the metas
+    # built before the save and the rows this write creates, since nothing else has written for an
+    # id this INSERT assigned. Reads and lookups take them from there instead of querying. An update
+    # reads the database, the first one after a create included, during which previously_new_record?
+    # still holds: another instance may have written rows since.
+    def save_created_metas_options
+      @created_record_metas_in_memory = true
+      save_metas_options
+    ensure
+      @created_record_metas_in_memory = false
+    end
 
     # Checks and stores value for key, and returns the form a read returns for it. When the write raises,
     # refused or failed, a value this instance handed out for key, changed in place and written back, reads

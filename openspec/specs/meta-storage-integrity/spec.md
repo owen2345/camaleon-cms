@@ -500,8 +500,9 @@ keeping any value queued since, and a record whose creation was rolled back SHAL
 built before that save too; a rollback of a later transaction of the instance SHALL leave them
 written. A record whose creation is rolled back, whether or not it was given any, SHALL have the metas
 it holds built again for its next save and SHALL read them, not a value it memoized before or while it
-was created. A post type SHALL fill its default options in under the options set on the record before
-its first save and under the ones given. A copy made with `dup` SHALL carry no record of the
+was created. An update SHALL write them to the rows the record stores, the first update after its
+creation included, whatever another instance stored since. A post type SHALL fill its default options in
+under the options set on the record before its first save and under the ones given. A copy made with `dup` SHALL carry no record of the
 original's write and SHALL queue only values given to the copy.
 
 #### Scenario: A post type updated after an option write
@@ -551,6 +552,13 @@ original's write and SHALL queue only values given to the copy.
 - **WHEN** a post created with a meta in `data_metas` has its first update, given a new value for that meta
   in `data_metas`, rolled back, and is saved again
 - **THEN** it holds one row for the meta, and a freshly loaded post reads the new value
+
+#### Scenario: The first update after a creation, over rows another instance stored
+
+- **WHEN** a post is created, another instance of it sets a meta and an option, and the post's first update
+  gives that meta in `data_metas` and another option in `data_options`
+- **THEN** it holds one row for the meta and one options row, and a freshly loaded post reads the meta
+  given and both options
 
 #### Scenario: A creation rolled back after a meta was written twice
 

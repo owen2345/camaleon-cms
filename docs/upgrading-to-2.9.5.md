@@ -280,8 +280,8 @@ replacing them, on every record, and a `cama_post_decorator_class` value in it i
 given in `data_options`. A `data_options` or `data_metas` value that is not a Hash or request
 parameters raises `CamaleonCms::Metas::InvalidContainer` before the row is written. The
 `save_metas_options_skip` and `fix_save_metas_options_no_changed` methods of `CamaleonCms::Metas` are
-removed: the concern's `after_create` and `before_update` call `save_metas_options` directly, and no
-surveyed plugin or theme overrides either.
+removed: the concern's `after_create` and `before_update` write the queues through `save_metas_options`
+with no hook in between, and no surveyed plugin or theme overrides either.
 
 ### `reload` and `dup` drop a record's memoized state
 
