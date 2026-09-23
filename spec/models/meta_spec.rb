@@ -181,6 +181,22 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect([held[:sizes][:top], sizes[:top]]).to eq(%w[m xl])
     end
 
+    # An option write leaves the options it does not write in the form a reload reads, a value changed in place
+    # without a writer included, which the write stores: the options handed out read what is stored.
+    it 'reads what was changed in place without a writer as a reload reads it after an option write' do
+      post = create(:post)
+      post.set_option(:size, 'xl')
+      held = post.options
+      held[:shape] = :round
+      held[:list] = [{ 'a' => 1 }]
+      held[:list] << { 'b' => 2 }
+
+      post.set_option(:other, 1)
+
+      expect([held[:shape], held[:list].last.class]).to eq(['round', ActiveSupport::HashWithIndifferentAccess])
+      expect(CamaleonCms::Post.find(post.id).options).to eq(held)
+    end
+
     it 'keeps in a hash read from the record and written back the values it holds unchanged' do
       post = create(:post)
       post.set_meta('probe', { 'inner' => { 'size' => 'xl' }, 'count' => 1 })

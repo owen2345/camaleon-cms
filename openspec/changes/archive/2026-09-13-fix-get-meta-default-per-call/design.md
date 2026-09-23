@@ -137,6 +137,12 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   default, as 2.9.4's option writers, which changed only the option they wrote, left them.
 - Rejected, `replace` with the stored form: every write swapped out every nested value, detaching a nested
   hash a caller held across the write of another option, and dropped the hash's default.
+- Every option write compares each value it does not write with its stored form, a walk as long as the
+  options, beside the parse of the whole row. A value changed in place without a writer is stored with the
+  next write and must then read as a reload reads it: a Symbol as its text, a hash put in a list as an
+  indifferent one. Rejected, keeping the values a write leaves out as they are, since the writer knows the
+  keys it sets: cheaper for large options, but such a change would keep a form no reload reads. At the
+  dozen options a post type holds, the walk and the parse add about 0.03 to 0.06 ms to a write.
 - A String memo is left out: it may carry the translations `String#translate` memoized on it, which a
   change in place would leave stale.
 - A frozen one cannot take the stored form in place: it is stored, and the stored form is memoized apart
