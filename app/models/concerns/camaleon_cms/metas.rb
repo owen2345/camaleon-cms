@@ -237,6 +237,8 @@ module CamaleonCms
       else
         # In-Memory Fallback: Find an existing unsaved item in the array collection,
         # or build a brand new unsaved record on the association.
+        # Unlike metas_in_memory, find loads the association, which for a record not saved yet holds every meta
+        # it has, so once saved the record reads its metas from memory instead of querying for each key.
         meta_record = metas.find { |m| m.key == key_str }
 
         if meta_record

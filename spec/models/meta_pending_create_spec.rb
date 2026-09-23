@@ -26,6 +26,18 @@ RSpec.describe CamaleonCms::Post, type: :model do
     expect(post.get_meta('subtitle', 'none')).to eq('built')
   end
 
+  # A write on a record not saved yet looks the key's meta up by loading the association, which holds every meta
+  # such a record has, so once saved the record reads its metas from memory instead of querying for each key.
+  it 'reads its metas from memory after a first save that followed a write' do
+    post = build(:post, post_type: post_type)
+    post.set_meta('subtitle', 'written')
+    post.save!
+
+    selects = metas_selects { expect([post.get_meta('subtitle'), post.get_meta('absent')]).to eq(['written', nil]) }
+
+    expect(selects).to be_empty
+  end
+
   # A creation rolled back leaves the record unsaved, with the metas it wrote built again for its next save.
   it 'reads the metas built again once its creation is rolled back' do
     created = build(:post_type, data_metas: { icon_color: 'queued' }, data_options: { has_category: true })
