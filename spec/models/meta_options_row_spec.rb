@@ -6,8 +6,7 @@
 # nothing could repair it. The options of such a row read as empty and a write starts from empty,
 # replacing the row; the row itself is left alone until then.
 RSpec.describe CamaleonCms::Metas, type: :model do
-  let(:site) { CamaleonCms::Site.first }
-  let(:post_type) { site.post_types.find_by(slug: 'post') }
+  let(:post_type) { installed_post_type }
   let(:record) { create(:post, post_type: post_type) }
 
   describe 'an options row that is not a JSON object' do
