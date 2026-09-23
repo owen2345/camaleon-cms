@@ -334,21 +334,21 @@ RSpec.describe CamaleonCms::Metas do
       expect(post.instance_variable_get(:@meta_write_states)).to be_nil
     end
 
-    # A write committed in a savepoint kept an entry of its own while a transaction stayed open around it, so a
-    # record written in many savepoints of one transaction rescanned every one before each read, write and save.
-    it 'keeps the writes committed in the savepoints of an open transaction under one entry' do
+    it 'reads the writes committed in the savepoints of a transaction again when it is rolled back' do
       post = create(:post, post_type: shared_post_type)
       ActiveRecord::Base.transaction(requires_new: true) do
         3.times { |i| ActiveRecord::Base.transaction(requires_new: true) { post.set_meta("probe#{i}", i) } }
         post.get_meta('probe0')
-        expect(post.instance_variable_get(:@meta_write_states).size).to eq(1)
         raise ActiveRecord::Rollback
       end
 
       expect([post.get_meta('probe0'), post.get_meta('probe2')]).to eq([nil, nil])
     end
 
-    it 'reads a write committed in a savepoint as stored once a later savepoint beside it is rolled back' do
+    # A write committed in a savepoint was kept under the transaction open at the next read, write or save, which
+    # can be a later savepoint beside it or a transaction begun after its own, and whose rollback was then taken
+    # for the write's: its value was read again, and the metas built for its key dropped, so no save stored them.
+    it 'reads a write committed in a savepoint from its memo once a later savepoint beside it is rolled back' do
       post = create(:post, post_type: shared_post_type)
       ActiveRecord::Base.transaction(requires_new: true) do
         ActiveRecord::Base.transaction(requires_new: true) { post.set_meta('probe', 'committed') }
@@ -357,7 +357,23 @@ RSpec.describe CamaleonCms::Metas do
           raise ActiveRecord::Rollback
         end
 
-        expect(post.get_meta('probe')).to eq('committed')
+        expect(metas_selects { expect(post.get_meta('probe')).to eq('committed') }).to be_empty
+      end
+    end
+
+    it 'stores a meta built for the key of a write committed in a savepoint once a later one is rolled back' do
+      post = create(:post, post_type: shared_post_type)
+      post.set_meta('probe', 'stored')
+      ActiveRecord::Base.transaction(requires_new: true) do
+        ActiveRecord::Base.transaction(requires_new: true) { post.delete_meta('probe') }
+        post.metas.build(key: 'probe', value: 'built')
+        ActiveRecord::Base.transaction(requires_new: true) do
+          post.get_meta('other')
+          raise ActiveRecord::Rollback
+        end
+        post.save!
+
+        expect(CamaleonCms::Post.find(post.id).get_meta('probe')).to eq('built')
       end
     end
 

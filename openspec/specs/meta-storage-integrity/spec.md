@@ -229,6 +229,13 @@ write, the hash `options` returns, on a record's first options write too.
 - **THEN** the post reads the built meta's value for its key, and a stored key from the metas in memory without
   a query
 
+#### Scenario: A savepoint rolled back beside a write committed in another
+
+- **WHEN** a post writes a meta in a savepoint that is released, and a later savepoint of the same
+  transaction, which writes nothing, is rolled back
+- **THEN** the post reads the meta from its memo without a query
+- **AND** a meta built for the key of a meta deleted in such a savepoint is stored by the post's next save
+
 #### Scenario: Options a caller passed to set_meta as a plain Hash
 
 - **WHEN** a post type's options are written with `set_meta` as a plain Hash holding `color` under a String

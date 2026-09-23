@@ -468,19 +468,18 @@ module CamaleonCms
     # from memory; each key it wrote reads its row again, in place of a hash or a list the instance handed out.
     # Run before each read, write and save, so none takes the rolled-back value or stores it again. A write stands,
     # and is forgotten, once its transaction is fully committed, or a savepoint's is committed and no transaction is
-    # open. A savepoint's commit leaves its state committed, never fully committed, while the rollback of a
-    # transaction around it marks it rolled back, as it marks every state begun inside it, the one of the transaction
-    # open now included: so a write committed in a savepoint is kept under the transaction open now, and the writes
-    # of the savepoints of one transaction share its entry.
+    # open. A savepoint's commit leaves its state committed, never fully committed, and the rollback of any
+    # transaction around it marks that state rolled back, as it marks every state begun inside it: so a write
+    # committed in a savepoint is kept under the savepoint's own state. The state names no transaction around it,
+    # and the transaction open at a later read, write or save can be a later savepoint beside it or one begun after
+    # its own, whose rollback undoes nothing the savepoint wrote, so the write is not kept under that one.
     def forget_rolled_back_meta_writes
       return if @meta_write_states.nil?
 
       rolled_back, pending = @meta_write_states.partition { |state, _keys| state.rolledback? }
       current = current_transaction_state
-      @meta_write_states = pending.each_with_object({}) do |(state, keys), kept|
-        next if state.fully_committed? || (state.committed? && current.nil?)
-
-        (kept[state.committed? ? current : state] ||= Set.new).merge(keys)
+      @meta_write_states = pending.to_h.reject do |state, _keys|
+        state.fully_committed? || (state.committed? && current.nil?)
       end.presence
       return if rolled_back.empty?
 
