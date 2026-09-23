@@ -404,9 +404,11 @@ module CamaleonCms
     end
 
     # The state of the transaction running now, if any: the one a write belongs to, whose rollback
-    # undoes it. Its state is marked rolled back with the outermost transaction's too.
+    # undoes it. Its state is marked rolled back with the outermost transaction's too. It is read from the
+    # connection the thread holds, as a transaction runs on one: asking the model for its connection would
+    # lease one to the thread for good, which a host can refuse (Rails 7.2+).
     def current_transaction_state
-      transaction = self.class.connection.current_transaction
+      transaction = self.class.connection_pool.active_connection?&.current_transaction
       transaction.state if transaction.respond_to?(:state)
     end
 
@@ -493,7 +495,7 @@ module CamaleonCms
     # open: the rollback of a transaction around a savepoint marks the savepoint's state rolled back too, while
     # its commit leaves that state committed, never fully committed
     def meta_write_stands?(state)
-      state.fully_committed? || (state.committed? && !self.class.connection.transaction_open?)
+      state.fully_committed? || (state.committed? && current_transaction_state.nil?)
     end
 
     # The memo of key takes what the key's row reads as again: a hash or a list the instance handed out in

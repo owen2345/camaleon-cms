@@ -589,3 +589,14 @@ it is checked included.
 - **WHEN** the options a post type holds are read while its option write is checked
 - **THEN** they do not show that write
 
+### Requirement: Meta writes lease no connection for good
+
+Writing, deleting and reading a meta or an option, inside a transaction or not, and creating a record with
+metas SHALL NOT lease a database connection to the thread for good, as `ActiveRecord::Base.connection` does,
+so they work where a host refuses such a lease (Rails 7.2+ `permanent_connection_checkout`).
+
+#### Scenario: A host refusing a permanent connection lease
+
+- **WHEN** a post sets an option, writes and deletes a meta, writes a meta inside a transaction and reads it,
+  and a post is created with a meta in `data_metas`, where a permanent connection lease is refused
+- **THEN** none of them raises, and a freshly loaded post reads what each stored

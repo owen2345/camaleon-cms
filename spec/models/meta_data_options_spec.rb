@@ -328,9 +328,9 @@ RSpec.describe CamaleonCms::Metas do
       post.get_meta('probe')
       expect(post.instance_variable_get(:@meta_write_states)).to be_present
 
-      allow(post.class.connection).to receive(:transaction_open?).and_return(false)
+      allow(post.class.connection_pool).to receive(:active_connection?).and_return(nil)
       post.get_meta('probe')
-      allow(post.class.connection).to receive(:transaction_open?).and_call_original
+      allow(post.class.connection_pool).to receive(:active_connection?).and_call_original
 
       expect(post.instance_variable_get(:@meta_write_states)).to be_nil
     end
@@ -361,6 +361,42 @@ RSpec.describe CamaleonCms::Metas do
 
       expect(loaded.get_meta('pending')).to eq('built')
       expect(metas_selects { expect(loaded.get_meta('stored')).to eq('kept') }).to be_empty
+    end
+
+    # Telling the transaction a write belongs to asked the model for its connection, which leases one to the thread
+    # for good, so a meta written, deleted or created with a record raised where a host refuses such a lease.
+    context 'when a host refuses a permanent connection lease' do
+      before { skip 'Rails 7.2+ refuses it' unless ActiveRecord.respond_to?(:permanent_connection_checkout) }
+
+      # A thread of its own holds no connection until a query leases one for its length
+      def in_a_thread_refusing_a_lease
+        checkout = ActiveRecord.permanent_connection_checkout
+        Thread.new do
+          ActiveRecord.permanent_connection_checkout = :disallowed
+          yield
+        ensure
+          ActiveRecord.permanent_connection_checkout = checkout
+        end.join
+      end
+
+      it 'writes, deletes and creates metas, in a transaction too' do
+        post = create(:post, post_type: shared_post_type)
+        created = nil
+
+        in_a_thread_refusing_a_lease do
+          post.set_option(:color, 'red')
+          post.set_meta('probe', 'written')
+          post.delete_meta('probe')
+          ActiveRecord::Base.transaction(requires_new: true) { post.set_meta('inside', 'a transaction') }
+          post.get_meta('inside')
+          created = create(:post, post_type: shared_post_type, data_metas: { subtitle: 'created' })
+        end
+
+        stored = CamaleonCms::Post.find(post.id)
+        expect([stored.get_option(:color), stored.get_meta('probe'), stored.get_meta('inside')])
+          .to eq(['red', nil, 'a transaction'])
+        expect(CamaleonCms::Post.find(created.id).get_meta('subtitle')).to eq('created')
+      end
     end
   end
 

@@ -175,6 +175,10 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   is committed and no transaction is open. A transaction rolled back around a savepoint marks the savepoint's
   state rolled back too, while its commit leaves that state committed, never fully committed, so a write in a
   savepoint kept its key for the instance's life, rescanned before every later read, write and save.
+- The transaction a write belongs to is read from the connection the thread holds, if any
+  (`connection_pool.active_connection?`): a transaction runs on one. Rejected, asking the model for its
+  `connection`: it leases one to the thread for good, which a host can refuse (Rails 7.2+
+  `permanent_connection_checkout`), so every meta write and every creation raised there.
 - A rolled-back save that wrote the queues leaves its metas to the same next read, write or save. It wrote
   them through `set_meta`, which kept each key under the transaction's state, while ActiveRecord runs the
   record's rollback callbacks before it makes new again the metas the save stored, so the callback cannot
