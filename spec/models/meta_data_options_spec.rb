@@ -68,17 +68,18 @@ RSpec.describe CamaleonCms::Metas do
 
   it 'writes the queues of a created record without looking its metas up' do
     lookups = []
-    subscription = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+    record_lookup = lambda do |*, payload|
       next unless payload[:sql].start_with?('SELECT') && payload[:sql].include?('"metas"')
 
       binds = payload[:type_casted_binds].to_a
       lookups << payload[:sql] if binds.include?('Post') && (binds & %w[_default subtitle icon]).any?
     end
 
-    post = create(:post, post_type: shared_post_type, data_options: { has_comments: true },
-                         data_metas: { subtitle: 'first', icon: 'star' })
+    post = ActiveSupport::Notifications.subscribed(record_lookup, 'sql.active_record') do
+      create(:post, post_type: shared_post_type, data_options: { has_comments: true },
+                    data_metas: { subtitle: 'first', icon: 'star' })
+    end
 
-    ActiveSupport::Notifications.unsubscribe(subscription)
     expect(lookups).to be_empty
     stored = CamaleonCms::Post.find(post.id)
     expect(stored.get_option(:has_comments)).to be(true)
