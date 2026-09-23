@@ -93,7 +93,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
       prefixes = ['', ' ', "\t", "\n", "\r", "\f", "\v", "\u00A0", "\uFEFF"]
       openings = (0..127).map(&:chr) + ["\u00A0", "\uFEFF", "\u3000", '１']
       rests = ['', '1', '{}', '[]', '"a"', 'rue', 'alse', 'ull', 'aN', 'nfinity', "/ c\n1", '* c */1', "\n1", ' 1']
-      texts = prefixes.product(openings, rests).map(&:join) - %w[t f]
+      texts = prefixes.product(openings, rests).map(&:join)
 
       expect(texts.reject { |text| post.send(:stored_form_of, text) == parser_read(text) }).to be_empty
     end

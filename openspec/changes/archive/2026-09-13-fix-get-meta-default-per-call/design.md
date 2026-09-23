@@ -73,8 +73,8 @@ value has no value, and the memoized value otherwise.
 
 **`set_meta` memoizes what a reload reads.** One private helper, `stored_form_of`, gives the form a read
 returns for the text a row holds or for the value `fix_meta_value` produced: JSON parsed and read by
-either key type at any depth, a legacy `'t'`/`'f'` as the boolean, a plain String copy of the text when
-it holds no JSON, nil for null. `get_meta` applies it to the row it reads and `set_meta` to the value it
+either key type at any depth, a plain String copy of the text when it holds no JSON, nil for null; a
+legacy `'t'`/`'f'` row reads as the boolean before it. `get_meta` applies it to the row it reads and `set_meta` to the value it
 stores, so the writing instance and a freshly loaded record agree for every input, and the caller's
 object is left as passed and never handed back.
 - Rejected, keeping the caller's object with `''` and nil as the exceptions: every coerced String

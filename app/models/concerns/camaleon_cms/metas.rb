@@ -291,11 +291,12 @@ module CamaleonCms
 
     # What a read returns for the text a row holds, or for the value fix_meta_value produced for one: its
     # JSON parsed, with the Hashes in it read by either key type at any depth (a key an older write stored
-    # twice keeps its last value, as json 2 read it), a legacy 't' or 'f' as the boolean, a plain String copy
-    # of the text when it holds no JSON, taken without a parse when the text cannot open a JSON text, and nil
-    # for a null row. set_meta memoizes this form, so the writing instance reads what a freshly loaded record
-    # reads: for text, the plain UTF-8 String the text column reads back, neither the caller's object nor
-    # html_safe. A finite number is that form already, and is returned without its text being parsed back.
+    # twice keeps its last value, as json 2 read it), a plain String copy of the text when it holds no JSON,
+    # taken without a parse when the text cannot open a JSON text, and nil for a null row. A legacy 't' or 'f'
+    # row is read as the boolean before this, by stored_meta_value. set_meta memoizes this form, so the
+    # writing instance reads what a freshly loaded record reads: for text, the plain UTF-8 String the text
+    # column reads back, neither the caller's object nor html_safe. A finite number is that form already, and
+    # is returned without its text being parsed back.
     # The text is taken outside the rescue, so a value whose text cannot be taken raises its own error.
     def stored_form_of(stored)
       return stored if stored.is_a?(Integer) || (stored.is_a?(Float) && stored.finite?)
@@ -308,8 +309,7 @@ module CamaleonCms
     def stored_form_of_text(text)
       return column_text(text) unless text.match?(JSON_TEXT_OPENING)
 
-      parsed = LEGACY_BOOLEANS.fetch(text) { JSON.parse(text, allow_duplicate_key: true) }
-      CamaleonCms::Metas.indifferent_json_value(parsed)
+      CamaleonCms::Metas.indifferent_json_value(JSON.parse(text, allow_duplicate_key: true))
     rescue StandardError
       column_text(text)
     end
