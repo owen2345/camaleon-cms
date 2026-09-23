@@ -193,6 +193,10 @@ built for its first save while their memos kept answering.
   only for a value that names no post decorator.
 - Rejected, reading it from loaded metas to spare that query: the check decides what may be loaded as
   code, and the query is made only on the way to a refusal or to an unchanged legacy value.
+- Rejected, keeping the read the validation of a save's queued options makes for the check of the write
+  that stores them: it would spare one indexed query, and only for a value that names no post decorator,
+  sent again unchanged, but a read kept past the one check that needs it, by a save that stopped before
+  its write, could let a later write compare with a row another instance has corrected since.
 - Rejected, changing the options in place and putting them back when the write raises: the options showed
   the write while it was checked, and the snapshot kept for the raise path cost a copy on every write.
 - Rejected, memoizing the stored form of the copy in place of the options: the hash `options` returned
