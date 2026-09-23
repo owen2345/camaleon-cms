@@ -9,9 +9,11 @@ module SqlQueriesHelper
   # The metas table, whatever the table name prefix and quoting, ending at a word boundary so a table whose
   # name only starts with metas is not the metas table
   METAS_TABLE = /["'`]?\w*metas\b/i
-  # A SELECT against the metas table: its opening and the table it reads. Two patterns, each a quick scan,
-  # where one bridging them with .* ran back over the whole statement, a long eager-loading IN list included.
-  METAS_SELECT = [/#{STATEMENT_LEAD}SELECT\b/i, /\bFROM\s+#{METAS_TABLE}/i].freeze
+  # A SELECT against the metas table: its opening and the table its own FROM names, the first after it, so a
+  # subquery of a SELECT from another table is not taken for one. The atomic group stops the scan at that
+  # FROM, where a .* ran back over the whole statement, a long eager-loading IN list included, and the table
+  # of a later FROM is never tried.
+  METAS_SELECT = /#{STATEMENT_LEAD}SELECT\b(?>.*?\bFROM\s+)#{METAS_TABLE}/im
   # An UPDATE of the metas table, which it names right after its opening
   METAS_UPDATE = /#{STATEMENT_LEAD}UPDATE\s+#{METAS_TABLE}/i
 

@@ -2,8 +2,8 @@
 
 # The specs that pin how often a record's metas are read count with metas_selects, so it must count every
 # SELECT against the metas table, whatever its prefix and whatever Rails puts before the statement, such as
-# a query log comment, and nothing else, not even a table whose name only starts with metas. metas_updates
-# holds the UPDATEs of the metas table to the same rule.
+# a query log comment, and nothing else, not even a table whose name only starts with metas or a subquery of
+# a SELECT from another table. metas_updates holds the UPDATEs of the metas table to the same rule.
 RSpec.describe SqlQueriesHelper do
   def issue(statements)
     statements.each do |sql|
@@ -34,6 +34,17 @@ RSpec.describe SqlQueriesHelper do
     )
 
     expect(selects).to be_empty
+  end
+
+  it 'counts a SELECT by the table its own FROM names, not the metas table a subquery of it reads' do
+    selects = selects_among(
+      'SELECT "posts".* FROM "posts" WHERE "posts"."id" IN (SELECT "objectid" FROM "metas")',
+      'SELECT "posts".* FROM "posts" WHERE EXISTS (SELECT 1 FROM "metas" WHERE "metas"."objectid" = 1)',
+      "SELECT \"post_types\".* FROM \"post_types\"\nWHERE \"id\" NOT IN (SELECT \"objectid\" FROM \"metas\")",
+      'SELECT COUNT(*) FROM "metas" WHERE "metas"."key" IN (SELECT "key" FROM "metas")'
+    )
+
+    expect(selects.size).to eq(1)
   end
 
   it 'counts a long eager-loading SELECT from the metas table and not a long one from another table' do
