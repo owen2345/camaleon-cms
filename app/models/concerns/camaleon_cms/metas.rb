@@ -209,7 +209,7 @@ module CamaleonCms
       raise
     end
 
-    # Writes fixed_value, the stored form of a value, to the row of key
+    # Writes fixed_value, what fix_meta_value gives the text column for a value, to the row of key
     def write_meta_row(key_str, fixed_value)
       # Check if the parent object has been saved to the database yet
       if persisted?
@@ -468,10 +468,11 @@ module CamaleonCms
       value.nil? || value == ''
     end
 
-    # The stored form of a value: JSON for a container; for a boolean its JSON literal, which reads back as
-    # the boolean where the text column would store 't' or 'f', a String every reader takes as present; and
-    # for a value whose text is 't' or 'f', a String or a Symbol, its JSON string, which reads back as that
-    # String, where the bare letter the column would store reads as the boolean an earlier release stored.
+    # What the text column is given for a value, which stored_form_of reads back into the form a read returns:
+    # JSON for a container; for a boolean its JSON literal, which reads back as the boolean where the text
+    # column would store 't' or 'f', a String every reader takes as present; and for a value whose text is
+    # 't' or 'f', a String or a Symbol, its JSON string, which reads back as that String, where the bare
+    # letter the column would store reads as the boolean an earlier release stored.
     def fix_meta_value(value)
       changed_value = if value.is_a?(ActionController::Parameters)
                         value.to_json
