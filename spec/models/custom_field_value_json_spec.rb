@@ -18,4 +18,17 @@ RSpec.describe CamaleonCms::CustomFieldsRelationship, type: :model do
 
     expect(post.custom_field_values.find_by!(custom_field_slug: 'note').value).to eq('{"a":2}')
   end
+
+  # set_meta stores a one-letter 't' or 'f' as its JSON string, which the metas read unquotes; a custom-field
+  # value is read as the column holds it, so it is stored as the letter
+  it 'reads back a one-letter t or f as the letter, however it is written' do
+    post.set_field_value('note', 't')
+    expect(post.get_field_value('note')).to eq('t')
+
+    post.save_field_value('note', [:f])
+    expect(post.get_field_values('note')).to eq(['f'])
+
+    post.set_field_values({ '0' => { 'note' => { values: { '0' => 't', '1' => 'f' } } } })
+    expect(post.get_field_values('note')).to eq(%w[t f])
+  end
 end

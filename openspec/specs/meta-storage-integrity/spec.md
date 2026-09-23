@@ -122,6 +122,7 @@ write, the hash `options` returns, on a record's first options write too.
 - **WHEN** `'t'` and `'f'` are written with `set_meta`, as Strings and as Symbols
 - **THEN** the same instance and a freshly loaded record read the Strings `'t'` and `'f'`
 - **AND** a row an earlier release stored as the bare letter still reads as the boolean
+- **AND** a custom-field value written as `'t'` or `'f'` is stored and read back as the letter
 
 #### Scenario: A BigDecimal, a Time and a Date
 

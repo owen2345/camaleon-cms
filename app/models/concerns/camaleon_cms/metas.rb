@@ -201,8 +201,13 @@ module CamaleonCms
     # Checks and stores value for key, and returns the form a read returns for it. When the write raises,
     # refused or failed, a value this instance handed out for key, changed in place and written back, reads
     # what is stored again.
+    # A value whose text is 't' or 'f', a String or a Symbol, is stored as its JSON string, which reads back as
+    # that String, where the bare letter the column would store reads as the boolean an earlier release stored
+    # that way. fix_meta_value leaves the letter, since the custom fields store what it gives them and read
+    # their values as the column holds them.
     def store_meta(key_str, value)
       fixed_value = fix_meta_value(value)
+      fixed_value = JSON.generate(fixed_value.to_s) if LEGACY_BOOLEANS.key?(fixed_value.to_s)
       stored = stored_form_of(fixed_value)
       check_meta_write(key_str, stored)
       write_meta_row(key_str, fixed_value)
@@ -568,10 +573,9 @@ module CamaleonCms
     end
 
     # What the text column is given for a value, which stored_form_of reads back into the form a read returns:
-    # JSON for a container; for a boolean its JSON literal, which reads back as the boolean where the text
-    # column would store 't' or 'f', a String every reader takes as present; and for a value whose text is
-    # 't' or 'f', a String or a Symbol, its JSON string, which reads back as that String, where the bare
-    # letter the column would store reads as the boolean an earlier release stored.
+    # JSON for a container, and for a boolean its JSON literal, which reads back as the boolean where the text
+    # column would store 't' or 'f', a String every reader takes as present. The custom fields store their
+    # values in this form too.
     def fix_meta_value(value)
       changed_value = if value.is_a?(ActionController::Parameters)
                         value.to_json
@@ -581,10 +585,7 @@ module CamaleonCms
                         value
                       end
       changed_value = fix_meta_var(changed_value)
-      return changed_value.to_s if [true, false].include?(changed_value)
-
-      text = changed_value.to_s
-      LEGACY_BOOLEANS.key?(text) ? JSON.generate(text) : changed_value
+      [true, false].include?(changed_value) ? changed_value.to_s : changed_value
     end
 
     # fix to detect type of the variable

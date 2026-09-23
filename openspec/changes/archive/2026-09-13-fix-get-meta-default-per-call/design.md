@@ -110,7 +110,9 @@ object is left as passed and never handed back.
   it reads as that boolean, so the letter written alone read back as a boolean on the writing instance and,
   loaded again, had its row rewritten as the literal. The check reads the value's text, as the column
   stores it, not its class: a Symbol is stored as its text too. Rows an earlier release stored keep reading
-  as booleans.
+  as booleans. `set_meta` applies it to what `fix_meta_value` gives it, not `fix_meta_value` itself: the
+  custom fields store their values through `fix_meta_value` too and read them as the column holds them,
+  with no JSON parse to take the quotes off, so a custom-field value written as the letter keeps it.
 - A value of another class is stored as the text the column casts it to, and reads back as that text
   does: a `BigDecimal` as a Float, rounded where it holds more digits than a Float, and a `Time` or a
   `Date` as its text. The writing instance kept the caller's object until a reload; it now reads what the
