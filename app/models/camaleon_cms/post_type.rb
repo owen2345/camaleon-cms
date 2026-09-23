@@ -270,9 +270,11 @@ module CamaleonCms
     end
 
     # The decorator option of `options` as get_meta will read it back once set_meta stores them, whatever
-    # form the writer passed: the key form written last in a Hash, the parameters' value, the JSON's.
+    # form the writer passed: the key form written last in a Hash, the parameters' value, the JSON's. It is
+    # read from the text set_meta stores, parsed as a read parses it, without reading every hash in it by
+    # either key type as a read of the whole options does.
     def decorator_class_option_in(options)
-      decorator_class_option_of(stored_form_of(fix_meta_value(options)))
+      decorator_class_option_of(parse_stored_text(fix_meta_value(options).to_s))
     end
 
     # The decorator option as the database holds it before the write under check, from the row a write
@@ -283,12 +285,13 @@ module CamaleonCms
     def stored_decorator_class_option
       return unless persisted?
 
-      decorator_class_option_of(stored_form_of(metas.where(key: '_default').order(:id).pick(:value)))
+      decorator_class_option_of(parse_stored_text(metas.where(key: '_default').order(:id).pick(:value).to_s))
     end
 
-    # The decorator option the stored form of a post type's options holds; nil when it is not a JSON object.
-    def decorator_class_option_of(stored)
-      stored[DECORATOR_CLASS_OPTION] if stored.is_a?(Hash)
+    # The decorator option a post type's options hold, read by its String key; nil when they are not a JSON
+    # object.
+    def decorator_class_option_of(options)
+      options[DECORATOR_CLASS_OPTION] if options.is_a?(Hash)
     end
 
     # The options the creation left unset get their DEFAULT_OPTIONS value. The Metas concern's

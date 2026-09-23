@@ -300,6 +300,16 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to be_nil
     end
 
+    # The check reads one option, by its String key, from the text set_meta will store, parsed as a read parses
+    # it: the hashes in the options it parses are not read by either key type, as a read of them all is.
+    it 'reads the option from the options passed without reading every hash in them by either key type' do
+      record = stored_post_type
+      record.data_options = { option => 'ProbePostDecorator', 'sizes' => [{ 'top' => 'xl' }] }
+      expect(CamaleonCms::Metas).to receive(:indifferent_json_value).once.and_call_original
+
+      expect(record).to be_valid
+    end
+
     it 'looks the stored value up once for a refused value in both queues' do
       record = stored_post_type
       lookups = 0

@@ -304,12 +304,17 @@ module CamaleonCms
       stored_form_of_text(stored.to_s) unless stored.nil?
     end
 
-    # The form a read returns for text: the value its JSON holds, or the text as the column reads it back when
-    # it holds none, text that is not valid in its encoding included
+    # The form a read returns for text: what it holds, with the hashes in it read by either key type
     def stored_form_of_text(text)
+      CamaleonCms::Metas.indifferent_json_value(parse_stored_text(text))
+    end
+
+    # The value the JSON in text holds, or the text as the column reads it back when it holds none, text that
+    # is not valid in its encoding included
+    def parse_stored_text(text)
       return column_text(text) unless text.match?(JSON_TEXT_OPENING)
 
-      CamaleonCms::Metas.indifferent_json_value(JSON.parse(text, allow_duplicate_key: true))
+      JSON.parse(text, allow_duplicate_key: true)
     rescue StandardError
       column_text(text)
     end

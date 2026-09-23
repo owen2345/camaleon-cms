@@ -110,7 +110,8 @@ object is left as passed and never handed back.
   parsed, so the branches that converted them are gone. A row holding a JSON string, even one whose text
   is an object, reads as empty options, as the options-row requirement has every value that is not an
   object; no writer stores options encoded twice. `PostType`'s decorator-option checks parse through the
-  same helper.
+  same parser, `parse_stored_text`, and read the one option by its String key, without reading every hash
+  in the options by either key type as a read of them all does.
 
 **`set_meta` returns the value passed**, as 2.9.4 did, not the form it memoizes: a caller that tests the
 result gets its own `'false'` or `'null'` back, not `false` or nil. The option writers return the hash
