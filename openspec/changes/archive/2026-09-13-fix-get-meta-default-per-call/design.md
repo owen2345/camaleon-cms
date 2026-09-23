@@ -177,7 +177,10 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   the metas may make, and a list changed under that loop skipped the meta after the one it read and met another
   twice.
   Rejected, enlisting the record in the transaction: its rollback callbacks run only for a record its
-  transaction saved.
+  transaction saved. Rejected, learning of the rollback from the meta rows' own `after_rollback`, which would
+  spare the record its tracking: ActiveRecord runs a rolled-back row's callbacks on one of its objects only, the
+  last one saved, so a second instance writing the key in the transaction, or any other object saving the row,
+  left the first instance reading the rolled-back value.
 - A direct write stands, and its key is forgotten, once its transaction is fully committed, or a savepoint's
   is committed and no transaction is open. A transaction rolled back around a savepoint marks the savepoint's
   state rolled back too, while its commit leaves that state committed, never fully committed, so a write in a

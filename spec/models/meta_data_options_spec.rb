@@ -300,6 +300,20 @@ RSpec.describe CamaleonCms::Metas do
       expect(held).to eq('size' => 'xl')
     end
 
+    # ActiveRecord runs a rolled-back row's callbacks on one of its objects only, the last one saved, so each record
+    # keeps the transactions of its own writes instead of learning of their rollback from the rows.
+    it 'reads the value stored before it on every instance that wrote the key' do
+      post = create(:post, post_type: shared_post_type)
+      post.set_meta('probe', 'stored')
+      first, second = Array.new(2) { CamaleonCms::Post.find(post.id) }
+      rolled_back_transaction do
+        first.set_meta('probe', 'by the first')
+        second.set_meta('probe', 'by the second')
+      end
+
+      expect([first.get_meta('probe'), second.get_meta('probe')]).to eq(%w[stored stored])
+    end
+
     it 'reads a meta it deleted from eager-loaded metas' do
       post = create(:post, post_type: shared_post_type)
       post.set_meta('probe', 'stored')
