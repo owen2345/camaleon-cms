@@ -492,10 +492,18 @@ module CamaleonCms
     end
 
     # Drops the metas in memory of keys, stored or built, and loads those keys' stored rows again in their place
-    # when the metas are loaded, so every other key keeps the metas it holds, a built one included
+    # when the metas are loaded, so every other key keeps the metas it holds, a built one included. The metas take
+    # a new list instead of a change to theirs, which a loop over the metas that reads one may be walking.
     def forget_metas_of(keys)
-      metas.target.reject! { |meta| keys.include?(meta.key) }
-      metas.target.concat(metas.where(key: keys.to_a).to_a) if metas.loaded?
+      loaded = metas.loaded?
+      kept = metas.target.reject { |meta| keys.include?(meta.key) }
+      kept.concat(metas.where(key: keys.to_a).to_a) if loaded
+      metas.reset
+      if loaded
+        metas.proxy_association.target = kept
+      else
+        metas.target.concat(kept)
+      end
     end
 
     # The memo of key takes what the key's row reads as again: a hash or a list the instance handed out in

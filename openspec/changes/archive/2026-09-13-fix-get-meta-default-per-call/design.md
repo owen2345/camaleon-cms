@@ -173,6 +173,9 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   one included, and is read from memory, where dropping every meta read a meta built for one as absent and
   queried each key once. Rejected, loading every row of the record again: for the few keys a write undid it
   read every meta row, some 10 to 16 times the cost of those keys' rows on a record holding 300.
+  The metas take a new list rather than a change to theirs: the undoing runs at the next read, which a loop over
+  the metas may make, and a list changed under that loop skipped the meta after the one it read and met another
+  twice.
   Rejected, enlisting the record in the transaction: its rollback callbacks run only for a record its
   transaction saved.
 - A direct write stands, and its key is forgotten, once its transaction is fully committed, or a savepoint's

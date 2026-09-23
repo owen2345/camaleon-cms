@@ -392,6 +392,21 @@ RSpec.describe CamaleonCms::Metas do
       expect(metas_selects { expect(loaded.get_meta('stored')).to eq('kept') }).to be_empty
     end
 
+    # Undoing the write took the metas of the keys it wrote out of the list the metas hold and appended their rows,
+    # in place, so a loop over the metas whose first read undid it skipped the meta after it and met another twice.
+    it 'lets a loop over the metas read each of them once' do
+      post = create(:post, post_type: shared_post_type)
+      %w[a b c].each_with_index { |key, i| post.set_meta(key, i) }
+
+      [CamaleonCms::Post.includes(:metas).find(post.id), CamaleonCms::Post.find(post.id)].each do |record|
+        rolled_back_transaction { record.set_meta('a', 'rolled back') }
+        read = record.metas.map { |meta| [meta.key, record.get_meta(meta.key)] }
+
+        expect(read.map(&:first).tally.values).to all(eq(1))
+        expect(read.to_h.slice('a', 'b', 'c')).to eq('a' => 0, 'b' => 1, 'c' => 2)
+      end
+    end
+
     # Undoing the write loaded every meta row of the record again, to read the rows of the keys it wrote.
     it 'loads again only the rows of the keys it wrote' do
       post = create(:post, post_type: shared_post_type)
