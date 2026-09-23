@@ -172,7 +172,9 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   metas in the callback, as it did: that dropped such a built meta with them, and no later save stored it.
 - A row whose update fails takes back the value it stores. ActiveRecord leaves the value a failed save
   assigned on the record, and the eager-loaded metas the re-read and every later read take the row from
-  would read that value as stored.
+  would read that value as stored. A save the meta model refuses without raising, by a validation or a
+  callback, raises as a failed one does: the write used `update` and `create`, whose false it took for
+  stored, so the instance read the refused value, and a refused new row stayed among its loaded metas.
 
 **Return the caller's own default.** It is not copied or memoized. The option writers keep working because
 they pass the options they change to `set_meta`, which memoizes the stored form of that object.

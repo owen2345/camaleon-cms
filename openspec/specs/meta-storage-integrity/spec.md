@@ -187,6 +187,13 @@ write, the hash `options` returns, on a record's first options write too.
   and written back, fails in the database
 - **THEN** the post reads the value stored before the write, and the list holds it
 
+#### Scenario: A meta row the meta model refuses
+
+- **WHEN** a validation or a callback of the meta model refuses the row a post's `set_meta` updates or
+  creates, with the metas loaded
+- **THEN** `set_meta` raises, and the post reads the value stored before the write, or none, and holds no
+  refused row among its metas
+
 #### Scenario: A hash or a list handed out and written back by a failed write after its row was deleted
 
 - **WHEN** a post type's options, or a post's list, are read, changed in place, the row is deleted by another

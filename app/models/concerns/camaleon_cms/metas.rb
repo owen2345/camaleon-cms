@@ -214,7 +214,9 @@ module CamaleonCms
       raise
     end
 
-    # Writes fixed_value, what fix_meta_value gives the text column for a value, to the row of key
+    # Writes fixed_value, what fix_meta_value gives the text column for a value, to the row of key, raising when
+    # the row's save is refused, by a validation or a callback of the meta model, as when it fails, so a write
+    # nothing stored is not memoized as stored
     def write_meta_row(key_str, fixed_value)
       # Check if the parent object has been saved to the database yet
       if persisted?
@@ -229,7 +231,7 @@ module CamaleonCms
               (pending_record = metas.target.find { |m| m.new_record? && m.key == key_str })
           pending_record.value = fixed_value
         else
-          metas.create(key: key_str, value: fixed_value)
+          metas.create!(key: key_str, value: fixed_value)
         end
       else
         # In-Memory Fallback: Find an existing unsaved item in the array collection,
@@ -244,10 +246,10 @@ module CamaleonCms
       end
     end
 
-    # Updates a stored row to fixed_value. A failed save leaves the value it assigned on the row, which the
-    # metas in memory would read as stored, so when the update raises the row takes back the value it stores.
+    # Updates a stored row to fixed_value. A refused or failed save leaves the value it assigned on the row, which
+    # the metas in memory would read as stored, so when the update raises the row takes back the value it stores.
     def update_meta_row(meta_record, fixed_value)
-      meta_record.update(value: fixed_value)
+      meta_record.update!(value: fixed_value)
     rescue StandardError
       meta_record.restore_attributes([:value])
       raise

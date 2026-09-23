@@ -302,11 +302,26 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       post.set_meta('probe', 'stored')
       loaded = CamaleonCms::Post.includes(:metas).find(post.id)
       row = loaded.metas.target.find { |meta| meta.key == 'probe' }
-      allow(row).to receive(:save).and_raise(ActiveRecord::StatementInvalid, 'write failed')
+      allow(row).to receive(:save!).and_raise(ActiveRecord::StatementInvalid, 'write failed')
 
       expect { loaded.set_meta('probe', 'refused') }.to raise_error(ActiveRecord::StatementInvalid)
 
       expect([loaded.get_meta('probe'), row.value]).to eq(%w[stored stored])
+    end
+
+    # A validation or a callback of the meta model refuses a row's save without raising, which the write took
+    # for stored: the instance read the refused value, and a refused new row stayed among its loaded metas.
+    it 'raises when the meta model refuses the row, and reads what is stored' do
+      post = create(:post)
+      post.set_meta('probe', 'stored')
+      loaded = CamaleonCms::Post.includes(:metas).find(post.id)
+      allow_any_instance_of(described_class).to receive(:valid?).and_return(false)
+
+      expect { loaded.set_meta('probe', 'refused') }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { loaded.set_meta('probe_new', 'refused') }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect([loaded.get_meta('probe'), loaded.get_meta('probe_new')]).to eq(['stored', nil])
+      expect(loaded.metas.map(&:key)).not_to include('probe_new')
     end
 
     # A list written back by a write the database refuses reads the row again from the eager-loaded metas,
@@ -318,7 +333,7 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       gallery = loaded.get_meta('probe_gallery')
       gallery << 'b.jpg'
       row = loaded.metas.target.find { |meta| meta.key == 'probe_gallery' }
-      allow(row).to receive(:save).and_raise(ActiveRecord::StatementInvalid, 'write failed')
+      allow(row).to receive(:save!).and_raise(ActiveRecord::StatementInvalid, 'write failed')
 
       expect { loaded.set_meta('probe_gallery', gallery) }.to raise_error(ActiveRecord::StatementInvalid)
 
