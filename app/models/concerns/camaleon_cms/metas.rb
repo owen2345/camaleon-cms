@@ -447,9 +447,7 @@ module CamaleonCms
     # before the save, under which the values it memoized then would be read over the metas it holds.
     def forget_rolled_back_metas(created)
       if created
-        built = metas.target.map { |meta| { key: meta.key, value: meta.value } }
-        metas.reset
-        built.each { |attributes| metas.build(attributes) }
+        reset_metas(metas.target)
         @meta_write_states&.reject! { |state, _keys| state.rolledback? }
       end
       cama_clear_cache
@@ -480,13 +478,17 @@ module CamaleonCms
       return if rolled_back.empty?
 
       keys = rolled_back.map(&:last).reduce(:|)
-      built = metas.target.select { |m| m.new_record? && keys.exclude?(m.key) }
-                   .map { |m| { key: m.key, value: m.value } }
-      loaded = metas.loaded?
-      metas.reset
-      metas.load_target if loaded
-      built.each { |attributes| metas.build(attributes) }
+      reset_metas(metas.target.select { |m| m.new_record? && keys.exclude?(m.key) }, reload: metas.loaded?)
       keys.each { |key_str| reread_meta_memo(key_str) }
+    end
+
+    # Drops the metas in memory and builds the ones kept again, for a save to store, after loading the stored
+    # rows again when reload is set
+    def reset_metas(kept, reload: false)
+      built = kept.map { |meta| { key: meta.key, value: meta.value } }
+      metas.reset
+      metas.load_target if reload
+      built.each { |attributes| metas.build(attributes) }
     end
 
     # A write stands once its transaction is fully committed, or a savepoint's is committed and no transaction is
