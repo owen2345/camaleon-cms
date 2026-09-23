@@ -463,11 +463,11 @@ module CamaleonCms
       ((@meta_write_states ||= {})[state] ||= Set.new) << key_str
     end
 
-    # Once the transaction of a direct write is rolled back, the metas in memory, whose rows it undid and whose
-    # values a rollback leaves as written, are dropped, keeping the metas built and not saved for other keys,
-    # and loaded again when they were loaded, so every other key, a built meta's included, is still read from
-    # memory; each key it wrote reads its row again, in place of a hash or a list the instance handed out. Run
-    # before each read, write and save, so none takes the rolled-back value or stores it again. A write that
+    # Once the transaction of a direct write is rolled back, the metas in memory of the keys it wrote, whose rows
+    # it undid and whose values a rollback leaves as written, are dropped, and those keys' rows loaded again when
+    # the metas were loaded, so every other key keeps the metas it holds, a built one included, and is still read
+    # from memory; each key it wrote reads its row again, in place of a hash or a list the instance handed out.
+    # Run before each read, write and save, so none takes the rolled-back value or stores it again. A write that
     # stands is forgotten.
     def forget_rolled_back_meta_writes
       return if @meta_write_states.nil?
@@ -478,17 +478,22 @@ module CamaleonCms
       return if rolled_back.empty?
 
       keys = rolled_back.map(&:last).reduce(:|)
-      reset_metas(metas.target.select { |m| m.new_record? && keys.exclude?(m.key) }, reload: metas.loaded?)
+      forget_metas_of(keys)
       keys.each { |key_str| reread_meta_memo(key_str) }
     end
 
-    # Drops the metas in memory and builds the ones kept again, for a save to store, after loading the stored
-    # rows again when reload is set
-    def reset_metas(kept, reload: false)
+    # Drops the metas in memory and builds the ones kept again, for a save to store
+    def reset_metas(kept)
       built = kept.map { |meta| { key: meta.key, value: meta.value } }
       metas.reset
-      metas.load_target if reload
       built.each { |attributes| metas.build(attributes) }
+    end
+
+    # Drops the metas in memory of keys, stored or built, and loads those keys' stored rows again in their place
+    # when the metas are loaded, so every other key keeps the metas it holds, a built one included
+    def forget_metas_of(keys)
+      metas.target.reject! { |meta| keys.include?(meta.key) }
+      metas.target.concat(metas.where(key: keys.to_a).to_a) if metas.loaded?
     end
 
     # A write stands once its transaction is fully committed, or a savepoint's is committed and no transaction is

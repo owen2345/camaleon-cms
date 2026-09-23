@@ -166,9 +166,11 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   rollback callback of it runs, while its memo and its metas in memory, whose values a rollback leaves as
   written, keep the write, and a meta it created, new again, was stored by the next save. Each such write
   keeps its key under the state of its transaction, and once that state is rolled back the metas in memory
-  are dropped, keeping the ones built for other keys, and loaded again when they were loaded, and each key
-  reads its row again, in place of a hash or a list handed out. Loaded again, the metas keep reading every
-  other key from memory, where dropped they read a meta built for one as absent and queried each key once.
+  of the keys it wrote are dropped, and those keys' rows loaded again when the metas were loaded, and each
+  key reads its row again, in place of a hash or a list handed out. Every other key keeps its metas, a built
+  one included, and is read from memory, where dropping every meta read a meta built for one as absent and
+  queried each key once. Rejected, loading every row of the record again: for the few keys a write undid it
+  read every meta row, some 10 to 16 times the cost of those keys' rows on a record holding 300.
   Rejected, enlisting the record in the transaction: its rollback callbacks run only for a record its
   transaction saved.
 - A direct write stands, and its key is forgotten, once its transaction is fully committed, or a savepoint's

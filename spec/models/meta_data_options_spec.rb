@@ -363,6 +363,24 @@ RSpec.describe CamaleonCms::Metas do
       expect(metas_selects { expect(loaded.get_meta('stored')).to eq('kept') }).to be_empty
     end
 
+    # Undoing the write loaded every meta row of the record again, to read the rows of the keys it wrote.
+    it 'loads again only the rows of the keys it wrote' do
+      post = create(:post, post_type: shared_post_type)
+      post.set_meta('stored', 'kept')
+      post.set_meta('probe', 'before')
+      loaded = CamaleonCms::Post.includes(:metas).find(post.id)
+      kept = loaded.metas.find { |meta| meta.key == 'stored' }
+      ActiveRecord::Base.transaction(requires_new: true) do
+        loaded.set_meta('probe', 'rolled back')
+        raise ActiveRecord::Rollback
+      end
+
+      selects = metas_selects { expect(loaded.get_meta('probe')).to eq('before') }
+
+      expect(selects).to contain_exactly(a_string_matching(/"metas"\."key" (=|IN)/))
+      expect(loaded.metas.find { |meta| meta.key == 'stored' }).to equal(kept)
+    end
+
     # Telling the transaction a write belongs to asked the model for its connection, which leases one to the thread
     # for good, so a meta written, deleted or created with a record raised where a host refuses such a lease.
     context 'when a host refuses a permanent connection lease' do
