@@ -2,6 +2,24 @@ module CamaleonCms
   class Post < CamaleonCms::PostDefault
     include CamaleonCms::CategoriesTagsForPosts
     include CamaleonCms::ContentShortcodeGate
+    # set_setting and set_settings define post configuration for current post
+    # possible key values (String):
+    #   has_content, boolean (default true)
+    #   has_summary, boolean (default true)
+    #   has_seo, boolean (default true)
+    #   has_picture, boolean (default true)
+    #   has_template, boolean (default false)
+    #   has_comments, boolean (default false)
+    #
+    #   the following is still used if post type was inactivated layout and overwritten by dropdown in post view
+    #   default_layout:  (string) (default layout)
+    #
+    #   the following is still used if post type was inactivated template and overwritten by dropdown in post view
+    #   default_template:  (string) (default template)
+    #   has_layout:  (boolean) (default false)
+    #   skip_fields:  (array) (default empty) array of custom field keys to avoid for this post,
+    #     sample: ["subtitle", "icon"]
+    include CamaleonCms::Settings
 
     # Structural, non-executable markup that long-form post content legitimately uses but the
     # sanitizer default drops. Superset of the default so upstream security additions are inherited.
@@ -204,34 +222,6 @@ module CamaleonCms
     # check if is required picture for current post
     def is_required_picture?
       post_type.get_option('is_required_picture', false)
-    end
-
-    # define post configuration for current post
-    # possible key values (String):
-    #   has_content, boolean (default true)
-    #   has_summary, boolean (default true)
-    #   has_seo, boolean (default true)
-    #   has_picture, boolean (default true)
-    #   has_template, boolean (default false)
-    #   has_comments, boolean (default false)
-    #
-    #   the following is still used if post type was inactivated layout and overwritten by dropdown in post view
-    #   default_layout:  (string) (default layout)
-    #
-    #   the following is still used if post type was inactivated template and overwritten by dropdown in post view
-    #   default_template:  (string) (default template)
-    #   has_layout:  (boolean) (default false)
-    #   skip_fields:  (array) (default empty) array of custom field keys to avoid for this post,
-    #     sample: ["subtitle", "icon"]
-    # val: value for the setting
-    def set_setting(key, val)
-      set_option(key, val)
-    end
-
-    # assign multiple settings, in one options write
-    def set_settings(settings = {})
-      set_options(settings)
-      settings
     end
 
     # put a new order position for this post

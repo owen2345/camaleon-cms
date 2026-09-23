@@ -1,5 +1,9 @@
 module CamaleonCms
   class PostType < CamaleonCms::TermTaxonomy
+    # set_setting and set_settings assign settings for this post type (the keys and their defaults:
+    # DEFAULT_OPTIONS)
+    include CamaleonCms::Settings
+
     normalize_attrs(:description)
 
     alias_attribute :site_id, :parent_id
@@ -65,17 +69,6 @@ module CamaleonCms
       has_picture: true, has_template: true, has_seo: true, not_deleted: false, has_layout: false,
       default_layout: ''
     }.freeze
-
-    # assign settings for this post type (the keys and their defaults: DEFAULT_OPTIONS), in one options write
-    def set_settings(settings = {})
-      set_options(settings)
-      settings
-    end
-
-    # set or update a setting for this post type
-    def set_setting(key, value)
-      set_option(key, value)
-    end
 
     # select full_categories for the post type, include all children categories
     def full_categories
