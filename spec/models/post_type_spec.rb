@@ -85,5 +85,18 @@ RSpec.describe CamaleonCms::PostType, type: :model do
 
       expect(settings[:skip_fields].first).to be_instance_of(Hash)
     end
+
+    # Written in one set_options call, the settings were permitted by it in place, so request parameters passed to
+    # set_settings or to add_post, and the ones nested in them, stayed permitted for whatever the caller did next.
+    it 'leaves request parameters passed as settings unpermitted' do
+      settings = ActionController::Parameters.new(has_comments: true, layout: { name: 'probe' })
+      given = ActionController::Parameters.new(has_content: false)
+
+      create(:post, post_type: installed_post_type).set_settings(settings)
+      post = installed_post_type.add_post(title: 'Params probe', slug: 'params-probe', content: 'body', settings: given)
+
+      expect([settings.permitted?, settings[:layout].permitted?, given.permitted?]).to eq([false, false, false])
+      expect(CamaleonCms::Post.find(post.id).get_option(:has_content)).to be(false)
+    end
   end
 end

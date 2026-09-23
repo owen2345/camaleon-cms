@@ -12,7 +12,8 @@ Symbol twin as the same option. A write SHALL replace the other type's entry rat
 twice. The writing instance SHALL read the option back by either key type, as a freshly loaded record
 does. `set_options` SHALL skip a nil key and store a key of another type, such as an Integer, under its
 text, as `set_option` does. An option writer SHALL leave the value passed as it was, the hashes in a list
-included.
+included, and `set_settings` SHALL leave request parameters it is given, and those nested in them,
+unpermitted.
 
 #### Scenario: A String-keyed option after Symbol-keyed defaults
 
@@ -43,6 +44,13 @@ included.
 - **WHEN** a list holding a hash and a list of hashes is written with `set_option`, `set_setting` or
   `set_settings`
 - **THEN** the hashes in the caller's list are still the plain hashes passed
+
+#### Scenario: Request parameters passed as settings
+
+- **WHEN** a post is given settings as request parameters with `set_settings`, and a post type's `add_post`
+  gives a new post its settings as request parameters
+- **THEN** the parameters, and those nested in them, are still unpermitted
+- **AND** a freshly loaded post reads the settings
 
 ### Requirement: set_meta reads back on the writing instance as a reloaded record does
 
