@@ -63,7 +63,7 @@ module CamaleonCms
     # or a stored null or empty string.
     def get_meta(key, default = nil)
       key_str = key.to_s
-      cached = cama_fetch_cache("meta_#{key_str}") { read_meta_row(key_str) }
+      cached = cama_fetch_cache(meta_memo_key(key_str)) { read_meta_row(key_str) }
       meta_value_absent?(cached) ? default : cached
     end
 
@@ -76,7 +76,7 @@ module CamaleonCms
       # built metas are dropped.
       built = metas.target.select { |m| m.new_record? && m.key == key_str }
       metas.destroy(*built, *metas.where(key: key_str))
-      cama_remove_cache("meta_#{key_str}")
+      cama_remove_cache(meta_memo_key(key_str))
     end
 
     # return configurations for current object, sample: {"type":"post_type","object_id":"127"}
@@ -250,7 +250,7 @@ module CamaleonCms
     # hash or a list that is not frozen, so the instance does not read a change nothing stored. When the row
     # cannot be read either, the memo is dropped for the next read to take it.
     def reread_handed_out_meta(key_str, value)
-      memo_key = "meta_#{key_str}"
+      memo_key = meta_memo_key(key_str)
       memo = cama_get_cache(memo_key)
       return unless value.equal?(memo) && (memo.is_a?(Hash) || memo.is_a?(Array) || memo.is_a?(String))
 
@@ -326,7 +326,7 @@ module CamaleonCms
       yield changed
       set_meta(meta_key, changed)
       key_str = meta_key.to_s
-      memoize_stored_form(key_str, options, cama_get_cache("meta_#{key_str}"))
+      memoize_stored_form(key_str, options, cama_get_cache(meta_memo_key(key_str)))
     end
 
     # Memoizes for key what a reload reads for the value written. When the value written is the Hash or the
@@ -334,7 +334,7 @@ module CamaleonCms
     # memoize_stored_form has it; otherwise the stored form is memoized apart from the value written, which
     # is left as passed.
     def memoize_written_meta(key_str, written, stored)
-      memo = cama_get_cache("meta_#{key_str}")
+      memo = cama_get_cache(meta_memo_key(key_str))
       memoize_stored_form(key_str, (memo if memo.equal?(written)), stored)
     end
 
@@ -345,7 +345,7 @@ module CamaleonCms
     # it. Returns what it memoizes.
     def memoize_stored_form(key_str, held, stored)
       in_place = (held.is_a?(Hash) || held.is_a?(Array)) && !held.frozen? && stored.is_a?(held.class)
-      cama_set_cache("meta_#{key_str}", in_place ? take_stored_form(held, stored) : stored)
+      cama_set_cache(meta_memo_key(key_str), in_place ? take_stored_form(held, stored) : stored)
     end
 
     # Changes held in place to hold stored, keeping each value it already holds in its stored form, so a hash
@@ -451,6 +451,11 @@ module CamaleonCms
       else
         metas.where(key: key_str).order(:id).first
       end
+    end
+
+    # The key a meta is memoized under, from the String form of its key, which every read and write names it by
+    def meta_memo_key(key_str)
+      "meta_#{key_str}"
     end
 
     def created_record_metas_in_memory?
