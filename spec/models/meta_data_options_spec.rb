@@ -237,6 +237,51 @@ RSpec.describe CamaleonCms::Metas do
     end
   end
 
+  # A meta or an option written directly, not through a save of the record, takes no part of the record in the
+  # transaction, so its rollback runs no callback of the record, which read the rolled-back value from its memo
+  # and its metas in memory, and stored a meta created there again with its next save.
+  describe 'a direct write rolled back with its transaction' do
+    it 'reads the value stored before it, into the options it handed out too' do
+      post = create(:post, post_type: shared_post_type)
+      post.set_meta('probe', 'before')
+      post.set_option(:size, 'xl')
+      held = post.options
+      ActiveRecord::Base.transaction(requires_new: true) do
+        post.set_meta('probe', 'rolled back')
+        post.set_option(:color, 'red')
+        raise ActiveRecord::Rollback
+      end
+
+      expect(post.get_meta('probe')).to eq('before')
+      expect(held).to equal(post.options)
+      expect(held).to eq('size' => 'xl')
+    end
+
+    it 'reads a meta it deleted from eager-loaded metas' do
+      post = create(:post, post_type: shared_post_type)
+      post.set_meta('probe', 'stored')
+      loaded = CamaleonCms::Post.includes(:metas).find(post.id)
+      ActiveRecord::Base.transaction(requires_new: true) do
+        loaded.delete_meta('probe')
+        raise ActiveRecord::Rollback
+      end
+
+      expect(loaded.get_meta('probe')).to eq('stored')
+    end
+
+    it 'is not stored by the next save of the record' do
+      post = CamaleonCms::Post.includes(:metas).find(create(:post, post_type: shared_post_type).id)
+      ActiveRecord::Base.transaction(requires_new: true) do
+        post.set_meta('probe', 'rolled back')
+        raise ActiveRecord::Rollback
+      end
+
+      post.update!(title: 'Renamed')
+
+      expect(CamaleonCms::Post.find(post.id).get_meta('probe')).to be_nil
+    end
+  end
+
   it 'writes data_options and data_metas given to an update once' do
     post = create(:post, post_type: shared_post_type)
     post.update!(data_options: { has_comments: true }, data_metas: { subtitle: 'first' })

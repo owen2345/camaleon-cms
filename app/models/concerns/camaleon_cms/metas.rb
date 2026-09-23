@@ -26,6 +26,8 @@ module CamaleonCms
 
       # refused before any statement, as the writers refuse it after the row would have been written
       before_save   :refuse_invalid_queued_containers
+      # a direct write undone with its transaction is not stored again with the record's built metas
+      before_save   :forget_rolled_back_meta_writes
       after_create  :remember_creating_transaction
       after_create  :save_created_metas_options
       before_update :save_metas_options
@@ -51,8 +53,10 @@ module CamaleonCms
 
     # Adds the meta for key, or updates it, and returns the value passed
     def set_meta(key, value)
+      forget_rolled_back_meta_writes
       key_str = key.to_s
       stored = store_meta(key_str, value)
+      remember_meta_write(key_str)
       # memoize what a reload reads for the stored value, so the writing instance reads as a reloaded record
       memoize_written_meta(key_str, value, stored)
       value
@@ -62,6 +66,7 @@ module CamaleonCms
     # with no row. Each call applies its own default, outside the memo, when the meta has no value: no row,
     # or a stored null or empty string.
     def get_meta(key, default = nil)
+      forget_rolled_back_meta_writes
       key_str = key.to_s
       cached = cama_fetch_cache(meta_memo_key(key_str)) { read_meta_row(key_str) }
       meta_value_absent?(cached) ? default : cached
@@ -69,6 +74,7 @@ module CamaleonCms
 
     # delete meta
     def delete_meta(key)
+      forget_rolled_back_meta_writes
       key_str = key.to_s
       # Through the association, so the loaded copies of the stored rows and the metas built but not yet
       # saved leave the record too: get_meta reads loaded metas, and a save stores built ones. The stored
@@ -76,6 +82,7 @@ module CamaleonCms
       # built metas are dropped.
       built = metas.target.select { |m| m.new_record? && m.key == key_str }
       metas.destroy(*built, *metas.where(key: key_str))
+      remember_meta_write(key_str)
       cama_remove_cache(meta_memo_key(key_str))
     end
 
@@ -149,11 +156,12 @@ module CamaleonCms
     end
 
     # A copy is a new record with no write behind it: it starts without the record of the original's
-    # last write or creation, which a rollback of that transaction would otherwise apply to the copy, and
+    # last writes or creation, which a rollback of their transaction would otherwise apply to the copy, and
     # with queues of its own, so a value queued on one is not queued on the other.
     def initialize_dup(other)
       @written_metas_options = nil
       @creating_transaction_state = nil
+      @meta_write_states = nil
       @created_record_metas_in_memory = false
       self.data_options = data_options.deep_dup
       self.data_metas = data_metas.deep_dup
@@ -424,7 +432,8 @@ module CamaleonCms
     # so the next save stores them, and read, since the record is new again. A record that existed keeps
     # its earlier rows, so its metas are dropped and read again on demand. Either way what the instance
     # memoized is dropped: a record whose creation was rolled back takes back the id it had before the save,
-    # under which the values it memoized then would be read over the metas it holds.
+    # under which the values it memoized then would be read over the metas it holds. So are the direct writes
+    # rolled back with the save, whose rows are read again already.
     def forget_rolled_back_metas(created)
       if created
         built = metas.target.map { |meta| { key: meta.key, value: meta.value } }
@@ -434,6 +443,49 @@ module CamaleonCms
         metas.reset
       end
       cama_clear_cache
+      @meta_write_states&.reject! { |state, _keys| state.rolledback? }
+    end
+
+    # A meta written or deleted directly while a transaction is open is undone by its rollback, which runs no
+    # callback of the record unless the record was saved in it, while the memo and the metas in memory still
+    # hold the write. The key is kept under the state of that transaction until it completes.
+    def remember_meta_write(key_str)
+      state = current_transaction_state
+      return unless state && persisted?
+
+      ((@meta_write_states ||= {})[state] ||= Set.new) << key_str
+    end
+
+    # Once the transaction of a direct write is rolled back, the metas in memory, whose rows it undid and whose
+    # values a rollback leaves as written, are dropped, keeping the metas built and not saved for other keys,
+    # and each key it wrote reads its row again, in place of a hash or a list the instance handed out. Run
+    # before each read, write and save, so none takes the rolled-back value or stores it again. A write whose
+    # transaction is fully committed stands and is forgotten.
+    def forget_rolled_back_meta_writes
+      return if @meta_write_states.nil?
+
+      rolled_back = @meta_write_states.select { |state, _keys| state.rolledback? }
+      @meta_write_states.reject! { |state, _keys| state.rolledback? || state.fully_committed? }
+      @meta_write_states = nil if @meta_write_states.empty?
+      return if rolled_back.empty?
+
+      keys = rolled_back.values.reduce(:|)
+      built = metas.target.select { |m| m.new_record? && keys.exclude?(m.key) }
+                   .map { |m| { key: m.key, value: m.value } }
+      metas.reset
+      built.each { |attributes| metas.build(attributes) }
+      keys.each { |key_str| reread_meta_memo(key_str) }
+    end
+
+    # The memo of key takes what the key's row reads as again: a hash or a list the instance handed out in
+    # place, anything else read again on demand
+    def reread_meta_memo(key_str)
+      memo = cama_get_cache(meta_memo_key(key_str))
+      if memo.is_a?(Hash) || memo.is_a?(Array)
+        memoize_stored_form(key_str, memo, read_meta_row(key_str))
+      else
+        cama_remove_cache(meta_memo_key(key_str))
+      end
     end
 
     def forget_written_metas_options

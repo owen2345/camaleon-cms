@@ -353,6 +353,9 @@ now returns what a freshly loaded record reads.
   hash or list nested in it that a write leaves unchanged, keep reading the option writes made after it, as
   in 2.9.4; if that write is refused or fails, it reads what is
   stored again.
+- A meta or option written or deleted directly inside a transaction that is rolled back no longer keeps its
+  rolled-back value on the object that wrote it: its next read reads what is stored, and its next save no
+  longer stores again a meta the rollback removed.
 - `set_settings` on a post type or a post writes every setting in one options write, through `set_options`,
   instead of one per setting, so it takes what `set_options` takes, a Hash or request parameters, and a
   setting a post type refuses leaves the others unwritten.

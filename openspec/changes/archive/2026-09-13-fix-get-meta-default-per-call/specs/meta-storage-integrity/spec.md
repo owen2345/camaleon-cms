@@ -61,7 +61,10 @@ the instance reads, unless it is frozen, when the stored form SHALL be memoized 
 later option write on the instance; when that write raises, refused or failed, the object
 SHALL take the form the key's stored row reads as again, and SHALL hold nothing when the row is gone or
 holds a value of another kind. A record not yet saved SHALL read a written value the
-same way until its first save, after which the instance reads what it stored. When the value is the record's options, `options` and `get_option` on that instance SHALL
+same way until its first save, after which the instance reads what it stored. A meta written or deleted in a
+transaction that is rolled back, with `set_meta`, an option writer or `delete_meta`, SHALL read on the instance
+what is stored once the rollback completes, in a hash `options` returned too, and SHALL NOT be stored again by
+the record's next save. When the value is the record's options, `options` and `get_option` on that instance SHALL
 find an option by a String key or its Symbol twin, as a freshly loaded record does, whether the caller
 passed a plain Hash, request parameters or a JSON string. The hash `options` returns SHALL share nothing
 with the caller's value, its nested hashes included, and SHALL carry no default of the caller's hash, so a
@@ -162,6 +165,13 @@ write, the hash `options` returns, on a record's first options write too.
 - **WHEN** a post type's options, or a post's list, are read, changed in place, the row is deleted by another
   instance, and the write back with `set_meta` is refused or fails
 - **THEN** the hash or the list holds nothing, and the record reads no value for the key
+
+#### Scenario: A direct write rolled back with its transaction
+
+- **WHEN** a post writes a meta and an option inside a transaction that is rolled back, deletes a meta its
+  eager-loaded metas hold in another, and creates one in a third before it is saved again
+- **THEN** the post reads the meta and the options stored before each transaction, in the options hash it
+  handed out too, and its save stores no meta the rollback removed
 
 #### Scenario: Options a caller passed to set_meta as a plain Hash
 
