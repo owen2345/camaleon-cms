@@ -67,10 +67,12 @@ value has no value, and the memoized value otherwise.
   that branch, and `options` already read them as no options.
 - Rejected, a dedicated "missing" marker object: a `''` or nil from storage or from `set_meta` would still
   need the predicate, and a direct reader of the memo (`cama_get_cache`) would receive an internal object.
-- A record's first save drops what it memoized before it (`CamaleonRecord`, after create): every memo key
-  holds the record's id, so a value memoized with none is read by no key once the INSERT assigns one, and
-  the memo of a meta written before the save was kept for the instance's life beside the one read after
-  it. No read changes; the other memoized reads keep their keys.
+- A record's first save drops everything it memoized before it (`CamaleonRecord`, after create, declared
+  before every model's own after-create callbacks, so it drops nothing they memoize). What it memoized was
+  read before the INSERT stored it: with no id, it was read by no key once the INSERT assigned one and was
+  kept for the instance's life beside the value read after it; with an id given before the save, it was read
+  under the key the record keeps, so a default read before a meta was built for it was read over the meta
+  the save stored. Rejected, dropping only what was memoized with no id: it missed the record given its id.
 - A copy made with `clone` keeps sharing the original's memo, as it shares its attributes and loaded
   associations: ActiveRecord documents `clone` as a shallow copy of the same record, which reads and writes
   the same rows under the same id, so a memo of its own would only read the metas the two share apart from

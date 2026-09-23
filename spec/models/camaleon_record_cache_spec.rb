@@ -125,8 +125,28 @@ RSpec.describe CamaleonRecord do
 
       post.save!
 
-      expect(post.instance_variable_get(:@cama_cache_vars).keys).to all(include("_#{post.id}_"))
       expect(post.get_meta('subtitle')).to eq('draft')
+      expect(post.instance_variable_get(:@cama_cache_vars).keys).to all(include("_#{post.id}_"))
+    end
+
+    # A record given its id before its first save memoized under the key it keeps once the INSERT stores it, so
+    # the save, which dropped only what was memoized with no id, left it reading the default it had read before
+    # a meta was built for it, over the meta it stored.
+    it 'drops the values memoized before it by a record given its id' do
+      post = build(:post, post_type: post_type)
+      post.id = CamaleonCms::Post.maximum(:id).to_i + 1000
+      post.get_meta('subtitle', 'none')
+      post.metas.build(key: 'subtitle', value: 'built')
+
+      post.save!
+
+      expect(post.get_meta('subtitle', 'none')).to eq('built')
+    end
+
+    it 'keeps what the after-create callbacks of the model memoized' do
+      post = create(:post, post_type: post_type, data_options: { has_comments: true })
+
+      expect(metas_selects { expect(post.get_option(:has_comments)).to be(true) }).to be_empty
     end
   end
 end

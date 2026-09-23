@@ -24,9 +24,10 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
 
   self.abstract_class = true
 
-  # What a record memoized before its first save sits under keys built with no id, which no read builds once
-  # the INSERT assigns one, so the save drops it rather than keep it for the instance's life
-  after_create :forget_cache_memoized_without_id
+  # What a record memoized before its first save was read before the INSERT stored it, so the save drops it,
+  # whether the INSERT assigned the id every memo key holds or the record was given one before. Declared here,
+  # before the after-create callbacks of every model, it drops nothing they memoize.
+  after_create :cama_clear_cache
 
   # Sanitize a value with ActionController's sanitize() while preserving translation locale markers
   # (<!--:xx-->). Shared by Post#sanitize_content and the NormalizeAttrs concern so the transform lives in
@@ -101,8 +102,8 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
   end
 
   # internal helper to generate cache key
-  def cama_build_cache_key(key, key_id = id)
-    _key = "cama_cache_#{self.class.name}_#{key_id}_#{key}"
+  def cama_build_cache_key(key)
+    _key = "cama_cache_#{self.class.name}_#{id}_#{key}"
   end
 
   # A copy starts with its own empty cache: copies are new records, and sharing the original's would let
@@ -187,11 +188,4 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
   end
 
   private_class_method :legacy_camaleon_polymorphic_class
-
-  private
-
-  def forget_cache_memoized_without_id
-    without_id = cama_build_cache_key('', nil)
-    @cama_cache_vars&.delete_if { |key, _value| key.start_with?(without_id) }
-  end
 end
