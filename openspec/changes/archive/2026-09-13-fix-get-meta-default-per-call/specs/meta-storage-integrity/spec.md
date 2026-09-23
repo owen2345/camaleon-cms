@@ -1,12 +1,9 @@
-# meta-storage-integrity Specification
+## RENAMED Requirements
 
-## Purpose
-Records store their options and metas as JSON rows. Plugins and themes read them back through the meta
-API, both on the instance that wrote them and after a reload. This capability pins what a write stores
-and what a read returns, so a value is never lost or reverted by key types, repeated keys in stored JSON,
-or duplicate rows.
+- FROM: `### Requirement: set_meta keeps the caller's value on the writing instance`
+- TO: `### Requirement: set_meta reads back on the writing instance as a reloaded record does`
 
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Option writes store one entry per key whatever its type
 
@@ -54,28 +51,6 @@ unpermitted.
   gives a new post its settings as request parameters
 - **THEN** the parameters, and those nested in them, are still unpermitted
 - **AND** a freshly loaded post reads the settings
-
-### Requirement: An option write that raises leaves the options as stored
-
-When `set_option`, `set_options` or `delete_option` raises, because the write is refused or storing it
-fails, the options the instance holds SHALL be those it held before the call, so the instance reads what is
-stored without querying the database for it again. They SHALL NOT show a write before it is stored, while
-it is checked included.
-
-#### Scenario: A refused option write
-
-- **WHEN** a post type's option write is refused and its options are read again on the same instance
-- **THEN** they hold the options stored before the write, read without a metas query
-
-#### Scenario: A failed option write
-
-- **WHEN** storing an option set, set in bulk or deleted on a post raises
-- **THEN** the post's options are those stored before each write
-
-#### Scenario: Options read while a write is checked
-
-- **WHEN** the options a post type holds are read while its option write is checked
-- **THEN** they do not show that write
 
 ### Requirement: set_meta reads back on the writing instance as a reloaded record does
 
@@ -285,221 +260,6 @@ write, the hash `options` returns, on a record's first options write too.
 - **THEN** the caller's hashes still hold their values
 - **AND** `get_meta` on the same instance does not return the caller's hash
 
-### Requirement: delete_meta removes the key from memory as well as storage
-
-`delete_meta` SHALL remove the key's stored rows and the metas the record holds for it on its `metas`
-association: loaded copies of those rows, and metas built with `set_meta` and not yet saved. `get_meta` on
-that instance SHALL then return the default, and a save SHALL NOT store a deleted built meta. Metas for
-other keys, and a stored row an unsaved record holds for another record, SHALL remain. A meta queued in
-`data_metas` or `data_options` is out of scope: the next save writes it.
-
-#### Scenario: A meta deleted from eager-loaded metas
-
-- **WHEN** a site loaded with its metas deletes a meta
-- **THEN** the same instance and a freshly loaded site read the default for that key
-
-#### Scenario: A meta deleted before it is saved
-
-- **WHEN** a meta set with `set_meta` on an unsaved user, or built on a saved post, is deleted and the record
-  is saved
-- **THEN** no row is stored for that key
-
-#### Scenario: A sibling meta pending on the same record
-
-- **WHEN** an unsaved user with two metas set deletes one of them and is saved
-- **THEN** the other meta is stored
-
-#### Scenario: A stored row held by an unsaved record
-
-- **WHEN** an unsaved post holding another post's stored metas deletes one of their keys
-- **THEN** the other post still reads that meta
-
-### Requirement: Hash and Array values are stored with one entry per key
-
-A Hash or Array value written as a meta or as a custom-field value SHALL be stored as JSON with one entry
-per key at any depth. When the value holds a key as both a String and a Symbol, the value written last
-for that key SHALL be stored. The write MUST NOT fail or store a repeated key.
-
-#### Scenario: A meta hash merges Symbol defaults with String-keyed input
-
-- **WHEN** a meta is written with a hash holding `sec` as both a Symbol and a String key, or with an array
-  containing such a hash
-- **THEN** the stored JSON holds `sec` once, with the String key's value
-
-#### Scenario: A custom-field value holds a key twice
-
-- **WHEN** a custom-field value is written with a hash holding `a` as both a Symbol and a String key
-- **THEN** the stored JSON holds `a` once, with the value written last
-
-### Requirement: A stored meta that repeats a key reads with its last value
-
-Reading a meta whose stored JSON repeats a key, as earlier releases could write it, SHALL return the
-parsed value with that key's last value. This SHALL hold on every supported json version, with no parse
-failure and no json deprecation warning.
-
-#### Scenario: Options stored with a repeated key
-
-- **WHEN** a record's stored options hold `has_category` twice, `false` and then `true`
-- **THEN** reading the option returns `true`
-- **AND** no duplicate-key warning is emitted
-
-### Requirement: Each read of a meta with no value returns its caller's default
-
-When a record has no row for a meta, or the meta's stored value is null or an empty string, each `get_meta`
-call SHALL return the default passed to that call. It SHALL NOT return a default an earlier call passed, or a
-change a caller made to that default in place, and what the instance memoizes for a key with no row SHALL
-be nil. This SHALL hold whether the record's metas are eager-loaded or read from the database. `get_option`
-SHALL likewise return its default for an option whose value is null or an empty string. Reading the meta
-again on the same instance SHALL NOT query the database again until the meta is written or deleted on it,
-or the instance drops its memoized values (a reload, a copy, a rolled-back write, `cama_clear_cache`), as
-the requirement on memoized values states.
-
-#### Scenario: A missing meta read with different defaults
-
-- **WHEN** a post with no `gallery` meta reads it without a default and then with an empty array as the
-  default
-- **THEN** the first read returns nil and the second returns an empty array
-- **AND** the same two reads return the same values on a post loaded with its metas eager-loaded, without
-  a query
-
-#### Scenario: A default changed in place
-
-- **WHEN** a caller appends to the empty array returned as a missing meta's default, without writing it
-  with `set_meta`, and the meta is read again with an empty array as the default
-- **THEN** the later read returns an empty array
-
-#### Scenario: A meta stored as an empty string
-
-- **WHEN** a record's stored value for a meta is an empty string, and the meta is read without a default
-  and then with a default
-- **THEN** the first read returns nil and the second returns that default
-
-#### Scenario: A meta stored as null
-
-- **WHEN** a record's stored value for a meta is null, and the meta is read with a default
-- **THEN** that default is returned, on the writing instance and on a freshly loaded record
-
-#### Scenario: An option stored as null
-
-- **WHEN** a record's options hold `color` as null and `size` as an empty string, and each is read with
-  `get_option` and a default
-- **THEN** both reads return that default, on the writing instance and on a freshly loaded record
-
-#### Scenario: Repeated reads of a missing meta
-
-- **WHEN** a post loaded without its metas reads a missing meta three times, with no default, with an empty
-  array and with an empty hash, and then another missing meta
-- **THEN** the metas table is queried once for each of the two keys
-
-#### Scenario: What a read of a missing meta memoizes
-
-- **WHEN** a post loaded without its metas reads a missing meta with a default
-- **THEN** the value memoized for the key is nil, and a later read with another default issues no query
-
-### Requirement: Decorator meta reads translate only strings
-
-`the_meta` and `the_option` on a decorated record SHALL return the meta or option read with an empty-string
-default: translated for the decoration locale when it is a String; when it is an Array, as an Array of its
-items each read as a String and translated, whatever the item holds; and as read when it is a number, a
-boolean or a hash; on the writing instance and on a freshly loaded record alike.
-
-#### Scenario: A meta stored as a number
-
-- **WHEN** a post's `year` meta is written as `'2024'` and `the_meta('year')` is read on the writing post and
-  on a freshly loaded one
-- **THEN** both return `2024`
-
-#### Scenario: A translatable meta
-
-- **WHEN** a post's `greeting` meta holds an English and a Spanish translation and `the_meta('greeting')` is
-  read with the Spanish decoration locale
-- **THEN** it returns the Spanish text
-
-#### Scenario: An Array holding a number and a boolean
-
-- **WHEN** a post's `mixed` meta and option are written as an Array of a translatable String, `7` and
-  `true`, and read with `the_meta` and `the_option` with the Spanish decoration locale, on the writing post
-  and on a freshly loaded one
-- **THEN** each read returns the Spanish text, `'7'` and `'true'`
-
-#### Scenario: A meta and an option stored as a hash
-
-- **WHEN** a post's `settings` meta and option are written as a hash holding `color` and read with
-  `the_meta` and `the_option`, on the writing post and on a freshly loaded one
-- **THEN** each read returns an indifferent hash holding `color`
-
-### Requirement: Writes and reads agree on a key with several rows
-
-When a record holds more than one meta row for a key, a write SHALL update the row with the lowest id,
-and a read SHALL return that same row. This SHALL hold whether the read loads the row from the database
-or finds it among eager-loaded metas. A meta built for the key on a saved record and not saved yet SHALL
-NOT take a write from the stored row, nor be read in its place, and a write of a key the record does not
-store SHALL store a row, not only set a built meta.
-
-#### Scenario: A write reaches the row reads return
-
-- **WHEN** a record has two rows for a key, the database returns unordered rows in reverse, and a value
-  is written for the key
-- **THEN** a freshly loaded record reads the written value
-
-#### Scenario: A meta built for a key the record stores
-
-- **WHEN** a saved post type, loaded with its metas eager-loaded or without them, builds a meta for a key
-  it stores, writes the key and is saved
-- **THEN** a freshly loaded post type reads the written value
-
-#### Scenario: A meta built for a key the record stores, read from eager-loaded metas
-
-- **WHEN** a post type loaded with its metas eager-loaded builds a meta for a key it stores and one for a
-  key it does not store
-- **THEN** a read of the first key returns the stored row's value, and a read of the second the built meta's
-
-#### Scenario: A meta built for a key the record does not store
-
-- **WHEN** a saved post type, loaded with its metas eager-loaded or without them, builds a meta for a key
-  it does not store and writes the key
-- **THEN** a freshly loaded post type reads the written value, before and after the post type is saved
-
-#### Scenario: Eager-loaded and database reads agree
-
-- **WHEN** a record with two rows for a key is read once with its metas eager-loaded and once without
-- **THEN** both reads return the same row's value
-
-### Requirement: A meta is read by the String form of its key
-
-`get_meta` SHALL look a key up by its String form, as `set_meta` and `delete_meta` store and remove it,
-whatever object names the key, so a meta written with a key that is neither a String nor a Symbol reads
-back whether the record's metas are eager-loaded or read from the database.
-
-#### Scenario: A meta written with an Integer key
-
-- **WHEN** a post's meta is written with the key `2024` and read with the same key on a post loaded with its
-  metas eager-loaded and on one loaded without them
-- **THEN** both reads return the value written
-
-### Requirement: A meta built before the first save is not duplicated on create
-
-A meta set on a record before its first save SHALL be stored as one row. Options or metas saved while the
-record is created, such as creation-time options, SHALL update that pending meta rather than store a
-second row with the same key. A record not saved yet, before its first save or once its creation is
-rolled back, SHALL read the metas built on it, which its next save stores.
-
-#### Scenario: Options set before and while creating a post
-
-- **WHEN** a new post gets an option before its first save and is saved with creation-time options
-- **THEN** the post has one options row, holding both values
-
-#### Scenario: A meta built on a record not saved yet
-
-- **WHEN** a meta is built on an unsaved post and read with a default
-- **THEN** the built value is returned
-
-#### Scenario: A creation rolled back
-
-- **WHEN** a post type created with a meta in `data_metas` and an option in `data_options` has its
-  creation rolled back
-- **THEN** the unsaved post type reads that meta and that option
-
 ### Requirement: An options row that is not an object reads as empty
 
 When a record's stored options meta (`_default`, or another options meta key) holds a value that is not a JSON object, or the options the instance holds are nil or an empty string (a record with no options row, whether or not `get_meta` was asked for them first, or `set_meta` wrote nil or an empty string), reading the options or an option SHALL return the empty set or the caller's default, and writing an option SHALL start from an empty set, so no reader or writer raises, on the writing instance and on a freshly loaded record. The empty set `options` returns SHALL be a new hash on each read until an option is written, so a change made to it without an option writer is neither read back nor stored. The stored row SHALL be left as it is until an option is written to it.
@@ -546,30 +306,65 @@ When a record's stored options meta (`_default`, or another options meta key) ho
 - **THEN** `options` is empty and `get_option` returns the caller's default, on the writing instance and on
   a freshly loaded post
 
-### Requirement: Meta and option writers refuse a container that is not a set of fields
+### Requirement: Writes and reads agree on a key with several rows
 
-`set_metas` and `set_options` SHALL accept only a set of fields (a Hash, or request parameters) or nothing. A container that is present but not a set of fields, such as an array of pairs or a scalar, SHALL raise an argument error and store nothing. A `data_options` or `data_metas` value that is present but not a set of fields SHALL be refused the same way before the record's row is written, so no row is left behind it; a blank one SHALL be ignored. An admin save that passes such a container from the request SHALL answer with an error message on the submitted form's page, not a server error, and SHALL store none of it.
+When a record holds more than one meta row for a key, a write SHALL update the row with the lowest id,
+and a read SHALL return that same row. This SHALL hold whether the read loads the row from the database
+or finds it among eager-loaded metas. A meta built for the key on a saved record and not saved yet SHALL
+NOT take a write from the stored row, nor be read in its place, and a write of a key the record does not
+store SHALL store a row, not only set a built meta.
 
-#### Scenario: An array of pairs is refused by the writer
+#### Scenario: A write reaches the row reads return
 
-- **WHEN** `set_metas` is called with `[["k", "v"]]`
-- **THEN** it raises and no meta row is written
+- **WHEN** a record has two rows for a key, the database returns unordered rows in reverse, and a value
+  is written for the key
+- **THEN** a freshly loaded record reads the written value
 
-#### Scenario: A queued container that is not a set of fields
+#### Scenario: Eager-loaded and database reads agree
 
-- **WHEN** a post type is saved with a JSON string in `data_options`, or a post with an array of pairs in
-  `data_metas`, inside an enclosing transaction
-- **THEN** the save raises the argument error and no row is stored
+- **WHEN** a record with two rows for a key is read once with its metas eager-loaded and once without
+- **THEN** both reads return the same row's value
 
-#### Scenario: A category save with an array container answers with a message
+#### Scenario: A meta built for a key the record stores
 
-- **WHEN** an administrator saves a category with `meta[]=x`
-- **THEN** the response redirects back with an error message and no option is stored
+- **WHEN** a saved post type, loaded with its metas eager-loaded or without them, builds a meta for a key
+  it stores, writes the key and is saved
+- **THEN** a freshly loaded post type reads the written value
 
-#### Scenario: A site settings save with an array of pairs stores nothing
+#### Scenario: A meta built for a key the record stores, read from eager-loaded metas
 
-- **WHEN** an administrator saves the site settings with a JSON `metas` array of pairs
-- **THEN** the response carries an error message and none of the pairs is stored
+- **WHEN** a post type loaded with its metas eager-loaded builds a meta for a key it stores and one for a
+  key it does not store
+- **THEN** a read of the first key returns the stored row's value, and a read of the second the built meta's
+
+#### Scenario: A meta built for a key the record does not store
+
+- **WHEN** a saved post type, loaded with its metas eager-loaded or without them, builds a meta for a key
+  it does not store and writes the key
+- **THEN** a freshly loaded post type reads the written value, before and after the post type is saved
+
+### Requirement: A meta built before the first save is not duplicated on create
+
+A meta set on a record before its first save SHALL be stored as one row. Options or metas saved while the
+record is created, such as creation-time options, SHALL update that pending meta rather than store a
+second row with the same key. A record not saved yet, before its first save or once its creation is
+rolled back, SHALL read the metas built on it, which its next save stores.
+
+#### Scenario: Options set before and while creating a post
+
+- **WHEN** a new post gets an option before its first save and is saved with creation-time options
+- **THEN** the post has one options row, holding both values
+
+#### Scenario: A meta built on a record not saved yet
+
+- **WHEN** a meta is built on an unsaved post and read with a default
+- **THEN** the built value is returned
+
+#### Scenario: A creation rolled back
+
+- **WHEN** a post type created with a meta in `data_metas` and an option in `data_options` has its
+  creation rolled back
+- **THEN** the unsaved post type reads that meta and that option
 
 ### Requirement: Options and metas given to a save are written once
 
@@ -695,91 +490,126 @@ original's write and SHALL queue only values given to the copy.
 - **THEN** the same instance manages categories and has its default category
 - **AND** a freshly loaded post type reads `has_category` and its remaining defaults, from one options row
 
-### Requirement: A copied or reloaded record does not reuse memoized values
+## ADDED Requirements
 
-A value a record memoizes for the request through `cama_fetch_cache`, which is how its meta and option
-reads, a category's post type, a post's parents and a decorator's rendered fields are memoized, SHALL
-belong to that instance and the state it loaded. A copy made with `dup` SHALL start without the
-original's memoized values and, for an unsaved original, without its unsaved metas, so copies do not
-read each other's writes. `reload` SHALL drop them once it has replaced the record's state, so reads
-after it return the stored values, and SHALL leave them when it fails; it SHALL also rebuild the
-record's ability and a user's role, whose stored inputs may have changed since. A refresh of the
-`metas` association alone (`metas.reload`, `metas.reset`) does not drop them; `cama_clear_cache` drops
-them on demand. A site's languages SHALL follow its languages meta as any other meta read does. A post
-SHALL read the request's user and site from `CurrentRequest` as every record does, not from a class
-attribute.
+### Requirement: Each read of a meta with no value returns its caller's default
 
-#### Scenario: Two copies of a post
+When a record has no row for a meta, or the meta's stored value is null or an empty string, each `get_meta`
+call SHALL return the default passed to that call. It SHALL NOT return a default an earlier call passed, or a
+change a caller made to that default in place, and what the instance memoizes for a key with no row SHALL
+be nil. This SHALL hold whether the record's metas are eager-loaded or read from the database. `get_option`
+SHALL likewise return its default for an option whose value is null or an empty string. Reading the meta
+again on the same instance SHALL NOT query the database again until the meta is written or deleted on it,
+or the instance drops its memoized values (a reload, a copy, a rolled-back write, `cama_clear_cache`), as
+the requirement on memoized values states.
 
-- **WHEN** two copies are made of a post whose options were read, and one copy sets an option
-- **THEN** the other copy does not read that option
+#### Scenario: A missing meta read with different defaults
 
-#### Scenario: A copy of an unsaved post
+- **WHEN** a post with no `gallery` meta reads it without a default and then with an empty array as the
+  default
+- **THEN** the first read returns nil and the second returns an empty array
+- **AND** the same two reads return the same values on a post loaded with its metas eager-loaded, without
+  a query
 
-- **WHEN** a meta is set on an unsaved post and the post is copied
-- **THEN** the copy reads no value for it and holds no meta
+#### Scenario: A default changed in place
 
-#### Scenario: A post reloaded after another instance's write
+- **WHEN** a caller appends to the empty array returned as a missing meta's default, without writing it
+  with `set_meta`, and the meta is read again with an empty array as the default
+- **THEN** the later read returns an empty array
 
-- **WHEN** a post writes and reads a meta, another instance of the post writes a new value, and the
-  first post is reloaded
-- **THEN** the reloaded post reads the new value
+#### Scenario: A meta stored as an empty string
 
-#### Scenario: A derived value after a reload
+- **WHEN** a record's stored value for a meta is an empty string, and the meta is read without a default
+  and then with a default
+- **THEN** the first read returns nil and the second returns that default
 
-- **WHEN** a value memoized through `cama_fetch_cache` is read after the record is reloaded
-- **THEN** it is computed again
+#### Scenario: A meta stored as null
 
-#### Scenario: A reload that fails
+- **WHEN** a record's stored value for a meta is null, and the meta is read with a default
+- **THEN** that default is returned, on the writing instance and on a freshly loaded record
 
-- **WHEN** a post's row was deleted elsewhere and the post is reloaded
-- **THEN** the reload raises and the post still reads the meta it memoized
+#### Scenario: An option stored as null
 
-#### Scenario: Permissions after a reload
+- **WHEN** a record's options hold `color` as null and `size` as an empty string, and each is read with
+  `get_option` and a default
+- **THEN** both reads return that default, on the writing instance and on a freshly loaded record
 
-- **WHEN** a user's role is granted a permission through another instance and the user is reloaded
-- **THEN** the user's permission check reflects the grant
+#### Scenario: Repeated reads of a missing meta
 
-#### Scenario: Permissions checked on a post
+- **WHEN** a post loaded without its metas reads a missing meta three times, with no default, with an empty
+  array and with an empty hash, and then another missing meta
+- **THEN** the metas table is queried once for each of the two keys
 
-- **WHEN** a post checks a permission for the request's user, whose role is then granted it through
-  another instance, and the post is reloaded
-- **THEN** the first check answers false and the check after the reload answers true
+#### Scenario: What a read of a missing meta memoizes
 
-#### Scenario: A user's role after a reload
+- **WHEN** a post loaded without its metas reads a missing meta with a default
+- **THEN** the value memoized for the key is nil, and a later read with another default issues no query
 
-- **WHEN** a user's role is changed through another instance and the user is reloaded
-- **THEN** the user reads the role assigned since
+### Requirement: Decorator meta reads translate only strings
 
-#### Scenario: A site's languages after another instance's write
+`the_meta` and `the_option` on a decorated record SHALL return the meta or option read with an empty-string
+default: translated for the decoration locale when it is a String; when it is an Array, as an Array of its
+items each read as a String and translated, whatever the item holds; and as read when it is a number, a
+boolean or a hash; on the writing instance and on a freshly loaded record alike.
 
-- **WHEN** a site's languages are stored through another instance and the site is reloaded, or stored
-  on the site itself
-- **THEN** it reads the stored languages
+#### Scenario: A meta stored as a number
 
-### Requirement: A boolean and the hashes in an array read back as written
+- **WHEN** a post's `year` meta is written as `'2024'` and `the_meta('year')` is read on the writing post and
+  on a freshly loaded one
+- **THEN** both return `2024`
 
-A boolean written with `set_meta` SHALL be stored so that every read, on the writing instance, after a
-reload and on a freshly loaded record, returns the boolean rather than the text column's cast of it.
-The hashes inside a stored array SHALL read by either key type, as a stored hash does. A row an earlier
-release stored as `t` or `f` SHALL read as the boolean and SHALL be stored again as its JSON literal on
-that read, except where writes are prevented, where the row is left for a later read.
+#### Scenario: A translatable meta
 
-#### Scenario: A false flag read after a reload
+- **WHEN** a post's `greeting` meta holds an English and a Spanish translation and `the_meta('greeting')` is
+  read with the Spanish decoration locale
+- **THEN** it returns the Spanish text
 
-- **WHEN** `set_meta` stores `false` and the record is reloaded or loaded again
-- **THEN** `get_meta` returns `false`, not the caller's default and not a String
+#### Scenario: An Array holding a number and a boolean
 
-#### Scenario: A boolean stored by an earlier release
+- **WHEN** a post's `mixed` meta and option are written as an Array of a translatable String, `7` and
+  `true`, and read with `the_meta` and `the_option` with the Spanish decoration locale, on the writing post
+  and on a freshly loaded one
+- **THEN** each read returns the Spanish text, `'7'` and `'true'`
 
-- **WHEN** a row holds `f` and the record's meta is read
-- **THEN** `get_meta` returns `false` and the row holds `false`, unless writes are prevented, when only the
-  read happens
+#### Scenario: A meta and an option stored as a hash
 
-#### Scenario: Hashes in a stored array
+- **WHEN** a post's `settings` meta and option are written as a hash holding `color` and read with
+  `the_meta` and `the_option`, on the writing post and on a freshly loaded one
+- **THEN** each read returns an indifferent hash holding `color`
 
-- **WHEN** an array of hashes with Symbol keys is stored and the record is reloaded
-- **THEN** each hash reads by its Symbol and by its String key
+### Requirement: A meta is read by the String form of its key
+
+`get_meta` SHALL look a key up by its String form, as `set_meta` and `delete_meta` store and remove it,
+whatever object names the key, so a meta written with a key that is neither a String nor a Symbol reads
+back whether the record's metas are eager-loaded or read from the database.
+
+#### Scenario: A meta written with an Integer key
+
+- **WHEN** a post's meta is written with the key `2024` and read with the same key on a post loaded with its
+  metas eager-loaded and on one loaded without them
+- **THEN** both reads return the value written
+
+### Requirement: An option write that raises leaves the options as stored
+
+When `set_option`, `set_options` or `delete_option` raises, because the write is refused or storing it
+fails, the options the instance holds SHALL be those it held before the call, so the instance reads what is
+stored without querying the database for it again. They SHALL NOT show a write before it is stored, while
+it is checked included.
+
+#### Scenario: A refused option write
+
+- **WHEN** a post type's option write is refused and its options are read again on the same instance
+- **THEN** they hold the options stored before the write, read without a metas query
+
+#### Scenario: A failed option write
+
+- **WHEN** storing an option set, set in bulk or deleted on a post raises
+- **THEN** the post's options are those stored before each write
+
+#### Scenario: Options read while a write is checked
+
+- **WHEN** the options a post type holds are read while its option write is checked
+- **THEN** they do not show that write
 
 ### Requirement: Meta writes lease no connection for good
 

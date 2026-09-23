@@ -28,16 +28,52 @@ RSpec.describe CamaleonCms::Meta, type: :model do
 
   it 'updates the row that later reads return from eager-loaded metas, without querying for it' do
     loaded = CamaleonCms::PostType.includes(:metas).find(post_type.id)
-    selects = []
-    subscription = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
-      selects << payload[:sql] if payload[:sql].start_with?('SELECT') && payload[:sql].include?('"metas"')
-    end
 
-    loaded.set_meta('probe', 'written')
+    selects = metas_selects { loaded.set_meta('probe', 'written') }
 
-    ActiveSupport::Notifications.unsubscribe(subscription)
     expect(selects).to be_empty
     expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe')).to eq('written')
+  end
+
+  # A meta built on a saved record for a key it stores is a second row waiting for the next save: a write still
+  # updates the stored row, which every later read takes, or it is lost once the built meta is saved beside it.
+  it 'updates the stored row, not a meta built for the same key and not saved yet' do
+    scopes = { 'eager-loaded' => CamaleonCms::PostType.includes(:metas), 'queried' => CamaleonCms::PostType }
+    scopes.each do |name, scope|
+      record = scope.find(post_type.id)
+      record.metas.build(key: 'probe', value: 'built')
+      record.set_meta('probe', "written on the #{name} record")
+      record.save!
+
+      expect(CamaleonCms::PostType.find(post_type.id).get_meta('probe')).to eq("written on the #{name} record")
+    end
+  end
+
+  # Only a meta built before the first save is inserted after the write, by the creating save; one built on a
+  # saved record waits for a save that may never come, so a write of a key the record does not store stores a
+  # row, which later reads take once the built meta is saved beside it too.
+  it 'stores a key the record has no row for, not only a meta built for it and not saved yet' do
+    scopes = { 'eager-loaded' => CamaleonCms::PostType.includes(:metas), 'queried' => CamaleonCms::PostType }
+    scopes.each do |name, scope|
+      key = "unstored_#{name}"
+      record = scope.find(post_type.id)
+      record.metas.build(key: key, value: 'built')
+      record.set_meta(key, 'written')
+
+      expect(CamaleonCms::PostType.find(post_type.id).get_meta(key)).to eq('written')
+      record.save!
+      expect(CamaleonCms::PostType.find(post_type.id).get_meta(key)).to eq('written')
+    end
+  end
+
+  # Among eager-loaded metas a built meta has no id, which ranked it before every stored row; it is read only
+  # for a key with no stored row.
+  it 'reads the stored row, not a meta built for the same key and not saved yet' do
+    loaded = CamaleonCms::PostType.includes(:metas).find(post_type.id)
+    loaded.metas.build(key: 'probe', value: 'built')
+    loaded.metas.build(key: 'probe_built', value: 'only built')
+
+    expect([loaded.get_meta('probe'), loaded.get_meta('probe_built')]).to eq(['first', 'only built'])
   end
 
   it 'reads the same row from eager-loaded metas as from the database' do

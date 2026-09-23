@@ -23,6 +23,13 @@ cama_root_relative_path
 confirm_dialog         # accept JS dialogs
 ```
 
+`sql_queries(matching:) { … }` collects the SQL a block issues, only the statements matching a pattern, or every
+pattern of a list, when given, `metas_selects { … }` the SELECTs against the metas table and `metas_updates { … }`
+the UPDATEs of it (`spec/support/sql_queries.rb`); count them to pin a query profile.
+
+`rolled_back_transaction { … }` runs a block in a savepoint of its own and rolls it back, for specs of what a
+rollback leaves on the records the block wrote.
+
 ### The shared site (`spec/support/shared_site.rb`)
 
 Installing a site costs ~0.6s, so one canonical site is installed per suite run, committed outside the per-example transactions, and reused everywhere: `init_site`, `Cama::Site.first` and the `post`/`post_type`/`user` factories resolve to it, and example-level mutations roll back. Create another site only when the test is about multi-site behavior (`create(:site)` installs a real one). Installation already claims the default slugs — roles `admin`/`editor`/`contributor`/`client`, post types `post`/`page` — and slugs are unique per parent and taxonomy, so reuse those records (`site.user_roles.find_by!(slug: 'admin')`) instead of creating same-slug duplicates.

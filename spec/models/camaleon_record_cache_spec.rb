@@ -4,7 +4,7 @@
 # memo, and with it their common nil-id keys, so one copy's option write showed in the others; reload kept
 # the values read before it.
 RSpec.describe CamaleonRecord do
-  let(:post_type) { CamaleonCms::Site.first.post_types.find_by!(slug: 'post') }
+  let(:post_type) { installed_post_type }
 
   describe '#dup' do
     it 'keeps an option written on one copy out of another' do
@@ -112,6 +112,41 @@ RSpec.describe CamaleonRecord do
 
       expect(post.cama_get_cache('other')).to be_nil
       expect(post.cama_fetch_cache('probe') { 'second' }).to eq('second')
+    end
+  end
+
+  describe 'the first save' do
+    # A record's id is part of every key it memoizes under, so what it memoized before its first save is read
+    # by no key once the INSERT assigns one: the save drops it rather than keep it for the instance's life.
+    it 'drops the values memoized before it' do
+      post = build(:post, post_type: post_type)
+      post.set_meta('subtitle', 'draft')
+      post.cama_fetch_cache('probe') { 'before the save' }
+
+      post.save!
+
+      expect(post.get_meta('subtitle')).to eq('draft')
+      expect(post.instance_variable_get(:@cama_cache_vars).keys).to all(include("_#{post.id}_"))
+    end
+
+    # A record given its id before its first save memoized under the key it keeps once the INSERT stores it, so
+    # the save, which dropped only what was memoized with no id, left it reading the default it had read before
+    # a meta was built for it, over the meta it stored.
+    it 'drops the values memoized before it by a record given its id' do
+      post = build(:post, post_type: post_type)
+      post.id = CamaleonCms::Post.maximum(:id).to_i + 1000
+      post.get_meta('subtitle', 'none')
+      post.metas.build(key: 'subtitle', value: 'built')
+
+      post.save!
+
+      expect(post.get_meta('subtitle', 'none')).to eq('built')
+    end
+
+    it 'keeps what the after-create callbacks of the model memoized' do
+      post = create(:post, post_type: post_type, data_options: { has_comments: true })
+
+      expect(metas_selects { expect(post.get_option(:has_comments)).to be(true) }).to be_empty
     end
   end
 end

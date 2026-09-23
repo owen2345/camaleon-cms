@@ -64,7 +64,7 @@ Each shows on the core PR as its own check, `<member> / RSpec`, with the member'
 |---|---|---|---|
 | `cama_contact_form` | Gemfile, unpinned | 2026-08 | `admin_menu_append_menu_item` with a pre-rendered `datas` string; `cama_tmp_upload` into `public/contact_form/<site_id>` with no `formats`, from an unauthenticated endpoint; `cama_send_email` with `attachments`/`extra_data`; own copies of the content-safety patterns |
 | `camaleon-cms-seo` (`cama_meta_tag`) | no | 2026-09 | `seo` hook reading `@cama_visited_post` and `is_page?`/`is_category?`/`is_post_type?`; `set_multiple_options` with only its six String SEO options from the four post type and category save hooks (1.7.3; 1.7.2 saved all of `params[:options]` from six save hooks and probed for Camaleon ≤ 2.3.6); `plugin_view` at both arities |
-| `camaleon-ecommerce` | `>= 2.4` | 2024-08 | **Two-arg `post_type_list_taxonomy`** (live-broken on master); **HTML in an admin menu title** (`span`/`small` + order count); unvalidated `params[:return_to]` and `request.referer` into `login_user`; `email_late` writing a PDF to disk inline; `I18n.locale` mutated mid-request without `ensure`; meta scopes `currencies` and `_setting_ecommerce`; `set_meta('_default', params[:options])` on coupons, tax rates, shipping and payment methods, read back with `get_option`; raw `object_class` string on `CamaleonCms::Meta` |
+| `camaleon-ecommerce` | `>= 2.4` | 2024-08 | **Two-arg `post_type_list_taxonomy`** (live-broken on master); **HTML in an admin menu title** (`span`/`small` + order count); unvalidated `params[:return_to]` and `request.referer` into `login_user`; `email_late` writing a PDF to disk inline; `I18n.locale` mutated mid-request without `ensure`; meta scopes `currencies` and `_setting_ecommerce`; `set_meta('_default', params[:options])` on coupons, tax rates, shipping and payment methods, read back with `get_option`; raw `object_class` string on `CamaleonCms::Meta`; **`CamaleonCms::Metas` on `ActiveRecord::Base` models** (`Cart`, `Order`, `ProductItem`: their `get_meta`/`set_meta` raise `NoMethodError` since 2.7.0 moved the memo helpers to `CamaleonRecord`, live-broken on master) |
 | `camaleon_editor` | no | 2024-08 | **Unloadable as published** — includes `PluginCamaleonEditorPrivateHelper`, defined nowhere; all six declared hooks have no handler |
 | `cama_subscriber` | no | 2024-06 | `admin_menu_insert_menu_before` with nested `items`; three `cama_send_email` calls with `from`/`cc_to` (array)/`template`/`layout_name`; `CamaleonCms::Site.class_eval`; `CamaleonCms::Metas` on its own model; `all_locales` in a route constraint. Also calls `Rails.application.secrets`, removed in Rails 7.2 |
 | `camaleon_sitemap_customizer` | `~> 2.0` | 2022-01 | `on_render_sitemap` accumulating into all four skip lists and overriding `args[:render]` — matches the contract #1223 restored; six post/plugin hooks; ActiveJob ping |
@@ -223,6 +223,37 @@ Changes that look free from inside this repository and are not:
   handlers write with `set_multiple_options`). The same change removed the concern's
   `save_metas_options_skip` and `fix_save_metas_options_no_changed` hooks, which no surveyed
   repository overrides or calls.
+
+- **Applying `get_meta`'s default per call, and memoizing in `set_meta` what a reload reads** (#1303)
+  changes no surveyed code path that runs today. A read of a meta with no value (no row, or a stored null or
+  `''`) used to return the default the instance's first read passed, with any in-place changes a caller made
+  to it, and a value written with `set_meta` was handed back as the caller's object; each read now gets its
+  own default and every read returns what a freshly loaded record reads. The path it would change is
+  `camaleon-ecommerce`'s order-shipped email: `Admin::OrdersController#mark_shipped` calls
+  `OrderDecorator#shipped!`, which writes `set_meta('consignment_number', code)`, and the email it sends
+  right after takes `tracking_url` from `the_url_tracking`, which passes
+  `object.get_meta("consignment_number")` to `String#gsub` behind a `rescue ''`, so an all-digit consignment
+  number (USPS, FedEx) read back as an Integer on that instance would leave the tracking URL empty. The
+  plugin's `Cart`, `Order` and `ProductItem` inherit `ActiveRecord::Base` and include `CamaleonCms::Metas`,
+  whose memo helpers (`cama_fetch_cache` and the rest) only `CamaleonRecord` has had since 2.7.0, so their
+  `get_meta` and `set_meta` raise `NoMethodError`, before this change and after it, and marking an order
+  shipped fails before any email; once those models inherit `CamaleonRecord`, `.to_s` on that read keeps the
+  tracking URL. The consumers that change a returned default in place keep it in a variable and write it
+  back with `set_meta`: `camaleon_website`'s store plugin (`scores`, `downloads`) and notification plugin
+  (`sites`), and `camaleon-ecommerce`'s shipping prices (`@prices`); none compares a read to the object it
+  passed or reads its Symbol keys back on the writing instance, and every hash read from `get_meta` and
+  changed is passed to `set_meta` again (the survey recorded for #1302). The one read that relied on an
+  earlier read's default is `camaleon-ecommerce`'s deprecated `LegacyOrder`: `#payment_method` and
+  `#payment` read `get_meta("payment")` with no default and raised on an order without that meta unless
+  `shipping_method` had memoized `{}` first; they now raise either way, and `shipping_method` no longer
+  raises after them. Nothing in the plugin calls these methods (its only reference to the class is the 2016
+  order-data migration, which reads columns and `metas`), so those reads change no code path.
+  `PostType#set_settings` and `Post#set_settings` now write every setting in one `set_options` call, which
+  takes a Hash or request parameters, where they wrote one option per key of anything `each` yields pairs
+  from; the one surveyed caller, `camaleon_website`'s CV theme, passes Hashes.
+  `set_meta` raises when a validation or a callback of `CamaleonCms::Meta` refuses the row it updates or
+  creates, where it returned as if the value were stored; no surveyed plugin, theme or host adds either to that model, which
+  `camaleon-ecommerce` and `camaleon_website`'s store plugin name only as an association's `class_name`.
 
 ## APIs with no surveyed consumer
 

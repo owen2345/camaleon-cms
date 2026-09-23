@@ -24,6 +24,11 @@ class CamaleonRecord < ActiveRecord::Base # rubocop:disable Rails/ApplicationRec
 
   self.abstract_class = true
 
+  # What a record memoized before its first save was read before the INSERT stored it, so the save drops it,
+  # whether the INSERT assigned the id every memo key holds or the record was given one before. Declared here,
+  # before the after-create callbacks of every model, it drops nothing they memoize.
+  after_create :cama_clear_cache
+
   # Sanitize a value with ActionController's sanitize() while preserving translation locale markers
   # (<!--:xx-->). Shared by Post#sanitize_content and the NormalizeAttrs concern so the transform lives in
   # one place. Returns nil unchanged. `tags:`/`attributes:` default to nil, i.e. the sanitizer's own

@@ -39,8 +39,10 @@ RSpec.describe CamaleonCms::PostType, type: :model do
         .to raise_error(ActiveRecord::RecordInvalid, /cama_post_decorator_class.*'Object'/)
 
       expect(post_type.errors[:base].first).to include(option).and include('Object')
-      # The writer had already put the value into the memoized options; the refusal drops that memo.
-      expect(post_type.options.keys.map(&:to_s)).not_to include(option)
+      # The option writer puts back the options it changed, so the instance reads them without a query.
+      keys = nil
+      expect(metas_selects { keys = post_type.options.keys.map(&:to_s) }).to be_empty
+      expect(keys).not_to include(option)
       expect(stored_post_type.get_option(option)).to be_nil
       expect(stored_post_type.get_option('has_tags')).to be(true)
     end
@@ -52,7 +54,7 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to be_nil
     end
 
-    it 'refuses a name that cannot be loaded the same way, dropping the memoized value' do
+    it 'refuses a name that cannot be loaded the same way, leaving the options it holds as they were' do
       expect { post_type.set_option(option, 'ENV::X') }
         .to raise_error(ActiveRecord::RecordInvalid, /cama_post_decorator_class.*'ENV::X'/)
 
@@ -90,6 +92,59 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to eq('ProbePostDecorator')
     end
 
+    # An option write changes a copy of the options, so the options the post type holds do not show a write
+    # before it is stored, not while its check runs either.
+    it 'does not show a write in the options it holds while checking it' do
+      held = post_type.options
+      seen = nil
+      allow(post_type).to receive(:check_meta_write).and_wrap_original do |check, *args|
+        seen = held.key?(option)
+        check.call(*args)
+      end
+
+      expect { post_type.set_option(option, 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
+      expect(seen).to be(false)
+      expect(held).to equal(post_type.options)
+    end
+
+    # The options a post type handed out, changed in place and written back with set_meta, read what is stored
+    # again when the write is refused, so the refused value is not read and later option writes succeed.
+    it 'reads what is stored again into options it handed out whose write is refused' do
+      held = post_type.options
+      held[option] = 'Object'
+
+      expect { post_type.set_meta('_default', held) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(held).to equal(post_type.options)
+      expect(post_type.get_option(option)).to be_nil
+      post_type.set_option('has_tags', true)
+      expect(stored_post_type.get_option('has_tags')).to be(true)
+    end
+
+    # With the options row deleted by another instance meanwhile, the options handed out hold nothing, as the
+    # post type reads no options, rather than the refused value.
+    it 'empties options it handed out whose write is refused once their row is gone' do
+      held = post_type.options
+      held[option] = 'Object'
+      described_class.find(post_type.id).delete_meta('_default')
+
+      expect { post_type.set_meta('_default', held) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(held).to be_empty
+      expect(post_type.options).to eq({})
+    end
+
+    it 'reads what is stored again when options it handed out are frozen, written back and refused' do
+      held = post_type.options
+      held[option] = 'Object'
+      held.freeze
+
+      expect { post_type.set_meta('_default', held) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(post_type.get_option(option)).to be_nil
+      expect(held).not_to equal(post_type.options)
+    end
+
     it 'keeps earlier writes when a later one is refused on a record with its metas loaded' do
       record = described_class.includes(:metas).find(post_type.id)
       record.set_option('has_tags', true)
@@ -99,6 +154,54 @@ RSpec.describe CamaleonCms::PostType, type: :model do
 
       expect(stored_post_type.get_option('has_tags')).to be(true)
       expect(stored_post_type.get_option('has_seo')).to be(false)
+    end
+
+    # The check reads the decorator option from the form set_meta is about to store, so an options write
+    # parses the options it stores once.
+    it 'parses the options once for an options write' do
+      post_type.options
+      expect(JSON).to receive(:parse).once.and_call_original
+
+      post_type.set_option('has_tags', true)
+    end
+
+    # The stored value a refusal compares with is read from the database, from the row a write updates, even
+    # when the metas are loaded: they may be older than the row. It is read only for a value the check refuses.
+    it 'reads the stored value from the database, with the metas loaded too' do
+      record = described_class.includes(:metas).find(post_type.id)
+      record.options
+
+      refused = metas_selects do
+        expect { record.set_option(option, 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+      accepted = metas_selects { record.set_option(option, 'ProbePostDecorator') }
+
+      expect(refused.size).to eq(1)
+      expect(accepted).to be_empty
+    end
+
+    it 'refuses a value loaded metas still hold after the stored one was corrected' do
+      store_decorator_option('Object')
+      stale = described_class.includes(:metas).find(post_type.id)
+      stale.options
+      store_decorator_option('ProbePostDecorator')
+
+      expect { stale.set_option('has_tags', true) }
+        .to raise_error(ActiveRecord::RecordInvalid, /cama_post_decorator_class.*'Object'/)
+      expect(stored_post_type.get_option(option)).to eq('ProbePostDecorator')
+    end
+
+    # A refused write changes no row, so the metas in memory stay: on an unsaved record they are the
+    # metas built for its first save.
+    it 'keeps the metas built on an unsaved record when a write is refused' do
+      record = build(:post_type)
+      record.set_meta('probe', 'built')
+      expect { record.set_option(option, 'Object') }.to raise_error(ActiveRecord::RecordInvalid)
+
+      record.save!
+
+      expect(record.get_meta('probe')).to eq('built')
+      expect(described_class.find(record.id).get_meta('probe')).to eq('built')
     end
 
     it 'accepts a blank value, which clears it' do
@@ -197,16 +300,27 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option(option)).to be_nil
     end
 
+    # The check reads one option, by its String key, from the text set_meta will store, parsed as a read parses
+    # it: the hashes in the options it parses are not read by either key type, as a read of them all is.
+    it 'reads the option from the options passed without reading every hash in them by either key type' do
+      record = stored_post_type
+      record.data_options = { option => 'ProbePostDecorator', 'sizes' => [{ 'top' => 'xl' }] }
+      expect(CamaleonCms::Metas).to receive(:indifferent_json_value).once.and_call_original
+
+      expect(record).to be_valid
+    end
+
     it 'looks the stored value up once for a refused value in both queues' do
       record = stored_post_type
       lookups = 0
-      subscription = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+      count_lookup = lambda do |*, payload|
         lookups += 1 if payload[:sql].start_with?('SELECT') && payload[:type_casted_binds].to_a.include?('_default')
       end
 
-      saved = record.update(data_options: { option => 'Object' }, data_metas: { '_default' => { option => 'String' } })
+      saved = ActiveSupport::Notifications.subscribed(count_lookup, 'sql.active_record') do
+        record.update(data_options: { option => 'Object' }, data_metas: { '_default' => { option => 'String' } })
+      end
 
-      ActiveSupport::Notifications.unsubscribe(subscription)
       expect(saved).to be(false)
       expect(record.errors[:base].size).to eq(2)
       expect(lookups).to eq(1)

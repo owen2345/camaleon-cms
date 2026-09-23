@@ -558,7 +558,7 @@ strict same-host posture.
 Not a role permission either, but a validity rule that applies to every writer, administrators included. A post type's
 `cama_post_decorator_class` option names the class `Post#decorator_class` loads to decorate every post of the type, and post type options are
 written by plugin and theme save hooks as well as by core. Every option writer (`set_option`, `set_options`, `delete_option`, `data_options`
-and a direct `set_meta`, whatever form the options arrive in) ends in `CamaleonCms::PostType#set_meta`, which holds the option to an
+and a direct `set_meta`, whatever form the options arrive in) ends in `set_meta`, whose check in `CamaleonCms::PostType` holds the option to an
 allowlist: a write that sets or changes it must name a subclass of `CamaleonCms::PostDecorator`, or it is refused with an error naming the
 option, and the value when it is a class name (the admin panel shows the refusal of a submitted save as a flash error, and raises one that
 comes while serving a page, where a redirect would only reach another page that refuses; a value passed in `data_options`, or in the

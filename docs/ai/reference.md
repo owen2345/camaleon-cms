@@ -42,4 +42,4 @@ Roles and permissions are `CamaleonCms::UserRole` plus CanCanCan's `Ability`, de
 
 ## Style beyond RuboCop
 
-Prefer `defined?` checks for memoization, do not mutate method parameters, and `dup` when a mutable copy is needed. A value read from a record's stored state is memoized through `cama_fetch_cache`, which `reload`, `dup` and `cama_clear_cache` drop, not in an instance variable of its own.
+Prefer `defined?` checks for memoization, do not mutate method parameters, and `dup` when a mutable copy is needed. The one exception is a record's own memo: the hash or list `get_meta` or `options` handed out takes the stored form in place when it is written back or an option writer stores a change to it, so every reference to it keeps reading the record (`Metas#memoize_stored_form`, from `memoize_written_meta` and `write_options`). A value read from a record's stored state is memoized through `cama_fetch_cache`, which `reload`, `dup` and `cama_clear_cache` drop, not in an instance variable of its own.
