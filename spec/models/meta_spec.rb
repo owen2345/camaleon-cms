@@ -250,6 +250,37 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(post.get_meta('probe_gallery')).to equal(gallery)
     end
 
+    # ActiveRecord leaves on a row the value its failed save assigned; the row takes back the value it stores,
+    # so the eager-loaded metas a later read takes it from do not read a value nothing stored.
+    it 'reads what is stored after a write the database refuses, with the metas loaded' do
+      post = create(:post)
+      post.set_meta('probe', 'stored')
+      loaded = CamaleonCms::Post.includes(:metas).find(post.id)
+      row = loaded.metas.target.find { |meta| meta.key == 'probe' }
+      allow(row).to receive(:save).and_raise(ActiveRecord::StatementInvalid, 'write failed')
+
+      expect { loaded.set_meta('probe', 'refused') }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect([loaded.get_meta('probe'), row.value]).to eq(%w[stored stored])
+    end
+
+    # A list written back by a write the database refuses reads the row again from the eager-loaded metas,
+    # which hold what is stored, not the list the failed save assigned.
+    it 'reads what is stored again into a list written back by a write the database refuses' do
+      post = create(:post)
+      post.set_meta('probe_gallery', ['a.jpg'])
+      loaded = CamaleonCms::Post.includes(:metas).find(post.id)
+      gallery = loaded.get_meta('probe_gallery')
+      gallery << 'b.jpg'
+      row = loaded.metas.target.find { |meta| meta.key == 'probe_gallery' }
+      allow(row).to receive(:save).and_raise(ActiveRecord::StatementInvalid, 'write failed')
+
+      expect { loaded.set_meta('probe_gallery', gallery) }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(gallery).to eq(['a.jpg'])
+      expect(loaded.get_meta('probe_gallery')).to equal(gallery)
+    end
+
     # An indifferent hash converts a nested plain Hash into a copy but keeps a nested indifferent hash by
     # reference; the options copy shares neither with the caller's hash.
     it 'copies a caller hash without sharing its nested hashes' do

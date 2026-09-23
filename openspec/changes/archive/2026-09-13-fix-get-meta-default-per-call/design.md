@@ -142,6 +142,9 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   stayed in its options refused every later option write. A direct write-back is the only way the memo
   holds a change before its write: the option writers write a copy. Where the row cannot be read either,
   the memo is dropped for the next read.
+- A row whose update fails takes back the value it stores. ActiveRecord leaves the value a failed save
+  assigned on the record, and the eager-loaded metas the re-read and every later read take the row from
+  would read that value as stored.
 
 **Return the caller's own default.** It is not copied or memoized. The option writers keep working because
 they pass the options they change to `set_meta`, which memoizes the stored form of that object.

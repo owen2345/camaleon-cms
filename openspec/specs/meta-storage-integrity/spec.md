@@ -168,6 +168,12 @@ write, the hash `options` returns, on a record's first options write too.
 - **THEN** the options the instance reads, the hash read among them, hold what is stored
 - **AND** a later option write on the instance is stored
 
+#### Scenario: A write the database refuses, with the metas loaded
+
+- **WHEN** a post's metas are eager-loaded and storing a meta, or a list read from the post, changed in place
+  and written back, fails in the database
+- **THEN** the post reads the value stored before the write, and the list holds it
+
 #### Scenario: Options a caller passed to set_meta as a plain Hash
 
 - **WHEN** a post type's options are written with `set_meta` as a plain Hash holding `color` under a String

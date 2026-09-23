@@ -219,7 +219,7 @@ module CamaleonCms
         # afterwards: with no stored row, update it instead of adding a second row for the key. A meta built
         # on a saved record waits for a save that may never come, so outside the creation a row is stored.
         if (meta_record = meta_row(key_str, stored_only: true))
-          meta_record.update(value: fixed_value)
+          update_meta_row(meta_record, fixed_value)
         elsif created_record_metas_in_memory? &&
               (pending_record = metas.target.find { |m| m.new_record? && m.key == key_str })
           pending_record.value = fixed_value
@@ -237,6 +237,15 @@ module CamaleonCms
           metas.build(key: key_str, value: fixed_value)
         end
       end
+    end
+
+    # Updates a stored row to fixed_value. A failed save leaves the value it assigned on the row, which the
+    # metas in memory would read as stored, so when the update raises the row takes back the value it stores.
+    def update_meta_row(meta_record, fixed_value)
+      meta_record.update(value: fixed_value)
+    rescue StandardError
+      meta_record.restore_attributes([:value])
+      raise
     end
 
     # What the row of key reads as, nil for a key with no row
