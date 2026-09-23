@@ -178,6 +178,10 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   record's rollback callbacks before it makes new again the metas the save stored, so the callback cannot
   tell a meta built and not saved yet, which the save stored, from a stored row. Rejected, dropping the
   metas in the callback, as it did: that dropped such a built meta with them, and no later save stored it.
+  The memo stays too, and those keys read again into the hashes and lists handed out. Rejected, dropping
+  every memoized value in the callback, as it did: the options handed out, which the save's option write
+  changed in place, kept the rolled-back option and read no later write, as did a list handed out for a key
+  the save never wrote. Only a rolled-back creation drops the memo, for the id the record takes back.
 - A row whose update fails takes back the value it stores. ActiveRecord leaves the value a failed save
   assigned on the record, and the eager-loaded metas the re-read and every later read take the row from
   would read that value as stored. A save the meta model refuses without raising, by a validation or a

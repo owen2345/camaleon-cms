@@ -614,6 +614,13 @@ original's write and SHALL queue only values given to the copy.
 - **THEN** it reads the built meta, and a freshly loaded post reads the meta and the options given, each
   stored once
 
+#### Scenario: An update rolled back after writing them, with options and a list handed out
+
+- **WHEN** a saved post's options and a list are read, and an update given `data_options` is rolled back by
+  an enclosing transaction
+- **THEN** the options and the list read before are the ones the post reads, holding what is stored
+- **AND** an option written afterwards is read in the options read before
+
 #### Scenario: The first update after a creation rolled back
 
 - **WHEN** a post created with a meta in `data_metas` has its first update, given a new value for that meta

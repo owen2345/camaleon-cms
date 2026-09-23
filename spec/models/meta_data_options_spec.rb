@@ -227,6 +227,26 @@ RSpec.describe CamaleonCms::Metas do
       expect(stored.metas.where(key: %w[pending _default]).group(:key).count).to eq('_default' => 1, 'pending' => 1)
     end
 
+    # The rollback callback dropped every value the instance had memoized, so the options it had handed out, which
+    # the update's option write changed in place, kept the rolled-back option and read no later write, and so did a
+    # list it had handed out for a key the update never wrote.
+    it 'reads what is stored, in the options and a list it handed out, once an update that wrote them is rolled back' do
+      post = create(:post, post_type: shared_post_type)
+      post.set_option(:size, 'xl')
+      post.set_meta('list', [1, 2])
+      held = post.options
+      list = post.get_meta('list')
+      ActiveRecord::Base.transaction(requires_new: true) do
+        post.update!(data_options: { color: 'red' })
+        raise ActiveRecord::Rollback
+      end
+
+      expect([post.options, post.get_meta('list')]).to match([equal(held), equal(list)])
+      expect(held).to eq('size' => 'xl')
+      post.set_option(:weight, 3)
+      expect(held).to eq('size' => 'xl', 'weight' => 3)
+    end
+
     it 'queues the values given to an update whose transaction is rolled back' do
       post = create(:post, post_type: shared_post_type)
       ActiveRecord::Base.transaction(requires_new: true) do
