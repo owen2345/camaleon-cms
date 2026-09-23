@@ -19,7 +19,7 @@ module CamaleonCms
     #   has_layout:  (boolean) (default false)
     #   skip_fields:  (array) (default empty) array of custom field keys to avoid for this post,
     #     sample: ["subtitle", "icon"]
-    include CamaleonCms::Settings
+    include CamaleonCms::SettingsMethods
 
     # Structural, non-executable markup that long-form post content legitimately uses but the
     # sanitizer default drops. Superset of the default so upstream security additions are inherited.

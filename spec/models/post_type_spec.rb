@@ -98,5 +98,14 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect([settings.permitted?, settings[:layout].permitted?, given.permitted?]).to eq([false, false, false])
       expect(CamaleonCms::Post.find(post.id).get_option(:has_content)).to be(false)
     end
+
+    # The concern holding the settings writers was named CamaleonCms::Settings, which took the name in the engine's
+    # namespace: code reopening that namespace, as a host overriding an engine class does, read the concern in place
+    # of the host's own Settings, the constant the config gem defines.
+    it 'leaves the name Settings in the engine namespace to the host' do
+      host_settings = stub_const('Settings', Module.new)
+
+      expect(CamaleonCms.module_eval('Settings', __FILE__, __LINE__)).to be(host_settings)
+    end
   end
 end

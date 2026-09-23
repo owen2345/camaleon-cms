@@ -3,7 +3,9 @@
 module CamaleonCms
   # A post's and a post type's settings: the options they read their configuration from, written through the
   # option writers. The keys are listed where Post includes this module, and in PostType::DEFAULT_OPTIONS.
-  module Settings
+  # Not named Settings: in the engine's namespace that name would hide a host's own Settings, the constant the
+  # config gem defines, from code reopening the namespace.
+  module SettingsMethods
     # set or update a setting
     def set_setting(key, value)
       set_option(key, value)

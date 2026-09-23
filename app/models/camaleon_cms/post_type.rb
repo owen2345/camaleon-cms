@@ -2,7 +2,7 @@ module CamaleonCms
   class PostType < CamaleonCms::TermTaxonomy
     # set_setting and set_settings assign settings for this post type (the keys and their defaults:
     # DEFAULT_OPTIONS)
-    include CamaleonCms::Settings
+    include CamaleonCms::SettingsMethods
 
     normalize_attrs(:description)
 
