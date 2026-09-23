@@ -451,7 +451,9 @@ module CamaleonCms
     def forget_rolled_back_creation
       return unless respond_to?(:cama_clear_cache)
 
-      reset_metas(metas.target)
+      built = metas.target.map { |meta| { key: meta.key, value: meta.value } }
+      metas.reset
+      built.each { |attributes| metas.build(attributes) }
       @meta_write_states&.reject! { |state, _keys| state.rolledback? }
       cama_clear_cache
     end
@@ -492,13 +494,6 @@ module CamaleonCms
       @meta_write_states = pending.to_h.reject do |state, _keys|
         state.fully_committed? || (state.committed? && current.nil?)
       end.presence
-    end
-
-    # Drops the metas in memory and builds the ones kept again, for a save to store
-    def reset_metas(kept)
-      built = kept.map { |meta| { key: meta.key, value: meta.value } }
-      metas.reset
-      built.each { |attributes| metas.build(attributes) }
     end
 
     # Drops the metas in memory of keys, stored or built, and loads those keys' stored rows again in their place
