@@ -270,7 +270,7 @@ module CamaleonCms
       memo = cama_get_cache(memo_key)
       return unless value.equal?(memo) && (hash_or_list?(memo) || memo.is_a?(String))
 
-      memoize_written_meta(key_str, value, read_meta_row(key_str))
+      memoize_stored_form(key_str, memo, read_meta_row(key_str))
     rescue StandardError
       cama_remove_cache(memo_key)
     end
