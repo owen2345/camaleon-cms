@@ -67,6 +67,10 @@ value has no value, and the memoized value otherwise.
   that branch, and `options` already read them as no options.
 - Rejected, a dedicated "missing" marker object: a `''` or nil from storage or from `set_meta` would still
   need the predicate, and a direct reader of the memo (`cama_get_cache`) would receive an internal object.
+- A record's first save drops what it memoized before it (`CamaleonRecord`, after create): every memo key
+  holds the record's id, so a value memoized with none is read by no key once the INSERT assigns one, and
+  the memo of a meta written before the save was kept for the instance's life beside the one read after
+  it. No read changes; the other memoized reads keep their keys.
 - Rejected, not memoizing misses: every repeated read of an absent key would query again. Absent keys are
   common: `thumb`, `summary`, `has_comments`, and plugin settings before their first save.
 - Rejected, memoizing per default: defaults are usually fresh literals, so the memo would never hit.

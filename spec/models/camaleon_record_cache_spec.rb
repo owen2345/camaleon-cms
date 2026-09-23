@@ -114,4 +114,19 @@ RSpec.describe CamaleonRecord do
       expect(post.cama_fetch_cache('probe') { 'second' }).to eq('second')
     end
   end
+
+  describe 'the first save' do
+    # A record's id is part of every key it memoizes under, so what it memoized before its first save is read
+    # by no key once the INSERT assigns one: the save drops it rather than keep it for the instance's life.
+    it 'drops the values memoized before it' do
+      post = build(:post, post_type: post_type)
+      post.set_meta('subtitle', 'draft')
+      post.cama_fetch_cache('probe') { 'before the save' }
+
+      post.save!
+
+      expect(post.instance_variable_get(:@cama_cache_vars).keys).to all(include("_#{post.id}_"))
+      expect(post.get_meta('subtitle')).to eq('draft')
+    end
+  end
 end

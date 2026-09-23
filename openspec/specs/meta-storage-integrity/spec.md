@@ -86,7 +86,8 @@ the instance reads, unless it is frozen, when the stored form SHALL be memoized 
 later option write on the instance; when that write raises, refused or failed, the object
 SHALL take the form the key's stored row reads as again, and SHALL hold nothing when the row is gone or
 holds a value of another kind. A record not yet saved SHALL read a written value the
-same way until its first save, after which the instance reads what it stored. A meta written or deleted in a
+same way until its first save, after which the instance reads what it stored, and holds nothing it memoized
+before the save, which no read finds once the record has an id. A meta written or deleted in a
 transaction that is rolled back, with `set_meta`, an option writer or `delete_meta`, SHALL read on the instance
 what is stored once the rollback completes, in a hash `options` returned too, and SHALL NOT be stored again by
 the record's next save. When the value is the record's options, `options` and `get_option` on that instance SHALL
@@ -133,6 +134,7 @@ write, the hash `options` returns, on a record's first options write too.
 
 - **WHEN** a hash is written with `set_meta` on an unsaved post type and the post type is saved
 - **THEN** the same instance reads the stored hash by its keys before and after the save
+- **AND** it no longer holds the values it memoized before the save
 
 #### Scenario: A meta written as nil or as an empty string
 
