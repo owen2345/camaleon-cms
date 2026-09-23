@@ -211,7 +211,8 @@ When a record's stored options meta (`_default`, or another options meta key) ho
 When a record holds more than one meta row for a key, a write SHALL update the row with the lowest id,
 and a read SHALL return that same row. This SHALL hold whether the read loads the row from the database
 or finds it among eager-loaded metas. A meta built for the key on a saved record and not saved yet SHALL
-NOT take a write from the stored row, nor be read in its place.
+NOT take a write from the stored row, nor be read in its place, and a write of a key the record does not
+store SHALL store a row, not only set a built meta.
 
 #### Scenario: A write reaches the row reads return
 
@@ -235,6 +236,12 @@ NOT take a write from the stored row, nor be read in its place.
 - **WHEN** a post type loaded with its metas eager-loaded builds a meta for a key it stores and one for a
   key it does not store
 - **THEN** a read of the first key returns the stored row's value, and a read of the second the built meta's
+
+#### Scenario: A meta built for a key the record does not store
+
+- **WHEN** a saved post type, loaded with its metas eager-loaded or without them, builds a meta for a key
+  it does not store and writes the key
+- **THEN** a freshly loaded post type reads the written value, before and after the post type is saved
 
 ### Requirement: A meta built before the first save is not duplicated on create
 

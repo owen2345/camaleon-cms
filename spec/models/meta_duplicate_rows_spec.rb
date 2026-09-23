@@ -49,6 +49,23 @@ RSpec.describe CamaleonCms::Meta, type: :model do
     end
   end
 
+  # Only a meta built before the first save is inserted after the write, by the creating save; one built on a
+  # saved record waits for a save that may never come, so a write of a key the record does not store stores a
+  # row, which later reads take once the built meta is saved beside it too.
+  it 'stores a key the record has no row for, not only a meta built for it and not saved yet' do
+    scopes = { 'eager-loaded' => CamaleonCms::PostType.includes(:metas), 'queried' => CamaleonCms::PostType }
+    scopes.each do |name, scope|
+      key = "unstored_#{name}"
+      record = scope.find(post_type.id)
+      record.metas.build(key: key, value: 'built')
+      record.set_meta(key, 'written')
+
+      expect(CamaleonCms::PostType.find(post_type.id).get_meta(key)).to eq('written')
+      record.save!
+      expect(CamaleonCms::PostType.find(post_type.id).get_meta(key)).to eq('written')
+    end
+  end
+
   # Among eager-loaded metas a built meta has no id, which ranked it before every stored row; it is read only
   # for a key with no stored row.
   it 'reads the stored row, not a meta built for the same key and not saved yet' do

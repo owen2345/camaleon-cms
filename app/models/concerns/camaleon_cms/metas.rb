@@ -213,11 +213,13 @@ module CamaleonCms
       if persisted?
         # Update the stored row, the lowest id when a key has several: the one get_meta reads, so a meta
         # built for the key and not saved yet cannot take the write from it. A meta built before the first
-        # save is still pending during the after_create callbacks, and the metas autosave inserts it
-        # afterwards: with no stored row, update it instead of adding a second row for the key.
+        # save is still pending while the creating save writes the queues, and the metas autosave inserts it
+        # afterwards: with no stored row, update it instead of adding a second row for the key. A meta built
+        # on a saved record waits for a save that may never come, so outside the creation a row is stored.
         if (meta_record = meta_row(key_str, stored_only: true))
           meta_record.update(value: fixed_value)
-        elsif (pending_record = metas.target.find { |m| m.new_record? && m.key == key_str })
+        elsif created_record_metas_in_memory? &&
+              (pending_record = metas.target.find { |m| m.new_record? && m.key == key_str })
           pending_record.value = fixed_value
         else
           metas.create(key: key_str, value: fixed_value)
