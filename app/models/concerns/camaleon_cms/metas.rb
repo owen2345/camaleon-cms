@@ -348,10 +348,16 @@ module CamaleonCms
       memoize_stored_form(memo_key, options, cama_get_cache(memo_key))
     end
 
-    # What an option writer gives the options for a value passed: a copy, since the options convert a list they
-    # are given in place, with a String read as the number or the boolean it holds
+    # What an option writer gives the options for a value passed, with a String read as the number or the boolean it
+    # holds: a copy of a list, since the options convert a list they are given in place
     def option_value(value)
-      fix_meta_var(value.deep_dup)
+      fix_meta_var(copied_lists(value))
+    end
+
+    # value with the lists in it copied, those an indifferent hash converts in place: a list and a list in it. A hash
+    # it converts into a new one, with a copy of each list the hash holds, so neither is copied here.
+    def copied_lists(value)
+      value.is_a?(Array) ? value.map { |item| copied_lists(item) } : value
     end
 
     # Memoizes for key what a reload reads for the value written. When the value written is the Hash or the

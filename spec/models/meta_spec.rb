@@ -224,16 +224,16 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::Post.find(post.id).get_meta('probe')).to eq('inner' => { 'size' => 'xl' }, 'count' => 2)
     end
 
-    # The options convert a list they are given in place, so an option writer gives them a copy of the lists
-    # and the hashes passed, at any depth, and the caller's value is left as passed.
+    # The options convert a list they are given in place, and a list in it, so an option writer gives them a copy
+    # of those lists; a hash, and a list it holds, they convert into new ones. The caller's value is left as passed.
     it 'leaves a list of hashes passed to an option writer as it was' do
       post = create(:post)
-      list = [{ 'key' => 'subtitle' }, [{ 'key' => 'nested' }]]
+      list = [{ 'key' => 'subtitle' }, [{ 'key' => 'nested' }], { 'group' => [{ 'key' => 'deep' }] }]
 
       post.set_option(:skip_fields, list)
       post.set_setting(:fields, list)
 
-      expect([list.first, list.last.first]).to all(be_instance_of(Hash))
+      expect([list[0], list[1].first, list[2], list[2]['group'].first]).to all(be_instance_of(Hash))
       expect(CamaleonCms::Post.find(post.id).get_option(:skip_fields)).to eq(list)
     end
 
