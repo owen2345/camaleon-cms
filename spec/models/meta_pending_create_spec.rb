@@ -41,10 +41,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
   # A creation rolled back leaves the record unsaved, with the metas it wrote built again for its next save.
   it 'reads the metas built again once its creation is rolled back' do
     created = build(:post_type, data_metas: { icon_color: 'queued' }, data_options: { has_category: true })
-    ActiveRecord::Base.transaction(requires_new: true) do
-      created.save!
-      raise ActiveRecord::Rollback
-    end
+    rolled_back_transaction { created.save! }
 
     expect(created).to be_new_record
     expect([created.get_meta('icon_color', 'none'), created.get_option(:has_category, 'none')]).to eq(['queued', true])

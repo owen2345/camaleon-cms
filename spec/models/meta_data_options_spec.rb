@@ -135,12 +135,11 @@ RSpec.describe CamaleonCms::Metas do
     # queued the original's values on itself.
     it 'does not queue the values on a copy saved inside the rolled-back transaction' do
       copy = nil
-      ActiveRecord::Base.transaction(requires_new: true) do
+      rolled_back_transaction do
         post = create(:post, post_type: shared_post_type, data_options: { has_comments: true })
         copy = post.dup
         copy.slug = "#{post.slug}-copy"
         copy.save!
-        raise ActiveRecord::Rollback
       end
 
       expect(copy.data_options).to be_blank
@@ -178,10 +177,9 @@ RSpec.describe CamaleonCms::Metas do
     it 'reads, once its creation is rolled back, the metas its next save stores' do
       post_type = build(:post_type)
       post_type.set_meta('probe', 'before the save')
-      ActiveRecord::Base.transaction(requires_new: true) do
+      rolled_back_transaction do
         post_type.save!
         post_type.set_meta('probe', 'after the save')
-        raise ActiveRecord::Rollback
       end
       read = post_type.get_meta('probe')
 
@@ -197,10 +195,7 @@ RSpec.describe CamaleonCms::Metas do
     # next save stored a second row beside each.
     it 'stores a meta once when the first update after the creation is rolled back' do
       post = create(:post, post_type: shared_post_type, data_metas: { subtitle: 'first' })
-      ActiveRecord::Base.transaction(requires_new: true) do
-        post.update!(data_metas: { subtitle: 'second' })
-        raise ActiveRecord::Rollback
-      end
+      rolled_back_transaction { post.update!(data_metas: { subtitle: 'second' }) }
 
       post.save!
 
@@ -214,10 +209,7 @@ RSpec.describe CamaleonCms::Metas do
     it 'stores, once an update that wrote them is rolled back, a meta built before it' do
       post = create(:post, post_type: shared_post_type)
       post.metas.build(key: 'pending', value: 'built')
-      ActiveRecord::Base.transaction(requires_new: true) do
-        post.update!(data_options: { has_comments: true })
-        raise ActiveRecord::Rollback
-      end
+      rolled_back_transaction { post.update!(data_options: { has_comments: true }) }
 
       post.save!
 
@@ -236,10 +228,7 @@ RSpec.describe CamaleonCms::Metas do
       post.set_meta('list', [1, 2])
       held = post.options
       list = post.get_meta('list')
-      ActiveRecord::Base.transaction(requires_new: true) do
-        post.update!(data_options: { color: 'red' })
-        raise ActiveRecord::Rollback
-      end
+      rolled_back_transaction { post.update!(data_options: { color: 'red' }) }
 
       expect([post.options, post.get_meta('list')]).to match([equal(held), equal(list)])
       expect(held).to eq('size' => 'xl')
@@ -249,10 +238,7 @@ RSpec.describe CamaleonCms::Metas do
 
     it 'queues the values given to an update whose transaction is rolled back' do
       post = create(:post, post_type: shared_post_type)
-      ActiveRecord::Base.transaction(requires_new: true) do
-        post.update!(data_options: { has_comments: true }, data_metas: { subtitle: 'first' })
-        raise ActiveRecord::Rollback
-      end
+      rolled_back_transaction { post.update!(data_options: { has_comments: true }, data_metas: { subtitle: 'first' }) }
       expect(CamaleonCms::Post.find(post.id).get_meta('subtitle')).to be_nil
 
       post.save!
@@ -265,10 +251,7 @@ RSpec.describe CamaleonCms::Metas do
     it 'leaves them written when a later save of the instance is rolled back' do
       post = create(:post, post_type: shared_post_type, data_options: { has_comments: true })
       post.set_option(:has_comments, false)
-      ActiveRecord::Base.transaction(requires_new: true) do
-        post.update!(title: 'Renamed')
-        raise ActiveRecord::Rollback
-      end
+      rolled_back_transaction { post.update!(title: 'Renamed') }
 
       post.update!(title: 'Renamed again')
 
@@ -285,10 +268,9 @@ RSpec.describe CamaleonCms::Metas do
       post.set_meta('probe', 'before')
       post.set_option(:size, 'xl')
       held = post.options
-      ActiveRecord::Base.transaction(requires_new: true) do
+      rolled_back_transaction do
         post.set_meta('probe', 'rolled back')
         post.set_option(:color, 'red')
-        raise ActiveRecord::Rollback
       end
 
       expect(post.get_meta('probe')).to eq('before')
@@ -300,20 +282,14 @@ RSpec.describe CamaleonCms::Metas do
       post = create(:post, post_type: shared_post_type)
       post.set_meta('probe', 'stored')
       loaded = CamaleonCms::Post.includes(:metas).find(post.id)
-      ActiveRecord::Base.transaction(requires_new: true) do
-        loaded.delete_meta('probe')
-        raise ActiveRecord::Rollback
-      end
+      rolled_back_transaction { loaded.delete_meta('probe') }
 
       expect(loaded.get_meta('probe')).to eq('stored')
     end
 
     it 'is not stored by the next save of the record' do
       post = CamaleonCms::Post.includes(:metas).find(create(:post, post_type: shared_post_type).id)
-      ActiveRecord::Base.transaction(requires_new: true) do
-        post.set_meta('probe', 'rolled back')
-        raise ActiveRecord::Rollback
-      end
+      rolled_back_transaction { post.set_meta('probe', 'rolled back') }
 
       post.update!(title: 'Renamed')
 
@@ -336,10 +312,9 @@ RSpec.describe CamaleonCms::Metas do
 
     it 'reads the writes committed in the savepoints of a transaction again when it is rolled back' do
       post = create(:post, post_type: shared_post_type)
-      ActiveRecord::Base.transaction(requires_new: true) do
+      rolled_back_transaction do
         3.times { |i| ActiveRecord::Base.transaction(requires_new: true) { post.set_meta("probe#{i}", i) } }
         post.get_meta('probe0')
-        raise ActiveRecord::Rollback
       end
 
       expect([post.get_meta('probe0'), post.get_meta('probe2')]).to eq([nil, nil])
@@ -352,10 +327,7 @@ RSpec.describe CamaleonCms::Metas do
       post = create(:post, post_type: shared_post_type)
       ActiveRecord::Base.transaction(requires_new: true) do
         ActiveRecord::Base.transaction(requires_new: true) { post.set_meta('probe', 'committed') }
-        ActiveRecord::Base.transaction(requires_new: true) do
-          post.get_meta('probe')
-          raise ActiveRecord::Rollback
-        end
+        rolled_back_transaction { post.get_meta('probe') }
 
         expect(metas_selects { expect(post.get_meta('probe')).to eq('committed') }).to be_empty
       end
@@ -367,10 +339,7 @@ RSpec.describe CamaleonCms::Metas do
       ActiveRecord::Base.transaction(requires_new: true) do
         ActiveRecord::Base.transaction(requires_new: true) { post.delete_meta('probe') }
         post.metas.build(key: 'probe', value: 'built')
-        ActiveRecord::Base.transaction(requires_new: true) do
-          post.get_meta('other')
-          raise ActiveRecord::Rollback
-        end
+        rolled_back_transaction { post.get_meta('other') }
         post.save!
 
         expect(CamaleonCms::Post.find(post.id).get_meta('probe')).to eq('built')
@@ -380,10 +349,9 @@ RSpec.describe CamaleonCms::Metas do
     it 'reads a write committed in a savepoint again when the transaction around it is rolled back' do
       post = create(:post, post_type: shared_post_type)
       post.set_meta('probe', 'before')
-      ActiveRecord::Base.transaction(requires_new: true) do
+      rolled_back_transaction do
         ActiveRecord::Base.transaction(requires_new: true) { post.set_meta('probe', 'inner') }
         expect(post.get_meta('probe')).to eq('inner')
-        raise ActiveRecord::Rollback
       end
 
       expect(post.get_meta('probe')).to eq('before')
@@ -396,10 +364,7 @@ RSpec.describe CamaleonCms::Metas do
       post.set_meta('stored', 'kept')
       loaded = CamaleonCms::Post.includes(:metas).find(post.id)
       loaded.metas.build(key: 'pending', value: 'built')
-      ActiveRecord::Base.transaction(requires_new: true) do
-        loaded.set_meta('probe', 'rolled back')
-        raise ActiveRecord::Rollback
-      end
+      rolled_back_transaction { loaded.set_meta('probe', 'rolled back') }
 
       expect(loaded.get_meta('pending')).to eq('built')
       expect(metas_selects { expect(loaded.get_meta('stored')).to eq('kept') }).to be_empty
@@ -412,10 +377,7 @@ RSpec.describe CamaleonCms::Metas do
       post.set_meta('probe', 'before')
       loaded = CamaleonCms::Post.includes(:metas).find(post.id)
       kept = loaded.metas.find { |meta| meta.key == 'stored' }
-      ActiveRecord::Base.transaction(requires_new: true) do
-        loaded.set_meta('probe', 'rolled back')
-        raise ActiveRecord::Rollback
-      end
+      rolled_back_transaction { loaded.set_meta('probe', 'rolled back') }
 
       selects = metas_selects { expect(loaded.get_meta('probe')).to eq('before') }
 

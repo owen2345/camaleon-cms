@@ -130,6 +130,14 @@ def installed_post_type(slug = 'post')
   CamaleonCms::Site.first.post_types.find_by!(slug: slug)
 end
 
+# runs the block in a transaction of its own, a savepoint inside the example's, and rolls it back
+def rolled_back_transaction
+  ActiveRecord::Base.transaction(requires_new: true) do
+    yield
+    raise ActiveRecord::Rollback
+  end
+end
+
 # create a new post for post type
 def create_test_post(post_type, args = {})
   post_type.posts.create!({ title: 'Test post', slug: 'test', content: 'this is a test', data_options: {} }.merge(args))
