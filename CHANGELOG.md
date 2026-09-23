@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Docs:** The `user-registration-hooks` OpenSpec capability has a written Purpose in place of the placeholder `openspec archive` left, so `openspec validate --specs --strict` passes. No behavior change. [#1307](https://github.com/owen2345/camaleon-cms/pull/1307).
+
 - **Bug fix:** `get_meta` and `get_option` return each read's own default for a meta with no value (no row, null or `''`); a value written with `set_meta` reads back on the writing instance as a freshly loaded record reads it; `the_meta` and `the_option` return a stored number, boolean or hash instead of raising. [#1303](https://github.com/owen2345/camaleon-cms/pull/1303).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#get_meta-and-set_meta-read-as-a-freshly-loaded-record).
 
