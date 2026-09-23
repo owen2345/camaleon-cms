@@ -7,6 +7,7 @@
 # unescaped there until a reload.
 RSpec.describe CamaleonCms::Post, type: :model do
   let(:post_type) { installed_post_type }
+  let(:post) { create(:post, post_type: post_type) }
 
   describe '#set_meta' do
     {
@@ -17,7 +18,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
       Date.new(2026, 9, 22) => '2026-09-22'
     }.each do |written, read|
       it "reads #{written.inspect} back as #{read.inspect} on the writing instance, as after a reload" do
-        post = create(:post, post_type: post_type)
         post.set_meta('probe', written)
 
         expect(post.get_meta('probe')).to eq(read)
@@ -29,7 +29,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
     # and a row holding it still reads as that boolean, so a value whose text is one letter, a String or a
     # Symbol, is stored as its JSON string.
     it "stores a String or a Symbol 't' or 'f' as its JSON string, apart from the booleans stored as the letter" do
-      post = create(:post, post_type: post_type)
       post.set_meta('probe', 'f')
       post.set_meta('probe_symbol', :t)
       post.metas.create!(key: 'probe_legacy', value: 'f')
@@ -42,7 +41,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
     # set_meta returns the value it was passed, as 2.9.4 did, whatever form a read returns for it, and the
     # option writers return the options the record reads after the write, from its first options write on.
     it 'returns the value passed, and the option writers the options the record reads' do
-      post = create(:post, post_type: post_type)
       params = ActionController::Parameters.new(color: 'red')
 
       expect([post.set_meta('probe', 'false'), post.set_meta('probe', 'null')]).to eq(%w[false null])
@@ -56,7 +54,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
     end
 
     it "reads a hash back by either key type, leaving the caller's hash as passed" do
-      post = create(:post, post_type: post_type)
       passed = { color: 'red', sizes: [{ top: 'xl' }] }
       post.set_meta('probe', passed)
       read = post.get_meta('probe')
@@ -75,7 +72,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
     # No JSON text opens with a letter other than t, f or n, so such text is read as the text it is,
     # without a parse that could only fail.
     it 'reads back text that cannot hold JSON without parsing it' do
-      post = create(:post, post_type: post_type)
       allow(JSON).to receive(:parse).and_call_original
       expect(JSON).not_to receive(:parse).with('https://example.com/photo.jpg', any_args)
 
@@ -89,13 +85,13 @@ RSpec.describe CamaleonCms::Post, type: :model do
     # parser installed: text opening with any ASCII character or a Unicode space, after any whitespace, reads
     # as the value the parser finds in it, or as the text when the parser finds none.
     it 'reads text as the installed json parser reads it, whatever it opens with' do
-      post = build(:post, post_type: post_type)
+      unsaved = build(:post, post_type: post_type)
       prefixes = ['', ' ', "\t", "\n", "\r", "\f", "\v", "\u00A0", "\uFEFF"]
       openings = (0..127).map(&:chr) + ["\u00A0", "\uFEFF", "\u3000", '１']
       rests = ['', '1', '{}', '[]', '"a"', 'rue', 'alse', 'ull', 'aN', 'nfinity', "/ c\n1", '* c */1', "\n1", ' 1']
       texts = prefixes.product(openings, rests).map(&:join)
 
-      expect(texts.reject { |text| post.send(:stored_form_of, text) == parser_read(text) }).to be_empty
+      expect(texts.reject { |text| unsaved.send(:stored_form_of, text) == parser_read(text) }).to be_empty
     end
 
     def parser_read(text)
@@ -107,7 +103,7 @@ RSpec.describe CamaleonCms::Post, type: :model do
     # A number reads back as itself, so it is memoized without parsing its text back, as a counter such as a
     # post's visits, written on every view, was.
     it 'reads a number it writes back without parsing its text' do
-      post = create(:post, post_type: post_type)
+      expect(post).to be_persisted
       expect(JSON).not_to receive(:parse)
 
       post.set_meta('visits', 42)
@@ -117,7 +113,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
     end
 
     it "reads plain text back as a String of its own, leaving the caller's String as passed" do
-      post = create(:post, post_type: post_type)
       passed = +'plain text'
       post.set_meta('probe', passed)
 
@@ -130,7 +125,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
     # The database stores text in UTF-8, so text in another encoding reads back transcoded after a reload; the
     # writing instance reads it the same way, not in the caller's encoding, which UTF-8 text cannot be joined to.
     it 'reads text in another encoding back as the UTF-8 text a reloaded record reads' do
-      post = create(:post, post_type: post_type)
       post.set_meta('probe', String.new("caf\xE9", encoding: Encoding::ISO_8859_1))
 
       reads = [post.get_meta('probe'), described_class.find(post.id).get_meta('probe')]
@@ -139,7 +133,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
     end
 
     it 'reads an html_safe String back as the plain String a reloaded record reads' do
-      post = create(:post, post_type: post_type)
       post.set_meta('probe', ActiveSupport::SafeBuffer.new('<b>bold</b>'))
       reloaded = described_class.find(post.id)
 
@@ -150,7 +143,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
     # The stored form takes the text of a value before it rescues a parse, so a value whose text cannot be
     # taken raises its own error before the write is checked, instead of reading as a meta with no value.
     it 'raises the error of a value whose text cannot be taken, before checking the write' do
-      post = create(:post, post_type: post_type)
       unreadable = Object.new
       unreadable.define_singleton_method(:to_s) { raise ArgumentError, 'no text' }
       expect(post).not_to receive(:check_meta_write)
@@ -160,7 +152,6 @@ RSpec.describe CamaleonCms::Post, type: :model do
     end
 
     it 'reads a JSON string back as the value it holds' do
-      post = create(:post, post_type: post_type)
       post.set_meta('probe', '{"color": "red"}')
 
       expect(post.get_meta('probe')).to eq('color' => 'red')
@@ -169,13 +160,13 @@ RSpec.describe CamaleonCms::Post, type: :model do
     end
 
     it 'reads the written value the same way before and after the first save' do
-      post = build(:post, post_type: post_type)
-      post.set_meta('probe', '2024')
-      expect(post.get_meta('probe')).to eq(2024)
+      unsaved = build(:post, post_type: post_type)
+      unsaved.set_meta('probe', '2024')
+      expect(unsaved.get_meta('probe')).to eq(2024)
 
-      post.save!
+      unsaved.save!
 
-      expect(post.get_meta('probe')).to eq(2024)
+      expect(unsaved.get_meta('probe')).to eq(2024)
     end
   end
 end
