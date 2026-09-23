@@ -469,19 +469,21 @@ module CamaleonCms
     # committed in a savepoint is kept under the savepoint's own state. The state names no transaction around it,
     # and the transaction open at a later read, write or save can be a later savepoint beside it or one begun after
     # its own, whose rollback undoes nothing the savepoint wrote, so the write is not kept under that one.
+    # A rolled-back write is forgotten only once its keys are read again, so a read that fails, as every query does
+    # in a transaction a failed statement aborted, is made again by the next read, write or save.
     def forget_rolled_back_meta_writes
       return if @meta_write_states.nil?
 
       rolled_back, pending = @meta_write_states.partition { |state, _keys| state.rolledback? }
+      unless rolled_back.empty?
+        keys = rolled_back.map(&:last).reduce(:|)
+        forget_metas_of(keys)
+        keys.each { |key_str| reread_meta_memo(key_str) }
+      end
       current = current_transaction_state
       @meta_write_states = pending.to_h.reject do |state, _keys|
         state.fully_committed? || (state.committed? && current.nil?)
       end.presence
-      return if rolled_back.empty?
-
-      keys = rolled_back.map(&:last).reduce(:|)
-      forget_metas_of(keys)
-      keys.each { |key_str| reread_meta_memo(key_str) }
     end
 
     # Drops the metas in memory and builds the ones kept again, for a save to store

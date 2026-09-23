@@ -392,6 +392,25 @@ RSpec.describe CamaleonCms::Metas do
       expect(metas_selects { expect(loaded.get_meta('stored')).to eq('kept') }).to be_empty
     end
 
+    # Undoing the write forgot the keys it wrote before reading them again, so when that read failed, as every query
+    # does in a PostgreSQL transaction a failed statement aborted, the instance read the rolled-back value for good.
+    it 'reads the value stored before it once an undoing that failed is tried again' do
+      post = create(:post, post_type: shared_post_type)
+      post.set_meta('probe', 'stored')
+      loaded = CamaleonCms::Post.includes(:metas).find(post.id)
+      rolled_back_transaction { loaded.set_meta('probe', 'rolled back') }
+      failed = false
+      allow(loaded.metas).to receive(:where).and_wrap_original do |where, *args|
+        next where.call(*args) if failed
+
+        failed = true
+        raise ActiveRecord::StatementInvalid, 'current transaction is aborted'
+      end
+
+      expect { loaded.get_meta('probe') }.to raise_error(ActiveRecord::StatementInvalid)
+      expect(loaded.get_meta('probe')).to eq('stored')
+    end
+
     # Undoing the write took the metas of the keys it wrote out of the list the metas hold and appended their rows,
     # in place, so a loop over the metas whose first read undid it skipped the meta after it and met another twice.
     it 'lets a loop over the metas read each of them once' do
