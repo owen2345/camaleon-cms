@@ -146,6 +146,28 @@ RSpec.describe CamaleonCms::Metas do
       expect(copy.data_metas).to be_blank
     end
 
+    # A host's user_model gets this concern through CamaleonCms::UserMethods on a base class of its own
+    # (config/initializers/model_alias.rb), without CamaleonRecord's memo, so the callback that drops what a
+    # rolled-back creation memoized raised NameError: over the error that rolled the creation back, and in place
+    # of the ActiveRecord::Rollback that ends a transaction quietly.
+    it 'rolls back the creation of a record that is not a CamaleonRecord as it would without the metas' do
+      # the dummy app has no ApplicationRecord: a host model subclasses its own base class
+      stub_const('SpecHostUser', Class.new(ActiveRecord::Base)) # rubocop:disable Rails/ApplicationRecord
+      SpecHostUser.class_eval do
+        self.table_name = CamaleonCms::User.table_name
+        include CamaleonCms::UserMethods
+      end
+      create_user = -> { SpecHostUser.create!(username: 'host-user', email: 'host-user@example.com') }
+
+      expect { rolled_back_transaction { create_user.call } }.not_to raise_error
+      expect do
+        ActiveRecord::Base.transaction(requires_new: true) do
+          create_user.call
+          raise ArgumentError, 'a later step'
+        end
+      end.to raise_error(ArgumentError, 'a later step')
+    end
+
     it 'gives a copy queues of its own' do
       post = build(:post, post_type: shared_post_type, data_options: { has_comments: true })
       copy = post.dup

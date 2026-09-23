@@ -437,7 +437,12 @@ module CamaleonCms
     # reads the keys again, in a hash or a list it handed out too, keeping the metas built and not saved yet
     # (forget_rolled_back_meta_writes): ActiveRecord makes the metas the save stored new again only after this
     # callback, so here a built one the save stored cannot be told from a stored row.
+    # A record without CamaleonRecord's memo, a host's user_model, which gets this concern through UserMethods on a
+    # base class of its own, or a plugin's model on ActiveRecord::Base, memoized nothing and may have no metas: its
+    # rollback is left as it is without this concern.
     def forget_rolled_back_creation
+      return unless respond_to?(:cama_clear_cache)
+
       reset_metas(metas.target)
       @meta_write_states&.reject! { |state, _keys| state.rolledback? }
       cama_clear_cache

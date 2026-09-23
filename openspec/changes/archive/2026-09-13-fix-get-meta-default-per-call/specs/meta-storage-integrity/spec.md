@@ -470,6 +470,12 @@ original's write and SHALL queue only values given to the copy.
   and the transaction is rolled back
 - **THEN** the copy has nothing queued and a value queued on one of them is not queued on the other
 
+#### Scenario: A creation rolled back on a model that is not a CamaleonRecord
+
+- **WHEN** a host's user model, which gets the metas through `CamaleonCms::UserMethods` on a base class of its
+  own, has its creation rolled back by a later error or by `ActiveRecord::Rollback`
+- **THEN** the transaction raises that error, or returns, as it does without the metas
+
 #### Scenario: A post type created with only a `_default` meta
 
 - **WHEN** a post type is created with a `_default` meta holding `has_tags` under a String key in
