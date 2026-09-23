@@ -391,7 +391,8 @@ module CamaleonCms
       held
     end
 
-    # Whether held is already value, in its stored form: the same class and value at every depth
+    # Whether held is already value, in its stored form: the same class and value at every depth, and for a number
+    # with a fraction the same text, which tells apart the zeros of either sign that eql? takes for one
     def same_stored_form?(held, value)
       return false unless held.instance_of?(value.class)
 
@@ -399,6 +400,7 @@ module CamaleonCms
       when Hash
         held.size == value.size && value.all? { |key, item| held.key?(key) && same_stored_form?(held[key], item) }
       when Array then held.size == value.size && value.each_index.all? { |i| same_stored_form?(held[i], value[i]) }
+      when Float then held.to_s == value.to_s
       else held.eql?(value)
       end
     end

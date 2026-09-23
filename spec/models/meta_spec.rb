@@ -181,6 +181,19 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect([held[:sizes][:top], sizes[:top]]).to eq(%w[m xl])
     end
 
+    # eql? holds for 0.0 and -0.0, so a hash options returned kept the zero it held when a zero of the other sign
+    # was written over it, and the writing instance read another sign than a reload.
+    it 'reads in a hash options returned a zero written over a zero of the other sign' do
+      post_type = create(:post_type)
+      post_type.set_option(:offset, 0.0)
+      held = post_type.options
+
+      post_type.set_option(:offset, -0.0)
+
+      expect(CamaleonCms::PostType.find(post_type.id).get_option(:offset).to_s).to eq('-0.0')
+      expect([held[:offset], post_type.get_option(:offset)].map(&:to_s)).to eq(%w[-0.0 -0.0])
+    end
+
     # An option write leaves the options it does not write in the form a reload reads, a value changed in place
     # without a writer included, which the write stores: the options handed out read what is stored.
     it 'reads what was changed in place without a writer as a reload reads it after an option write' do
