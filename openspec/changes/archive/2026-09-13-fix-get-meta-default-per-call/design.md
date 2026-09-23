@@ -160,9 +160,11 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   rollback callback of it runs, while its memo and its metas in memory, whose values a rollback leaves as
   written, keep the write, and a meta it created, new again, was stored by the next save. Each such write
   keeps its key under the state of its transaction, and once that state is rolled back the metas in memory
-  are dropped, keeping the ones built for other keys, and each key reads its row again, in place of a hash
-  or a list handed out. Rejected, enlisting the record in the transaction: its rollback callbacks run only
-  for a record its transaction saved.
+  are dropped, keeping the ones built for other keys, and loaded again when they were loaded, and each key
+  reads its row again, in place of a hash or a list handed out. Loaded again, the metas keep reading every
+  other key from memory, where dropped they read a meta built for one as absent and queried each key once.
+  Rejected, enlisting the record in the transaction: its rollback callbacks run only for a record its
+  transaction saved.
 - A row whose update fails takes back the value it stores. ActiveRecord leaves the value a failed save
   assigned on the record, and the eager-loaded metas the re-read and every later read take the row from
   would read that value as stored.

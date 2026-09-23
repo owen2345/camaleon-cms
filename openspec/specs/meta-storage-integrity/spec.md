@@ -200,6 +200,13 @@ write, the hash `options` returns, on a record's first options write too.
 - **THEN** the post reads the meta and the options stored before each transaction, in the options hash it
   handed out too, and its save stores no meta the rollback removed
 
+#### Scenario: A direct write rolled back beside eager-loaded metas
+
+- **WHEN** a post loaded with its metas eager-loaded builds a meta for a key it does not store, and a direct
+  write of another key is rolled back with its transaction
+- **THEN** the post reads the built meta's value for its key, and a stored key from the metas in memory without
+  a query
+
 #### Scenario: Options a caller passed to set_meta as a plain Hash
 
 - **WHEN** a post type's options are written with `set_meta` as a plain Hash holding `color` under a String

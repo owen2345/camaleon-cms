@@ -280,6 +280,22 @@ RSpec.describe CamaleonCms::Metas do
 
       expect(CamaleonCms::Post.find(post.id).get_meta('probe')).to be_nil
     end
+
+    # The metas dropped to undo the write were read again from the database on demand, so a meta built and not
+    # saved yet, which the loaded metas read, read as absent, and every other key cost a query of its own.
+    it 'keeps the metas it loaded, and a meta built on them, for the other keys' do
+      post = create(:post, post_type: shared_post_type)
+      post.set_meta('stored', 'kept')
+      loaded = CamaleonCms::Post.includes(:metas).find(post.id)
+      loaded.metas.build(key: 'pending', value: 'built')
+      ActiveRecord::Base.transaction(requires_new: true) do
+        loaded.set_meta('probe', 'rolled back')
+        raise ActiveRecord::Rollback
+      end
+
+      expect(loaded.get_meta('pending')).to eq('built')
+      expect(metas_selects { expect(loaded.get_meta('stored')).to eq('kept') }).to be_empty
+    end
   end
 
   it 'writes data_options and data_metas given to an update once' do

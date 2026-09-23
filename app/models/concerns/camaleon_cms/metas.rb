@@ -463,7 +463,8 @@ module CamaleonCms
 
     # Once the transaction of a direct write is rolled back, the metas in memory, whose rows it undid and whose
     # values a rollback leaves as written, are dropped, keeping the metas built and not saved for other keys,
-    # and each key it wrote reads its row again, in place of a hash or a list the instance handed out. Run
+    # and loaded again when they were loaded, so every other key, a built meta's included, is still read from
+    # memory; each key it wrote reads its row again, in place of a hash or a list the instance handed out. Run
     # before each read, write and save, so none takes the rolled-back value or stores it again. A write whose
     # transaction is fully committed stands and is forgotten.
     def forget_rolled_back_meta_writes
@@ -477,7 +478,9 @@ module CamaleonCms
       keys = rolled_back.values.reduce(:|)
       built = metas.target.select { |m| m.new_record? && keys.exclude?(m.key) }
                    .map { |m| { key: m.key, value: m.value } }
+      loaded = metas.loaded?
       metas.reset
+      metas.load_target if loaded
       built.each { |attributes| metas.build(attributes) }
       keys.each { |key_str| reread_meta_memo(key_str) }
     end
