@@ -5,6 +5,38 @@
 
 ## MODIFIED Requirements
 
+### Requirement: Option writes store one entry per key whatever its type
+
+Writing an option with `set_option`, `set_options` or `delete_option` SHALL treat a String key and its
+Symbol twin as the same option. A write SHALL replace the other type's entry rather than store the key
+twice. The writing instance SHALL read the option back by either key type, as a freshly loaded record
+does. `set_options` SHALL skip a nil key and store a key of another type, such as an Integer, under its
+text, as `set_option` does.
+
+#### Scenario: A String-keyed option after Symbol-keyed defaults
+
+- **WHEN** a post type, whose creation stored its default options with Symbol keys, sets `has_category`
+  with a String key
+- **THEN** the stored options hold `has_category` once
+- **AND** both the same instance and a freshly loaded post type read it as the new value
+
+#### Scenario: An option is deleted by the other key type
+
+- **WHEN** a record's options hold `color` under a String key and `size` under a Symbol key, and `color`
+  is deleted with a Symbol key and `size` with a String key
+- **THEN** a freshly loaded record holds no options
+
+#### Scenario: A record's first option is written with a String key
+
+- **WHEN** a record with no stored options sets an option with a String key
+- **THEN** the same instance reads that option back by its Symbol key
+
+#### Scenario: Options written with a nil and an Integer key
+
+- **WHEN** a post type and a post are given settings under a nil key, an Integer key and a Symbol key
+- **THEN** a freshly loaded record holds the Integer key's setting under its text and the Symbol key's,
+  and nothing under the nil key
+
 ### Requirement: set_meta reads back on the writing instance as a reloaded record does
 
 A value written with `set_meta` SHALL be returned by `get_meta` on the same instance in the form a freshly

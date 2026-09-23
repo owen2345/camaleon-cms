@@ -65,5 +65,25 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(updates).to be_empty
       expect(CamaleonCms::Post.find(post.id).options).to include('has_content' => false, 'default_template' => 'probe')
     end
+
+    # Written one at a time with set_option, a setting with a nil key was skipped and one with another key was
+    # stored under its text; set_options symbolized every key first, so either raised and wrote nothing.
+    it 'skips a nil setting key and stores another key under its text, as set_option does' do
+      [create(:post_type), create(:post, post_type: installed_post_type)].each do |record|
+        record.set_settings(nil => 'dropped', 2024 => 'year', has_comments: true)
+
+        options = record.class.find(record.id).options
+        expect(options).to include('2024' => 'year', 'has_comments' => true)
+        expect(options).not_to have_key('')
+      end
+    end
+
+    it 'leaves the settings passed as they were, the hashes in a list included' do
+      settings = { skip_fields: [{ 'key' => 'subtitle' }] }
+
+      create(:post, post_type: installed_post_type).set_settings(settings)
+
+      expect(settings[:skip_fields].first).to be_instance_of(Hash)
+    end
   end
 end

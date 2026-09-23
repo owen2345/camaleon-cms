@@ -13,7 +13,8 @@ or duplicate rows.
 Writing an option with `set_option`, `set_options` or `delete_option` SHALL treat a String key and its
 Symbol twin as the same option. A write SHALL replace the other type's entry rather than store the key
 twice. The writing instance SHALL read the option back by either key type, as a freshly loaded record
-does.
+does. `set_options` SHALL skip a nil key and store a key of another type, such as an Integer, under its
+text, as `set_option` does.
 
 #### Scenario: A String-keyed option after Symbol-keyed defaults
 
@@ -32,6 +33,12 @@ does.
 
 - **WHEN** a record with no stored options sets an option with a String key
 - **THEN** the same instance reads that option back by its Symbol key
+
+#### Scenario: Options written with a nil and an Integer key
+
+- **WHEN** a post type and a post are given settings under a nil key, an Integer key and a Symbol key
+- **THEN** a freshly loaded record holds the Integer key's setting under its text and the Symbol key's,
+  and nothing under the nil key
 
 ### Requirement: An option write that raises leaves the options as stored
 

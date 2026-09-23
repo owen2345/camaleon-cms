@@ -6,7 +6,7 @@ module CamaleonCms
 
     # Raised by set_metas/set_options for a container that is present but not a set of fields (an
     # array of pairs, a scalar). The writers iterate a container key by key, so such input would be
-    # stored pair by pair past every hash-shaped check, or raise deep inside on to_sym; it is refused
+    # stored pair by pair past every hash-shaped check, or raise deep inside the writer; it is refused
     # up front and nothing is written.
     class InvalidContainer < ArgumentError; end
 
@@ -126,13 +126,15 @@ module CamaleonCms
 
     # set multiple configurations
     # h: {ket1: "sdsds", ff: "fdfdfdfd"}
+    # Each key is written as set_option writes it: a nil key is skipped and any other stored under its text.
+    # The values are copied first, since the options convert a list they are given in place.
     def set_options(h = {}, meta_key = '_default')
       return if h.blank?
 
       refuse_invalid_container!(h)
       write_options(meta_key) do |data|
-        PluginRoutes.fixActionParameter(h).to_sym.each do |key, value|
-          data[key] = fix_meta_var(value)
+        PluginRoutes.fixActionParameter(h).deep_dup.each do |key, value|
+          data[key] = fix_meta_var(value) unless key.nil?
         end
       end
     end
