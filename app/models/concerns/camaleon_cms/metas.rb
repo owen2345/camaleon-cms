@@ -268,7 +268,7 @@ module CamaleonCms
     def reread_handed_out_meta(key_str, value)
       memo_key = meta_memo_key(key_str)
       memo = cama_get_cache(memo_key)
-      return unless value.equal?(memo) && (memo.is_a?(Hash) || memo.is_a?(Array) || memo.is_a?(String))
+      return unless value.equal?(memo) && (hash_or_list?(memo) || memo.is_a?(String))
 
       memoize_written_meta(key_str, value, read_meta_row(key_str))
     rescue StandardError
@@ -372,7 +372,7 @@ module CamaleonCms
     # is emptied, so it reads nothing the record does not store. A String is never changed in place, since it
     # may carry the translations String#translate memoized on it. Returns what it memoizes.
     def memoize_stored_form(key_str, held, stored)
-      in_place = (held.is_a?(Hash) || held.is_a?(Array)) && !held.frozen?
+      in_place = hash_or_list?(held) && !held.frozen?
       fits = in_place && stored.is_a?(held.class)
       held.clear if in_place && !fits
       cama_set_cache(meta_memo_key(key_str), fits ? take_stored_form(held, stored) : stored)
@@ -502,11 +502,9 @@ module CamaleonCms
     # place, anything else read again on demand
     def reread_meta_memo(key_str)
       memo = cama_get_cache(meta_memo_key(key_str))
-      if memo.is_a?(Hash) || memo.is_a?(Array)
-        memoize_stored_form(key_str, memo, read_meta_row(key_str))
-      else
-        cama_remove_cache(meta_memo_key(key_str))
-      end
+      return cama_remove_cache(meta_memo_key(key_str)) unless hash_or_list?(memo)
+
+      memoize_stored_form(key_str, memo, read_meta_row(key_str))
     end
 
     def forget_written_metas_options
@@ -550,6 +548,12 @@ module CamaleonCms
       @created_record_metas_in_memory == true
     end
 
+    # A Hash or an Array: a value the text column stores as JSON, and the kind a record hands out that takes
+    # the stored form in place
+    def hash_or_list?(value)
+      value.is_a?(Hash) || value.is_a?(Array)
+    end
+
     # A meta or option with no value: no row or entry, one stored as null, or an empty string. Every read
     # that takes a default returns it for these, on the writing instance and on a freshly loaded record.
     def meta_value_absent?(value)
@@ -564,7 +568,7 @@ module CamaleonCms
     def fix_meta_value(value)
       changed_value = if value.is_a?(ActionController::Parameters)
                         value.to_json
-                      elsif value.is_a?(Array) || value.is_a?(Hash)
+                      elsif hash_or_list?(value)
                         CamaleonCms::Metas.generate_json(value)
                       else
                         value
