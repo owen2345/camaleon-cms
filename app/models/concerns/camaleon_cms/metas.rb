@@ -80,7 +80,7 @@ module CamaleonCms
       # saved leave the record too: get_meta reads loaded metas, and a save stores built ones. The stored
       # rows an unsaved record holds belong to another record, and its query scope is empty, so only its
       # built metas are dropped.
-      built = metas.target.select { |m| m.new_record? && m.key == key_str }
+      built = metas_in_memory(key_str).select(&:new_record?)
       metas.destroy(*built, *metas.where(key: key_str))
       remember_meta_write(key_str)
       cama_remove_cache(meta_memo_key(key_str))
@@ -150,9 +150,7 @@ module CamaleonCms
       return if data_metas.blank?
 
       refuse_invalid_container!(data_metas)
-      data_metas.each do |key, value|
-        set_meta(key, value)
-      end
+      data_metas.each { |key, value| set_meta(key, value) }
     end
 
     # A copy is a new record with no write behind it: it starts without the record of the original's
@@ -227,8 +225,7 @@ module CamaleonCms
         # on a saved record waits for a save that may never come, so outside the creation a row is stored.
         if (meta_record = meta_row(key_str, stored_only: true))
           update_meta_row(meta_record, fixed_value)
-        elsif created_record_metas_in_memory? &&
-              (pending_record = metas.target.find { |m| m.new_record? && m.key == key_str })
+        elsif created_record_metas_in_memory? && (pending_record = metas_in_memory(key_str).find(&:new_record?))
           pending_record.value = fixed_value
         else
           metas.create!(key: key_str, value: fixed_value)
@@ -535,12 +532,18 @@ module CamaleonCms
     # stored_only, the stored row a write updates, leaving out a built meta, which a write sets in place.
     def meta_row(key_str, stored_only: false)
       if metas.loaded? || new_record? || created_record_metas_in_memory?
-        rows = metas.target.select { |m| m.key == key_str }
+        rows = metas_in_memory(key_str)
         stored = rows.select(&:persisted?)
         (stored.empty? && !stored_only ? rows : stored).min_by { |m| m.id.to_i }
       else
         metas.where(key: key_str).order(:id).first
       end
+    end
+
+    # The metas the record holds in memory for a key: its stored rows, when loaded, and the metas built and not
+    # saved yet
+    def metas_in_memory(key_str)
+      metas.target.select { |meta| meta.key == key_str }
     end
 
     # The key a meta is memoized under, from the String form of its key, which every read and write names it by
