@@ -303,12 +303,7 @@ module CamaleonCms
     def stored_form_of(stored)
       return stored if stored.is_a?(Integer) || (stored.is_a?(Float) && stored.finite?)
 
-      stored_form_of_text(stored.to_s) unless stored.nil?
-    end
-
-    # The form a read returns for text: what it holds, with the hashes in it read by either key type
-    def stored_form_of_text(text)
-      CamaleonCms::Metas.indifferent_json_value(parse_stored_text(text))
+      CamaleonCms::Metas.indifferent_json_value(parse_stored_text(stored.to_s)) unless stored.nil?
     end
 
     # The value the JSON in text holds, or the text as the column reads it back when it holds none, text that
