@@ -165,6 +165,11 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   other key from memory, where dropped they read a meta built for one as absent and queried each key once.
   Rejected, enlisting the record in the transaction: its rollback callbacks run only for a record its
   transaction saved.
+- A rolled-back save that wrote the queues leaves its metas to the same next read, write or save. It wrote
+  them through `set_meta`, which kept each key under the transaction's state, while ActiveRecord runs the
+  record's rollback callbacks before it makes new again the metas the save stored, so the callback cannot
+  tell a meta built and not saved yet, which the save stored, from a stored row. Rejected, dropping the
+  metas in the callback, as it did: that dropped such a built meta with them, and no later save stored it.
 - A row whose update fails takes back the value it stores. ActiveRecord leaves the value a failed save
   assigned on the record, and the eager-loaded metas the re-read and every later read take the row from
   would read that value as stored.

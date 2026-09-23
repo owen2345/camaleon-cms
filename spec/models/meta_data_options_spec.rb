@@ -208,6 +208,25 @@ RSpec.describe CamaleonCms::Metas do
       expect(CamaleonCms::Post.find(post.id).get_meta('subtitle')).to eq('second')
     end
 
+    # ActiveRecord runs the record's rollback callbacks before it makes new again the metas its save stored, so
+    # the callback that dropped the metas of a rolled-back update, to read the stored ones again, dropped a meta
+    # built and not saved yet with them, and no later save stored it.
+    it 'stores, once an update that wrote them is rolled back, a meta built before it' do
+      post = create(:post, post_type: shared_post_type)
+      post.metas.build(key: 'pending', value: 'built')
+      ActiveRecord::Base.transaction(requires_new: true) do
+        post.update!(data_options: { has_comments: true })
+        raise ActiveRecord::Rollback
+      end
+
+      post.save!
+
+      stored = CamaleonCms::Post.find(post.id)
+      expect([post.get_meta('pending'), stored.get_meta('pending')]).to eq(%w[built built])
+      expect(stored.get_option(:has_comments)).to be(true)
+      expect(stored.metas.where(key: %w[pending _default]).group(:key).count).to eq('_default' => 1, 'pending' => 1)
+    end
+
     it 'queues the values given to an update whose transaction is rolled back' do
       post = create(:post, post_type: shared_post_type)
       ActiveRecord::Base.transaction(requires_new: true) do

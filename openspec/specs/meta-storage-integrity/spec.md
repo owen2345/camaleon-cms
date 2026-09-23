@@ -550,8 +550,8 @@ written, both accessors SHALL read `nil`. The metas SHALL be written before the 
 `_default` meta given in `data_metas` merges with `data_options` instead of replacing them. When the
 transaction that wrote them is rolled back, they SHALL be queued again for the record's next save,
 keeping any value queued since, and a record whose creation was rolled back SHALL store the metas
-built before that save too; a rollback of a later transaction of the instance SHALL leave them
-written. A record whose creation is rolled back, whether or not it was given any, SHALL have the metas
+built before that save too, as a record whose update was rolled back SHALL store the metas built on it
+and not saved yet; a rollback of a later transaction of the instance SHALL leave them written. A record whose creation is rolled back, whether or not it was given any, SHALL have the metas
 it holds built again for its next save and SHALL read them, not a value it memoized before or while it
 was created. An update SHALL write them to the rows the record stores, the first update after its
 creation included, whatever another instance stored since. A post type SHALL fill its default options in
@@ -598,6 +598,13 @@ original's write and SHALL queue only values given to the copy.
   update given `data_options` and `data_metas` is rolled back by an enclosing transaction, and the
   instance is saved again
 - **THEN** a freshly loaded record reads the queued values and the meta set before the creation, each
+  stored once
+
+#### Scenario: An update rolled back after writing them, with a meta built before it
+
+- **WHEN** a saved post builds a meta, has an update given `data_options` rolled back by an enclosing
+  transaction, and is saved again
+- **THEN** it reads the built meta, and a freshly loaded post reads the meta and the options given, each
   stored once
 
 #### Scenario: The first update after a creation rolled back

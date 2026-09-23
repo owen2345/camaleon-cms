@@ -434,21 +434,22 @@ module CamaleonCms
 
     # The rows the rolled-back transaction wrote are gone while the metas in memory still claim them.
     # A record whose creation was rolled back had every meta of its written there: they are built again,
-    # so the next save stores them, and read, since the record is new again. A record that existed keeps
-    # its earlier rows, so its metas are dropped and read again on demand. Either way what the instance
-    # memoized is dropped: a record whose creation was rolled back takes back the id it had before the save,
-    # under which the values it memoized then would be read over the metas it holds. So are the direct writes
-    # rolled back with the save, whose rows are read again already.
+    # so the next save stores them, and read, since the record is new again, and the direct writes rolled
+    # back with it, whose rows these are, are forgotten. A record that existed keeps its earlier rows, and
+    # its save wrote through set_meta, which kept each key it wrote under the state rolled back now, so its
+    # next read, write or save drops those metas and reads the keys again, keeping the metas built and not
+    # saved yet (forget_rolled_back_meta_writes): ActiveRecord makes the metas the save stored new again only
+    # after this callback, so here a built one the save stored cannot be told from a stored row. Either way
+    # what the instance memoized is dropped: a record whose creation was rolled back takes back the id it had
+    # before the save, under which the values it memoized then would be read over the metas it holds.
     def forget_rolled_back_metas(created)
       if created
         built = metas.target.map { |meta| { key: meta.key, value: meta.value } }
         metas.reset
         built.each { |attributes| metas.build(attributes) }
-      else
-        metas.reset
+        @meta_write_states&.reject! { |state, _keys| state.rolledback? }
       end
       cama_clear_cache
-      @meta_write_states&.reject! { |state, _keys| state.rolledback? }
     end
 
     # A meta written or deleted directly while a transaction is open is undone by its rollback, which runs no
