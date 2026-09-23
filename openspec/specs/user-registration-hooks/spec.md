@@ -1,7 +1,11 @@
 # user-registration-hooks Specification
 
 ## Purpose
-TBD - created by archiving change user-registration-hooks. Update Purpose after archive.
+Define the contract of the `user_before_register` hook, the pre-save hook of the front-end registration flow
+(`cama_register_user`): it is broadcast to every installed plugin/theme handler and anonymous hook, fires only
+once the register captcha has passed, and lets a handler veto the registration by setting `stop_process`,
+with its own error or response or a generic error, and never a double render.
+
 ## Requirements
 ### Requirement: The registration pre-hook fires before the user is saved
 
