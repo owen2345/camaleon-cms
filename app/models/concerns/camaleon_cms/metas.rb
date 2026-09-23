@@ -408,8 +408,7 @@ module CamaleonCms
     # connection the thread holds, as a transaction runs on one: asking the model for its connection would
     # lease one to the thread for good, which a host can refuse (Rails 7.2+).
     def current_transaction_state
-      transaction = self.class.connection_pool.active_connection?&.current_transaction
-      transaction.state if transaction.respond_to?(:state)
+      self.class.connection_pool.active_connection?&.current_transaction&.state
     end
 
     # Refill data_options and data_metas from the last write when the transaction that ran it is rolled
