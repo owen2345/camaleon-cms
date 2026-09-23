@@ -200,6 +200,11 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   every memoized value in the callback, as it did: the options handed out, which the save's option write
   changed in place, kept the rolled-back option and read no later write, as did a list handed out for a key
   the save never wrote. Only a rolled-back creation drops the memo, for the id the record takes back.
+- A rolled-back creation is told apart by ActiveRecord's own filter on the rollback callback, `on: :create`,
+  which reads the record's state before its save; `previously_new_record?` still holds during the first update
+  after a create, so a rolled-back first update read as a rolled-back creation. Rejected, remembering the
+  creating transaction from an after-create callback and asking its state in the rollback callback: it
+  answered the same question as the filter, through an instance variable reset in four places.
 - A row whose update fails takes back the value it stores. ActiveRecord leaves the value a failed save
   assigned on the record, and the eager-loaded metas the re-read and every later read take the row from
   would read that value as stored. A save the meta model refuses without raising, by a validation or a
