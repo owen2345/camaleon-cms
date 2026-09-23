@@ -325,7 +325,6 @@ RSpec.describe CamaleonCms::Metas do
     it 'is forgotten once committed in a savepoint and no transaction is open' do
       post = create(:post, post_type: shared_post_type)
       ActiveRecord::Base.transaction(requires_new: true) { post.set_meta('probe', 'committed') }
-      post.get_meta('probe')
       expect(post.instance_variable_get(:@meta_write_states)).to be_present
 
       allow(post.class.connection_pool).to receive(:active_connection?).and_return(nil)
@@ -333,6 +332,33 @@ RSpec.describe CamaleonCms::Metas do
       allow(post.class.connection_pool).to receive(:active_connection?).and_call_original
 
       expect(post.instance_variable_get(:@meta_write_states)).to be_nil
+    end
+
+    # A write committed in a savepoint kept an entry of its own while a transaction stayed open around it, so a
+    # record written in many savepoints of one transaction rescanned every one before each read, write and save.
+    it 'keeps the writes committed in the savepoints of an open transaction under one entry' do
+      post = create(:post, post_type: shared_post_type)
+      ActiveRecord::Base.transaction(requires_new: true) do
+        3.times { |i| ActiveRecord::Base.transaction(requires_new: true) { post.set_meta("probe#{i}", i) } }
+        post.get_meta('probe0')
+        expect(post.instance_variable_get(:@meta_write_states).size).to eq(1)
+        raise ActiveRecord::Rollback
+      end
+
+      expect([post.get_meta('probe0'), post.get_meta('probe2')]).to eq([nil, nil])
+    end
+
+    it 'reads a write committed in a savepoint as stored once a later savepoint beside it is rolled back' do
+      post = create(:post, post_type: shared_post_type)
+      ActiveRecord::Base.transaction(requires_new: true) do
+        ActiveRecord::Base.transaction(requires_new: true) { post.set_meta('probe', 'committed') }
+        ActiveRecord::Base.transaction(requires_new: true) do
+          post.get_meta('probe')
+          raise ActiveRecord::Rollback
+        end
+
+        expect(post.get_meta('probe')).to eq('committed')
+      end
     end
 
     it 'reads a write committed in a savepoint again when the transaction around it is rolled back' do

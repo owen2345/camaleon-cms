@@ -177,6 +177,12 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   is committed and no transaction is open. A transaction rolled back around a savepoint marks the savepoint's
   state rolled back too, while its commit leaves that state committed, never fully committed, so a write in a
   savepoint kept its key for the instance's life, rescanned before every later read, write and save.
+- A write committed in a savepoint while a transaction stays open around it is kept under the state of the
+  transaction open now, which the rollback of any transaction around the savepoint marks rolled back too, as it
+  marks every state begun inside it, so the writes of the savepoints of one transaction share one entry.
+  Rejected, keeping an entry per savepoint: a record written in many savepoints of one transaction rescanned
+  every one before each read, write and save. The one cost: a later savepoint beside the committed one, rolled
+  back, has the keys read again from what is stored.
 - The transaction a write belongs to is read from the connection the thread holds, if any
   (`connection_pool.active_connection?`): a transaction runs on one. Rejected, asking the model for its
   `connection`: it leases one to the thread for good, which a host can refuse (Rails 7.2+

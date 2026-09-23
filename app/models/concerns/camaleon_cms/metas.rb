@@ -467,14 +467,22 @@ module CamaleonCms
     # it undid and whose values a rollback leaves as written, are dropped, and those keys' rows loaded again when
     # the metas were loaded, so every other key keeps the metas it holds, a built one included, and is still read
     # from memory; each key it wrote reads its row again, in place of a hash or a list the instance handed out.
-    # Run before each read, write and save, so none takes the rolled-back value or stores it again. A write that
-    # stands is forgotten.
+    # Run before each read, write and save, so none takes the rolled-back value or stores it again. A write stands,
+    # and is forgotten, once its transaction is fully committed, or a savepoint's is committed and no transaction is
+    # open. A savepoint's commit leaves its state committed, never fully committed, while the rollback of a
+    # transaction around it marks it rolled back, as it marks every state begun inside it, the one of the transaction
+    # open now included: so a write committed in a savepoint is kept under the transaction open now, and the writes
+    # of the savepoints of one transaction share its entry.
     def forget_rolled_back_meta_writes
       return if @meta_write_states.nil?
 
       rolled_back, pending = @meta_write_states.partition { |state, _keys| state.rolledback? }
-      pending.reject! { |state, _keys| meta_write_stands?(state) }
-      @meta_write_states = pending.to_h.presence
+      current = current_transaction_state
+      @meta_write_states = pending.each_with_object({}) do |(state, keys), kept|
+        next if state.fully_committed? || (state.committed? && current.nil?)
+
+        (kept[state.committed? ? current : state] ||= Set.new).merge(keys)
+      end.presence
       return if rolled_back.empty?
 
       keys = rolled_back.map(&:last).reduce(:|)
@@ -494,13 +502,6 @@ module CamaleonCms
     def forget_metas_of(keys)
       metas.target.reject! { |meta| keys.include?(meta.key) }
       metas.target.concat(metas.where(key: keys.to_a).to_a) if metas.loaded?
-    end
-
-    # A write stands once its transaction is fully committed, or a savepoint's is committed and no transaction is
-    # open: the rollback of a transaction around a savepoint marks the savepoint's state rolled back too, while
-    # its commit leaves that state committed, never fully committed
-    def meta_write_stands?(state)
-      state.fully_committed? || (state.committed? && current_transaction_state.nil?)
     end
 
     # The memo of key takes what the key's row reads as again: a hash or a list the instance handed out in
