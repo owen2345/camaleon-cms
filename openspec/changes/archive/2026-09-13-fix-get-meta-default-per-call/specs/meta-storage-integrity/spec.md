@@ -59,7 +59,8 @@ take the stored form in place, keeping the values it holds unchanged and its def
 the instance reads, unless it is frozen, when the stored form SHALL be memoized apart from it, so a hash
 `options` returned, and a hash or list nested in it that a write leaves unchanged, keep reading every
 later option write on the instance; when that write raises, refused or failed, the object
-SHALL take the form the key's stored row reads as again. A record not yet saved SHALL read a written value the
+SHALL take the form the key's stored row reads as again, and SHALL hold nothing when the row is gone or
+holds a value of another kind. A record not yet saved SHALL read a written value the
 same way until its first save, after which the instance reads what it stored. When the value is the record's options, `options` and `get_option` on that instance SHALL
 find an option by a String key or its Symbol twin, as a freshly loaded record does, whether the caller
 passed a plain Hash, request parameters or a JSON string. The hash `options` returns SHALL share nothing
@@ -155,6 +156,12 @@ write, the hash `options` returns, on a record's first options write too.
 - **WHEN** a post's metas are eager-loaded and storing a meta, or a list read from the post, changed in place
   and written back, fails in the database
 - **THEN** the post reads the value stored before the write, and the list holds it
+
+#### Scenario: A hash or a list handed out and written back by a failed write after its row was deleted
+
+- **WHEN** a post type's options, or a post's list, are read, changed in place, the row is deleted by another
+  instance, and the write back with `set_meta` is refused or fails
+- **THEN** the hash or the list holds nothing, and the record reads no value for the key
 
 #### Scenario: Options a caller passed to set_meta as a plain Hash
 

@@ -353,11 +353,14 @@ module CamaleonCms
     # Memoizes stored, the form a read returns for what key holds, in held, the Hash or the Array this
     # instance handed out for key, which takes it in place and stays memoized, so every reference to it keeps
     # reading the record; otherwise, a frozen one, one that stored does not fit or none held, stored itself.
-    # A String is never changed in place, since it may carry the translations String#translate memoized on
-    # it. Returns what it memoizes.
+    # A held one that stored does not fit, when a re-read finds the row gone or holding another kind of value,
+    # is emptied, so it reads nothing the record does not store. A String is never changed in place, since it
+    # may carry the translations String#translate memoized on it. Returns what it memoizes.
     def memoize_stored_form(key_str, held, stored)
-      in_place = (held.is_a?(Hash) || held.is_a?(Array)) && !held.frozen? && stored.is_a?(held.class)
-      cama_set_cache(meta_memo_key(key_str), in_place ? take_stored_form(held, stored) : stored)
+      in_place = (held.is_a?(Hash) || held.is_a?(Array)) && !held.frozen?
+      fits = in_place && stored.is_a?(held.class)
+      held.clear if in_place && !fits
+      cama_set_cache(meta_memo_key(key_str), fits ? take_stored_form(held, stored) : stored)
     end
 
     # Changes held in place to hold stored, keeping each value it already holds in its stored form, so a hash

@@ -141,7 +141,9 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   re-read the instance read a change nothing stored, and a post type whose refused decorator option
   stayed in its options refused every later option write. A direct write-back is the only way the memo
   holds a change before its write: the option writers write a copy. Where the row cannot be read either,
-  the memo is dropped for the next read.
+  the memo is dropped for the next read. Where it is gone, deleted by another instance, or holds a value of
+  another kind, the object is emptied: it cannot take that form, and it would otherwise hold the change the
+  write was to store.
 - A row whose update fails takes back the value it stores. ActiveRecord leaves the value a failed save
   assigned on the record, and the eager-loaded metas the re-read and every later read take the row from
   would read that value as stored.

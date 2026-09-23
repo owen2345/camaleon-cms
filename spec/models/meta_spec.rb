@@ -263,6 +263,22 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(post.get_meta('probe_gallery')).to equal(gallery)
     end
 
+    # A list written back by a write that fails, whose row another instance deleted meanwhile, holds nothing, as
+    # the record reads no value for the key, rather than the change nothing stored.
+    it 'empties a list written back by a write that fails once its row is gone' do
+      post = create(:post)
+      post.set_meta('probe_gallery', ['a.jpg'])
+      gallery = post.get_meta('probe_gallery')
+      gallery << 'b.jpg'
+      CamaleonCms::Post.find(post.id).delete_meta('probe_gallery')
+      allow(post).to receive(:write_meta_row).and_raise(ActiveRecord::StatementInvalid, 'write failed')
+
+      expect { post.set_meta('probe_gallery', gallery) }.to raise_error(ActiveRecord::StatementInvalid)
+
+      expect(gallery).to be_empty
+      expect(post.get_meta('probe_gallery', 'none')).to eq('none')
+    end
+
     # ActiveRecord leaves on a row the value its failed save assigned; the row takes back the value it stores,
     # so the eager-loaded metas a later read takes it from do not read a value nothing stored.
     it 'reads what is stored after a write the database refuses, with the metas loaded' do

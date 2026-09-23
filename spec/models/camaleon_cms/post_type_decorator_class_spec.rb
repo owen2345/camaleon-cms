@@ -121,6 +121,19 @@ RSpec.describe CamaleonCms::PostType, type: :model do
       expect(stored_post_type.get_option('has_tags')).to be(true)
     end
 
+    # With the options row deleted by another instance meanwhile, the options handed out hold nothing, as the
+    # post type reads no options, rather than the refused value.
+    it 'empties options it handed out whose write is refused once their row is gone' do
+      held = post_type.options
+      held[option] = 'Object'
+      described_class.find(post_type.id).delete_meta('_default')
+
+      expect { post_type.set_meta('_default', held) }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(held).to be_empty
+      expect(post_type.options).to eq({})
+    end
+
     it 'reads what is stored again when options it handed out are frozen, written back and refused' do
       held = post_type.options
       held[option] = 'Object'
