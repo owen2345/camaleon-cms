@@ -67,17 +67,29 @@ RSpec.describe CamaleonCms::Metas, type: :model do
       expect([record.get_option('status_default'), record.options.key?('color')]).to eq(['published', false])
     end
 
-    # A write that raises leaves the options as they were down to their nested values, whatever the writer
-    # changed in place.
-    it 'leaves a nested value a writer changed in place as it was stored' do
+    # The writers set or delete whole options on a copy, so a write that raises leaves a nested value as it was
+    # stored, the hash taken before the write included.
+    it 'leaves a nested value as it was stored' do
       record.set_option('layout', { 'columns' => 2 })
+      nested = record.options[:layout]
       allow(record).to receive(:meta_row).and_raise(ActiveRecord::StatementInvalid, 'write failed')
 
-      expect { record.send(:write_options, '_default') { |data| data[:layout][:columns] = 3 } }
-        .to raise_error(ActiveRecord::StatementInvalid)
+      expect { record.set_option('layout', { 'columns' => 3 }) }.to raise_error(ActiveRecord::StatementInvalid)
 
-      expect(record.get_option('layout')).to eq('columns' => 2)
+      expect([record.get_option('layout'), nested]).to eq([{ 'columns' => 2 }, { 'columns' => 2 }])
     end
+  end
+
+  # An option write copied the options down to every value they hold, though the writers only set or delete
+  # whole options: the values a write leaves alone are shared with the copy, not copied again on every write.
+  it 'copies the options an option write changes, not the values they hold' do
+    record.set_option('layout', { 'columns' => 2 })
+    nested = record.options[:layout]
+    expect(nested).not_to receive(:deep_dup)
+
+    record.set_option('status_default', 'published')
+
+    expect(record.options[:layout]).to equal(nested)
   end
 
   describe 'a container that is not a set of fields' do

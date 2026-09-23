@@ -312,16 +312,17 @@ module CamaleonCms
     # store, before anything is written; a model refuses a write by raising here. Nothing is refused here.
     def check_meta_write(_key, _stored); end
 
-    # The option writers change a copy of the options this instance holds, down to their nested values, and
-    # store it with set_meta. The options take the stored form only once it is stored, so a write that
-    # raises, refused or failed, leaves them as they were and the instance keeps reading what is stored.
+    # The option writers set or delete whole options on a copy of the options this instance holds, and store
+    # it with set_meta; they change no value in place, so the values the copy shares with the options are not
+    # copied. The options take the stored form only once it is stored, so a write that raises, refused or
+    # failed, leaves them as they were and the instance keeps reading what is stored.
     # They return the options the instance reads afterwards, the hash `options` returns, on a first options
     # write too: the options handed out take in place the form set_meta memoized for the copy, and are
     # memoized in its stead, so a hash `options` returned keeps reading every option write, unless it is
     # frozen, when the stored form stays memoized.
     def write_options(meta_key)
       options = cama_options(meta_key)
-      changed = options.deep_dup
+      changed = options.dup
       yield changed
       set_meta(meta_key, changed)
       key_str = meta_key.to_s
@@ -362,11 +363,12 @@ module CamaleonCms
 
     # Whether held is already value, in its stored form: the same class and value at every depth
     def same_stored_form?(held, value)
-      return false unless held.instance_of?(value.class) && (!value.respond_to?(:size) || held.size == value.size)
+      return false unless held.instance_of?(value.class)
 
       case value
-      when Hash then value.all? { |key, item| held.key?(key) && same_stored_form?(held[key], item) }
-      when Array then value.each_index.all? { |i| same_stored_form?(held[i], value[i]) }
+      when Hash
+        held.size == value.size && value.all? { |key, item| held.key?(key) && same_stored_form?(held[key], item) }
+      when Array then held.size == value.size && value.each_index.all? { |i| same_stored_form?(held[i], value[i]) }
       else held.eql?(value)
       end
     end

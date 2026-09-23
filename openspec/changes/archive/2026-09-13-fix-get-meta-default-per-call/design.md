@@ -154,9 +154,10 @@ stored form, on it too.
 - Rejected, returning the items of an Array that are not Strings as read: `the_meta` already read them as
   Strings on a loaded record, which themes may rely on, and an Array never raised.
 
-**An option write that raises leaves the options as stored.** The option writers change a deep copy of the
-options the instance holds and write it; once `set_meta` has stored it, the options handed out take the
-stored form in place and stay memoized. A write that raises, whether `PostType` refuses it or storing it
+**An option write that raises leaves the options as stored.** The option writers set or delete whole options
+on a copy of the options the instance holds and write it; once `set_meta` has stored it, the options handed
+out take the stored form in place and stay memoized. The copy shares the values it does not replace, which
+no writer changes in place, rather than copying every value the options hold on every write. A write that raises, whether `PostType` refuses it or storing it
 fails, never changed them, so the instance keeps reading what is stored without querying for it again, and
 nothing that reads the options while the write is checked sees it.
 `PostType#reject_unknown_decorator_class!` therefore neither drops the options memo nor resets the
