@@ -11,7 +11,8 @@ Writing an option with `set_option`, `set_options` or `delete_option` SHALL trea
 Symbol twin as the same option. A write SHALL replace the other type's entry rather than store the key
 twice. The writing instance SHALL read the option back by either key type, as a freshly loaded record
 does. `set_options` SHALL skip a nil key and store a key of another type, such as an Integer, under its
-text, as `set_option` does.
+text, as `set_option` does. An option writer SHALL leave the value passed as it was, the hashes in a list
+included.
 
 #### Scenario: A String-keyed option after Symbol-keyed defaults
 
@@ -36,6 +37,12 @@ text, as `set_option` does.
 - **WHEN** a post type and a post are given settings under a nil key, an Integer key and a Symbol key
 - **THEN** a freshly loaded record holds the Integer key's setting under its text and the Symbol key's,
   and nothing under the nil key
+
+#### Scenario: A list of hashes passed to an option writer
+
+- **WHEN** a list holding a hash and a list of hashes is written with `set_option`, `set_setting` or
+  `set_settings`
+- **THEN** the hashes in the caller's list are still the plain hashes passed
 
 ### Requirement: set_meta reads back on the writing instance as a reloaded record does
 

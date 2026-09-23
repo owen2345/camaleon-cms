@@ -195,6 +195,19 @@ RSpec.describe CamaleonCms::Meta, type: :model do
       expect(CamaleonCms::Post.find(post.id).get_meta('probe')).to eq('inner' => { 'size' => 'xl' }, 'count' => 2)
     end
 
+    # The options convert a list they are given in place, so an option writer gives them a copy of the lists
+    # and the hashes passed, at any depth, and the caller's value is left as passed.
+    it 'leaves a list of hashes passed to an option writer as it was' do
+      post = create(:post)
+      list = [{ 'key' => 'subtitle' }, [{ 'key' => 'nested' }]]
+
+      post.set_option(:skip_fields, list)
+      post.set_setting(:fields, list)
+
+      expect([list.first, list.last.first]).to all(be_instance_of(Hash))
+      expect(CamaleonCms::Post.find(post.id).get_option(:skip_fields)).to eq(list)
+    end
+
     # A hash read from the record, changed and written back stays the one the record reads, so writing it
     # back again after another write stores that write too.
     it 'stores a hash read from the record and written back whole, however often' do

@@ -100,7 +100,7 @@ module CamaleonCms
     def set_option(key, value = nil, meta_key = '_default')
       return if key.nil?
 
-      write_options(meta_key) { |data| data[key] = fix_meta_var(value) }
+      write_options(meta_key) { |data| data[key] = option_value(value) }
       value
     end
 
@@ -127,15 +127,12 @@ module CamaleonCms
     # set multiple configurations
     # h: {ket1: "sdsds", ff: "fdfdfdfd"}
     # Each key is written as set_option writes it: a nil key is skipped and any other stored under its text.
-    # The values are copied first, since the options convert a list they are given in place.
     def set_options(h = {}, meta_key = '_default')
       return if h.blank?
 
       refuse_invalid_container!(h)
       write_options(meta_key) do |data|
-        PluginRoutes.fixActionParameter(h).deep_dup.each do |key, value|
-          data[key] = fix_meta_var(value) unless key.nil?
-        end
+        PluginRoutes.fixActionParameter(h).each { |key, value| data[key] = option_value(value) unless key.nil? }
       end
     end
     alias set_multiple_options set_options
@@ -336,6 +333,12 @@ module CamaleonCms
       set_meta(meta_key, changed)
       key_str = meta_key.to_s
       memoize_stored_form(key_str, options, cama_get_cache(meta_memo_key(key_str)))
+    end
+
+    # What an option writer gives the options for a value passed: a copy, since the options convert a list they
+    # are given in place, with a String read as the number or the boolean it holds
+    def option_value(value)
+      fix_meta_var(value.deep_dup)
     end
 
     # Memoizes for key what a reload reads for the value written. When the value written is the Hash or the
