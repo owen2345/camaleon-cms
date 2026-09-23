@@ -71,6 +71,10 @@ value has no value, and the memoized value otherwise.
   holds the record's id, so a value memoized with none is read by no key once the INSERT assigns one, and
   the memo of a meta written before the save was kept for the instance's life beside the one read after
   it. No read changes; the other memoized reads keep their keys.
+- A copy made with `clone` keeps sharing the original's memo, as it shares its attributes and loaded
+  associations: ActiveRecord documents `clone` as a shallow copy of the same record, which reads and writes
+  the same rows under the same id, so a memo of its own would only read the metas the two share apart from
+  them. `dup`, a new record, starts with none.
 - Rejected, not memoizing misses: every repeated read of an absent key would query again. Absent keys are
   common: `thumb`, `summary`, `has_comments`, and plugin settings before their first save.
 - Rejected, memoizing per default: defaults are usually fresh literals, so the memo would never hit.
