@@ -251,8 +251,8 @@ Changes that look free from inside this repository and are not:
   `PostType#set_settings` and `Post#set_settings` now write every setting in one `set_options` call, which
   takes a Hash or request parameters, where they wrote one option per key of anything `each` yields pairs
   from; the one surveyed caller, `camaleon_website`'s CV theme, passes Hashes.
-  `set_meta` raises when a validation or a callback of `CamaleonCms::Meta` refuses the row, where it returned
-  as if the value were stored; no surveyed plugin, theme or host adds either to that model, which
+  `set_meta` raises when a validation or a callback of `CamaleonCms::Meta` refuses the row it updates or
+  creates, where it returned as if the value were stored; no surveyed plugin, theme or host adds either to that model, which
   `camaleon-ecommerce` and `camaleon_website`'s store plugin name only as an association's `class_name`.
 
 ## APIs with no surveyed consumer

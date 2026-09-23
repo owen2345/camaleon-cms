@@ -358,8 +358,10 @@ now returns what a freshly loaded record reads.
   rolled-back value on the object that wrote it: its next read reads what is stored, and its next save no
   longer stores again a meta the rollback removed.
 - `set_meta` raises `ActiveRecord::RecordInvalid` or `ActiveRecord::RecordNotSaved` when a validation or a
-  callback you added to `CamaleonCms::Meta` refuses the row, as it raises when the database refuses it,
-  instead of returning as if the value were stored and reading it back on the object that wrote it.
+  callback you added to `CamaleonCms::Meta` refuses the row it updates or creates, as it raises when the
+  database refuses it, instead of returning as if the value were stored and reading it back on the object
+  that wrote it. A meta set on a record not saved yet is stored by the record's save, which fails when the
+  meta is refused, as before.
 - `set_settings` on a post type or a post writes every setting in one options write, through `set_options`,
   instead of one per setting, so it takes what `set_options` takes, a Hash or request parameters, and a
   setting a post type refuses leaves the others unwritten.

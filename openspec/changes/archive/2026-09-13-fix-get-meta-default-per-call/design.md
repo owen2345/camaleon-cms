@@ -216,6 +216,9 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   would read that value as stored. A save the meta model refuses without raising, by a validation or a
   callback, raises as a failed one does: the write used `update` and `create`, whose false it took for
   stored, so the instance read the refused value, and a refused new row stayed among its loaded metas.
+  It raises for the row it updates or creates only: a meta set on a record not saved yet, which the creating
+  save's queued writes may set again, is stored by the metas autosave, whose refusal fails the record's save
+  instead (`save` returns false, `save!` raises `RecordInvalid`), as it did before.
 
 **Return the caller's own default.** It is not copied or memoized. The option writers keep working because
 they pass the options they change to `set_meta`, which memoizes the stored form of that object.
