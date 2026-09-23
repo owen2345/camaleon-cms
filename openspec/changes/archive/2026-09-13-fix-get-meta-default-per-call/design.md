@@ -165,6 +165,10 @@ value is memoized as a fresh stored form, and the caller's own object is left as
   other key from memory, where dropped they read a meta built for one as absent and queried each key once.
   Rejected, enlisting the record in the transaction: its rollback callbacks run only for a record its
   transaction saved.
+- A direct write stands, and its key is forgotten, once its transaction is fully committed, or a savepoint's
+  is committed and no transaction is open. A transaction rolled back around a savepoint marks the savepoint's
+  state rolled back too, while its commit leaves that state committed, never fully committed, so a write in a
+  savepoint kept its key for the instance's life, rescanned before every later read, write and save.
 - A rolled-back save that wrote the queues leaves its metas to the same next read, write or save. It wrote
   them through `set_meta`, which kept each key under the transaction's state, while ActiveRecord runs the
   record's rollback callbacks before it makes new again the metas the save stored, so the callback cannot

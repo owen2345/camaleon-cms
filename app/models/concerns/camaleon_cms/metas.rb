@@ -468,13 +468,13 @@ module CamaleonCms
     # values a rollback leaves as written, are dropped, keeping the metas built and not saved for other keys,
     # and loaded again when they were loaded, so every other key, a built meta's included, is still read from
     # memory; each key it wrote reads its row again, in place of a hash or a list the instance handed out. Run
-    # before each read, write and save, so none takes the rolled-back value or stores it again. A write whose
-    # transaction is fully committed stands and is forgotten.
+    # before each read, write and save, so none takes the rolled-back value or stores it again. A write that
+    # stands is forgotten.
     def forget_rolled_back_meta_writes
       return if @meta_write_states.nil?
 
       rolled_back = @meta_write_states.select { |state, _keys| state.rolledback? }
-      @meta_write_states.reject! { |state, _keys| state.rolledback? || state.fully_committed? }
+      @meta_write_states.reject! { |state, _keys| state.rolledback? || meta_write_stands?(state) }
       @meta_write_states = nil if @meta_write_states.empty?
       return if rolled_back.empty?
 
@@ -486,6 +486,13 @@ module CamaleonCms
       metas.load_target if loaded
       built.each { |attributes| metas.build(attributes) }
       keys.each { |key_str| reread_meta_memo(key_str) }
+    end
+
+    # A write stands once its transaction is fully committed, or a savepoint's is committed and no transaction is
+    # open: the rollback of a transaction around a savepoint marks the savepoint's state rolled back too, while
+    # its commit leaves that state committed, never fully committed
+    def meta_write_stands?(state)
+      state.fully_committed? || (state.committed? && !self.class.connection.transaction_open?)
     end
 
     # The memo of key takes what the key's row reads as again: a hash or a list the instance handed out in

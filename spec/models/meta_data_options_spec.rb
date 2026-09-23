@@ -300,6 +300,33 @@ RSpec.describe CamaleonCms::Metas do
       expect(CamaleonCms::Post.find(post.id).get_meta('probe')).to be_nil
     end
 
+    # A savepoint's state is committed when it is released, and never fully committed, so a write in it was kept
+    # for the instance's life and rescanned before every later read, write and save.
+    it 'is forgotten once committed in a savepoint and no transaction is open' do
+      post = create(:post, post_type: shared_post_type)
+      ActiveRecord::Base.transaction(requires_new: true) { post.set_meta('probe', 'committed') }
+      post.get_meta('probe')
+      expect(post.instance_variable_get(:@meta_write_states)).to be_present
+
+      allow(post.class.connection).to receive(:transaction_open?).and_return(false)
+      post.get_meta('probe')
+      allow(post.class.connection).to receive(:transaction_open?).and_call_original
+
+      expect(post.instance_variable_get(:@meta_write_states)).to be_nil
+    end
+
+    it 'reads a write committed in a savepoint again when the transaction around it is rolled back' do
+      post = create(:post, post_type: shared_post_type)
+      post.set_meta('probe', 'before')
+      ActiveRecord::Base.transaction(requires_new: true) do
+        ActiveRecord::Base.transaction(requires_new: true) { post.set_meta('probe', 'inner') }
+        expect(post.get_meta('probe')).to eq('inner')
+        raise ActiveRecord::Rollback
+      end
+
+      expect(post.get_meta('probe')).to eq('before')
+    end
+
     # The metas dropped to undo the write were read again from the database on demand, so a meta built and not
     # saved yet, which the loaded metas read, read as absent, and every other key cost a query of its own.
     it 'keeps the metas it loaded, and a meta built on them, for the other keys' do
