@@ -1,6 +1,12 @@
 module CamaleonCms
   module UserMethods
     extend ActiveSupport::Concern
+
+    # vars: defined once, here, and read through the concern by every model including it; the included block
+    # assigned them to the concern again for each such model
+    STATUS = { 0 => 'Active', 1 => 'Not Active' }.freeze
+    ROLE = { 'admin' => 'Administrator', 'client' => 'Client' }.freeze
+
     included do
       include CamaleonCms::Metas
       include CamaleonCms::CustomFieldsRead
@@ -44,10 +50,6 @@ module CamaleonCms
       scope :admin_scope, -> { where(role: 'admin') }
       scope :actives, -> { where(active: 1) }
       scope :not_actives, -> { where(active: 0) }
-
-      # vars
-      STATUS = { 0 => 'Active', 1 => 'Not Active' }.freeze
-      ROLE = { 'admin' => 'Administrator', 'client' => 'Client' }.freeze
 
       def self.decorator_class
         'CamaleonCms::UserDecorator'.constantize

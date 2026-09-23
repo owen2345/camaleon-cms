@@ -24,4 +24,16 @@ RSpec.describe CamaleonCms::User, type: :model do
       expect(user.widgets).to include(widget)
     end
   end
+
+  # UserMethods set STATUS and ROLE in the block it runs on each model including it, which assigned them to the
+  # concern again, so a second model including it warned that both were already initialized.
+  describe 'the constants of CamaleonCms::UserMethods' do
+    it 'are defined once, however many models include the concern' do
+      stub_const('SpecSecondUser', Class.new(ActiveRecord::Base)) # rubocop:disable Rails/ApplicationRecord
+      SpecSecondUser.table_name = described_class.table_name
+
+      expect { SpecSecondUser.include(CamaleonCms::UserMethods) }.not_to output.to_stderr
+      expect([SpecSecondUser::STATUS, SpecSecondUser::ROLE]).to eq([described_class::STATUS, described_class::ROLE])
+    end
+  end
 end
