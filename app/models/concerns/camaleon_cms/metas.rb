@@ -422,14 +422,15 @@ module CamaleonCms
     # is rolled back are built again whether or not it wrote any.
     def requeue_metas_options
       options, metas, state = @written_metas_options
+      written = state&.rolledback?
       created = @creating_transaction_state&.rolledback?
-      if state&.rolledback?
+      return unless written || created
+
+      if written
         @written_metas_options = nil
         self.data_options = options if data_options.blank?
         self.data_metas = metas if data_metas.blank?
       end
-      return unless created || state&.rolledback?
-
       @creating_transaction_state = nil if created
       forget_rolled_back_metas(created)
     end
@@ -473,12 +474,12 @@ module CamaleonCms
     def forget_rolled_back_meta_writes
       return if @meta_write_states.nil?
 
-      rolled_back = @meta_write_states.select { |state, _keys| state.rolledback? }
-      @meta_write_states.reject! { |state, _keys| state.rolledback? || meta_write_stands?(state) }
-      @meta_write_states = nil if @meta_write_states.empty?
+      rolled_back, pending = @meta_write_states.partition { |state, _keys| state.rolledback? }
+      pending.reject! { |state, _keys| meta_write_stands?(state) }
+      @meta_write_states = pending.to_h.presence
       return if rolled_back.empty?
 
-      keys = rolled_back.values.reduce(:|)
+      keys = rolled_back.map(&:last).reduce(:|)
       built = metas.target.select { |m| m.new_record? && keys.exclude?(m.key) }
                    .map { |m| { key: m.key, value: m.value } }
       loaded = metas.loaded?
