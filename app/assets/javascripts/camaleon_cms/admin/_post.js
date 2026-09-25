@@ -305,7 +305,10 @@ function cama_init_post(obj) {
     // Bound before the validator's handler, so a submit held here is stopped before validation or any
     // other listener sees it, and each of them runs once, when the held submit is dispatched again.
     $form.submit(function (e) {
-        if (!$(this).valid()) return;
+        // A submit the validator was told to let through (cancelSubmit: a Cancel or formnovalidate
+        // button, the recover-draft path below) is let through here too, not validated on its way.
+        var validator = $(this).data('validator');
+        if (!(validator && validator.cancelSubmit) && !$(this).valid()) return;
         if (saving && releasing_form !== this) {
             if (!held_form) {
                 held_form = this;

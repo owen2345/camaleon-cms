@@ -768,6 +768,25 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading')
   end
 
+  # The submit handler runs the validator first, so a held submit is a valid one. A submit the validator
+  # was told to let through (cancelSubmit: a Cancel or formnovalidate submit button, and the recover-draft
+  # path, which recovers a buffer whatever it holds) must be let through the same way: validating it
+  # painted errors under the required title and skipped the submitted mark.
+  it 'lets a submit the validator was told to skip through without validating it' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    # The title is empty, so validation would refuse. A listener behind the validator's keeps the page.
+    page.execute_script(<<~JS)
+      $('body').on('submit', 'form#form-post', function () { return false; });
+      $('#form-post').data('validator').cancelSubmit = true;
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_no_css('#form-post label.error', visible: :all)
+    expect(page.evaluate_script('$("#form-post").data("submitted")')).to eq(1)
+  end
+
   it 'saves the draft and returns to the post list on Save Draft' do
     visit new_post_path
     wait_for_editor_baseline
