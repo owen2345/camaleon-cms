@@ -147,10 +147,10 @@ function cama_init_post(obj) {
         if (saving) showLoading(); else send_held_submit();
     }
 
-    // The held submit was stopped before validation or any other listener saw it (see the submit handler),
-    // so it is dispatched again in full: validation, every listener, those delegated from an ancestor
-    // included (camaleon_admin_ajax submits the form in place from one), and the form's default action
-    // run once, now. The overlay comes down first: whatever the submit does from here, it does on its own.
+    // The held submit was stopped before validation and the listeners bound after this script's saw it
+    // (see the submit handler), so it is dispatched again in full: validation, those listeners, the ones
+    // delegated from an ancestor included (camaleon_admin_ajax submits the form in place from one), and
+    // the form's default action run once, now. The overlay comes down first: whatever the submit does from here, it does on its own.
     // It is sent to the form it was held on: with pages loading in place, another form can be set up
     // while the hold waits (the browser's Back button is not under the overlay), and one that left the
     // page is not sent at all; the overlay the hold put up still comes down, or the page is dead under it.
@@ -337,8 +337,9 @@ function cama_init_post(obj) {
     }));
 
     /*********** control save changes before unload form. ***************/
-    // Bound before the validator's handler, so a submit held here is stopped before validation or any
-    // other listener sees it, and each of them runs once, when the held submit is dispatched again.
+    // Bound before the validator's handler, so a submit held here is stopped before validation and the
+    // listeners bound after this one see it, and each of them runs once, when the held submit is
+    // dispatched again. One bound on the form before the editor was set up has seen it by then.
     $form.submit(function (e) {
         // A submit the validator was told to let through (cancelSubmit: a Cancel or formnovalidate
         // button, the recover-draft path below) is let through here too, not validated on its way.
