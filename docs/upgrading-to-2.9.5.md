@@ -29,6 +29,7 @@ what theme/plugin developers should know.
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
+| Has plugin or theme code that calls `window.save_draft` / `App_post.save_draft_ajax` and reads the draft right after the call | The save is asynchronous now: read it in the callback ([details](#the-post-editors-draft-save-is-asynchronous)) |
 
 ---
 
@@ -368,6 +369,14 @@ now returns what a freshly loaded record reads.
 - `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read, where
   they raised on a loaded record. A String still reads through the locale, and so does every item of an
   Array, as a String whatever it holds: `[1, true]` reads as `['1', 'true']`, as it did before.
+
+### The post editor's draft save is asynchronous
+
+`window.save_draft(callback)` (the same function as `App_post.save_draft_ajax`) no longer blocks the
+page: it returns at once and runs `callback(response)` when the save succeeds, where it used to run it
+before returning. Code that reads the draft id, `#post_draft_id` or the Preview link right after the call
+should read them in the callback. A third argument, `on_failure`, runs when the save is refused or the
+request fails. A call made while a save is running waits for it, so the draft id it returns is reused.
 
 ---
 
