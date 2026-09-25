@@ -95,6 +95,23 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Second')
   end
 
+  # A queued timer call finds nothing new to send once the save ahead of it has run, and returns
+  # without a request; the saves queued behind it must still run.
+  it 'runs the saves queued behind a timer call that had nothing to send' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    page.execute_script(<<~JS)
+      $('#post_title').val('Queued').trigger('keyup');
+      App_post.save_draft_ajax(null, false);
+      App_post.save_draft_ajax(null, true);
+      App_post.save_draft_ajax(function () { window.queuedSaveRan = true; }, false);
+    JS
+    wait_for_ajax
+
+    expect(page.evaluate_script('window.queuedSaveRan')).to be(true)
+  end
+
   # The load snapshot was taken on a two-second timer. An editor that came up later rewrote its
   # textarea in TinyMCE's normalized form, so an untouched post read as edited: the timer autosaved
   # it and leaving the page asked to confirm discarding changes that were never made.

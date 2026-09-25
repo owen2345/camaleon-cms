@@ -66,8 +66,8 @@ function cama_init_post(obj) {
             },
             complete: function () {
                 saving = false;
-                var next = queued_saves.shift();
-                if (next) App_post.save_draft_ajax.apply(null, next);
+                // A queued timer call with nothing to send returns without saving, so go on to the next.
+                while (!saving && queued_saves.length) App_post.save_draft_ajax.apply(null, queued_saves.shift());
             },
             dataType: 'json'
         });
