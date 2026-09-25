@@ -388,6 +388,28 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
+  # The fields are matched against the editors read by id. A field whose id is a name every object
+  # inherits (`constructor`) was taken for an editor and dropped from the comparison, so an edit to it
+  # was never autosaved.
+  it 'autosaves an edit to a field whose id is an inherited object property name' do
+    visit new_post_path
+    wait_for_editor_baseline
+    count_draft_saves
+
+    # A save the user asks for always sends, and records the form with the new field in it.
+    page.execute_script(<<~JS)
+      $('#form-post').append('<input type="hidden" id="constructor" name="constructor_probe" value="">');
+      App_post.save_draft_ajax(null, false);
+    JS
+    wait_for_ajax
+    expect(draft_saves).to eq(1)
+
+    page.execute_script("$('#constructor').val('edited');")
+    autosave_tick
+
+    expect(draft_saves).to eq(2)
+  end
+
   # The comparison reads the editors themselves, and a save sends what they hold.
   it 'autosaves an edit made in the editor alone' do
     visit new_post_path

@@ -452,7 +452,10 @@ function cama_init_post(obj) {
         $.each(tinymce.editors, function (i, editor) {
             if (editor.initialized && in_form(editor)) editors[editor.id] = editor.getContent(); // still loading: its textarea holds the server value
         });
-        var fields = $form.find(':input').not('#post_draft_id, .translated-item').filter(function () { return !(this.id in editors); });
+        // An own-property check: `in` would also match an id every object inherits, like `constructor`.
+        var fields = $form.find(':input').not('#post_draft_id, .translated-item').filter(function () {
+            return !Object.prototype.hasOwnProperty.call(editors, this.id);
+        });
         return fields.serialize() + '&' + $.param(editors);
     }
 
