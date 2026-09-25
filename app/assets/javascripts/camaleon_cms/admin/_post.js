@@ -461,6 +461,7 @@ function cama_init_post(obj) {
             taken = true;
             clearTimeout(give_up);
             tinymce.off('AddEditor', watch_editor);
+            $.each(tinymce.editors, function (i, editor) { editor.off('init', check); });
             // The editor was set up on another form meanwhile (admin pages load in place, and the form
             // read here is the one the script was last set up on): that form takes its own baseline.
             if ($form[0] !== form) return;
