@@ -23,7 +23,8 @@ function cama_init_post(obj) {
     // last successful draft save sent, so the minute timer sends only what changed since. One save runs
     // at a time: a save requested meanwhile waits for the draft id the running one returns, so a new
     // post never gets a second buffer, and a form submitted meanwhile is sent once the draft id is in it,
-    // or after App_post.submit_wait_ms if the save has not returned by then.
+    // or after App_post.submit_wait_ms if the save has not returned by then. A save that has not returned
+    // after App_post.save_timeout_ms fails.
     var saved_hash = null;
     var saving = false;
     var queued_saves = [];
@@ -31,6 +32,7 @@ function cama_init_post(obj) {
     var submit_wait_timer = null;
     var submit_without_waiting = false;
     App_post.submit_wait_ms = 15000;
+    App_post.save_timeout_ms = 30000;
 
     // on_failure runs when the save is refused or the request fails.
     App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
@@ -78,7 +80,10 @@ function cama_init_post(obj) {
                     save_finished();
                 }
             },
-            dataType: 'json'
+            dataType: 'json',
+            // A save that has not returned after this long is taken as failed, so a stalled request
+            // does not keep the editor from saving or previewing until the browser gives up on it.
+            timeout: App_post.save_timeout_ms
         });
     };
 

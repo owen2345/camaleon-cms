@@ -376,7 +376,8 @@ now returns what a freshly loaded record reads.
 page: it returns at once and runs `callback(response)` when the save succeeds, where it used to run it
 before returning. Code that reads the draft id, `#post_draft_id` or the Preview link right after the call
 should read them in the callback. A third argument, `on_failure`, runs when the save is refused or the
-request fails. A call made while a save is running waits for it, so the draft id it returns is reused.
+request fails, including a save that has not returned after `App_post.save_timeout_ms` (30 seconds). A call
+made while a save is running waits for it, so the draft id it returns is reused.
 Submitting the post while a save is running shows the loading overlay and sends the form when the save
 finishes, or after `App_post.submit_wait_ms` (15 seconds) if it has not.
 
