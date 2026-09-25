@@ -13,9 +13,10 @@ describe 'Post editor draft autosave', :js do
   end
 
   # Waits until the editor has taken the form's baseline snapshot, which the autosave compares against.
+  # The editor stops waiting for its TinyMCE editors after ten seconds, so the bound is above that.
   def wait_for_editor_baseline
     expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
-    Timeout.timeout(Capybara.default_max_wait_time * 2) do
+    Timeout.timeout(15) do
       sleep(0.1) until page.evaluate_script('$("#form-post").data("hash") !== undefined')
     end
   end
