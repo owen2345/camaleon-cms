@@ -357,8 +357,10 @@ function cama_init_post(obj) {
             setTimeout(function () { take_baseline_when_ready(waited + 100); }, 100);
             return;
         }
-        saved_hash = get_hash_form();
-        $form.data("hash", saved_hash);
+        var hash = get_hash_form();
+        // A draft save that ran meanwhile already recorded what it sent; later edits are still unsaved.
+        if (saved_hash === null) saved_hash = hash;
+        $form.data("hash", hash);
     }
 
     function editors_ready() {
