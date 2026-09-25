@@ -112,6 +112,25 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.queuedSaveRan')).to be(true)
   end
 
+  # Submitting the post while an autosave of the new post is in flight used to post an empty draft id,
+  # so the buffer that save created was never discarded. The submit now waits for the draft id.
+  it 'discards the new post buffer when the post is submitted during an autosave' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Submitted during autosave'
+
+    page.execute_script(<<~JS)
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      App_post.save_draft_ajax(null, true);
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true)
+    expect(CamaleonCms::Post.find_by(title: 'Submitted during autosave', status: 'published')).to be_present
+    expect(new_post_buffers).to be_empty
+  end
+
   # The load snapshot was taken on a two-second timer. An editor that came up later rewrote its
   # textarea in TinyMCE's normalized form, so an untouched post read as edited: the timer autosaved
   # it and leaving the page asked to confirm discarding changes that were never made.
