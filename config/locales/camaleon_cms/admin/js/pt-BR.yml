@@ -6,6 +6,7 @@ pt-BR:
         msg:
           approved: 'Aprovado'
           draft: 'Rascunho salvo com sucesso'
+          draft_save_failed: 'Não foi possível salvar o rascunho'
           updated_success: 'Atualizado com sucesso'
           edit_menu: 'Posicione cada item na ordem de sua preferência. Clique no ícone do lápis para editar o item e clique no formato de X para deletar o item.'
           delete_item: 'Realmente deseja deletar esse item?'

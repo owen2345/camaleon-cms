@@ -6,6 +6,7 @@ it:
         msg:
           approved: 'Approvato'
           draft: 'Bozza salvata'
+          draft_save_failed: 'Impossibile salvare la bozza'
           label_required: "ergoineroinregfoin"
           placeholder_required: "rofmfvopfrmpvo"
           updated_success: 'Aggiornato'
