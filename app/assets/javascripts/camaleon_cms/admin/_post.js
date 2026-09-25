@@ -27,7 +27,6 @@ function cama_init_post(obj) {
     var saved_hash = null;
     var saving = false;
     var queued_saves = [];
-    var submit_after_save = false;
     var submit_wait_timer = null;
     var held_form = null;
     var releasing_form = null;
@@ -101,7 +100,7 @@ function cama_init_post(obj) {
                 try {
                     // A save the user asked for says it failed; the timer's is retried a minute later, and a
                     // held submit is sent right after this (the post save reports for itself).
-                    if (!called_from_interval && !submit_after_save) {
+                    if (!called_from_interval && !held_form) {
                         $.fn.alert({type: 'error', title: I18n("msg.draft_save_failed", "The draft could not be saved"), icon: "times"});
                     }
                     if (on_failure) on_failure();
@@ -122,7 +121,7 @@ function cama_init_post(obj) {
         // run from here, not through App_post.save_draft_ajax: a wrapper a plugin put there already ran
         // when the call was made.
         while (!saving && queued_saves.length) save_draft_ajax.apply(null, queued_saves.shift());
-        if (!submit_after_save) return;
+        if (!held_form) return;
         // A hold that goes on waiting, for the queued save just started, needs the overlay put back: the
         // finished save's caller (Preview, Save Draft) takes it down in its callback.
         if (saving) showLoading(); else send_held_submit();
@@ -145,7 +144,6 @@ function cama_init_post(obj) {
     }
 
     function drop_hold() {
-        submit_after_save = false;
         held_form = null;
         clearTimeout(submit_wait_timer);
     }
@@ -309,8 +307,7 @@ function cama_init_post(obj) {
     $form.submit(function (e) {
         if (!$(this).valid()) return;
         if (saving && releasing_form !== this) {
-            if (!submit_after_save) {
-                submit_after_save = true;
+            if (!held_form) {
                 held_form = this;
                 showLoading();
                 // A stalled save must not keep the post from being saved: on a new post this may
