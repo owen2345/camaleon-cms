@@ -25,7 +25,7 @@ module CamaleonCms
         if @site.update(params.require(:site).permit(:name, :slug, :description))
           @site.set_options(params[:options]) if params[:options].present?
           @site.set_metas(params[:metas]) if params[:metas].present?
-          @site.set_field_values(cama_permitted_field_options('Site'))
+          @site.set_field_values(cama_permitted_field_options('Site', field_groups: @site.get_field_groups))
           flash[:notice] = t('camaleon_cms.admin.settings.message.site_updated')
           args = { action: :site }
           args[:host], args[:port] = @site.get_domain.to_s.split(':') if cache_slug != @site.slug
@@ -62,10 +62,12 @@ module CamaleonCms
       end
 
       def save_theme
-        current_theme.set_field_values(cama_permitted_field_options('Theme', param_key: :theme_fields))
+        theme_groups = current_theme.get_field_groups
+        current_theme.set_field_values(cama_permitted_field_options('Theme', param_key: :theme_fields,
+                                                                             field_groups: theme_groups))
         current_theme.set_options(params[:theme_option]) if params[:theme_option].present?
         current_theme.set_metas(params[:theme_meta]) if params[:theme_meta].present?
-        current_theme.set_field_values(cama_permitted_field_options('Theme'))
+        current_theme.set_field_values(cama_permitted_field_options('Theme', field_groups: theme_groups))
 
         # permit saving extra/custom values by this hook
         hook_run(current_theme.settings, 'on_theme_settings', current_theme)

@@ -32,7 +32,7 @@ module CamaleonCms
         hooks_run('before_update_post_tag', args)
         if @post_tag.update(post_tag_params)
           @post_tag.set_options(params[:meta]) if params[:meta].present?
-          @post_tag.set_field_values(cama_permitted_field_options('PostType_PostTag'))
+          @post_tag.set_field_values(permitted_post_tag_field_options)
           hooks_run('after_update_post_tag', args)
           flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
           redirect_to action: :index
@@ -48,7 +48,7 @@ module CamaleonCms
         hooks_run('before_create_post_tag', args)
         if @post_tag.save
           @post_tag.set_options(params[:meta]) if params[:meta].present?
-          @post_tag.set_field_values(cama_permitted_field_options('PostType_PostTag'))
+          @post_tag.set_field_values(permitted_post_tag_field_options)
           hooks_run('after_create_post_tag', args)
           flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
           redirect_to action: :index
@@ -72,6 +72,11 @@ module CamaleonCms
       end
 
       private
+
+      # The tag form renders the post type's tag groups; the save permits exactly those.
+      def permitted_post_tag_field_options
+        cama_permitted_field_options('PostType_PostTag', field_groups: @post_type.get_field_groups('PostTag'))
+      end
 
       # parent_id is the owning post type's id, set from the @post_type association on create; it is not
       # accepted from the request so a tag cannot be moved under another post type or site (H8).

@@ -26,7 +26,7 @@ module CamaleonCms
 
         if @category.update(params.require(:category).permit(:name, :slug, :description, :parent_id))
           @category.set_options(params[:meta])
-          @category.set_field_values(cama_permitted_field_options('PostType_Category'))
+          @category.set_field_values(permitted_category_field_options)
           hooks_run('updated_category', { category: @category, post_type: @post_type })
           flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
           redirect_to action: :index
@@ -41,7 +41,7 @@ module CamaleonCms
 
         if @category.save
           @category.set_options(params[:meta])
-          @category.set_field_values(cama_permitted_field_options('PostType_Category'))
+          @category.set_field_values(permitted_category_field_options)
           hooks_run('created_category', { category: @category, post_type: @post_type })
           flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
           redirect_to action: :index
@@ -65,6 +65,11 @@ module CamaleonCms
       end
 
       private
+
+      # The category form renders the post type's category groups; the save permits exactly those.
+      def permitted_category_field_options
+        cama_permitted_field_options('PostType_Category', field_groups: @post_type.get_field_groups('Category'))
+      end
 
       # The parent dropdown offers the post type itself or one of its own categories. A parent_id naming
       # anything else would re-home the category under another post type or site, so it is rejected

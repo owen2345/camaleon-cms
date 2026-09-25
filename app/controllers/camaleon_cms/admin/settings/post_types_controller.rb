@@ -24,7 +24,7 @@ module CamaleonCms
 
         def update
           if @post_type.update(@data_term)
-            @post_type.set_field_values(cama_permitted_field_options('PostType')) if params[:field_options].present?
+            @post_type.set_field_values(permitted_post_type_field_options) if params[:field_options].present?
             hooks_run('updated_post_type', { post_type: @post_type })
             flash[:notice] = t('camaleon_cms.admin.post_type.message.updated')
             redirect_to action: :index
@@ -36,7 +36,7 @@ module CamaleonCms
         def create
           @post_type = current_site.post_types.new(@data_term)
           if @post_type.save
-            @post_type.set_field_values(cama_permitted_field_options('PostType')) if params[:field_options].present?
+            @post_type.set_field_values(permitted_post_type_field_options) if params[:field_options].present?
             hooks_run('created_post_type', { post_type: @post_type })
             flash[:notice] = t('camaleon_cms.admin.post_type.message.created')
             redirect_to action: :index
@@ -51,6 +51,11 @@ module CamaleonCms
         end
 
         private
+
+        # The post type form renders the post type's own groups; the save permits exactly those.
+        def permitted_post_type_field_options
+          cama_permitted_field_options('PostType', field_groups: @post_type.get_field_groups('post_type'))
+        end
 
         # A post's blank template/layout falls back to the post type's `default_template`/
         # `default_layout`, which the frontend renders the same way, so a non-admin's post type option is
