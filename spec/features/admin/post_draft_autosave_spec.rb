@@ -154,6 +154,31 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers).to be_empty
   end
 
+  # A draft save that never returns must not block the post: the held submit shows the loading overlay
+  # and is sent anyway once App_post.submit_wait_ms has passed.
+  it 'submits the post after a while when the draft save in flight never returns' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Submitted during a stalled save'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (/\\/drafts(\\/|$)/.test(options.url)) return $.Deferred().promise();
+        return ajax.apply(this, arguments);
+      };
+      App_post.submit_wait_ms = 2000;
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true)
+    expect(CamaleonCms::Post.find_by(title: 'Submitted during a stalled save', status: 'published')).to be_present
+  end
+
   # The load snapshot was taken on a two-second timer. An editor that came up later rewrote its
   # textarea in TinyMCE's normalized form, so an untouched post read as edited: the timer autosaved
   # it and leaving the page asked to confirm discarding changes that were never made.

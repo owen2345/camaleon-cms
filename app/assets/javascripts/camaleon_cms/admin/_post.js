@@ -22,11 +22,15 @@ function cama_init_post(obj) {
     // the leave-page prompt reads too, is taken once the editors are ready; saved_hash is the state the
     // last successful draft save sent, so the minute timer sends only what changed since. One save runs
     // at a time: a save requested meanwhile waits for the draft id the running one returns, so a new
-    // post never gets a second buffer, and a form submitted meanwhile is sent once the draft id is in it.
+    // post never gets a second buffer, and a form submitted meanwhile is sent once the draft id is in it,
+    // or after App_post.submit_wait_ms if the save has not returned by then.
     var saved_hash = null;
     var saving = false;
     var queued_saves = [];
     var submit_after_save = false;
+    var submit_wait_timer = null;
+    var submit_without_waiting = false;
+    App_post.submit_wait_ms = 15000;
 
     // on_failure runs when the save is refused or the request fails.
     App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
@@ -82,10 +86,13 @@ function cama_init_post(obj) {
         saving = false;
         // A queued timer call with nothing to send returns without saving, so go on to the next.
         while (!saving && queued_saves.length) App_post.save_draft_ajax.apply(null, queued_saves.shift());
-        if (!saving && submit_after_save) {
-            submit_after_save = false;
-            $form.submit();
-        }
+        if (!saving && submit_after_save) send_held_submit();
+    }
+
+    function send_held_submit() {
+        submit_after_save = false;
+        clearTimeout(submit_wait_timer);
+        $form.submit();
     }
 
     function set_preview_draft_id() {
@@ -316,8 +323,17 @@ function cama_init_post(obj) {
         /*********** control save changes before unload form. ***************/
         $form.submit(function () {
             if (!$(this).valid()) return;
-            if (saving) {
-                submit_after_save = true;
+            if (saving && !submit_without_waiting) {
+                if (!submit_after_save) {
+                    submit_after_save = true;
+                    showLoading();
+                    // A stalled save must not keep the post from being saved: on a new post this may
+                    // leave that save's buffer behind, which is the lesser loss.
+                    submit_wait_timer = setTimeout(function () {
+                        submit_without_waiting = true;
+                        send_held_submit();
+                    }, App_post.submit_wait_ms);
+                }
                 return false;
             }
             $form.data("submitted", 1);
