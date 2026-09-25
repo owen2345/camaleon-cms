@@ -473,8 +473,11 @@ describe 'Post editor draft autosave', :js do
     preview = window_opened_by { find('.btn-preview').click }
 
     within_window(preview) do
-      expect(page).to have_text('Previewed title')
+      # The URL first: the window is sent from about:blank to the draft once the save returns, and a
+      # text query that spans that navigation holds nodes of the document being replaced.
+      expect(page).to have_current_path(/draft_id=\d+\z/, url: true)
       expect(page).to have_current_path(/draft_id=#{new_post_buffers.order(:id).last.id}\z/, url: true)
+      expect(page).to have_text('Previewed title')
     end
   end
 
@@ -500,8 +503,11 @@ describe 'Post editor draft autosave', :js do
     preview = window_opened_by { find('.btn-preview').click }
 
     within_window(preview) do
-      expect(page).to have_text('Queued preview title', wait: 10)
+      # The window leaves about:blank once both saves are through. Its URL is read first: a text query
+      # that spans the navigation holds nodes of the document being replaced, which Chrome refuses.
+      expect(page).to have_current_path(/draft_id=\d+\z/, url: true, wait: 10)
       expect(page).to have_current_path(/draft_id=#{new_post_buffers.order(:id).last.id}\z/, url: true)
+      expect(page).to have_text('Queued preview title')
     end
     expect(new_post_buffers.count).to eq(1)
   end
