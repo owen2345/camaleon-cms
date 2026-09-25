@@ -407,9 +407,9 @@ function cama_init_post(obj) {
 
     function editors_ready() {
         var ready = true;
+        // A textarea the editor has not been created for yet; one created but still loading is caught below.
         $form.find('.tinymce_textarea:not(.translated-item)').each(function () {
-            var editor = tinymce.get(this.id);
-            if (!editor || !editor.initialized) ready = false;
+            if (!tinymce.get(this.id)) ready = false;
         });
         $.each(tinymce.editors, function (i, editor) {
             if (!editor.initialized && $.contains($form[0], editor.getElement())) ready = false;
