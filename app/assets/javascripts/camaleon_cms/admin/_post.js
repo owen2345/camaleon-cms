@@ -186,7 +186,8 @@ function cama_init_post(obj) {
         }, false, hideLoading);
     }
     if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
-    window["post_editor_draft_intrval"] = setInterval(function () { if($form.length == 0){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 1 * 60 * 1000);
+    // Stops once the form has left the page: $form keeps the element after it is removed, so its length says nothing.
+    window["post_editor_draft_intrval"] = setInterval(function () { if(!$.contains(document, post_form)){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 1 * 60 * 1000);
     window.save_draft = App_post.save_draft_ajax;
 
     if($form.find(".title-post" + class_translate).length == 0) class_translate = '';
