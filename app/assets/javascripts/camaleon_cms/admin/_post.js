@@ -42,6 +42,7 @@ function cama_init_post(obj) {
         var hash = get_hash_form();
         if (called_from_interval && (saved_hash === null || hash == saved_hash)) return;
 
+        sync_editors();
         var data = $form.serializeObject();
         data._method = post_draft_id ? 'patch' : 'post';
         data.post_id = post_id;
@@ -434,14 +435,27 @@ function cama_init_post(obj) {
         return ready;
     }
 
-    // The draft id is left out: a save filling it in is not an edit.
+    // A read: each editor's content is taken from the editor and its textarea is left alone, so what a
+    // plugin wrote into a textarea itself is not rewritten in TinyMCE's serialization by a comparison.
+    // Left out: the draft id (a save filling it in is not an edit) and the hidden original of a
+    // translated field, composed from the per-language copies that are read.
     function get_hash_form() {
+        var editors = {};
         // $.each walks the indexes only: TinyMCE keys the array by editor id too, so for..in visits each twice.
         $.each(tinymce.editors, function (i, editor) {
-            if (!editor.initialized) return; // still loading, its textarea holds the server value
+            if (editor.initialized) editors[editor.id] = editor.getContent(); // still loading: its textarea holds the server value
+        });
+        var fields = $form.find(':input').not('#post_draft_id, .translated-item').filter(function () { return !(this.id in editors); });
+        return fields.serialize() + '&' + $.param(editors);
+    }
+
+    // Before the form is serialized for a save: each editor's content goes into its textarea, and
+    // through the textarea's change handlers into the hidden original of a translated field.
+    function sync_editors() {
+        $.each(tinymce.editors, function (i, editor) {
+            if (!editor.initialized) return;
             $("#" + editor.id).val(editor.getContent()).trigger("change");
         });
-        return $form.find(':input').not('#post_draft_id').serialize();
     }
 
     if (obj.recover_draft == "true") {

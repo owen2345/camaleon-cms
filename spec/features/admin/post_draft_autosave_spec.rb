@@ -347,6 +347,35 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
+  # Comparing the form is a read. It used to write each editor's content back into its textarea, in
+  # TinyMCE's serialization, so content a plugin had put into the textarea itself (camaleon_editor's
+  # grid export, with its colors as rgb()) read back rewritten whenever the snapshot landed after it.
+  it 'leaves the editors\' textareas alone when it compares the form' do
+    visit new_post_path
+    wait_for_editor_baseline
+    exported = '<p style="color: rgb(255, 204, 0);">Body</p>'
+
+    page.execute_script(<<~JS)
+      tinymce.get('post_content').setContent(#{exported.to_json});
+      $('#post_content').val(#{exported.to_json});
+      window.onbeforeunload();
+    JS
+
+    expect(page.evaluate_script("$('#post_content').val()")).to eq(exported)
+  end
+
+  # The comparison reads the editors themselves, and a save sends what they hold.
+  it 'autosaves an edit made in the editor alone' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    page.execute_script("tinymce.get('post_content').setContent('<p>Typed in the editor</p>');")
+    autosave_tick
+    wait_for_ajax
+
+    expect(new_post_buffers.order(:id).last.content).to include('<p>Typed in the editor</p>')
+  end
+
   # The Preview click saves the draft before opening it. The save is asynchronous now, so the window
   # is opened inside the click (a popup blocker would refuse one opened from the save's callback).
   it 'opens the preview of the saved draft in a new window' do
