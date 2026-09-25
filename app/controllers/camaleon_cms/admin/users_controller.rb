@@ -50,7 +50,7 @@ module CamaleonCms
         hooks_run('user_update', r)
         if @user.update(user_params)
           @user.set_metas(user_meta_params) if params[:meta].present?
-          @user.set_field_values(cama_permitted_field_options(user_field_scope)) if params[:field_options].present?
+          @user.set_field_values(permitted_user_field_options) if params[:field_options].present?
           r = { user: @user, message: t('camaleon_cms.admin.users.message.updated'), params: params }
           hooks_run('user_after_edited', r)
           flash[:notice] = r[:message]
@@ -135,7 +135,7 @@ module CamaleonCms
         hooks_run('user_create', r)
         if @user.save
           @user.set_metas(user_meta_params) if params[:meta].present?
-          @user.set_field_values(cama_permitted_field_options(user_field_scope)) if params[:field_options].present?
+          @user.set_field_values(permitted_user_field_options) if params[:field_options].present?
           r = { user: @user }
           hooks_run('user_created', r)
           flash[:notice] = t('camaleon_cms.admin.users.message.created')
@@ -215,6 +215,13 @@ module CamaleonCms
       # groups for a host user model that demodulizes to another name, discarding every value.
       def user_field_scope
         PluginRoutes.get_user_class_name.demodulize
+      end
+
+      # The user form renders the site's groups placed on users (get_user_field_groups); the save
+      # permits exactly those, keyed on the configured model name like the placement the settings
+      # form stores, which in a host app is the user class's own name (model_alias.rb).
+      def permitted_user_field_options
+        cama_permitted_field_options(user_field_scope, field_groups: current_site.custom_field_groups)
       end
 
       def set_user

@@ -274,7 +274,8 @@ module CamaleonCms
           raise ActiveRecord::Rollback unless saved
 
           post.set_metas(params[:meta])
-          post.set_field_values(cama_permitted_field_options('PostType_Post'))
+          post.set_field_values(cama_permitted_field_options('PostType_Post',
+                                                             field_groups: @post_type.get_field_groups('Post')))
           post.set_options(params[:options])
           true
         end

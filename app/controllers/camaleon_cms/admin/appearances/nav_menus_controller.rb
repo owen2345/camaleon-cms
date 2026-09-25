@@ -59,7 +59,10 @@ module CamaleonCms
 
         def save_custom_settings
           @nav_menu_item = current_site.nav_menu_items.find(params[:id])
-          @nav_menu_item.set_field_values(cama_permitted_field_options('NavMenuItem'))
+          # The custom-fields form places a menu's groups as 'NavMenu' with the menu's id, and the item's
+          # settings form renders exactly those; the save permits the same set.
+          @nav_menu_item.set_field_values(cama_permitted_field_options('NavMenu',
+                                                                       field_groups: @nav_menu_item.get_field_groups))
           head :ok
         end
 
@@ -145,12 +148,12 @@ module CamaleonCms
           params.require(:nav_menu).permit(:name, :slug)
         end
 
-        # Only permit external menu options that match registered custom field slug
+        # Only permit external menu options that match a custom field slug registered on the menu
         def permitted_external_options(external_params = nil)
           opts = external_params ? external_params[:options] : params[:options]
           return {} if opts.blank?
 
-          allowed_keys = cama_custom_field_allowed_slugs('NavMenuItem')
+          allowed_keys = cama_custom_field_allowed_slugs('NavMenu', field_groups: @nav_menu.get_field_groups)
           return {} if allowed_keys.blank?
 
           opts.permit(*allowed_keys).to_h

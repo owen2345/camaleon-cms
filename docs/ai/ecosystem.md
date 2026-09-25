@@ -255,6 +255,19 @@ Changes that look free from inside this repository and are not:
   `set_meta` raises when a validation or a callback of `CamaleonCms::Meta` refuses the row it updates or
   creates, where it returned as if the value were stored; no surveyed plugin, theme or host adds either to that model, which
   `camaleon-ecommerce` and `camaleon_website`'s store plugin name only as an association's `class_name`.
+- **Confining the admin custom-field saves to the record's own field groups** (the `field_groups:`
+  keyword of `cama_permitted_field_options` and `cama_custom_field_allowed_slugs`) changes no surveyed
+  consumer. The only callers of the permit outside core are `camaleon-post-clone` PR #3 and the generated
+  plugin template, both with the class alone, and a class-only call keeps its 2.9.4 answer: every group
+  placed with that class, on any record and any site. The four plugins and themes that pass raw params to
+  `set_field_values` never went through it. What changed is the core saves: a value a theme or plugin
+  submitted through a core form for a record other than the one its group is placed on (a group on post
+  type A, submitted with a post of post type B) was stored under the client-supplied field id and is dropped
+  now. No surveyed repository does that; each registers its groups on the record whose form renders them
+  (`theme.add_field`, `plugin.add_custom_field_group`, `post_type.add_field`). The nav menu item save moved
+  from the `NavMenuItem` placement, which nothing writes, to the menu's `NavMenu` groups, so values placed
+  through the settings form are stored again; no surveyed repository places nav menu groups in code.
+
 
 ## APIs with no surveyed consumer
 
