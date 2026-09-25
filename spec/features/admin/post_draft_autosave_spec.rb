@@ -323,6 +323,25 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
   end
 
+  # A timer call queued behind a save that ends refused finds the same form the refusal named: sending
+  # it would only be refused again, with a second alert on the heels of the first. It is dropped; the
+  # next tick retries once the user has had a minute to act on the refusal.
+  it 'drops a timer call queued behind a save that is refused' do
+    visit new_post_path
+    wait_for_editor_baseline
+    count_draft_saves
+
+    page.execute_script(<<~JS)
+      $('#post_status').append('<option value="bogus">bogus</option>').val('bogus');
+      App_post.save_draft_ajax(null, false);
+      App_post.save_draft_ajax(null, true);
+    JS
+
+    expect(page).to have_css('#cama_alert_modal', text: 'post[status] is not a status the post editor offers')
+    wait_for_ajax
+    expect(draft_saves).to eq(1)
+  end
+
   # The load snapshot was taken on a two-second timer. An editor that came up later rewrote its
   # textarea in TinyMCE's normalized form, so an untouched post read as edited: the timer autosaved
   # it and leaving the page asked to confirm discarding changes that were never made.

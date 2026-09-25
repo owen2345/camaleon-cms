@@ -71,6 +71,9 @@ function cama_init_post(obj) {
                         // navigate away (discarding the unsaved edits) or open a stale preview.
                         $.fn.alert({type: 'error', title: $('<div>').text(res.error.join(", ")).html(), icon: "times"})
                         release_held_submit();
+                        // A timer call queued behind this save would send the same form again, to the same
+                        // refusal; the next tick retries. A user's call stays queued: it recomputes the form.
+                        queued_saves = $.grep(queued_saves, function (queued) { return !queued[1]; });
                         if (on_failure) on_failure();
                     } else {
                         if (res._drafts_path) _drafts_path = res._drafts_path
