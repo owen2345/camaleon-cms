@@ -18,35 +18,66 @@ function cama_init_post(obj) {
     var _ajax_path = obj._ajax_path;
     var _post_tags_path = obj._post_tags_path;
 
-    App_post.save_draft_ajax = function (callback, called_from_interval) {
+    // The form's state is compared by its serialization (get_hash_form). The baseline, data("hash"), which
+    // the leave-page prompt reads too, is taken once the editors are ready; saved_hash is the state the
+    // last successful draft save sent, so the minute timer sends only what changed since. One save runs
+    // at a time: a save requested meanwhile waits for the draft id the running one returns, so a new
+    // post never gets a second buffer.
+    var saved_hash = null;
+    var saving = false;
+    var queued_saves = [];
+
+    // on_failure runs when the save is refused or the request fails.
+    App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
         _draft_inited = true;
+        if (saving) {
+            queued_saves.push([callback, called_from_interval, on_failure]);
+            return;
+        }
+        var hash = get_hash_form();
+        if (called_from_interval && (saved_hash === null || hash == saved_hash)) return;
+
         var data = $form.serializeObject();
         data._method = post_draft_id ? 'patch' : 'post';
         data.post_id = post_id;
-        if ($form.data("hash") != get_hash_form() || !called_from_interval) {
-            $.ajax({
-                type: 'POST',
-                url: _drafts_path,
-                data: data,
-                success: function (res) {
-                    if (res.error) {
-                        // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
-                        // refusal names the submitted key), and do NOT run the success callback -- it would
-                        // navigate away (discarding the unsaved edits) or open a stale preview.
-                        $.fn.alert({type: 'error', title: $('<div>').text(res.error.join(", ")).html(), icon: "times"})
-                    } else {
-                        if (res._drafts_path) _drafts_path = res._drafts_path
-                        post_draft_id = res.draft.id
-                        $("#post_draft_id").val(post_draft_id);
-                        if (callback) callback(res);
-                    }
-                },
-                dataType: 'json',
-                async: false
-            });
-        }
-
+        saving = true;
+        $.ajax({
+            type: 'POST',
+            url: _drafts_path,
+            data: data,
+            success: function (res) {
+                if (res.error) {
+                    // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
+                    // refusal names the submitted key), and do NOT run the success callback -- it would
+                    // navigate away (discarding the unsaved edits) or open a stale preview.
+                    $.fn.alert({type: 'error', title: $('<div>').text(res.error.join(", ")).html(), icon: "times"})
+                    if (on_failure) on_failure();
+                } else {
+                    if (res._drafts_path) _drafts_path = res._drafts_path
+                    post_draft_id = res.draft.id
+                    saved_hash = hash;
+                    $("#post_draft_id").val(post_draft_id);
+                    set_preview_draft_id();
+                    if (callback) callback(res);
+                }
+            },
+            error: function () {
+                if (on_failure) on_failure();
+            },
+            complete: function () {
+                saving = false;
+                var next = queued_saves.shift();
+                if (next) App_post.save_draft_ajax.apply(null, next);
+            },
+            dataType: 'json'
+        });
     };
+
+    function set_preview_draft_id() {
+        $form.find('.sl-slug-edit .btn-preview').each(function () {
+            $(this).attr('href', $(this).attr('href').replace(/draft_id=[^&]*/, 'draft_id=' + post_draft_id));
+        });
+    }
 
     App_post.save_draft = function () {
         App_post.save_draft_ajax(function () {
@@ -132,14 +163,18 @@ function cama_init_post(obj) {
             }
             $link.find('.btn-preview').click(function () { // preview button
                 var link = $(this);
+                // Open the window within the click: a popup blocker refuses one opened from the save's
+                // asynchronous callback. The save points the link at the draft before the callback runs.
+                var preview = window.open('', '_blank');
+                if (preview) preview.opener = null;
                 showLoading();
                 App_post.save_draft_ajax(function(){
                     hideLoading();
-                    var ar = link.attr("href").split("draft_id=");
-                    ar[1] = post_draft_id;
-                    var clone = link.clone().hide();
-                    clone.insertAfter(link).attr('href', ar.join("draft_id="))[0].click();
-                    clone.remove();
+                    if (preview) preview.location.href = link.prop('href');
+                    else window.open(link.prop('href'), '_blank');
+                }, false, function(){
+                    hideLoading();
+                    if (preview) preview.close();
                 });
                 return false;
             });
@@ -289,16 +324,43 @@ function cama_init_post(obj) {
             $.get($form.find("#post_add_new_category").data('reload-url'), {categories: panel_cats.find("input[name='categories[]']:checked").map(function(i, el){ return $(this).val(); }).get()}, function(res){ panel_cats.html(res); });
         }});
         /*********** end *************/
+
+        take_baseline_when_ready(0);
     }
     setTimeout(form_later_actions, 1000);
-    setTimeout(function(){ $form.data("hash", get_hash_form()); }, 2000);
 
-    function get_hash_form() {
-        for (editor in tinymce.editors) {
-            editor = tinymce.editors[editor];
-            var i = $("#" + editor.id).val(tinymce.get(editor.id).getContent()).trigger("change");
+    // An editor rewrites its textarea in normalized form once it comes up, so a baseline taken before
+    // every editor on the form has initialized reads an untouched post as edited. Stop waiting after
+    // ten seconds (an editor that never comes up) and take the form as it stands.
+    function take_baseline_when_ready(waited) {
+        if (!editors_ready() && waited < 10000) {
+            setTimeout(function () { take_baseline_when_ready(waited + 100); }, 100);
+            return;
         }
-        return $form.serialize();
+        saved_hash = get_hash_form();
+        $form.data("hash", saved_hash);
+    }
+
+    function editors_ready() {
+        var ready = true;
+        $form.find('.tinymce_textarea:not(.translated-item)').each(function () {
+            var editor = tinymce.get(this.id);
+            if (!editor || !editor.initialized) ready = false;
+        });
+        $.each(tinymce.editors, function (i, editor) {
+            if (!editor.initialized && $.contains($form[0], editor.getElement())) ready = false;
+        });
+        return ready;
+    }
+
+    // The draft id is left out: a save filling it in is not an edit.
+    function get_hash_form() {
+        for (var key in tinymce.editors) {
+            var editor = tinymce.editors[key];
+            if (!editor.initialized) continue; // still loading, its textarea holds the server value
+            $("#" + editor.id).val(editor.getContent()).trigger("change");
+        }
+        return $form.find(':input').not('#post_draft_id').serialize();
     }
 
     if (obj.recover_draft == "true") {
