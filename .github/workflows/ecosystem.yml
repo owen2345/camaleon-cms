@@ -53,6 +53,16 @@ jobs:
       camaleon_cms_repository: ${{ github.repository }}
       camaleon_cms_ref: ${{ github.sha }}
 
+  # Piloting: `uses:` and `member_ref` point at the member's feature branch until its pull request
+  # merges; then both go back to `master` (the `member_ref` line is dropped) before this one merges.
+  camaleon-post-clone:
+    name: camaleon-post-clone
+    uses: owen2345/camaleon-post-clone/.github/workflows/core_compat.yml@feature/ecosystem-harness
+    with:
+      camaleon_cms_repository: ${{ github.repository }}
+      camaleon_cms_ref: ${{ github.sha }}
+      member_ref: feature/ecosystem-harness
+
   florsan:
     name: florsan
     uses: texpert/florsan/.github/workflows/core_compat.yml@main

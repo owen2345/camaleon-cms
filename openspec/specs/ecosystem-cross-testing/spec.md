@@ -14,7 +14,7 @@ On every pull request to core and on every push to core's default branch, core C
 suite of each enrolled ecosystem member with `camaleon_cms` taken from the core commit under test,
 not from a released gem. The core commit a member runs against SHALL be the same commit core's own
 suite tests in that pipeline. The enrolled members are `cama_contact_form`, `camaleon-cms-seo`,
-`camaleon_editor` and `florsan`.
+`camaleon_editor`, `camaleon-post-clone` and `florsan`.
 
 #### Scenario: A pull request changes core
 - **WHEN** a pull request is opened or updated against core
