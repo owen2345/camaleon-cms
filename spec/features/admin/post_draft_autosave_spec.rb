@@ -437,6 +437,29 @@ describe 'Post editor draft autosave', :js do
     end
   end
 
+  # A refused save gives the window Preview opened in the click no draft to show: the window is closed
+  # again, the overlay taken down and the refusal shown.
+  it 'closes the preview window and frees the editor when the draft save is refused' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused preview title'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        setTimeout(function () { options.success({ error: ['the preview draft was refused'] }); }, 500);
+        return $.Deferred().promise();
+      };
+    JS
+    preview = window_opened_by { find('.btn-preview').click }
+
+    expect(page).to have_css('#cama_alert_modal', text: 'the preview draft was refused')
+    expect(preview).to be_closed
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+  end
+
   it 'saves the draft and returns to the post list on Save Draft' do
     visit new_post_path
     wait_for_editor_baseline
