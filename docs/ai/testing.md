@@ -43,7 +43,7 @@ Installing a site costs ~0.6s, so one canonical site is installed per suite run,
 
 ## Ecosystem member checks
 
-CI also runs four ecosystem members' suites against the commit under test (`<member> / RSpec` checks; what they are and what a red one means: `docs/ai/ecosystem.md`, "Continuous cross-testing"). To reproduce one locally, run the member's suite from a sibling checkout with `CAMALEON_CMS_PATH` pointing at this working tree. For a plugin:
+CI also runs five ecosystem members' suites against the commit under test (`<member> / RSpec` checks; what they are and what a red one means: `docs/ai/ecosystem.md`, "Continuous cross-testing"). To reproduce one locally, run the member's suite from a sibling checkout with `CAMALEON_CMS_PATH` pointing at this working tree. For a plugin:
 
 ```bash
 cd ../cama_contact_form

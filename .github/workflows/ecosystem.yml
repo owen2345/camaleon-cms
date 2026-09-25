@@ -53,6 +53,13 @@ jobs:
       camaleon_cms_repository: ${{ github.repository }}
       camaleon_cms_ref: ${{ github.sha }}
 
+  camaleon-post-clone:
+    name: camaleon-post-clone
+    uses: owen2345/camaleon-post-clone/.github/workflows/core_compat.yml@master
+    with:
+      camaleon_cms_repository: ${{ github.repository }}
+      camaleon_cms_ref: ${{ github.sha }}
+
   florsan:
     name: florsan
     uses: texpert/florsan/.github/workflows/core_compat.yml@main

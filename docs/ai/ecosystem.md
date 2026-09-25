@@ -24,9 +24,10 @@ Before removing, renaming or hardening a public API, search this file for it. Th
 
 ## Continuous cross-testing
 
-Four members carry an RSpec suite of their own, and `.github/workflows/ecosystem.yml` runs each one
+Five members carry an RSpec suite of their own, and `.github/workflows/ecosystem.yml` runs each one
 against the core commit under test, on every pull request and every push to `master`: the plugins
-`cama_contact_form`, `camaleon-cms-seo` and `camaleon_editor`, and the host application `florsan`.
+`cama_contact_form`, `camaleon-cms-seo`, `camaleon_editor` and `camaleon-post-clone`, and the host
+application `florsan`.
 Each shows on the core PR as its own check, `<member> / RSpec`, with the member's log. The contract is
 `openspec/specs/ecosystem-cross-testing/spec.md`; reproducing a red check locally is in
 `docs/ai/testing.md`.
@@ -71,7 +72,7 @@ Each shows on the core PR as its own check, `<member> / RSpec`, with the member'
 | `camaleon_image_optimizer` | `~> 2.0` | **2025-07** | `before_upload` only — rewrites the file in place and rebinds `settings[:uploaded_io]`, **after** the content scan; re-fires on the crop path's re-entry into `upload_file` |
 | `camaleon_lazy_loader` | `~> 2.0` | 2022-01 | Writes `response.body`; shares `@skip_lazy_loader` across hooks; reads `front_cache`'s private `@_plugin_do_cache`; binds `on_render_sitemap` with an arity-1 handler that ignores the payload |
 | `camaleon_export_import` | no gemspec (drop-in folder) | 2016-09 | Heaviest consumer found: seven `class_eval` patches from `app_before_load`; writes `content`, `content_filtered`, `user_id`, `post_class` from uploaded JSON; `cama_tmp_upload(params[:url])` with no options, path round-tripped to the client; hard-codes the `object_class` string grammar in five places; `posts.destroy_all`/`nav_menus.destroy_all` on client flags |
-| `camaleon-post-clone` | no | 2016-12 | `deep_clone` + `save!` of a core Post, copying `content` verbatim; `set_field_values(params[:field_options])` unfiltered; `add_custom_field_group`/`add_manual_field`; renders the core partial `camaleon_cms/admin/settings/custom_fields/render` |
+| `camaleon-post-clone` | Gemfile, `>= 2.9.4` | 2026-09 | `deep_clone` + `save!` of a core Post, copying `content` verbatim, with `term_relationships` and `metas`, plus **`field_values` when its custom-fields option is on** (an association 2.8.0 renamed to `custom_field_values`, so that option raises); `set_field_values(params[:field_options])` unfiltered; `add_custom_field_group`/`add_manual_field`; renders the core partial `camaleon_cms/admin/settings/custom_fields/render`; `get_valid_post_slug`, `String#translations`, `Hash#to_translate`, `PostDecorator#the_edit_url`; the `edit_post` hook appends raw HTML to `args[:extra_settings]` and the `plugin_options` hook a link to `args[:links]` |
 | `camaleon_post_created_at` | **`>= 2.3.5`** (only explicit constraint) | 2016-11 | Reads the controller ivar `@post` inside `new_post`/`edit_post`; appends raw HTML to `args[:extra_settings]`; injects `post[created_at]` into core strong params |
 | `camaleon-post-order-plugin` | no | 2019-12 | `list_post` hook calling `append_asset_libraries` + `cama_content_append`; `update_column('post_order')` direct on core posts; JS hard-coupled to the admin post-list DOM (`#posts-table-list`, `tr[data-id]`) |
 | `cama_external_menu` | no | 2018-10 | `on_external_menu` sets `args[:parsed_menu] = false` — the entire access check, and it **fails open**; calls bare `current_user` and `.role` |

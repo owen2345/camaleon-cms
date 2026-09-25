@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tooling:** CI also runs the `camaleon-post-clone` plugin's suite against the core commit under test, as a fifth advisory ecosystem check. Development-only. [#1311](https://github.com/owen2345/camaleon-cms/pull/1311).
+
 - **Docs:** `docs/ai/testing.md` no longer tells a local run of an ecosystem member's suite to point `CAMALEON_CMS_PATH` at a worktree away from the member's path; a sibling checkout gets the core migrations. No behavior change. [#1308](https://github.com/owen2345/camaleon-cms/pull/1308).
 
 - **Docs:** The `user-registration-hooks` OpenSpec capability has a written Purpose in place of the placeholder `openspec archive` left, so `openspec validate --specs --strict` passes. No behavior change. [#1307](https://github.com/owen2345/camaleon-cms/pull/1307).
