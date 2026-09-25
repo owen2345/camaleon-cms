@@ -405,9 +405,6 @@ function cama_init_post(obj) {
             if ($form.data("hash") != get_hash_form()) {
                 return "You sure to leave the page without saving changes?";
             }
-            if (!$form.data("submitted"))
-                return;
-            return "You sure to leave the page without saving changes?";
         };
 
         /*********** link to create categories *************/
