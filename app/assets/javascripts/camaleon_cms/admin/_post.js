@@ -509,16 +509,20 @@ function cama_init_post(obj) {
         return $form.length > 0 && $.contains($form[0], editor.getElement());
     }
 
+    // The form's editors that have come up: what is compared and what is sent. One still loading is
+    // left to its textarea, which holds the server value. $.grep walks the indexes only: TinyMCE keys
+    // the array by editor id too, so for..in visits each twice.
+    function form_editors() {
+        return $.grep(tinymce.editors, function (editor) { return editor.initialized && in_form(editor); });
+    }
+
     // A read: each editor's content is taken from the editor and its textarea is left alone, so what a
     // plugin wrote into a textarea itself is not rewritten in TinyMCE's serialization by a comparison.
     // Left out: the draft id (a save filling it in is not an edit) and the hidden original of a
     // translated field, composed from the per-language copies that are read.
     function get_hash_form() {
         var editors = {};
-        // $.each walks the indexes only: TinyMCE keys the array by editor id too, so for..in visits each twice.
-        $.each(tinymce.editors, function (i, editor) {
-            if (editor.initialized && in_form(editor)) editors[editor.id] = editor.getContent(); // still loading: its textarea holds the server value
-        });
+        $.each(form_editors(), function (i, editor) { editors[editor.id] = editor.getContent(); });
         // An own-property check: `in` would also match an id every object inherits, like `constructor`.
         var fields = $form.find(':input').not('#post_draft_id, .translated-item').filter(function () {
             return !Object.prototype.hasOwnProperty.call(editors, this.id);
@@ -529,8 +533,7 @@ function cama_init_post(obj) {
     // Before the form is serialized for a save: each editor's content goes into its textarea, and
     // through the textarea's change handlers into the hidden original of a translated field.
     function sync_editors() {
-        $.each(tinymce.editors, function (i, editor) {
-            if (!editor.initialized || !in_form(editor)) return;
+        $.each(form_editors(), function (i, editor) {
             $(editor.getElement()).val(editor.getContent()).trigger("change");
         });
     }
