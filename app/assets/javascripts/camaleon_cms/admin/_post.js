@@ -84,6 +84,11 @@ function cama_init_post(obj) {
             },
             error: function () {
                 try {
+                    // A save the user asked for says it failed; the timer's is retried a minute later, and a
+                    // held submit is sent right after this (the post save reports for itself).
+                    if (!called_from_interval && !submit_after_save) {
+                        $.fn.alert({type: 'error', title: I18n("msg.draft_save_failed", "The draft could not be saved"), icon: "times"});
+                    }
                     if (on_failure) on_failure();
                 } finally {
                     save_finished();

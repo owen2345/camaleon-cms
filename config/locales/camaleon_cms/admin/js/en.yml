@@ -6,6 +6,7 @@ en:
         msg:
           approved: 'Approved'
           draft: 'Saved draft success'
+          draft_save_failed: 'The draft could not be saved'
           updated_success: 'Updated Successfully'
           edit_menu: 'Place each item in the order you prefer. Click on the icon of a pencil to edit the item and click the icon in the form of x to delete the item.'
           delete_item: 'Really want to delete this item?'

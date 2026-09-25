@@ -259,7 +259,7 @@ describe 'Post editor draft autosave', :js do
   end
 
   # A draft request that has not returned after App_post.save_timeout_ms is taken as failed: the lock is
-  # released and the caller's failure handler runs, so a stalled server cannot
+  # released, the caller's failure handler runs and the failure is reported, so a stalled server cannot
   # keep Preview and Save Draft dead until the browser gives up on the request.
   it 'fails a draft save that has not returned after save_timeout_ms' do
     stalled = false
@@ -283,6 +283,7 @@ describe 'Post editor draft autosave', :js do
     JS
 
     expect(page).to have_css('body[data-save-failed="ran"]')
+    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
 
     page.execute_script(<<~JS)
       App_post.save_timeout_ms = 30000;
