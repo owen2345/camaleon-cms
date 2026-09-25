@@ -478,6 +478,34 @@ describe 'Post editor draft autosave', :js do
     end
   end
 
+  # A Preview clicked while a save is in flight waits for that save's draft id: the window opened in
+  # the click shows the draft once both saves are through, and a new post gets no second buffer.
+  it 'previews the draft when Preview is clicked while an autosave is in flight' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Queued preview title'
+
+    # The first draft request is held back for a while, so the click lands while it is in flight.
+    page.execute_script(<<~JS)
+      var ajax = $.ajax, held = false;
+      $.ajax = function (options) {
+        if (held || !/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        held = true;
+        var self = this, args = arguments;
+        setTimeout(function () { ajax.apply(self, args); }, 1500);
+        return $.Deferred().promise();
+      };
+      App_post.save_draft_ajax(null, true);
+    JS
+    preview = window_opened_by { find('.btn-preview').click }
+
+    within_window(preview) do
+      expect(page).to have_text('Queued preview title', wait: 10)
+      expect(page).to have_current_path(/draft_id=#{new_post_buffers.order(:id).last.id}\z/, url: true)
+    end
+    expect(new_post_buffers.count).to eq(1)
+  end
+
   # A refused save gives the window Preview opened in the click no draft to show: the window is closed
   # again, the overlay taken down and the refusal shown.
   it 'closes the preview window and frees the editor when the draft save is refused' do
