@@ -181,6 +181,32 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted during a stalled save', status: 'published')).to be_present
   end
 
+  # A draft request that fails (here the transport reports an error) releases the save lock and sends
+  # the held submit: the post save decides for itself, and the buffer, if any, is left behind.
+  it 'submits the post when the draft save it waited for fails' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Submitted after a failed save'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        setTimeout(function () { options.error({}, 'error', ''); }, 200);
+        return $.Deferred().promise();
+      };
+      App_post.submit_wait_ms = 20000;
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    # Well within submit_wait_ms: the error handler, not the fallback timer, sends the form.
+    expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true)
+    expect(CamaleonCms::Post.find_by(title: 'Submitted after a failed save', status: 'published')).to be_present
+  end
+
   # A refused draft save (here a status the editor does not offer, refused for every role) must not
   # send the held submit: the post save would refuse the same content, and the user has to read the
   # refusal to fix it. The hold is released and its fallback timer cleared.
