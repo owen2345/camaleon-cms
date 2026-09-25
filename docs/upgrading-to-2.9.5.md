@@ -29,6 +29,7 @@ what theme/plugin developers should know.
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
+| Has a plugin controller that confines its settings save with `cama_permitted_field_options`, or custom fields placed on a nav menu through the settings form | Pass `field_groups: @plugin.get_field_groups` to keep other plugins' slugs out; a menu item's custom fields are stored again ([details](#admin-custom-field-saves-store-only-the-records-own-fields)) |
 
 ---
 
@@ -368,6 +369,31 @@ now returns what a freshly loaded record reads.
 - `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read, where
   they raised on a loaded record. A String still reads through the locale, and so does every item of an
   Array, as a String whatever it holds: `[1, true]` reads as `['1', 'true']`, as it did before.
+
+### Admin custom-field saves store only the record's own fields
+
+Every admin save of custom-field values (site, theme, post type, post, draft, category, tag, user, widget
+assignment, nav menu item) now stores only the fields of the groups its form renders for the record being
+saved. A slug registered on another record of the same kind — another post type, another site's settings,
+theme or users, another widget, another menu — was permitted before and stored under the field id the
+request named; it is dropped now. The admin forms only submit the fields they render, so nothing changes
+for them, and a value already stored under such a slug stays where it is; only a theme asking that record
+for that slug ever read it.
+
+A plugin controller that confines its settings save with `cama_permitted_field_options('Plugin')` still
+accepts the slugs every plugin registered. Pass the groups its settings form renders to keep the others
+out, as the generator template now does:
+
+```ruby
+@plugin.set_field_values(cama_permitted_field_options('Plugin', field_groups: @plugin.get_field_groups))
+```
+
+The keyword takes the field-group relation the `custom_fields/render` partial received; the positional
+class stays the intersect, so a mismatch permits nothing rather than too much.
+
+Custom fields placed on a nav menu through the settings form (the **NavMenu** placement) are stored again
+when a menu item's configuration is saved, and an external item's options keyed by those slugs with them;
+both were silently dropped since 2.9.3.
 
 ---
 
