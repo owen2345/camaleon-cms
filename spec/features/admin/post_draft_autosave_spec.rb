@@ -112,6 +112,29 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.queuedSaveRan')).to be(true)
   end
 
+  # jQuery skips an ajax call's `complete` handler when its success handler throws, so a failing
+  # callback must not leave the save lock held: later saves would queue forever and a submit
+  # would wait for them forever.
+  it 'runs later saves after a save callback throws' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    # The throw also leaves jQuery.active raised, so wait on the page's own markers, not wait_for_ajax.
+    page.execute_script(<<~JS)
+      $('#post_title').val('Thrown').trigger('keyup');
+      App_post.save_draft_ajax(function () {
+        $('body').attr('data-throwing-save', 'ran');
+        throw new Error('callback failed');
+      }, false);
+    JS
+    expect(page).to have_css('body[data-throwing-save="ran"]')
+
+    page.execute_script(<<~JS)
+      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+    JS
+    expect(page).to have_css('body[data-later-save="ran"]')
+  end
+
   # Submitting the post while an autosave of the new post is in flight used to post an empty draft id,
   # so the buffer that save created was never discarded. The submit now waits for the draft id.
   it 'discards the new post buffer when the post is submitted during an autosave' do

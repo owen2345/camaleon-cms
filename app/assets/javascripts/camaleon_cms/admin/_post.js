@@ -46,37 +46,47 @@ function cama_init_post(obj) {
             type: 'POST',
             url: _drafts_path,
             data: data,
+            // jQuery skips `complete` when a success handler throws, so each handler releases the lock itself.
             success: function (res) {
-                if (res.error) {
-                    // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
-                    // refusal names the submitted key), and do NOT run the success callback -- it would
-                    // navigate away (discarding the unsaved edits) or open a stale preview.
-                    $.fn.alert({type: 'error', title: $('<div>').text(res.error.join(", ")).html(), icon: "times"})
-                    if (on_failure) on_failure();
-                } else {
-                    if (res._drafts_path) _drafts_path = res._drafts_path
-                    post_draft_id = res.draft.id
-                    saved_hash = hash;
-                    $("#post_draft_id").val(post_draft_id);
-                    set_preview_draft_id();
-                    if (callback) callback(res);
+                try {
+                    if (res.error) {
+                        // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
+                        // refusal names the submitted key), and do NOT run the success callback -- it would
+                        // navigate away (discarding the unsaved edits) or open a stale preview.
+                        $.fn.alert({type: 'error', title: $('<div>').text(res.error.join(", ")).html(), icon: "times"})
+                        if (on_failure) on_failure();
+                    } else {
+                        if (res._drafts_path) _drafts_path = res._drafts_path
+                        post_draft_id = res.draft.id
+                        saved_hash = hash;
+                        $("#post_draft_id").val(post_draft_id);
+                        set_preview_draft_id();
+                        if (callback) callback(res);
+                    }
+                } finally {
+                    save_finished();
                 }
             },
             error: function () {
-                if (on_failure) on_failure();
-            },
-            complete: function () {
-                saving = false;
-                // A queued timer call with nothing to send returns without saving, so go on to the next.
-                while (!saving && queued_saves.length) App_post.save_draft_ajax.apply(null, queued_saves.shift());
-                if (!saving && submit_after_save) {
-                    submit_after_save = false;
-                    $form.submit();
+                try {
+                    if (on_failure) on_failure();
+                } finally {
+                    save_finished();
                 }
             },
             dataType: 'json'
         });
     };
+
+    function save_finished() {
+        saving = false;
+        // A queued timer call with nothing to send returns without saving, so go on to the next.
+        while (!saving && queued_saves.length) App_post.save_draft_ajax.apply(null, queued_saves.shift());
+        if (!saving && submit_after_save) {
+            submit_after_save = false;
+            $form.submit();
+        }
+    }
 
     function set_preview_draft_id() {
         $form.find('.sl-slug-edit .btn-preview').each(function () {
