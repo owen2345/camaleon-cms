@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Security fix:** Admin custom-field saves store only the fields of the groups their form renders for the record being saved; a slug registered on a sibling record or by another site is dropped instead of stored under the request's field id. A nav menu item's custom fields placed through the settings form are stored again. `cama_permitted_field_options` takes `field_groups:`; class-only callers are unchanged. [#1312](https://github.com/owen2345/camaleon-cms/pull/1312).
+  - [Upgrade notes](docs/upgrading-to-2.9.5.md#admin-custom-field-saves-store-only-the-records-own-fields).
+
 - **Tooling:** A `review-loop` Claude Code skill, started with `/goal`, repeats `/code-review --fix` passes on a core, plugin, theme or host app PR until they converge; `tmp/` is now ignored, and `AGENTS.md` orders its pre-push checks autocorrect first and no longer asks for them on a branch that changes no code. Development-only. [#1313](https://github.com/owen2345/camaleon-cms/pull/1313).
 
 - **Tooling:** CI also runs the `camaleon-post-clone` plugin's suite against the core commit under test, as a fifth advisory ecosystem check. Development-only. [#1311](https://github.com/owen2345/camaleon-cms/pull/1311).
