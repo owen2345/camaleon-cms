@@ -46,7 +46,17 @@ function cama_init_post(obj) {
         data._method = post_draft_id ? 'patch' : 'post';
         data.post_id = post_id;
         saving = true;
-        $.ajax({
+        try {
+            $.ajax(draft_request(data, hash, callback, called_from_interval, on_failure));
+        } catch (e) {
+            // $.ajax threw before sending (a plugin's wrapper, a prefilter): nothing will release the lock.
+            save_finished();
+            throw e;
+        }
+    };
+
+    function draft_request(data, hash, callback, called_from_interval, on_failure) {
+        return {
             type: 'POST',
             url: _drafts_path,
             data: data,
@@ -83,8 +93,8 @@ function cama_init_post(obj) {
             // A save that has not returned after this long is taken as failed, so a stalled request
             // does not keep the editor from saving or previewing until the browser gives up on it.
             timeout: App_post.save_timeout_ms
-        });
-    };
+        };
+    }
 
     function save_finished() {
         saving = false;

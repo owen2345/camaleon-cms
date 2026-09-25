@@ -136,6 +136,28 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
+  # $.ajax can throw before sending (a plugin's wrapper, a prefilter). The lock it would have released
+  # must not stay held, or every later save queues forever and every submit waits under the overlay.
+  it 'runs later saves after $.ajax threw before sending one' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (/\\/drafts(\\/|$)/.test(options.url)) throw new Error('refused to send');
+        return ajax.apply(this, arguments);
+      };
+      $('#post_title').val('Thrown before sending').trigger('keyup');
+      try { App_post.save_draft_ajax(null, false); } catch (e) { window.sendThrew = e.message; }
+      $.ajax = ajax;
+      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+    JS
+
+    expect(page.evaluate_script('window.sendThrew')).to eq('refused to send')
+    expect(page).to have_css('body[data-later-save="ran"]')
+  end
+
   # Submitting the post while an autosave of the new post is in flight used to post an empty draft id,
   # so the buffer that save created was never discarded. The submit now waits for the draft id.
   it 'discards the new post buffer when the post is submitted during an autosave' do
