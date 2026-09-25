@@ -7,7 +7,6 @@ function cama_init_post(obj) {
         $form.css('opacity', 0).before('<h2 style="text-align: center">' + I18n("msg.recover") + '</h2>');
     }
 
-    var _draft_inited = false;
     var class_translate = ".translate-item";
 
     var post_id = obj.post_id;
@@ -36,7 +35,6 @@ function cama_init_post(obj) {
 
     // on_failure runs when the save is refused or the request fails.
     App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
-        _draft_inited = true;
         if (saving) {
             queued_saves.push([callback, called_from_interval, on_failure]);
             return;
