@@ -516,7 +516,7 @@ function cama_init_post(obj) {
     function sync_editors() {
         $.each(tinymce.editors, function (i, editor) {
             if (!editor.initialized || !in_form(editor)) return;
-            $("#" + editor.id).val(editor.getContent()).trigger("change");
+            $(editor.getElement()).val(editor.getContent()).trigger("change");
         });
     }
 
