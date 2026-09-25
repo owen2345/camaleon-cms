@@ -418,11 +418,11 @@ function cama_init_post(obj) {
 
     // The draft id is left out: a save filling it in is not an edit.
     function get_hash_form() {
-        for (var key in tinymce.editors) {
-            var editor = tinymce.editors[key];
-            if (!editor.initialized) continue; // still loading, its textarea holds the server value
+        // $.each walks the indexes only: TinyMCE keys the array by editor id too, so for..in visits each twice.
+        $.each(tinymce.editors, function (i, editor) {
+            if (!editor.initialized) return; // still loading, its textarea holds the server value
             $("#" + editor.id).val(editor.getContent()).trigger("change");
-        }
+        });
         return $form.find(':input').not('#post_draft_id').serialize();
     }
 
