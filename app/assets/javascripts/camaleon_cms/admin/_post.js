@@ -29,6 +29,7 @@ function cama_init_post(obj) {
     var queued_saves = [];
     var submit_wait_timer = null;
     var held_form = null;
+    var held_submitter = null;
     var releasing_form = null;
     // The form this setup owns. Admin pages load in place, so the script can be set up on another form
     // while a save of this one is queued or in flight; $form is then that form, and this setup's saves are
@@ -154,16 +155,27 @@ function cama_init_post(obj) {
     // while the hold waits (the browser's Back button is not under the overlay), and one that left the
     // page is not sent at all; the overlay the hold put up still comes down, or the page is dead under it.
     function send_held_submit() {
-        var form = held_form;
+        var form = held_form, submitter = held_submitter;
         drop_hold();
         hideLoading();
         if (!form || !$.contains(document, form)) return;
+        // The button that submitted the form sends its name and value with a submit it made, and the
+        // dispatch below (form.submit()) has no button: they go as a hidden field, for this submit only,
+        // the way the validator sends its own button along.
+        var button_field = null;
+        if (submitter && submitter.name && submitter.form === form) {
+            button_field = $('<input type="hidden">').attr('name', submitter.name).val(submitter.value).appendTo(form);
+        }
         releasing_form = form;
-        try { $(form).trigger('submit'); } finally { releasing_form = null; }
+        try { $(form).trigger('submit'); } finally {
+            releasing_form = null;
+            if (button_field) button_field.remove();
+        }
     }
 
     function drop_hold() {
         held_form = null;
+        held_submitter = null;
         clearTimeout(submit_wait_timer);
     }
 
@@ -335,6 +347,8 @@ function cama_init_post(obj) {
         if (saving && releasing_form !== this) {
             if (!held_form) {
                 held_form = this;
+                // The button the submit came from, when a button made it (a jQuery-triggered submit has none).
+                held_submitter = (e.originalEvent && e.originalEvent.submitter) || null;
                 showLoading();
                 // A stalled save must not keep the post from being saved: on a new post this may
                 // leave that save's buffer behind, which is the lesser loss.

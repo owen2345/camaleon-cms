@@ -430,6 +430,38 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
+  # A submit a button made sends the button's name and value; the held submit is dispatched through the
+  # form's own submit, which has no button. They go along as a hidden field, for that submit only: a
+  # theme's button that names a status must not save the post with the select's.
+  it 'sends the name and value of the button that made a held submit' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held submit button'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (/\\/drafts(\\/|$)/.test(options.url)) return $.Deferred().promise();
+        return ajax.apply(this, arguments);
+      };
+      App_post.submit_wait_ms = 1000;
+      $('body').on('submit', 'form#form-post', function () {
+        window.sentFields = $(this).serialize();
+        return false;
+      });
+      $('#form-post').append('<button type="submit" name="probe" value="from the button">Probe</button>');
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      App_post.save_draft_ajax(null, false);
+    JS
+    click_button 'Probe'
+
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    expect(page.evaluate_script('window.sentFields')).to include('probe=from+the+button')
+    expect(page).to have_no_css('#form-post input[type="hidden"][name="probe"]', visible: :all)
+  end
+
   # A held submit also waits for the saves queued behind the one it was held on. The finished save's
   # caller takes the overlay down (Preview, Save Draft do), so the hold has to put it back while the
   # queued save runs, or the form is open to edits that the submit then sends without a word.

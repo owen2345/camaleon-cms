@@ -138,7 +138,7 @@ After every successful draft save, each Preview link on the form SHALL name that
 
 ### Requirement: A post submitted while a draft save runs is held and dispatched again in full
 
-A post form submitted while a draft save is running SHALL be held under the loading overlay before validation or any other submit listener sees it, until that save and the saves queued behind it finish (the overlay kept while they run) or `App_post.submit_wait_ms` passes. The submit SHALL then be dispatched again in full to the form it was held on, so validation, every listener, delegated ones included, and the form's default action run once, with the draft id in the form. A refused save SHALL release the hold and keep the post on the form, consuming a validator skip (`cancelSubmit`) the held submit carried, so the next submit is validated; a failed request SHALL let the submit go; a held form that left the page SHALL NOT be sent, but the overlay SHALL come down.
+A post form submitted while a draft save is running SHALL be held under the loading overlay before validation or any other submit listener sees it, until that save and the saves queued behind it finish (the overlay kept while they run) or `App_post.submit_wait_ms` passes. The submit SHALL then be dispatched again in full to the form it was held on, so validation, every listener, delegated ones included, and the form's default action run once, with the draft id in the form and the name and value of the button that submitted it. A refused save SHALL release the hold and keep the post on the form, consuming a validator skip (`cancelSubmit`) the held submit carried, so the next submit is validated; a failed request SHALL let the submit go; a held form that left the page SHALL NOT be sent, but the overlay SHALL come down.
 
 #### Scenario: A submit during an autosave discards the new post's buffer
 
@@ -169,6 +169,11 @@ A post form submitted while a draft save is running SHALL be held under the load
 
 - **WHEN** a submit listener on the form and one delegated from the body are bound, and the form is submitted during a save
 - **THEN** neither runs while the submit is held, and each runs once when it is dispatched, the delegated one seeing the draft id in the form
+
+#### Scenario: The button that made a held submit goes with it
+
+- **WHEN** a submit button with a name and value submits the form during a save
+- **THEN** the dispatched submit carries that name and value, and the field that carried them is gone afterwards
 
 #### Scenario: The overlay stays while a queued save runs
 
