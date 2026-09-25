@@ -258,4 +258,28 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true)
     expect(new_post_buffers.order(:id).last.title).to eq('Saved draft title')
   end
+
+  # Save Draft holds the form under the loading overlay while its save runs, since its callback leaves
+  # the page; a refused save must give the form back with the refusal shown.
+  it 'keeps the editor usable when Save Draft is refused' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused draft title'
+
+    # The save is held for a while so the overlay can be seen, then refused as the server would.
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        setTimeout(function () { options.success({ error: ['the draft was refused'] }); }, 1000);
+        return $.Deferred().promise();
+      };
+      App_post.save_draft();
+    JS
+
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_css('#cama_alert_modal', text: 'the draft was refused')
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+  end
 end

@@ -114,12 +114,14 @@ function cama_init_post(obj) {
         });
     }
 
+    // The overlay holds the form while the save runs: the callback leaves the page with the form marked
+    // submitted, so an edit made meanwhile would be lost without the leave prompt.
     App_post.save_draft = function () {
+        showLoading();
         App_post.save_draft_ajax(function () {
             $form.data("submitted", 1);
             location.href = _posts_path + '?flash[notice]=' + I18n("msg.draft")
-        });
-
+        }, false, hideLoading);
     }
     if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
     window["post_editor_draft_intrval"] = setInterval(function () { if($form.length == 0){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 1 * 60 * 1000);
