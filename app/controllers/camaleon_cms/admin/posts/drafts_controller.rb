@@ -44,7 +44,7 @@ module CamaleonCms
             # like PostsController#save_post_with_fields -- raw params[:field_options] let a caller
             # write custom_field_values with attacker-chosen slugs/ids/group numbers. Options are stored
             # from params[:options], as #update does (the check above reads the same params).
-            @post_draft.set_params(params[:meta], cama_permitted_field_options('PostType_Post'), params[:options])
+            @post_draft.set_params(params[:meta], permitted_draft_field_options, params[:options])
             msg = { draft: { id: @post_draft.id },
                     _drafts_path: cama_admin_post_type_draft_path(@post_type.id, @post_draft) }
             r = { post: @post_draft, post_type: @post_type }
@@ -67,7 +67,7 @@ module CamaleonCms
           hooks_run('update_post_draft', r)
           if @post_draft.save(validate: false)
             # Security (audit M8): confine field values to the post type's registered slugs (see #create).
-            @post_draft.set_params(params[:meta], cama_permitted_field_options('PostType_Post'), params[:options])
+            @post_draft.set_params(params[:meta], permitted_draft_field_options, params[:options])
             hooks_run('updated_post_draft', { post: @post_draft, post_type: @post_type })
             msg = { draft: { id: @post_draft.id } }
           else
@@ -84,6 +84,11 @@ module CamaleonCms
         def destroy; end
 
         private
+
+        # The draft editor renders the post type's post groups; the save permits exactly those.
+        def permitted_draft_field_options
+          cama_permitted_field_options('PostType_Post', field_groups: @post_type.get_field_groups('Post'))
+        end
 
         def set_post_data_params
           post_data = params

@@ -23,7 +23,8 @@ module CamaleonCms
             # site's sidebar or widget (audit finding H9). Reordering has its own current-site-scoped
             # action (sidebar#reorder).
             if @assigned.update(params.require(:assign).permit(:title, :content, :item_order))
-              @assigned.set_field_values(cama_permitted_field_options('Main'))
+              @assigned.set_field_values(cama_permitted_field_options('Main',
+                                                                      field_groups: @assigned.widget.get_field_groups))
               flash[:notice] = t('camaleon_cms.admin.widgets.assign.updated')
             else
               flash[:error] = t('camaleon_cms.admin.widgets.assign.error_updated')
