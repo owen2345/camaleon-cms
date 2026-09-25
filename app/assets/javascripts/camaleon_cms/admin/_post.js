@@ -344,10 +344,10 @@ function cama_init_post(obj) {
             $.get($form.find("#post_add_new_category").data('reload-url'), {categories: panel_cats.find("input[name='categories[]']:checked").map(function(i, el){ return $(this).val(); }).get()}, function(res){ panel_cats.html(res); });
         }});
         /*********** end *************/
-
-        take_baseline_when_ready(0);
     }
     setTimeout(form_later_actions, 1000);
+    // On its own timer, so a failure in form_later_actions does not leave the form without a baseline.
+    setTimeout(function () { take_baseline_when_ready(0); }, 1000);
 
     // An editor rewrites its textarea in normalized form once it comes up, so a baseline taken before
     // every editor on the form has initialized reads an untouched post as edited. Stop waiting after
