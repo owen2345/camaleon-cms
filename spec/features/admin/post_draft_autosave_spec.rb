@@ -181,6 +181,30 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted during a stalled save', status: 'published')).to be_present
   end
 
+  # A refused draft save (here a status the editor does not offer, refused for every role) must not
+  # send the held submit: the post save would refuse the same content, and the user has to read the
+  # refusal to fix it. The hold is released and its fallback timer cleared.
+  it 'keeps the post on the form when the draft save it waited for is refused' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused during autosave'
+
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 1000;
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      $('#post_status').append('<option value="bogus">bogus</option>').val('bogus');
+      App_post.save_draft_ajax(null, true);
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_css('#cama_alert_modal', text: 'post[status] is not a status the post editor offers')
+    expect(page).to have_no_css('#cama_custom_loading')
+    sleep 1.5 # past submit_wait_ms: the released hold's fallback must not send the form either
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
+  end
+
   # The load snapshot was taken on a two-second timer. An editor that came up later rewrote its
   # textarea in TinyMCE's normalized form, so an untouched post read as edited: the timer autosaved
   # it and leaving the page asked to confirm discarding changes that were never made.

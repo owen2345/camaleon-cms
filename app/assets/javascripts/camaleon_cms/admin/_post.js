@@ -22,8 +22,8 @@ function cama_init_post(obj) {
     // last successful draft save sent, so the minute timer sends only what changed since. One save runs
     // at a time: a save requested meanwhile waits for the draft id the running one returns, so a new
     // post never gets a second buffer, and a form submitted meanwhile is sent once the draft id is in it,
-    // or after App_post.submit_wait_ms if the save has not returned by then. A save that has not returned
-    // after App_post.save_timeout_ms fails.
+    // or after App_post.submit_wait_ms if the save has not returned by then; a refused save leaves it on the
+    // form. A save that has not returned after App_post.save_timeout_ms fails.
     var saved_hash = null;
     var saving = false;
     var queued_saves = [];
@@ -58,6 +58,7 @@ function cama_init_post(obj) {
                         // refusal names the submitted key), and do NOT run the success callback -- it would
                         // navigate away (discarding the unsaved edits) or open a stale preview.
                         $.fn.alert({type: 'error', title: $('<div>').text(res.error.join(", ")).html(), icon: "times"})
+                        release_held_submit();
                         if (on_failure) on_failure();
                     } else {
                         if (res._drafts_path) _drafts_path = res._drafts_path
@@ -96,6 +97,15 @@ function cama_init_post(obj) {
         submit_after_save = false;
         clearTimeout(submit_wait_timer);
         $form.submit();
+    }
+
+    // A refused save leaves a held submit on the form: the post save would refuse the same content, and
+    // the alert names what to fix. A request that failed or timed out still sends it (see the submit handler).
+    function release_held_submit() {
+        if (!submit_after_save) return;
+        submit_after_save = false;
+        clearTimeout(submit_wait_timer);
+        hideLoading();
     }
 
     function set_preview_draft_id() {
