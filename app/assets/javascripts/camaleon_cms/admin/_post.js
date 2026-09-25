@@ -30,6 +30,10 @@ function cama_init_post(obj) {
     var submit_wait_timer = null;
     var held_form = null;
     var releasing_form = null;
+    // The form this setup owns. Admin pages load in place, so the script can be set up on another form
+    // while a save of this one is queued or in flight; $form is then that form, and this setup's saves are
+    // not for it.
+    var post_form = $form[0];
     // Defaults, kept when a plugin or theme set them (zero included) before the editor came up.
     if (App_post.submit_wait_ms == null) App_post.submit_wait_ms = 15000;
     if (App_post.save_timeout_ms == null) App_post.save_timeout_ms = 30000;
@@ -39,6 +43,13 @@ function cama_init_post(obj) {
     function save_draft_ajax(callback, called_from_interval, on_failure) {
         if (saving) {
             queued_saves.push([callback, called_from_interval, on_failure]);
+            return;
+        }
+        // Drained from the queue after the page loaded another form in place: $form is that form now, and
+        // serializing it would send the other post's content to this post's draft. The caller's failure
+        // handler takes down what it opened (a Preview window, the overlay).
+        if ($form[0] !== post_form) {
+            if (on_failure) on_failure();
             return;
         }
         if (called_from_interval && (saved_hash === null || get_hash_form() == saved_hash)) return;
@@ -424,7 +435,6 @@ function cama_init_post(obj) {
     }
     setTimeout(form_later_actions, 1000);
     // On its own timer, so a failure in form_later_actions does not leave the form without a baseline.
-    var post_form = $form[0];
     setTimeout(function () { take_baseline_when_ready(post_form); }, 1000);
 
     // An editor rewrites its textarea in normalized form once it comes up, so a baseline taken before

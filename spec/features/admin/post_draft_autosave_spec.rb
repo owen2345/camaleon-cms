@@ -577,6 +577,43 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css("#form-post .btn-preview[href='/next-post?draft_id=']", visible: :all)
   end
 
+  # A save queued behind a running one is run when that one returns, against the script's form, which by
+  # then can be another post's (the page loaded it in place while the queue waited). Serializing that form
+  # sent the other post's content to this post's draft. The queued save is dropped instead, its failure
+  # handler run, since it is what takes down the window or overlay the caller opened.
+  it 'drops a queued save when the page loaded another form in place while it waited' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved before the next form'
+    count_draft_saves
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        var self = this, args = arguments;
+        setTimeout(function () { ajax.apply(self, args); }, 1000);
+        return $.Deferred().promise();
+      };
+      $(document).ajaxComplete(function (e, xhr, settings) {
+        if (/\\/drafts(\\/|$)/.test(settings.url)) $('body').attr('data-draft-saved', 'ran');
+      });
+      App_post.save_draft_ajax(null, false);
+      App_post.save_draft_ajax(function () { window.queuedSaveRan = true; }, false, function () { window.queuedSaveDropped = true; });
+      // What opening another post in place leaves behind while the saves wait: the previous form is gone
+      // and the script's form is the next one, with content of its own.
+      $('#form-post').detach();
+      $('body').append('<form id="form-post"><input type="hidden" name="post[title]" value="The next form"></form>');
+      $form = $('#form-post');
+    JS
+
+    expect(page).to have_css('body[data-draft-saved="ran"]', wait: 5)
+    expect(page.evaluate_script('window.queuedSaveDropped')).to be(true)
+    expect(page.evaluate_script('window.queuedSaveRan')).to be_nil
+    expect(draft_saves).to eq(1)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved before the next form')
+  end
+
   # A translated field is edited through its per-language copies, which the comparison reads; the hidden
   # original they compose is left out. The content's copies are the editors, matched by the copy's id.
   it 'autosaves an edit to a second language of a translated field' do

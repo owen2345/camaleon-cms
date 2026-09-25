@@ -60,7 +60,7 @@ The baseline the leave-page prompt compares against SHALL be taken once every Ti
 
 ### Requirement: Draft saves are asynchronous and run one at a time
 
-A draft save SHALL NOT block the page. One save SHALL run at a time: a save requested while one runs SHALL wait for it and reuse the draft id it returns, so a new post never gets a second buffer; a queued timer call with nothing to send SHALL NOT hold up the saves behind it; a queued call SHALL be run by the editor's own function, so a wrapper a plugin installed on `App_post.save_draft_ajax` runs once per call. The lock SHALL be released whatever the outcome, including a success callback that throws and `$.ajax` throwing before sending, in which case the caller's failure handler SHALL run. A save that has not returned after `App_post.save_timeout_ms` SHALL be taken as failed. A refused save SHALL show its messages as text, run no success callback, and drop the timer calls queued behind it; a user's queued call still runs. The draft id and Preview links SHALL be written into the form the save was sent from.
+A draft save SHALL NOT block the page. One save SHALL run at a time: a save requested while one runs SHALL wait for it and reuse the draft id it returns, so a new post never gets a second buffer; a queued timer call with nothing to send SHALL NOT hold up the saves behind it; a queued call SHALL be run by the editor's own function, so a wrapper a plugin installed on `App_post.save_draft_ajax` runs once per call. The lock SHALL be released whatever the outcome, including a success callback that throws and `$.ajax` throwing before sending, in which case the caller's failure handler SHALL run. A save that has not returned after `App_post.save_timeout_ms` SHALL be taken as failed. A refused save SHALL show its messages as text, run no success callback, and drop the timer calls queued behind it; a user's queued call still runs. The draft id and Preview links SHALL be written into the form the save was sent from. A queued call run after the page loaded another form in place SHALL be dropped, its failure handler run, and never sent for that form.
 
 #### Scenario: Two overlapping autosaves create one buffer
 
@@ -101,6 +101,11 @@ A draft save SHALL NOT block the page. One save SHALL run at a time: a save requ
 
 - **WHEN** the form is replaced by another post form while a save is in flight
 - **THEN** the draft id and Preview link of the form the save was sent from name the draft, and the new form's stay empty
+
+#### Scenario: A queued save whose form was replaced is dropped
+
+- **WHEN** a save is queued behind a running one and the form is replaced by another form before it runs
+- **THEN** the queued save is not sent, its failure handler runs, and the first save's draft keeps its content
 
 ### Requirement: The Preview link and window name the draft the save created
 
