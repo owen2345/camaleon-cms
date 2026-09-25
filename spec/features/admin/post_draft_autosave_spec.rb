@@ -175,7 +175,8 @@ describe 'Post editor draft autosave', :js do
     JS
 
     expect(page).to have_css('#cama_custom_loading')
-    expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true)
+    # The held submit is sent only once submit_wait_ms has passed, beyond Capybara's default wait.
+    expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true, wait: 10)
     expect(CamaleonCms::Post.find_by(title: 'Submitted during a stalled save', status: 'published')).to be_present
   end
 
