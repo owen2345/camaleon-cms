@@ -89,7 +89,12 @@ function cama_init_post(obj) {
                         $.fn.alert({type: 'error', title: $('<div>').text(res.error.join(", ")).html(), icon: "times"})
                         // A refused save leaves a held submit on the form (the alert took the overlay down): the
                         // post save would refuse the same content, and the alert names what to fix. A request that
-                        // failed or timed out still sends it (see the submit handler).
+                        // failed or timed out still sends it (see the submit handler). The held submit is not
+                        // dispatched again, so a cancelSubmit the validator's click handler set for it (a Cancel or
+                        // formnovalidate button) is consumed here, as its own submit handler would have: left set,
+                        // it would let the next submit through unvalidated.
+                        var validator = held_form && $(held_form).data('validator');
+                        if (validator) validator.cancelSubmit = false;
                         drop_hold();
                         // A timer call queued behind this save would send the same form again, to the same
                         // refusal; the next tick retries. A user's call stays queued: it recomputes the form.

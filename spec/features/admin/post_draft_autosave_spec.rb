@@ -824,6 +824,40 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to eq(1)
   end
 
+  # The validator's own submit handler is what resets cancelSubmit, and a held submit never reaches it. When
+  # the hold was dropped on a refused save, cancelSubmit stayed set, so the next submit, an ordinary one,
+  # went through unvalidated: the hold handler skipped valid() and the validator let it pass.
+  it 'validates the submit after a held one the validator was told to skip was dropped' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    # The draft save is held back until the example refuses it. The title is empty throughout: the first
+    # submit is one the validator was told to skip, the second is not. A listener behind the validator's
+    # keeps the page either way.
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        window.draftRequest = options;
+        return $.Deferred().promise();
+      };
+      $('body').on('submit', 'form#form-post', function () { return false; });
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').data('validator').cancelSubmit = true;
+      $('#form-post').submit();
+    JS
+    expect(page).to have_css('#cama_custom_loading')
+
+    page.execute_script("window.draftRequest.success({ error: ['the draft was refused'] });")
+    expect(page).to have_css('#cama_alert_modal', text: 'the draft was refused')
+    expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
+
+    page.execute_script("$('#form-post').submit();")
+
+    expect(page).to have_css('#form-post label.error', visible: :all)
+    expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
+  end
+
   it 'saves the draft and returns to the post list on Save Draft' do
     visit new_post_path
     wait_for_editor_baseline
