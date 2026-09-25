@@ -282,6 +282,37 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.wrapperRuns')).to eq(2)
   end
 
+  # A held submit is sent to the form it was held on. With pages loading in place, another form can be
+  # set up while the hold waits (the browser's Back button is not under the overlay): the script's form
+  # is then that one, and it must not be submitted in the held form's place.
+  it 'drops a held submit whose form was replaced while it waited' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held on a form that left'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (/\\/drafts(\\/|$)/.test(options.url)) return $.Deferred().promise();
+        return ajax.apply(this, arguments);
+      };
+      App_post.submit_wait_ms = 1000;
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+      // What loading another page in place leaves behind: the held form is gone and the script's form
+      // is the next one. Submitting it would show in the URL.
+      $('#form-post').remove();
+      $('body').append('<form id="form-post" method="get" action="' + location.pathname + '"><input type="hidden" name="probe" value="submitted"></form>');
+      $form = $('#form-post');
+    JS
+
+    sleep 1.5 # past submit_wait_ms: the hold's fallback must not send the replacement form
+    expect(page).to have_current_path(new_post_path, ignore_query: false)
+    expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
+  end
+
   # A held submit also waits for the saves queued behind the one it was held on. The finished save's
   # caller takes the overlay down (Preview, Save Draft do), so the hold has to put it back while the
   # queued save runs, or the form is open to edits that the submit then sends without a word.

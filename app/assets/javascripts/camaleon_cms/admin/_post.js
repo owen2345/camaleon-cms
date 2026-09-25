@@ -29,6 +29,7 @@ function cama_init_post(obj) {
     var queued_saves = [];
     var submit_after_save = false;
     var submit_wait_timer = null;
+    var held_form = null;
     // Defaults, kept when a plugin or theme set them (zero included) before the editor came up.
     if (App_post.submit_wait_ms == null) App_post.submit_wait_ms = 15000;
     if (App_post.save_timeout_ms == null) App_post.save_timeout_ms = 30000;
@@ -128,14 +129,20 @@ function cama_init_post(obj) {
 
     // The submit event already ran through validation and every listener when it was held, so only its
     // default action is left: the form element's own submit, which TinyMCE patches to save its editors.
+    // It is sent to the form it was held on: with pages loading in place, another form can be set up
+    // while the hold waits (the browser's Back button is not under the overlay), and one that left the
+    // page is not sent at all.
     function send_held_submit() {
+        var form = held_form;
         drop_hold();
-        $form.data("submitted", 1);
-        $form[0].submit();
+        if (!form || !$.contains(document, form)) return;
+        $(form).data("submitted", 1);
+        form.submit();
     }
 
     function drop_hold() {
         submit_after_save = false;
+        held_form = null;
         clearTimeout(submit_wait_timer);
     }
 
@@ -375,6 +382,7 @@ function cama_init_post(obj) {
             if (saving) {
                 if (!submit_after_save) {
                     submit_after_save = true;
+                    held_form = this;
                     showLoading();
                     // A stalled save must not keep the post from being saved: on a new post this may
                     // leave that save's buffer behind, which is the lesser loss.
