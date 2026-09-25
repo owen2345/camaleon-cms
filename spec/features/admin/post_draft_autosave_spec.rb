@@ -258,6 +258,42 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script("sessionStorage.getItem('submitListenerRuns')")).to eq('1')
   end
 
+  # A draft request that has not returned after App_post.save_timeout_ms is taken as failed: the lock is
+  # released and the caller's failure handler runs, so a stalled server cannot
+  # keep Preview and Save Draft dead until the browser gives up on the request.
+  it 'fails a draft save that has not returned after save_timeout_ms' do
+    stalled = false
+    calls = 0
+    allow_any_instance_of(CamaleonCms::Admin::Posts::DraftsController).to receive(:create)
+      .and_wrap_original do |create, *args|
+      calls += 1
+      next create.call(*args) unless calls == 1
+
+      sleep 1.5
+      stalled = true
+      create.receiver.render json: { error: ['too late'] }
+    end
+
+    visit new_post_path
+    wait_for_editor_baseline
+    page.execute_script(<<~JS)
+      App_post.save_timeout_ms = 500;
+      $('#post_title').val('Timed out').trigger('keyup');
+      App_post.save_draft_ajax(null, false, function () { $('body').attr('data-save-failed', 'ran'); });
+    JS
+
+    expect(page).to have_css('body[data-save-failed="ran"]')
+
+    page.execute_script(<<~JS)
+      App_post.save_timeout_ms = 30000;
+      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+    JS
+    expect(page).to have_css('body[data-later-save="ran"]')
+    expect(new_post_buffers.order(:id).last.title).to eq('Timed out')
+    # Let the stalled request finish inside the example, where its rendering is harmless.
+    Timeout.timeout(5) { sleep(0.1) until stalled }
+  end
+
   # A refused draft save (here a status the editor does not offer, refused for every role) must not
   # send the held submit: the post save would refuse the same content, and the user has to read the
   # refusal to fix it. The hold is released and its fallback timer cleared.
