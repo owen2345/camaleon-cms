@@ -34,7 +34,8 @@ function cama_init_post(obj) {
     if (App_post.save_timeout_ms == null) App_post.save_timeout_ms = 30000;
 
     // on_failure runs when the save is refused, the request fails or it could not be sent.
-    App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+    App_post.save_draft_ajax = save_draft_ajax;
+    function save_draft_ajax(callback, called_from_interval, on_failure) {
         if (saving) {
             queued_saves.push([callback, called_from_interval, on_failure]);
             return;
@@ -59,7 +60,7 @@ function cama_init_post(obj) {
             try { if (on_failure) on_failure(); } finally { save_finished(); }
             throw e;
         }
-    };
+    }
 
     function draft_request(data, hash, form, callback, called_from_interval, on_failure) {
         return {
@@ -115,8 +116,10 @@ function cama_init_post(obj) {
 
     function save_finished() {
         saving = false;
-        // A queued timer call with nothing to send returns without saving, so go on to the next.
-        while (!saving && queued_saves.length) App_post.save_draft_ajax.apply(null, queued_saves.shift());
+        // A queued timer call with nothing to send returns without saving, so go on to the next. Each is
+        // run from here, not through App_post.save_draft_ajax: a wrapper a plugin put there already ran
+        // when the call was made.
+        while (!saving && queued_saves.length) save_draft_ajax.apply(null, queued_saves.shift());
         if (!submit_after_save) return;
         // A hold that goes on waiting, for the queued save just started, needs the overlay put back: the
         // finished save's caller (Preview, Save Draft) takes it down in its callback.

@@ -262,6 +262,26 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script("sessionStorage.getItem('submitListenerRuns')")).to eq('1')
   end
 
+  # A save queued behind a running one is run again from the queue. It goes through the function the
+  # script owns, not through App_post.save_draft_ajax, so a wrapper a plugin installed there runs once
+  # per call, when the call was made, and not a second time when the queue is drained.
+  it 'runs a plugin wrapper once for a save queued behind another' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    page.execute_script(<<~JS)
+      window.wrapperRuns = 0;
+      var save = App_post.save_draft_ajax;
+      App_post.save_draft_ajax = function () { window.wrapperRuns++; return save.apply(this, arguments); };
+      $('#post_title').val('Wrapped').trigger('keyup');
+      App_post.save_draft_ajax(null, false);
+      App_post.save_draft_ajax(function () { $('body').attr('data-queued-save', 'ran'); }, false);
+    JS
+
+    expect(page).to have_css('body[data-queued-save="ran"]')
+    expect(page.evaluate_script('window.wrapperRuns')).to eq(2)
+  end
+
   # A held submit also waits for the saves queued behind the one it was held on. The finished save's
   # caller takes the overlay down (Preview, Save Draft do), so the hold has to put it back while the
   # queued save runs, or the form is open to edits that the submit then sends without a word.
