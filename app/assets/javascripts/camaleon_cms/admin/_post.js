@@ -39,12 +39,11 @@ function cama_init_post(obj) {
             queued_saves.push([callback, called_from_interval, on_failure]);
             return;
         }
-        var hash = get_hash_form();
-        if (called_from_interval && (saved_hash === null || hash == saved_hash)) return;
+        if (called_from_interval && (saved_hash === null || get_hash_form() == saved_hash)) return;
 
         sync_editors();
-        // Read again: the textareas' change handlers may have written other fields, and saved_hash is the form as sent.
-        hash = get_hash_form();
+        // Read after the sync: the textareas' change handlers may have written other fields, and saved_hash is the form as sent.
+        var hash = get_hash_form();
         var data = $form.serializeObject();
         data._method = post_draft_id ? 'patch' : 'post';
         data.post_id = post_id;
