@@ -501,6 +501,26 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
+  # The click's default action, following the link into a new tab, is prevented before the save is
+  # asked for: when the save throws before sending (a plugin's wrapper), the window opened in the click
+  # is closed again, and the link, which names no draft yet, must not open a preview of nothing.
+  it 'opens no window when the Preview save could not be sent' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Unsent preview title'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (/\\/drafts(\\/|$)/.test(options.url)) throw new Error('refused to send');
+        return ajax.apply(this, arguments);
+      };
+    JS
+
+    expect { find('.btn-preview').click }.not_to(change { page.windows.size })
+    expect(page).to have_no_css('#cama_custom_loading')
+  end
+
   it 'saves the draft and returns to the post list on Save Draft' do
     visit new_post_path
     wait_for_editor_baseline

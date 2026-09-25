@@ -226,7 +226,10 @@ function cama_init_post(obj) {
                 set_slug($input_slug.val());
                 if (post_status == "published") $link.find('.btn-view').show().attr('href', post_path.replace('__-__', $input_slug.val()))
             }
-            $link.find('.btn-preview').click(function () { // preview button
+            $link.find('.btn-preview').click(function (e) { // preview button
+                // Prevented first: a save that throws before sending skips the return below, and the link,
+                // which names no draft yet, would open in a tab of its own.
+                e.preventDefault();
                 var link = $(this);
                 // Open the window within the click: a popup blocker refuses one opened from the save's
                 // asynchronous callback. The save points the link at the draft before the callback runs.
