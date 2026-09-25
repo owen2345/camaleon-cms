@@ -152,12 +152,12 @@ function cama_init_post(obj) {
     // run once, now. The overlay comes down first: whatever the submit does from here, it does on its own.
     // It is sent to the form it was held on: with pages loading in place, another form can be set up
     // while the hold waits (the browser's Back button is not under the overlay), and one that left the
-    // page is not sent at all.
+    // page is not sent at all; the overlay the hold put up still comes down, or the page is dead under it.
     function send_held_submit() {
         var form = held_form;
         drop_hold();
-        if (!form || !$.contains(document, form)) return;
         hideLoading();
+        if (!form || !$.contains(document, form)) return;
         releasing_form = form;
         try { $(form).trigger('submit'); } finally { releasing_form = null; }
     }

@@ -362,7 +362,7 @@ describe 'Post editor draft autosave', :js do
 
   # A held submit is sent to the form it was held on. With pages loading in place, another form can be
   # set up while the hold waits (the browser's Back button is not under the overlay): the script's form
-  # is then that one, and it must not be submitted in the held form's place.
+  # is then that one, and it must not be submitted in the held form's place, but the overlay comes down.
   it 'drops a held submit whose form was replaced while it waited' do
     visit new_post_path
     wait_for_editor_baseline
@@ -389,6 +389,8 @@ describe 'Post editor draft autosave', :js do
     sleep 1.5 # past submit_wait_ms: the hold's fallback must not send the replacement form
     expect(page).to have_current_path(new_post_path, ignore_query: false)
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
+    # The overlay the hold put up is taken down all the same: nothing else on the page would.
+    expect(page).to have_no_css('#cama_custom_loading')
   end
 
   # A listener delegated from an ancestor (camaleon_admin_ajax submits the post form in place from one
