@@ -47,9 +47,12 @@ function cama_init_post(obj) {
         var data = $form.serializeObject();
         data._method = post_draft_id ? 'patch' : 'post';
         data.post_id = post_id;
+        // The form the save is sent for: with pages loading in place, the response may find the editor set
+        // up on another form, whose draft id and Preview links are its own.
+        var form = $form[0];
         saving = true;
         try {
-            $.ajax(draft_request(data, hash, callback, called_from_interval, on_failure));
+            $.ajax(draft_request(data, hash, form, callback, called_from_interval, on_failure));
         } catch (e) {
             // $.ajax threw before sending (a plugin's wrapper, a prefilter): nothing will release the lock,
             // and the caller's failure handler is the only way its overlay or window is taken down.
@@ -58,7 +61,7 @@ function cama_init_post(obj) {
         }
     };
 
-    function draft_request(data, hash, callback, called_from_interval, on_failure) {
+    function draft_request(data, hash, form, callback, called_from_interval, on_failure) {
         return {
             type: 'POST',
             url: _drafts_path,
@@ -80,8 +83,8 @@ function cama_init_post(obj) {
                         if (res._drafts_path) _drafts_path = res._drafts_path
                         post_draft_id = res.draft.id
                         saved_hash = hash;
-                        $("#post_draft_id").val(post_draft_id);
-                        set_preview_draft_id();
+                        $(form).find("#post_draft_id").val(post_draft_id);
+                        set_preview_draft_id(form);
                         if (callback) callback(res);
                     }
                 } finally {
@@ -135,8 +138,8 @@ function cama_init_post(obj) {
         clearTimeout(submit_wait_timer);
     }
 
-    function set_preview_draft_id() {
-        $form.find('.sl-slug-edit .btn-preview').each(function () {
+    function set_preview_draft_id(form) {
+        $(form).find('.sl-slug-edit .btn-preview').each(function () {
             $(this).attr('href', $(this).attr('href').replace(/draft_id=[^&]*/, 'draft_id=' + post_draft_id));
         });
     }

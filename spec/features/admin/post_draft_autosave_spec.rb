@@ -422,6 +422,43 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
   end
 
+  # A save is asynchronous, so with pages loading in place it can return after the editor was set up
+  # on another post's form. The draft id it returns belongs to the post it was sent for: written into
+  # the next form, that post's save would discard the buffer named by post[draft_id], and its Preview
+  # link would open the wrong draft.
+  it 'writes the draft id into the form the save was sent from, not one set up later' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved for the previous form'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        var self = this, args = arguments;
+        setTimeout(function () { ajax.apply(self, args); }, 1000);
+        return $.Deferred().promise();
+      };
+      $(document).ajaxComplete(function (e, xhr, settings) {
+        if (/\\/drafts(\\/|$)/.test(settings.url)) $('body').attr('data-draft-saved', 'ran');
+      });
+      App_post.save_draft_ajax(null, true);
+      // What opening another post in place leaves behind while the save is in flight: the previous form
+      // is gone from the page and the script's form is the next one, with an empty draft id of its own.
+      window.previousForm = $('#form-post').detach();
+      $('body').append('<form id="form-post"><input type="hidden" id="post_draft_id" name="post[draft_id]" value="">' +
+        '<div class="sl-slug-edit"><a class="btn-preview" href="/next-post?draft_id="></a></div></form>');
+      $form = $('#form-post');
+    JS
+
+    expect(page).to have_css('body[data-draft-saved="ran"]', wait: 5)
+    buffer = new_post_buffers.order(:id).last
+    expect(buffer.title).to eq('Saved for the previous form')
+    expect(page.evaluate_script("window.previousForm.find('#post_draft_id').val()")).to eq(buffer.id.to_s)
+    expect(page.evaluate_script("$('#form-post #post_draft_id').val()")).to eq('')
+    expect(page).to have_css("#form-post .btn-preview[href='/next-post?draft_id=']", visible: :all)
+  end
+
   # A translated field is edited through its per-language copies, which the comparison reads; the hidden
   # original they compose is left out. The content's copies are the editors, matched by the copy's id.
   it 'autosaves an edit to a second language of a translated field' do
