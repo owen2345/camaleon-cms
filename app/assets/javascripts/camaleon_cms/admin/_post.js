@@ -406,13 +406,14 @@ function cama_init_post(obj) {
     }
     setTimeout(form_later_actions, 1000);
     // On its own timer, so a failure in form_later_actions does not leave the form without a baseline.
-    setTimeout(take_baseline_when_ready, 1000);
+    var post_form = $form[0];
+    setTimeout(function () { take_baseline_when_ready(post_form); }, 1000);
 
     // An editor rewrites its textarea in normalized form once it comes up, so a baseline taken before
     // every editor on the form has initialized reads an untouched post as edited. Each editor's init
     // event re-checks; stop waiting after ten seconds (an editor that never comes up) and take the form
     // as it stands.
-    function take_baseline_when_ready() {
+    function take_baseline_when_ready(form) {
         var taken = false;
         var give_up = setTimeout(take_baseline, 10000);
         function take_baseline() {
@@ -420,12 +421,15 @@ function cama_init_post(obj) {
             taken = true;
             clearTimeout(give_up);
             tinymce.off('AddEditor', watch_editor);
+            // The editor was set up on another form meanwhile (admin pages load in place, and the form
+            // read here is the one the script was last set up on): that form takes its own baseline.
+            if ($form[0] !== form) return;
             var hash = get_hash_form();
             // A draft save that ran meanwhile already recorded what it sent; later edits are still unsaved.
             if (saved_hash === null) saved_hash = hash;
             $form.data("hash", hash);
         }
-        function check() { if (!taken && editors_ready()) take_baseline(); }
+        function check() { if (!taken && ($form[0] !== form || editors_ready())) take_baseline(); }
         function watch_editor(e) { e.editor.on('init', check); }
         tinymce.on('AddEditor', watch_editor);
         $.each(tinymce.editors, function (i, editor) { if (!editor.initialized) editor.on('init', check); });
@@ -447,7 +451,7 @@ function cama_init_post(obj) {
     // Only the form's editors are the post's content: one a plugin puts elsewhere on the page (a modal)
     // is neither compared nor sent.
     function in_form(editor) {
-        return $.contains($form[0], editor.getElement());
+        return $form.length > 0 && $.contains($form[0], editor.getElement());
     }
 
     // A read: each editor's content is taken from the editor and its textarea is left alone, so what a

@@ -392,6 +392,36 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
+  # Admin pages load in place, so a baseline still waiting for an editor when the user opens another
+  # page outlives its form: by the time the editor comes up (or the wait gives up) the script's form is
+  # the next page's, which takes a baseline of its own, and the old wait must leave it alone and must not
+  # fail on a page without a post form.
+  it 'leaves a form the editor was set up on later alone when the wait outlives its own' do
+    post = site.the_post('sample-post')
+
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    page.execute_script(<<~JS)
+      (function delayEditor() {
+        var editor = tinymce.get('post_content');
+        if (!editor) return setTimeout(delayEditor, 10);
+        editor.remove();
+        setTimeout(function () {
+          // What opening another post in place leaves behind: the script's form is the next one.
+          $form = $('<form id="form-post-next"></form>');
+          tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));
+        }, 2000);
+      })();
+    JS
+    expect(page).to have_css('#post_content_ifr', wait: 10)
+
+    expect(page.evaluate_script('$form.data("hash")')).to be_nil
+    expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
+
+    # A page without a post form: the comparison finds no form to look in, and does not fail.
+    page.execute_script('$form = $();')
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+  end
+
   # Comparing the form is a read. It used to write each editor's content back into its textarea, in
   # TinyMCE's serialization, so content a plugin had put into the textarea itself (camaleon_editor's
   # grid export, with its colors as rgb()) read back rewritten whenever the snapshot landed after it.
