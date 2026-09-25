@@ -162,6 +162,53 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
+  # The editors are synced into their textareas before a draft is serialized, and a change handler on one
+  # may ask for a save of its own. That call has to queue behind the one being prepared, not run beside
+  # it: on a new post, two concurrent creates make two buffers.
+  it 'queues a save a change handler asks for while the editors are synced' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved from a change handler'
+    count_draft_saves
+
+    page.execute_script(<<~JS)
+      var asked = false;
+      $('#post_content').on('change', function () {
+        if (asked) return;
+        asked = true;
+        App_post.save_draft_ajax(function () { $('body').attr('data-handler-save', 'ran'); }, false);
+      });
+      tinymce.get('post_content').setContent('Body');
+      App_post.save_draft_ajax(null, false);
+    JS
+
+    expect(page).to have_css('body[data-handler-save="ran"]')
+    expect(draft_saves).to eq(2)
+    expect(new_post_buffers.count).to eq(1)
+  end
+
+  # A save can throw before it is sent from the editors' sync as well as from $.ajax: a change handler
+  # that fails. The lock is released and the failure handler runs either way.
+  it 'runs the failure handler and frees the lock when a change handler throws before the send' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    page.execute_script(<<~JS)
+      var failing = true;
+      $('#post_content').on('change', function () { if (failing) throw new Error('handler failed'); });
+      $('#post_title').val('Thrown by a handler').trigger('keyup');
+      try {
+        App_post.save_draft_ajax(null, false, function () { window.sendFailed = true; });
+      } catch (e) { window.sendThrew = e.message; }
+      failing = false;
+      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+    JS
+
+    expect(page.evaluate_script('window.sendThrew')).to eq('handler failed')
+    expect(page.evaluate_script('window.sendFailed')).to be(true)
+    expect(page).to have_css('body[data-later-save="ran"]')
+  end
+
   # Submitting the post while an autosave of the new post is in flight used to post an empty draft id,
   # so the buffer that save created was never discarded. The submit now waits for the draft id.
   it 'discards the new post buffer when the post is submitted during an autosave' do
@@ -231,6 +278,38 @@ describe 'Post editor draft autosave', :js do
     # Well within submit_wait_ms: the error handler, not the fallback timer, sends the form.
     expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true)
     expect(CamaleonCms::Post.find_by(title: 'Submitted after a failed save', status: 'published')).to be_present
+  end
+
+  # The saves queued behind a finished one are run from its completion, and one of them can throw before
+  # it is sent. The held submit must not wait out submit_wait_ms for a save that is not running.
+  it 'sends a held submit when the save it waited for throws on its way out of the queue' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Submitted after a queued save threw'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        var self = this, args = arguments;
+        setTimeout(function () { ajax.apply(self, args); }, 500);
+        return $.Deferred().promise();
+      };
+      App_post.submit_wait_ms = 20000;
+      // The first save's sync passes; the queued save's throws.
+      var syncs = 0;
+      $('#post_content').on('change', function () { if (++syncs == 2) throw new Error('handler failed'); });
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      App_post.save_draft_ajax(null, false);
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    # Well within submit_wait_ms: the queued save's failure, not the fallback timer, sends the form.
+    expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true)
+    expect(CamaleonCms::Post.find_by(title: 'Submitted after a queued save threw', status: 'published')).to be_present
+    expect(new_post_buffers).to be_empty
   end
 
   # A submit is held before validation and any other listener see it, and dispatched again when the hold
