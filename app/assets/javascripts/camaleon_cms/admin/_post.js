@@ -29,9 +29,9 @@ function cama_init_post(obj) {
     var queued_saves = [];
     var submit_after_save = false;
     var submit_wait_timer = null;
-    // Defaults, kept when a plugin or theme set them before the editor came up.
-    if (!App_post.submit_wait_ms) App_post.submit_wait_ms = 15000;
-    if (!App_post.save_timeout_ms) App_post.save_timeout_ms = 30000;
+    // Defaults, kept when a plugin or theme set them (zero included) before the editor came up.
+    if (App_post.submit_wait_ms == null) App_post.submit_wait_ms = 15000;
+    if (App_post.save_timeout_ms == null) App_post.save_timeout_ms = 30000;
 
     // on_failure runs when the save is refused or the request fails.
     App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
