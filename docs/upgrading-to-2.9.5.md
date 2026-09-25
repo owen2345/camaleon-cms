@@ -380,7 +380,8 @@ request fails or could not be sent, including a save that has not returned after
 failed request the caller asked for (not the minute timer's) also shows an error. A call made while a save
 is running waits for it, so the draft id it returns is reused. The values `App_post.submit_wait_ms` and
 `App_post.save_timeout_ms` are only defaulted when unset, so `0` is kept (no hold, no timeout).
-The form is compared by reading the TinyMCE editors themselves: a textarea behind an editor is written
+The form is compared by reading its own TinyMCE editors themselves (an editor elsewhere on the page is
+neither compared nor sent): a textarea behind an editor is written
 only when a draft is sent (and by TinyMCE on blur and submit, as before), no longer by every comparison,
 so content a plugin writes into such a textarea stays as written until then.
 Submitting the post while a save is running shows the loading overlay and sends the form when the save

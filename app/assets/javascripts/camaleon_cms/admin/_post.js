@@ -431,9 +431,15 @@ function cama_init_post(obj) {
             if (!tinymce.get(this.id)) ready = false;
         });
         $.each(tinymce.editors, function (i, editor) {
-            if (!editor.initialized && $.contains($form[0], editor.getElement())) ready = false;
+            if (!editor.initialized && in_form(editor)) ready = false;
         });
         return ready;
+    }
+
+    // Only the form's editors are the post's content: one a plugin puts elsewhere on the page (a modal)
+    // is neither compared nor sent.
+    function in_form(editor) {
+        return $.contains($form[0], editor.getElement());
     }
 
     // A read: each editor's content is taken from the editor and its textarea is left alone, so what a
@@ -444,7 +450,7 @@ function cama_init_post(obj) {
         var editors = {};
         // $.each walks the indexes only: TinyMCE keys the array by editor id too, so for..in visits each twice.
         $.each(tinymce.editors, function (i, editor) {
-            if (editor.initialized) editors[editor.id] = editor.getContent(); // still loading: its textarea holds the server value
+            if (editor.initialized && in_form(editor)) editors[editor.id] = editor.getContent(); // still loading: its textarea holds the server value
         });
         var fields = $form.find(':input').not('#post_draft_id, .translated-item').filter(function () { return !(this.id in editors); });
         return fields.serialize() + '&' + $.param(editors);
@@ -454,7 +460,7 @@ function cama_init_post(obj) {
     // through the textarea's change handlers into the hidden original of a translated field.
     function sync_editors() {
         $.each(tinymce.editors, function (i, editor) {
-            if (!editor.initialized) return;
+            if (!editor.initialized || !in_form(editor)) return;
             $("#" + editor.id).val(editor.getContent()).trigger("change");
         });
     }

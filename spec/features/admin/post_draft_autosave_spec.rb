@@ -368,6 +368,26 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script("$('#post_content').val()")).to eq(exported)
   end
 
+  # Only the post form's editors are the post's content. An editor a plugin puts elsewhere on the page
+  # (a modal) must not read as an edit of the post: that autosaved an untouched post every minute and
+  # asked to confirm leaving a form that had not changed.
+  it 'ignores an editor outside the post form when it compares the form' do
+    visit new_post_path
+    wait_for_editor_baseline
+    count_draft_saves
+
+    page.execute_script(<<~JS)
+      $('body').append('<textarea id="outside_editor"></textarea>');
+      tinymce.init(cama_get_tinymce_settings({ selector: '#outside_editor', height: 100 }));
+    JS
+    expect(page).to have_css('#outside_editor_ifr')
+    page.execute_script("tinymce.get('outside_editor').setContent('<p>Not the post</p>');")
+    autosave_tick
+
+    expect(draft_saves).to eq(0)
+    expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
+  end
+
   # The comparison reads the editors themselves, and a save sends what they hold.
   it 'autosaves an edit made in the editor alone' do
     visit new_post_path
