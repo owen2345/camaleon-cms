@@ -74,7 +74,10 @@ function cama_init_post(obj) {
                         // refusal names the submitted key), and do NOT run the success callback -- it would
                         // navigate away (discarding the unsaved edits) or open a stale preview.
                         $.fn.alert({type: 'error', title: $('<div>').text(res.error.join(", ")).html(), icon: "times"})
-                        release_held_submit();
+                        // A refused save leaves a held submit on the form (the alert took the overlay down): the
+                        // post save would refuse the same content, and the alert names what to fix. A request that
+                        // failed or timed out still sends it (see the submit handler).
+                        drop_hold();
                         // A timer call queued behind this save would send the same form again, to the same
                         // refusal; the next tick retries. A user's call stays queued: it recomputes the form.
                         queued_saves = $.grep(queued_saves, function (queued) { return !queued[1]; });
@@ -126,14 +129,6 @@ function cama_init_post(obj) {
         drop_hold();
         $form.data("submitted", 1);
         $form[0].submit();
-    }
-
-    // A refused save leaves a held submit on the form: the post save would refuse the same content, and
-    // the alert names what to fix. A request that failed or timed out still sends it (see the submit handler).
-    function release_held_submit() {
-        if (!submit_after_save) return;
-        drop_hold();
-        hideLoading();
     }
 
     function drop_hold() {
