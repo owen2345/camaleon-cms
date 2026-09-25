@@ -43,6 +43,8 @@ function cama_init_post(obj) {
         if (called_from_interval && (saved_hash === null || hash == saved_hash)) return;
 
         sync_editors();
+        // Read again: the textareas' change handlers may have written other fields, and saved_hash is the form as sent.
+        hash = get_hash_form();
         var data = $form.serializeObject();
         data._method = post_draft_id ? 'patch' : 'post';
         data.post_id = post_id;

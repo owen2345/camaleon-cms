@@ -342,6 +342,28 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(1)
   end
 
+  # A send runs each editor's textarea change handlers (sync_editors) after the form was compared. A
+  # handler that writes a derived field changes the form between the comparison and the request, so
+  # the saved state must be read after it ran, or the next tick sees the derived field as an edit.
+  it 'records the form as it was sent, after the editors\' change handlers ran' do
+    visit new_post_path
+    wait_for_editor_baseline
+    count_draft_saves
+
+    page.execute_script(<<~JS)
+      $('#form-post').append('<input type="hidden" id="derived_probe" name="derived_probe" value="">');
+      $('#post_content').on('change', function () { $('#derived_probe').val('derived'); });
+      tinymce.get('post_content').setContent('<p>Derived from</p>');
+      App_post.save_draft_ajax(null, true);
+    JS
+    wait_for_ajax
+    expect(draft_saves).to eq(1)
+
+    autosave_tick
+
+    expect(draft_saves).to eq(1)
+  end
+
   # The load snapshot was taken on a two-second timer. An editor that came up later rewrote its
   # textarea in TinyMCE's normalized form, so an untouched post read as edited: the timer autosaved
   # it and leaving the page asked to confirm discarding changes that were never made.
