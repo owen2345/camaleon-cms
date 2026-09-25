@@ -422,6 +422,34 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
   end
 
+  # A translated field is edited through its per-language copies, which the comparison reads; the hidden
+  # original they compose is left out. The content's copies are the editors, matched by the copy's id.
+  it 'autosaves an edit to a second language of a translated field' do
+    site.set_meta('languages_site', %w[en es])
+    visit new_post_path
+    wait_for_editor_baseline
+    count_draft_saves
+
+    autosave_tick
+    expect(draft_saves).to eq(0)
+
+    page.execute_script(<<~JS)
+      $('.title-post.translate-item[data-translation_l="es"]').val('Título en español').trigger('change');
+      var content_es = $('.tinymce_textarea.translate-item[data-translation_l="es"]').attr('id');
+      tinymce.get(content_es).setContent('<p>Cuerpo</p>');
+    JS
+    autosave_tick
+    wait_for_ajax
+    expect(draft_saves).to eq(1)
+
+    buffer = new_post_buffers.order(:id).last
+    expect(buffer.title).to include('<!--:es-->Título en español<!--:-->')
+    expect(buffer.content).to include('<!--:es--><p>Cuerpo</p><!--:-->')
+
+    autosave_tick
+    expect(draft_saves).to eq(1)
+  end
+
   # Comparing the form is a read. It used to write each editor's content back into its textarea, in
   # TinyMCE's serialization, so content a plugin had put into the textarea itself (camaleon_editor's
   # grid export, with its colors as rgb()) read back rewritten whenever the snapshot landed after it.
