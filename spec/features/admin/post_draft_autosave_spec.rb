@@ -233,9 +233,8 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted after a failed save', status: 'published')).to be_present
   end
 
-  # The held submit runs the submit's default action only: validation and every submit listener already
-  # ran when the submit was held, so a listener that asks a question or serializes the form is not run
-  # a second time when the hold is released.
+  # A submit is held before validation and any other listener see it, and dispatched again when the hold
+  # ends, so a listener that asks a question or serializes the form runs once, then, not twice.
   it 'sends a held submit without running the submit listeners again' do
     visit new_post_path
     wait_for_editor_baseline
@@ -311,6 +310,43 @@ describe 'Post editor draft autosave', :js do
     sleep 1.5 # past submit_wait_ms: the hold's fallback must not send the replacement form
     expect(page).to have_current_path(new_post_path, ignore_query: false)
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
+  end
+
+  # A listener delegated from an ancestor (camaleon_admin_ajax submits the post form in place from one
+  # bound on the body) sees the held submit too, once the hold ends, with the draft id in the form; it
+  # may then take the submit over, as that plugin does.
+  it 'delivers a held submit to a listener delegated from an ancestor, with the draft id' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held submit delegated'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        var self = this, args = arguments;
+        setTimeout(function () { ajax.apply(self, args); }, 1000);
+        return $.Deferred().promise();
+      };
+      App_post.submit_wait_ms = 20000;
+      window.delegatedRuns = 0;
+      $('body').on('submit', 'form#form-post', function () {
+        window.delegatedRuns++;
+        window.delegatedDraftId = $(this).find('#post_draft_id').val();
+        return false;
+      });
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    expect(page.evaluate_script('window.delegatedRuns')).to eq(0)
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+    expect(page.evaluate_script('window.delegatedDraftId')).to eq(new_post_buffers.order(:id).last.id.to_s)
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
   # A held submit also waits for the saves queued behind the one it was held on. The finished save's

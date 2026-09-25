@@ -384,9 +384,11 @@ The form is compared by reading its own TinyMCE editors themselves (an editor el
 neither compared nor sent): a textarea behind an editor is written
 only when a draft is sent (and by TinyMCE on blur and submit, as before), no longer by every comparison,
 so content a plugin writes into such a textarea stays as written until then.
-Submitting the post while a save is running shows the loading overlay and sends the form when the save
-finishes, or after `App_post.submit_wait_ms` (15 seconds) if it has not; a refused save keeps the post on the
-form with the refusal shown, a failed request sends it.
+Submitting the post while a save is running shows the loading overlay and holds the submit until the save
+finishes, or for `App_post.submit_wait_ms` (15 seconds) if it has not returned by then; a refused save keeps
+the post on the form with the refusal shown, a failed request lets it go. A held submit is stopped before
+validation and any other submit listener see it, and dispatched again in full when the hold ends, so each
+listener (one a plugin delegates from an ancestor included) and the form's default action run once, then.
 
 ---
 

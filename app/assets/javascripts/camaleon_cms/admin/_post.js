@@ -21,15 +21,16 @@ function cama_init_post(obj) {
     // the leave-page prompt reads too, is taken once the editors are ready; saved_hash is the state the
     // last successful draft save sent, so the minute timer sends only what changed since. One save runs
     // at a time: a save requested meanwhile waits for the draft id the running one returns, so a new
-    // post never gets a second buffer, and a form submitted meanwhile is sent once the draft id is in it,
-    // or after App_post.submit_wait_ms if the save has not returned by then; a refused save leaves it on the
-    // form. A save that has not returned after App_post.save_timeout_ms fails.
+    // post never gets a second buffer, and a form submitted meanwhile is held, then submitted again once
+    // the draft id is in it, or after App_post.submit_wait_ms if the save has not returned by then; a
+    // refused save leaves it on the form. A save that has not returned after App_post.save_timeout_ms fails.
     var saved_hash = null;
     var saving = false;
     var queued_saves = [];
     var submit_after_save = false;
     var submit_wait_timer = null;
     var held_form = null;
+    var releasing_form = null;
     // Defaults, kept when a plugin or theme set them (zero included) before the editor came up.
     if (App_post.submit_wait_ms == null) App_post.submit_wait_ms = 15000;
     if (App_post.save_timeout_ms == null) App_post.save_timeout_ms = 30000;
@@ -127,8 +128,10 @@ function cama_init_post(obj) {
         if (saving) showLoading(); else send_held_submit();
     }
 
-    // The submit event already ran through validation and every listener when it was held, so only its
-    // default action is left: the form element's own submit, which TinyMCE patches to save its editors.
+    // The held submit was stopped before validation or any other listener saw it (see the submit handler),
+    // so it is dispatched again in full: validation, every listener, those delegated from an ancestor
+    // included (camaleon_admin_ajax submits the form in place from one), and the form's default action
+    // run once, now. The overlay comes down first: whatever the submit does from here, it does on its own.
     // It is sent to the form it was held on: with pages loading in place, another form can be set up
     // while the hold waits (the browser's Back button is not under the overlay), and one that left the
     // page is not sent at all.
@@ -136,8 +139,9 @@ function cama_init_post(obj) {
         var form = held_form;
         drop_hold();
         if (!form || !$.contains(document, form)) return;
-        $(form).data("submitted", 1);
-        form.submit();
+        hideLoading();
+        releasing_form = form;
+        try { $(form).trigger('submit'); } finally { releasing_form = null; }
     }
 
     function drop_hold() {
@@ -299,6 +303,27 @@ function cama_init_post(obj) {
         base_path: obj.base_path
     }));
 
+    /*********** control save changes before unload form. ***************/
+    // Bound before the validator's handler, so a submit held here is stopped before validation or any
+    // other listener sees it, and each of them runs once, when the held submit is dispatched again.
+    $form.submit(function (e) {
+        if (!$(this).valid()) return;
+        if (saving && releasing_form !== this) {
+            if (!submit_after_save) {
+                submit_after_save = true;
+                held_form = this;
+                showLoading();
+                // A stalled save must not keep the post from being saved: on a new post this may
+                // leave that save's buffer behind, which is the lesser loss.
+                submit_wait_timer = setTimeout(send_held_submit, App_post.submit_wait_ms);
+            }
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+        }
+        $(this).data("submitted", 1);
+    });
+
     $form.validate();
     $("#post_status").change(function () {
         $('#post-actions .btn[data-type]').hide();
@@ -376,22 +401,7 @@ function cama_init_post(obj) {
         //    $("#post_right_bar").is(":visible") ? $("#post_right_bar").hide() : $("#post_right_bar").show();
         //});
 
-        /*********** control save changes before unload form. ***************/
-        $form.submit(function () {
-            if (!$(this).valid()) return;
-            if (saving) {
-                if (!submit_after_save) {
-                    submit_after_save = true;
-                    held_form = this;
-                    showLoading();
-                    // A stalled save must not keep the post from being saved: on a new post this may
-                    // leave that save's buffer behind, which is the lesser loss.
-                    submit_wait_timer = setTimeout(send_held_submit, App_post.submit_wait_ms);
-                }
-                return false;
-            }
-            $form.data("submitted", 1);
-        });
+        /*********** leave-page prompt (the submit handler is bound with the validator, above) ***************/
         window.onbeforeunload = function () {
             if ($form.data("submitted") || $('#form-post').length == 0)
                 return;
