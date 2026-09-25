@@ -137,8 +137,9 @@ describe 'Post editor draft autosave', :js do
   end
 
   # $.ajax can throw before sending (a plugin's wrapper, a prefilter). The lock it would have released
-  # must not stay held, or every later save queues forever and every submit waits under the overlay.
-  it 'runs later saves after $.ajax threw before sending one' do
+  # must not stay held, or every later save queues forever and every submit waits under the overlay; and
+  # the caller's failure handler runs, since it is what takes down the overlay or window the caller opened.
+  it 'runs later saves and the failure handler after $.ajax threw before sending one' do
     visit new_post_path
     wait_for_editor_baseline
 
@@ -149,12 +150,15 @@ describe 'Post editor draft autosave', :js do
         return ajax.apply(this, arguments);
       };
       $('#post_title').val('Thrown before sending').trigger('keyup');
-      try { App_post.save_draft_ajax(null, false); } catch (e) { window.sendThrew = e.message; }
+      try {
+        App_post.save_draft_ajax(null, false, function () { window.sendFailed = true; });
+      } catch (e) { window.sendThrew = e.message; }
       $.ajax = ajax;
       App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
     JS
 
     expect(page.evaluate_script('window.sendThrew')).to eq('refused to send')
+    expect(page.evaluate_script('window.sendFailed')).to be(true)
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 

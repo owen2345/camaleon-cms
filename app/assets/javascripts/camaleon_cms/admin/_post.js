@@ -33,7 +33,7 @@ function cama_init_post(obj) {
     if (App_post.submit_wait_ms == null) App_post.submit_wait_ms = 15000;
     if (App_post.save_timeout_ms == null) App_post.save_timeout_ms = 30000;
 
-    // on_failure runs when the save is refused or the request fails.
+    // on_failure runs when the save is refused, the request fails or it could not be sent.
     App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
         if (saving) {
             queued_saves.push([callback, called_from_interval, on_failure]);
@@ -50,8 +50,9 @@ function cama_init_post(obj) {
         try {
             $.ajax(draft_request(data, hash, callback, called_from_interval, on_failure));
         } catch (e) {
-            // $.ajax threw before sending (a plugin's wrapper, a prefilter): nothing will release the lock.
-            save_finished();
+            // $.ajax threw before sending (a plugin's wrapper, a prefilter): nothing will release the lock,
+            // and the caller's failure handler is the only way its overlay or window is taken down.
+            try { if (on_failure) on_failure(); } finally { save_finished(); }
             throw e;
         }
     };
