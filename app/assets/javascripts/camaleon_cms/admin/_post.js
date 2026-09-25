@@ -29,7 +29,6 @@ function cama_init_post(obj) {
     var queued_saves = [];
     var submit_after_save = false;
     var submit_wait_timer = null;
-    var submit_without_waiting = false;
     // Defaults, kept when a plugin or theme set them before the editor came up.
     if (!App_post.submit_wait_ms) App_post.submit_wait_ms = 15000;
     if (!App_post.save_timeout_ms) App_post.save_timeout_ms = 30000;
@@ -94,19 +93,25 @@ function cama_init_post(obj) {
         if (!saving && submit_after_save) send_held_submit();
     }
 
+    // The submit event already ran through validation and every listener when it was held, so only its
+    // default action is left: the form element's own submit, which TinyMCE patches to save its editors.
     function send_held_submit() {
-        submit_after_save = false;
-        clearTimeout(submit_wait_timer);
-        $form.submit();
+        drop_hold();
+        $form.data("submitted", 1);
+        $form[0].submit();
     }
 
     // A refused save leaves a held submit on the form: the post save would refuse the same content, and
     // the alert names what to fix. A request that failed or timed out still sends it (see the submit handler).
     function release_held_submit() {
         if (!submit_after_save) return;
+        drop_hold();
+        hideLoading();
+    }
+
+    function drop_hold() {
         submit_after_save = false;
         clearTimeout(submit_wait_timer);
-        hideLoading();
     }
 
     function set_preview_draft_id() {
@@ -339,16 +344,13 @@ function cama_init_post(obj) {
         /*********** control save changes before unload form. ***************/
         $form.submit(function () {
             if (!$(this).valid()) return;
-            if (saving && !submit_without_waiting) {
+            if (saving) {
                 if (!submit_after_save) {
                     submit_after_save = true;
                     showLoading();
                     // A stalled save must not keep the post from being saved: on a new post this may
                     // leave that save's buffer behind, which is the lesser loss.
-                    submit_wait_timer = setTimeout(function () {
-                        submit_without_waiting = true;
-                        send_held_submit();
-                    }, App_post.submit_wait_ms);
+                    submit_wait_timer = setTimeout(send_held_submit, App_post.submit_wait_ms);
                 }
                 return false;
             }

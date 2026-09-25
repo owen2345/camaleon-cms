@@ -207,6 +207,35 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted after a failed save', status: 'published')).to be_present
   end
 
+  # The held submit runs the submit's default action only: validation and every submit listener already
+  # ran when the submit was held, so a listener that asks a question or serializes the form is not run
+  # a second time when the hold is released.
+  it 'sends a held submit without running the submit listeners again' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held submit listeners'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (/\\/drafts(\\/|$)/.test(options.url)) return $.Deferred().promise();
+        return ajax.apply(this, arguments);
+      };
+      App_post.submit_wait_ms = 1000;
+      sessionStorage.setItem('submitListenerRuns', '0');
+      $('#form-post').on('submit', function () {
+        sessionStorage.setItem('submitListenerRuns', String(Number(sessionStorage.getItem('submitListenerRuns')) + 1));
+      });
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true, wait: 10)
+    expect(page.evaluate_script("sessionStorage.getItem('submitListenerRuns')")).to eq('1')
+  end
+
   # A refused draft save (here a status the editor does not offer, refused for every role) must not
   # send the held submit: the post save would refuse the same content, and the user has to read the
   # refusal to fix it. The hold is released and its fallback timer cleared.
