@@ -178,6 +178,9 @@ function cama_init_post(obj) {
     App_post.save_draft = function () {
         showLoading();
         App_post.save_draft_ajax(function () {
+            // The page loaded another form in place while the save ran (the browser's Back button is not
+            // under the overlay): the draft is saved, and that form keeps its own leave prompt and page.
+            if ($form[0] !== post_form) { hideLoading(); return; }
             $form.data("submitted", 1);
             location.href = _posts_path + '?flash[notice]=' + I18n("msg.draft")
         }, false, hideLoading);

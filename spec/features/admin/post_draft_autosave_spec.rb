@@ -948,6 +948,38 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved draft title')
   end
 
+  # Save Draft's callback marks the form submitted and leaves for the post list. Run for a form the page
+  # has since replaced in place, it would mark the next form submitted (silencing its leave prompt) and
+  # take the page away from it. The draft is saved; the next form keeps its prompt and its page.
+  it 'stays on the form the page loaded in place when Save Draft returns for the one before it' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved draft before the next form'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        var self = this, args = arguments;
+        setTimeout(function () { ajax.apply(self, args); }, 1000);
+        return $.Deferred().promise();
+      };
+      App_post.save_draft();
+      // What opening another post in place leaves behind while the save runs: the previous form is gone
+      // and the script's form is the next one.
+      $('#form-post').detach();
+      $('body').append('<form id="form-post"><input type="hidden" name="post[title]" value="The next form"></form>');
+      $form = $('#form-post');
+    JS
+
+    Timeout.timeout(5) { sleep(0.1) until new_post_buffers.exists? }
+    sleep 1 # long enough for a callback that leaves the page to have left it
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved draft before the next form')
+  end
+
   # Save Draft holds the form under the loading overlay while its save runs, since its callback leaves
   # the page; a refused save must give the form back with the refusal shown.
   it 'keeps the editor usable when Save Draft is refused' do
