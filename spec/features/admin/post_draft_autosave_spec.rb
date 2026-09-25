@@ -262,6 +262,37 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script("sessionStorage.getItem('submitListenerRuns')")).to eq('1')
   end
 
+  # A held submit also waits for the saves queued behind the one it was held on. The finished save's
+  # caller takes the overlay down (Preview, Save Draft do), so the hold has to put it back while the
+  # queued save runs, or the form is open to edits that the submit then sends without a word.
+  it 'keeps the overlay while a held submit waits for a queued save' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held behind a queued save'
+
+    # Every draft request is held back for a while, so the queued save is in flight for as long.
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        var self = this, args = arguments;
+        setTimeout(function () { ajax.apply(self, args); }, 1500);
+        return $.Deferred().promise();
+      };
+      App_post.submit_wait_ms = 20000;
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      App_post.save_draft_ajax(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true, wait: 10)
+    expect(CamaleonCms::Post.find_by(title: 'Held behind a queued save', status: 'published')).to be_present
+  end
+
   # A draft request that has not returned after App_post.save_timeout_ms is taken as failed: the lock is
   # released, the caller's failure handler runs and the failure is reported, so a stalled server cannot
   # keep Preview and Save Draft dead until the browser gives up on the request.

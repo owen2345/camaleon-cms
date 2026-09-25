@@ -114,7 +114,10 @@ function cama_init_post(obj) {
         saving = false;
         // A queued timer call with nothing to send returns without saving, so go on to the next.
         while (!saving && queued_saves.length) App_post.save_draft_ajax.apply(null, queued_saves.shift());
-        if (!saving && submit_after_save) send_held_submit();
+        if (!submit_after_save) return;
+        // A hold that goes on waiting, for the queued save just started, needs the overlay put back: the
+        // finished save's caller (Preview, Save Draft) takes it down in its callback.
+        if (saving) showLoading(); else send_held_submit();
     }
 
     // The submit event already ran through validation and every listener when it was held, so only its
