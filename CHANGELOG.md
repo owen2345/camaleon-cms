@@ -4,7 +4,7 @@
 
 - **Tooling:** CI also runs the `camaleon-post-clone` plugin's suite against the core commit under test, as a fifth advisory ecosystem check. Development-only. [#1311](https://github.com/owen2345/camaleon-cms/pull/1311).
 
-- **Bug fix:** In the post editor, the Preview link names the draft an autosave created, whichever way it is opened; the autosave no longer re-sends an unchanged form every minute, saves an untouched post or freezes the editor while it saves, and leaving an untouched post no longer asks to confirm. [#1310](https://github.com/owen2345/camaleon-cms/pull/1310).
+- **Bug fix:** In the post editor, the Preview link names the draft an autosave created, whichever way it is opened; the autosave no longer re-sends an unchanged form every minute, saves an untouched post or freezes the editor while it saves, and leaving an untouched post no longer asks to confirm; a Save Draft or Preview whose draft request fails now says so. [#1310](https://github.com/owen2345/camaleon-cms/pull/1310).
   - [Upgrade notes](docs/upgrading-to-2.9.5.md#the-post-editors-draft-save-is-asynchronous).
 
 - **Docs:** `docs/ai/testing.md` no longer tells a local run of an ecosystem member's suite to point `CAMALEON_CMS_PATH` at a worktree away from the member's path; a sibling checkout gets the core migrations. No behavior change. [#1308](https://github.com/owen2345/camaleon-cms/pull/1308).
