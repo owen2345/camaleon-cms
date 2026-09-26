@@ -36,4 +36,4 @@ _None._ `draft-authorization` (the server side of the same endpoint) is unchange
 - **Specs:** `spec/features/admin/post_draft_autosave_spec.rb` (`:js`), one example per requirement scenario.
 - **Ecosystem:** code that reads the draft right after `window.save_draft` must read it in the callback. A submit listener a plugin delegates from an ancestor (camaleon_admin_ajax) still runs, once, when a held submit is dispatched again.
 - **Docs:** `docs/upgrading-to-2.9.5.md` (the asynchronous save section), `CHANGELOG.md`.
-- **Out of scope:** parentless buffers are still never pruned (abandoned new posts; a first save that timed out client-side but completed on the server); no saved indicator.
+- **Out of scope:** parentless buffers are still never pruned (abandoned new posts; a first save that timed out client-side, or was aborted by the fallback wait, but completed on the server); no saved indicator. Left as they are by decision (design.md, Risks): a `$.ajax` wrapper that returns no jqXHR cannot be aborted; an editor outside the form naming it with `form=` is compared through its textarea.

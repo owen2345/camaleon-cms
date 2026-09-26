@@ -74,7 +74,9 @@ With pages loading in place, a save can return after the script was set up on an
 
 - **A plugin reads the draft right after `window.save_draft`** → It reads it too early; the upgrade guide says to read it in the callback.
 - **A listener bound on the form before the editor came up** → It runs when the submit is held and again when it is dispatched; only listeners bound before `cama_init_post` (DOM ready + 100 ms) are affected, and none surveyed is.
-- **A new post's first save times out client-side but completes on the server** → The editor cannot name that buffer, so its next save creates another; out of scope, with buffer pruning.
+- **A new post's first save times out client-side, or is aborted by the fallback wait, but completes on the server** → The editor cannot name that buffer, so its next save creates another; out of scope, with buffer pruning. Decided 2026-09-27 to stay so until the pruning follow-up.
+- **A `$.ajax` wrapper returns no jqXHR** → The fallback wait cannot abort the save: the held submit goes out with the save running (its late answer runs the callback), and a submit made afterwards is held for another `submit_wait_ms`. Decided 2026-09-27 to stay so: the upgrade guide states the contract, and every wrapper surveyed returns the jqXHR.
+- **An editor whose textarea sits outside the form and names it with `form=`** → Not one of the form's editors, so it is compared and sent through its textarea, which TinyMCE writes on blur and submit. Decided 2026-09-27 to stay so: no theme or plugin surveyed places an editor outside the form.
 - **A widget writes a value before the baseline** → Not a touch: the baseline absorbs it like any setup write. Only the user's input and the editors' change events count.
 - **An editor a plugin creates after the baseline** → Its normalized content reads as an edit, as before this change.
 - **jQuery validate runs twice per submit** → The hold handler calls `valid()` and validate's own handler validates again, as before; the cost is unchanged.

@@ -392,11 +392,13 @@ save or the save was aborted: the post save reports for itself then. Shown after
 place, the error (or a refusal) is prefixed with the post's title. A call made during a save waits for
 it and reuses its draft id, and runs without the overlay unless it was Save Draft's or Preview's. `App_post.submit_wait_ms` and `App_post.save_timeout_ms` are defaulted only
 when unset, so `0` is kept (no hold, no timeout). A wrapper on `$.ajax` must return the jqXHR, or the
-editor cannot abort the request.
+editor cannot abort the request: the held submit then goes out with the save still running, and a submit
+made afterwards waits another `App_post.submit_wait_ms`.
 
 The form is compared by reading its own TinyMCE editors; a textarea behind an editor is written only when
 a draft is sent (and by TinyMCE on blur and submit, as before), so content a plugin writes into it stays
-as written until then. An editor elsewhere on the page is neither compared nor sent.
+as written until then. An editor elsewhere on the page is neither compared nor sent; one whose
+textarea names the form with `form=` is compared and sent through that textarea, as TinyMCE last wrote it.
 
 Submitting the post while a save runs shows the loading overlay and holds the submit until the save
 finishes, or for `App_post.submit_wait_ms` (15 seconds), after which the save is aborted and the submit
