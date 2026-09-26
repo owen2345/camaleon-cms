@@ -27,6 +27,12 @@ function cama_init_post(obj) {
     // refused save leaves it on the form. A save that has not returned after App_post.save_timeout_ms fails.
     var saved_hash = null;
     var refused_hash = null;
+    // Set by the user's own input in the form (a native input or change event: a value a script writes,
+    // or jQuery's trigger, fires none), read while the baseline is still to come.
+    var touched = false;
+    // The baseline was taken after the user had edited the form (typed in it, or an editor gone dirty):
+    // it absorbed the edit, so the form stays edited until it is submitted.
+    var edited_before_baseline = false;
     var saving = false;
     var queued_saves = [];
     var submit_wait_timer = null;
@@ -40,6 +46,9 @@ function cama_init_post(obj) {
     // while a save of this one is queued or in flight; $form is then that form, and this setup's saves are
     // not for it.
     var post_form = $form[0];
+    post_form.addEventListener('input', mark_touched);
+    post_form.addEventListener('change', mark_touched);
+    function mark_touched() { touched = true; }
     // Defaults, kept when a plugin or theme set them (zero included) before the editor came up.
     if (App_post.submit_wait_ms == null) App_post.submit_wait_ms = 15000;
     if (App_post.save_timeout_ms == null) App_post.save_timeout_ms = 30000;
@@ -468,7 +477,7 @@ function cama_init_post(obj) {
         window.onbeforeunload = function () {
             if ($form.data("submitted") || $('#form-post').length == 0)
                 return;
-            if ($form.data("hash") != get_hash_form()) {
+            if (form_edited()) {
                 return "You sure to leave the page without saving changes?";
             }
         };
@@ -506,8 +515,12 @@ function cama_init_post(obj) {
             // read here is the one the script was last set up on): that form takes its own baseline.
             if ($form[0] !== form) return;
             var hash = get_hash_form();
+            // The user edited the form while it was still being set up: this baseline reads the edit as
+            // the original. The form stays edited (form_edited), and the timer sends it, since the saved
+            // state is set to match no form.
+            if (touched || editor_dirty()) edited_before_baseline = true;
             // A draft save that ran meanwhile already recorded what it sent; later edits are still unsaved.
-            if (saved_hash === null) saved_hash = hash;
+            if (saved_hash === null) saved_hash = edited_before_baseline ? '' : hash;
             $form.data("hash", hash);
         }
         function check() { if (!taken && ($form[0] !== form || editors_ready())) take_baseline(); }
@@ -515,6 +528,20 @@ function cama_init_post(obj) {
         tinymce.on('AddEditor', watch_editor);
         $.each(tinymce.editors, function (i, editor) { if (!editor.initialized) editor.on('init', check); });
         check();
+    }
+
+    // The leave prompt's question. Before the baseline the form is still being set up (an editor coming
+    // up normalizes its textarea, a widget writes its value), so a comparison would read setup as an
+    // edit: until then the form counts as edited when the user typed or clicked in it, or an editor that
+    // has come up is dirty (TinyMCE keeps that from its undo levels, not from a script's setContent).
+    function form_edited() {
+        if (edited_before_baseline) return true;
+        if ($form.data("hash") === undefined) return touched || editor_dirty();
+        return $form.data("hash") != get_hash_form();
+    }
+
+    function editor_dirty() {
+        return $.grep(form_editors(), function (editor) { return editor.isDirty(); }).length > 0;
     }
 
     function editors_ready() {

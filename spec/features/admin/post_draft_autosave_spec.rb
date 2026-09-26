@@ -43,6 +43,14 @@ describe 'Post editor draft autosave', :js do
     page.evaluate_script('window.draftSaves')
   end
 
+  # The leave prompt is installed a second after the editor script is set up, with the rest of the page's
+  # later actions; a baseline that waits for a delayed editor is taken later than that.
+  def wait_for_leave_prompt
+    Timeout.timeout(5) do
+      sleep(0.1) until page.evaluate_script('typeof window.onbeforeunload === "function"')
+    end
+  end
+
   def autosave_tick
     page.execute_script('App_post.save_draft_ajax(null, true)')
   end
@@ -797,6 +805,89 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(1)
   end
 
+  # Before the baseline there is nothing to compare the form with, and the page is still being set up (an
+  # editor coming up rewrites its textarea): the leave prompt used to fire for an untouched post until then,
+  # a second normally and ten when an editor never comes up. It fires only once the user has touched the form.
+  it 'does not prompt to leave an untouched post before the baseline' do
+    post = site.the_post('sample-post')
+    post.update!(content: 'Plain body, not yet normalized by the editor')
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    page.execute_script(<<~JS)
+      (function delayEditor() {
+        var editor = tinymce.get('post_content');
+        if (!editor) return setTimeout(delayEditor, 10);
+        editor.remove();
+        setTimeout(function () {
+          tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));
+        }, 3000);
+      })();
+    JS
+
+    wait_for_leave_prompt
+    expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
+    expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
+
+    wait_for_editor_baseline
+    expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
+  end
+
+  # An edit typed while the baseline was still to come was absorbed by it: the prompt then read the edited
+  # form as the original and the timer never sent it. The user's own input marks the form edited before the
+  # baseline, keeps it edited after one that absorbed the edit, and the first tick after it sends the edit.
+  it 'keeps prompting for an edit typed before the baseline, and autosaves it' do
+    post = site.the_post('sample-post')
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    count_draft_saves
+    page.execute_script(<<~JS)
+      (function delayEditor() {
+        var editor = tinymce.get('post_content');
+        if (!editor) return setTimeout(delayEditor, 10);
+        editor.remove();
+        setTimeout(function () {
+          tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));
+        }, 3000);
+      })();
+    JS
+    fill_in 'post_title', with: 'Typed before the baseline'
+
+    wait_for_leave_prompt
+    expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+
+    wait_for_editor_baseline
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+    autosave_tick
+    wait_for_ajax
+    expect(draft_saves).to eq(1)
+    expect(CamaleonCms::Post.where(post_parent: post.id,
+                                   status: 'draft_child').last.title).to eq('Typed before the baseline')
+  end
+
+  # Typing in an editor fires no event on the form: an editor that has come up says itself whether it was
+  # edited (isDirty, kept from its undo levels), and a baseline still waiting for another editor reads it.
+  it 'prompts to leave before the baseline when the content editor was typed in' do
+    post = site.the_post('sample-post')
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    # A second editor the baseline waits for: its textarea is on the form, its editor is created later.
+    page.execute_script(<<~JS)
+      $('#form-post').append('<textarea id="late_editor" name="late_editor" class="tinymce_textarea"></textarea>');
+    JS
+    expect(page).to have_css('#post_content_ifr')
+    wait_for_leave_prompt
+    expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
+    expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
+
+    within_frame('post_content_ifr') { find('body').send_keys('Typed in the editor') }
+
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+    page.execute_script("tinymce.init(cama_get_tinymce_settings({ selector: '#late_editor', height: 100 }));")
+    wait_for_editor_baseline
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+  end
+
   # Admin pages load in place, so a baseline still waiting for an editor when the user opens another
   # page outlives its form: by the time the editor comes up (or the wait gives up) the script's form is
   # the next page's, which takes a baseline of its own, and the old wait must leave it alone and must not
@@ -822,9 +913,10 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('$form.data("hash")')).to be_nil
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
 
-    # A page without a post form: the comparison finds no form to look in, and does not fail.
+    # A page without a post form: the prompt finds no form to look in, does not fail, and asks nothing
+    # (no baseline was taken and nothing was touched).
     page.execute_script('$form = $();')
-    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+    expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
   # A save is asynchronous, so with pages loading in place it can return after the editor was set up

@@ -31,12 +31,27 @@ The post editor's minute timer SHALL send a draft save only when the form differ
 
 ### Requirement: The load baseline is taken once the form's editors are ready, and the comparison reads them
 
-The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the post form has initialized, re-checked on each editor's `init` event, and taken as the form stands after ten seconds if an editor never comes up. The comparison SHALL read each editor's content from the editor, SHALL NOT write into its textarea, SHALL ignore an editor outside the form, and SHALL leave out the draft id field and the hidden original of a translated field. Fields SHALL be matched to editors by their own id, so a field whose id is an inherited object property name is still compared.
+The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the post form has initialized, re-checked on each editor's `init` event, and taken as the form stands after ten seconds if an editor never comes up. The comparison SHALL read each editor's content from the editor, SHALL NOT write into its textarea, SHALL ignore an editor outside the form, and SHALL leave out the draft id field and the hidden original of a translated field. Fields SHALL be matched to editors by their own id, so a field whose id is an inherited object property name is still compared. Until the baseline is taken, the leave-page prompt SHALL NOT compare the form: it SHALL fire only when the user has typed or clicked in the form (a native `input` or `change` event; a value a script writes fires none) or an initialized editor of the form is dirty. A baseline taken after such an edit SHALL keep the form edited until it is submitted, and the first timer tick after it SHALL send the form.
 
 #### Scenario: An untouched post with a late editor stays unchanged
 
 - **WHEN** the content editor initializes three seconds after the page loaded and the post is not edited
 - **THEN** an autosave tick sends nothing and the leave-page prompt returns nothing
+
+#### Scenario: An untouched post does not prompt before the baseline
+
+- **WHEN** the content editor initializes three seconds after the page loaded and the prompt runs before the baseline is taken
+- **THEN** it returns nothing, before the baseline and after it
+
+#### Scenario: An edit typed before the baseline keeps prompting and is autosaved
+
+- **WHEN** the title is typed while the baseline still waits for the content editor
+- **THEN** the prompt returns a message before the baseline and after it, and the first tick after the baseline sends the typed title
+
+#### Scenario: An editor typed in before the baseline prompts
+
+- **WHEN** the content editor is typed in while the baseline waits for another editor of the form
+- **THEN** the prompt returns a message, before the baseline and after it
 
 #### Scenario: The comparison leaves a plugin's textarea export alone
 
