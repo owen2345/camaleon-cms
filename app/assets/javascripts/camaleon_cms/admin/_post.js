@@ -91,7 +91,11 @@ function cama_init_post(obj) {
             var data = $form.serializeObject();
             data._method = post_draft_id ? 'patch' : 'post';
             data.post_id = post_id;
-            running_request = $.ajax(draft_request(data, hash, callback, called_from_interval, on_failure));
+            var request = $.ajax(draft_request(data, hash, callback, called_from_interval, on_failure));
+            // jQuery answers a request it cannot send inside $.ajax (a beforeSend that returns false, a
+            // transport that throws): this save has finished by then, and a save drained from the queue may
+            // own running_request. It is set only while this save runs.
+            if (saving && running_request === null) running_request = request;
         } catch (e) {
             // Thrown before the send (a change handler, a $.ajax wrapper): release the lock, let the caller's
             // failure handler close what it opened, and rethrow. A failure handler that throws must not

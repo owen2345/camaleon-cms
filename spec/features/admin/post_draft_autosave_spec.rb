@@ -551,6 +551,48 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to eq(1)
   end
 
+  # jQuery answers a request it cannot send inside `$.ajax` (a `beforeSend` that returns false, a transport
+  # that throws): the save finishes and drains the queue before `$.ajax` returns, so the drained save's
+  # request is the one the fallback wait must abort.
+  it 'aborts the save drained behind one answered inside $.ajax when the fallback wait sends the held submit' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Aborted behind a save answered at once'
+
+    # The first draft request fails before $.ajax returns; the second never returns on its own and records
+    # the editor's abort.
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var first = true;
+        return function (options) {
+          if (first) { first = false; options.error({}, 'error', ''); return; }
+          return { abort: function (status) { window.abortedWith = status; options.error(this, status, ''); } };
+        };
+      })()
+    HANDLER
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 500;
+      #{count_kept_submits_js}
+      #{publishable_post_js}
+      // A change handler queues a save behind the timer's while its editors are synced; the queue is
+      // drained inside the timer's $.ajax call.
+      var asked = false;
+      $('#post_content').on('change', function () {
+        if (asked) return;
+        asked = true;
+        App_post.save_draft_ajax(null, false, function () { window.queuedSaveFailed = true; });
+      });
+      App_post.save_draft_ajax(null, true);
+      $('#form-post').submit();
+    JS
+
+    expect_held_submit_delivered_once
+    expect(page.evaluate_script('window.abortedWith')).to eq('submit')
+    expect(page.evaluate_script('window.queuedSaveFailed')).to be(true)
+    expect(intercepted_draft_requests).to eq(2)
+    expect(page).to have_no_css('#cama_alert_modal')
+  end
+
   # After the fallback sent the submit no save is running, so a second submit is not held.
   it 'lets a submit made after the fallback wait sent one through at once' do
     visit new_post_path

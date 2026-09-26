@@ -309,6 +309,11 @@ When `App_post.submit_wait_ms` passes with the save still running, the save SHAL
 - **WHEN** the fallback wait sends a held submit that a listener keeps on the page while Save Draft's save still runs
 - **THEN** the request is aborted, its failure handler runs, no error is shown, the form is marked submitted and the page stays
 
+#### Scenario: A save drained behind one answered inside $.ajax is aborted
+
+- **WHEN** the timer's save is answered before `$.ajax` returns, the save a change handler queued behind it is drained inside that call, and the fallback wait sends a held submit while the drained save still runs
+- **THEN** the drained save is aborted, its failure handler runs and no error is shown
+
 #### Scenario: A submit made after the fallback wait sent one is not held
 
 - **WHEN** the fallback wait sends a held submit that a listener keeps on the page, and the form is submitted again
