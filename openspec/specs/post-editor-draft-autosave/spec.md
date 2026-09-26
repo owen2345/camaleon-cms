@@ -338,6 +338,11 @@ When `App_post.submit_wait_ms` passes with the save still running, the save SHAL
 - **WHEN** a save with a failure handler times out
 - **THEN** the handler runs and the alert shows the translated failure message
 
+#### Scenario: A failed timer save is retried silently
+
+- **WHEN** the timer's save fails and the next tick runs with the form unchanged since
+- **THEN** no error is shown and the form is sent again
+
 ### Requirement: Save Draft holds the form while it saves
 
 Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. When another form was loaded in place by the time the save returns, Save Draft SHALL leave that form and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.

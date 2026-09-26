@@ -942,6 +942,24 @@ describe 'Post editor draft autosave', :js do
     wait_until { stalled }
   end
 
+  # The timer's save fails silently: there is nothing for the user to do, and the form still differs from
+  # the last save, so the next tick sends it again.
+  it 'retries a failed timer save on the next tick without reporting it' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Failed on the timer'
+
+    fail_draft_requests(100)
+    autosave_tick
+    wait_for_draft_answers(1)
+    expect_no_alert
+    expect(page).to have_no_css('#cama_custom_loading')
+
+    autosave_tick
+    wait_for_draft_answers(2)
+    expect(intercepted_draft_requests).to eq(2)
+  end
+
   # The post save would refuse the same content: the hold is dropped, its timer cleared, and the user reads
   # the refusal.
   it 'keeps the post on the form when the draft save it waited for is refused' do
