@@ -91,6 +91,15 @@ function cama_init_post(obj) {
     // form is the one the save is sent for: with pages loading in place, the response may find the editor
     // set up on another form, whose draft id and Preview links are its own.
     function draft_request(data, hash, form, callback, called_from_interval, on_failure) {
+        // The request failed, timed out, or answered without a draft to name. A save the user asked for
+        // says it failed; the timer's is retried a minute later. A held submit is sent right after this,
+        // and one the fallback wait already sent has gone the same way: the post save reports for itself.
+        function request_failed() {
+            if (!called_from_interval && !held_form && !submit_sent_while_saving) {
+                $.fn.alert({type: 'error', title: I18n("msg.draft_save_failed", "The draft could not be saved"), icon: "times"});
+            }
+            if (on_failure) on_failure();
+        }
         return {
             type: 'POST',
             url: _drafts_path,
@@ -98,7 +107,7 @@ function cama_init_post(obj) {
             // jQuery skips `complete` when a success handler throws, so each handler releases the lock itself.
             success: function (res) {
                 try {
-                    if (res.error) {
+                    if (res && res.error) {
                         // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
                         // refusal names the submitted key), and do NOT run the success callback -- it would
                         // navigate away (discarding the unsaved edits) or open a stale preview. The core
@@ -118,6 +127,9 @@ function cama_init_post(obj) {
                         // call is always sent.
                         refused_hash = hash;
                         if (on_failure) on_failure();
+                    } else if (!res || !res.draft) {
+                        // A decorated drafts action may answer with nothing (`{}`, `null`): no draft to name.
+                        request_failed();
                     } else {
                         if (res._drafts_path) _drafts_path = res._drafts_path
                         post_draft_id = res.draft.id
@@ -132,17 +144,7 @@ function cama_init_post(obj) {
                 }
             },
             error: function () {
-                try {
-                    // A save the user asked for says it failed; the timer's is retried a minute later. A held
-                    // submit is sent right after this, and one the fallback wait already sent has gone the
-                    // same way: the post save reports for itself.
-                    if (!called_from_interval && !held_form && !submit_sent_while_saving) {
-                        $.fn.alert({type: 'error', title: I18n("msg.draft_save_failed", "The draft could not be saved"), icon: "times"});
-                    }
-                    if (on_failure) on_failure();
-                } finally {
-                    save_finished();
-                }
+                try { request_failed(); } finally { save_finished(); }
             },
             dataType: 'json',
             // A save that has not returned after this long is taken as failed, so a stalled request

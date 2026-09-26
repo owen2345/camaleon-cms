@@ -1128,6 +1128,35 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
+  # A drafts action a plugin decorated may answer without a draft (an empty object, `null`). There is no
+  # draft to name, so the save fails as a request that got no JSON does: the failure is reported, the
+  # failure handler runs and the editor is free for the next save.
+  it 'fails a draft response that names no draft' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Answered without a draft'
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var answered = false;
+        return function (options, send) {
+          if (answered) return send();
+          answered = true;
+          setTimeout(function () { options.success({}); }, 200);
+          return $.Deferred().promise();
+        };
+      })()
+    HANDLER
+
+    page.execute_script('App_post.save_draft();')
+
+    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+
+    page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
+    expect(page).to have_css('body[data-later-save="ran"]')
+  end
+
   # Save Draft holds the form under the loading overlay while its save runs, since its callback leaves
   # the page; a refused save must give the form back with the refusal shown.
   it 'keeps the editor usable when Save Draft is refused' do
