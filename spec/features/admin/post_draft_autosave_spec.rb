@@ -684,6 +684,36 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
+  # Before the baseline the timer has nothing to compare the form with: a tick that fires while the
+  # editors are still coming up must not send the raw form of a post the editor has yet to normalize.
+  it 'sends nothing from the timer before the baseline is taken' do
+    post = site.the_post('sample-post')
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    # The editor script is set up once its permalink widget is on the page, a second before the baseline.
+    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    count_draft_saves
+    # The content editor is held back, so the baseline waits for it: the tick lands before it.
+    page.execute_script(<<~JS)
+      (function delayEditor() {
+        var editor = tinymce.get('post_content');
+        if (!editor) return setTimeout(delayEditor, 10);
+        editor.remove();
+        setTimeout(function () {
+          tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));
+        }, 3000);
+      })();
+      $('#post_title').val('Edited before the baseline').trigger('keyup');
+    JS
+    autosave_tick
+    expect(draft_saves).to eq(0)
+
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Edited after the baseline'
+    autosave_tick
+    wait_for_ajax
+    expect(draft_saves).to eq(1)
+  end
+
   # Admin pages load in place, so a baseline still waiting for an editor when the user opens another
   # page outlives its form: by the time the editor comes up (or the wait gives up) the script's form is
   # the next page's, which takes a baseline of its own, and the old wait must leave it alone and must not
