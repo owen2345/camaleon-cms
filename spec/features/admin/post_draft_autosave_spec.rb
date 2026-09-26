@@ -1145,6 +1145,36 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
+  # A refusal names what to fix. One that names nothing (`{ error: [] }`: a model callback aborted the
+  # buffer's save without adding an error) was shown as an empty alert, dropped a held submit and kept
+  # the timer from resending the form until it changed. It is a failed request instead: reported as one,
+  # and a submit held on it is sent, since the post save decides for itself.
+  it 'fails a refusal that names no message' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused without a message'
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var answered = false;
+        return function (options, send) {
+          if (answered) return send();
+          answered = true;
+          setTimeout(function () { options.success({ error: [] }); }, 200);
+          return $.Deferred().promise();
+        };
+      })()
+    HANDLER
+
+    page.execute_script('App_post.save_draft();')
+
+    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+
+    page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
+    expect(page).to have_css('body[data-later-save="ran"]')
+  end
+
   # A drafts action a plugin decorated may answer without a draft (an empty object, `null`). There is no
   # draft to name, so the save fails as a request that got no JSON does: the failure is reported, the
   # failure handler runs and the editor is free for the next save.
