@@ -58,9 +58,6 @@ function cama_init_post(obj) {
         }
         if (called_from_interval && (saved_hash === null || get_hash_form() == saved_hash)) return;
 
-        // The form the save is sent for: with pages loading in place, the response may find the editor set
-        // up on another form, whose draft id and Preview links are its own.
-        var form = $form[0];
         // Locked before the editors are synced: a change handler that asks for a save is queued behind
         // this one, not sent beside it.
         saving = true;
@@ -72,7 +69,7 @@ function cama_init_post(obj) {
             var data = $form.serializeObject();
             data._method = post_draft_id ? 'patch' : 'post';
             data.post_id = post_id;
-            $.ajax(draft_request(data, hash, form, callback, called_from_interval, on_failure));
+            $.ajax(draft_request(data, hash, post_form, callback, called_from_interval, on_failure));
         } catch (e) {
             // The save threw before it was sent (a change handler, a plugin's $.ajax wrapper, a prefilter):
             // nothing will release the lock, and the caller's failure handler is the only way its overlay
@@ -82,6 +79,8 @@ function cama_init_post(obj) {
         }
     }
 
+    // form is the one the save is sent for: with pages loading in place, the response may find the editor
+    // set up on another form, whose draft id and Preview links are its own.
     function draft_request(data, hash, form, callback, called_from_interval, on_failure) {
         return {
             type: 'POST',
