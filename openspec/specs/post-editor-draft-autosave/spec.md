@@ -1,82 +1,90 @@
 # post-editor-draft-autosave Specification
 
 ## Purpose
-The admin post editor autosaves a draft buffer every minute while the form differs from its saved
-state, so an editor's unpublished work survives a crash or a closed tab and Preview can show it. This
-capability states what the minute timer sends and when, how the load baseline and the comparison read
-the form without rewriting it, the asynchronous one-at-a-time draft save and its public contract for
-plugins (`window.save_draft`), the Preview link and window, and what happens to a post submitted while a
-draft save is running. The server side of the same endpoint is `draft-authorization`.
+The admin post editor autosaves a draft buffer every minute while the form has changed, so unpublished
+work survives a crash or a closed tab and Preview can show it. This capability covers what the timer
+sends and when, how the form is compared, the asynchronous one-at-a-time save and its contract for
+plugins (`window.save_draft`), the Preview link and window, and a post submitted while a save runs. The
+server side of the endpoint is `draft-authorization`.
 
 ## Requirements
 
-### Requirement: The minute autosave sends only a form changed since its last successful save
+### Requirement: The minute timer sends only a changed form
 
-The post editor's minute timer SHALL send a draft save only when the form differs from the state the last successful draft save sent and from the state the last refused save sent (a refusal is decided by the content it names), both read after the editors were written into their textareas, and SHALL send nothing before the load baseline has been taken or once the form has been submitted (a buffer written then outlives the post save, which discards only the buffer a new post named or the drafts of a recovered one). A save the user asks for (Save Draft, Preview, a plugin's call) SHALL always be sent. The draft id field SHALL NOT count as a change.
+The timer SHALL send a draft save only when the form differs from what the last successful save sent and from what the last refused save sent, both read after the editors were written into their textareas. It SHALL send nothing before the load baseline exists or after the form was submitted (a buffer written then outlives the post save and shows up under Drafts). A save the user asks for (Save Draft, Preview, a plugin's call) SHALL always be sent. The draft id field SHALL NOT count as a change.
 
 #### Scenario: An unchanged form is not re-sent
 
-- **WHEN** the title is edited and an autosave tick runs, then a second tick runs with no further edit
+- **WHEN** the title is edited and a tick runs, then a second tick runs with no further edit
 - **THEN** one draft request is sent, and a third tick after another edit sends a second
 
 #### Scenario: A submitted form is not sent by the timer
 
-- **WHEN** the post form is submitted, a listener keeps the page, the title is edited and an autosave tick runs
+- **WHEN** the form is submitted, a listener keeps the page, the title is edited and a tick runs
 - **THEN** no draft request is sent
 
 #### Scenario: A field written by an editor's change handler is recorded as sent
 
-- **WHEN** a change handler on the content textarea writes a derived hidden field, the editor content is changed and an autosave tick runs
+- **WHEN** a change handler on the content textarea writes a derived hidden field, the content is changed and a tick runs
 - **THEN** one request is sent, and the next tick sends nothing
 
 #### Scenario: A second language of a translated field is autosaved
 
 - **WHEN** the site has two languages and only the second language's title and content are edited
-- **THEN** the next tick sends the draft with both values encoded, and the tick after it sends nothing
+- **THEN** the next tick sends both values encoded, and the tick after it sends nothing
 
 #### Scenario: A translated copy still being typed in is sent as typed
 
-- **WHEN** the site has two languages and a tick lands while the second language's title is typed in, before the field has lost focus
+- **WHEN** a tick lands while the second language's title is being typed, before the field loses focus
 - **THEN** the draft is sent with the typed value encoded in the title
 
-### Requirement: The load baseline is taken once the form's editors are ready, and the comparison reads them
+### Requirement: The load baseline waits for the form's editors
 
-The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the post form has initialized, re-checked on each editor's `init` event, and taken as the form stands after ten seconds if an editor never comes up. The comparison SHALL read each editor's content from the editor, SHALL NOT write into its textarea, SHALL ignore an editor outside the form, and SHALL leave out the draft id field and the hidden original of a translated field. The fields SHALL be the form's controls as the browser sends them (`form.elements`), a control elsewhere on the page that names the form included. Fields SHALL be matched to editors by their own id, so a field whose id is an inherited object property name is still compared. Until the baseline is taken, the leave-page prompt SHALL NOT compare the form: it SHALL fire only when the user has typed or clicked in the form (a native `input` or `change` event; a value a script writes fires none) or an editor of the form has fired its `change` event (the user's typing, pasting or formatting; a script's `setContent` fires none). The editor's dirty flag SHALL NOT be read for this: TinyMCE clears it whenever the editor's content is saved into its textarea, which its blur handler does. A baseline taken after such an edit SHALL keep the form edited until it is submitted, and the first timer tick after it SHALL send the form.
+The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the form has initialized (re-checked on each editor's `init`), or after ten seconds if one never comes up. Until then the prompt SHALL NOT compare the form: it SHALL fire only if the user typed or clicked in the form (a native `input` or `change` event) or an editor fired its `change` event (typing, pasting, formatting; not a script's `setContent`). The editor's dirty flag SHALL NOT be used, since TinyMCE clears it when the editor saves into its textarea on blur. A baseline taken after such an edit SHALL keep the form edited until it is submitted, and the first tick after it SHALL send the form.
 
 #### Scenario: An untouched post with a late editor stays unchanged
 
 - **WHEN** the content editor initializes three seconds after the page loaded and the post is not edited
-- **THEN** an autosave tick sends nothing and the leave-page prompt returns nothing
+- **THEN** a tick sends nothing and the prompt returns nothing
 
 #### Scenario: An untouched post does not prompt before the baseline
 
-- **WHEN** the content editor initializes three seconds after the page loaded and the prompt runs before the baseline is taken
+- **WHEN** the content editor initializes three seconds after the page loaded and the prompt runs before the baseline
 - **THEN** it returns nothing, before the baseline and after it
 
 #### Scenario: An edit typed before the baseline keeps prompting and is autosaved
 
 - **WHEN** the title is typed while the baseline still waits for the content editor
-- **THEN** the prompt returns a message before the baseline and after it, and the first tick after the baseline sends the typed title
+- **THEN** the prompt returns a message before and after the baseline, and the first tick after it sends the title
 
 #### Scenario: An editor typed in before the baseline prompts
 
-- **WHEN** the content editor is typed in while the baseline waits for another editor of the form
+- **WHEN** the content editor is typed in while the baseline waits for another editor
 - **THEN** the prompt returns a message, before the baseline and after it
 
 #### Scenario: An editor typed in and then left before the baseline prompts
 
-- **WHEN** the content editor is typed in and then loses focus while the baseline waits for another editor of the form
-- **THEN** the prompt returns a message before the baseline and after it, and the first tick after the baseline sends the typed content
+- **WHEN** the content editor is typed in and then loses focus while the baseline waits for another editor
+- **THEN** the prompt returns a message before and after the baseline, and the first tick after it sends the content
+
+#### Scenario: A baseline wait that outlives its form leaves the next form alone
+
+- **WHEN** the script is set up on another form before the first form's editor comes up
+- **THEN** neither form gets a baseline from the first wait, and the prompt does not fail on a page without a post form
+
+### Requirement: The comparison reads the form without writing it
+
+The comparison SHALL read each editor's content from the editor and leave its textarea alone, ignore an editor outside the form, and leave out the draft id field and the hidden original of a translated field. The fields SHALL be the form's controls as the browser sends them (`form.elements`), so a control elsewhere on the page that names the form counts. Fields SHALL be matched to editors by their own id, so a field whose id is an inherited object property name is still compared.
 
 #### Scenario: The comparison leaves a plugin's textarea export alone
 
-- **WHEN** a plugin writes content with `rgb()` colors into the content textarea and the leave-page prompt runs
+- **WHEN** a plugin writes content with `rgb()` colors into the content textarea and the prompt runs
 - **THEN** the textarea still holds the content as written
 
 #### Scenario: An editor outside the form is not the post's content
 
-- **WHEN** a plugin creates an editor outside the post form and types into it
-- **THEN** an autosave tick sends nothing and the leave-page prompt returns nothing
+- **WHEN** a plugin creates an editor outside the form and types into it
+- **THEN** a tick sends nothing and the prompt returns nothing
 
 #### Scenario: A field named after an inherited property is compared
 
@@ -90,21 +98,16 @@ The baseline the leave-page prompt compares against SHALL be taken once every Ti
 
 #### Scenario: An editor inside a fieldset is read from the editor alone
 
-- **WHEN** the content editor's textarea sits inside a fieldset of the form and the editor's blur handler saves its content into the textarea
-- **THEN** an untouched post reads as unchanged: the next tick sends nothing and leaving the page asks nothing
+- **WHEN** the content textarea sits inside a fieldset and the editor's blur handler saves into it
+- **THEN** an untouched post reads as unchanged: the next tick sends nothing and leaving asks nothing
 
-#### Scenario: A baseline wait that outlives its form leaves the next form alone
+### Requirement: One asynchronous save runs at a time
 
-- **WHEN** the script is set up on another form before the first form's editor comes up
-- **THEN** neither form gets a baseline from the first wait, and the prompt does not fail on a page without a post form
-
-### Requirement: Draft saves are asynchronous and run one at a time
-
-A draft save SHALL NOT block the page. One save SHALL run at a time: a save requested while one runs SHALL wait for it and reuse the draft id it returns, so a new post never gets a second buffer; a queued timer call with nothing to send SHALL NOT hold up the saves behind it; one timer call SHALL wait at a time, a tick landing while one waits being dropped; a queued call SHALL be run by the editor's own function, so a wrapper a plugin installed on `App_post.save_draft_ajax` runs once per call. The lock SHALL be taken before the editors are synced into their textareas, so a save a change handler asks for queues behind the one being prepared. The lock SHALL be released whatever the outcome, including a success callback that throws and a save that throws before it is sent (a change handler, `$.ajax`), in which case the caller's failure handler SHALL run and the send's error SHALL still reach the caller, a failure handler that throws, or a queued save that throws when it is run from that error path, being reported on its own. A save that has not returned after `App_post.save_timeout_ms`, and a response that names no draft (a decorated action answering `{}` or `null`), SHALL be taken as failed. A refused save SHALL show its messages as text, whether the response carries a list of them or one message, and run no success callback; the timer calls queued behind it SHALL send nothing, as the form is unchanged since the refusal, while a user's queued call still runs. The draft id and Preview links SHALL be written into the form the save was sent from. A call made, or a queued call run, after the page loaded another form in place SHALL be dropped at once, its failure handler run, never queued behind a running save and never sent for that form. The saves queued behind a save the fallback wait outran (a held submit sent while it ran) SHALL be dropped when it returns, their failure handlers run: the form is submitted, and a buffer written then would outlive the post save, listed under Drafts as an edit newer than the post.
+A draft save SHALL NOT block the page. A save requested while one runs SHALL queue and reuse the draft id it returns, so a new post never gets a second buffer. A queued timer call with nothing to send SHALL NOT hold up the saves behind it; one timer call SHALL wait at a time. Queued calls SHALL run through the editor's own function, so a wrapper on `App_post.save_draft_ajax` runs once per call. The lock SHALL be taken before the editors are synced, so a save a change handler asks for queues.
 
 #### Scenario: Two overlapping autosaves create one buffer
 
-- **WHEN** a second autosave tick starts while the first save of a new post is in flight
+- **WHEN** a second tick starts while the first save of a new post is in flight
 - **THEN** one buffer exists, holding the second tick's values
 
 #### Scenario: The saves queued behind an idle timer call run
@@ -114,8 +117,22 @@ A draft save SHALL NOT block the page. One save SHALL run at a time: a save requ
 
 #### Scenario: One timer call waits behind a running save
 
-- **WHEN** two timer ticks land while a save runs, the form is edited before it returns, and edited again while the save the first tick then sends runs
+- **WHEN** two ticks land while a save runs, the form is edited before it returns, and edited again while the save the first tick sends runs
 - **THEN** no third request is sent when that save returns; the next tick sends the last edit
+
+#### Scenario: A save asked for by a change handler queues behind the one being prepared
+
+- **WHEN** a change handler on an editor's textarea asks for a save while a new post's save syncs the editors
+- **THEN** two requests are sent one after the other and one buffer exists
+
+#### Scenario: A plugin wrapper runs once for a queued save
+
+- **WHEN** `App_post.save_draft_ajax` is wrapped and two saves are made back to back
+- **THEN** the wrapper has run twice when the second save's callback runs
+
+### Requirement: The lock is released whatever the outcome
+
+The lock SHALL be released when a success callback throws and when a save throws before it is sent (a change handler, `$.ajax`); the failure handler SHALL run and the send's error SHALL reach the caller. A failure handler or queued save that throws on that path SHALL be reported on its own. A save that has not returned after `App_post.save_timeout_ms` SHALL fail, as SHALL a response with no draft to name or a refusal with no message.
 
 #### Scenario: A throwing callback does not hold the lock
 
@@ -129,28 +146,18 @@ A draft save SHALL NOT block the page. One save SHALL run at a time: a save requ
 
 #### Scenario: A failure handler that throws does not hide the send's error
 
-- **WHEN** `$.ajax` throws before sending a draft request and the caller's failure handler throws too
+- **WHEN** `$.ajax` throws before sending and the caller's failure handler throws too
 - **THEN** the send's error is the one that reaches the caller, and a later save runs
 
 #### Scenario: A queued save that throws does not hide the send's error
 
-- **WHEN** `$.ajax` throws before sending a draft request, and throws again for the save a change handler queued behind it, which is run from the first save's error path
-- **THEN** the first save's error is the one that reaches its caller, the queued save's failure handler runs, and a later save runs
-
-#### Scenario: A save asked for by a change handler queues behind the one being prepared
-
-- **WHEN** a change handler on an editor's textarea asks for a save while a save of a new post is syncing the editors
-- **THEN** two requests are sent one after the other and one buffer exists
+- **WHEN** `$.ajax` throws before sending, and again for the save a change handler queued behind it
+- **THEN** the first save's error reaches its caller, the queued save's failure handler runs, and a later save runs
 
 #### Scenario: A change handler that throws before the send frees the lock
 
 - **WHEN** a change handler on an editor's textarea throws while a save syncs the editors
 - **THEN** the error reaches the caller, the failure handler runs, and a later save runs
-
-#### Scenario: A plugin wrapper runs once for a queued save
-
-- **WHEN** `App_post.save_draft_ajax` is wrapped and two saves are made back to back
-- **THEN** the wrapper has run twice when the second save's callback runs
 
 #### Scenario: A stalled save fails after the timeout
 
@@ -167,6 +174,10 @@ A draft save SHALL NOT block the page. One save SHALL run at a time: a save requ
 - **WHEN** the drafts action answers with `error` set to an empty list
 - **THEN** it is not shown as a refusal: the failure is reported, the overlay is gone, the form stays and a later save succeeds
 
+### Requirement: A refused save shows its messages and is not re-sent
+
+A refused save SHALL show its messages as text, whether the response carries a list, one message or messages keyed by field, and run no callback. The timer calls queued behind it SHALL send nothing, and the timer SHALL NOT re-send the form until it changes; a user's call is always sent.
+
 #### Scenario: A timer call queued behind a refused save is dropped
 
 - **WHEN** a save is refused while a timer call waits behind it
@@ -174,18 +185,22 @@ A draft save SHALL NOT block the page. One save SHALL run at a time: a save requ
 
 #### Scenario: A refused form is not re-sent until it changes
 
-- **WHEN** a tick sends a form the server refuses, and a second tick runs with the form left as it was
-- **THEN** the refusal is shown once and the second tick sends nothing; a tick after the form is changed sends it
+- **WHEN** a tick sends a form the server refuses, and a second tick runs with the form unchanged
+- **THEN** the refusal is shown once and the second tick sends nothing; a tick after the form changes sends it
 
 #### Scenario: A refusal sent as one message is shown
 
 - **WHEN** the drafts action answers with `error` set to one message rather than a list
-- **THEN** the message is shown, the overlay is taken down and the form stays
+- **THEN** the message is shown, the overlay is gone and the form stays
 
 #### Scenario: A refusal sent as messages keyed by field is shown
 
-- **WHEN** the drafts action answers with `error` set to an object of messages keyed by field, as a model's errors serialize
-- **THEN** each message is shown with its field, the overlay is taken down and the form stays
+- **WHEN** the drafts action answers with `error` set to messages keyed by field, as a model's errors serialize
+- **THEN** each message is shown with its field, the overlay is gone and the form stays
+
+### Requirement: A save belongs to the form it was sent from
+
+The draft id and Preview links SHALL be written into the form the save was sent from. A call made, or a queued call run, after the page loaded another post form in place SHALL be dropped at once, its failure handler run.
 
 #### Scenario: A late response writes into its own form
 
@@ -194,31 +209,21 @@ A draft save SHALL NOT block the page. One save SHALL run at a time: a save requ
 
 #### Scenario: A queued save whose form was replaced is dropped
 
-- **WHEN** a save is queued behind a running one and the form is replaced by another form before it runs
+- **WHEN** a save is queued behind a running one and the form is replaced before it runs
 - **THEN** the queued save is not sent, its failure handler runs, and the first save's draft keeps its content
-
-#### Scenario: The saves queued behind a save the fallback wait aborted are dropped
-
-- **WHEN** a save is queued behind a running one, and a held submit is sent by the fallback wait while the running save still runs
-- **THEN** the running save is aborted, the queued save is not sent and its failure handler runs
-
-#### Scenario: A dropped save's failure handler that throws does not stop the others
-
-- **WHEN** two saves are queued behind a save the fallback wait aborted, and the first one's failure handler throws
-- **THEN** the second one's failure handler runs, and neither save is sent
 
 #### Scenario: A call for a replaced form is dropped at once
 
-- **WHEN** a save is running and the form is replaced by another form, then a save with a failure handler is asked for
+- **WHEN** a save is running, the form is replaced, and a save with a failure handler is asked for
 - **THEN** the failure handler has run when the call returns
 
-### Requirement: The Preview link and window name the draft the save created
+### Requirement: The Preview link and window name the saved draft
 
-After every successful draft save, each Preview link on the form SHALL name that draft, so it opens the draft however it is opened. The Preview click SHALL open its window inside the click, prevent the link's default action first, save the draft, then send the window to the link; when the save is refused, fails or could not be sent, the window SHALL be closed and the overlay taken down.
+After every successful save, each Preview link on the form SHALL name that draft. The Preview click SHALL prevent the link's default action, open its window inside the click, save the draft, then send the window to the link; when the save is refused, fails or could not be sent, the window SHALL be closed and the overlay taken down.
 
 #### Scenario: The Preview link is pointed at an autosaved draft
 
-- **WHEN** a new post's title is entered and an autosave tick runs
+- **WHEN** a new post's title is entered and a tick runs
 - **THEN** the Preview link ends in that buffer's draft id
 
 #### Scenario: Preview shows the saved draft
@@ -228,12 +233,12 @@ After every successful draft save, each Preview link on the form SHALL name that
 
 #### Scenario: A refused or unsent preview save opens nothing
 
-- **WHEN** the preview's draft save is refused, or throws before sending
+- **WHEN** the preview's save is refused, or throws before sending
 - **THEN** the window is closed (or never opened), the overlay is gone and the editor stays on the form
 
-### Requirement: A post submitted while a draft save runs is held and dispatched again in full
+### Requirement: A submit during a save is held, then dispatched in full
 
-A post form submitted while a draft save is running SHALL be held under the loading overlay before validation or a submit listener bound after the editor's own sees it, until that save and the saves queued behind it finish (the overlay kept while they run) or `App_post.submit_wait_ms` passes, in which case the running save SHALL be aborted first. The submit SHALL then be dispatched again to the form it was held on as the submit event the browser fires (`requestSubmit`, with the button that submitted it as the submitter; jQuery's trigger in a browser without `requestSubmit`), so validation, those listeners, delegated ones and ones bound outside jQuery included, and the form's default action run once, with the draft id in the form and the button's name, value and formaction sent by the browser as they would have been. A refused save SHALL release the hold and keep the post on the form, consuming a validator skip (`cancelSubmit`) the held submit carried, so the next submit is validated; a failed request SHALL let the submit go; a held form that left the page SHALL NOT be sent, but the overlay SHALL come down.
+A form submitted while a save runs SHALL be held under the loading overlay, before validation or a listener bound after the editor's own sees it, until the save and the saves queued behind it finish (the overlay kept while they run) or `App_post.submit_wait_ms` passes. The submit SHALL then be dispatched again to the form it was held on as the submit event the browser fires (`requestSubmit` with the submitting button as the submitter; jQuery's trigger in a browser without `requestSubmit`), so validation, every listener and the form's default action run once, with the draft id in the form and the button's name, value and formaction sent by the browser. A refused save SHALL drop the hold and keep the post on the form, resetting a `cancelSubmit` the held submit carried; a failed request SHALL let the submit go; a held form that left the page SHALL NOT be sent, but the overlay SHALL come down.
 
 #### Scenario: A submit during an autosave discards the new post's buffer
 
@@ -258,12 +263,12 @@ A post form submitted while a draft save is running SHALL be held under the load
 #### Scenario: The submit after a dropped skip-validation hold is validated
 
 - **WHEN** a submit the validator was told to skip is held and the hold is dropped on a refused save
-- **THEN** the next submit is validated as usual, and an invalid form is neither submitted nor marked submitted
+- **THEN** the next submit is validated, and an invalid form is neither submitted nor marked submitted
 
 #### Scenario: Listeners run once, delegated ones included
 
 - **WHEN** a submit listener on the form and one delegated from the body are bound, and the form is submitted during a save
-- **THEN** neither runs while the submit is held, and each runs once when it is dispatched, the delegated one seeing the draft id in the form
+- **THEN** neither runs while the submit is held, and each runs once when it is dispatched, the delegated one seeing the draft id
 
 #### Scenario: The button that made a held submit goes with it
 
@@ -272,8 +277,8 @@ A post form submitted while a draft save is running SHALL be held under the load
 
 #### Scenario: A listener bound outside jQuery sees the dispatched submit
 
-- **WHEN** a listener registered with `addEventListener` on the form is bound after the editor's handler, and a button submits the form during a save
-- **THEN** it does not run while the submit is held, and runs once when it is dispatched, with that button as the event's submitter
+- **WHEN** a listener registered with `addEventListener` after the editor's handler is bound, and a button submits the form during a save
+- **THEN** it does not run while the submit is held, and runs once when it is dispatched, with that button as the submitter
 
 #### Scenario: A browser without requestSubmit still sends the held submit
 
@@ -295,24 +300,42 @@ A post form submitted while a draft save is running SHALL be held under the load
 - **WHEN** the held form is replaced by another form before the hold ends
 - **THEN** the replacement is neither submitted nor marked submitted, and the overlay is gone
 
+### Requirement: The fallback wait aborts the running save
+
+When `App_post.submit_wait_ms` passes with the save still running, the save SHALL be aborted before the submit is sent: `on_failure` runs, no error is shown, and the saves queued behind it are dropped with their failure handlers run, one that throws not stopping the others. A submit made afterwards SHALL NOT be held, since no save runs.
+
+#### Scenario: The fallback wait aborts the running save
+
+- **WHEN** the fallback wait sends a held submit that a listener keeps on the page while Save Draft's save still runs
+- **THEN** the request is aborted, its failure handler runs, no error is shown, the form is marked submitted and the page stays
+
+#### Scenario: A submit made after the fallback wait sent one is not held
+
+- **WHEN** the fallback wait sends a held submit that a listener keeps on the page, and the form is submitted again
+- **THEN** the second submit goes through at once, with no overlay
+
+#### Scenario: The saves queued behind the aborted save are dropped
+
+- **WHEN** a save is queued behind a running one, and a held submit is sent by the fallback wait while the running save still runs
+- **THEN** the running save is aborted, the queued save is not sent and its failure handler runs
+
+#### Scenario: A dropped save's failure handler that throws does not stop the others
+
+- **WHEN** two saves are queued behind the aborted save, and the first one's failure handler throws
+- **THEN** the second one's failure handler runs, and neither save is sent
+
 ### Requirement: The draft save is a public asynchronous contract
 
-`window.save_draft(callback, called_from_interval, on_failure)`, the same function as `App_post.save_draft_ajax`, SHALL return at once and run `callback(response)` when the save succeeds; `on_failure` SHALL run when the save is refused, the request fails, times out, answers without a draft (or with a draft that names no id) or with a refusal that names no message (a failed request, not a refusal) or could not be sent. A failed request the user asked for SHALL be reported with the translated `msg.draft_save_failed` message, unless a submit is held on it (the post save reports for itself); the timer's SHALL be retried silently a minute later. When the fallback wait sends the held submit while the save still runs, the save SHALL be aborted first: `on_failure` runs, no error is shown, and the saves queued behind it are dropped with their failure handlers run, so no late answer runs the callback (Save Draft's would leave the page the post save has) or writes a buffer the post save leaves behind; a submit made afterwards is not held, no save running. `App_post.submit_wait_ms` (15 s) and `App_post.save_timeout_ms` (30 s) SHALL be defaulted only when unset, so a value a plugin or theme set before the editor came up, `0` included, is kept. Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. When the page has loaded another form in place by the time the save returns, Save Draft SHALL leave that form and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.
+`window.save_draft(callback, called_from_interval, on_failure)`, the same function as `App_post.save_draft_ajax`, SHALL return at once and run `callback(response)` when the save succeeds. `on_failure` SHALL run when the save is refused, fails, times out, answers with no draft or with a refusal that names no message, is aborted, is dropped or could not be sent. A failed request the user asked for SHALL show the translated `msg.draft_save_failed` message unless a submit is held on it; the timer's SHALL be retried silently a minute later. `App_post.submit_wait_ms` (15 s) and `App_post.save_timeout_ms` (30 s) SHALL be defaulted only when unset, so a value a plugin or theme set first is kept, `0` included.
 
 #### Scenario: A failed save the user asked for is reported
 
 - **WHEN** a save with a failure handler times out
 - **THEN** the handler runs and the alert shows the translated failure message
 
-#### Scenario: The fallback wait aborts the running save
+### Requirement: Save Draft holds the form while it saves
 
-- **WHEN** the fallback wait sends a held submit that a listener keeps on the page while Save Draft's save still runs
-- **THEN** the save's request is aborted, its failure handler runs, no error is shown, the form is marked submitted and the page stays
-
-#### Scenario: A submit made after the fallback wait sent one is not held
-
-- **WHEN** the fallback wait sends a held submit that a listener keeps on the page, and the form is submitted again
-- **THEN** the second submit goes through at once, with no overlay
+Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. When another form was loaded in place by the time the save returns, Save Draft SHALL leave that form and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.
 
 #### Scenario: Save Draft returns to the list
 

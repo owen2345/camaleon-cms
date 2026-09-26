@@ -29,7 +29,7 @@ what theme/plugin developers should know.
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
-| Has plugin or theme code that calls `window.save_draft` / `App_post.save_draft_ajax` and reads the draft right after the call | The save is asynchronous now: read it in the callback ([details](#the-post-editors-draft-save-is-asynchronous)) |
+| Calls `window.save_draft` / `App_post.save_draft_ajax` and reads the draft right after the call | The save is asynchronous now: read it in the callback ([details](#the-post-editors-draft-save-is-asynchronous)) |
 
 ---
 
@@ -373,46 +373,38 @@ now returns what a freshly loaded record reads.
 ### The post editor's draft save is asynchronous
 
 `window.save_draft(callback)` (the same function as `App_post.save_draft_ajax`) no longer blocks the
-page: it returns at once and runs `callback(response)` when the save succeeds, where it used to run it
-before returning. Code that reads the draft id, `#post_draft_id` or the Preview link right after the call
-should read them in the callback.
+page: it returns at once and runs `callback(response)` when the save succeeds. Code that reads the draft
+id, `#post_draft_id` or the Preview link right after the call must read them in the callback.
 
 A third argument, `on_failure`, runs when the save does not succeed:
 
-- the server refuses it (its messages are shown as text);
-- the request fails, or has not returned after `App_post.save_timeout_ms` (30 seconds);
-- the answer names no draft (`{}`, `null`, `{draft: {}}`) or carries a refusal that names no message; both
-  count as a failed request, not a refusal;
+- the server refuses it (the messages are shown as text);
+- the request fails or has not returned after `App_post.save_timeout_ms` (30 seconds);
+- the answer names no draft (`{}`, `null`, `{draft: {}}`) or refuses without a message (both count as a
+  failed request);
 - the save could not be sent (a change handler or a `$.ajax` wrapper threw);
-- the save was aborted: the fallback wait sent the held submit while the save still ran (see the held
-  submit below);
-- the call was dropped: made or still queued after the page loaded another post form in place, or queued
-  behind a save the fallback wait aborted.
+- the save was aborted because a held submit went out (see below);
+- the call was dropped: made or still queued after another post form was loaded in place, or queued behind
+  an aborted save.
 
-A failed request the caller asked for (not the minute timer's) also shows an error. It shows none while a
-submit is waiting on the save, nor for a save the fallback wait aborted: the post save then reports for
-itself. A wrapper installed on `$.ajax` must return what `$.ajax` returns (the jqXHR), or the editor cannot
-abort the request.
+A failed request the caller asked for (not the timer's) shows an error, unless a submit is waiting on the
+save or the save was aborted: the post save reports for itself then. A call made during a save waits for
+it and reuses its draft id. `App_post.submit_wait_ms` and `App_post.save_timeout_ms` are defaulted only
+when unset, so `0` is kept (no hold, no timeout). A wrapper on `$.ajax` must return the jqXHR, or the
+editor cannot abort the request.
 
-A call made while a save is running waits for it, so the draft id it returns is reused. The values
-`App_post.submit_wait_ms` and `App_post.save_timeout_ms` are only defaulted when unset, so `0` is kept
-(no hold, no timeout).
+The form is compared by reading its own TinyMCE editors; a textarea behind an editor is written only when
+a draft is sent (and by TinyMCE on blur and submit, as before), so content a plugin writes into it stays
+as written until then. An editor elsewhere on the page is neither compared nor sent.
 
-The form is compared by reading its own TinyMCE editors themselves (an editor elsewhere on the page is
-neither compared nor sent): a textarea behind an editor is written
-only when a draft is sent (and by TinyMCE on blur and submit, as before), no longer by every comparison,
-so content a plugin writes into such a textarea stays as written until then.
-Submitting the post while a save is running shows the loading overlay and holds the submit until the save
-finishes, or for `App_post.submit_wait_ms` (15 seconds) if it has not returned by then, in which case the
-save is aborted first; a refused save keeps
-the post on the form with the refusal shown, a failed request lets it go. A held submit is stopped before
-validation and the submit listeners bound after the editor's own see it, and dispatched again when the hold
-ends as the submit event the browser fires (`form.requestSubmit`, with the button that submitted the form as
-the submitter; jQuery's trigger in a browser without it, Safari before 16), so each of them (one a plugin
-delegates from an ancestor or binds with `addEventListener` included) and the form's default action run once,
-then, with the button's name, value and formaction as the browser sends them. A listener a plugin binds on
-the form before the editor is set up (at DOM ready; the editor comes up right after) sees the submit both
-times.
+Submitting the post while a save runs shows the loading overlay and holds the submit until the save
+finishes, or for `App_post.submit_wait_ms` (15 seconds), after which the save is aborted and the submit
+goes out. A refused save keeps the post on the form with the refusal shown; a failed request lets it go.
+The held submit is stopped before validation and before listeners bound after the editor's own see it,
+then dispatched again as the browser's own submit event (`form.requestSubmit` with the button that
+submitted the form; jQuery's trigger in Safari before 16), so every listener, delegated or native, and the
+form's default action run once, with the button's name, value and formaction. A listener bound on the
+form before the editor is set up (at DOM ready) sees the submit both times.
 
 ---
 
