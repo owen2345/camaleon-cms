@@ -356,7 +356,7 @@ When `App_post.submit_wait_ms` passes with the save still running, the save SHAL
 
 ### Requirement: Save Draft holds the form while it saves
 
-Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. A Save Draft or Preview save that starts later than it was asked for (queued behind another save, or held back by a wrapper on `App_post.save_draft_ajax`) SHALL put the overlay back as it starts, the finished save's caller having taken it down; a plugin's queued save SHALL run as it was made, with no overlay put up for it. When another form was loaded in place by the time the save returns, Save Draft SHALL leave that form and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.
+Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. A Save Draft or Preview save that starts later than it was asked for (queued behind another save, or held back by a wrapper on `App_post.save_draft_ajax`) SHALL put the overlay back as it starts, the finished save's caller having taken it down; a plugin's queued save, one a change handler asks for while Save Draft's or Preview's save syncs the editors included, SHALL run as it was made, with no overlay put up for it. When another form was loaded in place by the time the save returns, Save Draft SHALL leave that form and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.
 
 #### Scenario: Save Draft returns to the list
 
@@ -373,6 +373,16 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 - **WHEN** Save Draft is clicked while a save whose callback takes the overlay down is running
 - **THEN** the overlay is up while Save Draft's save runs, and the post list opens after it
 
+#### Scenario: Preview queued behind another save keeps the overlay
+
+- **WHEN** Preview is clicked while a save whose callback takes the overlay down is running
+- **THEN** the overlay is up while Preview's save runs, and is gone once the window shows the draft
+
+#### Scenario: Save Draft queued by a wrapper that defers the call keeps the overlay
+
+- **WHEN** a wrapper on `App_post.save_draft_ajax` sends Save Draft's call a moment later, while a save whose callback takes the overlay down is still running
+- **THEN** the overlay is up while Save Draft's save runs, and the post list opens after it
+
 #### Scenario: Save Draft sent late by a wrapper puts the overlay back
 
 - **WHEN** a wrapper on `App_post.save_draft_ajax` holds Save Draft's call back and sends it once the running save's callback took the overlay down
@@ -382,6 +392,11 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 
 - **WHEN** `window.save_draft` is called while a save whose callback takes the overlay down is running
 - **THEN** the overlay stays down while the queued save runs and after it
+
+#### Scenario: A plugin save asked for during Save Draft's save gets no overlay
+
+- **WHEN** a change handler calls `window.save_draft` while Save Draft's save syncs the editors, and Save Draft's save is refused
+- **THEN** the refusal is shown, the plugin's save runs with the overlay down and the post has one buffer
 
 #### Scenario: A refused Save Draft gives the editor back
 
