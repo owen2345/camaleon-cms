@@ -404,6 +404,35 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved after the hold ended')
   end
 
+  # The saves queued behind a save the fallback wait outran are for a form the post save has taken: sent,
+  # one would write a buffer after the post save removed it, offered for recovery on the next edit, and
+  # report its own failure over the page the post save loaded. They are dropped, their failure handlers run.
+  it 'drops the saves queued behind a save the fallback wait outran' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Queued after the hold ended'
+    count_draft_saves
+
+    delay_draft_requests(1000)
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 300;
+      window.queuedFailures = 0;
+      $('body').on('submit', 'form#form-post', function () { return false; });
+      #{publishable_post_js}
+      App_post.save_draft_ajax(null, false);
+      App_post.save_draft_ajax(null, false, function () { window.queuedFailures++; });
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    Timeout.timeout(5) { sleep(0.1) until new_post_buffers.exists? }
+    expect(page.evaluate_script('window.queuedFailures')).to eq(1)
+    sleep 1.5 # long enough for a queued save sent from the first one's return to have been sent
+    expect(draft_saves).to eq(1)
+    expect(new_post_buffers.count).to eq(1)
+  end
+
   # A draft request that fails (here the transport reports an error) releases the save lock and sends
   # the held submit: the post save decides for itself, and the buffer, if any, is left behind.
   it 'submits the post when the draft save it waited for fails' do

@@ -381,7 +381,8 @@ failed request the caller asked for (not the minute timer's) also shows an error
 on it or the fallback wait already sent one while it ran (the post save then reports for itself, and a save that
 succeeds after that runs `on_failure` in place of its callback). A call made while a save
 is running waits for it, so the draft id it returns is reused; one still waiting when the page has loaded
-another post form in place is dropped, with `on_failure` run. The values `App_post.submit_wait_ms` and
+another post form in place, or when the fallback wait sent a held submit while the save it waited for ran,
+is dropped, with `on_failure` run. The values `App_post.submit_wait_ms` and
 `App_post.save_timeout_ms` are only defaulted when unset, so `0` is kept (no hold, no timeout).
 The form is compared by reading its own TinyMCE editors themselves (an editor elsewhere on the page is
 neither compared nor sent): a textarea behind an editor is written

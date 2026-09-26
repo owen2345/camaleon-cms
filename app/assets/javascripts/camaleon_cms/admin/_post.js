@@ -40,8 +40,8 @@ function cama_init_post(obj) {
     var held_submitter = null;
     var releasing_form = null;
     // Set when the fallback wait sent the held submit while the save still ran: the post save reports
-    // for itself from then on, so this save's failure is not reported too, and its success runs the
-    // caller's failure handler in place of its callback.
+    // for itself from then on, so this save's failure is not reported too, its success runs the
+    // caller's failure handler in place of its callback, and the saves queued behind it are dropped.
     var submit_sent_while_saving = false;
     // The form this setup owns. Admin pages load in place, so the script can be set up on another form
     // while a save of this one is queued or in flight; $form is then that form, and this setup's saves are
@@ -181,6 +181,14 @@ function cama_init_post(obj) {
 
     function save_finished() {
         saving = false;
+        // The fallback wait sent the held submit while the save ran: the form is submitted, and a save
+        // queued behind would write a buffer after the post save removed it (offered for recovery on the
+        // next edit) and report for a page the post save has. Each is dropped with its failure handler
+        // run, as a queued save for a replaced form is.
+        if (submit_sent_while_saving) {
+            $.each(queued_saves.splice(0), function (i, queued) { if (queued[2]) queued[2](); });
+            return;
+        }
         // A queued timer call with nothing to send returns without saving, so go on to the next. Each is
         // run from here, not through App_post.save_draft_ajax: a wrapper a plugin put there already ran
         // when the call was made.
