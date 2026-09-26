@@ -398,6 +398,24 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted with no hold', status: 'published')).to be_present
   end
 
+  # The request timeout is read the same way: set to 0, the draft request is sent with no timeout, not
+  # with the default it would otherwise get.
+  it 'sends the draft request with no timeout when save_timeout_ms is zero' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    intercept_draft_requests('function (options, send) { window.draftTimeout = options.timeout; return send(); }')
+    page.execute_script(<<~JS)
+      App_post.save_timeout_ms = 0;
+      $('#post_title').val('Sent with no timeout').trigger('keyup');
+      App_post.save_draft_ajax(null, false);
+    JS
+    wait_for_ajax
+
+    expect(page.evaluate_script('window.draftTimeout')).to eq(0)
+    expect(new_post_buffers.order(:id).last.title).to eq('Sent with no timeout')
+  end
+
   # Once the fallback wait has sent the held submit, the post save reports for itself (in place, when a
   # plugin such as camaleon_admin_ajax takes the submit over from a delegated listener), as it does when
   # the hold ends on the failure. The draft request that still runs must not report its own failure later.
