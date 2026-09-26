@@ -197,14 +197,14 @@ A draft save SHALL NOT block the page. One save SHALL run at a time: a save requ
 - **WHEN** a save is queued behind a running one and the form is replaced by another form before it runs
 - **THEN** the queued save is not sent, its failure handler runs, and the first save's draft keeps its content
 
-#### Scenario: The saves queued behind a save the fallback wait outran are dropped
+#### Scenario: The saves queued behind a save the fallback wait aborted are dropped
 
-- **WHEN** a save is queued behind a running one, a held submit is sent by the fallback wait while the running save still runs, and that save then returns
-- **THEN** the queued save is not sent, its failure handler runs, and the post has one buffer
+- **WHEN** a save is queued behind a running one, and a held submit is sent by the fallback wait while the running save still runs
+- **THEN** the running save is aborted, the queued save is not sent and its failure handler runs
 
 #### Scenario: A dropped save's failure handler that throws does not stop the others
 
-- **WHEN** two saves are queued behind a save the fallback wait outran, and the first one's failure handler throws
+- **WHEN** two saves are queued behind a save the fallback wait aborted, and the first one's failure handler throws
 - **THEN** the second one's failure handler runs, and neither save is sent
 
 #### Scenario: A call for a replaced form is dropped at once
@@ -233,7 +233,7 @@ After every successful draft save, each Preview link on the form SHALL name that
 
 ### Requirement: A post submitted while a draft save runs is held and dispatched again in full
 
-A post form submitted while a draft save is running SHALL be held under the loading overlay before validation or a submit listener bound after the editor's own sees it, until that save and the saves queued behind it finish (the overlay kept while they run) or `App_post.submit_wait_ms` passes. The submit SHALL then be dispatched again to the form it was held on as the submit event the browser fires (`requestSubmit`, with the button that submitted it as the submitter; jQuery's trigger in a browser without `requestSubmit`), so validation, those listeners, delegated ones and ones bound outside jQuery included, and the form's default action run once, with the draft id in the form and the button's name, value and formaction sent by the browser as they would have been. A refused save SHALL release the hold and keep the post on the form, consuming a validator skip (`cancelSubmit`) the held submit carried, so the next submit is validated; a failed request SHALL let the submit go; a held form that left the page SHALL NOT be sent, but the overlay SHALL come down.
+A post form submitted while a draft save is running SHALL be held under the loading overlay before validation or a submit listener bound after the editor's own sees it, until that save and the saves queued behind it finish (the overlay kept while they run) or `App_post.submit_wait_ms` passes, in which case the running save SHALL be aborted first. The submit SHALL then be dispatched again to the form it was held on as the submit event the browser fires (`requestSubmit`, with the button that submitted it as the submitter; jQuery's trigger in a browser without `requestSubmit`), so validation, those listeners, delegated ones and ones bound outside jQuery included, and the form's default action run once, with the draft id in the form and the button's name, value and formaction sent by the browser as they would have been. A refused save SHALL release the hold and keep the post on the form, consuming a validator skip (`cancelSubmit`) the held submit carried, so the next submit is validated; a failed request SHALL let the submit go; a held form that left the page SHALL NOT be sent, but the overlay SHALL come down.
 
 #### Scenario: A submit during an autosave discards the new post's buffer
 
@@ -297,37 +297,22 @@ A post form submitted while a draft save is running SHALL be held under the load
 
 ### Requirement: The draft save is a public asynchronous contract
 
-`window.save_draft(callback, called_from_interval, on_failure)`, the same function as `App_post.save_draft_ajax`, SHALL return at once and run `callback(response)` when the save succeeds; `on_failure` SHALL run when the save is refused, the request fails, times out, answers without a draft (or with a draft that names no id) or with a refusal that names no message (a failed request, not a refusal) or could not be sent. A failed request the user asked for SHALL be reported with the translated `msg.draft_save_failed` message, unless a submit is held on it or the fallback wait sent one while it ran (the post save reports for itself), and a refusal that returns after the fallback wait sent the held submit SHALL NOT be shown either, nor drop a submit held since, which is sent as the save finishes, as it is when the save fails or succeeds; a save that succeeds after the fallback wait sent its held submit SHALL run `on_failure` in place of its callback, so Save Draft does not leave the page the post save has; the timer's SHALL be retried silently a minute later. `App_post.submit_wait_ms` (15 s) and `App_post.save_timeout_ms` (30 s) SHALL be defaulted only when unset, so a value a plugin or theme set before the editor came up, `0` included, is kept. Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. When the page has loaded another form in place by the time the save returns, Save Draft SHALL leave that form and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.
+`window.save_draft(callback, called_from_interval, on_failure)`, the same function as `App_post.save_draft_ajax`, SHALL return at once and run `callback(response)` when the save succeeds; `on_failure` SHALL run when the save is refused, the request fails, times out, answers without a draft (or with a draft that names no id) or with a refusal that names no message (a failed request, not a refusal) or could not be sent. A failed request the user asked for SHALL be reported with the translated `msg.draft_save_failed` message, unless a submit is held on it (the post save reports for itself); the timer's SHALL be retried silently a minute later. When the fallback wait sends the held submit while the save still runs, the save SHALL be aborted first: `on_failure` runs, no error is shown, and the saves queued behind it are dropped with their failure handlers run, so no late answer runs the callback (Save Draft's would leave the page the post save has) or writes a buffer the post save leaves behind; a submit made afterwards is not held, no save running. `App_post.submit_wait_ms` (15 s) and `App_post.save_timeout_ms` (30 s) SHALL be defaulted only when unset, so a value a plugin or theme set before the editor came up, `0` included, is kept. Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. When the page has loaded another form in place by the time the save returns, Save Draft SHALL leave that form and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.
 
 #### Scenario: A failed save the user asked for is reported
 
 - **WHEN** a save with a failure handler times out
 - **THEN** the handler runs and the alert shows the translated failure message
 
-#### Scenario: A save that fails after the fallback wait sent its held submit is not reported
+#### Scenario: The fallback wait aborts the running save
 
-- **WHEN** the fallback wait sends a held submit while the draft save still runs, and that save then fails
-- **THEN** no failure alert is shown
+- **WHEN** the fallback wait sends a held submit that a listener keeps on the page while Save Draft's save still runs
+- **THEN** the save's request is aborted, its failure handler runs, no error is shown, the form is marked submitted and the page stays
 
-#### Scenario: A save that is refused after the fallback wait sent its held submit is not reported
+#### Scenario: A submit made after the fallback wait sent one is not held
 
-- **WHEN** the fallback wait sends a held submit while the draft save still runs, and that save is then refused
-- **THEN** no refusal alert is shown
-
-#### Scenario: A submit held after the fallback wait sent one is sent when the save is refused
-
-- **WHEN** the fallback wait sends a held submit that a listener keeps on the page, the form is submitted again while the draft save still runs, and that save is then refused
-- **THEN** no refusal alert is shown, the second submit is sent as the save finishes, well before its own wait ends, and the overlay comes down
-
-#### Scenario: A submit held after the fallback wait sent one is sent when the save succeeds
-
-- **WHEN** the fallback wait sends a held submit that a listener keeps on the page, the form is submitted again while Save Draft's save still runs, and that save then succeeds
-- **THEN** the draft is saved, the second submit is sent as the save finishes, well before its own wait ends, and the overlay comes down
-
-#### Scenario: A save that succeeds after the fallback wait sent its held submit runs the failure handler
-
-- **WHEN** the fallback wait sends a held submit while Save Draft's save still runs, and that save then succeeds
-- **THEN** the draft is saved, the overlay comes down and the page stays where the post save left it
+- **WHEN** the fallback wait sends a held submit that a listener keeps on the page, and the form is submitted again
+- **THEN** the second submit goes through at once, with no overlay
 
 #### Scenario: Save Draft returns to the list
 

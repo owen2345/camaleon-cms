@@ -25,8 +25,9 @@ function cama_init_post(obj) {
     // timer sends only what changed since either (a refusal is decided by the content it names). One save runs
     // at a time: a save requested meanwhile waits for the draft id the running one returns, so a new
     // post never gets a second buffer, and a form submitted meanwhile is held, then submitted again once
-    // the draft id is in it, or after App_post.submit_wait_ms if the save has not returned by then; a
-    // refused save leaves it on the form. A save that has not returned after App_post.save_timeout_ms fails.
+    // the draft id is in it, or after App_post.submit_wait_ms if the save has not returned by then (the save
+    // is aborted then); a refused save leaves it on the form. A save that has not returned after
+    // App_post.save_timeout_ms fails.
     var saved_hash = null;
     var refused_hash = null;
     // Set by the user's own input in the form (a native input or change event: a value a script writes,
@@ -41,10 +42,9 @@ function cama_init_post(obj) {
     var held_form = null;
     var held_submitter = null;
     var releasing_form = null;
-    // Set when the fallback wait sent the held submit while the save still ran: the post save reports
-    // for itself from then on, so this save's failure is not reported too, its success runs the
-    // caller's failure handler in place of its callback, and the saves queued behind it are dropped.
-    var submit_sent_while_saving = false;
+    // The request of the save running, for the fallback wait to abort when it sends the held submit
+    // while the save still runs (see send_held_submit).
+    var running_request = null;
     // The form this setup owns. Admin pages load in place, so the script can be set up on another form
     // while a save of this one is queued or in flight; $form is then that form, and this setup's saves are
     // not for it.
@@ -95,7 +95,6 @@ function cama_init_post(obj) {
         // Locked before the editors are synced: a change handler that asks for a save is queued behind
         // this one, not sent beside it.
         saving = true;
-        submit_sent_while_saving = false;
         try {
             sync_editors();
             // Read after the sync: the textareas' change handlers may have written other fields, and saved_hash is the form as sent.
@@ -103,7 +102,7 @@ function cama_init_post(obj) {
             var data = $form.serializeObject();
             data._method = post_draft_id ? 'patch' : 'post';
             data.post_id = post_id;
-            $.ajax(draft_request(data, hash, callback, called_from_interval, on_failure));
+            running_request = $.ajax(draft_request(data, hash, callback, called_from_interval, on_failure));
         } catch (e) {
             // The save threw before it was sent (a change handler, a plugin's $.ajax wrapper, a prefilter):
             // nothing will release the lock, and the caller's failure handler is the only way its overlay
@@ -120,10 +119,10 @@ function cama_init_post(obj) {
     // may find the editor set up on another form, whose draft id and Preview links are its own.
     function draft_request(data, hash, callback, called_from_interval, on_failure) {
         // The request failed, timed out, or answered without a draft to name. A save the user asked for
-        // says it failed; the timer's is retried a minute later. A held submit is sent right after this,
-        // and one the fallback wait already sent has gone the same way: the post save reports for itself.
+        // says it failed; the timer's is retried a minute later. A held submit is sent right after this:
+        // the post save reports for itself.
         function request_failed() {
-            if (!called_from_interval && !held_form && !submit_sent_while_saving) {
+            if (!called_from_interval && !held_form) {
                 show_error(I18n("msg.draft_save_failed", "The draft could not be saved"));
             }
             if (on_failure) on_failure();
@@ -156,17 +155,10 @@ function cama_init_post(obj) {
                         // dispatched again, so a cancelSubmit the validator's click handler set for it (a Cancel or
                         // formnovalidate button) is consumed here, as its own submit handler would have: left set,
                         // it would let the next submit through unvalidated.
-                        // A refusal that returns after the fallback wait sent the held submit is not shown: the post
-                        // save refuses the same content and re-renders the form with it (see request_failed). A
-                        // submit held since (the sent one kept the page, the user submitted again) is not dropped
-                        // then (its overlay would stay up with no alert to take it down): it is sent as this save
-                        // finishes, as when the save fails or succeeds (see save_finished).
-                        if (!submit_sent_while_saving) {
-                            show_error($('<div>').text(refusal).html());
-                            var validator = held_form && $(held_form).data('validator');
-                            if (validator) validator.cancelSubmit = false;
-                            drop_hold();
-                        }
+                        show_error($('<div>').text(refusal).html());
+                        var validator = held_form && $(held_form).data('validator');
+                        if (validator) validator.cancelSubmit = false;
+                        drop_hold();
                         // The timer sends nothing until the form changes: sent again, this form would be refused
                         // again, with the same alert (a timer call queued behind this save included). A user's
                         // call is always sent.
@@ -183,19 +175,19 @@ function cama_init_post(obj) {
                         refused_hash = null;
                         $(post_form).find("#post_draft_id").val(post_draft_id);
                         set_preview_draft_id();
-                        // The fallback wait sent the held submit while this save ran: the post save has the
-                        // page from here (as when this save fails, see request_failed), so the callback, which
-                        // would leave for the post list or open a preview of a post being saved, does not run;
-                        // the failure handler takes down what the caller opened instead.
-                        if (submit_sent_while_saving) { if (on_failure) on_failure(); }
-                        else if (callback) callback(res);
+                        if (callback) callback(res);
                     }
                 } finally {
                     save_finished();
                 }
             },
-            error: function () {
-                try { request_failed(); } finally { save_finished(); }
+            // Aborted by the fallback wait, which sends the held submit right after (see send_held_submit):
+            // the post save reports for itself, so nothing is shown; the caller's failure handler takes
+            // down what it opened, and the saves queued behind are dropped.
+            error: function (xhr, status) {
+                var for_submit = status === 'submit';
+                try { if (for_submit) { if (on_failure) on_failure(); } else { request_failed(); } }
+                finally { save_finished(for_submit); }
             },
             dataType: 'json',
             // A save that has not returned after this long is taken as failed, so a stalled request
@@ -211,15 +203,15 @@ function cama_init_post(obj) {
         setTimeout(function () { throw error; });
     }
 
-    function save_finished() {
+    // for_submit: the save was aborted by the fallback wait, which sends the held submit right after.
+    function save_finished(for_submit) {
         saving = false;
-        if (submit_sent_while_saving) {
-            // The fallback wait sent the held submit while the save ran: the form is submitted, and a save
-            // queued behind would write a buffer the post save leaves behind (see the timer's guard in
-            // save_draft_ajax) and report for a page the post save has. Each is dropped with its failure
-            // handler run, as a queued save for a replaced form is. A handler that throws is reported on its
-            // own, as a drained save's error is: the handlers behind it still run, and the held submit below
-            // is still sent.
+        running_request = null;
+        if (for_submit) {
+            // The form is submitted: a save queued behind would write a buffer the post save leaves behind
+            // (see the timer's guard in save_draft_ajax) and report for a page the post save has. Each is
+            // dropped with its failure handler run, as a queued save for a replaced form is. A handler that
+            // throws is reported on its own, as a drained save's error is: the handlers behind it still run.
             $.each(queued_saves.splice(0), function (i, queued) {
                 try { if (queued.on_failure) queued.on_failure(); }
                 catch (handler_error) { report_later(handler_error); }
@@ -239,10 +231,7 @@ function cama_init_post(obj) {
         }
         if (!held_form) return;
         // A hold that goes on waiting, for the queued save just started, needs the overlay put back: the
-        // finished save's caller (Preview, Save Draft) takes it down in its callback. One held since the
-        // fallback wait sent a submit (the sent one kept the page, the user submitted again) is sent now,
-        // as any hold is once the save it waited for has returned: nothing is saving for it to wait out
-        // its own wait under the overlay, or without it once the caller's failure handler took it down.
+        // finished save's caller (Preview, Save Draft) takes it down in its callback.
         if (saving) showLoading(); else send_held_submit();
     }
 
@@ -254,7 +243,11 @@ function cama_init_post(obj) {
     // sends the button's name, value and formaction itself. A browser without requestSubmit (Safari
     // before 16) gets jQuery's trigger, which reaches jQuery's listeners and the default action; it does
     // not know the button either, SubmitEvent.submitter being as new there.
-    // The overlay comes down first: whatever the submit does from here, it does on its own.
+    // The overlay comes down first: whatever the submit does from here, it does on its own. A save still
+    // running when the fallback wait sends the submit is aborted first: the post save reports for itself
+    // from here, and a late answer would run the save's callback (Save Draft's leaves for the post list,
+    // cancelling the post save on its way) or be shown over a page the post save is replacing, and the
+    // saves queued behind it would write a buffer the post save leaves behind (see save_finished).
     // It is sent to the form it was held on: with pages loading in place, another form can be set up
     // while the hold waits (the browser's Back button is not under the overlay), and one that left the
     // page is not sent at all; the overlay the hold put up still comes down, or the page is dead under it.
@@ -265,8 +258,12 @@ function cama_init_post(obj) {
         if (!form || !$.contains(document, form)) return;
         // requestSubmit refuses a submitter that is not a submit button of this form (one a theme re-rendered meanwhile).
         if (!(submitter && submitter.form === form && /^(submit|image)$/i.test(submitter.type))) submitter = null;
+        if (saving && running_request && running_request.abort) {
+            // The abort runs the request's error handler with the status given (jQuery reports it as it
+            // is): an error raised there must not keep the submit from being sent.
+            try { running_request.abort('submit'); } catch (e) { report_later(e); }
+        }
         releasing_form = form;
-        if (saving) submit_sent_while_saving = true;
         try {
             if (form.requestSubmit) form.requestSubmit(submitter || undefined);
             else $(form).trigger('submit');

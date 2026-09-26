@@ -111,25 +111,35 @@ describe 'Post editor draft autosave', :js do
 
   # Routes the editor's draft requests through `handler`, a JavaScript function called with the request's
   # $.ajax options and a `send` function that sends the request for real; what the handler returns is
-  # returned to the caller. Every other request is sent untouched. The routed requests are counted in
-  # window.interceptedDraftRequests as they are made, and in window.interceptedDraftAnswers once answered
-  # (a success or error handler run to its end, by the handler or by the real send).
+  # returned to the caller, with an `abort` added when it has none (a pending promise) that runs the
+  # request's error handler with the status given, as jQuery's does; an answer the handler gives after
+  # that is not delivered, as jQuery would not deliver it. Every other request is sent untouched. The routed
+  # requests are counted in window.interceptedDraftRequests as they are made, and in
+  # window.interceptedDraftAnswers once answered (a success or error handler run to its end, by the
+  # handler, by the real send or by an abort).
   def intercept_draft_requests(handler)
     page.execute_script(<<~JS)
       window.interceptedDraftRequests = 0;
       window.interceptedDraftAnswers = 0;
       (function (ajax, handler) {
         $.ajax = function (options) {
-          var self = this, args = arguments;
+          var self = this, args = arguments, aborted = false;
           if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(self, args);
           window.interceptedDraftRequests++;
           $.each(['success', 'error'], function (i, name) {
             var answer = options[name];
             options[name] = function () {
+              if (aborted) return;
               try { return answer.apply(this, arguments); } finally { window.interceptedDraftAnswers++; }
             };
           });
-          return handler(options, function () { return ajax.apply(self, args); });
+          var request = handler(options, function () { return ajax.apply(self, args); });
+          if (request && !request.abort) {
+            request = { abort: function (status) {
+              try { options.error(this, status || 'abort', ''); } finally { aborted = true; }
+            } };
+          }
+          return request;
         };
       })($.ajax, #{handler});
     JS
@@ -540,98 +550,51 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Sent with no timeout')
   end
 
-  # Once the fallback wait has sent the held submit, the post save reports for itself (in place, when a
-  # plugin such as camaleon_admin_ajax takes the submit over from a delegated listener), as it does when
-  # the hold ends on the failure. The draft request that still runs must not report its own failure later.
-  it 'shows no error for a draft save that fails after the fallback wait sent the held submit' do
+  # A held submit the fallback wait sends while the draft save still runs goes out without the draft, and
+  # the post save reports for itself from then on (in place, when a plugin such as camaleon_admin_ajax
+  # takes the submit over from a delegated listener). The save is aborted first: a late success would run
+  # the caller's callback (Save Draft's leaves for the post list, cancelling the post's own submission on
+  # its way), and a late failure or refusal would be shown over a page the post save is replacing. The
+  # failure handler runs, no error is shown, and the page stays where the post save left it.
+  it 'aborts the draft save when the fallback wait sends the held submit' do
     visit new_post_path
     wait_for_editor_baseline
-    fill_in 'post_title', with: 'Failed after the hold ended'
+    fill_in 'post_title', with: 'Aborted by the fallback wait'
 
-    fail_draft_requests(1500)
-    page.execute_script(<<~JS)
-      App_post.submit_wait_ms = 500;
-      #{count_kept_submits_js}
-      #{publishable_post_js}
-      App_post.save_draft_ajax(null, false);
-      $('#form-post').submit();
-    JS
-
-    expect_held_submit_delivered_once
-    wait_for_draft_answers(1) # the draft request fails after the hold ended
-    expect(page).to have_no_css('#cama_alert_modal')
-  end
-
-  # A refusal that returns after the fallback wait sent the held submit is the post save's to report, as a
-  # failure is: the post save refuses the same content and re-renders the form with it. The draft's own
-  # alert would show the refusal a second time, over a page the post save is replacing.
-  it 'shows no refusal for a draft save refused after the fallback wait sent the held submit' do
-    visit new_post_path
-    wait_for_editor_baseline
-    fill_in 'post_title', with: 'Refused after the hold ended'
-
-    refuse_draft_requests('post[status] is not a status the post editor offers', 1500)
-    page.execute_script(<<~JS)
-      App_post.submit_wait_ms = 500;
-      #{count_kept_submits_js}
-      #{publishable_post_js}
-      App_post.save_draft_ajax(null, false);
-      $('#form-post').submit();
-    JS
-
-    expect_held_submit_delivered_once
-    wait_for_draft_answers(1) # the draft request is refused after the hold ended
-    expect(page).to have_no_css('#cama_alert_modal')
-  end
-
-  # A refusal that returns after the fallback wait sent the held submit is not the draft's to act on either:
-  # the post save has the page. A submit held since (the sent one kept the page, as an in-place plugin does,
-  # and the user submitted again while the draft save still ran) is not dropped with the refusal (its
-  # fallback timer would be cleared with the overlay still up and no alert to take it down), nor left to
-  # wait out its own timer: it is sent as the save finishes, as any held submit is.
-  it 'sends a submit held after the fallback sent one when the save it waited for is refused' do
-    visit new_post_path
-    wait_for_editor_baseline
-    fill_in 'post_title', with: 'Held again after the hold ended'
-
-    intercept_draft_requests('function (options) { window.draftRequest = options; return $.Deferred().promise(); }')
-    page.execute_script(<<~JS)
-      App_post.submit_wait_ms = 500;
-      #{count_kept_submits_js}
-      #{publishable_post_js}
-      App_post.save_draft_ajax(null, false);
-      $('#form-post').submit();
-    JS
-    expect_held_submit_delivered_once
-
-    # The second submit lands while the draft save still runs and is held with a wait of its own, one the
-    # refusal returns well before: the submit must not sit under the overlay until it ends.
-    page.execute_script(<<~JS)
-      App_post.submit_wait_ms = 20000;
-      $('#form-post').submit();
-    JS
-    expect(page).to have_css('#cama_custom_loading')
-    page.execute_script("window.draftRequest.success({ error: ['the draft was refused'] });")
-
-    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    expect(page.evaluate_script('window.delegatedRuns')).to eq(2)
-    expect(page).to have_no_css('#cama_alert_modal')
-  end
-
-  # The same when the save succeeds: its caller's failure handler runs (Save Draft's takes the overlay
-  # down), and the submit held since is sent as the save finishes, not once its own wait ends with the
-  # form open to edits meanwhile.
-  it 'sends a submit held after the fallback sent one when the save it waited for succeeds' do
-    visit new_post_path
-    wait_for_editor_baseline
-    fill_in 'post_title', with: 'Held again after the hold ended, saved'
-
-    intercept_draft_requests('function (options, send) { window.sendDraft = send; return $.Deferred().promise(); }')
+    # The request never returns on its own; the editor's abort is recorded and answered as jQuery would.
+    intercept_draft_requests(<<~HANDLER)
+      function (options) {
+        return { abort: function (status) { window.abortedWith = status; options.error(this, status, ''); } };
+      }
+    HANDLER
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 500;
       #{count_kept_submits_js}
       #{publishable_post_js}
       App_post.save_draft();
+      $('#form-post').submit();
+    JS
+
+    expect_held_submit_delivered_once
+    expect(page.evaluate_script('window.abortedWith')).to eq('submit')
+    expect(page).to have_no_css('#cama_alert_modal')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect(page.evaluate_script('$("#form-post").data("submitted")')).to eq(1)
+  end
+
+  # Once the fallback wait has sent the held submit, no save is running any more: a submit made after it
+  # (the sent one kept the page, the user submitted again) goes through at once, not held under the overlay.
+  it 'lets a submit made after the fallback wait sent one through at once' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Submitted again after the fallback wait'
+
+    stall_draft_requests
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 500;
+      #{count_kept_submits_js}
+      #{publishable_post_js}
+      App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
     JS
     expect_held_submit_delivered_once
@@ -640,55 +603,19 @@ describe 'Post editor draft autosave', :js do
       App_post.submit_wait_ms = 20000;
       $('#form-post').submit();
     JS
-    expect(page).to have_css('#cama_custom_loading')
-    page.execute_script('window.sendDraft();')
-
-    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
     expect(page.evaluate_script('window.delegatedRuns')).to eq(2)
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
-    expect(new_post_buffers.order(:id).last.title).to eq('Held again after the hold ended, saved')
-  end
-
-  # Once the fallback wait has sent the held submit, the post save has the page: a draft save that then
-  # succeeds must not run its caller's callback either. Save Draft's marks the form submitted and leaves
-  # for the post list, cancelling the post's own submission on its way; the failure handler runs instead,
-  # so the caller takes down what it opened (the overlay, a Preview window).
-  it 'runs the failure handler, not the callback, of a save that succeeds after the fallback sent the held submit' do
-    visit new_post_path
-    wait_for_editor_baseline
-    fill_in 'post_title', with: 'Saved after the hold ended'
-
-    delay_draft_requests(1500)
-    page.execute_script(<<~JS)
-      App_post.submit_wait_ms = 500;
-      #{keep_page_js}
-      #{publishable_post_js}
-      App_post.save_draft();
-      $('#form-post').submit();
-    JS
-
-    expect(page).to have_css('#cama_custom_loading')
-    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    wait_until { new_post_buffers.exists? }
-    sleep 1 # long enough for a callback that leaves the page to have left it
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
     expect(page).to have_no_css('#cama_custom_loading')
-    expect(new_post_buffers.order(:id).last.title).to eq('Saved after the hold ended')
-
-    # That state is the outran save's own: a save asked for afterwards runs its callback again.
-    page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
-    expect(page).to have_css('body[data-later-save="ran"]')
   end
 
-  # The saves queued behind a save the fallback wait outran are for a form the post save has taken: sent,
+  # The saves queued behind a save the fallback wait aborted are for a form the post save has taken: sent,
   # one would write a buffer the post save leaves behind in the Drafts list, and report its own failure
   # over the page the post save loaded. They are dropped, their failure handlers run.
-  it 'drops the saves queued behind a save the fallback wait outran' do
+  it 'drops the saves queued behind a save the fallback wait aborted' do
     visit new_post_path
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Queued after the hold ended'
 
-    delay_draft_requests(1000)
+    stall_draft_requests
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 300;
       window.queuedFailures = 0;
@@ -701,22 +628,21 @@ describe 'Post editor draft autosave', :js do
 
     expect(page).to have_css('#cama_custom_loading')
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    # The first save's answer ran to its end: a queued save sent from it would have been made by now.
+    # The abort's answer ran to its end: a queued save sent from it would have been made by now.
     wait_for_draft_answers(1)
     expect(page.evaluate_script('window.queuedFailures')).to eq(1)
     expect(intercepted_draft_requests).to eq(1)
-    expect(new_post_buffers.count).to eq(1)
   end
 
   # The dropped saves' failure handlers run one after the other: one that throws must not keep the ones
   # behind it from running (a Preview window or an overlay would stay up), nor the held submit from being
   # sent; its error is reported on its own, as a drained save's is.
-  it 'runs every failure handler of the saves dropped behind an outran save when one throws' do
+  it 'runs every failure handler of the saves dropped behind an aborted save when one throws' do
     visit new_post_path
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Queued handlers after the hold ended'
 
-    delay_draft_requests(1000)
+    stall_draft_requests
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 300;
       window.queuedFailures = 0;

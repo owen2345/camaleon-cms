@@ -384,13 +384,15 @@ A third argument, `on_failure`, runs when the save does not succeed:
 - the answer names no draft (`{}`, `null`, `{draft: {}}`) or carries a refusal that names no message; both
   count as a failed request, not a refusal;
 - the save could not be sent (a change handler or a `$.ajax` wrapper threw);
+- the save was aborted: the fallback wait sent the held submit while the save still ran (see the held
+  submit below);
 - the call was dropped: made or still queued after the page loaded another post form in place, or queued
-  behind a save that the fallback wait outran (see the held submit below).
+  behind a save the fallback wait aborted.
 
 A failed request the caller asked for (not the minute timer's) also shows an error. It shows none while a
-submit is waiting on the save, or once the fallback wait has sent one while the save ran: the post save then
-reports for itself. In that state a refusal returning afterwards is not shown either (a submit held since
-is sent as the save finishes), and a save that succeeds afterwards runs `on_failure` in place of its callback.
+submit is waiting on the save, nor for a save the fallback wait aborted: the post save then reports for
+itself. A wrapper installed on `$.ajax` must return what `$.ajax` returns (the jqXHR), or the editor cannot
+abort the request.
 
 A call made while a save is running waits for it, so the draft id it returns is reused. The values
 `App_post.submit_wait_ms` and `App_post.save_timeout_ms` are only defaulted when unset, so `0` is kept
@@ -401,7 +403,8 @@ neither compared nor sent): a textarea behind an editor is written
 only when a draft is sent (and by TinyMCE on blur and submit, as before), no longer by every comparison,
 so content a plugin writes into such a textarea stays as written until then.
 Submitting the post while a save is running shows the loading overlay and holds the submit until the save
-finishes, or for `App_post.submit_wait_ms` (15 seconds) if it has not returned by then; a refused save keeps
+finishes, or for `App_post.submit_wait_ms` (15 seconds) if it has not returned by then, in which case the
+save is aborted first; a refused save keeps
 the post on the form with the refusal shown, a failed request lets it go. A held submit is stopped before
 validation and the submit listeners bound after the editor's own see it, and dispatched again when the hold
 ends as the submit event the browser fires (`form.requestSubmit`, with the button that submitted the form as
