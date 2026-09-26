@@ -586,8 +586,7 @@ describe 'Post editor draft autosave', :js do
   end
 
   # A timer call queued behind a save that ends refused finds the same form the refusal named: sending
-  # it would only be refused again, with a second alert on the heels of the first. It is dropped; the
-  # next tick retries once the user has had a minute to act on the refusal.
+  # it would only be refused again, with a second alert on the heels of the first. It sends nothing.
   it 'drops a timer call queued behind a save that is refused' do
     visit new_post_path
     wait_for_editor_baseline
@@ -602,6 +601,31 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('#cama_alert_modal', text: 'post[status] is not a status the post editor offers')
     wait_for_ajax
     expect(draft_saves).to eq(1)
+  end
+
+  # A refusal is decided by the content it names, so a tick that finds the form as the refused save sent
+  # it would only be refused again, with the same alert a minute later, for as long as the user leaves
+  # the form alone. The timer waits for a change; a save the user asks for is always sent.
+  it 'does not resend a refused form until it changes' do
+    visit new_post_path
+    wait_for_editor_baseline
+    count_draft_saves
+
+    page.execute_script("$('#post_status').append('<option value=\"bogus\">bogus</option>').val('bogus')")
+    autosave_tick
+    expect(page).to have_css('#cama_alert_modal', text: 'post[status] is not a status the post editor offers')
+    wait_for_ajax
+    expect(draft_saves).to eq(1)
+
+    autosave_tick
+    expect(draft_saves).to eq(1)
+
+    page.execute_script("$('#post_status option[value=bogus]').remove()")
+    fill_in 'post_title', with: 'Accepted once changed'
+    autosave_tick
+    wait_for_ajax
+    expect(draft_saves).to eq(2)
+    expect(new_post_buffers.order(:id).last.title).to eq('Accepted once changed')
   end
 
   # A send runs each editor's textarea change handlers (sync_editors) after the form was compared. A

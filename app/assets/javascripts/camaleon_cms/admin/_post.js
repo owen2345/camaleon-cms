@@ -19,12 +19,14 @@ function cama_init_post(obj) {
 
     // The form's state is compared by its serialization (get_hash_form). The baseline, data("hash"), which
     // the leave-page prompt reads too, is taken once the editors are ready; saved_hash is the state the
-    // last successful draft save sent, so the minute timer sends only what changed since. One save runs
+    // last successful draft save sent and refused_hash the state the last refused one sent, so the minute
+    // timer sends only what changed since either (a refusal is decided by the content it names). One save runs
     // at a time: a save requested meanwhile waits for the draft id the running one returns, so a new
     // post never gets a second buffer, and a form submitted meanwhile is held, then submitted again once
     // the draft id is in it, or after App_post.submit_wait_ms if the save has not returned by then; a
     // refused save leaves it on the form. A save that has not returned after App_post.save_timeout_ms fails.
     var saved_hash = null;
+    var refused_hash = null;
     var saving = false;
     var queued_saves = [];
     var submit_wait_timer = null;
@@ -56,7 +58,11 @@ function cama_init_post(obj) {
             if (on_failure) on_failure();
             return;
         }
-        if (called_from_interval && (saved_hash === null || get_hash_form() == saved_hash)) return;
+        if (called_from_interval) {
+            if (saved_hash === null) return;
+            var current = get_hash_form();
+            if (current == saved_hash || current == refused_hash) return;
+        }
 
         // Locked before the editors are synced: a change handler that asks for a save is queued behind
         // this one, not sent beside it.
@@ -103,14 +109,16 @@ function cama_init_post(obj) {
                         var validator = held_form && $(held_form).data('validator');
                         if (validator) validator.cancelSubmit = false;
                         drop_hold();
-                        // A timer call queued behind this save would send the same form again, to the same
-                        // refusal; the next tick retries. A user's call stays queued: it recomputes the form.
-                        queued_saves = $.grep(queued_saves, function (queued) { return !queued[1]; });
+                        // The timer sends nothing until the form changes: sent again, this form would be refused
+                        // again, with the same alert (a timer call queued behind this save included). A user's
+                        // call is always sent.
+                        refused_hash = hash;
                         if (on_failure) on_failure();
                     } else {
                         if (res._drafts_path) _drafts_path = res._drafts_path
                         post_draft_id = res.draft.id
                         saved_hash = hash;
+                        refused_hash = null;
                         $(form).find("#post_draft_id").val(post_draft_id);
                         set_preview_draft_id(form);
                         if (callback) callback(res);
