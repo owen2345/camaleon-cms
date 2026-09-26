@@ -294,6 +294,44 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
+  # A save queued behind another is run from the finished one's completion, inside its own error path when
+  # that one threw before sending. A drained save that throws too must not replace the error on its way to
+  # the finished save's caller: each caller is told why its own save could not be sent, and the drained
+  # save's error is reported on its own, as an uncaught one.
+  it 'reports the send error to the caller when a save drained behind it throws too' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    # The first two draft requests throw, each with its own message; the ones after them are sent.
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var thrown = 0;
+        return function (options, send) {
+          if (thrown == 2) return send();
+          throw new Error('refused to send ' + ++thrown);
+        };
+      })()
+    HANDLER
+    page.execute_script(<<~JS)
+      // A change handler asks for a save of its own while the first is prepared: it queues behind it.
+      var asked = false;
+      $('#post_content').on('change', function () {
+        if (asked) return;
+        asked = true;
+        App_post.save_draft_ajax(null, false, function () { window.queuedSendFailed = true; });
+      });
+      $('#post_title').val('Thrown twice').trigger('keyup');
+      try {
+        App_post.save_draft_ajax(null, false);
+      } catch (e) { window.sendThrew = e.message; }
+      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+    JS
+
+    expect(page.evaluate_script('window.sendThrew')).to eq('refused to send 1')
+    expect(page.evaluate_script('window.queuedSendFailed')).to be(true)
+    expect(page).to have_css('body[data-later-save="ran"]')
+  end
+
   # The editors are synced into their textareas before a draft is serialized, and a change handler on one
   # may ask for a save of its own. That call has to queue behind the one being prepared, not run beside
   # it: on a new post, two concurrent creates make two buffers.

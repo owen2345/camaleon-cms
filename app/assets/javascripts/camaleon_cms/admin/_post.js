@@ -215,10 +215,13 @@ function cama_init_post(obj) {
         }
         // A queued timer call with nothing to send returns without saving, so go on to the next. Each is
         // run from here, not through App_post.save_draft_ajax: a wrapper a plugin put there already ran
-        // when the call was made.
+        // when the call was made. One that throws before it is sent has run its own failure handler and
+        // drained the rest from its own error path; its error is reported as an uncaught one, so it does
+        // not replace the error the finished save is raising to its own caller.
         while (!saving && queued_saves.length) {
             var queued = queued_saves.shift();
-            save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure);
+            try { save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure); }
+            catch (drained_error) { setTimeout(function () { throw drained_error; }); }
         }
         if (!held_form) return;
         // A hold that goes on waiting, for the queued save just started, needs the overlay put back: the
