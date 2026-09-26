@@ -218,7 +218,8 @@ function cama_init_post(obj) {
         // run from here, not through App_post.save_draft_ajax: a wrapper a plugin put there already ran
         // when the call was made. One that throws before it is sent has run its own failure handler and
         // drained the rest from its own error path; its error is reported as an uncaught one, so it does
-        // not replace the error the finished save is raising to its own caller.
+        // not replace an error the finished save may be raising to its own caller (this runs from that
+        // save's error path too, when it threw before it was sent).
         while (!saving && queued_saves.length) {
             var queued = queued_saves.shift();
             try { save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure); }
