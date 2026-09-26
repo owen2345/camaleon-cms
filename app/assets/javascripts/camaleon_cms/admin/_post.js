@@ -222,7 +222,7 @@ function cama_init_post(obj) {
         var form = held_form, submitter = held_submitter;
         drop_hold();
         hideLoading();
-        if (!form || !$.contains(document, form)) return;
+        if (!$.contains(document, form)) return;
         // requestSubmit throws on a submitter that is not a submit button of this form (a theme may have re-rendered it).
         if (!(submitter && submitter.form === form && /^(submit|image)$/i.test(submitter.type))) submitter = null;
         if (saving && running_request && running_request.abort) {
