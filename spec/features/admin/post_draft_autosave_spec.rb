@@ -396,6 +396,31 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_alert_modal')
   end
 
+  # A refusal that returns after the fallback wait sent the held submit is the post save's to report, as a
+  # failure is: the post save refuses the same content and re-renders the form with it. The draft's own
+  # alert would show the refusal a second time, over a page the post save is replacing.
+  it 'shows no refusal for a draft save refused after the fallback wait sent the held submit' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused after the hold ended'
+
+    refuse_draft_requests('post[status] is not a status the post editor offers', 1500)
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 500;
+      window.delegatedRuns = 0;
+      $('body').on('submit', 'form#form-post', function () { window.delegatedRuns++; return false; });
+      #{publishable_post_js}
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+    sleep 1.5 # the draft request is refused after the hold ended
+    expect(page).to have_no_css('#cama_alert_modal')
+  end
+
   # Once the fallback wait has sent the held submit, the post save has the page: a draft save that then
   # succeeds must not run its caller's callback either. Save Draft's marks the form submitted and leaves
   # for the post list, cancelling the post's own submission on its way; the failure handler runs instead,

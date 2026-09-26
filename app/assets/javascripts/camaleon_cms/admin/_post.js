@@ -145,8 +145,10 @@ function cama_init_post(obj) {
                     if (refusal) {
                         // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
                         // refusal names the submitted key), and do NOT run the success callback -- it would
-                        // navigate away (discarding the unsaved edits) or open a stale preview.
-                        $.fn.alert({type: 'error', title: $('<div>').text(refusal).html(), icon: "times"})
+                        // navigate away (discarding the unsaved edits) or open a stale preview. A refusal that
+                        // returns after the fallback wait sent the held submit is not shown either: the post
+                        // save refuses the same content and re-renders the form with it (see request_failed).
+                        if (!submit_sent_while_saving) $.fn.alert({type: 'error', title: $('<div>').text(refusal).html(), icon: "times"})
                         // A refused save leaves a held submit on the form (the alert took the overlay down): the
                         // post save would refuse the same content, and the alert names what to fix. A request that
                         // failed or timed out still sends it (see the submit handler). The held submit is not
