@@ -79,7 +79,7 @@ function cama_init_post(obj) {
             var data = $form.serializeObject();
             data._method = post_draft_id ? 'patch' : 'post';
             data.post_id = post_id;
-            $.ajax(draft_request(data, hash, post_form, callback, called_from_interval, on_failure));
+            $.ajax(draft_request(data, hash, callback, called_from_interval, on_failure));
         } catch (e) {
             // The save threw before it was sent (a change handler, a plugin's $.ajax wrapper, a prefilter):
             // nothing will release the lock, and the caller's failure handler is the only way its overlay
@@ -89,9 +89,9 @@ function cama_init_post(obj) {
         }
     }
 
-    // form is the one the save is sent for: with pages loading in place, the response may find the editor
-    // set up on another form, whose draft id and Preview links are its own.
-    function draft_request(data, hash, form, callback, called_from_interval, on_failure) {
+    // The response writes into post_form, the form the save was sent for: with pages loading in place, it
+    // may find the editor set up on another form, whose draft id and Preview links are its own.
+    function draft_request(data, hash, callback, called_from_interval, on_failure) {
         // The request failed, timed out, or answered without a draft to name. A save the user asked for
         // says it failed; the timer's is retried a minute later. A held submit is sent right after this,
         // and one the fallback wait already sent has gone the same way: the post save reports for itself.
@@ -136,8 +136,8 @@ function cama_init_post(obj) {
                         post_draft_id = res.draft.id
                         saved_hash = hash;
                         refused_hash = null;
-                        $(form).find("#post_draft_id").val(post_draft_id);
-                        set_preview_draft_id(form);
+                        $(post_form).find("#post_draft_id").val(post_draft_id);
+                        set_preview_draft_id(post_form);
                         if (callback) callback(res);
                     }
                 } finally {
