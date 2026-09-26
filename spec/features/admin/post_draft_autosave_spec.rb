@@ -43,8 +43,8 @@ describe 'Post editor draft autosave', :js do
     page.evaluate_script('window.draftSaves')
   end
 
-  # The leave prompt is installed a second after the editor script is set up, with the rest of the page's
-  # later actions; a baseline that waits for a delayed editor is taken later than that.
+  # The leave prompt is installed with the editor script's own setup, which runs shortly after the page
+  # loads; a baseline that waits for a delayed editor is taken later than that.
   def wait_for_leave_prompt
     Timeout.timeout(5) do
       sleep(0.1) until page.evaluate_script('typeof window.onbeforeunload === "function"')
@@ -912,6 +912,19 @@ describe 'Post editor draft autosave', :js do
 
     wait_for_editor_baseline
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
+  end
+
+  # The prompt used to be installed a second after the editor, with the page's later actions: an edit typed
+  # in that second left without a prompt, and when the page loaded another post form in place the previous
+  # form's prompt answered for the new one until then. It is installed with the editor's own submit handler.
+  it 'installs the leave prompt with the editor, before the baseline' do
+    visit new_post_path
+    # The editor's setup publishes window.save_draft as it runs; the prompt must be in place by then.
+    Timeout.timeout(5) do
+      sleep(0.01) until page.evaluate_script('typeof window.save_draft === "function"')
+    end
+    expect(page.evaluate_script('typeof window.onbeforeunload')).to eq('function')
+    expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
   end
 
   # An edit typed while the baseline was still to come was absorbed by it: the prompt then read the edited

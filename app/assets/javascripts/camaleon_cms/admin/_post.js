@@ -427,6 +427,16 @@ function cama_init_post(obj) {
         }
         $(this).data("submitted", 1);
     });
+    // Installed with the submit handler, not with the page's later actions a second on: the prompt is
+    // this form's own from the moment the editor is set up (an edit typed in that second is asked
+    // about, and a form the page loaded in place no longer gets the previous form's answer meanwhile).
+    window.onbeforeunload = function () {
+        if ($form.data("submitted") || $('#form-post').length == 0)
+            return;
+        if (form_edited()) {
+            return "You sure to leave the page without saving changes?";
+        }
+    };
 
     $form.validate();
     $("#post_status").change(function () {
@@ -504,15 +514,6 @@ function cama_init_post(obj) {
         //$("#admin_content #post_right_bar-toggle").on("click", function () {
         //    $("#post_right_bar").is(":visible") ? $("#post_right_bar").hide() : $("#post_right_bar").show();
         //});
-
-        /*********** leave-page prompt (the submit handler is bound with the validator, above) ***************/
-        window.onbeforeunload = function () {
-            if ($form.data("submitted") || $('#form-post').length == 0)
-                return;
-            if (form_edited()) {
-                return "You sure to leave the page without saving changes?";
-            }
-        };
 
         /*********** link to create categories *************/
         $form.find("#post_add_new_category").ajax_modal({modal_size: 'modal-lg', mode: 'iframe', callback: function(modal){
