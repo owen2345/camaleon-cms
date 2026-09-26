@@ -1770,6 +1770,25 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading')
   end
 
+  # A page with no post form loaded in place (the list, via Back) leaves the script's form the one that left
+  # the page: the alert names the post all the same, and a failure as a refusal does.
+  it 'names the post in a failure shown over a page without a form loaded in place' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Failed before the list'
+
+    fail_draft_requests(1000)
+    page.execute_script(<<~JS)
+      App_post.save_draft();
+      // What opening the post list in place leaves behind while the save runs: the form is gone, and no
+      // form took its place.
+      $('#form-post').detach();
+    JS
+
+    expect(page).to have_css('#cama_alert_modal', text: 'Failed before the list: The draft could not be saved')
+    expect(page).to have_no_css('#cama_custom_loading')
+  end
+
   # The core refuses with a list; a decorated drafts action may send one message.
   it 'shows a refusal sent as one message and frees the editor' do
     visit new_post_path

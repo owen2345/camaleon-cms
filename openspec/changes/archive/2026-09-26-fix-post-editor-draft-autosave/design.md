@@ -68,7 +68,7 @@ A request that has not returned after `App_post.save_timeout_ms` (30 s) is taken
 
 ### D8. A response writes into the form it was sent for
 
-With pages loading in place, a save can return after the script was set up on another post's form. The draft id and the Preview links are written into the form the save was sent from, captured when the request was made. A refusal or failure that returns then is still shown (the user asked for that save), prefixed with the post's title so it reads right over another page. A save still queued when that happens is dropped, its failure handler run: `$form` is the other form by then, and serializing it would send that post's content to this post's draft.
+With pages loading in place, a save can return after the script was set up on another post's form. The draft id and the Preview links are written into the form the save was sent from, captured when the request was made. A refusal or failure that returns once the form left the page (another post form set up, or a page without one loaded in place) is still shown (the user asked for that save), prefixed with the post's title so it reads right over another page. A save still queued when that happens is dropped, its failure handler run: `$form` is the other form by then, and serializing it would send that post's content to this post's draft.
 
 ## Risks / Trade-offs
 
