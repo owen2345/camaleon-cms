@@ -636,8 +636,11 @@ function cama_init_post(obj) {
         $.each(form_editors(), function (i, editor) { editors[editor.id] = editor.getContent(); });
         // The form's controls as the browser and serializeObject take them (form.elements): one elsewhere
         // on the page that names the form (`form="form-post"`, a theme's sidebar field) is sent, so it is
-        // compared. An own-property check: `in` would also match an id every object inherits, like `constructor`.
-        var fields = $(post_form.elements).not('#post_draft_id, .translated-item').filter(function () {
+        // compared. The collection lists the form's fieldsets too, and jQuery serializes a fieldset by
+        // expanding its controls again (an editor's textarea among them, with its stale value), so only the
+        // controls are kept. An own-property check: `in` would also match an id every object inherits, like
+        // `constructor`.
+        var fields = $(post_form.elements).filter(':input').not('#post_draft_id, .translated-item').filter(function () {
             return !Object.prototype.hasOwnProperty.call(editors, this.id);
         });
         return fields.serialize() + '&' + $.param(editors);

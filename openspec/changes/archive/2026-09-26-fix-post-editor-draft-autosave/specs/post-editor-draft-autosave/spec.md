@@ -78,6 +78,11 @@ The baseline the leave-page prompt compares against SHALL be taken once every Ti
 - **WHEN** a hidden control with `form="form-post"` is added outside the form, saved once, then edited
 - **THEN** the next tick sends a draft, and leaving the page asks about the edit
 
+#### Scenario: An editor inside a fieldset is read from the editor alone
+
+- **WHEN** the content editor's textarea sits inside a fieldset of the form and the editor's blur handler saves its content into the textarea
+- **THEN** an untouched post reads as unchanged: the next tick sends nothing and leaving the page asks nothing
+
 #### Scenario: A baseline wait that outlives its form leaves the next form alone
 
 - **WHEN** the script is set up on another form before the first form's editor comes up

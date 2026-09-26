@@ -1430,6 +1430,28 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
   end
 
+  # The form's controls include its fieldsets, and jQuery serializes a fieldset by expanding its own
+  # controls again: an editor's textarea inside one (a theme groups fields that way) was then read through
+  # the fieldset, with the stale value the editor had last saved into it, beside the editor's content.
+  # The blur handler saving the editor into its textarea read as an edit of an untouched post.
+  it 'reads an untouched post as unchanged when its editor sits in a fieldset' do
+    post = site.the_post('sample-post')
+    post.update!(content: 'Plain body, not yet normalized by the editor')
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    # The editor is held back so the textarea can be wrapped before the baseline is taken.
+    delay_content_editor
+    page.execute_script("$('#post_content').wrap('<fieldset></fieldset>');")
+    wait_for_editor_baseline
+    count_draft_saves
+
+    page.execute_script('tinymce.triggerSave();')
+    autosave_tick
+
+    expect(draft_saves).to eq(0)
+    expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
+  end
+
   # The comparison reads the editors themselves, and a save sends what they hold.
   it 'autosaves an edit made in the editor alone' do
     visit new_post_path
