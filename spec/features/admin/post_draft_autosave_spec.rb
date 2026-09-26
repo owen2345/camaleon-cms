@@ -448,6 +448,43 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_alert_modal')
   end
 
+  # A refusal that returns after the fallback wait sent the held submit is not the draft's to act on either:
+  # the post save has the page. A submit held since (the sent one kept the page, as an in-place plugin does,
+  # and the user submitted again while the draft save still ran) is left to its own wait, as it is when the
+  # save fails or succeeds: dropped with the refusal, its fallback timer was cleared with the overlay still
+  # up and no alert to take it down.
+  it 'leaves a submit held after the fallback sent one to its own wait when the save is refused' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held again after the hold ended'
+
+    intercept_draft_requests('function (options) { window.draftRequest = options; return $.Deferred().promise(); }')
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 500;
+      window.delegatedRuns = 0;
+      $('body').on('submit', 'form#form-post', function () { window.delegatedRuns++; return false; });
+      #{publishable_post_js}
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+
+    # The second submit lands while the draft save still runs and is held with a wait of its own, long
+    # enough for the refusal to return first.
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 2000;
+      $('#form-post').submit();
+    JS
+    expect(page).to have_css('#cama_custom_loading')
+    page.execute_script("window.draftRequest.success({ error: ['the draft was refused'] });")
+
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    expect(page.evaluate_script('window.delegatedRuns')).to eq(2)
+    expect(page).to have_no_css('#cama_alert_modal')
+  end
+
   # Once the fallback wait has sent the held submit, the post save has the page: a draft save that then
   # succeeds must not run its caller's callback either. Save Draft's marks the form submitted and leaves
   # for the post list, cancelling the post's own submission on its way; the failure handler runs instead,

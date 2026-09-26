@@ -389,8 +389,8 @@ A third argument, `on_failure`, runs when the save does not succeed:
 
 A failed request the caller asked for (not the minute timer's) also shows an error. It shows none while a
 submit is waiting on the save, or once the fallback wait has sent one while the save ran: the post save then
-reports for itself. In that state a refusal returning afterwards is not shown either, and a save that
-succeeds afterwards runs `on_failure` in place of its callback.
+reports for itself. In that state a refusal returning afterwards is not shown either (a submit held since
+keeps its own wait), and a save that succeeds afterwards runs `on_failure` in place of its callback.
 
 A call made while a save is running waits for it, so the draft id it returns is reused. The values
 `App_post.submit_wait_ms` and `App_post.save_timeout_ms` are only defaulted when unset, so `0` is kept

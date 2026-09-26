@@ -148,19 +148,24 @@ function cama_init_post(obj) {
                     if (refusal) {
                         // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
                         // refusal names the submitted key), and do NOT run the success callback -- it would
-                        // navigate away (discarding the unsaved edits) or open a stale preview. A refusal that
-                        // returns after the fallback wait sent the held submit is not shown either: the post
-                        // save refuses the same content and re-renders the form with it (see request_failed).
-                        if (!submit_sent_while_saving) $.fn.alert({type: 'error', title: $('<div>').text(refusal).html(), icon: "times"})
+                        // navigate away (discarding the unsaved edits) or open a stale preview.
                         // A refused save leaves a held submit on the form (the alert took the overlay down): the
                         // post save would refuse the same content, and the alert names what to fix. A request that
                         // failed or timed out still sends it (see the submit handler). The held submit is not
                         // dispatched again, so a cancelSubmit the validator's click handler set for it (a Cancel or
                         // formnovalidate button) is consumed here, as its own submit handler would have: left set,
                         // it would let the next submit through unvalidated.
-                        var validator = held_form && $(held_form).data('validator');
-                        if (validator) validator.cancelSubmit = false;
-                        drop_hold();
+                        // A refusal that returns after the fallback wait sent the held submit is not shown: the post
+                        // save refuses the same content and re-renders the form with it (see request_failed). A
+                        // submit held since (the sent one kept the page, the user submitted again) is left to its
+                        // own wait then, as when this save fails or succeeds: dropped here, its overlay would stay
+                        // up with no alert to take it down.
+                        if (!submit_sent_while_saving) {
+                            $.fn.alert({type: 'error', title: $('<div>').text(refusal).html(), icon: "times"});
+                            var validator = held_form && $(held_form).data('validator');
+                            if (validator) validator.cancelSubmit = false;
+                            drop_hold();
+                        }
                         // The timer sends nothing until the form changes: sent again, this form would be refused
                         // again, with the same alert (a timer call queued behind this save included). A user's
                         // call is always sent.
