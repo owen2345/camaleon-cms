@@ -1725,6 +1725,26 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved draft before the next form')
   end
 
+  # A refusal or failure can return after another page was loaded in place: shown there, it names the post
+  # it is about, with the title as text.
+  it 'names the post in a refusal shown over a page loaded in place' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused <b>before</b> the next page'
+
+    refuse_draft_requests('the draft was refused', 1000)
+    page.execute_script(<<~JS)
+      App_post.save_draft();
+      // What opening another page in place leaves behind while the save runs.
+      $('#form-post').detach();
+      $('body').append('<form id="form-post"><input type="hidden" name="post[title]" value="The next form"></form>');
+      $form = $('#form-post');
+    JS
+
+    expect(page).to have_css('#cama_alert_modal', text: 'Refused <b>before</b> the next page: the draft was refused')
+    expect(page).to have_no_css('#cama_custom_loading')
+  end
+
   # The core refuses with a list; a decorated drafts action may send one message.
   it 'shows a refusal sent as one message and frees the editor' do
     visit new_post_path

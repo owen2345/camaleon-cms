@@ -246,8 +246,13 @@ function cama_init_post(obj) {
         }
     }
 
-    // The alert takes the overlay down itself ($.fn.alert calls hideLoading).
+    // The alert takes the overlay down itself ($.fn.alert calls hideLoading). Shown over another page (one
+    // loaded in place while the save ran), it names the post it is about, by the title as it was typed.
     function show_error(text) {
+        if ($form[0] !== post_form) {
+            var title = $(post_form).find('.title-post' + class_translate).first().val();
+            if (title) text = $('<div>').text(title).html() + ': ' + text;
+        }
         $.fn.alert({type: 'error', title: text, icon: "times"});
     }
 
