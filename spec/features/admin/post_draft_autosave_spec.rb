@@ -1225,6 +1225,25 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(1)
   end
 
+  # A translated form has a permalink widget, and a Preview link, per language: a save points every one
+  # of them at the draft, not only the first.
+  it 'points every Preview link of a translated form at the draft' do
+    site.set_meta('languages_site', %w[en es])
+    visit new_post_path
+    wait_for_editor_baseline
+
+    page.execute_script(<<~JS)
+      $('.title-post.translate-item[data-translation_l="en"]').val('English title').trigger('change');
+      $('.title-post.translate-item[data-translation_l="es"]').val('Título en español').trigger('change');
+    JS
+    autosave_tick
+    wait_for_ajax
+
+    buffer = new_post_buffers.order(:id).last
+    expect(page).to have_css('#form-post .btn-preview', count: 2, visible: :all)
+    expect(page).to have_css("#form-post .btn-preview[href$='draft_id=#{buffer.id}']", count: 2, visible: :all)
+  end
+
   # A translated field's per-language copy composes the hidden original the server reads on its change
   # event, which a text input fires once it loses focus. A tick that landed while the copy was still being
   # typed in read the copy (the comparison does) but sent the original as it stood, and once the copy lost
