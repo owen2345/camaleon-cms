@@ -110,7 +110,7 @@ function cama_init_post(obj) {
             // or window is taken down. The caller is told why the save could not be sent: a failure
             // handler that throws does not replace that error, its own is reported as an uncaught one.
             try { if (on_failure) on_failure(); }
-            catch (handler_error) { setTimeout(function () { throw handler_error; }); }
+            catch (handler_error) { report_later(handler_error); }
             finally { save_finished(); }
             throw e;
         }
@@ -204,6 +204,13 @@ function cama_init_post(obj) {
         };
     }
 
+    // An error raised on another save's path (a failure handler, a save drained or dropped from the queue)
+    // is reported as an uncaught one, on its own: thrown here, it would replace the error that save may be
+    // raising to its own caller.
+    function report_later(error) {
+        setTimeout(function () { throw error; });
+    }
+
     function save_finished() {
         saving = false;
         if (submit_sent_while_saving) {
@@ -215,7 +222,7 @@ function cama_init_post(obj) {
             // is still sent.
             $.each(queued_saves.splice(0), function (i, queued) {
                 try { if (queued.on_failure) queued.on_failure(); }
-                catch (handler_error) { setTimeout(function () { throw handler_error; }); }
+                catch (handler_error) { report_later(handler_error); }
             });
         } else {
             // A queued timer call with nothing to send returns without saving, so go on to the next. Each is
@@ -227,7 +234,7 @@ function cama_init_post(obj) {
             while (!saving && queued_saves.length) {
                 var queued = queued_saves.shift();
                 try { save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure); }
-                catch (drained_error) { setTimeout(function () { throw drained_error; }); }
+                catch (drained_error) { report_later(drained_error); }
             }
         }
         if (!held_form) return;
