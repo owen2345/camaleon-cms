@@ -28,6 +28,14 @@ describe 'Post editor draft autosave', :js do
     "window.delegatedRuns = 0; #{keep_page_js('window.delegatedRuns++; ')}"
   end
 
+  # The hold ended (the save returned, or the fallback wait ran out): the overlay it put up comes down
+  # within seconds, and the listener delegated from the body that keeps the page has seen the one submit.
+  def expect_held_submit_delivered_once
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+  end
+
   def new_post_buffers
     CamaleonCms::Post.where(status: 'draft_child', post_parent: nil)
   end
@@ -549,9 +557,7 @@ describe 'Post editor draft autosave', :js do
       $('#form-post').submit();
     JS
 
-    expect(page).to have_css('#cama_custom_loading')
-    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+    expect_held_submit_delivered_once
     wait_for_draft_answers(1) # the draft request fails after the hold ended
     expect(page).to have_no_css('#cama_alert_modal')
   end
@@ -573,9 +579,7 @@ describe 'Post editor draft autosave', :js do
       $('#form-post').submit();
     JS
 
-    expect(page).to have_css('#cama_custom_loading')
-    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+    expect_held_submit_delivered_once
     wait_for_draft_answers(1) # the draft request is refused after the hold ended
     expect(page).to have_no_css('#cama_alert_modal')
   end
@@ -598,9 +602,7 @@ describe 'Post editor draft autosave', :js do
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
     JS
-    expect(page).to have_css('#cama_custom_loading')
-    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+    expect_held_submit_delivered_once
 
     # The second submit lands while the draft save still runs and is held with a wait of its own, one the
     # refusal returns well before: the submit must not sit under the overlay until it ends.
@@ -632,9 +634,7 @@ describe 'Post editor draft autosave', :js do
       App_post.save_draft();
       $('#form-post').submit();
     JS
-    expect(page).to have_css('#cama_custom_loading')
-    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+    expect_held_submit_delivered_once
 
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 20000;
@@ -847,9 +847,7 @@ describe 'Post editor draft autosave', :js do
     JS
 
     expect(page.evaluate_script('window.delegatedRuns')).to eq(0)
-    expect(page).to have_css('#cama_custom_loading')
-    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+    expect_held_submit_delivered_once
     expect(page.evaluate_script('window.delegatedDraftId')).to eq(new_post_buffers.order(:id).last.id.to_s)
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
