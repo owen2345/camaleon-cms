@@ -103,17 +103,37 @@ describe 'Post editor draft autosave', :js do
 
   # Routes the editor's draft requests through `handler`, a JavaScript function called with the request's
   # $.ajax options and a `send` function that sends the request for real; what the handler returns is
-  # returned to the caller. Every other request is sent untouched.
+  # returned to the caller. Every other request is sent untouched. The routed requests are counted in
+  # window.interceptedDraftRequests as they are made, and in window.interceptedDraftAnswers once answered
+  # (a success or error handler run to its end, by the handler or by the real send).
   def intercept_draft_requests(handler)
     page.execute_script(<<~JS)
+      window.interceptedDraftRequests = 0;
+      window.interceptedDraftAnswers = 0;
       (function (ajax, handler) {
         $.ajax = function (options) {
           var self = this, args = arguments;
           if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(self, args);
+          window.interceptedDraftRequests++;
+          $.each(['success', 'error'], function (i, name) {
+            var answer = options[name];
+            options[name] = function () {
+              try { return answer.apply(this, arguments); } finally { window.interceptedDraftAnswers++; }
+            };
+          });
           return handler(options, function () { return ajax.apply(self, args); });
         };
       })($.ajax, #{handler});
     JS
+  end
+
+  def intercepted_draft_requests
+    page.evaluate_script('window.interceptedDraftRequests')
+  end
+
+  # Waits until `count` routed requests have been answered: whatever their answers did is done by then.
+  def wait_for_draft_answers(count)
+    wait_until { page.evaluate_script('window.interceptedDraftAnswers') == count }
   end
 
   # Draft requests never return.
@@ -532,7 +552,7 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('#cama_custom_loading')
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
     expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
-    sleep 1.5 # the draft request fails after the hold ended
+    wait_for_draft_answers(1) # the draft request fails after the hold ended
     expect(page).to have_no_css('#cama_alert_modal')
   end
 
@@ -556,7 +576,7 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('#cama_custom_loading')
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
     expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
-    sleep 1.5 # the draft request is refused after the hold ended
+    wait_for_draft_answers(1) # the draft request is refused after the hold ended
     expect(page).to have_no_css('#cama_alert_modal')
   end
 
@@ -667,7 +687,6 @@ describe 'Post editor draft autosave', :js do
     visit new_post_path
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Queued after the hold ended'
-    count_draft_saves
 
     delay_draft_requests(1000)
     page.execute_script(<<~JS)
@@ -682,10 +701,10 @@ describe 'Post editor draft autosave', :js do
 
     expect(page).to have_css('#cama_custom_loading')
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    wait_until { new_post_buffers.exists? }
+    # The first save's answer ran to its end: a queued save sent from it would have been made by now.
+    wait_for_draft_answers(1)
     expect(page.evaluate_script('window.queuedFailures')).to eq(1)
-    sleep 1.5 # long enough for a queued save sent from the first one's return to have been sent
-    expect(draft_saves).to eq(1)
+    expect(intercepted_draft_requests).to eq(1)
     expect(new_post_buffers.count).to eq(1)
   end
 
