@@ -390,10 +390,15 @@ A third argument, `on_failure`, runs when the save does not succeed:
 A failed request the caller asked for (not the timer's) shows an error, unless a submit is waiting on the
 save or the save was aborted: the post save reports for itself then. Shown after another page was loaded in
 place, the error (or a refusal) is prefixed with the post's title. A call made during a save waits for
-it and reuses its draft id, and runs without the overlay unless it was Save Draft's or Preview's. `App_post.submit_wait_ms` and `App_post.save_timeout_ms` are defaulted only
-when unset, so `0` is kept (no hold, no timeout). A wrapper on `$.ajax` must return the jqXHR, or the
-editor cannot abort the request: the held submit then goes out with the save still running, and a submit
-made afterwards waits another `App_post.submit_wait_ms`.
+it and reuses its draft id, and runs without the overlay unless it was Save Draft's or Preview's.
+`App_post.submit_wait_ms` and `App_post.save_timeout_ms` are defaulted only when unset, so `0` is kept
+(no hold, no timeout).
+
+Two notes for code that wraps the save. A wrapper on `App_post.save_draft_ajax` may send the call later
+or pass a callback of its own, not both: Save Draft's or Preview's save is known by the call or by its
+callback, and one that is neither runs without the overlay when it starts late. A wrapper on `$.ajax`
+must return the jqXHR, or the editor cannot abort the request: the held submit then goes out with the
+save still running, and a submit made afterwards waits another `App_post.submit_wait_ms`.
 
 The form is compared by reading its own TinyMCE editors; a textarea behind an editor is written only when
 a draft is sent (and by TinyMCE on blur and submit, as before), so content a plugin writes into it stays
