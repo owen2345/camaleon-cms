@@ -33,6 +33,12 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
   end
 
+  # An alert's modal joins the DOM only once its backdrop has faded in (Bootstrap), so a check for the modal
+  # right after the answer that would open it finds nothing either way; the body is marked as one opens.
+  def expect_no_alert
+    expect(page).to have_no_css('body.modal-open')
+  end
+
   def new_post_buffers
     CamaleonCms::Post.where(status: 'draft_child', post_parent: nil)
   end
@@ -546,7 +552,7 @@ describe 'Post editor draft autosave', :js do
 
     expect_held_submit_delivered_once
     expect(page.evaluate_script('window.abortedWith')).to eq('submit')
-    expect(page).to have_no_css('#cama_alert_modal')
+    expect_no_alert
     expect(page).to have_current_path(new_post_path, ignore_query: true)
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to eq(1)
   end
@@ -590,7 +596,7 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.abortedWith')).to eq('submit')
     expect(page.evaluate_script('window.queuedSaveFailed')).to be(true)
     expect(intercepted_draft_requests).to eq(2)
-    expect(page).to have_no_css('#cama_alert_modal')
+    expect_no_alert
   end
 
   # After the fallback sent the submit no save is running, so a second submit is not held.
