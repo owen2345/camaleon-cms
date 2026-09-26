@@ -1554,6 +1554,37 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
+  # A decorated drafts action may also answer with a draft that names no id (`{ draft: {} }`). Taken as a
+  # success, it wrote `undefined` into the Preview links, ran the callback and started the next save from
+  # no draft, so a new post got a second buffer. It fails as an answer without a draft does.
+  it 'fails a draft response whose draft names no id' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Answered with a draft without an id'
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var answered = false;
+        return function (options, send) {
+          if (answered) return send();
+          answered = true;
+          setTimeout(function () { options.success({ draft: {} }); }, 200);
+          return $.Deferred().promise();
+        };
+      })()
+    HANDLER
+
+    page.execute_script('App_post.save_draft();')
+
+    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect(page.evaluate_script('$("#form-post .btn-preview").attr("href")')).not_to include('undefined')
+
+    page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
+    expect(page).to have_css('body[data-later-save="ran"]')
+    expect(new_post_buffers.count).to eq(1)
+  end
+
   # Save Draft holds the form under the loading overlay while its save runs, since its callback leaves
   # the page; a refused save must give the form back with the refusal shown.
   it 'keeps the editor usable when Save Draft is refused' do

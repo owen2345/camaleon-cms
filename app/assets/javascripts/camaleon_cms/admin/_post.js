@@ -163,8 +163,9 @@ function cama_init_post(obj) {
                         // call is always sent.
                         refused_hash = hash;
                         if (on_failure) on_failure();
-                    } else if (!res || !res.draft) {
-                        // A decorated drafts action may answer with nothing (`{}`, `null`): no draft to name.
+                    } else if (!res || !res.draft || res.draft.id == null) {
+                        // A decorated drafts action may answer with nothing (`{}`, `null`) or with a draft that
+                        // names no id (`{draft: {}}`): no draft to name.
                         request_failed();
                     } else {
                         if (res._drafts_path) _drafts_path = res._drafts_path
