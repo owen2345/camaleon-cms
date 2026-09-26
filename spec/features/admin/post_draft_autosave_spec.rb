@@ -594,6 +594,10 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
     expect(page).to have_no_css('#cama_custom_loading')
     expect(new_post_buffers.order(:id).last.title).to eq('Saved after the hold ended')
+
+    # That state is the outran save's own: a save asked for afterwards runs its callback again.
+    page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
+    expect(page).to have_css('body[data-later-save="ran"]')
   end
 
   # The saves queued behind a save the fallback wait outran are for a form the post save has taken: sent,
