@@ -601,8 +601,8 @@ describe 'Post editor draft autosave', :js do
   end
 
   # The saves queued behind a save the fallback wait outran are for a form the post save has taken: sent,
-  # one would write a buffer after the post save removed it, offered for recovery on the next edit, and
-  # report its own failure over the page the post save loaded. They are dropped, their failure handlers run.
+  # one would write a buffer the post save leaves behind in the Drafts list, and report its own failure
+  # over the page the post save loaded. They are dropped, their failure handlers run.
   it 'drops the saves queued behind a save the fallback wait outran' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1039,9 +1039,10 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(1)
   end
 
-  # The post save removes the post's drafts. A timer call made while the browser still waits for its
-  # response (the form is on the page until the next one loads) used to send the form when it differed from
-  # the last successful save, writing a buffer after that removal, offered for recovery on the next edit.
+  # A timer call made while the browser still waits for the post save's response (the form is on the page
+  # until the next one loads) used to send the form when it differed from the last successful save, writing
+  # a buffer the post save leaves behind (a create discards only the buffer the form named), listed under
+  # Drafts as an edit newer than the post.
   it 'sends nothing from the timer once the post form was submitted' do
     visit new_post_path
     wait_for_editor_baseline

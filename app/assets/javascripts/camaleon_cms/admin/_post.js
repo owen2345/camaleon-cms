@@ -83,9 +83,10 @@ function cama_init_post(obj) {
             return;
         }
         if (called_from_interval) {
-            // Nothing before the baseline, and nothing once the form is submitted: the post save removes
-            // the drafts, and a save sent while its response is still to come would write a buffer after
-            // that, offered for recovery on the next edit.
+            // Nothing before the baseline, and nothing once the form is submitted: a save sent while the
+            // post save's response is still to come would write a buffer the post save does not take with
+            // it (a create discards only the buffer the form named, an update the drafts of a recovered
+            // one), left in the Drafts list as an edit newer than the post.
             if (saved_hash === null || $form.data("submitted")) return;
             var current = get_hash_form();
             if (current == saved_hash || current == refused_hash) return;
@@ -206,9 +207,9 @@ function cama_init_post(obj) {
     function save_finished() {
         saving = false;
         // The fallback wait sent the held submit while the save ran: the form is submitted, and a save
-        // queued behind would write a buffer after the post save removed it (offered for recovery on the
-        // next edit) and report for a page the post save has. Each is dropped with its failure handler
-        // run, as a queued save for a replaced form is.
+        // queued behind would write a buffer the post save leaves behind (see the timer's guard in
+        // save_draft_ajax) and report for a page the post save has. Each is dropped with its failure
+        // handler run, as a queued save for a replaced form is.
         if (submit_sent_while_saving) {
             $.each(queued_saves.splice(0), function (i, queued) { if (queued.on_failure) queued.on_failure(); });
             return;
