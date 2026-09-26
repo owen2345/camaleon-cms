@@ -138,7 +138,7 @@ After every successful draft save, each Preview link on the form SHALL name that
 
 ### Requirement: A post submitted while a draft save runs is held and dispatched again in full
 
-A post form submitted while a draft save is running SHALL be held under the loading overlay before validation or any other submit listener sees it, until that save and the saves queued behind it finish (the overlay kept while they run) or `App_post.submit_wait_ms` passes. The submit SHALL then be dispatched again in full to the form it was held on, so validation, every listener, delegated ones included, and the form's default action run once, with the draft id in the form. A refused save SHALL release the hold and keep the post on the form, consuming a validator skip (`cancelSubmit`) the held submit carried, so the next submit is validated; a failed request SHALL let the submit go; a held form that left the page SHALL NOT be sent.
+A post form submitted while a draft save is running SHALL be held under the loading overlay before validation or any other submit listener sees it, until that save and the saves queued behind it finish (the overlay kept while they run) or `App_post.submit_wait_ms` passes. The submit SHALL then be dispatched again to the form it was held on as the submit event the browser fires (`requestSubmit`, with the button that submitted it as the submitter; jQuery's trigger in a browser without `requestSubmit`), so validation, every listener, delegated ones and ones bound outside jQuery included, and the form's default action run once, with the draft id in the form and the button's name, value and formaction sent by the browser as they would have been. A refused save SHALL release the hold and keep the post on the form, consuming a validator skip (`cancelSubmit`) the held submit carried, so the next submit is validated; a failed request SHALL let the submit go; a held form that left the page SHALL NOT be sent.
 
 #### Scenario: A submit during an autosave discards the new post's buffer
 
@@ -169,6 +169,21 @@ A post form submitted while a draft save is running SHALL be held under the load
 
 - **WHEN** a submit listener on the form and one delegated from the body are bound, and the form is submitted during a save
 - **THEN** neither runs while the submit is held, and each runs once when it is dispatched, the delegated one seeing the draft id in the form
+
+#### Scenario: A listener bound outside jQuery sees the dispatched submit
+
+- **WHEN** a listener registered with `addEventListener` on the form is bound after the editor's handler, and a button submits the form during a save
+- **THEN** it does not run while the submit is held, and runs once when it is dispatched, with that button as the event's submitter
+
+#### Scenario: The button that made a held submit goes with it
+
+- **WHEN** a submit button with a name, a value and a formaction submits the form during a save
+- **THEN** the browser's own submission of the dispatched submit carries that name and value to that formaction
+
+#### Scenario: A browser without requestSubmit still sends the held submit
+
+- **WHEN** the browser has no `requestSubmit` and the form is submitted during a save
+- **THEN** the held submit is sent through jQuery's trigger when the save returns, and the post is saved
 
 #### Scenario: The overlay stays while a queued save runs
 

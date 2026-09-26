@@ -170,9 +170,14 @@ function cama_init_post(obj) {
     }
 
     // The held submit was stopped before validation and the listeners bound after this script's saw it
-    // (see the submit handler), so it is dispatched again in full: validation, those listeners, the ones
-    // delegated from an ancestor included (camaleon_admin_ajax submits the form in place from one), and
-    // the form's default action run once, now. The overlay comes down first: whatever the submit does from here, it does on its own.
+    // (see the submit handler), so it is dispatched again in full, as the submit event the browser fires
+    // (requestSubmit), with the button that made it as the submitter: validation, those listeners, the
+    // ones bound outside jQuery and the ones delegated from an ancestor included (camaleon_admin_ajax
+    // submits the form in place from one), and the form's default action run once, now, and the browser
+    // sends the button's name, value and formaction itself. A browser without requestSubmit (Safari
+    // before 16) gets jQuery's trigger, which reaches jQuery's listeners and the default action; it does
+    // not know the button either, SubmitEvent.submitter being as new there.
+    // The overlay comes down first: whatever the submit does from here, it does on its own.
     // It is sent to the form it was held on: with pages loading in place, another form can be set up
     // while the hold waits (the browser's Back button is not under the overlay), and one that left the
     // page is not sent at all; the overlay the hold put up still comes down, or the page is dead under it.
@@ -181,18 +186,15 @@ function cama_init_post(obj) {
         drop_hold();
         hideLoading();
         if (!form || !$.contains(document, form)) return;
-        // The button that submitted the form sends its name and value with a submit it made, and the
-        // dispatch below (form.submit()) has no button: they go as a hidden field, for this submit only,
-        // the way the validator sends its own button along.
-        var button_field = null;
-        if (submitter && submitter.name && submitter.form === form) {
-            button_field = $('<input type="hidden">').attr('name', submitter.name).val(submitter.value).appendTo(form);
-        }
+        // requestSubmit refuses a submitter that is not a submit button of this form (one a theme re-rendered meanwhile).
+        if (!(submitter && submitter.form === form && /^(submit|image)$/i.test(submitter.type))) submitter = null;
         releasing_form = form;
         if (saving) submit_sent_while_saving = true;
-        try { $(form).trigger('submit'); } finally {
+        try {
+            if (form.requestSubmit) form.requestSubmit(submitter || undefined);
+            else $(form).trigger('submit');
+        } finally {
             releasing_form = null;
-            if (button_field) button_field.remove();
         }
     }
 

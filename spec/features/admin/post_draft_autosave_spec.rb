@@ -515,10 +515,10 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
-  # A submit a button made sends the button's name and value; the held submit is dispatched through the
-  # form's own submit, which has no button. They go along as a hidden field, for that submit only: a
-  # theme's button that names a status must not save the post with the select's.
-  it 'sends the name and value of the button that made a held submit' do
+  # A submit a button made goes with that button: the browser sends its name and value and follows its
+  # formaction. The held submit is dispatched with the button as its submitter, so the browser does the
+  # same then: a theme's button that names a status must not save the post with the select's.
+  it 'dispatches a held submit with the button that made it' do
     visit new_post_path
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Held submit button'
@@ -526,20 +526,68 @@ describe 'Post editor draft autosave', :js do
     stall_draft_requests
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 1000;
-      $('body').on('submit', 'form#form-post', function () {
-        window.sentFields = $(this).serialize();
-        return false;
-      });
-      $('#form-post').append('<button type="submit" name="probe" value="from the button">Probe</button>');
+      // The button sends the form as a query to the page itself, where the browser's own submission can be read.
+      $('#form-post').append('<button type="submit" name="probe" value="from the button" formmethod="get" formaction="' + location.pathname + '">Probe</button>');
       #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
     JS
     click_button 'Probe'
 
     expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_current_path(/[?&]probe=from\+the\+button(&|\z)/, url: true, wait: 5)
+    expect(page).to have_current_path(%r{/posts/new\?}, url: true)
+  end
+
+  # The held submit is dispatched as the submit event the browser fires, so a listener bound outside jQuery
+  # (a plugin's addEventListener on the form) sees it once, when the hold ends, with the button that made
+  # it as the submitter. A submit triggered through jQuery reached jQuery's listeners only.
+  it 'delivers a held submit to a listener bound outside jQuery, with its submitter' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held submit native listener'
+
+    delay_draft_requests(1000)
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 20000;
+      window.nativeRuns = 0;
+      document.getElementById('form-post').addEventListener('submit', function (e) {
+        window.nativeRuns++;
+        window.nativeSubmitter = e.submitter && e.submitter.name;
+        e.preventDefault();
+      });
+      $('#form-post').append('<button type="submit" name="probe" value="native">Probe</button>');
+      #{publishable_post_js}
+      App_post.save_draft_ajax(null, false);
+    JS
+    click_button 'Probe'
+
+    expect(page.evaluate_script('window.nativeRuns')).to eq(0)
+    expect(page).to have_css('#cama_custom_loading')
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    expect(page.evaluate_script('window.sentFields')).to include('probe=from+the+button')
-    expect(page).to have_no_css('#form-post input[type="hidden"][name="probe"]', visible: :all)
+    expect(page.evaluate_script('window.nativeRuns')).to eq(1)
+    expect(page.evaluate_script('window.nativeSubmitter')).to eq('probe')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+  end
+
+  # A browser without requestSubmit (Safari before 16) gets the held submit through jQuery's trigger, which
+  # still reaches jQuery's listeners and the form's default action.
+  it 'sends a held submit through jQuery where requestSubmit is missing' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held submit without requestSubmit'
+
+    delay_draft_requests(1000)
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 20000;
+      delete HTMLFormElement.prototype.requestSubmit;
+      #{publishable_post_js}
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true, wait: 5)
+    expect(CamaleonCms::Post.find_by(title: 'Held submit without requestSubmit', status: 'published')).to be_present
   end
 
   # A held submit also waits for the saves queued behind the one it was held on. The finished save's

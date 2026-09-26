@@ -389,11 +389,13 @@ so content a plugin writes into such a textarea stays as written until then.
 Submitting the post while a save is running shows the loading overlay and holds the submit until the save
 finishes, or for `App_post.submit_wait_ms` (15 seconds) if it has not returned by then; a refused save keeps
 the post on the form with the refusal shown, a failed request lets it go. A held submit is stopped before
-validation and the submit listeners bound after the editor's own see it, and dispatched again in full when
-the hold ends, so each of them (one a plugin delegates from an ancestor included) and the form's default
-action run once, then, with the name and value of the button that submitted the form. A listener a plugin
-binds on the form before the editor is set up (at DOM ready; the editor comes up right after) sees the
-submit both times.
+validation and the submit listeners bound after the editor's own see it, and dispatched again when the hold
+ends as the submit event the browser fires (`form.requestSubmit`, with the button that submitted the form as
+the submitter; jQuery's trigger in a browser without it, Safari before 16), so each of them (one a plugin
+delegates from an ancestor or binds with `addEventListener` included) and the form's default action run once,
+then, with the button's name, value and formaction as the browser sends them. A listener a plugin binds on
+the form before the editor is set up (at DOM ready; the editor comes up right after) sees the submit both
+times.
 
 ---
 
