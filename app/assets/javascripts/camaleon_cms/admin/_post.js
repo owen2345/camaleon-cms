@@ -78,8 +78,8 @@ function cama_init_post(obj) {
         if (saving) {
             // One timer call waits at a time: drained, it compares the form once, and another would compare
             // the same form again (on a request that never returns, one more every minute).
-            if (called_from_interval && $.grep(queued_saves, function (queued) { return queued[1]; }).length) return;
-            queued_saves.push([callback, called_from_interval, on_failure]);
+            if (called_from_interval && $.grep(queued_saves, function (queued) { return queued.from_timer; }).length) return;
+            queued_saves.push({callback: callback, from_timer: called_from_interval, on_failure: on_failure});
             return;
         }
         if (called_from_interval) {
@@ -210,13 +210,16 @@ function cama_init_post(obj) {
         // next edit) and report for a page the post save has. Each is dropped with its failure handler
         // run, as a queued save for a replaced form is.
         if (submit_sent_while_saving) {
-            $.each(queued_saves.splice(0), function (i, queued) { if (queued[2]) queued[2](); });
+            $.each(queued_saves.splice(0), function (i, queued) { if (queued.on_failure) queued.on_failure(); });
             return;
         }
         // A queued timer call with nothing to send returns without saving, so go on to the next. Each is
         // run from here, not through App_post.save_draft_ajax: a wrapper a plugin put there already ran
         // when the call was made.
-        while (!saving && queued_saves.length) save_draft_ajax.apply(null, queued_saves.shift());
+        while (!saving && queued_saves.length) {
+            var queued = queued_saves.shift();
+            save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure);
+        }
         if (!held_form) return;
         // A hold that goes on waiting, for the queued save just started, needs the overlay put back: the
         // finished save's caller (Preview, Save Draft) takes it down in its callback.
