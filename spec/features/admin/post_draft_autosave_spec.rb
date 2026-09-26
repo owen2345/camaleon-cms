@@ -16,6 +16,18 @@ describe 'Post editor draft autosave', :js do
     JS
   end
 
+  # JavaScript that keeps the page on a submit, as a plugin that submits the post form in place does: a
+  # listener delegated from the body, behind the editor's own handler, so it sees a held submit only once
+  # the hold ends. `before_keeping` runs first.
+  def keep_page_js(before_keeping = '')
+    "$('body').on('submit', 'form#form-post', function () { #{before_keeping}return false; });"
+  end
+
+  # The same listener, counting the submits it sees in window.delegatedRuns.
+  def count_kept_submits_js
+    "window.delegatedRuns = 0; #{keep_page_js('window.delegatedRuns++; ')}"
+  end
+
   def new_post_buffers
     CamaleonCms::Post.where(status: 'draft_child', post_parent: nil)
   end
@@ -493,8 +505,7 @@ describe 'Post editor draft autosave', :js do
     fail_draft_requests(1500)
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 500;
-      window.delegatedRuns = 0;
-      $('body').on('submit', 'form#form-post', function () { window.delegatedRuns++; return false; });
+      #{count_kept_submits_js}
       #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
@@ -518,8 +529,7 @@ describe 'Post editor draft autosave', :js do
     refuse_draft_requests('post[status] is not a status the post editor offers', 1500)
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 500;
-      window.delegatedRuns = 0;
-      $('body').on('submit', 'form#form-post', function () { window.delegatedRuns++; return false; });
+      #{count_kept_submits_js}
       #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
@@ -545,8 +555,7 @@ describe 'Post editor draft autosave', :js do
     intercept_draft_requests('function (options) { window.draftRequest = options; return $.Deferred().promise(); }')
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 500;
-      window.delegatedRuns = 0;
-      $('body').on('submit', 'form#form-post', function () { window.delegatedRuns++; return false; });
+      #{count_kept_submits_js}
       #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
@@ -581,7 +590,7 @@ describe 'Post editor draft autosave', :js do
     delay_draft_requests(1500)
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 500;
-      $('body').on('submit', 'form#form-post', function () { return false; });
+      #{keep_page_js}
       #{publishable_post_js}
       App_post.save_draft();
       $('#form-post').submit();
@@ -613,7 +622,7 @@ describe 'Post editor draft autosave', :js do
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 300;
       window.queuedFailures = 0;
-      $('body').on('submit', 'form#form-post', function () { return false; });
+      #{keep_page_js}
       #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       App_post.save_draft_ajax(null, false, function () { window.queuedFailures++; });
@@ -1053,7 +1062,7 @@ describe 'Post editor draft autosave', :js do
     # The editors are saved first: a jQuery-triggered submit reaches no listener of TinyMCE's, and the
     # validator reads the textarea.
     page.execute_script(<<~JS)
-      $('body').on('submit', 'form#form-post', function () { return false; });
+      #{keep_page_js}
       #{publishable_post_js}
       tinymce.triggerSave();
       $('#form-post').submit();
@@ -1576,7 +1585,7 @@ describe 'Post editor draft autosave', :js do
 
     # The title is empty, so validation would refuse. A listener behind the validator's keeps the page.
     page.execute_script(<<~JS)
-      $('body').on('submit', 'form#form-post', function () { return false; });
+      #{keep_page_js}
       $('#form-post').data('validator').cancelSubmit = true;
       $('#form-post').submit();
     JS
@@ -1597,7 +1606,7 @@ describe 'Post editor draft autosave', :js do
     # keeps the page either way.
     intercept_draft_requests('function (options) { window.draftRequest = options; return $.Deferred().promise(); }')
     page.execute_script(<<~JS)
-      $('body').on('submit', 'form#form-post', function () { return false; });
+      #{keep_page_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').data('validator').cancelSubmit = true;
       $('#form-post').submit();
