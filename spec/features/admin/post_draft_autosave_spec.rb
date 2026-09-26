@@ -1155,6 +1155,30 @@ describe 'Post editor draft autosave', :js do
                                    status: 'draft_child').last.title).to eq('Typed before the baseline')
   end
 
+  # A control elsewhere on the page that names the form is sent and compared with it, so typing in it
+  # before the baseline is an edit of the form too.
+  it 'keeps prompting for an edit typed before the baseline into a control outside the form that names it' do
+    post = site.the_post('sample-post')
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait_for_editor_setup
+    count_draft_saves
+    delay_content_editor
+    page.execute_script(<<~JS)
+      $('body').append('<input type="text" id="outside_probe" name="outside_probe" form="form-post" value="">');
+    JS
+    fill_in 'outside_probe', with: 'Typed outside before the baseline'
+
+    wait_for_leave_prompt
+    expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+
+    wait_for_editor_baseline
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+    autosave_tick
+    wait_for_ajax
+    expect(draft_saves).to eq(1)
+  end
+
   # Typing in an editor fires nothing on the form; the editor's own change event says it was edited.
   it 'prompts to leave before the baseline when the content editor was typed in' do
     post = site.the_post('sample-post')

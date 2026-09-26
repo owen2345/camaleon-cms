@@ -27,7 +27,8 @@ function cama_init_post(obj) {
     // then). A save that has not returned after App_post.save_timeout_ms fails.
     var saved_hash = null;
     var refused_hash = null;
-    // The user typed or clicked in the form before the baseline (a native input or change event; a script's
+    // The user typed or clicked in a control of the form before the baseline: one inside it, or one elsewhere
+    // on the page that names it, which the browser sends with it (a native input or change event; a script's
     // write or jQuery's trigger fires none).
     var touched = false;
     // The baseline absorbed an edit made before it was taken: the form counts as edited until submitted.
@@ -43,9 +44,11 @@ function cama_init_post(obj) {
     // The form this setup owns. Admin pages load in place, so $form may already be another post's form
     // when a save of this one returns or is drained from the queue.
     var post_form = $form[0];
-    post_form.addEventListener('input', mark_touched);
-    post_form.addEventListener('change', mark_touched);
-    function mark_touched() { touched = true; }
+    // On the document, in the capture phase: a control naming the form from elsewhere does not bubble
+    // through it, and a widget that stops the event still counts.
+    document.addEventListener('input', mark_touched, true);
+    document.addEventListener('change', mark_touched, true);
+    function mark_touched(e) { if ($.contains(post_form, e.target) || e.target.form === post_form) touched = true; }
     // Typing in an editor fires nothing on the form (its document is the iframe's), so the editor's own
     // change event is watched: it fires for typing, pasting and formatting, not for a script's setContent.
     // Its dirty flag would not do: TinyMCE clears it whenever the content is saved into the textarea,
@@ -540,8 +543,8 @@ function cama_init_post(obj) {
             // The touch listeners have done their work: from here the form is compared.
             tinymce.off('AddEditor', watch_editor_touch);
             $.each(tinymce.editors, function (i, editor) { editor.off('init', check); editor.off('change', mark_editor_touched); });
-            post_form.removeEventListener('input', mark_touched);
-            post_form.removeEventListener('change', mark_touched);
+            document.removeEventListener('input', mark_touched, true);
+            document.removeEventListener('change', mark_touched, true);
             // Another form was set up meanwhile (pages load in place); it takes its own baseline.
             if ($form[0] !== post_form) return;
             var hash = get_hash_form();

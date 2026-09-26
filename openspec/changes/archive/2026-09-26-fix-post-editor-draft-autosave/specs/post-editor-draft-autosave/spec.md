@@ -31,7 +31,7 @@ The timer SHALL send a draft save only when the form differs from what the last 
 
 ### Requirement: The load baseline waits for the form's editors
 
-The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the form has initialized (re-checked on each editor's `init`), or after ten seconds if one never comes up. Until then the prompt SHALL NOT compare the form: it SHALL fire only if the user typed or clicked in the form (a native `input` or `change` event) or an editor fired its `change` event (typing, pasting, formatting; not a script's `setContent`). The editor's dirty flag SHALL NOT be used, since TinyMCE clears it when the editor saves into its textarea on blur. A baseline taken after such an edit SHALL keep the form edited until it is submitted, and the first tick after it SHALL send the form.
+The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the form has initialized (re-checked on each editor's `init`), or after ten seconds if one never comes up. Until then the prompt SHALL NOT compare the form: it SHALL fire only if the user typed or clicked in a control of the form, inside it or elsewhere on the page naming it (a native `input` or `change` event) or an editor fired its `change` event (typing, pasting, formatting; not a script's `setContent`). The editor's dirty flag SHALL NOT be used, since TinyMCE clears it when the editor saves into its textarea on blur. A baseline taken after such an edit SHALL keep the form edited until it is submitted, and the first tick after it SHALL send the form.
 
 #### Scenario: An untouched post with a late editor stays unchanged
 
@@ -47,6 +47,11 @@ The baseline the leave-page prompt compares against SHALL be taken once every Ti
 
 - **WHEN** the title is typed while the baseline still waits for the content editor
 - **THEN** the prompt returns a message before and after the baseline, and the first tick after it sends the title
+
+#### Scenario: An edit typed before the baseline into a control that names the form keeps prompting
+
+- **WHEN** a control elsewhere on the page with `form="form-post"` is typed in while the baseline still waits for the content editor
+- **THEN** the prompt returns a message before and after the baseline, and the first tick after it sends the form
 
 #### Scenario: An editor typed in before the baseline prompts
 
