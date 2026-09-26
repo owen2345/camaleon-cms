@@ -352,6 +352,25 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted during a stalled save', status: 'published')).to be_present
   end
 
+  # A theme or plugin that wants no hold sets App_post.submit_wait_ms to 0: the value is kept as set,
+  # and a submit made while a save runs is sent at once, without waiting out a default.
+  it 'sends a held submit at once when submit_wait_ms is zero' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Submitted with no hold'
+
+    stall_draft_requests
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 0;
+      #{publishable_post_js}
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true)
+    expect(CamaleonCms::Post.find_by(title: 'Submitted with no hold', status: 'published')).to be_present
+  end
+
   # Once the fallback wait has sent the held submit, the post save reports for itself (in place, when a
   # plugin such as camaleon_admin_ajax takes the submit over from a delegated listener), as it does when
   # the hold ends on the failure. The draft request that still runs must not report its own failure later.
