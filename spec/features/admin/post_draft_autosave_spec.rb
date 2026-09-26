@@ -52,6 +52,21 @@ describe 'Post editor draft autosave', :js do
     wait_until { page.evaluate_script('typeof window.onbeforeunload === "function"') }
   end
 
+  # Takes the content editor down and brings it back `wait_ms` later: the baseline, which waits for the
+  # form's editors, is then taken that much later than the editor script's setup.
+  def delay_content_editor(wait_ms = 3000)
+    page.execute_script(<<~JS)
+      (function delayEditor() {
+        var editor = tinymce.get('post_content');
+        if (!editor) return setTimeout(delayEditor, 10);
+        editor.remove();
+        setTimeout(function () {
+          tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));
+        }, #{wait_ms});
+      })();
+    JS
+  end
+
   def autosave_tick
     page.execute_script('App_post.save_draft_ajax(null, true)')
   end
@@ -976,16 +991,7 @@ describe 'Post editor draft autosave', :js do
     post.update!(content: 'Plain body, not yet normalized by the editor')
 
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
-    page.execute_script(<<~JS)
-      (function delayEditor() {
-        var editor = tinymce.get('post_content');
-        if (!editor) return setTimeout(delayEditor, 10);
-        editor.remove();
-        setTimeout(function () {
-          tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));
-        }, 3000);
-      })();
-    JS
+    delay_content_editor
     wait_for_editor_baseline
     expect(page).to have_css('#post_content_ifr')
     count_draft_saves
@@ -1005,17 +1011,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
     count_draft_saves
     # The content editor is held back, so the baseline waits for it: the tick lands before it.
-    page.execute_script(<<~JS)
-      (function delayEditor() {
-        var editor = tinymce.get('post_content');
-        if (!editor) return setTimeout(delayEditor, 10);
-        editor.remove();
-        setTimeout(function () {
-          tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));
-        }, 3000);
-      })();
-      $('#post_title').val('Edited before the baseline').trigger('keyup');
-    JS
+    delay_content_editor
+    page.execute_script("$('#post_title').val('Edited before the baseline').trigger('keyup');")
     autosave_tick
     expect(draft_saves).to eq(0)
 
@@ -1060,16 +1057,7 @@ describe 'Post editor draft autosave', :js do
     post.update!(content: 'Plain body, not yet normalized by the editor')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
     expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
-    page.execute_script(<<~JS)
-      (function delayEditor() {
-        var editor = tinymce.get('post_content');
-        if (!editor) return setTimeout(delayEditor, 10);
-        editor.remove();
-        setTimeout(function () {
-          tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));
-        }, 3000);
-      })();
-    JS
+    delay_content_editor
 
     wait_for_leave_prompt
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
@@ -1098,16 +1086,7 @@ describe 'Post editor draft autosave', :js do
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
     expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
     count_draft_saves
-    page.execute_script(<<~JS)
-      (function delayEditor() {
-        var editor = tinymce.get('post_content');
-        if (!editor) return setTimeout(delayEditor, 10);
-        editor.remove();
-        setTimeout(function () {
-          tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));
-        }, 3000);
-      })();
-    JS
+    delay_content_editor
     fill_in 'post_title', with: 'Typed before the baseline'
 
     wait_for_leave_prompt
