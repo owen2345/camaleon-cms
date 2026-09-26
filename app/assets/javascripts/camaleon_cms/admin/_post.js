@@ -612,13 +612,16 @@ function cama_init_post(obj) {
     // translated fields compose their originals too, through the event their copies keep for it
     // (change_in; a change would also run the copy's other handlers, the title's slug lookup): a copy
     // still being typed in fires no change until it loses focus, and the comparison reads the copies,
-    // not the originals, so the original composed then would never be sent.
+    // not the originals, so the original composed then would never be sent. Any one copy composes its
+    // whole field (the translator's panel), so one is asked per field.
     function sync_editors() {
         var synced = $.map(form_editors(), function (editor) {
             $(editor.getElement()).val(editor.getContent()).trigger("change");
             return editor.getElement();
         });
-        $form.find('.translate-item').not(synced).trigger('change_in');
+        $form.find('.trans_panel').each(function () {
+            $(this).find('.translate-item').not(synced).first().trigger('change_in');
+        });
     }
 
     if (obj.recover_draft == "true") {
