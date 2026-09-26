@@ -925,6 +925,30 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
   end
 
+  # Preview's save is flagged the same way: drained behind a save whose callback took the overlay down, it
+  # runs under the overlay until the window is sent to the draft.
+  it 'keeps the overlay for a Preview queued behind another save' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Previewed behind another save'
+
+    delay_draft_requests(1500)
+    # The first save runs without an overlay of its own, so the click lands; its callback takes down the one
+    # the click put up, as a callback that opened something does.
+    page.execute_script(<<~JS)
+      App_post.save_draft_ajax(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
+    JS
+    preview = window_opened_by { find('.btn-preview').click }
+
+    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(page).to have_css('#cama_custom_loading')
+    within_window(preview) do
+      expect(page).to have_current_path(/draft_id=\d+\z/, url: true, wait: 10)
+    end
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(new_post_buffers.count).to eq(1)
+  end
+
   # A plugin's call put no overlay up and its callback takes none down: restored for it, the overlay would
   # stay for good.
   it 'leaves the overlay down for a plugin save queued behind another save' do
