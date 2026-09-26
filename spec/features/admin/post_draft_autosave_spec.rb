@@ -254,6 +254,37 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted during a stalled save', status: 'published')).to be_present
   end
 
+  # Once the fallback wait has sent the held submit, the post save reports for itself (in place, when a
+  # plugin such as camaleon_admin_ajax takes the submit over from a delegated listener), as it does when
+  # the hold ends on the failure. The draft request that still runs must not report its own failure later.
+  it 'shows no error for a draft save that fails after the fallback wait sent the held submit' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Failed after the hold ended'
+
+    page.execute_script(<<~JS)
+      var ajax = $.ajax;
+      $.ajax = function (options) {
+        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
+        setTimeout(function () { options.error({}, 'error', ''); }, 1500);
+        return $.Deferred().promise();
+      };
+      App_post.submit_wait_ms = 500;
+      window.delegatedRuns = 0;
+      $('body').on('submit', 'form#form-post', function () { window.delegatedRuns++; return false; });
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+    sleep 1.5 # the draft request fails after the hold ended
+    expect(page).to have_no_css('#cama_alert_modal')
+  end
+
   # A draft request that fails (here the transport reports an error) releases the save lock and sends
   # the held submit: the post save decides for itself, and the buffer, if any, is left behind.
   it 'submits the post when the draft save it waited for fails' do

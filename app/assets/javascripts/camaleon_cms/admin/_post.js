@@ -31,6 +31,9 @@ function cama_init_post(obj) {
     var held_form = null;
     var held_submitter = null;
     var releasing_form = null;
+    // Set when the fallback wait sent the held submit while the save still ran: the post save reports
+    // for itself from then on, so this save's failure is not reported too.
+    var submit_sent_while_saving = false;
     // The form this setup owns. Admin pages load in place, so the script can be set up on another form
     // while a save of this one is queued or in flight; $form is then that form, and this setup's saves are
     // not for it.
@@ -61,6 +64,7 @@ function cama_init_post(obj) {
         // Locked before the editors are synced: a change handler that asks for a save is queued behind
         // this one, not sent beside it.
         saving = true;
+        submit_sent_while_saving = false;
         try {
             sync_editors();
             // Read after the sync: the textareas' change handlers may have written other fields, and saved_hash is the form as sent.
@@ -118,9 +122,10 @@ function cama_init_post(obj) {
             },
             error: function () {
                 try {
-                    // A save the user asked for says it failed; the timer's is retried a minute later, and a
-                    // held submit is sent right after this (the post save reports for itself).
-                    if (!called_from_interval && !held_form) {
+                    // A save the user asked for says it failed; the timer's is retried a minute later. A held
+                    // submit is sent right after this, and one the fallback wait already sent has gone the
+                    // same way: the post save reports for itself.
+                    if (!called_from_interval && !held_form && !submit_sent_while_saving) {
                         $.fn.alert({type: 'error', title: I18n("msg.draft_save_failed", "The draft could not be saved"), icon: "times"});
                     }
                     if (on_failure) on_failure();
@@ -167,6 +172,7 @@ function cama_init_post(obj) {
             button_field = $('<input type="hidden">').attr('name', submitter.name).val(submitter.value).appendTo(form);
         }
         releasing_form = form;
+        if (saving) submit_sent_while_saving = true;
         try { $(form).trigger('submit'); } finally {
             releasing_form = null;
             if (button_field) button_field.remove();

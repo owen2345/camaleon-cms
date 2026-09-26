@@ -192,12 +192,17 @@ A post form submitted while a draft save is running SHALL be held under the load
 
 ### Requirement: The draft save is a public asynchronous contract
 
-`window.save_draft(callback, called_from_interval, on_failure)`, the same function as `App_post.save_draft_ajax`, SHALL return at once and run `callback(response)` when the save succeeds; `on_failure` SHALL run when the save is refused, the request fails, times out or could not be sent. A failed request the user asked for SHALL be reported with the translated `msg.draft_save_failed` message; the timer's SHALL be retried silently a minute later. `App_post.submit_wait_ms` (15 s) and `App_post.save_timeout_ms` (30 s) SHALL be defaulted only when unset, so a value a plugin or theme set before the editor came up, `0` included, is kept. Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. When the page has loaded another form in place by the time the save returns, Save Draft SHALL leave that form and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.
+`window.save_draft(callback, called_from_interval, on_failure)`, the same function as `App_post.save_draft_ajax`, SHALL return at once and run `callback(response)` when the save succeeds; `on_failure` SHALL run when the save is refused, the request fails, times out or could not be sent. A failed request the user asked for SHALL be reported with the translated `msg.draft_save_failed` message, unless a submit is held on it or the fallback wait sent one while it ran (the post save reports for itself); the timer's SHALL be retried silently a minute later. `App_post.submit_wait_ms` (15 s) and `App_post.save_timeout_ms` (30 s) SHALL be defaulted only when unset, so a value a plugin or theme set before the editor came up, `0` included, is kept. Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. When the page has loaded another form in place by the time the save returns, Save Draft SHALL leave that form and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.
 
 #### Scenario: A failed save the user asked for is reported
 
 - **WHEN** a save with a failure handler times out
 - **THEN** the handler runs and the alert shows the translated failure message
+
+#### Scenario: A save that fails after the fallback wait sent its held submit is not reported
+
+- **WHEN** the fallback wait sends a held submit while the draft save still runs, and that save then fails
+- **THEN** no failure alert is shown
 
 #### Scenario: Save Draft returns to the list
 
