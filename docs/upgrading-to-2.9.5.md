@@ -375,15 +375,27 @@ now returns what a freshly loaded record reads.
 `window.save_draft(callback)` (the same function as `App_post.save_draft_ajax`) no longer blocks the
 page: it returns at once and runs `callback(response)` when the save succeeds, where it used to run it
 before returning. Code that reads the draft id, `#post_draft_id` or the Preview link right after the call
-should read them in the callback. A third argument, `on_failure`, runs when the save is refused, the
-request fails, answers without a draft (or with a draft that names no id) or with a refusal that names no message (a failed request, not a refusal), or could not be sent, including a save that has not returned after `App_post.save_timeout_ms` (30 seconds); a
-failed request the caller asked for (not the minute timer's) also shows an error, unless a submit is waiting
-on it or the fallback wait already sent one while it ran (the post save then reports for itself: a refusal returning after that is not shown either, and a save that
-succeeds after that runs `on_failure` in place of its callback). A call made while a save
-is running waits for it, so the draft id it returns is reused; one still waiting when the page has loaded
-another post form in place, or when the fallback wait sent a held submit while the save it waited for ran,
-is dropped, with `on_failure` run. The values `App_post.submit_wait_ms` and
-`App_post.save_timeout_ms` are only defaulted when unset, so `0` is kept (no hold, no timeout).
+should read them in the callback.
+
+A third argument, `on_failure`, runs when the save does not succeed:
+
+- the server refuses it (its messages are shown as text);
+- the request fails, or has not returned after `App_post.save_timeout_ms` (30 seconds);
+- the answer names no draft (`{}`, `null`, `{draft: {}}`) or carries a refusal that names no message; both
+  count as a failed request, not a refusal;
+- the save could not be sent (a change handler or a `$.ajax` wrapper threw);
+- the call was dropped: made or still queued after the page loaded another post form in place, or queued
+  behind a save that the fallback wait outran (see the held submit below).
+
+A failed request the caller asked for (not the minute timer's) also shows an error. It shows none while a
+submit is waiting on the save, or once the fallback wait has sent one while the save ran: the post save then
+reports for itself. In that state a refusal returning afterwards is not shown either, and a save that
+succeeds afterwards runs `on_failure` in place of its callback.
+
+A call made while a save is running waits for it, so the draft id it returns is reused. The values
+`App_post.submit_wait_ms` and `App_post.save_timeout_ms` are only defaulted when unset, so `0` is kept
+(no hold, no timeout).
+
 The form is compared by reading its own TinyMCE editors themselves (an editor elsewhere on the page is
 neither compared nor sent): a textarea behind an editor is written
 only when a draft is sent (and by TinyMCE on blur and submit, as before), no longer by every comparison,
