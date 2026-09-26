@@ -160,7 +160,7 @@ function cama_init_post(obj) {
                         saved_hash = hash;
                         refused_hash = null;
                         $(post_form).find("#post_draft_id").val(post_draft_id);
-                        set_preview_draft_id(post_form);
+                        set_preview_draft_id();
                         // The fallback wait sent the held submit while this save ran: the post save has the
                         // page from here (as when this save fails, see request_failed), so the callback, which
                         // would leave for the post list or open a preview of a post being saved, does not run;
@@ -237,8 +237,8 @@ function cama_init_post(obj) {
         clearTimeout(submit_wait_timer);
     }
 
-    function set_preview_draft_id(form) {
-        $(form).find('.sl-slug-edit .btn-preview').each(function () {
+    function set_preview_draft_id() {
+        $(post_form).find('.sl-slug-edit .btn-preview').each(function () {
             $(this).attr('href', $(this).attr('href').replace(/draft_id=[^&]*/, 'draft_id=' + post_draft_id));
         });
     }
@@ -520,13 +520,13 @@ function cama_init_post(obj) {
     }
     setTimeout(form_later_actions, 1000);
     // On its own timer, so a failure in form_later_actions does not leave the form without a baseline.
-    setTimeout(function () { take_baseline_when_ready(post_form); }, 1000);
+    setTimeout(take_baseline_when_ready, 1000);
 
     // An editor rewrites its textarea in normalized form once it comes up, so a baseline taken before
     // every editor on the form has initialized reads an untouched post as edited. Each editor's init
     // event re-checks; stop waiting after ten seconds (an editor that never comes up) and take the form
     // as it stands.
-    function take_baseline_when_ready(form) {
+    function take_baseline_when_ready() {
         var taken = false;
         var give_up = setTimeout(take_baseline, 10000);
         function take_baseline() {
@@ -537,7 +537,7 @@ function cama_init_post(obj) {
             $.each(tinymce.editors, function (i, editor) { editor.off('init', check); });
             // The editor was set up on another form meanwhile (admin pages load in place, and the form
             // read here is the one the script was last set up on): that form takes its own baseline.
-            if ($form[0] !== form) return;
+            if ($form[0] !== post_form) return;
             var hash = get_hash_form();
             // The user edited the form while it was still being set up: this baseline reads the edit as
             // the original. The form stays edited (form_edited), and the timer sends it, since the saved
@@ -547,7 +547,7 @@ function cama_init_post(obj) {
             if (saved_hash === null) saved_hash = edited_before_baseline ? '' : hash;
             $form.data("hash", hash);
         }
-        function check() { if (!taken && ($form[0] !== form || editors_ready())) take_baseline(); }
+        function check() { if (!taken && ($form[0] !== post_form || editors_ready())) take_baseline(); }
         function watch_editor(e) { e.editor.on('init', check); }
         tinymce.on('AddEditor', watch_editor);
         $.each(tinymce.editors, function (i, editor) { if (!editor.initialized) editor.on('init', check); });
