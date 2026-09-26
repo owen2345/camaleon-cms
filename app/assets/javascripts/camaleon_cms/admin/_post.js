@@ -210,8 +210,13 @@ function cama_init_post(obj) {
             // The fallback wait sent the held submit while the save ran: the form is submitted, and a save
             // queued behind would write a buffer the post save leaves behind (see the timer's guard in
             // save_draft_ajax) and report for a page the post save has. Each is dropped with its failure
-            // handler run, as a queued save for a replaced form is.
-            $.each(queued_saves.splice(0), function (i, queued) { if (queued.on_failure) queued.on_failure(); });
+            // handler run, as a queued save for a replaced form is. A handler that throws is reported on its
+            // own, as a drained save's error is: the handlers behind it still run, and the held submit below
+            // is still sent.
+            $.each(queued_saves.splice(0), function (i, queued) {
+                try { if (queued.on_failure) queued.on_failure(); }
+                catch (handler_error) { setTimeout(function () { throw handler_error; }); }
+            });
         } else {
             // A queued timer call with nothing to send returns without saving, so go on to the next. Each is
             // run from here, not through App_post.save_draft_ajax: a wrapper a plugin put there already ran

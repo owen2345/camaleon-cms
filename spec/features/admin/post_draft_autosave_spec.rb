@@ -708,6 +708,33 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.count).to eq(1)
   end
 
+  # The dropped saves' failure handlers run one after the other: one that throws must not keep the ones
+  # behind it from running (a Preview window or an overlay would stay up), nor the held submit from being
+  # sent; its error is reported on its own, as a drained save's is.
+  it 'runs every failure handler of the saves dropped behind an outran save when one throws' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Queued handlers after the hold ended'
+
+    delay_draft_requests(1000)
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 300;
+      window.queuedFailures = 0;
+      #{keep_page_js}
+      #{publishable_post_js}
+      App_post.save_draft_ajax(null, false);
+      App_post.save_draft_ajax(null, false, function () { throw new Error('handler failed'); });
+      App_post.save_draft_ajax(null, false, function () { window.queuedFailures++; });
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    wait_for_draft_answers(1)
+    expect(page.evaluate_script('window.queuedFailures')).to eq(1)
+    expect(intercepted_draft_requests).to eq(1)
+  end
+
   # A draft request that fails (here the transport reports an error) releases the save lock and sends
   # the held submit: the post save decides for itself, and the buffer, if any, is left behind.
   it 'submits the post when the draft save it waited for fails' do

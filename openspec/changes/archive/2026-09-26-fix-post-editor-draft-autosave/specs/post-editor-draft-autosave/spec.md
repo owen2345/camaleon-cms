@@ -192,6 +192,11 @@ A draft save SHALL NOT block the page. One save SHALL run at a time: a save requ
 - **WHEN** a save is queued behind a running one, a held submit is sent by the fallback wait while the running save still runs, and that save then returns
 - **THEN** the queued save is not sent, its failure handler runs, and the post has one buffer
 
+#### Scenario: A dropped save's failure handler that throws does not stop the others
+
+- **WHEN** two saves are queued behind a save the fallback wait outran, and the first one's failure handler throws
+- **THEN** the second one's failure handler runs, and neither save is sent
+
 #### Scenario: A call for a replaced form is dropped at once
 
 - **WHEN** a save is running and the form is replaced by another form, then a save with a failure handler is asked for
