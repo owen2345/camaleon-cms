@@ -37,10 +37,16 @@ describe 'Post editor draft autosave', :js do
     Timeout.timeout(seconds) { sleep(0.1) until yield }
   end
 
+  # Waits until the editor script has been set up on the form: it puts the permalink widget there as it
+  # runs, a second before the baseline wait starts.
+  def wait_for_editor_setup
+    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+  end
+
   # Waits until the editor has taken the form's baseline snapshot, which the autosave compares against.
   # The editor stops waiting for its TinyMCE editors after ten seconds, so the bound is above that.
   def wait_for_editor_baseline
-    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    wait_for_editor_setup
     wait_until(15) { page.evaluate_script('$("#form-post").data("hash") !== undefined') }
   end
 
@@ -1032,8 +1038,7 @@ describe 'Post editor draft autosave', :js do
   it 'sends nothing from the timer before the baseline is taken' do
     post = site.the_post('sample-post')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
-    # The editor script is set up once its permalink widget is on the page, a second before the baseline.
-    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    wait_for_editor_setup
     count_draft_saves
     # The content editor is held back, so the baseline waits for it: the tick lands before it.
     delay_content_editor
@@ -1082,7 +1087,7 @@ describe 'Post editor draft autosave', :js do
     post = site.the_post('sample-post')
     post.update!(content: 'Plain body, not yet normalized by the editor')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
-    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    wait_for_editor_setup
     delay_content_editor
 
     wait_for_leave_prompt
@@ -1110,7 +1115,7 @@ describe 'Post editor draft autosave', :js do
   it 'keeps prompting for an edit typed before the baseline, and autosaves it' do
     post = site.the_post('sample-post')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
-    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    wait_for_editor_setup
     count_draft_saves
     delay_content_editor
     fill_in 'post_title', with: 'Typed before the baseline'
@@ -1134,7 +1139,7 @@ describe 'Post editor draft autosave', :js do
   it 'prompts to leave before the baseline when the content editor was typed in' do
     post = site.the_post('sample-post')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
-    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    wait_for_editor_setup
     # A second editor the baseline waits for: its textarea is on the form, its editor is created later.
     page.execute_script(<<~JS)
       $('#form-post').append('<textarea id="late_editor" name="late_editor" class="tinymce_textarea"></textarea>');
@@ -1158,7 +1163,7 @@ describe 'Post editor draft autosave', :js do
   it 'keeps prompting for an edit typed in the editor before the baseline once the editor loses focus' do
     post = site.the_post('sample-post')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
-    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    wait_for_editor_setup
     count_draft_saves
     page.execute_script(<<~JS)
       $('#form-post').append('<textarea id="late_editor" name="late_editor" class="tinymce_textarea"></textarea>');
@@ -1452,7 +1457,7 @@ describe 'Post editor draft autosave', :js do
     post = site.the_post('sample-post')
     post.update!(content: 'Plain body, not yet normalized by the editor')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
-    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    wait_for_editor_setup
     # The editor is held back so the textarea can be wrapped before the baseline is taken.
     delay_content_editor
     page.execute_script("$('#post_content').wrap('<fieldset></fieldset>');")
