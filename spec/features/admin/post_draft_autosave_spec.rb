@@ -85,6 +85,18 @@ describe 'Post editor draft autosave', :js do
     JS
   end
 
+  # Puts a second editor's textarea on the form, one the baseline then waits for; init_late_editor creates
+  # its editor.
+  def add_late_editor
+    page.execute_script(<<~JS)
+      $('#form-post').append('<textarea id="late_editor" name="late_editor" class="tinymce_textarea"></textarea>');
+    JS
+  end
+
+  def init_late_editor
+    page.execute_script("tinymce.init(cama_get_tinymce_settings({ selector: '#late_editor', height: 100 }));")
+  end
+
   def autosave_tick
     page.execute_script('App_post.save_draft_ajax(null, true)')
   end
@@ -1140,10 +1152,7 @@ describe 'Post editor draft autosave', :js do
     post = site.the_post('sample-post')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
     wait_for_editor_setup
-    # A second editor the baseline waits for: its textarea is on the form, its editor is created later.
-    page.execute_script(<<~JS)
-      $('#form-post').append('<textarea id="late_editor" name="late_editor" class="tinymce_textarea"></textarea>');
-    JS
+    add_late_editor
     expect(page).to have_css('#post_content_ifr')
     wait_for_leave_prompt
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
@@ -1152,7 +1161,7 @@ describe 'Post editor draft autosave', :js do
     within_frame('post_content_ifr') { find('body').send_keys('Typed in the editor') }
 
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
-    page.execute_script("tinymce.init(cama_get_tinymce_settings({ selector: '#late_editor', height: 100 }));")
+    init_late_editor
     wait_for_editor_baseline
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
   end
@@ -1165,9 +1174,7 @@ describe 'Post editor draft autosave', :js do
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
     wait_for_editor_setup
     count_draft_saves
-    page.execute_script(<<~JS)
-      $('#form-post').append('<textarea id="late_editor" name="late_editor" class="tinymce_textarea"></textarea>');
-    JS
+    add_late_editor
     expect(page).to have_css('#post_content_ifr')
     wait_for_leave_prompt
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
@@ -1176,7 +1183,7 @@ describe 'Post editor draft autosave', :js do
     find_by_id('post_title').click
 
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
-    page.execute_script("tinymce.init(cama_get_tinymce_settings({ selector: '#late_editor', height: 100 }));")
+    init_late_editor
     wait_for_editor_baseline
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
     autosave_tick
