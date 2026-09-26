@@ -8,7 +8,7 @@ function cama_init_post(obj) {
     }
 
     var class_translate = ".translate-item";
-    // The form's editors: the textareas TinyMCE is set up on, and the ones the baseline waits for.
+    // The textareas TinyMCE turns into the form's editors.
     var editor_selector = '.tinymce_textarea:not(.translated-item)';
 
     var post_id = obj.post_id;
@@ -19,22 +19,18 @@ function cama_init_post(obj) {
     var _ajax_path = obj._ajax_path;
     var _post_tags_path = obj._post_tags_path;
 
-    // The form's state is compared by its serialization (get_hash_form). The baseline, data("hash"), which
-    // the leave-page prompt reads too, is taken once the editors are ready; saved_hash is the state the
-    // last successful draft save sent and refused_hash the state the last refused one sent, so the minute
-    // timer sends only what changed since either (a refusal is decided by the content it names). One save runs
-    // at a time: a save requested meanwhile waits for the draft id the running one returns, so a new
-    // post never gets a second buffer, and a form submitted meanwhile is held, then submitted again once
-    // the draft id is in it, or after App_post.submit_wait_ms if the save has not returned by then (the save
-    // is aborted then); a refused save leaves it on the form. A save that has not returned after
-    // App_post.save_timeout_ms fails.
+    // How the form is tracked. get_hash_form serializes it. data("hash") is the baseline, taken once the
+    // editors are ready; the leave-page prompt compares against it. saved_hash is what the last successful
+    // draft save sent and refused_hash what the last refused one sent: the minute timer sends only a form
+    // that differs from both. One save runs at a time: a save asked for meanwhile is queued, and a submit
+    // made meanwhile is held until the save returns or App_post.submit_wait_ms passes (the save is aborted
+    // then). A save that has not returned after App_post.save_timeout_ms fails.
     var saved_hash = null;
     var refused_hash = null;
-    // Set by the user's own input in the form (a native input or change event: a value a script writes,
-    // or jQuery's trigger, fires none), read while the baseline is still to come.
+    // The user typed or clicked in the form before the baseline (a native input or change event; a script's
+    // write or jQuery's trigger fires none).
     var touched = false;
-    // The baseline was taken after the user had edited the form (typed in it, or in one of its editors):
-    // it absorbed the edit, so the form stays edited until it is submitted.
+    // The baseline absorbed an edit made before it was taken: the form counts as edited until submitted.
     var edited_before_baseline = false;
     var saving = false;
     var queued_saves = [];
@@ -42,72 +38,64 @@ function cama_init_post(obj) {
     var held_form = null;
     var held_submitter = null;
     var releasing_form = null;
-    // The request of the save running, for the fallback wait to abort when it sends the held submit
-    // while the save still runs (see send_held_submit).
+    // The jqXHR of the running save, for send_held_submit to abort.
     var running_request = null;
-    // The form this setup owns. Admin pages load in place, so the script can be set up on another form
-    // while a save of this one is queued or in flight; $form is then that form, and this setup's saves are
-    // not for it.
+    // The form this setup owns. Admin pages load in place, so $form may already be another post's form
+    // when a save of this one returns or is drained from the queue.
     var post_form = $form[0];
     post_form.addEventListener('input', mark_touched);
     post_form.addEventListener('change', mark_touched);
     function mark_touched() { touched = true; }
-    // An edit in an editor fires no event on the form (the editor's document is its iframe's): the
-    // editor's own change event records it, fired for what adds to its undo levels (typing, pasting,
-    // formatting) and not by a script's setContent. Its dirty flag would not do: TinyMCE clears it
-    // whenever the editor's content is saved into its textarea, which the blur handler does.
+    // Typing in an editor fires nothing on the form (its document is the iframe's), so the editor's own
+    // change event is watched: it fires for typing, pasting and formatting, not for a script's setContent.
+    // Its dirty flag would not do: TinyMCE clears it whenever the content is saved into the textarea,
+    // which happens on blur.
     function mark_editor_touched(e) { if ($.contains(post_form, e.target.getElement())) touched = true; }
     function watch_editor_touch(e) { e.editor.on('change', mark_editor_touched); }
     tinymce.on('AddEditor', watch_editor_touch);
     $.each(tinymce.editors, function (i, editor) { editor.on('change', mark_editor_touched); });
-    // Defaults, kept when a plugin or theme set them (zero included) before the editor came up.
+    // Defaults; a value a plugin or theme set first is kept, zero included.
     if (App_post.submit_wait_ms == null) App_post.submit_wait_ms = 15000;
     if (App_post.save_timeout_ms == null) App_post.save_timeout_ms = 30000;
 
-    // on_failure runs when the save is refused, the request fails or it could not be sent.
+    // on_failure runs when the save is refused, fails, is aborted, is dropped or could not be sent.
     App_post.save_draft_ajax = save_draft_ajax;
     function save_draft_ajax(callback, called_from_interval, on_failure) {
-        // Called, or drained from the queue, after the page loaded another form in place: $form is that
-        // form now, and serializing it would send the other post's content to this post's draft. Dropped
-        // before it can queue, so the caller's failure handler, which takes down what it opened (a Preview
-        // window, the overlay), does not wait for a running save that is not its own.
+        // The page loaded another post's form in place: serializing it would send that post's content to
+        // this draft. Dropped at once, so the caller's failure handler (which closes a Preview window or the
+        // overlay) does not wait behind a save that is not its own.
         if ($form[0] !== post_form) {
             if (on_failure) on_failure();
             return;
         }
         if (saving) {
-            // One timer call waits at a time: drained, it compares the form once, and another would compare
-            // the same form again (on a request that never returns, one more every minute).
+            // One timer call in the queue is enough: it compares the form once when drained.
             if (called_from_interval && $.grep(queued_saves, function (queued) { return queued.from_timer; }).length) return;
             queued_saves.push({callback: callback, from_timer: called_from_interval, on_failure: on_failure});
             return;
         }
         if (called_from_interval) {
-            // Nothing before the baseline, and nothing once the form is submitted: a save sent while the
-            // post save's response is still to come would write a buffer the post save does not take with
-            // it (a create discards only the buffer the form named, an update the drafts of a recovered
-            // one), left in the Drafts list as an edit newer than the post.
+            // Nothing before the baseline, and nothing once the form is submitted: a buffer written while
+            // the post save is pending is not discarded by it and shows up under Drafts as a newer edit.
             if (saved_hash === null || $form.data("submitted")) return;
             var current = get_hash_form();
             if (current == saved_hash || current == refused_hash) return;
         }
 
-        // Locked before the editors are synced: a change handler that asks for a save is queued behind
-        // this one, not sent beside it.
+        // Locked before the sync, so a save a change handler asks for queues instead of running beside this one.
         saving = true;
         try {
             sync_editors();
-            // Read after the sync: the textareas' change handlers may have written other fields, and saved_hash is the form as sent.
+            // Read after the sync: change handlers may have written other fields; saved_hash must be the form as sent.
             var hash = get_hash_form();
             var data = $form.serializeObject();
             data._method = post_draft_id ? 'patch' : 'post';
             data.post_id = post_id;
             running_request = $.ajax(draft_request(data, hash, callback, called_from_interval, on_failure));
         } catch (e) {
-            // The save threw before it was sent (a change handler, a plugin's $.ajax wrapper, a prefilter):
-            // nothing will release the lock, and the caller's failure handler is the only way its overlay
-            // or window is taken down. The caller is told why the save could not be sent: a failure
-            // handler that throws does not replace that error, its own is reported as an uncaught one.
+            // Thrown before the send (a change handler, a $.ajax wrapper): release the lock, let the caller's
+            // failure handler close what it opened, and rethrow. A failure handler that throws must not
+            // replace the send's error, so its own is reported separately.
             try { if (on_failure) on_failure(); }
             catch (handler_error) { report_later(handler_error); }
             finally { save_finished(); }
@@ -115,12 +103,10 @@ function cama_init_post(obj) {
         }
     }
 
-    // The response writes into post_form, the form the save was sent for: with pages loading in place, it
-    // may find the editor set up on another form, whose draft id and Preview links are its own.
+    // The response writes into post_form, the form it was sent for, even if $form is another form by then.
     function draft_request(data, hash, callback, called_from_interval, on_failure) {
-        // The request failed, timed out, or answered without a draft to name. A save the user asked for
-        // says it failed; the timer's is retried a minute later. A held submit is sent right after this:
-        // the post save reports for itself.
+        // Failed, timed out, or answered with no draft. A save the user asked for says so; the timer's is
+        // retried a minute later. No alert while a submit is held: it goes out next and reports for itself.
         function request_failed() {
             if (!called_from_interval && !held_form) {
                 show_error(I18n("msg.draft_save_failed", "The draft could not be saved"));
@@ -134,10 +120,9 @@ function cama_init_post(obj) {
             // jQuery skips `complete` when a success handler throws, so each handler releases the lock itself.
             success: function (res) {
                 try {
-                    // The core sends a list of messages; a decorated action may send one, or the model's errors
-                    // as they serialize, keyed by field. A refusal names what to fix: one that names nothing
-                    // (`{error: []}`, a save a model callback aborted without an error) is a failed request
-                    // instead, reported as one and retried by the timer.
+                    // The core refuses with a list of messages; a decorated action may send one message or the
+                    // model's errors keyed by field. A refusal with no message (`{error: []}`) is a failed
+                    // request instead.
                     var messages = res && res.error;
                     if ($.isPlainObject(messages)) {
                         messages = $.map(messages, function (list, field) {
@@ -146,27 +131,20 @@ function cama_init_post(obj) {
                     }
                     var refusal = messages ? [].concat(messages).join(", ").trim() : '';
                     if (refusal) {
-                        // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
-                        // refusal names the submitted key), and do NOT run the success callback -- it would
-                        // navigate away (discarding the unsaved edits) or open a stale preview.
-                        // A refused save leaves a held submit on the form (the alert took the overlay down): the
-                        // post save would refuse the same content, and the alert names what to fix. A request that
-                        // failed or timed out still sends it (see the submit handler). The held submit is not
-                        // dispatched again, so a cancelSubmit the validator's click handler set for it (a Cancel or
-                        // formnovalidate button) is consumed here, as its own submit handler would have: left set,
-                        // it would let the next submit through unvalidated.
+                        // Shown as text ($.fn.alert puts its title into HTML, and a refusal quotes user input).
+                        // The callback does not run: it would leave the page or open a stale preview. A held
+                        // submit is dropped, since the post save would refuse the same content; the alert took
+                        // the overlay down. A cancelSubmit the validator set for that submit (a Cancel or
+                        // formnovalidate button) is reset here, as the validator's own handler would have done.
                         show_error($('<div>').text(refusal).html());
                         var validator = held_form && $(held_form).data('validator');
                         if (validator) validator.cancelSubmit = false;
                         drop_hold();
-                        // The timer sends nothing until the form changes: sent again, this form would be refused
-                        // again, with the same alert (a timer call queued behind this save included). A user's
-                        // call is always sent.
+                        // The timer sends nothing until the form changes; re-sent, it would be refused again.
                         refused_hash = hash;
                         if (on_failure) on_failure();
                     } else if (!res || !res.draft || res.draft.id == null) {
-                        // A decorated drafts action may answer with nothing (`{}`, `null`) or with a draft that
-                        // names no id (`{draft: {}}`): no draft to name.
+                        // A decorated drafts action may answer with no draft to name (`{}`, `null`, `{draft: {}}`).
                         request_failed();
                     } else {
                         if (res._drafts_path) _drafts_path = res._drafts_path
@@ -181,48 +159,41 @@ function cama_init_post(obj) {
                     save_finished();
                 }
             },
-            // Aborted by the fallback wait, which sends the held submit right after (see send_held_submit):
-            // the post save reports for itself, so nothing is shown; the caller's failure handler takes
-            // down what it opened, and the saves queued behind are dropped.
+            // Status 'submit': aborted by send_held_submit, which sends the held submit next. The post save
+            // reports for itself, so no alert; the failure handler closes what the caller opened.
             error: function (xhr, status) {
                 var for_submit = status === 'submit';
                 try { if (for_submit) { if (on_failure) on_failure(); } else { request_failed(); } }
                 finally { save_finished(for_submit); }
             },
             dataType: 'json',
-            // A save that has not returned after this long is taken as failed, so a stalled request
-            // does not keep the editor from saving or previewing until the browser gives up on it.
+            // A stalled request must not keep the editor from saving or previewing until the browser gives up.
             timeout: App_post.save_timeout_ms
         };
     }
 
-    // An error raised on another save's path (a failure handler, a save drained or dropped from the queue)
-    // is reported as an uncaught one, on its own: thrown here, it would replace the error that save may be
-    // raising to its own caller.
+    // Reports an error raised on another save's path (a failure handler, a queued save) as an uncaught one,
+    // so it does not replace the error that save is raising to its own caller.
     function report_later(error) {
         setTimeout(function () { throw error; });
     }
 
-    // for_submit: the save was aborted by the fallback wait, which sends the held submit right after.
+    // for_submit: the save was aborted because the held submit goes out next (see send_held_submit).
     function save_finished(for_submit) {
         saving = false;
         running_request = null;
         if (for_submit) {
-            // The form is submitted: a save queued behind would write a buffer the post save leaves behind
-            // (see the timer's guard in save_draft_ajax) and report for a page the post save has. Each is
-            // dropped with its failure handler run, as a queued save for a replaced form is. A handler that
-            // throws is reported on its own, as a drained save's error is: the handlers behind it still run.
+            // The form is being submitted: a queued save would write a buffer the post save leaves behind.
+            // Each is dropped with its failure handler run; one that throws does not stop the others.
             $.each(queued_saves.splice(0), function (i, queued) {
                 try { if (queued.on_failure) queued.on_failure(); }
                 catch (handler_error) { report_later(handler_error); }
             });
         } else {
-            // A queued timer call with nothing to send returns without saving, so go on to the next. Each is
-            // run from here, not through App_post.save_draft_ajax: a wrapper a plugin put there already ran
-            // when the call was made. One that throws before it is sent has run its own failure handler and
-            // drained the rest from its own error path; its error is reported as an uncaught one, so it does
-            // not replace an error the finished save may be raising to its own caller (this runs from that
-            // save's error path too, when it threw before it was sent).
+            // A queued timer call may find nothing to send and return at once, so keep going. Queued saves
+            // run through the local function: a plugin's wrapper on App_post.save_draft_ajax already ran
+            // when they were called. One that throws has drained the rest from its own error path; its
+            // error is reported separately, since this may run inside the finished save's own error path.
             while (!saving && queued_saves.length) {
                 var queued = queued_saves.shift();
                 try { save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure); }
@@ -230,37 +201,28 @@ function cama_init_post(obj) {
             }
         }
         if (!held_form) return;
-        // A hold that goes on waiting, for the queued save just started, needs the overlay put back: the
-        // finished save's caller (Preview, Save Draft) takes it down in its callback.
+        // A hold that waits on for a queued save needs the overlay back: the finished save's caller took it down.
         if (saving) showLoading(); else send_held_submit();
     }
 
-    // The held submit was stopped before validation and the listeners bound after this script's saw it
-    // (see the submit handler), so it is dispatched again in full, as the submit event the browser fires
-    // (requestSubmit), with the button that made it as the submitter: validation, those listeners, the
-    // ones bound outside jQuery and the ones delegated from an ancestor included (camaleon_admin_ajax
-    // submits the form in place from one), and the form's default action run once, now, and the browser
-    // sends the button's name, value and formaction itself. A browser without requestSubmit (Safari
-    // before 16) gets jQuery's trigger, which reaches jQuery's listeners and the default action; it does
-    // not know the button either, SubmitEvent.submitter being as new there.
-    // The overlay comes down first: whatever the submit does from here, it does on its own. A save still
-    // running when the fallback wait sends the submit is aborted first: the post save reports for itself
-    // from here, and a late answer would run the save's callback (Save Draft's leaves for the post list,
-    // cancelling the post save on its way) or be shown over a page the post save is replacing, and the
-    // saves queued behind it would write a buffer the post save leaves behind (see save_finished).
-    // It is sent to the form it was held on: with pages loading in place, another form can be set up
-    // while the hold waits (the browser's Back button is not under the overlay), and one that left the
-    // page is not sent at all; the overlay the hold put up still comes down, or the page is dead under it.
+    // Dispatches the held submit in full, as the browser would (requestSubmit, with the button that made it
+    // as the submitter): validation, every listener bound after the hold handler (delegated and native ones
+    // included; camaleon_admin_ajax submits the form in place from one on the body) and the default action
+    // run once, now, and the browser sends the button's name, value and formaction. Safari before 16 has
+    // no requestSubmit and gets jQuery's trigger, which reaches jQuery's listeners and the default action.
+    // The overlay comes down first. A save still running (the fallback wait ran out) is aborted: the post
+    // save reports for itself from here, and a late answer would run the save's callback (Save Draft's
+    // leaves the page) or show an alert over a page being replaced. A held form that left the page
+    // (another page loaded in place while the hold waited) is not sent.
     function send_held_submit() {
         var form = held_form, submitter = held_submitter;
         drop_hold();
         hideLoading();
         if (!form || !$.contains(document, form)) return;
-        // requestSubmit refuses a submitter that is not a submit button of this form (one a theme re-rendered meanwhile).
+        // requestSubmit throws on a submitter that is not a submit button of this form (a theme may have re-rendered it).
         if (!(submitter && submitter.form === form && /^(submit|image)$/i.test(submitter.type))) submitter = null;
         if (saving && running_request && running_request.abort) {
-            // The abort runs the request's error handler with the status given (jQuery reports it as it
-            // is): an error raised there must not keep the submit from being sent.
+            // The error handler runs inside abort with this status; an error thrown there must not stop the submit.
             try { running_request.abort('submit'); } catch (e) { report_later(e); }
         }
         releasing_form = form;
@@ -289,20 +251,18 @@ function cama_init_post(obj) {
         });
     }
 
-    // The overlay holds the form while the save runs: the callback leaves the page with the form marked
-    // submitted, so an edit made meanwhile would be lost without the leave prompt.
+    // Under the overlay while it saves: the callback leaves the page, and an edit made meanwhile would be lost.
     App_post.save_draft = function () {
         showLoading();
         App_post.save_draft_ajax(function () {
-            // The page loaded another form in place while the save ran (the browser's Back button is not
-            // under the overlay): the draft is saved, and that form keeps its own leave prompt and page.
+            // Another form was loaded in place meanwhile (Back is not under the overlay): leave it its page.
             if ($form[0] !== post_form) { hideLoading(); return; }
             $form.data("submitted", 1);
             location.href = _posts_path + '?flash[notice]=' + encodeURIComponent(I18n("msg.draft"))
         }, false, hideLoading);
     }
     if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
-    // Stops once the form has left the page: $form keeps the element after it is removed, so its length says nothing.
+    // Stops once the form has left the page ($form still holds the removed element, so its length says nothing).
     window["post_editor_draft_intrval"] = setInterval(function () { if(!$.contains(document, post_form)){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 1 * 60 * 1000);
     window.save_draft = App_post.save_draft_ajax;
 
@@ -378,12 +338,10 @@ function cama_init_post(obj) {
                 if (post_status == "published") $link.find('.btn-view').show().attr('href', post_path.replace('__-__', $input_slug.val()))
             }
             $link.find('.btn-preview').click(function (e) { // preview button
-                // Prevented first: a save that throws before sending skips the return below, and the link,
-                // which names no draft yet, would open in a tab of its own.
+                // Prevented first: if the save throws, the link (naming no draft yet) must not open in a tab.
                 e.preventDefault();
                 var link = $(this);
-                // Open the window within the click: a popup blocker refuses one opened from the save's
-                // asynchronous callback. The save points the link at the draft before the callback runs.
+                // Opened in the click: a popup blocker refuses a window opened from the async callback.
                 var preview = window.open('', '_blank');
                 if (preview) preview.opener = null;
                 showLoading();
@@ -441,22 +399,20 @@ function cama_init_post(obj) {
     }));
 
     /*********** control save changes before unload form. ***************/
-    // Bound before the validator's handler, so a submit held here is stopped before validation and the
-    // listeners bound after this one see it, and each of them runs once, when the held submit is
-    // dispatched again. One bound on the form before the editor was set up has seen it by then.
+    // Bound before the validator's handler: a held submit is stopped before validation and before the
+    // listeners bound after this one see it, so each runs once, when the submit is dispatched again.
     $form.submit(function (e) {
-        // A submit the validator was told to let through (cancelSubmit: a Cancel or formnovalidate
-        // button, the recover-draft path below) is let through here too, not validated on its way.
+        // cancelSubmit (a Cancel or formnovalidate button, the recover-draft path below): the validator
+        // lets it through unvalidated, so it is not validated here either.
         var validator = $(this).data('validator');
         if (!(validator && validator.cancelSubmit) && !$(this).valid()) return;
         if (saving && releasing_form !== this) {
             if (!held_form) {
                 held_form = this;
-                // The button the submit came from, when a button made it (a jQuery-triggered submit has none).
+                // The button that made the submit; a jQuery-triggered submit has none.
                 held_submitter = (e.originalEvent && e.originalEvent.submitter) || null;
                 showLoading();
-                // A stalled save must not keep the post from being saved: on a new post this may
-                // leave that save's buffer behind, which is the lesser loss.
+                // A stalled save must not block the post; a new post may lose that save's buffer, the lesser loss.
                 submit_wait_timer = setTimeout(send_held_submit, App_post.submit_wait_ms);
             }
             e.preventDefault();
@@ -465,9 +421,7 @@ function cama_init_post(obj) {
         }
         $(this).data("submitted", 1);
     });
-    // Installed with the submit handler, not with the page's later actions a second on: the prompt is
-    // this form's own from the moment the editor is set up (an edit typed in that second is asked
-    // about, and a form the page loaded in place no longer gets the previous form's answer meanwhile).
+    // Installed now, not a second later with form_later_actions, so the prompt is this form's from the start.
     window.onbeforeunload = function () {
         if ($form.data("submitted") || $('#form-post').length == 0)
             return;
@@ -569,10 +523,8 @@ function cama_init_post(obj) {
     // On its own timer, so a failure in form_later_actions does not leave the form without a baseline.
     setTimeout(take_baseline_when_ready, 1000);
 
-    // An editor rewrites its textarea in normalized form once it comes up, so a baseline taken before
-    // every editor on the form has initialized reads an untouched post as edited. Each editor's init
-    // event re-checks; stop waiting after ten seconds (an editor that never comes up) and take the form
-    // as it stands.
+    // An editor normalizes its textarea when it comes up, so the baseline waits until every editor on the
+    // form has initialized (re-checked on each init), or ten seconds at most.
     function take_baseline_when_ready() {
         var taken = false;
         var give_up = setTimeout(take_baseline, 10000);
@@ -586,15 +538,13 @@ function cama_init_post(obj) {
             $.each(tinymce.editors, function (i, editor) { editor.off('init', check); editor.off('change', mark_editor_touched); });
             post_form.removeEventListener('input', mark_touched);
             post_form.removeEventListener('change', mark_touched);
-            // The editor was set up on another form meanwhile (admin pages load in place, and the form
-            // read here is the one the script was last set up on): that form takes its own baseline.
+            // Another form was set up meanwhile (pages load in place); it takes its own baseline.
             if ($form[0] !== post_form) return;
             var hash = get_hash_form();
-            // The user edited the form while it was still being set up: this baseline reads the edit as
-            // the original. The form stays edited (form_edited), and the timer sends it, since the saved
-            // state is set to match no form.
+            // The user edited the form during setup, so this baseline absorbs the edit: the form stays
+            // edited (form_edited) and saved_hash matches nothing, so the timer sends it.
             if (touched) edited_before_baseline = true;
-            // A draft save that ran meanwhile already recorded what it sent; later edits are still unsaved.
+            // A save that already ran keeps its own saved_hash.
             if (saved_hash === null) saved_hash = edited_before_baseline ? '' : hash;
             $form.data("hash", hash);
         }
@@ -605,10 +555,8 @@ function cama_init_post(obj) {
         check();
     }
 
-    // The leave prompt's question. Before the baseline the form is still being set up (an editor coming
-    // up normalizes its textarea, a widget writes its value), so a comparison would read setup as an
-    // edit: until then the form counts as edited when the user typed or clicked in it, or in one of its
-    // editors (see mark_touched and mark_editor_touched).
+    // The leave prompt's question. Before the baseline, setup writes (an editor normalizing its textarea,
+    // a widget writing its value) would read as edits, so only the user's own input counts then.
     function form_edited() {
         if (edited_before_baseline) return true;
         if ($form.data("hash") === undefined) return touched;
@@ -617,7 +565,7 @@ function cama_init_post(obj) {
 
     function editors_ready() {
         var ready = true;
-        // A textarea the editor has not been created for yet; one created but still loading is caught below.
+        // A textarea with no editor yet; one still loading is caught below.
         $(post_form).find(editor_selector).each(function () {
             if (!tinymce.get(this.id)) ready = false;
         });
@@ -627,32 +575,26 @@ function cama_init_post(obj) {
         return ready;
     }
 
-    // Only the form's editors are the post's content: one a plugin puts elsewhere on the page (a modal)
-    // is neither compared nor sent. The form is the one this setup owns (post_form), as for every read
-    // and write below: $form may be a form the page loaded in place since.
+    // Only editors inside post_form are the post's content; a plugin's editor elsewhere (a modal) is not.
     function in_form(editor) {
         return $.contains(post_form, editor.getElement());
     }
 
-    // The form's editors that have come up: what is compared and what is sent. One still loading is
-    // left to its textarea, which holds the server value. $.grep walks the indexes only: TinyMCE keys
-    // the array by editor id too, so for..in visits each twice.
+    // The form's initialized editors. One still loading is left to its textarea, which holds the server
+    // value. $.grep walks indexes only; TinyMCE also keys the array by id, so for..in would visit each twice.
     function form_editors() {
         return $.grep(tinymce.editors, function (editor) { return editor.initialized && in_form(editor); });
     }
 
-    // A read: each editor's content is taken from the editor and its textarea is left alone, so what a
-    // plugin wrote into a textarea itself is not rewritten in TinyMCE's serialization by a comparison.
-    // Left out: the draft id (a save filling it in is not an edit) and the hidden original of a
-    // translated field, composed from the per-language copies that are read.
+    // A read only: editors are read from TinyMCE and their textareas left alone, so content a plugin wrote
+    // into a textarea is not rewritten by a comparison. Left out: the draft id (filled in by a save, not an
+    // edit) and a translated field's hidden original (composed from the copies, which are read).
     function get_hash_form() {
         var editors = {};
         $.each(form_editors(), function (i, editor) { editors[editor.id] = editor.getContent(); });
-        // The form's controls as the browser and serializeObject take them (form.elements): one elsewhere
-        // on the page that names the form (`form="form-post"`, a theme's sidebar field) is sent, so it is
-        // compared. The collection lists the form's fieldsets too, and jQuery serializes a fieldset by
-        // expanding its controls again (an editor's textarea among them, with its stale value), so only the
-        // controls are kept. An own-property check: `in` would also match an id every object inherits, like
+        // form.elements: the controls the browser sends, including one elsewhere on the page with
+        // form="form-post". Fieldsets are dropped: jQuery would serialize their controls a second time, an
+        // editor's stale textarea among them. hasOwnProperty, since `in` would match an inherited name like
         // `constructor`.
         var fields = $(post_form.elements).filter(':input').not('#post_draft_id, .translated-item').filter(function () {
             return !Object.prototype.hasOwnProperty.call(editors, this.id);
@@ -660,13 +602,11 @@ function cama_init_post(obj) {
         return fields.serialize() + '&' + $.param(editors);
     }
 
-    // Before the form is serialized for a save: each editor's content goes into its textarea, and
-    // through the textarea's change handlers into the hidden original of a translated field. The other
-    // translated fields compose their originals too, through the event their copies keep for it
-    // (change_in; a change would also run the copy's other handlers, the title's slug lookup): a copy
-    // still being typed in fires no change until it loses focus, and the comparison reads the copies,
-    // not the originals, so the original composed then would never be sent. Any one copy composes its
-    // whole field (the translator's panel), so one is asked per field.
+    // Before a save is serialized: each editor's content goes into its textarea, and every translated
+    // field's hidden original is recomposed from its copies (change_in, the translator's own event; change
+    // would also run the title's slug lookup). A copy still being typed in has fired no change yet, and
+    // the comparison reads the copies, so a stale original would never be resent. One copy per panel
+    // recomposes the whole field.
     function sync_editors() {
         var synced = $.map(form_editors(), function (editor) {
             $(editor.getElement()).val(editor.getContent()).trigger("change");

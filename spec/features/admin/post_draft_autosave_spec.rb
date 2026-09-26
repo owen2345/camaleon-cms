@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
-# The post editor autosaves a draft buffer every minute while the form differs from its last saved
-# state. `App_post.save_draft_ajax(null, true)` is exactly what the minute timer runs, so these
-# examples call it directly instead of waiting for the timer.
+# The post editor autosaves a draft buffer every minute while the form has changed since its last save.
+# `App_post.save_draft_ajax(null, true)` is what the timer runs, so the examples call it directly.
 describe 'Post editor draft autosave', :js do
   let!(:site) { CamaleonCms::Site.first.decorate }
   let(:post_type_id) { site.post_types.where(slug: :post).pick(:id) }
   let(:new_post_path) { "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/new" }
 
-  # JavaScript that gives a new post what its save requires beyond the title: a body and a category.
+  # Gives a new post what its save requires besides the title: a body and a category.
   def publishable_post_js
     <<~JS
       tinymce.get('post_content').setContent('Body');
@@ -16,9 +15,8 @@ describe 'Post editor draft autosave', :js do
     JS
   end
 
-  # JavaScript that keeps the page on a submit, as a plugin that submits the post form in place does: a
-  # listener delegated from the body, behind the editor's own handler, so it sees a held submit only once
-  # the hold ends. `before_keeping` runs first.
+  # Keeps the page on a submit, as an in-place plugin does: a listener delegated from the body, which sees
+  # a held submit only once the hold ends. `before_keeping` runs first.
   def keep_page_js(before_keeping = '')
     "$('body').on('submit', 'form#form-post', function () { #{before_keeping}return false; });"
   end
@@ -28,8 +26,7 @@ describe 'Post editor draft autosave', :js do
     "window.delegatedRuns = 0; #{keep_page_js('window.delegatedRuns++; ')}"
   end
 
-  # The hold ended (the save returned, or the fallback wait ran out): the overlay it put up comes down
-  # within seconds, and the listener delegated from the body that keeps the page has seen the one submit.
+  # The hold ended: its overlay comes down within seconds and the kept listener saw the one submit.
   def expect_held_submit_delivered_once
     expect(page).to have_css('#cama_custom_loading')
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
@@ -45,20 +42,18 @@ describe 'Post editor draft autosave', :js do
     Timeout.timeout(seconds) { sleep(0.1) until yield }
   end
 
-  # Waits until the editor script has been set up on the form: it puts the permalink widget there as it
-  # runs, a second before the baseline wait starts.
+  # The editor script puts the permalink widget on the form as it runs.
   def wait_for_editor_setup
     expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
   end
 
-  # Waits until the editor has taken the form's baseline snapshot, which the autosave compares against.
-  # The editor stops waiting for its TinyMCE editors after ten seconds, so the bound is above that.
+  # The baseline can take up to ten seconds when an editor never comes up.
   def wait_for_editor_baseline
     wait_for_editor_setup
     wait_until(15) { page.evaluate_script('$("#form-post").data("hash") !== undefined') }
   end
 
-  # Counts the draft requests the editor sends from here on (sync or async, ajaxSend fires on the call).
+  # Counts the draft requests sent from here on (ajaxSend fires when a request is made).
   def count_draft_saves
     page.execute_script(<<~JS)
       window.draftSaves = 0;
@@ -72,14 +67,12 @@ describe 'Post editor draft autosave', :js do
     page.evaluate_script('window.draftSaves')
   end
 
-  # The leave prompt is installed with the editor script's own setup, which runs shortly after the page
-  # loads; a baseline that waits for a delayed editor is taken later than that.
+  # The prompt is installed by the editor script's setup, before the baseline.
   def wait_for_leave_prompt
     wait_until { page.evaluate_script('typeof window.onbeforeunload === "function"') }
   end
 
-  # Takes the content editor down and brings it back `wait_ms` later: the baseline, which waits for the
-  # form's editors, is then taken that much later than the editor script's setup.
+  # Removes the content editor and recreates it `wait_ms` later, which delays the baseline by as much.
   def delay_content_editor(wait_ms = 3000)
     page.execute_script(<<~JS)
       (function delayEditor() {
@@ -93,8 +86,7 @@ describe 'Post editor draft autosave', :js do
     JS
   end
 
-  # Puts a second editor's textarea on the form, one the baseline then waits for; init_late_editor creates
-  # its editor.
+  # Adds a textarea the baseline waits for; init_late_editor creates its editor.
   def add_late_editor
     page.execute_script(<<~JS)
       $('#form-post').append('<textarea id="late_editor" name="late_editor" class="tinymce_textarea"></textarea>');
@@ -109,14 +101,11 @@ describe 'Post editor draft autosave', :js do
     page.execute_script('App_post.save_draft_ajax(null, true)')
   end
 
-  # Routes the editor's draft requests through `handler`, a JavaScript function called with the request's
-  # $.ajax options and a `send` function that sends the request for real; what the handler returns is
-  # returned to the caller, with an `abort` added when it has none (a pending promise) that runs the
-  # request's error handler with the status given, as jQuery's does; an answer the handler gives after
-  # that is not delivered, as jQuery would not deliver it. Every other request is sent untouched. The routed
-  # requests are counted in window.interceptedDraftRequests as they are made, and in
-  # window.interceptedDraftAnswers once answered (a success or error handler run to its end, by the
-  # handler, by the real send or by an abort).
+  # Routes the editor's draft requests through `handler(options, send)`: `send` sends the request for real,
+  # and the handler's return value goes back to the caller. A returned promise gets an `abort` that runs the
+  # request's error handler with the given status, after which answers are dropped, as jQuery drops them.
+  # Requests are counted in window.interceptedDraftRequests, answers (a success or error handler run to its
+  # end) in window.interceptedDraftAnswers.
   def intercept_draft_requests(handler)
     page.execute_script(<<~JS)
       window.interceptedDraftRequests = 0;
@@ -149,7 +138,7 @@ describe 'Post editor draft autosave', :js do
     page.evaluate_script('window.interceptedDraftRequests')
   end
 
-  # Waits until `count` routed requests have been answered: whatever their answers did is done by then.
+  # By the time an answer is counted, everything its handler did is done.
   def wait_for_draft_answers(count)
     wait_until { page.evaluate_script('window.interceptedDraftAnswers') == count }
   end
@@ -216,9 +205,8 @@ describe 'Post editor draft autosave', :js do
 
   before { admin_sign_in }
 
-  # The permalink widget writes `?draft_id=` into the Preview link when the title produces a slug,
-  # which on a new post is before any draft exists. An autosave then created the draft but left the
-  # link empty, so opening Preview in a new tab (middle-click, copy link) rendered no draft.
+  # The permalink widget writes `?draft_id=` into the Preview link before a new post has a draft, and an
+  # autosave created the draft without updating it: opening Preview in a new tab showed no draft.
   it 'points the Preview link at the draft an autosave created' do
     visit new_post_path
     wait_for_editor_baseline
@@ -232,8 +220,7 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css(".btn-preview[href$='draft_id=#{buffer.id}']")
   end
 
-  # The minute timer compared the form with the snapshot taken at load and never refreshed it, so
-  # after the first edit it re-sent the unchanged form every minute.
+  # The timer compared with the page-load snapshot, never refreshed, so it re-sent the form every minute.
   it 'does not resend a form that has not changed since the last autosave' do
     visit new_post_path
     wait_for_editor_baseline
@@ -253,8 +240,8 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Second title')
   end
 
-  # Saves no longer block the page, so a tick can start while an earlier save of a new post is still
-  # in flight; the second one must wait for the first draft's id instead of creating another buffer.
+  # A tick that starts while a new post's first save is in flight must wait for its draft id, or it creates
+  # a second buffer.
   it 'creates one buffer when a second autosave starts while the first is in flight' do
     visit new_post_path
     wait_for_editor_baseline
@@ -271,8 +258,7 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Second')
   end
 
-  # A queued timer call finds nothing new to send once the save ahead of it has run, and returns
-  # without a request; the saves queued behind it must still run.
+  # A queued timer call may find nothing to send; the saves behind it must still run.
   it 'runs the saves queued behind a timer call that had nothing to send' do
     visit new_post_path
     wait_for_editor_baseline
@@ -288,9 +274,8 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.queuedSaveRan')).to be(true)
   end
 
-  # A timer call that lands while a save runs waits behind it and, drained, compares the form once. A
-  # second one waiting would compare the same form again, and on a request that never returns (a
-  # save_timeout_ms of 0) the queue would grow by one a minute. One timer call waits at a time.
+  # One timer call waits in the queue at a time: on a request that never returns, a second one every minute
+  # would pile up, each comparing the same form.
   it 'queues one timer call behind a running save' do
     visit new_post_path
     wait_for_editor_baseline
@@ -326,9 +311,7 @@ describe 'Post editor draft autosave', :js do
     wait_until { page.evaluate_script('window.draftsDone') == 3 }
   end
 
-  # jQuery skips an ajax call's `complete` handler when its success handler throws, so a failing
-  # callback must not leave the save lock held: later saves would queue forever and a submit
-  # would wait for them forever.
+  # jQuery skips `complete` when a success handler throws; the lock must still be released.
   it 'runs later saves after a save callback throws' do
     visit new_post_path
     wait_for_editor_baseline
@@ -349,9 +332,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
-  # $.ajax can throw before sending (a plugin's wrapper, a prefilter). The lock it would have released
-  # must not stay held, or every later save queues forever and every submit waits under the overlay; and
-  # the caller's failure handler runs, since it is what takes down the overlay or window the caller opened.
+  # $.ajax can throw before sending (a plugin wrapper): the lock is released and the failure handler runs,
+  # since it is what takes the caller's overlay or window down.
   it 'runs later saves and the failure handler after $.ajax threw before sending one' do
     visit new_post_path
     wait_for_editor_baseline
@@ -371,8 +353,7 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
-  # A failure handler that throws must not replace the send's error: the caller is told why the save could
-  # not be sent, and the handler's own error is reported on its own, as an uncaught one.
+  # A throwing failure handler must not replace the send's error on its way to the caller.
   it 'reports the send error to the caller when the failure handler of an unsent save throws' do
     visit new_post_path
     wait_for_editor_baseline
@@ -389,10 +370,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
-  # A save queued behind another is run from the finished one's completion, inside its own error path when
-  # that one threw before sending. A drained save that throws too must not replace the error on its way to
-  # the finished save's caller: each caller is told why its own save could not be sent, and the drained
-  # save's error is reported on its own, as an uncaught one.
+  # A queued save runs from the finished save's completion, inside its error path when it threw. A drained
+  # save that throws too must not replace that error.
   it 'reports the send error to the caller when a save drained behind it throws too' do
     visit new_post_path
     wait_for_editor_baseline
@@ -427,9 +406,7 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
-  # The editors are synced into their textareas before a draft is serialized, and a change handler on one
-  # may ask for a save of its own. That call has to queue behind the one being prepared, not run beside
-  # it: on a new post, two concurrent creates make two buffers.
+  # A change handler run by the sync may ask for a save; it must queue, or a new post gets two buffers.
   it 'queues a save a change handler asks for while the editors are synced' do
     visit new_post_path
     wait_for_editor_baseline
@@ -452,8 +429,7 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.count).to eq(1)
   end
 
-  # A save can throw before it is sent from the editors' sync as well as from $.ajax: a change handler
-  # that fails. The lock is released and the failure handler runs either way.
+  # A change handler can throw during the sync, before the send.
   it 'runs the failure handler and frees the lock when a change handler throws before the send' do
     visit new_post_path
     wait_for_editor_baseline
@@ -474,8 +450,7 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
-  # Submitting the post while an autosave of the new post is in flight used to post an empty draft id,
-  # so the buffer that save created was never discarded. The submit now waits for the draft id.
+  # Submitting during a new post's first save used to post an empty draft id, leaving the buffer behind.
   it 'discards the new post buffer when the post is submitted during an autosave' do
     visit new_post_path
     wait_for_editor_baseline
@@ -492,8 +467,7 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers).to be_empty
   end
 
-  # A draft save that never returns must not block the post: the held submit shows the loading overlay
-  # and is sent anyway once App_post.submit_wait_ms has passed.
+  # A save that never returns must not block the post: the held submit goes out after submit_wait_ms.
   it 'submits the post after a while when the draft save in flight never returns' do
     visit new_post_path
     wait_for_editor_baseline
@@ -513,8 +487,7 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted during a stalled save', status: 'published')).to be_present
   end
 
-  # A theme or plugin that wants no hold sets App_post.submit_wait_ms to 0: the value is kept as set,
-  # and a submit made while a save runs is sent at once, without waiting out a default.
+  # A theme that wants no hold sets submit_wait_ms to 0, which must be kept, not defaulted.
   it 'sends a held submit at once when submit_wait_ms is zero' do
     visit new_post_path
     wait_for_editor_baseline
@@ -532,8 +505,7 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted with no hold', status: 'published')).to be_present
   end
 
-  # The request timeout is read the same way: set to 0, the draft request is sent with no timeout, not
-  # with the default it would otherwise get.
+  # Likewise, save_timeout_ms 0 means no timeout.
   it 'sends the draft request with no timeout when save_timeout_ms is zero' do
     visit new_post_path
     wait_for_editor_baseline
@@ -550,12 +522,9 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Sent with no timeout')
   end
 
-  # A held submit the fallback wait sends while the draft save still runs goes out without the draft, and
-  # the post save reports for itself from then on (in place, when a plugin such as camaleon_admin_ajax
-  # takes the submit over from a delegated listener). The save is aborted first: a late success would run
-  # the caller's callback (Save Draft's leaves for the post list, cancelling the post's own submission on
-  # its way), and a late failure or refusal would be shown over a page the post save is replacing. The
-  # failure handler runs, no error is shown, and the page stays where the post save left it.
+  # When the fallback wait sends the held submit, the post save reports for itself: the running save is
+  # aborted, so no late answer runs its callback (Save Draft's leaves the page) or shows an alert. The
+  # failure handler runs and the page stays (a delegated listener keeps it, as an in-place plugin does).
   it 'aborts the draft save when the fallback wait sends the held submit' do
     visit new_post_path
     wait_for_editor_baseline
@@ -582,8 +551,7 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to eq(1)
   end
 
-  # Once the fallback wait has sent the held submit, no save is running any more: a submit made after it
-  # (the sent one kept the page, the user submitted again) goes through at once, not held under the overlay.
+  # After the fallback sent the submit no save is running, so a second submit is not held.
   it 'lets a submit made after the fallback wait sent one through at once' do
     visit new_post_path
     wait_for_editor_baseline
@@ -607,9 +575,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading')
   end
 
-  # The saves queued behind a save the fallback wait aborted are for a form the post save has taken: sent,
-  # one would write a buffer the post save leaves behind in the Drafts list, and report its own failure
-  # over the page the post save loaded. They are dropped, their failure handlers run.
+  # The form is being submitted: a queued save would write a buffer the post save leaves behind. They are
+  # dropped, their failure handlers run.
   it 'drops the saves queued behind a save the fallback wait aborted' do
     visit new_post_path
     wait_for_editor_baseline
@@ -634,9 +601,7 @@ describe 'Post editor draft autosave', :js do
     expect(intercepted_draft_requests).to eq(1)
   end
 
-  # The dropped saves' failure handlers run one after the other: one that throws must not keep the ones
-  # behind it from running (a Preview window or an overlay would stay up), nor the held submit from being
-  # sent; its error is reported on its own, as a drained save's is.
+  # A dropped save's handler that throws must not stop the ones behind it.
   it 'runs every failure handler of the saves dropped behind an aborted save when one throws' do
     visit new_post_path
     wait_for_editor_baseline
@@ -661,8 +626,7 @@ describe 'Post editor draft autosave', :js do
     expect(intercepted_draft_requests).to eq(1)
   end
 
-  # A draft request that fails (here the transport reports an error) releases the save lock and sends
-  # the held submit: the post save decides for itself, and the buffer, if any, is left behind.
+  # A failed request sends the held submit: the post save decides for itself.
   it 'submits the post when the draft save it waited for fails' do
     visit new_post_path
     wait_for_editor_baseline
@@ -681,8 +645,7 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted after a failed save', status: 'published')).to be_present
   end
 
-  # The saves queued behind a finished one are run from its completion, and one of them can throw before
-  # it is sent. The held submit must not wait out submit_wait_ms for a save that is not running.
+  # A queued save can throw before it is sent; the held submit must not wait out submit_wait_ms for it.
   it 'sends a held submit when the save it waited for throws on its way out of the queue' do
     visit new_post_path
     wait_for_editor_baseline
@@ -706,8 +669,7 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers).to be_empty
   end
 
-  # A submit is held before validation and any other listener see it, and dispatched again when the hold
-  # ends, so a listener that asks a question or serializes the form runs once, then, not twice.
+  # A held submit is stopped before other listeners see it, so each runs once, at the dispatch.
   it 'sends a held submit without running the submit listeners again' do
     visit new_post_path
     wait_for_editor_baseline
@@ -729,9 +691,7 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script("sessionStorage.getItem('submitListenerRuns')")).to eq('1')
   end
 
-  # A save queued behind a running one is run again from the queue. It goes through the function the
-  # script owns, not through App_post.save_draft_ajax, so a wrapper a plugin installed there runs once
-  # per call, when the call was made, and not a second time when the queue is drained.
+  # Queued saves run through the script's own function, so a plugin's wrapper runs once per call.
   it 'runs a plugin wrapper once for a save queued behind another' do
     visit new_post_path
     wait_for_editor_baseline
@@ -749,9 +709,8 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.wrapperRuns')).to eq(2)
   end
 
-  # A held submit is sent to the form it was held on. With pages loading in place, another form can be
-  # set up while the hold waits (the browser's Back button is not under the overlay): the script's form
-  # is then that one, and it must not be submitted in the held form's place, but the overlay comes down.
+  # Another form can be set up while the hold waits (Back is not under the overlay): the held form is gone
+  # and must not be submitted in the replacement's place, but the overlay comes down.
   it 'drops a held submit whose form was replaced while it waited' do
     visit new_post_path
     wait_for_editor_baseline
@@ -777,9 +736,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading')
   end
 
-  # A listener delegated from an ancestor (camaleon_admin_ajax submits the post form in place from one
-  # bound on the body) sees the held submit too, once the hold ends, with the draft id in the form; it
-  # may then take the submit over, as that plugin does.
+  # camaleon_admin_ajax submits the post form in place from a listener on the body; it must see the held
+  # submit once the hold ends, with the draft id in the form.
   it 'delivers a held submit to a listener delegated from an ancestor, with the draft id' do
     visit new_post_path
     wait_for_editor_baseline
@@ -805,9 +763,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
-  # A submit a button made goes with that button: the browser sends its name and value and follows its
-  # formaction. The held submit is dispatched with the button as its submitter, so the browser does the
-  # same then: a theme's button that names a status must not save the post with the select's.
+  # The held submit is dispatched with its button as the submitter, so the browser sends the button's name,
+  # value and formaction as it would have.
   it 'dispatches a held submit with the button that made it' do
     visit new_post_path
     wait_for_editor_baseline
@@ -828,9 +785,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(%r{/posts/new\?}, url: true)
   end
 
-  # The held submit is dispatched as the submit event the browser fires, so a listener bound outside jQuery
-  # (a plugin's addEventListener on the form) sees it once, when the hold ends, with the button that made
-  # it as the submitter. A submit triggered through jQuery reached jQuery's listeners only.
+  # A listener bound with addEventListener sees the dispatched submit once, with its submitter; jQuery's
+  # trigger would not reach it.
   it 'delivers a held submit to a listener bound outside jQuery, with its submitter' do
     visit new_post_path
     wait_for_editor_baseline
@@ -859,8 +815,7 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
-  # A browser without requestSubmit (Safari before 16) gets the held submit through jQuery's trigger, which
-  # still reaches jQuery's listeners and the form's default action.
+  # Safari before 16 has no requestSubmit; jQuery's trigger still reaches its listeners and the default action.
   it 'sends a held submit through jQuery where requestSubmit is missing' do
     visit new_post_path
     wait_for_editor_baseline
@@ -880,9 +835,8 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Held submit without requestSubmit', status: 'published')).to be_present
   end
 
-  # A held submit also waits for the saves queued behind the one it was held on. The finished save's
-  # caller takes the overlay down (Preview, Save Draft do), so the hold has to put it back while the
-  # queued save runs, or the form is open to edits that the submit then sends without a word.
+  # The finished save's caller takes the overlay down; a hold still waiting for a queued save puts it back,
+  # or the form is open to edits the submit then sends silently.
   it 'keeps the overlay while a held submit waits for a queued save' do
     visit new_post_path
     wait_for_editor_baseline
@@ -904,9 +858,8 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Held behind a queued save', status: 'published')).to be_present
   end
 
-  # A draft request that has not returned after App_post.save_timeout_ms is taken as failed: the lock is
-  # released, the caller's failure handler runs and the failure is reported, so a stalled server cannot
-  # keep Preview and Save Draft dead until the browser gives up on the request.
+  # A stalled request fails after save_timeout_ms, or Preview and Save Draft stay dead until the browser
+  # gives up.
   it 'fails a draft save that has not returned after save_timeout_ms' do
     stalled = false
     calls = 0
@@ -941,9 +894,8 @@ describe 'Post editor draft autosave', :js do
     wait_until { stalled }
   end
 
-  # A refused draft save (here a status the editor does not offer, refused for every role) must not
-  # send the held submit: the post save would refuse the same content, and the user has to read the
-  # refusal to fix it. The hold is released and its fallback timer cleared.
+  # The post save would refuse the same content: the hold is dropped, its timer cleared, and the user reads
+  # the refusal.
   it 'keeps the post on the form when the draft save it waited for is refused' do
     visit new_post_path
     wait_for_editor_baseline
@@ -964,8 +916,7 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
   end
 
-  # A timer call queued behind a save that ends refused finds the same form the refusal named: sending
-  # it would only be refused again, with a second alert on the heels of the first. It sends nothing.
+  # A timer call queued behind a refused save would only be refused again, with a second alert.
   it 'drops a timer call queued behind a save that is refused' do
     visit new_post_path
     wait_for_editor_baseline
@@ -982,9 +933,8 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(1)
   end
 
-  # A refusal is decided by the content it names, so a tick that finds the form as the refused save sent
-  # it would only be refused again, with the same alert a minute later, for as long as the user leaves
-  # the form alone. The timer waits for a change; a save the user asks for is always sent.
+  # A refusal is decided by the content: an unchanged form would be refused every minute with the same
+  # alert. A save the user asks for is always sent.
   it 'does not resend a refused form until it changes' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1007,9 +957,8 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Accepted once changed')
   end
 
-  # A send runs each editor's textarea change handlers (sync_editors) after the form was compared. A
-  # handler that writes a derived field changes the form between the comparison and the request, so
-  # the saved state must be read after it ran, or the next tick sees the derived field as an edit.
+  # The sync runs change handlers that may write derived fields; the saved state must be read after them,
+  # or the next tick sees the derived field as an edit.
   it 'records the form as it was sent, after the editors\' change handlers ran' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1029,9 +978,8 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(1)
   end
 
-  # The load snapshot was taken on a two-second timer. An editor that came up later rewrote its
-  # textarea in TinyMCE's normalized form, so an untouched post read as edited: the timer autosaved
-  # it and leaving the page asked to confirm discarding changes that were never made.
+  # The snapshot ran on a two-second timer; an editor that came up later normalized its textarea, so an
+  # untouched post was autosaved and leaving asked to confirm changes never made.
   it 'takes the baseline once the editors are ready, so an untouched post stays unchanged' do
     post = site.the_post('sample-post')
     post.update!(content: 'Plain body, not yet normalized by the editor')
@@ -1048,8 +996,7 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
-  # Before the baseline the timer has nothing to compare the form with: a tick that fires while the
-  # editors are still coming up must not send the raw form of a post the editor has yet to normalize.
+  # Before the baseline there is nothing to compare with; a tick must not send the raw, unnormalized form.
   it 'sends nothing from the timer before the baseline is taken' do
     post = site.the_post('sample-post')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
@@ -1068,10 +1015,8 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(1)
   end
 
-  # A timer call made while the browser still waits for the post save's response (the form is on the page
-  # until the next one loads) used to send the form when it differed from the last successful save, writing
-  # a buffer the post save leaves behind (a create discards only the buffer the form named), listed under
-  # Drafts as an edit newer than the post.
+  # A tick while the post save's response is pending wrote a buffer the post save leaves behind, listed
+  # under Drafts as a newer edit.
   it 'sends nothing from the timer once the post form was submitted' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1095,9 +1040,7 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers).to be_empty
   end
 
-  # Before the baseline there is nothing to compare the form with, and the page is still being set up (an
-  # editor coming up rewrites its textarea): the leave prompt used to fire for an untouched post until then,
-  # a second normally and ten when an editor never comes up. It fires only once the user has touched the form.
+  # The prompt used to fire for an untouched post until the baseline was taken (up to ten seconds).
   it 'does not prompt to leave an untouched post before the baseline' do
     post = site.the_post('sample-post')
     post.update!(content: 'Plain body, not yet normalized by the editor')
@@ -1113,9 +1056,8 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
-  # The prompt used to be installed a second after the editor, with the page's later actions: an edit typed
-  # in that second left without a prompt, and when the page loaded another post form in place the previous
-  # form's prompt answered for the new one until then. It is installed with the editor's own submit handler.
+  # The prompt used to be installed a second after the editor: an edit typed in that second left silently,
+  # and a form loaded in place got the previous form's prompt meanwhile.
   it 'installs the leave prompt with the editor, before the baseline' do
     visit new_post_path
     # The editor's setup publishes window.save_draft as it runs; the prompt must be in place by then.
@@ -1124,9 +1066,8 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
   end
 
-  # An edit typed while the baseline was still to come was absorbed by it: the prompt then read the edited
-  # form as the original and the timer never sent it. The user's own input marks the form edited before the
-  # baseline, keeps it edited after one that absorbed the edit, and the first tick after it sends the edit.
+  # The baseline absorbed an edit typed before it, so the prompt read the edit as the original and the timer
+  # never sent it.
   it 'keeps prompting for an edit typed before the baseline, and autosaves it' do
     post = site.the_post('sample-post')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
@@ -1148,9 +1089,7 @@ describe 'Post editor draft autosave', :js do
                                    status: 'draft_child').last.title).to eq('Typed before the baseline')
   end
 
-  # Typing in an editor fires no event on the form: an editor that has come up says itself that it was
-  # edited (its change event, fired when its undo levels grow), and a baseline still waiting for another
-  # editor keeps what it said.
+  # Typing in an editor fires nothing on the form; the editor's own change event says it was edited.
   it 'prompts to leave before the baseline when the content editor was typed in' do
     post = site.the_post('sample-post')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
@@ -1169,9 +1108,8 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
   end
 
-  # TinyMCE clears an editor's dirty flag whenever the editor's content is saved into its textarea, which
-  # the editor's blur handler does: an edit typed in the editor and then left, while the baseline still
-  # waits, is an edit all the same, so the editor's own change event has to have recorded it.
+  # TinyMCE clears the dirty flag when the editor saves into its textarea (on blur); the change event is
+  # what records the edit.
   it 'keeps prompting for an edit typed in the editor before the baseline once the editor loses focus' do
     post = site.the_post('sample-post')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
@@ -1196,10 +1134,8 @@ describe 'Post editor draft autosave', :js do
                                    status: 'draft_child').last.content).to include('Typed, then left')
   end
 
-  # Admin pages load in place, so a baseline still waiting for an editor when the user opens another
-  # page outlives its form: by the time the editor comes up (or the wait gives up) the script's form is
-  # the next page's, which takes a baseline of its own, and the old wait must leave it alone and must not
-  # fail on a page without a post form.
+  # A baseline wait can outlive its form (another page loaded in place): it must leave the next form to its
+  # own baseline and not fail on a page without a form.
   it 'leaves a form the editor was set up on later alone when the wait outlives its own' do
     post = site.the_post('sample-post')
 
@@ -1227,10 +1163,8 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
-  # A save is asynchronous, so with pages loading in place it can return after the editor was set up
-  # on another post's form. The draft id it returns belongs to the post it was sent for: written into
-  # the next form, that post's save would discard the buffer named by post[draft_id], and its Preview
-  # link would open the wrong draft.
+  # A save can return after another post's form was loaded in place; its draft id belongs to the form it
+  # was sent from, or the next post's save would discard the wrong buffer.
   it 'writes the draft id into the form the save was sent from, not one set up later' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1258,10 +1192,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css("#form-post .btn-preview[href='/next-post?draft_id=']", visible: :all)
   end
 
-  # A save queued behind a running one is run when that one returns, against the script's form, which by
-  # then can be another post's (the page loaded it in place while the queue waited). Serializing that form
-  # sent the other post's content to this post's draft. The queued save is dropped instead, its failure
-  # handler run, since it is what takes down the window or overlay the caller opened.
+  # A queued save that runs after another form was loaded in place would send that form's content to this
+  # post's draft. It is dropped, its failure handler run.
   it 'drops a queued save when the page loaded another form in place while it waited' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1289,9 +1221,8 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved before the next form')
   end
 
-  # A call made for a form the setup no longer owns (a plugin kept the function from a page loaded earlier
-  # in place) is dropped at once, its failure handler run: queued behind a save still running, the handler,
-  # which takes down what the caller opened, would wait for a request that is not its own.
+  # A call for a form the setup no longer owns is dropped at once, or its failure handler waits behind a
+  # save that is not its own.
   it 'drops a call for a replaced form at once while a save still runs' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1309,8 +1240,7 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.laterCallDropped')).to be(true)
   end
 
-  # A translated field is edited through its per-language copies, which the comparison reads; the hidden
-  # original they compose is left out. The content's copies are the editors, matched by the copy's id.
+  # A translated field is edited through its per-language copies; the comparison reads those.
   it 'autosaves an edit to a second language of a translated field' do
     site.set_meta('languages_site', %w[en es])
     visit new_post_path
@@ -1337,8 +1267,7 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(1)
   end
 
-  # A translated form has a permalink widget, and a Preview link, per language: a save points every one
-  # of them at the draft, not only the first.
+  # A translated form has one Preview link per language.
   it 'points every Preview link of a translated form at the draft' do
     site.set_meta('languages_site', %w[en es])
     visit new_post_path
@@ -1356,11 +1285,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css("#form-post .btn-preview[href$='draft_id=#{buffer.id}']", count: 2, visible: :all)
   end
 
-  # A translated field's per-language copy composes the hidden original the server reads on its change
-  # event, which a text input fires once it loses focus. A tick that landed while the copy was still being
-  # typed in read the copy (the comparison does) but sent the original as it stood, and once the copy lost
-  # focus nothing was resent: the original is left out of the comparison. A send composes the originals
-  # from the copies first.
+  # A copy composes the hidden original on change, which fires on blur: a copy still being typed in was sent
+  # stale and, since the comparison reads the copies, never resent. A send recomposes the originals.
   it 'sends a translated field typed in since its copy last lost focus' do
     site.set_meta('languages_site', %w[en es])
     visit new_post_path
@@ -1376,9 +1302,8 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to include('<!--:es-->Aún escribiendo<!--:-->')
   end
 
-  # Comparing the form is a read. It used to write each editor's content back into its textarea, in
-  # TinyMCE's serialization, so content a plugin had put into the textarea itself (camaleon_editor's
-  # grid export, with its colors as rgb()) read back rewritten whenever the snapshot landed after it.
+  # The comparison used to write each editor back into its textarea, rewriting content a plugin had put
+  # there (camaleon_editor's grid export, with rgb() colors).
   it 'leaves the editors\' textareas alone when it compares the form' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1393,9 +1318,7 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script("$('#post_content').val()")).to eq(exported)
   end
 
-  # Only the post form's editors are the post's content. An editor a plugin puts elsewhere on the page
-  # (a modal) must not read as an edit of the post: that autosaved an untouched post every minute and
-  # asked to confirm leaving a form that had not changed.
+  # An editor a plugin puts elsewhere on the page (a modal) read as an edit of the post.
   it 'ignores an editor outside the post form when it compares the form' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1413,9 +1336,8 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
-  # The fields are matched against the editors read by id. A field whose id is a name every object
-  # inherits (`constructor`) was taken for an editor and dropped from the comparison, so an edit to it
-  # was never autosaved.
+  # A field with id `constructor` was taken for an editor (`in` matched the inherited name) and dropped from
+  # the comparison.
   it 'autosaves an edit to a field whose id is an inherited object property name' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1435,10 +1357,8 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(2)
   end
 
-  # A control outside the form that names it (`form="form-post"`, as a theme's sidebar field may) is one of
-  # the form's controls: the browser and serializeObject send it. The comparison walked the form's
-  # descendants only, so an edit to such a control was sent by the next save the user asked for but never
-  # made the timer send, and leaving the page did not ask about it.
+  # A control with form="form-post" outside the form is sent by the browser; the comparison walked the
+  # form's descendants only, so an edit to it was never autosaved.
   it 'autosaves an edit to a control outside the form that names it' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1459,10 +1379,8 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
   end
 
-  # The form's controls include its fieldsets, and jQuery serializes a fieldset by expanding its own
-  # controls again: an editor's textarea inside one (a theme groups fields that way) was then read through
-  # the fieldset, with the stale value the editor had last saved into it, beside the editor's content.
-  # The blur handler saving the editor into its textarea read as an edit of an untouched post.
+  # jQuery serializes a fieldset's controls a second time: an editor's stale textarea inside one read as an
+  # edit once the blur handler saved into it.
   it 'reads an untouched post as unchanged when its editor sits in a fieldset' do
     post = site.the_post('sample-post')
     post.update!(content: 'Plain body, not yet normalized by the editor')
@@ -1481,7 +1399,7 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
-  # The comparison reads the editors themselves, and a save sends what they hold.
+  # The comparison reads the editors themselves.
   it 'autosaves an edit made in the editor alone' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1493,8 +1411,7 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.content).to include('<p>Typed in the editor</p>')
   end
 
-  # The Preview click saves the draft before opening it. The save is asynchronous now, so the window
-  # is opened inside the click (a popup blocker would refuse one opened from the save's callback).
+  # The window is opened in the click; a popup blocker would refuse one opened from the async callback.
   it 'opens the preview of the saved draft in a new window' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1511,8 +1428,7 @@ describe 'Post editor draft autosave', :js do
     end
   end
 
-  # A Preview clicked while a save is in flight waits for that save's draft id: the window opened in
-  # the click shows the draft once both saves are through, and a new post gets no second buffer.
+  # A Preview clicked during a save waits for that save's draft id, and a new post gets no second buffer.
   it 'previews the draft when Preview is clicked while an autosave is in flight' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1543,8 +1459,7 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.count).to eq(1)
   end
 
-  # A refused save gives the window Preview opened in the click no draft to show: the window is closed
-  # again, the overlay taken down and the refusal shown.
+  # A refused save gives the window nothing to show.
   it 'closes the preview window and frees the editor when the draft save is refused' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1559,9 +1474,7 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
-  # A failed request (the transport reports an error, or the save times out) gives the window no draft
-  # to show either: it is closed, the overlay taken down, and the failure reported, as the user asked for
-  # the save.
+  # A failed request gives the window nothing to show either, and the user asked for the save.
   it 'closes the preview window and reports the failure when the draft request fails' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1576,9 +1489,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
-  # The click's default action, following the link into a new tab, is prevented before the save is
-  # asked for: when the save throws before sending (a plugin's wrapper), the window opened in the click
-  # is closed again, and the link, which names no draft yet, must not open a preview of nothing.
+  # The link's default action is prevented before the save: if the save throws, the link (naming no draft)
+  # must not open in a new tab.
   it 'opens no window when the Preview save could not be sent' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1590,10 +1502,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading')
   end
 
-  # The submit handler runs the validator first, so a held submit is a valid one. A submit the validator
-  # was told to let through (cancelSubmit: a Cancel or formnovalidate submit button, and the recover-draft
-  # path, which recovers a buffer whatever it holds) must be let through the same way: validating it
-  # painted errors under the required title and skipped the submitted mark.
+  # A submit the validator lets through unvalidated (cancelSubmit: Cancel, formnovalidate, recover-draft)
+  # used to be validated by the hold handler, painting errors and skipping the submitted mark.
   it 'lets a submit the validator was told to skip through without validating it' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1609,9 +1519,8 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to eq(1)
   end
 
-  # The validator's own submit handler is what resets cancelSubmit, and a held submit never reaches it. When
-  # the hold was dropped on a refused save, cancelSubmit stayed set, so the next submit, an ordinary one,
-  # went through unvalidated: the hold handler skipped valid() and the validator let it pass.
+  # The validator resets cancelSubmit in its own submit handler, which a held submit never reaches: after a
+  # refused save dropped such a hold, the next submit went through unvalidated.
   it 'validates the submit after a held one the validator was told to skip was dropped' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1649,8 +1558,7 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved draft title')
   end
 
-  # The notice travels in the query string of the redirect: a translation holding a character the query
-  # reserves (`&`, `#`, `+`) has to be sent encoded, or the notice is cut at that character.
+  # The notice travels in the query string; a translation with `&`, `#` or `+` was cut at that character.
   it 'sends the Save Draft notice encoded in the redirect' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1662,9 +1570,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(/flash\[notice\]=Saved%20%26%20done(&|\z)/, url: true)
   end
 
-  # Save Draft's callback marks the form submitted and leaves for the post list. Run for a form the page
-  # has since replaced in place, it would mark the next form submitted (silencing its leave prompt) and
-  # take the page away from it. The draft is saved; the next form keeps its prompt and its page.
+  # Save Draft's callback marks the form submitted and leaves; run for a replaced form, it would silence the
+  # next form's prompt and take its page away.
   it 'stays on the form the page loaded in place when Save Draft returns for the one before it' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1688,8 +1595,7 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved draft before the next form')
   end
 
-  # The core refuses with a list of messages; a drafts action a plugin decorated may answer with one
-  # message. It is shown the same, and the refusal's path runs to its end: overlay down, editor free.
+  # The core refuses with a list; a decorated drafts action may send one message.
   it 'shows a refusal sent as one message and frees the editor' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1708,9 +1614,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
-  # A decorated drafts action may answer with the model's errors as they serialize: messages keyed by
-  # the field they name. Rendered as text, the object read "[object Object]"; the messages are shown,
-  # each with its field.
+  # A decorated action may send the model's errors keyed by field; rendered as text they read
+  # "[object Object]".
   it 'shows a refusal sent as messages keyed by field' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1729,10 +1634,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
-  # A refusal names what to fix. One that names nothing (`{ error: [] }`: a model callback aborted the
-  # buffer's save without adding an error) was shown as an empty alert, dropped a held submit and kept
-  # the timer from resending the form until it changed. It is a failed request instead: reported as one,
-  # and a submit held on it is sent, since the post save decides for itself.
+  # `{ error: [] }` (a model callback aborted the save without an error) showed an empty alert, dropped a
+  # held submit and silenced the timer. It is a failed request: reported, and a held submit goes out.
   it 'fails a refusal that names no message' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1749,9 +1652,7 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
-  # A drafts action a plugin decorated may answer without a draft (an empty object, `null`). There is no
-  # draft to name, so the save fails as a request that got no JSON does: the failure is reported, the
-  # failure handler runs and the editor is free for the next save.
+  # A decorated action may answer `{}` or `null`: there is no draft to name, so the save fails.
   it 'fails a draft response that names no draft' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1768,9 +1669,8 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
-  # A decorated drafts action may also answer with a draft that names no id (`{ draft: {} }`). Taken as a
-  # success, it wrote `undefined` into the Preview links, ran the callback and started the next save from
-  # no draft, so a new post got a second buffer. It fails as an answer without a draft does.
+  # `{ draft: {} }` taken as a success wrote `undefined` into the Preview links and started the next save
+  # from no draft, so a new post got a second buffer.
   it 'fails a draft response whose draft names no id' do
     visit new_post_path
     wait_for_editor_baseline
@@ -1789,8 +1689,7 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.count).to eq(1)
   end
 
-  # Save Draft holds the form under the loading overlay while its save runs, since its callback leaves
-  # the page; a refused save must give the form back with the refusal shown.
+  # Save Draft holds the form under the overlay; a refused save must give it back.
   it 'keeps the editor usable when Save Draft is refused' do
     visit new_post_path
     wait_for_editor_baseline
