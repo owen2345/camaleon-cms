@@ -116,6 +116,36 @@ describe 'Post editor draft autosave', :js do
     HANDLER
   end
 
+  # The first draft request is answered with `response` (a JavaScript expression) `wait_ms` later, as the
+  # server would answer it; the requests after it are sent for real.
+  def answer_first_draft_request(response, wait_ms = 200)
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var answered = false;
+        return function (options, send) {
+          if (answered) return send();
+          answered = true;
+          setTimeout(function () { options.success(#{response}); }, #{wait_ms});
+          return $.Deferred().promise();
+        };
+      })()
+    HANDLER
+  end
+
+  # The first draft request throws `message` before it is sent; the requests after it are sent for real.
+  def throw_from_first_draft_request(message)
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var thrown = false;
+        return function (options, send) {
+          if (thrown) return send();
+          thrown = true;
+          throw new Error(#{message.to_json});
+        };
+      })()
+    HANDLER
+  end
+
   before { admin_sign_in }
 
   # The permalink widget writes `?draft_id=` into the Preview link when the title produces a slug,
@@ -259,16 +289,7 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
 
     # The first draft request throws; the ones after it are sent.
-    intercept_draft_requests(<<~HANDLER)
-      (function () {
-        var thrown = false;
-        return function (options, send) {
-          if (thrown) return send();
-          thrown = true;
-          throw new Error('refused to send');
-        };
-      })()
-    HANDLER
+    throw_from_first_draft_request('refused to send')
     page.execute_script(<<~JS)
       $('#post_title').val('Thrown before sending').trigger('keyup');
       try {
@@ -288,16 +309,7 @@ describe 'Post editor draft autosave', :js do
     visit new_post_path
     wait_for_editor_baseline
 
-    intercept_draft_requests(<<~HANDLER)
-      (function () {
-        var thrown = false;
-        return function (options, send) {
-          if (thrown) return send();
-          thrown = true;
-          throw new Error('refused to send');
-        };
-      })()
-    HANDLER
+    throw_from_first_draft_request('refused to send')
     page.execute_script(<<~JS)
       try {
         App_post.save_draft_ajax(null, false, function () { throw new Error('handler failed'); });
@@ -1650,17 +1662,7 @@ describe 'Post editor draft autosave', :js do
     visit new_post_path
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Refused without a message'
-    intercept_draft_requests(<<~HANDLER)
-      (function () {
-        var answered = false;
-        return function (options, send) {
-          if (answered) return send();
-          answered = true;
-          setTimeout(function () { options.success({ error: [] }); }, 200);
-          return $.Deferred().promise();
-        };
-      })()
-    HANDLER
+    answer_first_draft_request('{ error: [] }')
 
     page.execute_script('App_post.save_draft();')
 
@@ -1679,17 +1681,7 @@ describe 'Post editor draft autosave', :js do
     visit new_post_path
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Answered without a draft'
-    intercept_draft_requests(<<~HANDLER)
-      (function () {
-        var answered = false;
-        return function (options, send) {
-          if (answered) return send();
-          answered = true;
-          setTimeout(function () { options.success({}); }, 200);
-          return $.Deferred().promise();
-        };
-      })()
-    HANDLER
+    answer_first_draft_request('{}')
 
     page.execute_script('App_post.save_draft();')
 
@@ -1708,17 +1700,7 @@ describe 'Post editor draft autosave', :js do
     visit new_post_path
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Answered with a draft without an id'
-    intercept_draft_requests(<<~HANDLER)
-      (function () {
-        var answered = false;
-        return function (options, send) {
-          if (answered) return send();
-          answered = true;
-          setTimeout(function () { options.success({ draft: {} }); }, 200);
-          return $.Deferred().promise();
-        };
-      })()
-    HANDLER
+    answer_first_draft_request('{ draft: {} }')
 
     page.execute_script('App_post.save_draft();')
 
