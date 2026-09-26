@@ -378,7 +378,8 @@ before returning. Code that reads the draft id, `#post_draft_id` or the Preview 
 should read them in the callback. A third argument, `on_failure`, runs when the save is refused, the
 request fails, answers without a draft or with a refusal that names no message (a failed request, not a refusal), or could not be sent, including a save that has not returned after `App_post.save_timeout_ms` (30 seconds); a
 failed request the caller asked for (not the minute timer's) also shows an error, unless a submit is waiting
-on it or the fallback wait already sent one while it ran (the post save then reports for itself). A call made while a save
+on it or the fallback wait already sent one while it ran (the post save then reports for itself, and a save that
+succeeds after that runs `on_failure` in place of its callback). A call made while a save
 is running waits for it, so the draft id it returns is reused; one still waiting when the page has loaded
 another post form in place is dropped, with `on_failure` run. The values `App_post.submit_wait_ms` and
 `App_post.save_timeout_ms` are only defaulted when unset, so `0` is kept (no hold, no timeout).

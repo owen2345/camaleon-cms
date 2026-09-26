@@ -377,6 +377,33 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_alert_modal')
   end
 
+  # Once the fallback wait has sent the held submit, the post save has the page: a draft save that then
+  # succeeds must not run its caller's callback either. Save Draft's marks the form submitted and leaves
+  # for the post list, cancelling the post's own submission on its way; the failure handler runs instead,
+  # so the caller takes down what it opened (the overlay, a Preview window).
+  it 'runs the failure handler, not the callback, of a save that succeeds after the fallback sent the held submit' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved after the hold ended'
+
+    delay_draft_requests(1500)
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 500;
+      $('body').on('submit', 'form#form-post', function () { return false; });
+      #{publishable_post_js}
+      App_post.save_draft();
+      $('#form-post').submit();
+    JS
+
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    Timeout.timeout(5) { sleep(0.1) until new_post_buffers.exists? }
+    sleep 1 # long enough for a callback that leaves the page to have left it
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved after the hold ended')
+  end
+
   # A draft request that fails (here the transport reports an error) releases the save lock and sends
   # the held submit: the post save decides for itself, and the buffer, if any, is left behind.
   it 'submits the post when the draft save it waited for fails' do

@@ -40,7 +40,8 @@ function cama_init_post(obj) {
     var held_submitter = null;
     var releasing_form = null;
     // Set when the fallback wait sent the held submit while the save still ran: the post save reports
-    // for itself from then on, so this save's failure is not reported too.
+    // for itself from then on, so this save's failure is not reported too, and its success runs the
+    // caller's failure handler in place of its callback.
     var submit_sent_while_saving = false;
     // The form this setup owns. Admin pages load in place, so the script can be set up on another form
     // while a save of this one is queued or in flight; $form is then that form, and this setup's saves are
@@ -157,7 +158,12 @@ function cama_init_post(obj) {
                         refused_hash = null;
                         $(post_form).find("#post_draft_id").val(post_draft_id);
                         set_preview_draft_id(post_form);
-                        if (callback) callback(res);
+                        // The fallback wait sent the held submit while this save ran: the post save has the
+                        // page from here (as when this save fails, see request_failed), so the callback, which
+                        // would leave for the post list or open a preview of a post being saved, does not run;
+                        // the failure handler takes down what the caller opened instead.
+                        if (submit_sent_while_saving) { if (on_failure) on_failure(); }
+                        else if (callback) callback(res);
                     }
                 } finally {
                     save_finished();
