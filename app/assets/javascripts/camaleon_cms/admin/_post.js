@@ -268,7 +268,7 @@ function cama_init_post(obj) {
             // under the overlay): the draft is saved, and that form keeps its own leave prompt and page.
             if ($form[0] !== post_form) { hideLoading(); return; }
             $form.data("submitted", 1);
-            location.href = _posts_path + '?flash[notice]=' + I18n("msg.draft")
+            location.href = _posts_path + '?flash[notice]=' + encodeURIComponent(I18n("msg.draft"))
         }, false, hideLoading);
     }
     if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);

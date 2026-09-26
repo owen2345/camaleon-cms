@@ -1455,6 +1455,19 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved draft title')
   end
 
+  # The notice travels in the query string of the redirect: a translation holding a character the query
+  # reserves (`&`, `#`, `+`) has to be sent encoded, or the notice is cut at that character.
+  it 'sends the Save Draft notice encoded in the redirect' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Encoded notice title'
+
+    page.execute_script("I18n_data.msg.draft = 'Saved & done';")
+    click_link 'Save Draft'
+
+    expect(page).to have_current_path(/flash\[notice\]=Saved%20%26%20done(&|\z)/, url: true)
+  end
+
   # Save Draft's callback marks the form submitted and leaves for the post list. Run for a form the page
   # has since replaced in place, it would mark the next form submitted (silencing its leave prompt) and
   # take the page away from it. The draft is saved; the next form keeps its prompt and its page.
