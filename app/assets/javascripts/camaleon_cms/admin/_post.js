@@ -98,8 +98,9 @@ function cama_init_post(obj) {
                     if (res.error) {
                         // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
                         // refusal names the submitted key), and do NOT run the success callback -- it would
-                        // navigate away (discarding the unsaved edits) or open a stale preview.
-                        $.fn.alert({type: 'error', title: $('<div>').text(res.error.join(", ")).html(), icon: "times"})
+                        // navigate away (discarding the unsaved edits) or open a stale preview. The core
+                        // sends a list of messages; a decorated action may send one.
+                        $.fn.alert({type: 'error', title: $('<div>').text([].concat(res.error).join(", ")).html(), icon: "times"})
                         // A refused save leaves a held submit on the form (the alert took the overlay down): the
                         // post save would refuse the same content, and the alert names what to fix. A request that
                         // failed or timed out still sends it (see the submit handler). The held submit is not

@@ -1070,6 +1070,26 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved draft before the next form')
   end
 
+  # The core refuses with a list of messages; a drafts action a plugin decorated may answer with one
+  # message. It is shown the same, and the refusal's path runs to its end: overlay down, editor free.
+  it 'shows a refusal sent as one message and frees the editor' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused as one message'
+    intercept_draft_requests(<<~HANDLER)
+      function (options) {
+        setTimeout(function () { options.success({ error: 'the draft was refused as one message' }); }, 200);
+        return $.Deferred().promise();
+      }
+    HANDLER
+
+    page.execute_script('App_post.save_draft();')
+
+    expect(page).to have_css('#cama_alert_modal', text: 'the draft was refused as one message')
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+  end
+
   # Save Draft holds the form under the loading overlay while its save runs, since its callback leaves
   # the page; a refused save must give the form back with the refusal shown.
   it 'keeps the editor usable when Save Draft is refused' do
