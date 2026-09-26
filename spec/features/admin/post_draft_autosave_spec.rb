@@ -1493,6 +1493,23 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
+  # A failed request (the transport reports an error, or the save times out) gives the window no draft
+  # to show either: it is closed, the overlay taken down, and the failure reported, as the user asked for
+  # the save.
+  it 'closes the preview window and reports the failure when the draft request fails' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Failed preview title'
+
+    fail_draft_requests(500)
+    preview = window_opened_by { find('.btn-preview').click }
+
+    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
+    expect(preview).to be_closed
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+  end
+
   # The click's default action, following the link into a new tab, is prevented before the save is
   # asked for: when the save throws before sending (a plugin's wrapper), the window opened in the click
   # is closed again, and the link, which names no draft yet, must not open a preview of nothing.
