@@ -8,6 +8,14 @@ describe 'Post editor draft autosave', :js do
   let(:post_type_id) { site.post_types.where(slug: :post).pick(:id) }
   let(:new_post_path) { "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/new" }
 
+  # JavaScript that gives a new post what its save requires beyond the title: a body and a category.
+  def publishable_post_js
+    <<~JS
+      tinymce.get('post_content').setContent('Body');
+      $("#form-post input[name='categories[]']:first").prop("checked", true);
+    JS
+  end
+
   def new_post_buffers
     CamaleonCms::Post.where(status: 'draft_child', post_parent: nil)
   end
@@ -305,8 +313,7 @@ describe 'Post editor draft autosave', :js do
     fill_in 'post_title', with: 'Submitted during autosave'
 
     page.execute_script(<<~JS)
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       App_post.save_draft_ajax(null, true);
       $('#form-post').submit();
     JS
@@ -326,8 +333,7 @@ describe 'Post editor draft autosave', :js do
     stall_draft_requests
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 2000;
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
     JS
@@ -351,8 +357,7 @@ describe 'Post editor draft autosave', :js do
       App_post.submit_wait_ms = 500;
       window.delegatedRuns = 0;
       $('body').on('submit', 'form#form-post', function () { window.delegatedRuns++; return false; });
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
     JS
@@ -374,8 +379,7 @@ describe 'Post editor draft autosave', :js do
     fail_draft_requests(200)
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 20000;
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
     JS
@@ -398,8 +402,7 @@ describe 'Post editor draft autosave', :js do
       // The first save's sync passes; the queued save's throws.
       var syncs = 0;
       $('#post_content').on('change', function () { if (++syncs == 2) throw new Error('handler failed'); });
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
@@ -425,8 +428,7 @@ describe 'Post editor draft autosave', :js do
       $('#form-post').on('submit', function () {
         sessionStorage.setItem('submitListenerRuns', String(Number(sessionStorage.getItem('submitListenerRuns')) + 1));
       });
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
     JS
@@ -466,8 +468,7 @@ describe 'Post editor draft autosave', :js do
     stall_draft_requests
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 1000;
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
       // What loading another page in place leaves behind: the held form is gone and the script's form
@@ -501,8 +502,7 @@ describe 'Post editor draft autosave', :js do
         window.delegatedDraftId = $(this).find('#post_draft_id').val();
         return false;
       });
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
     JS
@@ -531,8 +531,7 @@ describe 'Post editor draft autosave', :js do
         return false;
       });
       $('#form-post').append('<button type="submit" name="probe" value="from the button">Probe</button>');
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
     JS
     click_button 'Probe'
@@ -555,8 +554,7 @@ describe 'Post editor draft autosave', :js do
     delay_draft_requests(1500)
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 20000;
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       App_post.save_draft_ajax(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
@@ -615,8 +613,7 @@ describe 'Post editor draft autosave', :js do
 
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 1000;
-      tinymce.get('post_content').setContent('Body');
-      $("#form-post input[name='categories[]']:first").prop("checked", true);
+      #{publishable_post_js}
       $('#post_status').append('<option value="bogus">bogus</option>').val('bogus');
       App_post.save_draft_ajax(null, true);
       $('#form-post').submit();
