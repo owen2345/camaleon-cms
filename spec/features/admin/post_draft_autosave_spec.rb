@@ -39,6 +39,51 @@ describe 'Post editor draft autosave', :js do
     page.execute_script('App_post.save_draft_ajax(null, true)')
   end
 
+  # Routes the editor's draft requests through `handler`, a JavaScript function called with the request's
+  # $.ajax options and a `send` function that sends the request for real; what the handler returns is
+  # returned to the caller. Every other request is sent untouched.
+  def intercept_draft_requests(handler)
+    page.execute_script(<<~JS)
+      (function (ajax, handler) {
+        $.ajax = function (options) {
+          var self = this, args = arguments;
+          if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(self, args);
+          return handler(options, function () { return ajax.apply(self, args); });
+        };
+      })($.ajax, #{handler});
+    JS
+  end
+
+  # Draft requests never return.
+  def stall_draft_requests
+    intercept_draft_requests('function () { return $.Deferred().promise(); }')
+  end
+
+  # Each draft request is sent `wait_ms` later, so a save is in flight for that long.
+  def delay_draft_requests(wait_ms)
+    intercept_draft_requests("function (options, send) { setTimeout(send, #{wait_ms}); return $.Deferred().promise() }")
+  end
+
+  # Each draft request fails `wait_ms` later, as when the transport reports an error.
+  def fail_draft_requests(wait_ms)
+    intercept_draft_requests(<<~HANDLER)
+      function (options) {
+        setTimeout(function () { options.error({}, "error", ""); }, #{wait_ms});
+        return $.Deferred().promise();
+      }
+    HANDLER
+  end
+
+  # Each draft request is refused `wait_ms` later with `message`, as the server refuses one.
+  def refuse_draft_requests(message, wait_ms)
+    intercept_draft_requests(<<~HANDLER)
+      function (options) {
+        setTimeout(function () { options.success({ error: [#{message.to_json}] }); }, #{wait_ms});
+        return $.Deferred().promise();
+      }
+    HANDLER
+  end
+
   before { admin_sign_in }
 
   # The permalink widget writes `?draft_id=` into the Preview link when the title produces a slug,
@@ -143,17 +188,22 @@ describe 'Post editor draft autosave', :js do
     visit new_post_path
     wait_for_editor_baseline
 
+    # The first draft request throws; the ones after it are sent.
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var thrown = false;
+        return function (options, send) {
+          if (thrown) return send();
+          thrown = true;
+          throw new Error('refused to send');
+        };
+      })()
+    HANDLER
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (/\\/drafts(\\/|$)/.test(options.url)) throw new Error('refused to send');
-        return ajax.apply(this, arguments);
-      };
       $('#post_title').val('Thrown before sending').trigger('keyup');
       try {
         App_post.save_draft_ajax(null, false, function () { window.sendFailed = true; });
       } catch (e) { window.sendThrew = e.message; }
-      $.ajax = ajax;
       App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
     JS
 
@@ -235,12 +285,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Submitted during a stalled save'
 
+    stall_draft_requests
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (/\\/drafts(\\/|$)/.test(options.url)) return $.Deferred().promise();
-        return ajax.apply(this, arguments);
-      };
       App_post.submit_wait_ms = 2000;
       tinymce.get('post_content').setContent('Body');
       $("#form-post input[name='categories[]']:first").prop("checked", true);
@@ -262,13 +308,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Failed after the hold ended'
 
+    fail_draft_requests(1500)
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        setTimeout(function () { options.error({}, 'error', ''); }, 1500);
-        return $.Deferred().promise();
-      };
       App_post.submit_wait_ms = 500;
       window.delegatedRuns = 0;
       $('body').on('submit', 'form#form-post', function () { window.delegatedRuns++; return false; });
@@ -292,13 +333,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Submitted after a failed save'
 
+    fail_draft_requests(200)
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        setTimeout(function () { options.error({}, 'error', ''); }, 200);
-        return $.Deferred().promise();
-      };
       App_post.submit_wait_ms = 20000;
       tinymce.get('post_content').setContent('Body');
       $("#form-post input[name='categories[]']:first").prop("checked", true);
@@ -318,14 +354,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Submitted after a queued save threw'
 
+    delay_draft_requests(500)
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        var self = this, args = arguments;
-        setTimeout(function () { ajax.apply(self, args); }, 500);
-        return $.Deferred().promise();
-      };
       App_post.submit_wait_ms = 20000;
       // The first save's sync passes; the queued save's throws.
       var syncs = 0;
@@ -350,12 +380,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Held submit listeners'
 
+    stall_draft_requests
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (/\\/drafts(\\/|$)/.test(options.url)) return $.Deferred().promise();
-        return ajax.apply(this, arguments);
-      };
       App_post.submit_wait_ms = 1000;
       sessionStorage.setItem('submitListenerRuns', '0');
       $('#form-post').on('submit', function () {
@@ -399,12 +425,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Held on a form that left'
 
+    stall_draft_requests
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (/\\/drafts(\\/|$)/.test(options.url)) return $.Deferred().promise();
-        return ajax.apply(this, arguments);
-      };
       App_post.submit_wait_ms = 1000;
       tinymce.get('post_content').setContent('Body');
       $("#form-post input[name='categories[]']:first").prop("checked", true);
@@ -432,14 +454,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Held submit delegated'
 
+    delay_draft_requests(1000)
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        var self = this, args = arguments;
-        setTimeout(function () { ajax.apply(self, args); }, 1000);
-        return $.Deferred().promise();
-      };
       App_post.submit_wait_ms = 20000;
       window.delegatedRuns = 0;
       $('body').on('submit', 'form#form-post', function () {
@@ -469,12 +485,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Held submit button'
 
+    stall_draft_requests
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (/\\/drafts(\\/|$)/.test(options.url)) return $.Deferred().promise();
-        return ajax.apply(this, arguments);
-      };
       App_post.submit_wait_ms = 1000;
       $('body').on('submit', 'form#form-post', function () {
         window.sentFields = $(this).serialize();
@@ -502,14 +514,8 @@ describe 'Post editor draft autosave', :js do
     fill_in 'post_title', with: 'Held behind a queued save'
 
     # Every draft request is held back for a while, so the queued save is in flight for as long.
+    delay_draft_requests(1500)
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        var self = this, args = arguments;
-        setTimeout(function () { ajax.apply(self, args); }, 1500);
-        return $.Deferred().promise();
-      };
       App_post.submit_wait_ms = 20000;
       tinymce.get('post_content').setContent('Body');
       $("#form-post input[name='categories[]']:first").prop("checked", true);
@@ -717,14 +723,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Saved for the previous form'
 
+    delay_draft_requests(1000)
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        var self = this, args = arguments;
-        setTimeout(function () { ajax.apply(self, args); }, 1000);
-        return $.Deferred().promise();
-      };
       $(document).ajaxComplete(function (e, xhr, settings) {
         if (/\\/drafts(\\/|$)/.test(settings.url)) $('body').attr('data-draft-saved', 'ran');
       });
@@ -755,14 +755,8 @@ describe 'Post editor draft autosave', :js do
     fill_in 'post_title', with: 'Saved before the next form'
     count_draft_saves
 
+    delay_draft_requests(1000)
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        var self = this, args = arguments;
-        setTimeout(function () { ajax.apply(self, args); }, 1000);
-        return $.Deferred().promise();
-      };
       $(document).ajaxComplete(function (e, xhr, settings) {
         if (/\\/drafts(\\/|$)/.test(settings.url)) $('body').attr('data-draft-saved', 'ran');
       });
@@ -907,17 +901,18 @@ describe 'Post editor draft autosave', :js do
     fill_in 'post_title', with: 'Queued preview title'
 
     # The first draft request is held back for a while, so the click lands while it is in flight.
-    page.execute_script(<<~JS)
-      var ajax = $.ajax, held = false;
-      $.ajax = function (options) {
-        if (held || !/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        held = true;
-        var self = this, args = arguments;
-        setTimeout(function () { ajax.apply(self, args); }, 1500);
-        return $.Deferred().promise();
-      };
-      App_post.save_draft_ajax(null, true);
-    JS
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var held = false;
+        return function (options, send) {
+          if (held) return send();
+          held = true;
+          setTimeout(send, 1500);
+          return $.Deferred().promise();
+        };
+      })()
+    HANDLER
+    autosave_tick
     preview = window_opened_by { find('.btn-preview').click }
 
     within_window(preview) do
@@ -937,14 +932,7 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Refused preview title'
 
-    page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        setTimeout(function () { options.success({ error: ['the preview draft was refused'] }); }, 500);
-        return $.Deferred().promise();
-      };
-    JS
+    refuse_draft_requests('the preview draft was refused', 500)
     preview = window_opened_by { find('.btn-preview').click }
 
     expect(page).to have_css('#cama_alert_modal', text: 'the preview draft was refused')
@@ -961,13 +949,7 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Unsent preview title'
 
-    page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (/\\/drafts(\\/|$)/.test(options.url)) throw new Error('refused to send');
-        return ajax.apply(this, arguments);
-      };
-    JS
+    intercept_draft_requests("function () { throw new Error('refused to send'); }")
 
     expect { find('.btn-preview').click }.not_to(change { page.windows.size })
     expect(page).to have_no_css('#cama_custom_loading')
@@ -1002,13 +984,8 @@ describe 'Post editor draft autosave', :js do
     # The draft save is held back until the example refuses it. The title is empty throughout: the first
     # submit is one the validator was told to skip, the second is not. A listener behind the validator's
     # keeps the page either way.
+    intercept_draft_requests('function (options) { window.draftRequest = options; return $.Deferred().promise(); }')
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        window.draftRequest = options;
-        return $.Deferred().promise();
-      };
       $('body').on('submit', 'form#form-post', function () { return false; });
       App_post.save_draft_ajax(null, false);
       $('#form-post').data('validator').cancelSubmit = true;
@@ -1045,14 +1022,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Saved draft before the next form'
 
+    delay_draft_requests(1000)
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        var self = this, args = arguments;
-        setTimeout(function () { ajax.apply(self, args); }, 1000);
-        return $.Deferred().promise();
-      };
       App_post.save_draft();
       // What opening another post in place leaves behind while the save runs: the previous form is gone
       // and the script's form is the next one.
@@ -1077,13 +1048,8 @@ describe 'Post editor draft autosave', :js do
     fill_in 'post_title', with: 'Refused draft title'
 
     # The save is held for a while so the overlay can be seen, then refused as the server would.
+    refuse_draft_requests('the draft was refused', 1000)
     page.execute_script(<<~JS)
-      var ajax = $.ajax;
-      $.ajax = function (options) {
-        if (!/\\/drafts(\\/|$)/.test(options.url)) return ajax.apply(this, arguments);
-        setTimeout(function () { options.success({ error: ['the draft was refused'] }); }, 1000);
-        return $.Deferred().promise();
-      };
       App_post.save_draft();
     JS
 
