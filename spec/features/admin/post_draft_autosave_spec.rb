@@ -906,6 +906,46 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Held behind a queued save', status: 'published')).to be_present
   end
 
+  # Save Draft puts the overlay up and its callback leaves the page; queued behind a save whose caller took
+  # the overlay down, it must run under the overlay again, or edits typed meanwhile are lost to the redirect.
+  it 'keeps the overlay for a Save Draft queued behind another save' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved Draft behind another save'
+
+    delay_draft_requests(1500)
+    page.execute_script(<<~JS)
+      showLoading();
+      App_post.save_draft_ajax(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
+      App_post.save_draft();
+    JS
+
+    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
+  end
+
+  # A plugin's call put no overlay up and its callback takes none down: restored for it, the overlay would
+  # stay for good.
+  it 'leaves the overlay down for a plugin save queued behind another save' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Plugin save behind another save'
+
+    delay_draft_requests(1500)
+    page.execute_script(<<~JS)
+      showLoading();
+      App_post.save_draft_ajax(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
+      window.save_draft(function () { $('body').attr('data-plugin-save', 'ran'); });
+    JS
+
+    # The queued save is drained inside the first save's completion, so its overlay, if any, is up by now.
+    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_css('body[data-plugin-save="ran"]', wait: 5)
+    expect(page).to have_no_css('#cama_custom_loading')
+  end
+
   # A stalled request fails after save_timeout_ms, or Preview and Save Draft stay dead until the browser
   # gives up.
   it 'fails a draft save that has not returned after save_timeout_ms' do

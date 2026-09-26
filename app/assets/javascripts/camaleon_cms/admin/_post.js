@@ -35,6 +35,9 @@ function cama_init_post(obj) {
     var edited_before_baseline = false;
     var saving = false;
     var queued_saves = [];
+    // Set by the script's own callers (Save Draft, Preview) around their call: they put the overlay up and
+    // take it down, so a save of theirs drained from the queue gets it back. A plugin's call is left alone.
+    var under_overlay = false;
     var submit_wait_timer = null;
     var held_form = null;
     var held_submitter = null;
@@ -74,7 +77,7 @@ function cama_init_post(obj) {
         if (saving) {
             // One timer call in the queue is enough: it compares the form once when drained.
             if (called_from_interval && $.grep(queued_saves, function (queued) { return queued.from_timer; }).length) return;
-            queued_saves.push({callback: callback, from_timer: called_from_interval, on_failure: on_failure});
+            queued_saves.push({callback: callback, from_timer: called_from_interval, on_failure: on_failure, overlay: under_overlay});
             return;
         }
         if (called_from_interval) {
@@ -203,6 +206,8 @@ function cama_init_post(obj) {
             // error is reported separately, since this may run inside the finished save's own error path.
             while (!saving && queued_saves.length) {
                 var queued = queued_saves.shift();
+                // Made under the overlay, which the finished save's caller took down: put it back for this one.
+                if (queued.overlay) showLoading();
                 try { save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure); }
                 catch (drained_error) { report_later(drained_error); }
             }
@@ -258,15 +263,23 @@ function cama_init_post(obj) {
         });
     }
 
+    // A save made under the overlay by the script's own callers (through App_post.save_draft_ajax, so a
+    // plugin's wrapper runs); queued, it gets the overlay back when it is drained.
+    function save_under_overlay(callback, on_failure) {
+        showLoading();
+        under_overlay = true;
+        try { App_post.save_draft_ajax(callback, false, on_failure); }
+        finally { under_overlay = false; }
+    }
+
     // Under the overlay while it saves: the callback leaves the page, and an edit made meanwhile would be lost.
     App_post.save_draft = function () {
-        showLoading();
-        App_post.save_draft_ajax(function () {
+        save_under_overlay(function () {
             // Another form was loaded in place meanwhile (Back is not under the overlay): leave it its page.
             if ($form[0] !== post_form) { hideLoading(); return; }
             $form.data("submitted", 1);
             location.href = _posts_path + '?flash[notice]=' + encodeURIComponent(I18n("msg.draft"))
-        }, false, hideLoading);
+        }, hideLoading);
     }
     if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
     // Stops once the form has left the page ($form still holds the removed element, so its length says nothing).
@@ -351,12 +364,11 @@ function cama_init_post(obj) {
                 // Opened in the click: a popup blocker refuses a window opened from the async callback.
                 var preview = window.open('', '_blank');
                 if (preview) preview.opener = null;
-                showLoading();
-                App_post.save_draft_ajax(function(){
+                save_under_overlay(function(){
                     hideLoading();
                     if (preview) preview.location.href = link.prop('href');
                     else window.open(link.prop('href'), '_blank');
-                }, false, function(){
+                }, function(){
                     hideLoading();
                     if (preview) preview.close();
                 });

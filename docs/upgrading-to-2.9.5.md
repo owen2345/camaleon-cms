@@ -389,7 +389,7 @@ A third argument, `on_failure`, runs when the save does not succeed:
 
 A failed request the caller asked for (not the timer's) shows an error, unless a submit is waiting on the
 save or the save was aborted: the post save reports for itself then. A call made during a save waits for
-it and reuses its draft id. `App_post.submit_wait_ms` and `App_post.save_timeout_ms` are defaulted only
+it and reuses its draft id, and runs without the overlay unless it was Save Draft's or Preview's. `App_post.submit_wait_ms` and `App_post.save_timeout_ms` are defaulted only
 when unset, so `0` is kept (no hold, no timeout). A wrapper on `$.ajax` must return the jqXHR, or the
 editor cannot abort the request.
 
