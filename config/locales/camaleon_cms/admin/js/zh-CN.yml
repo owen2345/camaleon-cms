@@ -6,6 +6,7 @@ zh-CN:
         msg:
           approved: '批准'
           draft: '保存草稿成功'
+          draft_save_failed: '草稿保存失败'
           updated_success: '已成功更新'
           edit_menu: '按照您喜欢的顺序放置每个项目。单击铅笔的图标以编辑项目，然后单击 x 形式的图标以删除项目。'
           delete_item: '真的要删除此项吗？'

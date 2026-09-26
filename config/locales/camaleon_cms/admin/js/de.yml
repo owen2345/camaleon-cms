@@ -6,6 +6,7 @@ de:
         msg:
           approved: 'Freigegeben'
           draft: 'Entwurft erfolgreich gespeichert'
+          draft_save_failed: 'Der Entwurf konnte nicht gespeichert werden'
           updated_success: 'Erfolgreich aktualisiert'
           edit_menu: 'Sortiere die Menüelemente nach deinem Geschmack. Klicke auf den Stift um das Element zu bearbeiten. Klick auf das X um das Element zu löschen.'
           delete_item: 'Willst du dieses Item wirklich löschen?'
