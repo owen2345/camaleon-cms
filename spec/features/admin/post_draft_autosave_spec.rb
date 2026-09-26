@@ -972,6 +972,33 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
   end
 
+  # The wrapper may send the call once the running save has finished and its caller took the overlay down:
+  # Save Draft's save finds no save to queue behind, and puts the overlay back as it starts.
+  it 'puts the overlay back for a Save Draft a wrapper sends once the overlay was taken down' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved Draft sent late by a wrapper'
+
+    delay_draft_requests(1000)
+    # The wrapper holds the call back until the example sends it.
+    page.execute_script(<<~JS)
+      var save = App_post.save_draft_ajax;
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        window.sendDeferredSave = function () { save(callback, called_from_interval, on_failure); };
+      };
+      showLoading();
+      save(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
+      App_post.save_draft();
+    JS
+    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(page).to have_no_css('#cama_custom_loading')
+
+    page.execute_script('window.sendDeferredSave();')
+
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
+  end
+
   # A plugin's call put no overlay up and its callback takes none down: restored for it, the overlay would
   # stay for good.
   it 'leaves the overlay down for a plugin save queued behind another save' do

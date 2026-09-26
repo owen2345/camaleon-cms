@@ -36,9 +36,10 @@ function cama_init_post(obj) {
     var saving = false;
     var queued_saves = [];
     // Set by the script's own callers (Save Draft, Preview) around their call and consumed by the call: they
-    // put the overlay up and take it down, so a save of theirs drained from the queue gets it back. A
-    // plugin's call is left alone, one a change handler makes during that call's sync included. The
-    // callback carries the same mark, for a call a plugin's wrapper makes later.
+    // put the overlay up and take it down, so a save of theirs puts it back as it starts (it may have
+    // waited in the queue, or in a plugin's wrapper, while the overlay came down). A plugin's call is left
+    // alone, one a change handler makes during that call's sync included. The callback carries the same
+    // mark, for a call a plugin's wrapper makes later.
     var under_overlay = false;
     var submit_wait_timer = null;
     var held_form = null;
@@ -91,6 +92,8 @@ function cama_init_post(obj) {
             var current = get_hash_form();
             if (current == saved_hash || current == refused_hash) return;
         }
+        // The finished save's caller, or an alert, may have taken the overlay down while this call waited.
+        if (overlay) showLoading();
 
         // Locked before the sync, so a save a change handler asks for queues instead of running beside this one.
         saving = true;
@@ -210,8 +213,8 @@ function cama_init_post(obj) {
             // error is reported separately, since this may run inside the finished save's own error path.
             while (!saving && queued_saves.length) {
                 var queued = queued_saves.shift();
-                // Made under the overlay, which the finished save's caller took down: put it back for this one.
-                if (queued.overlay) showLoading();
+                // Made under the overlay: flagged again, the call puts it back.
+                under_overlay = queued.overlay;
                 try { save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure); }
                 catch (drained_error) { report_later(drained_error); }
             }
@@ -275,9 +278,9 @@ function cama_init_post(obj) {
     }
 
     // A save made under the overlay by the script's own callers (through App_post.save_draft_ajax, so a
-    // plugin's wrapper runs); queued, it gets the overlay back when it is drained. The call is known by the
-    // flag while it runs and by its callback after it returned: a wrapper may defer the call, or wrap the
-    // callback, not both.
+    // plugin's wrapper runs); started later, from the queue or by the wrapper, it puts the overlay back.
+    // The call is known by the flag while it runs and by its callback after it returned: a wrapper may
+    // defer the call, or wrap the callback, not both.
     function save_under_overlay(callback, on_failure) {
         showLoading();
         callback.under_overlay = true;
