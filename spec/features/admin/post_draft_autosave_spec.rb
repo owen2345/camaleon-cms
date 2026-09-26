@@ -1406,6 +1406,30 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(2)
   end
 
+  # A control outside the form that names it (`form="form-post"`, as a theme's sidebar field may) is one of
+  # the form's controls: the browser and serializeObject send it. The comparison walked the form's
+  # descendants only, so an edit to such a control was sent by the next save the user asked for but never
+  # made the timer send, and leaving the page did not ask about it.
+  it 'autosaves an edit to a control outside the form that names it' do
+    visit new_post_path
+    wait_for_editor_baseline
+    count_draft_saves
+
+    # A save the user asks for always sends, and records the form with the new control in it.
+    page.execute_script(<<~JS)
+      $('body').append('<input type="hidden" id="outside_probe" name="outside_probe" form="form-post" value="">');
+      App_post.save_draft_ajax(null, false);
+    JS
+    wait_for_ajax
+    expect(draft_saves).to eq(1)
+
+    page.execute_script("$('#outside_probe').val('edited');")
+    autosave_tick
+
+    expect(draft_saves).to eq(2)
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+  end
+
   # The comparison reads the editors themselves, and a save sends what they hold.
   it 'autosaves an edit made in the editor alone' do
     visit new_post_path
