@@ -123,7 +123,7 @@ function cama_init_post(obj) {
         // and one the fallback wait already sent has gone the same way: the post save reports for itself.
         function request_failed() {
             if (!called_from_interval && !held_form && !submit_sent_while_saving) {
-                $.fn.alert({type: 'error', title: I18n("msg.draft_save_failed", "The draft could not be saved"), icon: "times"});
+                show_error(I18n("msg.draft_save_failed", "The draft could not be saved"));
             }
             if (on_failure) on_failure();
         }
@@ -161,7 +161,7 @@ function cama_init_post(obj) {
                         // own wait then, as when this save fails or succeeds: dropped here, its overlay would stay
                         // up with no alert to take it down.
                         if (!submit_sent_while_saving) {
-                            $.fn.alert({type: 'error', title: $('<div>').text(refusal).html(), icon: "times"});
+                            show_error($('<div>').text(refusal).html());
                             var validator = held_form && $(held_form).data('validator');
                             if (validator) validator.cancelSubmit = false;
                             drop_hold();
@@ -253,6 +253,11 @@ function cama_init_post(obj) {
         } finally {
             releasing_form = null;
         }
+    }
+
+    // The alert takes the overlay down itself ($.fn.alert calls hideLoading).
+    function show_error(text) {
+        $.fn.alert({type: 'error', title: text, icon: "times"});
     }
 
     function drop_hold() {
