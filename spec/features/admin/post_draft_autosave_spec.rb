@@ -158,6 +158,44 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.queuedSaveRan')).to be(true)
   end
 
+  # A timer call that lands while a save runs waits behind it and, drained, compares the form once. A
+  # second one waiting would compare the same form again, and on a request that never returns (a
+  # save_timeout_ms of 0) the queue would grow by one a minute. One timer call waits at a time.
+  it 'queues one timer call behind a running save' do
+    visit new_post_path
+    wait_for_editor_baseline
+    # Draft requests are counted as the editor makes them and sent a second later.
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        window.draftRequests = 0;
+        window.draftsDone = 0;
+        return function (options, send) {
+          window.draftRequests++;
+          setTimeout(function () { send().always(function () { window.draftsDone++; }); }, 1000);
+          return $.Deferred().promise();
+        };
+      })()
+    HANDLER
+
+    page.execute_script(<<~JS)
+      $('#post_title').val('First').trigger('keyup');
+      App_post.save_draft_ajax(null, false);
+      App_post.save_draft_ajax(null, true);
+      App_post.save_draft_ajax(null, true);
+      $('#post_title').val('Second').trigger('keyup');
+    JS
+    # The first save returns and the timer call waiting behind it sends the edit made meanwhile.
+    Timeout.timeout(5) { sleep(0.1) until page.evaluate_script('window.draftRequests') == 2 }
+    page.execute_script("$('#post_title').val('Third').trigger('keyup');")
+    Timeout.timeout(5) { sleep(0.1) until page.evaluate_script('window.draftsDone') == 2 }
+
+    # A second timer call waiting would have sent the third title as the second save returned.
+    expect(page.evaluate_script('window.draftRequests')).to eq(2)
+    autosave_tick
+    expect(page.evaluate_script('window.draftRequests')).to eq(3)
+    Timeout.timeout(5) { sleep(0.1) until page.evaluate_script('window.draftsDone') == 3 }
+  end
+
   # jQuery skips an ajax call's `complete` handler when its success handler throws, so a failing
   # callback must not leave the save lock held: later saves would queue forever and a submit
   # would wait for them forever.

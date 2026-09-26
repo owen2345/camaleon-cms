@@ -48,6 +48,9 @@ function cama_init_post(obj) {
     App_post.save_draft_ajax = save_draft_ajax;
     function save_draft_ajax(callback, called_from_interval, on_failure) {
         if (saving) {
+            // One timer call waits at a time: drained, it compares the form once, and another would compare
+            // the same form again (on a request that never returns, one more every minute).
+            if (called_from_interval && $.grep(queued_saves, function (queued) { return queued[1]; }).length) return;
             queued_saves.push([callback, called_from_interval, on_failure]);
             return;
         }
