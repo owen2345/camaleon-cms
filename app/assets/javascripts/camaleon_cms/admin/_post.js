@@ -216,7 +216,7 @@ function cama_init_post(obj) {
             }
         }
         if (!held_form) return;
-        // A hold that waits on for a queued save needs the overlay back: the finished save's caller took it down.
+        // A hold that waits for a queued save needs the overlay back: the finished save's caller took it down.
         if (saving) showLoading(); else send_held_submit();
     }
 
