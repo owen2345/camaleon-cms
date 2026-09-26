@@ -30,7 +30,7 @@ function cama_init_post(obj) {
     // Set by the user's own input in the form (a native input or change event: a value a script writes,
     // or jQuery's trigger, fires none), read while the baseline is still to come.
     var touched = false;
-    // The baseline was taken after the user had edited the form (typed in it, or an editor gone dirty):
+    // The baseline was taken after the user had edited the form (typed in it, or in one of its editors):
     // it absorbed the edit, so the form stays edited until it is submitted.
     var edited_before_baseline = false;
     var saving = false;
@@ -50,6 +50,14 @@ function cama_init_post(obj) {
     post_form.addEventListener('input', mark_touched);
     post_form.addEventListener('change', mark_touched);
     function mark_touched() { touched = true; }
+    // An edit in an editor fires no event on the form (the editor's document is its iframe's): the
+    // editor's own change event records it, fired for what adds to its undo levels (typing, pasting,
+    // formatting) and not by a script's setContent. Its dirty flag would not do: TinyMCE clears it
+    // whenever the editor's content is saved into its textarea, which the blur handler does.
+    function mark_editor_touched(e) { if ($.contains(post_form, e.target.getElement())) touched = true; }
+    function watch_editor_touch(e) { e.editor.on('change', mark_editor_touched); }
+    tinymce.on('AddEditor', watch_editor_touch);
+    $.each(tinymce.editors, function (i, editor) { editor.on('change', mark_editor_touched); });
     // Defaults, kept when a plugin or theme set them (zero included) before the editor came up.
     if (App_post.submit_wait_ms == null) App_post.submit_wait_ms = 15000;
     if (App_post.save_timeout_ms == null) App_post.save_timeout_ms = 30000;
@@ -534,7 +542,11 @@ function cama_init_post(obj) {
             taken = true;
             clearTimeout(give_up);
             tinymce.off('AddEditor', watch_editor);
-            $.each(tinymce.editors, function (i, editor) { editor.off('init', check); });
+            // The touch listeners have done their work: from here the form is compared.
+            tinymce.off('AddEditor', watch_editor_touch);
+            $.each(tinymce.editors, function (i, editor) { editor.off('init', check); editor.off('change', mark_editor_touched); });
+            post_form.removeEventListener('input', mark_touched);
+            post_form.removeEventListener('change', mark_touched);
             // The editor was set up on another form meanwhile (admin pages load in place, and the form
             // read here is the one the script was last set up on): that form takes its own baseline.
             if ($form[0] !== post_form) return;
@@ -542,7 +554,7 @@ function cama_init_post(obj) {
             // The user edited the form while it was still being set up: this baseline reads the edit as
             // the original. The form stays edited (form_edited), and the timer sends it, since the saved
             // state is set to match no form.
-            if (touched || editor_dirty()) edited_before_baseline = true;
+            if (touched) edited_before_baseline = true;
             // A draft save that ran meanwhile already recorded what it sent; later edits are still unsaved.
             if (saved_hash === null) saved_hash = edited_before_baseline ? '' : hash;
             $form.data("hash", hash);
@@ -556,16 +568,12 @@ function cama_init_post(obj) {
 
     // The leave prompt's question. Before the baseline the form is still being set up (an editor coming
     // up normalizes its textarea, a widget writes its value), so a comparison would read setup as an
-    // edit: until then the form counts as edited when the user typed or clicked in it, or an editor that
-    // has come up is dirty (TinyMCE keeps that from its undo levels, not from a script's setContent).
+    // edit: until then the form counts as edited when the user typed or clicked in it, or in one of its
+    // editors (see mark_touched and mark_editor_touched).
     function form_edited() {
         if (edited_before_baseline) return true;
-        if ($form.data("hash") === undefined) return touched || editor_dirty();
+        if ($form.data("hash") === undefined) return touched;
         return $form.data("hash") != get_hash_form();
-    }
-
-    function editor_dirty() {
-        return $.grep(form_editors(), function (editor) { return editor.isDirty(); }).length > 0;
     }
 
     function editors_ready() {

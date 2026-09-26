@@ -970,6 +970,35 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
   end
 
+  # TinyMCE clears an editor's dirty flag whenever the editor's content is saved into its textarea, which
+  # the editor's blur handler does: an edit typed in the editor and then left, while the baseline still
+  # waits, is an edit all the same, so the editor's own change event has to have recorded it.
+  it 'keeps prompting for an edit typed in the editor before the baseline once the editor loses focus' do
+    post = site.the_post('sample-post')
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
+    count_draft_saves
+    page.execute_script(<<~JS)
+      $('#form-post').append('<textarea id="late_editor" name="late_editor" class="tinymce_textarea"></textarea>');
+    JS
+    expect(page).to have_css('#post_content_ifr')
+    wait_for_leave_prompt
+    expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
+
+    within_frame('post_content_ifr') { find('body').send_keys('Typed, then left') }
+    find_by_id('post_title').click
+
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+    page.execute_script("tinymce.init(cama_get_tinymce_settings({ selector: '#late_editor', height: 100 }));")
+    wait_for_editor_baseline
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+    autosave_tick
+    wait_for_ajax
+    expect(draft_saves).to eq(1)
+    expect(CamaleonCms::Post.where(post_parent: post.id,
+                                   status: 'draft_child').last.content).to include('Typed, then left')
+  end
+
   # Admin pages load in place, so a baseline still waiting for an editor when the user opens another
   # page outlives its form: by the time the editor comes up (or the wait gives up) the script's form is
   # the next page's, which takes a baseline of its own, and the old wait must leave it alone and must not

@@ -41,7 +41,7 @@ The post editor's minute timer SHALL send a draft save only when the form differ
 
 ### Requirement: The load baseline is taken once the form's editors are ready, and the comparison reads them
 
-The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the post form has initialized, re-checked on each editor's `init` event, and taken as the form stands after ten seconds if an editor never comes up. The comparison SHALL read each editor's content from the editor, SHALL NOT write into its textarea, SHALL ignore an editor outside the form, and SHALL leave out the draft id field and the hidden original of a translated field. Fields SHALL be matched to editors by their own id, so a field whose id is an inherited object property name is still compared. Until the baseline is taken, the leave-page prompt SHALL NOT compare the form: it SHALL fire only when the user has typed or clicked in the form (a native `input` or `change` event; a value a script writes fires none) or an initialized editor of the form is dirty. A baseline taken after such an edit SHALL keep the form edited until it is submitted, and the first timer tick after it SHALL send the form.
+The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the post form has initialized, re-checked on each editor's `init` event, and taken as the form stands after ten seconds if an editor never comes up. The comparison SHALL read each editor's content from the editor, SHALL NOT write into its textarea, SHALL ignore an editor outside the form, and SHALL leave out the draft id field and the hidden original of a translated field. Fields SHALL be matched to editors by their own id, so a field whose id is an inherited object property name is still compared. Until the baseline is taken, the leave-page prompt SHALL NOT compare the form: it SHALL fire only when the user has typed or clicked in the form (a native `input` or `change` event; a value a script writes fires none) or an editor of the form has fired its `change` event (the user's typing, pasting or formatting; a script's `setContent` fires none). The editor's dirty flag SHALL NOT be read for this: TinyMCE clears it whenever the editor's content is saved into its textarea, which its blur handler does. A baseline taken after such an edit SHALL keep the form edited until it is submitted, and the first timer tick after it SHALL send the form.
 
 #### Scenario: An untouched post with a late editor stays unchanged
 
@@ -62,6 +62,11 @@ The baseline the leave-page prompt compares against SHALL be taken once every Ti
 
 - **WHEN** the content editor is typed in while the baseline waits for another editor of the form
 - **THEN** the prompt returns a message, before the baseline and after it
+
+#### Scenario: An editor typed in and then left before the baseline prompts
+
+- **WHEN** the content editor is typed in and then loses focus while the baseline waits for another editor of the form
+- **THEN** the prompt returns a message before the baseline and after it, and the first tick after the baseline sends the typed content
 
 #### Scenario: The comparison leaves a plugin's textarea export alone
 
