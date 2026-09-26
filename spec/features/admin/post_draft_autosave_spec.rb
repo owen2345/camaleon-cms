@@ -946,6 +946,31 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading')
   end
 
+  # Save Draft is flagged for the overlay around its own call only: a save a change handler asks for while
+  # Save Draft's editors are synced is the plugin's, and nothing of its would take the overlay down.
+  it 'leaves the overlay down for a plugin save a change handler queued during Save Draft\'s save' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Plugin save from a change handler'
+
+    # Save Draft's save is refused, which gives the editor back; the plugin's queued save is sent for real.
+    answer_first_draft_request("{ error: ['the draft was refused'] }", 500)
+    page.execute_script(<<~JS)
+      var asked = false;
+      $('#post_content').on('change', function () {
+        if (asked) return;
+        asked = true;
+        window.save_draft(function () { $('body').attr('data-plugin-save', 'ran'); });
+      });
+      App_post.save_draft();
+    JS
+
+    expect(page).to have_css('#cama_alert_modal', text: 'the draft was refused')
+    expect(page).to have_css('body[data-plugin-save="ran"]', wait: 5)
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(new_post_buffers.count).to eq(1)
+  end
+
   # A stalled request fails after save_timeout_ms, or Preview and Save Draft stay dead until the browser
   # gives up.
   it 'fails a draft save that has not returned after save_timeout_ms' do

@@ -35,8 +35,9 @@ function cama_init_post(obj) {
     var edited_before_baseline = false;
     var saving = false;
     var queued_saves = [];
-    // Set by the script's own callers (Save Draft, Preview) around their call: they put the overlay up and
-    // take it down, so a save of theirs drained from the queue gets it back. A plugin's call is left alone.
+    // Set by the script's own callers (Save Draft, Preview) around their call and consumed by the call: they
+    // put the overlay up and take it down, so a save of theirs drained from the queue gets it back. A
+    // plugin's call is left alone, one a change handler makes during that call's sync included.
     var under_overlay = false;
     var submit_wait_timer = null;
     var held_form = null;
@@ -67,6 +68,8 @@ function cama_init_post(obj) {
     // on_failure runs when the save is refused, fails, is aborted, is dropped or could not be sent.
     App_post.save_draft_ajax = save_draft_ajax;
     function save_draft_ajax(callback, called_from_interval, on_failure) {
+        var overlay = under_overlay;
+        under_overlay = false;
         // The page loaded another post's form in place: serializing it would send that post's content to
         // this draft. Dropped at once, so the caller's failure handler (which closes a Preview window or the
         // overlay) does not wait behind a save that is not its own.
@@ -77,7 +80,7 @@ function cama_init_post(obj) {
         if (saving) {
             // One timer call in the queue is enough: it compares the form once when drained.
             if (called_from_interval && $.grep(queued_saves, function (queued) { return queued.from_timer; }).length) return;
-            queued_saves.push({callback: callback, from_timer: called_from_interval, on_failure: on_failure, overlay: under_overlay});
+            queued_saves.push({callback: callback, from_timer: called_from_interval, on_failure: on_failure, overlay: overlay});
             return;
         }
         if (called_from_interval) {
