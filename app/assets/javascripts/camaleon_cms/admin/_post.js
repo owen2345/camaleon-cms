@@ -585,7 +585,7 @@ function cama_init_post(obj) {
     function editors_ready() {
         var ready = true;
         // A textarea the editor has not been created for yet; one created but still loading is caught below.
-        $form.find(editor_selector).each(function () {
+        $(post_form).find(editor_selector).each(function () {
             if (!tinymce.get(this.id)) ready = false;
         });
         $.each(tinymce.editors, function (i, editor) {
@@ -595,9 +595,10 @@ function cama_init_post(obj) {
     }
 
     // Only the form's editors are the post's content: one a plugin puts elsewhere on the page (a modal)
-    // is neither compared nor sent.
+    // is neither compared nor sent. The form is the one this setup owns (post_form), as for every read
+    // and write below: $form may be a form the page loaded in place since.
     function in_form(editor) {
-        return $form.length > 0 && $.contains($form[0], editor.getElement());
+        return $.contains(post_form, editor.getElement());
     }
 
     // The form's editors that have come up: what is compared and what is sent. One still loading is
@@ -615,7 +616,7 @@ function cama_init_post(obj) {
         var editors = {};
         $.each(form_editors(), function (i, editor) { editors[editor.id] = editor.getContent(); });
         // An own-property check: `in` would also match an id every object inherits, like `constructor`.
-        var fields = $form.find(':input').not('#post_draft_id, .translated-item').filter(function () {
+        var fields = $(post_form).find(':input').not('#post_draft_id, .translated-item').filter(function () {
             return !Object.prototype.hasOwnProperty.call(editors, this.id);
         });
         return fields.serialize() + '&' + $.param(editors);
@@ -633,7 +634,7 @@ function cama_init_post(obj) {
             $(editor.getElement()).val(editor.getContent()).trigger("change");
             return editor.getElement();
         });
-        $form.find('.trans_panel').each(function () {
+        $(post_form).find('.trans_panel').each(function () {
             $(this).find('.translate-item').not(synced).first().trigger('change_in');
         });
     }
