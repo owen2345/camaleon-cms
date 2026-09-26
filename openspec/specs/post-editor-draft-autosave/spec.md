@@ -60,7 +60,7 @@ The baseline the leave-page prompt compares against SHALL be taken once every Ti
 
 ### Requirement: Draft saves are asynchronous and run one at a time
 
-A draft save SHALL NOT block the page. One save SHALL run at a time: a save requested while one runs SHALL wait for it and reuse the draft id it returns, so a new post never gets a second buffer; a queued timer call with nothing to send SHALL NOT hold up the saves behind it; one timer call SHALL wait at a time, a tick landing while one waits being dropped; a queued call SHALL be run by the editor's own function, so a wrapper a plugin installed on `App_post.save_draft_ajax` runs once per call. The lock SHALL be taken before the editors are synced into their textareas, so a save a change handler asks for queues behind the one being prepared. The lock SHALL be released whatever the outcome, including a success callback that throws and a save that throws before it is sent (a change handler, `$.ajax`), in which case the caller's failure handler SHALL run. A save that has not returned after `App_post.save_timeout_ms`, and a response that names no draft (a decorated action answering `{}` or `null`), SHALL be taken as failed. A refused save SHALL show its messages as text, whether the response carries a list of them or one message, and run no success callback; the timer calls queued behind it SHALL send nothing, as the form is unchanged since the refusal, while a user's queued call still runs. The draft id and Preview links SHALL be written into the form the save was sent from. A queued call run after the page loaded another form in place SHALL be dropped, its failure handler run, and never sent for that form.
+A draft save SHALL NOT block the page. One save SHALL run at a time: a save requested while one runs SHALL wait for it and reuse the draft id it returns, so a new post never gets a second buffer; a queued timer call with nothing to send SHALL NOT hold up the saves behind it; one timer call SHALL wait at a time, a tick landing while one waits being dropped; a queued call SHALL be run by the editor's own function, so a wrapper a plugin installed on `App_post.save_draft_ajax` runs once per call. The lock SHALL be taken before the editors are synced into their textareas, so a save a change handler asks for queues behind the one being prepared. The lock SHALL be released whatever the outcome, including a success callback that throws and a save that throws before it is sent (a change handler, `$.ajax`), in which case the caller's failure handler SHALL run. A save that has not returned after `App_post.save_timeout_ms`, and a response that names no draft (a decorated action answering `{}` or `null`), SHALL be taken as failed. A refused save SHALL show its messages as text, whether the response carries a list of them or one message, and run no success callback; the timer calls queued behind it SHALL send nothing, as the form is unchanged since the refusal, while a user's queued call still runs. The draft id and Preview links SHALL be written into the form the save was sent from. A call made, or a queued call run, after the page loaded another form in place SHALL be dropped at once, its failure handler run, never queued behind a running save and never sent for that form.
 
 #### Scenario: Two overlapping autosaves create one buffer
 
@@ -136,6 +136,11 @@ A draft save SHALL NOT block the page. One save SHALL run at a time: a save requ
 
 - **WHEN** a save is queued behind a running one and the form is replaced by another form before it runs
 - **THEN** the queued save is not sent, its failure handler runs, and the first save's draft keeps its content
+
+#### Scenario: A call for a replaced form is dropped at once
+
+- **WHEN** a save is running and the form is replaced by another form, then a save with a failure handler is asked for
+- **THEN** the failure handler has run when the call returns
 
 ### Requirement: The Preview link and window name the draft the save created
 

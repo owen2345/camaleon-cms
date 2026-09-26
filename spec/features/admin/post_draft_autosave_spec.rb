@@ -844,6 +844,26 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved before the next form')
   end
 
+  # A call made for a form the setup no longer owns (a plugin kept the function from a page loaded earlier
+  # in place) is dropped at once, its failure handler run: queued behind a save still running, the handler,
+  # which takes down what the caller opened, would wait for a request that is not its own.
+  it 'drops a call for a replaced form at once while a save still runs' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Replaced while saving'
+
+    stall_draft_requests
+    page.execute_script(<<~JS)
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').detach();
+      $('body').append('<form id="form-post"></form>');
+      $form = $('#form-post');
+      App_post.save_draft_ajax(null, false, function () { window.laterCallDropped = true; });
+    JS
+
+    expect(page.evaluate_script('window.laterCallDropped')).to be(true)
+  end
+
   # A translated field is edited through its per-language copies, which the comparison reads; the hidden
   # original they compose is left out. The content's copies are the editors, matched by the copy's id.
   it 'autosaves an edit to a second language of a translated field' do

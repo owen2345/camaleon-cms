@@ -47,18 +47,19 @@ function cama_init_post(obj) {
     // on_failure runs when the save is refused, the request fails or it could not be sent.
     App_post.save_draft_ajax = save_draft_ajax;
     function save_draft_ajax(callback, called_from_interval, on_failure) {
+        // Called, or drained from the queue, after the page loaded another form in place: $form is that
+        // form now, and serializing it would send the other post's content to this post's draft. Dropped
+        // before it can queue, so the caller's failure handler, which takes down what it opened (a Preview
+        // window, the overlay), does not wait for a running save that is not its own.
+        if ($form[0] !== post_form) {
+            if (on_failure) on_failure();
+            return;
+        }
         if (saving) {
             // One timer call waits at a time: drained, it compares the form once, and another would compare
             // the same form again (on a request that never returns, one more every minute).
             if (called_from_interval && $.grep(queued_saves, function (queued) { return queued[1]; }).length) return;
             queued_saves.push([callback, called_from_interval, on_failure]);
-            return;
-        }
-        // Drained from the queue after the page loaded another form in place: $form is that form now, and
-        // serializing it would send the other post's content to this post's draft. The caller's failure
-        // handler takes down what it opened (a Preview window, the overlay).
-        if ($form[0] !== post_form) {
-            if (on_failure) on_failure();
             return;
         }
         if (called_from_interval) {
