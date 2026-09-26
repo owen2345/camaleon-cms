@@ -861,6 +861,32 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(1)
   end
 
+  # The post save removes the post's drafts. A timer call made while the browser still waits for its
+  # response (the form is on the page until the next one loads) used to send the form when it differed from
+  # the last successful save, writing a buffer after that removal, offered for recovery on the next edit.
+  it 'sends nothing from the timer once the post form was submitted' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Submitted, then edited'
+    count_draft_saves
+
+    # A listener behind the validator's keeps the page, as a post save whose response is still to come does.
+    # The editors are saved first: a jQuery-triggered submit reaches no listener of TinyMCE's, and the
+    # validator reads the textarea.
+    page.execute_script(<<~JS)
+      $('body').on('submit', 'form#form-post', function () { return false; });
+      #{publishable_post_js}
+      tinymce.triggerSave();
+      $('#form-post').submit();
+    JS
+    expect(page.evaluate_script('$("#form-post").data("submitted")')).to eq(1)
+
+    fill_in 'post_title', with: 'Edited after the submit'
+    autosave_tick
+    expect(draft_saves).to eq(0)
+    expect(new_post_buffers).to be_empty
+  end
+
   # Before the baseline there is nothing to compare the form with, and the page is still being set up (an
   # editor coming up rewrites its textarea): the leave prompt used to fire for an untouched post until then,
   # a second normally and ten when an editor never comes up. It fires only once the user has touched the form.

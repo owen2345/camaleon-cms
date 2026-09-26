@@ -73,7 +73,10 @@ function cama_init_post(obj) {
             return;
         }
         if (called_from_interval) {
-            if (saved_hash === null) return;
+            // Nothing before the baseline, and nothing once the form is submitted: the post save removes
+            // the drafts, and a save sent while its response is still to come would write a buffer after
+            // that, offered for recovery on the next edit.
+            if (saved_hash === null || $form.data("submitted")) return;
             var current = get_hash_form();
             if (current == saved_hash || current == refused_hash) return;
         }

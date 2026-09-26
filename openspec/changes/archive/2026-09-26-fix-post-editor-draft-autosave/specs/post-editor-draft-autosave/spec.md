@@ -2,12 +2,17 @@
 
 ### Requirement: The minute autosave sends only a form changed since its last successful save
 
-The post editor's minute timer SHALL send a draft save only when the form differs from the state the last successful draft save sent and from the state the last refused save sent (a refusal is decided by the content it names), both read after the editors were written into their textareas, and SHALL send nothing before the load baseline has been taken. A save the user asks for (Save Draft, Preview, a plugin's call) SHALL always be sent. The draft id field SHALL NOT count as a change.
+The post editor's minute timer SHALL send a draft save only when the form differs from the state the last successful draft save sent and from the state the last refused save sent (a refusal is decided by the content it names), both read after the editors were written into their textareas, and SHALL send nothing before the load baseline has been taken or once the form has been submitted (the post save removes the drafts). A save the user asks for (Save Draft, Preview, a plugin's call) SHALL always be sent. The draft id field SHALL NOT count as a change.
 
 #### Scenario: An unchanged form is not re-sent
 
 - **WHEN** the title is edited and an autosave tick runs, then a second tick runs with no further edit
 - **THEN** one draft request is sent, and a third tick after another edit sends a second
+
+#### Scenario: A submitted form is not sent by the timer
+
+- **WHEN** the post form is submitted, a listener keeps the page, the title is edited and an autosave tick runs
+- **THEN** no draft request is sent
 
 #### Scenario: A field written by an editor's change handler is recorded as sent
 
