@@ -106,8 +106,11 @@ function cama_init_post(obj) {
         } catch (e) {
             // The save threw before it was sent (a change handler, a plugin's $.ajax wrapper, a prefilter):
             // nothing will release the lock, and the caller's failure handler is the only way its overlay
-            // or window is taken down.
-            try { if (on_failure) on_failure(); } finally { save_finished(); }
+            // or window is taken down. The caller is told why the save could not be sent: a failure
+            // handler that throws does not replace that error, its own is reported as an uncaught one.
+            try { if (on_failure) on_failure(); }
+            catch (handler_error) { setTimeout(function () { throw handler_error; }); }
+            finally { save_finished(); }
             throw e;
         }
     }

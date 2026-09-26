@@ -266,6 +266,33 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
+  # A failure handler that throws must not replace the send's error: the caller is told why the save could
+  # not be sent, and the handler's own error is reported on its own, as an uncaught one.
+  it 'reports the send error to the caller when the failure handler of an unsent save throws' do
+    visit new_post_path
+    wait_for_editor_baseline
+
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var thrown = false;
+        return function (options, send) {
+          if (thrown) return send();
+          thrown = true;
+          throw new Error('refused to send');
+        };
+      })()
+    HANDLER
+    page.execute_script(<<~JS)
+      try {
+        App_post.save_draft_ajax(null, false, function () { throw new Error('handler failed'); });
+      } catch (e) { window.sendThrew = e.message; }
+      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+    JS
+
+    expect(page.evaluate_script('window.sendThrew')).to eq('refused to send')
+    expect(page).to have_css('body[data-later-save="ran"]')
+  end
+
   # The editors are synced into their textareas before a draft is serialized, and a change handler on one
   # may ask for a save of its own. That call has to queue behind the one being prepared, not run beside
   # it: on a new post, two concurrent creates make two buffers.
