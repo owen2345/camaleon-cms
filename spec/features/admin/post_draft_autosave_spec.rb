@@ -979,8 +979,9 @@ describe 'Post editor draft autosave', :js do
                                    status: 'draft_child').last.title).to eq('Typed before the baseline')
   end
 
-  # Typing in an editor fires no event on the form: an editor that has come up says itself whether it was
-  # edited (isDirty, kept from its undo levels), and a baseline still waiting for another editor reads it.
+  # Typing in an editor fires no event on the form: an editor that has come up says itself that it was
+  # edited (its change event, fired when its undo levels grow), and a baseline still waiting for another
+  # editor keeps what it said.
   it 'prompts to leave before the baseline when the content editor was typed in' do
     post = site.the_post('sample-post')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
