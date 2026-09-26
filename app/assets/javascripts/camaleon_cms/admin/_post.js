@@ -37,7 +37,8 @@ function cama_init_post(obj) {
     var queued_saves = [];
     // Set by the script's own callers (Save Draft, Preview) around their call and consumed by the call: they
     // put the overlay up and take it down, so a save of theirs drained from the queue gets it back. A
-    // plugin's call is left alone, one a change handler makes during that call's sync included.
+    // plugin's call is left alone, one a change handler makes during that call's sync included. The
+    // callback carries the same mark, for a call a plugin's wrapper makes later.
     var under_overlay = false;
     var submit_wait_timer = null;
     var held_form = null;
@@ -68,7 +69,7 @@ function cama_init_post(obj) {
     // on_failure runs when the save is refused, fails, is aborted, is dropped or could not be sent.
     App_post.save_draft_ajax = save_draft_ajax;
     function save_draft_ajax(callback, called_from_interval, on_failure) {
-        var overlay = under_overlay;
+        var overlay = under_overlay || !!(callback && callback.under_overlay);
         under_overlay = false;
         // The page loaded another post's form in place: serializing it would send that post's content to
         // this draft. Dropped at once, so the caller's failure handler (which closes a Preview window or the
@@ -273,9 +274,12 @@ function cama_init_post(obj) {
     }
 
     // A save made under the overlay by the script's own callers (through App_post.save_draft_ajax, so a
-    // plugin's wrapper runs); queued, it gets the overlay back when it is drained.
+    // plugin's wrapper runs); queued, it gets the overlay back when it is drained. The call is known by the
+    // flag while it runs and by its callback after it returned: a wrapper may defer the call, or wrap the
+    // callback, not both.
     function save_under_overlay(callback, on_failure) {
         showLoading();
+        callback.under_overlay = true;
         under_overlay = true;
         try { App_post.save_draft_ajax(callback, false, on_failure); }
         finally { under_overlay = false; }

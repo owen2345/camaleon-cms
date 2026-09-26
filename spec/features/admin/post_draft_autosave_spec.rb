@@ -949,6 +949,29 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.count).to eq(1)
   end
 
+  # A plugin's wrapper on App_post.save_draft_ajax may defer the call (a confirmation, an async check):
+  # Save Draft's save reaches the queue after its call returned, and is still its own.
+  it 'keeps the overlay for a Save Draft queued through a wrapper that defers the call' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved Draft through a deferring wrapper'
+
+    delay_draft_requests(1500)
+    page.execute_script(<<~JS)
+      var save = App_post.save_draft_ajax;
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        setTimeout(function () { save(callback, called_from_interval, on_failure); }, 100);
+      };
+      showLoading();
+      save(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
+      App_post.save_draft();
+    JS
+
+    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
+  end
+
   # A plugin's call put no overlay up and its callback takes none down: restored for it, the overlay would
   # stay for good.
   it 'leaves the overlay down for a plugin save queued behind another save' do
