@@ -205,7 +205,7 @@ A refused save SHALL show its messages as text, whether the response carries a l
 
 ### Requirement: A save belongs to the form it was sent from
 
-The draft id and Preview links SHALL be written into the form the save was sent from. A call made, or a queued call run, after the page loaded another post form in place SHALL be dropped at once, its failure handler run. A refusal or failure shown after the form left the page (another page loaded in place, with a post form of its own or none) SHALL name the post it is about, by its title as text.
+The draft id and Preview links SHALL be written into the form the save was sent from. A call made, or a queued call run, after the page loaded another post form in place SHALL be dropped at once, its failure handler run. A refusal or failure shown after the form left the page (another page loaded in place, with a post form of its own or none) SHALL name the post it is about, by its title as text (a translated title by the first language copy typed in).
 
 #### Scenario: A late response writes into its own form
 
@@ -221,6 +221,11 @@ The draft id and Preview links SHALL be written into the form the save was sent 
 
 - **WHEN** Save Draft's save fails after the post list was loaded in place of the form
 - **THEN** the failure is shown prefixed with the post's title
+
+#### Scenario: A translated post is named by the first title copy typed in
+
+- **WHEN** the title of a two-language post was typed in the second language only and Save Draft's save is refused after the form left the page
+- **THEN** the refusal is shown prefixed with that title
 
 #### Scenario: A queued save whose form was replaced is dropped
 

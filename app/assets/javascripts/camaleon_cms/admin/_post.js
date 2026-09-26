@@ -252,10 +252,11 @@ function cama_init_post(obj) {
 
     // The alert takes the overlay down itself ($.fn.alert calls hideLoading). Shown over another page (the
     // form left the page: one loaded in place while the save ran, with a post form of its own or none), it
-    // names the post it is about, by the title as it was typed.
+    // names the post it is about, by the title as it was typed: the first language copy typed in, or the
+    // field itself.
     function show_error(text) {
         if (!$.contains(document, post_form)) {
-            var title = $(post_form).find('.title-post' + class_translate).first().val();
+            var title = $(post_form).find('.title-post' + class_translate).filter(function () { return this.value.trim(); }).first().val();
             if (title) text = $('<div>').text(title).html() + ': ' + text;
         }
         $.fn.alert({type: 'error', title: text, icon: "times"});

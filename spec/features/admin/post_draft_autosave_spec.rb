@@ -1836,6 +1836,26 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading')
   end
 
+  # A translated title may be typed in a later language only: the alert names the post by the first copy
+  # that was typed in.
+  it 'names a translated post by the first title copy typed in' do
+    site.set_meta('languages_site', %w[en es])
+    visit new_post_path
+    wait_for_editor_baseline
+    page.execute_script(<<~JS)
+      $('.title-post.translate-item[data-translation_l="es"]').val('Título en español').trigger('change');
+    JS
+
+    refuse_draft_requests('the draft was refused', 1000)
+    page.execute_script(<<~JS)
+      App_post.save_draft();
+      $('#form-post').detach();
+    JS
+
+    expect(page).to have_css('#cama_alert_modal', text: 'Título en español: the draft was refused')
+    expect(page).to have_no_css('#cama_custom_loading')
+  end
+
   # The core refuses with a list; a decorated drafts action may send one message.
   it 'shows a refusal sent as one message and frees the editor' do
     visit new_post_path
