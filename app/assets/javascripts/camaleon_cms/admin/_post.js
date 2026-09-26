@@ -158,9 +158,9 @@ function cama_init_post(obj) {
                         // it would let the next submit through unvalidated.
                         // A refusal that returns after the fallback wait sent the held submit is not shown: the post
                         // save refuses the same content and re-renders the form with it (see request_failed). A
-                        // submit held since (the sent one kept the page, the user submitted again) is left to its
-                        // own wait then, as when this save fails or succeeds: dropped here, its overlay would stay
-                        // up with no alert to take it down.
+                        // submit held since (the sent one kept the page, the user submitted again) is not dropped
+                        // then (its overlay would stay up with no alert to take it down): it is sent as this save
+                        // finishes, as when the save fails or succeeds (see save_finished).
                         if (!submit_sent_while_saving) {
                             show_error($('<div>').text(refusal).html());
                             var validator = held_form && $(held_form).data('validator');
@@ -206,28 +206,31 @@ function cama_init_post(obj) {
 
     function save_finished() {
         saving = false;
-        // The fallback wait sent the held submit while the save ran: the form is submitted, and a save
-        // queued behind would write a buffer the post save leaves behind (see the timer's guard in
-        // save_draft_ajax) and report for a page the post save has. Each is dropped with its failure
-        // handler run, as a queued save for a replaced form is.
         if (submit_sent_while_saving) {
+            // The fallback wait sent the held submit while the save ran: the form is submitted, and a save
+            // queued behind would write a buffer the post save leaves behind (see the timer's guard in
+            // save_draft_ajax) and report for a page the post save has. Each is dropped with its failure
+            // handler run, as a queued save for a replaced form is.
             $.each(queued_saves.splice(0), function (i, queued) { if (queued.on_failure) queued.on_failure(); });
-            return;
-        }
-        // A queued timer call with nothing to send returns without saving, so go on to the next. Each is
-        // run from here, not through App_post.save_draft_ajax: a wrapper a plugin put there already ran
-        // when the call was made. One that throws before it is sent has run its own failure handler and
-        // drained the rest from its own error path; its error is reported as an uncaught one, so it does
-        // not replace an error the finished save may be raising to its own caller (this runs from that
-        // save's error path too, when it threw before it was sent).
-        while (!saving && queued_saves.length) {
-            var queued = queued_saves.shift();
-            try { save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure); }
-            catch (drained_error) { setTimeout(function () { throw drained_error; }); }
+        } else {
+            // A queued timer call with nothing to send returns without saving, so go on to the next. Each is
+            // run from here, not through App_post.save_draft_ajax: a wrapper a plugin put there already ran
+            // when the call was made. One that throws before it is sent has run its own failure handler and
+            // drained the rest from its own error path; its error is reported as an uncaught one, so it does
+            // not replace an error the finished save may be raising to its own caller (this runs from that
+            // save's error path too, when it threw before it was sent).
+            while (!saving && queued_saves.length) {
+                var queued = queued_saves.shift();
+                try { save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure); }
+                catch (drained_error) { setTimeout(function () { throw drained_error; }); }
+            }
         }
         if (!held_form) return;
         // A hold that goes on waiting, for the queued save just started, needs the overlay put back: the
-        // finished save's caller (Preview, Save Draft) takes it down in its callback.
+        // finished save's caller (Preview, Save Draft) takes it down in its callback. One held since the
+        // fallback wait sent a submit (the sent one kept the page, the user submitted again) is sent now,
+        // as any hold is once the save it waited for has returned: nothing is saving for it to wait out
+        // its own wait under the overlay, or without it once the caller's failure handler took it down.
         if (saving) showLoading(); else send_held_submit();
     }
 

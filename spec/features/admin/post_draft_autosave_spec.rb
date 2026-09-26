@@ -562,10 +562,10 @@ describe 'Post editor draft autosave', :js do
 
   # A refusal that returns after the fallback wait sent the held submit is not the draft's to act on either:
   # the post save has the page. A submit held since (the sent one kept the page, as an in-place plugin does,
-  # and the user submitted again while the draft save still ran) is left to its own wait, as it is when the
-  # save fails or succeeds: dropped with the refusal, its fallback timer was cleared with the overlay still
-  # up and no alert to take it down.
-  it 'leaves a submit held after the fallback sent one to its own wait when the save is refused' do
+  # and the user submitted again while the draft save still ran) is not dropped with the refusal (its
+  # fallback timer would be cleared with the overlay still up and no alert to take it down), nor left to
+  # wait out its own timer: it is sent as the save finishes, as any held submit is.
+  it 'sends a submit held after the fallback sent one when the save it waited for is refused' do
     visit new_post_path
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Held again after the hold ended'
@@ -582,10 +582,10 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
     expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
 
-    # The second submit lands while the draft save still runs and is held with a wait of its own, long
-    # enough for the refusal to return first.
+    # The second submit lands while the draft save still runs and is held with a wait of its own, one the
+    # refusal returns well before: the submit must not sit under the overlay until it ends.
     page.execute_script(<<~JS)
-      App_post.submit_wait_ms = 2000;
+      App_post.submit_wait_ms = 20000;
       $('#form-post').submit();
     JS
     expect(page).to have_css('#cama_custom_loading')
@@ -594,6 +594,39 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
     expect(page.evaluate_script('window.delegatedRuns')).to eq(2)
     expect(page).to have_no_css('#cama_alert_modal')
+  end
+
+  # The same when the save succeeds: its caller's failure handler runs (Save Draft's takes the overlay
+  # down), and the submit held since is sent as the save finishes, not once its own wait ends with the
+  # form open to edits meanwhile.
+  it 'sends a submit held after the fallback sent one when the save it waited for succeeds' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held again after the hold ended, saved'
+
+    intercept_draft_requests('function (options, send) { window.sendDraft = send; return $.Deferred().promise(); }')
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 500;
+      #{count_kept_submits_js}
+      #{publishable_post_js}
+      App_post.save_draft();
+      $('#form-post').submit();
+    JS
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    expect(page.evaluate_script('window.delegatedRuns')).to eq(1)
+
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 20000;
+      $('#form-post').submit();
+    JS
+    expect(page).to have_css('#cama_custom_loading')
+    page.execute_script('window.sendDraft();')
+
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    expect(page.evaluate_script('window.delegatedRuns')).to eq(2)
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect(new_post_buffers.order(:id).last.title).to eq('Held again after the hold ended, saved')
   end
 
   # Once the fallback wait has sent the held submit, the post save has the page: a draft save that then
