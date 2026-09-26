@@ -20,13 +20,16 @@ describe 'Post editor draft autosave', :js do
     CamaleonCms::Post.where(status: 'draft_child', post_parent: nil)
   end
 
+  # Polls until the block returns a truthy value, for a condition no Capybara matcher expresses.
+  def wait_until(seconds = 5)
+    Timeout.timeout(seconds) { sleep(0.1) until yield }
+  end
+
   # Waits until the editor has taken the form's baseline snapshot, which the autosave compares against.
   # The editor stops waiting for its TinyMCE editors after ten seconds, so the bound is above that.
   def wait_for_editor_baseline
     expect(page).to have_css('#form-post .sl-slug-edit', visible: :all)
-    Timeout.timeout(15) do
-      sleep(0.1) until page.evaluate_script('$("#form-post").data("hash") !== undefined')
-    end
+    wait_until(15) { page.evaluate_script('$("#form-post").data("hash") !== undefined') }
   end
 
   # Counts the draft requests the editor sends from here on (sync or async, ajaxSend fires on the call).
@@ -46,9 +49,7 @@ describe 'Post editor draft autosave', :js do
   # The leave prompt is installed with the editor script's own setup, which runs shortly after the page
   # loads; a baseline that waits for a delayed editor is taken later than that.
   def wait_for_leave_prompt
-    Timeout.timeout(5) do
-      sleep(0.1) until page.evaluate_script('typeof window.onbeforeunload === "function"')
-    end
+    wait_until { page.evaluate_script('typeof window.onbeforeunload === "function"') }
   end
 
   def autosave_tick
@@ -201,15 +202,15 @@ describe 'Post editor draft autosave', :js do
       $('#post_title').val('Second').trigger('keyup');
     JS
     # The first save returns and the timer call waiting behind it sends the edit made meanwhile.
-    Timeout.timeout(5) { sleep(0.1) until page.evaluate_script('window.draftRequests') == 2 }
+    wait_until { page.evaluate_script('window.draftRequests') == 2 }
     page.execute_script("$('#post_title').val('Third').trigger('keyup');")
-    Timeout.timeout(5) { sleep(0.1) until page.evaluate_script('window.draftsDone') == 2 }
+    wait_until { page.evaluate_script('window.draftsDone') == 2 }
 
     # A second timer call waiting would have sent the third title as the second save returned.
     expect(page.evaluate_script('window.draftRequests')).to eq(2)
     autosave_tick
     expect(page.evaluate_script('window.draftRequests')).to eq(3)
-    Timeout.timeout(5) { sleep(0.1) until page.evaluate_script('window.draftsDone') == 3 }
+    wait_until { page.evaluate_script('window.draftsDone') == 3 }
   end
 
   # jQuery skips an ajax call's `complete` handler when its success handler throws, so a failing
@@ -523,7 +524,7 @@ describe 'Post editor draft autosave', :js do
 
     expect(page).to have_css('#cama_custom_loading')
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    Timeout.timeout(5) { sleep(0.1) until new_post_buffers.exists? }
+    wait_until { new_post_buffers.exists? }
     sleep 1 # long enough for a callback that leaves the page to have left it
     expect(page).to have_current_path(new_post_path, ignore_query: true)
     expect(page).to have_no_css('#cama_custom_loading')
@@ -552,7 +553,7 @@ describe 'Post editor draft autosave', :js do
 
     expect(page).to have_css('#cama_custom_loading')
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
-    Timeout.timeout(5) { sleep(0.1) until new_post_buffers.exists? }
+    wait_until { new_post_buffers.exists? }
     expect(page.evaluate_script('window.queuedFailures')).to eq(1)
     sleep 1.5 # long enough for a queued save sent from the first one's return to have been sent
     expect(draft_saves).to eq(1)
@@ -838,7 +839,7 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
     expect(new_post_buffers.order(:id).last.title).to eq('Timed out')
     # Let the stalled request finish inside the example, where its rendering is harmless.
-    Timeout.timeout(5) { sleep(0.1) until stalled }
+    wait_until { stalled }
   end
 
   # A refused draft save (here a status the editor does not offer, refused for every role) must not
@@ -1046,9 +1047,7 @@ describe 'Post editor draft autosave', :js do
   it 'installs the leave prompt with the editor, before the baseline' do
     visit new_post_path
     # The editor's setup publishes window.save_draft as it runs; the prompt must be in place by then.
-    Timeout.timeout(5) do
-      sleep(0.01) until page.evaluate_script('typeof window.save_draft === "function"')
-    end
+    wait_until { page.evaluate_script('typeof window.save_draft === "function"') }
     expect(page.evaluate_script('typeof window.onbeforeunload')).to eq('function')
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
   end
@@ -1560,7 +1559,7 @@ describe 'Post editor draft autosave', :js do
       $form = $('#form-post');
     JS
 
-    Timeout.timeout(5) { sleep(0.1) until new_post_buffers.exists? }
+    wait_until { new_post_buffers.exists? }
     sleep 1 # long enough for a callback that leaves the page to have left it
     expect(page).to have_current_path(new_post_path, ignore_query: true)
     expect(page).to have_no_css('#cama_custom_loading')
