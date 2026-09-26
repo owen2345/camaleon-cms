@@ -8,6 +8,8 @@ function cama_init_post(obj) {
     }
 
     var class_translate = ".translate-item";
+    // The form's editors: the textareas TinyMCE is set up on, and the ones the baseline waits for.
+    var editor_selector = '.tinymce_textarea:not(.translated-item)';
 
     var post_id = obj.post_id;
     var post_draft_id = obj.post_draft_id;
@@ -395,9 +397,9 @@ function cama_init_post(obj) {
         }
     });
 
-    try{$(".tinymce_textarea:not(.translated-item)", $form).tinymce().destroy();}catch(e){}
+    try{$(editor_selector, $form).tinymce().destroy();}catch(e){}
     tinymce.init(cama_get_tinymce_settings({
-        selector: '.tinymce_textarea:not(.translated-item)',
+        selector: editor_selector,
         height: '480px',
         base_path: obj.base_path
     }));
@@ -580,7 +582,7 @@ function cama_init_post(obj) {
     function editors_ready() {
         var ready = true;
         // A textarea the editor has not been created for yet; one created but still loading is caught below.
-        $form.find('.tinymce_textarea:not(.translated-item)').each(function () {
+        $form.find(editor_selector).each(function () {
             if (!tinymce.get(this.id)) ready = false;
         });
         $.each(tinymce.editors, function (i, editor) {
