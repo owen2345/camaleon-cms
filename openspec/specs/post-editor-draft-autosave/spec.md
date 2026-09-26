@@ -152,6 +152,11 @@ A draft save SHALL NOT block the page. One save SHALL run at a time: a save requ
 - **WHEN** the drafts action answers with `error` set to one message rather than a list
 - **THEN** the message is shown, the overlay is taken down and the form stays
 
+#### Scenario: A refusal sent as messages keyed by field is shown
+
+- **WHEN** the drafts action answers with `error` set to an object of messages keyed by field, as a model's errors serialize
+- **THEN** each message is shown with its field, the overlay is taken down and the form stays
+
 #### Scenario: A late response writes into its own form
 
 - **WHEN** the form is replaced by another post form while a save is in flight

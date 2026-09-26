@@ -117,10 +117,17 @@ function cama_init_post(obj) {
             // jQuery skips `complete` when a success handler throws, so each handler releases the lock itself.
             success: function (res) {
                 try {
-                    // The core sends a list of messages; a decorated action may send one. A refusal names what
-                    // to fix: one that names nothing (`{error: []}`, a save a model callback aborted without an
-                    // error) is a failed request instead, reported as one and retried by the timer.
-                    var refusal = res && res.error ? $.trim([].concat(res.error).join(", ")) : '';
+                    // The core sends a list of messages; a decorated action may send one, or the model's errors
+                    // as they serialize, keyed by field. A refusal names what to fix: one that names nothing
+                    // (`{error: []}`, a save a model callback aborted without an error) is a failed request
+                    // instead, reported as one and retried by the timer.
+                    var messages = res && res.error;
+                    if ($.isPlainObject(messages)) {
+                        messages = $.map(messages, function (list, field) {
+                            return $.map([].concat(list), function (message) { return field + ' ' + message; });
+                        });
+                    }
+                    var refusal = messages ? [].concat(messages).join(", ").trim() : '';
                     if (refusal) {
                         // Render the messages as text ($.fn.alert feeds its title into an HTML sink and a
                         // refusal names the submitted key), and do NOT run the success callback -- it would

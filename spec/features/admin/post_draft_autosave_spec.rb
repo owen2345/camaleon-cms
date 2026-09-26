@@ -1305,6 +1305,27 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
+  # A decorated drafts action may answer with the model's errors as they serialize: messages keyed by
+  # the field they name. Rendered as text, the object read "[object Object]"; the messages are shown,
+  # each with its field.
+  it 'shows a refusal sent as messages keyed by field' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused by field'
+    intercept_draft_requests(<<~HANDLER)
+      function (options) {
+        setTimeout(function () { options.success({ error: { title: ['is too long'], slug: 'is taken' } }); }, 200);
+        return $.Deferred().promise();
+      }
+    HANDLER
+
+    page.execute_script('App_post.save_draft();')
+
+    expect(page).to have_css('#cama_alert_modal', text: 'title is too long, slug is taken')
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+  end
+
   # A refusal names what to fix. One that names nothing (`{ error: [] }`: a model callback aborted the
   # buffer's save without adding an error) was shown as an empty alert, dropped a held submit and kept
   # the timer from resending the form until it changed. It is a failed request instead: reported as one,
