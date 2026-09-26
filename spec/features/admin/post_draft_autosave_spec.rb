@@ -1029,6 +1029,26 @@ describe 'Post editor draft autosave', :js do
     expect(draft_saves).to eq(1)
   end
 
+  # A translated field's per-language copy composes the hidden original the server reads on its change
+  # event, which a text input fires once it loses focus. A tick that landed while the copy was still being
+  # typed in read the copy (the comparison does) but sent the original as it stood, and once the copy lost
+  # focus nothing was resent: the original is left out of the comparison. A send composes the originals
+  # from the copies first.
+  it 'sends a translated field typed in since its copy last lost focus' do
+    site.set_meta('languages_site', %w[en es])
+    visit new_post_path
+    wait_for_editor_baseline
+
+    # The value as typing leaves it before the field loses focus: no change event yet.
+    page.execute_script(<<~JS)
+      $('.title-post.translate-item[data-translation_l="es"]').val('Aún escribiendo').trigger('keyup');
+    JS
+    autosave_tick
+    wait_for_ajax
+
+    expect(new_post_buffers.order(:id).last.title).to include('<!--:es-->Aún escribiendo<!--:-->')
+  end
+
   # Comparing the form is a read. It used to write each editor's content back into its textarea, in
   # TinyMCE's serialization, so content a plugin had put into the textarea itself (camaleon_editor's
   # grid export, with its colors as rgb()) read back rewritten whenever the snapshot landed after it.

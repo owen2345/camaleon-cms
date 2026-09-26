@@ -29,6 +29,11 @@ The post editor's minute timer SHALL send a draft save only when the form differ
 - **WHEN** the site has two languages and only the second language's title and content are edited
 - **THEN** the next tick sends the draft with both values encoded, and the tick after it sends nothing
 
+#### Scenario: A translated copy still being typed in is sent as typed
+
+- **WHEN** the site has two languages and a tick lands while the second language's title is typed in, before the field has lost focus
+- **THEN** the draft is sent with the typed value encoded in the title
+
 ### Requirement: The load baseline is taken once the form's editors are ready, and the comparison reads them
 
 The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the post form has initialized, re-checked on each editor's `init` event, and taken as the form stands after ten seconds if an editor never comes up. The comparison SHALL read each editor's content from the editor, SHALL NOT write into its textarea, SHALL ignore an editor outside the form, and SHALL leave out the draft id field and the hidden original of a translated field. Fields SHALL be matched to editors by their own id, so a field whose id is an inherited object property name is still compared. Until the baseline is taken, the leave-page prompt SHALL NOT compare the form: it SHALL fire only when the user has typed or clicked in the form (a native `input` or `change` event; a value a script writes fires none) or an initialized editor of the form is dirty. A baseline taken after such an edit SHALL keep the form edited until it is submitted, and the first timer tick after it SHALL send the form.

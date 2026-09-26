@@ -584,11 +584,17 @@ function cama_init_post(obj) {
     }
 
     // Before the form is serialized for a save: each editor's content goes into its textarea, and
-    // through the textarea's change handlers into the hidden original of a translated field.
+    // through the textarea's change handlers into the hidden original of a translated field. The other
+    // translated fields compose their originals too, through the event their copies keep for it
+    // (change_in; a change would also run the copy's other handlers, the title's slug lookup): a copy
+    // still being typed in fires no change until it loses focus, and the comparison reads the copies,
+    // not the originals, so the original composed then would never be sent.
     function sync_editors() {
-        $.each(form_editors(), function (i, editor) {
+        var synced = $.map(form_editors(), function (editor) {
             $(editor.getElement()).val(editor.getContent()).trigger("change");
+            return editor.getElement();
         });
+        $form.find('.translate-item').not(synced).trigger('change_in');
     }
 
     if (obj.recover_draft == "true") {
