@@ -388,6 +388,11 @@ When `App_post.submit_wait_ms` passes with the save still running, the save SHAL
 - **WHEN** a save with a failure handler times out
 - **THEN** the handler runs and the alert shows the translated failure message
 
+#### Scenario: A failed save says nothing while a submit is held on it
+
+- **WHEN** a save the user asked for fails while a submit is held on it, and a listener keeps the page when the submit goes out
+- **THEN** the submit is dispatched once and no error is shown
+
 #### Scenario: A failed timer save is retried silently
 
 - **WHEN** the timer's save fails and the next tick runs with the form unchanged since

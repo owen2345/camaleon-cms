@@ -753,6 +753,27 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.find_by(title: 'Submitted after a failed save', status: 'published')).to be_present
   end
 
+  # The submit goes out next and the post save reports for itself, so the failed save says nothing (a
+  # listener keeps the page, where an alert would show).
+  it 'shows no error for a draft save that fails while a submit is held on it' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held on a save that fails'
+
+    fail_draft_requests(1000)
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 20000;
+      #{count_kept_submits_js}
+      #{publishable_post_js}
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+
+    expect_held_submit_delivered_once
+    expect(intercepted_draft_requests).to eq(1)
+    expect_no_alert
+  end
+
   # A queued save can throw before it is sent; the held submit must not wait out submit_wait_ms for it.
   it 'sends a held submit when the save it waited for throws on its way out of the queue' do
     visit new_post_path
