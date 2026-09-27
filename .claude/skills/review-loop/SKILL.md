@@ -44,8 +44,8 @@ Checked in order; only FIXED is applied, and no finding is left without a verdic
 2. Same claim as a DECISION or REFUTED row, on code no commit has touched since → REPEAT if DECISION, CONFLICT if REFUTED. If that code changed, treat the claim as new.
 3. Its fix would undo a commit already on this branch (`<base>..HEAD`) or go against a DECISION row → CONFLICT.
 4. Needs a design trade-off or the user's call → DECISION.
-5. Reuse, simplification or efficiency → FIXED, own commit (behavior-preserving: the checks prove it, no new spec). DEFERRED instead once cleanups are frozen (see below), or when a cleanup already reshaped that function or spec example in this run.
-6. Altitude, wording or coverage-only → FIXED in pass 1 (own commit), DEFERRED after.
+5. Reuse, simplification, efficiency or coverage-only → FIXED, own commit. A cleanup preserves behavior, so the checks prove it and it needs no new spec; a coverage-only fix is the new spec. DEFERRED instead once step 5 is frozen (see below); a cleanup is also DEFERRED when a cleanup already reshaped that function or spec example in this run.
+6. Altitude or wording → FIXED in pass 1 (own commit), DEFERRED after.
 7. A correctness or security defect → FIXED: own spec, own commit (`docs/ai/workflows.md` Phase 3).
 
 ## Checks
@@ -59,11 +59,11 @@ After each pass, in the foreground and in the checkout, the four checks in camal
 
 ## Pass states and stop
 
-- **SETTLED:** the pass ran to the end, applied no correctness or security fix (a failing spec fixed during the pass counts as one; cleanups and lint fixes may land), every check passed and the checkout's tree is clean.
+- **SETTLED:** the pass ran to the end, applied no correctness or security fix (a failing spec fixed during the pass counts as one; cleanups, coverage specs and lint fixes may land), every check passed and the checkout's tree is clean.
 - **CLEAN:** SETTLED, and applied nothing at all (HEAD unchanged).
 - **UNSETTLED:** anything else.
 
-Cleanups freeze after the first SETTLED pass of the run, and in pass 8: from then on, step 5 findings are DEFERRED. A converged run therefore ends on a pass that applied nothing, and every change it made was reviewed by a later pass.
+Step 5 freezes after the first SETTLED pass of the run, and in pass 8: from then on, its findings are DEFERRED. A converged run therefore ends on a pass that applied nothing, and every change it made was reviewed by a later pass.
 
 Stop when the latest pass is CLEAN and the one before it SETTLED or CLEAN (converged), after pass 8 (report it as not converged), at a second CONFLICT on the same claim, when a pass's diff undoes an earlier commit on this branch, or on a check failure you can't fix. For a conflict, show both sides.
 
@@ -73,4 +73,4 @@ Commit but don't push during the run. On STOP: push the checkout's branch once, 
 
 The goal's evaluator reads only the transcript, so end every turn with:
 
-PASS <n>/8 <repo> PR <pr> | HEAD <before> → <after> | git status: <clean, or the dirty paths> | rspec: <summary line> | checks: <ok, n/a or what failed, per check> | fixed: <x> correctness/security, <y> cleanup | cleanups: <on or frozen> | deferred <b>, repeat <c>, decision <d>, conflict <e> | <CLEAN, SETTLED or UNSETTLED> | <continue, or STOP: reason>
+PASS <n>/8 <repo> PR <pr> | HEAD <before> → <after> | git status: <clean, or the dirty paths> | rspec: <summary line> | checks: <ok, n/a or what failed, per check> | fixed: <x> correctness/security, <y> other | step 5: <on or frozen> | deferred <b>, repeat <c>, decision <d>, conflict <e> | <CLEAN, SETTLED or UNSETTLED> | <continue, or STOP: reason>
