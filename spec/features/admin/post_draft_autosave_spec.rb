@@ -1388,8 +1388,8 @@ describe 'Post editor draft autosave', :js do
   end
 
   # A wrapper may pass an earlier Save Draft call on through window.save_draft while a later one is on its
-  # way through it: the earlier call spends its own flag, not the later call's, so the later call, kept,
-  # still fails once save_timeout_ms passed.
+  # way through it: the earlier call is known by its own mark and window.save_draft sets the later call's
+  # flag aside, so the later call, kept, still fails once save_timeout_ms passed.
   it 'fails a Save Draft call a wrapper keeps while passing an earlier one on through window.save_draft' do
     open_new_post('Kept while an earlier call went on')
 
