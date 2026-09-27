@@ -55,7 +55,7 @@ Checked in order; only FIXED is applied, and no finding is left without a verdic
 After each pass, in the foreground and in the checkout, the four checks in camaleon-cms `AGENTS.md` "Verify before pushing", with rubocop first: `bin/rubocop -A` on the Ruby files the pass touched, then plain `bin/rubocop`, because autocorrect can rewrite string literals the specs must see. A check the repo doesn't have (the plugins carry no brakeman) is skipped and reported as n/a.
 
 - rspec runs the run's spec set plus the specs of any code the pass touched outside it (add them to the set). Judge it by the summary line, never a piped exit status: it passes only with 0 failures and no error outside of examples, since a spec file that fails to load stops every example and still prints `0 examples, 0 failures, 1 error occurred outside of examples`. While the set is empty (a docs-only branch), skip it and report rspec as n/a: `bin/rspec` with no files runs the whole suite.
-- Add `openspec validate --specs --strict` when the branch touches `openspec/`.
+- Add `openspec validate --all --strict` when the branch touches `openspec/` (`--specs` alone skips a change not yet archived).
 - Fix and commit any failure before the pass ends.
 - Only one `bin/rspec` per test DB at a time, subagents included: a subagent that must run specs uses `DATABASE_URL=sqlite3:<scratchpad>/db_<name>.sqlite3`.
 
