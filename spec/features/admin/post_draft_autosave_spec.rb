@@ -56,6 +56,11 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
+  # Picks a status the post editor does not offer, which the drafts action refuses.
+  def refused_status_js
+    %q{$('#post_status').append('<option value="bogus">bogus</option>').val('bogus');}
+  end
+
   def new_post_buffers
     CamaleonCms::Post.where(status: 'draft_child', post_parent: nil)
   end
@@ -1189,7 +1194,7 @@ describe 'Post editor draft autosave', :js do
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 1000;
       #{publishable_post_js}
-      $('#post_status').append('<option value="bogus">bogus</option>').val('bogus');
+      #{refused_status_js}
       App_post.save_draft_ajax(null, true);
       $('#form-post').submit();
     JS
@@ -1208,7 +1213,7 @@ describe 'Post editor draft autosave', :js do
     count_draft_saves
 
     page.execute_script(<<~JS)
-      $('#post_status').append('<option value="bogus">bogus</option>').val('bogus');
+      #{refused_status_js}
       App_post.save_draft_ajax(null, false);
       App_post.save_draft_ajax(null, true);
     JS
@@ -1225,7 +1230,7 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     count_draft_saves
 
-    page.execute_script("$('#post_status').append('<option value=\"bogus\">bogus</option>').val('bogus')")
+    page.execute_script(refused_status_js)
     autosave_tick
     expect(page).to have_css('#cama_alert_modal', text: 'post[status] is not a status the post editor offers')
     wait_for_ajax
