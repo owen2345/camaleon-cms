@@ -401,14 +401,15 @@ Three notes for code that wraps the save:
   once each. A call made through `window.save_draft` goes to the editor's function, not the wrapper, and
   each post form the editor is set up on, one loaded in place included, assigns both names again: a
   wrapper put on before that is gone.
-- Such a wrapper may send the call later or pass a callback of its own, not both: Save Draft's or
-  Preview's save is known by the call or by its callback; a save the wrapper makes of its own through
-  `window.save_draft` is not that call. One that is neither runs without the overlay when it starts
-  late, and counts as not passed on: unless its save has returned by then, it fails once
-  `App_post.save_timeout_ms` passed, and its callback may still run afterwards. A Save Draft or Preview
-  call the wrapper throws on before passing it on fails at once (the overlay comes down, Preview's
-  window closes); one it has not passed on after `App_post.save_timeout_ms` fails then, and is dropped
-  if it is passed on later.
+- Save Draft's or Preview's call is known by its callback or its failure handler, however the wrapper
+  passes it on, and by the call the wrapper makes at once through the function it wraps. Passed on
+  later, or through `window.save_draft`, with a callback and a failure handler of its own, it is not
+  known: its save runs without the overlay when it starts late, and the call counts as not passed on,
+  so unless the save has returned by then it fails once `App_post.save_timeout_ms` passed, and its
+  callback may still run afterwards. A save the wrapper makes of its own through `window.save_draft` is
+  a plugin's call. A Save Draft or Preview call the wrapper throws on before passing it on fails at once
+  (the overlay comes down, Preview's window closes); one it has not passed on after
+  `App_post.save_timeout_ms` fails then, and is dropped if it is passed on later.
 - A wrapper on `$.ajax` must return the jqXHR, or the editor cannot abort the request: the held submit
   then goes out with the save still running, and a submit made afterwards waits another
   `App_post.submit_wait_ms`.

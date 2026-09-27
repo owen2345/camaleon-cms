@@ -38,8 +38,9 @@ function cama_init_post(obj) {
     // put the overlay up and take it down, so a save of theirs puts it back as it starts (it may have
     // waited in the queue, or in a plugin's wrapper, while the overlay came down). A plugin's call is left
     // alone, one a change handler makes during that call's sync included, and so is one made through
-    // window.save_draft while that call is on its way through a wrapper. The callback carries the same
-    // mark, for a call a plugin's wrapper makes later.
+    // window.save_draft with handlers of its own while that call is on its way through a wrapper. The
+    // call's callback and failure handler carry the same mark, for a call a wrapper passes on later or
+    // through window.save_draft.
     var under_overlay = false;
     var submit_wait_timer = null;
     var held_form = null;
@@ -85,7 +86,7 @@ function cama_init_post(obj) {
     // on_failure runs when the save is refused, fails, is aborted, is dropped or could not be sent.
     App_post.save_draft_ajax = save_draft_ajax;
     function save_draft_ajax(callback, called_from_interval, on_failure) {
-        var call = callback && callback.under_overlay;
+        var call = (callback && callback.under_overlay) || (on_failure && on_failure.under_overlay);
         var overlay = under_overlay || !!call;
         under_overlay = false;
         // Save Draft's or Preview's call, passed on by a wrapper after the caller gave up waiting for it (see
@@ -311,18 +312,18 @@ function cama_init_post(obj) {
 
     // A save made under the overlay by the script's own callers (through App_post.save_draft_ajax, so a
     // plugin's wrapper runs); started later, from the queue or by the wrapper, it puts the overlay back.
-    // The call is known by the flag while it runs and by its callback after it returned: a wrapper may
-    // defer the call, or wrap the callback, not both. A call the wrapper does not pass on never reaches the
-    // save that would fail it, so it fails here (the caller takes its overlay down, Preview its window): at
-    // once when the wrapper throws first, otherwise once App_post.save_timeout_ms passed, after which the
-    // save drops it if it still comes.
+    // The call is known by its callback or its failure handler, whichever way it comes, and by the flag
+    // while the wrapper runs: a wrapper that passes it on later, or through window.save_draft, keeps one
+    // of them. A call the wrapper does not pass on never reaches the save that would fail it, so it fails
+    // here (the caller takes its overlay down, Preview its window): at once when the wrapper throws first,
+    // otherwise once App_post.save_timeout_ms passed, after which the save drops it if it still comes.
     function save_under_overlay(callback, on_failure) {
         var call = {};
         var done = function () { call.settled = true; return callback.apply(this, arguments); };
         var failed = function () { call.settled = true; return on_failure.apply(this, arguments); };
         function give_up() { call.given_up = true; failed(); }
         show_overlay();
-        done.under_overlay = call;
+        done.under_overlay = failed.under_overlay = call;
         under_overlay = true;
         try { App_post.save_draft_ajax(done, false, failed); }
         catch (e) { if (under_overlay) give_up(); throw e; }
@@ -374,8 +375,9 @@ function cama_init_post(obj) {
     if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
     // Stops once the form has left the page.
     window["post_editor_draft_intrval"] = setInterval(function () { if(form_left()){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 1 * 60 * 1000);
-    // A plugin's own call, never Save Draft's or Preview's: made while one of theirs is on its way through a
-    // wrapper (the wrapper's own save, or a change handler's), it leaves their flag to the call it belongs to.
+    // A plugin's own call: made while Save Draft's or Preview's call is on its way through a wrapper (the
+    // wrapper's own save, or a change handler's), it leaves their flag to the call it belongs to. That call,
+    // passed on through here, is known by its handlers.
     window.save_draft = function (callback, called_from_interval, on_failure) {
         var flagged = under_overlay;
         under_overlay = false;

@@ -203,6 +203,32 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('#cama_custom_loading')
   end
 
+  # Save Draft clicked through a wrapper on App_post.save_draft_ajax (`wrapper_js`) while another save runs
+  # for longer than save_timeout_ms: the call keeps the overlay while it waits and while its save runs, and
+  # the post list opens after it.
+  def expect_wrapped_save_draft_to_outlast_the_timeout(wrapper_js)
+    hold_draft_requests
+    # save_timeout_ms is short for Save Draft's call only; the requests keep the default.
+    page.execute_script(<<~JS)
+      #{wrapper_js}
+      showLoading();
+      window.save_draft(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
+      App_post.save_timeout_ms = 1000;
+      App_post.save_draft();
+      App_post.save_timeout_ms = 30000;
+    JS
+    sleep 1.5 # past save_timeout_ms, with Save Draft's call in the queue
+    expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests(1)
+    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(intercepted_draft_requests).to eq(2)
+    expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
+    expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
+  end
+
   # A post's edit form, its baseline taken.
   def open_post(post)
     visit "#{post_list_path}/#{post.id}/edit"
@@ -1233,34 +1259,30 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
-  # A wrapper that passes Save Draft's call on at once with a callback of its own leaves the call known by
-  # the flag alone: it gets the overlay back when drained, and is not failed while it waits in the queue.
-  it 'keeps a Save Draft call a wrapper passed on with its own callback while it waits past save_timeout_ms' do
-    open_new_post('Saved Draft through a callback of the wrapper')
+  # A wrapper that passes Save Draft's call on at once through the function it wraps, with a callback and a
+  # failure handler of its own, leaves the call known by the flag alone: it gets the overlay back when
+  # drained, and is not failed while it waits in the queue.
+  it 'keeps a Save Draft call a wrapper passed on with handlers of its own while it waits past save_timeout_ms' do
+    open_new_post('Saved Draft through handlers of the wrapper')
 
-    hold_draft_requests
-    # save_timeout_ms is short for Save Draft's call only; the requests keep the default.
-    page.execute_script(<<~JS)
+    expect_wrapped_save_draft_to_outlast_the_timeout(<<~JS)
       var save = App_post.save_draft_ajax;
       App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
-        return save(function (res) { return callback(res); }, called_from_interval, on_failure);
+        return save(function (res) { return callback(res); }, called_from_interval, function () { return on_failure(); });
       };
-      showLoading();
-      window.save_draft(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
-      App_post.save_timeout_ms = 1000;
-      App_post.save_draft();
-      App_post.save_timeout_ms = 30000;
     JS
-    sleep 1.5 # past save_timeout_ms, with Save Draft's call in the queue
-    expect(page).to have_css('#cama_custom_loading')
+  end
 
-    release_draft_requests(1)
-    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
-    expect(intercepted_draft_requests).to eq(2)
-    expect(page).to have_css('#cama_custom_loading')
+  # A wrapper may pass Save Draft's call on through window.save_draft, which leaves the flag alone, with a
+  # callback of its own: the call keeps its failure handler, by which it is known.
+  it 'keeps a Save Draft call a wrapper passed on through window.save_draft while it waits past save_timeout_ms' do
+    open_new_post('Saved Draft passed on through window.save_draft')
 
-    release_draft_requests
-    expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
+    expect_wrapped_save_draft_to_outlast_the_timeout(<<~JS)
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        return window.save_draft(function (res) { return callback(res); }, called_from_interval, on_failure);
+      };
+    JS
   end
 
   # A call a wrapper defers but passes on in time is known by the mark on its callback, and is not failed
