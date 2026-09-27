@@ -1293,8 +1293,8 @@ describe 'Post editor draft autosave', :js do
     JS
   end
 
-  # A wrapper may pass Save Draft's call on through window.save_draft, which leaves the flag alone, with a
-  # callback of its own: the call keeps its failure handler, by which it is known.
+  # A wrapper may pass Save Draft's call on through window.save_draft with a callback of its own: the call
+  # keeps its failure handler, by which it is known, and by which window.save_draft spends its flag.
   it 'keeps a Save Draft call a wrapper passed on through window.save_draft while it waits past save_timeout_ms' do
     open_new_post('Saved Draft passed on through window.save_draft')
 
