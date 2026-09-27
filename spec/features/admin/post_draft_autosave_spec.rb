@@ -1680,6 +1680,33 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path("#{post_list_path}/#{post.id}/edit", ignore_query: true)
   end
 
+  # A plugin's wrapper on App_post.save_draft is what the Save Draft link calls: the click waits for the
+  # next setup all the same, instead of calling the wrapper, and through it itself, again and again.
+  it 'hands a Save Draft click made through a wrapper to the form loaded in place once it is set up' do
+    post = site.the_post('sample-post')
+    visit "#{post_list_path}/#{post.id}/edit"
+    wait_for_editor_baseline
+    page.execute_script(<<~JS)
+      window.errorsSeen = [];
+      window.addEventListener('error', function (e) { window.errorsSeen.push(e.message); });
+      window.wrapperRuns = 0;
+      var save_draft = App_post.save_draft;
+      App_post.save_draft = function () { window.wrapperRuns++; return save_draft.apply(this, arguments); };
+    JS
+
+    load_new_post_with_held_setup
+    fill_in 'post_title', with: 'Saved through a wrapper before the setup'
+    click_link 'Save Draft'
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page.evaluate_script('window.wrapperRuns')).to eq(1)
+    expect(page.evaluate_script('window.errorsSeen')).to be_empty
+
+    page.execute_script('window.runHeldSetup();')
+
+    expect(page).to have_current_path(post_list_path, ignore_query: true, wait: 10)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved through a wrapper before the setup')
+  end
+
   # A save queued for the form that left is dropped once another form was set up in its place, and that
   # form's own saves go on.
   it 'drops the save queued for the form that left once a post form was set up in its place' do
