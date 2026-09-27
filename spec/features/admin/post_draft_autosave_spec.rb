@@ -1014,8 +1014,9 @@ describe 'Post editor draft autosave', :js do
   it 'keeps the overlay while a held submit waits for a queued save' do
     open_new_post('Held behind a queued save')
 
-    # Every draft request is held back for a while, so the queued save is in flight for as long.
-    delay_draft_requests(1500)
+    # Each draft request is held back until the example sends it, so the queued save is in flight for as
+    # long as the overlay is looked at.
+    hold_draft_requests
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 20000;
       #{publishable_post_js}
@@ -1024,8 +1025,12 @@ describe 'Post editor draft autosave', :js do
       $('#form-post').submit();
     JS
 
+    release_draft_requests(1)
     expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(intercepted_draft_requests).to eq(2)
     expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
     expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true, wait: 10)
     expect(CamaleonCms::Post.find_by(title: 'Held behind a queued save', status: 'published')).to be_present
   end
@@ -1035,15 +1040,19 @@ describe 'Post editor draft autosave', :js do
   it 'keeps the overlay for a Save Draft queued behind another save' do
     open_new_post('Saved Draft behind another save')
 
-    delay_draft_requests(1500)
+    hold_draft_requests
     page.execute_script(<<~JS)
       showLoading();
       App_post.save_draft_ajax(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
       App_post.save_draft();
     JS
 
+    release_draft_requests(1)
     expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(intercepted_draft_requests).to eq(2)
     expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
     expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
   end
 
@@ -1052,7 +1061,7 @@ describe 'Post editor draft autosave', :js do
   it 'keeps the overlay for a Preview queued behind another save' do
     open_new_post('Previewed behind another save')
 
-    delay_draft_requests(1500)
+    hold_draft_requests
     # The first save runs without an overlay of its own, so the click lands; its callback takes down the one
     # the click put up, as a callback that opened something does.
     page.execute_script(<<~JS)
@@ -1060,8 +1069,12 @@ describe 'Post editor draft autosave', :js do
     JS
     preview = window_opened_by { find('.btn-preview').click }
 
+    release_draft_requests(1)
     expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(intercepted_draft_requests).to eq(2)
     expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
     within_window(preview) do
       expect(page).to have_current_path(/draft_id=\d+\z/, url: true, wait: 10)
     end
@@ -1075,19 +1088,28 @@ describe 'Post editor draft autosave', :js do
   it 'keeps the overlay for a Save Draft queued through a wrapper that defers the call' do
     open_new_post('Saved Draft through a deferring wrapper')
 
-    delay_draft_requests(1500)
+    hold_draft_requests
     page.execute_script(<<~JS)
       var save = App_post.save_draft_ajax;
       App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
-        setTimeout(function () { save(callback, called_from_interval, on_failure); }, 100);
+        setTimeout(function () {
+          save(callback, called_from_interval, on_failure);
+          $('body').attr('data-deferred-call', 'made');
+        }, 100);
       };
       showLoading();
       save(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
       App_post.save_draft();
     JS
+    # The first save is sent once the wrapper made its call, which then waits behind it.
+    expect(page).to have_css('body[data-deferred-call="made"]')
 
+    release_draft_requests(1)
     expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(intercepted_draft_requests).to eq(2)
     expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
     expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
   end
 
@@ -1096,7 +1118,7 @@ describe 'Post editor draft autosave', :js do
   it 'puts the overlay back for a Save Draft a wrapper sends once the overlay was taken down' do
     open_new_post('Saved Draft sent late by a wrapper')
 
-    delay_draft_requests(1000)
+    hold_draft_requests
     # The wrapper holds the call back until the example sends it.
     page.execute_script(<<~JS)
       var save = App_post.save_draft_ajax;
@@ -1107,12 +1129,16 @@ describe 'Post editor draft autosave', :js do
       save(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
       App_post.save_draft();
     JS
+    release_draft_requests(1)
     expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
     expect(page).to have_no_css('#cama_custom_loading')
 
     page.execute_script('window.sendDeferredSave();')
 
+    expect(intercepted_draft_requests).to eq(2)
     expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
     expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
   end
 
@@ -1121,16 +1147,21 @@ describe 'Post editor draft autosave', :js do
   it 'leaves the overlay down for a plugin save queued behind another save' do
     open_new_post('Plugin save behind another save')
 
-    delay_draft_requests(1500)
+    hold_draft_requests
     page.execute_script(<<~JS)
       showLoading();
       App_post.save_draft_ajax(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
       window.save_draft(function () { $('body').attr('data-plugin-save', 'ran'); });
     JS
 
-    # The queued save is drained inside the first save's completion, so its overlay, if any, is up by now.
+    # The queued save is drained inside the first save's completion, so it is in flight, and its overlay,
+    # if any, up by now.
+    release_draft_requests(1)
     expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(intercepted_draft_requests).to eq(2)
     expect(page).to have_no_css('#cama_custom_loading')
+
+    release_draft_requests
     expect(page).to have_css('body[data-plugin-save="ran"]', wait: 5)
     expect(page).to have_no_css('#cama_custom_loading')
   end
