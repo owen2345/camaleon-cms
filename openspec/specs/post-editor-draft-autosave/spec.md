@@ -496,7 +496,7 @@ A Save Draft or Preview save that starts later than it was asked for (queued beh
 
 ### Requirement: A plugin's save gets no overlay
 
-A plugin's queued save SHALL run as it was made, with no overlay put up for it: one a change handler asks for while Save Draft's or Preview's save syncs the editors, one a wrapper on `App_post.save_draft_ajax` makes through `window.save_draft` with a callback and a failure handler of its own, and one that wrapper makes after passing Save Draft's or Preview's call on.
+A plugin's save, queued or not, SHALL run as it was made, with no overlay put up for it: one a change handler asks for while Save Draft's or Preview's save syncs the editors, one a wrapper on `App_post.save_draft_ajax` makes through `window.save_draft` with a callback and a failure handler of its own, and one that wrapper makes after passing Save Draft's or Preview's call on.
 
 #### Scenario: A plugin's queued save gets no overlay
 
