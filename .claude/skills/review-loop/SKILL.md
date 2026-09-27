@@ -44,7 +44,7 @@ Checked in order; only FIXED is applied, and no finding is left without a verdic
 2. Same claim as a DECISION or REFUTED row, on code no commit has touched since → REPEAT if DECISION, CONFLICT if REFUTED. If that code changed, treat the claim as new.
 3. Its fix would undo a commit already on this branch (`<base>..HEAD`) or go against a DECISION row → CONFLICT.
 4. Needs a design trade-off or the user's call → DECISION.
-5. Reuse, simplification, efficiency or coverage-only → FIXED, own commit. A cleanup preserves behavior, so the checks prove it and it needs no new spec; a coverage-only fix is the new spec. DEFERRED instead once step 5 is frozen (see below); a cleanup is also DEFERRED when a cleanup already reshaped that function or spec example in this run.
+5. Reuse, simplification or efficiency (the cleanups), conventions (code that breaks a `CLAUDE.md` or `AGENTS.md` rule) or coverage-only → FIXED, own commit. A fix that preserves behavior is proven by the checks and needs no new spec; one that changes behavior, as a conventions fix can, gets its own spec; a coverage-only fix is the new spec. DEFERRED instead once step 5 is frozen (see below); a cleanup is also DEFERRED when another cleanup already reshaped that function or spec example in this run.
 6. Altitude or wording → FIXED in pass 1 (own commit), DEFERRED after.
 7. A correctness or security defect → FIXED: own spec, own commit (`docs/ai/workflows.md` Phase 3).
 
@@ -59,7 +59,7 @@ After each pass, in the foreground and in the checkout, the four checks in camal
 
 ## Pass states and stop
 
-- **SETTLED:** the pass ran to the end, applied no correctness or security fix (a failing spec fixed during the pass counts as one; cleanups, coverage specs and lint fixes may land), every check passed and the checkout's tree is clean.
+- **SETTLED:** the pass ran to the end, applied no correctness or security fix (a failing spec fixed during the pass counts as one; step 5 fixes and lint fixes may land), every check passed and the checkout's tree is clean.
 - **CLEAN:** SETTLED, and applied nothing at all (HEAD unchanged).
 - **UNSETTLED:** anything else.
 
