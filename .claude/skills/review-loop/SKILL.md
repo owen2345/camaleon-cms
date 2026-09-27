@@ -67,7 +67,7 @@ Step 5 freezes after the first SETTLED pass of the run, and in pass 8: from then
 
 Stop when the latest pass is CLEAN and the one before it SETTLED or CLEAN (converged), after pass 8 (report it as not converged), at a second CONFLICT on the same claim, when a pass's diff undoes an earlier commit on this branch, or on a check failure you can't fix. For a conflict, show both sides.
 
-Commit but don't push during the run. On STOP: push the checkout's branch once, fold the PR body (`gh pr edit <pr> --repo <project>`, per `docs/ai/workflows.md`), add the new REFUTED and DECISION rows to the PR's memory entry if it has one, and report the DEFERRED, DECISION and CONFLICT rows.
+Commit but don't push during the run. On STOP: push the checkout's branch once and fold the PR body (`gh pr edit <pr> --repo <project>`, per `docs/ai/workflows.md`), except after a check failure you can't fix or an undone commit: those stay unpushed for the user, since `AGENTS.md` verifies before pushing and an undo is theirs to judge. On every STOP, add the new REFUTED and DECISION rows to the PR's memory entry if it has one, and report the DEFERRED, DECISION and CONFLICT rows.
 
 ## PASS line
 
