@@ -8,7 +8,7 @@ description: Run one pass of the review-fix loop on a PR of camaleon-cms or of a
 Repeated `/code-review <effort> --fix` passes on a PR's local branch until they converge. Each pass reviews, applies what the verdicts allow, runs the checks and ends its turn with a PASS line. To run passes until the loop stops, type this with the parameters filled in (a skill can't start a goal):
 
 ```text
-/goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, each turn ending with its PASS line, until the latest PASS line says STOP or a PASS line shows 8/8. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it SETTLED or CLEAN, both with git status clean, rspec 0 failures (n/a for an empty spec set) and every check ok. A STOP for any other reason the skill gives (setup, a second conflict, an undone commit, a check it can't fix) counts as it stands.
+/goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, each turn ending with its PASS line, until the latest PASS line says STOP or a PASS line shows 8/8. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it SETTLED or CLEAN, both with git status clean, rspec 0 failures (n/a for an empty spec set) and every check ok. A STOP for any other reason the skill gives (setup, a review that can't cover its range, a second conflict, an undone commit, a check it can't fix) counts as it stands.
 ```
 
 ## Parameters
