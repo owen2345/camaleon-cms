@@ -1435,6 +1435,56 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css("#form-post .btn-preview[href='/next-post?draft_id=']", visible: :all)
   end
 
+  # The same with the page loaded in place for real, so the editor is set up a second time while the first
+  # setup's save is in flight: each setup keeps to its own form.
+  it 'sets the editor up on a post form loaded in place while a save of the form that left runs' do
+    post = site.the_post('sample-post')
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved for the form that left'
+
+    # The first draft request is held back for a while, so the next form is set up while it is in flight.
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var held = false;
+        return function (options, send) {
+          if (held) return send();
+          held = true;
+          setTimeout(send, 2000);
+          return $.Deferred().promise();
+        };
+      })()
+    HANDLER
+    page.execute_script(<<~JS)
+      window.formThatLeft = $('#form-post')[0];
+      App_post.save_draft_ajax(null, false);
+    JS
+    load_in_place("#{post_list_path}/#{post.id}/edit")
+    wait_for_editor_setup
+    expect(page.evaluate_script("$('#form-post')[0] !== window.formThatLeft")).to be(true)
+
+    wait_for_draft_answers(1)
+    buffer = new_post_buffers.order(:id).last
+    expect(buffer.title).to eq('Saved for the form that left')
+    expect(page.evaluate_script("$(window.formThatLeft).find('#post_draft_id').val()")).to eq(buffer.id.to_s)
+    expect(page.evaluate_script("$('#form-post #post_draft_id').val()")).to eq('')
+    expect(page).to have_no_css("#form-post .btn-preview[href$='draft_id=#{buffer.id}']", visible: :all)
+
+    # The form in its place is untouched: its own baseline, prompt and timer say so.
+    wait_for_editor_baseline
+    expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
+    autosave_tick
+    expect(intercepted_draft_requests).to eq(1)
+
+    # An edit of it is saved as that post's draft.
+    fill_in 'post_title', with: 'Edited in place'
+    expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
+    autosave_tick
+    wait_for_draft_answers(2)
+    expect(CamaleonCms::Post.where(post_parent: post.id, status: 'draft_child').last.title).to eq('Edited in place')
+    expect(new_post_buffers.count).to eq(1)
+  end
+
   # A queued save that runs after another form was loaded in place would send that form's content to this
   # post's draft. It is dropped, its failure handler run.
   it 'drops a queued save when the page loaded another form in place while it waited' do
