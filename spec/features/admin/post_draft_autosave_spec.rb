@@ -1215,19 +1215,24 @@ describe 'Post editor draft autosave', :js do
   it 'keeps the post on the form when the draft save it waited for is refused' do
     open_new_post('Refused during autosave')
 
+    # The refusal and the fallback wait are timers of the one page, so the refusal comes first whatever
+    # the runner's speed.
+    refuse_draft_requests('the draft was refused', 100)
     page.execute_script(<<~JS)
-      App_post.submit_wait_ms = 1000;
+      App_post.submit_wait_ms = 500;
+      window.errorsSeen = [];
+      window.addEventListener('error', function (e) { window.errorsSeen.push(e.message); });
       #{publishable_post_js}
-      #{refused_status_js}
       App_post.save_draft_ajax(null, true);
       $('#form-post').submit();
     JS
 
-    expect(page).to have_css('#cama_alert_modal', text: 'post[status] is not a status the post editor offers')
+    expect(page).to have_css('#cama_alert_modal', text: 'the draft was refused')
     expect(page).to have_no_css('#cama_custom_loading')
-    sleep 1.5 # past submit_wait_ms: the released hold's fallback must not send the form either
+    sleep 0.8 # past submit_wait_ms: the released hold's fallback must neither send the form nor run
     expect(page).to have_current_path(new_post_path, ignore_query: true)
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
+    expect(page.evaluate_script('window.errorsSeen')).to be_empty
   end
 
   # A timer call queued behind a refused save would only be refused again, with a second alert.
