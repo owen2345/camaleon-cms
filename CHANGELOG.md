@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- **Tooling:** A `review-loop` Claude Code skill, started with `/goal`, repeats `/code-review --fix` passes on a core or sibling plugin PR until they converge; `tmp/` is now ignored. Development-only. [#1313](https://github.com/owen2345/camaleon-cms/pull/1313).
+- **Tooling:** A `review-loop` Claude Code skill, started with `/goal`, repeats `/code-review --fix` passes on a core, plugin or theme PR until they converge; `tmp/` is now ignored. Development-only. [#1313](https://github.com/owen2345/camaleon-cms/pull/1313).
 
 - **Tooling:** CI also runs the `camaleon-post-clone` plugin's suite against the core commit under test, as a fifth advisory ecosystem check. Development-only. [#1311](https://github.com/owen2345/camaleon-cms/pull/1311).
 
