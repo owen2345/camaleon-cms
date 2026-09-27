@@ -120,6 +120,24 @@ describe 'Post editor draft autosave', :js do
     JS
   end
 
+  # Takes the content editor away, so the baseline waits for it until restore_content_editor brings it
+  # back (ten seconds at most): what an example does in between, it does before the baseline.
+  def remove_content_editor
+    page.execute_script(<<~JS)
+      (function removeEditor() {
+        var editor = tinymce.get('post_content');
+        if (!editor) return setTimeout(removeEditor, 10);
+        editor.remove();
+        $('body').attr('data-content-editor', 'removed');
+      })();
+    JS
+    expect(page).to have_css('body[data-content-editor="removed"]')
+  end
+
+  def restore_content_editor
+    page.execute_script("tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));")
+  end
+
   # Adds a textarea the baseline waits for; init_late_editor creates its editor.
   def add_late_editor
     page.execute_script(<<~JS)
@@ -1318,11 +1336,12 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_setup
     count_draft_saves
     # The content editor is held back, so the baseline waits for it: the tick lands before it.
-    delay_content_editor
+    remove_content_editor
     page.execute_script("$('#post_title').val('Edited before the baseline').trigger('keyup');")
     autosave_tick
     expect(draft_saves).to eq(0)
 
+    restore_content_editor
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Edited after the baseline'
     autosave_tick
@@ -1359,12 +1378,13 @@ describe 'Post editor draft autosave', :js do
     post.update!(content: 'Plain body, not yet normalized by the editor')
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
     wait_for_editor_setup
-    delay_content_editor
+    remove_content_editor
 
     wait_for_leave_prompt
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
 
+    restore_content_editor
     wait_for_editor_baseline
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
@@ -1386,13 +1406,14 @@ describe 'Post editor draft autosave', :js do
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
     wait_for_editor_setup
     count_draft_saves
-    delay_content_editor
+    remove_content_editor
     fill_in 'post_title', with: 'Typed before the baseline'
 
     wait_for_leave_prompt
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
 
+    restore_content_editor
     wait_for_editor_baseline
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
     autosave_tick
@@ -1409,7 +1430,7 @@ describe 'Post editor draft autosave', :js do
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
     wait_for_editor_setup
     count_draft_saves
-    delay_content_editor
+    remove_content_editor
     page.execute_script(<<~JS)
       $('body').append('<input type="text" id="outside_probe" name="outside_probe" form="form-post" value="">');
     JS
@@ -1419,6 +1440,7 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
 
+    restore_content_editor
     wait_for_editor_baseline
     expect(page.evaluate_script('typeof window.onbeforeunload()')).to eq('string')
     autosave_tick
@@ -1919,8 +1941,9 @@ describe 'Post editor draft autosave', :js do
     visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
     wait_for_editor_setup
     # The editor is held back so the textarea can be wrapped before the baseline is taken.
-    delay_content_editor
+    remove_content_editor
     page.execute_script("$('#post_content').wrap('<fieldset></fieldset>');")
+    restore_content_editor
     wait_for_editor_baseline
     count_draft_saves
 
