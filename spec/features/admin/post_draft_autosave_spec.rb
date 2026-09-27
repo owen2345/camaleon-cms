@@ -1057,6 +1057,7 @@ describe 'Post editor draft autosave', :js do
     within_window(preview) do
       expect(page).to have_current_path(/draft_id=\d+\z/, url: true, wait: 10)
     end
+    preview.close
     expect(page).to have_no_css('#cama_custom_loading')
     expect(new_post_buffers.count).to eq(1)
   end
@@ -2003,6 +2004,7 @@ describe 'Post editor draft autosave', :js do
       expect(page).to have_current_path(/draft_id=#{new_post_buffers.order(:id).last.id}\z/, url: true)
       expect(page).to have_text('Previewed title')
     end
+    preview.close
   end
 
   # A Preview clicked during a save waits for that save's draft id, and a new post gets no second buffer.
@@ -2023,6 +2025,7 @@ describe 'Post editor draft autosave', :js do
       expect(page).to have_current_path(/draft_id=#{new_post_buffers.order(:id).last.id}\z/, url: true)
       expect(page).to have_text('Queued preview title')
     end
+    preview.close
     expect(new_post_buffers.count).to eq(1)
   end
 
