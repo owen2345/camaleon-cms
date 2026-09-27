@@ -231,7 +231,12 @@ The draft id and Preview links SHALL be written into the form the save was sent 
 #### Scenario: A queued save whose form was replaced is dropped
 
 - **WHEN** a save is queued behind a running one and the form is replaced before it runs
-- **THEN** the queued save is not sent, its failure handler runs, and the first save's draft keeps its content
+- **THEN** the queued save is not sent, its failure handler runs, and the first save's draft keeps its content; with the editor set up on the form in its place, that form's own edits are saved as its post's draft
+
+#### Scenario: Preview returning for the form that left shows that form's draft
+
+- **WHEN** Preview is clicked, another post form is loaded in place and set up, and Preview's save returns
+- **THEN** the window shows the draft of the form that left, and the Preview link of the form in its place does not name that draft
 
 #### Scenario: A call for a replaced form is dropped at once
 

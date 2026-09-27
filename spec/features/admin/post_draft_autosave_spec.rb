@@ -1599,6 +1599,61 @@ describe 'Post editor draft autosave', :js do
     expect(CamaleonCms::Post.where(post_parent: post.id, status: 'draft_child')).to be_empty
   end
 
+  # A save queued for the form that left is dropped once another form was set up in its place, and that
+  # form's own saves go on.
+  it 'drops the save queued for the form that left once a post form was set up in its place' do
+    post = site.the_post('sample-post')
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved before the form in its place'
+
+    hold_draft_requests
+    page.execute_script(<<~JS)
+      App_post.save_draft_ajax(null, false);
+      App_post.save_draft_ajax(function () { window.queuedSaveRan = true; }, false, function () { window.queuedSaveDropped = true; });
+    JS
+    load_in_place("#{post_list_path}/#{post.id}/edit")
+    wait_for_editor_baseline
+
+    release_draft_requests
+    wait_for_draft_answers(1)
+    expect(page.evaluate_script('window.queuedSaveDropped')).to be(true)
+    expect(page.evaluate_script('window.queuedSaveRan')).to be_nil
+    expect(intercepted_draft_requests).to eq(1)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved before the form in its place')
+
+    fill_in 'post_title', with: 'Edited in its place'
+    autosave_tick
+    wait_for_draft_answers(2)
+    expect(CamaleonCms::Post.where(post_parent: post.id, status: 'draft_child').last.title)
+      .to eq('Edited in its place')
+  end
+
+  # Preview's window was opened for the form that left: it is sent to that form's draft, and the form in
+  # its place keeps its own Preview link.
+  it 'sends the Preview window to the draft of the form that left once a post form was set up in its place' do
+    post = site.the_post('sample-post')
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Previewed for the form that left'
+
+    hold_draft_requests
+    preview = window_opened_by { find('.btn-preview').click }
+    load_in_place("#{post_list_path}/#{post.id}/edit")
+    page.execute_script('hideLoading();')
+    wait_for_editor_baseline
+
+    release_draft_requests
+    within_window(preview) do
+      expect(page).to have_current_path(/draft_id=\d+\z/, url: true, wait: 10)
+      expect(page).to have_current_path(/draft_id=#{new_post_buffers.order(:id).last.id}\z/, url: true)
+      expect(page).to have_text('Previewed for the form that left')
+    end
+    preview.close
+    expect(page).to have_no_css("#form-post .btn-preview[href$='draft_id=#{new_post_buffers.order(:id).last.id}']",
+                                visible: :all)
+  end
+
   # The overlay is one element for the whole page. A save of the form that left, returning late, must take
   # down no overlay but its own: the one up by then is the next form's, whose save still runs.
   it 'leaves the overlay of the form loaded in place up when a save of the form that left returns' do
