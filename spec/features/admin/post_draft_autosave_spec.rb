@@ -56,6 +56,15 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-later-save="ran"]')
   end
 
+  # Records the page's uncaught errors, for page_errors to read.
+  def record_page_errors_js
+    "window.errorsSeen = []; window.addEventListener('error', function (e) { window.errorsSeen.push(e.message); });"
+  end
+
+  def page_errors
+    page.evaluate_script('window.errorsSeen')
+  end
+
   # Picks a status the post editor does not offer, which the drafts action refuses.
   def refused_status_js
     %q{$('#post_status').append('<option value="bogus">bogus</option>').val('bogus');}
@@ -1158,14 +1167,13 @@ describe 'Post editor draft autosave', :js do
   it 'closes the preview window when a wrapper throws before passing the save on' do
     open_new_post('Previewed through a throwing wrapper')
     page.execute_script(<<~JS)
-      window.errorsSeen = [];
-      window.addEventListener('error', function (e) { window.errorsSeen.push(e.message); });
+      #{record_page_errors_js}
       App_post.save_draft_ajax = function () { throw new Error('the wrapper failed'); };
     JS
 
     expect { find('.btn-preview').click }.not_to(change { page.windows.size })
     expect(page).to have_no_css('#cama_custom_loading')
-    expect(page.evaluate_script('window.errorsSeen.join()')).to include('the wrapper failed')
+    expect(page_errors.join).to include('the wrapper failed')
   end
 
   # A wrapper may keep Save Draft's call and never pass it on (a confirmation declined): the call fails
@@ -1384,8 +1392,7 @@ describe 'Post editor draft autosave', :js do
     refuse_draft_requests('the draft was refused', 100)
     page.execute_script(<<~JS)
       App_post.submit_wait_ms = 500;
-      window.errorsSeen = [];
-      window.addEventListener('error', function (e) { window.errorsSeen.push(e.message); });
+      #{record_page_errors_js}
       #{publishable_post_js}
       App_post.save_draft_ajax(null, true);
       $('#form-post').submit();
@@ -1396,7 +1403,7 @@ describe 'Post editor draft autosave', :js do
     sleep 0.8 # past submit_wait_ms: the released hold's fallback must neither send the form nor run
     expect(page).to have_current_path(new_post_path, ignore_query: true)
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
-    expect(page.evaluate_script('window.errorsSeen')).to be_empty
+    expect(page_errors).to be_empty
   end
 
   # A timer call queued behind a refused save would only be refused again, with a second alert.
@@ -1832,8 +1839,7 @@ describe 'Post editor draft autosave', :js do
     visit "#{post_list_path}/#{post.id}/edit"
     wait_for_editor_baseline
     page.execute_script(<<~JS)
-      window.errorsSeen = [];
-      window.addEventListener('error', function (e) { window.errorsSeen.push(e.message); });
+      #{record_page_errors_js}
       window.wrapperRuns = 0;
       var save_draft = App_post.save_draft;
       App_post.save_draft = function () { window.wrapperRuns++; return save_draft.apply(this, arguments); };
@@ -1844,7 +1850,7 @@ describe 'Post editor draft autosave', :js do
     click_link 'Save Draft'
     expect(page).to have_css('#cama_custom_loading')
     expect(page.evaluate_script('window.wrapperRuns')).to eq(1)
-    expect(page.evaluate_script('window.errorsSeen')).to be_empty
+    expect(page_errors).to be_empty
 
     page.execute_script('window.runHeldSetup();')
 
