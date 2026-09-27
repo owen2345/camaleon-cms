@@ -1310,25 +1310,12 @@ describe 'Post editor draft autosave', :js do
   it 'keeps a Save Draft call a deferring wrapper passed on in time while it waits past save_timeout_ms' do
     open_new_post('Saved Draft deferred, then queued')
 
-    hold_draft_requests
-    page.execute_script(<<~JS)
+    expect_wrapped_save_draft_to_outlast_the_timeout(<<~JS)
       var save = App_post.save_draft_ajax;
       App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
         setTimeout(function () { save(callback, called_from_interval, on_failure); }, 100);
       };
-      window.save_draft(function () { $('body').attr('data-first-save', 'ran'); }, false);
-      App_post.save_timeout_ms = 1000;
-      App_post.save_draft();
-      App_post.save_timeout_ms = 30000;
     JS
-    sleep 1.5 # past save_timeout_ms, with Save Draft's call in the queue
-
-    release_draft_requests(1)
-    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
-    expect(intercepted_draft_requests).to eq(2)
-
-    release_draft_requests
-    expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
   end
 
   # A wrapper may answer Save Draft's call itself through its failure handler (a confirmation declined):
