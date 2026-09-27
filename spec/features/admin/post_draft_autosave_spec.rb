@@ -1409,6 +1409,27 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading', wait: 5)
   end
 
+  # The same through the function the wrapper wraps: the earlier call is known by its own mark and leaves
+  # the later call's flag alone, so the later call, kept, still fails once save_timeout_ms passed.
+  it 'fails a Save Draft call a wrapper keeps while passing an earlier one on through the function it wraps' do
+    open_new_post('Kept while an earlier call went on through the wrapped function')
+
+    hold_draft_requests
+    page.execute_script(<<~JS)
+      var save = App_post.save_draft_ajax, kept = null;
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        var earlier = kept;
+        kept = [callback, called_from_interval, on_failure];
+        if (earlier) save.apply(null, earlier);
+      };
+      App_post.save_timeout_ms = 1000;
+      App_post.save_draft();
+      App_post.save_draft();
+    JS
+    expect(intercepted_draft_requests).to eq(1)
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+  end
+
   # A plugin's call put no overlay up and its callback takes none down: restored for it, the overlay would
   # stay for good.
   it 'leaves the overlay down for a plugin save queued behind another save' do

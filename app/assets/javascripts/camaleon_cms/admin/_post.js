@@ -40,7 +40,8 @@ function cama_init_post(obj) {
     // alone, one a change handler makes during that call's sync included, and so is one made through
     // window.save_draft with handlers of its own while that call is on its way through a wrapper. The
     // call's callback and failure handler carry the same mark, for a call a wrapper passes on later or
-    // through window.save_draft. The flag holds the call's mark, so window.save_draft knows its own call.
+    // through window.save_draft. The flag holds the call's mark, so the save knows the call it belongs to
+    // from another Save Draft or Preview call a wrapper passes on meanwhile.
     var under_overlay = false;
     var submit_wait_timer = null;
     var held_form = null;
@@ -92,6 +93,9 @@ function cama_init_post(obj) {
     App_post.save_draft_ajax = save_draft_ajax;
     function save_draft_ajax(callback, called_from_interval, on_failure) {
         var call = call_mark(callback, on_failure);
+        // The flag is another call's: a wrapper passes an earlier Save Draft or Preview call on while a later
+        // one is on its way through it. This call is known by its own mark, and the flag is left to its call.
+        if (call && under_overlay && under_overlay !== call) return save_with_flag_aside(callback, called_from_interval, on_failure);
         var overlay = !!(under_overlay || call);
         under_overlay = false;
         // Save Draft's or Preview's call, passed on by a wrapper after the caller gave up waiting for it (see
@@ -390,13 +394,14 @@ function cama_init_post(obj) {
     // wrapper's own save, or a change handler's), it leaves their flag to the call it belongs to. That call,
     // passed on through here, is known by its handlers and spends its flag, so a save the wrapper makes
     // after it is a plugin's too.
-    window.save_draft = function (callback, called_from_interval, on_failure) {
+    window.save_draft = save_with_flag_aside;
+    function save_with_flag_aside(callback, called_from_interval, on_failure) {
         var flagged = under_overlay;
         if (flagged && flagged === call_mark(callback, on_failure)) flagged = false;
         under_overlay = false;
         try { return save_draft_ajax(callback, called_from_interval, on_failure); }
         finally { under_overlay = flagged; }
-    };
+    }
 
     if($form.find(".title-post" + class_translate).length == 0) class_translate = '';
     $form.find(".title-post" + class_translate).each(function () {

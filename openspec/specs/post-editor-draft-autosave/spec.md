@@ -515,7 +515,7 @@ A plugin's save, queued or not, SHALL run as it was made, with no overlay put up
 
 ### Requirement: A wrapped Save Draft or Preview call is known by its handlers
 
-Save Draft's or Preview's call SHALL be known by its own callback or failure handler however a wrapper on `App_post.save_draft_ajax` passes it on, and by the call the wrapper makes at once through the function it wraps; a save the wrapper makes through `window.save_draft` with a callback and a failure handler of its own SHALL NOT count as passing it on.
+Save Draft's or Preview's call SHALL be known by its own callback or failure handler however a wrapper on `App_post.save_draft_ajax` passes it on, and by the call the wrapper makes at once through the function it wraps; neither a save the wrapper makes through `window.save_draft` with a callback and a failure handler of its own nor another Save Draft or Preview call it passes on meanwhile, whichever way, SHALL count as passing it on.
 
 #### Scenario: A Save Draft call a wrapper passes on with handlers of its own keeps the overlay
 
@@ -564,6 +564,11 @@ A Save Draft or Preview call a wrapper on `App_post.save_draft_ajax` does not pa
 #### Scenario: An earlier call passed on leaves the kept call to its timeout
 
 - **WHEN** a wrapper on `App_post.save_draft_ajax` keeps a second Save Draft call and passes the first, which it kept, on through `window.save_draft`
+- **THEN** the first call is sent, and the second fails once `App_post.save_timeout_ms` passed, the overlay coming down
+
+#### Scenario: An earlier call passed on through the wrapped function leaves the kept call to its timeout
+
+- **WHEN** a wrapper on `App_post.save_draft_ajax` keeps a second Save Draft call and passes the first, which it kept, on through the function it wraps
 - **THEN** the first call is sent, and the second fails once `App_post.save_timeout_ms` passed, the overlay coming down
 
 ### Requirement: Save Draft returning over another page leaves it alone
