@@ -1459,7 +1459,7 @@ describe 'Post editor draft autosave', :js do
   end
 
   # A timer call queued behind a refused save would only be refused again, with a second alert.
-  it 'drops a timer call queued behind a save that is refused' do
+  it 'sends nothing from a timer call queued behind a save that is refused' do
     visit new_post_path
     wait_for_editor_baseline
     count_draft_saves
