@@ -605,11 +605,6 @@ Save Draft clicked on a post form loaded in place before the editor was set up o
 - **WHEN** Save Draft's save of a form returns while Save Draft, clicked on a post form loaded in its place, waits for that form's setup
 - **THEN** the overlay stays up; once the setup has run, the second form's draft is saved and the post list opens
 
-#### Scenario: The overlay stays while the save of a handed click runs
-
-- **WHEN** Save Draft is clicked on a post form loaded in place before the editor was set up on it, and the save the setup makes of it is still running
-- **THEN** the overlay stays up; once the save returns, the post list opens
-
 ### Requirement: The next setup takes a Save Draft call made for the form that left
 
 A call through a reference to the Save Draft function of the form that left, made once the next form's setup came, SHALL save that form at once; a click that setup could not take (it failed before taking Save Draft) SHALL be given up at once. A click handed to that setup SHALL keep the overlay while a save of that form runs, and no longer: when a plugin's wrapper on that setup's `App_post.save_draft` throws on the click or keeps it, the overlay SHALL come down.
@@ -623,6 +618,11 @@ A call through a reference to the Save Draft function of the form that left, mad
 
 - **WHEN** Save Draft is clicked on a post form loaded in place before the editor was set up on it, and the setup fails once it took the form and before it took Save Draft
 - **THEN** the overlay comes down, nothing is sent and no error is raised
+
+#### Scenario: The overlay stays while the save of a handed click runs
+
+- **WHEN** Save Draft is clicked on a post form loaded in place before the editor was set up on it, and the save the setup makes of it is still running
+- **THEN** the overlay stays up; once the save returns, the post list opens
 
 #### Scenario: A wrapper that throws on the handed click gives the page back
 
