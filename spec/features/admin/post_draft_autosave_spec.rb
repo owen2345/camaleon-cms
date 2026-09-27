@@ -592,14 +592,14 @@ describe 'Post editor draft autosave', :js do
 
     stall_draft_requests
     page.execute_script(<<~JS)
-      App_post.submit_wait_ms = 2000;
+      App_post.submit_wait_ms = 1000;
       #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
     JS
 
     expect(page).to have_css('#cama_custom_loading')
-    # The held submit is sent only once submit_wait_ms has passed, beyond Capybara's default wait.
+    # The held submit is sent only once submit_wait_ms has passed.
     expect(page).to have_current_path(%r{/posts/\d+/edit\z}, ignore_query: true, wait: 10)
     expect(CamaleonCms::Post.find_by(title: 'Submitted during a stalled save', status: 'published')).to be_present
   end
@@ -876,7 +876,7 @@ describe 'Post editor draft autosave', :js do
 
     stall_draft_requests
     page.execute_script(<<~JS)
-      App_post.submit_wait_ms = 1000;
+      App_post.submit_wait_ms = 300;
       #{publishable_post_js}
       App_post.save_draft_ajax(null, false);
       $('#form-post').submit();
@@ -887,7 +887,7 @@ describe 'Post editor draft autosave', :js do
       $form = $('#form-post');
     JS
 
-    sleep 1.5 # past submit_wait_ms: the hold's fallback must not send the replacement form
+    sleep 0.8 # past submit_wait_ms: the hold's fallback must not send the replacement form
     expect(page).to have_current_path(new_post_path, ignore_query: false)
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
     # The overlay the hold put up is taken down all the same: nothing else on the page would.
@@ -1168,7 +1168,7 @@ describe 'Post editor draft autosave', :js do
       calls += 1
       next create.call(*args) unless calls == 1
 
-      sleep 1.5
+      sleep 1
       stalled = true
       create.receiver.render json: { error: ['too late'] }
     end
