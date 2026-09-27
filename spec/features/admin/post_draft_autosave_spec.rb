@@ -1839,6 +1839,41 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path("#{post_list_path}/#{post.id}/edit", ignore_query: true)
   end
 
+  # A plugin may call a reference to App_post.save_draft it kept from the form that left, once the form
+  # loaded in its place was set up: the click is that form's, handed to its setup at once.
+  it 'hands a Save Draft call made through a kept reference to the form set up in its place' do
+    post = site.the_post('sample-post')
+    visit "#{post_list_path}/#{post.id}/edit"
+    wait_for_editor_baseline
+    page.execute_script('window.keptSaveDraft = App_post.save_draft;')
+
+    load_in_place(new_post_path)
+    wait_for_editor_setup
+    fill_in 'post_title', with: 'Saved through a kept reference'
+    page.execute_script('window.keptSaveDraft();')
+
+    expect(page).to have_current_path(post_list_path, ignore_query: true, wait: 10)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved through a kept reference')
+  end
+
+  # The setup of the form loaded in place may fail once it took the form and before it took Save Draft:
+  # App_post.save_draft still leads back to the setup of the form that left, which gives the click up.
+  it 'gives the page back when the setup of the form loaded in place fails before taking Save Draft' do
+    post = site.the_post('sample-post')
+    visit "#{post_list_path}/#{post.id}/edit"
+    wait_for_editor_baseline
+    count_draft_saves
+    page.execute_script(record_page_errors_js)
+
+    click_save_draft_before_setup('Clicked before a setup that failed')
+    # What the failed setup left behind: the form taken, Save Draft not.
+    page.execute_script("$form = $('#form-post');")
+
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(draft_saves).to eq(0)
+    expect(page_errors).to be_empty
+  end
+
   # A plugin's wrapper on App_post.save_draft is what the Save Draft link calls: the click waits for the
   # next setup all the same, instead of calling the wrapper, and through it itself, again and again.
   it 'hands a Save Draft click made through a wrapper to the form loaded in place once it is set up' do

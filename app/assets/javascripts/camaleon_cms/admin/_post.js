@@ -336,19 +336,28 @@ function cama_init_post(obj) {
     }
 
     // Under the overlay while it saves: the callback leaves the page, and an edit made meanwhile would be lost.
+    var handing_over = false, led_back = false;
     App_post.save_draft = function () {
         // A post form loaded in place is set up a moment after it came, and its Save Draft link calls this
-        // setup until then: the click waits under the overlay for the form's own setup, five seconds at most.
-        // That setup is known by App_post.save_draft no longer being what the click called: this function,
-        // or a plugin's wrapper on it, which would only lead back here. The overlay is marked as the next
-        // form's, so a save of this setup's form returning meanwhile leaves it up. Once that form left the
-        // page too, the click is given up: a setup that comes then is another form's.
+        // setup until then: the click waits under the overlay for the form's own setup, five seconds at most,
+        // and is given up once that form left the page too (a setup that comes then is another form's). The
+        // setup is known by $form, which it assigns first, so a call through a reference to this function
+        // kept by a plugin is handed over at once when it came already. It takes the click through
+        // App_post.save_draft, a plugin's wrapper included; when that leads back here (the setup failed
+        // before assigning it), the click is given up. The overlay is marked as the next form's, so a save
+        // of this setup's form returning meanwhile leaves it up.
         if (form_left()) {
-            var next_form = $('#form-post')[0], called = App_post.save_draft, tries = 100;
+            if (handing_over) { led_back = true; return; }
+            var next_form = $('#form-post')[0], tries = 100;
             if (next_form) put_overlay_up(next_form);
             (function hand_over() {
                 var on_page = !!next_form && $.contains(document, next_form);
-                if (on_page && App_post.save_draft !== called) App_post.save_draft();
+                if (on_page && $form[0] === next_form) {
+                    handing_over = true;
+                    led_back = false;
+                    try { App_post.save_draft(); } finally { handing_over = false; }
+                    if (led_back && overlay_owner() === next_form) hideLoading();
+                }
                 else if (on_page && --tries) setTimeout(hand_over, 50);
                 else if (next_form && overlay_owner() === next_form) hideLoading();
             })();
