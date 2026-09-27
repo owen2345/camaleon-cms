@@ -41,6 +41,14 @@ Installing a site costs ~0.6s, so one canonical site is installed per suite run,
 - Shared examples live in `spec/shared_specs/`: `it_behaves_like 'sanitize attrs', model: described_class, attrs_to_sanitize: %i[name description]` and `it_behaves_like 'i18n value translation safety', described_class`.
 - Feature specs are tagged `:js`, call `init_site` and `admin_sign_in`, then `visit "#{cama_root_relative_path}/admin/…"`; `spec/features/admin/categories_spec.rb` is a compact example. Request specs (`spec/requests/`) are preferred over controller specs.
 
+### JavaScript in feature specs
+
+- Clear `spec/dummy/tmp/cache` and `spec/dummy/public/assets` before a red check of a change to the admin JavaScript: otherwise the browser may get the bundle compiled before the change, and the example passes on it.
+- Hold what an example waits on instead of sleeping: `spec/features/admin/post_draft_autosave_spec.rb` wraps `$.ajax` so a draft request stays pending until the example releases it (`hold_draft_requests` / `release_draft_requests`), and loads an admin page in place as `camaleon_admin_ajax` does (`load_in_place`).
+- To check that no alert opened, look for `body.modal-open`: Bootstrap adds the modal to the page only once its backdrop has faded in, so `have_no_css('#cama_alert_modal')` right after the answer that would open one passes either way.
+- An error thrown, uncaught, in a later task by a function the example defined with `execute_script` reaches `window` error listeners as "Script error."; to read its message, add the code as an inline `<script>` of the page.
+- In a window the page sends to a URL after opening it, wait with `have_current_path` before any DOM query: Chrome raises on a query that spans the navigation away from `about:blank`, and Capybara does not retry it. `window_opened_by` needs the window to stay open; for one that opens and closes inside the block, check `page.windows.size` instead.
+
 ## Ecosystem member checks
 
 CI also runs five ecosystem members' suites against the commit under test (`<member> / RSpec` checks; what they are and what a red one means: `docs/ai/ecosystem.md`, "Continuous cross-testing"). To reproduce one locally, run the member's suite from a sibling checkout with `CAMALEON_CMS_PATH` pointing at this working tree. For a plugin:
