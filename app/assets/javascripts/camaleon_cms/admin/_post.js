@@ -47,9 +47,12 @@ function cama_init_post(obj) {
     var releasing_form = null;
     // The jqXHR of the running save, for send_held_submit to abort.
     var running_request = null;
-    // The form this setup owns. Admin pages load in place, so $form may already be another post's form
-    // when a save of this one returns or is drained from the queue.
+    // The form this setup owns. Admin pages load in place, so the form may have left the page when a save
+    // of it returns or is drained from the queue.
     var post_form = $form[0];
+    // Another page was loaded in place: one with a post form of its own ($form is that form by then) or
+    // one without ($form still holds the form that left).
+    function form_left() { return $form[0] !== post_form || !$.contains(document, post_form); }
     // On the document, in the capture phase: a control naming the form from elsewhere does not bubble
     // through it, and a widget that stops the event still counts.
     document.addEventListener('input', mark_touched, true);
@@ -292,8 +295,8 @@ function cama_init_post(obj) {
     // Under the overlay while it saves: the callback leaves the page, and an edit made meanwhile would be lost.
     App_post.save_draft = function () {
         save_under_overlay(function () {
-            // Another form was loaded in place meanwhile (Back is not under the overlay): leave it its page.
-            if ($form[0] !== post_form) { hideLoading(); return; }
+            // Another page was loaded in place meanwhile (Back is not under the overlay): leave it be.
+            if (form_left()) { hideLoading(); return; }
             $form.data("submitted", 1);
             location.href = _posts_path + '?flash[notice]=' + encodeURIComponent(I18n("msg.draft"))
         }, hideLoading);

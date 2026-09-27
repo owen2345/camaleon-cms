@@ -6,6 +6,7 @@ describe 'Post editor draft autosave', :js do
   let!(:site) { CamaleonCms::Site.first.decorate }
   let(:post_type_id) { site.post_types.where(slug: :post).pick(:id) }
   let(:new_post_path) { "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/new" }
+  let(:post_list_path) { "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts" }
 
   # Gives a new post what its save requires besides the title: a body and a category.
   def publishable_post_js
@@ -105,6 +106,19 @@ describe 'Post editor draft autosave', :js do
 
   def autosave_tick
     page.execute_script('App_post.save_draft_ajax(null, true)')
+  end
+
+  # Loads an admin page in place, as the camaleon_admin_ajax plugin does: the server renders the content
+  # section alone, which replaces the page's, and its scripts run. The address stays the one visited.
+  def load_in_place(path)
+    page.execute_script(<<~JS)
+      $.get(#{path.to_json}, { cama_ajax_request: true }, function (res) {
+        window.onbeforeunload = null;
+        $('#admin_content').replaceWith(res);
+        $('#admin_content').attr('data-loaded-in-place', #{path.to_json});
+      });
+    JS
+    expect(page).to have_css("#admin_content[data-loaded-in-place='#{path}']")
   end
 
   # Routes the editor's draft requests through `handler(options, send)`: `send` sends the request for real,
@@ -1822,6 +1836,26 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading')
     expect(page.evaluate_script('$("#form-post").data("submitted")')).to be_nil
     expect(new_post_buffers.order(:id).last.title).to eq('Saved draft before the next form')
+  end
+
+  # A page without a post form loaded in place (the list, via Back) sets the script up on no other form, so
+  # its form is still the one that left: the callback must leave that page alone all the same.
+  it 'stays on a page without a form loaded in place when Save Draft returns for the form that left' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved draft before the list'
+
+    delay_draft_requests(2000)
+    page.execute_script('App_post.save_draft();')
+    load_in_place(post_list_path)
+    expect(page).to have_no_css('#form-post')
+
+    wait_until { new_post_buffers.exists? }
+    sleep 1 # long enough for a callback that leaves the page to have left it
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect(page).to have_css("#admin_content[data-loaded-in-place='#{post_list_path}']")
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved draft before the list')
   end
 
   # A refusal or failure can return after another page was loaded in place: shown there, it names the post
