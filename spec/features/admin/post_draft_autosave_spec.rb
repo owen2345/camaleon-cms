@@ -2304,6 +2304,23 @@ describe 'Post editor draft autosave', :js do
     expect_alert_on_the_form('The draft could not be saved')
   end
 
+  # A decorated action may answer a saved draft with `error: false`, which refuses nothing: the draft saves.
+  it 'saves a draft whose answer carries a false error' do
+    open_new_post('Saved with a false error')
+    intercept_draft_requests(<<~HANDLER)
+      function (options, send) {
+        var success = options.success;
+        options.success = function (res) { res.error = false; return success.apply(this, arguments); };
+        return send();
+      }
+    HANDLER
+
+    click_link 'Save Draft'
+
+    expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved with a false error')
+  end
+
   # A decorated action may answer `{}` or `null`: there is no draft to name, so the save fails.
   it 'fails a draft response that names no draft' do
     open_new_post('Answered without a draft')

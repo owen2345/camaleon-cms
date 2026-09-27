@@ -186,7 +186,7 @@ The lock SHALL be released when a success callback throws and when a save throws
 
 ### Requirement: A refused save shows its messages and is not re-sent
 
-A refused save SHALL show its messages as text, whether the response carries a list, one message or messages keyed by field, and run no callback. A message sent as an object (a model's error details) SHALL be shown by what it names, and a blank message SHALL be left out. The timer calls queued behind it SHALL send nothing, and the timer SHALL NOT re-send the form until it changes; a user's call is always sent.
+A refused save SHALL show its messages as text, whether the response carries a list, one message or messages keyed by field, and run no callback. A message sent as an object (a model's error details) SHALL be shown by what it names, and a blank message SHALL be left out. A falsy `error` (`false`, `0`) SHALL refuse nothing. The timer calls queued behind it SHALL send nothing, and the timer SHALL NOT re-send the form until it changes; a user's call is always sent.
 
 #### Scenario: A timer call queued behind a refused save is dropped
 
@@ -217,6 +217,11 @@ A refused save SHALL show its messages as text, whether the response carries a l
 
 - **WHEN** the drafts action answers with `error` set to a list of one message among blank ones
 - **THEN** that message alone is shown
+
+#### Scenario: A false error refuses nothing
+
+- **WHEN** the drafts action answers Save Draft with a saved draft and `error` set to `false`
+- **THEN** the draft is saved and the post list opens
 
 ### Requirement: A save belongs to the form it was sent from
 

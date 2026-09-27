@@ -195,8 +195,10 @@ function cama_init_post(obj) {
 
     // A refusal's messages as text. The core refuses with a list of messages; a decorated action may send
     // one message, or the model's errors keyed by field, each message then led by its field. A message may
-    // be an object that names it (a model's error details). Blank ones are left out.
+    // be an object that names it (a model's error details). Blank ones are left out, and a falsy `error`
+    // (`false`, `0`) refuses nothing.
     function refusal_messages(error) {
+        if (!error) return [];
         return $.map($.isPlainObject(error) ? error : {'': error}, function (list, field) {
             return $.map([].concat(list), function (message) {
                 if ($.isPlainObject(message)) message = message.message || message.error || JSON.stringify(message);
