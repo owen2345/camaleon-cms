@@ -425,7 +425,7 @@ When `App_post.submit_wait_ms` passes with the save still running, the save SHAL
 
 ### Requirement: The draft save is a public asynchronous contract
 
-`window.save_draft(callback, called_from_interval, on_failure)`, which runs the save `App_post.save_draft_ajax` runs without a wrapper on it, SHALL return at once, run `callback(response)` when the save succeeds and `on_failure` otherwise: refused, failed, timed out, answered with no draft or with a refusal naming no message, aborted, dropped or not sent. `App_post.submit_wait_ms` (15 s) and `App_post.save_timeout_ms` (30 s) SHALL be defaulted only when unset, `0` included.
+`window.save_draft(callback, called_from_interval, on_failure)`, which runs the save `App_post.save_draft_ajax` runs without a wrapper on it, SHALL return at once, run `callback(response)` when the save succeeds and `on_failure` when it is refused, fails, times out, answers with no draft or a refusal naming no message, is aborted, dropped or not sent. `App_post.submit_wait_ms` (15 s) and `App_post.save_timeout_ms` (30 s) SHALL keep a value set first, `0` included, and be defaulted when unset.
 
 #### Scenario: A zero submit_wait_ms is kept
 
