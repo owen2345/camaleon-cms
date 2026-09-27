@@ -47,6 +47,15 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
+  # A save asked for later, to see that the lock was released: its callback marks the body.
+  def later_save_js
+    "App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);"
+  end
+
+  def expect_later_save_ran
+    expect(page).to have_css('body[data-later-save="ran"]')
+  end
+
   def new_post_buffers
     CamaleonCms::Post.where(status: 'draft_child', post_parent: nil)
   end
@@ -412,9 +421,9 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('body[data-throwing-save="ran"]')
 
     page.execute_script(<<~JS)
-      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+      #{later_save_js}
     JS
-    expect(page).to have_css('body[data-later-save="ran"]')
+    expect_later_save_ran
   end
 
   # $.ajax can throw before sending (a plugin wrapper): the lock is released and the failure handler runs,
@@ -430,12 +439,12 @@ describe 'Post editor draft autosave', :js do
       try {
         App_post.save_draft_ajax(null, false, function () { window.sendFailed = true; });
       } catch (e) { window.sendThrew = e.message; }
-      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+      #{later_save_js}
     JS
 
     expect(page.evaluate_script('window.sendThrew')).to eq('refused to send')
     expect(page.evaluate_script('window.sendFailed')).to be(true)
-    expect(page).to have_css('body[data-later-save="ran"]')
+    expect_later_save_ran
   end
 
   # A throwing failure handler must not replace the send's error on its way to the caller.
@@ -448,11 +457,11 @@ describe 'Post editor draft autosave', :js do
       try {
         App_post.save_draft_ajax(null, false, function () { throw new Error('handler failed'); });
       } catch (e) { window.sendThrew = e.message; }
-      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+      #{later_save_js}
     JS
 
     expect(page.evaluate_script('window.sendThrew')).to eq('refused to send')
-    expect(page).to have_css('body[data-later-save="ran"]')
+    expect_later_save_ran
   end
 
   # A queued save runs from the finished save's completion, inside its error path when it threw. A drained
@@ -483,12 +492,12 @@ describe 'Post editor draft autosave', :js do
       try {
         App_post.save_draft_ajax(null, false);
       } catch (e) { window.sendThrew = e.message; }
-      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+      #{later_save_js}
     JS
 
     expect(page.evaluate_script('window.sendThrew')).to eq('refused to send 1')
     expect(page.evaluate_script('window.queuedSendFailed')).to be(true)
-    expect(page).to have_css('body[data-later-save="ran"]')
+    expect_later_save_ran
   end
 
   # A change handler run by the sync may ask for a save; it must queue, or a new post gets two buffers.
@@ -525,12 +534,12 @@ describe 'Post editor draft autosave', :js do
         App_post.save_draft_ajax(null, false, function () { window.sendFailed = true; });
       } catch (e) { window.sendThrew = e.message; }
       failing = false;
-      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+      #{later_save_js}
     JS
 
     expect(page.evaluate_script('window.sendThrew')).to eq('handler failed')
     expect(page.evaluate_script('window.sendFailed')).to be(true)
-    expect(page).to have_css('body[data-later-save="ran"]')
+    expect_later_save_ran
   end
 
   # Submitting during a new post's first save used to post an empty draft id, leaving the buffer behind.
@@ -1148,9 +1157,9 @@ describe 'Post editor draft autosave', :js do
 
     page.execute_script(<<~JS)
       App_post.save_timeout_ms = 30000;
-      App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);
+      #{later_save_js}
     JS
-    expect(page).to have_css('body[data-later-save="ran"]')
+    expect_later_save_ran
     expect(new_post_buffers.order(:id).last.title).to eq('Timed out')
     # Let the stalled request finish inside the example, where its rendering is harmless.
     wait_until { stalled }
@@ -2219,8 +2228,8 @@ describe 'Post editor draft autosave', :js do
 
     expect_alert_on_the_form('The draft could not be saved')
 
-    page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
-    expect(page).to have_css('body[data-later-save="ran"]')
+    page.execute_script(later_save_js)
+    expect_later_save_ran
   end
 
   # Blank messages name nothing either.
@@ -2242,8 +2251,8 @@ describe 'Post editor draft autosave', :js do
 
     expect_alert_on_the_form('The draft could not be saved')
 
-    page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
-    expect(page).to have_css('body[data-later-save="ran"]')
+    page.execute_script(later_save_js)
+    expect_later_save_ran
   end
 
   # `{ draft: {} }` taken as a success wrote `undefined` into the Preview links and started the next save
@@ -2257,8 +2266,8 @@ describe 'Post editor draft autosave', :js do
     expect_alert_on_the_form('The draft could not be saved')
     expect(page.evaluate_script('$("#form-post .btn-preview").attr("href")')).not_to include('undefined')
 
-    page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
-    expect(page).to have_css('body[data-later-save="ran"]')
+    page.execute_script(later_save_js)
+    expect_later_save_ran
     expect(new_post_buffers.count).to eq(1)
   end
 
