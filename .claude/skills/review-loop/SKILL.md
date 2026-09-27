@@ -21,16 +21,16 @@ Read them from the goal, the skill's arguments or the request; each has a defaul
 
 ## Setup (first pass of a run)
 
-- **Target:** resolve the checkout path, its GitHub project (`gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout) and the PR's head and base branches (`gh pr view <pr> --repo <project> --json headRefName,baseRefName`). The checkout must be on the head branch and not behind `origin/<head>` after a fetch; otherwise stop and say so, without switching or pulling, in a `PASS 0/8` line.
+- **Target:** resolve the checkout path, its GitHub project (`gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout) and the PR's head and base branches (`gh pr view <pr> --repo <project> --json headRefName,baseRefName`), then fetch both (`git -C <checkout> fetch origin <head> <base>`). The checkout must be on the head branch and not behind `origin/<head>`; otherwise stop and say so, without switching or pulling, in a `PASS 0/8` line. Every range below starts at `origin/<base>`, never the local base branch, which can lag behind.
 - **Commands** run against the checkout: `git -C <checkout> …`, `(cd <checkout> && bin/…)`, `gh … --repo <project>`.
 - **Ledger:** `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms, whatever the target repo, never committed. If it doesn't exist, create it and seed it as pass 0 from the refuted and skipped entries in the PR's memory entry, if there is one (skips fixed later are FIXED). Each run appends `## Run <date>, effort <level>` and counts its passes from 1; rows of earlier runs still count for the verdict checks.
-- **Spec set:** the spec files the branch adds or changes (`git -C <checkout> diff --name-only <base>...HEAD -- spec/`) plus the adjacent specs as camaleon-cms `AGENTS.md` defines them. Write it at the top of the run.
+- **Spec set:** the spec files the branch adds or changes (`git -C <checkout> diff --name-only origin/<base>...HEAD -- spec/`) plus the adjacent specs as camaleon-cms `AGENTS.md` defines them. Write it at the top of the run.
 
 Every pass starts by loading these rules fresh, noting HEAD and reading the ledger (it holds the pass count and each pass's state).
 
 ## Pass
 
-Run `/code-review <effort> --fix` on the checkout's local branch against the base, unpushed commits included: no target for camaleon-cms, the checkout path for another repo. Its scope is `git -C <checkout> diff <base>...HEAD` plus any working-tree changes, whatever range `/code-review` picks on its own (at medium, `@{upstream}...HEAD`: on a pushed branch, only this run's commits). Never target the PR number: that may review the pushed head, which lacks this run's commits. If the review can't cover that whole range, stop and say so. Apply findings only as the verdicts allow.
+Run `/code-review <effort> --fix` on the checkout's local branch against the base, unpushed commits included: no target for camaleon-cms, the checkout path for another repo. Its scope is `git -C <checkout> diff origin/<base>...HEAD` plus any working-tree changes, whatever range `/code-review` picks on its own (at medium, `@{upstream}...HEAD`: on a pushed branch, only this run's commits). Never target the PR number: that may review the pushed head, which lacks this run's commits. If the review can't cover that whole range, stop and say so. Apply findings only as the verdicts allow.
 
 ## Ledger rows
 
@@ -42,7 +42,7 @@ Checked in order; only FIXED is applied, and no finding is left without a verdic
 
 1. Refuted → REFUTED. PLAUSIBLE → DEFERRED.
 2. Same claim as a DECISION or REFUTED row, on code no commit has touched since → REPEAT if DECISION, CONFLICT if REFUTED. If that code changed, treat the claim as new.
-3. Its fix would undo a commit already on this branch (`<base>..HEAD`) or go against a DECISION row → CONFLICT.
+3. Its fix would undo a commit already on this branch (`origin/<base>..HEAD`) or go against a DECISION row → CONFLICT.
 4. Needs a design trade-off or the user's call → DECISION.
 5. Reuse, simplification or efficiency (the cleanups), conventions (code that breaks a `CLAUDE.md` or `AGENTS.md` rule) or coverage-only → FIXED, own commit. A fix that preserves behavior is proven by the checks and needs no new spec; one that changes behavior, as a conventions fix can, gets its own spec; a coverage-only fix is the new spec. DEFERRED instead once step 5 is frozen (see below); a cleanup is also DEFERRED when another cleanup already reshaped that function or spec example in this run.
 6. Altitude or wording → FIXED in pass 1 (own commit), DEFERRED after.
