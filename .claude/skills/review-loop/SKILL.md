@@ -47,7 +47,7 @@ Checked in order; only FIXED is applied, and no finding is left without a verdic
 3. Its fix would undo a commit already on this branch (`origin/<base>..HEAD`) or go against a DECISION row → CONFLICT.
 4. Needs a design trade-off or the user's call → DECISION.
 5. Reuse, simplification or efficiency (the cleanups), conventions (code that breaks a `CLAUDE.md` or `AGENTS.md` rule, unless it is also a correctness or security defect: that goes to step 7) or coverage-only → FIXED, own commit. A fix that preserves behavior is proven by the checks and needs no new spec; one that changes behavior, as a conventions fix can, gets its own spec; a coverage-only fix is the new spec. DEFERRED instead once step 5 is frozen (see below); a cleanup is also DEFERRED when another cleanup already reshaped that function or spec example in this run.
-6. Altitude or wording → FIXED in pass 1 (own commit), DEFERRED after.
+6. Altitude (unless it is also a correctness or security defect: that goes to step 7) or wording → FIXED in pass 1 (own commit), DEFERRED after.
 7. A correctness or security defect → FIXED: own spec, own commit (`docs/ai/workflows.md` Phase 3).
 
 ## Checks
