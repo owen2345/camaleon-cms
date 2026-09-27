@@ -170,15 +170,27 @@ describe 'Post editor draft autosave', :js do
     page.execute_script("tinymce.init(cama_get_tinymce_settings({ selector: '#late_editor', height: 100 }));")
   end
 
-  # Loads a new post's form in place with the editor's setup held back until the example calls
-  # window.runHeldSetup().
-  def load_new_post_with_held_setup
+  # Holds the editor's setup back on every form loaded from here on, until the example calls
+  # window.runHeldSetup() for the last one loaded.
+  def hold_editor_setups
     page.execute_script(<<~JS)
       var setup = window.cama_init_post;
       window.cama_init_post = function (obj) { window.runHeldSetup = function () { setup(obj); }; };
     JS
-    load_in_place(new_post_path)
+  end
+
+  # Loads a page in place once setups are held back, and waits for its own setup to be the one held.
+  def load_in_place_with_held_setup(path)
+    page.execute_script('window.runHeldSetup = null;')
+    load_in_place(path)
     wait_until { page.evaluate_script('typeof window.runHeldSetup === "function"') }
+  end
+
+  # Loads a new post's form in place with the editor's setup held back until the example calls
+  # window.runHeldSetup().
+  def load_new_post_with_held_setup
+    hold_editor_setups
+    load_in_place_with_held_setup(new_post_path)
   end
 
   # Save Draft clicked on a new post's form loaded in place before the editor was set up on it, the page as
@@ -1847,8 +1859,8 @@ describe 'Post editor draft autosave', :js do
 
     click_save_draft_before_setup('Clicked on a form that left before its setup')
 
-    # The post's form comes back in place and is set up: the held setup is now that form's.
-    load_in_place("#{post_list_path}/#{post.id}/edit")
+    # The post's form comes back in place with its own setup held back too, which then runs.
+    load_in_place_with_held_setup("#{post_list_path}/#{post.id}/edit")
     page.execute_script('window.runHeldSetup();')
     wait_for_editor_setup
     expect(page).to have_no_css('#cama_custom_loading')
