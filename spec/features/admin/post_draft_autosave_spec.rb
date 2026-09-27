@@ -203,6 +203,12 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_css('#cama_custom_loading')
   end
 
+  # A post's edit form, its baseline taken.
+  def open_post(post)
+    visit "#{post_list_path}/#{post.id}/edit"
+    wait_for_editor_baseline
+  end
+
   # A new post's form, its baseline taken and its title typed in.
   def open_new_post(title)
     visit new_post_path
@@ -1817,8 +1823,7 @@ describe 'Post editor draft autosave', :js do
   # of the form that left until then: the click waits for the form's own setup and saves that form.
   it 'saves the draft of a form loaded in place when Save Draft is clicked before the form was set up' do
     post = site.the_post('sample-post')
-    visit "#{post_list_path}/#{post.id}/edit"
-    wait_for_editor_baseline
+    open_post(post)
     count_draft_saves
 
     click_save_draft_before_setup('Saved draft before the setup')
@@ -1835,8 +1840,7 @@ describe 'Post editor draft autosave', :js do
   # gives the page back, and a setup that comes later is not handed the click.
   it 'gives the page back when the form loaded in place is not set up within five seconds of Save Draft' do
     post = site.the_post('sample-post')
-    visit "#{post_list_path}/#{post.id}/edit"
-    wait_for_editor_baseline
+    open_post(post)
     count_draft_saves
 
     click_save_draft_before_setup('Clicked before a setup that never came')
@@ -1853,8 +1857,7 @@ describe 'Post editor draft autosave', :js do
   # failed): the setup of the form loaded in its place is that form's, and is not handed the click.
   it 'gives the page back when the form Save Draft was clicked on leaves before it was set up' do
     post = site.the_post('sample-post')
-    visit "#{post_list_path}/#{post.id}/edit"
-    wait_for_editor_baseline
+    open_post(post)
     count_draft_saves
 
     click_save_draft_before_setup('Clicked on a form that left before its setup')
@@ -1873,8 +1876,7 @@ describe 'Post editor draft autosave', :js do
   # loaded in its place was set up: the click is that form's, handed to its setup at once.
   it 'hands a Save Draft call made through a kept reference to the form set up in its place' do
     post = site.the_post('sample-post')
-    visit "#{post_list_path}/#{post.id}/edit"
-    wait_for_editor_baseline
+    open_post(post)
     page.execute_script('window.keptSaveDraft = App_post.save_draft;')
 
     load_in_place(new_post_path)
@@ -1890,8 +1892,7 @@ describe 'Post editor draft autosave', :js do
   # App_post.save_draft still leads back to the setup of the form that left, which gives the click up.
   it 'gives the page back when the setup of the form loaded in place fails before taking Save Draft' do
     post = site.the_post('sample-post')
-    visit "#{post_list_path}/#{post.id}/edit"
-    wait_for_editor_baseline
+    open_post(post)
     count_draft_saves
     page.execute_script(record_page_errors_js)
 
@@ -1908,8 +1909,7 @@ describe 'Post editor draft autosave', :js do
   # next setup all the same, instead of calling the wrapper, and through it itself, again and again.
   it 'hands a Save Draft click made through a wrapper to the form loaded in place once it is set up' do
     post = site.the_post('sample-post')
-    visit "#{post_list_path}/#{post.id}/edit"
-    wait_for_editor_baseline
+    open_post(post)
     page.execute_script(<<~JS)
       #{record_page_errors_js}
       window.wrapperRuns = 0;
