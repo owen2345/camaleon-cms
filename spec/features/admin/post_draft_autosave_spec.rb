@@ -1718,6 +1718,29 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path("#{post_list_path}/#{post.id}/edit", ignore_query: true)
   end
 
+  # The form the click was made on may leave before its setup came (Back, away from a page whose setup
+  # failed): the setup of the form loaded in its place is that form's, and is not handed the click.
+  it 'gives the page back when the form Save Draft was clicked on leaves before it was set up' do
+    post = site.the_post('sample-post')
+    visit "#{post_list_path}/#{post.id}/edit"
+    wait_for_editor_baseline
+    count_draft_saves
+
+    load_new_post_with_held_setup
+    fill_in 'post_title', with: 'Clicked on a form that left before its setup'
+    click_link 'Save Draft'
+    expect(page).to have_css('#cama_custom_loading')
+
+    # The post's form comes back in place and is set up: the held setup is now that form's.
+    load_in_place("#{post_list_path}/#{post.id}/edit")
+    page.execute_script('window.runHeldSetup();')
+    wait_for_editor_setup
+    expect(page).to have_no_css('#cama_custom_loading')
+    sleep 0.5 # long enough for a click still waiting to have been handed to the setup
+    expect(draft_saves).to eq(0)
+    expect(page).to have_current_path("#{post_list_path}/#{post.id}/edit", ignore_query: true)
+  end
+
   # A plugin's wrapper on App_post.save_draft is what the Save Draft link calls: the click waits for the
   # next setup all the same, instead of calling the wrapper, and through it itself, again and again.
   it 'hands a Save Draft click made through a wrapper to the form loaded in place once it is set up' do

@@ -341,13 +341,15 @@ function cama_init_post(obj) {
         // setup until then: the click waits under the overlay for the form's own setup, five seconds at most.
         // That setup is known by App_post.save_draft no longer being what the click called: this function,
         // or a plugin's wrapper on it, which would only lead back here. The overlay is marked as the next
-        // form's, so a save of this setup's form returning meanwhile leaves it up.
+        // form's, so a save of this setup's form returning meanwhile leaves it up. Once that form left the
+        // page too, the click is given up: a setup that comes then is another form's.
         if (form_left()) {
             var next_form = $('#form-post')[0], called = App_post.save_draft, tries = 100;
             if (next_form) put_overlay_up(next_form);
             (function hand_over() {
-                if (App_post.save_draft !== called) App_post.save_draft();
-                else if ($('#form-post').length && --tries) setTimeout(hand_over, 50);
+                var on_page = !!next_form && $.contains(document, next_form);
+                if (on_page && App_post.save_draft !== called) App_post.save_draft();
+                else if (on_page && --tries) setTimeout(hand_over, 50);
                 else if (next_form && overlay_owner() === next_form) hideLoading();
             })();
             return;
