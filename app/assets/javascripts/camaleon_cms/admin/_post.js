@@ -241,7 +241,7 @@ function cama_init_post(obj) {
         var form = held_form, submitter = held_submitter;
         drop_hold();
         hideLoading();
-        if (!$.contains(document, form)) return;
+        if (form_left()) return;
         // requestSubmit throws on a submitter that is not a submit button of this form (a theme may have re-rendered it).
         if (!(submitter && submitter.form === form && /^(submit|image)$/i.test(submitter.type))) submitter = null;
         if (saving && running_request && running_request.abort) {
@@ -262,7 +262,7 @@ function cama_init_post(obj) {
     // names the post it is about, by the title as it was typed: the first language copy typed in, or the
     // field itself.
     function show_error(text) {
-        if (!$.contains(document, post_form)) {
+        if (form_left()) {
             var title = $(post_form).find('.title-post' + class_translate).filter(function () { return this.value.trim(); }).first().val();
             if (title) text = $('<div>').text(title).html() + ': ' + text;
         }
@@ -303,8 +303,8 @@ function cama_init_post(obj) {
         }, hideLoading);
     }
     if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
-    // Stops once the form has left the page ($form still holds the removed element, so its length says nothing).
-    window["post_editor_draft_intrval"] = setInterval(function () { if(!$.contains(document, post_form)){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 1 * 60 * 1000);
+    // Stops once the form has left the page.
+    window["post_editor_draft_intrval"] = setInterval(function () { if(form_left()){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 1 * 60 * 1000);
     window.save_draft = App_post.save_draft_ajax;
 
     if($form.find(".title-post" + class_translate).length == 0) class_translate = '';
