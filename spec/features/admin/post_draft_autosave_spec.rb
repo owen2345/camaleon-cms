@@ -61,6 +61,12 @@ describe 'Post editor draft autosave', :js do
     %q{$('#post_status').append('<option value="bogus">bogus</option>').val('bogus');}
   end
 
+  # What opening another post in place leaves behind: the form is gone from the page and the script's form
+  # is the next one, a stand-in that holds `fields`.
+  def next_form_js(fields = '<input type="hidden" name="post[title]" value="The next form">')
+    "$('#form-post').detach(); $('body').append('<form id=\"form-post\">#{fields}</form>'); $form = $('#form-post');"
+  end
+
   def new_post_buffers
     CamaleonCms::Post.where(status: 'draft_child', post_parent: nil)
   end
@@ -1702,9 +1708,7 @@ describe 'Post editor draft autosave', :js do
       App_post.save_draft_ajax(function () { window.queuedSaveRan = true; }, false, function () { window.queuedSaveDropped = true; });
       // What opening another post in place leaves behind while the saves wait: the previous form is gone
       // and the script's form is the next one, with content of its own.
-      $('#form-post').detach();
-      $('body').append('<form id="form-post"><input type="hidden" name="post[title]" value="The next form"></form>');
-      $form = $('#form-post');
+      #{next_form_js}
     JS
 
     expect(page).to have_css('body[data-draft-saved="ran"]', wait: 5)
@@ -1722,9 +1726,7 @@ describe 'Post editor draft autosave', :js do
     stall_draft_requests
     page.execute_script(<<~JS)
       App_post.save_draft_ajax(null, false);
-      $('#form-post').detach();
-      $('body').append('<form id="form-post"></form>');
-      $form = $('#form-post');
+      #{next_form_js('')}
       App_post.save_draft_ajax(null, false, function () { window.laterCallDropped = true; });
     JS
 
@@ -2084,9 +2086,7 @@ describe 'Post editor draft autosave', :js do
       App_post.save_draft();
       // What opening another post in place leaves behind while the save runs: the previous form is gone
       // and the script's form is the next one.
-      $('#form-post').detach();
-      $('body').append('<form id="form-post"><input type="hidden" name="post[title]" value="The next form"></form>');
-      $form = $('#form-post');
+      #{next_form_js}
     JS
 
     wait_until { new_post_buffers.exists? }
@@ -2125,9 +2125,7 @@ describe 'Post editor draft autosave', :js do
     page.execute_script(<<~JS)
       App_post.save_draft();
       // What opening another page in place leaves behind while the save runs.
-      $('#form-post').detach();
-      $('body').append('<form id="form-post"><input type="hidden" name="post[title]" value="The next form"></form>');
-      $form = $('#form-post');
+      #{next_form_js}
     JS
 
     expect(page).to have_css('#cama_alert_modal', text: 'Refused <b>before</b> the next page: the draft was refused')
