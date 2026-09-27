@@ -30,7 +30,7 @@ Every pass starts by loading these rules fresh, noting HEAD and reading the ledg
 
 ## Pass
 
-Run `/code-review <effort> --fix` on the checkout's local branch against the base, unpushed commits included: no target for camaleon-cms, the checkout path for another repo. Never target the PR number: that may review the pushed head, which lacks this run's commits. If the review can't cover the checkout's unpushed commits, stop and say so. Apply findings only as the verdicts allow.
+Run `/code-review <effort> --fix` on the checkout's local branch against the base, unpushed commits included: no target for camaleon-cms, the checkout path for another repo. Its scope is `git -C <checkout> diff <base>...HEAD` plus any working-tree changes, whatever range `/code-review` picks on its own (at medium, `@{upstream}...HEAD`: on a pushed branch, only this run's commits). Never target the PR number: that may review the pushed head, which lacks this run's commits. If the review can't cover that whole range, stop and say so. Apply findings only as the verdicts allow.
 
 ## Ledger rows
 
