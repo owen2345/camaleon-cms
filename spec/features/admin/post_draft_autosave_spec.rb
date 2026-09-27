@@ -1191,6 +1191,90 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
+  # A wrapper that passes Save Draft's call on at once with a callback of its own leaves the call known by
+  # the flag alone: it gets the overlay back when drained, and is not failed while it waits in the queue.
+  it 'keeps a Save Draft call a wrapper passed on with its own callback while it waits past save_timeout_ms' do
+    open_new_post('Saved Draft through a callback of the wrapper')
+
+    hold_draft_requests
+    # save_timeout_ms is short for Save Draft's call only; the requests keep the default.
+    page.execute_script(<<~JS)
+      var save = App_post.save_draft_ajax;
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        return save(function (res) { return callback(res); }, called_from_interval, on_failure);
+      };
+      showLoading();
+      window.save_draft(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
+      App_post.save_timeout_ms = 1000;
+      App_post.save_draft();
+      App_post.save_timeout_ms = 30000;
+    JS
+    sleep 1.5 # past save_timeout_ms, with Save Draft's call in the queue
+    expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests(1)
+    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(intercepted_draft_requests).to eq(2)
+    expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
+    expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
+  end
+
+  # A call a wrapper defers but passes on in time is known by the mark on its callback, and is not failed
+  # while it waits in the queue.
+  it 'keeps a Save Draft call a deferring wrapper passed on in time while it waits past save_timeout_ms' do
+    open_new_post('Saved Draft deferred, then queued')
+
+    hold_draft_requests
+    page.execute_script(<<~JS)
+      var save = App_post.save_draft_ajax;
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        setTimeout(function () { save(callback, called_from_interval, on_failure); }, 100);
+      };
+      window.save_draft(function () { $('body').attr('data-first-save', 'ran'); }, false);
+      App_post.save_timeout_ms = 1000;
+      App_post.save_draft();
+      App_post.save_timeout_ms = 30000;
+    JS
+    sleep 1.5 # past save_timeout_ms, with Save Draft's call in the queue
+
+    release_draft_requests(1)
+    expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
+    expect(intercepted_draft_requests).to eq(2)
+
+    release_draft_requests
+    expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
+  end
+
+  # A wrapper may answer Save Draft's call itself through its failure handler (a confirmation declined):
+  # the call is settled, and its timeout fails nothing once the next Save Draft saves.
+  it 'does not fail a Save Draft call the wrapper answered itself when save_timeout_ms passed' do
+    open_new_post('Declined once, then saved')
+
+    hold_draft_requests
+    page.execute_script(<<~JS)
+      var save = App_post.save_draft_ajax, declined = false;
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        if (declined) return save(callback, called_from_interval, on_failure);
+        declined = true;
+        on_failure();
+      };
+      App_post.save_timeout_ms = 1000;
+    JS
+    click_link 'Save Draft'
+    expect(page).to have_no_css('#cama_custom_loading')
+
+    page.execute_script('App_post.save_timeout_ms = 30000;')
+    click_link 'Save Draft'
+    expect(page).to have_css('#cama_custom_loading')
+    sleep 1.5 # past the first call's save_timeout_ms, with the second call's request held
+    expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
+    expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
+  end
+
   # A plugin's call put no overlay up and its callback takes none down: restored for it, the overlay would
   # stay for good.
   it 'leaves the overlay down for a plugin save queued behind another save' do

@@ -411,7 +411,7 @@ When `App_post.submit_wait_ms` passes with the save still running, the save SHAL
 
 ### Requirement: Save Draft holds the form while it saves
 
-Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. A Save Draft or Preview save that starts later than it was asked for (queued behind another save, or held back by a wrapper on `App_post.save_draft_ajax`) SHALL put the overlay back as it starts, the finished save's caller having taken it down; a plugin's queued save, one a change handler asks for while Save Draft's or Preview's save syncs the editors included, SHALL run as it was made, with no overlay put up for it. A Save Draft or Preview call such a wrapper does not pass on SHALL fail, taking the overlay down and closing Preview's window: at once when the wrapper throws before passing it on, otherwise once `App_post.save_timeout_ms` passed, after which the call SHALL be dropped if the wrapper still passes it on. When another page was loaded in place by the time the save returns, with a post form of its own or none, Save Draft SHALL leave that page and its leave prompt alone: the draft is saved, the overlay comes down and the page stays. Save Draft clicked on a post form loaded in place before the editor was set up on it (the setup runs a moment after the form came), through a plugin's wrapper on `App_post.save_draft` or not, SHALL wait for that setup under the overlay, five seconds at most and while that form is on the page, and save that form.
+Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. A Save Draft or Preview save that starts later than it was asked for (queued behind another save, or held back by a wrapper on `App_post.save_draft_ajax`) SHALL put the overlay back as it starts, the finished save's caller having taken it down; a plugin's queued save, one a change handler asks for while Save Draft's or Preview's save syncs the editors included, SHALL run as it was made, with no overlay put up for it. A Save Draft or Preview call such a wrapper does not pass on SHALL fail, taking the overlay down and closing Preview's window: at once when the wrapper throws before passing it on, otherwise once `App_post.save_timeout_ms` passed, after which the call SHALL be dropped if the wrapper still passes it on. A call passed on in time, or answered by the wrapper itself, SHALL NOT be failed by that timeout, however long it then waits in the queue. When another page was loaded in place by the time the save returns, with a post form of its own or none, Save Draft SHALL leave that page and its leave prompt alone: the draft is saved, the overlay comes down and the page stays. Save Draft clicked on a post form loaded in place before the editor was set up on it (the setup runs a moment after the form came), through a plugin's wrapper on `App_post.save_draft` or not, SHALL wait for that setup under the overlay, five seconds at most and while that form is on the page, and save that form.
 
 #### Scenario: Save Draft returns to the list
 
@@ -482,6 +482,21 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 
 - **WHEN** a wrapper on `App_post.save_draft_ajax` keeps Save Draft's call past `App_post.save_timeout_ms`, then passes it on
 - **THEN** the overlay comes down once the timeout passed, and the call passed on afterwards sends nothing
+
+#### Scenario: A Save Draft call a wrapper passes on with its own callback keeps the overlay
+
+- **WHEN** a wrapper on `App_post.save_draft_ajax` passes Save Draft's call on at once with a callback of its own, while a save whose callback takes the overlay down runs for longer than `App_post.save_timeout_ms`
+- **THEN** the overlay stays up while the call waits and while its save runs, and the post list opens after it
+
+#### Scenario: A Save Draft call a wrapper passed on in time is not failed while it waits
+
+- **WHEN** a wrapper on `App_post.save_draft_ajax` passes Save Draft's call on a moment later, and the call waits in the queue for longer than `App_post.save_timeout_ms`
+- **THEN** its save is sent once the running one returns, and the post list opens after it
+
+#### Scenario: A Save Draft call the wrapper answered itself is not failed again
+
+- **WHEN** a wrapper on `App_post.save_draft_ajax` runs the failure handler of Save Draft's call itself, and the next Save Draft is still saving once `App_post.save_timeout_ms` passed since the first
+- **THEN** the overlay stays up while that save runs, and the post list opens after it
 
 #### Scenario: A plugin's queued save gets no overlay
 
