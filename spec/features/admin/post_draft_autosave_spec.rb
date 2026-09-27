@@ -190,26 +190,33 @@ describe 'Post editor draft autosave', :js do
   end
 
   # Draft requests are held back until release_draft_requests sends them, so a save is in flight for as
-  # long as the example needs, whatever the runner's speed; the requests made after that are sent at once.
+  # long as the example needs, whatever the runner's speed.
   def hold_draft_requests
     intercept_draft_requests(<<~HANDLER)
       (function () {
         window.heldDraftRequests = [];
         return function (options, send) {
           if (!window.heldDraftRequests) return send();
-          window.heldDraftRequests.push(send);
+          window.heldDraftRequests.push({ options: options, send: send });
           return $.Deferred().promise();
         };
       })()
     HANDLER
   end
 
-  def release_draft_requests
+  # Sends the held draft requests, after which requests are sent at once; with a count, the first ones
+  # only, the others staying held.
+  def release_draft_requests(count = nil)
     page.execute_script(<<~JS)
-      var held = window.heldDraftRequests;
-      window.heldDraftRequests = null;
-      $.each(held, function (i, send) { send(); });
+      var held = window.heldDraftRequests, count = #{count.to_json};
+      if (count === null) window.heldDraftRequests = null;
+      $.each(held.splice(0, count === null ? held.length : count), function (i, request) { request.send(); });
     JS
+  end
+
+  # Answers the first held draft request with `response` (a JavaScript expression), as the server would.
+  def answer_held_draft_request(response)
+    page.execute_script("window.heldDraftRequests.shift().options.success(#{response});")
   end
 
   # Each draft request fails `wait_ms` later, as when the transport reports an error.
@@ -1516,6 +1523,56 @@ describe 'Post editor draft autosave', :js do
     wait_for_draft_answers(2)
     expect(CamaleonCms::Post.where(post_parent: post.id, status: 'draft_child').last.title).to eq('Edited in place')
     expect(new_post_buffers.count).to eq(1)
+  end
+
+  # The overlay is one element for the whole page. A save of the form that left, returning late, must take
+  # down no overlay but its own: the one up by then is the next form's, whose save still runs.
+  it 'leaves the overlay of the form loaded in place up when a save of the form that left returns' do
+    post = site.the_post('sample-post')
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved draft of the form that left'
+
+    hold_draft_requests
+    page.execute_script('App_post.save_draft();')
+    load_in_place("#{post_list_path}/#{post.id}/edit")
+    # The in-place loader takes the overlay down as its load ends.
+    page.execute_script('hideLoading();')
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved draft of the form in its place'
+    page.execute_script('App_post.save_draft();')
+    expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests(1)
+    wait_for_draft_answers(1)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved draft of the form that left')
+    expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
+    expect(page).to have_current_path(post_list_path, ignore_query: true)
+    expect(CamaleonCms::Post.where(post_parent: post.id, status: 'draft_child').last.title)
+      .to eq('Saved draft of the form in its place')
+  end
+
+  # The alert takes the overlay down whoever put it up, so the next form's goes back up behind it.
+  it 'keeps the overlay of the form loaded in place up behind a refusal shown for the form that left' do
+    post = site.the_post('sample-post')
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused for the form that left'
+
+    hold_draft_requests
+    page.execute_script('App_post.save_draft();')
+    load_in_place("#{post_list_path}/#{post.id}/edit")
+    page.execute_script('hideLoading();')
+    wait_for_editor_baseline
+    page.execute_script('App_post.save_draft();')
+    expect(page).to have_css('#cama_custom_loading')
+
+    answer_held_draft_request("{ error: ['the draft was refused'] }")
+
+    expect(page).to have_css('#cama_alert_modal', text: 'Refused for the form that left: the draft was refused')
+    expect(page).to have_css('#cama_custom_loading')
   end
 
   # A queued save that runs after another form was loaded in place would send that form's content to this

@@ -52,6 +52,15 @@ function cama_init_post(obj) {
     // Another page was loaded in place, with a post form of its own or none. $form does not say so: it
     // holds the form that left until the next one is set up, a moment after it came, if one came at all.
     function form_left() { return !$.contains(document, post_form); }
+    // The overlay is one element for the whole page and has no owner, so this setup marks the one it puts
+    // up. Once its form left the page it takes down that one only: the one up by then may be the next
+    // form's, whose save still runs.
+    function show_overlay() {
+        showLoading();
+        $('body > #cama_custom_loading').data('post_form', post_form);
+    }
+    function overlay_owner() { return $('body > #cama_custom_loading').data('post_form'); }
+    function hide_overlay() { if (!form_left() || overlay_owner() === post_form) hideLoading(); }
     // On the document, in the capture phase: a control naming the form from elsewhere does not bubble
     // through it, and a widget that stops the event still counts.
     document.addEventListener('input', mark_touched, true);
@@ -96,7 +105,7 @@ function cama_init_post(obj) {
             if (current == saved_hash || current == refused_hash) return;
         }
         // The finished save's caller, or an alert, may have taken the overlay down while this call waited.
-        if (overlay) showLoading();
+        if (overlay) show_overlay();
 
         // Locked before the sync, so a save a change handler asks for queues instead of running beside this one.
         saving = true;
@@ -224,7 +233,7 @@ function cama_init_post(obj) {
         }
         if (!held_form) return;
         // A hold that waits for a queued save needs the overlay back: the finished save's caller took it down.
-        if (saving) showLoading(); else send_held_submit();
+        if (saving) show_overlay(); else send_held_submit();
     }
 
     // Dispatches the held submit in full, as the browser would (requestSubmit, with the button that made it
@@ -239,7 +248,7 @@ function cama_init_post(obj) {
     function send_held_submit() {
         var form = held_form, submitter = held_submitter;
         drop_hold();
-        hideLoading();
+        hide_overlay();
         if (form_left()) return;
         // requestSubmit throws on a submitter that is not a submit button of this form (a theme may have re-rendered it).
         if (!(submitter && submitter.form === form && /^(submit|image)$/i.test(submitter.type))) submitter = null;
@@ -259,13 +268,18 @@ function cama_init_post(obj) {
     // The alert takes the overlay down itself ($.fn.alert calls hideLoading). Shown over another page (the
     // form left the page: one loaded in place while the save ran, with a post form of its own or none), it
     // names the post it is about, by the title as it was typed: the first language copy typed in, or the
-    // field itself.
+    // field itself; and an overlay that is not this setup's goes back up behind it.
     function show_error(text) {
+        var overlay = $('body > #cama_custom_loading'), owner = overlay_owner();
         if (form_left()) {
             var title = $(post_form).find('.title-post' + class_translate).filter(function () { return this.value.trim(); }).first().val();
             if (title) text = escape_html(title) + ': ' + text;
         }
         $.fn.alert({type: 'error', title: text, icon: "times"});
+        if (form_left() && overlay.length && owner !== post_form) {
+            showLoading();
+            $('body > #cama_custom_loading').data('post_form', owner);
+        }
     }
 
     // Text for the alert, which puts its title into HTML.
@@ -288,7 +302,7 @@ function cama_init_post(obj) {
     // The call is known by the flag while it runs and by its callback after it returned: a wrapper may
     // defer the call, or wrap the callback, not both.
     function save_under_overlay(callback, on_failure) {
-        showLoading();
+        show_overlay();
         callback.under_overlay = true;
         under_overlay = true;
         try { App_post.save_draft_ajax(callback, false, on_failure); }
@@ -299,10 +313,10 @@ function cama_init_post(obj) {
     App_post.save_draft = function () {
         save_under_overlay(function () {
             // Another page was loaded in place meanwhile (Back is not under the overlay): leave it be.
-            if (form_left()) { hideLoading(); return; }
+            if (form_left()) { hide_overlay(); return; }
             $form.data("submitted", 1);
             location.href = _posts_path + '?flash[notice]=' + encodeURIComponent(I18n("msg.draft"))
-        }, hideLoading);
+        }, hide_overlay);
     }
     if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
     // Stops once the form has left the page.
@@ -388,11 +402,11 @@ function cama_init_post(obj) {
                 var preview = window.open('', '_blank');
                 if (preview) preview.opener = null;
                 save_under_overlay(function(){
-                    hideLoading();
+                    hide_overlay();
                     if (preview) preview.location.href = link.prop('href');
                     else window.open(link.prop('href'), '_blank');
                 }, function(){
-                    hideLoading();
+                    hide_overlay();
                     if (preview) preview.close();
                 });
                 return false;
@@ -453,7 +467,7 @@ function cama_init_post(obj) {
                 held_form = this;
                 // The button that made the submit; a jQuery-triggered submit has none.
                 held_submitter = (e.originalEvent && e.originalEvent.submitter) || null;
-                showLoading();
+                show_overlay();
                 // A stalled save must not block the post; a new post may lose that save's buffer, the lesser loss.
                 submit_wait_timer = setTimeout(send_held_submit, App_post.submit_wait_ms);
             }

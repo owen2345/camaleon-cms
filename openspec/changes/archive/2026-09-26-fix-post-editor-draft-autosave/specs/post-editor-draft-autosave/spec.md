@@ -196,7 +196,7 @@ A refused save SHALL show its messages as text, whether the response carries a l
 
 ### Requirement: A save belongs to the form it was sent from
 
-The draft id and Preview links SHALL be written into the form the save was sent from. Once the form left the page (another page loaded in place, with a post form of its own or none), a call made, or a queued call run, SHALL be dropped at once, its failure handler run, and a refusal or failure shown SHALL name the post it is about, by its title as text (a translated title by the first language copy typed in).
+The draft id and Preview links SHALL be written into the form the save was sent from. Once the form left the page (another page loaded in place, with a post form of its own or none), a call made, or a queued call run, SHALL be dropped at once, its failure handler run, and a refusal or failure shown SHALL name the post it is about, by its title as text (a translated title by the first language copy typed in). A save returning for a form that left SHALL take down no overlay but its own form's: the overlay a post form loaded in its place put up SHALL stay while that form's save runs, behind a refusal or failure shown for the form that left included.
 
 #### Scenario: A late response writes into its own form
 
@@ -237,6 +237,16 @@ The draft id and Preview links SHALL be written into the form the save was sent 
 
 - **WHEN** the post list is loaded in place of the form and a save with a failure handler is asked for
 - **THEN** no request is sent, and the failure handler has run when the call returns
+
+#### Scenario: A save of the form that left leaves the next form's overlay up
+
+- **WHEN** Save Draft's save of a form returns after another post form was loaded in its place and Save Draft was clicked on that one
+- **THEN** the overlay stays up until the second form's save returns, and the post list opens after it
+
+#### Scenario: A refusal for the form that left is shown over the next form's overlay
+
+- **WHEN** Save Draft's save of a form is refused after another post form was loaded in its place and Save Draft was clicked on that one
+- **THEN** the refusal is shown prefixed with the first post's title, and the overlay is up behind it
 
 ### Requirement: The Preview link and window name the saved draft
 
