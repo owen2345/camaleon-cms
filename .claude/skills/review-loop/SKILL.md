@@ -8,7 +8,7 @@ description: Run one pass of the review-fix loop on a PR of camaleon-cms or of a
 Repeated `/code-review <effort> --fix` passes on a PR's local branch until they converge. Each pass reviews, applies what the verdicts allow, runs the checks and ends its turn with a PASS line. To run passes until the loop stops, type this with the parameters filled in (a skill can't start a goal):
 
 ```text
-/goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, each turn ending with its PASS line, until the latest PASS line says STOP or a PASS line shows 8/8. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it SETTLED or CLEAN, both with git status clean, rspec 0 failures and every check ok.
+/goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, each turn ending with its PASS line, until the latest PASS line says STOP or a PASS line shows 8/8. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it SETTLED or CLEAN, both with git status clean, rspec 0 failures and every check ok. A STOP for any other reason the skill gives (setup, a second conflict, an undone commit, a check it can't fix) counts as it stands.
 ```
 
 ## Parameters
@@ -21,7 +21,7 @@ Read them from the goal, the skill's arguments or the request; each has a defaul
 
 ## Setup (first pass of a run)
 
-- **Target:** resolve the checkout path, its GitHub project (`gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout) and the PR's head and base branches (`gh pr view <pr> --repo <project> --json headRefName,baseRefName`). The checkout must be on the head branch and not behind `origin/<head>` after a fetch; otherwise stop and say so, without switching or pulling.
+- **Target:** resolve the checkout path, its GitHub project (`gh repo view --json nameWithOwner --jq .nameWithOwner`, run in the checkout) and the PR's head and base branches (`gh pr view <pr> --repo <project> --json headRefName,baseRefName`). The checkout must be on the head branch and not behind `origin/<head>` after a fetch; otherwise stop and say so, without switching or pulling, in a `PASS 0/8` line.
 - **Commands** run against the checkout: `git -C <checkout> …`, `(cd <checkout> && bin/…)`, `gh … --repo <project>`.
 - **Ledger:** `tmp/review-loop/<repo>/<pr>.md` in camaleon-cms, whatever the target repo, never committed. If it doesn't exist, create it and seed it as pass 0 from the refuted and skipped entries in the PR's memory entry, if there is one (skips fixed later are FIXED). Each run appends `## Run <date>, effort <level>` and counts its passes from 1; rows of earlier runs still count for the verdict checks.
 - **Spec set:** the spec files the branch adds or changes (`git -C <checkout> diff --name-only <base>...HEAD -- spec/`) plus the adjacent specs as camaleon-cms `AGENTS.md` defines them. Write it at the top of the run.
