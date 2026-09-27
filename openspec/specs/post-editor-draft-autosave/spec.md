@@ -47,6 +47,11 @@ The baseline the leave-page prompt compares against SHALL be taken once every Ti
 - **WHEN** the content editor initializes three seconds after the page loaded and the post is not edited
 - **THEN** a tick sends nothing and the prompt returns nothing
 
+#### Scenario: An untouched post with an editor custom field stays unchanged
+
+- **WHEN** a post has a custom field of type editor, whose editor the field's own script creates, and the post is not edited
+- **THEN** a tick sends nothing and the prompt returns nothing
+
 #### Scenario: An untouched post does not prompt before the baseline
 
 - **WHEN** the content editor initializes three seconds after the page loaded and the prompt runs before the baseline

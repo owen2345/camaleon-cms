@@ -1313,6 +1313,25 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
+  # A custom field of type editor has an editor of its own, created by the field's script, and a textarea
+  # the editor's setup does not look for: the baseline waits for that editor all the same.
+  it 'takes the baseline once the editor of a custom field is ready, so an untouched post stays unchanged' do
+    post = site.the_post('sample-post')
+    post.add_field({ 'name' => 'Aside', 'slug' => 'aside' }, { 'field_key' => 'editor' })
+    post.set_field_value('aside', 'Plain aside, not yet normalized by the editor')
+
+    visit "#{cama_root_relative_path}/admin/post_type/#{post_type_id}/posts/#{post.id}/edit"
+    wait_for_editor_baseline
+    expect(page).to have_css('.c-field-group iframe', visible: :all)
+    expect(page.evaluate_script('tinymce.editors.length')).to eq(2)
+    count_draft_saves
+
+    autosave_tick
+
+    expect(draft_saves).to eq(0)
+    expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
+  end
+
   # Before the baseline there is nothing to compare with; a tick must not send the raw, unnormalized form.
   it 'sends nothing from the timer before the baseline is taken' do
     post = site.the_post('sample-post')
