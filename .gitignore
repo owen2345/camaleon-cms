@@ -26,3 +26,7 @@ SECURITY-AUDIT*
 # Regression audit reports. Working documents that track unfixed breakage between releases;
 # they go stale as fixes land and are not repo content.
 REGRESSION-AUDIT*
+
+# Local scratch space, such as the review-loop skill's per-PR ledgers under tmp/review-loop/.
+# Working state that is never repo content.
+/tmp/
