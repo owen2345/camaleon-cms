@@ -1525,6 +1525,33 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.count).to eq(1)
   end
 
+  # A post form loaded in place is set up a moment after it came, and its Save Draft link calls the setup
+  # of the form that left until then: the click waits for the form's own setup and saves that form.
+  it 'saves the draft of a form loaded in place when Save Draft is clicked before the form was set up' do
+    post = site.the_post('sample-post')
+    visit "#{post_list_path}/#{post.id}/edit"
+    wait_for_editor_baseline
+    count_draft_saves
+
+    # The next form's setup is held back until the example runs it.
+    page.execute_script(<<~JS)
+      var setup = window.cama_init_post;
+      window.cama_init_post = function (obj) { window.runHeldSetup = function () { setup(obj); }; };
+    JS
+    load_in_place(new_post_path)
+    wait_until { page.evaluate_script('typeof window.runHeldSetup === "function"') }
+    fill_in 'post_title', with: 'Saved draft before the setup'
+    click_link 'Save Draft'
+    expect(page).to have_css('#cama_custom_loading')
+    expect(draft_saves).to eq(0)
+
+    page.execute_script('window.runHeldSetup();')
+
+    expect(page).to have_current_path(post_list_path, ignore_query: true, wait: 10)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved draft before the setup')
+    expect(CamaleonCms::Post.where(post_parent: post.id, status: 'draft_child')).to be_empty
+  end
+
   # The overlay is one element for the whole page. A save of the form that left, returning late, must take
   # down no overlay but its own: the one up by then is the next form's, whose save still runs.
   it 'leaves the overlay of the form loaded in place up when a save of the form that left returns' do
@@ -1656,6 +1683,11 @@ describe 'Post editor draft autosave', :js do
     JS
 
     expect(page.evaluate_script('window.laterCallDropped')).to be(true)
+    expect(draft_saves).to eq(0)
+
+    # Save Draft has no form to wait for either.
+    page.execute_script('App_post.save_draft();')
+    expect(page).to have_no_css('#cama_custom_loading')
     expect(draft_saves).to eq(0)
   end
 

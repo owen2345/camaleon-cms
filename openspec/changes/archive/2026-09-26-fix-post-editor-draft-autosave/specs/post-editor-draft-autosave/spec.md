@@ -376,7 +376,7 @@ When `App_post.submit_wait_ms` passes with the save still running, the save SHAL
 
 ### Requirement: Save Draft holds the form while it saves
 
-Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. A Save Draft or Preview save that starts later than it was asked for (queued behind another save, or held back by a wrapper on `App_post.save_draft_ajax`) SHALL put the overlay back as it starts, the finished save's caller having taken it down; a plugin's queued save, one a change handler asks for while Save Draft's or Preview's save syncs the editors included, SHALL run as it was made, with no overlay put up for it. When another page was loaded in place by the time the save returns, with a post form of its own or none, Save Draft SHALL leave that page and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.
+Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. A Save Draft or Preview save that starts later than it was asked for (queued behind another save, or held back by a wrapper on `App_post.save_draft_ajax`) SHALL put the overlay back as it starts, the finished save's caller having taken it down; a plugin's queued save, one a change handler asks for while Save Draft's or Preview's save syncs the editors included, SHALL run as it was made, with no overlay put up for it. When another page was loaded in place by the time the save returns, with a post form of its own or none, Save Draft SHALL leave that page and its leave prompt alone: the draft is saved, the overlay comes down and the page stays. Save Draft clicked on a post form loaded in place before the editor was set up on it (the setup runs a moment after the form came) SHALL wait for that setup under the overlay, five seconds at most, and save that form.
 
 #### Scenario: Save Draft returns to the list
 
@@ -392,6 +392,11 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 
 - **WHEN** the post list is loaded in place of the form while Save Draft's save runs
 - **THEN** the buffer holds the title, the overlay is gone and the list stays
+
+#### Scenario: Save Draft clicked before the form loaded in place was set up saves that form
+
+- **WHEN** a new post's form is loaded in place of another post's, its title is typed and Save Draft is clicked before the editor was set up on it
+- **THEN** the overlay is up and nothing is sent until the setup has run; then the new post's draft is saved, the post list opens and the first post has no draft
 
 #### Scenario: Save Draft queued behind another save keeps the overlay
 
