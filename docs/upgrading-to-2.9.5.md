@@ -394,11 +394,18 @@ it and reuses its draft id, and runs without the overlay unless it was Save Draf
 `App_post.submit_wait_ms` and `App_post.save_timeout_ms` are defaulted only when unset, so `0` is kept
 (no hold, no timeout).
 
-Two notes for code that wraps the save. A wrapper on `App_post.save_draft_ajax` may send the call later
-or pass a callback of its own, not both: Save Draft's or Preview's save is known by the call or by its
-callback, and one that is neither runs without the overlay when it starts late. A wrapper on `$.ajax`
-must return the jqXHR, or the editor cannot abort the request: the held submit then goes out with the
-save still running, and a submit made afterwards waits another `App_post.submit_wait_ms`.
+Three notes for code that wraps the save:
+
+- A wrapper on `App_post.save_draft_ajax` sees the editor's own calls (the timer, Save Draft, Preview),
+  once each. A call made through `window.save_draft` goes to the editor's function, not the wrapper, and
+  each post form the editor is set up on, one loaded in place included, assigns both names again: a
+  wrapper put on before that is gone.
+- Such a wrapper may send the call later or pass a callback of its own, not both: Save Draft's or
+  Preview's save is known by the call or by its callback, and one that is neither runs without the
+  overlay when it starts late.
+- A wrapper on `$.ajax` must return the jqXHR, or the editor cannot abort the request: the held submit
+  then goes out with the save still running, and a submit made afterwards waits another
+  `App_post.submit_wait_ms`.
 
 The form is compared by reading its own TinyMCE editors; a textarea behind an editor is written only when
 a draft is sent (and by TinyMCE on blur and submit, as before), so content a plugin writes into it stays
