@@ -74,7 +74,7 @@ The baseline the leave-page prompt compares against SHALL be taken once every Ti
 
 #### Scenario: A baseline wait that outlives its form leaves the next form alone
 
-- **WHEN** the script is set up on another form before the first form's editor comes up
+- **WHEN** another post form is loaded in place of the first before the first form's editor comes up
 - **THEN** neither form gets a baseline from the first wait, and the prompt does not fail on a page without a post form
 
 ### Requirement: The comparison reads the form without writing it

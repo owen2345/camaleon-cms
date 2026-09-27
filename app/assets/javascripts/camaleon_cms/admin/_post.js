@@ -49,9 +49,9 @@ function cama_init_post(obj) {
     // The form this setup owns. Admin pages load in place, so the form may have left the page when a save
     // of it returns or is drained from the queue.
     var post_form = $form[0];
-    // Another page was loaded in place: one with a post form of its own ($form is that form by then) or
-    // one without ($form still holds the form that left).
-    function form_left() { return $form[0] !== post_form || !$.contains(document, post_form); }
+    // Another page was loaded in place, with a post form of its own or none. $form does not say so: it
+    // holds the form that left until the next one is set up, a moment after it came, if one came at all.
+    function form_left() { return !$.contains(document, post_form); }
     // On the document, in the capture phase: a control naming the form from elsewhere does not bubble
     // through it, and a widget that stops the event still counts.
     document.addEventListener('input', mark_touched, true);

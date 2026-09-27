@@ -1428,20 +1428,23 @@ describe 'Post editor draft autosave', :js do
         if (!editor) return setTimeout(delayEditor, 10);
         editor.remove();
         setTimeout(function () {
-          // What opening another post in place leaves behind: the script's form is the next one.
-          $form = $('<form id="form-post-next"></form>');
-          tinymce.init(cama_get_tinymce_settings({ selector: '#post_content', height: '480px' }));
+          // What opening another post in place leaves behind: the form is gone, the script's form is the
+          // next one, and that one's editor comes up, which the first wait hears of.
+          window.formThatLeft = $('#form-post').detach();
+          $('body').append('<form id="form-post"><textarea id="next_content" class="tinymce_textarea"></textarea></form>');
+          $form = $('#form-post');
+          tinymce.init(cama_get_tinymce_settings({ selector: '#next_content', height: 100 }));
         }, 2000);
       })();
     JS
-    expect(page).to have_css('#post_content_ifr', wait: 10)
+    expect(page).to have_css('#next_content_ifr', wait: 10)
 
     expect(page.evaluate_script('$form.data("hash")')).to be_nil
-    expect(page.evaluate_script('$("#form-post").data("hash")')).to be_nil
+    expect(page.evaluate_script('window.formThatLeft.data("hash")')).to be_nil
 
     # A page without a post form: the prompt finds no form to look in, does not fail, and asks nothing
     # (no baseline was taken and nothing was touched).
-    page.execute_script('$form = $();')
+    page.execute_script("$('#form-post').remove(); $form = $();")
     expect(page.evaluate_script('window.onbeforeunload()')).to be_nil
   end
 
