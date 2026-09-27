@@ -2155,6 +2155,33 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
+  # A decorated action may send the model's error details, objects that name the error; joined as text
+  # they read "[object Object]".
+  it 'shows a refusal sent as error details by what each names' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused with details'
+    answer_first_draft_request("{ error: { title: [{ error: 'blank' }], slug: [{ message: 'is taken', value: 1 }] } }")
+
+    page.execute_script('App_post.save_draft();')
+
+    expect(page).to have_css('#cama_alert_modal .modal-body', exact_text: 'title blank, slug is taken')
+    expect(page).to have_no_css('#cama_custom_loading')
+  end
+
+  # A blank message says nothing: it is left out, not shown as a comma of its own.
+  it 'leaves the blank messages of a refusal out' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused with blanks'
+    answer_first_draft_request("{ error: ['', 'the draft was refused', ' ', null] }")
+
+    page.execute_script('App_post.save_draft();')
+
+    expect(page).to have_css('#cama_alert_modal .modal-body', exact_text: 'the draft was refused')
+    expect(page).to have_no_css('#cama_custom_loading')
+  end
+
   # `{ error: [] }` (a model callback aborted the save without an error) showed an empty alert, dropped a
   # held submit and silenced the timer. It is a failed request: reported, and a held submit goes out.
   it 'fails a refusal that names no message' do
@@ -2171,6 +2198,20 @@ describe 'Post editor draft autosave', :js do
 
     page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
     expect(page).to have_css('body[data-later-save="ran"]')
+  end
+
+  # Blank messages name nothing either.
+  it 'fails a refusal whose messages are blank' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Refused with a blank message'
+    answer_first_draft_request("{ error: [' '] }")
+
+    page.execute_script('App_post.save_draft();')
+
+    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
   # A decorated action may answer `{}` or `null`: there is no draft to name, so the save fails.

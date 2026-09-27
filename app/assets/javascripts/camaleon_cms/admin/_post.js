@@ -149,16 +149,8 @@ function cama_init_post(obj) {
             // jQuery skips `complete` when a success handler throws, so each handler releases the lock itself.
             success: function (res) {
                 try {
-                    // The core refuses with a list of messages; a decorated action may send one message or the
-                    // model's errors keyed by field. A refusal with no message (`{error: []}`) is a failed
-                    // request instead.
-                    var messages = res && res.error;
-                    if ($.isPlainObject(messages)) {
-                        messages = $.map(messages, function (list, field) {
-                            return $.map([].concat(list), function (message) { return field + ' ' + message; });
-                        });
-                    }
-                    var refusal = messages ? [].concat(messages).join(", ").trim() : '';
+                    // A refusal with no message (`{error: []}`, or blank ones only) is a failed request instead.
+                    var refusal = refusal_messages(res && res.error).join(", ");
                     if (refusal) {
                         // Shown as text: a refusal quotes user input.
                         // The callback does not run: it would leave the page or open a stale preview. A held
@@ -199,6 +191,19 @@ function cama_init_post(obj) {
             // A stalled request must not keep the editor from saving or previewing until the browser gives up.
             timeout: App_post.save_timeout_ms
         };
+    }
+
+    // A refusal's messages as text. The core refuses with a list of messages; a decorated action may send
+    // one message, or the model's errors keyed by field, each message then led by its field. A message may
+    // be an object that names it (a model's error details). Blank ones are left out.
+    function refusal_messages(error) {
+        return $.map($.isPlainObject(error) ? error : {'': error}, function (list, field) {
+            return $.map([].concat(list), function (message) {
+                if ($.isPlainObject(message)) message = message.message || message.error || JSON.stringify(message);
+                message = String(message == null ? '' : message).trim();
+                return message ? (field ? field + ' ' : '') + message : null;
+            });
+        });
     }
 
     // Reports an error raised on another save's path (a failure handler, a queued save) as an uncaught one,

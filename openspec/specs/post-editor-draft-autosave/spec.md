@@ -137,7 +137,7 @@ A draft save SHALL NOT block the page. A save requested while one runs SHALL que
 
 ### Requirement: The lock is released whatever the outcome
 
-The lock SHALL be released when a success callback throws and when a save throws before it is sent (a change handler, `$.ajax`); the failure handler SHALL run and the send's error SHALL reach the caller. A failure handler or queued save that throws on that path SHALL be reported on its own. A save that has not returned after `App_post.save_timeout_ms` SHALL fail, as SHALL a response with no draft to name or a refusal with no message.
+The lock SHALL be released when a success callback throws and when a save throws before it is sent (a change handler, `$.ajax`); the failure handler SHALL run and the send's error SHALL reach the caller. A failure handler or queued save that throws on that path SHALL be reported on its own. A save that has not returned after `App_post.save_timeout_ms` SHALL fail, as SHALL a response with no draft to name or a refusal with no message, blank ones not counting.
 
 #### Scenario: A throwing callback does not hold the lock
 
@@ -176,12 +176,12 @@ The lock SHALL be released when a success callback throws and when a save throws
 
 #### Scenario: A refusal that names no message fails the save
 
-- **WHEN** the drafts action answers with `error` set to an empty list
+- **WHEN** the drafts action answers with `error` set to an empty list, or to blank messages only
 - **THEN** it is not shown as a refusal: the failure is reported, the overlay is gone, the form stays and a later save succeeds
 
 ### Requirement: A refused save shows its messages and is not re-sent
 
-A refused save SHALL show its messages as text, whether the response carries a list, one message or messages keyed by field, and run no callback. The timer calls queued behind it SHALL send nothing, and the timer SHALL NOT re-send the form until it changes; a user's call is always sent.
+A refused save SHALL show its messages as text, whether the response carries a list, one message or messages keyed by field, and run no callback. A message sent as an object (a model's error details) SHALL be shown by what it names, and a blank message SHALL be left out. The timer calls queued behind it SHALL send nothing, and the timer SHALL NOT re-send the form until it changes; a user's call is always sent.
 
 #### Scenario: A timer call queued behind a refused save is dropped
 
@@ -202,6 +202,16 @@ A refused save SHALL show its messages as text, whether the response carries a l
 
 - **WHEN** the drafts action answers with `error` set to messages keyed by field, as a model's errors serialize
 - **THEN** each message is shown with its field, the overlay is gone and the form stays
+
+#### Scenario: A refusal sent as error details is shown by what each names
+
+- **WHEN** the drafts action answers with `error` keyed by field, each entry an object with an `error` or a `message`
+- **THEN** each field is shown with what its entry names
+
+#### Scenario: The blank messages of a refusal are left out
+
+- **WHEN** the drafts action answers with `error` set to a list of one message among blank ones
+- **THEN** that message alone is shown
 
 ### Requirement: A save belongs to the form it was sent from
 

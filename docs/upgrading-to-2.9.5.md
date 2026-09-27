@@ -380,8 +380,8 @@ A third argument, `on_failure`, runs when the save does not succeed:
 
 - the server refuses it (the messages are shown as text);
 - the request fails or has not returned after `App_post.save_timeout_ms` (30 seconds);
-- the answer names no draft (`{}`, `null`, `{draft: {}}`) or refuses without a message (both count as a
-  failed request);
+- the answer names no draft (`{}`, `null`, `{draft: {}}`) or refuses without a message, blank ones not
+  counting (both count as a failed request);
 - the save could not be sent (a change handler or a `$.ajax` wrapper threw);
 - the save was aborted because a held submit went out (see below);
 - the call was dropped: made or still queued after another page was loaded in place of the form, or
