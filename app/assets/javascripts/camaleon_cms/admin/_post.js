@@ -61,7 +61,7 @@ function cama_init_post(obj) {
     // change event is watched: it fires for typing, pasting and formatting, not for a script's setContent.
     // Its dirty flag would not do: TinyMCE clears it whenever the content is saved into the textarea,
     // which happens on blur.
-    function mark_editor_touched(e) { if ($.contains(post_form, e.target.getElement())) touched = true; }
+    function mark_editor_touched(e) { if (in_form(e.target)) touched = true; }
     function watch_editor_touch(e) { e.editor.on('change', mark_editor_touched); }
     tinymce.on('AddEditor', watch_editor_touch);
     $.each(tinymce.editors, function (i, editor) { editor.on('change', mark_editor_touched); });
