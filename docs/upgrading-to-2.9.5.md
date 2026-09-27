@@ -384,8 +384,8 @@ A third argument, `on_failure`, runs when the save does not succeed:
   failed request);
 - the save could not be sent (a change handler or a `$.ajax` wrapper threw);
 - the save was aborted because a held submit went out (see below);
-- the call was dropped: made or still queued after another post form was loaded in place, or queued behind
-  an aborted save.
+- the call was dropped: made or still queued after another page was loaded in place of the form, or
+  queued behind an aborted save.
 
 A failed request the caller asked for (not the timer's) shows an error, unless a submit is waiting on the
 save or the save was aborted: the post save reports for itself then. Shown after another page was loaded in

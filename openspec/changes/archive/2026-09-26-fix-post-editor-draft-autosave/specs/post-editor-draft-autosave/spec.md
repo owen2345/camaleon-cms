@@ -196,7 +196,7 @@ A refused save SHALL show its messages as text, whether the response carries a l
 
 ### Requirement: A save belongs to the form it was sent from
 
-The draft id and Preview links SHALL be written into the form the save was sent from. A call made, or a queued call run, after the page loaded another post form in place SHALL be dropped at once, its failure handler run. A refusal or failure shown after the form left the page (another page loaded in place, with a post form of its own or none) SHALL name the post it is about, by its title as text (a translated title by the first language copy typed in).
+The draft id and Preview links SHALL be written into the form the save was sent from. Once the form left the page (another page loaded in place, with a post form of its own or none), a call made, or a queued call run, SHALL be dropped at once, its failure handler run, and a refusal or failure shown SHALL name the post it is about, by its title as text (a translated title by the first language copy typed in).
 
 #### Scenario: A late response writes into its own form
 
@@ -227,6 +227,16 @@ The draft id and Preview links SHALL be written into the form the save was sent 
 
 - **WHEN** a save is running, the form is replaced, and a save with a failure handler is asked for
 - **THEN** the failure handler has run when the call returns
+
+#### Scenario: A queued save whose form left for a page without one is dropped
+
+- **WHEN** a save is queued behind a running one and the post list is loaded in place of the form before it runs
+- **THEN** the queued save is not sent and its failure handler runs
+
+#### Scenario: A call for a form that left for a page without one is dropped at once
+
+- **WHEN** the post list is loaded in place of the form and a save with a failure handler is asked for
+- **THEN** no request is sent, and the failure handler has run when the call returns
 
 ### Requirement: The Preview link and window name the saved draft
 

@@ -1483,6 +1483,40 @@ describe 'Post editor draft autosave', :js do
     expect(page.evaluate_script('window.laterCallDropped')).to be(true)
   end
 
+  # A page without a post form loaded in place leaves the script's form the one that left. A save queued
+  # for it would put its overlay and run its callback over a page that is not the editor's: dropped as well.
+  it 'drops a queued save when a page without a form was loaded in place while it waited' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Saved before the list'
+
+    delay_draft_requests(2000)
+    page.execute_script(<<~JS)
+      App_post.save_draft_ajax(null, false);
+      App_post.save_draft_ajax(function () { window.queuedSaveRan = true; }, false, function () { window.queuedSaveDropped = true; });
+    JS
+    load_in_place(post_list_path)
+
+    wait_until { page.evaluate_script('window.queuedSaveDropped') }
+    expect(page.evaluate_script('window.queuedSaveRan')).to be_nil
+    expect(intercepted_draft_requests).to eq(1)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved before the list')
+  end
+
+  it 'drops a call made once a page without a form was loaded in place' do
+    visit new_post_path
+    wait_for_editor_baseline
+    count_draft_saves
+
+    load_in_place(post_list_path)
+    page.execute_script(<<~JS)
+      App_post.save_draft_ajax(function () { window.laterCallRan = true; }, false, function () { window.laterCallDropped = true; });
+    JS
+
+    expect(page.evaluate_script('window.laterCallDropped')).to be(true)
+    expect(draft_saves).to eq(0)
+  end
+
   # A translated field is edited through its per-language copies; the comparison reads those.
   it 'autosaves an edit to a second language of a translated field' do
     site.set_meta('languages_site', %w[en es])

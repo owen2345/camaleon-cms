@@ -75,10 +75,11 @@ function cama_init_post(obj) {
     function save_draft_ajax(callback, called_from_interval, on_failure) {
         var overlay = under_overlay || !!(callback && callback.under_overlay);
         under_overlay = false;
-        // The page loaded another post's form in place: serializing it would send that post's content to
-        // this draft. Dropped at once, so the caller's failure handler (which closes a Preview window or the
-        // overlay) does not wait behind a save that is not its own.
-        if ($form[0] !== post_form) {
+        // Another page was loaded in place. With a post form of its own, serializing it would send that
+        // post's content to this draft; with none, the save's overlay and callback would run over a page
+        // that is not the editor's. Dropped at once, so the caller's failure handler (which closes a
+        // Preview window or the overlay) does not wait behind a save that is not its own.
+        if (form_left()) {
             if (on_failure) on_failure();
             return;
         }
@@ -577,8 +578,8 @@ function cama_init_post(obj) {
             $.each(tinymce.editors, function (i, editor) { editor.off('init', check); editor.off('change', mark_editor_touched); });
             document.removeEventListener('input', mark_touched, true);
             document.removeEventListener('change', mark_touched, true);
-            // Another form was set up meanwhile (pages load in place); it takes its own baseline.
-            if ($form[0] !== post_form) return;
+            // Another page was loaded in place meanwhile; a post form on it takes its own baseline.
+            if (form_left()) return;
             var hash = get_hash_form();
             // The user edited the form during setup, so this baseline absorbs the edit: the form stays
             // edited (form_edited) and saved_hash matches nothing, so the timer sends it.
@@ -587,7 +588,7 @@ function cama_init_post(obj) {
             if (saved_hash === null) saved_hash = edited_before_baseline ? '' : hash;
             $form.data("hash", hash);
         }
-        function check() { if (!taken && ($form[0] !== post_form || editors_ready())) take_baseline(); }
+        function check() { if (!taken && (form_left() || editors_ready())) take_baseline(); }
         function watch_editor(e) { e.editor.on('init', check); }
         tinymce.on('AddEditor', watch_editor);
         $.each(tinymce.editors, function (i, editor) { if (!editor.initialized) editor.on('init', check); });
