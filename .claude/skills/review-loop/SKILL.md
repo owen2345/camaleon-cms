@@ -11,7 +11,7 @@ Repeated `/code-review <effort> --fix` passes on a PR's local branch until they 
 /goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, each turn ending with its PASS line, until the latest PASS line says STOP or a PASS line shows 8/8. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it SETTLED or CLEAN, both with git status clean, rspec 0 failures and no errors (n/a for an empty spec set) and every check ok. A STOP for any other reason the skill gives (setup, a review that can't cover its range, a second conflict, an undone commit, a check it can't fix) counts as it stands.
 ```
 
-The session loads this skill from its own checkout, so for a camaleon-cms PR the head branch must contain it: merge the base into an older branch before typing the goal. A PR that edits this skill runs from a copy saved outside the checkout, named in the goal in place of the skill, so its fixes don't change the rules mid-run.
+The session loads this skill from its own checkout, so for a camaleon-cms PR the head branch must contain it: merge `origin/<base>` into an older branch before typing the goal. A PR that edits this skill runs from a copy saved outside the checkout, named in the goal in place of the skill, so its fixes don't change the rules mid-run.
 
 ## Parameters
 
