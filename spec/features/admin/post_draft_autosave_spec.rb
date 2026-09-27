@@ -2079,8 +2079,8 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved through a wrapper before the setup')
   end
 
-  # The overlay the click waits under is the next form's: a save of the form that left, returning while
-  # the click waits for the setup, leaves it up.
+  # The overlay the click waits under is the click's own, no form's: a save of the form that left,
+  # returning while the click waits for the setup, leaves it up.
   it 'keeps the overlay of a Save Draft click waiting for the setup when a save of the form that left returns' do
     open_new_post('Saved before the next form came')
     hold_draft_requests
