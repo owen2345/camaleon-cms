@@ -65,6 +65,18 @@ describe 'Post editor draft autosave', :js do
     page.evaluate_script('window.errorsSeen')
   end
 
+  # A wrapper on App_post.save_draft_ajax that keeps each call it gets; window.sendKeptCall() passes the
+  # last one on.
+  def keep_save_calls_js
+    <<~JS
+      (function (save) {
+        App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+          window.sendKeptCall = function () { save(callback, called_from_interval, on_failure); };
+        };
+      })(App_post.save_draft_ajax);
+    JS
+  end
+
   # Picks a status the post editor does not offer, which the drafts action refuses.
   def refused_status_js
     %q{$('#post_status').append('<option value="bogus">bogus</option>').val('bogus');}
@@ -1151,19 +1163,16 @@ describe 'Post editor draft autosave', :js do
     hold_draft_requests
     # The wrapper holds the call back until the example sends it.
     page.execute_script(<<~JS)
-      var save = App_post.save_draft_ajax;
-      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
-        window.sendDeferredSave = function () { save(callback, called_from_interval, on_failure); };
-      };
+      #{keep_save_calls_js}
       showLoading();
-      save(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
+      window.save_draft(function () { hideLoading(); $('body').attr('data-first-save', 'ran'); }, false);
       App_post.save_draft();
     JS
     release_draft_requests(1)
     expect(page).to have_css('body[data-first-save="ran"]', wait: 5)
     expect(page).to have_no_css('#cama_custom_loading')
 
-    page.execute_script('window.sendDeferredSave();')
+    page.execute_script('window.sendKeptCall();')
 
     expect(intercepted_draft_requests).to eq(2)
     expect(page).to have_css('#cama_custom_loading')
@@ -1193,10 +1202,7 @@ describe 'Post editor draft autosave', :js do
     count_draft_saves
     page.execute_script(<<~JS)
       App_post.save_timeout_ms = 1000;
-      var save = App_post.save_draft_ajax;
-      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
-        window.sendKeptCall = function () { save(callback, called_from_interval, on_failure); };
-      };
+      #{keep_save_calls_js}
     JS
 
     click_link 'Save Draft'
