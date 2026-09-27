@@ -2000,6 +2000,63 @@ describe 'Post editor draft autosave', :js do
     expect(page_errors).to be_empty
   end
 
+  # A plugin's wrapper on the App_post.save_draft of the form loaded in place may throw before calling
+  # through: no save of that form puts its overlay up, so the click's own comes down, and the error still
+  # reaches the page.
+  it 'gives the page back when a wrapper on the next setup\'s Save Draft throws on the handed click' do
+    post = site.the_post('sample-post')
+    open_post(post)
+    count_draft_saves
+    page.execute_script(record_page_errors_js)
+
+    click_save_draft_before_setup('Clicked before a wrapper that throws')
+    # The wrapper is a script of the page's own: an error thrown from one the driver put on, uncaught in a
+    # later task, reaches the page as "Script error.".
+    page.execute_script(<<~JS)
+      window.runHeldSetup();
+      var script = document.createElement('script');
+      script.text = "App_post.save_draft = function () { throw new Error('the wrapper failed'); };";
+      document.head.appendChild(script);
+    JS
+
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page_errors.join).to include('the wrapper failed')
+    expect(draft_saves).to eq(0)
+  end
+
+  # Or the wrapper may keep the click (a confirmation declined): its overlay comes down all the same.
+  it 'gives the page back when a wrapper on the next setup\'s Save Draft keeps the handed click' do
+    post = site.the_post('sample-post')
+    open_post(post)
+    count_draft_saves
+
+    click_save_draft_before_setup('Clicked before a wrapper that keeps it')
+    page.execute_script(<<~JS)
+      window.runHeldSetup();
+      App_post.save_draft = function () {};
+    JS
+
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(draft_saves).to eq(0)
+  end
+
+  # A save of the form loaded in place puts that form's overlay up, and the hand-over leaves it up while
+  # that save runs.
+  it 'keeps the overlay while the save of a Save Draft click handed to the next setup runs' do
+    post = site.the_post('sample-post')
+    open_post(post)
+
+    click_save_draft_before_setup('Saved under the overlay once handed over')
+    hold_draft_requests
+    page.execute_script('window.runHeldSetup();')
+    wait_until { intercepted_draft_requests == 1 }
+    expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
+    expect(page).to have_current_path(post_list_path, ignore_query: true, wait: 10)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved under the overlay once handed over')
+  end
+
   # A plugin's wrapper on App_post.save_draft is what the Save Draft link calls: the click waits for the
   # next setup all the same, instead of calling the wrapper, and through it itself, again and again.
   it 'hands a Save Draft click made through a wrapper to the form loaded in place once it is set up' do

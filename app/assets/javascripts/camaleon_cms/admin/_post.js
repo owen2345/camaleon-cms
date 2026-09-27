@@ -59,7 +59,8 @@ function cama_init_post(obj) {
     // up. Once its form left the page it takes down that one only: the one up by then may be the next
     // form's, whose save still runs.
     function overlay_element() { return $('body > #cama_custom_loading'); }
-    // `owner`: this setup's form, or the one whose overlay an alert took down.
+    // `owner`: this setup's form, a Save Draft click waiting for the next form's setup, or the owner of the
+    // overlay an alert took down.
     function put_overlay_up(owner) {
         showLoading();
         overlay_element().data('post_form', owner);
@@ -353,7 +354,7 @@ function cama_init_post(obj) {
     }
 
     // Under the overlay while it saves: the callback leaves the page, and an edit made meanwhile would be lost.
-    var handing_over = false, led_back = false;
+    var handing_over = false;
     App_post.save_draft = function () {
         // A post form loaded in place is set up a moment after it came, and its Save Draft link calls this
         // setup until then: the click waits under the overlay for the form's own setup, five seconds at most,
@@ -361,22 +362,26 @@ function cama_init_post(obj) {
         // setup is known by $form, which it assigns first, so a call through a reference to this function
         // kept by a plugin is handed over at once when it came already. It takes the click through
         // App_post.save_draft, a plugin's wrapper included; when that leads back here (the setup failed
-        // before assigning it), the click is given up. The overlay is marked as the next form's, so a save
-        // of this setup's form returning meanwhile leaves it up.
+        // before assigning it), the click is given up. The overlay is the click's own, marked as no form's,
+        // so a save of this setup's form returning meanwhile leaves it up. Once the click is handed over, it
+        // comes down unless a save of the next form put up its own: a plugin's wrapper may throw on the
+        // click, keep it or defer it, or lead back here.
         if (form_left()) {
-            if (handing_over) { led_back = true; return; }
-            var next_form = $('#form-post')[0], tries = 100;
-            if (next_form) put_overlay_up(next_form);
+            if (handing_over) return;
+            var next_form = $('#form-post')[0], tries = 100, click = {};
+            if (next_form) put_overlay_up(click);
             (function hand_over() {
                 var on_page = !!next_form && $.contains(document, next_form);
                 if (on_page && $form[0] === next_form) {
                     handing_over = true;
-                    led_back = false;
-                    try { App_post.save_draft(); } finally { handing_over = false; }
-                    if (led_back && overlay_owner() === next_form) hideLoading();
+                    try { App_post.save_draft(); }
+                    finally {
+                        handing_over = false;
+                        if (overlay_owner() === click) hideLoading();
+                    }
                 }
                 else if (on_page && --tries) setTimeout(hand_over, 50);
-                else if (next_form && overlay_owner() === next_form) hideLoading();
+                else if (overlay_owner() === click) hideLoading();
             })();
             return;
         }
