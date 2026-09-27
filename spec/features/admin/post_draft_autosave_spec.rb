@@ -1299,6 +1299,24 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
   end
 
+  # A wrapper may make a save of its own through window.save_draft before it keeps Save Draft's call: that
+  # save is a plugin's call and leaves Save Draft's overlay flag alone, so the kept call still fails once
+  # save_timeout_ms passed.
+  it 'fails a Save Draft call a wrapper keeps after a save of its own once save_timeout_ms passed' do
+    open_new_post('Kept after a save of the wrapper')
+
+    hold_draft_requests
+    page.execute_script(<<~JS)
+      App_post.save_timeout_ms = 1000;
+      App_post.save_draft_ajax = function () { window.save_draft(null, false); };
+    JS
+    click_link 'Save Draft'
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+    expect(intercepted_draft_requests).to eq(1)
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+  end
+
   # A plugin's call put no overlay up and its callback takes none down: restored for it, the overlay would
   # stay for good.
   it 'leaves the overlay down for a plugin save queued behind another save' do

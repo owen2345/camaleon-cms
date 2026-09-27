@@ -37,7 +37,8 @@ function cama_init_post(obj) {
     // Set by the script's own callers (Save Draft, Preview) around their call and consumed by the call: they
     // put the overlay up and take it down, so a save of theirs puts it back as it starts (it may have
     // waited in the queue, or in a plugin's wrapper, while the overlay came down). A plugin's call is left
-    // alone, one a change handler makes during that call's sync included. The callback carries the same
+    // alone, one a change handler makes during that call's sync included, and so is one made through
+    // window.save_draft while that call is on its way through a wrapper. The callback carries the same
     // mark, for a call a plugin's wrapper makes later.
     var under_overlay = false;
     var submit_wait_timer = null;
@@ -373,7 +374,14 @@ function cama_init_post(obj) {
     if(window["post_editor_draft_intrval"]) clearInterval(window["post_editor_draft_intrval"]);
     // Stops once the form has left the page.
     window["post_editor_draft_intrval"] = setInterval(function () { if(form_left()){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 1 * 60 * 1000);
-    window.save_draft = App_post.save_draft_ajax;
+    // A plugin's own call, never Save Draft's or Preview's: made while one of theirs is on its way through a
+    // wrapper (the wrapper's own save, or a change handler's), it leaves their flag to the call it belongs to.
+    window.save_draft = function (callback, called_from_interval, on_failure) {
+        var flagged = under_overlay;
+        under_overlay = false;
+        try { return save_draft_ajax(callback, called_from_interval, on_failure); }
+        finally { under_overlay = flagged; }
+    };
 
     if($form.find(".title-post" + class_translate).length == 0) class_translate = '';
     $form.find(".title-post" + class_translate).each(function () {

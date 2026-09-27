@@ -372,9 +372,10 @@ now returns what a freshly loaded record reads.
 
 ### The post editor's draft save is asynchronous
 
-`window.save_draft(callback)` (the same function as `App_post.save_draft_ajax`) no longer blocks the
-page: it returns at once and runs `callback(response)` when the save succeeds. Code that reads the draft
-id, `#post_draft_id` or the Preview link right after the call must read them in the callback.
+`window.save_draft(callback)` (the save `App_post.save_draft_ajax` runs, without a wrapper on it) no
+longer blocks the page: it returns at once and runs `callback(response)` when the save succeeds. Code
+that reads the draft id, `#post_draft_id` or the Preview link right after the call must read them in the
+callback.
 
 A third argument, `on_failure`, runs when the save does not succeed:
 
@@ -401,8 +402,9 @@ Three notes for code that wraps the save:
   each post form the editor is set up on, one loaded in place included, assigns both names again: a
   wrapper put on before that is gone.
 - Such a wrapper may send the call later or pass a callback of its own, not both: Save Draft's or
-  Preview's save is known by the call or by its callback. One that is neither runs without the overlay
-  when it starts late, and counts as not passed on: unless its save has returned by then, it fails once
+  Preview's save is known by the call or by its callback; a save the wrapper makes of its own through
+  `window.save_draft` is not that call. One that is neither runs without the overlay when it starts
+  late, and counts as not passed on: unless its save has returned by then, it fails once
   `App_post.save_timeout_ms` passed, and its callback may still run afterwards. A Save Draft or Preview
   call the wrapper throws on before passing it on fails at once (the overlay comes down, Preview's
   window closes); one it has not passed on after `App_post.save_timeout_ms` fails then, and is dropped
