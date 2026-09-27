@@ -8,7 +8,7 @@ description: Run one pass of the review-fix loop on a PR of camaleon-cms or of a
 Repeated `/code-review <effort> --fix` passes on a PR's local branch until they converge. Each pass reviews, applies what the verdicts allow, runs the checks and ends its turn with a PASS line. To run passes until the loop stops, type this with the parameters filled in (a skill can't start a goal):
 
 ```text
-/goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, each turn ending with its PASS line, until the latest PASS line says STOP or a PASS line shows 8/8. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it SETTLED or CLEAN, both with git status clean, rspec 0 failures and every check ok. A STOP for any other reason the skill gives (setup, a second conflict, an undone commit, a check it can't fix) counts as it stands.
+/goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, each turn ending with its PASS line, until the latest PASS line says STOP or a PASS line shows 8/8. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it SETTLED or CLEAN, both with git status clean, rspec 0 failures (n/a for an empty spec set) and every check ok. A STOP for any other reason the skill gives (setup, a second conflict, an undone commit, a check it can't fix) counts as it stands.
 ```
 
 ## Parameters
@@ -52,7 +52,7 @@ Checked in order; only FIXED is applied, and no finding is left without a verdic
 
 After each pass, in the foreground and in the checkout, the four checks in camaleon-cms `AGENTS.md` "Verify before pushing", with rubocop first: `bin/rubocop -A` on the Ruby files the pass touched, then plain `bin/rubocop`, because autocorrect can rewrite string literals the specs must see. A check the repo doesn't have (the plugins carry no brakeman) is skipped and reported as n/a.
 
-- rspec runs the run's spec set plus the specs of any code the pass touched outside it (add them to the set). Judge it by the "0 failures" line, never a piped exit status.
+- rspec runs the run's spec set plus the specs of any code the pass touched outside it (add them to the set). Judge it by the "0 failures" line, never a piped exit status. While the set is empty (a docs-only branch), skip it and report rspec as n/a: `bin/rspec` with no files runs the whole suite.
 - Add `openspec validate --specs --strict` when the branch touches `openspec/`.
 - Fix and commit any failure before the pass ends.
 - Only one `bin/rspec` per test DB at a time, subagents included: a subagent that must run specs uses `DATABASE_URL=sqlite3:<scratchpad>/db_<name>.sqlite3`.
