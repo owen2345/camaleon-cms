@@ -97,6 +97,12 @@ function cama_init_post(obj) {
         // Save Draft's or Preview's call, passed on by a wrapper after the caller gave up waiting for it (see
         // save_under_overlay): its failure handler has run.
         if (call) { if (call.given_up) return; call.reached = true; }
+        run_save(callback, called_from_interval, on_failure, overlay);
+    }
+
+    // The save of a call that came in, or of one drained from the queue. `overlay`: Save Draft's or Preview's
+    // save, which puts the overlay back as it starts.
+    function run_save(callback, called_from_interval, on_failure, overlay) {
         // Another page was loaded in place. With a post form of its own, serializing it would send that
         // post's content to this draft; with none, the save's overlay and callback would run over a page
         // that is not the editor's. Dropped at once, so the caller's failure handler (which closes a
@@ -241,14 +247,13 @@ function cama_init_post(obj) {
             });
         } else {
             // A queued timer call may find nothing to send and return at once, so keep going. Queued saves
-            // run through the local function: a plugin's wrapper on App_post.save_draft_ajax already ran
-            // when they were called. One that throws has drained the rest from its own error path; its
+            // go straight to run_save, with the overlay they were queued with: a plugin's wrapper on
+            // App_post.save_draft_ajax already ran when they were called, and the overlay flag is for calls
+            // on their way through one. One that throws has drained the rest from its own error path; its
             // error is reported separately, since this may run inside the finished save's own error path.
             while (!saving && queued_saves.length) {
                 var queued = queued_saves.shift();
-                // Made under the overlay: flagged again, the call puts it back.
-                under_overlay = queued.overlay;
-                try { save_draft_ajax(queued.callback, queued.from_timer, queued.on_failure); }
+                try { run_save(queued.callback, queued.from_timer, queued.on_failure, queued.overlay); }
                 catch (drained_error) { report_later(drained_error); }
             }
         }
