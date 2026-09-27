@@ -37,6 +37,8 @@ Before pushing, the four commands in `AGENTS.md` pass, with `bin/rspec` scoped a
 
 ## Phase 3: Commit Guidelines
 
+**One fix per commit, committed as soon as it is green.** When a review or an audit turns up several defects, they all land in the same PR, each as its own commit with the spec that reproduces it (spec-only or docs-only where that is the whole fix; say in the message when a spec is infeasible and why). Commit each fix the moment its specs pass and the `AGENTS.md` checks are clean for what it touched, before starting the next, so fixes cannot mix. No batch commits, on a pushed PR branch included.
+
 Whether a push skips CI is decided **per push, not per commit**: GitHub reads the marker off the head commit of the push, and a marked head suppresses every workflow for that push, including the `pull_request` event when the PR is opened at that tip. When invoked, the marker is the literal token on its own line at the end of the message:
 
 ```

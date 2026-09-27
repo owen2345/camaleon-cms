@@ -256,6 +256,16 @@ Changes that look free from inside this repository and are not:
   creates, where it returned as if the value were stored; no surveyed plugin, theme or host adds either to that model, which
   `camaleon-ecommerce` and `camaleon_website`'s store plugin name only as an association's `class_name`.
 
+- **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
+  specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it
+  back as written, while TinyMCE hands content back in its own serialization (`rgb(255, 204, 0)` read back
+  as `#ffcc00`). A saved post holds that serialization either way (TinyMCE writes it into the textarea on
+  submit, and a draft save writes it first), so only the specs see the difference. Until #1310 the post
+  editor's form comparison made that write every minute and whenever the leave prompt ran; it now only
+  reads the editors. The TinyMCE blur handler in `admin/_data.js` still makes it: `tinymce.triggerSave()`
+  writes every editor's textarea, the grid's included, whenever any editor loses focus. The plugin can
+  remove the hazard by writing TinyMCE's serialization into the textarea itself.
+
 ## APIs with no surveyed consumer
 
 Safe to change on the engine's own merits, citing this file: `update_or_create` / `update_or_create!`
@@ -263,7 +273,10 @@ Safe to change on the engine's own merits, citing this file: `update_or_create` 
 `unassign_tags`; `update_counters`; `cf_add_model`; `@_admin_menus`; `@cama_current_user` (no external
 writer); `on_translation`; `render prefixes:`; `Widget::Assigned` discriminator literals; `user_model`
 beyond the two read sites above; `SUSPICIOUS_PATTERNS` / `UNSAFE_EVENT_PATTERNS`; `post_type_list_taxonomy`
-at any arity other than two.
+at any arity other than two; the post editor's JavaScript: `window.save_draft`, `App_post.save_draft_ajax`,
+`App_post.save_draft` and `cama_init_post` (surveyed again for #1310: no repository above calls or wraps
+them; three themes add a TinyMCE editor of their own inside `#form-post`, for product specifications,
+which the post editor waits for, compares and saves like its own).
 
 ## Engine APIs called but missing
 

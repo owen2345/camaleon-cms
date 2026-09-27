@@ -35,6 +35,12 @@ Kept on purpose for external plugins and themes; check `docs/ai/ecosystem.md` be
 - The frontend visited-state ivars (`@cama_visited_post`, `@cama_visited_category`, …) are still assigned by `FrontendVisitedStateConcern`; new code reads `CurrentRequest.frontend_visited_*`.
 - Controller `@current_site` stays assigned for legacy theme templates; new code reads `current_site` / `CurrentRequest.site`.
 - `ThemeHelper#theme_view` still accepts the legacy second argument; pass the view name first.
+- The post editor's `window.save_draft`, `App_post.save_draft_ajax` and `App_post.save_draft` are a plugin contract, specified in `openspec/specs/post-editor-draft-autosave/spec.md`; a change to it updates that spec and the release's upgrade guide.
+
+## Admin JavaScript
+
+- Admin pages can load in place: `camaleon_admin_ajax` replaces `#admin_content` and runs the new page's scripts, so a page's setup can outlive its elements. Code that runs later (a timer, an AJAX callback, a queued call) first checks that the element its setup was run for is still in the document (`$.contains(document, element)`): a global the next setup reassigns, such as `_post.js`'s `$form`, may by then hold the next page's element or one that left.
+- `showLoading`/`hideLoading` drive one overlay for the whole page, and `$.fn.alert` takes it down.
 
 ## Authorization
 

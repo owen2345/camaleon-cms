@@ -29,6 +29,7 @@ what theme/plugin developers should know.
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
+| Calls or wraps the post editor's draft save (`window.save_draft`, `App_post.save_draft_ajax`, `App_post.save_draft`), wraps `$.ajax`, or listens to the post form's `submit` or an editor textarea's `change` | The save is asynchronous now: read the draft in the callback, and check the notes on wrappers and listeners ([details](#the-post-editors-draft-save-is-asynchronous)) |
 
 ---
 
@@ -368,6 +369,75 @@ now returns what a freshly loaded record reads.
 - `the_meta` and `the_option` return a meta or option stored as a number, a boolean or a hash as read, where
   they raised on a loaded record. A String still reads through the locale, and so does every item of an
   Array, as a String whatever it holds: `[1, true]` reads as `['1', 'true']`, as it did before.
+
+### The post editor's draft save is asynchronous
+
+`window.save_draft(callback)` (the save `App_post.save_draft_ajax` runs, without a wrapper on it) no
+longer blocks the page: it returns at once and runs `callback(response)` when the save succeeds. Code
+that reads the draft id, `#post_draft_id` or the Preview link right after the call must read them in the
+callback.
+
+A third argument, `on_failure`, runs when the save does not succeed:
+
+- the server refuses it (the messages are shown as text);
+- the request fails or has not returned after `App_post.save_timeout_ms` (30 seconds);
+- the answer names no draft (`{}`, `null`, `{draft: {}}`) or refuses without a message, blank ones not
+  counting (both count as a failed request);
+- the save could not be sent (a change handler or a `$.ajax` wrapper threw);
+- the save was aborted because a held submit went out (see below);
+- the call was dropped: made or still queued after another page was loaded in place of the form, or
+  queued behind an aborted save.
+
+A failed request the caller asked for (not the timer's) shows an error, unless a submit is waiting on the
+save or the save was aborted: the post save reports for itself then. Shown after another page was loaded in
+place, the error (or a refusal) is prefixed with the post's title. A call made during a save waits for
+it and reuses its draft id, and runs without the overlay unless it was Save Draft's or Preview's.
+`App_post.submit_wait_ms` and `App_post.save_timeout_ms` are defaulted only when unset, so `0` is kept
+(no hold, no timeout).
+
+Four notes for code that wraps the save:
+
+- A wrapper on `App_post.save_draft_ajax` sees the editor's own calls (the timer, Save Draft, Preview),
+  once each. A call made through `window.save_draft` goes to the editor's function, not the wrapper, and
+  each post form the editor is set up on, one loaded in place included, assigns both names again: a
+  wrapper put on before that is gone.
+- Save Draft's or Preview's call is known by its callback or its failure handler, however the wrapper
+  passes it on, and by the call the wrapper makes at once through the function it wraps, unless that is an
+  earlier Save Draft or Preview call, which is known by its own. Passed on later, or through
+  `window.save_draft`, with a callback and a failure handler of its own, it is not known: its save runs
+  without the overlay when it starts late, and the call counts as not passed on, so unless the save has
+  returned by then it fails once `App_post.save_timeout_ms` passed, and its callback may still run
+  afterwards. A save the wrapper makes of its own through `window.save_draft`, or after passing the call
+  on, is a plugin's call. A Save Draft or Preview call the wrapper throws on before passing it on fails at
+  once (the overlay comes down, Preview's window closes); one it has not passed on after
+  `App_post.save_timeout_ms` fails then, and is dropped if it is passed on later.
+- A wrapper on `App_post.save_draft`, the function the Save Draft link calls, runs on each click. Save
+  Draft clicked on a post form loaded in place before the editor was set up on it reaches the previous
+  form's function (through a wrapper on it, if any). That function waits under the overlay for the setup
+  (five seconds at most, while the form is on the page), then calls `App_post.save_draft` again, so a
+  wrapper put on again after each setup sees that click twice. When that second call throws or keeps the
+  click, the overlay comes down.
+- A wrapper on `$.ajax` must return the jqXHR, or the editor cannot abort the request: the held submit
+  then goes out with the save still running, and a submit made afterwards waits another
+  `App_post.submit_wait_ms`.
+
+The form is compared by reading its own TinyMCE editors; a textarea behind an editor is written only when
+a draft is sent (and by TinyMCE on blur and submit, as before), so content a plugin writes into it stays
+as written until then. The `change` event that went with each write goes with it: it was triggered on
+every editor's textarea at each comparison (every minute, and whenever the leave prompt ran), and is now
+triggered only when a draft is sent, so code that follows an editor through its textarea's `change`
+should listen to the editor itself. An editor elsewhere on the page is neither compared nor sent; one
+whose textarea names the form with `form=` is compared and sent through that textarea, as TinyMCE last
+wrote it.
+
+Submitting the post while a save runs shows the loading overlay and holds the submit until the save
+finishes, or for `App_post.submit_wait_ms` (15 seconds), after which the save is aborted and the submit
+goes out. A refused save keeps the post on the form with the refusal shown; a failed request lets it go.
+The held submit is stopped before validation and before listeners bound after the editor's own see it,
+then dispatched again as the browser's own submit event (`form.requestSubmit` with the button that
+submitted the form; jQuery's trigger in Safari before 16), so every listener, delegated or native, and the
+form's default action run once, with the button's name, value and formaction. A listener bound on the
+form before the editor is set up (at DOM ready) sees the submit both times.
 
 ---
 

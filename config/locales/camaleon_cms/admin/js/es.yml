@@ -6,6 +6,7 @@ es:
         msg:
           approved: 'Aprovado'
           draft: 'Borrador guardado  con éxito'
+          draft_save_failed: 'No se pudo guardar el borrador'
           updated_success: 'Actualizado correctamente'
           edit_menu: 'Coloque cada elemento en el orden que prefiera. Haga clic en el icono de un lápiz para editar el elemento y haga clic en el icono en forma de x para eliminar el elemento.'
           delete_item: 'Realmente quiere eliminar este elemento?'
