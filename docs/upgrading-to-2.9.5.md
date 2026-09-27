@@ -29,7 +29,7 @@ what theme/plugin developers should know.
 | Sets `$current_site` anywhere: an initializer, a console script, a rake task | It is no longer read. On a server, map your domains to your sites; elsewhere, pass the site to `current_site(site)` ([details](#the-current_site-global-is-no-longer-read)) |
 | Calls `reset_ability`, assigns `PostDefault.current_user`/`current_site`, compares a boolean meta to `'t'`/`'f'`, or reads a record after `reload` or on a `dup` copy | `reload` rebuilds the ability and drops memoized reads; a boolean meta reads as the boolean whenever it was stored ([details](#reload-and-dup-drop-a-records-memoized-state)) |
 | Has plugin or theme code that changes a `get_meta` default in place and reads the meta again without `set_meta`, reads back the object it passed to `set_meta` on the same instance, or passes a numeric meta it just wrote to a String method | Write changes with `set_meta`, and call `.to_s` before a String method; a read returns what a reloaded record reads ([details](#get_meta-and-set_meta-read-as-a-freshly-loaded-record)) |
-| Calls `window.save_draft` / `App_post.save_draft_ajax` and reads the draft right after the call | The save is asynchronous now: read it in the callback ([details](#the-post-editors-draft-save-is-asynchronous)) |
+| Calls or wraps the post editor's draft save (`window.save_draft`, `App_post.save_draft_ajax`, `App_post.save_draft`), wraps `$.ajax`, or listens to the post form's `submit` or an editor textarea's `change` | The save is asynchronous now: read the draft in the callback, and check the notes on wrappers and listeners ([details](#the-post-editors-draft-save-is-asynchronous)) |
 
 ---
 
@@ -395,7 +395,7 @@ it and reuses its draft id, and runs without the overlay unless it was Save Draf
 `App_post.submit_wait_ms` and `App_post.save_timeout_ms` are defaulted only when unset, so `0` is kept
 (no hold, no timeout).
 
-Three notes for code that wraps the save:
+Four notes for code that wraps the save:
 
 - A wrapper on `App_post.save_draft_ajax` sees the editor's own calls (the timer, Save Draft, Preview),
   once each. A call made through `window.save_draft` goes to the editor's function, not the wrapper, and
@@ -411,6 +411,12 @@ Three notes for code that wraps the save:
   on, is a plugin's call. A Save Draft or Preview call the wrapper throws on before passing it on fails at
   once (the overlay comes down, Preview's window closes); one it has not passed on after
   `App_post.save_timeout_ms` fails then, and is dropped if it is passed on later.
+- A wrapper on `App_post.save_draft`, the function the Save Draft link calls, runs on each click. Save
+  Draft clicked on a post form loaded in place before the editor was set up on it reaches the previous
+  form's function (through a wrapper on it, if any). That function waits under the overlay for the setup
+  (five seconds at most, while the form is on the page), then calls `App_post.save_draft` again, so a
+  wrapper put on again after each setup sees that click twice. When that second call throws or keeps the
+  click, the overlay comes down.
 - A wrapper on `$.ajax` must return the jqXHR, or the editor cannot abort the request: the held submit
   then goes out with the save still running, and a submit made afterwards waits another
   `App_post.submit_wait_ms`.
