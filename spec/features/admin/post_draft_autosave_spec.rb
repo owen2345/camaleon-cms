@@ -865,6 +865,32 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('#cama_custom_loading')
   end
 
+  # The same when the page loaded in place has no post form: the held form is gone and nothing took its
+  # place. The hold ends as the save returns, and the overlay comes down.
+  it 'drops a held submit whose form left for a page without one while it waited' do
+    visit new_post_path
+    wait_for_editor_baseline
+    fill_in 'post_title', with: 'Held on a form that left for the list'
+
+    hold_draft_requests
+    page.execute_script(<<~JS)
+      App_post.submit_wait_ms = 20000;
+      #{publishable_post_js}
+      App_post.save_draft_ajax(null, false);
+      $('#form-post').submit();
+    JS
+    expect(page).to have_css('#cama_custom_loading')
+    load_in_place(post_list_path)
+
+    release_draft_requests
+    wait_for_draft_answers(1)
+    expect(page).to have_no_css('#cama_custom_loading')
+    sleep 1 # long enough for a submit that was sent to have left the page
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect(page).to have_css("#admin_content[data-loaded-in-place='#{post_list_path}']")
+    expect(CamaleonCms::Post.where(title: 'Held on a form that left for the list', status: 'published')).to be_empty
+  end
+
   # camaleon_admin_ajax submits the post form in place from a listener on the body; it must see the held
   # submit once the hold ends, with the draft id in the form.
   it 'delivers a held submit to a listener delegated from an ancestor, with the draft id' do

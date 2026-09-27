@@ -350,6 +350,11 @@ A form submitted while a save runs SHALL be held under the loading overlay, befo
 - **WHEN** the held form is replaced by another form before the hold ends
 - **THEN** the replacement is neither submitted nor marked submitted, and the overlay is gone
 
+#### Scenario: A held form that left for a page without one is not sent
+
+- **WHEN** the post list is loaded in place of the held form and the save the submit waited for returns
+- **THEN** no post is saved, the list stays and the overlay is gone
+
 ### Requirement: The fallback wait aborts the running save
 
 When `App_post.submit_wait_ms` passes with the save still running, the save SHALL be aborted before the submit is sent: `on_failure` runs, no error is shown, and the saves queued behind it are dropped with their failure handlers run, one that throws not stopping the others. A submit made afterwards SHALL NOT be held, since no save runs.
