@@ -40,7 +40,7 @@ The timer SHALL send a draft save only when the form differs from what the last 
 
 ### Requirement: The load baseline waits for the form's editors
 
-The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the form has initialized (re-checked on each editor's `init`), or after ten seconds if one never comes up. Until then the prompt SHALL NOT compare the form: it SHALL fire only if the user typed or clicked in a control of the form, inside it or elsewhere on the page naming it (a native `input` or `change` event) or an editor fired its `change` event (typing, pasting, formatting; not a script's `setContent`). The editor's dirty flag SHALL NOT be used, since TinyMCE clears it when the editor saves into its textarea on blur. A baseline taken after such an edit SHALL keep the form edited until it is submitted, and the first tick after it SHALL send the form.
+The baseline the leave-page prompt compares against SHALL be taken once every TinyMCE editor inside the form has initialized (re-checked on each editor's `init`), or after ten seconds if one never comes up.
 
 #### Scenario: An untouched post with a late editor stays unchanged
 
@@ -52,10 +52,28 @@ The baseline the leave-page prompt compares against SHALL be taken once every Ti
 - **WHEN** a post has a custom field of type editor, whose editor the field's own script creates, and the post is not edited
 - **THEN** a tick sends nothing and the prompt returns nothing
 
+#### Scenario: A baseline wait that outlives its form leaves the next form alone
+
+- **WHEN** another post form is loaded in place of the first before the first form's editor comes up
+- **THEN** neither form gets a baseline from the first wait, and the prompt does not fail on a page without a post form
+
+### Requirement: Before the baseline the prompt counts the user's edits only
+
+Until the baseline is taken, the prompt SHALL NOT compare the form: it SHALL fire only if the user typed or clicked in a control of the form, inside it or elsewhere on the page naming it (a native `input` or `change` event), or an editor fired its `change` event (typing, pasting, formatting; not a script's `setContent`). The editor's dirty flag SHALL NOT be used, since TinyMCE clears it when the editor saves into its textarea on blur.
+
 #### Scenario: An untouched post does not prompt before the baseline
 
 - **WHEN** the content editor initializes three seconds after the page loaded and the prompt runs before the baseline
 - **THEN** it returns nothing, before the baseline and after it
+
+#### Scenario: An editor typed in before the baseline prompts
+
+- **WHEN** the content editor is typed in while the baseline waits for another editor
+- **THEN** the prompt returns a message, before the baseline and after it
+
+### Requirement: A baseline taken after an edit keeps it
+
+A baseline taken after the user edited the form SHALL keep the form edited until it is submitted, and the first tick after it SHALL send the form.
 
 #### Scenario: An edit typed before the baseline keeps prompting and is autosaved
 
@@ -67,20 +85,10 @@ The baseline the leave-page prompt compares against SHALL be taken once every Ti
 - **WHEN** a control elsewhere on the page with `form="form-post"` is typed in while the baseline still waits for the content editor
 - **THEN** the prompt returns a message before and after the baseline, and the first tick after it sends the form
 
-#### Scenario: An editor typed in before the baseline prompts
-
-- **WHEN** the content editor is typed in while the baseline waits for another editor
-- **THEN** the prompt returns a message, before the baseline and after it
-
 #### Scenario: An editor typed in and then left before the baseline prompts
 
 - **WHEN** the content editor is typed in and then loses focus while the baseline waits for another editor
 - **THEN** the prompt returns a message before and after the baseline, and the first tick after it sends the content
-
-#### Scenario: A baseline wait that outlives its form leaves the next form alone
-
-- **WHEN** another post form is loaded in place of the first before the first form's editor comes up
-- **THEN** neither form gets a baseline from the first wait, and the prompt does not fail on a page without a post form
 
 ### Requirement: The comparison reads the form without writing it
 
@@ -225,27 +233,12 @@ A refused save SHALL show its messages as text, whether the response carries a l
 
 ### Requirement: A save belongs to the form it was sent from
 
-The draft id and Preview links SHALL be written into the form the save was sent from. Once the form left the page (another page loaded in place, with a post form of its own or none), a call made, or a queued call run, SHALL be dropped at once, its failure handler run, and a refusal or failure shown SHALL name the post it is about, by its title as text (a translated title by the first language copy typed in). A save returning for a form that left SHALL take down no overlay but its own form's: the overlay a post form loaded in its place put up SHALL stay while that form's save runs, behind a refusal or failure shown for the form that left included.
+The draft id and Preview links SHALL be written into the form the save was sent from. Once the form left the page (another page loaded in place, with a post form of its own or none), a call made, or a queued call run, SHALL be dropped at once, its failure handler run.
 
 #### Scenario: A late response writes into its own form
 
 - **WHEN** the form is replaced by another post form while a save is in flight
 - **THEN** the draft id and Preview link of the form the save was sent from name the draft, and the new form's stay empty
-
-#### Scenario: A refusal shown over a page loaded in place names the post
-
-- **WHEN** Save Draft's save is refused after the form was replaced by another form
-- **THEN** the refusal is shown prefixed with the post's title, HTML in the title rendered as text
-
-#### Scenario: A failure shown over a page without a form names the post
-
-- **WHEN** Save Draft's save fails after the post list was loaded in place of the form
-- **THEN** the failure is shown prefixed with the post's title
-
-#### Scenario: A translated post is named by the first title copy typed in
-
-- **WHEN** the title of a two-language post was typed in the second language only and Save Draft's save is refused after the form left the page
-- **THEN** the refusal is shown prefixed with that title
 
 #### Scenario: A queued save whose form was replaced is dropped
 
@@ -271,6 +264,29 @@ The draft id and Preview links SHALL be written into the form the save was sent 
 
 - **WHEN** the post list is loaded in place of the form and a save with a failure handler is asked for
 - **THEN** no request is sent, and the failure handler has run when the call returns
+
+### Requirement: A refusal or failure for a form that left names the post
+
+A refusal or failure shown once the form left the page SHALL name the post it is about, by its title as text (a translated title by the first language copy typed in).
+
+#### Scenario: A refusal shown over a page loaded in place names the post
+
+- **WHEN** Save Draft's save is refused after the form was replaced by another form
+- **THEN** the refusal is shown prefixed with the post's title, HTML in the title rendered as text
+
+#### Scenario: A failure shown over a page without a form names the post
+
+- **WHEN** Save Draft's save fails after the post list was loaded in place of the form
+- **THEN** the failure is shown prefixed with the post's title
+
+#### Scenario: A translated post is named by the first title copy typed in
+
+- **WHEN** the title of a two-language post was typed in the second language only and Save Draft's save is refused after the form left the page
+- **THEN** the refusal is shown prefixed with that title
+
+### Requirement: A save of a form that left takes down only its own overlay
+
+A save returning for a form that left SHALL take down no overlay but its own form's: the overlay a post form loaded in its place put up SHALL stay while that form's save runs, behind a refusal or failure shown for the form that left included.
 
 #### Scenario: A save of the form that left leaves the next form's overlay up
 
@@ -301,9 +317,9 @@ After every successful save, each Preview link on the form SHALL name that draft
 - **WHEN** the preview's save is refused, or throws before sending
 - **THEN** the window is closed (or never opened), the overlay is gone and the editor stays on the form
 
-### Requirement: A submit during a save is held, then dispatched in full
+### Requirement: A submit during a save is held
 
-A form submitted while a save runs SHALL be held under the loading overlay, before validation or a listener bound after the editor's own sees it, until the save and the saves queued behind it finish (the overlay kept while they run) or `App_post.submit_wait_ms` passes. The submit SHALL then be dispatched again to the form it was held on as the submit event the browser fires (`requestSubmit` with the submitting button as the submitter; jQuery's trigger in a browser without `requestSubmit`), so validation, every listener and the form's default action run once, with the draft id in the form and the button's name, value and formaction sent by the browser. A refused save SHALL drop the hold and keep the post on the form, resetting a `cancelSubmit` the held submit carried; a failed request SHALL let the submit go; a held form that left the page SHALL NOT be sent, but the overlay SHALL come down.
+A form submitted while a save runs SHALL be held under the loading overlay, before validation or a listener bound after the editor's own sees it, until the save and the saves queued behind it finish (the overlay kept while they run) or `App_post.submit_wait_ms` passes.
 
 #### Scenario: A submit during an autosave discards the new post's buffer
 
@@ -315,20 +331,19 @@ A form submitted while a save runs SHALL be held under the loading overlay, befo
 - **WHEN** the draft save never returns and `App_post.submit_wait_ms` passes
 - **THEN** the overlay was shown and the post is created
 
-#### Scenario: A failed draft request lets the submit go
+#### Scenario: The overlay stays while a queued save runs
 
-- **WHEN** the draft request the submit waited for reports an error
-- **THEN** the post is created before the fallback wait
+- **WHEN** the submit was held behind a save whose caller takes the overlay down, with another save queued
+- **THEN** the overlay is up while the queued save runs, and the post is created after it
 
-#### Scenario: A refused draft save keeps the post on the form
+#### Scenario: A queued save that throws lets the held submit go
 
-- **WHEN** the draft save the submit waited for is refused
-- **THEN** the refusal is shown, the overlay is gone, the form is not submitted after the fallback wait, and it is not marked submitted
+- **WHEN** a submit is held behind a save while a queued save waits, and the queued save throws before it is sent
+- **THEN** the post is saved well before `App_post.submit_wait_ms` has passed
 
-#### Scenario: The submit after a dropped skip-validation hold is validated
+### Requirement: A held submit is dispatched again in full
 
-- **WHEN** a submit the validator was told to skip is held and the hold is dropped on a refused save
-- **THEN** the next submit is validated, and an invalid form is neither submitted nor marked submitted
+The held submit SHALL then be dispatched again to the form it was held on as the submit event the browser fires (`requestSubmit` with the submitting button as the submitter; jQuery's trigger in a browser without `requestSubmit`), so validation, every listener and the form's default action run once, with the draft id in the form and the button's name, value and formaction sent by the browser.
 
 #### Scenario: Listeners run once, delegated ones included
 
@@ -350,15 +365,24 @@ A form submitted while a save runs SHALL be held under the loading overlay, befo
 - **WHEN** the browser has no `requestSubmit` and the form is submitted during a save
 - **THEN** the held submit is sent through jQuery's trigger when the save returns, and the post is saved
 
-#### Scenario: The overlay stays while a queued save runs
+### Requirement: The save's outcome decides the held submit
 
-- **WHEN** the submit was held behind a save whose caller takes the overlay down, with another save queued
-- **THEN** the overlay is up while the queued save runs, and the post is created after it
+A refused save SHALL drop the hold and keep the post on the form, resetting a `cancelSubmit` the held submit carried; a failed request SHALL let the submit go; a held form that left the page SHALL NOT be sent, but the overlay SHALL come down.
 
-#### Scenario: A queued save that throws lets the held submit go
+#### Scenario: A failed draft request lets the submit go
 
-- **WHEN** a submit is held behind a save while a queued save waits, and the queued save throws before it is sent
-- **THEN** the post is saved well before `App_post.submit_wait_ms` has passed
+- **WHEN** the draft request the submit waited for reports an error
+- **THEN** the post is created before the fallback wait
+
+#### Scenario: A refused draft save keeps the post on the form
+
+- **WHEN** the draft save the submit waited for is refused
+- **THEN** the refusal is shown, the overlay is gone, the form is not submitted after the fallback wait, and it is not marked submitted
+
+#### Scenario: The submit after a dropped skip-validation hold is validated
+
+- **WHEN** a submit the validator was told to skip is held and the hold is dropped on a refused save
+- **THEN** the next submit is validated, and an invalid form is neither submitted nor marked submitted
 
 #### Scenario: A replaced form is not sent
 
@@ -401,7 +425,21 @@ When `App_post.submit_wait_ms` passes with the save still running, the save SHAL
 
 ### Requirement: The draft save is a public asynchronous contract
 
-`window.save_draft(callback, called_from_interval, on_failure)`, which runs the save `App_post.save_draft_ajax` runs, without a wrapper on it, SHALL return at once and run `callback(response)` when the save succeeds. `on_failure` SHALL run when the save is refused, fails, times out, answers with no draft or with a refusal that names no message, is aborted, is dropped or could not be sent. A failed request the user asked for SHALL show the translated `msg.draft_save_failed` message unless a submit is held on it; the timer's SHALL be retried silently a minute later. `App_post.submit_wait_ms` (15 s) and `App_post.save_timeout_ms` (30 s) SHALL be defaulted only when unset, so a value a plugin or theme set first is kept, `0` included.
+`window.save_draft(callback, called_from_interval, on_failure)`, which runs the save `App_post.save_draft_ajax` runs without a wrapper on it, SHALL return at once, run `callback(response)` when the save succeeds and `on_failure` otherwise: refused, failed, timed out, answered with no draft or with a refusal naming no message, aborted, dropped or not sent. `App_post.submit_wait_ms` (15 s) and `App_post.save_timeout_ms` (30 s) SHALL be defaulted only when unset, `0` included.
+
+#### Scenario: A zero submit_wait_ms is kept
+
+- **WHEN** `App_post.submit_wait_ms` is `0` and the form is submitted while a save that never returns runs
+- **THEN** the post is saved at once
+
+#### Scenario: A zero save_timeout_ms is kept
+
+- **WHEN** `App_post.save_timeout_ms` is `0` and a save is asked for
+- **THEN** its request has no timeout and the draft is saved
+
+### Requirement: A failed save the user asked for is reported
+
+A failed request the user asked for SHALL show the translated `msg.draft_save_failed` message unless a submit is held on it; the timer's SHALL be retried silently a minute later.
 
 #### Scenario: A failed save the user asked for is reported
 
@@ -420,57 +458,21 @@ When `App_post.submit_wait_ms` passes with the save still running, the save SHAL
 
 ### Requirement: Save Draft holds the form while it saves
 
-Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails. A Save Draft or Preview save that starts later than it was asked for (queued behind another save, or held back by a wrapper on `App_post.save_draft_ajax`) SHALL put the overlay back as it starts, the finished save's caller having taken it down; a plugin's queued save, one a change handler asks for while Save Draft's or Preview's save syncs the editors included, SHALL run as it was made, with no overlay put up for it, as SHALL a save a wrapper makes through `window.save_draft` with a callback and a failure handler of its own, which does not count as passing Save Draft's or Preview's call on; that call SHALL be known by its own callback or failure handler however it is passed on, and a save the wrapper makes after passing it on SHALL be a plugin's. A Save Draft or Preview call such a wrapper does not pass on SHALL fail, taking the overlay down and closing Preview's window: at once when the wrapper throws before passing it on, otherwise once `App_post.save_timeout_ms` passed, after which the call SHALL be dropped if the wrapper still passes it on. A call passed on in time, or answered by the wrapper itself, SHALL NOT be failed by that timeout, however long it then waits in the queue. When another page was loaded in place by the time the save returns, with a post form of its own or none, Save Draft SHALL leave that page and its leave prompt alone: the draft is saved, the overlay comes down and the page stays. Save Draft clicked on a post form loaded in place before the editor was set up on it (the setup runs a moment after the form came), through a plugin's wrapper on `App_post.save_draft` or not, SHALL wait for that setup under the overlay, five seconds at most and while that form is on the page, and save that form; a call through a reference to the function of the form that left, made once that setup came, SHALL save that form at once, and a click the setup could not take (it failed before taking Save Draft) SHALL be given up at once.
+Save Draft SHALL hold the form under the overlay while its save runs, leave to the post list on success, and give the form back with the refusal shown when the save is refused or fails.
 
 #### Scenario: Save Draft returns to the list
 
 - **WHEN** Save Draft is clicked on a new post with a title
 - **THEN** the post list opens and the buffer holds the title
 
-#### Scenario: Save Draft returning for a replaced form stays on the page
+#### Scenario: A refused Save Draft gives the editor back
 
-- **WHEN** the form is replaced by another form while Save Draft's save runs
-- **THEN** the buffer holds the title, the overlay is gone, the page stays and the new form is not marked submitted
+- **WHEN** Save Draft's save is refused
+- **THEN** the overlay was shown, the refusal is shown, the overlay is gone and the editor stays on the form
 
-#### Scenario: Save Draft returning for a form that left for a page without one stays on the page
+### Requirement: A late Save Draft or Preview save puts the overlay back
 
-- **WHEN** the post list is loaded in place of the form while Save Draft's save runs
-- **THEN** the buffer holds the title, the overlay is gone and the list stays
-
-#### Scenario: Save Draft clicked before the form loaded in place was set up saves that form
-
-- **WHEN** a new post's form is loaded in place of another post's, its title is typed and Save Draft is clicked before the editor was set up on it
-- **THEN** the overlay is up and nothing is sent until the setup has run; then the new post's draft is saved, the post list opens and the first post has no draft
-
-#### Scenario: Save Draft gives the page back when the setup does not come
-
-- **WHEN** Save Draft is clicked on a post form loaded in place before the editor was set up on it, and the setup does not run within five seconds
-- **THEN** the overlay comes down and nothing is sent, the setup running afterwards included
-
-#### Scenario: Save Draft gives the page back when its form leaves before the setup
-
-- **WHEN** Save Draft is clicked on a post form loaded in place before the editor was set up on it, and another post's form is loaded in its place and set up before that setup came
-- **THEN** the overlay comes down, nothing is sent and the page stays
-
-#### Scenario: Save Draft through a kept reference is handed to the form set up in its place
-
-- **WHEN** a plugin calls `App_post.save_draft` through a reference it kept from a post form, once another post's form was loaded in its place and set up
-- **THEN** that form's draft is saved and the post list opens
-
-#### Scenario: Save Draft gives the page back when the setup fails before taking it
-
-- **WHEN** Save Draft is clicked on a post form loaded in place before the editor was set up on it, and the setup fails once it took the form and before it took Save Draft
-- **THEN** the overlay comes down, nothing is sent and no error is raised
-
-#### Scenario: Save Draft clicked through a wrapper before the setup is handed over
-
-- **WHEN** a plugin wraps `App_post.save_draft` and Save Draft is clicked on a post form loaded in place before the editor was set up on it
-- **THEN** the wrapper runs once and no error is raised; once the setup has run, that form's draft is saved and the post list opens
-
-#### Scenario: A save of the form that left leaves the waiting click's overlay up
-
-- **WHEN** Save Draft's save of a form returns while Save Draft, clicked on a post form loaded in its place, waits for that form's setup
-- **THEN** the overlay stays up; once the setup has run, the second form's draft is saved and the post list opens
+A Save Draft or Preview save that starts later than it was asked for (queued behind another save, or held back by a wrapper on `App_post.save_draft_ajax`) SHALL put the overlay back as it starts, the finished save's caller having taken it down.
 
 #### Scenario: Save Draft queued behind another save keeps the overlay
 
@@ -492,20 +494,28 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 - **WHEN** a wrapper on `App_post.save_draft_ajax` holds Save Draft's call back and sends it once the running save's callback took the overlay down
 - **THEN** the overlay, down since that callback ran, goes up again as Save Draft's save starts, and the post list opens after it
 
-#### Scenario: A Preview call a wrapper throws on fails at once
+### Requirement: A plugin's save gets no overlay
 
-- **WHEN** a wrapper on `App_post.save_draft_ajax` throws before passing Preview's call on
-- **THEN** no window stays open, the overlay is gone and the wrapper's error still reaches the page
+A plugin's queued save SHALL run as it was made, with no overlay put up for it: one a change handler asks for while Save Draft's or Preview's save syncs the editors, one a wrapper on `App_post.save_draft_ajax` makes through `window.save_draft` with a callback and a failure handler of its own, and one that wrapper makes after passing Save Draft's or Preview's call on.
 
-#### Scenario: A Preview call a wrapper throws on after passing it on is previewed
+#### Scenario: A plugin's queued save gets no overlay
 
-- **WHEN** a wrapper on `App_post.save_draft_ajax` passes Preview's call on through `window.save_draft`, then throws
-- **THEN** the window shows the draft and the wrapper's error still reaches the page
+- **WHEN** `window.save_draft` is called while a save whose callback takes the overlay down is running
+- **THEN** the overlay stays down while the queued save runs and after it
 
-#### Scenario: A Save Draft call a wrapper keeps fails once the save timeout passed
+#### Scenario: A plugin save asked for during Save Draft's save gets no overlay
 
-- **WHEN** a wrapper on `App_post.save_draft_ajax` keeps Save Draft's call past `App_post.save_timeout_ms`, then passes it on
-- **THEN** the overlay comes down once the timeout passed, and the call passed on afterwards sends nothing
+- **WHEN** a change handler calls `window.save_draft` while Save Draft's save syncs the editors, and Save Draft's save is refused
+- **THEN** the refusal is shown, the plugin's save runs with the overlay down and the post has one buffer
+
+#### Scenario: A save a wrapper makes after passing Save Draft on gets no overlay
+
+- **WHEN** a wrapper on `App_post.save_draft_ajax` passes Save Draft's call on through `window.save_draft`, then makes a save of its own through the function it wraps, and Save Draft's save fails
+- **THEN** the failure is shown, the wrapper's save is sent and the overlay stays down
+
+### Requirement: A wrapped Save Draft or Preview call is known by its handlers
+
+Save Draft's or Preview's call SHALL be known by its own callback or failure handler however a wrapper on `App_post.save_draft_ajax` passes it on, and by the call the wrapper makes at once through the function it wraps; a save the wrapper makes through `window.save_draft` with a callback and a failure handler of its own SHALL NOT count as passing it on.
 
 #### Scenario: A Save Draft call a wrapper passes on with handlers of its own keeps the overlay
 
@@ -516,6 +526,25 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 
 - **WHEN** a wrapper on `App_post.save_draft_ajax` passes Save Draft's call on through `window.save_draft` with a callback of its own and the call's failure handler, while a save whose callback takes the overlay down runs for longer than `App_post.save_timeout_ms`
 - **THEN** the overlay stays up while the call waits and while its save runs, and the post list opens after it
+
+#### Scenario: A Preview call a wrapper throws on after passing it on is previewed
+
+- **WHEN** a wrapper on `App_post.save_draft_ajax` passes Preview's call on through `window.save_draft`, then throws
+- **THEN** the window shows the draft and the wrapper's error still reaches the page
+
+### Requirement: A call a wrapper does not pass on fails
+
+A Save Draft or Preview call a wrapper on `App_post.save_draft_ajax` does not pass on SHALL fail, taking the overlay down and closing Preview's window: at once when the wrapper throws before passing it on, otherwise once `App_post.save_timeout_ms` passed, after which the call SHALL be dropped if the wrapper still passes it on. A call passed on in time, or answered by the wrapper itself, SHALL NOT be failed by that timeout, however long it then waits in the queue.
+
+#### Scenario: A Preview call a wrapper throws on fails at once
+
+- **WHEN** a wrapper on `App_post.save_draft_ajax` throws before passing Preview's call on
+- **THEN** no window stays open, the overlay is gone and the wrapper's error still reaches the page
+
+#### Scenario: A Save Draft call a wrapper keeps fails once the save timeout passed
+
+- **WHEN** a wrapper on `App_post.save_draft_ajax` keeps Save Draft's call past `App_post.save_timeout_ms`, then passes it on
+- **THEN** the overlay comes down once the timeout passed, and the call passed on afterwards sends nothing
 
 #### Scenario: A Save Draft call a wrapper passed on in time is not failed while it waits
 
@@ -532,27 +561,64 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 - **WHEN** a wrapper on `App_post.save_draft_ajax` makes a save of its own through `window.save_draft`, then keeps Save Draft's call past `App_post.save_timeout_ms`
 - **THEN** the overlay comes down once the timeout passed and the page stays
 
-#### Scenario: A save a wrapper makes after passing Save Draft on gets no overlay
-
-- **WHEN** a wrapper on `App_post.save_draft_ajax` passes Save Draft's call on through `window.save_draft`, then makes a save of its own through the function it wraps, and Save Draft's save fails
-- **THEN** the failure is shown, the wrapper's save is sent and the overlay stays down
-
 #### Scenario: An earlier call passed on leaves the kept call to its timeout
 
 - **WHEN** a wrapper on `App_post.save_draft_ajax` keeps a second Save Draft call and passes the first, which it kept, on through `window.save_draft`
 - **THEN** the first call is sent, and the second fails once `App_post.save_timeout_ms` passed, the overlay coming down
 
-#### Scenario: A plugin's queued save gets no overlay
+### Requirement: Save Draft returning over another page leaves it alone
 
-- **WHEN** `window.save_draft` is called while a save whose callback takes the overlay down is running
-- **THEN** the overlay stays down while the queued save runs and after it
+When another page was loaded in place by the time the save returns, with a post form of its own or none, Save Draft SHALL leave that page and its leave prompt alone: the draft is saved, the overlay comes down and the page stays.
 
-#### Scenario: A plugin save asked for during Save Draft's save gets no overlay
+#### Scenario: Save Draft returning for a replaced form stays on the page
 
-- **WHEN** a change handler calls `window.save_draft` while Save Draft's save syncs the editors, and Save Draft's save is refused
-- **THEN** the refusal is shown, the plugin's save runs with the overlay down and the post has one buffer
+- **WHEN** the form is replaced by another form while Save Draft's save runs
+- **THEN** the buffer holds the title, the overlay is gone, the page stays and the new form is not marked submitted
 
-#### Scenario: A refused Save Draft gives the editor back
+#### Scenario: Save Draft returning for a form that left for a page without one stays on the page
 
-- **WHEN** Save Draft's save is refused
-- **THEN** the overlay was shown, the refusal is shown, the overlay is gone and the editor stays on the form
+- **WHEN** the post list is loaded in place of the form while Save Draft's save runs
+- **THEN** the buffer holds the title, the overlay is gone and the list stays
+
+### Requirement: Save Draft on a form loaded in place waits for its setup
+
+Save Draft clicked on a post form loaded in place before the editor was set up on it (the setup runs a moment after the form came), through a plugin's wrapper on `App_post.save_draft` or not, SHALL wait for that setup under the overlay, five seconds at most and while that form is on the page, and save that form.
+
+#### Scenario: Save Draft clicked before the form loaded in place was set up saves that form
+
+- **WHEN** a new post's form is loaded in place of another post's, its title is typed and Save Draft is clicked before the editor was set up on it
+- **THEN** the overlay is up and nothing is sent until the setup has run; then the new post's draft is saved, the post list opens and the first post has no draft
+
+#### Scenario: Save Draft gives the page back when the setup does not come
+
+- **WHEN** Save Draft is clicked on a post form loaded in place before the editor was set up on it, and the setup does not run within five seconds
+- **THEN** the overlay comes down and nothing is sent, the setup running afterwards included
+
+#### Scenario: Save Draft gives the page back when its form leaves before the setup
+
+- **WHEN** Save Draft is clicked on a post form loaded in place before the editor was set up on it, and another post's form is loaded in its place and set up before that setup came
+- **THEN** the overlay comes down, nothing is sent and the page stays
+
+#### Scenario: Save Draft clicked through a wrapper before the setup is handed over
+
+- **WHEN** a plugin wraps `App_post.save_draft` and Save Draft is clicked on a post form loaded in place before the editor was set up on it
+- **THEN** the wrapper runs once and no error is raised; once the setup has run, that form's draft is saved and the post list opens
+
+#### Scenario: A save of the form that left leaves the waiting click's overlay up
+
+- **WHEN** Save Draft's save of a form returns while Save Draft, clicked on a post form loaded in its place, waits for that form's setup
+- **THEN** the overlay stays up; once the setup has run, the second form's draft is saved and the post list opens
+
+### Requirement: The next setup takes a Save Draft call made for the form that left
+
+A call through a reference to the Save Draft function of the form that left, made once the next form's setup came, SHALL save that form at once; a click that setup could not take (it failed before taking Save Draft) SHALL be given up at once.
+
+#### Scenario: Save Draft through a kept reference is handed to the form set up in its place
+
+- **WHEN** a plugin calls `App_post.save_draft` through a reference it kept from a post form, once another post's form was loaded in its place and set up
+- **THEN** that form's draft is saved and the post list opens
+
+#### Scenario: Save Draft gives the page back when the setup fails before taking it
+
+- **WHEN** Save Draft is clicked on a post form loaded in place before the editor was set up on it, and the setup fails once it took the form and before it took Save Draft
+- **THEN** the overlay comes down, nothing is sent and no error is raised
