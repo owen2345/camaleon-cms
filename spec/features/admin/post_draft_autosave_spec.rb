@@ -169,6 +169,16 @@ describe 'Post editor draft autosave', :js do
     wait_until { page.evaluate_script('typeof window.runHeldSetup === "function"') }
   end
 
+  # Save Draft clicked on a new post's form loaded in place before the editor was set up on it, the page as
+  # the in-place loader leaves it (its overlay taken down as the load ends): the click waits under the overlay.
+  def click_save_draft_before_setup(title)
+    load_new_post_with_held_setup
+    page.execute_script('hideLoading();')
+    fill_in 'post_title', with: title
+    click_link 'Save Draft'
+    expect(page).to have_css('#cama_custom_loading')
+  end
+
   # A new post's form, its baseline taken and its title typed in.
   def open_new_post(title)
     visit new_post_path
@@ -1775,10 +1785,7 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     count_draft_saves
 
-    load_new_post_with_held_setup
-    fill_in 'post_title', with: 'Saved draft before the setup'
-    click_link 'Save Draft'
-    expect(page).to have_css('#cama_custom_loading')
+    click_save_draft_before_setup('Saved draft before the setup')
     expect(draft_saves).to eq(0)
 
     page.execute_script('window.runHeldSetup();')
@@ -1796,10 +1803,7 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     count_draft_saves
 
-    load_new_post_with_held_setup
-    fill_in 'post_title', with: 'Clicked before a setup that never came'
-    click_link 'Save Draft'
-    expect(page).to have_css('#cama_custom_loading')
+    click_save_draft_before_setup('Clicked before a setup that never came')
 
     expect(page).to have_no_css('#cama_custom_loading', wait: 10)
     page.execute_script('window.runHeldSetup();')
@@ -1817,10 +1821,7 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     count_draft_saves
 
-    load_new_post_with_held_setup
-    fill_in 'post_title', with: 'Clicked on a form that left before its setup'
-    click_link 'Save Draft'
-    expect(page).to have_css('#cama_custom_loading')
+    click_save_draft_before_setup('Clicked on a form that left before its setup')
 
     # The post's form comes back in place and is set up: the held setup is now that form's.
     load_in_place("#{post_list_path}/#{post.id}/edit")
@@ -1845,10 +1846,7 @@ describe 'Post editor draft autosave', :js do
       App_post.save_draft = function () { window.wrapperRuns++; return save_draft.apply(this, arguments); };
     JS
 
-    load_new_post_with_held_setup
-    fill_in 'post_title', with: 'Saved through a wrapper before the setup'
-    click_link 'Save Draft'
-    expect(page).to have_css('#cama_custom_loading')
+    click_save_draft_before_setup('Saved through a wrapper before the setup')
     expect(page.evaluate_script('window.wrapperRuns')).to eq(1)
     expect(page_errors).to be_empty
 
@@ -1865,12 +1863,7 @@ describe 'Post editor draft autosave', :js do
     hold_draft_requests
     page.execute_script('App_post.save_draft();')
 
-    load_new_post_with_held_setup
-    # The in-place loader takes the overlay down as its load ends.
-    page.execute_script('hideLoading();')
-    fill_in 'post_title', with: 'Saved once its setup came'
-    click_link 'Save Draft'
-    expect(page).to have_css('#cama_custom_loading')
+    click_save_draft_before_setup('Saved once its setup came')
 
     release_draft_requests
     wait_for_draft_answers(1)
