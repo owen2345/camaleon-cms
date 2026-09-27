@@ -433,6 +433,11 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 - **WHEN** a new post's form is loaded in place of another post's, its title is typed and Save Draft is clicked before the editor was set up on it
 - **THEN** the overlay is up and nothing is sent until the setup has run; then the new post's draft is saved, the post list opens and the first post has no draft
 
+#### Scenario: Save Draft gives the page back when the setup does not come
+
+- **WHEN** Save Draft is clicked on a post form loaded in place before the editor was set up on it, and the setup does not run within five seconds
+- **THEN** the overlay comes down and nothing is sent, the setup running afterwards included
+
 #### Scenario: Save Draft queued behind another save keeps the overlay
 
 - **WHEN** Save Draft is clicked while a save whose callback takes the overlay down is running

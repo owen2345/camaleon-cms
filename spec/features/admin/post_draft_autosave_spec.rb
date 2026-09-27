@@ -149,6 +149,17 @@ describe 'Post editor draft autosave', :js do
     page.execute_script("tinymce.init(cama_get_tinymce_settings({ selector: '#late_editor', height: 100 }));")
   end
 
+  # Loads a new post's form in place with the editor's setup held back until the example calls
+  # window.runHeldSetup().
+  def load_new_post_with_held_setup
+    page.execute_script(<<~JS)
+      var setup = window.cama_init_post;
+      window.cama_init_post = function (obj) { window.runHeldSetup = function () { setup(obj); }; };
+    JS
+    load_in_place(new_post_path)
+    wait_until { page.evaluate_script('typeof window.runHeldSetup === "function"') }
+  end
+
   # A new post's form, its baseline taken and its title typed in.
   def open_new_post(title)
     visit new_post_path
@@ -1635,13 +1646,7 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     count_draft_saves
 
-    # The next form's setup is held back until the example runs it.
-    page.execute_script(<<~JS)
-      var setup = window.cama_init_post;
-      window.cama_init_post = function (obj) { window.runHeldSetup = function () { setup(obj); }; };
-    JS
-    load_in_place(new_post_path)
-    wait_until { page.evaluate_script('typeof window.runHeldSetup === "function"') }
+    load_new_post_with_held_setup
     fill_in 'post_title', with: 'Saved draft before the setup'
     click_link 'Save Draft'
     expect(page).to have_css('#cama_custom_loading')
@@ -1652,6 +1657,27 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(post_list_path, ignore_query: true, wait: 10)
     expect(new_post_buffers.order(:id).last.title).to eq('Saved draft before the setup')
     expect(CamaleonCms::Post.where(post_parent: post.id, status: 'draft_child')).to be_empty
+  end
+
+  # The setup may never come (a script on the page failed): the click waits five seconds at most, then
+  # gives the page back, and a setup that comes later is not handed the click.
+  it 'gives the page back when the form loaded in place is not set up within five seconds of Save Draft' do
+    post = site.the_post('sample-post')
+    visit "#{post_list_path}/#{post.id}/edit"
+    wait_for_editor_baseline
+    count_draft_saves
+
+    load_new_post_with_held_setup
+    fill_in 'post_title', with: 'Clicked before a setup that never came'
+    click_link 'Save Draft'
+    expect(page).to have_css('#cama_custom_loading')
+
+    expect(page).to have_no_css('#cama_custom_loading', wait: 10)
+    page.execute_script('window.runHeldSetup();')
+    wait_for_editor_setup
+    sleep 0.5 # long enough for a click still waiting to have been handed to the setup
+    expect(draft_saves).to eq(0)
+    expect(page).to have_current_path("#{post_list_path}/#{post.id}/edit", ignore_query: true)
   end
 
   # A save queued for the form that left is dropped once another form was set up in its place, and that
