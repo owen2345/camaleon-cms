@@ -443,6 +443,11 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 - **WHEN** a plugin wraps `App_post.save_draft` and Save Draft is clicked on a post form loaded in place before the editor was set up on it
 - **THEN** the wrapper runs once and no error is raised; once the setup has run, that form's draft is saved and the post list opens
 
+#### Scenario: A save of the form that left leaves the waiting click's overlay up
+
+- **WHEN** Save Draft's save of a form returns while Save Draft, clicked on a post form loaded in its place, waits for that form's setup
+- **THEN** the overlay stays up; once the setup has run, the second form's draft is saved and the post list opens
+
 #### Scenario: Save Draft queued behind another save keeps the overlay
 
 - **WHEN** Save Draft is clicked while a save whose callback takes the overlay down is running

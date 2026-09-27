@@ -1707,6 +1707,30 @@ describe 'Post editor draft autosave', :js do
     expect(new_post_buffers.order(:id).last.title).to eq('Saved through a wrapper before the setup')
   end
 
+  # The overlay the click waits under is the next form's: a save of the form that left, returning while
+  # the click waits for the setup, leaves it up.
+  it 'keeps the overlay of a Save Draft click waiting for the setup when a save of the form that left returns' do
+    open_new_post('Saved before the next form came')
+    hold_draft_requests
+    page.execute_script('App_post.save_draft();')
+
+    load_new_post_with_held_setup
+    # The in-place loader takes the overlay down as its load ends.
+    page.execute_script('hideLoading();')
+    fill_in 'post_title', with: 'Saved once its setup came'
+    click_link 'Save Draft'
+    expect(page).to have_css('#cama_custom_loading')
+
+    release_draft_requests
+    wait_for_draft_answers(1)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved before the next form came')
+    expect(page).to have_css('#cama_custom_loading')
+
+    page.execute_script('window.runHeldSetup();')
+    expect(page).to have_current_path(post_list_path, ignore_query: true, wait: 10)
+    expect(new_post_buffers.order(:id).last.title).to eq('Saved once its setup came')
+  end
+
   # A save queued for the form that left is dropped once another form was set up in its place, and that
   # form's own saves go on.
   it 'drops the save queued for the form that left once a post form was set up in its place' do
