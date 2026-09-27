@@ -326,9 +326,12 @@ function cama_init_post(obj) {
         done.under_overlay = failed.under_overlay = call;
         under_overlay = true;
         try { App_post.save_draft_ajax(done, false, failed); }
-        catch (e) { if (under_overlay) give_up(); throw e; }
+        // The wrapper threw before passing the call on: the flag is still set and the call not marked reached
+        // (one passed on through window.save_draft finds the flag put back after it).
+        catch (e) { if (under_overlay && !call.reached) give_up(); throw e; }
         finally {
-            // The save consumes the flag as the call reaches it: still set, the wrapper kept the call.
+            // The save consumes the flag as the call reaches it, and marks a call passed on through
+            // window.save_draft reached itself.
             if (!under_overlay) call.reached = true;
             under_overlay = false;
         }

@@ -1239,6 +1239,26 @@ describe 'Post editor draft autosave', :js do
     expect(page_errors.join).to include('the wrapper failed')
   end
 
+  # A wrapper that throws after it passed Preview's call on through window.save_draft has passed it on:
+  # the save runs its course, the window shows the draft, and the error still reaches the page.
+  it 'previews the draft when a wrapper throws after passing the call on through window.save_draft' do
+    open_new_post('Previewed through a wrapper that throws late')
+    page.execute_script(<<~JS)
+      #{record_page_errors_js}
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        window.save_draft(callback, called_from_interval, on_failure);
+        throw new Error('the wrapper failed afterwards');
+      };
+    JS
+
+    preview = window_opened_by { find('.btn-preview').click }
+    within_window(preview) do
+      expect(page).to have_current_path(/draft_id=\d+\z/, url: true, wait: 10)
+    end
+    preview.close
+    expect(page_errors.join).to include('the wrapper failed afterwards')
+  end
+
   # A wrapper may keep Save Draft's call and never pass it on (a confirmation declined): the call fails
   # once save_timeout_ms passed, and passed on later, it is dropped.
   it 'fails a Save Draft call a wrapper has not passed on within save_timeout_ms' do

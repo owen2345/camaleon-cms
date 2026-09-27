@@ -488,6 +488,11 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 - **WHEN** a wrapper on `App_post.save_draft_ajax` throws before passing Preview's call on
 - **THEN** no window stays open, the overlay is gone and the wrapper's error still reaches the page
 
+#### Scenario: A Preview call a wrapper throws on after passing it on is previewed
+
+- **WHEN** a wrapper on `App_post.save_draft_ajax` passes Preview's call on through `window.save_draft`, then throws
+- **THEN** the window shows the draft and the wrapper's error still reaches the page
+
 #### Scenario: A Save Draft call a wrapper keeps fails once the save timeout passed
 
 - **WHEN** a wrapper on `App_post.save_draft_ajax` keeps Save Draft's call past `App_post.save_timeout_ms`, then passes it on
