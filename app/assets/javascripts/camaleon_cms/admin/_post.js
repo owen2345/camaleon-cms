@@ -84,8 +84,12 @@ function cama_init_post(obj) {
     // on_failure runs when the save is refused, fails, is aborted, is dropped or could not be sent.
     App_post.save_draft_ajax = save_draft_ajax;
     function save_draft_ajax(callback, called_from_interval, on_failure) {
-        var overlay = under_overlay || !!(callback && callback.under_overlay);
+        var call = callback && callback.under_overlay;
+        var overlay = under_overlay || !!call;
         under_overlay = false;
+        // Save Draft's or Preview's call, passed on by a wrapper after the caller gave up waiting for it (see
+        // save_under_overlay): its failure handler has run.
+        if (call) { if (call.given_up) return; call.reached = true; }
         // Another page was loaded in place. With a post form of its own, serializing it would send that
         // post's content to this draft; with none, the save's overlay and callback would run over a page
         // that is not the editor's. Dropped at once, so the caller's failure handler (which closes a
@@ -307,13 +311,28 @@ function cama_init_post(obj) {
     // A save made under the overlay by the script's own callers (through App_post.save_draft_ajax, so a
     // plugin's wrapper runs); started later, from the queue or by the wrapper, it puts the overlay back.
     // The call is known by the flag while it runs and by its callback after it returned: a wrapper may
-    // defer the call, or wrap the callback, not both.
+    // defer the call, or wrap the callback, not both. A call the wrapper does not pass on never reaches the
+    // save that would fail it, so it fails here (the caller takes its overlay down, Preview its window): at
+    // once when the wrapper throws first, otherwise once App_post.save_timeout_ms passed, after which the
+    // save drops it if it still comes.
     function save_under_overlay(callback, on_failure) {
+        var call = {};
+        var done = function () { call.settled = true; return callback.apply(this, arguments); };
+        var failed = function () { call.settled = true; return on_failure.apply(this, arguments); };
+        function give_up() { call.given_up = true; failed(); }
         show_overlay();
-        callback.under_overlay = true;
+        done.under_overlay = call;
         under_overlay = true;
-        try { App_post.save_draft_ajax(callback, false, on_failure); }
-        finally { under_overlay = false; }
+        try { App_post.save_draft_ajax(done, false, failed); }
+        catch (e) { if (under_overlay) give_up(); throw e; }
+        finally {
+            // The save consumes the flag as the call reaches it: still set, the wrapper kept the call.
+            if (!under_overlay) call.reached = true;
+            under_overlay = false;
+        }
+        if (!call.reached && App_post.save_timeout_ms) {
+            setTimeout(function () { if (!call.reached && !call.settled) give_up(); }, App_post.save_timeout_ms);
+        }
     }
 
     // Under the overlay while it saves: the callback leaves the page, and an edit made meanwhile would be lost.

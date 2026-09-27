@@ -1153,6 +1153,44 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(%r{/admin/post_type/#{post_type_id}/posts\z}, ignore_query: true, wait: 5)
   end
 
+  # A wrapper that throws before it passes Preview's call on leaves the save nothing to fail: the call
+  # fails as the wrapper throws, the window closed and the overlay down, and the error still reaches the page.
+  it 'closes the preview window when a wrapper throws before passing the save on' do
+    open_new_post('Previewed through a throwing wrapper')
+    page.execute_script(<<~JS)
+      window.errorsSeen = [];
+      window.addEventListener('error', function (e) { window.errorsSeen.push(e.message); });
+      App_post.save_draft_ajax = function () { throw new Error('the wrapper failed'); };
+    JS
+
+    expect { find('.btn-preview').click }.not_to(change { page.windows.size })
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page.evaluate_script('window.errorsSeen.join()')).to include('the wrapper failed')
+  end
+
+  # A wrapper may keep Save Draft's call and never pass it on (a confirmation declined): the call fails
+  # once save_timeout_ms passed, and passed on later, it is dropped.
+  it 'fails a Save Draft call a wrapper has not passed on within save_timeout_ms' do
+    open_new_post('Kept by a wrapper')
+    count_draft_saves
+    page.execute_script(<<~JS)
+      App_post.save_timeout_ms = 1000;
+      var save = App_post.save_draft_ajax;
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        window.sendKeptCall = function () { save(callback, called_from_interval, on_failure); };
+      };
+    JS
+
+    click_link 'Save Draft'
+    expect(page).to have_css('#cama_custom_loading')
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+
+    page.execute_script('window.sendKeptCall();')
+    expect(draft_saves).to eq(0)
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+  end
+
   # A plugin's call put no overlay up and its callback takes none down: restored for it, the overlay would
   # stay for good.
   it 'leaves the overlay down for a plugin save queued behind another save' do
