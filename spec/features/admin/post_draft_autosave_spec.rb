@@ -173,6 +173,22 @@ describe 'Post editor draft autosave', :js do
     intercept_draft_requests("function (options, send) { setTimeout(send, #{wait_ms}); return $.Deferred().promise() }")
   end
 
+  # The first draft request is sent `wait_ms` later, so that save is in flight for as long; the requests
+  # after it are sent at once.
+  def delay_first_draft_request(wait_ms)
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        var delayed = false;
+        return function (options, send) {
+          if (delayed) return send();
+          delayed = true;
+          setTimeout(send, #{wait_ms});
+          return $.Deferred().promise();
+        };
+      })()
+    HANDLER
+  end
+
   # Each draft request fails `wait_ms` later, as when the transport reports an error.
   def fail_draft_requests(wait_ms)
     intercept_draft_requests(<<~HANDLER)
@@ -1444,17 +1460,7 @@ describe 'Post editor draft autosave', :js do
     fill_in 'post_title', with: 'Saved for the form that left'
 
     # The first draft request is held back for a while, so the next form is set up while it is in flight.
-    intercept_draft_requests(<<~HANDLER)
-      (function () {
-        var held = false;
-        return function (options, send) {
-          if (held) return send();
-          held = true;
-          setTimeout(send, 2000);
-          return $.Deferred().promise();
-        };
-      })()
-    HANDLER
+    delay_first_draft_request(2000)
     page.execute_script(<<~JS)
       window.formThatLeft = $('#form-post')[0];
       App_post.save_draft_ajax(null, false);
@@ -1762,17 +1768,7 @@ describe 'Post editor draft autosave', :js do
     fill_in 'post_title', with: 'Queued preview title'
 
     # The first draft request is held back for a while, so the click lands while it is in flight.
-    intercept_draft_requests(<<~HANDLER)
-      (function () {
-        var held = false;
-        return function (options, send) {
-          if (held) return send();
-          held = true;
-          setTimeout(send, 1500);
-          return $.Deferred().promise();
-        };
-      })()
-    HANDLER
+    delay_first_draft_request(1500)
     autosave_tick
     preview = window_opened_by { find('.btn-preview').click }
 
