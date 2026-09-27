@@ -19,6 +19,7 @@ Making the save asynchronous exposed what the blocking save had hidden: overlapp
 - **A post submitted while a save runs is held** under the overlay, before validation or any other listener sees it, until the save and its queued saves finish or `App_post.submit_wait_ms` passes (the save is aborted then); the submit is then dispatched again in full. A refused save keeps the post on the form; a failed request lets it go; a form that left the page is not sent.
 - **`window.save_draft` / `App_post.save_draft_ajax`** run their callback when the response arrives and take a third `on_failure` argument. `App_post.submit_wait_ms` and `App_post.save_timeout_ms` are defaulted only when unset.
 - **Save Draft** holds the form under the overlay while it saves and gives it back when the save is refused or fails.
+- **A save belongs to the form it was sent from.** Pages load in place, so a save can return, or wait in the queue, after its form left the page for another post form or for a page without one. Its answer is written into the form it was sent from; a call made or still queued for the form that left is dropped, its failure handler run; Save Draft returning for it leaves the page alone; a refusal or failure is shown prefixed with the post's title; and only the overlay that form put up is taken down.
 
 ## Capabilities
 
@@ -34,6 +35,6 @@ _None._ `draft-authorization` (the server side of the same endpoint) is unchange
 
 - **Code:** `app/assets/javascripts/camaleon_cms/admin/_post.js`; a `msg.draft_save_failed` key in every admin JS locale.
 - **Specs:** `spec/features/admin/post_draft_autosave_spec.rb` (`:js`), one example per requirement scenario.
-- **Ecosystem:** code that reads the draft right after `window.save_draft` must read it in the callback. A submit listener a plugin delegates from an ancestor (camaleon_admin_ajax) still runs, once, when a held submit is dispatched again.
+- **Ecosystem:** `docs/ai/ecosystem.md` lists no consumer of `window.save_draft`, `App_post.save_draft_ajax` or `App_post.save_draft`, so the change goes ahead on the engine's merits. Code that reads the draft right after `window.save_draft` must read it in the callback. A submit listener a plugin delegates from an ancestor (camaleon_admin_ajax) still runs, once, when a held submit is dispatched again.
 - **Docs:** `docs/upgrading-to-2.9.5.md` (the asynchronous save section), `CHANGELOG.md`.
 - **Out of scope:** parentless buffers are still never pruned (abandoned new posts; a first save that timed out client-side, or was aborted by the fallback wait, but completed on the server); no saved indicator. Left as they are by decision (design.md, Risks): a `$.ajax` wrapper that returns no jqXHR cannot be aborted; an editor outside the form naming it with `form=` is compared through its textarea.
