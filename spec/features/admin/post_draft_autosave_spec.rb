@@ -1377,6 +1377,51 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
+  # Save Draft's call, passed on through window.save_draft, spends its flag there: a save the wrapper makes
+  # after it through the function it wraps is a plugin's, so a failed Save Draft gives the form back with
+  # the overlay down while that save runs.
+  it 'leaves the overlay down for a save a wrapper makes after passing Save Draft on through window.save_draft' do
+    open_new_post('Failed before a save of the wrapper')
+
+    hold_draft_requests
+    page.execute_script(<<~JS)
+      var save = App_post.save_draft_ajax;
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        window.save_draft(callback, called_from_interval, on_failure);
+        save(null, false);
+      };
+    JS
+    click_link 'Save Draft'
+    expect(page).to have_css('#cama_custom_loading')
+
+    fail_held_draft_request
+    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
+    expect(intercepted_draft_requests).to eq(2)
+    expect(page).to have_no_css('#cama_custom_loading')
+  end
+
+  # A wrapper may pass an earlier Save Draft call on through window.save_draft while a later one is on its
+  # way through it: the earlier call spends its own flag, not the later call's, so the later call, kept,
+  # still fails once save_timeout_ms passed.
+  it 'fails a Save Draft call a wrapper keeps while passing an earlier one on through window.save_draft' do
+    open_new_post('Kept while an earlier call went on')
+
+    hold_draft_requests
+    page.execute_script(<<~JS)
+      var kept = null;
+      App_post.save_draft_ajax = function (callback, called_from_interval, on_failure) {
+        var earlier = kept;
+        kept = [callback, called_from_interval, on_failure];
+        if (earlier) window.save_draft.apply(null, earlier);
+      };
+      App_post.save_timeout_ms = 1000;
+      App_post.save_draft();
+      App_post.save_draft();
+    JS
+    expect(intercepted_draft_requests).to eq(1)
+    expect(page).to have_no_css('#cama_custom_loading', wait: 5)
+  end
+
   # A plugin's call put no overlay up and its callback takes none down: restored for it, the overlay would
   # stay for good.
   it 'leaves the overlay down for a plugin save queued behind another save' do

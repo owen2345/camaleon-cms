@@ -406,10 +406,10 @@ Three notes for code that wraps the save:
   later, or through `window.save_draft`, with a callback and a failure handler of its own, it is not
   known: its save runs without the overlay when it starts late, and the call counts as not passed on,
   so unless the save has returned by then it fails once `App_post.save_timeout_ms` passed, and its
-  callback may still run afterwards. A save the wrapper makes of its own through `window.save_draft` is
-  a plugin's call. A Save Draft or Preview call the wrapper throws on before passing it on fails at once
-  (the overlay comes down, Preview's window closes); one it has not passed on after
-  `App_post.save_timeout_ms` fails then, and is dropped if it is passed on later.
+  callback may still run afterwards. A save the wrapper makes of its own through `window.save_draft`, or
+  after passing the call on, is a plugin's call. A Save Draft or Preview call the wrapper throws on before
+  passing it on fails at once (the overlay comes down, Preview's window closes); one it has not passed on
+  after `App_post.save_timeout_ms` fails then, and is dropped if it is passed on later.
 - A wrapper on `$.ajax` must return the jqXHR, or the editor cannot abort the request: the held submit
   then goes out with the save still running, and a submit made afterwards waits another
   `App_post.submit_wait_ms`.

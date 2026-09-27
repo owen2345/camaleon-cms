@@ -40,7 +40,7 @@ function cama_init_post(obj) {
     // alone, one a change handler makes during that call's sync included, and so is one made through
     // window.save_draft with handlers of its own while that call is on its way through a wrapper. The
     // call's callback and failure handler carry the same mark, for a call a wrapper passes on later or
-    // through window.save_draft.
+    // through window.save_draft. The flag holds the call's mark, so window.save_draft knows its own call.
     var under_overlay = false;
     var submit_wait_timer = null;
     var held_form = null;
@@ -83,11 +83,16 @@ function cama_init_post(obj) {
     if (App_post.submit_wait_ms == null) App_post.submit_wait_ms = 15000;
     if (App_post.save_timeout_ms == null) App_post.save_timeout_ms = 30000;
 
+    // The mark of Save Draft's or Preview's call (see save_under_overlay), on its callback or its failure handler.
+    function call_mark(callback, on_failure) {
+        return (callback && callback.under_overlay) || (on_failure && on_failure.under_overlay);
+    }
+
     // on_failure runs when the save is refused, fails, is aborted, is dropped or could not be sent.
     App_post.save_draft_ajax = save_draft_ajax;
     function save_draft_ajax(callback, called_from_interval, on_failure) {
-        var call = (callback && callback.under_overlay) || (on_failure && on_failure.under_overlay);
-        var overlay = under_overlay || !!call;
+        var call = call_mark(callback, on_failure);
+        var overlay = !!(under_overlay || call);
         under_overlay = false;
         // Save Draft's or Preview's call, passed on by a wrapper after the caller gave up waiting for it (see
         // save_under_overlay): its failure handler has run.
@@ -324,14 +329,12 @@ function cama_init_post(obj) {
         function give_up() { call.given_up = true; failed(); }
         show_overlay();
         done.under_overlay = failed.under_overlay = call;
-        under_overlay = true;
+        under_overlay = call;
         try { App_post.save_draft_ajax(done, false, failed); }
-        // The wrapper threw before passing the call on: the flag is still set and the call not marked reached
-        // (one passed on through window.save_draft finds the flag put back after it).
+        // The wrapper threw before passing the call on: the flag is still set and the call not marked reached.
         catch (e) { if (under_overlay && !call.reached) give_up(); throw e; }
         finally {
-            // The save consumes the flag as the call reaches it, and marks a call passed on through
-            // window.save_draft reached itself.
+            // The flag is spent as the call reaches the save, which also marks a call known by its mark reached.
             if (!under_overlay) call.reached = true;
             under_overlay = false;
         }
@@ -380,9 +383,11 @@ function cama_init_post(obj) {
     window["post_editor_draft_intrval"] = setInterval(function () { if(form_left()){ clearInterval(window["post_editor_draft_intrval"]); } else{ App_post.save_draft_ajax(null, true); } }, 1 * 60 * 1000);
     // A plugin's own call: made while Save Draft's or Preview's call is on its way through a wrapper (the
     // wrapper's own save, or a change handler's), it leaves their flag to the call it belongs to. That call,
-    // passed on through here, is known by its handlers.
+    // passed on through here, is known by its handlers and spends its flag, so a save the wrapper makes
+    // after it is a plugin's too.
     window.save_draft = function (callback, called_from_interval, on_failure) {
         var flagged = under_overlay;
+        if (flagged && flagged === call_mark(callback, on_failure)) flagged = false;
         under_overlay = false;
         try { return save_draft_ajax(callback, called_from_interval, on_failure); }
         finally { under_overlay = flagged; }
