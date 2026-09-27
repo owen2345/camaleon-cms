@@ -29,10 +29,9 @@ function cama_init_post(obj) {
     var refused_hash = null;
     // The user typed or clicked in a control of the form before the baseline: one inside it, or one elsewhere
     // on the page that names it, which the browser sends with it (a native input or change event; a script's
-    // write or jQuery's trigger fires none).
+    // write or jQuery's trigger fires none). The baseline stops the watch and absorbs that edit, so the
+    // form counts as edited until submitted.
     var touched = false;
-    // The baseline absorbed an edit made before it was taken: the form counts as edited until submitted.
-    var edited_before_baseline = false;
     var saving = false;
     var queued_saves = [];
     // Set by the script's own callers (Save Draft, Preview) around their call and consumed by the call: they
@@ -582,10 +581,9 @@ function cama_init_post(obj) {
             if (form_left()) return;
             var hash = get_hash_form();
             // The user edited the form during setup, so this baseline absorbs the edit: the form stays
-            // edited (form_edited) and saved_hash matches nothing, so the timer sends it.
-            if (touched) edited_before_baseline = true;
-            // A save that already ran keeps its own saved_hash.
-            if (saved_hash === null) saved_hash = edited_before_baseline ? '' : hash;
+            // edited (form_edited) and saved_hash matches nothing, so the timer sends it. A save that
+            // already ran keeps its own saved_hash.
+            if (saved_hash === null) saved_hash = touched ? '' : hash;
             $form.data("hash", hash);
         }
         function check() { if (!taken && (form_left() || editors_ready())) take_baseline(); }
@@ -598,8 +596,8 @@ function cama_init_post(obj) {
     // The leave prompt's question. Before the baseline, setup writes (an editor normalizing its textarea,
     // a widget writing its value) would read as edits, so only the user's own input counts then.
     function form_edited() {
-        if (edited_before_baseline) return true;
-        if ($form.data("hash") === undefined) return touched;
+        if (touched) return true;
+        if ($form.data("hash") === undefined) return false;
         return $form.data("hash") != get_hash_form();
     }
 
