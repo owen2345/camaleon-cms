@@ -409,8 +409,12 @@ Three notes for code that wraps the save:
 
 The form is compared by reading its own TinyMCE editors; a textarea behind an editor is written only when
 a draft is sent (and by TinyMCE on blur and submit, as before), so content a plugin writes into it stays
-as written until then. An editor elsewhere on the page is neither compared nor sent; one whose
-textarea names the form with `form=` is compared and sent through that textarea, as TinyMCE last wrote it.
+as written until then. The `change` event that went with each write goes with it: it was triggered on
+every editor's textarea at each comparison (every minute, and whenever the leave prompt ran), and is now
+triggered only when a draft is sent, so code that follows an editor through its textarea's `change`
+should listen to the editor itself. An editor elsewhere on the page is neither compared nor sent; one
+whose textarea names the form with `form=` is compared and sent through that textarea, as TinyMCE last
+wrote it.
 
 Submitting the post while a save runs shows the loading overlay and holds the submit until the save
 finishes, or for `App_post.submit_wait_ms` (15 seconds), after which the save is aborted and the submit
