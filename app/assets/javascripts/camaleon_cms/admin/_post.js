@@ -55,11 +55,14 @@ function cama_init_post(obj) {
     // The overlay is one element for the whole page and has no owner, so this setup marks the one it puts
     // up. Once its form left the page it takes down that one only: the one up by then may be the next
     // form's, whose save still runs.
-    function show_overlay() {
+    function overlay_element() { return $('body > #cama_custom_loading'); }
+    // `owner`: this setup's form, or the one whose overlay an alert took down.
+    function put_overlay_up(owner) {
         showLoading();
-        $('body > #cama_custom_loading').data('post_form', post_form);
+        overlay_element().data('post_form', owner);
     }
-    function overlay_owner() { return $('body > #cama_custom_loading').data('post_form'); }
+    function show_overlay() { put_overlay_up(post_form); }
+    function overlay_owner() { return overlay_element().data('post_form'); }
     function hide_overlay() { if (!form_left() || overlay_owner() === post_form) hideLoading(); }
     // On the document, in the capture phase: a control naming the form from elsewhere does not bubble
     // through it, and a widget that stops the event still counts.
@@ -277,16 +280,13 @@ function cama_init_post(obj) {
     // names the post it is about, by the title as it was typed: the first language copy typed in, or the
     // field itself; and an overlay that is not this setup's goes back up behind it.
     function show_error(text) {
-        var overlay = $('body > #cama_custom_loading'), owner = overlay_owner();
-        if (form_left()) {
+        var left = form_left(), overlay_up = overlay_element().length > 0, owner = overlay_owner();
+        if (left) {
             var title = $(post_form).find('.title-post' + class_translate).filter(function () { return this.value.trim(); }).first().val();
             if (title) text = escape_html(title) + ': ' + text;
         }
         $.fn.alert({type: 'error', title: text, icon: "times"});
-        if (form_left() && overlay.length && owner !== post_form) {
-            showLoading();
-            $('body > #cama_custom_loading').data('post_form', owner);
-        }
+        if (left && overlay_up && owner !== post_form) put_overlay_up(owner);
     }
 
     // Text for the alert, which puts its title into HTML.
