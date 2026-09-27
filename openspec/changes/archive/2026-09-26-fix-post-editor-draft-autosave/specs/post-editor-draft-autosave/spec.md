@@ -446,7 +446,7 @@ Save Draft SHALL hold the form under the overlay while its save runs, leave to t
 #### Scenario: Save Draft sent late by a wrapper puts the overlay back
 
 - **WHEN** a wrapper on `App_post.save_draft_ajax` holds Save Draft's call back and sends it once the running save's callback took the overlay down
-- **THEN** the overlay is up while Save Draft's save runs, and the post list opens after it
+- **THEN** the overlay, down since that callback ran, goes up again as Save Draft's save starts, and the post list opens after it
 
 #### Scenario: A plugin's queued save gets no overlay
 
