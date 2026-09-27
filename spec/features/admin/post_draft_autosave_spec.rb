@@ -219,6 +219,11 @@ describe 'Post editor draft autosave', :js do
     page.execute_script("window.heldDraftRequests.shift().options.success(#{response});")
   end
 
+  # Fails the first held draft request, as when the transport reports an error.
+  def fail_held_draft_request
+    page.execute_script("window.heldDraftRequests.shift().options.error({}, 'error', '');")
+  end
+
   # Each draft request fails `wait_ms` later, as when the transport reports an error.
   def fail_draft_requests(wait_ms)
     intercept_draft_requests(<<~HANDLER)
@@ -2186,13 +2191,11 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Failed before the list'
 
-    fail_draft_requests(1000)
-    page.execute_script(<<~JS)
-      App_post.save_draft();
-      // What opening the post list in place leaves behind while the save runs: the form is gone, and no
-      // form took its place.
-      $('#form-post').detach();
-    JS
+    hold_draft_requests
+    page.execute_script('App_post.save_draft();')
+    load_in_place(post_list_path)
+    expect(page).to have_no_css('#form-post')
+    fail_held_draft_request
 
     expect(page).to have_css('#cama_alert_modal', text: 'Failed before the list: The draft could not be saved')
     expect(page).to have_no_css('#cama_custom_loading')
