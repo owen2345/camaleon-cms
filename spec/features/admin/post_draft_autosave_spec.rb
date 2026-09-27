@@ -40,6 +40,13 @@ describe 'Post editor draft autosave', :js do
     expect(page).to have_no_css('body.modal-open')
   end
 
+  # The alert shows the text, the overlay is down and the editor is still on the new post's form.
+  def expect_alert_on_the_form(text)
+    expect(page).to have_css('#cama_alert_modal', text: text)
+    expect(page).to have_no_css('#cama_custom_loading')
+    expect(page).to have_current_path(new_post_path, ignore_query: true)
+  end
+
   def new_post_buffers
     CamaleonCms::Post.where(status: 'draft_child', post_parent: nil)
   end
@@ -1963,10 +1970,8 @@ describe 'Post editor draft autosave', :js do
     refuse_draft_requests('the preview draft was refused', 500)
     preview = window_opened_by { find('.btn-preview').click }
 
-    expect(page).to have_css('#cama_alert_modal', text: 'the preview draft was refused')
+    expect_alert_on_the_form('the preview draft was refused')
     expect(preview).to be_closed
-    expect(page).to have_no_css('#cama_custom_loading')
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
   # A failed request gives the window nothing to show either, and the user asked for the save.
@@ -1976,10 +1981,8 @@ describe 'Post editor draft autosave', :js do
     fail_draft_requests(500)
     preview = window_opened_by { find('.btn-preview').click }
 
-    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
+    expect_alert_on_the_form('The draft could not be saved')
     expect(preview).to be_closed
-    expect(page).to have_no_css('#cama_custom_loading')
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
   end
 
   # The link's default action is prevented before the save: if the save throws, the link (naming no draft)
@@ -2164,9 +2167,7 @@ describe 'Post editor draft autosave', :js do
 
     page.execute_script('App_post.save_draft();')
 
-    expect(page).to have_css('#cama_alert_modal', text: 'the draft was refused as one message')
-    expect(page).to have_no_css('#cama_custom_loading')
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect_alert_on_the_form('the draft was refused as one message')
   end
 
   # A decorated action may send the model's errors keyed by field; rendered as text they read
@@ -2182,9 +2183,7 @@ describe 'Post editor draft autosave', :js do
 
     page.execute_script('App_post.save_draft();')
 
-    expect(page).to have_css('#cama_alert_modal', text: 'title is too long, slug is taken')
-    expect(page).to have_no_css('#cama_custom_loading')
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect_alert_on_the_form('title is too long, slug is taken')
   end
 
   # A decorated action may send the model's error details, objects that name the error; joined as text
@@ -2218,9 +2217,7 @@ describe 'Post editor draft autosave', :js do
 
     page.execute_script('App_post.save_draft();')
 
-    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
-    expect(page).to have_no_css('#cama_custom_loading')
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect_alert_on_the_form('The draft could not be saved')
 
     page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
     expect(page).to have_css('body[data-later-save="ran"]')
@@ -2233,9 +2230,7 @@ describe 'Post editor draft autosave', :js do
 
     page.execute_script('App_post.save_draft();')
 
-    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
-    expect(page).to have_no_css('#cama_custom_loading')
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect_alert_on_the_form('The draft could not be saved')
   end
 
   # A decorated action may answer `{}` or `null`: there is no draft to name, so the save fails.
@@ -2245,9 +2240,7 @@ describe 'Post editor draft autosave', :js do
 
     page.execute_script('App_post.save_draft();')
 
-    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
-    expect(page).to have_no_css('#cama_custom_loading')
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect_alert_on_the_form('The draft could not be saved')
 
     page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
     expect(page).to have_css('body[data-later-save="ran"]')
@@ -2261,9 +2254,7 @@ describe 'Post editor draft autosave', :js do
 
     page.execute_script('App_post.save_draft();')
 
-    expect(page).to have_css('#cama_alert_modal', text: 'The draft could not be saved')
-    expect(page).to have_no_css('#cama_custom_loading')
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect_alert_on_the_form('The draft could not be saved')
     expect(page.evaluate_script('$("#form-post .btn-preview").attr("href")')).not_to include('undefined')
 
     page.execute_script("App_post.save_draft_ajax(function () { $('body').attr('data-later-save', 'ran'); }, false);")
@@ -2282,8 +2273,6 @@ describe 'Post editor draft autosave', :js do
     JS
 
     expect(page).to have_css('#cama_custom_loading')
-    expect(page).to have_css('#cama_alert_modal', text: 'the draft was refused')
-    expect(page).to have_no_css('#cama_custom_loading')
-    expect(page).to have_current_path(new_post_path, ignore_query: true)
+    expect_alert_on_the_form('the draft was refused')
   end
 end
