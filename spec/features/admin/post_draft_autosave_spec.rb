@@ -118,7 +118,7 @@ describe 'Post editor draft autosave', :js do
         $('#admin_content').attr('data-loaded-in-place', #{path.to_json});
       });
     JS
-    expect(page).to have_css("#admin_content[data-loaded-in-place='#{path}']")
+    expect(page).to have_css("#admin_content[data-loaded-in-place='#{path}']", wait: 10)
   end
 
   # Routes the editor's draft requests through `handler(options, send)`: `send` sends the request for real,
@@ -187,6 +187,29 @@ describe 'Post editor draft autosave', :js do
         };
       })()
     HANDLER
+  end
+
+  # Draft requests are held back until release_draft_requests sends them, so a save is in flight for as
+  # long as the example needs, whatever the runner's speed; the requests made after that are sent at once.
+  def hold_draft_requests
+    intercept_draft_requests(<<~HANDLER)
+      (function () {
+        window.heldDraftRequests = [];
+        return function (options, send) {
+          if (!window.heldDraftRequests) return send();
+          window.heldDraftRequests.push(send);
+          return $.Deferred().promise();
+        };
+      })()
+    HANDLER
+  end
+
+  def release_draft_requests
+    page.execute_script(<<~JS)
+      var held = window.heldDraftRequests;
+      window.heldDraftRequests = null;
+      $.each(held, function (i, send) { send(); });
+    JS
   end
 
   # Each draft request fails `wait_ms` later, as when the transport reports an error.
@@ -1459,8 +1482,8 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Saved for the form that left'
 
-    # The first draft request is held back for a while, so the next form is set up while it is in flight.
-    delay_first_draft_request(2000)
+    # The draft request is held back until the next form is set up, so that happens with it in flight.
+    hold_draft_requests
     page.execute_script(<<~JS)
       window.formThatLeft = $('#form-post')[0];
       App_post.save_draft_ajax(null, false);
@@ -1469,6 +1492,7 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_setup
     expect(page.evaluate_script("$('#form-post')[0] !== window.formThatLeft")).to be(true)
 
+    release_draft_requests
     wait_for_draft_answers(1)
     buffer = new_post_buffers.order(:id).last
     expect(buffer.title).to eq('Saved for the form that left')
@@ -1546,14 +1570,16 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Saved before the list'
 
-    delay_draft_requests(2000)
+    hold_draft_requests
     page.execute_script(<<~JS)
       App_post.save_draft_ajax(null, false);
       App_post.save_draft_ajax(function () { window.queuedSaveRan = true; }, false, function () { window.queuedSaveDropped = true; });
     JS
     load_in_place(post_list_path)
 
-    wait_until { page.evaluate_script('window.queuedSaveDropped') }
+    release_draft_requests
+    wait_for_draft_answers(1)
+    expect(page.evaluate_script('window.queuedSaveDropped')).to be(true)
     expect(page.evaluate_script('window.queuedSaveRan')).to be_nil
     expect(intercepted_draft_requests).to eq(1)
     expect(new_post_buffers.order(:id).last.title).to eq('Saved before the list')
@@ -1925,12 +1951,13 @@ describe 'Post editor draft autosave', :js do
     wait_for_editor_baseline
     fill_in 'post_title', with: 'Saved draft before the list'
 
-    delay_draft_requests(2000)
+    hold_draft_requests
     page.execute_script('App_post.save_draft();')
     load_in_place(post_list_path)
     expect(page).to have_no_css('#form-post')
 
-    wait_until { new_post_buffers.exists? }
+    release_draft_requests
+    wait_for_draft_answers(1)
     sleep 1 # long enough for a callback that leaves the page to have left it
     expect(page).to have_current_path(new_post_path, ignore_query: true)
     expect(page).to have_css("#admin_content[data-loaded-in-place='#{post_list_path}']")
