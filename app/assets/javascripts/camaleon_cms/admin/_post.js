@@ -151,12 +151,12 @@ function cama_init_post(obj) {
                     }
                     var refusal = messages ? [].concat(messages).join(", ").trim() : '';
                     if (refusal) {
-                        // Shown as text ($.fn.alert puts its title into HTML, and a refusal quotes user input).
+                        // Shown as text: a refusal quotes user input.
                         // The callback does not run: it would leave the page or open a stale preview. A held
                         // submit is dropped, since the post save would refuse the same content; the alert took
                         // the overlay down. A cancelSubmit the validator set for that submit (a Cancel or
                         // formnovalidate button) is reset here, as the validator's own handler would have done.
-                        show_error($('<div>').text(refusal).html());
+                        show_error(escape_html(refusal));
                         var validator = held_form && $(held_form).data('validator');
                         if (validator) validator.cancelSubmit = false;
                         drop_hold();
@@ -263,10 +263,13 @@ function cama_init_post(obj) {
     function show_error(text) {
         if (form_left()) {
             var title = $(post_form).find('.title-post' + class_translate).filter(function () { return this.value.trim(); }).first().val();
-            if (title) text = $('<div>').text(title).html() + ': ' + text;
+            if (title) text = escape_html(title) + ': ' + text;
         }
         $.fn.alert({type: 'error', title: text, icon: "times"});
     }
+
+    // Text for the alert, which puts its title into HTML.
+    function escape_html(text) { return $('<div>').text(text).html(); }
 
     function drop_hold() {
         held_form = null;
