@@ -82,6 +82,8 @@ slugs of fields in the groups the corresponding form renders for the record bein
 registered only on another record of the same placement class (another post type, another site's
 settings, theme or user groups, another widget, another menu) MUST NOT create a value row on the
 record being saved. A slug registered on the record's own groups MUST save and read back as before.
+For a post or draft those are its post type's post groups: the groups placed on the post itself or on
+its categories, which the editor also renders, are not saved this way, as before.
 
 #### Scenario: A sibling post type's slug is dropped from a post type save
 
