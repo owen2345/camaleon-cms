@@ -33,7 +33,7 @@ Every pass starts by loading these rules fresh (from the run's copy, if the ledg
 
 ## Pass
 
-Run `/code-review <effort> --fix` on the checkout's local branch against the base, unpushed commits included: no target for camaleon-cms, the checkout path for another repo. Its scope is `git -C <checkout> diff <base-ref>...HEAD`, whatever range `/code-review` picks on its own (it may pick `@{upstream}...HEAD`, which holds only the commits not yet pushed). Never target the PR number: that may review the pushed head, which lacks this run's commits. If the review can't cover that whole range, stop and say so. Apply findings only as the verdicts allow.
+Run `/code-review <effort> --fix` on the checkout's local branch against the base, unpushed commits included: no target for camaleon-cms, the checkout path for another repo. Its scope is `git -C <checkout> diff <base-ref>...HEAD`, whatever range `/code-review` picks on its own (it may pick `@{upstream}...HEAD`, which holds only the commits not yet pushed). Never target the PR number: that may review the pushed head, which lacks this run's commits. If the review can't cover that whole range, stop and say so. For another repo, the review's conventions angle holds the code to camaleon-cms's `CLAUDE.md` (`AGENTS.md`): plugin and theme checkouts carry no agent docs of their own, and a CLAUDE.md governs only the files at or below its directory, so the angle would otherwise find none. Apply findings only as the verdicts allow.
 
 ## Ledger rows
 
