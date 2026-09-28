@@ -64,5 +64,12 @@ RSpec.describe CamaleonCms::Admin::CustomFieldsConcern do
 
       expect(permitted['0'].keys).to contain_exactly('own_setting')
     end
+
+    it "replaces an id naming another field with the slug's own field id" do
+      own_id = CamaleonCms::CustomField.find_by!(slug: 'own_setting').id
+      permitted = controller.send(:cama_permitted_field_options, 'Plugin', field_groups: plugin.get_field_groups)
+
+      expect(permitted['0']['own_setting']['id']).to eq(own_id)
+    end
   end
 end
