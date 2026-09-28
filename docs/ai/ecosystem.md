@@ -261,8 +261,8 @@ Changes that look free from inside this repository and are not:
   generated from the 2.9.3 or 2.9.4 template, both with the class alone (the template now passes the
   plugin's groups), and a class-only call keeps its 2.9.4 slug set: every group placed with that class,
   on any record and any site. Every caller's permitted payload now carries each slug's own field id in
-  place of an id naming another field, and drops groups and entries sent as lists;
-  a form's payload already names that id and sends hashes, so no surveyed caller sees it. The four plugins
+  place of an id naming another field, and drops groups and entries sent as lists; a form's payload
+  already names that id and sends hashes, so no surveyed caller sees it. The four plugins
   and themes that pass raw params to `set_field_values` never went through it. What changed is the core
   saves: a value a theme or plugin submitted through a core form for a record other than the one its group
   is placed on (a group on post type A, submitted with a post of post type B) was stored under the
