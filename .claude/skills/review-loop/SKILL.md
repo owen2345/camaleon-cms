@@ -57,7 +57,7 @@ After each pass, in the foreground and in the checkout, the four checks in camal
 
 - rspec runs the run's spec set plus the specs of any code the pass touched outside it (add them to the set), or the whole suite while the branch carries a refactoring with a wide blast radius (a base class, a concern every model includes, a shared helper), as `AGENTS.md` says. Judge it by the summary line, never a piped exit status: it passes only with 0 failures and no error outside of examples, since a spec file that fails to load stops every example and still prints `0 examples, 0 failures, 1 error occurred outside of examples`. While the set is empty, skip it and report rspec as n/a: `bin/rspec` with no files runs the whole suite.
 - Add `openspec validate --all --strict` when the branch touches `openspec/` (`--specs` alone skips a change not yet archived).
-- Fix and commit any failure before the pass ends.
+- Fix and commit any failure before the pass ends, then run the checks again: the PASS line reports runs taken on the pass's final HEAD, which a later pass may copy.
 - Only one `bin/rspec` per test DB at a time, and the suite's `before(:suite)` empties every table. Other sessions and the IDE share the checkout's test DB, so the loop runs its specs on a scratch one (`DATABASE_URL=sqlite3:<scratchpad>/db_<name>.sqlite3`), and each subagent that must run specs on its own.
 
 ## Pass states and stop
