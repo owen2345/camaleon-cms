@@ -4,7 +4,7 @@ Run specs with `bin/rspec` (it forces `RAILS_ENV=test` and boots `spec/dummy`); 
 
 ## Which specs to run
 
-Run the specs the change adds or edits and the adjacent ones: the spec files of the model, concern, controller or helper the change touches, and whatever `grep -rln <changed symbol> spec/` finds. That is the pre-push check; CI runs the whole suite on every push. Run the whole suite locally only when the user asks for it or after a refactoring with a wide blast radius (a base class, a concern every model includes, a shared helper), and never two runs at once: the suite shares one SQLite database.
+`AGENTS.md` "Verify before pushing" says which specs to run before a push and when to run the whole suite; `grep -rln <changed symbol> spec/` finds the adjacent ones. Never have two runs going at once: the suite shares one SQLite database.
 
 ## Database
 
