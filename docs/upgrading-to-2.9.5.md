@@ -469,7 +469,8 @@ field-group relation as an optional second argument and resolves each slug's fie
 record's `get_field_groups`; pass the groups the save permits where the two differ, as core's post type,
 post, draft, user and widget assignment saves do (a post and its draft pass the post type's post groups,
 not the per-post and category groups the editor also renders). Without it `set_field_values` resolves
-slugs as before.
+slugs through the record's `get_field_groups`, as before, matching field rows only, never a group of
+the same slug.
 
 Custom fields placed on a nav menu through the settings form (the **NavMenu** placement) are stored again
 when a menu item's configuration is saved, and an external item's options keyed by those slugs with them;
