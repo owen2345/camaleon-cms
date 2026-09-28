@@ -27,9 +27,12 @@ module CamaleonCms
         permitted = field_options.permit(field_options.keys.select { |k| k.to_s =~ /\A\d+\z/ }.index_with do
           allowed_keys.index_with { [:id, :group_number, { values: {} }] }
         end).to_h
-        # Drop groups left empty after filtering. set_field_values deletes every existing value
-        # before writing, so handing it a non-blank-but-empty payload (a group whose submitted
-        # slugs were all unregistered) would wipe the object's stored values and write nothing.
+        # Keep only hash-shaped groups and slug entries: a list of hashes passes the permit too and
+        # carries no slug or id to read. Drop groups left empty after filtering: set_field_values
+        # deletes every existing value before writing, so handing it a non-blank-but-empty payload (a
+        # group whose submitted slugs were all unregistered) would wipe the stored values and write nothing.
+        permitted.select! { |_group, fields| fields.is_a?(Hash) }
+        permitted.each_value { |fields| fields.select! { |_slug, data| data.is_a?(Hash) } }
         permitted.reject! { |_group, fields| fields.blank? }
         # The value gate picks its check from the field the row points at, and set_field_values falls
         # back to this id where the record's get_field_groups misses the form's groups (users, widget
