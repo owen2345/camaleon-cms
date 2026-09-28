@@ -50,9 +50,9 @@ module CamaleonCms
 
       # The allow-list covers fields registered directly under object_class. For a post
       # ('PostType_Post') this intentionally spans only the post type's own groups -- not per-post
-      # ('Post') or category-inherited ('Category_Post') groups the edit form also renders. It
-      # matches PostsController#save_post_with_fields, so the main post save and drafts confine field
-      # writes identically; values for those sibling scopes are deliberately not written this way.
+      # ('Post') or category-inherited ('Category_Post') groups the edit form also renders. The post
+      # and draft saves share that scope through PostsController#save_post_params; values for those
+      # sibling scopes are deliberately not written this way.
       # With field_groups (a CustomFieldGroup relation, what the form renders) the list is confined
       # to those groups' fields within object_class; a slug registered only on a sibling record of
       # the same class, or by another site, is not in it. The relation's field_order default scope
