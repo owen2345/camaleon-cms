@@ -463,10 +463,12 @@ out, as the generator template now does:
 ```
 
 The keyword takes the field-group relation the `custom_fields/render` partial received; the positional
-class stays the intersect, so a mismatch permits nothing rather than too much. `set_field_values` takes the
-same relation as an optional second argument and resolves each slug's field in it instead of the record's
-`get_field_groups`; pass it where the two differ, as core's post type, post, draft, user and widget
-assignment saves do. Without it `set_field_values` resolves slugs as before.
+class stays the intersect, so a mismatch permits nothing rather than too much. `set_field_values` takes a
+field-group relation as an optional second argument and resolves each slug's field in it instead of the
+record's `get_field_groups`; pass the groups the save permits where the two differ, as core's post type,
+post, draft, user and widget assignment saves do (a post and its draft pass the post type's post groups,
+not the per-post and category groups the editor also renders). Without it `set_field_values` resolves
+slugs as before.
 
 Custom fields placed on a nav menu through the settings form (the **NavMenu** placement) are stored again
 when a menu item's configuration is saved, and an external item's options keyed by those slugs with them;

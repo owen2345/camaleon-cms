@@ -5,7 +5,7 @@
 # So a post type's own field lost to a posts' field of the same slug, and a user's field to another
 # site's, and the value gate checked the value as that other field's type. The post type, post, draft,
 # user and widget assignment saves now resolve slugs in the groups their permit allows.
-RSpec.describe 'Security: a custom-field save resolves slugs in the groups its form renders', type: :request do
+RSpec.describe 'Security: a custom-field save resolves slugs in the groups its permit allows', type: :request do
   init_site
 
   let(:current_site) { Cama::Site.first.decorate }
