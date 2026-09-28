@@ -86,6 +86,36 @@ as the form does.
 `CustomField.where(parent_id: groups.unscope(:order).select(:id), object_class: '_fields')`: the
 relations carry the model's `field_order` default scope, which has no place inside an `IN (...)`.
 
+### D6. The permit holds each slug's field id
+
+The permitted payload carries, for each slug, one of that slug's field ids in the permitted groups: the
+submitted id when it names such a field, else the first. `set_field_values` falls back to this id where
+the groups it resolves in hold no field of the slug (a class-only caller, or one saving against other
+groups than it permits), and the value gate picks its check from the field the row points at, so a forged
+text-box id would otherwise carry an editor slug's markup past it. Groups and slug entries sent as lists
+are dropped: they carry no slug or id to hold.
+
+### D7. `set_field_values` takes the groups to resolve in, positionally
+
+Where the record's `get_field_groups` differs from the groups its save permits (a post type returns its
+posts' groups, a post adds its own and its categories' groups, a user keys on a site whose id equals the
+user's, a widget assignment finds none), the save passes its groups as an optional second argument and
+each slug resolves among their fields. Positional, not a keyword: a keyword would turn a caller's
+braceless hash payload into unknown keywords. `get_field_groups` itself stays as it is: it is public,
+`camaleon-spree` overrides it, and plugins and themes read `get_field_object` through it.
+
+### D8. Slug lookups count field rows only
+
+Groups share the fields' table and keep their site's id in `parent_id`, so a `parent_id` lookup also
+matches a group of a site whose id equals a searched group's id. `get_field_object`, the post fallback
+and the groups lookup of D7 all require `object_class: '_fields'`.
+
+### D9. The draft save shares the post save's helper
+
+`PostsController#save_post_params` writes the metas, field values and options of both saves, so the draft
+save cannot drift from the post save's permit and resolution. It replaces the draft's call to
+`PostDefault#set_params`, which no surveyed consumer calls or overrides.
+
 ## Risks / Trade-offs
 
 - [A mis-stamped cross-site group renders on a site that does not own it] → the permit follows the
