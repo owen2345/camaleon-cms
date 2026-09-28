@@ -55,6 +55,18 @@ RSpec.describe 'Nav menu item custom-field values are confined to the groups pla
     expect(item.get_option(sibling.slug)).to be_nil
   end
 
+  it "permits a new external item's options against the fields placed on the menu it joins" do
+    post cama_admin_appearances_nav_menu_add_items_path(nav_menu_id: menu.id), params: {
+      external: { external_label: 'New', external_url: '#',
+                  options: { own.slug => 'own option', sibling.slug => 'sibling option' } }
+    }
+
+    expect(response).to have_http_status(:ok)
+    new_item = menu.reload.children.find_by(name: 'New')
+    expect(new_item.get_option(own.slug)).to eq('own option')
+    expect(new_item.get_option(sibling.slug)).to be_nil
+  end
+
   it "permits an external item's options against its own menu, whichever menu the request names" do
     post cama_admin_appearances_nav_menu_update_menu_item_path(nav_menu_id: other_menu.id, id: item.id), params: {
       external_label: 'Item', external_url: '#', options: { own.slug => 'own option', sibling.slug => 'sibling option' }
