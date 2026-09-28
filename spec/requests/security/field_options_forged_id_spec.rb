@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 # Security: the scan-and-reject gate picks a custom-field value's check from the field definition the
-# stored row points at. set_field_values resolves that definition from the slug through the record's
-# get_field_groups, and falls back to the request's field id when that misses. For a user, a widget
+# stored row points at. set_field_values resolved that definition from the slug through the record's
+# get_field_groups, and fell back to the request's field id when that missed. For a user, a widget
 # assignment and a post type the form renders groups get_field_groups does not return, so every
 # permitted slug fell back to the request's id: naming a text box's id stored an editor field's markup
-# unscanned. The permitted payload now carries the id of the slug's field in the groups the form
-# renders, whatever id the request names.
+# unscanned. Those saves now resolve slugs in the groups their form renders, and the permitted payload
+# carries the id of the slug's field in those groups, whatever id the request names, for a caller whose
+# lookup still misses.
 RSpec.describe 'Security: a forged field id cannot skip the custom-field value gate', type: :request do
   init_site
 
