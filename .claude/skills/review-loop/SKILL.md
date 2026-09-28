@@ -42,7 +42,7 @@ pass | claim | file + function or spec example (no line numbers) | category | ve
 
 Checked in order; only FIXED is applied, and no finding is left without a verdict:
 
-1. Refuted → REFUTED. PLAUSIBLE → DEFERRED.
+1. Check every finding against the code yourself, whether or not the review verified it. Refuted → REFUTED. PLAUSIBLE, only when that check can neither confirm nor refute it → DEFERRED; low severity or a loud failure is no reason to defer a confirmed defect.
 2. Same claim as a DECISION or REFUTED row, on code no commit has touched since → REPEAT if DECISION, CONFLICT if REFUTED. If that code changed, treat the claim as new.
 3. Its fix would undo a commit already on this branch (`origin/<base>..HEAD`) or go against a DECISION row → CONFLICT.
 4. Needs a design trade-off or the user's call → DECISION.
