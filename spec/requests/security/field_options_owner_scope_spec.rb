@@ -131,6 +131,17 @@ RSpec.describe 'Security: custom-field saves are confined to the record being sa
     expect_only_own(theme.reload, own, sibling)
   end
 
+  it "drops another site's slug from the theme settings save's theme_fields payload" do
+    theme = current_site.get_theme
+    own = register(theme.add_field_group({ name: 'Own', slug: '_own-theme' }), 'own_theme')
+    sibling = register(other_site.get_theme.add_field_group({ name: 'Other', slug: '_other-theme' }), 'sibling_theme')
+
+    post '/admin/settings/save_theme', params: { theme_fields: field_options(own, sibling) }
+
+    expect(response).to have_http_status(:found)
+    expect_only_own(theme.reload, own, sibling)
+  end
+
   it "drops another site's slug from the user save" do
     own = register(current_site.custom_field_groups.create!(name: 'Own', slug: '_own-user', object_class: 'User',
                                                             objectid: current_site.id), 'own_user')
