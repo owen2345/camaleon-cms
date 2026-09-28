@@ -233,7 +233,11 @@ module CamaleonCms
     #   "0"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}},
     #   "1"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}}
     # }
-    def set_field_values(datas = {})
+    # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
+    # instead of get_field_groups. Pass the groups the save's form renders where the two differ: a post
+    # type's own groups (get_field_groups returns its posts'), a user's site groups, a widget
+    # assignment's widget groups. Positional, so a braceless hash argument stays the payload.
+    def set_field_values(datas = {}, field_groups = nil)
       return if datas.blank?
 
       ActiveRecord::Base.transaction do
@@ -253,11 +257,10 @@ module CamaleonCms
             # forged custom_field_id points the row at a different field definition, and the
             # scan-and-reject gate keys off custom_field.options[:field_key] -- so a forged non-gated
             # id would slip markup past the gate for a gated (editor/uri/field_attrs) slug. Fall back
-            # to values[:id] only when the slug names no field here: trusted/internal callers that
-            # pass slugs outside this object's registered groups, and browser payloads for records
-            # whose form renders groups get_field_groups doesn't return (users, widget assignments,
-            # post types), whose id cama_permitted_field_options holds to the slug's own fields.
-            field_id = get_field_object(field_key)&.id || fallback_field_id_for(field_key) || values[:id]
+            # to values[:id] only when the slug names no field here (trusted/internal callers that
+            # pass slugs outside this object's registered groups; a permitted browser payload's slug
+            # is in the groups its save resolves against, and its id is held to the slug's fields).
+            field_id = _cama_field_id_for(field_key, field_groups) || fallback_field_id_for(field_key) || values[:id]
             group_number = [values[:group_number].to_i, 0].max
 
             order_value = -1
@@ -349,6 +352,12 @@ module CamaleonCms
     end
 
     private
+
+    def _cama_field_id_for(key, field_groups)
+      return get_field_object(key)&.id unless field_groups
+
+      CamaleonCms::CustomField.where(slug: key, parent_id: field_groups.unscope(:order).select(:id)).pick(:id)
+    end
 
     def fallback_field_id_for(key)
       return unless self.class.to_s.parseCamaClass == 'Post'
