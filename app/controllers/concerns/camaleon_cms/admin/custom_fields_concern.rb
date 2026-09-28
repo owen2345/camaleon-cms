@@ -35,9 +35,10 @@ module CamaleonCms
         permitted.each_value { |fields| fields.select! { |_slug, data| data.is_a?(Hash) } }
         permitted.reject! { |_group, fields| fields.blank? }
         # The value gate picks its check from the field the row points at, and set_field_values falls
-        # back to this id where the record's get_field_groups misses the form's groups (users, widget
-        # assignments, post types). Hold it to the slug's own fields, so a forged id naming another
-        # field (a text box for an editor slug) cannot skip the gate.
+        # back to this id where the groups it resolves slugs in hold no field of that slug (a caller that
+        # permits against other groups than it saves with, a class-only permit among them). Hold it to
+        # the slug's own fields, so a forged id naming another field (a text box for an editor slug)
+        # cannot skip the gate.
         permitted.each_value do |fields|
           fields.each do |slug, data|
             ids = field_ids[slug]
