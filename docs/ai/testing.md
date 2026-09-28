@@ -4,7 +4,7 @@ Run specs with `bin/rspec` (it forces `RAILS_ENV=test` and boots `spec/dummy`); 
 
 ## Which specs to run
 
-`AGENTS.md` "Verify before pushing" says which specs to run before a push and when to run the whole suite; `grep -rln <changed symbol> spec/` finds the adjacent ones. Never have two runs going at once: the suite shares one SQLite database.
+`AGENTS.md` "Verify before pushing" says which specs to run before a push and when to run the whole suite; `grep -rln <changed symbol> spec/` finds the adjacent ones. Never have two runs going at once: the suite shares one SQLite database, and runs on separate ones still share the dummy app's files, such as the uploads under `spec/dummy/public/media`.
 
 ## Database
 
