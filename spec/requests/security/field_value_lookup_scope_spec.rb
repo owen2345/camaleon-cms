@@ -39,6 +39,25 @@ RSpec.describe 'Security: a custom-field save resolves slugs in the groups its f
       .to eq([own.id])
   end
 
+  # Groups share the fields' table and keep their site's id in parent_id, so a group of a site whose id
+  # equals one of the resolving groups' ids matches the parent_id lookup too; one sharing the slug and
+  # ordered first must not take the value in place of the field.
+  it "stores a post type's value under its field, not a same-slug group whose site id equals the field's group id" do
+    own_group = post_type.add_custom_field_group({ name: 'Own', slug: 'own-fields' }, 'post_type')
+    own = own_group.add_manual_field({ 'name' => 'Subtitle', 'slug' => 'subtitle', 'field_order' => 1 },
+                                     { 'field_key' => 'editor' })
+    CamaleonCms::CustomFieldGroup.create!(name: 'Subtitle', slug: 'subtitle', object_class: 'Site',
+                                          objectid: 0, parent_id: own_group.id, field_order: 0)
+
+    patch "/admin/settings/post_types/#{post_type.id}", params: {
+      post_type: { name: post_type.name, slug: post_type.slug }, field_options: payload(own)
+    }
+
+    expect(response).to have_http_status(:found)
+    expect(post_type.reload.custom_field_values.where(custom_field_slug: 'subtitle').pluck(:custom_field_id))
+      .to eq([own.id])
+  end
+
   # A post's get_field_groups also holds the groups placed on the post itself, where a same-slug field
   # ordered first won the lookup over the post type's field the permit allowed.
   describe "a post's value lands under its post type's field, not a same-slug field of the post's own group" do

@@ -357,7 +357,10 @@ module CamaleonCms
     def _cama_field_id_for(key, field_groups)
       return get_field_object(key)&.id unless field_groups
 
-      CamaleonCms::CustomField.where(slug: key, parent_id: field_groups.unscope(:order).select(:id)).pick(:id)
+      # Groups share the table and keep their site's id in parent_id, so only field rows count.
+      CamaleonCms::CustomField.where(slug: key, object_class: '_fields',
+                                     parent_id: field_groups.unscope(:order).select(:id))
+                              .pick(:id)
     end
 
     def fallback_field_id_for(key)
