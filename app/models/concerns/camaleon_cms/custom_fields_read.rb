@@ -234,9 +234,10 @@ module CamaleonCms
     #   "1"=>{ "untitled-text-box"=>{"id"=>"262", "values"=>{"0"=>"33333"}}}
     # }
     # field_groups (optional, a CustomFieldGroup relation): resolve each slug's field in these groups
-    # instead of get_field_groups. Pass the groups the save's form renders where the two differ: a post
-    # type's own groups (get_field_groups returns its posts'), a user's site groups, a widget
-    # assignment's widget groups. Positional, so a braceless hash argument stays the payload.
+    # instead of get_field_groups. Pass the groups the save permits where the two differ: a post type's own
+    # groups (get_field_groups returns its posts'), a post's post type groups (get_field_groups adds the
+    # post's own and its categories'), a user's site groups, a widget assignment's widget groups.
+    # Positional, so a braceless hash argument stays the payload.
     def set_field_values(datas = {}, field_groups = nil)
       return if datas.blank?
 

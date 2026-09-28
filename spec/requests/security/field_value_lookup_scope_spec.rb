@@ -3,8 +3,8 @@
 # set_field_values resolves each slug's field through the record's get_field_groups, which for a post
 # type returns its posts' groups and for a user the groups placed on a site whose id equals the user's.
 # So a post type's own field lost to a posts' field of the same slug, and a user's field to another
-# site's, and the value gate checked the value as that other field's type. The post type, user and
-# widget assignment saves now resolve slugs in the groups their form renders.
+# site's, and the value gate checked the value as that other field's type. The post type, post, draft,
+# user and widget assignment saves now resolve slugs in the groups their permit allows.
 RSpec.describe 'Security: a custom-field save resolves slugs in the groups its form renders', type: :request do
   init_site
 
@@ -37,6 +37,47 @@ RSpec.describe 'Security: a custom-field save resolves slugs in the groups its f
     expect(response).to have_http_status(:found)
     expect(post_type.reload.custom_field_values.where(custom_field_slug: 'subtitle').pluck(:custom_field_id))
       .to eq([own.id])
+  end
+
+  # A post's get_field_groups also holds the groups placed on the post itself, where a same-slug field
+  # ordered first won the lookup over the post type's field the permit allowed.
+  describe "a post's value lands under its post type's field, not a same-slug field of the post's own group" do
+    let(:admin_post) { create(:post, post_type: post_type, owner: admin, slug: 'lookup-post', status: 'published') }
+    let(:draft) do
+      post_type.posts.create!(title: 'Draft', slug: 'lookup-draft', user_id: admin.id, status: 'draft_child',
+                              post_parent: admin_post.id)
+    end
+
+    # The decoy is ordered first, so the post's own lookup finds it before the post type's field.
+    def register_both(record)
+      record.add_custom_field_group({ name: 'Own', slug: 'post-own-fields' })
+            .add_manual_field({ 'name' => 'Summary', 'slug' => 'summary', 'field_order' => 0 },
+                              { 'field_key' => 'text_box' })
+      post_type.add_field({ 'name' => 'Summary', 'slug' => 'summary', 'field_order' => 1 }, { 'field_key' => 'editor' })
+    end
+
+    it 'on a post save' do
+      own = register_both(admin_post)
+
+      patch "/admin/post_type/#{post_type.id}/posts/#{admin_post.id}", params: {
+        post: { title: 'Lookup post', content: 'body', status: 'published' }, field_options: payload(own)
+      }
+
+      expect(response).to have_http_status(:found)
+      expect(admin_post.reload.custom_field_values.where(custom_field_slug: 'summary').pluck(:custom_field_id))
+        .to eq([own.id])
+    end
+
+    it 'on a draft save' do
+      own = register_both(draft)
+
+      patch "/admin/post_type/#{post_type.id}/drafts/#{draft.id}", params: {
+        post: { title: 'Draft' }, field_options: payload(own)
+      }
+
+      expect(draft.reload.custom_field_values.where(custom_field_slug: 'summary').pluck(:custom_field_id))
+        .to eq([own.id])
+    end
   end
 
   it "stores a user's value under this site's field, not the one of a site sharing the user's id" do

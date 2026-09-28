@@ -44,7 +44,7 @@ module CamaleonCms
             # like PostsController#save_post_with_fields -- raw params[:field_options] let a caller
             # write custom_field_values with attacker-chosen slugs/ids/group numbers. Options are stored
             # from params[:options], as #update does (the check above reads the same params).
-            @post_draft.set_params(params[:meta], permitted_draft_field_options, params[:options])
+            save_draft_params
             msg = { draft: { id: @post_draft.id },
                     _drafts_path: cama_admin_post_type_draft_path(@post_type.id, @post_draft) }
             r = { post: @post_draft, post_type: @post_type }
@@ -67,7 +67,7 @@ module CamaleonCms
           hooks_run('update_post_draft', r)
           if @post_draft.save(validate: false)
             # Security (audit M8): confine field values to the post type's registered slugs (see #create).
-            @post_draft.set_params(params[:meta], permitted_draft_field_options, params[:options])
+            save_draft_params
             hooks_run('updated_post_draft', { post: @post_draft, post_type: @post_type })
             msg = { draft: { id: @post_draft.id } }
           else
@@ -85,9 +85,14 @@ module CamaleonCms
 
         private
 
-        # The draft editor renders the post type's post groups; the save permits exactly those.
-        def permitted_draft_field_options
-          cama_permitted_field_options('PostType_Post', field_groups: @post_type.get_field_groups('Post'))
+        # The draft editor renders the post type's post groups; the save permits and resolves exactly those
+        # (the draft's own get_field_groups also holds groups placed on the post or its categories).
+        def save_draft_params
+          post_groups = @post_type.get_field_groups('Post')
+          @post_draft.set_metas(params[:meta])
+          @post_draft.set_field_values(cama_permitted_field_options('PostType_Post', field_groups: post_groups),
+                                       post_groups)
+          @post_draft.set_options(params[:options])
         end
 
         def set_post_data_params

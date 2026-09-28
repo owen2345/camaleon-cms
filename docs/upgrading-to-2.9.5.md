@@ -448,9 +448,10 @@ saved. A slug registered on another record of the same kind — another post typ
 theme or users, another widget, another menu — was permitted before and stored under the field id the
 request named; it is dropped now. A permitted value is stored under its slug's own field in those groups,
 whatever id the request names and whatever field of the same slug another group holds (a post type's
-posts, a site whose id equals the user's), so the value gate checks it as the field it is. The admin forms
-only submit the fields they render, so nothing changes for them, and a value already stored under such a
-slug stays where it is; only a theme asking that record for that slug ever read it.
+posts, a post's own or its categories' groups, a site whose id equals the user's), so the value gate
+checks it as the field it is. The admin forms only submit the fields they render, so nothing changes for
+them, and a value already stored under such a slug stays where it is; only a theme asking that record for
+that slug ever read it.
 
 A plugin controller that confines its settings save with `cama_permitted_field_options('Plugin')` still
 accepts the slugs every plugin registered. Pass the groups its settings form renders to keep the others
@@ -463,8 +464,8 @@ out, as the generator template now does:
 The keyword takes the field-group relation the `custom_fields/render` partial received; the positional
 class stays the intersect, so a mismatch permits nothing rather than too much. `set_field_values` takes the
 same relation as an optional second argument and resolves each slug's field in it instead of the record's
-`get_field_groups`; pass it where the two differ, as core's post type, user and widget assignment saves do.
-Without it `set_field_values` resolves slugs as before.
+`get_field_groups`; pass it where the two differ, as core's post type, post, draft, user and widget
+assignment saves do. Without it `set_field_values` resolves slugs as before.
 
 Custom fields placed on a nav menu through the settings form (the **NavMenu** placement) are stored again
 when a menu item's configuration is saved, and an external item's options keyed by those slugs with them;
