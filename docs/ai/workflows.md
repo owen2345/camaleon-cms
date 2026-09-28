@@ -31,7 +31,7 @@ The spec-coverage, reproduce-first and reject-don't-transform rules are in `AGEN
 
 ### D. CI Parity
 
-Before pushing, run `AGENTS.md` "Verify before pushing" as scoped there.
+Before pushing, `AGENTS.md` "Verify before pushing" passes, as scoped there.
 
 ---
 
