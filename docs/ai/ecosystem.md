@@ -268,7 +268,6 @@ Changes that look free from inside this repository and are not:
   from the `NavMenuItem` placement, which nothing writes, to the menu's `NavMenu` groups, so values placed
   through the settings form are stored again; no surveyed repository places nav menu groups in code.
 
-
 - **Writing a TinyMCE editor's content back into its textarea outside a save** breaks `camaleon_editor`'s
   specs: the grid editor writes its export into the editor's textarea as raw HTML and its specs read it
   back as written, while TinyMCE hands content back in its own serialization (`rgb(255, 204, 0)` read back
