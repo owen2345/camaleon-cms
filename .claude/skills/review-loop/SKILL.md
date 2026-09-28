@@ -64,7 +64,7 @@ After each pass, in the foreground and in the checkout, the four checks in camal
 
 ## Pass states and stop
 
-- **SETTLED:** the pass ran to the end, applied no correctness or security fix (a failing spec fixed during the pass counts as one; step 5 fixes and lint fixes may land), every check passed or was n/a and the checkout's tree is clean.
+- **SETTLED:** the pass ran to the end, applied no correctness or security fix (a failing spec fixed during the pass counts as one; step 5 and step 6 fixes and lint fixes may land), every check passed or was n/a and the checkout's tree is clean.
 - **CLEAN:** SETTLED, and applied nothing at all (HEAD unchanged).
 - **UNSETTLED:** anything else.
 
