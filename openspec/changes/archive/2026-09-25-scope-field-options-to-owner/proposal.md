@@ -63,6 +63,6 @@ None.
 ## Notes for upgraders
 
 - A menu item's custom fields placed through the custom-fields form are stored again; they were
-  silently dropped since the mass-assignment hardening in 2.9.3.
+  silently dropped since the mass-assignment hardening in 2.9.2.
 - Plugin controllers confining a settings save can pass `field_groups: @plugin.get_field_groups` to
   keep other plugins' slugs out; without it nothing changes.

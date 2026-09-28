@@ -463,7 +463,7 @@ class stays the intersect, so a mismatch permits nothing rather than too much.
 
 Custom fields placed on a nav menu through the settings form (the **NavMenu** placement) are stored again
 when a menu item's configuration is saved, and an external item's options keyed by those slugs with them;
-both were silently dropped since 2.9.3.
+both were silently dropped since 2.9.2.
 
 ---
 
