@@ -446,10 +446,10 @@ Every admin save of custom-field values (site, theme, post type, post, draft, ca
 assignment, nav menu item) now stores only the fields of the groups its form renders for the record being
 saved. A slug registered on another record of the same kind — another post type, another site's settings,
 theme or users, another widget — was permitted before and stored under the field id the request named; it
-is dropped now, and a menu item accepts only the fields placed on its own menu. A permitted value is stored under its slug's own field in those groups,
-whatever id the request names and whatever field of the same slug another group holds (a post type's
-posts, a post's own or its categories' groups, a site whose id equals the user's), so the value gate
-checks it as the field it is. The admin forms only submit the fields they render, so nothing changes for
+is dropped now, and a menu item accepts only the fields placed on its own menu. A permitted value is
+stored under its slug's own field in those groups, whatever id the request names and whatever field of
+the same slug another group holds (a post type's posts, a post's own or its categories' groups, a site
+whose id equals the user's), so the value gate checks it as the field it is. The admin forms only submit the fields they render, so nothing changes for
 them. A value already stored under such a slug is not migrated: the record's next custom-field save removes
 it, as every such save has replaced the record's stored values with the ones submitted, and until then only
 a theme asking that record for that slug reads it.
