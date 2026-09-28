@@ -38,6 +38,8 @@ RSpec.describe 'Security: a forged field id cannot skip the custom-field value g
       user: { username: member.username, email: member.email }, field_options: forged_payload(bio)
     }
 
+    # The save reached the gate and was refused, not skipped.
+    expect(flash[:error]).to include("The 'bio' field contains HTML that is not allowed")
     expect(member.reload.custom_field_values.where(custom_field_slug: 'bio')).not_to exist
   end
 
