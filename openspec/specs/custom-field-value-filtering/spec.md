@@ -124,13 +124,14 @@ type.
   profile, naming a text-box field's id
 - **THEN** the value is refused as the editor field's value, and no row is stored
 
-### Requirement: A save resolves each slug in the groups its form renders
+### Requirement: A save resolves each slug in the groups it permits
 
-A save whose record's own field-group lookup differs from the groups its form renders — a post type
-(whose lookup returns its posts' groups), a user (whose lookup keys on a site id equal to the user's) and
-a widget assignment (whose lookup finds none) — SHALL resolve each permitted slug's field in the rendered
-groups. A same-slug field outside them MUST NOT receive the value row. Other callers of the model save
-keep resolving slugs through the record's own lookup.
+A save whose record's own field-group lookup differs from the groups its permit allows — a post type
+(whose lookup returns its posts' groups), a post or draft (whose lookup adds the groups placed on the
+post and its categories), a user (whose lookup keys on a site id equal to the user's) and a widget
+assignment (whose lookup finds none) — SHALL resolve each permitted slug's field among the fields of
+those groups. A same-slug field outside them, or a field group sharing the slug, MUST NOT receive the
+value row. Other callers of the model save keep resolving slugs through the record's own lookup.
 
 #### Scenario: A post type's own field wins over its posts' field of the same slug
 
@@ -143,6 +144,12 @@ keep resolving slugs through the record's own lookup.
 - **WHEN** another site whose id equals the user's id holds a user field under the same slug and the
   user's save submits that slug
 - **THEN** the value row points at the current site's field
+
+#### Scenario: A post's value lands under its post type's field
+
+- **WHEN** a group placed on the post holds a field under the same slug as a post type's post field,
+  ordered first, and the post or its draft is saved with that slug
+- **THEN** the value row points at the post type's field
 
 ### Requirement: A nav menu item save accepts the groups placed on its menu
 
