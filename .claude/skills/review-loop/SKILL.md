@@ -29,7 +29,7 @@ Read them from the goal, the skill's arguments or the request; each has a defaul
 - **Rules:** when the PR edits this skill, the run's rules are a copy of the head's version (`git -C <checkout> show HEAD:.claude/skills/review-loop/SKILL.md`). A copy the goal names must match it, since one left from an earlier run holds rules the PR has since changed; otherwise stop and say so in the `PASS 0/8` line. When the goal names the skill itself, save the copy to the session's scratchpad (`… > <scratchpad>/review-loop.md`). Either way, write the copy's path at the top of the run: every pass loads the rules from it.
 - **Spec set:** the spec files the branch adds or changes (`git -C <checkout> diff --name-only --diff-filter=d origin/<base>...HEAD -- 'spec/*_spec.rb'`: handed to `bin/rspec`, a deleted spec, a factory or a fixture fails to load, and a support file loads again and adds no example) plus the adjacent specs as camaleon-cms `AGENTS.md` defines them, which for a changed factory or support file are the specs that use the factories or helpers it changes. Write it at the top of the run.
 
-Every pass starts by loading these rules fresh (from the run's copy, if the ledger names one), noting HEAD and reading the ledger (it holds the pass count and each pass's state). From pass 2 on, it also checks that the checkout is still on the head branch, at the HEAD the previous PASS line ends on and with the git status it reports (clean, or the same dirty paths), since other sessions and the IDE share it: a switch, edit or commit made between passes would otherwise be reviewed and committed as the run's work, or pushed under checks copied from another tree. If it isn't, stop and say so, without switching, resetting, stashing or committing.
+Every pass starts by loading these rules fresh (from the run's copy, if the ledger names one), noting HEAD and reading the ledger (it holds the pass count and each pass's state). From pass 2 on, it also checks that the checkout is still on the head branch, at the HEAD the previous PASS line ends on and with the git status it reports (clean, or the same dirty paths), since other sessions and the IDE share it: a switch, edit or commit made between passes would otherwise be reviewed and committed as the run's work, or pushed under checks copied from another tree. Commits past that HEAD whose SHAs the ledger's rows after that line record are the run's own, left by a pass cut off before its PASS line: finish that pass instead of starting a new one. Anything else stops the run: say so, without switching, resetting, stashing or committing.
 
 ## Pass
 
@@ -38,6 +38,8 @@ Run `/code-review <effort> --fix` on the checkout's local branch against the bas
 ## Ledger rows
 
 pass | claim | file + function or spec example (no line numbers) | category | verdict | evidence (fix SHA, or reason + the HEAD it was judged at)
+
+Append each row when its verdict is reached, a FIXED row once its commit lands: a pass cut off before its PASS line then leaves its fixes on record.
 
 ## Verdicts
 
