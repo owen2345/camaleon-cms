@@ -11,7 +11,7 @@ Repeated `/code-review <effort> --fix` passes on a PR's local branch until they 
 /goal Run the review-loop skill with repo=<repo> pr=<number> effort=<level>, one pass per turn, each turn ending with its PASS line, until the latest PASS line says STOP or shows 8/8. A STOP for convergence counts only if the latest PASS line shows CLEAN and the one before it SETTLED or CLEAN, both with git status clean, rspec 0 failures and no errors (n/a for an empty spec set or a no-code branch) and every check ok or n/a. A STOP for any other reason the skill gives (setup, a checkout changed between passes, a review that can't cover its range, a second conflict, an undone commit, a check it can't fix) counts as it stands.
 ```
 
-The session loads this skill live from its checkout, so a PR that edits it runs from a copy of the head's version saved outside the checkout, named in the goal in place of the skill: the PR's fixes then don't change the rules mid-run. If the goal names the skill itself, setup saves the copy.
+The session loads this skill live from its checkout, so a PR that edits it runs from a copy saved outside the checkout, named in the goal in place of the skill or saved by setup (see **Rules** under Setup): the PR's fixes then don't change the rules mid-run.
 
 ## Parameters
 
