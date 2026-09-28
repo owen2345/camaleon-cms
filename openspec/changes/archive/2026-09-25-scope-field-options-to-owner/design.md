@@ -24,7 +24,7 @@ See proposal.md for the finding. The pieces as they stand on `master`:
 
 **Goals:**
 - Permit equals render: each save accepts exactly the slugs its form offers for the record.
-- One helper, opt-in narrowing, no change for a caller that does not opt in.
+- One helper, opt-in narrowing: a caller that does not opt in keeps the slugs it permits.
 
 **Non-Goals:**
 - **Widening the post save** to per-post and category-inherited groups: the `'PostType_Post'` scope

@@ -27,8 +27,8 @@ placed through the form is dropped); both fail before the fix.
 
 - `cama_permitted_field_options` and `cama_custom_field_allowed_slugs` take an optional
   `field_groups:` keyword: the field-group relation the save's form renders. The allow-list is then
-  the slugs of those groups' fields within `object_class`. Without it the helpers behave as today
-  (every group of the class), so no released caller changes.
+  the slugs of those groups' fields within `object_class`. Without it the helpers permit the slugs
+  they do today (every group of the class), so no released caller loses one.
 - Every core save passes the groups its form renders: site, theme (both payloads), post type, post,
   draft, category, post tag, user, widget assignment, nav menu item.
 - The nav menu item save and the external item options permit against the item's menu, placement
@@ -65,4 +65,4 @@ None.
 - A menu item's custom fields placed through the custom-fields form are stored again; they were
   silently dropped since the mass-assignment hardening in 2.9.2.
 - Plugin controllers confining a settings save can pass `field_groups: @plugin.get_field_groups` to
-  keep other plugins' slugs out; without it nothing changes.
+  keep other plugins' slugs out; without it the slugs permitted stay the same.
