@@ -58,7 +58,7 @@ jobs:
       # the RubyGems version: a floating version lets a RubyGems release fail a gem release nobody
       # touched. setup-ruby treats this as a floor — if the runner's own default ever exceeds it,
       # that default is used instead — so raise it deliberately, and re-check --strict when you do.
-      - uses: ruby/setup-ruby@e8944e80fb94b20106697132f8c20c665fab29e9
+      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8
         with:
           ruby-version: .tool-versions
           rubygems: 4.0.19
@@ -284,7 +284,7 @@ jobs:
         with:
           persist-credentials: false # only here so .tool-versions pins the Ruby used to push
 
-      - uses: ruby/setup-ruby@e8944e80fb94b20106697132f8c20c665fab29e9
+      - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8
         with:
           ruby-version: .tool-versions
           rubygems: 4.0.19
