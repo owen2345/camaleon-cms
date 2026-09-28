@@ -111,6 +111,19 @@ record being saved. A slug registered on the record's own groups MUST save and r
   record's slug
 - **THEN** the registered slug's value is stored and readable back, and the sibling slug is dropped
 
+### Requirement: A permitted value is stored under its slug's own field
+
+The shared permit SHALL carry, for each permitted slug, the id of one of that slug's fields in the groups
+it permits, keeping the submitted id only when it names such a field. A value row saved from a permitted
+payload MUST NOT point at a field the slug does not name, so the value gate checks it by its own field
+type.
+
+#### Scenario: A forged text-box id cannot carry an editor value past the gate
+
+- **WHEN** a role the value gate applies to saves a markup value for an editor field of its own user
+  profile, naming a text-box field's id
+- **THEN** the value is refused as the editor field's value, and no row is stored
+
 ### Requirement: A nav menu item save accepts the groups placed on its menu
 
 A group placed on a nav menu through the custom-fields form (placement class `NavMenu`, the menu's
